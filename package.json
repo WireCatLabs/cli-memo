@@ -1,0 +1,53 @@
+{
+  "name": "@leemour/cli-memo",
+  "version": "0.1.0",
+  "description": "Context about people across messengers, notes and mail, from a local store",
+  "license": "MIT",
+  "author": "Viacheslav Ptsarev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leemour/cli-memo.git"
+  },
+  "type": "module",
+  "engines": {
+    "node": "^22.16.0 || >=24"
+  },
+  "packageManager": "pnpm@11.20.0",
+  "bin": {
+    "memo": "dist/bin/memo.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "typecheck": "tsc --build --force --emitDeclarationOnly && tsc -p tsconfig.test.json",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "release:check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm secrets:scan",
+    "prepare": "lefthook install || true",
+    "secrets:scan": "gitleaks git --no-banner --redact .",
+    "prepublishOnly": "pnpm build"
+  },
+  "dependencies": {
+    "@leemour/cli-core": "0.17.0",
+    "@leemour/cli-messaging": "0.144.0",
+    "commander": "15.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.14",
+    "@types/node": "^22.20.4",
+    "@vitest/coverage-v8": "5.0.2",
+    "lefthook": "^2.1.14",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
