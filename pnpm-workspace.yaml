@@ -1,0 +1,7 @@
+# pnpm blocks dependencies' install scripts by default; since pnpm 11 each one is allowed here by name.
+allowBuilds:
+  esbuild: true
+  lefthook: true
+# Our own packages are used the day they are published.
+minimumReleaseAgeExclude:
+  - "@leemour/*"
