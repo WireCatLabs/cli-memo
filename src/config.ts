@@ -3,6 +3,7 @@ import * as v from "valibot"
 
 const ConfigSchema = v.object({
   notes: v.optional(v.object({ folders: v.array(v.string()) })),
+  mail: v.optional(v.object({ accounts: v.array(v.object({ name: v.string(), address: v.string() })) })),
 })
 
 export type Config = v.InferOutput<typeof ConfigSchema>

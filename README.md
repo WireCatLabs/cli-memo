@@ -9,7 +9,7 @@ It reads the local message store that [tg-cli](https://github.com/leemour/tg-cli
 through [Himalaya](https://github.com/pimalaya/himalaya). Everything stays on your machine; nothing is
 sent or changed at the source.
 
-**Status:** early. Notes work; mail and messages are being built.
+**Status:** early. Notes and Gmail import work; the joined answer about a person is being built.
 
 ## Notes
 
@@ -27,6 +27,31 @@ To skip `--folder`, list the folders in `~/.config/cli-memo/config.json`:
 
 ```json
 { "notes": { "folders": ["/path/to/vault"] } }
+```
+
+## Mail
+
+```sh
+memo mail import --since 2026-09-01
+```
+
+Reads a Gmail account's All Mail through [Himalaya](https://github.com/pimalaya/himalaya) into the
+shared message store as provider `email`: one chat per Gmail thread, the mailbox address as the
+account, senders and recipients as people. Messenger search and person context then see mail too.
+
+- Read only: the mailbox is opened read-only, nothing is sent, and no mail is marked read.
+- Run it again any time: what is stored is skipped; `--max` (default 200) bounds the new mails read
+  per run, and the next run continues.
+- A mail deleted at the source loses its text in the store. The first two days of the window are left
+  alone, and a run that finds an unusually large share missing deletes nothing and says so. Mail moved
+  to Spam leaves All Mail and counts as deleted.
+
+Set the account up in Himalaya first (an IMAP account with a Gmail
+[app password](https://myaccount.google.com/apppasswords); `bin/mail-password <name>` stores it in the
+keyring), then name it in `~/.config/cli-memo/config.json`:
+
+```json
+{ "mail": { "accounts": [{ "name": "gmail", "address": "you@example.com" }] } }
 ```
 
 ## Development

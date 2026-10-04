@@ -1,6 +1,7 @@
 import { createRenderer, processStreams, type Streams } from "@leemour/cli-core"
 import { Command, InvalidArgumentError } from "commander"
 import { loadConfig } from "./config.js"
+import { mailCommand } from "./mail/command.js"
 import { findNotes } from "./notes/read.js"
 import { notesText } from "./notes/text.js"
 import { VERSION } from "./version.js"
@@ -42,6 +43,8 @@ export const createProgram = ({
       if (options.json) createRenderer({ format: "json", color: false, streams }).result(answer)
       else streams.data(`${notesText(answer)}\n`)
     })
+
+  mailCommand(program, streams, env)
 
   return program
 }

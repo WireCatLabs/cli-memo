@@ -17,6 +17,7 @@ process.env.MEMO_STATE_DIR = join(sandbox, "memo-state")
 process.env.MEMO_CACHE_DIR = join(sandbox, "memo-cache")
 process.env.MESSAGING_STORE = join(sandbox, "messages.db")
 process.env.HIMALAYA_CONFIG = join(sandbox, "himalaya.toml")
+process.env.MEMO_HIMALAYA = join(import.meta.dirname, "fake-himalaya.mjs")
 process.env.TMPDIR = sandbox
 process.env.MEMO_TEST_SANDBOX = sandbox
 
