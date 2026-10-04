@@ -1,6 +1,7 @@
 import { homedir } from "node:os"
 import { storePath } from "@leemour/cli-messaging/store"
 import { describe, expect, it } from "vitest"
+import { configPath } from "../src/config.js"
 
 describe("test sandbox", () => {
   const sandbox = process.env.MEMO_TEST_SANDBOX ?? ""
@@ -8,6 +9,10 @@ describe("test sandbox", () => {
   it("keeps the shared message store inside the sandbox", () => {
     expect(sandbox).not.toBe("")
     expect(storePath().startsWith(sandbox)).toBe(true)
+  })
+
+  it("keeps memo's own config inside the sandbox", () => {
+    expect(configPath().startsWith(sandbox)).toBe(true)
   })
 
   it("keeps home and Himalaya's config inside the sandbox", () => {

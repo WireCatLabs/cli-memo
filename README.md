@@ -9,7 +9,25 @@ It reads the local message store that [tg-cli](https://github.com/leemour/tg-cli
 through [Himalaya](https://github.com/pimalaya/himalaya). Everything stays on your machine; nothing is
 sent or changed at the source.
 
-**Status:** early. The command exists; the readers are being built.
+**Status:** early. Notes work; mail and messages are being built.
+
+## Notes
+
+```sh
+memo notes "Rin Example" --folder ~/Notes
+```
+
+It lists the notes *about* the person (file name or `aliases` in the front matter), the notes that
+*link* them (`[[Rin Example]]`, also through an alias or a heading), and lines that only say the name —
+labelled weak, since another person can have the same name. Newest first, each with its file and line;
+`--json` for scripts and agents, `--limit` for more. Hidden folders such as `.obsidian` are skipped, and
+nothing is ever written.
+
+To skip `--folder`, list the folders in `~/.config/cli-memo/config.json`:
+
+```json
+{ "notes": { "folders": ["/path/to/vault"] } }
+```
 
 ## Development
 
