@@ -37,7 +37,9 @@
   "dependencies": {
     "@leemour/cli-core": "0.17.0",
     "@leemour/cli-messaging": "0.144.0",
-    "commander": "15.0.0"
+    "commander": "15.0.0",
+    "valibot": "1.5.0",
+    "yaml": "2.9.1"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
