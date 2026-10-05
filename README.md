@@ -9,24 +9,34 @@ It reads the local message store that [tg-cli](https://github.com/leemour/tg-cli
 through [Himalaya](https://github.com/pimalaya/himalaya). Everything stays on your machine; nothing is
 sent or changed at the source.
 
-**Status:** early. Notes, Gmail import and person notes work; the joined answer about a person is being built.
+**Status:** early. Notes search, Gmail import and person notes work; the joined answer about a person is being built.
 
 ## Notes
 
 ```sh
-memo notes "Rin Example" --folder ~/Notes
+memo notes import                          # load the notes into the shared store; run again after edits
+memo notes search "lighthouse budget"      # notes by their words, and the people they name
+memo notes about "Rin Example"             # notes about a person, read straight from the folders
 ```
 
-It lists the notes *about* the person (file name or `aliases` in the front matter), the notes that
-*link* them (`[[Rin Example]]`, also through an alias or a heading), and lines that only say the name —
-labelled weak, since another person can have the same name. Newest first, each with its file and line;
-`--json` for scripts and agents, `--limit` for more. Hidden folders such as `.obsidian` are skipped, and
-nothing is ever written.
+`import` stores each Markdown or text note as one entry of provider `notes` in the shared store (the
+folder is the account, each subfolder a chat), so `memo notes search`, `tg messages search "in:notes …"`
+and agents find notes beside messages and mail. An edited note keeps its old text as a revision; a note
+deleted from the folder loses its text on the next import.
 
-To skip `--folder`, list the folders in `~/.config/cli-memo/config.json`:
+`search` lists the notes found, newest first, then who they name: `[[Name]]` links, and people the
+store knows from tg, MAX or mail whose full name appears in the text — by name only, so a guess.
+
+`about` lists the notes *about* the person (file name or `aliases` in the front matter), the notes that
+*link* them, and lines that only say the name (weak). Hidden folders such as `.obsidian` are skipped,
+and nothing is ever written to a notes folder.
+
+Folders and what to skip go in `~/.config/cli-memo/config.json`; `--folder` and `--ignore` add to them
+for one run. An ignore rule is a path inside the folder — a file, or a folder and everything under it —
+or a glob (`**/Private*`, `*.txt`):
 
 ```json
-{ "notes": { "folders": ["/path/to/vault"] } }
+{ "notes": { "folders": ["/path/to/vault"], "ignore": ["Journal/Private.md", "Archive"] } }
 ```
 
 ## Mail
