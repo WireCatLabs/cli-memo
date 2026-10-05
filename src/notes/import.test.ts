@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@leemour/cli-core"
@@ -68,6 +68,30 @@ describe("memo notes import and search", () => {
     expect(imported[0]).toMatchObject({ notes: 3, deleted: 1 })
     expect((await json("notes", "search", "marina")).hits).toHaveLength(1)
     expect((await json("notes", "search", "kickoff")).hits).toEqual([])
+  })
+
+  it("saves only what changed since the last run", async () => {
+    expect((await json("notes", "import", "--folder", vault))[0]).toMatchObject({ notes: 4, changed: 4 })
+    expect((await json("notes", "import", "--folder", vault))[0]).toMatchObject({ notes: 4, changed: 0 })
+
+    const later = new Date(Date.now() + 60_000)
+    utimesSync(join(vault, "Projects/Harbour.md"), later, later)
+    expect((await json("notes", "import", "--folder", vault))[0]).toMatchObject({ changed: 0 })
+
+    write("Projects/Harbour.md", "Harbour plan, rewritten.\n")
+    expect((await json("notes", "import", "--folder", vault))[0]).toMatchObject({ changed: 1 })
+  })
+
+  it("refuses to drop most notes at once, and weighs them again next run", async () => {
+    for (const n of [1, 2, 3, 4, 5, 6]) write(`Daily/${n}.md`, `day ${n}`)
+    await run("notes", "import", "--folder", vault)
+    for (const n of [1, 2, 3, 4, 5, 6]) rmSync(join(vault, `Daily/${n}.md`))
+
+    const skipped = (await json("notes", "import", "--folder", vault))[0]
+    expect(skipped).toMatchObject({ deleted: 0, deletionsSkipped: expect.stringContaining("too many") })
+    expect((await json("notes", "import", "--folder", vault))[0]).toMatchObject({
+      deletionsSkipped: expect.any(String),
+    })
   })
 
   it("stores each note once however often it runs", async () => {
