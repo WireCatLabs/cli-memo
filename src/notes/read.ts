@@ -1,6 +1,7 @@
-import { readdirSync, readFileSync, statSync } from "node:fs"
-import { basename, join, resolve } from "node:path"
+import { readFileSync, statSync } from "node:fs"
+import { basename, resolve } from "node:path"
 import { parse } from "yaml"
+import { noteFiles } from "./files.js"
 
 export interface NoteAbout {
   locator: string
@@ -42,14 +43,6 @@ const WIKI_LINK = /\[\[([^\]|#^]+)(?:[#^][^\]|]*)?(?:\|[^\]]*)?\]\]/g
 
 const same = (a: string, b: string): boolean => a.localeCompare(b, undefined, { sensitivity: "accent" }) === 0
 
-const markdownFiles = (folder: string): string[] =>
-  readdirSync(folder, { withFileTypes: true }).flatMap((entry) => {
-    if (entry.name.startsWith(".")) return []
-    const path = join(folder, entry.name)
-    if (entry.isDirectory()) return markdownFiles(path)
-    return entry.isFile() && entry.name.endsWith(".md") ? [path] : []
-  })
-
 const frontMatter = (text: string): { data: Record<string, unknown>; bodyStart: number } => {
   const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(text)
   if (match === null) return { data: {}, bodyStart: 0 }
@@ -73,7 +66,7 @@ const readNote = (path: string): Note => {
   const text = readFileSync(path, "utf8")
   return {
     path,
-    title: basename(path, ".md"),
+    title: basename(path).replace(/\.(md|txt)$/i, ""),
     aliases: aliasesOf(frontMatter(text).data),
     lines: text.split(/\r?\n/),
     modifiedAt: statSync(path).mtime.toISOString(),
@@ -84,7 +77,7 @@ const literal = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, "\
 
 const plainName = (name: string): RegExp => new RegExp(`(?<![\\p{L}\\p{N}])${literal(name)}(?![\\p{L}\\p{N}])`, "iu")
 
-const linkTargets = (line: string): string[] =>
+export const linkTargets = (line: string): string[] =>
   [...line.matchAll(WIKI_LINK)].map((match) => basename((match[1] ?? "").trim()))
 
 const mention = (note: Note, index: number): NoteMention => ({
@@ -99,11 +92,11 @@ const newestFirst = <T extends { modifiedAt: string }>(items: T[]): T[] =>
   items.sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt))
 
 /** Reads only: never writes to a folder. A folder that cannot be read is reported, not fatal. */
-export const findNotes = (folders: string[], name: string, limit = 20): NotesAnswer => {
+export const findNotes = (folders: string[], name: string, limit = 20, ignore: string[] = []): NotesAnswer => {
   const notRead: NotesAnswer["notRead"] = []
   const notes = folders.flatMap((folder) => {
     try {
-      return markdownFiles(resolve(folder)).map(readNote)
+      return noteFiles(resolve(folder), ignore).map(readNote)
     } catch (error) {
       notRead.push({ folder, reason: error instanceof Error ? error.message : String(error) })
       return []

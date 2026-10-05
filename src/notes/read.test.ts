@@ -77,7 +77,7 @@ describe("findNotes", () => {
   })
 })
 
-describe("memo notes", () => {
+describe("memo notes about", () => {
   const run = async (args: string[], env: NodeJS.ProcessEnv = process.env) => {
     const streams = captureStreams()
     await createProgram({ streams, env }).exitOverride().parseAsync(args, { from: "user" })
@@ -90,7 +90,7 @@ describe("memo notes", () => {
     mkdirSync(config, { recursive: true })
     writeFileSync(join(config, "config.json"), JSON.stringify({ notes: { folders: [root] } }))
 
-    const answer = JSON.parse(await run(["notes", "Mia Fixture", "--json"]))
+    const answer = JSON.parse(await run(["notes", "about", "Mia Fixture", "--json"]))
 
     expect(answer.about).toHaveLength(1)
   })
@@ -98,7 +98,7 @@ describe("memo notes", () => {
   it("says how to set folders when there are none", async () => {
     const empty = mkdtempSync(join(tmpdir(), "config-"))
 
-    const text = await run(["notes", "Nobody"], { ...process.env, MEMO_CONFIG_DIR: empty })
+    const text = await run(["notes", "about", "Nobody"], { ...process.env, MEMO_CONFIG_DIR: empty })
 
     expect(text).toContain("pass --folder or set notes.folders")
   })
@@ -106,7 +106,7 @@ describe("memo notes", () => {
   it("prints links and weak mentions as text", async () => {
     const root = vault({ "e.md": "See [[Zed Sample]].\nZed Sample again.\n" })
 
-    const text = await run(["notes", "Zed Sample", "--folder", root])
+    const text = await run(["notes", "about", "Zed Sample", "--folder", root])
 
     expect(text).toContain(`${join(root, "e.md")}:1  See [[Zed Sample]].`)
     expect(text).toContain("Plain-name mentions (weak")

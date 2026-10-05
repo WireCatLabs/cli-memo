@@ -2,6 +2,7 @@ import { CliError, createRenderer, type Streams } from "@leemour/cli-core"
 import { openStore } from "@leemour/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { loadConfig } from "../config.js"
+import { positive } from "../options.js"
 import { himalaya } from "./himalaya.js"
 import { type ImportResult, importMail } from "./import.js"
 
@@ -12,12 +13,6 @@ const day = (value: string): Date => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || Number.isNaN(date.getTime()))
     throw new InvalidArgumentError("a date as YYYY-MM-DD")
   return date
-}
-
-const positive = (value: string): number => {
-  const number = Number(value)
-  if (!Number.isInteger(number) || number < 1) throw new InvalidArgumentError("a whole number above zero")
-  return number
 }
 
 const text = (result: ImportResult): string =>
