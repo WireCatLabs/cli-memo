@@ -10,3 +10,5 @@ Notable changes to `@leemour/cli-memo`, one section per version, newest first. V
   Markdown folders given with `--folder` or `notes.folders` in the config.
 - `memo mail import`: a Gmail account's All Mail into the shared message store through Himalaya, read only;
   Gmail thread and message ids, resumable with `--max`, and deletions at the source drop the stored text.
+- `memo link`, `memo unlink`: join identities across tg, MAX and mail into one person in the shared store; a
+  name two people share is refused. `memo note`: the note about a person.

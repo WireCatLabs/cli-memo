@@ -9,7 +9,7 @@ It reads the local message store that [tg-cli](https://github.com/leemour/tg-cli
 through [Himalaya](https://github.com/pimalaya/himalaya). Everything stays on your machine; nothing is
 sent or changed at the source.
 
-**Status:** early. Notes and Gmail import work; the joined answer about a person is being built.
+**Status:** early. Notes, Gmail import and linking people work; the joined answer about a person is being built.
 
 ## Notes
 
@@ -53,6 +53,21 @@ keyring), then name it in `~/.config/cli-memo/config.json`:
 ```json
 { "mail": { "accounts": [{ "name": "gmail", "address": "you@example.com" }] } }
 ```
+
+## People
+
+The store keeps each messenger's people apart until you say two identities are one person. A same
+name is never enough.
+
+```sh
+memo link telegram:"Rin Example" email:rin@example.com   # one person, two identities
+memo unlink email:rin@example.com                        # take one back out
+memo note telegram:"Rin Example" ~/Notes/people/Rin.md   # the note about them
+```
+
+An identity is `<messenger>:<name or id>`; a name two people share is refused, with their ids to
+choose from. Links live in the shared store, so tg and max see them too; the note path lives in
+`~/.config/cli-memo/people-notes.json`.
 
 ## Development
 

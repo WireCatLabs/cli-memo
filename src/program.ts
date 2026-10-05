@@ -4,6 +4,7 @@ import { loadConfig } from "./config.js"
 import { mailCommand } from "./mail/command.js"
 import { findNotes } from "./notes/read.js"
 import { notesText } from "./notes/text.js"
+import { peopleCommands } from "./people/command.js"
 import { VERSION } from "./version.js"
 
 const positive = (value: string): number => {
@@ -45,6 +46,7 @@ export const createProgram = ({
     })
 
   mailCommand(program, streams, env)
+  peopleCommands(program, streams, env)
 
   return program
 }
