@@ -81,6 +81,6 @@ export const parseMail = (json: string): ParsedMail => {
     subject,
     from: addresses(header("from"))[0] ?? null,
     to: [...addresses(header("to")), ...addresses(header("cc"))],
-    text: text.slice(0, MAX_TEXT),
+    text: text.replace(/\r\n?/g, "\n").slice(0, MAX_TEXT),
   }
 }

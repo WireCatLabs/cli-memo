@@ -149,6 +149,14 @@ describe("importMail", () => {
     expect(await importInto(env, 2)).toMatchObject({ saved: 1, alreadyStored: 2, complete: true })
   })
 
+  it("keeps plain line ends", async () => {
+    const { env } = setup([mail(1, { text: "line one\r\nline two" })])
+    await importInto(env)
+
+    const [saved] = (await (await store(env)).find({ account: KEY, pattern: ANY, limit: 1 })).items
+    expect(saved?.text).toBe("Synthetic subject 1\n\nline one\nline two")
+  })
+
   it("turns an HTML-only mail into text", async () => {
     const { env } = setup([
       mail(1, { text: undefined, html: "<style>p{}</style><p>Hello&nbsp;there</p><p>A &amp; B</p>" }),
