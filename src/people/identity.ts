@@ -1,6 +1,6 @@
 import { CliError } from "@leemour/cli-core"
 import { pickPerson } from "@leemour/cli-messaging"
-import type { IdentityRef, MessageStore, PersonRecord } from "@leemour/cli-messaging/store"
+import type { IdentityRef, MessageStore } from "@leemour/cli-messaging/store"
 
 /** `telegram:Ana`, `max:12345`, `email:ana@example.com` — the messenger is always named. */
 export const identityOf = async (store: MessageStore, reference: string): Promise<IdentityRef> => {
@@ -12,11 +12,3 @@ export const identityOf = async (store: MessageStore, reference: string): Promis
   const exact = people.get(provider === "email" ? who.toLowerCase() : who)
   return { provider, id: exact?.id ?? pickPerson(who, people).id }
 }
-
-export const personText = (person: PersonRecord): string =>
-  [
-    `${person.name ?? "(no name)"}  ${person.uid}`,
-    ...person.identities.map(
-      ({ provider, id, name, method, linkedBy }) => `  ${provider}:${id}  ${name ?? ""}  (${method}, ${linkedBy})`,
-    ),
-  ].join("\n")
