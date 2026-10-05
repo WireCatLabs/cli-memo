@@ -16,3 +16,9 @@ Notable changes to `@leemour/cli-memo`, one section per version, newest first. V
   revisions, deleted notes lose their text. `memo notes search <text>`: notes by their words, with the
   people they link and the known people whose full name they mention (a guess).
 - `notes.ignore` in the config and `--ignore`: files, folders or globs never read or stored.
+- `memo import`: notes and mail in one run, incremental — notes keep a manifest of size, change time and
+  content hash in the store, so unchanged files are not read and identical ones not saved. A lock stops two
+  runs at once; a failing source does not stop the others.
+- `memo auto on [--every 5m] | off | status`: a systemd user timer for `memo import`. The config's
+  `auto: { enabled, every }` is the source; the timer follows a hand edit at its next run.
+
