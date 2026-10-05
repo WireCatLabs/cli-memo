@@ -43,41 +43,23 @@ beforeEach(async () => {
   await store.close()
 })
 
-describe("memo link", () => {
-  it("joins a Telegram identity and a mail address into one person", async () => {
-    const linked = JSON.parse(await run("link", "telegram:Rin Example", "email:RIN@example.test", "--json"))
-
-    expect(
-      linked.identities.map(({ provider, id }: { provider: string; id: string }) => `${provider}:${id}`).sort(),
-    ).toEqual(["email:rin@example.test", "telegram:101"])
-    expect(linked.identities[0]).toMatchObject({ method: "manual", linkedBy: "owner" })
-  })
-
-  it("refuses a name two people share, and takes either by id", async () => {
-    await expect(run("link", "telegram:Kai Sample", "email:rin@example.test")).rejects.toThrow("matches 2 people")
-
-    const text = await run("link", "telegram:102", "email:rin@example.test")
-
-    expect(text).toContain("telegram:102")
-    expect(text).not.toContain("telegram:103")
-  })
-
-  it("asks for the messenger when a reference has none", async () => {
-    await expect(run("link", "Rin Example", "email:rin@example.test")).rejects.toThrow("names no messenger")
-  })
-
-  it("takes an identity back out with unlink", async () => {
-    await run("link", "telegram:101", "email:rin@example.test")
-
-    const person = JSON.parse(await run("unlink", "email:rin@example.test", "--json"))
-
-    expect(person.identities.map(({ id }: { id: string }) => id)).toEqual(["rin@example.test"])
-  })
-})
-
 describe("memo note", () => {
+  it("asks for the messenger when a reference has none", async () => {
+    await expect(run("note", "Rin Example")).rejects.toThrow("names no messenger")
+  })
+
+  it("refuses a name two people share", async () => {
+    await expect(run("note", "telegram:Kai Sample", "/notes/kai.md")).rejects.toThrow("matches 2 people")
+  })
+
   it("keeps the note for the person, whichever of their identities names them", async () => {
-    await run("link", "telegram:101", "email:rin@example.test")
+    const store = await openStore({ env })
+    await store.linkIdentities(
+      { provider: "telegram", id: "101" },
+      { provider: "email", id: "rin@example.test" },
+      { method: "manual", by: "owner" },
+    )
+    await store.close()
 
     await run("note", "telegram:101", "/notes/people/Rin Example.md")
 
