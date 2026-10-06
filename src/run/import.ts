@@ -6,14 +6,15 @@ import type { Command } from "commander"
 import { loadConfig } from "../config.js"
 import { himalaya } from "../mail/himalaya.js"
 import { type ImportResult, importMail } from "../mail/import.js"
-import { importNotes, type NotesImport } from "../notes/import.js"
+import { embedChanged, type NotesEmbedded } from "../notes/embed.js"
+import { importNotes, type NotesImport, notesKey } from "../notes/import.js"
 import { applyAuto, autoState } from "./auto.js"
 
 const DAY = 86_400_000
 const MAIL_WINDOW_DAYS = 30
 
 export interface ImportRun {
-  notes: NotesImport[]
+  notes: (NotesImport & { embedded?: NotesEmbedded })[]
   mail: ImportResult[]
   /** A source that failed; the others still ran. */
   failed: { source: string; reason: string }[]
@@ -24,6 +25,11 @@ const text = (run: ImportRun): string =>
     ...run.notes.map(
       (n) =>
         `notes ${n.folder}: ${n.notes} notes, ${n.changed} changed, ${n.deleted} gone` +
+        (n.embedded === undefined
+          ? ""
+          : n.embedded.notEmbedded !== undefined
+            ? ` — not embedded: ${n.embedded.notEmbedded}`
+            : `, ${n.embedded.chunks} chunks embedded${n.embedded.left ? ", more next run" : ""}`) +
         (n.deletionsSkipped === undefined ? "" : ` — deletions skipped: ${n.deletionsSkipped}`),
     ),
     ...run.mail.map(
@@ -41,8 +47,9 @@ export const importCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     .description("Bring notes and mail up to date in the shared store — only what changed; the timer runs this")
     .option("--notes", "notes only")
     .option("--mail", "mail only")
+    .option("--no-embed", "build notes for search but skip embedding them for meaning this run")
     .option("--json", "print JSON")
-    .action(async (options: { notes?: boolean; mail?: boolean; json?: boolean }) => {
+    .action(async (options: { notes?: boolean; mail?: boolean; embed: boolean; json?: boolean }) => {
       const both = !options.notes && !options.mail
       const config = loadConfig(env)
       if (env.MEMO_AUTO === "1") {
@@ -69,7 +76,12 @@ export const importCommand = (program: Command, streams: Streams, env: NodeJS.Pr
         if (both || options.notes) {
           for (const folder of config.notes?.folders ?? [])
             await attempt(`notes ${folder}`, async () => {
-              run.notes.push(await importNotes(store, folder, { ignore: config.notes?.ignore ?? [] }))
+              const imported = await importNotes(store, folder, { ignore: config.notes?.ignore ?? [] })
+              const embedded = await embedChanged(store, notesKey(folder), imported.chats, {
+                embed: options.embed && config.notes?.embed !== false,
+                env,
+              })
+              run.notes.push({ ...imported, embedded })
             })
         }
         if (both || options.mail) {

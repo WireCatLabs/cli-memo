@@ -35,7 +35,11 @@ folder is the account, each subfolder a chat), so `memo notes search`, `tg messa
 and agents find notes beside messages and mail. An edited note keeps its old text as a revision; a note
 deleted from the folder loses its text on the next import.
 
-`search` lists the notes found, newest first, then who they name: `[[Name]]` links, and people the
+`import` also builds each folder's notes for search and embeds them for search by meaning with the local
+e5-small model (shared with tg and max: `tg models text download e5-small`), only what changed, at most
+600 chunks a run — the next run continues. `--no-embed`, or `notes.embed: false` in the config, skips the
+embedding. `search` ranks notes by meaning and by words together and says which found each; without the
+model it searches words alone and says so. It then lists who they name: `[[Name]]` links, and people the
 store knows from tg, MAX or mail whose full name appears in the text — by name only, so a guess.
 
 `about` lists the notes *about* the person (file name or `aliases` in the front matter), the notes that

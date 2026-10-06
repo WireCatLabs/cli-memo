@@ -11,6 +11,8 @@ export interface NotesImport {
   notes: number
   /** Saved because they are new or their text changed. */
   changed: number
+  /** Chats (folders) a note was saved or deleted in: what needs building and embedding again. */
+  chats: string[]
   deleted: number
   deletionsSkipped?: string
 }
@@ -115,6 +117,16 @@ export const importNotes = async (
     folder: root,
     notes: listed,
     changed: [...changed.values()].reduce((sum, notes) => sum + notes.length, 0),
+    chats: [
+      ...new Set([
+        ...changed.keys(),
+        ...(gone.deleted > 0
+          ? Object.keys(before ?? {})
+              .filter((id) => !(id in after))
+              .map(chatOf)
+          : []),
+      ]),
+    ],
     deleted: gone.deleted,
     ...(gone.skipped === undefined ? {} : { deletionsSkipped: gone.skipped }),
   }

@@ -1,5 +1,8 @@
 import { basename } from "node:path"
+import { formatLocator } from "@leemour/cli-messaging"
+import { embeddingsService, storeOnlyDeps } from "@leemour/cli-messaging/services"
 import type { MessageStore } from "@leemour/cli-messaging/store"
+import { APP } from "../app.js"
 import type { NotesMap } from "../people/notes-map.js"
 import { linkTargets } from "./read.js"
 
@@ -11,6 +14,8 @@ export interface NoteHit {
   modifiedAt: string
   /** The first line holding a word of the query. */
   line: string
+  /** How it was found: by meaning (its embedded chunks), by words, or both. */
+  by: ("meaning" | "words")[]
 }
 
 export interface LinkedPerson {
@@ -31,6 +36,8 @@ export interface MentionedPerson {
 
 export interface NotesSearch {
   query: string
+  /** `words`: no folder was embedded or the model is not downloaded, so only words were searched. */
+  meaning: "searched" | "words"
   hits: NoteHit[]
   hasMore: boolean
   /** Who the notes found link with `[[Name]]`, most linked first: people pages, and other notes too. */
@@ -78,13 +85,38 @@ export const searchNotes = async (
   query: string,
   { limit = 20, notesMap = {} }: { limit?: number; notesMap?: NotesMap } = {},
 ): Promise<NotesSearch> => {
-  const page = await store.find({ provider: "notes", text: query, limit })
-  const hits = page.items.map((hit) => ({
-    locator: hit.locator,
-    path: hit.id,
-    folder: decodeURIComponent(hit.locator.split("/")[1] ?? ""),
-    modifiedAt: hit.timestamp,
-    line: firstLine(hit.text, query),
+  const folders = (await store.accounts()).filter(({ provider }) => provider === "notes")
+  const found: { key: (typeof folders)[number]; id: string; chatId: string; by: NoteHit["by"]; score: number }[] = []
+  let meaning: NotesSearch["meaning"] = "words"
+  for (const key of folders) {
+    const answer = await embeddingsService(storeOnlyDeps(store, key, { app: APP })).search(query, { limit })
+    if (answer.meaning === "searched" && answer.hits.some(({ by }) => by.includes("meaning"))) meaning = "searched"
+    for (const hit of answer.hits)
+      found.push({
+        key,
+        id: hit.chunk.firstMessageId,
+        chatId: hit.summary.chatId,
+        by: hit.by,
+        score: hit.score ?? 0,
+      })
+  }
+  found.sort((a, b) => b.by.length - a.by.length || b.score - a.score)
+  const items = (
+    await Promise.all(
+      found.slice(0, limit).map(async ({ key, id, chatId, by }) => {
+        const message = await store.message(key, id, { chatId })
+        return message === undefined ? [] : [{ key, message, by }]
+      }),
+    )
+  ).flat()
+  const page = { items: items.map(({ message }) => message), hasMore: found.length > limit }
+  const hits = items.map(({ key, message, by }) => ({
+    locator: formatLocator({ provider: key.provider, account: key.account, chat: message.chatId, message: message.id }),
+    path: message.id,
+    folder: key.account,
+    modifiedAt: message.timestamp,
+    line: firstLine(message.text, query),
+    by,
   }))
 
   const personOfNote = new Map(
@@ -103,5 +135,5 @@ export const searchNotes = async (
     .filter(({ name, notes }) => notes > 0 && !counts.has(name))
     .sort((a, b) => b.notes - a.notes || a.name.localeCompare(b.name))
 
-  return { query, hits, hasMore: page.hasMore, linked, mentioned }
+  return { query, meaning, hits, hasMore: page.hasMore, linked, mentioned }
 }

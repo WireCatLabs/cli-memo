@@ -24,4 +24,8 @@ Notable changes to `@leemour/cli-memo`, one section per version, newest first. V
 - `memo context <messenger>:<person>`: one answer about a person — cli-messaging's person context across
   every linked identity (mail included), the note about them and the notes naming them, with what was not
   read and why. Needs cli-messaging 0.150.0, which tg and max pin.
+- Notes are embedded for search by meaning: `memo import` and `memo notes import` build each changed folder
+  and embed new chunks with the local e5-small model, at most 600 a run, resuming next run; `--no-embed` and
+  `notes.embed: false` skip it. `memo notes search` ranks by meaning and words together (`by` on each hit) and
+  falls back to words when the model is missing.
 

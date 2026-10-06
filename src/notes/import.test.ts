@@ -94,6 +94,27 @@ describe("memo notes import and search", () => {
     })
   })
 
+  it("builds notes for search even with no model, says why nothing was embedded, and keeps them waiting", async () => {
+    env = { ...env, MEMO_CONFIG_DIR: join(vault, "..", "config") }
+    const { updateConfig } = await import("../config.js")
+    updateConfig(() => ({ notes: { folders: [vault] } }), env)
+
+    const run1 = JSON.parse(await run("import", "--notes", "--json"))
+
+    expect(run1.notes[0].embedded).toMatchObject({
+      chunks: 0,
+      left: true,
+      notEmbedded: expect.stringContaining("not downloaded"),
+    })
+    const found = await json("notes", "search", "lighthouse")
+    expect(found.meaning).toBe("words")
+    expect(found.hits.every(({ by }: { by: string[] }) => by.includes("words"))).toBe(true)
+    const store = await openStore({ env })
+    const waiting = await store.syncState({ provider: "notes", account: vault }, "embed_pending")
+    await store.close()
+    expect(JSON.parse(waiting?.value ?? "[]").length).toBeGreaterThan(0)
+  })
+
   it("stores each note once however often it runs", async () => {
     await run("notes", "import", "--folder", vault)
     await run("notes", "import", "--folder", vault)

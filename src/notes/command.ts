@@ -4,7 +4,8 @@ import type { Command } from "commander"
 import { loadConfig } from "../config.js"
 import { positive } from "../options.js"
 import { loadNotesMap } from "../people/notes-map.js"
-import { importNotes, type NotesImport } from "./import.js"
+import { embedChanged } from "./embed.js"
+import { importNotes, type NotesImport, notesKey } from "./import.js"
 import { findNotes } from "./read.js"
 import { type NotesSearch, searchNotes } from "./search.js"
 import { notesText } from "./text.js"
@@ -78,14 +79,22 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     })
 
   scoped(notes.command("import").description("Load the notes into the shared store, so search finds them"))
+    .option("--no-embed", "skip embedding them for search by meaning")
     .option("--json", "print JSON")
-    .action(async (options: Scope & { json?: boolean }) => {
+    .action(async (options: Scope & { embed: boolean; json?: boolean }) => {
       const { folders, ignore } = scope(options)
       if (folders.length === 0) throw new CliError("configuration_error", NO_FOLDERS)
       const store = await openStore({ env })
       try {
         const results: NotesImport[] = []
-        for (const folder of folders) results.push(await importNotes(store, folder, { ignore }))
+        for (const folder of folders) {
+          const imported = await importNotes(store, folder, { ignore })
+          await embedChanged(store, notesKey(folder), imported.chats, {
+            embed: options.embed && loadConfig(env).notes?.embed !== false,
+            env,
+          })
+          results.push(imported)
+        }
         print(options.json, results, importText(results))
       } finally {
         await store.close()
