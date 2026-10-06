@@ -3,7 +3,7 @@
 Notable changes to `@leemour/cli-memo`, one section per version, newest first. Versions follow
 [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change the API.
 
-## Unreleased
+## 0.1.0 — 06.10.2026
 
 - The `memo` command, with `--version` and `--help`.
 - `memo notes about <name>` (was `memo notes <name>`): notes about a person, notes that link them, and weak plain-name mentions, from
