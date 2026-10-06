@@ -15,8 +15,9 @@ reads notes, imports mail into that store, and answers.
 3. **Read only.** Mail is never sent, flagged or moved; notes are never changed.
 4. **`@leemour/cli-messaging` is pinned to the exact version tg and max pin.** Opening the store runs
    its migrations, so a newer version here would move the owner's file ahead of the messengers.
-5. **Changes to `cli-messaging` are proposed there, not patched from here.** Mail transport and Google
-   sign-in stay out of it; only its public `./store` export is used.
+5. **Shared chunking and embedding live in `cli-messaging` and are changed there**, through its own
+   worktree, pull request and release rules. Mail transport and Google sign-in stay out of it; only
+   its public `./store` export is used for storage.
 6. **Deletions are honoured.** A mail deleted at the source loses its text in the store on the next
    import.
 
