@@ -28,4 +28,4 @@ Notable changes to `@leemour/cli-memo`, one section per version, newest first. V
   and embed new chunks with the local e5-small model, at most 600 a run, resuming next run; `--no-embed` and
   `notes.embed: false` skip it. `memo notes search` ranks by meaning and words together (`by` on each hit) and
   falls back to words when the model is missing.
-
+- cli-messaging 0.153.0, as tg and max pin: a long note or mail is embedded in overlapping pieces, whole.
