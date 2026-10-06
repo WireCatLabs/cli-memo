@@ -9,7 +9,18 @@ It reads the local message store that [tg-cli](https://github.com/leemour/tg-cli
 through [Himalaya](https://github.com/pimalaya/himalaya). Everything stays on your machine; nothing is
 sent or changed at the source.
 
-**Status:** early. Notes search, Gmail import and person notes work; the joined answer about a person is being built.
+**Status:** early. Person context, notes search, Gmail import and timed incremental import work.
+
+## Context about a person
+
+```sh
+memo context telegram:"Rin Example"     # or max:<name or id>, email:<address>
+```
+
+One answer from the shared store: every identity linked to the person (`tg|max contacts link`), the
+last message each way, recent messages in direct chats and groups, chats in common — mail included once
+an address is linked — then the note about them (`memo note`) and the stored notes naming them in full,
+each with its locator. What gave nothing is listed with the reason. `--json` for agents, `--limit` for more.
 
 ## Notes
 
