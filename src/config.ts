@@ -2,7 +2,13 @@ import { configFilePath, loadConfigFile, resolvePaths, saveConfigFile } from "@l
 import * as v from "valibot"
 
 const ConfigSchema = v.object({
-  notes: v.optional(v.object({ folders: v.array(v.string()), ignore: v.optional(v.array(v.string())) })),
+  notes: v.optional(
+    v.object({
+      folders: v.array(v.string()),
+      ignore: v.optional(v.array(v.string())),
+      embed: v.optional(v.boolean()),
+    }),
+  ),
   auto: v.optional(v.object({ enabled: v.optional(v.boolean()), every: v.optional(v.string()) })),
   mail: v.optional(v.object({ accounts: v.array(v.object({ name: v.string(), address: v.string() })) })),
 })
