@@ -21,4 +21,7 @@ Notable changes to `@leemour/cli-memo`, one section per version, newest first. V
   runs at once; a failing source does not stop the others.
 - `memo auto on [--every 5m] | off | status`: a systemd user timer for `memo import`. The config's
   `auto: { enabled, every }` is the source; the timer follows a hand edit at its next run.
+- `memo context <messenger>:<person>`: one answer about a person — cli-messaging's person context across
+  every linked identity (mail included), the note about them and the notes naming them, with what was not
+  read and why. Needs cli-messaging 0.150.0, which tg and max pin.
 

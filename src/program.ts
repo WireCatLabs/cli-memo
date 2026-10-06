@@ -1,5 +1,6 @@
 import { processStreams, type Streams } from "@leemour/cli-core"
 import { Command } from "commander"
+import { contextCommand } from "./context/command.js"
 import { mailCommand } from "./mail/command.js"
 import { notesCommand } from "./notes/command.js"
 import { noteCommand } from "./people/command.js"
@@ -18,6 +19,7 @@ export const createProgram = ({
     .description("Context about people across messengers, notes and mail")
     .version(VERSION)
 
+  contextCommand(program, streams, env)
   notesCommand(program, streams, env)
   mailCommand(program, streams, env)
   noteCommand(program, streams, env)
