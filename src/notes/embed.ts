@@ -85,7 +85,12 @@ export const embedChanged = async (
     saved === undefined
       ? (await store.chats(key, { limit: 10_000 })).items.map(({ id }) => id)
       : JSON.parse(saved.value)
-  const chats = [...new Set<string>([...waiting, ...changed])].sort()
+  // A build under older rules, or one a change made stale, is rebuilt even when no note changed since.
+  const deps = storeOnlyDeps(store, key, { app: APP, ...(options.env === undefined ? {} : { env: options.env }) })
+  const behind = (await embeddingsService(deps).readiness({})).chats
+    .filter(({ state, graph, vectors }) => state === "stale" || graph?.outdatedRules === true || vectors.missing > 0)
+    .map(({ chat }) => chat)
+  const chats = [...new Set<string>([...waiting, ...changed, ...behind])].sort()
   if (chats.length === 0) return { chats: 0, chunks: 0, left: false }
   const result = await embedNotes(store, key, chats, options)
   // Embedding off leaves every chat waiting, so turning it on later embeds them.

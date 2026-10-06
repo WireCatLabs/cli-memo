@@ -115,6 +115,27 @@ describe("memo notes import and search", () => {
     expect(JSON.parse(waiting?.value ?? "[]").length).toBeGreaterThan(0)
   })
 
+  it("rebuilds a folder built under older rules, though no note changed", async () => {
+    await run("notes", "import", "--folder", vault, "--no-embed")
+    const store = await openStore({ env })
+    const key = { provider: "notes", account: vault }
+    await store.setSyncState(key, "embed_pending", "[]")
+    await store.replaceConversations(key, "Projects", {
+      startedAt: Date.now(),
+      algorithmVersion: 1,
+      links: [],
+      conversations: [["Projects/Harbour.md"]],
+    })
+    await store.close()
+
+    await run("notes", "import", "--folder", vault, "--no-embed")
+
+    const after = await openStore({ env })
+    const state = await after.conversationState(key, "Projects")
+    await after.close()
+    expect(state?.algorithmVersion).not.toBe(1)
+  })
+
   it("stores each note once however often it runs", async () => {
     await run("notes", "import", "--folder", vault)
     await run("notes", "import", "--folder", vault)
