@@ -5,6 +5,11 @@ Notable changes to `@leemour/cli-memo`, one section per version, newest first. V
 
 ## Unreleased
 
+## 0.1.2 — 07.10.2026
+
+- cli-messaging 0.166.0, matching the final tg and max release pins, including protected conversation
+  preparation during search and history fetch.
+
 ## 0.1.1 — 07.10.2026
 
 - cli-messaging 0.164.0, matching tg and max source: person context now finds private dialogs with no
