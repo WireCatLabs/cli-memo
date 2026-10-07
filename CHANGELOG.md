@@ -5,6 +5,8 @@ Notable changes to `@leemour/cli-memo`, one section per version, newest first. V
 
 ## Unreleased
 
+## 0.1.1 — 07.10.2026
+
 - cli-messaging 0.162.0, matching tg and max source: person context now finds private dialogs with no
   recorded members, restoring the last message each way and direct messages in existing Telegram stores.
 
