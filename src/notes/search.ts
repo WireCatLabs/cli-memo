@@ -1,5 +1,5 @@
 import { basename } from "node:path"
-import { formatLocator } from "@leemour/cli-messaging"
+import { formatLocator, normalizeTag } from "@leemour/cli-messaging"
 import { embeddingsService, storeOnlyDeps } from "@leemour/cli-messaging/services"
 import type { MessageStore } from "@leemour/cli-messaging/store"
 import { APP } from "../app.js"
@@ -36,6 +36,7 @@ export interface MentionedPerson {
 
 export interface NotesSearch {
   query: string
+  tag?: string
   /** `words`: no folder was embedded or the model is not downloaded, so only words were searched. */
   meaning: "searched" | "words"
   hits: NoteHit[]
@@ -83,13 +84,18 @@ const firstLine = (text: string, query: string): string => {
 export const searchNotes = async (
   store: MessageStore,
   query: string,
-  { limit = 20, notesMap = {} }: { limit?: number; notesMap?: NotesMap } = {},
+  { limit = 20, notesMap = {}, tag }: { limit?: number; notesMap?: NotesMap; tag?: string } = {},
 ): Promise<NotesSearch> => {
+  const label = tag === undefined ? undefined : normalizeTag(tag)
+  const filter = label === undefined ? undefined : `tag:${label}`
   const folders = (await store.accounts()).filter(({ provider }) => provider === "notes")
   const found: { key: (typeof folders)[number]; id: string; chatId: string; by: NoteHit["by"]; score: number }[] = []
   let meaning: NotesSearch["meaning"] = "words"
   for (const key of folders) {
-    const answer = await embeddingsService(storeOnlyDeps(store, key, { app: APP })).search(query, { limit })
+    const answer = await embeddingsService(storeOnlyDeps(store, key, { app: APP })).search(query, {
+      limit,
+      ...(filter === undefined ? {} : { filter }),
+    })
     if (answer.meaning === "searched" && answer.hits.some(({ by }) => by.includes("meaning"))) meaning = "searched"
     for (const hit of answer.hits)
       found.push({
@@ -135,5 +141,13 @@ export const searchNotes = async (
     .filter(({ name, notes }) => notes > 0 && !counts.has(name))
     .sort((a, b) => b.notes - a.notes || a.name.localeCompare(b.name))
 
-  return { query, meaning, hits, hasMore: page.hasMore, linked, mentioned }
+  return {
+    query,
+    ...(label === undefined ? {} : { tag: label }),
+    meaning,
+    hits,
+    hasMore: page.hasMore,
+    linked,
+    mentioned,
+  }
 }

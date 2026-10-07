@@ -110,6 +110,37 @@ memo note telegram:"Rin Example" ~/Notes/people/Rin.md
 An identity is `<messenger>:<name or id>`; a name two people share is refused, with their ids to
 choose from. The note path lives in `~/.config/cli-memo/people-notes.json`.
 
+## Tags on sources
+
+```sh
+memo notes search "lighthouse budget" --json  # each hit includes its locator
+memo tags add work follow-up --message 'msg:notes/%2Fpath%2Fto%2Fvault/Projects/Projects%2FLighthouse.md'
+memo notes search "budget" --tag work
+memo tags list --tag work --json
+memo tags remove follow-up --message 'msg:notes/%2Fpath%2Fto%2Fvault/Projects/Projects%2FLighthouse.md'
+```
+
+Copy the full `msg:` locator from search results to label an imported note, email or stored messenger
+message. Its provider, account, chat and item ID select one source even when another account has the
+same IDs. Tags use 1–32 letters a–z, digits or hyphens; case is ignored. Adding an existing tag or
+removing an absent one leaves it unchanged.
+
+A tag on an entire notes subfolder or email thread applies to its messages in search. Give the exact
+stored chat ID and account (a notes folder's absolute path or a mailbox address):
+
+```sh
+memo tags add project --chat Projects --provider notes --account /path/to/vault
+memo tags add follow-up --chat 12345 --provider email --account you@example.com
+memo tags list --provider notes --account /path/to/vault --type chat
+tg messages search 'in:email tag:follow-up'
+```
+
+Labels live in the shared local store. Tagging leaves note files, Obsidian front matter, Gmail labels
+and mailbox flags untouched. Labels survive source edits; deleted items disappear from memo's tag
+listing and search. Their label metadata remains in the shared store, and a renamed note has a new
+source ID. `tags list` shows up to 100 labels by default (`--limit` for more, `hasMore` in JSON).
+Contact identity tags remain available through `tg|max tags`; task and unified-person tags are future work.
+
 ## Development
 
 ```sh
