@@ -5,6 +5,12 @@ Notable changes to `@leemour/cli-memo`, one section per version, newest first. V
 
 ## Unreleased
 
+- `memo tags add|remove|list`: local labels on imported notes, emails, messages and folders/threads,
+  addressed by full message locator or an exact provider/account/chat. Labels are case-insensitive,
+  shared with tg/MAX and preserve source files and mailboxes; deleted sources are hidden from listing.
+- `memo notes search --tag <tag>` filters word and semantic results using shared tag eligibility,
+  including labels on the note's folder.
+
 ## 0.1.2 — 07.10.2026
 
 - cli-messaging 0.166.0, matching the final tg and max release pins, including protected conversation

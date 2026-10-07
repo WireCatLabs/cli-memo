@@ -6,6 +6,7 @@ import { notesCommand } from "./notes/command.js"
 import { noteCommand } from "./people/command.js"
 import { autoCommand } from "./run/auto.js"
 import { importCommand } from "./run/import.js"
+import { tagsCommand } from "./tags/command.js"
 import { VERSION } from "./version.js"
 
 export const createProgram = ({
@@ -23,6 +24,7 @@ export const createProgram = ({
   notesCommand(program, streams, env)
   mailCommand(program, streams, env)
   noteCommand(program, streams, env)
+  tagsCommand(program, streams, env)
   importCommand(program, streams, env)
   autoCommand(program, streams, env)
 

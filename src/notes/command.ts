@@ -1,4 +1,5 @@
 import { CliError, createRenderer, type Streams } from "@leemour/cli-core"
+import { normalizeTag } from "@leemour/cli-messaging"
 import { openStore } from "@leemour/cli-messaging/store"
 import type { Command } from "commander"
 import { loadConfig } from "../config.js"
@@ -19,7 +20,13 @@ interface Scope {
 
 const searchText = (result: NotesSearch): string =>
   [
-    ...(result.hits.length === 0 ? [`No note holds "${result.query}". Run memo notes import if notes changed.`] : []),
+    ...(result.hits.length === 0
+      ? [
+          result.tag === undefined
+            ? `No note holds "${result.query}". Run memo notes import if notes changed.`
+            : `No note tagged ${result.tag} matches "${result.query}".`,
+        ]
+      : []),
     ...result.hits.map((hit) => `${hit.path}\n  ${hit.line}`),
     ...(result.hasMore ? ["More notes match; raise --limit to see them."] : []),
     ...(result.linked.length === 0
@@ -105,12 +112,17 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .command("search")
     .description("Find stored notes by their words, and who those notes link")
     .argument("<text>", "words to find, three letters or more")
+    .option("--tag <tag>", "only notes with this tag, including tags on their folder", normalizeTag)
     .option("--limit <n>", "most notes to show", positive, 20)
     .option("--json", "print JSON")
-    .action(async (text: string, options: { limit: number; json?: boolean }) => {
+    .action(async (text: string, options: { limit: number; json?: boolean; tag?: string }) => {
       const store = await openStore({ env })
       try {
-        const result = await searchNotes(store, text, { limit: options.limit, notesMap: loadNotesMap(env) })
+        const result = await searchNotes(store, text, {
+          limit: options.limit,
+          notesMap: loadNotesMap(env),
+          ...(options.tag === undefined ? {} : { tag: options.tag }),
+        })
         print(options.json, result, searchText(result))
       } finally {
         await store.close()
