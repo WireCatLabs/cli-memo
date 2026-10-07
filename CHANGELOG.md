@@ -5,6 +5,9 @@ Notable changes to `@leemour/cli-memo`, one section per version, newest first. V
 
 ## Unreleased
 
+- cli-messaging 0.161.0, matching tg and max source: person context now finds private dialogs with no
+  recorded members, restoring the last message each way and direct messages in existing Telegram stores.
+
 - The release workflow can dry-run a version already on npm, so packaging can be checked between
   releases. Publishing still refuses an existing version.
 

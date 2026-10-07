@@ -81,6 +81,18 @@ beforeEach(async () => {
 })
 
 describe("memo context", () => {
+  it("finds direct messages in a private dialog without recorded members", async () => {
+    const store = await openStore({ env })
+    await store.saveMembers(tg, "101", [])
+    await store.close()
+
+    const answer = JSON.parse(await run("context", "telegram:101", "--json"))
+
+    expect(answer.messages.last.fromThem?.id).toBe("1")
+    expect(answer.messages.last.fromMe?.id).toBe("2")
+    expect(answer.messages.recent.direct.map(({ id }: { id: string }) => id)).toEqual(["2", "1"])
+  })
+
   it("joins messages, linked mail and notes about one person", async () => {
     const store = await openStore({ env })
     await store.linkIdentities(
