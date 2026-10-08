@@ -76,7 +76,7 @@ describe("memo notes import", () => {
   it("finds stored notes by their words and lists what they link", async () => {
     await run("notes", "import")
 
-    const result = await json("notes", "search", "lighthouse")
+    const result = await json("search", "notes", "lighthouse")
 
     expect(paths(result.hits)).toEqual([
       "People/Rin Example.md",
@@ -96,7 +96,7 @@ describe("memo notes import", () => {
 
     await run("notes", "import", "--ignore", "Psychology/Private Notes.md")
 
-    expect((await json("notes", "search", "dreams")).hits).toEqual([])
+    expect((await json("search", "notes", "dreams")).hits).toEqual([])
   })
 
   it("keeps an edited note's new text searchable, and drops a deleted one", async () => {
@@ -108,8 +108,8 @@ describe("memo notes import", () => {
     const second = await json("notes", "import")
 
     expect(second[0]).toMatchObject({ changed: 1, deleted: 1 })
-    expect(paths((await json("notes", "search", "quay")).hits)).toEqual(["Projects/Harbour.md"])
-    expect((await json("notes", "search", "dreams")).hits).toEqual([])
+    expect(paths((await json("search", "notes", "quay")).hits)).toEqual(["Projects/Harbour.md"])
+    expect((await json("search", "notes", "dreams")).hits).toEqual([])
   })
 
   it("saves only what changed since the last run", async () => {
@@ -126,7 +126,7 @@ describe("memo notes import", () => {
     const refused = await json("notes", "import")
 
     expect(refused[0].deletionsSkipped).toMatch(/too many to trust/)
-    expect(paths((await json("notes", "search", "bulk")).hits)).toHaveLength(6)
+    expect(paths((await json("search", "notes", "bulk")).hits)).toHaveLength(6)
     expect((await json("notes", "import"))[0].deletionsSkipped).toMatch(/too many to trust/)
   })
 
@@ -145,13 +145,13 @@ describe("memo notes import", () => {
 
   it("stores a file's tags and drops one the file no longer has", async () => {
     await run("notes", "import")
-    expect((await json("notes", "search", "budget", "--tag", "work")).hits).toHaveLength(1)
+    expect((await json("search", "notes", "budget", "--tag", "work")).hits).toHaveLength(1)
 
     write("Projects/Lighthouse.md", "Kickoff with [[Rin Example]].\nBudget is open.\n")
     utimesSync(join(vault, "Projects/Lighthouse.md"), new Date("2030-01-01"), new Date("2030-01-01"))
     await run("notes", "import")
 
-    expect((await json("notes", "search", "budget", "--tag", "work")).hits).toEqual([])
+    expect((await json("search", "notes", "budget", "--tag", "work")).hits).toEqual([])
   })
 
   it("keeps a tag the owner added when the file stops stating it", async () => {
@@ -173,7 +173,7 @@ describe("memo notes import", () => {
       added: ["port"],
     })
 
-    expect(paths((await json("notes", "search", "plan OR budget", "--tag", "port")).hits)).toEqual([
+    expect(paths((await json("search", "notes", "plan OR budget", "--tag", "port")).hits)).toEqual([
       "Projects/Harbour.md",
       "Projects/Lighthouse.md",
     ])
@@ -182,7 +182,7 @@ describe("memo notes import", () => {
 
   it("searches by words alone when the model is not downloaded, and says why", async () => {
     await run("notes", "import")
-    const found = await json("notes", "search", "budget")
+    const found = await json("search", "notes", "budget")
     expect(found).toMatchObject({ by: "words", hits: [{ path: "Projects/Lighthouse.md", foundBy: ["words"] }] })
     expect(found.meaningSkipped).toMatch(/not downloaded/)
   })
@@ -191,7 +191,7 @@ describe("memo notes import", () => {
     await run("notes", "import")
     await telegramPeople(["102", "Kai Sample"])
 
-    const { linked } = await json("notes", "search", "harbour")
+    const { linked } = await json("search", "notes", "harbour")
     expect(linked).toEqual([expect.objectContaining({ ref: expect.stringMatching(/^person:/), name: "Kai Sample" })])
   })
 
@@ -200,7 +200,7 @@ describe("memo notes import", () => {
 
     await run("notes", "import")
 
-    expect(paths((await json("notes", "search", "exported")).hits)).toEqual([])
+    expect(paths((await json("search", "notes", "exported")).hits)).toEqual([])
   })
 
   it("links a name no note has to the person, the moment someone by that name appears", async () => {

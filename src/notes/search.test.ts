@@ -38,20 +38,20 @@ beforeEach(async () => {
 })
 describe("structured note retrieval and saved links", () => {
   it("uses shared phrase/Boolean filters, provides exact current excerpts and paginates distinct notes", async () => {
-    const first = await run("notes", "search", '"budget review" AND NOT cancelled', "--limit", "2")
+    const first = await run("search", "notes", '"budget review" AND NOT cancelled', "--limit", "2")
     expect(first.hits).toHaveLength(2)
     expect(first.hasMore).toBe(true)
     expect(first.nextOffset).toBe(2)
     expect(first.hits.every((hit: { line: string }) => /budget review/i.test(hit.line))).toBe(true)
-    const second = await run("notes", "search", '"budget review" AND NOT cancelled', "--limit", "2", "--offset", "2")
+    const second = await run("search", "notes", '"budget review" AND NOT cancelled', "--limit", "2", "--offset", "2")
     expect(second.hits).toHaveLength(1)
     expect(second.hasMore).toBe(false)
     expect(new Set([...first.hits, ...second.hits].map((hit: { ref: string }) => hit.ref)).size).toBe(3)
-    await expect(run("notes", "search", '"unfinished')).rejects.toMatchObject({ code: "validation_error" })
+    await expect(run("search", "notes", '"unfinished')).rejects.toMatchObject({ code: "validation_error" })
   })
 
   it("links relative paths and aliases to the note, and keeps an ambiguous or unknown name as written", async () => {
-    const answer = await run("notes", "search", "agreed OR Missing")
+    const answer = await run("search", "notes", "agreed OR Missing")
     const review = answer.hits.find((hit: { path: string }) => hit.path === "Meetings/Review.md")
     const rin = (await run("notes", "show", join(vault, "People/Rin.md"))).ref
     expect(review.links).toHaveLength(4)

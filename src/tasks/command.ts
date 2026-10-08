@@ -14,17 +14,28 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     json
       ? createRenderer({ format: "json", color: false, streams }).result(answer)
       : streams.data(`${JSON.stringify(answer, null, 2)}\n`)
-  group
-    .command("add")
-    .argument("<source>", "msg: source locator")
+  accountOptions(group.command("add"))
+    .argument("<source>", "msg: source locator or note:<id>")
     .option("--type <type>", "question, request, mention or promise", taskTypeOf, "request")
-    .option("--json", "print JSON")
-    .action(async (source: string, options: { type: ReturnType<typeof taskTypeOf>; json?: boolean }) => {
-      const parsed = parseLocator(source),
-        key = { provider: parsed.provider, account: parsed.account }
+    .action(async (source: string, options: AccountScope & { type: ReturnType<typeof taskTypeOf>; json?: boolean }) => {
       const store = await openStore({ env })
       try {
-        if ((await store.message(key, parsed.message, { chatId: parsed.chat })) === undefined)
+        const native = source.trim().startsWith("note:")
+        const parsed = native ? undefined : parseLocator(source)
+        if (
+          parsed &&
+          ((options.provider && options.provider !== parsed.provider) ||
+            (options.account && options.account !== parsed.account))
+        )
+          throw new CliError("validation_error", "locator and selected account disagree")
+        const key = parsed
+          ? { provider: parsed.provider, account: parsed.account }
+          : await selectAccount(store, options)
+        if (
+          parsed &&
+          parsed.provider !== "notes" &&
+          (await store.message(key, parsed.message, { chatId: parsed.chat })) === undefined
+        )
           throw new CliError("not_found", "the task source is unavailable or deleted")
         print(
           options.json,

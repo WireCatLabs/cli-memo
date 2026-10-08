@@ -1,5 +1,5 @@
 import { parseLocator } from "@leemour/cli-messaging"
-import type { TaskView } from "@leemour/cli-messaging/services"
+import { type TaskView, taskView } from "@leemour/cli-messaging/services"
 import type { AccountKey, MessageStore, PersonRecord } from "@leemour/cli-messaging/store"
 
 export const taskPage = async (
@@ -12,24 +12,7 @@ export const taskPage = async (
   for (const id of page.items) {
     const task = await store.tasks.get(id)
     if (!task) continue
-    let source: ReturnType<typeof parseLocator>
-    try {
-      source = parseLocator(task.source)
-    } catch {
-      items.push({ ...task, message: null })
-      continue
-    }
-    if (source.provider !== key.provider || source.account !== key.account) {
-      items.push({ ...task, message: null })
-      continue
-    }
-    const message = await store.message(key, source.message, { chatId: source.chat })
-    items.push({
-      ...task,
-      message: message
-        ? { text: message.text.slice(0, 200), senderName: message.senderName, timestamp: message.timestamp }
-        : null,
-    })
+    items.push(await taskView(store, key, task))
   }
   return { items, hasMore: page.hasMore }
 }
@@ -49,27 +32,25 @@ export const personTasks = async (
     for (const relation of assigned) {
       const task = await store.tasks.get(relation.from.slice("task:".length))
       if (task?.state !== "open" || task.account !== `${key.provider}:${key.account}`) continue
-      let message: Awaited<ReturnType<MessageStore["message"]>>
-      try {
-        const source = parseLocator(task.source)
-        if (source.provider === key.provider && source.account === key.account)
-          message = await store.message(key, source.message, { chatId: source.chat })
-      } catch {}
-      items.push({
-        ...task,
-        message: message
-          ? { text: message.text.slice(0, 200), senderName: message.senderName, timestamp: message.timestamp }
-          : null,
-      })
+      items.push(await taskView(store, key, task))
     }
     const identities = person.identities.filter(
       (identity) => identity.provider === key.provider && identity.accounts.includes(key.account),
     )
+    const noteLinks = await store.notes.links({ to: `person:${person.uid}` })
+    const relatedNotes = new Set(
+      noteLinks
+        .filter((link) => link.confirmed && link.kind === "about" && link.from.startsWith("note:"))
+        .map((link) => link.from),
+    )
+    const page = await taskPage(store, key, { state: "open", limit: 500 })
+    incomplete ||= page.hasMore
+    for (const task of page.items) {
+      if (task.note && relatedNotes.has(`note:${task.note.id}`)) items.push(task)
+    }
     if (!identities.length) continue
     const ids = new Set(identities.map((identity) => identity.id))
     const chats = (await store.chats(key, { limit: 500 })).items
-    const page = await taskPage(store, key, { state: "open", limit: 500 })
-    incomplete ||= page.hasMore
     for (const task of page.items) {
       let source: ReturnType<typeof parseLocator>
       try {

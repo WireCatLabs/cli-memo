@@ -1,6 +1,5 @@
 import { readFileSync } from "node:fs"
 import { CliError, createRenderer, type Streams } from "@leemour/cli-core"
-import { normalizeTag } from "@leemour/cli-messaging"
 import { type MessageStore, type Note, openStore } from "@leemour/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { loadConfig } from "../config.js"
@@ -13,7 +12,6 @@ import { DIALECTS, type DialectName } from "./dialects/index.js"
 import { embedNoteChunks } from "./embed.js"
 import { folderNotes, importNotes, type NotesImport } from "./import.js"
 import { exportInternal, exportTarget, internalNotes } from "./internal.js"
-import { type NotesSearch, searchNotes } from "./search.js"
 import { loadFolderState } from "./state.js"
 
 const formatOf = (value: string): DialectName => {
@@ -25,30 +23,6 @@ const sourceOf = (value: string): Note["source"] => {
   if (value !== "file" && value !== "internal") throw new InvalidArgumentError("choose file or internal")
   return value
 }
-
-const searchText = (result: NotesSearch): string =>
-  [
-    ...(result.hits.length === 0
-      ? [
-          result.tag === undefined
-            ? `No note holds "${result.query}". Run memo notes import if notes changed.`
-            : `No note tagged ${result.tag} matches "${result.query}".`,
-        ]
-      : []),
-    ...result.hits.map(
-      (hit) => `${hit.path ?? hit.ref}${hit.foundBy.includes("words") ? "" : "  (by meaning)"}\n  ${hit.line}`,
-    ),
-    ...(result.hasMore ? ["More notes match; raise --limit or follow nextOffset."] : []),
-    ...(result.linked.length === 0
-      ? []
-      : [
-          "",
-          "Linked from these notes",
-          ...result.linked.map(
-            ({ ref, name, notes }) => `  ${name ?? ref}  ${ref ?? "(nobody by that name yet)"}  (${notes})`,
-          ),
-        ]),
-  ].join("\n")
 
 const importText = (results: NotesImport[]): string =>
   results
@@ -119,52 +93,6 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       })
       print(options.json, results, importText(results))
     })
-
-  notes
-    .command("search")
-    .description("Find notes by their words, word stems and meaning, in the query language messages use")
-    .argument("<text>", "words, phrases, AND/OR/NOT, tag:, date:")
-    .option("--tag <tag>", "only notes with this tag", normalizeTag)
-    .option("--filter <query>", "another query every note found must also match")
-    .option("--exact", "every word as written: no stems")
-    .option("--folder <path-or-id...>", "only these folders")
-    .option("--source <source>", "file or internal", sourceOf)
-    .option("--offset <n>", "continue from nextOffset", Number, 0)
-    .option("--limit <n>", "most notes to show", positive, 20)
-    .option("--json", "print JSON")
-    .action(
-      async (
-        text: string,
-        options: {
-          limit: number
-          offset: number
-          tag?: string
-          filter?: string
-          exact?: boolean
-          folder?: string[]
-          source?: Note["source"]
-          json?: boolean
-        },
-      ) => {
-        const result = await withStore(async (store) =>
-          searchNotes(store, text, {
-            env,
-            limit: options.limit,
-            offset: options.offset,
-            ...(options.exact ? { exact: true } : {}),
-            ...(options.tag === undefined ? {} : { tag: options.tag }),
-            ...(options.filter === undefined ? {} : { filter: options.filter }),
-            ...(options.source === undefined ? {} : { source: options.source }),
-            ...(options.folder === undefined
-              ? {}
-              : { folderIds: (await boundFolders(store, env, { only: options.folder })).map(({ id }) => id) }),
-          }),
-        )
-        if (result.meaningSkipped !== undefined && !options.json)
-          streams.diagnostic(`Searched by words only: ${result.meaningSkipped}\n`)
-        print(options.json, result, searchText(result))
-      },
-    )
 
   notes
     .command("about")

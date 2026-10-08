@@ -127,7 +127,7 @@ describe("memo source tags", () => {
   it("finds only the tagged note when notes search asks for a tag", async () => {
     const ref = await noteRef()
     await json("tags", "add", "selected", "--note", ref)
-    const one = await json("notes", "search", "budget", "--tag", "selected")
+    const one = await json("search", "notes", "budget", "--tag", "selected")
     expect(one.tag).toBe("selected")
     expect(one.hits.map((hit: { ref: string }) => hit.ref)).toEqual([ref])
   })
@@ -149,11 +149,11 @@ describe("memo source tags", () => {
     writeFileSync(join(vault, path), "Lighthouse revised budget.\n")
     utimesSync(join(vault, path), new Date("2030-01-01"), new Date("2030-01-01"))
     await run("notes", "import")
-    expect((await json("notes", "search", "revised", "--tag", "work")).hits).toHaveLength(1)
+    expect((await json("search", "notes", "revised", "--tag", "work")).hits).toHaveLength(1)
     rmSync(join(vault, path))
     await run("notes", "import")
-    expect((await json("notes", "search", "lighthouse", "--tag", "work")).hits).toEqual([])
-    expect(await run("notes", "search", "lighthouse", "--tag", "work")).toContain("No note tagged work")
+    expect((await json("search", "notes", "lighthouse", "--tag", "work")).hits).toEqual([])
+    expect(await run("search", "notes", "lighthouse", "--tag", "work")).toContain("No note tagged work")
     await expect(json("tags", "add", "again", "--note", ref)).rejects.toMatchObject({ code: "not_found" })
   })
 

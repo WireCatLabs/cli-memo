@@ -90,12 +90,12 @@ describe("combined evidence, relationships and local reminders", () => {
       type: "task",
       id: document.task.id,
     })
-    const searched = await run("search", "budget", "--all", "--note-text", "budget", "--limit", "100")
-    expect(searched.items.some((item: { kind: string }) => item.kind === "task")).toBe(true)
-    expect(searched.items.some((item: { locator: string }) => item.locator === `note:${analysis.note.id}`)).toBe(true)
-    const messagesOnly = await run("search", "budget AND chat:77", "--all")
+    const searched = await run("search", "all", "budget", "--limit", "100")
+    expect(searched.tasks.length > 0).toBe(true)
+    expect(searched.items.some((item: { ref: string }) => item.ref === `note:${analysis.note.id}`)).toBe(true)
+    const messagesOnly = await run("search", "all", "budget AND chat:77")
     expect(messagesOnly.items.length).toBeGreaterThan(0)
-    expect(messagesOnly.coverage[0].notes).toMatch(/^not searched/)
+    expect(messagesOnly.skipped.find((item: { resource: string }) => item.resource === "notes").reason).toBeTruthy()
     const bundle = await run("ask", "What is pending?", "--query", "budget", "--all")
     expect(bundle.evidence.length).toBeGreaterThan(0)
     const reminder = await run("reminders", "schedule", document.task.id, "--at", "2026-01-01T00:00:00Z", ...scope)

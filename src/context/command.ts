@@ -45,7 +45,8 @@ export const contextText = ({ messages, notes, notRead, tasks, yourNotes }: Memo
           "",
           "Open tasks",
           ...tasks.items.map(
-            (task) => `  ${task.id}  ${task.kind}  ${task.source}  ${task.message?.text ?? "source unavailable"}`,
+            (task) =>
+              `  ${task.id}  ${task.kind}  ${task.source}  ${task.note?.text ?? task.message?.text ?? "source unavailable"}`,
           ),
         ]
       : []),
