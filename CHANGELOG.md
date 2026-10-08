@@ -22,15 +22,15 @@ messages of a `notes` provider.
   `memo-id`, which marks a file memo exported and keeps it out of the import.
 - `memo notes add|edit|remove|list|show|export` for notes written here about messages, chats, contacts,
   people, entities, tasks and other notes; `--export [dir]` and `notes.export` write them as files that
-  carry `memo-id` and are never overwritten once edited. **`memo annotations` is gone** — never released.
+  carry `memo-id` and are never overwritten once edited.
 - `memo notes about`, `memo context` and `memo note` read saved links: notes about a person, notes
   linking them, notes linking a note about them. A full name found in a note's plain text is no longer
   listed as a guess. The old `people-notes.json` moves into the store as `about` links, once.
 - `memo notes search` runs on the shared notes index: words and stems, the messages' query language,
   `--exact`, `--source`, `--folder` by path or id, and by meaning when e5-small is downloaded — `memo
   import` and `memo notes import` embed the notes (`--no-embed`, `notes.embed: false`). Each hit says what
-  found it (`foundBy`), and a person a found note links is named. **`--words-only` is gone.** `memo search
-  --all` covers notes; `--annotation-text` is now `--note-text`.
+  found it (`foundBy`), and a person a found note links is named. `memo search --all` covers notes;
+  `--note-text` also retrieves authored note text.
 - Entities and relationships are the owner's: `entities` and `relationships add|list|remove|confirm`
   no longer take `--provider`/`--account`. `memo tags add --note <id>` labels a note; `--person`,
   `--entity` and `--task` need no account. `--folder <id> [--path <subfolder>]` labels every note under a
@@ -52,7 +52,7 @@ messages of a `notes` provider.
   and automatic cancellation when a task closes. No outbound delivery or source-system mutation.
 
 - `memo tags add|remove|list`: local labels on imported notes, emails, messages and folders/threads,
-  addressed by full message locator or an exact provider/account/chat. Labels are case-insensitive,
+  addressed by note/folder IDs, message locators or an exact provider/account/chat. Labels are case-insensitive,
   shared with tg/MAX and preserve source files and mailboxes; deleted sources are hidden from listing.
 - `memo notes search --tag <tag>` filters word and semantic results using shared tag eligibility,
   including labels on the note's folder.
