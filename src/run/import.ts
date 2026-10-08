@@ -7,6 +7,7 @@ import { loadConfig } from "../config.js"
 import { himalaya } from "../mail/himalaya.js"
 import { type ImportResult, importMail } from "../mail/import.js"
 import { boundFolders } from "../notes/bound.js"
+import { embedNoteChunks, type NoteChunksEmbedded } from "../notes/embed.js"
 import { noteFolders } from "../notes/folders.js"
 import { importNotes, type NotesImport } from "../notes/import.js"
 import { importNotesMap } from "../people/notes-map.js"
@@ -17,6 +18,8 @@ const MAIL_WINDOW_DAYS = 30
 
 export interface ImportRun {
   notes: NotesImport[]
+  /** The notes' chunks embedded for search by meaning this run. */
+  notesEmbedded?: NoteChunksEmbedded
   mail: ImportResult[]
   /** A source that failed; the others still ran. */
   failed: { source: string; reason: string }[]
@@ -27,9 +30,18 @@ const text = (run: ImportRun): string =>
     ...run.notes.map(
       (n) =>
         `notes ${n.folder}: ${n.notes} notes, ${n.changed} changed, ${n.renamed} moved, ${n.deleted} gone` +
-        (n.deletionsSkipped === undefined ? "" : ` — deletions skipped: ${n.deletionsSkipped}`) +
-        (n.tagsSkipped === undefined ? "" : ` — tags not stored: ${n.tagsSkipped}`),
+        (n.deletionsSkipped === undefined ? "" : ` — deletions skipped: ${n.deletionsSkipped}`),
     ),
+    ...(run.notesEmbedded === undefined
+      ? []
+      : [
+          `notes by meaning: ${run.notesEmbedded.chunks} chunks embedded` +
+            (run.notesEmbedded.notEmbedded !== undefined
+              ? ` — ${run.notesEmbedded.notEmbedded}`
+              : run.notesEmbedded.left
+                ? " — more next run"
+                : ""),
+        ]),
     ...run.mail.map(
       (m) =>
         `mail ${m.account}: ${m.listed} listed, ${m.saved} new, ${m.deleted} gone` +
@@ -45,7 +57,7 @@ export const importCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     .description("Bring notes and mail up to date in the shared store — only what changed; the timer runs this")
     .option("--notes", "notes only")
     .option("--mail", "mail only")
-    .option("--no-embed", "skip embedding mail for search by meaning this run")
+    .option("--no-embed", "skip embedding notes and mail for search by meaning this run")
     .option("--json", "print JSON")
     .action(async (options: { notes?: boolean; mail?: boolean; embed: boolean; json?: boolean }) => {
       const both = !options.notes && !options.mail
@@ -82,6 +94,13 @@ export const importCommand = (program: Command, streams: Streams, env: NodeJS.Pr
           for (const folder of folders)
             await attempt(`notes ${folder.path}`, async () => {
               run.notes.push(await importNotes(store, folder, { ignore: config.notes?.ignore ?? [], env }))
+            })
+          if (folders.length > 0)
+            await attempt("notes by meaning", async () => {
+              run.notesEmbedded = await embedNoteChunks(store, {
+                embed: options.embed && config.notes?.embed !== false,
+                env,
+              })
             })
           await attempt("people-notes.json", async () => {
             await importNotesMap(store, env, folders)

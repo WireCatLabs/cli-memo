@@ -1,5 +1,10 @@
 import { CliError } from "@leemour/cli-core"
-import { conversationsService, embeddingsService, storeOnlyDeps } from "@leemour/cli-messaging/services"
+import {
+  conversationsService,
+  embeddingsService,
+  embedNotes as embedNoteChunksOf,
+  storeOnlyDeps,
+} from "@leemour/cli-messaging/services"
 import type { AccountKey, MessageStore } from "@leemour/cli-messaging/store"
 import { APP } from "../app.js"
 
@@ -112,4 +117,38 @@ export const embedChanged = async (
   // Embedding off leaves every chat waiting, so turning it on later embeds them.
   await store.setSyncState(key, PENDING, JSON.stringify(pending))
   return result
+}
+
+export interface NoteChunksEmbedded {
+  chunks: number
+  /** Chunks left for the next run, when the run's bound stopped it. */
+  left: boolean
+  /** Why nothing was embedded, when nothing could be. */
+  notEmbedded?: string
+}
+
+/**
+ * Embeds the notes' chunks that have no vector yet, for search by meaning. Bounded like mail, so a
+ * timer run stays short and the next continues. A missing model is reported, never downloaded.
+ */
+export const embedNoteChunks = async (
+  store: MessageStore,
+  {
+    maxChunks = EMBED_PER_RUN,
+    embed = true,
+    env,
+  }: { maxChunks?: number; embed?: boolean; env?: NodeJS.ProcessEnv } = {},
+): Promise<NoteChunksEmbedded> => {
+  if (!embed) return { chunks: 0, left: true, notEmbedded: "embedding is off" }
+  try {
+    const done = await embedNoteChunksOf(store, { maxChunks, command: "tg", ...(env === undefined ? {} : { env }) })
+    return { chunks: done.embedded, left: done.left }
+  } catch (error) {
+    if (!isMissingModel(error)) throw error
+    return {
+      chunks: 0,
+      left: true,
+      notEmbedded: "the e5-small model is not downloaded — tg models text download e5-small",
+    }
+  }
 }

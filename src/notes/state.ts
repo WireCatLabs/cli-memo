@@ -9,13 +9,11 @@ import { resolvePaths } from "@leemour/cli-core"
 export interface FolderState {
   /** Path inside the folder → `mtimeMs:size:sha256`; `memo:` in front for a file memo exported. */
   files: Record<string, string>
-  /** The tags each file stated at its last import, so a tag dropped from the file is dropped from the note. */
-  tags: Record<string, string[]>
   /** Where the text of a PDF, sheet or document came from inside it. */
   documents: Record<string, unknown>
 }
 
-const empty = (): FolderState => ({ files: {}, tags: {}, documents: {} })
+const empty = (): FolderState => ({ files: {}, documents: {} })
 
 const fileOf = (env: NodeJS.ProcessEnv, id: string) =>
   join(resolvePaths({ appName: "cli-memo", prefix: "MEMO", env }).state, "folders", `${id}.json`)

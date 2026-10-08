@@ -144,7 +144,6 @@ describe("memo notes import", () => {
   })
 
   it("stores a file's tags and drops one the file no longer has", async () => {
-    await telegramPeople(["101", "Owner Example"])
     await run("notes", "import")
     expect((await json("notes", "search", "budget", "--tag", "work")).hits).toHaveLength(1)
 
@@ -153,6 +152,47 @@ describe("memo notes import", () => {
     await run("notes", "import")
 
     expect((await json("notes", "search", "budget", "--tag", "work")).hits).toEqual([])
+  })
+
+  it("keeps a tag the owner added when the file stops stating it", async () => {
+    await run("notes", "import")
+    const ref = (await json("notes", "show", join(vault, "Projects/Lighthouse.md"))).ref
+    await run("tags", "add", "work", "--note", ref)
+
+    write("Projects/Lighthouse.md", "Kickoff with [[Rin Example]].\nBudget is open.\n")
+    utimesSync(join(vault, "Projects/Lighthouse.md"), new Date("2030-01-01"), new Date("2030-01-01"))
+    await run("notes", "import")
+
+    expect((await json("notes", "show", ref)).labels).toEqual([{ tag: "work", origin: "owner" }])
+  })
+
+  it("labels every note under a subfolder, and none beside it", async () => {
+    await run("notes", "import")
+    const [folder] = (await json("folders", "list")).items
+    expect(await json("tags", "add", "port", "--folder", folder.id, "--path", "Projects")).toMatchObject({
+      added: ["port"],
+    })
+
+    expect(paths((await json("notes", "search", "plan OR budget", "--tag", "port")).hits)).toEqual([
+      "Projects/Harbour.md",
+      "Projects/Lighthouse.md",
+    ])
+    expect((await json("tags", "list", "--type", "folder")).knowledge).toHaveLength(1)
+  })
+
+  it("searches by words alone when the model is not downloaded, and says why", async () => {
+    await run("notes", "import")
+    const found = await json("notes", "search", "budget")
+    expect(found).toMatchObject({ by: "words", hits: [{ path: "Projects/Lighthouse.md", foundBy: ["words"] }] })
+    expect(found.meaningSkipped).toMatch(/not downloaded/)
+  })
+
+  it("names the person a found note links", async () => {
+    await run("notes", "import")
+    await telegramPeople(["102", "Kai Sample"])
+
+    const { linked } = await json("notes", "search", "harbour")
+    expect(linked).toEqual([expect.objectContaining({ ref: expect.stringMatching(/^person:/), name: "Kai Sample" })])
   })
 
   it("does not import a note memo exported", async () => {

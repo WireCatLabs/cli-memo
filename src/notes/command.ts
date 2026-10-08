@@ -7,10 +7,10 @@ import { loadConfig } from "../config.js"
 import { positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { subjectOf } from "../people/subject.js"
-import { ownerKey } from "../store/owner.js"
 import { aboutText, notesAbout } from "./about.js"
 import { boundFolders, folderOfFile } from "./bound.js"
 import { DIALECTS, type DialectName } from "./dialects/index.js"
+import { embedNoteChunks } from "./embed.js"
 import { folderNotes, importNotes, type NotesImport } from "./import.js"
 import { exportInternal, exportTarget, internalNotes } from "./internal.js"
 import { type NotesSearch, searchNotes } from "./search.js"
@@ -35,7 +35,9 @@ const searchText = (result: NotesSearch): string =>
             : `No note tagged ${result.tag} matches "${result.query}".`,
         ]
       : []),
-    ...result.hits.map((hit) => `${hit.path ?? hit.ref}\n  ${hit.line}`),
+    ...result.hits.map(
+      (hit) => `${hit.path ?? hit.ref}${hit.foundBy.includes("words") ? "" : "  (by meaning)"}\n  ${hit.line}`,
+    ),
     ...(result.hasMore ? ["More notes match; raise --limit or follow nextOffset."] : []),
     ...(result.linked.length === 0
       ? []
@@ -53,8 +55,7 @@ const importText = (results: NotesImport[]): string =>
     .map(
       (result) =>
         `${result.folder}: ${result.notes} notes, ${result.changed} changed, ${result.renamed} moved, ${result.deleted} gone` +
-        (result.deletionsSkipped === undefined ? "" : `\nDeletions skipped: ${result.deletionsSkipped}`) +
-        (result.tagsSkipped === undefined ? "" : `\nTags not stored: ${result.tagsSkipped}`),
+        (result.deletionsSkipped === undefined ? "" : `\nDeletions skipped: ${result.deletionsSkipped}`),
     )
     .join("\n")
 
@@ -98,8 +99,9 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .description("Bring the folders' notes, their links and tags into the shared store — only what changed")
     .option("--folder <path-or-id...>", "only these configured folders")
     .option("--ignore <path...>", "files or folders inside them to skip, added to notes.ignore — a path or a glob")
+    .option("--no-embed", "skip embedding the notes for search by meaning this run")
     .option("--json", "print JSON")
-    .action(async (options: { folder?: string[]; ignore?: string[]; json?: boolean }) => {
+    .action(async (options: { folder?: string[]; ignore?: string[]; embed: boolean; json?: boolean }) => {
       const results = await withStore(async (store) => {
         const config = loadConfig(env).notes
         const folders = await boundFolders(store, env, options.folder === undefined ? {} : { only: options.folder })
@@ -109,6 +111,10 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         const imported: NotesImport[] = []
         for (const folder of folders) imported.push(await importNotes(store, folder, { ignore, env }))
         await importNotesMap(store, env, folders)
+        const embedded = await embedNoteChunks(store, { embed: options.embed && config?.embed !== false, env })
+        if (embedded.notEmbedded !== undefined)
+          streams.diagnostic(`Not searchable by meaning: ${embedded.notEmbedded}\n`)
+        else if (embedded.left) streams.diagnostic(`${embedded.chunks} chunks embedded; run again to embed the rest\n`)
         return imported
       })
       print(options.json, results, importText(results))
@@ -116,7 +122,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
 
   notes
     .command("search")
-    .description("Find notes by their words and word stems, in the query language messages use")
+    .description("Find notes by their words, word stems and meaning, in the query language messages use")
     .argument("<text>", "words, phrases, AND/OR/NOT, tag:, date:")
     .option("--tag <tag>", "only notes with this tag", normalizeTag)
     .option("--filter <query>", "another query every note found must also match")
@@ -142,6 +148,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       ) => {
         const result = await withStore(async (store) =>
           searchNotes(store, text, {
+            env,
             limit: options.limit,
             offset: options.offset,
             ...(options.exact ? { exact: true } : {}),
@@ -153,6 +160,8 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
               : { folderIds: (await boundFolders(store, env, { only: options.folder })).map(({ id }) => id) }),
           }),
         )
+        if (result.meaningSkipped !== undefined && !options.json)
+          streams.diagnostic(`Searched by words only: ${result.meaningSkipped}\n`)
         print(options.json, result, searchText(result))
       },
     )
@@ -178,12 +187,13 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .action(async (reference: string, options: { json?: boolean }) => {
       const answer = await withStore(async (store) => {
         const note = await noteOf(store, env, reference)
-        const owner = await ownerKey(store)
         const ref = `note:${note.id}`
+        const labels = await store.notes.noteTags(note.id)
         return {
           ...note,
           ref,
-          tags: owner ? await store.knowledge.tags(owner, { type: "note", id: note.id }) : [],
+          tags: labels.map(({ tag }) => tag),
+          labels,
           links: await store.notes.links({ from: ref }),
           backlinks: await store.notes.links({ to: ref }),
           provenance:

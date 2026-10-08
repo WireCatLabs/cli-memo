@@ -5,7 +5,7 @@ Notable changes to `@leemour/cli-memo`, one section per version, newest first. V
 
 ## Unreleased
 
-Notes are their own records in the shared store (cli-messaging 0.199.0, store version 25), no longer
+Notes are their own records in the shared store (cli-messaging 0.202.0, store versions 25–27), no longer
 messages of a `notes` provider.
 
 - `memo folders add|attach|list`: a folder of notes gets its id from the store, and each computer's
@@ -14,7 +14,8 @@ messages of a `notes` provider.
   config on the first run. Import refuses a folder with no id instead of inventing one.
 - Import writes notes, their links and their file tags. A link to a note the folder has once is stored
   by the note's id; a name no note has stays as written and resolves to a person as soon as one by that
-  name, alias or username exists. A moved file keeps its id, links and tags. What a computer last saw of
+  name, alias or username exists. A moved file keeps its id, links and tags. A tag you added stays when
+  the file stops stating it. What a computer last saw of
   each file is kept in memo's state folder, and only a changed file is opened — also to look for
   `memo-id`, which marks a file memo exported and keeps it out of the import.
 - `memo notes add|edit|remove|list|show|export` for notes written here about messages, chats, contacts,
@@ -24,12 +25,15 @@ messages of a `notes` provider.
   linking them, notes linking a note about them. A full name found in a note's plain text is no longer
   listed as a guess. The old `people-notes.json` moves into the store as `about` links, once.
 - `memo notes search` runs on the shared notes index: words and stems, the messages' query language,
-  `--exact`, `--source`, `--folder` by path or id. **`--words-only` is gone and notes are not searched by
-  meaning** until cli-messaging embeds note chunks; `notes import --no-embed` and `notes.embed` no
-  longer apply to notes. `memo search --all` covers notes; `--annotation-text` is now `--note-text`.
+  `--exact`, `--source`, `--folder` by path or id, and by meaning when e5-small is downloaded — `memo
+  import` and `memo notes import` embed the notes (`--no-embed`, `notes.embed: false`). Each hit says what
+  found it (`foundBy`), and a person a found note links is named. **`--words-only` is gone.** `memo search
+  --all` covers notes; `--annotation-text` is now `--note-text`.
 - Entities and relationships are the owner's: `entities` and `relationships add|list|remove|confirm`
-  no longer take `--provider`/`--account`. `memo tags add --note <id>` labels a note; `--person` and
-  `--entity` need no account. Tags on a notes subfolder no longer exist.
+  no longer take `--provider`/`--account`. `memo tags add --note <id>` labels a note; `--person`,
+  `--entity` and `--task` need no account. `--folder <id> [--path <subfolder>]` labels every note under a
+  folder or subfolder, replacing `--chat` with `--provider notes`. `tags list` says whether a note's tag
+  came from its file.
 - Notes are read through a format: `obsidian` adds inline `#tags` and reads `[label](path.md)` links
   besides `[[wiki links]]`; `markdown` reads plain Markdown links. Links to `person:`, `msg:`, `note:`,
   `entity:`, `task:`, `chat:` and `contact:` references are recognised in both.
