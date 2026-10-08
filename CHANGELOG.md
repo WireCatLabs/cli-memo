@@ -7,7 +7,7 @@ Notable changes to `@leemour/cli-memo`, one section per version, newest first. V
 
 ## 0.2.1 — 08.10.2026
 
-- Pin cli-messaging 0.204.0 to match the coordinated Telegram/MAX release. Native notes, links and
+- Pin cli-messaging 0.205.0 to match the coordinated Telegram/MAX release. Native notes, links and
   source references retain the same schema and behavior.
 
 ## 0.2.0 — 08.10.2026
