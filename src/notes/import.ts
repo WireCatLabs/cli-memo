@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto"
 import { readFileSync, statSync } from "node:fs"
-import { basename, dirname, relative, resolve, sep } from "node:path"
+import { basename, dirname, extname, relative, resolve, sep } from "node:path"
 import type { Chat, Message } from "@leemour/cli-messaging"
+import { extractText, importEngine, type LoadEngine, MAX_FILE_BYTES } from "@leemour/cli-messaging/documents"
 import type { AccountKey, MessageStore } from "@leemour/cli-messaging/store"
 import { dropMissing } from "../store/gone.js"
 import { noteFiles } from "./files.js"
@@ -15,6 +16,8 @@ export interface NotesImport {
   chats: string[]
   deleted: number
   deletionsSkipped?: string
+  notRead?: { path: string; status: string; engine?: string }[]
+  truncated?: string[]
 }
 
 const MAX_TEXT = 200_000
@@ -56,7 +59,11 @@ const noteMessage = (id: string, path: string, text: string, modified: string): 
 export const importNotes = async (
   store: MessageStore,
   folder: string,
-  { ignore = [], now = Date.now }: { ignore?: string[]; now?: () => number } = {},
+  {
+    ignore = [],
+    now = Date.now,
+    loadEngine = importEngine,
+  }: { ignore?: string[]; now?: () => number; loadEngine?: LoadEngine } = {},
 ): Promise<NotesImport> => {
   const root = resolve(folder)
   const key = notesKey(root)
@@ -66,6 +73,8 @@ export const importNotes = async (
   const after: Manifest = {}
   const changed = new Map<string, Message[]>()
   const newest = new Map<string, string>()
+  const notRead: NonNullable<NotesImport["notRead"]> = []
+  const truncated: string[] = []
 
   const files = noteFiles(root, ignore)
   const listed = files.length
@@ -77,14 +86,42 @@ export const importNotes = async (
     if (modified > (newest.get(chat) ?? "")) newest.set(chat, modified)
     const stamp = `${stat.mtimeMs}:${stat.size}:`
     const previous = before?.[id]
-    if (previous?.startsWith(stamp)) {
-      after[id] = previous
+    if (stat.size > MAX_FILE_BYTES) {
+      after[id] = previous ?? stamp
+      notRead.push({ path: id, status: "too-large" })
+      if (previous) await store.markDeleted(key, [id], { chatId: chat })
       continue
     }
-    const text = readFileSync(path, "utf8")
-    const hash = createHash("sha256").update(text).digest("hex")
+    const bytes = readFileSync(path)
+    const hash = createHash("sha256").update(bytes).digest("hex")
     after[id] = `${stamp}${hash}`
-    if (previous?.endsWith(`:${hash}`)) continue
+    if (previous?.endsWith(`:${hash}`) && (await store.message(key, id, { chatId: chat }))) continue
+    const extraction = await extractText(bytes, { kind: "file", name: basename(path), mime: null, path }, loadEngine)
+    if (extraction.status !== "extracted") {
+      notRead.push({
+        path: id,
+        status: extraction.status,
+        ...("engine" in extraction ? { engine: extraction.engine } : {}),
+      })
+      after[id] = previous ?? stamp
+      if (previous) await store.markDeleted(key, [id], { chatId: chat })
+      continue
+    }
+    const text = extraction.text
+    if (extraction.truncated || text.length + basename(path).length + 2 > MAX_TEXT) truncated.push(id)
+    await store.setSyncState(
+      key,
+      `document:${id}`,
+      JSON.stringify({
+        extractor: extraction.extractor,
+        hash,
+        format: extname(path),
+        provenance: extname(path).toLowerCase() === ".xlsx" ? "sheet-cell" : "source-text",
+        truncated: truncated.includes(id),
+        ...("spans" in extraction && extraction.spans ? { spans: extraction.spans } : {}),
+        ...("cells" in extraction && extraction.cells ? { cells: extraction.cells } : {}),
+      }),
+    )
     changed.set(chat, [...(changed.get(chat) ?? []), noteMessage(id, path, text, modified)])
   }
 
@@ -128,6 +165,8 @@ export const importNotes = async (
       ]),
     ],
     deleted: gone.deleted,
+    ...(notRead.length ? { notRead } : {}),
+    ...(truncated.length ? { truncated } : {}),
     ...(gone.skipped === undefined ? {} : { deletionsSkipped: gone.skipped }),
   }
 }

@@ -63,6 +63,7 @@ const importInto = async (env: NodeJS.ProcessEnv, max?: number) =>
     account: { name: "test", address: ME },
     since: SINCE,
     now: () => NOW,
+    indexThreads: async () => ({ chats: 0, chunks: 0, left: false }),
     ...(max === undefined ? {} : { max }),
   })
 

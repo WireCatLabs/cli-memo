@@ -13,6 +13,7 @@ export interface NotesEmbedded {
   left: boolean
   /** Why nothing was embedded, when nothing could be. */
   notEmbedded?: string
+  pendingChats?: string[]
 }
 
 const isMissingModel = (error: unknown): boolean =>
@@ -45,15 +46,20 @@ export const embedNotes = async (
   }
   let chunks = 0
   let left = false
-  for (const chat of embed ? chats : []) {
+  const pendingChats: string[] = []
+  for (const [index, chat] of (embed ? chats : []).entries()) {
     if (chunks >= maxChunks) {
       left = true
+      pendingChats.push(...chats.slice(index))
       break
     }
     try {
       const done = await embeddings.embed(chat, { maxChunks: maxChunks - chunks })
       chunks += done.embedded
-      if ((await embeddings.status(chat)).left > 0) left = true
+      if ((await embeddings.status(chat)).left > 0) {
+        left = true
+        pendingChats.push(chat)
+      }
     } catch (error) {
       if (!isMissingModel(error)) throw error
       return {
@@ -61,10 +67,17 @@ export const embedNotes = async (
         chunks,
         left: true,
         notEmbedded: "the e5-small model is not downloaded — tg models text download e5-small",
+        pendingChats: [...pendingChats, ...chats.slice(index)],
       }
     }
   }
-  return { chats: chats.length, chunks, left, ...(embed ? {} : { notEmbedded: "embedding is off" }) }
+  return {
+    chats: chats.length,
+    chunks,
+    left,
+    ...(pendingChats.length ? { pendingChats } : {}),
+    ...(embed ? {} : { notEmbedded: "embedding is off", pendingChats: chats }),
+  }
 }
 
 const PENDING = "embed_pending"
@@ -78,7 +91,7 @@ export const embedChanged = async (
   store: MessageStore,
   key: AccountKey,
   changed: string[],
-  options: { maxChunks?: number; embed?: boolean; env?: NodeJS.ProcessEnv } = {},
+  options: { maxChunks?: number; maxChats?: number; embed?: boolean; env?: NodeJS.ProcessEnv } = {},
 ): Promise<NotesEmbedded> => {
   const saved = await store.syncState(key, PENDING)
   const waiting =
@@ -90,10 +103,13 @@ export const embedChanged = async (
   const behind = (await embeddingsService(deps).readiness({})).chats
     .filter(({ state, graph, vectors }) => state === "stale" || graph?.outdatedRules === true || vectors.missing > 0)
     .map(({ chat }) => chat)
-  const chats = [...new Set<string>([...waiting, ...changed, ...behind])].sort()
+  const chats = [...new Set<string>([...changed, ...waiting, ...behind])]
   if (chats.length === 0) return { chats: 0, chunks: 0, left: false }
-  const result = await embedNotes(store, key, chats, options)
+  const selected = chats.slice(0, options.maxChats ?? 100)
+  const result = await embedNotes(store, key, selected, options)
+  const pending = [...chats.slice(selected.length), ...(result.pendingChats ?? (result.left ? selected : []))]
+  result.left ||= pending.length > 0
   // Embedding off leaves every chat waiting, so turning it on later embeds them.
-  await store.setSyncState(key, PENDING, JSON.stringify(result.left || options.embed === false ? chats : []))
+  await store.setSyncState(key, PENDING, JSON.stringify(pending))
   return result
 }

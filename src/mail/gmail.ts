@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto"
 import { CliError } from "@leemour/cli-core"
 import type { Himalaya } from "./himalaya.js"
 
@@ -7,9 +8,10 @@ export interface Listed {
   messageId: string
   threadId: string
   receivedAt: string
+  folder?: string
+  scopeFolder?: string
 }
 
-const ALL_MAIL = '"[Gmail]/All Mail"'
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 const FETCH_BATCH = 500
 
@@ -46,10 +48,18 @@ const assertCompleted = (output: string, tags: string[]): void => {
  * Every message in All Mail received since `since`, read with EXAMINE so nothing can change a flag.
  * All Mail rather than INBOX: an archived message leaves INBOX but is not deleted.
  */
-export const listAllMail = async (run: Himalaya, account: string, since: Date): Promise<Listed[]> => {
+export const listAllMail = async (
+  run: Himalaya,
+  account: string,
+  since: Date,
+  folder = "[Gmail]/All Mail",
+): Promise<Listed[]> => {
+  if (/[\r\n]/.test(folder) || folder.includes(String.fromCharCode(0)))
+    throw new CliError("validation_error", "invalid mailbox name")
+  const mailbox = JSON.stringify(folder)
   const search = await run(
     ["imap", "raw", "-a", account],
-    `a EXAMINE ${ALL_MAIL}\r\nb UID SEARCH SINCE ${imapDate(since)}\r\n`,
+    `a EXAMINE ${mailbox}\r\nb UID SEARCH SINCE ${imapDate(since)}\r\n`,
   )
   assertCompleted(search, ["a", "b"])
   const uids = (/^\* SEARCH(.*)$/m.exec(search)?.[1] ?? "").trim().split(/\s+/).filter(Boolean)
@@ -61,7 +71,7 @@ export const listAllMail = async (run: Himalaya, account: string, since: Date): 
   const tags = batches.map((_, index) => `f${index}`)
   const fetched = await run(
     ["imap", "raw", "-a", account],
-    `a EXAMINE ${ALL_MAIL}\r\n${batches
+    `a EXAMINE ${mailbox}\r\n${batches
       .map((set, index) => `${tags[index]} UID FETCH ${set} (UID X-GM-MSGID X-GM-THRID INTERNALDATE)\r\n`)
       .join("")}`,
   )
@@ -79,5 +89,58 @@ export const listAllMail = async (run: Himalaya, account: string, since: Date): 
   })
   if (listed.length !== uids.length)
     throw new CliError("invalid_response", `IMAP listed ${uids.length} messages but fetched ${listed.length}`)
+  return listed
+}
+
+/** Message-ID is stable across folders; absent headers fall back to a UIDVALIDITY-scoped identity. */
+export const listImapMail = async (run: Himalaya, account: string, since: Date, folder: string): Promise<Listed[]> => {
+  if (!folder || /[\r\n]/.test(folder) || folder.includes(String.fromCharCode(0)))
+    throw new CliError("validation_error", "invalid mailbox name")
+  const mailbox = JSON.stringify(folder)
+  const searched = await run(
+    ["imap", "raw", "-a", account],
+    `a EXAMINE ${mailbox}\r\nb UID SEARCH SINCE ${imapDate(since)}\r\n`,
+  )
+  assertCompleted(searched, ["a", "b"])
+  const validity = /\[UIDVALIDITY (\d+)\]/.exec(searched)?.[1]
+  if (!validity) throw new CliError("invalid_response", "IMAP did not report UIDVALIDITY")
+  const uids = [...new Set((/^\* SEARCH(.*)$/m.exec(searched)?.[1] ?? "").trim().split(/\s+/).filter(Boolean))]
+  if (!uids.every((uid) => /^\d+$/.test(uid))) throw new CliError("invalid_response", "invalid IMAP UID listing")
+  const listed: Listed[] = []
+  const digest = (id: string) => `imap:${createHash("sha256").update(id).digest("hex")}`
+  for (let start = 0; start < uids.length; start += FETCH_BATCH) {
+    const batch = uids.slice(start, start + FETCH_BATCH)
+    const before = listed.length
+    const output = await run(
+      ["imap", "raw", "-a", account],
+      `a EXAMINE ${mailbox}\r\nf UID FETCH ${batch.join(",")} (UID INTERNALDATE BODY.PEEK[HEADER.FIELDS (MESSAGE-ID REFERENCES IN-REPLY-TO)])\r\n`,
+    )
+    assertCompleted(output, ["a", "f"])
+    for (const match of output.matchAll(
+      /^\* \d+ FETCH \(([\s\S]*?)(?=^\* \d+ FETCH|^[af] (?:OK|NO|BAD)|$(?![\s\S]))/gm,
+    )) {
+      const fields = match[1] ?? "",
+        uid = /(?:^|\s)UID (\d+)/.exec(fields)?.[1],
+        internal = /INTERNALDATE "([^"]+)"/.exec(fields)?.[1]
+      if (!uid || !internal || !batch.includes(uid)) throw new CliError("invalid_response", "incomplete IMAP envelope")
+      const unfolded = fields.replace(/\r?\n[ \t]+/g, " ")
+      const messageId = /^Message-ID:\s*(.+)$/im.exec(unfolded)?.[1]?.trim()
+      const refs = /^References:\s*(.+)$/im.exec(unfolded)?.[1]?.match(/<[^>]+>/g)
+      const parent = /^In-Reply-To:\s*(<[^>]+>)/im.exec(unfolded)?.[1]
+      const identity = messageId ?? `uid:${folder}:${validity}:${uid}`
+      listed.push({
+        uid,
+        messageId: digest(identity),
+        threadId: digest(refs?.[0] ?? parent ?? identity),
+        receivedAt: isoOf(internal),
+        folder,
+      })
+    }
+    if (
+      listed.length - before !== batch.length ||
+      new Set(listed.slice(before).map((item) => item.uid)).size !== batch.length
+    )
+      throw new CliError("invalid_response", "IMAP returned a partial envelope batch; deletions were not checked")
+  }
   return listed
 }

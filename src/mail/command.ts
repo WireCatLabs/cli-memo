@@ -33,30 +33,44 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .option("--since <date>", "first day to read, YYYY-MM-DD (default: 30 days ago)", day)
     .option("--max <n>", "most new messages to read in this run", positive, 200)
     .option("--json", "print JSON")
-    .action(async (options: { account?: string; since?: Date; max: number; json?: boolean }) => {
-      const accounts = loadConfig(env).mail?.accounts ?? []
-      const account =
-        options.account === undefined ? accounts[0] : accounts.find(({ name }) => name === options.account)
-      if (account === undefined)
-        throw new CliError(
-          "configuration_error",
-          options.account === undefined
-            ? "no mail account: add mail.accounts [{ name, address }] to the config"
-            : `no mail account "${options.account}" in mail.accounts of the config`,
-        )
-      const store = await openStore({ env })
-      try {
-        const result = await importMail({
-          store,
-          run: himalaya(env),
-          account,
-          since: options.since ?? new Date(Date.now() - 30 * DAY),
-          max: options.max,
-        })
-        if (options.json) createRenderer({ format: "json", color: false, streams }).result(result)
-        else streams.data(`${text(result)}\n`)
-      } finally {
-        await store.close()
-      }
-    })
+    .option("--no-embed", "skip semantic embedding; local words remain searchable")
+    .option("--retry-attachments", "reread bounded stored messages after installing an extraction engine")
+    .action(
+      async (options: {
+        account?: string
+        since?: Date
+        max: number
+        json?: boolean
+        embed: boolean
+        retryAttachments?: boolean
+      }) => {
+        const accounts = loadConfig(env).mail?.accounts ?? []
+        const account =
+          options.account === undefined ? accounts[0] : accounts.find(({ name }) => name === options.account)
+        if (account === undefined)
+          throw new CliError(
+            "configuration_error",
+            options.account === undefined
+              ? "no mail account: add mail.accounts [{ name, address }] to the config"
+              : `no mail account "${options.account}" in mail.accounts of the config`,
+          )
+        const store = await openStore({ env })
+        try {
+          const result = await importMail({
+            store,
+            run: himalaya(env),
+            account,
+            since: options.since ?? new Date(Date.now() - 30 * DAY),
+            max: options.max,
+            env,
+            embed: options.embed,
+            retryAttachments: options.retryAttachments,
+          })
+          if (options.json) createRenderer({ format: "json", color: false, streams }).result(result)
+          else streams.data(`${text(result)}\n`)
+        } finally {
+          await store.close()
+        }
+      },
+    )
 }

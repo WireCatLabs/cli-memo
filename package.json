@@ -1,6 +1,6 @@
 {
   "name": "@leemour/cli-memo",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Context about people across messengers, notes and mail, from a local store",
   "license": "MIT",
   "author": "Viacheslav Ptsarev",
@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@leemour/cli-core": "0.17.2",
-    "@leemour/cli-messaging": "0.166.0",
+    "@leemour/cli-messaging": "0.182.0",
     "commander": "15.0.0",
     "valibot": "1.5.0",
     "yaml": "2.9.1"

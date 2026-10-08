@@ -5,6 +5,23 @@ Notable changes to `@leemour/cli-memo`, one section per version, newest first. V
 
 ## Unreleased
 
+## 0.2.0 — 08.10.2026
+
+- Account-scoped annotations on messages, documents, emails, chats, contacts, people, tasks and entities,
+  with stable IDs, revision checks, literal search and explicit missing/deleted source states.
+- Structured notes filters, document deduplication/pagination, exact source excerpts and vault-scoped
+  wiki-link resolution, plus `notes show` with extraction provenance.
+- Open tasks and explicit document-task assignments in person context; tasks add/list/close reuse the
+  shared task service. Multiple matching accounts require explicit selection.
+- CSV/TSV, PDF, DOCX, XLSX, ODT/ODS, PPTX and EPUB ingestion through shared extraction, with optional-engine and unsupported
+  format reporting, file/text bounds, content hashes and page/row/cell provenance.
+- Configurable Gmail/IMAP folder coverage, stable Message-ID identities, attachment text sources and
+  bounded resumable email indexing. Partial listings never prove deletion; changed folder scopes skip deletion.
+- Canonical-person/task/entity labels, manual organization/family/project relationships, selected-source
+  unified retrieval, and cited evidence bundles/model proposals with explicit remote consent.
+- Durable local task reminders with lease receipts, acknowledgement, stale-edit checks, snooze/cancel
+  and automatic cancellation when a task closes. No outbound delivery or source-system mutation.
+
 - `memo tags add|remove|list`: local labels on imported notes, emails, messages and folders/threads,
   addressed by full message locator or an exact provider/account/chat. Labels are case-insensitive,
   shared with tg/MAX and preserve source files and mailboxes; deleted sources are hidden from listing.

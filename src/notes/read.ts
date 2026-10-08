@@ -96,7 +96,7 @@ export const findNotes = (folders: string[], name: string, limit = 20, ignore: s
   const notRead: NotesAnswer["notRead"] = []
   const notes = folders.flatMap((folder) => {
     try {
-      return noteFiles(resolve(folder), ignore).map(readNote)
+      return noteFiles(resolve(folder), ignore, [".md", ".markdown", ".txt"]).map(readNote)
     } catch (error) {
       notRead.push({ folder, reason: error instanceof Error ? error.message : String(error) })
       return []

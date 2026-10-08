@@ -30,7 +30,7 @@ describe("noteFiles", () => {
     "Archive/deep/older.md",
   ])
 
-  it("lists md and txt notes and skips hidden folders", () => {
+  it("lists supported documents and skips hidden folders", () => {
     expect(listed(root)).toEqual([
       "Archive/deep/older.md",
       "Archive/old.md",
@@ -38,6 +38,7 @@ describe("noteFiles", () => {
       "Psychology/Private Notes.md",
       "a.md",
       "b.txt",
+      "c.pdf",
     ])
   })
 

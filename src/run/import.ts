@@ -93,6 +93,8 @@ export const importCommand = (program: Command, streams: Streams, env: NodeJS.Pr
                   run: himalaya(env),
                   account,
                   since: new Date(Date.now() - MAIL_WINDOW_DAYS * DAY),
+                  env,
+                  embed: options.embed,
                 }),
               )
             })
