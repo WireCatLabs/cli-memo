@@ -17,7 +17,7 @@ const ConfigSchema = v.object({
         ]),
       ),
       ignore: v.optional(v.array(v.string())),
-      /** Read and ignored: notes are not embedded until cli-messaging embeds note chunks. */
+      /** `false` keeps notes out of search by meaning: `memo import` does not embed them. */
       embed: v.optional(v.boolean()),
       /** Where `memo notes export` and `--export` write internal notes when no folder is given. */
       export: v.optional(

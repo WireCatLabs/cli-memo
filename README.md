@@ -62,9 +62,11 @@ memo ask 'What work is pending?' --query budget --all --json
 
 Notes are searched by their words and word stems, in the query language messages use: phrases,
 `AND`/`OR`/`NOT`, `tag:`, `date:`; `--exact` matches every word as written. A message-only field such as
-`from:` is refused. Each hit carries its reference, the first matching line and the links the note
-holds; `linked` counts what the notes found link to. Follow `nextOffset` with `--offset`. Search by
-meaning covers mail and messages; notes join it once the shared store embeds them.
+`from:` is refused. They are also searched by meaning when the model is downloaded, and the two are
+ranked together: `by` says which ran, each hit's `foundBy` which found it, and `meaningSkipped` why
+meaning did not run. Each hit carries its reference, the first matching line and the links the note
+holds; `linked` counts what the notes found link to, with each person's name. Follow `nextOffset` with
+`--offset`.
 
 `notes show` takes `note:<id>` or a file in a configured folder, and answers with the note's tags, its
 links, its backlinks and, for a PDF or sheet, where its text came from.
@@ -90,14 +92,14 @@ memo entities add 'Synthetic Studio' --kind organization
 memo relationships add person:PERSON_UID entity:ENTITY_ID --role author
 memo entities context ENTITY_ID --json
 memo tags add project --entity ENTITY_ID
-memo tags add follow-up --task TASK_ID --provider telegram --account 1
+memo tags add follow-up --task TASK_ID
 ```
 
 Organisations, families, projects and groups are yours, not one account's. Relationships use
 `member-of` or `related-to`; `list`, `remove` and `confirm` manage them. They are manual statements and
 never merge identities because names or domains match. `entities context` lists the entity's
-relationships, the notes about or linking it, and its tags. A task stays its account's, so its tags
-and reminders name the account.
+relationships, the notes about or linking it, and its tags. Tags on a task need no account; its
+reminders name the account it waits on.
 
 `memo relationships suggest --provider email --account owner@example.test` stores bounded weak
 shared-domain proposals for direct email contacts. Proposals retain rule provenance and remain
@@ -138,7 +140,7 @@ agents, `--limit` for more.
 ```sh
 memo folders add /path/to/vault            # once: gives the folder an id
 memo notes import                          # load the notes into the shared store; run again after edits
-memo notes search "lighthouse budget"      # notes by their words, and what they link
+memo notes search "lighthouse budget"      # notes by their words and meaning, and what they link
 memo notes about telegram:"Rin Example"    # notes about a person, and the notes linking them
 ```
 
@@ -151,7 +153,11 @@ Import also stores what each note links, through the folder's format. A link to 
 once becomes a link to that note. A name no note has, such as `[[Kai Sample]]`, is kept as written and
 becomes a link to the person the moment someone by that name, local alias or username is in the store —
 or stays unresolved while two people share it. A file's `tags:` and `#tags` become the note's tags, and
-a tag removed from the file is removed from the note.
+a tag removed from the file is removed from the note — unless you added the same tag yourself.
+
+Import then embeds the notes for search by meaning with the local e5-small model (shared with tg and
+max: `tg models text download e5-small`), only what changed, at most 600 chunks a run — the next run
+continues. `--no-embed`, or `notes.embed: false` in the config, skips it.
 
 `about` takes `<messenger>:<name or id>` or a reference (`person:`, `entity:`, `note:`) and lists the
 notes about it, the notes that link it, the notes that link a note about it, and links written with the
@@ -272,6 +278,7 @@ itself is left as it is.
 
 ```sh
 memo tags add work follow-up --note note:NOTE_ID
+memo tags add project --folder FOLDER_ID --path Projects
 memo notes search "budget" --tag work
 memo tags add follow-up --message 'msg:email/you%40example.com/12345/67890'
 memo tags add follow-up --chat 12345 --provider email --account you@example.com
@@ -280,13 +287,15 @@ tg messages search 'in:email tag:follow-up'
 ```
 
 A note is labelled by its reference, an email or messenger message by its full `msg:` locator, a mail
-thread or chat by its exact id and account. A person or entity is labelled by `--person` or `--entity`;
-a task and a contact name their account. Tags use 1–32 letters a–z, digits or hyphens; case is ignored.
+thread or chat by its exact id and account. A person, entity or task is labelled by `--person`,
+`--entity` or `--task`, with no account; a contact names its account. `--folder` with an id from
+`memo folders list`, and `--path` for one subfolder, labels every note under it at any depth. Tags use 1–32 letters a–z, digits or hyphens; case is ignored.
 Adding an existing tag or removing an absent one leaves it unchanged.
 
 Labels live in the shared local store. Tagging leaves note files, front matter, Gmail labels and mailbox
 flags untouched. Labels survive edits and moves of the note; a deleted note disappears from search.
-`tags list` shows up to 100 labels by default (`--limit` for more, `hasMore` in JSON). Contact identity
+`tags list` shows up to 100 labels by default (`--limit` for more, `hasMore` in JSON); a note's tags
+say whether its file or you stated them. Contact identity
 tags remain available through `tg|max tags`.
 
 ## Development

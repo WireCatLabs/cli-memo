@@ -1,6 +1,5 @@
 import { CliError, createRenderer, type Streams } from "@leemour/cli-core"
 import {
-  type AccountKey,
   type KnowledgeEntity,
   type KnowledgeRelation,
   type MessageStore,
@@ -9,7 +8,6 @@ import {
 import type { Command } from "commander"
 import { notesAbout } from "../notes/about.js"
 import { accountOptions, positive } from "../options.js"
-import { ownerKey, requiredOwnerKey } from "../store/owner.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 
 export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
@@ -26,21 +24,17 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       await store.close()
     }
   }
-  /** Organisations and relations are the owner's, not an account's; the store still asks for some account. */
-  const owned = async (
-    options: { json?: boolean },
-    work: (store: MessageStore, key: AccountKey | undefined) => Promise<unknown>,
-  ) => {
+  /** Organisations and relations are the owner's, not an account's. */
+  const owned = async (options: { json?: boolean }, work: (store: MessageStore) => Promise<unknown>) => {
     const store = await openStore({ env })
     try {
-      const answer = await work(store, await ownerKey(store))
+      const answer = await work(store)
       if (options.json) createRenderer({ format: "json", color: false, streams }).result(answer)
       else streams.data(`${JSON.stringify(answer, null, 2)}\n`)
     } finally {
       await store.close()
     }
   }
-  const required = async (store: MessageStore, key: AccountKey | undefined) => key ?? requiredOwnerKey(store)
   const entities = program.command("entities").description("Organizations, families, projects and groups of yours")
   entities
     .command("add")
@@ -59,7 +53,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .argument("<id>")
     .option("--json", "print JSON")
     .action((id: string, options: { json?: boolean }) =>
-      owned(options, async (store, key) => {
+      owned(options, async (store) => {
         const ref = `entity:${id}`
         return {
           entity: (await store.notes.entities()).find((entity) => entity.id === id) ?? null,
@@ -67,7 +61,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
             .concat(await store.notes.links({ from: ref }))
             .filter((link) => link.kind !== "about" && link.kind !== "links-to"),
           notes: await notesAbout(store, { ref }),
-          tags: key ? await store.knowledge.tags(key, { type: "entity", id }) : [],
+          tags: await store.knowledge.tags(null, { type: "entity", id }),
         }
       }),
     )
@@ -88,8 +82,8 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         to: string,
         options: { kind: KnowledgeRelation["kind"]; role?: string; evidence?: string; json?: boolean },
       ) =>
-        owned(options, async (store, key) =>
-          store.knowledge.relate(await required(store, key), {
+        owned(options, (store) =>
+          store.knowledge.relate(null, {
             from,
             to,
             kind: options.kind,
@@ -103,21 +97,21 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .option("--reference <reference>")
     .option("--json", "print JSON")
     .action((options: { reference?: string; json?: boolean }) =>
-      owned(options, async (store, key) => (key ? store.knowledge.relations(key, options.reference) : [])),
+      owned(options, (store) => store.knowledge.relations(null, options.reference)),
     )
   relations
     .command("remove")
     .argument("<id>")
     .option("--json", "print JSON")
     .action((id: string, options: { json?: boolean }) =>
-      owned(options, async (store, key) => store.knowledge.removeRelation(await required(store, key), id)),
+      owned(options, (store) => store.knowledge.removeRelation(null, id)),
     )
   relations
     .command("confirm")
     .argument("<id>")
     .option("--json", "print JSON")
     .action((id: string, options: { json?: boolean }) =>
-      owned(options, async (store, key) => store.knowledge.confirmRelation(await required(store, key), id)),
+      owned(options, (store) => store.knowledge.confirmRelation(null, id)),
     )
   accountOptions(
     relations

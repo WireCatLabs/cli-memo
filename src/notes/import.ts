@@ -4,7 +4,6 @@ import { basename, extname, relative, sep } from "node:path"
 import { normalizeTag } from "@leemour/cli-messaging"
 import { extractText, importEngine, type LoadEngine, MAX_FILE_BYTES } from "@leemour/cli-messaging/documents"
 import type { MessageStore, Note } from "@leemour/cli-messaging/store"
-import { ownerKey } from "../store/owner.js"
 import type { BoundFolder } from "./bound.js"
 import { dialectOf, type ParsedNote } from "./dialects/index.js"
 import { NOTE_EXTENSIONS, noteFiles, readMemoId } from "./files.js"
@@ -24,8 +23,6 @@ export interface NotesImport {
   deletionsSkipped?: string
   notRead?: { path: string; status: string; engine?: string }[]
   truncated?: string[]
-  /** Why the tags written in files were not stored this run. */
-  tagsSkipped?: string
 }
 
 const MAX_TEXT = 200_000
@@ -76,7 +73,7 @@ export const importNotes = async (
   }: { ignore?: string[]; env?: NodeJS.ProcessEnv; loadEngine?: LoadEngine } = {},
 ): Promise<NotesImport> => {
   const before = loadFolderState(env, folder.id)
-  const after: FolderState = { files: {}, tags: { ...before?.tags }, documents: { ...before?.documents } }
+  const after: FolderState = { files: {}, documents: { ...before?.documents } }
   const dialect = dialectOf(folder.format)
   const stored = new Map((await folderNotes(store, folder.id)).map((note) => [note.path as string, note]))
   const notRead: NonNullable<NotesImport["notRead"]> = []
@@ -125,8 +122,6 @@ export const importNotes = async (
     const note = await store.notes.renameFileNote(folder.id, move.from, move.to)
     stored.delete(move.from)
     stored.set(move.to, note)
-    if (before?.tags[move.from]) after.tags[move.to] = before.tags[move.from] as string[]
-    delete after.tags[move.from]
     renamed++
   }
 
@@ -179,7 +174,6 @@ export const importNotes = async (
     deleted = await store.notes.deleteFileNotes(folder.id, gone)
     for (const id of gone) {
       stored.delete(id)
-      delete after.tags[id]
       delete after.documents[id]
     }
   }
@@ -205,25 +199,7 @@ export const importNotes = async (
     if (record) await store.notes.replaceFileLinks(record.id, fileLinks(id, note.links, documents))
   }
 
-  let tagsSkipped: string | undefined
-  const owner = await ownerKey(store)
-  for (const [id, note] of parsed) {
-    const record = stored.get(id) as Note
-    const wanted = storable(note.tags)
-    const had = after.tags[id] ?? []
-    if (!owner) {
-      if (wanted.length)
-        tagsSkipped = "the store holds no account yet to label notes under — run tg, max or memo mail import once"
-      continue
-    }
-    const target = { type: "note" as const, id: record.id }
-    const added = wanted.filter((tag) => !had.includes(tag))
-    const removed = had.filter((tag) => !wanted.includes(tag))
-    if (added.length) await store.knowledge.addTags(owner, target, added)
-    if (removed.length) await store.knowledge.removeTags(owner, target, removed)
-    if (wanted.length) after.tags[id] = wanted
-    else delete after.tags[id]
-  }
+  for (const [id, note] of parsed) await store.notes.replaceFileTags((stored.get(id) as Note).id, storable(note.tags))
 
   saveFolderState(env, folder.id, after)
 
@@ -237,6 +213,5 @@ export const importNotes = async (
     ...(notRead.length ? { notRead } : {}),
     ...(truncated.length ? { truncated } : {}),
     ...(deletionsSkipped === undefined ? {} : { deletionsSkipped }),
-    ...(tagsSkipped === undefined ? {} : { tagsSkipped }),
   }
 }

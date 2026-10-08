@@ -2,7 +2,6 @@ import { resolve } from "node:path"
 import { CliError } from "@leemour/cli-core"
 import type { MessageStore, Note } from "@leemour/cli-messaging/store"
 import type { Config } from "../config.js"
-import { ownerKey } from "../store/owner.js"
 import { type DialectName, dialectOf } from "./dialects/index.js"
 import { type ExportedNote, type ExportResult, exportNotes } from "./export.js"
 
@@ -47,7 +46,6 @@ export const exportInternal = async (
   store: MessageStore,
   { dir, format, notes }: { dir: string; format: DialectName; notes: Note[] },
 ): Promise<ExportResult> => {
-  const owner = await ownerKey(store)
   const exported: ExportedNote[] = []
   for (const note of notes) {
     const about = (await store.notes.links({ from: `note:${note.id}` })).filter((link) => link.to !== null)
@@ -56,7 +54,7 @@ export const exportInternal = async (
       title: titleOf(note),
       text: note.text,
       aliases: [],
-      tags: owner ? await store.knowledge.tags(owner, { type: "note", id: note.id }) : [],
+      tags: (await store.notes.noteTags(note.id)).map(({ tag }) => tag),
       links: about.map((link) => ({ target: link.to as string, anchor: link.anchor, label: null })),
       frontMatter: {},
     })

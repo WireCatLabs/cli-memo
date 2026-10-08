@@ -20,6 +20,8 @@ process.env.HIMALAYA_CONFIG = join(sandbox, "himalaya.toml")
 process.env.MEMO_HIMALAYA = join(import.meta.dirname, "fake-himalaya.mjs")
 process.env.MEMO_SYSTEMCTL = join(import.meta.dirname, "fake-systemctl.mjs")
 delete process.env.MEMO_AUTO
+// The shared models live under the cache; a set override would reach the owner's real e5-small.
+process.env.CLI_COMMON_CACHE_DIR = join(sandbox, "cache")
 process.env.TMPDIR = sandbox
 process.env.MEMO_TEST_SANDBOX = sandbox
 
