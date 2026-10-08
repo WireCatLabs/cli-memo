@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto"
 import { resolve } from "node:path"
 import { CliError } from "@leemour/cli-core"
 import type { Config } from "../config.js"
@@ -26,8 +25,6 @@ export const noteFolders = (notes: Config["notes"]): NoteFolder[] => (notes?.fol
 
 export const folderPaths = (notes: Config["notes"]): string[] => noteFolders(notes).map(({ path }) => path)
 
-const newId = () => `fld_${randomUUID().replace(/-/g, "")}`
-
 const written = (folder: NoteFolder): Entry => ({
   id: folder.id as string,
   path: folder.path,
@@ -42,24 +39,16 @@ const withFolders = (config: Config, folders: NoteFolder[]): Config => ({
   },
 })
 
-/** Gives the folder at `path` an id, keeping the one it has. A bare path in the config becomes an entry. */
-export const addFolder = (
-  config: Config,
-  path: string,
-  format?: DialectName,
-): { config: Config; folder: NoteFolder; created: boolean } => {
-  const at = resolve(path)
+/** Writes `folder` at its path, in place of whatever entry had that path or that id. */
+export const bindFolder = (config: Config, folder: NoteFolder & { id: string }): Config => {
+  const at = resolve(folder.path)
   const folders = noteFolders(config.notes)
-  const index = folders.findIndex((folder) => folder.path === at)
-  const current = folders[index]
-  if (current?.id) {
-    if (format === undefined || format === current.format) return { config, folder: current, created: false }
-    const folder = { ...current, format }
-    return { config: withFolders(config, folders.with(index, folder)), folder, created: false }
-  }
-  const folder: NoteFolder = { id: newId(), path: at, format: format ?? current?.format ?? "obsidian" }
-  const next = index < 0 ? [...folders, folder] : folders.with(index, folder)
-  return { config: withFolders(config, next), folder, created: true }
+  const index = folders.findIndex((other) => other.path === at)
+  const bound = { ...folder, path: at }
+  const kept = folders
+    .map((other, position) => (position === index ? bound : other))
+    .filter((other, position) => position === index || (other.id !== folder.id && other.path !== at))
+  return withFolders(config, index < 0 ? [...kept, bound] : kept)
 }
 
 /**

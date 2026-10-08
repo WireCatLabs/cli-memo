@@ -3,6 +3,7 @@ import { normalizeTag } from "@leemour/cli-messaging"
 import { type MessageStore, openStore, type StoredTag } from "@leemour/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { positive } from "../options.js"
+import { requiredOwnerKey } from "../store/owner.js"
 import { selectTarget, type TargetInput } from "../store/scope.js"
 import { type SourceScope, type SourceTarget, type SourceTargetInput, sourceTarget } from "../store/source-target.js"
 
@@ -27,14 +28,15 @@ const reference = (key: SourceScope, chat: string) =>
 const targetOptions = (command: Command) =>
   command
     .argument("<tag...>", "one or more tags: 1–32 letters a–z, digits or hyphens; case is ignored")
-    .option("--message <locator>", "a stored note, email or message's full msg: locator")
-    .option("--chat <id>", "a stored folder or thread's exact chat id; requires --provider and --account")
-    .option("--provider <provider>", "the chat's provider, such as notes or email")
-    .option("--account <account>", "the chat's account: an imported notes folder or mailbox address")
+    .option("--message <locator>", "a stored email or message's full msg: locator")
+    .option("--note <id>", "a note: note:<id> or its id")
+    .option("--chat <id>", "a stored mail thread or chat's exact id; requires --provider and --account")
+    .option("--provider <provider>", "the chat's provider, such as email")
+    .option("--account <account>", "the chat's account, such as a mailbox address")
     .option("--task <id>", "label a stable task, with provider/account")
     .option("--contact <id>", "label a contact identity, with provider/account")
-    .option("--person <uid>", "label a unified person explicitly, with provider/account")
-    .option("--entity <uid>", "label an organization, family or project, with provider/account")
+    .option("--person <uid>", "label a unified person")
+    .option("--entity <id>", "label an organization, family or project")
     .option("--json", "print JSON")
 
 const listTags = async (store: MessageStore, options: ListOptions) => {
@@ -85,8 +87,36 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
   const mutate = async (
     operation: "add" | "remove",
     given: string[],
-    options: SourceTargetInput & TargetInput & { json?: boolean },
+    options: SourceTargetInput & TargetInput & { note?: string; json?: boolean },
   ) => {
+    const owned =
+      options.note !== undefined ||
+      ((options.person !== undefined || options.entity !== undefined) && options.provider === undefined)
+    if (owned) {
+      const store = await openStore({ env })
+      try {
+        const key = await requiredOwnerKey(store)
+        const target =
+          options.note !== undefined
+            ? { type: "note" as const, id: options.note.replace(/^note:/, "") }
+            : options.person !== undefined
+              ? { type: "person" as const, id: options.person }
+              : { type: "entity" as const, id: options.entity as string }
+        const changed = await (operation === "add" ? store.knowledge.addTags : store.knowledge.removeTags)(
+          key,
+          target,
+          given,
+        )
+        print(
+          options.json,
+          { target, [operation === "add" ? "added" : "removed"]: changed },
+          `${operation}: ${changed.join(", ") || "no labels changed"}`,
+        )
+      } finally {
+        await store.close()
+      }
+      return
+    }
     if (
       options.task !== undefined ||
       options.person !== undefined ||
@@ -142,7 +172,7 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       tags
         .command(operation)
         .description(operation === "add" ? "Put labels on one source" : "Remove labels from one source"),
-    ).action((given: string[], options: SourceTargetInput & TargetInput & { json?: boolean }) =>
+    ).action((given: string[], options: SourceTargetInput & TargetInput & { note?: string; json?: boolean }) =>
       mutate(operation, given, options),
     )
 

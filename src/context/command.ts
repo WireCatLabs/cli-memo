@@ -2,8 +2,9 @@ import { createRenderer, type Streams } from "@leemour/cli-core"
 import type { ContextMessage } from "@leemour/cli-messaging/services"
 import { openStore } from "@leemour/cli-messaging/store"
 import type { Command } from "commander"
+import { boundFolders } from "../notes/bound.js"
 import { positive } from "../options.js"
-import { loadNotesMap } from "../people/notes-map.js"
+import { importNotesMap } from "../people/notes-map.js"
 import { type MemoContext, memoContext } from "./context.js"
 
 const MAX_TEXT = 160
@@ -14,7 +15,7 @@ const one = (message: ContextMessage | null): string =>
     : `${message.timestamp.slice(0, 16).replace("T", " ")}  ${message.provider}  ${message.chatTitle ?? message.chatId}: ` +
       message.text.replace(/\s+/g, " ").slice(0, MAX_TEXT)
 
-export const contextText = ({ messages, notes, notRead, tasks, annotations }: MemoContext): string => {
+export const contextText = ({ messages, notes, notRead, tasks, yourNotes }: MemoContext): string => {
   const { person, last, recent, shared } = messages
   return [
     `${person.name ?? person.uid}`,
@@ -26,14 +27,17 @@ export const contextText = ({ messages, notes, notRead, tasks, annotations }: Me
     ...(recent.direct.length === 0 ? [] : ["", "Recent, direct", ...recent.direct.map((m) => `  ${one(m)}`)]),
     ...(recent.groups.length === 0 ? [] : ["", "Recent, in groups", ...recent.groups.map((m) => `  ${one(m)}`)]),
     "",
-    `Note about them  ${notes.about ?? "none — memo note <identity> <path>"}`,
-    ...(notes.mentions.length === 0
+    "",
+    ...(notes.about.length === 0
+      ? ["Note about them  none — memo note <identity> <path>"]
+      : ["Notes about them", ...notes.about.map((note) => `  ${note.path ?? note.ref}`)]),
+    ...(notes.linking.length === 0
       ? []
-      : [
-          "Notes naming them (by name — may be someone else)",
-          ...notes.mentions.map(({ path, line }) => `  ${path}  ${line}`),
-          ...(notes.hasMore ? ["  more — raise --limit"] : []),
-        ]),
+      : ["Notes linking them", ...notes.linking.map((note) => `  ${note.path ?? note.ref}`)]),
+    ...(notes.throughNotes.length === 0
+      ? []
+      : ["Notes linking a note about them", ...notes.throughNotes.map((note) => `  ${note.path ?? note.ref}`)]),
+    ...(notes.hasMore ? ["  more — raise --limit"] : []),
     ...(messages.complete ? [] : ["", `Not read in full: ${messages.notRead.length} chats — store fetch <chat>`]),
     ...notRead.map(({ source, reason }) => `Not read: ${source} — ${reason}`),
     ...(tasks.items.length
@@ -45,9 +49,7 @@ export const contextText = ({ messages, notes, notRead, tasks, annotations }: Me
           ),
         ]
       : []),
-    ...(annotations.items.length
-      ? ["", "Your annotations", ...annotations.items.map((note) => `  ${note.id}  ${note.text}`)]
-      : []),
+    ...(yourNotes.length ? ["", "Your notes", ...yourNotes.map((note) => `  ${note.id}  ${note.text}`)] : []),
   ].join("\n")
 }
 
@@ -62,9 +64,9 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
     .action(async (person: string, options: { limit: number; json?: boolean; account?: string }) => {
       const store = await openStore({ env })
       try {
+        await importNotesMap(store, env, await boundFolders(store, env, { strict: false }))
         const answer = await memoContext(store, person, {
           limit: options.limit,
-          notesMap: loadNotesMap(env),
           ...(options.account === undefined ? {} : { account: options.account }),
         })
         if (options.json) createRenderer({ format: "json", color: false, streams }).result(answer)

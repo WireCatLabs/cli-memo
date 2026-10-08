@@ -17,7 +17,12 @@ const ConfigSchema = v.object({
         ]),
       ),
       ignore: v.optional(v.array(v.string())),
+      /** Read and ignored: notes are not embedded until cli-messaging embeds note chunks. */
       embed: v.optional(v.boolean()),
+      /** Where `memo notes export` and `--export` write internal notes when no folder is given. */
+      export: v.optional(
+        v.object({ dir: v.pipe(v.string(), v.minLength(1)), format: v.optional(v.picklist(DIALECTS)) }),
+      ),
     }),
   ),
   auto: v.optional(v.object({ enabled: v.optional(v.boolean()), every: v.optional(v.string()) })),

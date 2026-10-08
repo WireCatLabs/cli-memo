@@ -112,7 +112,7 @@ export const askCommand = (program: Command, streams: Streams, env: NodeJS.Proce
         const store = await openStore({ env })
         try {
           const found = await unifiedSearch(store, options.query ?? question, {
-            keys: await searchAccounts(store, options),
+            ...(await searchAccounts(store, options)),
             limit: options.limit,
           })
           if (new TextEncoder().encode(JSON.stringify(found.items)).byteLength > 64_000)

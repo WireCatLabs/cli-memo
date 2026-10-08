@@ -55,8 +55,14 @@ beforeEach(async () => {
   vault = join(dir, "vault")
   mkdirSync(join(vault, "People"), { recursive: true })
   writeFileSync(join(vault, "People", "Rin Example.md"), "Works on the lighthouse.\n")
-  writeFileSync(join(vault, "Meeting.md"), "Kickoff.\nRin Example will send the budget.\n")
-  env = { ...process.env, MESSAGING_STORE: join(dir, "messages.db"), MEMO_CONFIG_DIR: join(dir, "config") }
+  writeFileSync(join(vault, "Meeting.md"), "Kickoff.\n[[Rin Example]] will send the budget.\n")
+  writeFileSync(join(vault, "Call.md"), "Called [[person:PLACEHOLDER]] about Friday.\nRin Example sounded busy.\n")
+  env = {
+    ...process.env,
+    MESSAGING_STORE: join(dir, "messages.db"),
+    MEMO_CONFIG_DIR: join(dir, "config"),
+    MEMO_STATE_DIR: join(dir, "state"),
+  }
 
   const store = await openStore({ env })
   await store.applyDelta(tg, { chats: [chat("101", "Rin Example")], people: [{ id: "101", name: "Rin Example" }] })
@@ -100,9 +106,13 @@ describe("memo context", () => {
       { provider: "email", id: "rin@example.test" },
       { method: "manual", by: "owner" },
     )
+    const uid = (await store.personOf({ provider: "telegram", id: "101" }))?.uid as string
     await store.close()
-    await run("notes", "import", "--folder", vault)
+    writeFileSync(join(vault, "Call.md"), `Called [[person:${uid}]] about Friday.\nRin Example sounded busy.\n`)
+    await run("folders", "add", vault)
+    await run("notes", "import")
     await run("note", "telegram:101", join(vault, "People", "Rin Example.md"))
+    await run("notes", "add", "Prefers mornings", "--about", "email:rin@example.test")
 
     const answer = JSON.parse(await run("context", "telegram:Rin Example", "--json"))
 
@@ -113,10 +123,10 @@ describe("memo context", () => {
     expect(answer.messages.last.fromThem.text).toBe("Are we still on for Friday?")
     expect(answer.messages.last.fromThemAnywhere.text).toBe("Budget attached.")
     expect(answer.messages.last.fromMe.text).toBe("Yes, see you then.")
-    expect(answer.notes.about).toBe(join(vault, "People", "Rin Example.md"))
-    expect(answer.notes.mentions).toEqual([
-      expect.objectContaining({ path: "Meeting.md", line: "Rin Example will send the budget." }),
-    ])
+    expect(answer.notes.about.map(({ path }: { path: string }) => path)).toEqual(["People/Rin Example.md"])
+    expect(answer.notes.linking.map(({ path }: { path: string }) => path)).toEqual(["Call.md"])
+    expect(answer.notes.throughNotes.map(({ path }: { path: string }) => path)).toEqual(["Meeting.md"])
+    expect(answer.yourNotes.map(({ text }: { text: string }) => text)).toEqual(["Prefers mornings"])
     expect(answer.notRead).toEqual([])
   })
 
