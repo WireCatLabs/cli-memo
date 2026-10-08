@@ -40,10 +40,15 @@ config says where.
 
 ```sh
 memo tasks add 'msg:telegram/1/77/42' --type request
+memo tasks add 'note:NOTE_ID' --provider telegram --account 1 --type request
 memo tasks list --provider telegram --account 1 --json
 memo tasks assign TASK_ID PERSON_UID --provider telegram --account 1
 memo tasks close TASK_ID --provider telegram --account 1 --as done
 ```
+
+Native note tasks belong to the explicitly selected stored account. Their previews read current note
+text; deleting a note keeps its task with an unavailable source. Repeated creation of the same kind
+returns the existing task, including one already closed.
 
 `context` includes directly related open tasks and explicit task assignments. A task in a shared group
 belongs in a person's context only when they authored its source or you assigned it explicitly. Closed
@@ -53,10 +58,10 @@ tasks stay closed on repeated creation. If several accounts of the requested pro
 ## Search and gather evidence
 
 ```sh
-memo notes search '"budget review" AND NOT cancelled' --limit 20
-memo notes search 'project progress' --filter 'date:2026-10-08' --tag project --folder /path/to/vault
+memo search notes '"budget review" AND NOT cancelled' --limit 20
+memo search notes 'project progress' --filter 'date:2026-10-08' --tag project --folder /path/to/vault
 memo notes show note:NOTE_ID --json
-memo search 'budget AND after:2026-09-01' --all --note-text assessment --json
+memo search all 'budget AND after:2026-09-01' --json
 memo ask 'What work is pending?' --query budget --all --json
 ```
 
@@ -71,10 +76,10 @@ holds; `linked` counts what the notes found link to, with each person's name. Fo
 `notes show` takes `note:<id>` or a file in a configured folder, and answers with the note's tags, its
 links, its backlinks and, for a PDF or sheet, where its text came from.
 
-Unified `search` reads one selected provider/account, or every account and the notes with explicit
-`--all` (`--provider notes` for notes alone). It includes open tasks pointing at matching source
-evidence. `--note-text` adds a literal search over the notes you wrote here. Results identify source
-kind/account, match reason and coverage; a query using a field only messages have (`from:`, `after:`)
+`search all` searches messages, imported mail and native notes together. Use `search messages`,
+`search mail`, or `search notes` for one resource; `search notes --type internal|file` narrows note kinds.
+`search all` includes a separate `tasks` list for open work linked to matching sources. Results identify source
+kind/account and skipped-resource coverage; a query using a field only messages have (`from:`, `after:`)
 searches the messages and says the notes were not searched. Missing hits do not prove that an event
 never happened.
 
@@ -140,7 +145,7 @@ agents, `--limit` for more.
 ```sh
 memo folders add /path/to/vault            # once: gives the folder an id
 memo notes import                          # load the notes into the shared store; run again after edits
-memo notes search "lighthouse budget"      # notes by their words and meaning, and what they link
+memo search notes "lighthouse budget"      # notes by their words and meaning, and what they link
 memo notes about telegram:"Rin Example"    # notes about a person, and the notes linking them
 ```
 
@@ -279,7 +284,7 @@ itself is left as it is.
 ```sh
 memo tags add work follow-up --note note:NOTE_ID
 memo tags add project --folder FOLDER_ID --path Projects
-memo notes search "budget" --tag work
+memo search notes "budget" --tag work
 memo tags add follow-up --message 'msg:email/you%40example.com/12345/67890'
 memo tags add follow-up --chat 12345 --provider email --account you@example.com
 memo tags list --tag follow-up --json

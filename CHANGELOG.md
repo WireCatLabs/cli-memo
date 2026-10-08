@@ -5,6 +5,15 @@ Notable changes to `@leemour/cli-memo`, one section per version, newest first. V
 
 ## Unreleased
 
+- Search commands now live under `search all|messages|mail|notes`, using the shared services and ranking.
+  `search all` returns typed source hits and a separate `tasks` list for linked open work. The old
+  `memo search <query>` and `memo notes search` paths are removed without aliases. Use `search notes --type`
+  instead of `notes search --source`; `--all` and `--note-text` are no longer needed.
+
+- `tasks add note:<id> --provider <provider> --account <account>` creates tasks from native file or internal
+  notes. Lists resolve the current note preview; deleted notes leave tasks intact. Confirmed note-about-person
+  links and explicit assignments contribute to person context. Unified search includes tasks whose note matches.
+
 ## 0.2.1 — 08.10.2026
 
 - Pin cli-messaging 0.205.0 to match the coordinated Telegram/MAX release. Native notes, links and
