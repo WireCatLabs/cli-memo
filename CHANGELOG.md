@@ -5,6 +5,8 @@ Notable changes to `@leemour/cli-memo`, one section per version, newest first. V
 
 ## Unreleased
 
+## 0.2.0 — 08.10.2026
+
 Notes are their own records in the shared store (cli-messaging 0.202.0, store versions 25–27), no longer
 messages of a `notes` provider.
 
@@ -38,12 +40,6 @@ messages of a `notes` provider.
   besides `[[wiki links]]`; `markdown` reads plain Markdown links. Links to `person:`, `msg:`, `note:`,
   `entity:`, `task:`, `chat:` and `contact:` references are recognised in both.
 
-## 0.2.0 — 08.10.2026
-
-- Account-scoped annotations on messages, documents, emails, chats, contacts, people, tasks and entities,
-  with stable IDs, revision checks, literal search and explicit missing/deleted source states.
-- Structured notes filters, document deduplication/pagination, exact source excerpts and vault-scoped
-  wiki-link resolution, plus `notes show` with extraction provenance.
 - Open tasks and explicit document-task assignments in person context; tasks add/list/close reuse the
   shared task service. Multiple matching accounts require explicit selection.
 - CSV/TSV, PDF, DOCX, XLSX, ODT/ODS, PPTX and EPUB ingestion through shared extraction, with optional-engine and unsupported
