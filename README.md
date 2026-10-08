@@ -288,7 +288,7 @@ memo search notes "budget" --tag work
 memo tags add follow-up --message 'msg:email/you%40example.com/12345/67890'
 memo tags add follow-up --chat 12345 --provider email --account you@example.com
 memo tags list --tag follow-up --json
-tg messages search 'in:email tag:follow-up'
+tg search mail 'tag:follow-up'
 ```
 
 A note is labelled by its reference, an email or messenger message by its full `msg:` locator, a mail
