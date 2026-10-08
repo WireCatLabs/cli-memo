@@ -1,7 +1,7 @@
 import { CliError, createRenderer, type Streams } from "@leemour/cli-core"
 import { parseLocator } from "@leemour/cli-messaging"
-import { searchStore } from "@leemour/cli-messaging/services"
-import type { AccountKey, MessageStore } from "@leemour/cli-messaging/store"
+import { searchNotesQuery, searchStore } from "@leemour/cli-messaging/services"
+import type { AccountKey, MessageStore, Note } from "@leemour/cli-messaging/store"
 import { openStore } from "@leemour/cli-messaging/store"
 import type { Command } from "commander"
 import { positive } from "../options.js"
@@ -9,20 +9,20 @@ import { type AccountScope, selectAccount } from "../store/scope.js"
 import { taskPage } from "../tasks/context.js"
 
 export interface EvidenceItem {
-  kind: "message" | "note" | "email" | "annotation" | "task"
+  kind: "message" | "note" | "email" | "task"
   locator: string
   provider: string
   account: string
   timestamp: string
   text: string
-  match: "structured-words" | "annotation-text" | "task-source"
+  match: "structured-words" | "note-text" | "task-source"
   source?: string
 }
 
 export const unifiedSearch = async (
   store: MessageStore,
   query: string,
-  options: { keys: AccountKey[]; limit?: number; offset?: number; annotationText?: string },
+  options: { keys: AccountKey[]; notes?: boolean; limit?: number; offset?: number; noteText?: string },
 ): Promise<{
   query: string
   items: EvidenceItem[]
@@ -36,18 +36,21 @@ export const unifiedSearch = async (
     offset = options.offset ?? 0
   if (!Number.isInteger(limit) || limit < 1 || limit > 100 || !Number.isInteger(offset) || offset < 0 || offset > 1000)
     throw new CliError("validation_error", "limit takes 1–100; offset takes 0–1000")
-  if (!options.keys.length || options.keys.length > 50) throw new CliError("validation_error", "select 1–50 accounts")
-  const answer = await searchStore(store, options.keys[0] as AccountKey, {
-    text: query,
-    language: "lucene",
-    accounts: options.keys,
-    limit: Math.min(2000, offset + limit + 1),
-    newest: true,
-  })
+  if ((!options.keys.length && !options.notes) || options.keys.length > 50)
+    throw new CliError("validation_error", "select 1–50 accounts, or notes")
+  const answer = options.keys.length
+    ? await searchStore(store, options.keys[0] as AccountKey, {
+        text: query,
+        language: "lucene",
+        accounts: options.keys,
+        limit: Math.min(2000, offset + limit + 1),
+        newest: true,
+      })
+    : { items: [], hasMore: false }
   const items: EvidenceItem[] = answer.items.map((hit) => {
     const key = parseLocator(hit.locator)
     return {
-      kind: key.provider === "notes" ? "note" : key.provider === "email" ? "email" : "message",
+      kind: key.provider === "email" ? "email" : "message",
       locator: hit.locator,
       provider: key.provider,
       account: key.account,
@@ -59,24 +62,38 @@ export const unifiedSearch = async (
   const matched = new Set(items.map((hit) => hit.locator))
   const coverage: unknown[] = []
   let incomplete = answer.hasMore
-  for (const key of options.keys) {
-    if (options.annotationText !== undefined) {
-      const notes = await store.knowledge.annotations(key, {
-        search: options.annotationText,
-        limit: Math.min(500, offset + limit + 1),
-      })
+  const noteItem = (note: Note, match: EvidenceItem["match"]): EvidenceItem => ({
+    kind: "note",
+    locator: `note:${note.id}`,
+    provider: "notes",
+    account: note.folderId ?? "internal",
+    timestamp: note.updatedAt,
+    text: note.text.slice(0, 2000),
+    match,
+  })
+  if (options.notes) {
+    try {
+      const notes = await searchNotesQuery(store, { text: query, limit: Math.min(500, offset + limit + 1) })
       incomplete ||= notes.hasMore
-      for (const note of notes.items)
-        items.push({
-          kind: "annotation",
-          locator: `annotation:${key.provider}/${encodeURIComponent(key.account)}/${note.id}`,
-          ...key,
-          timestamp: note.updatedAt,
-          text: note.text.slice(0, 2000),
-          match: "annotation-text",
-          ...(note.target.type === "message" ? { source: note.target.locator } : {}),
-        })
+      items.push(...notes.items.map(({ note }) => noteItem(note, "structured-words")))
+      coverage.push({ notes: "searched" })
+    } catch (error) {
+      // A field only messages have (`from:`, `after:`) is refused by notes; the messages still answer.
+      if (!(error instanceof CliError) || error.code !== "validation_error" || !options.keys.length) throw error
+      coverage.push({ notes: `not searched: ${error.message}` })
+      incomplete = true
     }
+  }
+  if (options.noteText !== undefined) {
+    const notes = await store.notes.notes({
+      source: "internal",
+      search: options.noteText,
+      limit: Math.min(500, offset + limit + 1),
+    })
+    incomplete ||= notes.hasMore
+    items.push(...notes.items.map((note) => noteItem(note, "note-text")))
+  }
+  for (const key of options.keys) {
     const taskResults = await taskPage(store, key, {
       state: "open",
       sources: [...matched],
@@ -121,13 +138,16 @@ export const unifiedSearch = async (
   }
 }
 
+/** Notes are no account's: `--all` takes them with every account, `--provider notes` alone. */
 export const searchAccounts = async (
   store: MessageStore,
   options: AccountScope & { all?: boolean },
-): Promise<AccountKey[]> => {
+): Promise<{ keys: AccountKey[]; notes: boolean }> => {
   if (options.all && (options.provider !== undefined || options.account !== undefined))
     throw new CliError("validation_error", "use --all alone or select one provider/account")
-  return options.all ? store.accounts() : [await selectAccount(store, options)]
+  if (options.provider === "notes") return { keys: [], notes: true }
+  const messengers = (await store.accounts()).filter(({ provider }) => provider !== "notes")
+  return options.all ? { keys: messengers, notes: true } : { keys: [await selectAccount(store, options)], notes: false }
 }
 
 export const searchCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
@@ -138,7 +158,7 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     .option("--all", "explicitly search every stored account")
     .option("--provider <provider>")
     .option("--account <account>")
-    .option("--annotation-text <text>", "also search this literal substring in owner annotations")
+    .option("--note-text <text>", "also find notes you wrote here holding this text, as written")
     .option("--limit <n>", "most results, at most 100", positive, 20)
     .option("--offset <n>", "continue from nextOffset", Number, 0)
     .option("--json")
@@ -149,17 +169,17 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
           all?: boolean
           limit: number
           offset: number
-          annotationText?: string
+          noteText?: string
           json?: boolean
         },
       ) => {
         const store = await openStore({ env })
         try {
           const answer = await unifiedSearch(store, query, {
-            keys: await searchAccounts(store, options),
+            ...(await searchAccounts(store, options)),
             limit: options.limit,
             offset: options.offset,
-            ...(options.annotationText === undefined ? {} : { annotationText: options.annotationText }),
+            ...(options.noteText === undefined ? {} : { noteText: options.noteText }),
           })
           if (options.json) createRenderer({ format: "json", color: false, streams }).result(answer)
           else

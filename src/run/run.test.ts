@@ -99,8 +99,11 @@ describe("memo auto", () => {
 })
 
 describe("memo import", () => {
-  it("imports the configured notes and says what changed", async () => {
-    expect(await run("import")).toMatch(/notes .*: 1 notes, 1 changed, 0 gone/)
+  it("names a folder with no id as failed, and imports it once it has one", async () => {
+    expect(await run("import")).toMatch(/failed notes .*: no folder id — memo folders add/)
+    process.exitCode = 0
+    await run("folders", "add", join(dir, "vault"))
+    expect(await run("import")).toMatch(/notes .*: 1 notes, 1 changed, 0 moved, 0 gone/)
     expect(await run("import")).toMatch(/1 notes, 0 changed/)
   })
 

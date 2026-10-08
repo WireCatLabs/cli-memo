@@ -36,6 +36,8 @@ export const readMemoId = (path: string): string | null => {
 
 const TEXT_NOTE = /\.(md|markdown)$/i
 
+export const isExported = (path: string): boolean => TEXT_NOTE.test(path) && readMemoId(path) !== null
+
 const pattern = (rule: string): RegExp => {
   const glob = rule.replace(/\\/g, "/").replace(/^\/+|\/+$/g, "")
   const body = glob
@@ -60,7 +62,12 @@ const pattern = (rule: string): RegExp => {
  * `Archive`) or a glob (`**\/Private*`, `*.txt`). A note memo exported is skipped too: it is already in
  * the store, and importing it would make it a second note.
  */
-export const noteFiles = (folder: string, ignore: string[] = [], extensions = NOTE_EXTENSIONS): string[] => {
+export const noteFiles = (
+  folder: string,
+  ignore: string[] = [],
+  extensions = NOTE_EXTENSIONS,
+  { skipExported = true }: { skipExported?: boolean } = {},
+): string[] => {
   const rules = ignore.map(pattern)
   const ignored = (path: string) => {
     const inside = relative(folder, path).split(sep).join("/")
@@ -73,7 +80,7 @@ export const noteFiles = (folder: string, ignore: string[] = [], extensions = NO
       if (ignored(path)) return []
       if (entry.isDirectory()) return walk(path)
       if (!entry.isFile() || !extensions.some((ext) => entry.name.toLowerCase().endsWith(ext))) return []
-      return TEXT_NOTE.test(entry.name) && readMemoId(path) !== null ? [] : [path]
+      return skipExported && isExported(path) ? [] : [path]
     })
   return walk(folder)
 }

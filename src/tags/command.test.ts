@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@leemour/cli-core"
@@ -13,13 +13,12 @@ import { createProgram } from "../program.js"
 
 let env: NodeJS.ProcessEnv
 let vault: string
-let otherVault: string
 let mailbox: string
 const path = "Projects/Lighthouse.md"
 const mail = { provider: "email", account: "owner@example.test" }
 const otherMail = { provider: "email", account: "other@example.test" }
 const tg = { provider: "telegram", account: mail.account }
-const noteLocator = () => formatLocator({ provider: "notes", account: vault, chat: "Projects", message: path })
+const noteRef = async () => (await json("notes", "show", join(vault, path))).ref as string
 const mailLocator = () => formatLocator({ ...mail, chat: "7", message: "42" })
 
 const run = async (...args: string[]) => {
@@ -32,15 +31,18 @@ const json = async (...args: string[]) => JSON.parse(await run(...args, "--json"
 beforeEach(async () => {
   const dir = mkdtempSync(join(tmpdir(), "memo-tags-"))
   vault = join(dir, "vault one")
-  otherVault = join(dir, "vault two")
   mailbox = join(dir, "mailbox.json")
-  env = { ...process.env, MESSAGING_STORE: join(dir, "messages.db"), MEMO_FAKE_MAILBOX: mailbox }
-  for (const folder of [vault, otherVault]) {
-    mkdirSync(join(folder, "Projects"), { recursive: true })
-    writeFileSync(join(folder, path), "Lighthouse budget.\n")
-    writeFileSync(join(folder, "Projects/Harbour.md"), "Harbour budget.\n")
-    await run("notes", "import", "--folder", folder, "--no-embed")
+  env = {
+    ...process.env,
+    MESSAGING_STORE: join(dir, "messages.db"),
+    MEMO_FAKE_MAILBOX: mailbox,
+    MEMO_CONFIG_DIR: join(dir, "config"),
+    MEMO_STATE_DIR: join(dir, "state"),
   }
+  mkdirSync(join(vault, "Projects"), { recursive: true })
+  writeFileSync(join(vault, path), "Lighthouse budget.\n")
+  writeFileSync(join(vault, "Projects/Harbour.md"), "Harbour budget.\n")
+  await run("folders", "add", vault)
   writeFileSync(
     mailbox,
     JSON.stringify({
@@ -86,22 +88,21 @@ beforeEach(async () => {
     await store.close()
   }
   env.MEMO_HIMALAYA = "/not-a-mail-command"
+  await run("notes", "import")
 })
 
 describe("memo source tags", () => {
   it("normalizes and deduplicates labels on an imported note without editing its file", async () => {
     const before = readFileSync(join(vault, path))
-    const added = await json("tags", "add", "Work", "work", "FOLLOW-UP", "--message", noteLocator())
-    expect(added).toMatchObject({ provider: "notes", account: vault, added: ["work", "follow-up"], unchanged: [] })
-    expect(added.target).toEqual({ type: "message", chatId: "Projects", messageId: path, locator: noteLocator() })
-    expect(await json("tags", "add", "work", "--message", noteLocator())).toMatchObject({
-      added: [],
-      unchanged: ["work"],
+    const ref = await noteRef()
+    const added = await json("tags", "add", "Work", "work", "FOLLOW-UP", "--note", ref)
+    expect(added).toMatchObject({
+      target: { type: "note", id: ref.slice("note:".length) },
+      added: ["work", "follow-up"],
     })
+    expect(await json("tags", "add", "work", "--note", ref)).toMatchObject({ added: [] })
     expect(readFileSync(join(vault, path))).toEqual(before)
-    const listed = await json("tags", "list", "--provider", "notes", "--account", vault, "--tag", "WORK")
-    expect(listed.items).toHaveLength(1)
-    expect(listed.items[0]).toMatchObject({ tag: "work", locator: noteLocator(), account: vault })
+    expect((await json("notes", "show", ref)).tags).toEqual(["follow-up", "work"])
   })
 
   it("isolates identical email message and thread ids by account and provider, and shared search finds the label", async () => {
@@ -123,15 +124,12 @@ describe("memo source tags", () => {
     expect((await json("tags", "list", "--provider", "email", "--account", otherMail.account)).items).toEqual([])
   })
 
-  it("uses tag eligibility in notes search, including folder tags and account isolation", async () => {
-    await json("tags", "add", "selected", "--message", noteLocator())
+  it("finds only the tagged note when notes search asks for a tag", async () => {
+    const ref = await noteRef()
+    await json("tags", "add", "selected", "--note", ref)
     const one = await json("notes", "search", "budget", "--tag", "selected")
     expect(one.tag).toBe("selected")
-    expect(one.hits.map((hit: { locator: string }) => hit.locator)).toEqual([noteLocator()])
-    await json("tags", "add", "project", "--chat", "Projects", "--provider", "notes", "--account", vault)
-    const folder = await json("notes", "search", "budget", "--tag", "project")
-    expect(folder.hits).toHaveLength(2)
-    expect(folder.hits.every((hit: { folder: string }) => hit.folder === vault)).toBe(true)
+    expect(one.hits.map((hit: { ref: string }) => hit.ref)).toEqual([ref])
   })
 
   it("labels an email thread and removes tags idempotently", async () => {
@@ -145,39 +143,40 @@ describe("memo source tags", () => {
     expect(await json("tags", "remove", "work", ...args)).toMatchObject({ removed: [], unchanged: ["work"] })
   })
 
-  it("preserves labels through edits and hides deleted sources from listing and search", async () => {
-    await json("tags", "add", "work", "--message", noteLocator())
+  it("preserves labels through edits and hides deleted notes from search", async () => {
+    const ref = await noteRef()
+    await json("tags", "add", "work", "--note", ref)
     writeFileSync(join(vault, path), "Lighthouse revised budget.\n")
-    await run("notes", "import", "--folder", vault, "--no-embed")
+    utimesSync(join(vault, path), new Date("2030-01-01"), new Date("2030-01-01"))
+    await run("notes", "import")
     expect((await json("notes", "search", "revised", "--tag", "work")).hits).toHaveLength(1)
     rmSync(join(vault, path))
-    await run("notes", "import", "--folder", vault, "--no-embed")
-    expect((await json("tags", "list", "--tag", "work")).items).toEqual([])
+    await run("notes", "import")
     expect((await json("notes", "search", "lighthouse", "--tag", "work")).hits).toEqual([])
     expect(await run("notes", "search", "lighthouse", "--tag", "work")).toContain("No note tagged work")
-    await expect(json("tags", "add", "again", "--message", noteLocator())).rejects.toMatchObject({ code: "not_found" })
+    await expect(json("tags", "add", "again", "--note", ref)).rejects.toMatchObject({ code: "not_found" })
   })
 
   it("refuses malformed targets, conflicting scopes and invalid labels without partial writes", async () => {
     for (const args of [
       ["work"],
-      ["work", "--chat", "Projects"],
-      ["work", "--message", "msg:notes/a/b/%ZZ"],
-      ["work", "--message", noteLocator(), "--account", otherVault],
-      ["work", "--message", noteLocator(), "--chat", "Projects"],
-      ["work", "invalid tag", "--message", noteLocator()],
+      ["work", "--chat", "7"],
+      ["work", "--message", "msg:email/a/b/%ZZ"],
+      ["work", "--message", mailLocator(), "--account", "other@example.test"],
+      ["work", "--message", mailLocator(), "--chat", "7"],
+      ["work", "invalid tag", "--message", mailLocator()],
     ])
       await expect(json("tags", "add", ...args)).rejects.toMatchObject({ code: "validation_error" })
     expect((await json("tags", "list")).items).toEqual([])
-    await expect(json("tags", "list", "--account", vault)).rejects.toMatchObject({ code: "validation_error" })
-    await expect(json("tags", "list", "--provider", "notes", "--account", "missing")).rejects.toMatchObject({
+    await expect(json("tags", "list", "--account", mail.account)).rejects.toMatchObject({ code: "validation_error" })
+    await expect(json("tags", "list", "--provider", "email", "--account", "missing")).rejects.toMatchObject({
       code: "not_found",
     })
   })
 
   it("refuses unknown exact chat ids instead of guessing a title", async () => {
     await expect(
-      json("tags", "add", "work", "--chat", "Lighthouse", "--provider", "notes", "--account", vault),
+      json("tags", "add", "work", "--chat", "Lighthouse", "--provider", "email", "--account", mail.account),
     ).rejects.toMatchObject({ code: "not_found" })
     await expect(
       json("tags", "add", "work", "--message", formatLocator({ ...mail, chat: "7", message: "999" })),
@@ -185,8 +184,8 @@ describe("memo source tags", () => {
   })
 
   it("bounds tag listing and prints readable source references", async () => {
-    const text = await run("tags", "add", "first", "second", "--message", noteLocator())
-    expect(text).toContain(noteLocator())
+    const text = await run("tags", "add", "first", "second", "--message", mailLocator())
+    expect(text).toContain(mailLocator())
     const page = await json("tags", "list", "--limit", "1")
     expect(page.items).toHaveLength(1)
     expect(page.hasMore).toBe(true)

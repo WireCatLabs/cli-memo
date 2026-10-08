@@ -16,7 +16,12 @@ const run = async (...args: string[]) => {
 beforeEach(async () => {
   const root = mkdtempSync(join(tmpdir(), "memo-search-"))
   vault = join(root, "vault")
-  env = { ...process.env, MESSAGING_STORE: join(root, "store.db") }
+  env = {
+    ...process.env,
+    MESSAGING_STORE: join(root, "store.db"),
+    MEMO_CONFIG_DIR: join(root, "config"),
+    MEMO_STATE_DIR: join(root, "state"),
+  }
   const files = {
     "People/Rin.md": "---\naliases: [Navigator]\n---\nProject budget review.",
     "Other/Rin.md": "Different person, different budget.",
@@ -28,40 +33,35 @@ beforeEach(async () => {
     mkdirSync(join(vault, path, ".."), { recursive: true })
     writeFileSync(join(vault, path), text)
   }
-  await run("notes", "import", "--folder", vault, "--no-embed")
+  await run("folders", "add", vault)
+  await run("notes", "import")
 })
-describe("structured note retrieval and scoped links", () => {
-  it("uses shared phrase/Boolean filters, provides exact current excerpts and paginates distinct documents", async () => {
-    const first = await run("notes", "search", '"budget review" AND NOT cancelled', "--words-only", "--limit", "2")
+describe("structured note retrieval and saved links", () => {
+  it("uses shared phrase/Boolean filters, provides exact current excerpts and paginates distinct notes", async () => {
+    const first = await run("notes", "search", '"budget review" AND NOT cancelled', "--limit", "2")
     expect(first.hits).toHaveLength(2)
     expect(first.hasMore).toBe(true)
     expect(first.nextOffset).toBe(2)
     expect(first.hits.every((hit: { line: string }) => /budget review/i.test(hit.line))).toBe(true)
-    const second = await run(
-      "notes",
-      "search",
-      '"budget review" AND NOT cancelled',
-      "--words-only",
-      "--limit",
-      "2",
-      "--offset",
-      "2",
-    )
+    const second = await run("notes", "search", '"budget review" AND NOT cancelled', "--limit", "2", "--offset", "2")
     expect(second.hits).toHaveLength(1)
     expect(second.hasMore).toBe(false)
-    expect(new Set([...first.hits, ...second.hits].map((hit: { locator: string }) => hit.locator)).size).toBe(3)
-    await expect(run("notes", "search", '"unfinished', "--words-only")).rejects.toMatchObject({
-      code: "validation_error",
-    })
+    expect(new Set([...first.hits, ...second.hits].map((hit: { ref: string }) => hit.ref)).size).toBe(3)
+    await expect(run("notes", "search", '"unfinished')).rejects.toMatchObject({ code: "validation_error" })
   })
-  it("resolves relative paths and aliases while preserving ambiguous basenames and anchors", async () => {
-    const answer = await run("notes", "search", "agreed OR Missing", "--words-only")
+
+  it("links relative paths and aliases to the note, and keeps an ambiguous or unknown name as written", async () => {
+    const answer = await run("notes", "search", "agreed OR Missing")
     const review = answer.hits.find((hit: { path: string }) => hit.path === "Meetings/Review.md")
-    expect(review.links).toEqual([
-      { target: "../People/Rin", anchor: "#Budget", status: "resolved", paths: ["People/Rin.md"] },
-      { target: "Navigator", anchor: null, status: "resolved", paths: ["People/Rin.md"] },
-      { target: "Rin", anchor: null, status: "ambiguous", paths: ["Other/Rin.md", "People/Rin.md"] },
-      { target: "Missing", anchor: null, status: "unresolved", paths: [] },
-    ])
+    const rin = (await run("notes", "show", join(vault, "People/Rin.md"))).ref
+    expect(review.links).toHaveLength(4)
+    expect(review.links).toEqual(
+      expect.arrayContaining([
+        { to: rin, targetText: null, kind: "links-to", anchor: "#Budget" },
+        { to: rin, targetText: null, kind: "links-to", anchor: null },
+        { to: null, targetText: "Rin", kind: "links-to", anchor: null },
+        { to: null, targetText: "Missing", kind: "links-to", anchor: null },
+      ]),
+    )
   })
 })

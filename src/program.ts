@@ -1,6 +1,5 @@
 import { processStreams, type Streams } from "@leemour/cli-core"
 import { Command } from "commander"
-import { annotationsCommand } from "./annotations/command.js"
 import { askCommand } from "./answers/command.js"
 import { contextCommand } from "./context/command.js"
 import { knowledgeCommands } from "./knowledge/command.js"
@@ -27,7 +26,6 @@ export const createProgram = ({
     .version(VERSION)
 
   contextCommand(program, streams, env)
-  annotationsCommand(program, streams, env)
   notesCommand(program, streams, env)
   foldersCommand(program, streams, env)
   mailCommand(program, streams, env)

@@ -1,10 +1,12 @@
 import { statSync } from "node:fs"
-import { resolve } from "node:path"
+import { basename, resolve } from "node:path"
 import { CliError, createRenderer, type Streams } from "@leemour/cli-core"
+import { type MessageStore, openStore } from "@leemour/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { loadConfig, updateConfig } from "../config.js"
+import { claimPendingFolders } from "./bound.js"
 import { DIALECTS, type DialectName } from "./dialects/index.js"
-import { addFolder, attachFolder, type NoteFolder, noteFolders } from "./folders.js"
+import { attachFolder, bindFolder, type NoteFolder, noteFolders } from "./folders.js"
 
 const formatOf = (value: string): DialectName => {
   if (!(DIALECTS as readonly string[]).includes(value)) throw new InvalidArgumentError(`choose ${DIALECTS.join(", ")}`)
@@ -29,6 +31,15 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
     if (json) createRenderer({ format: "json", color: false, streams }).result(value)
     else streams.data(`${text}\n`)
   }
+  const withStore = async <T>(work: (store: MessageStore) => Promise<T>): Promise<T> => {
+    const store = await openStore({ env })
+    try {
+      await claimPendingFolders(store, env)
+      return await work(store)
+    } finally {
+      await store.close()
+    }
+  }
   const folders = program
     .command("folders")
     .description("Folders of notes: an id that links and the store use, and where the folder is on this computer")
@@ -39,15 +50,23 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
     .argument("<path>", "the folder on this computer")
     .option("--format <format>", `how its notes are written: ${DIALECTS.join(", ")} (default: obsidian)`, formatOf)
     .option("--json", "print JSON")
-    .action((path: string, options: { format?: DialectName; json?: boolean }) => {
+    .action(async (path: string, options: { format?: DialectName; json?: boolean }) => {
       const at = directory(path)
-      let result: ReturnType<typeof addFolder> | undefined
-      updateConfig((config) => {
-        result = addFolder(config, at, options.format)
-        return result.config
-      }, env)
-      const { folder, created } = result as ReturnType<typeof addFolder>
-      print(options.json, { ...folder, created }, folder.id as string)
+      const answer = await withStore(async (store) => {
+        const known = new Set((await store.notes.folders()).map(({ id }) => id))
+        const current = noteFolders(loadConfig(env).notes).find((folder) => folder.path === at)
+        if (current?.id && known.has(current.id)) {
+          const folder = { ...current, id: current.id, format: options.format ?? current.format }
+          if (folder.format !== current.format) updateConfig((config) => bindFolder(config, folder), env)
+          return { ...folder, created: false }
+        }
+        const format = options.format ?? current?.format ?? "obsidian"
+        const made = await store.notes.addFolder({ name: basename(at) || at, format })
+        const folder = { id: made.id, path: at, format }
+        updateConfig((config) => bindFolder(config, folder), env)
+        return { ...folder, created: true }
+      })
+      print(options.json, answer, answer.id)
     })
 
   folders
@@ -57,23 +76,44 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
     .argument("<path>", "the same folder on this computer")
     .option("--format <format>", `how its notes are written: ${DIALECTS.join(", ")}`, formatOf)
     .option("--json", "print JSON")
-    .action((id: string, path: string, options: { format?: DialectName; json?: boolean }) => {
+    .action(async (id: string, path: string, options: { format?: DialectName; json?: boolean }) => {
       const at = directory(path)
-      let folder: NoteFolder | undefined
-      updateConfig((config) => {
-        const result = attachFolder(config, id, at, options.format)
-        folder = result.folder
-        return result.config
-      }, env)
-      print(options.json, folder, line(folder as NoteFolder))
+      const folder = await withStore(async (store) => {
+        const stored = (await store.notes.folders()).find((candidate) => candidate.id === id)
+        if (!stored)
+          throw new CliError("not_found", `the store has no folder ${id} — memo folders list shows those it has`)
+        let bound: NoteFolder | undefined
+        updateConfig((config) => {
+          const result = attachFolder(config, id, at, options.format ?? stored.format)
+          bound = result.folder
+          return result.config
+        }, env)
+        return bound as NoteFolder
+      })
+      print(options.json, folder, line(folder))
     })
 
   folders
     .command("list")
-    .description("The folders of notes in the config, with their ids")
+    .description("The folders of notes: those on this computer, and those the store has from another")
     .option("--json", "print JSON")
-    .action((options: { json?: boolean }) => {
-      const found = noteFolders(loadConfig(env).notes)
-      print(options.json, { items: found }, found.map(line).join("\n") || "no folders: memo folders add <path>")
+    .action(async (options: { json?: boolean }) => {
+      const answer = await withStore(async (store) => {
+        const here = noteFolders(loadConfig(env).notes)
+        const elsewhere = (await store.notes.folders())
+          .filter((folder) => !here.some((entry) => entry.id === folder.id))
+          .map(({ id, name, format }) => ({ id, name, format }))
+        return { items: here, elsewhere }
+      })
+      print(
+        options.json,
+        answer,
+        [
+          ...answer.items.map(line),
+          ...answer.elsewhere.map(
+            ({ id, name }) => `${id}  not on this computer (${name}) — memo folders attach ${id} <path>`,
+          ),
+        ].join("\n") || "no folders: memo folders add <path>",
+      )
     })
 }
