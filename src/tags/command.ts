@@ -3,9 +3,10 @@ import { normalizeTag } from "@leemour/cli-messaging"
 import { type MessageStore, openStore, type StoredTag } from "@leemour/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { positive } from "../options.js"
+import { selectTarget, type TargetInput } from "../store/scope.js"
 import { type SourceScope, type SourceTarget, type SourceTargetInput, sourceTarget } from "../store/source-target.js"
 
-type SourceTagType = "chat" | "message"
+type SourceTagType = "chat" | "message" | "contact" | "person" | "task" | "entity"
 type SourceTag = StoredTag & { provider: string; account: string }
 interface ListOptions extends SourceScope {
   tag?: string
@@ -15,8 +16,9 @@ interface ListOptions extends SourceScope {
 }
 
 const typeOf = (value: string): SourceTagType => {
-  if (value !== "chat" && value !== "message") throw new InvalidArgumentError("choose chat or message")
-  return value
+  if (!["chat", "message", "contact", "person", "task", "entity"].includes(value))
+    throw new InvalidArgumentError("choose chat, message, contact, person, task or entity")
+  return value as SourceTagType
 }
 
 const reference = (key: SourceScope, chat: string) =>
@@ -29,6 +31,10 @@ const targetOptions = (command: Command) =>
     .option("--chat <id>", "a stored folder or thread's exact chat id; requires --provider and --account")
     .option("--provider <provider>", "the chat's provider, such as notes or email")
     .option("--account <account>", "the chat's account: an imported notes folder or mailbox address")
+    .option("--task <id>", "label a stable task, with provider/account")
+    .option("--contact <id>", "label a contact identity, with provider/account")
+    .option("--person <uid>", "label a unified person explicitly, with provider/account")
+    .option("--entity <uid>", "label an organization, family or project, with provider/account")
     .option("--json", "print JSON")
 
 const listTags = async (store: MessageStore, options: ListOptions) => {
@@ -43,9 +49,20 @@ const listTags = async (store: MessageStore, options: ListOptions) => {
     throw new CliError("not_found", "the store holds no matching account")
   const items: SourceTag[] = []
   for (const key of keys) {
-    for (const type of options.type === undefined ? (["chat", "message"] as const) : [options.type]) {
+    const types =
+      options.type === undefined
+        ? (["chat", "message", "contact"] as const)
+        : options.type === "chat" || options.type === "message" || options.type === "contact"
+          ? [options.type]
+          : []
+    for (const type of types) {
       const found = await store.tags(key, { type, ...(options.tag === undefined ? {} : { tag: options.tag }) })
       for (const row of found) {
+        if (
+          row.type === "contact" &&
+          !(await store.knowledge.tags(key, { type: "contact", id: row.personId as string })).includes(row.tag)
+        )
+          continue
         if (
           row.type === "message" &&
           (await store.message(key, row.messageId as string, { chatId: row.chatId as string })) === undefined
@@ -68,8 +85,32 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
   const mutate = async (
     operation: "add" | "remove",
     given: string[],
-    options: SourceTargetInput & { json?: boolean },
+    options: SourceTargetInput & TargetInput & { json?: boolean },
   ) => {
+    if (
+      options.task !== undefined ||
+      options.person !== undefined ||
+      options.entity !== undefined ||
+      options.contact !== undefined
+    ) {
+      const store = await openStore({ env })
+      try {
+        const { key, target } = await selectTarget(store, options)
+        const changed = await (operation === "add" ? store.knowledge.addTags : store.knowledge.removeTags)(
+          key,
+          target,
+          given,
+        )
+        print(
+          options.json,
+          { ...key, target, [operation === "add" ? "added" : "removed"]: changed },
+          `${operation}: ${changed.join(", ") || "no labels changed"}`,
+        )
+      } finally {
+        await store.close()
+      }
+      return
+    }
     const selected: SourceTarget = sourceTarget(options)
     const labels = [...new Set(given.map(normalizeTag))]
     const store = await openStore({ env })
@@ -101,7 +142,9 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       tags
         .command(operation)
         .description(operation === "add" ? "Put labels on one source" : "Remove labels from one source"),
-    ).action((given: string[], options: SourceTargetInput & { json?: boolean }) => mutate(operation, given, options))
+    ).action((given: string[], options: SourceTargetInput & TargetInput & { json?: boolean }) =>
+      mutate(operation, given, options),
+    )
 
   tags
     .command("list")
@@ -109,18 +152,46 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .option("--provider <provider>", "only this provider")
     .option("--account <account>", "only this account; requires --provider")
     .option("--tag <tag>", "only this tag", normalizeTag)
-    .option("--type <type>", "chat (folder/thread) or message (note/email/message)", typeOf)
+    .option("--type <type>", "chat, message, contact, person, task or entity", typeOf)
     .option("--limit <n>", "most labels to show", positive, 100)
     .option("--json", "print JSON")
     .action(async (options: ListOptions) => {
       const store = await openStore({ env })
       try {
         const answer = await listTags(store, options)
+        const knowledge = []
+        for (const key of (await store.accounts()).filter(
+          (key) =>
+            (options.provider === undefined || key.provider === options.provider) &&
+            (options.account === undefined || key.account === options.account),
+        )) {
+          if (options.type === "chat" || options.type === "message" || options.type === "contact") continue
+          const found = await store.knowledge.labelled(key, {
+            ...(options.tag === undefined ? {} : { tag: options.tag }),
+            limit: Math.min(options.limit, 500),
+          })
+          knowledge.push(
+            ...found.items
+              .filter((item) => options.type === undefined || item.target.type === options.type)
+              .map((item) => ({ ...key, ...item })),
+          )
+          answer.hasMore ||= found.hasMore
+        }
         const lines = answer.items.map(
-          (row) => `${row.tag}  ${row.type}  ${row.locator ?? reference(row, row.chatId as string)}`,
+          (row) => `${row.tag}  ${row.type}  ${row.locator ?? reference(row, row.chatId ?? row.personId ?? "")}`,
         )
         if (answer.hasMore) lines.push("More labels match; raise --limit to see them.")
-        print(options.json, answer, lines.join("\n") || "No source tags.")
+        answer.hasMore ||= knowledge.length > options.limit
+        print(
+          options.json,
+          { ...answer, knowledge: knowledge.slice(0, options.limit) },
+          [
+            ...lines,
+            ...knowledge
+              .slice(0, options.limit)
+              .map((item) => `${item.tags.join(", ")}  ${item.target.type}  ${JSON.stringify(item.target)}`),
+          ].join("\n") || "No source tags.",
+        )
       } finally {
         await store.close()
       }

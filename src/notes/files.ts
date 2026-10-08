@@ -1,7 +1,22 @@
 import { readdirSync } from "node:fs"
 import { join, relative, sep } from "node:path"
 
-export const NOTE_EXTENSIONS = [".md", ".txt"]
+export const NOTE_EXTENSIONS = [
+  ".md",
+  ".markdown",
+  ".txt",
+  ".csv",
+  ".tsv",
+  ".pdf",
+  ".docx",
+  ".xlsx",
+  ".odt",
+  ".ods",
+  ".pptx",
+  ".epub",
+  ".doc",
+  ".xls",
+]
 
 const pattern = (rule: string): RegExp => {
   const glob = rule.replace(/\\/g, "/").replace(/^\/+|\/+$/g, "")
@@ -26,7 +41,7 @@ const pattern = (rule: string): RegExp => {
  * so is whatever an `ignore` rule names — a path inside the folder (`Psychology/Personal Notes.md`,
  * `Archive`) or a glob (`**\/Private*`, `*.txt`).
  */
-export const noteFiles = (folder: string, ignore: string[] = []): string[] => {
+export const noteFiles = (folder: string, ignore: string[] = [], extensions = NOTE_EXTENSIONS): string[] => {
   const rules = ignore.map(pattern)
   const ignored = (path: string) => {
     const inside = relative(folder, path).split(sep).join("/")
@@ -38,7 +53,7 @@ export const noteFiles = (folder: string, ignore: string[] = []): string[] => {
       const path = join(dir, entry.name)
       if (ignored(path)) return []
       if (entry.isDirectory()) return walk(path)
-      return entry.isFile() && NOTE_EXTENSIONS.some((ext) => entry.name.toLowerCase().endsWith(ext)) ? [path] : []
+      return entry.isFile() && extensions.some((ext) => entry.name.toLowerCase().endsWith(ext)) ? [path] : []
     })
   return walk(folder)
 }

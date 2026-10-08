@@ -1,5 +1,5 @@
 import { CliError, createRenderer, type Streams } from "@leemour/cli-core"
-import { normalizeTag } from "@leemour/cli-messaging"
+import { normalizeTag, parseLocator } from "@leemour/cli-messaging"
 import { openStore } from "@leemour/cli-messaging/store"
 import type { Command } from "commander"
 import { loadConfig } from "../config.js"
@@ -67,6 +67,36 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     command
       .option("--folder <path...>", "folders of notes (default: notes.folders in the config)")
       .option("--ignore <path...>", "files or folders inside them to skip, added to notes.ignore — a path or a glob")
+  notes
+    .command("show")
+    .argument("<locator>", "stored msg:notes locator")
+    .option("--json")
+    .action(async (locator: string, options: { json?: boolean }) => {
+      const source = parseLocator(locator)
+      if (source.provider !== "notes")
+        throw new CliError("validation_error", "notes show needs a msg:notes source locator")
+      const key = { provider: source.provider, account: source.account },
+        store = await openStore({ env })
+      try {
+        const message = await store.message(key, source.message, { chatId: source.chat })
+        if (!message) throw new CliError("not_found", "the note source is unavailable or deleted")
+        const metadata = await store.syncState(key, `document:${source.message}`)
+        print(
+          options.json,
+          {
+            locator,
+            folder: source.account,
+            path: source.message,
+            text: message.text,
+            modifiedAt: message.timestamp,
+            provenance: metadata ? JSON.parse(metadata.value) : null,
+          },
+          message.text,
+        )
+      } finally {
+        await store.close()
+      }
+    })
 
   scoped(
     notes
@@ -113,19 +143,40 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .description("Find stored notes by their words, and who those notes link")
     .argument("<text>", "words to find, three letters or more")
     .option("--tag <tag>", "only notes with this tag, including tags on their folder", normalizeTag)
+    .option("--filter <query>", "shared structured query filter: phrases, Boolean logic, dates, chats and tags")
+    .option("--words-only", "interpret text as a structured word query; skip semantic search")
+    .option("--folder <path...>", "only these imported folders")
+    .option("--offset <n>", "continue from nextOffset", Number, 0)
     .option("--limit <n>", "most notes to show", positive, 20)
     .option("--json", "print JSON")
-    .action(async (text: string, options: { limit: number; json?: boolean; tag?: string }) => {
-      const store = await openStore({ env })
-      try {
-        const result = await searchNotes(store, text, {
-          limit: options.limit,
-          notesMap: loadNotesMap(env),
-          ...(options.tag === undefined ? {} : { tag: options.tag }),
-        })
-        print(options.json, result, searchText(result))
-      } finally {
-        await store.close()
-      }
-    })
+    .action(
+      async (
+        text: string,
+        options: {
+          limit: number
+          json?: boolean
+          tag?: string
+          filter?: string
+          wordsOnly?: boolean
+          folder?: string[]
+          offset?: number
+        },
+      ) => {
+        const store = await openStore({ env })
+        try {
+          const result = await searchNotes(store, text, {
+            limit: options.limit,
+            notesMap: loadNotesMap(env),
+            ...(options.filter === undefined ? {} : { filter: options.filter }),
+            ...(options.wordsOnly === undefined ? {} : { wordsOnly: options.wordsOnly }),
+            ...(options.folder === undefined ? {} : { folders: options.folder }),
+            ...(options.offset === undefined ? {} : { offset: options.offset }),
+            ...(options.tag === undefined ? {} : { tag: options.tag }),
+          })
+          print(options.json, result, searchText(result))
+        } finally {
+          await store.close()
+        }
+      },
+    )
 }

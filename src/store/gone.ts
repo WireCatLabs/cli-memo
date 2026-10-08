@@ -21,6 +21,7 @@ export const dropMissing = async (
   key: AccountKey,
   present: Set<string>,
   since?: string,
+  eligible?: (entry: { chatId: string; id: string }) => Promise<boolean>,
 ): Promise<Gone> => {
   const stored: { chatId: string; id: string }[] = []
   for (let offset = 0; ; offset += PAGE) {
@@ -40,12 +41,14 @@ export const dropMissing = async (
     }
     if (!chats.hasMore) break
   }
-  const gone = stored.filter(({ id }) => !present.has(id))
+  const candidates = []
+  for (const entry of stored) if (eligible === undefined || (await eligible(entry))) candidates.push(entry)
+  const gone = candidates.filter(({ id }) => !present.has(id))
   if (gone.length === 0) return { deleted: 0 }
-  if (gone.length >= MIN_DELETIONS_CAPPED && gone.length > stored.length * MAX_DELETED_SHARE)
+  if (gone.length >= MIN_DELETIONS_CAPPED && gone.length > candidates.length * MAX_DELETED_SHARE)
     return {
       deleted: 0,
-      skipped: `${gone.length} of ${stored.length} stored entries are missing at the source — too many to trust; nothing deleted`,
+      skipped: `${gone.length} of ${candidates.length} stored entries are missing at the source — too many to trust; nothing deleted`,
     }
   const byChat = new Map<string, string[]>()
   for (const { chatId, id } of gone) byChat.set(chatId, [...(byChat.get(chatId) ?? []), id])

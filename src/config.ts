@@ -10,7 +10,19 @@ const ConfigSchema = v.object({
     }),
   ),
   auto: v.optional(v.object({ enabled: v.optional(v.boolean()), every: v.optional(v.string()) })),
-  mail: v.optional(v.object({ accounts: v.array(v.object({ name: v.string(), address: v.string() })) })),
+  mail: v.optional(
+    v.object({
+      accounts: v.array(
+        v.object({
+          name: v.string(),
+          address: v.string(),
+          mode: v.optional(v.picklist(["gmail", "imap"])),
+          folders: v.optional(v.array(v.string())),
+          embed: v.optional(v.boolean()),
+        }),
+      ),
+    }),
+  ),
 })
 
 export type Config = v.InferOutput<typeof ConfigSchema>

@@ -1,13 +1,17 @@
 import { CliError } from "@leemour/cli-core"
 import { type PersonContext, personContext } from "@leemour/cli-messaging/services"
-import type { MessageStore } from "@leemour/cli-messaging/store"
+import type { Annotation, KnowledgeRelation, MessageStore } from "@leemour/cli-messaging/store"
 import type { NotesMap } from "../people/notes-map.js"
+import { selectAccount } from "../store/scope.js"
+import { personTasks } from "../tasks/context.js"
 
 export interface NoteMention {
   locator: string
   path: string
   /** The first line naming them. */
   line: string
+  match: "name"
+  confidence: "weak"
 }
 
 export interface MemoContext {
@@ -22,6 +26,9 @@ export interface MemoContext {
   }
   /** Sources that gave nothing, and why. */
   notRead: { source: string; reason: string }[]
+  tasks: Awaited<ReturnType<typeof personTasks>>
+  annotations: { items: Annotation[]; hasMore: boolean }
+  relationships: KnowledgeRelation[]
 }
 
 const MAX_LINE = 200
@@ -37,14 +44,13 @@ const literal = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, "\
 export const memoContext = async (
   store: MessageStore,
   reference: string,
-  { limit = 20, notesMap = {} }: { limit?: number; notesMap?: NotesMap } = {},
+  { limit = 20, notesMap = {}, account }: { limit?: number; notesMap?: NotesMap; account?: string } = {},
 ): Promise<MemoContext> => {
   const [, provider, who] = /^([a-z][a-z0-9-]*):(.+)$/.exec(reference.trim()) ?? []
   if (provider === undefined || who === undefined)
     throw new CliError("validation_error", `"${reference}" names no messenger — write it as <messenger>:<name or id>`)
   const accounts = await store.accounts()
-  const asked = accounts.find((account) => account.provider === provider)
-  if (asked === undefined) throw new CliError("not_found", `the store holds no ${provider} account`)
+  const asked = await selectAccount(store, { provider, ...(account === undefined ? {} : { account }) })
 
   const messages = await personContext(store, asked, who, { messages: limit })
   const about = notesMap[messages.person.uid] ?? null
@@ -70,6 +76,8 @@ export const memoContext = async (
         locator: hit.locator,
         path: hit.id,
         line: (hit.text.split("\n").find((line) => pattern.test(line)) ?? "").trim().slice(0, MAX_LINE),
+        match: "name" as const,
+        confidence: "weak" as const,
       }))
   }
   if (!messages.person.identities.some((identity) => identity.provider === "email"))
@@ -78,5 +86,26 @@ export const memoContext = async (
       reason: "no mail address linked to them — tg contacts link <person> email:<address>",
     })
 
-  return { messages, notes: { about, mentions, hasMore }, notRead }
+  const tasks = await personTasks(store, messages.person, accounts, limit)
+  const annotations: MemoContext["annotations"] = { items: [], hasMore: false }
+  for (const key of accounts) {
+    const identities = messages.person.identities.filter(
+      (identity) => identity.provider === key.provider && identity.accounts.includes(key.account),
+    )
+    if (!identities.length) continue
+    for (const target of [
+      { type: "person" as const, id: messages.person.uid },
+      ...identities.map((identity) => ({ type: "contact" as const, id: identity.id })),
+    ]) {
+      const page = await store.knowledge.annotations(key, { target, limit: Math.min(limit, 500) })
+      annotations.items.push(...page.items)
+      annotations.hasMore ||= page.hasMore
+    }
+  }
+  annotations.hasMore ||= annotations.items.length > limit
+  annotations.items = annotations.items.slice(0, limit)
+  const relationships = (await store.knowledge.relations(asked, `person:${messages.person.uid}`)).filter(
+    (relation) => relation.confirmed,
+  )
+  return { messages, notes: { about, mentions, hasMore }, notRead, tasks, annotations, relationships }
 }

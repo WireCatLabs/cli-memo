@@ -9,6 +9,9 @@ export interface ParsedMail {
   subject: string | null
   from: Address | null
   to: Address[]
+  cc: Address[]
+  bcc: Address[]
+  attachments: { id: number; name: string; mime: string | null; bytes: Uint8Array | null }[]
   text: string
 }
 
@@ -21,6 +24,7 @@ interface Parsed {
   text_body: number[]
   html_body: number[]
   parts: Part[]
+  attachments?: number[]
 }
 
 const MAX_TEXT = 20_000
@@ -67,6 +71,10 @@ export const parseMail = (json: string): ParsedMail => {
   } catch {
     throw new CliError("invalid_response", "himalaya message read did not answer JSON")
   }
+  if (!parsed || !Array.isArray(parsed.parts) || !Array.isArray(parsed.text_body) || !Array.isArray(parsed.html_body))
+    throw new CliError("invalid_response", "himalaya returned an incomplete parsed message")
+  if (parsed.attachments !== undefined && !Array.isArray(parsed.attachments))
+    throw new CliError("invalid_response", "himalaya returned invalid attachment metadata")
   const headers = parsed.parts[0]?.headers ?? []
   const header = (name: string) => headers.find((item) => item.name === name)?.value
   const subject = (header("subject") as { Text?: string } | undefined)?.Text ?? null
@@ -81,6 +89,54 @@ export const parseMail = (json: string): ParsedMail => {
     subject,
     from: addresses(header("from"))[0] ?? null,
     to: [...addresses(header("to")), ...addresses(header("cc"))],
+    cc: addresses(header("cc")),
+    bcc: addresses(header("bcc")),
+    attachments: (parsed.attachments ?? []).slice(0, 50).map((id) => {
+      const part = parsed.parts[id]
+      const value = (name: string) =>
+        part?.headers.find((item) => typeof item.name === "string" && item.name.replaceAll("_", "-") === name)?.value
+      const type = (
+        value("content-type") as
+          | {
+              ContentType?: {
+                c_type?: string
+                c_subtype?: string
+                attributes?: { name?: string; attribute?: string; value?: string }[]
+              }
+            }
+          | undefined
+      )?.ContentType
+      const disposition = (
+        value("content-disposition") as
+          | { ContentType?: { attributes?: { name?: string; attribute?: string; value?: string }[] } }
+          | undefined
+      )?.ContentType
+      const attrs = [...(disposition?.attributes ?? []), ...(type?.attributes ?? [])]
+      const name =
+        attrs.find((attr) => ["filename", "name"].includes(attr.name ?? attr.attribute ?? ""))?.value ??
+        `attachment-${id}`
+      const raw =
+        typeof part?.body === "object" && part.body !== null ? (part.body.Binary ?? part.body.InlineBinary) : undefined
+      let bytes: Uint8Array | null = null
+      if (
+        Array.isArray(raw) &&
+        raw.length <= 50 * 1024 * 1024 &&
+        raw.every((byte) => Number.isInteger(byte) && byte >= 0 && byte <= 255)
+      )
+        bytes = Uint8Array.from(raw)
+      else if (typeof raw === "string" && raw.length <= 70_000_000 && /^[A-Za-z0-9+/]*={0,2}$/.test(raw))
+        bytes = Buffer.from(raw, "base64")
+      else if (typeof part?.body === "object" && part.body !== null && typeof part.body.Text === "string")
+        bytes = new TextEncoder().encode(part.body.Text)
+      else if (typeof part?.body === "object" && part.body !== null && typeof part.body.Html === "string")
+        bytes = new TextEncoder().encode(htmlToText(part.body.Html))
+      return {
+        id,
+        name: name.slice(0, 200),
+        mime: type?.c_type ? `${type.c_type}/${type.c_subtype ?? "octet-stream"}` : null,
+        bytes,
+      }
+    }),
     text: text.replace(/\r\n?/g, "\n").slice(0, MAX_TEXT),
   }
 }
