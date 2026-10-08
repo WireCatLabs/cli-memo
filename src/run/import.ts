@@ -7,6 +7,7 @@ import { loadConfig } from "../config.js"
 import { himalaya } from "../mail/himalaya.js"
 import { type ImportResult, importMail } from "../mail/import.js"
 import { embedChanged, type NotesEmbedded } from "../notes/embed.js"
+import { folderPaths } from "../notes/folders.js"
 import { importNotes, type NotesImport, notesKey } from "../notes/import.js"
 import { applyAuto, autoState } from "./auto.js"
 
@@ -74,7 +75,7 @@ export const importCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       }
       try {
         if (both || options.notes) {
-          for (const folder of config.notes?.folders ?? [])
+          for (const folder of folderPaths(config.notes))
             await attempt(`notes ${folder}`, async () => {
               const imported = await importNotes(store, folder, { ignore: config.notes?.ignore ?? [] })
               const embedded = await embedChanged(store, notesKey(folder), imported.chats, {

@@ -5,6 +5,13 @@ Notable changes to `@leemour/cli-memo`, one section per version, newest first. V
 
 ## Unreleased
 
+- `memo folders add|attach|list`: folders of notes get an id, kept in the config with the folder's path
+  on this computer and its format (`obsidian` or `markdown`). Bare paths in `notes.folders` keep working.
+- Notes are read through a format: `obsidian` adds inline `#tags` and reads `[label](path.md)` links
+  besides `[[wiki links]]`; `markdown` reads plain Markdown links. Links to `person:`, `msg:`, `note:`,
+  `entity:`, `task:` and `chat:` references are recognised in both.
+- Import skips Markdown files carrying `memo-id` in their front matter: notes memo itself wrote.
+
 ## 0.2.0 — 08.10.2026
 
 - Account-scoped annotations on messages, documents, emails, chats, contacts, people, tasks and entities,

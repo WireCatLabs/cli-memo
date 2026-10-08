@@ -6,6 +6,7 @@ import { contextCommand } from "./context/command.js"
 import { knowledgeCommands } from "./knowledge/command.js"
 import { mailCommand } from "./mail/command.js"
 import { notesCommand } from "./notes/command.js"
+import { foldersCommand } from "./notes/folders-command.js"
 import { noteCommand } from "./people/command.js"
 import { autoCommand } from "./run/auto.js"
 import { importCommand } from "./run/import.js"
@@ -28,6 +29,7 @@ export const createProgram = ({
   contextCommand(program, streams, env)
   annotationsCommand(program, streams, env)
   notesCommand(program, streams, env)
+  foldersCommand(program, streams, env)
   mailCommand(program, streams, env)
   noteCommand(program, streams, env)
   tagsCommand(program, streams, env)
