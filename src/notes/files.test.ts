@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, relative } from "node:path"
 import { describe, expect, it } from "vitest"
-import { noteFiles } from "./files.js"
+import { noteFiles, readMemoId } from "./files.js"
 
 const folder = (paths: string[]): string => {
   const root = mkdtempSync(join(tmpdir(), "files-"))
@@ -55,5 +55,23 @@ describe("noteFiles", () => {
     expect(listed(root, ["**/Private*"])).not.toContain("Psychology/Private Notes.md")
     expect(listed(root, ["*.txt"])).not.toContain("b.txt")
     expect(listed(root, ["*.txt"])).toContain("a.md")
+  })
+
+  it("skips a note memo exported, by the memo-id in its front matter", () => {
+    const root = folder(["Own.md", "Memo/Exported.md", "Memo/Later.md"])
+    writeFileSync(join(root, "Memo/Exported.md"), "---\nmemo-id: note-1\n---\n# Exported\n")
+    writeFileSync(join(root, "Memo/Later.md"), "---\ntags: [a]\nmemo-id: 'note-2'\n---\nbody\n")
+    writeFileSync(join(root, "Own.md"), "# Own\n\nmemo-id: not front matter\n")
+    expect(listed(root)).toEqual(["Own.md"])
+  })
+})
+
+describe("readMemoId", () => {
+  it("reads the id only from front matter", () => {
+    const root = folder(["a.md", "b.md"])
+    writeFileSync(join(root, "a.md"), '---\nmemo-id: "note-7"\n---\n')
+    writeFileSync(join(root, "b.md"), "---\ntitle: x\n---\nmemo-id: note-8\n")
+    expect(readMemoId(join(root, "a.md"))).toBe("note-7")
+    expect(readMemoId(join(root, "b.md"))).toBeNull()
   })
 })

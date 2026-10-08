@@ -1,10 +1,21 @@
 import { configFilePath, loadConfigFile, resolvePaths, saveConfigFile } from "@leemour/cli-core"
 import * as v from "valibot"
+import { DIALECTS } from "./notes/dialects/index.js"
 
 const ConfigSchema = v.object({
   notes: v.optional(
     v.object({
-      folders: v.array(v.string()),
+      /** A bare path is the form before folder ids; `memo folders add` turns it into an entry. */
+      folders: v.array(
+        v.union([
+          v.string(),
+          v.object({
+            id: v.pipe(v.string(), v.minLength(1)),
+            path: v.pipe(v.string(), v.minLength(1)),
+            format: v.optional(v.picklist(DIALECTS)),
+          }),
+        ]),
+      ),
       ignore: v.optional(v.array(v.string())),
       embed: v.optional(v.boolean()),
     }),

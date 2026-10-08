@@ -5,7 +5,7 @@ import { embeddingsService, searchStore, storeOnlyDeps } from "@leemour/cli-mess
 import type { MessageStore } from "@leemour/cli-messaging/store"
 import { APP } from "../app.js"
 import type { NotesMap } from "../people/notes-map.js"
-import { type ResolvedLink, resolveWikiLinks } from "./links.js"
+import { type ResolvedLink, resolveLinks } from "./links.js"
 import { linkTargets } from "./read.js"
 
 export interface NoteHit {
@@ -197,7 +197,7 @@ export const searchNotes = async (
       modifiedAt: message.timestamp,
       line: firstLine(message.text, query),
       by,
-      links: resolveWikiLinks({ path: message.id, text: message.text }, documents.get(key.account) ?? []),
+      links: resolveLinks({ path: message.id, text: message.text }, documents.get(key.account) ?? []),
       ...((await store.syncState(key, `document:${message.id}`))?.value
         ? { provenance: JSON.parse((await store.syncState(key, `document:${message.id}`))?.value as string) }
         : {}),

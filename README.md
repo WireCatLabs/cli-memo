@@ -151,8 +151,28 @@ for one run. An ignore rule is a path inside the folder — a file, or a folder 
 or a glob (`**/Private*`, `*.txt`):
 
 ```json
-{ "notes": { "folders": ["/path/to/vault"], "ignore": ["Journal/Private.md", "Archive"] } }
+{ "notes": { "folders": [{ "id": "fld_…", "path": "/path/to/vault" }], "ignore": ["Journal/Private.md", "Archive"] } }
 ```
+
+### Folders and their format
+
+```sh
+memo folders add /path/to/vault                     # gives the folder an id and prints it
+memo folders add /path/to/notes --format markdown   # a plain Markdown folder
+memo folders attach fld_… /other/path/to/vault      # the same folder on another computer
+memo folders list
+```
+
+A folder's id is what links and the store use; its path is only where it is on this computer, so the
+config differs between computers and the id does not. A bare path in `notes.folders` still works and is
+turned into an entry with an id by `memo folders add <path>`. A path can belong to one id only.
+
+`format` says how the folder's notes are written. `obsidian` (the default) reads `[[Note|label]]` links
+with `#heading` and `#^block` anchors, `aliases`, `tags:` and inline `#tags`. `markdown` reads
+`[label](path.md)` links and `tags:`; a `#word` in its text is not a tag. Both read links to stored
+records — `[Rin](person:…)`, or a bare `msg:…` in the text.
+
+A Markdown file whose front matter carries `memo-id` was written by memo and is skipped by import.
 
 ## Keeping it current
 

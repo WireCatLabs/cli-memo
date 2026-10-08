@@ -6,6 +6,7 @@ import { loadConfig } from "../config.js"
 import { positive } from "../options.js"
 import { loadNotesMap } from "../people/notes-map.js"
 import { embedChanged } from "./embed.js"
+import { folderPaths } from "./folders.js"
 import { importNotes, type NotesImport, notesKey } from "./import.js"
 import { findNotes } from "./read.js"
 import { type NotesSearch, searchNotes } from "./search.js"
@@ -54,7 +55,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   const scope = (options: Scope) => {
     const notes = loadConfig(env).notes
     return {
-      folders: options.folder ?? notes?.folders ?? [],
+      folders: options.folder ?? folderPaths(notes),
       ignore: [...(notes?.ignore ?? []), ...(options.ignore ?? [])],
     }
   }
