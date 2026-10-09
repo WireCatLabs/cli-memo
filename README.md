@@ -10,8 +10,8 @@ through [Himalaya](https://github.com/pimalaya/himalaya). Source files and mailb
 Notes you write here, links, labels, relationships and task reminders live in the local store.
 Retrieval is local; an explicitly selected model receives evidence only with the configured consent.
 
-**Status:** early, not yet on npm in this form. Context, notes and their links, document import, Gmail
-and IMAP imports, tasks, manual relationships, evidence bundles and local reminders work.
+**Status:** early. Context, notes and their links, document import, Gmail and IMAP imports, tasks,
+manual relationships, evidence bundles and local reminders work.
 
 ## Your notes on messages, people and projects
 
