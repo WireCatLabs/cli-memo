@@ -1,6 +1,6 @@
 {
   "name": "@leemour/cli-memo",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Context about people across messengers, notes and mail, from a local store",
   "license": "MIT",
   "author": "Viacheslav Ptsarev",

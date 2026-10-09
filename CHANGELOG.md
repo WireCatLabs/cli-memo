@@ -5,14 +5,33 @@ Notable changes to `@leemour/cli-memo`, one section per version, newest first. V
 
 ## Unreleased
 
+## 0.3.0 — 09.10.2026
+
+### Changed — may break scripts
+
 - Search commands now live under `search all|messages|mail|notes`, using the shared services and ranking.
   `search all` returns typed source hits and a separate `tasks` list for linked open work. The old
   `memo search <query>` and `memo notes search` paths are removed without aliases. Use `search notes --type`
   instead of `notes search --source`; `--all` and `--note-text` are no longer needed.
 
+- Pin shared SDK 0.211.0 alongside Telegram/MAX. Legacy copied note task sources move to native note IDs
+  without changing task IDs, account scope or closed states. Upgrade the coordinated tools together
+  before opening the shared owner store.
+
+### Fixed
+
+- `search all` finds messages on a store that has not yet recorded the account it runs as, and asks the
+  messenger's server the way `search messages` does. `search mail` with no mail imported answers an empty
+  result with a note. Notes found by meaning must be as similar as conversations already have to be, so a
+  rare word no longer returns every note.
+
+### Added
+
 - `tasks add note:<id> --provider <provider> --account <account>` creates tasks from native file or internal
   notes. Lists resolve the current note preview; deleted notes leave tasks intact. Confirmed note-about-person
   links and explicit assignments contribute to person context. Unified search includes tasks whose note matches.
+  Repeated creation reuses the existing task of the same kind, including closed tasks.
+
 
 ## 0.2.1 — 08.10.2026
 
