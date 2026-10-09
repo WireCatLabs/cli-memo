@@ -1,7 +1,7 @@
 # cli-memo — working rules
 
 `memo` joins what the owner knows about a person across tg, MAX, notes and mail. Messages live in the
-shared store of [`@leemour/cli-messaging`](https://github.com/leemour/cli-messaging); this repository
+shared store of [`@leemour/cli-messaging`](https://github.com/WireCatLabs/cli-messaging); this repository
 reads notes, imports mail into that store, and answers.
 
 ## The constraints that shape everything

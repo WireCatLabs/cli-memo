@@ -10,6 +10,6 @@ permissions:
 
 jobs:
   ci:
-    uses: leemour/cli-core/.github/workflows/node-ci.yml@8648e39d25cb07a9ece8f896e96813e420e539e1 # v0.17.0
+    uses: WireCatLabs/cli-core/.github/workflows/node-ci.yml@8648e39d25cb07a9ece8f896e96813e420e539e1 # v0.17.0
     with:
       bun: false
