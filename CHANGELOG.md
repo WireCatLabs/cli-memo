@@ -14,9 +14,16 @@ Notable changes to `@leemour/cli-memo`, one section per version, newest first. V
   `memo search <query>` and `memo notes search` paths are removed without aliases. Use `search notes --type`
   instead of `notes search --source`; `--all` and `--note-text` are no longer needed.
 
-- Pin shared SDK 0.209.0 alongside Telegram/MAX. Legacy copied note task sources move to native note IDs
+- Pin shared SDK 0.211.0 alongside Telegram/MAX. Legacy copied note task sources move to native note IDs
   without changing task IDs, account scope or closed states. Upgrade the coordinated tools together
   before opening the shared owner store.
+
+### Fixed
+
+- `search all` finds messages on a store that has not yet recorded the account it runs as, and asks the
+  messenger's server the way `search messages` does. `search mail` with no mail imported answers an empty
+  result with a note. Notes found by meaning must be as similar as conversations already have to be, so a
+  rare word no longer returns every note.
 
 ### Added
 
