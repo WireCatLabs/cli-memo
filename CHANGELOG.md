@@ -5,6 +5,13 @@ Notable changes to `@leemour/cli-memo`, one section per version, newest first. V
 
 ## Unreleased
 
+### Changed — may break scripts
+
+- The shared store drops the copies kept for older versions (store version 28, cli-messaging 0.212.0).
+  Notes, relations and entities written before the notes refactor are copied into their new tables once,
+  during the upgrade. After it, an older tg, max or memo refuses the store with "upgrade this tool" —
+  update all three together.
+
 ## 0.3.0 — 09.10.2026
 
 ### Changed — may break scripts
