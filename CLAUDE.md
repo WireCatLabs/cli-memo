@@ -8,7 +8,7 @@ reads notes, imports mail into that store, and answers.
 
 1. **This repository is public; the owner's data is not.** No real name, address, subject, note or
    message in a fixture, test name, commit, issue or document — synthetic data only. Plans and the
-   session journal live in the private `max-cli-private` repository, never here.
+   session journal live in the private `cli-private` repository, never here.
 2. **No test reaches the owner's store, vault, mailbox or config.** `test/sandbox.ts` points
    `MESSAGING_STORE`, `HOME`, the XDG folders and `HIMALAYA_CONFIG` into a temp folder for every test
    file; do not weaken it.
@@ -35,3 +35,8 @@ pnpm lint && pnpm typecheck && pnpm test
 
 A change a caller can see gets a `CHANGELOG.md` entry under `## Unreleased`. Releasing is `bin/release`
 on `main`, once the first release is agreed.
+
+## Documents
+
+They state the current facts only: a changed fact is rewritten with no mark, and git keeps the old
+text. `CHANGELOG.md` is the one place for history.
