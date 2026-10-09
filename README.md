@@ -4,8 +4,8 @@
 newest messages each way, the notes about them, and the newest mail threads — each item with a link
 to its source.
 
-It reads the local message store that [tg-cli](https://github.com/leemour/tg-cli) and
-[max-cli](https://github.com/leemour/max-cli) share, Markdown notes such as an Obsidian vault, and mail
+It reads the local message store that [tg-cli](https://github.com/WireCatLabs/tg-cli) and
+[max-cli](https://github.com/WireCatLabs/max-cli) share, Markdown notes such as an Obsidian vault, and mail
 through [Himalaya](https://github.com/pimalaya/himalaya). Source files and mailboxes are read-only.
 Notes you write here, links, labels, relationships and task reminders live in the local store.
 Retrieval is local; an explicitly selected model receives evidence only with the configured consent.
