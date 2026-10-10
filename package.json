@@ -32,7 +32,10 @@
     "release:check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm secrets:scan",
     "prepare": "lefthook install || true",
     "secrets:scan": "gitleaks git --no-banner --redact .",
-    "prepublishOnly": "pnpm build"
+    "prepublishOnly": "pnpm build",
+    "standards:check": "node config/wirecat/check.mjs",
+    "docs:lint": "markdownlint-cli2",
+    "docs:spell": "cspell lint --config cspell.json --no-progress README.md"
   },
   "dependencies": {
     "@wirecat/cli-core": "0.18.1",
@@ -42,12 +45,17 @@
     "yaml": "2.9.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.14",
+    "@biomejs/biome": "2.5.15",
     "@types/node": "^22.20.4",
     "@vitest/coverage-v8": "5.0.3",
-    "lefthook": "^2.1.14",
+    "lefthook": "2.1.16",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.2"
+    "vitest": "^5.0.2",
+    "@cspell/dict-en-gb": "5.0.34",
+    "@cspell/dict-es-es": "3.0.9",
+    "@cspell/dict-ru_ru": "2.3.3",
+    "cspell": "10.3.6",
+    "markdownlint-cli2": "0.23.3"
   },
   "publishConfig": {
     "access": "public"
