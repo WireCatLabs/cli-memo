@@ -30,7 +30,7 @@ Sparse, and only *why*. The global rule in `~/.claude/CLAUDE.md` applies.
 Conventional commits, a branch off `main`, a pull request. Before committing:
 
 ```sh
-pnpm lint && pnpm typecheck && pnpm test
+pnpm standards:check && pnpm lint
 ```
 
 A change a caller can see gets a `CHANGELOG.md` entry under `## Unreleased`. Releasing is `bin/release`
@@ -40,3 +40,11 @@ on `main`, once the first release is agreed.
 
 They state the current facts only: a changed fact is rewritten with no mark, and git keeps the old
 text. `CHANGELOG.md` is the one place for history.
+
+## Development check budget
+
+Keep commit and push hooks fast. Ordinary development and PRs use standards
+verification, lint, Markdown, and secret detection. Full typechecking, tests,
+coverage, builds, parity, browser and platform suites run for releases or an
+explicit manual validation. See the
+[shared policy](https://github.com/WireCatLabs/community/blob/main/standards/README.md#ci-and-hooks).
