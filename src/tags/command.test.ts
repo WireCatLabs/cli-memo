@@ -97,7 +97,7 @@ describe("memo source tags", () => {
     const ref = await noteRef()
     const added = await json("tags", "add", "Work", "work", "FOLLOW-UP", "--note", ref)
     expect(added).toMatchObject({
-      target: { type: "note", id: ref.slice("note:".length) },
+      target: { type: "document", id: ref.slice("document:".length) },
       added: ["work", "follow-up"],
     })
     expect(await json("tags", "add", "work", "--note", ref)).toMatchObject({ added: [] })

@@ -6,7 +6,7 @@ import { loadConfig } from "../config.js"
 import { positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { subjectOf } from "../people/subject.js"
-import { aboutText, notesAbout } from "./about.js"
+import { aboutText, isNoteReference, notesAbout } from "./about.js"
 import { boundFolders, folderOfFile } from "./bound.js"
 import { DIALECTS, type DialectName } from "./dialects/index.js"
 import { embedNoteChunks } from "./embed.js"
@@ -41,9 +41,9 @@ const textOf = (options: { text?: string; file?: string }, given?: string): stri
   return sources[0] as string
 }
 
-/** `note:<id>`, or a file inside a configured folder. */
+/** `note:<id>`, `document:<id>`, or a file inside a configured folder. */
 const noteOf = async (store: MessageStore, env: NodeJS.ProcessEnv, reference: string): Promise<Note> => {
-  if (reference.startsWith("note:")) return store.notes.note(reference.slice("note:".length))
+  if (isNoteReference(reference)) return store.notes.note(reference)
   const { folder, path } = folderOfFile(await boundFolders(store, env, { strict: false }), reference)
   const found = (await folderNotes(store, folder.id)).find((note) => note.path === path)
   if (!found) throw new CliError("not_found", `${reference} is not imported — memo notes import`)
@@ -99,7 +99,10 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .description(
       "Notes about a person, project or note, and the notes that link them — through links, never a name in plain text",
     )
-    .argument("<subject>", "<messenger>:<name or id>, person:<uid>, entity:<id> or note:<id>")
+    .argument(
+      "<subject>",
+      "<messenger>:<name or id>, person:<uid>, organization:<id>, project:<id>, note:<id> or document:<id>",
+    )
     .option("--limit <n>", "most notes of each kind", positive, 20)
     .option("--json", "print JSON")
     .action(async (subject: string, options: { limit: number; json?: boolean }) => {
@@ -110,13 +113,13 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   notes
     .command("show")
     .description("One note: its text, tags, what it links and what links it")
-    .argument("<note>", "note:<id>, or a file in a configured folder")
+    .argument("<note>", "note:<id>, document:<id>, or a file in a configured folder")
     .option("--json", "print JSON")
     .action(async (reference: string, options: { json?: boolean }) => {
       const answer = await withStore(async (store) => {
         const note = await noteOf(store, env, reference)
-        const ref = `note:${note.id}`
-        const labels = await store.notes.noteTags(note.id)
+        const ref = note.ref
+        const labels = await store.notes.noteTags(ref)
         return {
           ...note,
           ref,
@@ -179,7 +182,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .option("--title <title>", "a title")
     .option(
       "--about <subject...>",
-      "what it is about: <messenger>:<name or id>, msg:, chat:, person:, entity:, task:, note:",
+      "what it is about: <messenger>:<name or id>, msg:, chat:, person:, organization:, project:, task:, note:, document:",
     )
     .option("--export [dir]", "also write it as a file — to this folder, or notes.export.dir")
     .option("--format <format>", `the file's format: ${DIALECTS.join(", ")}`, formatOf)
@@ -218,7 +221,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   notes
     .command("edit")
     .description("Change a note you wrote here; a file's note is edited in its file")
-    .argument("<id>", "the note's id")
+    .argument("<id>", "note:<id> or its id")
     .requiredOption("--revision <n>", "its current revision, so an edit made meanwhile is not lost", positive)
     .option("--text <text>", "the new text")
     .option("--file <path>", "read the new text from a file; - reads stdin")
@@ -251,7 +254,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   notes
     .command("remove")
     .description("Delete a note you wrote here; a file it was exported to stays")
-    .argument("<id>", "the note's id")
+    .argument("<id>", "note:<id> or its id")
     .option("--json", "print JSON")
     .action(async (id: string, options: { json?: boolean }) => {
       const answer = await withStore((store) => store.notes.removeNote(id.replace(/^note:/, "")))

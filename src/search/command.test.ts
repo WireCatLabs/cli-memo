@@ -38,10 +38,10 @@ it("searches three typed resources together, separates mail and messages, and fi
   await store.saveAccount({ provider: "notes", account: "synthetic-legacy" }, { name: null })
   await store.tasks.insert({
     id: "legacy-note-task",
-    source: `note:${file.note.id}`,
+    source: file.note.ref,
     sourceKind: "note",
     account: "notes:synthetic-legacy",
-    group: `note:${file.note.id}`,
+    group: file.note.ref,
     kind: "request",
     state: "open",
     origin: "owner",
@@ -64,7 +64,7 @@ it("searches three typed resources together, separates mail and messages, and fi
   expect(all.tasks.map((task: { id: string }) => task.id)).toEqual(["legacy-note-task"])
   expect(all.items.map((item: { kind: string }) => item.kind).sort()).toEqual(["mail", "message", "note", "note"])
   expect(all.items.map((item: { ref: string }) => item.ref)).toEqual(
-    expect.arrayContaining([`note:${internal.id}`, `note:${file.note.id}`]),
+    expect.arrayContaining([internal.ref, file.note.ref]),
   )
   expect(
     (await run("search", "messages", "Sharedsignal")).items.map((item: { locator: string }) => item.locator),
@@ -80,10 +80,10 @@ it("searches three typed resources together, separates mail and messages, and fi
   expect((await run("search", "messages", "Sharedsignal", "--type", "file")).items).toEqual([])
   expect(
     (await run("search", "notes", "Sharedsignal", "--type", "internal")).hits.map((hit: { ref: string }) => hit.ref),
-  ).toEqual([`note:${internal.id}`])
+  ).toEqual([internal.ref])
   expect(
     (await run("search", "notes", "Sharedsignal", "--folder", folder.id)).hits.map((hit: { ref: string }) => hit.ref),
-  ).toEqual([`note:${file.note.id}`])
+  ).toEqual([file.note.ref])
   for (const args of [
     ["search", "Sharedsignal"],
     ["notes", "search", "Sharedsignal"],

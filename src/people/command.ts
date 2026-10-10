@@ -27,7 +27,7 @@ export const noteCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           const found = []
           for (const link of await store.notes.links({ to })) {
             if (link.kind !== "about" || link.origin !== "owner") continue
-            const note = await store.notes.note(link.from.replace(/^note:/, "")).catch(() => undefined)
+            const note = await store.notes.resolveNote(link.from)
             if (note?.source === "file" && note.deletedAt === null) found.push({ link, note })
           }
           return found
@@ -37,11 +37,11 @@ export const noteCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           const { folder, path: inside } = folderOfFile(folders, path)
           const note = (await folderNotes(store, folder.id)).find((candidate) => candidate.path === inside)
           if (!note) throw new CliError("not_found", `${path} is not imported yet — memo notes import`)
-          await store.notes.addLink({ from: `note:${note.id}`, to, kind: "about", origin: "owner" })
+          await store.notes.addLink({ from: note.ref, to, kind: "about", origin: "owner" })
         }
         const shown = (await files()).map(({ note }) => {
           const folder = folders.find((candidate) => candidate.id === note.folderId)
-          return folder ? join(folder.path, note.path as string) : `note:${note.id}`
+          return folder ? join(folder.path, note.path as string) : note.ref
         })
         streams.data(`${person.name ?? person.uid}: ${shown.join(", ") || "no note"}\n`)
       } finally {

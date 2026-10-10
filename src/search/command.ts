@@ -75,7 +75,7 @@ export const unifiedSearch = async (
   let incomplete = answer.hasMore
   const noteItem = (note: Note, match: EvidenceItem["match"]): EvidenceItem => ({
     kind: "note",
-    locator: `note:${note.id}`,
+    locator: note.ref,
     provider: "notes",
     account: note.folderId ?? "internal",
     timestamp: note.updatedAt,

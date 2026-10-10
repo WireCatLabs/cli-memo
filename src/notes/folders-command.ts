@@ -4,7 +4,6 @@ import { CliError, createRenderer, type Streams } from "@wirecat/cli-core"
 import { type MessageStore, openStore } from "@wirecat/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { loadConfig, updateConfig } from "../config.js"
-import { claimPendingFolders } from "./bound.js"
 import { DIALECTS, type DialectName } from "./dialects/index.js"
 import { attachFolder, bindFolder, type NoteFolder, noteFolders } from "./folders.js"
 
@@ -34,7 +33,6 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
   const withStore = async <T>(work: (store: MessageStore) => Promise<T>): Promise<T> => {
     const store = await openStore({ env })
     try {
-      await claimPendingFolders(store, env)
       return await work(store)
     } finally {
       await store.close()

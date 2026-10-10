@@ -1,6 +1,7 @@
 import { parseLocator } from "@wirecat/cli-messaging"
 import { type TaskView, taskView } from "@wirecat/cli-messaging/services"
 import type { AccountKey, MessageStore, PersonRecord } from "@wirecat/cli-messaging/store"
+import { isNoteReference } from "../notes/about.js"
 
 export const taskPage = async (
   store: MessageStore,
@@ -38,15 +39,18 @@ export const personTasks = async (
       (identity) => identity.provider === key.provider && identity.accounts.includes(key.account),
     )
     const noteLinks = await store.notes.links({ to: `person:${person.uid}` })
-    const relatedNotes = new Set(
-      noteLinks
-        .filter((link) => link.confirmed && link.kind === "about" && link.from.startsWith("note:"))
+    const written = await store.notes.notes({ about: `person:${person.uid}`, source: "internal", limit: 500 })
+    incomplete ||= written.hasMore
+    const relatedNotes = new Set([
+      ...noteLinks
+        .filter((link) => link.confirmed && link.kind === "about" && isNoteReference(link.from))
         .map((link) => link.from),
-    )
+      ...written.items.map((note) => note.ref),
+    ])
     const page = await taskPage(store, key, { state: "open", limit: 500 })
     incomplete ||= page.hasMore
     for (const task of page.items) {
-      if (task.note && relatedNotes.has(`note:${task.note.id}`)) items.push(task)
+      if (task.note && relatedNotes.has(task.source)) items.push(task)
     }
     if (!identities.length) continue
     const ids = new Set(identities.map((identity) => identity.id))

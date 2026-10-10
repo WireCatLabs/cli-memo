@@ -41,7 +41,7 @@ export const memoContext = async (
   const linked = await notesAbout(store, { ref: person, person: messages.person }, limit)
   const yourNotes = []
   for (const ref of linked.about.filter((note) => note.source === "internal")) {
-    const note = await store.notes.note(ref.ref.slice("note:".length))
+    const note = await store.notes.note(ref.ref)
     yourNotes.push({ id: note.id, text: note.text, revision: note.revision, updatedAt: note.updatedAt })
   }
   const notRead: MemoContext["notRead"] = []

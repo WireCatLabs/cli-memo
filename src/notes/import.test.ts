@@ -138,7 +138,7 @@ describe("memo notes import", () => {
 
     expect((await json("notes", "import"))[0]).toMatchObject({ renamed: 1, deleted: 0 })
 
-    const after = await json("notes", "show", `note:${before.id}`)
+    const after = await json("notes", "show", before.ref)
     expect(after).toMatchObject({ path: "Projects/Beacon.md", tags: ["work"] })
     expect(after.links).toHaveLength(2)
   })
@@ -256,6 +256,6 @@ describe("notes written in memo", () => {
   it("refuses to edit a file's note, which is edited in its file", async () => {
     await run("notes", "import")
     const note = await json("notes", "show", join(vault, "Projects/Harbour.md"))
-    await expect(run("notes", "edit", note.id, "--revision", "1", "--text", "x")).rejects.toThrow(/edited in its file/)
+    await expect(run("notes", "edit", note.ref, "--revision", "1", "--text", "x")).rejects.toThrow(/edited in its file/)
   })
 })

@@ -2,7 +2,7 @@ import { formatReference } from "@wirecat/cli-messaging"
 import type { MessageStore, PersonRecord } from "@wirecat/cli-messaging/store"
 import { identityOf } from "./identity.js"
 
-const TYPED = /^(person|entity|note|task|msg|chat|contact|folder):\S+$/
+const TYPED = /^(person|organization|project|note|document|task|msg|chat|contact|folder):\S+$/
 
 export interface Subject {
   ref: string

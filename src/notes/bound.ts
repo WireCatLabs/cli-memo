@@ -1,27 +1,10 @@
 import { resolve } from "node:path"
 import { CliError } from "@wirecat/cli-core"
 import type { MessageStore } from "@wirecat/cli-messaging/store"
-import { loadConfig, updateConfig } from "../config.js"
-import { bindFolder, type NoteFolder, noteFolders } from "./folders.js"
+import { loadConfig } from "../config.js"
+import { type NoteFolder, noteFolders } from "./folders.js"
 
 export type BoundFolder = NoteFolder & { id: string }
-
-/**
- * A folder imported before store version 25 has an id but its path still waits in the store, which hands
- * it over once. It goes straight into this computer's config, so it is never lost between claim and save.
- */
-export const claimPendingFolders = async (store: MessageStore, env: NodeJS.ProcessEnv): Promise<void> => {
-  for (const folder of await store.notes.folders()) {
-    if (folder.pendingPath === null) continue
-    const { path } = await store.notes.claimFolderPath(folder.id)
-    if (path === null) continue
-    updateConfig((config) => {
-      const here = noteFolders(config.notes).find((entry) => entry.path === resolve(path))
-      if (here?.id && here.id !== folder.id) return config
-      return bindFolder(config, { id: folder.id, path, format: here?.format ?? folder.format })
-    }, env)
-  }
-}
 
 const unbound = (path: string) =>
   new CliError(
@@ -30,7 +13,7 @@ const unbound = (path: string) =>
   )
 
 /**
- * The configured folders the store knows, after claiming pending paths; `only` narrows them by path or id.
+ * The configured folders the store knows; `only` narrows them by path or id.
  * `strict` refuses a folder with no id — an import must not invent one — while a read just leaves it out.
  */
 export const boundFolders = async (
@@ -38,7 +21,6 @@ export const boundFolders = async (
   env: NodeJS.ProcessEnv,
   { only, strict = true }: { only?: string[]; strict?: boolean } = {},
 ): Promise<BoundFolder[]> => {
-  await claimPendingFolders(store, env)
   const known = new Set((await store.notes.folders()).map(({ id }) => id))
   const configured = noteFolders(loadConfig(env).notes)
   const wanted =

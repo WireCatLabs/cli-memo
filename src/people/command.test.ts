@@ -87,7 +87,10 @@ describe("memo note", () => {
     mkdirSync(env.MEMO_CONFIG_DIR as string, { recursive: true })
     writeFileSync(
       join(env.MEMO_CONFIG_DIR as string, "people-notes.json"),
-      JSON.stringify({ [uid]: join(vault, "people", "Rin Example.md") }),
+      JSON.stringify({
+        [uid]: join(vault, "people", "Rin Example.md"),
+        "01JOLDSTOREPERSON0000000000": join(vault, "people", "Rin Example.md"),
+      }),
     )
     await run("folders", "add", vault)
     expect(await run("note", "telegram:101")).toBe("Rin Example: no note\n")

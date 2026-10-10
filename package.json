@@ -38,8 +38,8 @@
     "docs:spell": "cspell lint --config cspell.json --no-progress README.md"
   },
   "dependencies": {
-    "@wirecat/cli-core": "0.18.1",
-    "@wirecat/cli-messaging": "0.215.0",
+    "@wirecat/cli-core": "0.19.3",
+    "@wirecat/cli-messaging": "0.218.0",
     "commander": "15.0.0",
     "valibot": "1.5.0",
     "yaml": "2.9.1"

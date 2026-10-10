@@ -17,7 +17,7 @@ manual relationships, evidence bundles and local reminders work.
 
 ```sh
 memo notes add 'Prefers mornings' --about telegram:'Rin Example'
-memo notes add --file review.md --about 'msg:telegram/1/77/42' --about entity:ENTITY_ID --export
+memo notes add --file review.md --about 'msg:telegram/1/77/42' --about project:PROJECT_ID --export
 memo notes list --about telegram:'Rin Example' --json
 memo notes edit NOTE_ID --revision 1 --text 'Prefers early mornings'
 memo notes remove NOTE_ID
@@ -26,7 +26,8 @@ memo notes export --to /path/to/vault/memo --format obsidian
 
 A note written here is the store's, not a file's, and is about whatever `--about` names: a person by
 `<messenger>:<name or id>`, or any stored record by its reference — `msg:`, `chat:`, `contact:`,
-`person:`, `entity:`, `task:`, `note:`. Several `--about` give it several subjects. An edit names the
+`person:`, `organization:`, `project:`, `task:`, `note:`, `document:`. Several `--about` give it several
+subjects. An edit names the
 revision it changes, so an edit made meanwhile is never lost. tg and max `contacts notes` are the same
 notes.
 
@@ -90,20 +91,22 @@ never happened.
 assertions, conclusions and inferences. Suggestions create no task until you explicitly run
 `memo tasks add <source> --type <kind>`. Answers are not saved as independent facts.
 
-## Organizations, families and projects
+## Organizations and projects
 
 ```sh
-memo entities add 'Synthetic Studio' --kind organization
-memo relationships add person:PERSON_UID entity:ENTITY_ID --role author
-memo entities context ENTITY_ID --json
-memo tags add project --entity ENTITY_ID
+memo organizations add 'Synthetic Studio' --kind company
+memo projects add 'Synthetic Harbour' --organization organization:ORGANIZATION_ID
+memo relationships add person:PERSON_UID project:PROJECT_ID --role author
+memo projects context PROJECT_ID --json
+memo tags add client --organization ORGANIZATION_ID
 memo tags add follow-up --task TASK_ID
 ```
 
-Organisations, families, projects and groups are yours, not one account's. Relationships use
-`member-of` or `related-to`; `list`, `remove` and `confirm` manage them. They are manual statements and
-never merge identities because names or domains match. `entities context` lists the entity's
-relationships, the notes about or linking it, and its tags. Tags on a task need no account; its
+Organizations (a company, team, family or community) and projects (with a short key, a type and the
+organization they belong to) are yours, not one account's. Relationships use `member-of` or `related-to`;
+`list`, `remove` and `confirm` manage them. They are manual statements and never merge identities because
+names or domains match. `organizations context` and `projects context` list the relationships, the notes
+about or linking it, and its tags. Tags on a task need no account; its
 reminders name the account it waits on.
 
 `memo relationships suggest --provider email --account owner@example.test` stores bounded weak
@@ -164,7 +167,8 @@ Import then embeds the notes for search by meaning with the local e5-small model
 max: `tg models text download e5-small`), only what changed, at most 600 chunks a run — the next run
 continues. `--no-embed`, or `notes.embed: false` in the config, skips it.
 
-`about` takes `<messenger>:<name or id>` or a reference (`person:`, `entity:`, `note:`) and lists the
+`about` takes `<messenger>:<name or id>` or a reference (`person:`, `organization:`, `project:`, `note:`,
+`document:`) and lists the
 notes about it, the notes that link it, the notes that link a note about it, and links written with the
 person's name that two people share. Hidden folders such as `.obsidian` are skipped, and nothing is ever
 written to a notes folder.
@@ -181,7 +185,7 @@ configured folders and `--ignore` adds rules for one run. An ignore rule is a pa
 or a glob (`**/Private*`, `*.txt`):
 
 ```json
-{ "notes": { "folders": [{ "id": "fld_…", "path": "/path/to/vault" }], "ignore": ["Journal/Private.md", "Archive"] } }
+{ "notes": { "folders": [{ "id": "3", "path": "/path/to/vault" }], "ignore": ["Journal/Private.md", "Archive"] } }
 ```
 
 ### Folders and their format
@@ -189,7 +193,7 @@ or a glob (`**/Private*`, `*.txt`):
 ```sh
 memo folders add /path/to/vault                     # gives the folder an id and prints it
 memo folders add /path/to/notes --format markdown   # a plain Markdown folder
-memo folders attach fld_… /other/path/to/vault      # the same folder on another computer
+memo folders attach FOLDER_ID /other/path/to/vault  # the same folder on another computer
 memo folders list
 ```
 
@@ -197,8 +201,8 @@ A folder's id is the store's and is what notes and links use; its path is only w
 computer, so the config differs between computers and the id does not. `folders list` also shows the
 folders the store has from another computer, to attach. A path can belong to one id only. A bare path in
 `notes.folders`, or a folder with no id, is refused by import with both commands named — memo never
-invents an id, which would give every note a new identity. A folder imported before store version 25
-moves its path into this computer's config on the first run, with the id it already has.
+invents an id, which would give every note a new identity. A folder id from a store older than
+`wirecat.db` is not in the store: `memo folders add <path>` gives the folder a new one.
 
 `format` says how the folder's notes are written. `obsidian` (the default) reads `[[Note|label]]` links
 with `#heading` and `#^block` anchors, `aliases`, `tags:` and inline `#tags`. `markdown` reads
@@ -291,9 +295,10 @@ memo tags list --tag follow-up --json
 tg search mail 'tag:follow-up'
 ```
 
-A note is labelled by its reference, an email or messenger message by its full `msg:` locator, a mail
-thread or chat by its exact id and account. A person, entity or task is labelled by `--person`,
-`--entity` or `--task`, with no account; a contact names its account. `--folder` with an id from
+A note is labelled by its reference (`--note note:<id>`, or `document:<id>` for a file in a notes
+folder), an email or messenger message by its full `msg:` locator, a mail thread or chat by its exact id
+and account. A person, organization, project or task is labelled by `--person`, `--organization`,
+`--project` or `--task`, with no account; a contact names its account. `--folder` with an id from
 `memo folders list`, and `--path` for one subfolder, labels every note under it at any depth. Tags use 1–32 letters a–z, digits or hyphens; case is ignored.
 Adding an existing tag or removing an absent one leaves it unchanged.
 

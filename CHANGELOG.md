@@ -6,6 +6,18 @@ the API.
 
 ## Unreleased
 
+### Changed — may break callers
+
+- **memo runs on `@wirecat/cli-messaging` 0.218.0 and `@wirecat/cli-core` 0.19.3**, the store in `wirecat.db`.
+  The old `messages.db` is left as it is and not read: import notes and mail again, and run
+  `memo folders add <path>` for each folder, since a folder id from the old store is not in the new one.
+- **`memo entities` is replaced by `memo organizations` and `memo projects`** (`add`, `list`, `context`),
+  as the store now keeps them apart; `tags --entity` is `--organization` or `--project`, and `entity:`
+  references are not found. An organization is a company, team, family or community; a project has a key.
+- **A file in a notes folder is `document:<id>`, a note written in memo `note:<id>`.** `notes show`,
+  `tags --note`, `tasks add` and `--about` take either; a bare id is a written note's. Search evidence and
+  links name a file's note by `document:`.
+
 ### Security
 
 - Fast secret checks remain on PRs; source, production dependency and workflow security checks run before publication. Automatic Socket checks are disabled.

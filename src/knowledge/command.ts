@@ -1,9 +1,10 @@
 import { CliError, createRenderer, type Streams } from "@wirecat/cli-core"
 import {
-  type KnowledgeEntity,
   type KnowledgeRelation,
   type MessageStore,
+  type Organization,
   openStore,
+  type Project,
 } from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"
 import { notesAbout } from "../notes/about.js"
@@ -35,39 +36,107 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       await store.close()
     }
   }
-  const entities = program.command("entities").description("Organizations, families, projects and groups of yours")
-  entities
+  /** What the store knows around an organization or a project: its relations, the notes about it, its tags. */
+  const contextOf = async (
+    store: MessageStore,
+    thing: { ref: string } | undefined,
+    type: "organization" | "project",
+    id: string,
+  ) => ({
+    [type]: thing ?? null,
+    relationships: (await store.notes.links({ to: `${type}:${id}` }))
+      .concat(await store.notes.links({ from: `${type}:${id}` }))
+      .filter((link) => link.kind !== "about" && link.kind !== "links-to"),
+    notes: await notesAbout(store, { ref: `${type}:${id}` }),
+    tags: await store.knowledge.tags(null, { type, id }),
+  })
+  const organizations = program
+    .command("organizations")
+    .description("Companies, teams, families and communities of yours")
+  organizations
     .command("add")
     .argument("<name>")
-    .requiredOption("--kind <kind>", "organization, family, project or group")
+    .requiredOption("--kind <kind>", "company, team, family or community")
+    .option("--scope <scope>", "personal or work")
     .option("--json", "print JSON")
-    .action((name: string, options: { kind: KnowledgeEntity["kind"]; json?: boolean }) =>
-      owned(options, (store) => store.notes.addEntity(options.kind, name)),
+    .action((name: string, options: { kind: Organization["kind"]; scope?: Organization["scope"]; json?: boolean }) =>
+      owned(options, (store) =>
+        store.knowledge.addOrganization({
+          kind: options.kind,
+          name,
+          ...(options.scope === undefined ? {} : { scope: options.scope }),
+        }),
+      ),
     )
-  entities
+  organizations
     .command("list")
     .option("--json", "print JSON")
-    .action((options: { json?: boolean }) => owned(options, (store) => store.notes.entities()))
-  entities
+    .action((options: { json?: boolean }) => owned(options, (store) => store.knowledge.organizations()))
+  organizations
     .command("context")
     .argument("<id>")
     .option("--json", "print JSON")
     .action((id: string, options: { json?: boolean }) =>
-      owned(options, async (store) => {
-        const ref = `entity:${id}`
-        return {
-          entity: (await store.notes.entities()).find((entity) => entity.id === id) ?? null,
-          relationships: (await store.notes.links({ to: ref }))
-            .concat(await store.notes.links({ from: ref }))
-            .filter((link) => link.kind !== "about" && link.kind !== "links-to"),
-          notes: await notesAbout(store, { ref }),
-          tags: await store.knowledge.tags(null, { type: "entity", id }),
-        }
-      }),
+      owned(options, async (store) =>
+        contextOf(
+          store,
+          (await store.knowledge.organizations()).find((organization) => organization.id === id),
+          "organization",
+          id,
+        ),
+      ),
+    )
+  const projects = program.command("projects").description("Projects of yours, each with a short key")
+  projects
+    .command("add")
+    .argument("<name>")
+    .option("--key <key>", "1–10 letters and digits; made from the name when left out")
+    .option("--type <type>", "work, client, personal, oss or other")
+    .option("--organization <reference>", "organization:<id> it belongs to")
+    .option("--scope <scope>", "personal or work")
+    .option("--json", "print JSON")
+    .action(
+      (
+        name: string,
+        options: {
+          key?: string
+          type?: Project["type"]
+          organization?: string
+          scope?: Project["scope"]
+          json?: boolean
+        },
+      ) =>
+        owned(options, (store) =>
+          store.knowledge.addProject({
+            name,
+            ...(options.key === undefined ? {} : { key: options.key }),
+            ...(options.type === undefined ? {} : { type: options.type }),
+            ...(options.organization === undefined ? {} : { organization: options.organization }),
+            ...(options.scope === undefined ? {} : { scope: options.scope }),
+          }),
+        ),
+    )
+  projects
+    .command("list")
+    .option("--json", "print JSON")
+    .action((options: { json?: boolean }) => owned(options, (store) => store.knowledge.projects()))
+  projects
+    .command("context")
+    .argument("<id>")
+    .option("--json", "print JSON")
+    .action((id: string, options: { json?: boolean }) =>
+      owned(options, async (store) =>
+        contextOf(
+          store,
+          (await store.knowledge.projects()).find((project) => project.id === id),
+          "project",
+          id,
+        ),
+      ),
     )
   const relations = program
     .command("relationships")
-    .description("Explicit relations between person:<uid> and entity:<uid>; this never links identities")
+    .description("Explicit relations between people, organizations and projects; this never links identities")
   relations
     .command("add")
     .argument("<from>")
