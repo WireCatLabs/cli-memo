@@ -2,13 +2,16 @@ import { CliError, createRenderer, type Streams } from "@wirecat/cli-core"
 import {
   type KnowledgeRelation,
   type MessageStore,
+  ORGANIZATION_KINDS,
   type Organization,
   openStore,
+  PROJECT_TYPES,
   type Project,
+  SCOPES,
 } from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"
 import { notesAbout } from "../notes/about.js"
-import { accountOptions, positive } from "../options.js"
+import { accountOptions, oneOf, positive } from "../options.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 
 export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
@@ -56,8 +59,8 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   organizations
     .command("add")
     .argument("<name>")
-    .requiredOption("--kind <kind>", "company, team, family or community")
-    .option("--scope <scope>", "personal or work")
+    .requiredOption("--kind <kind>", ORGANIZATION_KINDS.join(", "), oneOf(ORGANIZATION_KINDS))
+    .option("--scope <scope>", SCOPES.join(", "), oneOf(SCOPES))
     .option("--json", "print JSON")
     .action((name: string, options: { kind: Organization["kind"]; scope?: Organization["scope"]; json?: boolean }) =>
       owned(options, (store) =>
@@ -91,9 +94,9 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .command("add")
     .argument("<name>")
     .option("--key <key>", "1–10 letters and digits; made from the name when left out")
-    .option("--type <type>", "work, client, personal, oss or other")
+    .option("--type <type>", PROJECT_TYPES.join(", "), oneOf(PROJECT_TYPES))
     .option("--organization <reference>", "organization:<id> it belongs to")
-    .option("--scope <scope>", "personal or work")
+    .option("--scope <scope>", SCOPES.join(", "), oneOf(SCOPES))
     .option("--json", "print JSON")
     .action(
       (
