@@ -2,6 +2,13 @@ name: Full validation
 
 on:
   workflow_call:
+    inputs:
+      pack:
+        type: boolean
+        default: false
+    outputs:
+      package-sha256:
+        value: ${{ jobs.ci.outputs.package-sha256 }}
   workflow_dispatch:
 
 permissions:
@@ -9,6 +16,7 @@ permissions:
 
 jobs:
   ci:
-    uses: WireCatLabs/cli-core/.github/workflows/node-ci.yml@8648e39d25cb07a9ece8f896e96813e420e539e1 # v0.17.0
+    uses: WireCatLabs/cli-core/.github/workflows/node-ci.yml@4c78a803c460317fd40a38be6d1fb53278087741
     with:
+      pack: ${{ inputs.pack || false }}
       bun: false
