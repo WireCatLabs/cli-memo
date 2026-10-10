@@ -1,5 +1,5 @@
 import { homedir } from "node:os"
-import { storePath } from "@leemour/cli-messaging/store"
+import { storePath } from "@wirecat/cli-messaging/store"
 import { describe, expect, it } from "vitest"
 import { configPath } from "../src/config.js"
 

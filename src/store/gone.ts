@@ -1,4 +1,4 @@
-import type { AccountKey, MessageStore } from "@leemour/cli-messaging/store"
+import type { AccountKey, MessageStore } from "@wirecat/cli-messaging/store"
 
 const PAGE = 500
 const MAX_DELETED_SHARE = 0.2

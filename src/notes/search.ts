@@ -1,7 +1,7 @@
-import type { NotesFound as NotesSearch } from "@leemour/cli-messaging/services"
+import type { NotesFound as NotesSearch } from "@wirecat/cli-messaging/services"
 
-export type { FoundNote as NoteHit, LinkedRecord, NotesFound as NotesSearch } from "@leemour/cli-messaging/services"
-export { searchNotes } from "@leemour/cli-messaging/services"
+export type { FoundNote as NoteHit, LinkedRecord, NotesFound as NotesSearch } from "@wirecat/cli-messaging/services"
+export { searchNotes } from "@wirecat/cli-messaging/services"
 
 export const searchText = (result: NotesSearch): string =>
   [

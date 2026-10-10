@@ -1,6 +1,6 @@
 import { resolve } from "node:path"
-import { CliError } from "@leemour/cli-core"
-import type { MessageStore } from "@leemour/cli-messaging/store"
+import { CliError } from "@wirecat/cli-core"
+import type { MessageStore } from "@wirecat/cli-messaging/store"
 import { loadConfig, updateConfig } from "../config.js"
 import { bindFolder, type NoteFolder, noteFolders } from "./folders.js"
 

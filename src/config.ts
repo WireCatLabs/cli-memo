@@ -1,4 +1,4 @@
-import { configFilePath, loadConfigFile, resolvePaths, saveConfigFile } from "@leemour/cli-core"
+import { configFilePath, loadConfigFile, resolvePaths, saveConfigFile } from "@wirecat/cli-core"
 import * as v from "valibot"
 import { DIALECTS } from "./notes/dialects/index.js"
 

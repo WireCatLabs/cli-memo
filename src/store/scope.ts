@@ -1,6 +1,6 @@
-import { CliError } from "@leemour/cli-core"
-import { parseLocator } from "@leemour/cli-messaging"
-import type { AccountKey, KnowledgeTarget, MessageStore } from "@leemour/cli-messaging/store"
+import { CliError } from "@wirecat/cli-core"
+import { parseLocator } from "@wirecat/cli-messaging"
+import type { AccountKey, KnowledgeTarget, MessageStore } from "@wirecat/cli-messaging/store"
 
 export interface AccountScope {
   provider?: string

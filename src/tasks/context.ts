@@ -1,6 +1,6 @@
-import { parseLocator } from "@leemour/cli-messaging"
-import { type TaskView, taskView } from "@leemour/cli-messaging/services"
-import type { AccountKey, MessageStore, PersonRecord } from "@leemour/cli-messaging/store"
+import { parseLocator } from "@wirecat/cli-messaging"
+import { type TaskView, taskView } from "@wirecat/cli-messaging/services"
+import type { AccountKey, MessageStore, PersonRecord } from "@wirecat/cli-messaging/store"
 
 export const taskPage = async (
   store: MessageStore,

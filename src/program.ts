@@ -1,4 +1,4 @@
-import { processStreams, type Streams } from "@leemour/cli-core"
+import { processStreams, type Streams } from "@wirecat/cli-core"
 import { Command } from "commander"
 import { askCommand } from "./answers/command.js"
 import { contextCommand } from "./context/command.js"

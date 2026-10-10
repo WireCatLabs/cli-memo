@@ -1,9 +1,9 @@
 import { mkdtempSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { captureStreams } from "@leemour/cli-core"
-import { formatLocator } from "@leemour/cli-messaging"
-import { openStore } from "@leemour/cli-messaging/store"
+import { captureStreams } from "@wirecat/cli-core"
+import { formatLocator } from "@wirecat/cli-messaging"
+import { openStore } from "@wirecat/cli-messaging/store"
 import { describe, expect, it } from "vitest"
 import { createProgram } from "../program.js"
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { exitCodeFor, GENERIC_FAILURE, isCliError } from "@leemour/cli-core"
-import { ensureSqlite } from "@leemour/cli-messaging/sqlite-runtime"
+import { exitCodeFor, GENERIC_FAILURE, isCliError } from "@wirecat/cli-core"
+import { ensureSqlite } from "@wirecat/cli-messaging/sqlite-runtime"
 
 await ensureSqlite()
 // A static import would load the store's SQLite before ensureSqlite could swap it.
