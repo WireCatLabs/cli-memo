@@ -27,11 +27,7 @@ Sparse, and only *why*. The global rule in `~/.claude/CLAUDE.md` applies.
 
 ## Committing
 
-Conventional commits, a branch off `main`, a pull request. Before committing:
-
-```sh
-pnpm lint && pnpm typecheck && pnpm test
-```
+Conventional commits, a branch off `main`, a pull request. The pre-commit hook checks staged lint and secrets; no other local checks are required by default.
 
 A change a caller can see gets a `CHANGELOG.md` entry under `## Unreleased`. Releasing is `bin/release`
 on `main`, once the first release is agreed.
@@ -40,3 +36,12 @@ on `main`, once the first release is agreed.
 
 They state the current facts only: a changed fact is rewritten with no mark, and git keeps the old
 text. `CHANGELOG.md` is the one place for history.
+
+## Development check budget
+
+Local commits check only staged lint and secrets. There is no pre-push check.
+Config integrity, repository lint, Markdown, and secret detection run in PR CI.
+The bounded `ci:quick` step adds typechecking for CLI packages or synthetic unit tests for the docs site.
+Full tests, coverage, builds, parity, browser and platform suites run for releases,
+explicit manual validation, and monthly nonpublishing validation. See the
+[shared policy](https://github.com/WireCatLabs/community/blob/main/standards/README.md#ci-and-hooks).
