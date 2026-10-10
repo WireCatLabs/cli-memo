@@ -6,6 +6,13 @@ export const positive = (value: string): number => {
   return number
 }
 
+export const oneOf =
+  <T extends string>(values: readonly T[]) =>
+  (value: string): T => {
+    if (!(values as readonly string[]).includes(value)) throw new InvalidArgumentError(`choose ${values.join(", ")}`)
+    return value as T
+  }
+
 export const accountOptions = (command: Command) =>
   command
     .option("--provider <provider>", "source provider")

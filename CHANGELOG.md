@@ -4,6 +4,16 @@ Notable changes to `@wirecat/cli-memo` (`@leemour/cli-memo` up to 0.4.0), one se
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Changed
+
+- **memo runs on `@wirecat/cli-messaging` 0.221.0.** The store prunes its growing logs on open, at most once a
+  day: agent tool calls older than 90 days are deleted, and a handled bot update older than 30 days loses its
+  payload. Upgrade tg-cli and max-cli first, as all three share the store.
+- **`organizations add --kind`, `projects add --type` and `--scope` take their allowed values from the store**
+  and refuse any other value before the store is opened, naming the allowed ones.
+
 ## 0.6.0 — 10.10.2026
 
 ### Changed — may break callers
