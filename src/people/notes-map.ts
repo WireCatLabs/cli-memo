@@ -49,7 +49,8 @@ export const importNotesMap = async (
         new Map((await folderNotes(store, place.folder.id)).map((note) => [note.path as string, note.id])),
       )
     const id = byFolder.get(place.folder.id)?.get(place.path)
-    if (id === undefined) continue
+    // An uid from the store before wirecat.db names nobody now: leave the entry waiting, never fail the run.
+    if (id === undefined || (await store.personByUid(uid)) === undefined) continue
     await store.notes.addLink({ from: `document:${id}`, to: `person:${uid}`, kind: "about", origin: "owner" })
     done.push(uid)
     linked++
