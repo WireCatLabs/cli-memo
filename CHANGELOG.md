@@ -4,7 +4,7 @@ Notable changes to `@wirecat/cli-memo` (`@leemour/cli-memo` up to 0.4.0), one se
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
-## Unreleased
+## 0.7.0 — 11.10.2026
 
 ### Changed
 
