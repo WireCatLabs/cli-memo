@@ -1,6 +1,6 @@
 import { resolve } from "node:path"
-import { CliError } from "@leemour/cli-core"
-import type { MessageStore, Note } from "@leemour/cli-messaging/store"
+import { CliError } from "@wirecat/cli-core"
+import type { MessageStore, Note } from "@wirecat/cli-messaging/store"
 import type { Config } from "../config.js"
 import { type DialectName, dialectOf } from "./dialects/index.js"
 import { type ExportedNote, type ExportResult, exportNotes } from "./export.js"

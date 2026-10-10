@@ -1,5 +1,5 @@
-import { CliError, createRenderer, type Streams } from "@leemour/cli-core"
-import { openStore } from "@leemour/cli-messaging/store"
+import { CliError, createRenderer, type Streams } from "@wirecat/cli-core"
+import { openStore } from "@wirecat/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { loadConfig } from "../config.js"
 import { positive } from "../options.js"

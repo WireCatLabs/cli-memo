@@ -1,7 +1,7 @@
 # cli-memo — working rules
 
 `memo` joins what the owner knows about a person across tg, MAX, notes and mail. Messages live in the
-shared store of [`@leemour/cli-messaging`](https://github.com/WireCatLabs/cli-messaging); this repository
+shared store of [`@wirecat/cli-messaging`](https://github.com/WireCatLabs/cli-messaging); this repository
 reads notes, imports mail into that store, and answers.
 
 ## The constraints that shape everything
@@ -13,7 +13,7 @@ reads notes, imports mail into that store, and answers.
    `MESSAGING_STORE`, `HOME`, the XDG folders and `HIMALAYA_CONFIG` into a temp folder for every test
    file; do not weaken it.
 3. **Read only.** Mail is never sent, flagged or moved; notes are never changed.
-4. **`@leemour/cli-messaging` is pinned to the exact version tg and max pin.** Opening the store runs
+4. **`@wirecat/cli-messaging` is pinned to the exact version tg and max pin.** Opening the store runs
    its migrations, so a newer version here would move the owner's file ahead of the messengers.
 5. **Shared chunking and embedding live in `cli-messaging` and are changed there**, through its own
    worktree, pull request and release rules. Mail transport and Google sign-in stay out of it; only

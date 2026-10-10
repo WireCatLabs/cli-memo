@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, readFileSync, renameSync, utimesSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import type { LoadEngine } from "@leemour/cli-messaging/documents"
-import { openStore } from "@leemour/cli-messaging/store"
+import type { LoadEngine } from "@wirecat/cli-messaging/documents"
+import { openStore } from "@wirecat/cli-messaging/store"
 import { describe, expect, it } from "vitest"
 import { folderNotes, importNotes } from "./import.js"
 
@@ -21,7 +21,7 @@ describe("document ingestion", () => {
       if (name === "mammoth")
         throw Object.assign(new Error("Cannot find package 'mammoth'"), { code: "ERR_MODULE_NOT_FOUND" })
       return {
-        getDocumentProxy: async () => ({ loadingTask: { destroy: async () => {} } }),
+        getDocumentProxy: async () => ({ numPages: 1, loadingTask: { destroy: async () => {} } }),
         extractText: async () => ({ text: "" }),
       }
     }

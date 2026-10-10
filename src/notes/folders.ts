@@ -1,5 +1,5 @@
 import { resolve } from "node:path"
-import { CliError } from "@leemour/cli-core"
+import { CliError } from "@wirecat/cli-core"
 import type { Config } from "../config.js"
 import type { DialectName } from "./dialects/index.js"
 

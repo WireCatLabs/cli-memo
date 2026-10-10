@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node
 import { homedir } from "node:os"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
-import { CliError, createRenderer, type Streams } from "@leemour/cli-core"
+import { CliError, createRenderer, type Streams } from "@wirecat/cli-core"
 import { type Command, InvalidArgumentError } from "commander"
 import { type Config, loadConfig, updateConfig } from "../config.js"
 

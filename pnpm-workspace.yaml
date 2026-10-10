@@ -4,4 +4,4 @@ allowBuilds:
   lefthook: true
 # Our own packages are used the day they are published.
 minimumReleaseAgeExclude:
-  - "@leemour/*"
+  - "@wirecat/*"

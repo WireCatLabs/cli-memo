@@ -1,5 +1,5 @@
-import { CliError, createRenderer, type Streams } from "@leemour/cli-core"
-import { parseLocator } from "@leemour/cli-messaging"
+import { CliError, createRenderer, type Streams } from "@wirecat/cli-core"
+import { parseLocator } from "@wirecat/cli-messaging"
 import {
   parseLucene,
   type QueryNode,
@@ -8,9 +8,9 @@ import {
   searchNotes,
   searchNotesQuery,
   searchStore,
-} from "@leemour/cli-messaging/services"
-import type { AccountKey, MessageStore, Note } from "@leemour/cli-messaging/store"
-import { openStore } from "@leemour/cli-messaging/store"
+} from "@wirecat/cli-messaging/services"
+import type { AccountKey, MessageStore, Note } from "@wirecat/cli-messaging/store"
+import { openStore } from "@wirecat/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { APP } from "../app.js"
 import { boundFolders } from "../notes/bound.js"

@@ -1,5 +1,5 @@
-import { formatReference } from "@leemour/cli-messaging"
-import type { Link, MessageStore, Note } from "@leemour/cli-messaging/store"
+import { formatReference } from "@wirecat/cli-messaging"
+import type { Link, MessageStore, Note } from "@wirecat/cli-messaging/store"
 import type { Subject } from "../people/subject.js"
 
 export interface NoteRef {

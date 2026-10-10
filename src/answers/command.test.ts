@@ -1,4 +1,4 @@
-import type { ModelAdapter } from "@leemour/cli-messaging/models"
+import type { ModelAdapter } from "@wirecat/cli-messaging/models"
 import { describe, expect, it } from "vitest"
 import type { EvidenceItem } from "../search/command.js"
 import { answerEvidence } from "./command.js"

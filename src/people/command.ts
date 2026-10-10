@@ -1,6 +1,6 @@
 import { join } from "node:path"
-import { CliError, type Streams } from "@leemour/cli-core"
-import { openStore } from "@leemour/cli-messaging/store"
+import { CliError, type Streams } from "@wirecat/cli-core"
+import { openStore } from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"
 import { boundFolders, folderOfFile } from "../notes/bound.js"
 import { folderNotes } from "../notes/import.js"

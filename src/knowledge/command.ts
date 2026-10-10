@@ -1,10 +1,10 @@
-import { CliError, createRenderer, type Streams } from "@leemour/cli-core"
+import { CliError, createRenderer, type Streams } from "@wirecat/cli-core"
 import {
   type KnowledgeEntity,
   type KnowledgeRelation,
   type MessageStore,
   openStore,
-} from "@leemour/cli-messaging/store"
+} from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"
 import { notesAbout } from "../notes/about.js"
 import { accountOptions, positive } from "../options.js"

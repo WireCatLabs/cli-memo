@@ -1,11 +1,11 @@
-import { CliError } from "@leemour/cli-core"
+import { CliError } from "@wirecat/cli-core"
 import {
   conversationsService,
   embeddingsService,
   embedNotes as embedNoteChunksOf,
   storeOnlyDeps,
-} from "@leemour/cli-messaging/services"
-import type { AccountKey, MessageStore } from "@leemour/cli-messaging/store"
+} from "@wirecat/cli-messaging/services"
+import type { AccountKey, MessageStore } from "@wirecat/cli-messaging/store"
 import { APP } from "../app.js"
 
 /** About three chunks a second with e5-small on this laptop (2026-10-06): a run stays near three minutes, under a five-minute timer, and the next resumes. */

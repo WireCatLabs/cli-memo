@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { captureStreams } from "@leemour/cli-core"
+import { captureStreams } from "@wirecat/cli-core"
 import { beforeEach, describe, expect, it } from "vitest"
 import { configPath, loadConfig } from "../config.js"
 import { createProgram } from "../program.js"

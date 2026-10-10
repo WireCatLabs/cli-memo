@@ -1,5 +1,5 @@
-import { formatReference } from "@leemour/cli-messaging"
-import type { MessageStore, PersonRecord } from "@leemour/cli-messaging/store"
+import { formatReference } from "@wirecat/cli-messaging"
+import type { MessageStore, PersonRecord } from "@wirecat/cli-messaging/store"
 import { identityOf } from "./identity.js"
 
 const TYPED = /^(person|entity|note|task|msg|chat|contact|folder):\S+$/

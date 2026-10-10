@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs"
-import { CliError, createRenderer, type Streams } from "@leemour/cli-core"
-import { type MessageStore, type Note, openStore } from "@leemour/cli-messaging/store"
+import { CliError, createRenderer, type Streams } from "@wirecat/cli-core"
+import { type MessageStore, type Note, openStore } from "@wirecat/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { loadConfig } from "../config.js"
 import { positive } from "../options.js"

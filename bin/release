@@ -10,7 +10,7 @@
 set -eu
 
 cd "$(dirname "$0")/.."
-package=@leemour/cli-memo
+package=@wirecat/cli-memo
 
 mode=ci
 case "${1:-}" in
