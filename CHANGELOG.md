@@ -4,6 +4,12 @@ Notable changes to `@wirecat/cli-memo` (`@leemour/cli-memo` up to 0.4.0), one se
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Security
+
+- Fast secret checks remain on PRs; source, production dependency and workflow security checks run before publication. Automatic Socket checks are disabled.
+
 ## 0.5.1 — 10.10.2026
 
 ### Changed
@@ -54,7 +60,6 @@ the API.
   notes. Lists resolve the current note preview; deleted notes leave tasks intact. Confirmed note-about-person
   links and explicit assignments contribute to person context. Unified search includes tasks whose note matches.
   Repeated creation reuses the existing task of the same kind, including closed tasks.
-
 
 ## 0.2.1 — 08.10.2026
 
