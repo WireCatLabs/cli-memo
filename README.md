@@ -312,4 +312,4 @@ pnpm lint && pnpm typecheck && pnpm test
 
 ## License
 
-MIT
+[Apache License 2.0](LICENSE).

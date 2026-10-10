@@ -1,8 +1,8 @@
 {
   "name": "@wirecat/cli-memo",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Context about people across messengers, notes and mail, from a local store",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "author": "Viacheslav Ptsarev",
   "repository": {
     "type": "git",

@@ -4,6 +4,12 @@ Notable changes to `@wirecat/cli-memo` (`@leemour/cli-memo` up to 0.4.0), one se
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## 0.5.1 — 10.10.2026
+
+### Changed
+
+- **The project is now licensed under Apache License 2.0.** See `LICENSE` for the terms.
+
 ## 0.5.0 — 10.10.2026
 
 ### Changed — may break callers
