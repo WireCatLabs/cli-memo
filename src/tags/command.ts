@@ -6,8 +6,9 @@ import { positive } from "../options.js"
 import { selectTarget, type TargetInput } from "../store/scope.js"
 import { type SourceScope, type SourceTarget, type SourceTargetInput, sourceTarget } from "../store/source-target.js"
 
-type SourceTagType = "chat" | "message" | "contact" | "note" | "person" | "task" | "entity" | "folder"
-const OWNED = ["note", "person", "task", "entity", "folder"] as const
+const OWNED = ["note", "document", "person", "organization", "project", "task", "folder"] as const
+const TYPES = ["chat", "message", "contact", ...OWNED] as const
+type SourceTagType = (typeof TYPES)[number]
 type SourceTag = StoredTag & { provider: string; account: string }
 interface ListOptions extends SourceScope {
   tag?: string
@@ -17,8 +18,7 @@ interface ListOptions extends SourceScope {
 }
 
 const typeOf = (value: string): SourceTagType => {
-  if (!["chat", "message", "contact", "note", "person", "task", "entity", "folder"].includes(value))
-    throw new InvalidArgumentError("choose chat, message, contact, note, person, task, entity or folder")
+  if (!(TYPES as readonly string[]).includes(value)) throw new InvalidArgumentError(`choose ${TYPES.join(", ")}`)
   return value as SourceTagType
 }
 
@@ -29,14 +29,15 @@ const targetOptions = (command: Command) =>
   command
     .argument("<tag...>", "one or more tags: 1–32 letters a–z, digits or hyphens; case is ignored")
     .option("--message <locator>", "a stored email or message's full msg: locator")
-    .option("--note <id>", "a note: note:<id> or its id")
+    .option("--note <reference>", "a note: note:<id>, a file in a notes folder: document:<id>; a bare id is a note")
     .option("--chat <id>", "a stored mail thread or chat's exact id; requires --provider and --account")
     .option("--provider <provider>", "the chat's provider, such as email")
     .option("--account <account>", "the chat's account, such as a mailbox address")
     .option("--task <id>", "label a task")
     .option("--contact <id>", "label a contact identity, with provider/account")
     .option("--person <uid>", "label a unified person")
-    .option("--entity <id>", "label an organization, family or project")
+    .option("--organization <id>", "label an organization")
+    .option("--project <id>", "label a project")
     .option("--folder <id>", "label a notes folder, or with --path one subfolder: every note under it")
     .option("--path <subfolder>", "the subfolder inside --folder")
     .option("--json", "print JSON")
@@ -93,16 +94,20 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
   ) => {
     const target =
       options.note !== undefined
-        ? { type: "note" as const, id: options.note.replace(/^note:/, "") }
+        ? options.note.startsWith("document:")
+          ? { type: "document" as const, id: options.note.slice("document:".length) }
+          : { type: "note" as const, id: options.note.replace(/^note:/, "") }
         : options.person !== undefined
           ? { type: "person" as const, id: options.person.replace(/^person:/, "") }
-          : options.entity !== undefined
-            ? { type: "entity" as const, id: options.entity.replace(/^entity:/, "") }
-            : options.task !== undefined
-              ? { type: "task" as const, id: options.task.replace(/^task:/, "") }
-              : options.folder !== undefined
-                ? { type: "folder" as const, id: options.folder, path: options.path ?? null }
-                : undefined
+          : options.organization !== undefined
+            ? { type: "organization" as const, id: options.organization.replace(/^organization:/, "") }
+            : options.project !== undefined
+              ? { type: "project" as const, id: options.project.replace(/^project:/, "") }
+              : options.task !== undefined
+                ? { type: "task" as const, id: options.task.replace(/^task:/, "") }
+                : options.folder !== undefined
+                  ? { type: "folder" as const, id: options.folder, path: options.path ?? null }
+                  : undefined
     if (options.path !== undefined && options.folder === undefined)
       throw new CliError("validation_error", "--path names a subfolder of --folder")
     if (target !== undefined) {
@@ -186,7 +191,7 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .option("--provider <provider>", "only this provider")
     .option("--account <account>", "only this account; requires --provider")
     .option("--tag <tag>", "only this tag", normalizeTag)
-    .option("--type <type>", "chat, message, contact, note, person, task, entity or folder", typeOf)
+    .option("--type <type>", TYPES.join(", "), typeOf)
     .option("--limit <n>", "most labels to show", positive, 100)
     .option("--json", "print JSON")
     .action(async (options: ListOptions) => {

@@ -51,7 +51,7 @@ describe("folder config", () => {
 describe("memo folders", () => {
   it("adds a folder to the store and the config, and attaches it on another computer", async () => {
     const id = await run("folders", "add", join(root, "vault"))
-    expect(id).toMatch(/^fld_[0-9A-Z]{26}$/)
+    expect(id).toMatch(/^\d+$/)
     expect(await run("folders", "add", join(root, "vault"))).toBe(id)
 
     env = { ...env, MEMO_CONFIG_DIR: join(root, "laptop") }

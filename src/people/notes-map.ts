@@ -50,7 +50,7 @@ export const importNotesMap = async (
       )
     const id = byFolder.get(place.folder.id)?.get(place.path)
     if (id === undefined) continue
-    await store.notes.addLink({ from: `note:${id}`, to: `person:${uid}`, kind: "about", origin: "owner" })
+    await store.notes.addLink({ from: `document:${id}`, to: `person:${uid}`, kind: "about", origin: "owner" })
     done.push(uid)
     linked++
   }

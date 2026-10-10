@@ -4,6 +4,7 @@ import { closedStateOf, storeOnlyDeps, taskStateOf, tasksService, taskTypeOf } f
 import { openStore } from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"
 import { APP } from "../app.js"
+import { isNoteReference } from "../notes/about.js"
 import { accountOptions, positive } from "../options.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 import { taskPage } from "./context.js"
@@ -15,12 +16,12 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       ? createRenderer({ format: "json", color: false, streams }).result(answer)
       : streams.data(`${JSON.stringify(answer, null, 2)}\n`)
   accountOptions(group.command("add"))
-    .argument("<source>", "msg: source locator or note:<id>")
+    .argument("<source>", "msg: source locator, note:<id> or document:<id>")
     .option("--type <type>", "question, request, mention or promise", taskTypeOf, "request")
     .action(async (source: string, options: AccountScope & { type: ReturnType<typeof taskTypeOf>; json?: boolean }) => {
       const store = await openStore({ env })
       try {
-        const native = source.trim().startsWith("note:")
+        const native = isNoteReference(source.trim())
         const parsed = native ? undefined : parseLocator(source)
         if (
           parsed &&

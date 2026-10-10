@@ -3,8 +3,9 @@ import { parse, stringify } from "yaml"
 import type { NoteForExport, NoteLink, ParsedNote } from "./types.js"
 
 const FRONT_MATTER = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/
-const REFERENCE = /^(msg|note|person|entity|task|chat|contact):\S+$/
-const BARE_REFERENCE = /(?<![\w/:])((?:msg|note|person|entity|task|chat|contact):[^\s<>()[\]"'`]+)/g
+const REFERENCE = /^(msg|note|document|person|organization|project|task|chat|contact):\S+$/
+const BARE_REFERENCE =
+  /(?<![\w/:])((?:msg|note|document|person|organization|project|task|chat|contact):[^\s<>()[\]"'`]+)/g
 const MAX_LINKS = 200
 
 export const isReference = (target: string): boolean => REFERENCE.test(target)

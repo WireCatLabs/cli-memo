@@ -2,6 +2,9 @@ import { formatReference } from "@wirecat/cli-messaging"
 import type { Link, MessageStore, Note } from "@wirecat/cli-messaging/store"
 import type { Subject } from "../people/subject.js"
 
+/** A file in a notes folder is a `document:`, a written note a `note:`. */
+export const isNoteReference = (reference: string): boolean => /^(note|document):/.test(reference)
+
 export interface NoteRef {
   ref: string
   source: Note["source"]
@@ -27,10 +30,12 @@ export interface NotesAbout {
   hasMore: boolean
 }
 
+type Found = { note: Note; anchor: string | null; text: string | null }
+
 const fold = (value: string) => value.normalize("NFC").toLocaleLowerCase("en").trim().replace(/^@/, "")
 
 const refOf = (note: Note, anchor: string | null = null): NoteRef => ({
-  ref: `note:${note.id}`,
+  ref: note.ref,
   source: note.source,
   folderId: note.folderId,
   path: note.path,
@@ -48,19 +53,22 @@ export const notesAbout = async (store: MessageStore, subject: Subject, limit = 
     ) ?? []),
   ]
   const live = async (links: Link[]) => {
-    const found: { note: Note; link: Link }[] = []
+    const found: Found[] = []
     for (const link of links) {
-      if (!link.from.startsWith("note:")) continue
-      const note = await store.notes.note(link.from.slice("note:".length)).catch(() => undefined)
-      if (note && note.deletedAt === null) found.push({ note, link })
+      if (!isNoteReference(link.from)) continue
+      const note = await store.notes.resolveNote(link.from)
+      if (note && note.deletedAt === null) found.push({ note, anchor: link.anchor, text: link.targetText })
     }
     return found
   }
-  const pointing = await live((await Promise.all(refs.map((to) => store.notes.links({ to })))).flat())
-  const about = pointing.filter(({ link }) => link.kind === "about")
-  const linking = pointing.filter(({ link }) => link.kind === "links-to")
+  // A written note's first subject is the note's own, not a link, so only `notes({ about })` sees all of them.
+  const pages = await Promise.all(refs.map((ref) => store.notes.notes({ about: ref, limit: 500 })))
+  const about: Found[] = pages.flatMap(({ items }) => items.map((note) => ({ note, anchor: null, text: null })))
+  const linking = await live(
+    (await Promise.all(refs.map((to) => store.notes.links({ to })))).flat().filter((link) => link.kind === "links-to"),
+  )
   const through = await live(
-    (await Promise.all(about.map(({ note }) => store.notes.links({ to: `note:${note.id}` }))))
+    (await Promise.all(about.map(({ note }) => store.notes.links({ to: note.ref }))))
       .flat()
       .filter((link) => link.kind === "links-to"),
   )
@@ -75,8 +83,8 @@ export const notesAbout = async (store: MessageStore, subject: Subject, limit = 
       : await live(
           (await store.notes.links({ unresolved: true })).filter((link) => names.has(fold(link.targetText ?? ""))),
         )
-  const unique = <T extends { note: Note; link: Link }>(items: T[]) =>
-    [...new Map(items.map((item) => [`${item.note.id}#${item.link.anchor ?? ""}`, item])).values()].sort((a, b) =>
+  const unique = (items: Found[]) =>
+    [...new Map(items.map((item) => [`${item.note.ref}#${item.anchor ?? ""}`, item])).values()].sort((a, b) =>
       b.note.updatedAt.localeCompare(a.note.updatedAt),
     )
   const lists = [about, linking, through, waiting].map(unique)
@@ -84,12 +92,10 @@ export const notesAbout = async (store: MessageStore, subject: Subject, limit = 
     subject: subject.ref,
     name: subject.person?.name ?? null,
     about: (lists[0] ?? []).slice(0, limit).map(({ note }) => refOf(note)),
-    linking: (lists[1] ?? []).slice(0, limit).map(({ note, link }) => refOf(note, link.anchor)),
-    throughNotes: (lists[2] ?? []).slice(0, limit).map(({ note, link }) => refOf(note, link.anchor)),
-    waiting: (lists[3] ?? [])
-      .slice(0, limit)
-      .map(({ note, link }) => ({ ...refOf(note), text: link.targetText ?? "" })),
-    hasMore: lists.some((list) => list.length > limit),
+    linking: (lists[1] ?? []).slice(0, limit).map(({ note, anchor }) => refOf(note, anchor)),
+    throughNotes: (lists[2] ?? []).slice(0, limit).map(({ note, anchor }) => refOf(note, anchor)),
+    waiting: (lists[3] ?? []).slice(0, limit).map(({ note, text }) => ({ ...refOf(note), text: text ?? "" })),
+    hasMore: pages.some((page) => page.hasMore) || lists.some((list) => list.length > limit),
   }
 }
 

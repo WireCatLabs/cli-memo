@@ -57,6 +57,6 @@ export const fileLinks = (
     if (isReference(target)) return { to: target, kind: "links-to", ...at }
     const named = notesNamed(source, target, documents)
     return named.length === 1
-      ? { to: `note:${(named[0] as FolderDocument).id}`, kind: "links-to", ...at }
+      ? { to: `document:${(named[0] as FolderDocument).id}`, kind: "links-to", ...at }
       : { targetText: posix.basename(target.replace(/\\/g, "/")) || target, kind: "links-to", ...at }
   })

@@ -37,7 +37,7 @@ describe("document ingestion", () => {
         { path: "scan.pdf", status: "needs-agent" },
       ])
       const [budget] = await folderNotes(store, folder.id)
-      const mine = await store.notes.addNote({ text: "My assessment", about: [`note:${budget?.id}`] })
+      const mine = await store.notes.addNote({ text: "My assessment", about: [budget?.ref as string] })
       const stamp = new Date("2026-10-08T00:00:00Z")
       utimesSync(csv, stamp, stamp)
       await importNotes(store, folder, { loadEngine: load, env })
@@ -45,13 +45,15 @@ describe("document ingestion", () => {
       const later = new Date("2026-10-08T00:00:01Z")
       utimesSync(csv, later, later)
       expect((await importNotes(store, folder, { loadEngine: load, env })).changed).toBe(1)
-      expect((await store.notes.note(budget?.id as string)).text).toContain("Bravo,200")
+      expect((await store.notes.note(budget?.ref as string)).text).toContain("Bravo,200")
 
       renameSync(csv, join(vault, "renamed.csv"))
       const moved = await importNotes(store, folder, { loadEngine: load, env })
       expect(moved).toMatchObject({ renamed: 1, deleted: 0 })
-      expect(await store.notes.note(budget?.id as string)).toMatchObject({ path: "renamed.csv", deletedAt: null })
-      expect((await store.notes.links({ from: `note:${mine.id}` }))[0]?.to).toBe(`note:${budget?.id}`)
+      expect(await store.notes.note(budget?.ref as string)).toMatchObject({ path: "renamed.csv", deletedAt: null })
+      expect((await store.notes.notes({ about: budget?.ref as string })).items.map(({ ref }) => ref)).toContain(
+        mine.ref,
+      )
       expect(readFileSync(join(vault, "renamed.csv"), "utf8")).toBe("name,value\nBravo,200\n")
     } finally {
       await store.close()

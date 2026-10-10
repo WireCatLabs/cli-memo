@@ -48,13 +48,13 @@ export const exportInternal = async (
 ): Promise<ExportResult> => {
   const exported: ExportedNote[] = []
   for (const note of notes) {
-    const about = (await store.notes.links({ from: `note:${note.id}` })).filter((link) => link.to !== null)
+    const about = (await store.notes.links({ from: note.ref })).filter((link) => link.to !== null)
     exported.push({
       id: note.id,
       title: titleOf(note),
       text: note.text,
       aliases: [],
-      tags: (await store.notes.noteTags(note.id)).map(({ tag }) => tag),
+      tags: (await store.notes.noteTags(note.ref)).map(({ tag }) => tag),
       links: about.map((link) => ({ target: link.to as string, anchor: link.anchor, label: null })),
       frontMatter: {},
     })
