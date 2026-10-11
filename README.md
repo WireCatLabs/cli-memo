@@ -114,6 +114,29 @@ shared-domain proposals for direct email contacts. Proposals retain rule provena
 unconfirmed; they do not enter confirmed person context. `relationships confirm <id>` records your
 explicit acceptance. Common free-mail domains are excluded from this heuristic.
 
+## Memories, proposed actions and the agent log
+
+```sh
+memo memories add 'Bob Sample prefers Friday meetings' --kind preference --scope work --evidence note:NOTE_ID
+memo memories list --status proposed
+memo memories confirm memory:MEMORY_ID
+memo actions propose reply --reason 'asked twice' --provider telegram --payload '{"text":"Friday works"}'
+memo actions approve ACTION_ID
+memo agents log --agent memo-mcp --limit 20
+```
+
+A memory is a summary, digest, fact or preference with its evidence (any stored reference) and a scope,
+`personal` or `work`. One you write is confirmed at once; an agent's waits as `proposed` until you
+`confirm` it, and `stale` marks one whose evidence no longer holds. `memories search` finds the words in
+them.
+
+A proposed action is what an agent wants done in one account: a reply, a ban, an invitation. Nothing is ever
+sent. `actions approve` makes it a task in that account's inbox, so it shows in `memo tasks list`, and the
+proposal remembers the task; `actions reject` closes it. `actions list --status` filters them.
+
+`memo agents log` lists what agents did through the MCP servers that share the store, newest first: the
+agent, the tool, its tier, the outcome and the times, never the arguments.
+
 ## Local task reminders
 
 ```sh
