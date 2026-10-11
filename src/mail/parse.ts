@@ -27,7 +27,8 @@ interface Parsed {
   attachments?: number[]
 }
 
-const MAX_TEXT = 20_000
+// The store cuts a body into pieces itself; this only guards against a pathological one, like a pasted log.
+const MAX_TEXT = 1_000_000
 
 const addresses = (value: unknown): Address[] => {
   const address = (value as { Address?: unknown })?.Address as

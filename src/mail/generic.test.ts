@@ -52,6 +52,14 @@ describe("generic IMAP identities", () => {
       await store.close()
     }
   })
+  it("reads IMAP flags: seen and flagged, and a flagged message is Starred", async () => {
+    const flagged: Himalaya = async (_args, input = "") =>
+      input.includes("UID SEARCH")
+        ? "* OK [UIDVALIDITY 3] ready\r\na OK selected\r\n* SEARCH 7\r\nb OK searched\r\n"
+        : 'a OK selected\r\n* 1 FETCH (UID 7 FLAGS (\\Seen \\Flagged) INTERNALDATE "08-Oct-2026 09:00:00 +0000" BODY[HEADER.FIELDS (MESSAGE-ID REFERENCES IN-REPLY-TO)] {40}\r\nMessage-ID: <synthetic@example.test>\r\n\r\n)\r\nf OK fetched\r\n'
+    const [item] = await listImapMail(flagged, "synthetic", new Date("2026-10-01T00:00:00Z"), "INBOX")
+    expect(item).toMatchObject({ seen: true, flagged: true, labels: ["Starred"] })
+  })
   it("keeps Message-ID and reference-thread identities through folder moves and UIDVALIDITY resets", async () => {
     const since = new Date("2026-10-01T00:00:00Z")
     const [first] = await listImapMail(runner("12", "INBOX"), "synthetic", since, "INBOX")

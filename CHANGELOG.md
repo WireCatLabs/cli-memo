@@ -13,6 +13,16 @@ the API.
   `meeting:<account id>/<meeting id>` subject beside any `--about`. A meeting the account does not hold is
   `not_found`.
 
+### Changed — may break scripts
+
+- **memo runs on `@wirecat/cli-messaging` 0.235.0.**
+- **Read and starred stay current.** `memo mail import` updates read and starred on mail it stored earlier, as
+  the mailbox shows them now, without reading the mail again.
+- **Generic IMAP accounts get flags.** Their messages record read and flagged, and a flagged one carries the
+  `Starred` label, as a starred Gmail message does, so `search mail mailbox:starred` finds both.
+- **Long emails are kept whole.** A body was cut at 20,000 characters; it is now kept up to 1,000,000, and the
+  store cuts it into pieces for search.
+
 ## 0.11.0 — 11.10.2026
 
 ### Changed — may break scripts
