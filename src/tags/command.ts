@@ -7,7 +7,7 @@ import { heldMessage } from "../store/held.js"
 import { selectTarget, type TargetInput } from "../store/scope.js"
 import { type SourceScope, type SourceTarget, type SourceTargetInput, sourceTarget } from "../store/source-target.js"
 
-const OWNED = ["note", "document", "person", "organization", "project", "task", "folder"] as const
+const OWNED = ["note", "document", "person", "organization", "project", "task", "meeting", "folder"] as const
 const TYPES = ["chat", "message", "contact", ...OWNED] as const
 type SourceTagType = (typeof TYPES)[number]
 type SourceTag = StoredTag & { provider: string; account: string }
@@ -39,6 +39,7 @@ const targetOptions = (command: Command) =>
     .option("--person <uid>", "label a unified person")
     .option("--organization <id>", "label an organization")
     .option("--project <id>", "label a project")
+    .option("--meeting <id>", "label a meeting by its store id, with --provider and --account")
     .option("--folder <id>", "label a notes folder, or with --path one subfolder: every note under it")
     .option("--path <subfolder>", "the subfolder inside --folder")
     .option("--json", "print JSON")
@@ -129,7 +130,7 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       }
       return
     }
-    if (options.contact !== undefined) {
+    if (options.contact !== undefined || options.meeting !== undefined) {
       const store = await openStore({ env })
       try {
         const { key, target } = await selectTarget(store, options)

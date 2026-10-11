@@ -300,7 +300,9 @@ tg search mail 'tag:follow-up'
 A note is labelled by its reference (`--note note:<id>`, or `document:<id>` for a file in a notes
 folder), an email or messenger message by its full `msg:` locator, a mail thread or chat by its exact id
 and account. A person, organization, project or task is labelled by `--person`, `--organization`,
-`--project` or `--task`, with no account; a contact names its account. `--folder` with an id from
+`--project` or `--task`, with no account; a contact names its account, and so does a meeting:
+`--meeting <id> --provider <provider> --account <account>`, the meeting's id in the store. A note about a
+meeting names it as `meeting:<account id>/<meeting id>` in `memo notes add --about`. `--folder` with an id from
 `memo folders list`, and `--path` for one subfolder, labels every note under it at any depth. Tags use 1–32 letters a–z, digits or hyphens; case is ignored.
 Adding an existing tag or removing an absent one leaves it unchanged.
 

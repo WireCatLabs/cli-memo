@@ -182,7 +182,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .option("--title <title>", "a title")
     .option(
       "--about <subject...>",
-      "what it is about: <messenger>:<name or id>, msg:, chat:, person:, organization:, project:, task:, note:, document:",
+      "what it is about: <messenger>:<name or id>, msg:, chat:, person:, organization:, project:, task:, note:, document:, meeting:",
     )
     .option("--export [dir]", "also write it as a file — to this folder, or notes.export.dir")
     .option("--format <format>", `the file's format: ${DIALECTS.join(", ")}`, formatOf)

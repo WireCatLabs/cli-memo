@@ -14,6 +14,7 @@ export interface TargetInput extends AccountScope {
   task?: string
   organization?: string
   project?: string
+  meeting?: string
 }
 
 export const selectAccount = async (store: MessageStore, scope: AccountScope): Promise<AccountKey> => {
@@ -36,12 +37,12 @@ export const selectTarget = async (
   store: MessageStore,
   input: TargetInput,
 ): Promise<{ key: AccountKey; target: KnowledgeTarget }> => {
-  const choices = ["message", "chat", "contact", "person", "task", "organization", "project"] as const
+  const choices = ["message", "chat", "contact", "person", "task", "organization", "project", "meeting"] as const
   const selected = choices.filter((name) => input[name] !== undefined)
   if (selected.length !== 1)
     throw new CliError(
       "validation_error",
-      "select exactly one of --message, --chat, --contact, --person, --task, --organization or --project",
+      "select exactly one of --message, --chat, --contact, --person, --task, --organization, --project or --meeting",
     )
   const type = selected[0] as (typeof choices)[number]
   if (type === "message") {

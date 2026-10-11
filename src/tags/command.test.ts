@@ -183,6 +183,52 @@ describe("memo source tags", () => {
     ).rejects.toMatchObject({ code: "not_found" })
   })
 
+  it("labels a meeting of the selected account and writes a note about it", async () => {
+    const zoom = { provider: "example", account: "alice-example" }
+    const store = await openStore({ env })
+    let meetingId: number
+    let accountId: number
+    try {
+      accountId = await store.saveAccount(zoom, { name: "Alice Example" })
+      const saved = await store.meetings.saveMeeting({
+        now: 3000,
+        meeting: {
+          accountId,
+          externalId: "example-occurrence",
+          title: "Example planning",
+          description: null,
+          location: null,
+          joinUrl: null,
+          startedAt: 1000,
+          endedAt: 2000,
+          durationMs: 1000,
+          timezone: "UTC",
+          hostIdentityId: null,
+          participantsCount: 0,
+          metadata: null,
+          deletedAt: null,
+        },
+        participants: [],
+        transcripts: [],
+        chat: [],
+      })
+      meetingId = saved.meeting.id
+    } finally {
+      await store.close()
+    }
+    const scope = ["--provider", zoom.provider, "--account", zoom.account]
+
+    const added = await json("tags", "add", "planning", "--meeting", String(meetingId), ...scope)
+    expect(added).toMatchObject({ target: { type: "meeting", id: String(meetingId) }, added: ["planning"] })
+    expect((await json("tags", "list", "--type", "meeting")).knowledge).toMatchObject([
+      { target: { type: "meeting", id: String(meetingId) }, tags: ["planning"] },
+    ])
+    const note = await json("notes", "add", "Follow up with Bob Sample", "--about", `meeting:${accountId}/${meetingId}`)
+    expect(note.note.ref).toMatch(/^note:/)
+    const about = await json("notes", "list", "--about", `meeting:${accountId}/${meetingId}`)
+    expect(JSON.stringify(about)).toContain(note.note.ref)
+  })
+
   it("bounds tag listing and prints readable source references", async () => {
     const text = await run("tags", "add", "first", "second", "--message", mailLocator())
     expect(text).toContain(mailLocator())
