@@ -211,7 +211,7 @@ const searchFolderIds = async (store: MessageStore, env: NodeJS.ProcessEnv, sele
   return [...new Set([...selected.filter((value) => known.has(value)), ...bound.map(({ id }) => id)])]
 }
 
-type Level = "brief" | "full"
+export type Level = "brief" | "full"
 
 const levelOf = ({ brief, full }: { brief?: boolean; full?: boolean }): Level | undefined => {
   if (brief && full) throw new CliError("validation_error", "--brief and --full ask for opposite things — pick one")
@@ -224,7 +224,7 @@ const line = (text: string) => text.replace(/\s+/g, " ").trim()
  * A found message or email for a reader: its reference first, then when and from whom, who else it went to and
  * where it is filed, its subject or chat, and an excerpt — the whole text only with --full.
  */
-const found = (item: SearchFound["items"][number], level: Level | undefined): string => {
+export const found = (item: SearchFound["items"][number], level: Level | undefined): string => {
   const mail = item.email
   const names = (people: { name: string | null; address: string }[]) =>
     people.map(({ name, address }) => line(name ?? address)).join(", ")

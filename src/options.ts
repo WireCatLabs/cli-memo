@@ -6,6 +6,13 @@ export const positive = (value: string): number => {
   return number
 }
 
+export const whole = (value: string): number => {
+  const number = Number(value)
+  if (!Number.isInteger(number) || number < 0 || number > 100)
+    throw new InvalidArgumentError("a whole number, 0 to 100")
+  return number
+}
+
 export const oneOf =
   <T extends string>(values: readonly T[]) =>
   (value: string): T => {

@@ -1,9 +1,12 @@
 import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
+import { parseLocator, resolveOutput } from "@wirecat/cli-messaging"
+import { readMail } from "@wirecat/cli-messaging/services"
 import { openStore } from "@wirecat/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { type Config, loadConfig } from "../config.js"
-import { positive } from "../options.js"
+import { positive, whole } from "../options.js"
 import { withImportLock } from "../run/lock.js"
+import { found } from "../search/command.js"
 import { himalaya } from "./himalaya.js"
 import { type ImportResult, importMail } from "./import.js"
 
@@ -42,35 +45,69 @@ const chooseAccount = (
 }
 
 export const mailCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
+  /** One stored email of the named account, whole, with the emails of its thread asked for either side. */
+  const show = async (
+    account: { name: string; address: string },
+    reference: string | undefined,
+    options: { json?: boolean; beforeN: number; afterN: number },
+  ) => {
+    if (reference === undefined)
+      throw new CliError("validation_error", `which email? memo mail ${account.name} show <msg:email/… reference>`)
+    const { provider, account: address } = parseLocator(reference)
+    if (provider !== "email" || address.toLowerCase() !== account.address.toLowerCase())
+      throw new CliError("validation_error", `${reference} is not an email of ${account.name} (${account.address})`)
+    const store = await openStore({ env })
+    try {
+      const emails = await readMail(store, reference, { before: options.beforeN, after: options.afterN })
+      if (options.json)
+        resolveOutput({ json: true, streams }).renderer.result(
+          options.beforeN || options.afterN ? { items: emails } : emails[0],
+        )
+      else streams.data(`${emails.map((email) => found(email, "full")).join("\n\n")}\n`)
+    } finally {
+      await store.close()
+    }
+  }
+
   program
     .command("mail")
     .description("Read one mail account through Himalaya into the shared message store")
-    .usage("<account> import [options]")
+    .usage("<account> import [options] | <account> show <reference> [options]")
     .argument("[account]", "the account's name in mail.accounts of the config, also its name in Himalaya")
-    .argument("[action]", "import: read the account's mail, and drop the text of mail deleted at the source")
+    .argument(
+      "[action]",
+      "import: read the account's mail, and drop the text of mail deleted at the source; show: one stored email",
+    )
+    .argument("[reference]", "show: the email's msg:email/… reference, as search answers give it")
     .option("--since <date>", "first day to read, YYYY-MM-DD (default: 30 days ago)", day)
     .option("--max <n>", "most new messages to read in this run", positive, 200)
     .option("--json", "print JSON")
     .option("--no-embed", "skip semantic embedding; local words remain searchable")
     .option("--retry-attachments", "reread bounded stored messages after installing an extraction engine")
+    .option("--before-n <n>", "show: also this many earlier emails of its thread", whole, 0)
+    .option("--after-n <n>", "show: also this many later emails of its thread", whole, 0)
     .action(
       async (
         name: string | undefined,
         action: string | undefined,
+        reference: string | undefined,
         options: {
           since?: Date
           max: number
           json?: boolean
           embed: boolean
           retryAttachments?: boolean
+          beforeN: number
+          afterN: number
         },
       ) => {
         const mailConfig = loadConfig(env).mail
         const account = chooseAccount(mailConfig?.accounts ?? [], name)
+        if (action === "show") return show(account, reference, options)
         if (action !== "import")
           throw new CliError(
             "validation_error",
-            `memo mail ${account.name} takes import: memo mail ${account.name} import`,
+            `memo mail ${account.name} takes import or show: memo mail ${account.name} import`,
           )
         const result = await withImportLock(env, async () => {
           const store = await openStore({ env })
