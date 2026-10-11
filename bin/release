@@ -68,6 +68,9 @@ if [ "$next" != "$version" ]; then
   done
   gh pr checks "$pr" --watch --fail-fast >/dev/null ||
     { echo "checks failed on $pr — nothing is published" >&2; exit 1; }
+  git fetch -q origin
+  [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ] ||
+    { echo "main advanced while $pr was being prepared — stop and review the current version before merging" >&2; exit 1; }
   gh pr merge "$pr" --squash --delete-branch --subject "chore(release): $next (#${pr##*/})"
   git fetch -q origin
   git merge -q --ff-only origin/main
@@ -83,6 +86,9 @@ fi
 echo "== checks for $version =="
 pnpm install --frozen-lockfile
 pnpm release:check
+git fetch -q origin
+[ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ] ||
+  { echo "main advanced during release checks — rerun from verified main" >&2; exit 1; }
 
 if [ "$mode" = ci ]; then
   last_run() {

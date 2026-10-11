@@ -4,6 +4,14 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- Release preparation stops if another session advances main while its version PR or local
+  checks are running. Review the new main before retrying; stale preparation cannot merge a
+  redundant version heading or dispatch an unverified source.
+
 ## 0.17.0 — 11.10.2026
 
 ### Added
