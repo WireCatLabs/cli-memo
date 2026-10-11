@@ -6,6 +6,8 @@ the API.
 
 ## 0.17.0 — 11.10.2026
 
+## 0.17.0 — 11.10.2026
+
 ### Added
 
 - **Owner-reviewed label creation:** `memo vocabulary create` requires the current preflight
