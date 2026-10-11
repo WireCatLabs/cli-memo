@@ -73,7 +73,7 @@ describe("combined evidence, relationships and local reminders", () => {
     const participating = await run("tasks", "add", source(key, "77", "3"))
     const document = await run("tasks", "add", source(key, "77", "4"))
     const scope = ["--provider", key.provider, "--account", key.account]
-    await run("tasks", "assign", document.task.id, person?.uid as string, ...scope)
+    await run("tasks", "assign", document.task.id, person?.uid as string)
     const context = await run("context", "telegram:101")
     expect(context.tasks.items.map((task: { id: string }) => task.id).sort()).toEqual(
       [direct.task.id, participating.task.id, document.task.id].sort(),

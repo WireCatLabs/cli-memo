@@ -51,9 +51,16 @@ it("offers the memo tools, saves an agent's memory and proposal as its own, and 
     })
     expect(proposal.structuredContent).toMatchObject({ status: "proposed", account, payload: { text: "Friday works" } })
 
+    const fact = await call("facts_add", {
+      type: "decision",
+      statement: "Bob Sample runs the Friday review",
+      evidence: ["note:1"],
+    })
+    expect(fact.structuredContent).toMatchObject({ type: "decision", status: "proposed", author: { type: "bot" } })
+
     const refused = await call("memories_add", {
       text: "Missing evidence",
-      kind: "fact",
+      kind: "summary",
       scope: "work",
       evidence: ["note:999"],
     })
@@ -64,6 +71,7 @@ it("offers the memo tools, saves an agent's memory and proposal as its own, and 
     }
     expect(log.items.map(({ tool, status }) => `${tool} ${status}`)).toEqual([
       "memories_add failed",
+      "facts_add ok",
       "actions_propose ok",
       "memories_add ok",
     ])

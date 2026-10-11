@@ -43,9 +43,18 @@ config says where.
 memo tasks add 'msg:telegram/1/77/42' --type request
 memo tasks add 'note:NOTE_ID' --provider telegram --account 1 --type request
 memo tasks list --provider telegram --account 1 --json
-memo tasks assign TASK_ID PERSON_UID --provider telegram --account 1
+memo tasks assign TASK_ID PERSON_UID --role reviewer
 memo tasks close TASK_ID --provider telegram --account 1 --as done
+memo tasks add --project LH --title 'Export drops the last row' --type bug --priority 1 --assignee PERSON_UID
+memo tasks update LH-1 --priority 0 --description 'Seen on CSV export'
+memo tasks list --project LH
+memo tasks close LH-1 --reason fixed
 ```
+
+A bug, feature or chore has no source: `--project` (its key or `project:<id>`) and `--title` make it there,
+keyed `<project key>-<n>`. `--priority` (0 urgent … 4 low), `--parent`, `--description` and `--assignee` work
+on any task, one from a message too; `tasks update` changes them later. `tasks assign` names an assignee,
+reviewer or watcher. Every change of status, due date, priority or assignee is recorded as a task event.
 
 Native note tasks belong to the explicitly selected stored account. Their previews read current note
 text; deleting a note keeps its task with an unavailable source. Repeated creation of the same kind
@@ -124,15 +133,22 @@ explicit acceptance. Common free-mail domains are excluded from this heuristic.
 memo memories add 'Bob Sample prefers Friday meetings' --kind preference --scope work --evidence note:NOTE_ID
 memo memories list --status proposed
 memo memories confirm memory:MEMORY_ID
+memo facts add 'Releases go out on Fridays' --type decision --evidence msg:telegram/1/77/42
+memo facts list --type decision --status proposed
+memo facts accept fact:FACT_ID
 memo actions propose reply --reason 'asked twice' --provider telegram --payload '{"text":"Friday works"}'
 memo actions approve ACTION_ID
 memo agents log --agent memo-mcp --limit 20
 ```
 
-A memory is a summary, digest, fact or preference with its evidence (any stored reference) and a scope,
-`personal` or `work`. One you write is confirmed at once; an agent's waits as `proposed` until you
+A memory is what was concluded — a summary, digest or preference — with its evidence (any stored reference)
+and a scope, `personal` or `work`. One you write is confirmed at once; an agent's waits as `proposed` until you
 `confirm` it, and `stale` marks one whose evidence no longer holds. `memories search` finds the words in
 them.
+
+A fact is what happened: a fact, a statement, a question, a decision or a promise, with its evidence. Yours is
+accepted at once; an agent's waits as `proposed` until you `facts accept` it. A decision with `--supersedes`
+ends the one it replaces once accepted, and `facts reverse` ends an accepted decision nothing replaced.
 
 A proposed action is what an agent wants done in one account: a reply, a ban, an invitation. Nothing is ever
 sent. `actions approve` makes it a task in that account's inbox, so it shows in `memo tasks list`, and the
@@ -142,9 +158,9 @@ proposal remembers the task; `actions reject` closes it. `actions list --status`
 agent, the tool, its tier, the outcome and the times, never the arguments.
 
 `memo mcp` serves the same to an agent over MCP, on stdin and stdout: `memories_add`, `memories_list`,
-`memories_show`, `memories_search`, `actions_propose`, `actions_list`, `actions_show` and `agents_log`. An
-agent's memories and proposals are its own (`memo-mcp`) and wait for you; it cannot confirm, approve or
-reject. Every call goes into the agent log.
+`memories_show`, `memories_search`, `facts_add`, `facts_list`, `facts_show`, `actions_propose`, `actions_list`, `actions_show` and `agents_log`. An
+agent's memories, facts and proposals are its own (`memo-mcp`) and wait for you; it cannot confirm, accept,
+approve or reject. Every call goes into the agent log.
 
 ```json
 { "mcpServers": { "memo": { "command": "memo", "args": ["mcp"] } } }
