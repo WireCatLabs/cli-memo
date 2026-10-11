@@ -2,6 +2,8 @@ import { type CallToolResult, McpServer } from "@modelcontextprotocol/server"
 import { toStandardJsonSchema } from "@valibot/to-json-schema"
 import { isCliError } from "@wirecat/cli-core"
 import {
+  FACT_STATUSES,
+  FACT_TYPES,
   MEMORY_KINDS,
   MEMORY_SCOPES,
   MEMORY_STATUSES,
@@ -41,7 +43,7 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
   memories_add: define({
     title: "Propose a memory",
     description:
-      "Save what you concluded — a summary, digest, fact or preference — with the references that show it and a personal or work scope. It waits as proposed until the owner confirms it.",
+      "Save what you concluded — a summary, digest or preference — with the references that show it and a personal or work scope. What happened (said, asked, decided, promised) is a fact: facts_add. It waits as proposed until the owner confirms it.",
     writes: true,
     input: v.object({
       text: v.pipe(v.string(), v.minLength(1)),
@@ -82,6 +84,42 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
       limit: limit(500),
     }),
     run: async (store, { text, ...options }) => ({ items: await store.memories.search(text, options) }),
+  }),
+  facts_add: define({
+    title: "Propose a fact",
+    description:
+      "Record what happened — a fact, a statement, a question, a decision or a promise — with the references that show it. It waits as proposed until the owner accepts it.",
+    writes: true,
+    input: v.object({
+      type: v.picklist(FACT_TYPES),
+      statement: v.pipe(v.string(), v.minLength(1)),
+      evidence: v.pipe(v.array(v.string()), v.minLength(1)),
+      subject: v.optional(v.string()),
+      occurredAt: v.optional(v.string()),
+      scope: v.optional(v.picklist(MEMORY_SCOPES)),
+      supersedes: v.optional(v.string()),
+    }),
+    run: (store, args) => store.facts.add({ ...args, by }),
+  }),
+  facts_list: define({
+    title: "List facts",
+    description: `Facts, latest first, by type, status, project or subject. ${UNTRUSTED}`,
+    writes: false,
+    input: v.object({
+      type: v.optional(v.picklist(FACT_TYPES)),
+      status: v.optional(v.picklist(FACT_STATUSES)),
+      project: v.optional(v.string()),
+      subject: v.optional(v.string()),
+      limit: limit(500),
+    }),
+    run: async (store, args) => ({ items: await store.facts.list(args) }),
+  }),
+  facts_show: define({
+    title: "Show a fact",
+    description: `One fact with its evidence. ${UNTRUSTED}`,
+    writes: false,
+    input: v.object({ ref: v.string() }),
+    run: (store, args) => store.facts.get(args.ref),
   }),
   actions_propose: define({
     title: "Propose an action",

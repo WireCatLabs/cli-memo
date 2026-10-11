@@ -10,6 +10,21 @@ the API.
 
 - **`mail.maxBodyChars` and `mail.maxAttachmentChars`** in the config set how much of an email body (default
   1,000,000 characters) and of one attachment's text (default 200,000) `memo mail import` keeps.
+- **`memo facts add|list|show|accept|reverse`: what happened, with its evidence.** A fact is a fact, statement,
+  question, decision or promise. Yours is accepted at once; an agent's waits as proposed. A decision with
+  `--supersedes` ends the one it replaces once accepted; `reverse` ends an accepted decision. `memo mcp` offers
+  `facts_add`, `facts_list` and `facts_show`.
+- **Tasks of your own in a project.** `memo tasks add --project <key> --title <title> --type bug|feature|chore`
+  makes one with no source. `--priority`, `--parent`, `--description` and `--assignee` work on any task;
+  `memo tasks update <id>` changes them, `memo tasks list --project <key>` lists a project's tasks and
+  `memo tasks close` closes one.
+
+### Changed — may break scripts
+
+- **A memory's kind `fact` is gone**: what happened is a fact now (`memo facts`). The store moved existing
+  kind-fact memories into facts, evidence and links included.
+- **`memo tasks assign` takes `--role` (assignee, reviewer or watcher) and no `--provider`/`--account`.** It
+  writes the task's assignees, which `memo context` reads, instead of an `assigned-to` relation.
 
 ## 0.12.0 — 11.10.2026
 

@@ -28,11 +28,8 @@ export const personTasks = async (
   const items: TaskView[] = []
   let incomplete = false
   for (const key of accounts) {
-    const assigned = (await store.knowledge.relations(key, `person:${person.uid}`)).filter(
-      (relation) => relation.confirmed && relation.kind === "assigned-to" && relation.to === `person:${person.uid}`,
-    )
-    for (const relation of assigned) {
-      const task = await store.tasks.get(relation.from.slice("task:".length))
+    for (const assigned of await store.tasks.find({ assignee: `person:${person.uid}`, status: "open", limit: 500 })) {
+      const task = await store.tasks.get(assigned.id)
       if (task?.state !== "open" || task.account !== `${key.provider}:${key.account}`) continue
       items.push(await taskView(store, key, task))
     }
