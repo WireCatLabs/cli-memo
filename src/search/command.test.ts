@@ -92,3 +92,52 @@ it("searches three typed resources together, separates mail and messages, and fi
   ])
     await expect(run(...args)).rejects.toHaveProperty("code")
 })
+
+it("searches every mail account, or with --account only that address", async () => {
+  const root = mkdtempSync(join(tmpdir(), "memo-mail-accounts-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const store = await openStore({ env })
+  const message = {
+    id: "1",
+    chatId: "7",
+    senderId: "9",
+    senderName: null,
+    timestamp: "2026-10-09T00:00:00Z",
+    editedAt: null,
+    text: "Lighthouse synthetic",
+    outgoing: false,
+    attachments: [],
+    replyTo: null,
+    forwardedFrom: null,
+    reactions: null,
+  }
+  for (const account of ["alice@example.com", "bob@example.com"])
+    await store.saveMessages({ provider: "email", account }, "7", [message], { via: "test" })
+  await store.close()
+  const run = async (...args: string[]) => {
+    const streams = captureStreams()
+    const program = createProgram({ streams, env })
+    const override = (command: Command) => {
+      command.exitOverride()
+      command.configureOutput({ writeErr: () => {} })
+      for (const child of command.commands) override(child)
+    }
+    override(program)
+    await program.parseAsync([...args, "--json"], { from: "user" })
+    return JSON.parse(streams.stdout.join(""))
+      .items.map((item: { locator: string }) => item.locator)
+      .sort()
+  }
+
+  expect(await run("search", "mail", "Lighthouse")).toEqual([
+    "msg:email/alice%40example.com/7/1",
+    "msg:email/bob%40example.com/7/1",
+  ])
+  expect(await run("search", "mail", "Lighthouse", "--account", "bob@example.com")).toEqual([
+    "msg:email/bob%40example.com/7/1",
+  ])
+  await expect(run("search", "mail", "Lighthouse", "--account", "carol@example.com")).rejects.toMatchObject({
+    code: "not_found",
+    message: expect.stringContaining("alice@example.com, bob@example.com"),
+  })
+})

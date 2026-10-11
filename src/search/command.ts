@@ -293,6 +293,7 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       group.command(kind).description(kind === "mail" ? "Imported emails only" : "Stored messenger messages only"),
     )
     if (kind === "messages") leaf.option("--type <type>", "text, voice or file", messageType)
+    else leaf.option("--account <address>", "only this mail account, by its address (default: every mail account)")
     leaf.action(
       async (
         words: string[],
@@ -301,21 +302,23 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
           exact?: boolean
           timezone?: string
           type?: "text" | "voice" | "file"
+          account?: string
           json?: boolean
         },
       ) => {
         const answer = await withStore(async (store) => {
-          const accounts = (await store.accounts()).filter(
+          const [runsAs] = (await store.accounts()).filter(
             ({ provider }) => provider !== "notes" && (kind === "mail" ? provider === "email" : provider !== "email"),
           )
-          if (!accounts.length)
+          if (runsAs === undefined)
             throw new CliError(
               "not_found",
-              kind === "mail" ? "no imported mail; run memo mail import" : "no stored messenger messages",
+              kind === "mail" ? "no imported mail; run memo mail <account> import" : "no stored messenger messages",
             )
+          // The store needs an account to run as; the kind, the query and --account choose what it reads.
           return searchStore(
             store,
-            accounts[0] as AccountKey,
+            runsAs,
             {
               text:
                 options.type === undefined
@@ -327,6 +330,7 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
                 ? { source: "all" as const }
                 : {}),
               limit: options.limit,
+              ...(options.account === undefined ? {} : { mailAccount: options.account }),
               ...(options.exact ? { exact: true } : {}),
               ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
             },
