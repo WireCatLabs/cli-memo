@@ -43,6 +43,9 @@ The file is `~/.config/cli-memo/config.json`. `MEMO_CONFIG_DIR` moves the folder
 | `folders` | The folders an `imap` account imports, such as `["INBOX", "Archive"]`. |
 | `embed` | `false` skips embedding this account's mail for search by meaning. |
 
+Beside `accounts`, `maxBodyChars` (default 1,000,000) and `maxAttachmentChars` (default 200,000) set how many
+characters of an email body and of one attachment's text are kept.
+
 See [mail](mail.md).
 
 ## `auto`

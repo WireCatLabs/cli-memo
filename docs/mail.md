@@ -15,6 +15,9 @@ keyring; the script is in this repository, not in the npm package), then name it
 { "mail": { "accounts": [{ "name": "gmail", "address": "you@example.com" }] } }
 ```
 
+`mail.maxBodyChars` (default 1,000,000) and `mail.maxAttachmentChars` (default 200,000) set how many characters
+of a body and of one attachment's text are kept.
+
 Gmail remains the default. For another IMAP provider, configure an account with `mode: "imap"`
 and `folders: ["INBOX", "Archive"]` in `mail.accounts`. Message-ID and reference headers preserve
 message/thread identities across folder moves and UID resets. Mail without Message-ID uses an explicit
@@ -44,7 +47,8 @@ once.
 ## What is kept
 
 Imports report the proven date/folder window. No thread is called globally complete on the basis of one
-window. To, CC and BCC are kept. A readable attachment's text is kept with its email and searched with it
+window. To, CC and BCC are kept, and read and starred stay as the mailbox shows them; a flagged IMAP
+message carries the `Starred` label. A readable attachment's text is kept with its email and searched with it
 (`content:`, `filename:`); extraction failures are reported. After installing an optional engine, use
 `memo mail import --retry-attachments` to reread a bounded batch of stored mail. `memo search mail` matches
 words; mail is embedded on import, so `tg search conversations` finds it by meaning. `--no-embed`, or

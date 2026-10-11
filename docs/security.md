@@ -13,7 +13,7 @@ file; and evidence goes to a model only when you configure one and allow it.
 
 ## What memo adds stays local
 
-Notes you write here, links, labels, relationships, memories, proposed actions and task reminders live
+Notes you write here, links, labels, relationships, memories, facts, proposed actions and task reminders live
 in the local store shared with tg and max. Search by meaning uses a local model. Reminders are
 delivered to a local caller that polls for them, never to a messenger or mailbox.
 
@@ -24,8 +24,8 @@ import. A run that finds an unusually large share missing at once deletes nothin
 
 ## Agents propose, you decide
 
-- An agent's memories and proposed actions wait for you; through MCP it cannot confirm, approve or
-  reject. Approving an action makes it your task; nothing is ever sent.
+- An agent's memories, facts and proposed actions wait for you; through MCP it cannot confirm, accept,
+  approve or reject. Approving an action makes it your task; nothing is ever sent.
 - The agent log records the agent, the tool, the outcome and the times, never the arguments.
 - Identities are never merged because a name or a domain matches; you link them.
 

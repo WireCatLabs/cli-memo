@@ -107,8 +107,8 @@ More: [search and evidence](https://github.com/WireCatLabs/cli-memo/blob/main/do
   gives them structured output.
 - **Evidence, not guesses** — `memo ask` hands over sources with references, and says what it could not
   search.
-- **MCP** — `memo mcp` lets MCP apps such as Claude Desktop or Cursor propose memories and actions and
-  read the agent log; they wait for you to confirm.
+- **MCP** — `memo mcp` lets MCP apps such as Claude Desktop or Cursor propose memories, facts and actions
+  and read the agent log; they wait for you to confirm.
 
 More: [connect your AI agent](https://wirecat.dev/en/docs/agents) ·
 [memories, proposed actions and MCP](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md)
@@ -159,9 +159,9 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 | Organizations and projects | `memo organizations add` / `list` / `context` · `projects add` / `list` / `context` |
 | Relationships | `memo relationships add` / `list` / `remove` / `confirm` / `suggest` |
 | Labels | `memo tags add` · `tags remove` · `tags list` |
-| Open work | `memo tasks add` · `tasks list` · `tasks assign` · `tasks close` |
+| Open work | `memo tasks add` · `tasks list` · `tasks update` · `tasks assign` · `tasks close` |
 | Reminders | `memo reminders schedule` / `list` / `poll` / `ack` / `snooze` / `cancel` |
-| Agents | `memo memories …` · `actions …` · `agents log` · `memo mcp` |
+| Agents | `memo memories …` · `facts …` · `actions …` · `agents log` · `memo mcp` |
 
 Every command takes `--help`; most take `--json`.
 
@@ -252,7 +252,7 @@ More: [mail](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mail.md) ·
 
 Tags are your labels on a note, an email, a message, a chat, a person, an organization, a project, a task,
 a meeting, or every note under a folder. They live in the store; files, Gmail labels and mailbox flags are
-never changed. A task points at the message or note it came from. Reminders are local: a caller you choose
+never changed. A task points at the message or note it came from, or is your own in a project (`--project LH --title …`). Reminders are local: a caller you choose
 polls for them, and nothing is delivered to a messenger or mailbox.
 
 ```sh
@@ -268,13 +268,13 @@ More: [tags](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tags.md) ·
 ## Agents and MCP
 
 An agent with a terminal runs `memo` with `--json`. An MCP app starts `memo mcp`, which serves memories,
-proposed actions and the agent log on stdin and stdout:
+facts, proposed actions and the agent log on stdin and stdout:
 
 ```json
 { "mcpServers": { "memo": { "command": "memo", "args": ["mcp"] } } }
 ```
 
-An agent's memories and proposals wait as `proposed`; it cannot confirm, approve or reject. Approving an
+An agent's memories, facts and proposals wait as `proposed`; it cannot confirm, accept, approve or reject. Approving an
 action makes it your task; nothing is ever sent. `memo agents log` lists every call — the agent, the tool,
 the outcome and the times, never the arguments. Search and context are not served over MCP.
 
@@ -322,7 +322,8 @@ More: [security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security
 - Files up to 50 MiB; stored text up to 200,000 characters a file. Scanned PDFs and legacy DOC/XLS are
   reported, not read.
 - Search by meaning embeds at most 600 chunks a run; the next run continues.
-- `memo mail import` reads 200 new messages a run by default (`--max`).
+- `memo mail import` reads 200 new messages a run by default (`--max`) and keeps up to 1,000,000 characters of
+  a body and 200,000 of an attachment's text (`mail.maxBodyChars`, `mail.maxAttachmentChars`).
 - Searches return at most 100 results; `tags list` shows 100 labels unless `--limit` says more.
 - Tags are 1–32 letters a–z, digits or hyphens.
 
@@ -358,7 +359,7 @@ more context when you need it. Your context. Any agent.
 | [Mail](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mail.md) | Gmail and IMAP through Himalaya |
 | [Tags](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tags.md) | Labels on any source |
 | [Open work and reminders](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tasks.md) | Tasks and local reminders |
-| [Memories, proposed actions and MCP](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md) | What agents propose, the agent log |
+| [Memories, facts, proposed actions and MCP](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md) | What agents propose, the agent log |
 | [Keeping the store current](https://github.com/WireCatLabs/cli-memo/blob/main/docs/archive.md) | `memo import` and the timer |
 | [Configuration](https://github.com/WireCatLabs/cli-memo/blob/main/docs/configuration.md) | Every setting and variable |
 | [Security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security.md) | What is read, written and sent |
