@@ -4,6 +4,13 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## 0.7.1 — 11.10.2026
+
+### Fixed
+
+- Mail search, evidence bundles and person context also read email stored in dedicated mail tables.
+  Older mail imports remain supported; search results list each email locator once.
+
 ## 0.7.0 — 11.10.2026
 
 ### Changed

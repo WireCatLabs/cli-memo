@@ -1,6 +1,6 @@
 {
   "name": "@wirecat/cli-memo",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Context about people across messengers, notes and mail, from a local store",
   "license": "Apache-2.0",
   "author": "Viacheslav Ptsarev",
@@ -40,23 +40,23 @@
   },
   "dependencies": {
     "@wirecat/cli-core": "0.19.4",
-    "@wirecat/cli-messaging": "0.226.0",
+    "@wirecat/cli-messaging": "0.229.0",
     "commander": "15.0.0",
     "valibot": "1.5.0",
     "yaml": "2.9.1"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
-    "@types/node": "^22.20.4",
-    "@vitest/coverage-v8": "5.0.3",
-    "lefthook": "2.1.16",
-    "typescript": "^7.0.2",
-    "vitest": "^5.0.2",
     "@cspell/dict-en-gb": "5.0.34",
     "@cspell/dict-es-es": "3.0.9",
     "@cspell/dict-ru_ru": "2.3.3",
+    "@types/node": "^22.20.4",
+    "@vitest/coverage-v8": "5.0.3",
     "cspell": "10.3.6",
-    "markdownlint-cli2": "0.23.3"
+    "lefthook": "2.1.16",
+    "markdownlint-cli2": "0.23.3",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
   },
   "publishConfig": {
     "access": "public"
