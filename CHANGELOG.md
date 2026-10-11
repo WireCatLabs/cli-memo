@@ -20,6 +20,14 @@ the API.
   and a hit named the newest of them. The first index run after the upgrade cuts stored mail again once and embeds
   it again. Built on the shared library 0.249.0.
 
+### Added
+
+- The guides in `docs/` follow the wirecat.dev tool layout: an overview, daily use, how memo works,
+  recipes, troubleshooting, memories and a generated command reference (`pnpm generate`), written
+  for readers who do not use a terminal every day.
+- Every command has a description in `--help`, including organizations, projects, relationships,
+  reminders and task listing.
+
 ### Fixed
 
 - Release preparation stops if another session advances main while its version PR or local

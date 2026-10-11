@@ -1,64 +1,86 @@
 # Mail
 
-This page is for bringing your email into memo, so mail sits beside your notes and messages in search,
-evidence for an agent and a person's context. memo reads mail through
-[Himalaya](https://github.com/pimalaya/himalaya), a command-line mail client you set up first. The
-mailbox is opened read-only: nothing is sent, moved or marked read.
+This page helps you bring your email into Memo, so mail sits beside your notes and messages in
+search, in a person's context and in the sources your agent reads. Memo reads mail through
+[Himalaya](https://github.com/pimalaya/himalaya), a mail program you set up first. Your mailbox is
+opened read-only: Memo never sends, moves or deletes mail, and does not mark it as read.
 
-## Set up the account
+## Before you start
 
-Set the account up in Himalaya first (an IMAP account with a Gmail
-[app password](https://myaccount.google.com/apppasswords); `bin/mail-password <account>` stores it in the
-keyring; the script is in this repository, not in the npm package), then name it in `~/.config/cli-memo/config.json`:
+Set up your mail account in Himalaya. For Gmail, use an IMAP account with a Gmail
+[app password](https://myaccount.google.com/apppasswords) (a separate password for one program,
+which you can revoke at any time). Check that Himalaya lists your mail before you continue.
+
+```text prompt
+Help me set up Himalaya for my Gmail account with an app password, and check that it lists my inbox.
+Then add the account to Memo's config and import the last 30 days of mail.
+```
+
+## Add the account to Memo
+
+Name the account in Memo's [config file](configuration.md#mail), `~/.config/cli-memo/config.json`.
+`name` is the account's name in Himalaya; `address` is your email address:
 
 ```json
 { "mail": { "accounts": [{ "name": "work", "address": "you@example.com" }] } }
 ```
 
-`mail.maxBodyChars` (default 1,000,000) and `mail.maxAttachmentChars` (default 200,000) set how many characters
-of a body and of one attachment's text are kept.
+Gmail is the default. For another provider, add `"mode": "imap"` and the folders to read:
 
-Gmail remains the default. For another IMAP provider, configure an account with `mode: "imap"`
-and `folders: ["INBOX", "Archive"]` in `mail.accounts`. Message-ID and reference headers preserve
-message/thread identities across folder moves and UID resets. Mail without Message-ID uses an explicit
-UIDVALIDITY/folder/UID fallback, which can change after a move/reset. Configured folders are listed
-completely before deletion checks; a changed folder scope skips deletion for that run.
-
-## Import
-
-```sh
-memo mail work import --since 2026-09-01      # work: the account's name in mail.accounts
-memo search mail 'budget' --account you@example.com   # one mail account; every one without --account
+```json
+{ "mail": { "accounts": [{ "name": "home", "address": "me@example.org", "mode": "imap", "folders": ["INBOX", "Archive"] }] } }
 ```
 
-`<account>` is required, even with one account configured: memo never picks one for you, and names the
-configured accounts when it is missing or unknown. `memo import` and the timer import every account in
-`mail.accounts`. A mail import and `memo import` share one lock, so they never run at the same time.
+## Import mail
 
-Reads a Gmail account's All Mail through [Himalaya](https://github.com/pimalaya/himalaya) into the
-shared store's mail tables: one thread per Gmail thread, each folder a mailbox, the mailbox address as
-the account, senders and recipients as people. Gmail labels (Inbox, Important, Starred, your own) become
-label mailboxes, so `search mail mailbox:important` finds them. `search mail`, `search all`, `ask`, person context and tags
-see it. Mail that older versions of memo saved as messages stays searchable; an email imported again is listed
-once.
+```sh
+memo mail work import --since 2026-09-01
+```
 
-- Read only: the mailbox is opened read-only, nothing is sent, and no mail is marked read.
-- Run it again any time: what is stored is skipped; `--max` (default 200) bounds the new mails read
-  per run, and the next run continues.
-- A mail deleted at the source loses its text in the store. The first two days of the window are left
-  alone, and a run that finds an unusually large share missing deletes nothing and says so. Mail moved
-  to Spam leaves All Mail and counts as deleted.
+`work` is the account's `name` from the config. Name it every time, even with one account: Memo
+never picks an account for you, and lists the accounts it knows when the name is missing or wrong.
+
+- Without `--since`, Memo reads the last 30 days.
+- Each run reads up to 200 new emails (`--max` changes this). Run it again and it continues where it
+  stopped; emails already stored are skipped.
+- `memo import` and the timer import every account in the config.
+
+## Find your mail
+
+```sh
+memo search mail 'invoice'
+memo search mail 'from:kai subject:budget'
+memo search mail 'mailbox:starred' --account you@example.com
+memo search all 'budget'
+```
+
+Gmail labels such as Inbox, Important, Starred and your own labels become mail folders, so
+`mailbox:important` finds them. See [Search](search.md#search-mail).
 
 ## What is kept
 
-Imports report the proven date/folder window. No thread is called globally complete on the basis of one
-window. To, CC and BCC are kept, and read and starred stay as the mailbox shows them; a flagged IMAP
-message carries the `Starred` label. A readable attachment's text is kept with its email and searched with it
-(`content:`, `filename:`); extraction failures are reported. After installing an optional engine, use
-`memo mail <account> import --retry-attachments` to reread a bounded batch of stored mail. `memo search mail` matches
-words; mail is embedded on import, so `tg search conversations` finds it by meaning. `--no-embed`, or
-`embed: false` on the account, skips the embedding.
+- The sender, the recipients (To, CC and BCC), the subject, the date and the text of each email.
+- Whether an email is read or starred, as your mailbox shows it.
+- The text of readable attachments, searched with the email. PDF and Word attachments need the
+  [optional readers](notes.md#files-memo-can-read). After you install them, run
+  `memo mail work import --retry-attachments` to read attachments that were skipped.
+- Up to 1,000,000 characters of each email and 200,000 of each attachment
+  ([change the limits](configuration.md#mail)).
 
-To make a mail address part of a person, link it in messaging — see [People](people.md#people).
+Mail is prepared for search by meaning when the search model is on your computer; `--no-embed`
+skips this.
 
-Next: [keep mail and notes current on a timer](archive.md).
+## When mail is deleted
+
+When you delete an email in your mailbox, its text leaves the local store on the next import. Mail
+moved to Spam counts as deleted. To protect you from mistakes:
+
+- the first two days of the period are not checked for deletions;
+- if a run finds an unusually large part of your mail missing, it deletes nothing and tells you.
+
+## Mail and people
+
+To include a person's email in [their context](people.md#everything-about-a-person), link the
+address to them in tg or max: `tg contacts link 'Kai Sample' email:kai@example.com`.
+
+Next: [keep mail and notes up to date on a timer](archive.md).

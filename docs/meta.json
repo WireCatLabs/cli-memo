@@ -1,0 +1,29 @@
+{
+  "title": "memo",
+  "pages": [
+    "---Start---",
+    "index",
+    "installation",
+    "---Guides---",
+    "usage",
+    "how-it-works",
+    "notes",
+    "tags",
+    "search",
+    "people",
+    "mail",
+    "tasks",
+    "memories",
+    "mcp",
+    "archive",
+    "recipes",
+    "---Reference---",
+    "commands",
+    "configuration",
+    "---When something goes wrong---",
+    "troubleshooting",
+    "security",
+    "---Project---",
+    "changelog"
+  ]
+}

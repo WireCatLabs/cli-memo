@@ -71,7 +71,7 @@ Or ask your agent: "Help me install memo with `npm install -g @wirecat/cli-memo`
 help me connect a notes folder I choose."
 
 More: [installation](https://github.com/WireCatLabs/cli-memo/blob/main/docs/installation.md) ·
-[install memo on wirecat.dev](https://wirecat.dev/en/docs/memo#install-memo)
+[install memo on wirecat.dev](https://wirecat.dev/en/docs/memo/installation)
 
 ## What can you do?
 
@@ -102,8 +102,8 @@ memo ask 'What did I promise this week?' --query 'promised OR "by Friday"' --all
 An evidence bundle for your agent: the matching sources with their references, what was searched, and
 the instruction to cite them. Your agent writes the answer; memo calls a model only when you ask it to.
 
-More: [search and evidence](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md) ·
-[ask for the context you need](https://wirecat.dev/en/docs/memo#ask-for-the-context-you-need)
+More: [search](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md) ·
+[ask for the context you need](https://wirecat.dev/en/docs/memo/people#everything-about-a-person)
 
 ## Built for AI agents
 
@@ -115,7 +115,7 @@ More: [search and evidence](https://github.com/WireCatLabs/cli-memo/blob/main/do
   and read the agent log; they wait for you to confirm.
 
 More: [connect your AI agent](https://wirecat.dev/en/docs/agents) ·
-[memories, proposed actions and MCP](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md)
+[memories and facts](https://github.com/WireCatLabs/cli-memo/blob/main/docs/memories.md) · [the MCP server](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md)
 
 ## Why memo?
 
@@ -147,7 +147,7 @@ You add your own notes about messages, people and projects, tags, tasks and remi
 projects.
 
 More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) ·
-[files memo can read](https://wirecat.dev/en/docs/memo#files-memo-can-read)
+[files memo can read](https://wirecat.dev/en/docs/memo/notes#files-memo-can-read)
 
 ## Commands by task
 
@@ -171,7 +171,7 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 
 Every command takes `--help`; most take `--json`.
 
-More: [technical docs](#technical-docs) · [notes and files on wirecat.dev](https://wirecat.dev/en/docs/memo)
+More: [technical docs](#technical-docs) · [memo on wirecat.dev](https://wirecat.dev/en/docs/memo)
 
 ## Notes from files, and notes you write
 
@@ -196,8 +196,8 @@ An edit names the revision it changes, so an edit made meanwhile is never lost. 
 as files that import then skips, and never overwrites a file you edited.
 
 More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) ·
-[add your notes](https://wirecat.dev/en/docs/memo#add-your-notes) ·
-[create your own notes](https://wirecat.dev/en/docs/memo#create-your-own-notes)
+[add your notes](https://wirecat.dev/en/docs/memo/notes#add-a-folder) ·
+[create your own notes](https://wirecat.dev/en/docs/memo/notes#write-your-own-notes)
 
 ## Search and evidence
 
@@ -216,7 +216,7 @@ memo notes show note:NOTE_ID --json
 call a model instead, set `MEMO_MODELS_ANALYSIS_PROVIDER` and `MEMO_MODELS_ANALYSIS_MODEL` and pass
 `--model`; a remote model also needs `--allow-remote`.
 
-More: [search and evidence](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md) ·
+More: [search](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md) ·
 [searching on wirecat.dev](https://wirecat.dev/en/docs/search)
 
 ## People, organizations and projects
@@ -246,7 +246,7 @@ memo projects add 'Synthetic Harbour' --organization organization:ORGANIZATION_I
 memo projects context PROJECT_ID --json
 ```
 
-More: [people, organizations and projects](https://github.com/WireCatLabs/cli-memo/blob/main/docs/people.md) ·
+More: [people and projects](https://github.com/WireCatLabs/cli-memo/blob/main/docs/people.md) ·
 [people on wirecat.dev](https://wirecat.dev/en/docs/people)
 
 ## Mail
@@ -281,8 +281,8 @@ memo reminders schedule TASK_ID --at 2026-10-09T09:00:00+02:00 --provider telegr
 ```
 
 More: [tags](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tags.md) ·
-[open work and reminders](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tasks.md) ·
-[tag your sources](https://wirecat.dev/en/docs/memo#tag-your-sources)
+[tasks and reminders](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tasks.md) ·
+[tag your sources](https://wirecat.dev/en/docs/memo/tags)
 
 ## Agents and MCP
 
@@ -297,7 +297,7 @@ An agent's memories, facts and proposals wait as `proposed`; it cannot confirm, 
 action makes it your task; nothing is ever sent. `memo agents log` lists every call — the agent, the tool,
 the outcome and the times, never the arguments. Search and context are not served over MCP.
 
-More: [memories, proposed actions and MCP](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md) ·
+More: [memories and facts](https://github.com/WireCatLabs/cli-memo/blob/main/docs/memories.md) · [the MCP server](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md) ·
 [MCP on wirecat.dev](https://wirecat.dev/en/docs/mcp)
 
 ## Keeping it current
@@ -306,8 +306,8 @@ More: [memories, proposed actions and MCP](https://github.com/WireCatLabs/cli-me
 it on a systemd user timer; `auto status` shows the next and last run. A lock keeps two imports apart, and
 one failing source does not stop the others.
 
-More: [keeping the store current](https://github.com/WireCatLabs/cli-memo/blob/main/docs/archive.md) ·
-[import a folder on wirecat.dev](https://wirecat.dev/en/docs/memo#import-the-folder-you-choose)
+More: [keeping memo up to date](https://github.com/WireCatLabs/cli-memo/blob/main/docs/archive.md) ·
+[import a folder on wirecat.dev](https://wirecat.dev/en/docs/memo/notes#add-a-folder)
 
 ## Configuration
 
@@ -346,8 +346,8 @@ More: [security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security
 - Searches return at most 100 results; `tags list` shows 100 labels unless `--limit` says more.
 - Tags are 1–32 letters a–z, digits or hyphens.
 
-More: [documents in a folder](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md#documents-in-a-folder) ·
-[files memo can read](https://wirecat.dev/en/docs/memo#files-memo-can-read)
+More: [files memo can read](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md#files-memo-can-read) ·
+[files memo can read](https://wirecat.dev/en/docs/memo/notes#files-memo-can-read)
 
 ## When something is missing
 
@@ -358,8 +358,8 @@ More: [documents in a folder](https://github.com/WireCatLabs/cli-memo/blob/main/
 - **An empty search:** the store holds nothing that matches — not proof that it never happened. Try the
   kind's own search, looser words, or import that source first.
 
-More: [if something is missing](https://wirecat.dev/en/docs/memo#if-something-is-missing) ·
-[search and evidence](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md)
+More: [if something is missing](https://wirecat.dev/en/docs/memo/troubleshooting) ·
+[search](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md)
 
 ## Part of WireCat
 
@@ -371,16 +371,23 @@ more context when you need it. Your context. Any agent.
 
 | Page | What it covers |
 | --- | --- |
+| [Overview](https://github.com/WireCatLabs/cli-memo/blob/main/docs/index.md) | What memo does and how it works, in short |
 | [Installation](https://github.com/WireCatLabs/cli-memo/blob/main/docs/installation.md) | Requirements, install, where files go, update |
-| [Notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) | Folders, formats, documents, your own notes, export |
-| [Search and evidence](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md) | Query language, `search all`, `ask` |
-| [People, organizations and projects](https://github.com/WireCatLabs/cli-memo/blob/main/docs/people.md) | Person context, linking, relationships |
-| [Mail](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mail.md) | Gmail and IMAP through Himalaya |
+| [Using memo](https://github.com/WireCatLabs/cli-memo/blob/main/docs/usage.md) | A normal day: import, search, context, notes, review |
+| [How memo works](https://github.com/WireCatLabs/cli-memo/blob/main/docs/how-it-works.md) | The local store, imports, links, references, review |
+| [Notes and folders](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) | Markdown and Obsidian folders, documents, your own notes, export |
 | [Tags](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tags.md) | Labels on any source |
-| [Open work and reminders](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tasks.md) | Tasks and local reminders |
-| [Memories, facts, proposed actions and MCP](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md) | What agents propose, the agent log |
-| [Keeping the store current](https://github.com/WireCatLabs/cli-memo/blob/main/docs/archive.md) | `memo import` and the timer |
+| [Search](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md) | Search words, `search all`, `ask` |
+| [People and projects](https://github.com/WireCatLabs/cli-memo/blob/main/docs/people.md) | Person context, linking, organizations, relationships |
+| [Mail](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mail.md) | Gmail and IMAP through Himalaya |
+| [Tasks and reminders](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tasks.md) | Tasks, dependencies and local reminders |
+| [Memories and facts](https://github.com/WireCatLabs/cli-memo/blob/main/docs/memories.md) | What agents and you record, and proposed actions |
+| [The MCP server](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md) | Apps without a terminal, the agent log |
+| [Keeping memo up to date](https://github.com/WireCatLabs/cli-memo/blob/main/docs/archive.md) | `memo import` and the timer |
+| [Recipes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/recipes.md) | Whole tasks to hand to your agent |
+| [All commands](https://github.com/WireCatLabs/cli-memo/blob/main/docs/commands.md) | Every command and option, generated |
 | [Configuration](https://github.com/WireCatLabs/cli-memo/blob/main/docs/configuration.md) | Every setting and variable |
+| [Troubleshooting](https://github.com/WireCatLabs/cli-memo/blob/main/docs/troubleshooting.md) | What the screen says, and what to do |
 | [Security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security.md) | What is read, written and sent |
 | [Changelog](https://github.com/WireCatLabs/cli-memo/blob/main/CHANGELOG.md) | Every release |
 

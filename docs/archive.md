@@ -1,26 +1,55 @@
-# Keeping the store current
+# Keeping Memo up to date
 
-This page is for keeping memo up to date without thinking about it: one command imports what changed
-in your notes folders and mailboxes, and a timer can run it for you. Only what changed is read, so a
-run after the first is quick. The timer is a systemd user timer, so it needs Linux.
+This page helps you keep Memo current without thinking about it. One command brings in what changed
+in your note folders and mailboxes, and on Linux a timer can run it for you every few minutes. Only
+what changed is read, so every run after the first is quick.
+
+## Import what changed
 
 ```sh
-memo import                  # notes and mail, only what changed since the last run
-memo auto on --every 5m      # run memo import on a systemd user timer (default 5m, a minute or more)
-memo auto status             # on/off, interval, next and last run
-memo auto off                # stop and remove the timer
+memo import
 ```
 
-The config is the one source: `memo auto on/off` write `auto: { enabled, every }` to
-`~/.config/cli-memo/config.json`, and a hand edit there takes effect at the next timer run, which
-rewrites or removes its own timer to match. The timer runs `memo import` from the place it was set up
-from, with the `PATH` of that shell, so Himalaya and the keyring helper are found.
+This imports every folder and mail account in the [config file](configuration.md). It reports what
+it found for each one:
 
-`memo import` is incremental. A note whose size and change time are as this computer last saw them is
-not read; one whose content hash the store already has is not saved, so a second computer importing the
-same folder saves nothing new. What this computer last saw is kept per folder in memo's state folder. Mail reads bodies only of messages not stored yet. A lock
-keeps two imports from running at once, and one failing source does not stop the others.
+```text
+notes /path/to/notes: 24 notes, 2 changed, 0 moved, 0 gone
+```
 
-`--notes` or `--mail` limits a run to one kind, and `--no-embed` skips embedding for search by meaning.
+| Option | What it does |
+|---|---|
+| `--notes` | Only note folders |
+| `--mail` | Only mail accounts |
+| `--no-embed` | Skip the preparation for search by meaning |
 
-Next: [search what was imported](search.md).
+Telegram and MAX messages are kept current by tg and max, not by `memo import`.
+
+## Import on a timer (Linux)
+
+```sh
+memo auto on --every 5m     # import every 5 minutes, starting a minute from now
+memo auto status            # whether the timer is on, when it runs next and how the last run ended
+memo auto off               # stop and remove the timer
+```
+
+`--every` takes `90s`, `5m`, `1h` and so on; the shortest is one minute. The timer uses systemd, the
+service manager of most Linux systems. On macOS and Windows, run `memo import` yourself or from your
+own scheduler.
+
+The timer runs `memo import` with the settings of the terminal you turned it on from, so it finds
+Himalaya and your passwords the same way. `memo auto on` and `off` write `auto` in the config file;
+if you edit it there, the timer follows at its next run.
+
+## What an import reads
+
+- A note file with the same size and change time as last time is not read.
+- Text that is already in the local store is not saved again, so a second computer importing the
+  same folder adds nothing new.
+- Mail that is already stored is skipped.
+- Two imports never run at the same time, and one source that fails does not stop the others.
+
+[How Memo works](how-it-works.md#what-an-import-does) explains what happens to edited, moved and
+deleted files.
+
+Next: [search what you imported](search.md).
