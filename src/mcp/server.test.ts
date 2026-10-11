@@ -5,7 +5,7 @@ import { Client } from "@modelcontextprotocol/client"
 import { InMemoryTransport } from "@modelcontextprotocol/server"
 import { openStore } from "@wirecat/cli-messaging/store"
 import { beforeEach, expect, it } from "vitest"
-import { AGENT, createMemoServer, MEMO_TOOLS } from "./server.js"
+import { AGENT, createMemoServer, INSTRUCTIONS, MEMO_TOOLS } from "./server.js"
 
 let env: NodeJS.ProcessEnv
 const account = { provider: "example", account: "alice-example" }
@@ -29,6 +29,17 @@ const connected = async () => {
   const call = async (name: string, args: Record<string, unknown>) => client.callTool({ name, arguments: args })
   return { client, call }
 }
+
+it("tells a connecting agent when to save a fact, a memory or an action, within 2048 characters", async () => {
+  const { client } = await connected()
+  try {
+    expect(client.getInstructions()).toBe(INSTRUCTIONS)
+    for (const tool of ["facts_add", "memories_add", "actions_propose"]) expect(INSTRUCTIONS).toContain(tool)
+    expect(INSTRUCTIONS.length).toBeLessThanOrEqual(2048)
+  } finally {
+    await client.close()
+  }
+})
 
 it("offers the memo tools, saves an agent's memory and proposal as its own, and logs every call", async () => {
   const { client, call } = await connected()

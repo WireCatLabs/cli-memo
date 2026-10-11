@@ -16,6 +16,7 @@ import { APP } from "../app.js"
 import { boundFolders } from "../notes/bound.js"
 import { searchText } from "../notes/search.js"
 import { positive } from "../options.js"
+import { SAVE_HELP } from "../save-help.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 import { taskPage } from "../tasks/context.js"
 
@@ -210,6 +211,7 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
   }
   const queryOptions = (leaf: Command) =>
     leaf
+      .addHelpText("after", SAVE_HELP)
       .argument("<query...>", "words, phrases, Boolean operators and field queries")
       .option(
         "--limit <n>",
