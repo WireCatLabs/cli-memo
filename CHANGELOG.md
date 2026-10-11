@@ -21,8 +21,10 @@ the API.
 
 ### Changed — may break scripts
 
-- **memo runs on `@wirecat/cli-messaging` 0.236.0**, store version 2: upgrading a store moves its kind-fact
+- **memo runs on `@wirecat/cli-messaging` 0.238.0**, store version 2: upgrading a store moves its kind-fact
   memories into facts and copies task assignments; older memo builds still open it.
+- **Mail is searched by meaning thread by thread**, without re-quoted text: the first `memo mail import` after the
+  upgrade cuts every thread again and embeds the mail once more. Search by words is unchanged.
 - **A memory's kind `fact` is gone**: what happened is a fact now (`memo facts`). The store moved existing
   kind-fact memories into facts, evidence and links included.
 - **`memo tasks assign` takes `--role` (assignee, reviewer or watcher) and no `--provider`/`--account`.** It
