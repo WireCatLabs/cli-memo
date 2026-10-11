@@ -1,9 +1,12 @@
 import { processStreams, type Streams } from "@wirecat/cli-core"
 import { Command } from "commander"
+import { actionsCommand } from "./actions/command.js"
+import { agentsCommand } from "./agents/command.js"
 import { askCommand } from "./answers/command.js"
 import { contextCommand } from "./context/command.js"
 import { knowledgeCommands } from "./knowledge/command.js"
 import { mailCommand } from "./mail/command.js"
+import { memoriesCommand } from "./memories/command.js"
 import { notesCommand } from "./notes/command.js"
 import { foldersCommand } from "./notes/folders-command.js"
 import { noteCommand } from "./people/command.js"
@@ -33,6 +36,9 @@ export const createProgram = ({
   tagsCommand(program, streams, env)
   tasksCommand(program, streams, env)
   knowledgeCommands(program, streams, env)
+  memoriesCommand(program, streams, env)
+  actionsCommand(program, streams, env)
+  agentsCommand(program, streams, env)
   searchCommand(program, streams, env)
   askCommand(program, streams, env)
   importCommand(program, streams, env)

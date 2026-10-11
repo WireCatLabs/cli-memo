@@ -11,6 +11,12 @@ the API.
 - **A meeting can be tagged and written about.** `memo tags add|remove --meeting <id>` with `--provider` and
   `--account` labels a stored meeting, `memo tags list --type meeting` lists them, and `memo notes add --about
   meeting:<account id>/<meeting id>` writes a note about one.
+- **`memo memories`** — `add`, `list`, `show`, `search`, `confirm` and `stale` for what you and agents
+  concluded, each with its evidence and a `personal` or `work` scope. Yours are confirmed at once; an agent's
+  wait as proposed.
+- **`memo actions`** — `propose`, `list`, `show`, `approve` and `reject`. Approving makes the action a task
+  in the account that would act; nothing is sent.
+- **`memo agents log`** — what agents did through the MCP servers, by tool and agent, never the arguments.
 
 ## 0.8.0 — 11.10.2026
 
