@@ -55,6 +55,20 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
   ).action((name: string, options: Options) =>
     execute(options, (store) => store.knowledge.resolveVocabulary(name, catalogOptions(options))),
   )
+  readOptions(vocabulary.command("audit").description("Discover likely synonyms without accepting or merging them"))
+    .option("--min-similarity <n>", "minimum lexical similarity, 0.65–1", Number)
+    .option("--max-comparisons <n>", "bound name comparisons", positive)
+    .option("--limit <n>", "maximum candidate pairs", positive)
+    .action((options: Options & { minSimilarity?: number; maxComparisons?: number; limit?: number }) =>
+      execute(options, (store) =>
+        store.knowledge.auditVocabulary({
+          ...catalogOptions(options),
+          ...(options.minSimilarity === undefined ? {} : { minSimilarity: options.minSimilarity }),
+          ...(options.maxComparisons === undefined ? {} : { maxComparisons: options.maxComparisons }),
+          ...(options.limit === undefined ? {} : { limit: options.limit }),
+        }),
+      ),
+    )
   vocabulary
     .command("preflight")
     .argument("<name>")
@@ -64,6 +78,22 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
     .action((name: string, options: Options & { kind?: "tag" | "topic" }) =>
       execute(options, (store) =>
         store.knowledge.tagPreflight(name, { ...(options.kind === undefined ? {} : { kind: options.kind }) }),
+      ),
+    )
+  vocabulary
+    .command("create")
+    .argument("<name>")
+    .description("Owner: create a distinct tag or topic after reviewing its preflight")
+    .option("--kind <kind>", "tag or topic", oneOf(["tag", "topic"] as const))
+    .requiredOption("--expected <fingerprint>", "the current preflight creationFingerprint")
+    .option("--json", "print JSON")
+    .action((name: string, options: Options & { kind?: "tag" | "topic" }) =>
+      execute(options, (store) =>
+        store.knowledge.createTag(name, {
+          by: "owner",
+          ...(options.kind === undefined ? {} : { kind: options.kind }),
+          expectedCreationFingerprint: options.expected,
+        }),
       ),
     )
   const aliases = vocabulary.command("aliases").description("Owner-reviewed aliases on stable canonical IDs")

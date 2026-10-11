@@ -109,3 +109,39 @@ it("selects project meetings through aliases and refuses a foreign account link"
     run("projects", "meetings", "link", "Lab Example", meeting, "--provider", "example", "--account", "BobSample"),
   ).rejects.toMatchObject({ code: "not_found" })
 })
+
+it("creates an owner-reviewed distinct label and rejects a stale creation receipt", async () => {
+  const env = {
+    ...process.env,
+    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-label-create-test-")), "fixture.db"),
+  }
+  const store = await openStore({ env })
+  await store.knowledge.createTag("onboarding")
+  await store.close()
+  const run = async (...args: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env })
+      .exitOverride()
+      .parseAsync([...args, "--json"], { from: "user" })
+    return JSON.parse(streams.stdout.join(""))
+  }
+  const preview = await run("vocabulary", "preflight", "on-boarding")
+  expect(preview.disposition).toBe("review")
+  await expect(
+    run("vocabulary", "create", "onboardings", "--expected", preview.creationFingerprint),
+  ).rejects.toMatchObject({ details: { reason: "stale_tag_review" } })
+  expect(await run("vocabulary", "create", "on-boarding", "--expected", preview.creationFingerprint)).toMatchObject({
+    name: "on-boarding",
+    kind: "tag",
+  })
+  const old = await run("vocabulary", "preflight", "delivery", "--kind", "topic")
+  const garden = await run("vocabulary", "preflight", "garden")
+  await run("vocabulary", "create", "garden", "--expected", garden.creationFingerprint)
+  await expect(
+    run("vocabulary", "create", "delivery", "--kind", "topic", "--expected", old.creationFingerprint),
+  ).rejects.toMatchObject({ details: { reason: "stale_tag_review" } })
+  const current = await run("vocabulary", "preflight", "delivery", "--kind", "topic")
+  expect(
+    await run("vocabulary", "create", "delivery", "--kind", "topic", "--expected", current.creationFingerprint),
+  ).toMatchObject({ name: "delivery", kind: "topic" })
+})

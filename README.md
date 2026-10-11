@@ -161,7 +161,7 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 | Hand evidence to an agent | `memo ask` |
 | Know a person | `memo context` |
 | Organizations and projects | `memo organizations add` / `list` / `context` · `projects add` / `list` / `context` · `projects meetings list` / `link` |
-| Project and topic aliases | `memo vocabulary list` / `resolve` / `preflight` · `vocabulary aliases add` / `remove` |
+| Project and topic aliases | `memo vocabulary list` / `resolve` / `preflight` · `vocabulary aliases add` / `remove` · `vocabulary create` |
 | Relationships | `memo relationships add` / `list` / `remove` / `confirm` / `suggest` |
 | Labels | `memo tags add` · `tags remove` · `tags list` |
 | Open work | `memo tasks add` · `tasks list` · `tasks update` · `tasks assign` · `tasks close` |
@@ -230,6 +230,15 @@ Organizations and projects are yours, not one account's. Relationships (`member-
 manual statements; `relationships suggest` only proposes shared-domain links for you to confirm. A project
 can hold meetings (`projects meetings link`), and `memo vocabulary` gives projects and topics reviewed
 aliases, so one name always means one project.
+
+Before adding a new tag or topic, run `memo vocabulary preflight <name> --json`. Reuse a
+canonical label or add an alias if it means the same thing. For a deliberately distinct label,
+run `memo vocabulary create <name> --expected <creationFingerprint> --json`; select `--kind topic`
+on both commands when creating a topic. The owner accepts this review; MCP exposes preflight
+but no label-creation tool. An intervening label or alias change requires a fresh review.
+`memo vocabulary audit --json` finds likely synonyms already in the catalog. Its `complete`
+flag reports whether the bounded comparison finished; candidates require review and are never
+merged automatically. Use `--kind tag`, `--kind topic` or `--kind project` to narrow the review.
 
 ```sh
 memo organizations add 'Synthetic Studio' --kind company

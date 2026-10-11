@@ -93,7 +93,15 @@ it("offers vocabulary discovery and preflight without accepting alias changes", 
     expect((await call("vocabulary_preflight", { name: "on-boarding" })).structuredContent).toMatchObject({
       disposition: "review",
     })
-    expect((await client.listTools()).tools.some((x) => x.name === "vocabulary_alias_add")).toBe(false)
+    expect((await call("vocabulary_audit", { limit: 1 })).structuredContent).toMatchObject({
+      pairs: [],
+      complete: true,
+      semantic: "not-requested",
+    })
+    expect((await call("vocabulary_audit", { maxComparisons: 100001 })).isError).toBe(true)
+    expect(
+      (await client.listTools()).tools.some((x) => ["vocabulary_alias_add", "vocabulary_create"].includes(x.name)),
+    ).toBe(false)
     const proposed = await call("facts_add", {
       type: "decision",
       statement: "Use a weekly review",

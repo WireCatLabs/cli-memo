@@ -17,6 +17,19 @@ export const vocabularyTools = {
     input: v.object(options),
     run: (store, args) => store.knowledge.vocabulary(args),
   }),
+  vocabulary_audit: define({
+    title: "Discover vocabulary synonyms",
+    description:
+      "Bounded lexical comparison of canonical names and aliases. Review candidates; incomplete scans do not prove uniqueness. This tool neither accepts synonyms nor merges or creates records.",
+    writes: false,
+    input: v.object({
+      ...options,
+      minSimilarity: v.optional(v.pipe(v.number(), v.minValue(0.65), v.maxValue(1))),
+      maxComparisons: bounded(100000),
+      limit: bounded(200),
+    }),
+    run: (store, args) => store.knowledge.auditVocabulary(args),
+  }),
   vocabulary_resolve: define({
     title: "Resolve a canonical name",
     description:
