@@ -153,6 +153,17 @@ describe("importMail", () => {
     expect((await importInto(env)).deleted).toBe(1)
   })
 
+  it("keeps read and starred current on mail already stored", async () => {
+    const first = mail(1, { labels: ["\\Inbox"], flags: [] })
+    const { env, write } = setup([first])
+    await importInto(env)
+    expect((await emails(env))[0]).toMatchObject({ read: false, flagged: false })
+
+    write([{ ...first, flags: ["\\Seen", "\\Flagged"] }])
+    expect(await importInto(env)).toMatchObject({ saved: 0, alreadyStored: 1 })
+    expect((await emails(env))[0]).toMatchObject({ read: true, flagged: true })
+  })
+
   it("names labels as people read them", () => {
     expect(labelName("\\Important")).toBe("Important")
     expect(labelName("Important")).toBe("Important")

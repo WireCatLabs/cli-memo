@@ -235,6 +235,19 @@ export const importMail = async ({
     saved++
   }
 
+  // Read and starred change at the source after import; mail saved in this run already holds them.
+  await store.mail.setFlags(
+    accountId,
+    new Map(
+      [...labelsOf].flatMap(([id, { seen, flagged }]) =>
+        seen === undefined && flagged === undefined
+          ? []
+          : [[id, { ...(seen === undefined ? {} : { read: seen }), ...(flagged === undefined ? {} : { flagged }) }]],
+      ),
+    ),
+    startedAt,
+  )
+
   const complete = listed.length - alreadyStored - saved === 0
   await store.setSyncState(key, "mail_folder_scope", scope)
   const embedding = { embed: embed && account.embed !== false, ...(env === undefined ? {} : { env }) }

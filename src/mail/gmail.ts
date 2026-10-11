@@ -189,7 +189,7 @@ export const listImapMail = async (run: Himalaya, account: string, since: Date, 
     const before = listed.length
     const output = await run(
       ["imap", "raw", "-a", account],
-      `a EXAMINE ${mailbox}\r\nf UID FETCH ${batch.join(",")} (UID INTERNALDATE BODY.PEEK[HEADER.FIELDS (MESSAGE-ID REFERENCES IN-REPLY-TO)])\r\n`,
+      `a EXAMINE ${mailbox}\r\nf UID FETCH ${batch.join(",")} (UID FLAGS INTERNALDATE BODY.PEEK[HEADER.FIELDS (MESSAGE-ID REFERENCES IN-REPLY-TO)])\r\n`,
     )
     assertCompleted(output, ["a", "f"])
     for (const match of output.matchAll(
@@ -204,12 +204,21 @@ export const listImapMail = async (run: Himalaya, account: string, since: Date, 
       const refs = /^References:\s*(.+)$/im.exec(unfolded)?.[1]?.match(/<[^>]+>/g)
       const parent = /^In-Reply-To:\s*(<[^>]+>)/im.exec(unfolded)?.[1]
       const identity = messageId ?? `uid:${folder}:${validity}:${uid}`
+      const flags = imapList(fields, "FLAGS")
       listed.push({
         uid,
         messageId: digest(identity),
         threadId: digest(refs?.[0] ?? parent ?? identity),
         receivedAt: isoOf(internal),
         folder,
+        // IMAP has no labels; a flagged message is Starred, as in Gmail, so one search finds both.
+        ...(flags === undefined
+          ? {}
+          : {
+              labels: flags.includes("\\Flagged") ? ["Starred"] : [],
+              seen: flags.includes("\\Seen"),
+              flagged: flags.includes("\\Flagged"),
+            }),
       })
     }
     if (
