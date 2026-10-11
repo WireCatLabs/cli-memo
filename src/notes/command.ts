@@ -6,6 +6,7 @@ import { loadConfig } from "../config.js"
 import { positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { subjectOf } from "../people/subject.js"
+import { SAVE_HELP } from "../save-help.js"
 import { meetingReference } from "../store/scope.js"
 import { aboutText, isNoteReference, notesAbout } from "./about.js"
 import { boundFolders, folderOfFile } from "./bound.js"
@@ -114,6 +115,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   notes
     .command("show")
     .description("One note: its text, tags, what it links and what links it")
+    .addHelpText("after", SAVE_HELP)
     .argument("<note>", "note:<id>, document:<id>, or a file in a configured folder")
     .option("--json", "print JSON")
     .action(async (reference: string, options: { json?: boolean }) => {

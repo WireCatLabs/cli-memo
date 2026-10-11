@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- `memo mcp` tells a connecting agent when to save: what happened is a fact (`facts_add`), what it
+  concluded is a memory (`memories_add`), something to do is `actions_propose`, each with evidence,
+  and only what will matter later. `memo search …` and `memo notes show` end their `--help` with
+  the same hint for `memo facts add` and `memo memories add`.
+
 ### Fixed
 
 - Release preparation stops if another session advances main while its version PR or local
