@@ -1,4 +1,4 @@
-# memo
+# Memo
 
 Memo keeps what you know about people and projects in one place on your computer: your notes, your
 email and your Telegram and MAX messages. Your AI agent (for example Claude Code, Codex, Cursor or

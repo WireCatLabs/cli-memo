@@ -132,18 +132,19 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .action((options: { json?: boolean }) => owned(options, (store) => store.knowledge.projects()))
   projects
     .command("context")
-    .description("One project by its id: its relationships, the notes about or linking it, and its tags")
-    .argument("<id>")
+    .description(
+      "One project by its id, key or project:<id>: its relationships, the notes about or linking it, and its tags",
+    )
+    .argument("<project>")
     .option("--json", "print JSON")
-    .action((id: string, options: { json?: boolean }) =>
-      owned(options, async (store) =>
-        contextOf(
-          store,
-          (await store.knowledge.projects()).find((project) => project.id === id),
-          "project",
-          id,
-        ),
-      ),
+    .action((reference: string, options: { json?: boolean }) =>
+      owned(options, async (store) => {
+        const wanted = reference.replace(/^project:/, "")
+        const project = (await store.knowledge.projects()).find(
+          (candidate) => candidate.id === wanted || candidate.key?.toLowerCase() === wanted.toLowerCase(),
+        )
+        return contextOf(store, project, "project", project?.id ?? wanted)
+      }),
     )
   const relations = program
     .command("relationships")
