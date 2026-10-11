@@ -1,6 +1,6 @@
 {
   "name": "@wirecat/cli-memo",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Context about people across messengers, notes and mail, from a local store",
   "license": "Apache-2.0",
   "author": "Viacheslav Ptsarev",
@@ -39,8 +39,8 @@
     "ci:quick": "pnpm typecheck"
   },
   "dependencies": {
-    "@wirecat/cli-core": "0.19.3",
-    "@wirecat/cli-messaging": "0.221.0",
+    "@wirecat/cli-core": "0.19.4",
+    "@wirecat/cli-messaging": "0.225.0",
     "commander": "15.0.0",
     "valibot": "1.5.0",
     "yaml": "2.9.1"
