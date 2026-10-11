@@ -1,427 +1,381 @@
-# cli-memo
+<p align="center">
+  <img src="https://raw.githubusercontent.com/WireCatLabs/cli-memo/main/docs/images/social-preview.png" alt="Local knowledge for your AI agents" width="100%">
+</p>
 
-`memo` answers "what do I need to know about this person": who they are in each messenger, the
-newest messages each way, the notes about them, and the newest mail threads — each item with a link
-to its source.
+<h1 align="center">memo</h1>
 
-It reads the local message store that [tg-cli](https://github.com/WireCatLabs/tg-cli) and
-[max-cli](https://github.com/WireCatLabs/max-cli) share, Markdown notes such as an Obsidian vault, and mail
-through [Himalaya](https://github.com/pimalaya/himalaya). Source files and mailboxes are read-only.
-Notes you write here, links, labels, relationships and task reminders live in the local store.
-Retrieval is local; an explicitly selected model receives evidence only with the configured consent.
+<p align="center">
+  <strong>Local knowledge for your AI agents.</strong><br>
+  Your notes, documents, mail and messages in one local store — linked to people, tagged, and searchable
+  with a reference to every source.
+</p>
+
+<p align="center">
+  <a href="https://github.com/WireCatLabs/cli-memo/tree/main/docs">Docs</a> ·
+  <a href="#what-can-you-do">Examples</a> ·
+  <a href="https://wirecat.dev">WireCat</a>
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/@wirecat/cli-memo"><img alt="npm" src="https://img.shields.io/npm/v/@wirecat/cli-memo"></a>
+  <a href="https://github.com/WireCatLabs/cli-memo/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/npm/l/@wirecat/cli-memo"></a>
+  <img alt="Node" src="https://img.shields.io/node/v/@wirecat/cli-memo">
+</p>
+
+`memo` is a command-line tool. It imports a folder of notes such as an Obsidian vault, the documents in
+it, and your mail; it reads the messages that [tg-cli](https://github.com/WireCatLabs/tg-cli) and
+[max-cli](https://github.com/WireCatLabs/max-cli) keep. Then you, or your AI agent, ask: what do I know
+about this person, where did we discuss this, what did I promise. Every answer points back to its source.
+
+<!-- Demo slot: a 30–45 s recording of an agent answering "What did I promise Alice?" from memo, with
+     sources. Add it here once recorded; until then the example below shows the real output. -->
+
+**Example** — two invented notes in a vault, `people/Alice Example.md` and `Projects/Harbour budget.md`:
+
+```text
+$ memo search notes budget Friday
+Projects/Harbour budget.md
+  # Harbour budget
+people/Alice Example.md
+  Asked for the revised budget by Friday. See [[Harbour budget]].
+
+Linked from these notes
+  Alice Example  document:2  (1)
+  Bob Sample  (nobody by that name yet)  (1)
+  Harbour budget  document:1  (1)
+```
+
+Each hit names its file, and `[[links]]` become links to notes and people. `Bob Sample` becomes a link to
+a person once someone by that name is in the store.
+
+## Quick start
+
+You need Node.js 22.16 or newer.
+
+```sh
+npm install -g @wirecat/cli-memo
+memo folders add /path/to/notes   # your notes folder; Obsidian format by default
+memo notes import                 # reads the notes, their links and tags; run again after edits
+memo search notes "budget"
+```
+
+That is all notes need. Then add more context:
+
+- **Messages:** install [tg-cli](https://github.com/WireCatLabs/tg-cli) or
+  [max-cli](https://github.com/WireCatLabs/max-cli); memo reads the same local store.
+- **Search by meaning:** `tg models text download e5-small` downloads the local model once.
+- **Mail:** set up [Himalaya](https://github.com/pimalaya/himalaya), then `memo mail <account> import`.
+- **Stay current:** `memo auto on` runs `memo import` every five minutes (Linux, systemd).
+
+Or ask your agent: "Help me install memo with `npm install -g @wirecat/cli-memo`, read `memo --help`, then
+help me connect a notes folder I choose."
+
+More: [installation](https://github.com/WireCatLabs/cli-memo/blob/main/docs/installation.md) ·
+[install memo on wirecat.dev](https://wirecat.dev/en/docs/memo#install-memo)
+
+## What can you do?
+
+**"What do I need to know about Alice before the call?"**
+
+```sh
+memo context telegram:"Alice Example" --json
+```
+
+Every identity linked to her, the last message each way, chats in common, linked mail, the notes about
+her and the open tasks — each with a link to its source.
+
+**"Where did we discuss the Harbour budget?"**
+
+```sh
+memo search all 'harbour budget' --json
+```
+
+Messages, imported mail and notes, ranked together. When you know the kind, `search notes`,
+`search mail` and `search messages` read every field.
+
+**"What did I promise people this week?"**
+
+```sh
+memo ask 'What did I promise this week?' --query 'promised OR "by Friday"' --all --json
+```
+
+An evidence bundle for your agent: the matching sources with their references, what was searched, and
+the instruction to cite them. Your agent writes the answer; memo calls a model only when you ask it to.
+
+More: [search and evidence](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md) ·
+[ask for the context you need](https://wirecat.dev/en/docs/memo#ask-for-the-context-you-need)
+
+## Built for AI agents
+
+- **Any agent with a terminal** — Claude Code, Codex, Gemini CLI and others run `memo` commands; `--json`
+  gives them structured output.
+- **Evidence, not guesses** — `memo ask` hands over sources with references, and says what it could not
+  search.
+- **MCP** — `memo mcp` lets MCP apps such as Claude Desktop or Cursor propose memories, facts and actions
+  and read the agent log; they wait for you to confirm.
+
+More: [connect your AI agent](https://wirecat.dev/en/docs/agents) ·
+[memories, proposed actions and MCP](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md)
+
+## Why memo?
+
+1. **Local first.** Everything lives in a local store; search by meaning uses a local model.
+2. **Every answer has a source.** Hits carry a reference you or your agent can open: a note, a file
+   page, an email, a message.
+3. **Links, not guesses.** Notes link to people and records; identities are never merged because a name
+   matches.
+4. **Your sources stay untouched.** Folders and mailboxes are read-only; tags and your own notes live in
+   the store.
+5. **Agents propose, you decide.** Memories and actions an agent suggests wait for your confirmation;
+   nothing is ever sent.
 
 **Status:** early. Context, notes and their links, document import, Gmail and IMAP imports, tasks,
 manual relationships, evidence bundles and local reminders work.
 
-## Project and topic aliases
+More: [security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security.md) ·
+[security on wirecat.dev](https://wirecat.dev/en/docs/security)
+
+## What it reads
+
+- **Folders of notes:** Obsidian or plain Markdown, with links, aliases and tags.
+- **Documents in them:** TXT, CSV/TSV, text-layer PDF, DOCX, XLSX, ODT/ODS, PPTX and EPUB, with the page,
+  row or cell each passage came from.
+- **Mail:** Gmail or another IMAP account, through Himalaya, attachments included.
+- **Messages:** the tg and max store, with the people linked across messengers and mail.
+
+You add your own notes about messages, people and projects, tags, tasks and reminders, organizations and
+projects.
+
+More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) ·
+[files memo can read](https://wirecat.dev/en/docs/memo#files-memo-can-read)
+
+## Commands by task
+
+| Task | Commands |
+| --- | --- |
+| Connect notes folders | `memo folders add` · `folders attach` · `folders list` |
+| Import what changed | `memo import` · `notes import` · `mail <account> import` · `auto on` / `off` / `status` |
+| Read notes | `memo notes list` · `notes show` · `notes about` · `memo note` (the note about a person) |
+| Write your own notes | `memo notes add` · `notes edit` · `notes remove` · `notes export` |
+| Search | `memo search all` · `search notes` · `search mail` · `search messages` |
+| Hand evidence to an agent | `memo ask` |
+| Know a person | `memo context` |
+| Organizations and projects | `memo organizations add` / `list` / `context` · `projects add` / `list` / `context` · `projects meetings list` / `link` |
+| Project and topic aliases | `memo vocabulary list` / `resolve` / `preflight` · `vocabulary aliases add` / `remove` |
+| Relationships | `memo relationships add` / `list` / `remove` / `confirm` / `suggest` |
+| Labels | `memo tags add` · `tags remove` · `tags list` |
+| Open work | `memo tasks add` · `tasks list` · `tasks update` · `tasks assign` · `tasks close` |
+| Task dependencies | `memo tasks link` / `unlink` / `relations` · `tasks readiness` · `tasks ready` |
+| Reminders | `memo reminders schedule` / `list` / `poll` / `ack` / `snooze` / `cancel` |
+| Agents | `memo memories …` · `facts …` · `actions …` · `agents log` · `memo mcp` |
+
+Every command takes `--help`; most take `--json`.
+
+More: [technical docs](#technical-docs) · [notes and files on wirecat.dev](https://wirecat.dev/en/docs/memo)
+
+## Notes from files, and notes you write
+
+**From a folder.** `memo folders add` gives a folder an id that the store uses; its path is only where it is
+on this computer, so the same folder on another computer is attached with `memo folders attach <id> <path>`.
+`memo notes import` stores each file as a note named by its path. An edited file keeps its old text as a
+revision; a moved file keeps its id, links and tags; a deleted file loses its text on the next import. The
+`obsidian` format (the default) reads `[[Note|label]]` links, aliases, `tags:` and `#tags`; `markdown` reads
+`[label](path.md)` links and `tags:`. A `[[Kai Sample]]` link becomes a link to a person once someone by that
+name is in the store. Hidden folders such as `.obsidian` are skipped.
+
+**Written in memo.** A note you write is the store's, not a file's, and is about whatever `--about` names: a
+person, a message, a chat, a project, a task, another note.
 
 ```sh
-memo vocabulary list --kind project --scope work --json
-memo vocabulary resolve 'Lab Example' --kind project --json
-memo vocabulary aliases add project:1 'Lab Example' --expected FINGERPRINT --json
-memo vocabulary aliases remove project:1 ALIAS_ID --expected FINGERPRINT --json
-memo vocabulary preflight on-boarding --json
-```
-
-Use canonical IDs and the fingerprint from `vocabulary list` when reviewing an alias change.
-Exact aliases reuse one project or label; ambiguous names remain candidates. Preflight suggests
-likely lexical duplicates without creating labels, merging records or loading a model. Existing
-automatic tag creation still needs the native duplicate-review rollout; this preflight alone does
-not protect every creation path.
-
-Read-only MCP tools `vocabulary_list`, `vocabulary_resolve` and `vocabulary_preflight` expose the same
-catalog to an agent. Alias changes remain owner operations. An agent's `facts_add` can name the
-canonical `project:<id>` and retains its proposed status until reviewed.
-
-## Project meetings and ready work
-
-```sh
-memo projects add 'Research Example' --key RES --scope work
-memo projects meetings list RES --provider zoom --account STORED_ACCOUNT --json
-memo projects meetings link RES MEETING_ID --provider zoom --account STORED_ACCOUNT --json
-memo projects meetings list RES --proposed --provider zoom --account STORED_ACCOUNT --json
-memo tasks add --project RES --title 'Research draft' --type feature
-memo tasks add --project RES --title 'Review draft' --type chore
-memo tasks link RES-2 RES-1 --kind blocked-by --json
-memo tasks link RES-2 RES-1 --kind follow-up-of --json
-memo tasks readiness RES-2 --json
-memo tasks ready --project RES --json
-```
-
-Select the exact stored account explicitly. Meeting links are reviewed owner operations;
-confirming an agent's existing proposal requires its current `--expected FINGERPRINT`. Names and
-explicit aliases resolve to one project; ambiguous names require a canonical reference.
-
-New project keys have 3–4 characters; existing project/task keys remain valid. Only completed
-prerequisites make a blocked task ready. Dismissed or deleted blockers need review. Follow-up and
-related links are informational. `tasks relations` lists edges; `tasks unlink` removes a reviewed
-edge with the same `--kind`. Parent hierarchy is separate.
-
-MCP `task_relations`, `task_readiness` and `tasks_ready` expose bounded discovery to an agent. They
-never claim, assign, execute or accept task relationships. Durable worker leases and the cited
-meeting-findings batch workflow are separate follow-on work.
-
-## Your notes on messages, people and projects
-
-```sh
-memo notes add 'Prefers mornings' --about telegram:'Rin Example'
-memo notes add --file review.md --about 'msg:telegram/1/77/42' --about project:PROJECT_ID --export
-memo notes list --about telegram:'Rin Example' --json
+memo notes add 'Prefers mornings' --about telegram:'Alice Example'
 memo notes edit NOTE_ID --revision 1 --text 'Prefers early mornings'
-memo notes remove NOTE_ID
 memo notes export --to /path/to/vault/memo --format obsidian
 ```
 
-A note written here is the store's, not a file's, and is about whatever `--about` names: a person by
-`<messenger>:<name or id>`, or any stored record by its reference — `msg:`, `chat:`, `contact:`,
-`person:`, `organization:`, `project:`, `task:`, `note:`, `document:`. Several `--about` give it several
-subjects. An edit names the
-revision it changes, so an edit made meanwhile is never lost. tg and max `contacts notes` are the same
-notes.
+An edit names the revision it changes, so an edit made meanwhile is never lost. `export` writes your notes
+as files that import then skips, and never overwrites a file you edited.
 
-`export` writes them as files, in a folder's format, with `memo-id` and `memo-hash` in the front
-matter: import skips such a file, so an export inside a vault never comes back as a second note. A
-file edited since memo wrote it is left alone and reported; nothing is deleted. `--export [dir]` on `add`
-and `edit` writes one; with no folder given, `notes.export: { "dir": "…", "format": "…" }` in the
-config says where.
+More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) ·
+[add your notes](https://wirecat.dev/en/docs/memo#add-your-notes) ·
+[create your own notes](https://wirecat.dev/en/docs/memo#create-your-own-notes)
 
-## Open work
+## Search and evidence
 
-```sh
-memo tasks add 'msg:telegram/1/77/42' --type request
-memo tasks add 'note:NOTE_ID' --provider telegram --account 1 --type request
-memo tasks list --provider telegram --account 1 --json
-memo tasks assign TASK_ID PERSON_UID --role reviewer
-memo tasks close TASK_ID --provider telegram --account 1 --as done
-memo tasks add --project RES --title 'Export drops the last row' --type bug --priority 1 --assignee PERSON_UID
-memo tasks update RES-1 --priority 0 --description 'Seen on CSV export'
-memo tasks list --project RES
-memo tasks close RES-1 --reason fixed
-```
-
-A bug, feature or chore has no source: `--project` (its key or `project:<id>`) and `--title` make it there,
-keyed `<project key>-<n>`. `--priority` (0 urgent … 4 low), `--parent`, `--description` and `--assignee` work
-on any task, one from a message too; `tasks update` changes them later. `tasks assign` names an assignee,
-reviewer or watcher. Every change of status, due date, priority or assignee is recorded as a task event.
-
-Native note tasks belong to the explicitly selected stored account. Their previews read current note
-text; deleting a note keeps its task with an unavailable source. Repeated creation of the same kind
-returns the existing task, including one already closed.
-
-`context` includes directly related open tasks and explicit task assignments. A task in a shared group
-belongs in a person's context only when they authored its source or you assigned it explicitly. Closed
-tasks stay closed on repeated creation. If several accounts of the requested provider exist, use
-`memo context telegram:101 --account 1`.
-
-## Search and gather evidence
+Notes are searched by words and word stems in the query language messages use — phrases, `AND`/`OR`/`NOT`,
+`tag:`, `date:` — and by meaning once the local model is downloaded; both are ranked together. `search all`
+reads messages, imported mail and notes together, and nothing else. When you know the kind, its own search
+reads every field: `search mail` takes `from:`, `to:`, `cc:`, `bcc:`, `subject:` and `mailbox:`.
 
 ```sh
 memo search notes '"budget review" AND NOT cancelled' --limit 20
-memo search notes 'project progress' --filter 'date:2026-10-08' --tag project --folder /path/to/vault
+memo search mail 'from:alice@example.com subject:budget'
 memo notes show note:NOTE_ID --json
-memo search all 'budget AND date:[2026-09-01 TO *]' --json
-memo ask 'What work is pending?' --query budget --all --json
 ```
 
-Notes are searched by their words and word stems, in the query language messages use: phrases,
-`AND`/`OR`/`NOT`, `tag:`, `date:`; `--exact` matches every word as written. A message-only field such as
-`from:` is refused. They are also searched by meaning when the model is downloaded, and the two are
-ranked together: `by` says which ran, each hit's `foundBy` which found it, and `meaningSkipped` why
-meaning did not run. Each hit carries its reference, the first matching line and the links the note
-holds; `linked` counts what the notes found link to, with each person's name. Follow `nextOffset` with
-`--offset`.
+`memo ask` needs a scope (`--all`, or `--provider` with `--account`) and returns evidence by default. To
+call a model instead, set `MEMO_MODELS_ANALYSIS_PROVIDER` and `MEMO_MODELS_ANALYSIS_MODEL` and pass
+`--model`; a remote model also needs `--allow-remote`.
 
-`notes show` takes `note:<id>` or a file in a configured folder, and answers with the note's tags, its
-links, its backlinks and, for a PDF or sheet, where its text came from.
+More: [search and evidence](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md) ·
+[searching on wirecat.dev](https://wirecat.dev/en/docs/search)
 
-`search all` searches messages, imported mail and native notes together, and nothing else: not people,
-memories, projects, organizations or decisions. Use it when you do not know where something was written. When
-you know the kind, its own search reads it with every field: `search mail` takes `from:`, `to:`, `cc:`, `bcc:`,
-`subject:` and `mailbox:` (a folder or Gmail label); `search messages`, `search notes`; `search notes --type
-internal|file` narrows note kinds. An empty answer means those three hold nothing that matches: try the kind's
-own search, looser words, or `tg search conversations` to find mail and messages by meaning.
-`search all` includes a separate `tasks` list for open work linked to matching sources. Results identify source
-kind/account and skipped-resource coverage; a query using a field only messages have (`from:`, `after:`)
-searches the messages and says the notes were not searched. Missing hits do not prove that an event
-never happened.
+## People, organizations and projects
 
-`ask` returns an evidence bundle for your chosen agent by default. To call a model, configure
-`MEMO_MODELS_ANALYSIS_PROVIDER`, `MEMO_MODELS_ANALYSIS_MODEL`, optionally
-`MEMO_MODELS_ANALYSIS_BASE_URL` and `MEMO_MODEL_API_KEY`, then pass `--model`. Remote calls also require
-`--allow-remote`. Model claims are generated and unverified, cite supplied evidence, and distinguish
-assertions, conclusions and inferences. Suggestions create no task until you explicitly run
-`memo tasks add <source> --type <kind>`. Answers are not saved as independent facts.
+`memo context` answers from the shared store: every identity linked to the person, the last message each
+way, recent messages, chats in common, linked mail, the notes about them and the open tasks. Who is who is
+decided in messaging — `tg contacts link <person> email:<address>` — and a same name is never enough.
+`memo note telegram:"Alice Example" /path/to/notes/people/Alice.md` names the note that is about her.
 
-## Organizations and projects
+Organizations and projects are yours, not one account's. Relationships (`member-of`, `related-to`) are
+manual statements; `relationships suggest` only proposes shared-domain links for you to confirm. A project
+can hold meetings (`projects meetings link`), and `memo vocabulary` gives projects and topics reviewed
+aliases, so one name always means one project.
 
 ```sh
 memo organizations add 'Synthetic Studio' --kind company
 memo projects add 'Synthetic Harbour' --organization organization:ORGANIZATION_ID
-memo relationships add person:PERSON_UID project:PROJECT_ID --role author
 memo projects context PROJECT_ID --json
-memo tags add client --organization ORGANIZATION_ID
-memo tags add follow-up --task TASK_ID
 ```
 
-Organizations (a company, team, family or community) and projects (with a short key, a type and the
-organization they belong to) are yours, not one account's. Relationships use `member-of` or `related-to`;
-`list`, `remove` and `confirm` manage them. They are manual statements and never merge identities because
-names or domains match. `organizations context` and `projects context` list the relationships, the notes
-about or linking it, and its tags. Tags on a task need no account; its
-reminders name the account it waits on.
+More: [people, organizations and projects](https://github.com/WireCatLabs/cli-memo/blob/main/docs/people.md) ·
+[people on wirecat.dev](https://wirecat.dev/en/docs/people)
 
-`memo relationships suggest --provider email --account owner@example.test` stores bounded weak
-shared-domain proposals for direct email contacts. Proposals retain rule provenance and remain
-unconfirmed; they do not enter confirmed person context. `relationships confirm <id>` records your
-explicit acceptance. Common free-mail domains are excluded from this heuristic.
+## Mail
 
-## Memories, proposed actions and the agent log
+memo reads mail through [Himalaya](https://github.com/pimalaya/himalaya), a command-line mail client you
+set up first. Gmail is the default; another IMAP provider uses `mode: "imap"` with the folders to read. The
+mailbox is opened read-only, `--max` (default 200) bounds the new mail per run and the next run continues.
+Gmail labels become mailboxes, attachments' text is searched with its email, and mail deleted at the
+source loses its text in the store. Each account is named in `mail.accounts`, and the import names it:
+memo never picks one for you. `memo import` and the timer import every account.
 
 ```sh
-memo memories add 'Bob Sample prefers Friday meetings' --kind preference --scope work --evidence note:NOTE_ID
-memo memories list --status proposed
-memo memories confirm memory:MEMORY_ID
-memo facts add 'Releases go out on Fridays' --type decision --evidence msg:telegram/1/77/42
-memo facts list --type decision --status proposed
-memo facts accept fact:FACT_ID
-memo actions propose reply --reason 'asked twice' --provider telegram --payload '{"text":"Friday works"}'
-memo actions approve ACTION_ID
-memo agents log --agent memo-mcp --limit 20
+memo mail work import --since 2026-09-01   # work: the account's name in mail.accounts
+memo search mail 'mailbox:important budget'
 ```
 
-A memory is what was concluded — a summary, digest or preference — with its evidence (any stored reference)
-and a scope, `personal` or `work`. One you write is confirmed at once; an agent's waits as `proposed` until you
-`confirm` it, and `stale` marks one whose evidence no longer holds. `memories search` finds the words in
-them.
+More: [mail](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mail.md) ·
+[email on wirecat.dev](https://wirecat.dev/en/docs/email)
 
-A fact is what happened: a fact, a statement, a question, a decision or a promise, with its evidence. Yours is
-accepted at once; an agent's waits as `proposed` until you `facts accept` it. A decision with `--supersedes`
-ends the one it replaces once accepted, and `facts reverse` ends an accepted decision nothing replaced.
+## Tags, tasks and reminders
 
-A proposed action is what an agent wants done in one account: a reply, a ban, an invitation. Nothing is ever
-sent. `actions approve` makes it a task in that account's inbox, so it shows in `memo tasks list`, and the
-proposal remembers the task; `actions reject` closes it. `actions list --status` filters them.
+Tags are your labels on a note, an email, a message, a chat, a person, an organization, a project, a task,
+a meeting, or every note under a folder. They live in the store; files, Gmail labels and mailbox flags are
+never changed. A task points at the message or note it came from, or is your own in a
+project (`--project RES --title …`), and can be blocked by another until it is done. Reminders are local:
+a caller you choose polls for them, and nothing is delivered to a messenger or mailbox.
 
-`memo agents log` lists what agents did through the MCP servers that share the store, newest first: the
-agent, the tool, its tier, the outcome and the times, never the arguments.
+```sh
+memo tags add follow-up --note note:NOTE_ID
+memo tasks add 'msg:telegram/1/77/42' --type request
+memo reminders schedule TASK_ID --at 2026-10-09T09:00:00+02:00 --provider telegram --account 1
+```
 
-`memo mcp` serves the same to an agent over MCP, on stdin and stdout: `memories_add`, `memories_list`,
-`memories_show`, `memories_search`, `facts_add`, `facts_list`, `facts_show`, `actions_propose`, `actions_list`, `actions_show` and `agents_log`. An
-agent's memories, facts and proposals are its own (`memo-mcp`) and wait for you; it cannot confirm, accept,
-approve or reject. Every call goes into the agent log.
+More: [tags](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tags.md) ·
+[open work and reminders](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tasks.md) ·
+[tag your sources](https://wirecat.dev/en/docs/memo#tag-your-sources)
+
+## Agents and MCP
+
+An agent with a terminal runs `memo` with `--json`. An MCP app starts `memo mcp`, which serves memories,
+facts, proposed actions and the agent log on stdin and stdout:
 
 ```json
 { "mcpServers": { "memo": { "command": "memo", "args": ["mcp"] } } }
 ```
 
-## Local task reminders
+An agent's memories, facts and proposals wait as `proposed`; it cannot confirm, accept, approve or reject. Approving an
+action makes it your task; nothing is ever sent. `memo agents log` lists every call — the agent, the tool,
+the outcome and the times, never the arguments. Search and context are not served over MCP.
 
-```sh
-memo reminders schedule TASK_ID --at 2026-10-09T09:00:00+02:00 --timezone Europe/Madrid --provider telegram --account 1
-memo reminders poll --provider telegram --account 1 --json
-memo reminders ack REMINDER_ID RECEIPT --provider telegram --account 1
-memo reminders snooze REMINDER_ID --revision 1 --at 2026-10-10T09:00:00+02:00 --provider telegram --account 1
-memo reminders cancel REMINDER_ID --provider telegram --account 1
-```
-
-Reminders are local deliveries for an explicitly scheduled open task. Poll leases due deliveries;
-acknowledgement confirms consumption. Expired leases retry with a new receipt; integrations deduplicate
-by `deliveryId` (reminder ID and revision). State survives restart. Snooze checks the current revision;
-task closure cancels pending reminders. The import timer continues to import sources and does not
-deliver reminders to messengers or email. A caller can schedule `poll` using its chosen local scheduler.
-
-## Context about a person
-
-```sh
-memo context telegram:"Rin Example"     # or max:<name or id>, email:<address>
-```
-
-One answer from the shared store: every identity linked to the person (`tg|max contacts link`), the
-last message each way, recent messages in direct chats and groups, chats in common — mail included once
-an address is linked — then the notes linked to them: the note about them (`memo note`), notes that link
-them, notes that link the note about them, and the notes you wrote here about them. A name in a note's
-plain text is not a link and is not listed. What gave nothing is listed with the reason. `--json` for
-agents, `--limit` for more.
-
-## Notes
-
-```sh
-memo folders add /path/to/vault            # once: gives the folder an id
-memo notes import                          # load the notes into the shared store; run again after edits
-memo search notes "lighthouse budget"      # notes by their words and meaning, and what they link
-memo notes about telegram:"Rin Example"    # notes about a person, and the notes linking them
-```
-
-`import` stores each file as a note of its folder, named by its path inside the folder. An edited note
-keeps its old text as a revision; a note deleted from the folder loses its text on the next import, and a
-run that finds most notes missing at once deletes nothing and says so. A file moved inside the folder —
-gone from one path, the same content at another — keeps its id, its links and its tags.
-
-Import also stores what each note links, through the folder's format. A link to a note the folder has
-once becomes a link to that note. A name no note has, such as `[[Kai Sample]]`, is kept as written and
-becomes a link to the person the moment someone by that name, local alias or username is in the store —
-or stays unresolved while two people share it. A file's `tags:` and `#tags` become the note's tags, and
-a tag removed from the file is removed from the note — unless you added the same tag yourself.
-
-Import then embeds the notes for search by meaning with the local e5-small model (shared with tg and
-max: `tg models text download e5-small`), only what changed, at most 600 chunks a run — the next run
-continues. `--no-embed`, or `notes.embed: false` in the config, skips it.
-
-`about` takes `<messenger>:<name or id>` or a reference (`person:`, `organization:`, `project:`, `note:`,
-`document:`) and lists the
-notes about it, the notes that link it, the notes that link a note about it, and links written with the
-person's name that two people share. Hidden folders such as `.obsidian` are skipped, and nothing is ever
-written to a notes folder.
-
-Imports accept Markdown/TXT, CSV/TSV, text-layer PDF, DOCX, XLSX, ODT/ODS, PPTX and EPUB.
-PDF/DOCX use optional `unpdf` and `mammoth` packages installed alongside the CLI; modern office
-formats use the bounded built-in shared readers. Results report missing engines, unreadable files, unsupported legacy DOC/XLS, scanned
-PDFs needing an agent, oversized inputs and truncation. PDF page spans, CSV row/column ranges and
-XLSX sheet/cell addresses preserve source provenance. Files are capped at 50 MiB and stored text at
-200,000 characters. Content hashes detect equal-size edits.
-
-Folders and what to skip go in `~/.config/cli-memo/config.json`; `--folder` narrows a run to some of the
-configured folders and `--ignore` adds rules for one run. An ignore rule is a path inside the folder — a file, or a folder and everything under it —
-or a glob (`**/Private*`, `*.txt`):
-
-```json
-{ "notes": { "folders": [{ "id": "3", "path": "/path/to/vault" }], "ignore": ["Journal/Private.md", "Archive"] } }
-```
-
-### Folders and their format
-
-```sh
-memo folders add /path/to/vault                     # gives the folder an id and prints it
-memo folders add /path/to/notes --format markdown   # a plain Markdown folder
-memo folders attach FOLDER_ID /other/path/to/vault  # the same folder on another computer
-memo folders list
-```
-
-A folder's id is the store's and is what notes and links use; its path is only where it is on this
-computer, so the config differs between computers and the id does not. `folders list` also shows the
-folders the store has from another computer, to attach. A path can belong to one id only. A bare path in
-`notes.folders`, or a folder with no id, is refused by import with both commands named — memo never
-invents an id, which would give every note a new identity. A folder id from a store older than
-`wirecat.db` is not in the store: `memo folders add <path>` gives the folder a new one.
-
-`format` says how the folder's notes are written. `obsidian` (the default) reads `[[Note|label]]` links
-with `#heading` and `#^block` anchors, `aliases`, `tags:` and inline `#tags`. `markdown` reads
-`[label](path.md)` links and `tags:`; a `#word` in its text is not a tag. Both read links to stored
-records — `[Rin](person:…)`, or a bare `msg:…` in the text.
-
-A Markdown file whose front matter carries `memo-id` was written by memo and is skipped by import.
+More: [memories, proposed actions and MCP](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md) ·
+[MCP on wirecat.dev](https://wirecat.dev/en/docs/mcp)
 
 ## Keeping it current
 
-```sh
-memo import                  # notes and mail, only what changed since the last run
-memo auto on --every 5m      # run memo import on a systemd user timer (default 5m, a minute or more)
-memo auto status             # on/off, interval, next and last run
-memo auto off                # stop and remove the timer
-```
+`memo import` brings notes and mail up to date and reads only what changed. `memo auto on --every 5m` runs
+it on a systemd user timer; `auto status` shows the next and last run. A lock keeps two imports apart, and
+one failing source does not stop the others.
 
-The config is the one source: `memo auto on/off` write `auto: { enabled, every }` to
-`~/.config/cli-memo/config.json`, and a hand edit there takes effect at the next timer run, which
-rewrites or removes its own timer to match. The timer runs `memo import` from the place it was set up
-from, with the `PATH` of that shell, so Himalaya and the keyring helper are found.
+More: [keeping the store current](https://github.com/WireCatLabs/cli-memo/blob/main/docs/archive.md) ·
+[import a folder on wirecat.dev](https://wirecat.dev/en/docs/memo#import-the-folder-you-choose)
 
-`memo import` is incremental. A note whose size and change time are as this computer last saw them is
-not read; one whose content hash the store already has is not saved, so a second computer importing the
-same folder saves nothing new. What this computer last saw is kept per folder in memo's state folder. Mail reads bodies only of messages not stored yet. A lock
-keeps two imports from running at once, and one failing source does not stop the others.
+## Configuration
 
-## Mail
-
-Gmail remains the default. For another IMAP provider, configure an account with `mode: "imap"`
-and `folders: ["INBOX", "Archive"]` in `mail.accounts`. Message-ID and reference headers preserve
-message/thread identities across folder moves and UID resets. Mail without Message-ID uses an explicit
-UIDVALIDITY/folder/UID fallback, which can change after a move/reset. Configured folders are listed
-completely before deletion checks; a changed folder scope skips deletion for that run.
-
-Imports report the proven date/folder window. No thread is called globally complete on the basis of one
-window. To, CC and BCC are kept. A readable attachment's text is kept with its email and searched with it
-(`content:`, `filename:`); extraction failures are reported. After installing an optional engine, use
-`memo mail <account> import --retry-attachments` to reread a bounded batch of stored mail. Import embeds mail
-for search by meaning (`--no-embed` skips it); `memo search mail` itself matches words, and `tg search
-conversations` finds mail by meaning.
-
-```sh
-memo mail work import --since 2026-09-01      # work: the account's name in mail.accounts
-memo search mail 'budget' --account you@example.com   # one mail account; every one without --account
-```
-
-`<account>` is required, even with one account configured: memo never picks one for you, and names the
-configured accounts when it is missing or unknown. `memo import` and the timer import every account in
-`mail.accounts`. A mail import and `memo import` share one lock, so they never run at the same time.
-
-Reads a Gmail account's All Mail through [Himalaya](https://github.com/pimalaya/himalaya) into the
-shared store's mail tables: one thread per Gmail thread, each folder a mailbox, the mailbox address as
-the account, senders and recipients as people. Gmail labels (Inbox, Important, Starred, your own) become
-label mailboxes, so `search mail mailbox:important` finds them. `search mail`, `search all`, `ask`, person context and tags
-see it. Mail an import before 0.8.0 saved as messages stays searchable; an email imported again is listed
-once.
-
-- Read only: the mailbox is opened read-only, nothing is sent, and no mail is marked read.
-- Run it again any time: what is stored is skipped; `--max` (default 200) bounds the new mails read
-  per run, and the next run continues.
-- A mail deleted at the source loses its text in the store. The first two days of the window are left
-  alone, and a run that finds an unusually large share missing deletes nothing and says so. Mail moved
-  to Spam leaves All Mail and counts as deleted.
-
-Set the account up in Himalaya first (an IMAP account with a Gmail
-[app password](https://myaccount.google.com/apppasswords); `bin/mail-password <name>` stores it in the
-keyring), then name it in `~/.config/cli-memo/config.json`:
+`memo folders add` and `memo auto on` write `~/.config/cli-memo/config.json` for you. By hand you set what
+to skip, mail accounts and where exported notes go:
 
 ```json
-{ "mail": { "accounts": [{ "name": "work", "address": "you@example.com" }] } }
+{
+  "notes": { "ignore": ["Journal/Private.md", "Archive"], "export": { "dir": "/path/to/vault/memo" } },
+  "mail": { "accounts": [{ "name": "work", "address": "you@example.com" }] }
+}
 ```
 
-`mail.maxBodyChars` (default 1,000,000) and `mail.maxAttachmentChars` (default 200,000) set how many characters
-of a body and of one attachment's text are kept.
+More: [configuration](https://github.com/WireCatLabs/cli-memo/blob/main/docs/configuration.md) ·
+[configuration on wirecat.dev](https://wirecat.dev/en/docs/configuration)
 
-## People
+## Security
 
-Who is who is decided in messaging: `tg contacts link <person> email:<address>` (or `max contacts link`)
-records that a messenger identity and a mail address are one person, in the shared store. A same name
-is never enough. `memo` only names the note that is about the person:
+- Note folders and mailboxes are read-only; nothing is sent, moved or marked read.
+- What memo adds — your notes, links, tags, tasks, memories — stays in the local store.
+- A note or mail deleted at the source loses its text in the store on the next import; a run that finds an
+  unusually large share missing deletes nothing and says so.
+- Evidence reaches a model only with `--model`, and a remote one only with `--allow-remote`.
+- Agents propose; only you confirm memories and approve actions.
 
-```sh
-memo note telegram:"Rin Example" ~/Notes/people/Rin.md
-memo note telegram:"Rin Example" --clear
-```
+More: [security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security.md) ·
+[security on wirecat.dev](https://wirecat.dev/en/docs/security)
 
-An identity is `<messenger>:<name or id>`; a name two people share is refused, with their ids to
-choose from. The note must be imported first; the link is an `about` link in the store. Entries of an
-older `~/.config/cli-memo/people-notes.json` move into the store once their notes are imported; the file
-itself is left as it is.
+## Limits
 
-## Tags on sources
+- Files up to 50 MiB; stored text up to 200,000 characters a file. Scanned PDFs and legacy DOC/XLS are
+  reported, not read.
+- Search by meaning embeds at most 600 chunks a run; the next run continues.
+- `memo mail <account> import` reads 200 new messages a run by default (`--max`) and keeps up to 1,000,000
+  characters of a body and 200,000 of an attachment's text (`mail.maxBodyChars`, `mail.maxAttachmentChars`).
+- Searches return at most 100 results; `tags list` shows 100 labels unless `--limit` says more.
+- Tags are 1–32 letters a–z, digits or hyphens.
 
-```sh
-memo tags add work follow-up --note note:NOTE_ID
-memo tags add project --folder FOLDER_ID --path Projects
-memo search notes "budget" --tag work
-memo tags add follow-up --message 'msg:email/you%40example.com/12345/67890'
-memo tags add follow-up --chat 12345 --provider email --account you@example.com
-memo tags list --tag follow-up --json
-tg search mail 'tag:follow-up'
-```
+More: [documents in a folder](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md#documents-in-a-folder) ·
+[files memo can read](https://wirecat.dev/en/docs/memo#files-memo-can-read)
 
-A note is labelled by its reference (`--note note:<id>`, or `document:<id>` for a file in a notes
-folder), an email or messenger message by its full `msg:` locator, a mail thread or chat by its exact id
-and account. A person, organization, project or task is labelled by `--person`, `--organization`,
-`--project` or `--task`, with no account; a contact names its account, and so does a meeting:
-`--meeting <id> --provider <provider> --account <account>`, the meeting's id in the store. A note about a
-meeting takes the same three options: `memo notes add 'Send the agenda' --meeting <id> --provider <provider>
---account <account>`. `--folder` with an id from
-`memo folders list`, and `--path` for one subfolder, labels every note under it at any depth. Tags use 1–32 letters a–z, digits or hyphens; case is ignored.
-Adding an existing tag or removing an absent one leaves it unchanged.
+## When something is missing
 
-Labels live in the shared local store. Tagging leaves note files, front matter, Gmail labels and mailbox
-flags untouched. Labels survive edits and moves of the note; a deleted note disappears from search.
-`tags list` shows up to 100 labels by default (`--limit` for more, `hasMore` in JSON); a note's tags
-say whether its file or you stated them. Contact identity
-tags remain available through `tg|max tags`.
+- **Searched by words only:** the meaning model is not downloaded — `tg models text download e5-small`.
+- **A folder is refused by import:** it has no id yet — `memo folders add <path>`.
+- **A name is refused:** two people share it; use one of the ids it lists.
+- **`memo ask` asks for a scope:** add `--all`, or `--provider` with `--account`.
+- **An empty search:** the store holds nothing that matches — not proof that it never happened. Try the
+  kind's own search, looser words, or import that source first.
+
+More: [if something is missing](https://wirecat.dev/en/docs/memo#if-something-is-missing) ·
+[search and evidence](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md)
+
+## Part of WireCat
+
+[WireCat](https://wirecat.dev) is an open-source, local-first context layer for AI agents: tg for
+Telegram, max for MAX, memo for your notes and mail, all in one local store. Start with your notes. Add
+more context when you need it. Your context. Any agent.
+
+## Technical docs
+
+| Page | What it covers |
+| --- | --- |
+| [Installation](https://github.com/WireCatLabs/cli-memo/blob/main/docs/installation.md) | Requirements, install, where files go, update |
+| [Notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) | Folders, formats, documents, your own notes, export |
+| [Search and evidence](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md) | Query language, `search all`, `ask` |
+| [People, organizations and projects](https://github.com/WireCatLabs/cli-memo/blob/main/docs/people.md) | Person context, linking, relationships |
+| [Mail](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mail.md) | Gmail and IMAP through Himalaya |
+| [Tags](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tags.md) | Labels on any source |
+| [Open work and reminders](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tasks.md) | Tasks and local reminders |
+| [Memories, facts, proposed actions and MCP](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md) | What agents propose, the agent log |
+| [Keeping the store current](https://github.com/WireCatLabs/cli-memo/blob/main/docs/archive.md) | `memo import` and the timer |
+| [Configuration](https://github.com/WireCatLabs/cli-memo/blob/main/docs/configuration.md) | Every setting and variable |
+| [Security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security.md) | What is read, written and sent |
+| [Changelog](https://github.com/WireCatLabs/cli-memo/blob/main/CHANGELOG.md) | Every release |
+
+The reader guides live on [wirecat.dev](https://wirecat.dev/en/docs/memo).
 
 ## Development
 
@@ -430,6 +384,10 @@ pnpm install
 pnpm lint && pnpm typecheck && pnpm test
 ```
 
+Pull requests are welcome; examples and tests use invented people only.
+
+More: [installation](https://github.com/WireCatLabs/cli-memo/blob/main/docs/installation.md#development)
+
 ## License
 
-[Apache License 2.0](LICENSE).
+[Apache License 2.0](https://github.com/WireCatLabs/cli-memo/blob/main/LICENSE).
