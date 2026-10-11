@@ -5,6 +5,7 @@ import { captureStreams } from "@wirecat/cli-core"
 import { type MessageStore, openStore } from "@wirecat/cli-messaging/store"
 import { afterEach, describe, expect, it } from "vitest"
 import { createProgram } from "../program.js"
+import { decodeMailboxName, labelName } from "./gmail.js"
 import { himalaya } from "./himalaya.js"
 import { importMail } from "./import.js"
 
@@ -14,6 +15,8 @@ const NOW = Date.parse("2026-10-04T12:00:00Z")
 const SINCE = new Date("2026-09-01T00:00:00Z")
 
 interface Fixture {
+  labels?: string[]
+  flags?: string[]
   uid: string
   messageId: string
   threadId: string
@@ -121,6 +124,41 @@ describe("importMail", () => {
 
     expect(asked).toEqual([true])
     expect(result.indexed).toMatchObject({ chunks: 2, left: false })
+  })
+
+  it("reads Gmail labels and flags into label mailboxes, replaces them each run, and deletes labelled mail", async () => {
+    const labelled = mail(1, {
+      labels: ["\\Inbox", "\\Important", '"Muy Importante"', "&BB8EQAQ4BDIENQRC-"],
+      flags: ["\\Seen", "\\Flagged"],
+    })
+    const { env, write } = setup([labelled, mail(2), mail(3), mail(4), mail(5), mail(6)])
+    await importInto(env)
+    const boxes = async () =>
+      (await emails(env))
+        .find(({ externalId }) => externalId === "9001")
+        ?.mailboxes.filter(({ kind }) => kind === "label")
+        .map(({ name }) => name)
+        .sort()
+    expect(await boxes()).toEqual(["Important", "Inbox", "Muy Importante", "Starred", "Привет"])
+    expect((await emails(env)).find(({ externalId }) => externalId === "9001")).toMatchObject({
+      read: true,
+      flagged: true,
+    })
+
+    write([{ ...labelled, labels: ["\\Inbox"], flags: [] }, mail(2), mail(3), mail(4), mail(5), mail(6)])
+    await importInto(env)
+    expect(await boxes()).toEqual(["Inbox"])
+
+    write([mail(2), mail(3), mail(4), mail(5), mail(6)])
+    expect((await importInto(env)).deleted).toBe(1)
+  })
+
+  it("names labels as people read them", () => {
+    expect(labelName("\\Important")).toBe("Important")
+    expect(labelName("Important")).toBe("Important")
+    expect(labelName("\\Sent")).toBe("Sent")
+    expect(decodeMailboxName("&BB8EQAQ4BDIENQRC-")).toBe("Привет")
+    expect(decodeMailboxName("Q&-A")).toBe("Q&A")
   })
 
   it("adds nothing when run again", async () => {

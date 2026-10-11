@@ -286,7 +286,8 @@ memo mail import --since 2026-09-01
 
 Reads a Gmail account's All Mail through [Himalaya](https://github.com/pimalaya/himalaya) into the
 shared store's mail tables: one thread per Gmail thread, each folder a mailbox, the mailbox address as
-the account, senders and recipients as people. `search mail`, `search all`, `ask`, person context and tags
+the account, senders and recipients as people. Gmail labels (Inbox, Important, Starred, your own) become
+label mailboxes, so `search mail mailbox:important` finds them. `search mail`, `search all`, `ask`, person context and tags
 see it. Mail an import before 0.8.0 saved as messages stays searchable; an email imported again is listed
 once.
 
