@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.17.0 — 11.10.2026
+
 ### Added
 
 - **Mail search filters by read and starred state, and takes `label:`.** `memo search mail` accepts `is:unread`,
