@@ -4,6 +4,13 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- **memo runs on `@wirecat/cli-messaging` 0.230.0**, with cli-meetings 0.3.0 and the SQLite and ONNX packages
+  1.0.1, which add their license file; nothing changes for `memo`.
+
 ## 0.7.1 — 11.10.2026
 
 ### Fixed
