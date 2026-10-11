@@ -1,22 +1,25 @@
 # Configuration
 
-This page lists every setting in memo's config file and the environment variables you can set. Most
-settings are written for you: `memo folders add` adds a folder and `memo auto on` turns the timer on.
-Edit the file by hand for what to skip, mail accounts and where exported notes go.
+This page lists every setting in Memo's config file and every environment variable Memo reads. Use
+it to look up a setting; you rarely need to edit the file by hand. `memo folders add` adds a folder
+and `memo auto on` turns the timer on for you. Edit the file yourself for files to skip, mail
+accounts and where exported notes go.
 
-The file is `~/.config/cli-memo/config.json`. `MEMO_CONFIG_DIR` moves the folder it is in, and
-`MEMO_STATE_DIR` moves memo's state folder.
+The file is `~/.config/cli-memo/config.json`. It is a JSON file: keep the quotes, commas and braces
+as in the example.
 
 ```json
 {
   "notes": {
-    "folders": [{ "id": "3", "path": "/path/to/vault", "format": "obsidian" }],
+    "folders": [{ "id": "1", "path": "/path/to/vault", "format": "obsidian" }],
     "ignore": ["Journal/Private.md", "Archive", "**/Private*"],
     "embed": true,
     "export": { "dir": "/path/to/vault/memo", "format": "obsidian" }
   },
   "mail": {
-    "accounts": [{ "name": "work", "address": "you@example.com" }]
+    "accounts": [{ "name": "work", "address": "you@example.com" }],
+    "maxBodyChars": 1000000,
+    "maxAttachmentChars": 200000
   },
   "auto": { "enabled": true, "every": "5m" }
 }
@@ -25,43 +28,55 @@ The file is `~/.config/cli-memo/config.json`. `MEMO_CONFIG_DIR` moves the folder
 ## `notes`
 
 | Key | Meaning |
-| --- | --- |
-| `folders` | Each folder's store `id`, its `path` on this computer and its `format`: `obsidian` (the default) or `markdown`. `memo folders add` writes an entry. A bare path is refused by import. See [folders and their format](notes.md#folders-and-their-format). |
-| `ignore` | Paths inside a folder, or globs, that import skips. `--ignore` adds rules for one run. |
-| `embed` | `false` keeps notes out of search by meaning: `memo import` does not embed them. |
-| `export` | `dir` and `format` for `memo notes export` and `--export` when no folder is given. |
+|---|---|
+| `folders` | Your note folders. Each has the `id` the local store gave it, its `path` on this computer and its `format`: `obsidian` (the default) or `markdown`. `memo folders add` writes an entry; an entry with no `id` is refused by import. See [Markdown or Obsidian](notes.md#markdown-or-obsidian). |
+| `ignore` | Files and folders that import skips: a path inside the folder, a folder, or a pattern such as `**/Private*`. `--ignore` adds rules for one run. |
+| `embed` | `false` keeps notes out of search by meaning. |
+| `export` | `dir` and `format` for `memo notes export` and `--export` when you give no folder. |
+
+The folder `id` is the same on every computer; the `path` is different on each. See
+[use the same notes on another computer](notes.md#use-the-same-notes-on-another-computer).
 
 ## `mail`
 
-`accounts` lists the mail accounts to import, each with:
+`accounts` lists the mail accounts to import. Each account has:
 
 | Key | Meaning |
-| --- | --- |
-| `name` | The account's name in Himalaya's config, and the `<account>` in `memo mail <account> import`. |
-| `address` | The mailbox address, which becomes the account in the store. |
+|---|---|
+| `name` | The account's name in Himalaya, and the name in `memo mail <name> import`. |
+| `address` | The email address. |
 | `mode` | `gmail` (the default) or `imap`. |
-| `folders` | The folders an `imap` account imports, such as `["INBOX", "Archive"]`. |
-| `embed` | `false` skips embedding this account's mail for search by meaning. |
+| `folders` | For `imap`: the mail folders to read, such as `["INBOX", "Archive"]`. |
+| `embed` | `false` keeps this account's mail out of search by meaning. |
 
-Beside `accounts`, `maxBodyChars` (default 1,000,000) and `maxAttachmentChars` (default 200,000) set how many
-characters of an email body and of one attachment's text are kept.
+Next to `accounts`:
 
-See [mail](mail.md).
+| Key | Meaning |
+|---|---|
+| `maxBodyChars` | How many characters of each email are kept. Default 1,000,000. |
+| `maxAttachmentChars` | How many characters of each attachment's text are kept. Default 200,000. |
+
+See [Mail](mail.md).
 
 ## `auto`
 
-`enabled` and `every` (`5m`, `90s`, `1h` — a minute or more) for the import timer. `memo auto on/off`
-write them, and a hand edit takes effect at the next timer run. See
-[keeping the store current](archive.md).
+| Key | Meaning |
+|---|---|
+| `enabled` | `true` when the import timer is on. |
+| `every` | How often it runs: `90s`, `5m`, `1h`; one minute or more. |
+
+`memo auto on` and `memo auto off` write these. If you edit them by hand, the timer follows at its
+next run. See [importing on a timer](archive.md#import-on-a-timer-linux).
 
 ## Environment variables
 
 | Variable | Meaning |
-| --- | --- |
-| `MEMO_CONFIG_DIR` | The folder of `config.json`. |
-| `MEMO_STATE_DIR` | memo's state folder. |
-| `MEMO_MODELS_ANALYSIS_PROVIDER`, `MEMO_MODELS_ANALYSIS_MODEL` | The model `memo ask --model` calls. |
-| `MEMO_MODELS_ANALYSIS_BASE_URL` | Optional: the model's address. |
-| `MEMO_MODEL_API_KEY` | The model's key. |
+|---|---|
+| `MEMO_CONFIG_DIR` | The folder that holds `config.json`. |
+| `MEMO_STATE_DIR` | Memo's state folder: what each folder looked like at the last import. |
+| `MEMO_MODELS_ANALYSIS_PROVIDER`, `MEMO_MODELS_ANALYSIS_MODEL` | The AI provider and the model identifier (the name the provider uses for it) that `memo ask --model` calls. |
+| `MEMO_MODELS_ANALYSIS_BASE_URL` | Optional: the provider's address. |
+| `MEMO_MODEL_API_KEY` | The provider's key. |
 
-A remote model is called only with `--allow-remote` as well. See [evidence for an agent](search.md#evidence-for-an-agent).
+Memo calls a provider outside your computer only when `memo ask` has both `--model` and
+`--allow-remote`. See [give your agent the sources](search.md#give-your-agent-the-sources).

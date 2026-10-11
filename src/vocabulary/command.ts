@@ -99,6 +99,7 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
   const aliases = vocabulary.command("aliases").description("Owner-reviewed aliases on stable canonical IDs")
   aliases
     .command("add")
+    .description("Owner: add another name for a project, tag or topic")
     .argument("<reference>")
     .argument("<name>")
     .requiredOption("--expected <fingerprint>", "the current vocabulary preview fingerprint")
@@ -111,6 +112,7 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
     })
   aliases
     .command("remove")
+    .description("Owner: remove another name from a project, tag or topic")
     .argument("<reference>")
     .argument("<alias-id>")
     .requiredOption("--expected <fingerprint>", "the current vocabulary preview fingerprint")

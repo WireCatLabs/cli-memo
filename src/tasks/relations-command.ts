@@ -33,6 +33,7 @@ export const taskRelationsCommand = (tasks: Command, streams: Streams, env: Node
   }
   tasks
     .command("relations")
+    .description("A task's links to other tasks")
     .argument("<task>")
     .option("--json", "print JSON")
     .action((task: string, options: { json?: boolean }) =>
@@ -40,6 +41,7 @@ export const taskRelationsCommand = (tasks: Command, streams: Streams, env: Node
     )
   tasks
     .command("readiness")
+    .description("Whether a task can start, and what it still waits for")
     .argument("<task>")
     .option("--json", "print JSON")
     .action((task: string, options: { json?: boolean }) => execute(options, (store) => store.tasks.taskReadiness(task)))

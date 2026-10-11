@@ -4,6 +4,7 @@ import { actionsCommand } from "./actions/command.js"
 import { agentsCommand } from "./agents/command.js"
 import { askCommand } from "./answers/command.js"
 import { contextCommand } from "./context/command.js"
+import { commandsCommand } from "./discovery/command.js"
 import { factsCommand } from "./facts/command.js"
 import { knowledgeCommands } from "./knowledge/command.js"
 import { mailCommand } from "./mail/command.js"
@@ -49,6 +50,7 @@ export const createProgram = ({
   askCommand(program, streams, env)
   importCommand(program, streams, env)
   autoCommand(program, streams, env)
+  commandsCommand(program, streams)
 
   return program
 }

@@ -1,55 +1,122 @@
-# Search and evidence
+# Search
 
-This page is for finding something you wrote or received — in notes, imported mail or messages — and
-for handing an AI agent the evidence behind an answer. Every hit carries a reference to its source, so
-you or your agent can open the original. Empty results only mean the store holds nothing that matches,
-not that the thing never happened.
+This page helps you find something you wrote or received, in your notes, your mail or your Telegram
+and MAX messages, and give your agent the sources behind an answer. Every result names its source,
+so you can open the original and check it. An empty result means only that the local store has
+nothing that matches; the chat may not be downloaded or the folder not imported yet.
 
-```sh
-memo search notes '"budget review" AND NOT cancelled' --limit 20
-memo search notes 'project progress' --filter 'date:2026-10-08' --tag project --folder /path/to/vault
-memo notes show note:NOTE_ID --json
-memo search all 'budget AND date:[2026-09-01 TO *]' --json
-memo ask 'What work is pending?' --query budget --all --json
+## Ask your agent
+
+```text prompt
+Use memo CLI to find what was agreed about the Harbour budget, in my notes, mail and messages.
+Quote the matching text, show the source of each result and tell me what you could not search.
 ```
 
-## Notes
+Your agent picks the search, reads the matching text and shows you the sources. You can check each
+one with `memo notes show` or in the original app.
 
-Notes are searched by their words and word stems, in the query language messages use: phrases,
-`AND`/`OR`/`NOT`, `tag:`, `date:`; `--exact` matches every word as written. A message-only field such as
-`from:` is refused. They are also searched by meaning when the model is downloaded, and the two are
-ranked together: `by` says which ran, each hit's `foundBy` which found it, and `meaningSkipped` why
-meaning did not run. Each hit carries its reference, the first matching line and the links the note
-holds; `linked` counts what the notes found link to, with each person's name. Follow `nextOffset` with
-`--offset`.
+## Choose where to search
 
-The meaning model is the local e5-small, shared with tg and max: `tg models text download e5-small`.
+| Where it is | Command |
+|---|---|
+| You do not know | `memo search all 'budget'` |
+| Your notes and files | `memo search notes 'budget'` |
+| Your email | `memo search mail 'budget'` |
+| Telegram or MAX messages | `memo search messages 'budget'` |
 
-`notes show` takes `note:<id>` or a file in a configured folder, and answers with the note's tags, its
-links, its backlinks and, for a PDF or sheet, where its text came from.
+`search all` looks in messages, mail and notes together. It does not search people, memories,
+projects or tasks; use `memo context`, `memo memories search` and `memo tasks list` for those.
+When you know where something is, its own search is better, because it understands more search
+words.
 
-## Everything at once
+## Search words
 
-`search all` searches messages, imported mail and native notes together, and nothing else: not people,
-memories, projects, organizations or decisions. Use it when you do not know where something was written. When
-you know the kind, its own search reads it with every field: `search mail` takes `from:`, `to:`, `cc:`, `bcc:`,
-`subject:` and `mailbox:` (a folder or Gmail label); `search messages`, `search notes`; `search notes --type
-internal|file` narrows note kinds. An empty answer means those three hold nothing that matches: try the kind's
-own search, looser words, or `tg search conversations` to find mail and messages by meaning.
-`search all` includes a separate `tasks` list for open work linked to matching sources. Results identify source
-kind/account and skipped-resource coverage; a query using a field only messages have (`from:`, `after:`)
-searches the messages and says the notes were not searched. Missing hits do not prove that an event
-never happened.
+A search finds results that contain **every** word you type, including other forms of the word
+(`meeting` also finds `meetings`).
 
-## Evidence for an agent
+| To find | Type |
+|---|---|
+| All of these words | `budget venue` |
+| An exact phrase | `"budget review"` |
+| One word or another | `budget OR invoice` |
+| Without a word | `budget NOT cancelled` |
+| With a tag | `tag:follow-up` |
+| On a day, or from a day on | `date:2026-10-08`, `date:[2026-09-01 TO *]` |
+| From or to someone (mail and messages) | `from:kai`, `to:kai@example.com` |
+| In the subject or a mail folder (mail) | `subject:invoice`, `mailbox:important` |
 
-`ask` returns an evidence bundle for your chosen agent by default. To call a model, configure
-`MEMO_MODELS_ANALYSIS_PROVIDER`, `MEMO_MODELS_ANALYSIS_MODEL`, optionally
-`MEMO_MODELS_ANALYSIS_BASE_URL` and `MEMO_MODEL_API_KEY`, then pass `--model`. Remote calls also require
-`--allow-remote`. Model claims are generated and unverified, cite supplied evidence, and distinguish
-assertions, conclusions and inferences. Suggestions create no task until you explicitly run
-`memo tasks add <source> --type <kind>`. Answers are not saved as independent facts.
+Put the search in single quotes so the terminal passes it to Memo as it is:
+`memo search notes '"budget review" NOT cancelled'`. `--exact` matches words only as written.
 
-`ask` needs a scope: `--all`, or `--provider` (with `--account` when several accounts exist).
+## Narrow down your notes
 
-Next: [turn what you found into open work](tasks.md), or [label it with tags](tags.md).
+```sh
+memo search notes 'budget' --tag work                   # only notes with a tag
+memo search notes 'budget' --folder /path/to/notes       # only one folder
+memo search notes 'budget' --type internal               # only notes you wrote in Memo
+memo search notes 'budget' --filter 'date:2026-10-08'    # and a second condition
+```
+
+`--type file` shows only notes from files. Results come 20 at a time; when there are more, the answer
+gives a `nextOffset`, and `--offset` with that number shows the next page.
+
+## Search mail
+
+```sh
+memo search mail 'from:kai subject:invoice'
+memo search mail 'mailbox:important budget'
+memo search mail 'budget' --account you@example.com
+```
+
+`mailbox:` finds a mail folder or a Gmail label, such as `inbox`, `important` or `starred`. Without
+`--account`, Memo searches every mail account. Text inside attachments is searched too
+(`filename:` and `content:`).
+
+## Search by meaning
+
+With the search model on your computer, Memo also searches by meaning, so `holiday` can find a note
+about a vacation. tg or max downloads the model once:
+
+```sh
+tg models text download e5-small    # or: max models text download e5-small
+```
+
+The model runs on your computer. After the download, run `memo import` so your notes are prepared
+for it. Each result says whether it was found by words, by meaning or both. Without the model,
+Memo says "Searched by words only" and still finds every note that contains the words.
+
+## What a result shows
+
+For a note, a result shows the file and the first matching line. Below the results, Memo lists the
+notes and people that the results link to:
+
+```text
+Projects/Budget.md
+  # Budget review
+
+Linked from these notes
+  Kai Sample  (nobody by that name yet)  (1)
+```
+
+`nobody by that name yet` means the note links to a name that is not a known person in the local
+store yet. Add `--json` to get each result's reference, its links and how it was found.
+
+## Give your agent the sources
+
+`memo ask` collects the sources for a question, so your agent can answer and cite them:
+
+```sh
+memo ask 'What is the Harbour budget?' --all --query 'Harbour budget'
+```
+
+`--query` gives the words to search for; without it, Memo searches for the whole question, and every
+word must match. `--all` searches every account; use `--provider telegram --account 1` for one
+account. The answer lists each source with its reference and text, what was searched and whether
+anything was left out. Memo does not answer the question itself and does not save the answer.
+
+Memo can also send the sources to an AI provider you set up and return its answer: add `--model`,
+and `--allow-remote` for a provider outside your computer. See
+[configuration](configuration.md#environment-variables). The provider's answer is generated text:
+check it against the sources.
+
+Next: [see everything about one person](people.md), or [turn what you found into a task](tasks.md).

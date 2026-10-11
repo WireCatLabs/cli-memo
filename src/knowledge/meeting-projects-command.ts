@@ -36,7 +36,12 @@ export const meetingProjectsCommand = (projects: Command, streams: Streams, env:
       await store.close()
     }
   }
-  options(group.command("list").argument("<project>", "project reference, key or explicit alias"))
+  options(
+    group
+      .command("list")
+      .description("Meetings linked to a project in one account, or proposed links")
+      .argument("<project>", "project reference, key or explicit alias"),
+  )
     .option("--proposed", "show proposed memberships instead of confirmed ones")
     .option("--limit <n>", "meetings per page", positive)
     .option("--offset <n>", "rows to skip", (value) => Number(value))
@@ -53,7 +58,13 @@ export const meetingProjectsCommand = (projects: Command, streams: Streams, env:
         ),
       ),
     )
-  options(group.command("link").argument("<project>").argument("<meeting-id>", "positive stored meeting id"))
+  options(
+    group
+      .command("link")
+      .description("Link a stored meeting to a project, or confirm a proposed link")
+      .argument("<project>")
+      .argument("<meeting-id>", "positive stored meeting id"),
+  )
     .option("--expected <fingerprint>", "required when confirming an existing proposal")
     .option("--provenance <text>", "why the reviewed meeting belongs to this project")
     .action((project: string, meeting: string, given: Options) =>

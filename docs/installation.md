@@ -1,44 +1,81 @@
 # Installation
 
-This page is for installing memo, a command-line tool, and knowing what it needs and where it keeps its
-files. After it, `memo --help` works and you can import your first folder of notes. memo needs Node.js
-22.16 or newer; the other tools below are needed only for the sources that use them.
+This page helps you install Memo, check that it works, and know where it keeps its files. When you
+are done, `memo --help` lists Memo's commands and you can import your first folder of notes. You
+need Node.js; everything else on this page is needed only for the sources that use it.
 
-## Requirements
+## What it needs
 
-- **Node.js** `^22.16.0` or `>=24`.
-- **Notes and documents:** nothing more. PDF and DOCX files need the optional `unpdf` and `mammoth`
-  packages installed alongside the CLI ([documents in a folder](notes.md#documents-in-a-folder)).
-- **Messages:** [tg-cli](https://github.com/WireCatLabs/tg-cli) or [max-cli](https://github.com/WireCatLabs/max-cli),
-  which write the local message store memo reads.
-- **Search by meaning:** the local e5-small model, downloaded once with `tg models text download e5-small`.
-- **Mail:** [Himalaya](https://github.com/pimalaya/himalaya) ([mail](mail.md)).
-- **The import timer** (`memo auto`): Linux with systemd ([keeping the store current](archive.md)).
+- **Node.js 22.16 or newer** (version 22.16+ or 24+), with npm. Node.js runs Memo, and npm
+  installs it. If you do not have them, ask your agent to help you install them, or get
+  them from [nodejs.org](https://nodejs.org).
+- **Notes and documents:** nothing more. PDF and Word (`.docx`) files need two optional readers, see
+  [files Memo can read](notes.md#files-memo-can-read).
+- **Messages:** [tg](https://github.com/WireCatLabs/tg-cli) for Telegram or
+  [max](https://github.com/WireCatLabs/max-cli) for MAX. They save your chats in the local store, and
+  Memo reads them from there. Memo does not log in to a messenger itself.
+- **Search by meaning:** a small search model that runs on your computer. tg or max downloads it
+  once: `tg models text download e5-small`, or `max models text download e5-small`. Without it,
+  Memo searches by words.
+- **Mail:** [Himalaya](https://github.com/pimalaya/himalaya), a mail program that Memo uses to read
+  your mailbox ([mail](mail.md)).
+- **Importing on a timer** (`memo auto`): Linux. On macOS and Windows, run `memo import` yourself or
+  from your own scheduler ([keeping Memo up to date](archive.md)).
 
 ## Install
 
+**The easiest way: ask your agent.**
+
+```text prompt
+Install Memo with npm install -g @wirecat/cli-memo.
+Check Node.js and npm first and help me set them up if needed.
+Then run memo --help and tell me if it works.
+```
+
+**Or install it yourself.** Open a terminal and run:
+
 ```sh
 npm install -g @wirecat/cli-memo
-memo --version
+memo --help
 ```
+
+On Windows, open PowerShell and run:
+
+```powershell
+npm.cmd install -g @wirecat/cli-memo
+memo --help
+```
+
+`memo --help` should list commands such as `notes`, `search` and `tags`. If the terminal says the
+command is not found, close it, open a new one and try again.
+
+Memo has no login step. Next, [add a folder of notes](notes.md#add-a-folder) or
+[connect a mail account](mail.md).
 
 ## Where the files are
 
-- The config: `~/.config/cli-memo/config.json` ([configuration](configuration.md)).
-- Messages, mail, notes, links, labels, relationships and task reminders: the local store shared with
-  tg and max, `wirecat.db`.
-- What this computer last imported, per folder: memo's state folder.
+| What | Where |
+|---|---|
+| Settings | `~/.config/cli-memo/config.json` ([configuration](configuration.md)) |
+| Your messages, mail, notes, tags, tasks and memories | The local store, `wirecat.db`, shared with tg and max |
+| What this computer imported last, for each folder | Memo's state folder |
+
+`~` means your home folder. Your note files and your mailbox stay where they are; the local store
+holds a copy of their text.
 
 ## Update and remove
 
 ```sh
-npm install -g @wirecat/cli-memo     # update to the latest release
-npm uninstall -g @wirecat/cli-memo   # remove the command; the store and config stay
+npm install -g @wirecat/cli-memo     # update to the latest version
+npm uninstall -g @wirecat/cli-memo   # remove the memo command
 ```
 
-`memo auto off` removes the import timer before you uninstall.
+If you turned on the timer, run `memo auto off` before you remove Memo. Removing Memo keeps the local
+store and the settings, because tg and max use the same store.
 
 ## Development
+
+To work on Memo itself, clone [the repository](https://github.com/WireCatLabs/cli-memo) and run:
 
 ```sh
 pnpm install

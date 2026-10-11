@@ -1,36 +1,46 @@
 # Security
 
-This page says what memo reads, what it writes and what can leave your computer, so you can decide what
-to point it at. In short: your sources are read, never changed; everything memo adds stays in a local
-file; and evidence goes to a model only when you configure one and allow it.
+This page says what Memo reads, what it writes and what can leave your computer, so you can decide
+what to point it at. In short: Memo reads your sources and never changes them, everything it adds
+stays in a file on your computer, and your text goes to an AI provider only when you set one up and
+allow it.
 
-## Your sources are read, never changed
+## Your sources are only read
 
-- Note folders are only read. Hidden folders such as `.obsidian` are skipped. Files are written to a
-  folder only by `memo notes export` or `--export`, and a file edited since memo wrote it is left alone.
-- The mailbox is opened read-only: nothing is sent, moved or flagged, and no mail is marked read.
-- Tags leave note files, front matter, Gmail labels and mailbox flags untouched.
+- **Note folders** are only read. Hidden folders such as `.obsidian` are skipped. Memo writes files
+  only when you export notes, into the folder you name, and never overwrites a file you edited.
+- **Your mailbox** is opened read-only. Memo never sends, moves, deletes or flags mail, and does not
+  mark it as read.
+- **Tags** leave your files, Gmail labels and mailbox flags as they are.
 
-## What memo adds stays local
+## What Memo adds stays on your computer
 
-Notes you write here, links, labels, relationships, memories, facts, proposed actions and task reminders live
-in the local store shared with tg and max. Search by meaning uses a local model. Reminders are
-delivered to a local caller that polls for them, never to a messenger or mailbox.
+Your notes, links, tags, tasks, reminders, memories, facts and proposed actions are kept in the local
+store, a file on your computer shared with tg and max. Search by meaning uses a model that runs on
+your computer. Reminders go to a program on your computer that asks for them, never to a messenger
+or a mailbox.
 
-## Deletions are honoured
+## Deletions are respected
 
-A note deleted from its folder, or a mail deleted at the source, loses its text in the store on the next
-import. A run that finds an unusually large share missing at once deletes nothing and says so.
+When you delete a note file or an email, its text leaves the local store on the next import. If an
+import finds that an unusually large part of a folder or mailbox is missing at once, it deletes
+nothing and tells you.
 
-## Agents propose, you decide
+## Agents suggest, you decide
 
-- An agent's memories, facts and proposed actions wait for you; through MCP it cannot confirm, accept,
-  approve or reject. Approving an action makes it your task; nothing is ever sent.
-- The agent log records the agent, the tool, the outcome and the times, never the arguments.
-- Identities are never merged because a name or a domain matches; you link them.
+- Proposed actions, and memories and facts added through the MCP server, wait for your review.
+  Through the MCP server, an agent cannot confirm, accept, approve or reject.
+- A memory or fact added with the `memo` command is confirmed at once, whoever typed it. Ask an agent
+  with a terminal to show you what it wants to add first.
+- Approving an action makes it a task for you. Memo never sends a message or an email.
+- The agent log records the agent, the tool, the result and the time, never what the agent sent.
+- Two accounts are treated as one person only after you link them. A matching name or email domain
+  is never enough.
 
 ## What can leave your computer
 
-`memo ask` returns evidence to your own agent by default. It calls a model only with `--model`, and a
-remote model only with `--allow-remote` as well. Model claims are generated and unverified. What your
-agent does with the evidence is up to that agent.
+- `memo ask` gives the sources to your own agent by default. It sends them to an AI provider only
+  with `--model`, and to a provider outside your computer only with `--allow-remote` as well. The
+  provider's answer is generated text: check it against the sources.
+- What your agent does with the text it reads is up to that agent and its provider. Memo cannot
+  control it. Point your agent only at the sources you are willing to share with it.

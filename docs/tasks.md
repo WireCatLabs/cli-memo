@@ -1,70 +1,116 @@
-# Open work and reminders
+# Tasks and reminders
 
-This page is for keeping track of what you owe people: a request in a message, a promise in a note, an
-action an agent proposed. A task points at its source, so you can always see why it exists. Reminders
-are local: memo schedules them and a caller you choose polls for them; nothing is sent to a messenger
-or mailbox.
+This page helps you keep track of what you have to do: a request in a message, a promise in a note,
+or work in one of your projects. A task made from a message or note points to it, so you can always
+see why the task exists. Reminders stay on your computer: Memo never sends them to a messenger or a
+mailbox.
 
-## Open work
+## A task from a message or note
+
+**The easiest way: ask your agent.**
+
+```text prompt
+Use memo CLI to find the messages from this week where someone asked me for something.
+Show them to me first. Make a task only for the ones I choose.
+```
+
+**Or run it yourself.** Copy the message's reference from a search result:
 
 ```sh
 memo tasks add 'msg:telegram/1/77/42' --type request
-memo tasks add 'note:NOTE_ID' --provider telegram --account 1 --type request
-memo tasks list --provider telegram --account 1 --json
-memo tasks assign TASK_ID PERSON_UID --role reviewer
-memo tasks close TASK_ID --provider telegram --account 1 --as done
-memo tasks add --project RES --title 'Export drops the last row' --type bug --priority 1 --assignee PERSON_UID
-memo tasks update RES-1 --priority 0 --description 'Seen on CSV export'
-memo tasks list --project RES
-memo tasks close RES-1 --reason fixed
+memo tasks add note:12 --provider telegram --account 1 --type promise
+memo tasks list --provider telegram --account 1
 ```
 
-A bug, feature or chore has no source: `--project` (its key or `project:<id>`) and `--title` make it there,
-keyed `<project key>-<n>`. `--priority` (0 urgent … 4 low), `--parent`, `--description` and `--assignee` work
-on any task, one from a message too; `tasks update` changes them later. `tasks assign` names an assignee,
-reviewer or watcher. Every change of status, due date, priority or assignee is recorded as a task event.
-New project keys have 3–4 characters; existing project and task keys remain valid.
+A task from a source has a type: `request` (the default), `question`, `mention` or `promise`. It
+belongs to one messenger account. A message reference already names its account; for a note or a
+file, add `--provider` and `--account`. Adding the same task twice gives you the existing one.
 
-## Dependencies and ready work
+## Tasks in a project
+
+A task in a project does not need a source. It gets a key made of the project's key and a number,
+such as `HRB-1`:
 
 ```sh
-memo tasks add --project RES --title 'Research draft' --type feature
-memo tasks add --project RES --title 'Review draft' --type chore
-memo tasks link RES-2 RES-1 --kind blocked-by --json
-memo tasks link RES-2 RES-1 --kind follow-up-of --json
-memo tasks readiness RES-2 --json
-memo tasks ready --project RES --json
+memo tasks add --project HRB --title 'Book the venue' --priority 1
+memo tasks add --project HRB --title 'Export drops the last row' --type bug
+memo tasks list --project HRB
+memo tasks update HRB-1 --priority 0 --description 'Call before Friday'
 ```
 
-Only completed prerequisites make a blocked task ready. Dismissed or deleted blockers need review. Follow-up and
-related links are informational. `tasks relations` lists edges; `tasks unlink` removes a reviewed
-edge with the same `--kind`. Parent hierarchy is separate.
+| Option | Meaning |
+|---|---|
+| `--type` | `chore` (the default), `bug` or `feature` |
+| `--priority` | a number from 0 (urgent) to 4 (low) |
+| `--parent` | a bigger task this one is part of, in the same project |
+| `--description` | more detail, in Markdown |
+| `--assignee` | who does it, by the person's ID |
 
-MCP `task_relations`, `task_readiness` and `tasks_ready` expose bounded discovery to an agent. They
-never claim, assign, execute or accept task relationships. Durable worker leases and the cited
-meeting-findings batch workflow are separate follow-on work.
+To create the project first, see [organizations and projects](people.md#organizations-and-projects).
 
-Native note tasks belong to the explicitly selected stored account. Their previews read current note
-text; deleting a note keeps its task with an unavailable source. Repeated creation of the same kind
-returns the existing task, including one already closed. Closed tasks stay closed on repeated creation.
-
-A person's `memo context` lists the open tasks related to them — see
-[context about a person](people.md#context-about-a-person).
-
-## Local task reminders
+## Who works on it
 
 ```sh
-memo reminders schedule TASK_ID --at 2026-10-09T09:00:00+02:00 --timezone Europe/Madrid --provider telegram --account 1
+memo tasks assign HRB-1 PERSON_UID
+memo tasks assign HRB-1 PERSON_UID --role reviewer
+```
+
+The role is `assignee` (the default), `reviewer` or `watcher`. A person's ID comes from their
+context (`memo context … --json`). Tasks assigned to someone appear in
+[their context](people.md#everything-about-a-person).
+
+## Close a task
+
+```sh
+memo tasks close HRB-1 --reason booked
+memo tasks close 7 --provider telegram --account 1 --as dismissed
+```
+
+Close a task with `--as done` (the default) or `--as dismissed`. `memo tasks list --state done` shows
+closed tasks.
+Every change of status, priority or assignee is recorded with the task.
+
+## What to do first
+
+One task can wait for another. Link them, then ask Memo which tasks can start:
+
+```sh
+memo tasks link HRB-2 HRB-1 --kind blocked-by     # HRB-2 waits for HRB-1
+memo tasks ready --project HRB                    # tasks with nothing left to wait for
+memo tasks readiness HRB-2                        # why HRB-2 can or cannot start
+memo tasks relations HRB-2
+memo tasks unlink HRB-2 HRB-1 --kind blocked-by
+```
+
+A task becomes ready only when every task it waits for is done. If a task it waits for was
+dismissed, Memo asks you to review the link. `follow-up-of` and `related-to` links are for information and do not block anything.
+
+## Reminders
+
+A reminder is a time when a task should be brought to your attention. Memo keeps it on your computer;
+another program you choose, such as your agent or a script, asks Memo for reminders that are due and
+shows them to you.
+
+```sh
+memo reminders schedule 7 --at 2026-10-20T09:00:00+02:00 --timezone Europe/Madrid --provider telegram --account 1
+memo reminders list --provider telegram --account 1
+memo reminders snooze 3 --revision 1 --at 2026-10-21T09:00:00+02:00 --provider telegram --account 1
+memo reminders cancel 3 --provider telegram --account 1
+```
+
+Write the time with its offset from UTC, such as `+02:00` for Madrid in summer. A reminder belongs to
+an account, so it needs `--provider` and `--account`. Closing a task cancels its reminders.
+
+For the program that shows reminders:
+
+```sh
 memo reminders poll --provider telegram --account 1 --json
 memo reminders ack REMINDER_ID RECEIPT --provider telegram --account 1
-memo reminders snooze REMINDER_ID --revision 1 --at 2026-10-10T09:00:00+02:00 --provider telegram --account 1
-memo reminders cancel REMINDER_ID --provider telegram --account 1
 ```
 
-Reminders are local deliveries for an explicitly scheduled open task. Poll leases due deliveries;
-acknowledgement confirms consumption. Expired leases retry with a new receipt; integrations deduplicate
-by `deliveryId` (reminder ID and revision). State survives restart. Snooze checks the current revision;
-task closure cancels pending reminders. The import timer continues to import sources and does not
-deliver reminders to messengers or email. A caller can schedule `poll` using its chosen local scheduler.
+`poll` hands out the reminders that are due, each with a receipt. `ack` with that receipt confirms
+that the reminder was shown. A reminder that is not confirmed in time is handed out again with a new
+receipt, so a crash does not lose it. Use the `deliveryId` in the answer to avoid showing the same
+reminder twice. The import timer does not deliver reminders.
 
-Next: [label tasks and sources with tags](tags.md).
+Next: [label tasks with tags](tags.md), or [see what your agent proposed](memories.md#proposed-actions).
