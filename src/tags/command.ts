@@ -3,6 +3,7 @@ import { normalizeTag } from "@wirecat/cli-messaging"
 import { type MessageStore, openStore, type StoredTag } from "@wirecat/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { positive } from "../options.js"
+import { heldMessage } from "../store/held.js"
 import { selectTarget, type TargetInput } from "../store/scope.js"
 import { type SourceScope, type SourceTarget, type SourceTargetInput, sourceTarget } from "../store/source-target.js"
 
@@ -70,7 +71,7 @@ const listTags = async (store: MessageStore, options: ListOptions) => {
           continue
         if (
           row.type === "message" &&
-          (await store.message(key, row.messageId as string, { chatId: row.chatId as string })) === undefined
+          (await heldMessage(store, key, row.messageId as string, row.chatId as string)) === undefined
         )
           continue
         items.push({ ...key, ...row })

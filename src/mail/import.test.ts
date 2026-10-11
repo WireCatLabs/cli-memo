@@ -12,7 +12,6 @@ const ME = "owner@example.test"
 const KEY = { provider: "email", account: ME }
 const NOW = Date.parse("2026-10-04T12:00:00Z")
 const SINCE = new Date("2026-09-01T00:00:00Z")
-const ANY = /[\s\S]?/
 
 interface Fixture {
   uid: string
@@ -67,12 +66,17 @@ const importInto = async (env: NodeJS.ProcessEnv, max?: number) =>
     ...(max === undefined ? {} : { max }),
   })
 
+const emails = async (env: NodeJS.ProcessEnv) => {
+  const opening = await store(env)
+  return opening.mail.emails({ accountId: (await opening.storedAccount(KEY)).id })
+}
+
 afterEach(async () => {
   for (const each of opened.splice(0)) await each.close()
 })
 
 describe("importMail", () => {
-  it("saves each mail as a message of its Gmail thread, with the subject and the body as text", async () => {
+  it("saves each mail as an email of its Gmail thread, with sender, recipients and body", async () => {
     const { env } = setup([
       mail(1),
       mail(2, {
@@ -86,14 +90,37 @@ describe("importMail", () => {
     const result = await importInto(env)
 
     expect(result).toMatchObject({ listed: 2, saved: 2, alreadyStored: 0, deleted: 0, complete: true })
-    const saved = await (await store(env)).find({ account: KEY, chatId: "9001", pattern: ANY, limit: 10 })
-    expect(saved.items.map(({ id, outgoing, chatTitle }) => ({ id, outgoing, chatTitle }))).toEqual([
-      { id: "9002", outgoing: true, chatTitle: "Synthetic subject 1" },
-      { id: "9001", outgoing: false, chatTitle: "Synthetic subject 1" },
+    const saved = await emails(env)
+    expect(saved.map(({ externalId, outgoing, subject }) => ({ externalId, outgoing, subject }))).toEqual([
+      { externalId: "9002", outgoing: true, subject: "Re: Synthetic subject 1" },
+      { externalId: "9001", outgoing: false, subject: "Synthetic subject 1" },
     ])
-    expect(saved.items[1]?.text).toBe("Synthetic subject 1\n\nSynthetic body 1")
-    expect(saved.items[1]?.senderId).toBe("rin@example.test")
-    expect(saved.items[1]?.locator).toBe(`msg:email/${encodeURIComponent(ME)}/9001/9001`)
+    expect(saved[1]).toMatchObject({ bodyText: "Synthetic body 1", fromAddress: "rin@example.test" })
+    expect(saved[1]?.mailboxes.map(({ externalId }) => externalId)).toEqual(["[Gmail]/All Mail"])
+    const opening = await store(env)
+    const [thread] = await opening.mail.threads({ accountId: (await opening.storedAccount(KEY)).id })
+    expect(thread).toMatchObject({ externalId: "9001", subject: "Synthetic subject 1", emailsCount: 2 })
+  })
+
+  it("embeds new mail after saving it, when embedding is on", async () => {
+    const { env } = setup([mail(1)])
+    const asked: (boolean | undefined)[] = []
+    const result = await importMail({
+      store: await store(env),
+      run: himalaya(env),
+      account: { name: "test", address: ME },
+      since: SINCE,
+      now: () => NOW,
+      embed: true,
+      indexThreads: async () => ({ chats: 0, chunks: 0, left: false }),
+      embedMail: async (_store, options) => {
+        asked.push(options?.embed)
+        return { chunks: 2, left: false }
+      },
+    })
+
+    expect(asked).toEqual([true])
+    expect(result.indexed).toMatchObject({ chunks: 2, left: false })
   })
 
   it("adds nothing when run again", async () => {
@@ -109,8 +136,7 @@ describe("importMail", () => {
     write([mail(1), mail(2), mail(3), mail(4), mail(5)])
 
     expect(await importInto(env)).toMatchObject({ deleted: 1 })
-    const left = await (await store(env)).find({ account: KEY, pattern: ANY, limit: 10 })
-    expect(left.items.map(({ id }) => id)).not.toContain("9006")
+    expect((await emails(env)).map(({ externalId }) => externalId)).not.toContain("9006")
   })
 
   it("leaves a stored mail at the window's edge alone", async () => {
@@ -140,7 +166,7 @@ describe("importMail", () => {
     write([], { searchFails: true })
 
     await expect(importInto(env)).rejects.toThrow("did not complete")
-    expect((await (await store(env)).find({ account: KEY, pattern: ANY, limit: 10 })).items).toHaveLength(2)
+    expect(await emails(env)).toHaveLength(2)
   })
 
   it("reads at most max new mails, newest first, and continues on the next run", async () => {
@@ -154,8 +180,7 @@ describe("importMail", () => {
     const { env } = setup([mail(1, { text: "line one\r\nline two" })])
     await importInto(env)
 
-    const [saved] = (await (await store(env)).find({ account: KEY, pattern: ANY, limit: 1 })).items
-    expect(saved?.text).toBe("Synthetic subject 1\n\nline one\nline two")
+    expect((await emails(env))[0]?.bodyText).toBe("line one\nline two")
   })
 
   it("turns an HTML-only mail into text", async () => {
@@ -164,8 +189,7 @@ describe("importMail", () => {
     ])
     await importInto(env)
 
-    const [saved] = (await (await store(env)).find({ account: KEY, pattern: ANY, limit: 1 })).items
-    expect(saved?.text).toBe("Synthetic subject 1\n\nHello there\nA & B")
+    expect((await emails(env))[0]?.bodyText).toBe("Hello there\nA & B")
   })
 })
 

@@ -238,19 +238,21 @@ message/thread identities across folder moves and UID resets. Mail without Messa
 UIDVALIDITY/folder/UID fallback, which can change after a move/reset. Configured folders are listed
 completely before deletion checks; a changed folder scope skips deletion for that run.
 
-Imports index changed threads with the shared bounded pipeline and report the proven date/folder
-window, resumable indexing and missing models. No thread is called globally complete on the basis
-of one window. CC/BCC headers are retained when available. Readable attachments become separate source
-entries linked to their parent/part; extraction failures are reported. After installing an optional
-engine, use `memo mail import --retry-attachments` to reread a bounded batch of stored messages.
+Imports report the proven date/folder window. No thread is called globally complete on the basis of one
+window. To, CC and BCC are kept. A readable attachment's text is kept with its email and searched with it
+(`content:`, `filename:`); extraction failures are reported. After installing an optional engine, use
+`memo mail import --retry-attachments` to reread a bounded batch of stored mail. Mail in the mail tables is
+searched by words, not yet by meaning.
 
 ```sh
 memo mail import --since 2026-09-01
 ```
 
 Reads a Gmail account's All Mail through [Himalaya](https://github.com/pimalaya/himalaya) into the
-shared message store as provider `email`: one chat per Gmail thread, the mailbox address as the
-account, senders and recipients as people. Messenger search and person context then see mail too.
+shared store's mail tables: one thread per Gmail thread, each folder a mailbox, the mailbox address as
+the account, senders and recipients as people. `search mail`, `search all`, `ask`, person context and tags
+see it. Mail an import before 0.8.0 saved as messages stays searchable; an email imported again is listed
+once.
 
 - Read only: the mailbox is opened read-only, nothing is sent, and no mail is marked read.
 - Run it again any time: what is stored is skipped; `--max` (default 200) bounds the new mails read

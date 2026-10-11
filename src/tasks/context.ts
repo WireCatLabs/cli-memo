@@ -2,6 +2,7 @@ import { parseLocator } from "@wirecat/cli-messaging"
 import { type TaskView, taskView } from "@wirecat/cli-messaging/services"
 import type { AccountKey, MessageStore, PersonRecord } from "@wirecat/cli-messaging/store"
 import { isNoteReference } from "../notes/about.js"
+import { heldMessage } from "../store/held.js"
 
 export const taskPage = async (
   store: MessageStore,
@@ -63,7 +64,7 @@ export const personTasks = async (
         continue
       }
       if (source.provider !== key.provider || source.account !== key.account) continue
-      const message = await store.message(key, source.message, { chatId: source.chat })
+      const message = await heldMessage(store, key, source.message, source.chat)
       const chat = chats.find((item) => item.id === source.chat)
       const direct =
         chat?.kind === "dialog" &&
