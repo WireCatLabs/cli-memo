@@ -4,6 +4,14 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## 0.14.1 — 11.10.2026
+
+### Fixed
+
+- **npm installs the packages side by side again.** Built on `@wirecat/cli-messaging` 0.241.0, whose
+  `@wirecat/cli-meetings` 0.4.2 accepts cli-core 0.20.0. With 0.240.0, npm put cli-messaging in a nested folder
+  with a second copy of cli-core.
+
 ## 0.14.0 — 11.10.2026
 
 ### Changed — may break scripts
