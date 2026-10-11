@@ -306,6 +306,9 @@ keyring), then name it in `~/.config/cli-memo/config.json`:
 { "mail": { "accounts": [{ "name": "gmail", "address": "you@example.com" }] } }
 ```
 
+`mail.maxBodyChars` (default 1,000,000) and `mail.maxAttachmentChars` (default 200,000) set how many characters
+of a body and of one attachment's text are kept.
+
 ## People
 
 Who is who is decided in messaging: `tg contacts link <person> email:<address>` (or `max contacts link`)

@@ -28,7 +28,7 @@ interface Parsed {
 }
 
 // The store cuts a body into pieces itself; this only guards against a pathological one, like a pasted log.
-const MAX_TEXT = 1_000_000
+export const MAX_BODY_CHARS = 1_000_000
 
 const addresses = (value: unknown): Address[] => {
   const address = (value as { Address?: unknown })?.Address as
@@ -65,7 +65,7 @@ const htmlToText = (html: string): string =>
     .trim()
 
 /** `himalaya --json message read`: the `mail-parser` crate's message, serialised as it is. */
-export const parseMail = (json: string): ParsedMail => {
+export const parseMail = (json: string, maxBodyChars = MAX_BODY_CHARS): ParsedMail => {
   let parsed: Parsed
   try {
     parsed = JSON.parse(json) as Parsed
@@ -138,6 +138,6 @@ export const parseMail = (json: string): ParsedMail => {
         bytes,
       }
     }),
-    text: text.replace(/\r\n?/g, "\n").slice(0, MAX_TEXT),
+    text: text.replace(/\r\n?/g, "\n").slice(0, maxBodyChars),
   }
 }

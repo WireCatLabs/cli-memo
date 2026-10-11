@@ -4,7 +4,7 @@ import { embedChanged, embedMailChunks, type NotesEmbedded } from "../notes/embe
 import { dropMissing, tooManyGone } from "../store/gone.js"
 import { listAllMail, listImapMail } from "./gmail.js"
 import type { Himalaya } from "./himalaya.js"
-import { type Address, parseMail } from "./parse.js"
+import { type Address, MAX_BODY_CHARS, parseMail } from "./parse.js"
 
 export interface MailAccount {
   /** The account's name in Himalaya's config. */
@@ -35,7 +35,7 @@ export interface ImportResult {
 const DAY = 86_400_000
 /** IMAP's SINCE counts whole days in the server's zone, so the window's first days are not trusted. */
 const EDGE = 2 * DAY
-const MAX_ATTACHMENT_TEXT = 200_000
+export const MAX_ATTACHMENT_CHARS = 200_000
 
 const addressOf = ({ email, name }: Address): EmailAddress => ({ address: email, name })
 
@@ -45,6 +45,8 @@ export const importMail = async ({
   account,
   since,
   max = 200,
+  maxBodyChars = MAX_BODY_CHARS,
+  maxAttachmentChars = MAX_ATTACHMENT_CHARS,
   now = Date.now,
   env,
   embed = false,
@@ -58,6 +60,8 @@ export const importMail = async ({
   account: MailAccount
   since: Date
   max?: number
+  maxBodyChars?: number
+  maxAttachmentChars?: number
   now?: () => number
   env?: NodeJS.ProcessEnv
   embed?: boolean
@@ -167,6 +171,7 @@ export const importMail = async ({
     read++
     const mail = parseMail(
       await run(["--json", "message", "read", "-a", account.name, "-m", item.folder ?? "archive", item.uid]),
+      maxBodyChars,
     )
     const files: AttachmentInput[] = []
     for (const [position, part] of mail.attachments.entries()) {
@@ -193,7 +198,7 @@ export const importMail = async ({
         duration: null,
         providerRef: { message: item.messageId, part: part.id },
         localPath: null,
-        text: extracted ? extracted.text.slice(0, MAX_ATTACHMENT_TEXT) : null,
+        text: extracted ? extracted.text.slice(0, maxAttachmentChars) : null,
         normalizedText: null,
         extraction: extracted ? "text" : "failed",
         extractor: extracted ? extracted.extractor : null,

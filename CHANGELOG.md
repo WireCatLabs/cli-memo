@@ -4,6 +4,13 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- **`mail.maxBodyChars` and `mail.maxAttachmentChars`** in the config set how much of an email body (default
+  1,000,000 characters) and of one attachment's text (default 200,000) `memo mail import` keeps.
+
 ## 0.12.0 — 11.10.2026
 
 ### Added
