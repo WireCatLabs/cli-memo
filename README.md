@@ -77,8 +77,12 @@ holds; `linked` counts what the notes found link to, with each person's name. Fo
 `notes show` takes `note:<id>` or a file in a configured folder, and answers with the note's tags, its
 links, its backlinks and, for a PDF or sheet, where its text came from.
 
-`search all` searches messages, imported mail and native notes together. Use `search messages`,
-`search mail`, or `search notes` for one resource; `search notes --type internal|file` narrows note kinds.
+`search all` searches messages, imported mail and native notes together, and nothing else: not people,
+memories, projects, organizations or decisions. Use it when you do not know where something was written. When
+you know the kind, its own search reads it with every field: `search mail` takes `from:`, `to:`, `cc:`, `bcc:`,
+`subject:` and `mailbox:` (a folder or Gmail label); `search messages`, `search notes`; `search notes --type
+internal|file` narrows note kinds. An empty answer means those three hold nothing that matches: try the kind's
+own search, looser words, or `tg search conversations` to find mail and messages by meaning.
 `search all` includes a separate `tasks` list for open work linked to matching sources. Results identify source
 kind/account and skipped-resource coverage; a query using a field only messages have (`from:`, `after:`)
 searches the messages and says the notes were not searched. Missing hits do not prove that an event

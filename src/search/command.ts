@@ -193,7 +193,9 @@ const searchFolderIds = async (store: MessageStore, env: NodeJS.ProcessEnv, sele
 }
 
 export const searchCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
-  const group = program.command("search").description("Search stored messages, mail and notes; start with search all")
+  const group = program
+    .command("search")
+    .description("Search stored messages, mail and notes: one kind when you know it, search all when you do not")
   const withStore = async <T>(work: (store: MessageStore) => Promise<T>) => {
     const store = await openStore({ env })
     try {
@@ -224,7 +226,12 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       .option("--json", "print JSON")
 
   queryOptions(
-    group.command("all").description("Messages, mail and notes, ranked together by the shared search service"),
+    group
+      .command("all")
+      .description(
+        "Messages, mail and notes ranked together; not people, memories, projects or decisions. A kind you know " +
+          "reads better with its own search, with all its fields",
+      ),
   )
     .option("--only <resources>", "messages,mail,notes, separated by commas", onlyOf)
     .action(

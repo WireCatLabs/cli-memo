@@ -20,6 +20,12 @@ the API.
 - **`memo mcp`** — an MCP server on stdio with `memories_add|list|show|search`, `actions_propose|list|show` and
   `agents_log`. What an agent writes is authored by `memo-mcp` and waits for you; every call is logged.
 
+### Changed — may break scripts
+
+- **memo runs on `@wirecat/cli-messaging` 0.232.0.** `search mail` takes `to:`, `cc:`, `bcc:` (a person, as
+  `from:`), `subject:` (words of the subject alone) and `mailbox:` (a folder or Gmail label).
+- **`search` and `search all` help say what `search all` does not read** — people, memories, projects,
+  organizations and decisions — and send a kind you know to its own search.
 ## 0.8.0 — 11.10.2026
 
 ### Changed — may break scripts
