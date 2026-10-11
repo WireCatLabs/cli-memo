@@ -1,9 +1,11 @@
+import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
 import { createProgram } from "./program.js"
-import { VERSION } from "./version.js"
+
+const packaged = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version
 
 describe("memo", () => {
-  it("prints its version", async () => {
+  it("prints the version in package.json", async () => {
     let out = ""
     const program = createProgram()
       .exitOverride()
@@ -11,6 +13,6 @@ describe("memo", () => {
     await expect(program.parseAsync(["--version"], { from: "user" })).rejects.toMatchObject({
       code: "commander.version",
     })
-    expect(out.trim()).toBe(VERSION)
+    expect(out.trim()).toBe(packaged)
   })
 })
