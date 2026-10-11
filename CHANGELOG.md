@@ -4,13 +4,19 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
-## Unreleased
+## 0.17.0 — 11.10.2026
 
 ### Added
 
+- **Owner-reviewed label creation:** `memo vocabulary create` requires the current preflight
+  creation fingerprint. Similar labels are checked in the shared store, including implicit
+  tagging; stale approvals fail. Exact aliases continue to reuse their canonical label.
+  `vocabulary audit` discovers existing lexical synonyms with explicit work/output budgets and
+  incomplete-scan reporting; it never accepts or merges them.
+
 - **Mail search filters by read and starred state, and takes `label:`.** `memo search mail` accepts `is:unread`,
   `is:read`, `is:starred` and `label:` (the same as `mailbox:`), and `date:>=2026-01-01` as well as
-  `date>=2026-01-01`. Built on the shared library 0.243.0.
+  `date>=2026-01-01`. Built on the shared library 0.246.0.
 
 ## 0.16.0 — 11.10.2026
 
