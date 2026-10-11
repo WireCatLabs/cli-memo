@@ -6,6 +6,7 @@ import { loadConfig } from "../config.js"
 import { positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { subjectOf } from "../people/subject.js"
+import { meetingReference } from "../store/scope.js"
 import { aboutText, isNoteReference, notesAbout } from "./about.js"
 import { boundFolders, folderOfFile } from "./bound.js"
 import { DIALECTS, type DialectName } from "./dialects/index.js"
@@ -184,6 +185,9 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       "--about <subject...>",
       "what it is about: <messenger>:<name or id>, msg:, chat:, person:, organization:, project:, task:, note:, document:, meeting:",
     )
+    .option("--meeting <id>", "also about this meeting, by its store id, with --provider and --account")
+    .option("--provider <provider>", "the meeting's provider")
+    .option("--account <account>", "the meeting's account")
     .option("--export [dir]", "also write it as a file — to this folder, or notes.export.dir")
     .option("--format <format>", `the file's format: ${DIALECTS.join(", ")}`, formatOf)
     .option("--json", "print JSON")
@@ -195,16 +199,22 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
           file?: string
           title?: string
           about?: string[]
+          meeting?: string
+          provider?: string
+          account?: string
           export?: string | true
           format?: DialectName
           json?: boolean
         },
       ) => {
         const body = textOf(options, given)
+        if (options.meeting === undefined && (options.provider !== undefined || options.account !== undefined))
+          throw new CliError("validation_error", "--provider and --account select the account of --meeting")
         const answer = await withStore(async (store) => {
           const about = await Promise.all(
             (options.about ?? []).map(async (subject) => (await subjectOf(store, subject)).ref),
           )
+          if (options.meeting !== undefined) about.push(await meetingReference(store, options.meeting, options))
           const note = await store.notes.addNote({
             text: body,
             about,
