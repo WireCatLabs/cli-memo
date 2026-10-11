@@ -10,6 +10,63 @@ export interface Listed {
   receivedAt: string
   folder?: string
   scopeFolder?: string
+  /** Gmail labels, plain names; absent when the answer could not be read, so nothing is changed. */
+  labels?: string[]
+  seen?: boolean
+  flagged?: boolean
+}
+
+const SYSTEM_LABELS: Record<string, string> = {
+  inbox: "Inbox",
+  sent: "Sent",
+  important: "Important",
+  starred: "Starred",
+  draft: "Drafts",
+  drafts: "Drafts",
+  spam: "Spam",
+  trash: "Trash",
+  junk: "Spam",
+}
+
+/** IMAP's modified UTF-7 (RFC 3501 §5.1.3): `&` opens base64 of UTF-16BE, `,` stands for `/`, `-` closes. */
+export const decodeMailboxName = (name: string): string =>
+  name.replace(/&([^-]*)-/g, (_, run: string) => {
+    if (run === "") return "&"
+    const bytes = Buffer.from(run.replace(/,/g, "/"), "base64")
+    let text = ""
+    for (let at = 0; at + 1 < bytes.length; at += 2) text += String.fromCharCode(bytes.readUInt16BE(at))
+    return text
+  })
+
+/** The atoms and quoted strings of one parenthesised IMAP list, or undefined when it holds a literal. */
+const imapList = (items: string, name: string): string[] | undefined => {
+  const start = items.indexOf(`${name} (`)
+  if (start === -1) return undefined
+  const values: string[] = []
+  for (let at = start + name.length + 2; at < items.length; ) {
+    const c = items[at]
+    if (c === ")") return values
+    if (c === " ") at++
+    else if (c === "{") return undefined
+    else if (c === '"') {
+      let value = ""
+      for (at++; at < items.length && items[at] !== '"'; at++) value += items[at] === "\\" ? items[++at] : items[at]
+      values.push(value)
+      at++
+    } else {
+      const end = items.slice(at).search(/[ )]/)
+      if (end === -1) return undefined
+      values.push(items.slice(at, at + end))
+      at += end
+    }
+  }
+  return undefined
+}
+
+/** A label as people read it: `\\Important` and `Important` are one label, and names are decoded. */
+export const labelName = (raw: string): string => {
+  const system = raw.startsWith("\\") ? raw.slice(1) : raw
+  return SYSTEM_LABELS[system.toLowerCase()] ?? decodeMailboxName(system)
 }
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -89,7 +146,26 @@ export const listAllMail = async (
   })
   if (listed.length !== uids.length)
     throw new CliError("invalid_response", `IMAP listed ${uids.length} messages but fetched ${listed.length}`)
-  return listed
+
+  // A separate answer, so a label the parser cannot read costs that message its labels, never the listing.
+  const labelled = await run(
+    ["imap", "raw", "-a", account],
+    `a EXAMINE ${mailbox}\r\n${batches
+      .map((set, index) => `l${index} UID FETCH ${set} (UID X-GM-LABELS FLAGS)\r\n`)
+      .join("")}`,
+  )
+  const marks = new Map<string, Pick<Listed, "labels" | "seen" | "flagged">>()
+  for (const [, items = ""] of labelled.matchAll(/^\* \d+ FETCH \((.*)\)\s*$/gm)) {
+    const uid = /(?:^|\s)UID (\d+)/.exec(items)?.[1]
+    const labels = imapList(items, "X-GM-LABELS")
+    const flags = imapList(items, "FLAGS")
+    if (!uid || labels === undefined || flags === undefined) continue
+    const flagged = flags.includes("\\Flagged")
+    const names = new Set(labels.map(labelName))
+    if (flagged) names.add("Starred")
+    marks.set(uid, { labels: [...names].sort(), seen: flags.includes("\\Seen"), flagged })
+  }
+  return listed.map((item) => ({ ...item, ...marks.get(item.uid) }))
 }
 
 /** Message-ID is stable across folders; absent headers fall back to a UIDVALIDITY-scoped identity. */

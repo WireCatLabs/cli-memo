@@ -4,6 +4,17 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- **Gmail labels and stars reach the store.** `memo mail import` reads each message's labels (`X-GM-LABELS`) and
+  flags: every label, Inbox, Important and Sent included, becomes a label mailbox with a plain name, a starred
+  message also gets `Starred`, and new mail records read and starred. `search mail mailbox:important` finds them.
+  Labels are replaced on every run, as Gmail's list is whole; folders keep the per-scan rule, and only folders
+  decide whether missing mail was deleted. A label line the import cannot read leaves that message's labels as
+  they were.
+
 ## 0.9.0 — 11.10.2026
 
 ### Added

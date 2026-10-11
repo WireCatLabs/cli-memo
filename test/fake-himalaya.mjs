@@ -33,6 +33,15 @@ if (args[0] === "imap" && args[1] === "raw") {
         `* SEARCH ${uids.join(" ")}`.trimEnd(),
         `${tag} ${mailbox.searchFails ? "NO failed" : "OK SEARCH completed (Success)"}`,
       )
+    } else if (command.startsWith("UID FETCH") && command.includes("X-GM-LABELS")) {
+      const set = command.split(" ")[2].split(",")
+      for (const [index, m] of mailbox.messages.entries()) {
+        if (set.includes(m.uid))
+          out.push(
+            `* ${index + 1} FETCH (UID ${m.uid} X-GM-LABELS (${(m.labels ?? []).join(" ")}) FLAGS (${(m.flags ?? []).join(" ")}))`,
+          )
+      }
+      out.push(`${tag} OK Success`)
     } else if (command.startsWith("UID FETCH")) {
       const set = command.split(" ")[2].split(",")
       for (const [index, m] of mailbox.messages.entries()) {

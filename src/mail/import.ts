@@ -94,6 +94,8 @@ export const importMail = async ({
     foundFolders.set(item.messageId, current)
   }
   const mailbox = (folder: string) => ({ externalId: folder, name: folder, kind: null })
+  const label = (name: string) => ({ externalId: `label:${name}`, name, kind: "label" })
+  const labelsOf = new Map(collected.flatMap((item) => (item.labels === undefined ? [] : [[item.messageId, item]])))
   const allMailOnly = account.mode !== "imap" && folders.length === 1 && folders[0] === "[Gmail]/All Mail"
 
   // Deletions are proved against the mailboxes as stored before this scan moves anything.
@@ -105,8 +107,12 @@ export const importMail = async ({
   if (previousScope !== undefined && previousScope.value !== scope)
     skipped = "folder scope changed; missing mail is not proven deleted"
   else {
-    const candidates = (await store.mail.emails({ accountId, since: windowStart.getTime() })).filter(({ mailboxes }) =>
-      mailboxes.length ? mailboxes.every(({ externalId }) => folders.includes(externalId)) : allMailOnly,
+    // A label is not where mail lives, so only folders prove that a missing mail was deleted.
+    const candidates = (await store.mail.emails({ accountId, since: windowStart.getTime() })).filter(
+      ({ mailboxes }) => {
+        const inFolders = mailboxes.filter(({ kind }) => kind !== "label")
+        return inFolders.length ? inFolders.every(({ externalId }) => folders.includes(externalId)) : allMailOnly
+      },
     )
     const gone = candidates.filter(({ externalId }) => !present.has(externalId)).map(({ externalId }) => externalId)
     skipped = tooManyGone(gone.length, candidates.length)
@@ -132,6 +138,21 @@ export const importMail = async ({
     new Map([...foundFolders].map(([id, found]) => [id, [...found]])),
     startedAt,
   )
+  // A message's label list is whole, so every label the account has is replaced for each message read.
+  if (labelsOf.size) {
+    const known = (await store.mail.mailboxes(accountId)).filter(({ kind }) => kind === "label")
+    const seen = [...labelsOf.values()].flatMap(({ labels }) => labels ?? [])
+    const scanned = new Map([
+      ...known.map(({ name }) => [name, label(name)] as const),
+      ...seen.map((name) => [name, label(name)] as const),
+    ])
+    await store.mail.setMailboxes(
+      accountId,
+      [...scanned.values()],
+      new Map([...labelsOf].map(([id, { labels }]) => [id, (labels ?? []).map((name) => label(name).externalId)])),
+      startedAt,
+    )
+  }
 
   const attachments: NonNullable<ImportResult["attachments"]> = []
   let saved = 0
@@ -197,7 +218,16 @@ export const importMail = async ({
           receivedAt: Date.parse(item.receivedAt),
           bodyText: mail.text || null,
           outgoing: mail.from === null ? null : mail.from.email === key.account,
-          mailboxes: [...(foundFolders.get(item.messageId) ?? [])].map(mailbox),
+          mailboxes: [
+            ...[...(foundFolders.get(item.messageId) ?? [])].map(mailbox),
+            ...(labelsOf.get(item.messageId)?.labels ?? []).map(label),
+          ],
+          ...(labelsOf.get(item.messageId)?.seen === undefined
+            ? {}
+            : { read: labelsOf.get(item.messageId)?.seen ?? null }),
+          ...(labelsOf.get(item.messageId)?.flagged === undefined
+            ? {}
+            : { flagged: labelsOf.get(item.messageId)?.flagged ?? null }),
           attachments: files,
         },
       ],
