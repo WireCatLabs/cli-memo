@@ -18,6 +18,7 @@ import { isNoteReference } from "../notes/about.js"
 import { accountOptions, oneOf, positive } from "../options.js"
 import { heldMessage } from "../store/held.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
+import { canonicalProject } from "../vocabulary/project.js"
 import { taskPage } from "./context.js"
 import { taskRelationsCommand } from "./relations-command.js"
 
@@ -86,7 +87,12 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
             if (!(WORK_TASK_TYPES as readonly string[]).includes(type))
               throw new CliError("validation_error", `a task in a project is ${WORK_TASK_TYPES.join(", ")}`)
             const task = await store.tasks.create(
-              { project: options.project, title: options.title, type: type as WorkTaskType, ...fieldsOf(options) },
+              {
+                project: await canonicalProject(store, options.project),
+                title: options.title,
+                type: type as WorkTaskType,
+                ...fieldsOf(options),
+              },
               "owner",
             )
             await assignAll(store, task.id, options.assignee)
@@ -153,7 +159,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         try {
           if (options.project !== undefined) {
             const items = await store.tasks.find({
-              project: options.project,
+              project: await canonicalProject(store, options.project),
               status: options.state,
               limit: options.limit + 1,
             })
