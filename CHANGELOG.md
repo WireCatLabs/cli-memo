@@ -4,6 +4,15 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## 0.14.0 — 11.10.2026
+
+### Changed — may break scripts
+
+- **On macOS memo keeps its files where it does on Linux**: `~/.config/cli-memo`, `~/.local/share/cli-memo` and
+  `~/.cache/cli-memo` instead of `~/Library/…`. The first run moves the old folders there, with the shared store.
+  While a messenger `serve` or an MCP server is running it prints one warning, keeps using the old folders for that
+  run and tries again next time. Linux and Windows are unchanged. Built on `@wirecat/cli-messaging` 0.240.0.
+
 ## 0.13.0 — 11.10.2026
 
 ### Added
