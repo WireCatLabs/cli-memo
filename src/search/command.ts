@@ -32,6 +32,8 @@ export interface EvidenceItem {
   source?: string
 }
 
+const CHATS_CHECKED = 500
+
 export const unifiedSearch = async (
   store: MessageStore,
   query: string,
@@ -126,14 +128,29 @@ export const unifiedSearch = async (
           match: "task-source",
         })
     }
-    coverage.push({
-      ...key,
-      mail: key.provider === "email" ? ((await store.syncState(key, "mail_coverage"))?.value ?? null) : undefined,
-      archives: await store.chatCompleteness(
+    if (key.provider === "email")
+      coverage.push({ ...key, mail: (await store.syncState(key, "mail_coverage"))?.value ?? null })
+    else {
+      // Counts, not one row per chat: an account of hundreds of chats made the rows most of an answer.
+      const chats = await store.chats(key, { limit: CHATS_CHECKED })
+      const archives = await store.chatCompleteness(
         key,
-        (await store.chats(key, { limit: 500 })).items.map((chat) => chat.id),
-      ),
-    })
+        chats.items.map((chat) => chat.id),
+      )
+      const count = (test: (chat: (typeof archives)[number]) => boolean) => archives.filter(test).length
+      coverage.push({
+        ...key,
+        chats: {
+          checked: archives.length,
+          more: chats.hasMore,
+          complete: count(({ state }) => state === "complete"),
+          partial: count(({ state }) => state === "partial"),
+          neverFetched: count(({ state }) => state === "unknown"),
+          behind: count(({ upToDate }) => upToDate === false),
+          withGaps: count(({ gaps }) => gaps),
+        },
+      })
+    }
   }
   items.sort(
     (a, b) =>
