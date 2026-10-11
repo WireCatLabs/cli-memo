@@ -6,6 +6,7 @@ import { askCommand } from "./answers/command.js"
 import { contextCommand } from "./context/command.js"
 import { knowledgeCommands } from "./knowledge/command.js"
 import { mailCommand } from "./mail/command.js"
+import { mcpCommand } from "./mcp/command.js"
 import { memoriesCommand } from "./memories/command.js"
 import { notesCommand } from "./notes/command.js"
 import { foldersCommand } from "./notes/folders-command.js"
@@ -39,6 +40,7 @@ export const createProgram = ({
   memoriesCommand(program, streams, env)
   actionsCommand(program, streams, env)
   agentsCommand(program, streams, env)
+  mcpCommand(program, streams, env)
   searchCommand(program, streams, env)
   askCommand(program, streams, env)
   importCommand(program, streams, env)

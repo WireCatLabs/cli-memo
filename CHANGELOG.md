@@ -17,6 +17,8 @@ the API.
 - **`memo actions`** — `propose`, `list`, `show`, `approve` and `reject`. Approving makes the action a task
   in the account that would act; nothing is sent.
 - **`memo agents log`** — what agents did through the MCP servers, by tool and agent, never the arguments.
+- **`memo mcp`** — an MCP server on stdio with `memories_add|list|show|search`, `actions_propose|list|show` and
+  `agents_log`. What an agent writes is authored by `memo-mcp` and waits for you; every call is logged.
 
 ## 0.8.0 — 11.10.2026
 

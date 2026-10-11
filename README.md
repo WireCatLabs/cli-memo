@@ -137,6 +137,15 @@ proposal remembers the task; `actions reject` closes it. `actions list --status`
 `memo agents log` lists what agents did through the MCP servers that share the store, newest first: the
 agent, the tool, its tier, the outcome and the times, never the arguments.
 
+`memo mcp` serves the same to an agent over MCP, on stdin and stdout: `memories_add`, `memories_list`,
+`memories_show`, `memories_search`, `actions_propose`, `actions_list`, `actions_show` and `agents_log`. An
+agent's memories and proposals are its own (`memo-mcp`) and wait for you; it cannot confirm, approve or
+reject. Every call goes into the agent log.
+
+```json
+{ "mcpServers": { "memo": { "command": "memo", "args": ["mcp"] } } }
+```
+
 ## Local task reminders
 
 ```sh
