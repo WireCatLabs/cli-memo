@@ -13,6 +13,13 @@ the API.
   messengers, mail and notes; tg and max will search only their own messages
   ([which tool owns which command](https://github.com/WireCatLabs/cli-messaging/blob/main/docs/dev/TOOL-BOUNDARIES.md)).
 
+### Fixed
+
+- **`memo ask` gives coverage as counts per account, and its 64 KiB limit covers the whole answer.** Each
+  messenger account had one row per chat, up to 500, which made 95% of an answer (64 KB of 68 KB on one real
+  store); now `chats` counts `checked`, `complete`, `partial`, `neverFetched`, `behind` and `withGaps`, and `more`
+  says the 500-chat check was cut short. The size check measured the evidence only; it now measures what is printed.
+
 ## 0.21.0 — 11.10.2026
 
 ### Fixed

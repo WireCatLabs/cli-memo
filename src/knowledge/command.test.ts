@@ -103,6 +103,19 @@ describe("combined evidence, relationships and local reminders", () => {
     expect(messagesOnly.skipped.find((item: { resource: string }) => item.resource === "notes").reason).toBeTruthy()
     const bundle = await run("ask", "What is pending?", "--query", "budget", "--all")
     expect(bundle.evidence.length).toBeGreaterThan(0)
+    expect(bundle.coverage.find(({ provider }: { provider: string }) => provider === "telegram")).toEqual({
+      provider: "telegram",
+      account: "1",
+      chats: {
+        checked: expect.any(Number),
+        more: false,
+        complete: expect.any(Number),
+        partial: expect.any(Number),
+        neverFetched: expect.any(Number),
+        behind: expect.any(Number),
+        withGaps: expect.any(Number),
+      },
+    })
     const reminder = await run("reminders", "schedule", document.task.id, "--at", "2026-01-01T00:00:00Z", ...scope)
     const [delivery] = await run("reminders", "poll", ...scope)
     expect(delivery.deliveryId).toBe(`${reminder.id}:1`)
