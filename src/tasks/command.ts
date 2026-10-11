@@ -142,7 +142,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         }
       },
     )
-  accountOptions(group.command("list"))
+  accountOptions(group.command("list").description("Tasks of one account or one project, open by default"))
     .option("--state <state>", "open, done or dismissed", taskStateOf, "open")
     .option("--project <project>", "a project's tasks, by its key or project:<id>, instead of an account's")
     .option("--limit <n>", "most tasks", positive, 100)
@@ -179,7 +179,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         }
       },
     )
-  accountOptions(group.command("close").argument("<id>"))
+  accountOptions(group.command("close").description("Close a task as done or dismissed").argument("<id>"))
     .option("--as <state>", "done or dismissed", closedStateOf, "done")
     .option("--reason <text>", "why it is closed")
     .action(

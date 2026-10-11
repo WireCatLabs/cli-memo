@@ -34,6 +34,8 @@
     "secrets:scan": "gitleaks git --no-banner --redact .",
     "prepublishOnly": "pnpm build",
     "standards:check": "node config/wirecat/check.mjs",
+    "generate": "pnpm build && node --experimental-strip-types scripts/commands.ts",
+    "generate:check": "pnpm build && node --experimental-strip-types scripts/commands.ts --check",
     "docs:lint": "markdownlint-cli2",
     "docs:spell": "cspell lint --config cspell.json --no-progress README.md \"docs/*.md\"",
     "ci:quick": "pnpm typecheck"
