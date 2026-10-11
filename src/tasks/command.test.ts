@@ -90,19 +90,21 @@ it("adds a bug to a project with its fields and assignee, updates, lists and clo
       .parseAsync([...args, "--json"], { from: "user" })
     return JSON.parse(streams.stdout.join(""))
   }
-  await run("projects", "add", "Lighthouse", "--key", "LH")
+  await run("projects", "add", "Lighthouse", "--key", "LHT")
 
   await expect(run("tasks", "add", "--title", "No project", "--type", "bug")).rejects.toMatchObject({
     code: "validation_error",
   })
-  await expect(run("tasks", "add", "--project", "LH", "--title", "Asked", "--type", "question")).rejects.toMatchObject({
-    code: "validation_error",
-  })
+  await expect(run("tasks", "add", "--project", "LHT", "--title", "Asked", "--type", "question")).rejects.toMatchObject(
+    {
+      code: "validation_error",
+    },
+  )
   const bug = await run(
     "tasks",
     "add",
     "--project",
-    "LH",
+    "LHT",
     "--title",
     "Export drops the last row",
     "--type",
@@ -113,13 +115,13 @@ it("adds a bug to a project with its fields and assignee, updates, lists and clo
     person?.uid as string,
   )
   expect(bug).toMatchObject({
-    id: "LH-1",
+    id: "LHT-1",
     type: "bug",
     priority: 1,
     assignments: [{ to: `person:${person?.uid}`, role: "assignee" }],
   })
-  const sub = await run("tasks", "add", "--project", "LH", "--title", "Add a test", "--parent", bug.id)
-  expect(sub).toMatchObject({ id: "LH-2", type: "chore", parent: "task:LH-1" })
+  const sub = await run("tasks", "add", "--project", "LHT", "--title", "Add a test", "--parent", bug.id)
+  expect(sub).toMatchObject({ id: "LHT-2", type: "chore", parent: "task:LHT-1" })
   expect(await run("tasks", "update", bug.id, "--priority", "0")).toMatchObject({ priority: 0 })
   expect(await run("tasks", "assign", bug.id, person?.uid as string, "--role", "reviewer")).toMatchObject({
     assignments: [
@@ -127,10 +129,10 @@ it("adds a bug to a project with its fields and assignee, updates, lists and clo
       { to: `person:${person?.uid}`, role: "reviewer" },
     ],
   })
-  expect((await run("tasks", "list", "--project", "LH")).items.map((task: { id: string }) => task.id)).toEqual([
-    "LH-1",
-    "LH-2",
+  expect((await run("tasks", "list", "--project", "LHT")).items.map((task: { id: string }) => task.id)).toEqual([
+    "LHT-1",
+    "LHT-2",
   ])
   expect(await run("tasks", "close", bug.id, "--reason", "fixed")).toMatchObject({ status: "done", reason: "fixed" })
-  expect((await run("tasks", "list", "--project", "LH", "--state", "done")).items).toMatchObject([{ id: "LH-1" }])
+  expect((await run("tasks", "list", "--project", "LHT", "--state", "done")).items).toMatchObject([{ id: "LHT-1" }])
 })

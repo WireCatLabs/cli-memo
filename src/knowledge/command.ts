@@ -13,6 +13,7 @@ import type { Command } from "commander"
 import { notesAbout } from "../notes/about.js"
 import { accountOptions, oneOf, positive } from "../options.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
+import { meetingProjectsCommand } from "./meeting-projects-command.js"
 
 export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const execute = async (
@@ -90,10 +91,11 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       ),
     )
   const projects = program.command("projects").description("Projects of yours, each with a short key")
+  meetingProjectsCommand(projects, streams, env)
   projects
     .command("add")
     .argument("<name>")
-    .option("--key <key>", "1–10 letters and digits; made from the name when left out")
+    .option("--key <key>", "3–4 letters and digits; made from the name when left out")
     .option("--type <type>", PROJECT_TYPES.join(", "), oneOf(PROJECT_TYPES))
     .option("--organization <reference>", "organization:<id> it belongs to")
     .option("--scope <scope>", SCOPES.join(", "), oneOf(SCOPES))

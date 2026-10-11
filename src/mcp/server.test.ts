@@ -80,3 +80,56 @@ it("offers the memo tools, saves an agent's memory and proposal as its own, and 
     await client.close()
   }
 })
+it("offers vocabulary discovery and preflight without accepting alias changes", async () => {
+  const store = await openStore({ env })
+  const project = await store.knowledge.addProject({ name: "Research Example", key: "RES", scope: "work" })
+  await store.knowledge.addVocabularyAlias({ kind: "project", id: project.id }, "Lab Example")
+  await store.knowledge.createTag("onboarding")
+  await store.close()
+  const { client, call } = await connected()
+  try {
+    const resolved = await call("vocabulary_resolve", { name: "Lab Example", kind: "project" })
+    expect(resolved.structuredContent).toMatchObject({ ambiguous: false, matches: [{ id: project.id }] })
+    expect((await call("vocabulary_preflight", { name: "on-boarding" })).structuredContent).toMatchObject({
+      disposition: "review",
+    })
+    expect((await client.listTools()).tools.some((x) => x.name === "vocabulary_alias_add")).toBe(false)
+    const proposed = await call("facts_add", {
+      type: "decision",
+      statement: "Use a weekly review",
+      project: project.ref,
+      evidence: ["note:1"],
+    })
+    expect(proposed.structuredContent).toMatchObject({
+      status: "proposed",
+      project: project.ref,
+      author: { type: "bot" },
+    })
+  } finally {
+    await client.close()
+  }
+})
+it("exposes ready task discovery without offering dependency mutation or claims", async () => {
+  const store = await openStore({ env })
+  const project = await store.knowledge.addProject({ name: "Research Example", key: "RES" })
+  const first = await store.tasks.create({ project: project.ref, title: "Research draft", type: "chore" }, "owner")
+  const second = await store.tasks.create({ project: project.ref, title: "Review draft", type: "chore" }, "owner")
+  await store.tasks.linkTask(second.id, first.id, "blocked-by", "owner")
+  await store.close()
+  const { client, call } = await connected()
+  try {
+    expect((await call("task_readiness", { task: second.id })).structuredContent).toEqual({
+      ready: false,
+      blockers: [{ task: first.ref, state: "open" }],
+    })
+    expect((await call("tasks_ready", { project: "RES" })).structuredContent).toMatchObject({
+      items: [{ key: first.key }],
+      hasMore: false,
+    })
+    expect((await client.listTools()).tools.some((x) => x.name === "tasks_claim" || x.name === "tasks_link")).toBe(
+      false,
+    )
+  } finally {
+    await client.close()
+  }
+})

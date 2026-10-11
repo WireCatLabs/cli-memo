@@ -18,6 +18,7 @@ import { searchCommand } from "./search/command.js"
 import { tagsCommand } from "./tags/command.js"
 import { tasksCommand } from "./tasks/command.js"
 import { VERSION } from "./version.js"
+import { vocabularyCommand } from "./vocabulary/command.js"
 
 export const createProgram = ({
   streams = processStreams,
@@ -38,6 +39,7 @@ export const createProgram = ({
   tagsCommand(program, streams, env)
   tasksCommand(program, streams, env)
   knowledgeCommands(program, streams, env)
+  vocabularyCommand(program, streams, env)
   memoriesCommand(program, streams, env)
   factsCommand(program, streams, env)
   actionsCommand(program, streams, env)

@@ -1,0 +1,94 @@
+import { CliError, createRenderer, type Streams } from "@wirecat/cli-core"
+import {
+  type MessageStore,
+  openStore,
+  type VocabularyKind,
+  type VocabularyOptions,
+  type VocabularyTarget,
+} from "@wirecat/cli-messaging/store"
+import type { Command } from "commander"
+import { oneOf, positive } from "../options.js"
+
+const kinds = ["project", "tag", "topic"] as const
+const targetOf = (reference: string): VocabularyTarget => {
+  const match = reference.match(/^(project|tag|topic):([1-9]\d*)$/)
+  if (!match) throw new CliError("validation_error", "choose project:<id>, tag:<id> or topic:<id> from vocabulary list")
+  return { kind: match[1] as VocabularyKind, id: match[2] as string }
+}
+type Options = VocabularyOptions & { json?: boolean; expected?: string }
+
+export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
+  const vocabulary = program
+    .command("vocabulary")
+    .description("Canonical projects, tags and topics with explicit aliases")
+  const execute = async (options: Options, work: (store: MessageStore) => Promise<unknown>) => {
+    const store = await openStore({ env })
+    try {
+      const result = await work(store)
+      if (options.json) createRenderer({ format: "json", color: false, streams }).result(result)
+      else streams.data(`${JSON.stringify(result, null, 2)}\n`)
+    } finally {
+      await store.close()
+    }
+  }
+  const readOptions = (command: Command) =>
+    command
+      .option("--kind <kind>", "project, tag or topic", oneOf(kinds))
+      .option("--scope <scope>", "personal or work projects", oneOf(["personal", "work"] as const))
+      .option("--max-entries <n>", "catalog input budget, not a page size", positive)
+      .option("--max-read-bytes <n>", "catalog input byte budget", positive)
+      .option("--json", "print JSON")
+  const catalogOptions = (options: Options): VocabularyOptions => ({
+    ...(options.kind === undefined ? {} : { kind: options.kind }),
+    ...(options.scope === undefined ? {} : { scope: options.scope }),
+    ...(options.maxEntries === undefined ? {} : { maxEntries: options.maxEntries }),
+    ...(options.maxReadBytes === undefined ? {} : { maxReadBytes: options.maxReadBytes }),
+  })
+  readOptions(
+    vocabulary.command("list").description("List canonical IDs, aliases, usage counts and a preview fingerprint"),
+  ).action((options: Options) => execute(options, (store) => store.knowledge.vocabulary(catalogOptions(options))))
+  readOptions(
+    vocabulary
+      .command("resolve")
+      .argument("<name>")
+      .description("Resolve an exact name or alias; ambiguity is reported"),
+  ).action((name: string, options: Options) =>
+    execute(options, (store) => store.knowledge.resolveVocabulary(name, catalogOptions(options))),
+  )
+  vocabulary
+    .command("preflight")
+    .argument("<name>")
+    .description("Review an existing label or likely lexical duplicates before creation")
+    .option("--kind <kind>", "tag or topic", oneOf(["tag", "topic"] as const))
+    .option("--json", "print JSON")
+    .action((name: string, options: Options & { kind?: "tag" | "topic" }) =>
+      execute(options, (store) =>
+        store.knowledge.tagPreflight(name, { ...(options.kind === undefined ? {} : { kind: options.kind }) }),
+      ),
+    )
+  const aliases = vocabulary.command("aliases").description("Owner-reviewed aliases on stable canonical IDs")
+  aliases
+    .command("add")
+    .argument("<reference>")
+    .argument("<name>")
+    .requiredOption("--expected <fingerprint>", "the current vocabulary preview fingerprint")
+    .option("--json", "print JSON")
+    .action((reference: string, name: string, options: Options) => {
+      const target = targetOf(reference)
+      return execute(options, (store) =>
+        store.knowledge.addVocabularyAlias(target, name, { by: "owner", expectedFingerprint: options.expected }),
+      )
+    })
+  aliases
+    .command("remove")
+    .argument("<reference>")
+    .argument("<alias-id>")
+    .requiredOption("--expected <fingerprint>", "the current vocabulary preview fingerprint")
+    .option("--json", "print JSON")
+    .action((reference: string, aliasId: string, options: Options) => {
+      const target = targetOf(reference)
+      return execute(options, (store) =>
+        store.knowledge.removeVocabularyAlias(target, aliasId, { by: "owner", expectedFingerprint: options.expected }),
+      )
+    })
+}

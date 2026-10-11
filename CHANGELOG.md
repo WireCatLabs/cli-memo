@@ -4,6 +4,25 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## 0.16.0 — 11.10.2026
+
+### Added
+
+- **Project meetings and task dependencies.** `projects meetings list|link` requires the exact
+  meeting provider/account and accepts a canonical project key or explicit alias. `tasks link|unlink`
+  manages reviewed blocked-by/follow-up-of/related-to edges; `relations`, `readiness` and `ready` expose
+  the shared task graph. Ready discovery claims nothing. MCP `task_relations`, `task_readiness` and
+  `tasks_ready` are read-only. Built on the actual published shared library 0.242.0; new project keys
+  use 3–4 characters and existing keys remain valid.
+
+- **Canonical vocabulary discovery and reviewed aliases.** `vocabulary list|resolve|preflight` shows
+  stable project/tag/topic IDs, explicit aliases and likely lexical label duplicates. Owner
+  `vocabulary aliases add|remove` requires the current preview fingerprint. Read-only MCP tools
+  `vocabulary_list`, `vocabulary_resolve` and `vocabulary_preflight` let an agent reuse the catalog;
+  they cannot accept or change aliases. `facts_add` can attach its proposed fact to a canonical project.
+
+
+
 ## 0.15.0 — 11.10.2026
 
 ### Changed — may break scripts
