@@ -13,6 +13,9 @@ the API.
 
 ### Added
 
+- **`memo mail <account> show <reference>` opens one stored email whole**, by the `msg:email/…` reference search
+  answers give: time, sender, To, Cc, labels, subject and the whole body; `--before-n`/`--after-n` add the emails
+  of its thread either side, `--json` the same as data. The reference must be of the named account.
 - **The MCP server searches every source.** `search_all`, `search_messages`, `search_mail`, `search_notes` and
   `person_context` read the same store as `memo search` and `memo context`. memo is where an agent searches across
   messengers, mail and notes; tg and max will search only their own messages
