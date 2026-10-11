@@ -6,7 +6,7 @@ export interface MemoTool {
   description: string
   writes: boolean
   input: v.ObjectSchema<v.ObjectEntries, undefined>
-  run: (store: MessageStore, args: never) => Promise<object>
+  run: (store: MessageStore, args: never, env: NodeJS.ProcessEnv) => Promise<object>
 }
 
 export const define = <S extends v.ObjectSchema<v.ObjectEntries, undefined>>(tool: {
@@ -14,5 +14,5 @@ export const define = <S extends v.ObjectSchema<v.ObjectEntries, undefined>>(too
   description: string
   writes: boolean
   input: S
-  run: (store: MessageStore, args: v.InferOutput<S>) => Promise<object>
+  run: (store: MessageStore, args: v.InferOutput<S>, env: NodeJS.ProcessEnv) => Promise<object>
 }): MemoTool => tool as unknown as MemoTool

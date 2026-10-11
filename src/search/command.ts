@@ -230,6 +230,81 @@ const found = (item: SearchFound["items"][number], level: Level | undefined): st
   return lines.join("\n")
 }
 
+export interface QueryInput {
+  text: string
+  limit: number
+  exact?: boolean
+  timezone?: string
+}
+
+/** Messages, mail and notes ranked together, with the open tasks that point at a hit. */
+export const searchEverywhere = async (
+  store: MessageStore,
+  env: NodeJS.ProcessEnv,
+  { text, limit, only, exact, timezone }: QueryInput & { only?: SearchedResource[] },
+) => {
+  const accounts = await store.accounts()
+  const key = accounts.find(({ provider }) => provider !== "notes") ?? { provider: "notes", account: "internal" }
+  const found = await searchAll(
+    store,
+    key,
+    {
+      text,
+      limit,
+      env,
+      ...(only === undefined ? {} : { only }),
+      ...(exact ? { exact: true } : {}),
+      ...(timezone === undefined ? {} : { timezone }),
+    },
+    // The shared search names this command only in the model hint, and the model comes from tg.
+    { app: { ...APP, command: "tg" } },
+  )
+  const tasks = []
+  let tasksIncomplete = false
+  const sources = found.items.map((item) => item.ref)
+  for (const account of accounts) {
+    const page = await taskPage(store, account, { state: "open", sources, limit: Math.min(limit, 500) })
+    tasks.push(...page.items)
+    tasksIncomplete ||= page.hasMore
+  }
+  return { ...found, tasks: tasks.slice(0, limit), tasksIncomplete: tasksIncomplete || tasks.length > limit }
+}
+
+/** One kind with all its fields: messenger messages from every messenger, or imported mail. */
+export const searchKind = async (
+  store: MessageStore,
+  kind: "messages" | "mail",
+  { text, limit, type, account, exact, timezone }: QueryInput & { type?: "text" | "voice" | "file"; account?: string },
+) => {
+  const [runsAs] = (await store.accounts()).filter(
+    ({ provider }) => provider !== "notes" && (kind === "mail" ? provider === "email" : provider !== "email"),
+  )
+  if (runsAs === undefined)
+    throw new CliError(
+      "not_found",
+      kind === "mail" ? "no imported mail; run memo mail <account> import" : "no stored messenger messages",
+    )
+  // The store needs an account to run as; the kind, the query and the mail account choose what it reads.
+  return searchStore(
+    store,
+    runsAs,
+    {
+      text:
+        type === undefined
+          ? text
+          : `(${text}) AND ${{ text: "NOT has:attachment", voice: "has:voice", file: "has:file" }[type]}`,
+      language: "lucene",
+      kind,
+      ...(kind === "messages" && !hasSource(parseLucene(text).root) ? { source: "all" as const } : {}),
+      limit,
+      ...(account === undefined ? {} : { mailAccount: account }),
+      ...(exact ? { exact: true } : {}),
+      ...(timezone === undefined ? {} : { timezone }),
+    },
+    { app: APP },
+  )
+}
+
 export const searchCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const group = program
     .command("search")
@@ -283,40 +358,15 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
         words: string[],
         options: { limit: number; only?: SearchedResource[]; exact?: boolean; timezone?: string; json?: boolean },
       ) => {
-        const answer = await withStore(async (store) => {
-          const accounts = await store.accounts()
-          const key = accounts.find(({ provider }) => provider !== "notes") ?? {
-            provider: "notes",
-            account: "internal",
-          }
-          const found = await searchAll(
-            store,
-            key,
-            {
-              text: words.join(" "),
-              limit: options.limit,
-              env,
-              ...(options.only === undefined ? {} : { only: options.only }),
-              ...(options.exact ? { exact: true } : {}),
-              ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
-            },
-            // The shared search names this command only in the model hint, and the model comes from tg.
-            { app: { ...APP, command: "tg" } },
-          )
-          const tasks = []
-          let tasksIncomplete = false
-          const sources = found.items.map((item) => item.ref)
-          for (const account of accounts) {
-            const page = await taskPage(store, account, { state: "open", sources, limit: Math.min(options.limit, 500) })
-            tasks.push(...page.items)
-            tasksIncomplete ||= page.hasMore
-          }
-          return {
-            ...found,
-            tasks: tasks.slice(0, options.limit),
-            tasksIncomplete: tasksIncomplete || tasks.length > options.limit,
-          }
-        })
+        const answer = await withStore((store) =>
+          searchEverywhere(store, env, {
+            text: words.join(" "),
+            limit: options.limit,
+            ...(options.only === undefined ? {} : { only: options.only }),
+            ...(options.exact ? { exact: true } : {}),
+            ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
+          }),
+        )
         if (!options.json) {
           for (const skipped of answer.skipped)
             streams.diagnostic(`${skipped.resource} not searched: ${skipped.reason}\n`)
@@ -354,37 +404,16 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
         },
       ) => {
         const level = levelOf(options)
-        const answer = await withStore(async (store) => {
-          const [runsAs] = (await store.accounts()).filter(
-            ({ provider }) => provider !== "notes" && (kind === "mail" ? provider === "email" : provider !== "email"),
-          )
-          if (runsAs === undefined)
-            throw new CliError(
-              "not_found",
-              kind === "mail" ? "no imported mail; run memo mail <account> import" : "no stored messenger messages",
-            )
-          // The store needs an account to run as; the kind, the query and --account choose what it reads.
-          return searchStore(
-            store,
-            runsAs,
-            {
-              text:
-                options.type === undefined
-                  ? words.join(" ")
-                  : `(${words.join(" ")}) AND ${{ text: "NOT has:attachment", voice: "has:voice", file: "has:file" }[options.type]}`,
-              language: "lucene",
-              kind,
-              ...(kind === "messages" && !hasSource(parseLucene(words.join(" ")).root)
-                ? { source: "all" as const }
-                : {}),
-              limit: options.limit,
-              ...(options.account === undefined ? {} : { mailAccount: options.account }),
-              ...(options.exact ? { exact: true } : {}),
-              ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
-            },
-            { app: APP },
-          )
-        })
+        const answer = await withStore((store) =>
+          searchKind(store, kind, {
+            text: words.join(" "),
+            limit: options.limit,
+            ...(options.type === undefined ? {} : { type: options.type }),
+            ...(options.account === undefined ? {} : { account: options.account }),
+            ...(options.exact ? { exact: true } : {}),
+            ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
+          }),
+        )
         print(options.json, answer, answer.items.map((item) => found(item, level)).join("\n"), level)
       },
     )
