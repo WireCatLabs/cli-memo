@@ -4,16 +4,11 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
-## 0.6.1 — 11.10.2026
-
-### Fixed
-
-- Package references, documentation and fixtures use the WireCat namespace throughout.
-- The printed Memo version matches the published package version.
+## 0.7.0 — 11.10.2026
 
 ### Changed
 
-- **memo runs on `@wirecat/cli-messaging` 0.221.0.** The store prunes its growing logs on open, at most once a
+- **memo runs on `@wirecat/cli-messaging` 0.226.0.** The store prunes its growing logs on open, at most once a
   day: agent tool calls older than 90 days are deleted, and a handled bot update older than 30 days loses its
   payload. Upgrade tg-cli and max-cli first, as all three share the store.
 - **`organizations add --kind`, `projects add --type` and `--scope` take their allowed values from the store**
@@ -23,6 +18,13 @@ the API.
 
 - **`memo --version` prints the package's version.** It printed 0.4.0 since 0.5.0: the number lived in a file the
   release did not update. A test now fails when that file and `package.json` disagree.
+- Package references, documentation and fixtures use the WireCat namespace throughout.
+
+### Security
+
+- **The old `messages.db` is deleted** when the store opens at its default path: the unencrypted file used
+  before `wirecat.db`, with its `-wal` and `-shm`. One line on stderr names it. It is kept when
+  `MESSAGING_STORE` is set, and while another process still has it open.
 
 ## 0.6.0 — 10.10.2026
 
