@@ -50,7 +50,7 @@ You need Node.js 22.16 or newer.
 
 ```sh
 npm install -g @wirecat/cli-memo
-memo folders add ~/Notes          # gives the folder an id; Obsidian format by default
+memo folders add /path/to/notes   # your notes folder; Obsidian format by default
 memo notes import                 # reads the notes, their links and tags; run again after edits
 memo search notes "budget"
 ```
@@ -120,7 +120,7 @@ the instruction to cite them. Your agent writes the answer; memo calls a model o
 5. **Agents propose, you decide.** Memories and actions an agent suggests wait for your confirmation;
    nothing is ever sent.
 
-## What it imports
+## What it reads
 
 - **Folders of notes:** Obsidian or plain Markdown, with links, aliases and tags.
 - **Documents in them:** TXT, CSV/TSV, text-layer PDF, DOCX, XLSX, ODT/ODS, PPTX and EPUB, with the page,

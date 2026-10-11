@@ -1,6 +1,6 @@
 # Configuration
 
-This page lists every setting in memo's config file and the environment variables memo reads. Most
+This page lists every setting in memo's config file and the environment variables you can set. Most
 settings are written for you: `memo folders add` adds a folder and `memo auto on` turns the timer on.
 Edit the file by hand for what to skip, mail accounts and where exported notes go.
 

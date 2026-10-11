@@ -46,8 +46,9 @@ once.
 Imports report the proven date/folder window. No thread is called globally complete on the basis of one
 window. To, CC and BCC are kept. A readable attachment's text is kept with its email and searched with it
 (`content:`, `filename:`); extraction failures are reported. After installing an optional engine, use
-`memo mail import --retry-attachments` to reread a bounded batch of stored mail. Mail in the mail tables is
-searched by words, not yet by meaning.
+`memo mail import --retry-attachments` to reread a bounded batch of stored mail. `memo search mail` matches
+words; mail is embedded on import, so `tg search conversations` finds it by meaning. `--no-embed`, or
+`embed: false` on the account, skips the embedding.
 
 To make a mail address part of a person, link it in messaging — see [People](people.md#people).
 
