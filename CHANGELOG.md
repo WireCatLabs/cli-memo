@@ -14,6 +14,11 @@ the API.
 - **`organizations add --kind`, `projects add --type` and `--scope` take their allowed values from the store**
   and refuse any other value before the store is opened, naming the allowed ones.
 
+### Fixed
+
+- **`memo --version` prints the package's version.** It printed 0.4.0 since 0.5.0: the number lived in a file the
+  release did not update. A test now fails when that file and `package.json` disagree.
+
 ## 0.6.0 — 10.10.2026
 
 ### Changed — may break callers
