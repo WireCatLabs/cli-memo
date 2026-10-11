@@ -58,9 +58,15 @@ Memo, and Obsidian does not need to be open.
 
 | | `markdown` | `obsidian` (the default) |
 |---|---|---|
-| Links to other notes | `[label](other-note.md)` | `[[Other note]]`, `[[Other note\|label]]`, also with `#heading` |
+| Links to other notes | Markdown links to the file (below) | `[[Other note]]`, `[[Other note\|label]]`, also with `#heading` |
 | Tags | the `tags:` field at the top of the file | the `tags:` field and `#tags` in the text |
 | Other names for a note | | the `aliases:` field |
+
+A link in a `markdown` folder looks like this:
+
+```md
+[label](other-note.md)
+```
 
 In a `markdown` folder, a `#word` in the text is not a tag. Both formats understand links written as
 references, such as `[Kai](person:7)` or a bare `msg:telegram/1/77/42`.
