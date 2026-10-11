@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- The hint after a search without the meaning model names the command that downloads it,
+  `tg models text download e5-small`; it named a `memo models` command that does not exist.
+- `memo projects context` finds a project by its key (`HRB`) or `project:<id>` as well as its id;
+  a key gave an empty answer.
+
 ### Changed — may break scripts
 
 - **`memo search mail` and `memo search messages` show each hit as a reference, then who and when, then an

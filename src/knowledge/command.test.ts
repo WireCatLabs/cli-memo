@@ -116,3 +116,18 @@ describe("combined evidence, relationships and local reminders", () => {
     expect((await run("context", "telegram:101", "--account", "1")).tasks.items).toHaveLength(3)
   })
 })
+
+describe("project context", () => {
+  it("finds a project by its key as well as its id", async () => {
+    const root = mkdtempSync(join(tmpdir(), "memo-project-key-")),
+      env = { ...process.env, MESSAGING_STORE: join(root, "store.db") }
+    const run = async (...args: string[]) => {
+      const streams = captureStreams()
+      await createProgram({ streams, env }).parseAsync(args, { from: "user" })
+      return JSON.parse(streams.stdout.join(""))
+    }
+    await run("projects", "add", "Synthetic Harbour", "--key", "SYH", "--json")
+    for (const reference of ["SYH", "syh", "project:1", "1"])
+      expect((await run("projects", "context", reference, "--json")).project).toMatchObject({ id: "1", key: "SYH" })
+  })
+})

@@ -64,10 +64,10 @@ Organizations and projects are yours, not tied to one messenger account.
 memo organizations add 'Synthetic Studio' --kind company
 memo projects add 'Harbour' --key HRB --scope work --organization organization:1
 memo projects list
-memo projects context 1
+memo projects context HRB
 ```
 
-`--scope` is `personal` or `work`. `projects context` takes the project's number from `projects list`.
+`--scope` is `personal` or `work`. `projects context` takes the project's key or its number.
 `projects context` and `organizations context` show the people linked to the project or
 organization, the notes about it or linking to it, and its tags. A project's key is also used for its
 tasks, such as `HRB-1` ([tasks](tasks.md#tasks-in-a-project)).

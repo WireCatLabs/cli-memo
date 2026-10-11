@@ -300,7 +300,8 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
               ...(options.exact ? { exact: true } : {}),
               ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
             },
-            { app: APP },
+            // The shared search names this command only in the model hint, and the model comes from tg.
+            { app: { ...APP, command: "tg" } },
           )
           const tasks = []
           let tasksIncomplete = false
@@ -415,7 +416,7 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
             limit: options.limit,
             offset: options.offset,
             env,
-            command: "memo",
+            command: "tg",
             ...(options.type === undefined ? {} : { source: options.type }),
             ...(options.tag === undefined ? {} : { tag: options.tag }),
             ...(options.filter === undefined ? {} : { filter: options.filter }),
