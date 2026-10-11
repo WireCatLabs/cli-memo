@@ -4,6 +4,14 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- **A meeting can be tagged and written about.** `memo tags add|remove --meeting <id>` with `--provider` and
+  `--account` labels a stored meeting, `memo tags list --type meeting` lists them, and `memo notes add --about
+  meeting:<account id>/<meeting id>` writes a note about one.
+
 ## 0.8.0 — 11.10.2026
 
 ### Changed — may break scripts
