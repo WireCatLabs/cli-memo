@@ -4,6 +4,14 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- **Mail search filters by read and starred state, and takes `label:`.** `memo search mail` accepts `is:unread`,
+  `is:read`, `is:starred` and `label:` (the same as `mailbox:`), and `date:>=2026-01-01` as well as
+  `date>=2026-01-01`. Built on the shared library 0.243.0.
+
 ## 0.16.0 — 11.10.2026
 
 ### Added

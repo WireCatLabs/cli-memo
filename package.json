@@ -42,7 +42,7 @@
     "@modelcontextprotocol/server": "2.1.0",
     "@valibot/to-json-schema": "1.8.0",
     "@wirecat/cli-core": "0.20.0",
-    "@wirecat/cli-messaging": "0.242.0",
+    "@wirecat/cli-messaging": "0.243.0",
     "commander": "15.0.0",
     "valibot": "1.5.0",
     "yaml": "2.9.1"
