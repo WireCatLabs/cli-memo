@@ -19,6 +19,7 @@ import { accountOptions, oneOf, positive } from "../options.js"
 import { heldMessage } from "../store/held.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 import { taskPage } from "./context.js"
+import { taskRelationsCommand } from "./relations-command.js"
 
 interface FieldOptions {
   title?: string
@@ -55,6 +56,7 @@ const assignAll = async (store: MessageStore, id: string, people: string[] | und
 
 export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const group = program.command("tasks").description("Open work linked to stored messages, documents and emails")
+  taskRelationsCommand(group, streams, env)
   const print = (json: boolean | undefined, answer: unknown) =>
     json
       ? createRenderer({ format: "json", color: false, streams }).result(answer)

@@ -18,8 +18,8 @@ importers:
         specifier: 0.20.0
         version: 0.20.0(commander@15.0.0)(typescript@7.0.2)
       '@wirecat/cli-messaging':
-        specifier: 0.241.0
-        version: 0.241.0(@wirecat/cli-core@0.20.0(commander@15.0.0)(typescript@7.0.2))(commander@15.0.0)(typescript@7.0.2)(zod@4.6.5)
+        specifier: 0.242.0
+        version: 0.242.0(@wirecat/cli-core@0.20.0(commander@15.0.0)(typescript@7.0.2))(commander@15.0.0)(typescript@7.0.2)(zod@4.6.5)
       commander:
         specifier: 15.0.0
         version: 15.0.0
@@ -947,8 +947,8 @@ packages:
   '@wirecat/cli-messaging-sqlite@1.0.1':
     resolution: {integrity: sha512-hnB4eL6ER/++nTPrlSCAUzDJH7MN3V+Obx9B2xXMwBN1KrLkJHIrybQCikfNOnwnyrkultSkLulM7vd+qSG5Hg==}
 
-  '@wirecat/cli-messaging@0.241.0':
-    resolution: {integrity: sha512-vpj00NoxXYbkQGEFGvLa5VWWmKKDEUtD1+UW8CMfwv7aDN3gDrdt8TuvbnQJ0PWkwLU3VA4kVoelRiolG/qntw==}
+  '@wirecat/cli-messaging@0.242.0':
+    resolution: {integrity: sha512-LzjXhdOqApwNHmBy+Hb9TbosvurAQm+nxaqX0kmHc5q2RkPlyJz4TxbsAo1nKaHBjXjGfIvE3/G89ZoLq23b3A==}
     engines: {node: ^22.16.0 || >=24}
     hasBin: true
     peerDependencies:
@@ -2550,7 +2550,7 @@ snapshots:
 
   '@wirecat/cli-messaging-sqlite@1.0.1': {}
 
-  '@wirecat/cli-messaging@0.241.0(@wirecat/cli-core@0.20.0(commander@15.0.0)(typescript@7.0.2))(commander@15.0.0)(typescript@7.0.2)(zod@4.6.5)':
+  '@wirecat/cli-messaging@0.242.0(@wirecat/cli-core@0.20.0(commander@15.0.0)(typescript@7.0.2))(commander@15.0.0)(typescript@7.0.2)(zod@4.6.5)':
     dependencies:
       '@anthropic-ai/sdk': 0.131.0(zod@4.6.5)
       '@bomb.sh/tab': 0.0.22(commander@15.0.0)

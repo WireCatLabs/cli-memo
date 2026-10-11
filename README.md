@@ -13,6 +13,54 @@ Retrieval is local; an explicitly selected model receives evidence only with the
 **Status:** early. Context, notes and their links, document import, Gmail and IMAP imports, tasks,
 manual relationships, evidence bundles and local reminders work.
 
+## Project and topic aliases
+
+```sh
+memo vocabulary list --kind project --scope work --json
+memo vocabulary resolve 'Lab Example' --kind project --json
+memo vocabulary aliases add project:1 'Lab Example' --expected FINGERPRINT --json
+memo vocabulary aliases remove project:1 ALIAS_ID --expected FINGERPRINT --json
+memo vocabulary preflight on-boarding --json
+```
+
+Use canonical IDs and the fingerprint from `vocabulary list` when reviewing an alias change.
+Exact aliases reuse one project or label; ambiguous names remain candidates. Preflight suggests
+likely lexical duplicates without creating labels, merging records or loading a model. Existing
+automatic tag creation still needs the native duplicate-review rollout; this preflight alone does
+not protect every creation path.
+
+Read-only MCP tools `vocabulary_list`, `vocabulary_resolve` and `vocabulary_preflight` expose the same
+catalog to an agent. Alias changes remain owner operations. An agent's `facts_add` can name the
+canonical `project:<id>` and retains its proposed status until reviewed.
+
+## Project meetings and ready work
+
+```sh
+memo projects add 'Research Example' --key RES --scope work
+memo projects meetings list RES --provider zoom --account STORED_ACCOUNT --json
+memo projects meetings link RES MEETING_ID --provider zoom --account STORED_ACCOUNT --json
+memo projects meetings list RES --proposed --provider zoom --account STORED_ACCOUNT --json
+memo tasks add --project RES --title 'Research draft' --type feature
+memo tasks add --project RES --title 'Review draft' --type chore
+memo tasks link RES-2 RES-1 --kind blocked-by --json
+memo tasks link RES-2 RES-1 --kind follow-up-of --json
+memo tasks readiness RES-2 --json
+memo tasks ready --project RES --json
+```
+
+Select the exact stored account explicitly. Meeting links are reviewed owner operations;
+confirming an agent's existing proposal requires its current `--expected FINGERPRINT`. Names and
+explicit aliases resolve to one project; ambiguous names require a canonical reference.
+
+New project keys have 3–4 characters; existing project/task keys remain valid. Only completed
+prerequisites make a blocked task ready. Dismissed or deleted blockers need review. Follow-up and
+related links are informational. `tasks relations` lists edges; `tasks unlink` removes a reviewed
+edge with the same `--kind`. Parent hierarchy is separate.
+
+MCP `task_relations`, `task_readiness` and `tasks_ready` expose bounded discovery to an agent. They
+never claim, assign, execute or accept task relationships. Durable worker leases and the cited
+meeting-findings batch workflow are separate follow-on work.
+
 ## Your notes on messages, people and projects
 
 ```sh
@@ -45,10 +93,10 @@ memo tasks add 'note:NOTE_ID' --provider telegram --account 1 --type request
 memo tasks list --provider telegram --account 1 --json
 memo tasks assign TASK_ID PERSON_UID --role reviewer
 memo tasks close TASK_ID --provider telegram --account 1 --as done
-memo tasks add --project LH --title 'Export drops the last row' --type bug --priority 1 --assignee PERSON_UID
-memo tasks update LH-1 --priority 0 --description 'Seen on CSV export'
-memo tasks list --project LH
-memo tasks close LH-1 --reason fixed
+memo tasks add --project RES --title 'Export drops the last row' --type bug --priority 1 --assignee PERSON_UID
+memo tasks update RES-1 --priority 0 --description 'Seen on CSV export'
+memo tasks list --project RES
+memo tasks close RES-1 --reason fixed
 ```
 
 A bug, feature or chore has no source: `--project` (its key or `project:<id>`) and `--title` make it there,
