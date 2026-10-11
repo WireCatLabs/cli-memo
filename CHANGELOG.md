@@ -4,7 +4,7 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
-## Unreleased
+## 0.19.0 — 11.10.2026
 
 ### Added
 
@@ -12,6 +12,13 @@ the API.
   concluded is a memory (`memories_add`), something to do is `actions_propose`, each with evidence,
   and only what will matter later. `memo search …` and `memo notes show` end their `--help` with
   the same hint for `memo facts add` and `memo memories add`.
+
+### Changed
+
+- **Mail meaning search finds the email that holds the answer.** Mail is cut into pieces email by email again,
+  with re-quoted text, greetings and signatures still left out; before, a piece spanned several emails of a thread
+  and a hit named the newest of them. The first index run after the upgrade cuts stored mail again once and embeds
+  it again. Built on the shared library 0.249.0.
 
 ### Fixed
 
