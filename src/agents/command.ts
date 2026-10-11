@@ -1,4 +1,4 @@
-import type { Streams } from "@wirecat/cli-core"
+import type { Streams } from "@wirecat/cli-base"
 import type { Command } from "commander"
 import { positive } from "../options.js"
 import { answering } from "../records/run.js"

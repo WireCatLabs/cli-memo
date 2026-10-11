@@ -1,5 +1,5 @@
 import { serveStdio } from "@modelcontextprotocol/server/stdio"
-import type { Streams } from "@wirecat/cli-core"
+import type { Streams } from "@wirecat/cli-base"
 import type { Command } from "commander"
 import { createMemoServer } from "./server.js"
 

@@ -6,6 +6,11 @@ the API.
 
 ## Unreleased
 
+### Changed
+
+- **Built on `@wirecat/cli-base` 0.21.0, the framework's new name, and the shared library 0.253.0.** Nothing
+  changes in memo's commands; `memo search` answers carry `nextOffset` where the shared search gives it.
+
 ### Added
 
 - **The MCP server searches every source.** `search_all`, `search_messages`, `search_mail`, `search_notes` and

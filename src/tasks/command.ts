@@ -1,4 +1,4 @@
-import { CliError, createRenderer, type Streams } from "@wirecat/cli-core"
+import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
 import { parseLocator } from "@wirecat/cli-messaging"
 import { closedStateOf, storeOnlyDeps, taskStateOf, tasksService } from "@wirecat/cli-messaging/services"
 import {

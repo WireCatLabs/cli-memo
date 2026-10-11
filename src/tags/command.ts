@@ -1,4 +1,4 @@
-import { CliError, createRenderer, type Streams } from "@wirecat/cli-core"
+import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
 import { normalizeTag } from "@wirecat/cli-messaging"
 import { type MessageStore, openStore, type StoredTag } from "@wirecat/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"

@@ -1,6 +1,6 @@
 import { type CallToolResult, McpServer } from "@modelcontextprotocol/server"
 import { toStandardJsonSchema } from "@valibot/to-json-schema"
-import { isCliError } from "@wirecat/cli-core"
+import { isCliError } from "@wirecat/cli-base"
 import {
   FACT_STATUSES,
   FACT_TYPES,

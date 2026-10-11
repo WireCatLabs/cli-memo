@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { captureStreams } from "@wirecat/cli-core"
+import { captureStreams } from "@wirecat/cli-base"
 import { formatLocator, type Message } from "@wirecat/cli-messaging"
 import { messagesService, storeOnlyDeps } from "@wirecat/cli-messaging/services"
 import { openStore } from "@wirecat/cli-messaging/store"

@@ -1,4 +1,4 @@
-import { CliError, type Streams } from "@wirecat/cli-core"
+import { CliError, type Streams } from "@wirecat/cli-base"
 import { parseLocator, resolveOutput } from "@wirecat/cli-messaging"
 import {
   parseLucene,

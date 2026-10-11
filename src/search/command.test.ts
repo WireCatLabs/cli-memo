@@ -1,7 +1,7 @@
 import { mkdtempSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { captureStreams } from "@wirecat/cli-core"
+import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"
 import { expect, it } from "vitest"

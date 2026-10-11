@@ -1,4 +1,4 @@
-import { processStreams, type Streams } from "@wirecat/cli-core"
+import { processStreams, type Streams } from "@wirecat/cli-base"
 import { Command } from "commander"
 import { actionsCommand } from "./actions/command.js"
 import { agentsCommand } from "./agents/command.js"

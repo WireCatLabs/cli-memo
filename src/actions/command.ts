@@ -1,4 +1,4 @@
-import type { Streams } from "@wirecat/cli-core"
+import type { Streams } from "@wirecat/cli-base"
 import { approveAsTask } from "@wirecat/cli-messaging/services"
 import { PROPOSAL_STATUSES, type ProposedAction } from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"

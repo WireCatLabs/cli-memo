@@ -1,4 +1,4 @@
-import { CliError } from "@wirecat/cli-core"
+import { CliError } from "@wirecat/cli-base"
 import { formatLocator, parseLocator } from "@wirecat/cli-messaging"
 import type { AccountKey, TagTarget } from "@wirecat/cli-messaging/store"
 

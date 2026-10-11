@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { exitCodeFor, GENERIC_FAILURE, isCliError } from "@wirecat/cli-core"
+import { exitCodeFor, GENERIC_FAILURE, isCliError } from "@wirecat/cli-base"
 import { migrateFolders } from "@wirecat/cli-messaging/background"
 import { ensureSqlite } from "@wirecat/cli-messaging/sqlite-runtime"
 import { APP } from "../app.js"

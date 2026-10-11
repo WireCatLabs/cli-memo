@@ -1,4 +1,4 @@
-import { createRenderer, type Streams } from "@wirecat/cli-core"
+import { createRenderer, type Streams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"
 import { loadConfig } from "../config.js"

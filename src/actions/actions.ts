@@ -1,4 +1,4 @@
-import { CliError } from "@wirecat/cli-core"
+import { CliError } from "@wirecat/cli-base"
 import type { Author, MessageStore, ProposedAction } from "@wirecat/cli-messaging/store"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 

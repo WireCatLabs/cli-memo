@@ -1,4 +1,4 @@
-import type { Streams } from "@wirecat/cli-core"
+import type { Streams } from "@wirecat/cli-base"
 import { FACT_STATUSES, FACT_TYPES, type Fact, MEMORY_SCOPES } from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"
 import { oneOf, positive } from "../options.js"
