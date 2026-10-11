@@ -4,6 +4,18 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- The guides in `docs/` follow the wirecat.dev tool layout: an overview, daily use, how memo works,
+  recipes, troubleshooting, memories and a generated command reference (`pnpm generate`), written
+  for readers who do not use a terminal every day.
+- `memo commands [path] --json` lists the command tree and its options, as tg, max and drive do, so
+  documentation and agents can check a command before running it.
+- Every command has a description in `--help`, including organizations, projects, relationships,
+  reminders and task listing.
+
 ## 0.19.0 — 11.10.2026
 
 ### Added
@@ -19,16 +31,6 @@ the API.
   with re-quoted text, greetings and signatures still left out; before, a piece spanned several emails of a thread
   and a hit named the newest of them. The first index run after the upgrade cuts stored mail again once and embeds
   it again. Built on the shared library 0.249.0.
-
-### Added
-
-- The guides in `docs/` follow the wirecat.dev tool layout: an overview, daily use, how memo works,
-  recipes, troubleshooting, memories and a generated command reference (`pnpm generate`), written
-  for readers who do not use a terminal every day.
-- `memo commands [path] --json` lists the command tree and its options, as tg, max and drive do, so
-  documentation and agents can check a command before running it.
-- Every command has a description in `--help`, including organizations, projects, relationships,
-  reminders and task listing.
 
 ### Fixed
 
