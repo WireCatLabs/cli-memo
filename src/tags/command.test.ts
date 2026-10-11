@@ -227,6 +227,26 @@ describe("memo source tags", () => {
     expect(note.note.ref).toMatch(/^note:/)
     const about = await json("notes", "list", "--about", `meeting:${accountId}/${meetingId}`)
     expect(JSON.stringify(about)).toContain(note.note.ref)
+
+    const byId = await json(
+      "notes",
+      "add",
+      "Send the agenda",
+      "--about",
+      note.note.ref,
+      ...scope,
+      "--meeting",
+      String(meetingId),
+    )
+    for (const subject of [note.note.ref, `meeting:${accountId}/${meetingId}`])
+      expect(JSON.stringify(await json("notes", "list", "--about", subject))).toContain(byId.note.ref)
+    await expect(json("notes", "add", "x", "--meeting", String(meetingId + 1), ...scope)).rejects.toMatchObject({
+      code: "not_found",
+    })
+    await expect(json("notes", "add", "x", "--meeting", String(meetingId))).rejects.toMatchObject({
+      code: "validation_error",
+    })
+    await expect(json("notes", "add", "x", ...scope)).rejects.toMatchObject({ code: "validation_error" })
   })
 
   it("bounds tag listing and prints readable source references", async () => {

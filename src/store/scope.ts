@@ -33,6 +33,16 @@ export const selectAccount = async (store: MessageStore, scope: AccountScope): P
   return matches[0] as AccountKey
 }
 
+/** The `meeting:<account id>/<meeting id>` reference for a meeting the selected account holds. */
+export const meetingReference = async (store: MessageStore, id: string, scope: AccountScope): Promise<string> => {
+  if (!/^\d+$/.test(id)) throw new CliError("validation_error", "--meeting takes the meeting's id in the store")
+  const account = await store.storedAccount(await selectAccount(store, scope))
+  const found = await store.meetings.meeting(Number(id))
+  if (found === null || found.meeting.accountId !== account.id)
+    throw new CliError("not_found", `the ${account.provider} account ${account.account} holds no meeting ${id}`)
+  return `meeting:${account.id}/${found.meeting.id}`
+}
+
 export const selectTarget = async (
   store: MessageStore,
   input: TargetInput,
