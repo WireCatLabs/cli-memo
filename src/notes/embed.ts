@@ -2,6 +2,7 @@ import { CliError } from "@wirecat/cli-core"
 import {
   conversationsService,
   embeddingsService,
+  embedMail as embedMailChunksOf,
   embedNotes as embedNoteChunksOf,
   storeOnlyDeps,
 } from "@wirecat/cli-messaging/services"
@@ -142,6 +143,29 @@ export const embedNoteChunks = async (
   if (!embed) return { chunks: 0, left: true, notEmbedded: "embedding is off" }
   try {
     const done = await embedNoteChunksOf(store, { maxChunks, command: "tg", ...(env === undefined ? {} : { env }) })
+    return { chunks: done.embedded, left: done.left }
+  } catch (error) {
+    if (!isMissingModel(error)) throw error
+    return {
+      chunks: 0,
+      left: true,
+      notEmbedded: "the e5-small model is not downloaded — tg models text download e5-small",
+    }
+  }
+}
+
+/** Embeds mail's chunks that have no vector yet, bounded as notes are; a missing model is reported, never downloaded. */
+export const embedMailChunks = async (
+  store: MessageStore,
+  {
+    maxChunks = EMBED_PER_RUN,
+    embed = true,
+    env,
+  }: { maxChunks?: number; embed?: boolean; env?: NodeJS.ProcessEnv } = {},
+): Promise<NoteChunksEmbedded> => {
+  if (!embed) return { chunks: 0, left: true, notEmbedded: "embedding is off" }
+  try {
+    const done = await embedMailChunksOf(store, { maxChunks, command: "tg", ...(env === undefined ? {} : { env }) })
     return { chunks: done.embedded, left: done.left }
   } catch (error) {
     if (!isMissingModel(error)) throw error

@@ -1,8 +1,7 @@
-import type { Message } from "@wirecat/cli-messaging"
 import { extractText, importEngine, type LoadEngine } from "@wirecat/cli-messaging/documents"
-import type { AccountKey, MessageStore } from "@wirecat/cli-messaging/store"
-import { embedChanged, type NotesEmbedded } from "../notes/embed.js"
-import { dropMissing } from "../store/gone.js"
+import type { AccountKey, AttachmentInput, EmailAddress, MessageStore } from "@wirecat/cli-messaging/store"
+import { embedChanged, embedMailChunks, type NotesEmbedded } from "../notes/embed.js"
+import { dropMissing, tooManyGone } from "../store/gone.js"
 import { listAllMail, listImapMail } from "./gmail.js"
 import type { Himalaya } from "./himalaya.js"
 import { type Address, parseMail } from "./parse.js"
@@ -30,16 +29,15 @@ export interface ImportResult {
   deletionsSkipped?: string
   indexed?: NotesEmbedded
   coverage?: { folders: string[]; since: string; until: string; state: "window" | "partial"; identity: string }
-  attachments?: { message: string; part: number; status: string; locatorId?: string }[]
+  attachments?: { message: string; part: number; status: string }[]
 }
 
 const DAY = 86_400_000
 /** IMAP's SINCE counts whole days in the server's zone, so the window's first days are not trusted. */
 const EDGE = 2 * DAY
-const ANY = /[\s\S]?/
+const MAX_ATTACHMENT_TEXT = 200_000
 
-const titleOf = (subject: string | null): string | null =>
-  subject?.replace(/^\s*((re|fwd?|aw|wg)\s*:\s*)+/i, "").trim() || null
+const addressOf = ({ email, name }: Address): EmailAddress => ({ address: email, name })
 
 export const importMail = async ({
   store,
@@ -53,6 +51,7 @@ export const importMail = async ({
   loadEngine = importEngine,
   retryAttachments = false,
   indexThreads = embedChanged,
+  embedMail = embedMailChunks,
 }: {
   store: MessageStore
   run: Himalaya
@@ -65,10 +64,11 @@ export const importMail = async ({
   loadEngine?: LoadEngine
   retryAttachments?: boolean
   indexThreads?: typeof embedChanged
+  embedMail?: typeof embedMailChunks
 }): Promise<ImportResult> => {
   const startedAt = now()
   const key: AccountKey = { provider: "email", account: account.address.toLowerCase() }
-  await store.saveAccount(key, { name: account.address })
+  const accountId = await store.saveAccount(key, { name: account.address })
 
   const folders = account.folders ?? [account.mode === "imap" ? "INBOX" : "[Gmail]/All Mail"]
   if (folders.length < 1 || folders.length > 50) throw new Error("select 1–50 mail folders")
@@ -86,8 +86,6 @@ export const importMail = async ({
   const listed = [...new Map(collected.map((item) => [item.messageId, item])).values()].sort((a, b) =>
     b.receivedAt.localeCompare(a.receivedAt),
   )
-  const changed = new Set<string>()
-  const attachments: NonNullable<ImportResult["attachments"]> = []
   const present = new Set(listed.map(({ messageId }) => messageId))
   const foundFolders = new Map<string, Set<string>>()
   for (const item of collected) {
@@ -95,20 +93,52 @@ export const importMail = async ({
     current.add(item.scopeFolder ?? item.folder ?? (folders[0] as string))
     foundFolders.set(item.messageId, current)
   }
-  for (const [id, found] of foundFolders) {
-    const earlier = await store.syncState(key, `mail_message_folders:${id}`)
-    const kept =
-      earlier === undefined ? [] : (JSON.parse(earlier.value) as string[]).filter((folder) => !folders.includes(folder))
-    await store.setSyncState(key, `mail_message_folders:${id}`, JSON.stringify([...new Set([...kept, ...found])]))
-  }
+  const mailbox = (folder: string) => ({ externalId: folder, name: folder, kind: null })
+  const allMailOnly = account.mode !== "imap" && folders.length === 1 && folders[0] === "[Gmail]/All Mail"
 
+  // Deletions are proved against the mailboxes as stored before this scan moves anything.
+  const scope = JSON.stringify({ mode: account.mode ?? "gmail", folders: [...folders].sort() })
+  const previousScope = await store.syncState(key, "mail_folder_scope")
+  const windowStart = new Date(since.getTime() + EDGE)
+  let deleted = 0
+  let skipped: string | undefined
+  if (previousScope !== undefined && previousScope.value !== scope)
+    skipped = "folder scope changed; missing mail is not proven deleted"
+  else {
+    const candidates = (await store.mail.emails({ accountId, since: windowStart.getTime() })).filter(({ mailboxes }) =>
+      mailboxes.length ? mailboxes.every(({ externalId }) => folders.includes(externalId)) : allMailOnly,
+    )
+    const gone = candidates.filter(({ externalId }) => !present.has(externalId)).map(({ externalId }) => externalId)
+    skipped = tooManyGone(gone.length, candidates.length)
+    if (!skipped && gone.length) deleted = await store.mail.markDeleted(accountId, gone, startedAt)
+    // Mail an earlier import saved as messages keeps the rule it was saved under until those rows are removed.
+    const older = await dropMissing(
+      store,
+      key,
+      { has: (id) => present.has(id.replace(/:attachment:\d+$/, "")) },
+      windowStart.toISOString(),
+      async ({ id }) => {
+        const membership = await store.syncState(key, `mail_message_folders:${id.replace(/:attachment:\d+$/, "")}`)
+        if (membership === undefined) return allMailOnly
+        return (JSON.parse(membership.value) as string[]).every((folder) => folders.includes(folder))
+      },
+    )
+    deleted += older.deleted
+    skipped ??= older.skipped
+  }
+  await store.mail.setMailboxes(
+    accountId,
+    folders.map(mailbox),
+    new Map([...foundFolders].map(([id, found]) => [id, [...found]])),
+    startedAt,
+  )
+
+  const attachments: NonNullable<ImportResult["attachments"]> = []
   let saved = 0
   let alreadyStored = 0
   let read = 0
   for (const item of listed) {
-    if (!retryAttachments && (await store.message(key, item.messageId, { chatId: item.threadId })) !== undefined) {
-      const children = await store.syncState(key, `mail_attachments:${item.messageId}`)
-      for (const id of children === undefined ? [] : (JSON.parse(children.value) as string[])) present.add(id)
+    if (!retryAttachments && (await store.mail.email(accountId, item.messageId)) !== null) {
       alreadyStored++
       continue
     }
@@ -117,53 +147,8 @@ export const importMail = async ({
     const mail = parseMail(
       await run(["--json", "message", "read", "-a", account.name, "-m", item.folder ?? "archive", item.uid]),
     )
-    const people = [mail.from, ...mail.to, ...mail.bcc].filter((person): person is Address => person !== null)
-    const known = (await store.members(key, item.threadId)).map(({ id }) => id)
-    const members = [...new Set([...known, ...people.map(({ email }) => email)])]
-    const newest = (await store.find({ account: key, chatId: item.threadId, pattern: ANY, limit: 1 })).items[0]
-      ?.timestamp
-    // Saving a chat replaces its fields, so an older message read later must not move the time back.
-    const lastMessageAt = newest !== undefined && newest > item.receivedAt ? newest : item.receivedAt
-    await store.applyDelta(key, {
-      chats: [
-        {
-          id: item.threadId,
-          title: titleOf(mail.subject),
-          kind: members.length > 2 ? "group" : "dialog",
-          unreadCount: null,
-          lastMessageAt,
-          participantsCount: members.length,
-        },
-      ],
-      people: people.map(({ email, name }) => ({ id: email, name })),
-      members: new Map([[item.threadId, members]]),
-    })
-    const message: Message = {
-      id: item.messageId,
-      chatId: item.threadId,
-      senderId: mail.from?.email ?? null,
-      senderName: mail.from?.name ?? null,
-      timestamp: item.receivedAt,
-      editedAt: null,
-      text: [mail.subject, mail.text].filter(Boolean).join("\n\n"),
-      outgoing: mail.from === null ? null : mail.from.email === key.account,
-      attachments: mail.attachments.map((part) => ({
-        kind: "file",
-        name: part.name,
-        ...(part.mime === null ? {} : { mime: part.mime }),
-        ...(part.bytes === null ? {} : { size: part.bytes.byteLength }),
-        providerRef: { message: item.messageId, part: part.id },
-      })),
-      providerMetadata: {
-        emailHeaders: { cc: mail.cc.map((address) => address.email), bcc: mail.bcc.map((address) => address.email) },
-      },
-      replyTo: null,
-      forwardedFrom: null,
-      reactions: null,
-    }
-    await store.saveMessages(key, item.threadId, [message], { via: "himalaya", seenAt: startedAt })
-    const children: string[] = []
-    for (const part of mail.attachments) {
+    const files: AttachmentInput[] = []
+    for (const [position, part] of mail.attachments.entries()) {
       const extraction =
         part.bytes === null
           ? { status: "unavailable" as const }
@@ -172,54 +157,66 @@ export const importMail = async ({
               { kind: "file", name: part.name, mime: part.mime, path: part.name },
               loadEngine,
             )
-      if (extraction.status !== "extracted") {
-        attachments.push({ message: item.messageId, part: part.id, status: extraction.status })
-        continue
-      }
-      const id = `${item.messageId}:attachment:${part.id}`
-      await store.saveMessages(
-        key,
-        item.threadId,
-        [
-          {
-            ...message,
-            id,
-            text: `${part.name}\n\n${extraction.text}`.slice(0, 200_000),
-            attachments: [],
-            providerMetadata: {
-              emailAttachment: { message: item.messageId, part: part.id, extractor: extraction.extractor },
-            },
-          },
-        ],
-        { via: "himalaya", seenAt: startedAt },
-      )
-      children.push(id)
-      present.add(id)
-      attachments.push({ message: item.messageId, part: part.id, status: "extracted", locatorId: id })
+      attachments.push({ message: item.messageId, part: part.id, status: extraction.status })
+      const extracted = extraction.status === "extracted" ? extraction : undefined
+      files.push({
+        position,
+        kind: "file",
+        mime: part.mime,
+        name: part.name,
+        title: null,
+        url: null,
+        size: part.bytes === null ? null : part.bytes.byteLength,
+        width: null,
+        height: null,
+        duration: null,
+        providerRef: { message: item.messageId, part: part.id },
+        localPath: null,
+        text: extracted ? extracted.text.slice(0, MAX_ATTACHMENT_TEXT) : null,
+        normalizedText: null,
+        extraction: extracted ? "text" : "failed",
+        extractor: extracted ? extracted.extractor : null,
+        extractionError: extracted ? null : extraction.status,
+        contentSha256: null,
+        extractedAt: startedAt,
+      })
     }
-    await store.setSyncState(key, `mail_attachments:${item.messageId}`, JSON.stringify(children))
+    await store.mail.saveThread({
+      accountId,
+      externalId: item.threadId,
+      now: startedAt,
+      emails: [
+        {
+          externalId: item.messageId,
+          subject: mail.subject,
+          from: mail.from === null ? null : addressOf(mail.from),
+          to: mail.to.map(addressOf),
+          cc: mail.cc.map(addressOf),
+          bcc: mail.bcc.map(addressOf),
+          sentAt: null,
+          receivedAt: Date.parse(item.receivedAt),
+          bodyText: mail.text || null,
+          outgoing: mail.from === null ? null : mail.from.email === key.account,
+          mailboxes: [...(foundFolders.get(item.messageId) ?? [])].map(mailbox),
+          attachments: files,
+        },
+      ],
+    })
     saved++
-    changed.add(item.threadId)
   }
 
   const complete = listed.length - alreadyStored - saved === 0
-  const scope = JSON.stringify({ mode: account.mode ?? "gmail", folders: [...folders].sort() })
-  const previousScope = await store.syncState(key, "mail_folder_scope")
-  const { deleted, skipped } =
-    previousScope !== undefined && previousScope.value !== scope
-      ? { deleted: 0, skipped: "folder scope changed; missing mail is not proven deleted" }
-      : await dropMissing(store, key, present, new Date(since.getTime() + EDGE).toISOString(), async ({ id }) => {
-          const parent = id.replace(/:attachment:\d+$/, "")
-          const membership = await store.syncState(key, `mail_message_folders:${parent}`)
-          if (membership === undefined)
-            return account.mode !== "imap" && folders.length === 1 && folders[0] === "[Gmail]/All Mail"
-          return (JSON.parse(membership.value) as string[]).every((folder) => folders.includes(folder))
-        })
   await store.setSyncState(key, "mail_folder_scope", scope)
-  const indexed = await indexThreads(store, key, [...changed], {
-    embed: embed && account.embed !== false,
-    ...(env === undefined ? {} : { env }),
-  })
+  const embedding = { embed: embed && account.embed !== false, ...(env === undefined ? {} : { env }) }
+  // Chats an earlier import saved as messages may still wait for vectors; the mail tables have their own.
+  const older = await indexThreads(store, key, [], embedding)
+  const mail = await embedMail(store, embedding)
+  const indexed: NotesEmbedded = {
+    ...older,
+    chunks: older.chunks + mail.chunks,
+    left: older.left || mail.left,
+    ...(mail.notEmbedded === undefined ? {} : { notEmbedded: mail.notEmbedded }),
+  }
   const coverage = {
     folders,
     since: since.toISOString(),

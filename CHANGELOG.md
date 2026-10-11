@@ -4,6 +4,24 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Changed — may break scripts
+
+- **Mail goes into the store's mail tables.** `memo mail import` saves each email through cli-messaging's
+  `store.mail` (0.231.0): threads, emails, To/CC/BCC, folders as mailboxes, and attachment text on its email.
+  Ids stay the same, so a `msg:email/…` reference, tag or note made before still resolves. Mail saved as
+  messages by earlier imports stays searchable and keeps its old deletion rule; it is read again into the
+  mail tables as the window covers it. While both exist, `deleted` counts stored rows: a mail deleted at the
+  source counts its email, its older message and any older attachment entry. An attachment is no longer its own
+  entry: the import report drops `attachments[].locatorId`, and a note on an attachment entry stays on that older
+  entry.
+- **Tags, tasks and person context read the mail tables.** `tags list` keeps a tag on an email, `tasks add` takes an
+  email's `msg:email/…` source, and a person's tasks and context include their mail.
+- **Mail is embedded from the mail tables.** After saving, `memo mail import` embeds new mail's chunks (cli-messaging's
+  `embedMail`), so tg and max `search conversations` keep finding mail by meaning. `--no-embed` and a missing model
+  behave as before.
+
 ## 0.7.1 — 11.10.2026
 
 ### Fixed

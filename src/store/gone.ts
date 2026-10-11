@@ -10,6 +10,12 @@ export interface Gone {
   skipped?: string
 }
 
+/** Why `gone` of `candidates` is too large a share to delete, or `undefined` when it may be deleted. */
+export const tooManyGone = (gone: number, candidates: number): string | undefined =>
+  gone >= MIN_DELETIONS_CAPPED && gone > candidates * MAX_DELETED_SHARE
+    ? `${gone} of ${candidates} stored entries are missing at the source — too many to trust; nothing deleted`
+    : undefined
+
 /**
  * What the store holds of this account, from `since` on, and the source no longer lists, was deleted
  * there: its text goes. Wrongly dropping text cannot be undone and a missed deletion is caught on the
@@ -19,7 +25,7 @@ export interface Gone {
 export const dropMissing = async (
   store: MessageStore,
   key: AccountKey,
-  present: Set<string>,
+  present: { has(id: string): boolean },
   since?: string,
   eligible?: (entry: { chatId: string; id: string }) => Promise<boolean>,
 ): Promise<Gone> => {
@@ -45,11 +51,8 @@ export const dropMissing = async (
   for (const entry of stored) if (eligible === undefined || (await eligible(entry))) candidates.push(entry)
   const gone = candidates.filter(({ id }) => !present.has(id))
   if (gone.length === 0) return { deleted: 0 }
-  if (gone.length >= MIN_DELETIONS_CAPPED && gone.length > candidates.length * MAX_DELETED_SHARE)
-    return {
-      deleted: 0,
-      skipped: `${gone.length} of ${candidates.length} stored entries are missing at the source — too many to trust; nothing deleted`,
-    }
+  const refused = tooManyGone(gone.length, candidates.length)
+  if (refused) return { deleted: 0, skipped: refused }
   const byChat = new Map<string, string[]>()
   for (const { chatId, id } of gone) byChat.set(chatId, [...(byChat.get(chatId) ?? []), id])
   let deleted = 0

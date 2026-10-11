@@ -6,6 +6,7 @@ import type { Command } from "commander"
 import { APP } from "../app.js"
 import { isNoteReference } from "../notes/about.js"
 import { accountOptions, positive } from "../options.js"
+import { heldMessage } from "../store/held.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 import { taskPage } from "./context.js"
 
@@ -35,7 +36,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         if (
           parsed &&
           parsed.provider !== "notes" &&
-          (await store.message(key, parsed.message, { chatId: parsed.chat })) === undefined
+          (await heldMessage(store, key, parsed.message, parsed.chat)) === undefined
         )
           throw new CliError("not_found", "the task source is unavailable or deleted")
         print(

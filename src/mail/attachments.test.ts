@@ -8,7 +8,7 @@ import type { Himalaya } from "./himalaya.js"
 import { importMail } from "./import.js"
 
 describe("read-only email attachment sources", () => {
-  it("indexes attachment text, resumes without losing children and removes source text when mail disappears", async () => {
+  it("keeps attachment text on its email, and drops it when the mail disappears", async () => {
     const root = mkdtempSync(join(tmpdir(), "memo-attachment-")),
       store = await openStore({ path: join(root, "store.db") })
     const key = { provider: "email", account: "owner@example.test" }
@@ -60,16 +60,19 @@ describe("read-only email attachment sources", () => {
     }
     try {
       const first = await importMail(input)
-      expect(first.attachments).toEqual([
-        { message: "9001", part: 2, status: "extracted", locatorId: "9001:attachment:2" },
-      ])
-      expect(first.indexed?.chats).toBe(1)
-      const locator = formatLocator({ ...key, chat: "7001", message: "9001:attachment:2" })
+      expect(first.attachments).toEqual([{ message: "9001", part: 2, status: "extracted" }])
+      const locator = formatLocator({ ...key, chat: "7001", message: "9001" })
       const note = await store.knowledge.addAnnotation(key, { type: "message", locator }, "Own analysis")
       expect((await importMail(input)).deleted).toBe(0)
-      expect((await store.message(key, "9001:attachment:2", { chatId: "7001" }))?.text).toContain("Synthetic,123")
+      const { id } = await store.storedAccount(key)
+      expect((await store.mail.email(id, "9001"))?.attachments[0]).toMatchObject({
+        name: "budget.csv",
+        providerRef: { message: "9001", part: 2 },
+      })
+      expect((await store.mail.email(id, "9001"))?.attachments[0]?.text).toContain("Synthetic,123")
       present = false
-      expect((await importMail(input)).deleted).toBe(2)
+      expect((await importMail(input)).deleted).toBe(1)
+      expect((await store.mail.email(id, "9001"))?.attachments[0]?.text).toBeNull()
       expect(await store.knowledge.annotation(key, note.id)).toMatchObject({
         targetState: "deleted",
         text: "Own analysis",

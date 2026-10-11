@@ -1,0 +1,81 @@
+import { mkdtempSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
+import { captureStreams } from "@wirecat/cli-core"
+import { formatLocator } from "@wirecat/cli-messaging"
+import { openStore } from "@wirecat/cli-messaging/store"
+import { describe, expect, it } from "vitest"
+import { createProgram } from "../program.js"
+import { himalaya } from "./himalaya.js"
+import { importMail } from "./import.js"
+
+const ME = "owner@example.test"
+const KEY = { provider: "email", account: ME }
+const LOCATOR = formatLocator({ ...KEY, chat: "9001", message: "9001" })
+
+const run = async (args: string[], env: NodeJS.ProcessEnv) => {
+  const streams = captureStreams()
+  await createProgram({ streams, env })
+    .exitOverride()
+    .parseAsync([...args, "--json"], { from: "user" })
+  return JSON.parse(streams.stdout.join(""))
+}
+
+describe("mail imported into the mail tables reads back through memo", () => {
+  it("is found by search, ask, context, tags and tasks", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "memo-mail-read-"))
+    const mailbox = join(dir, "mailbox.json")
+    writeFileSync(
+      mailbox,
+      JSON.stringify({
+        messages: [
+          {
+            uid: "101",
+            messageId: "9001",
+            threadId: "9001",
+            receivedAt: "2026-09-11T08:00:00Z",
+            subject: "Synthetic roadmap",
+            from: ["Rin Example", "rin@example.test"],
+            to: [[null, ME]],
+            text: "The roadmap review moves to Friday.",
+          },
+        ],
+      }),
+    )
+    const env = { ...process.env, MEMO_FAKE_MAILBOX: mailbox, MESSAGING_STORE: join(dir, "messages.db") }
+    const store = await openStore({ env })
+    try {
+      await importMail({
+        store,
+        run: himalaya(env),
+        account: { name: "test", address: ME },
+        since: new Date("2026-09-01T00:00:00Z"),
+        now: () => Date.parse("2026-10-04T12:00:00Z"),
+      })
+    } finally {
+      await store.close()
+    }
+
+    expect(
+      (await run(["search", "mail", "roadmap"], env)).items.map(({ locator }: { locator: string }) => locator),
+    ).toEqual([LOCATOR])
+    const all = await run(["search", "all", "roadmap"], env)
+    expect(all.items.find(({ kind }: { kind: string }) => kind === "mail")?.ref).toBe(LOCATOR)
+
+    const asked = await run(["ask", "roadmap", "--provider", "email", "--account", ME], env)
+    expect(JSON.stringify(asked)).toContain(LOCATOR)
+
+    const context = await run(["context", "email:rin@example.test", "--account", ME], env)
+    expect(JSON.stringify(context)).toContain("The roadmap review moves to Friday.")
+
+    await run(["tags", "add", "follow-up", "--message", LOCATOR], env)
+    const listed = await run(["tags", "list"], env)
+    expect(listed.items.map(({ locator }: { locator?: string }) => locator)).toContain(LOCATOR)
+
+    const task = await run(["tasks", "add", LOCATOR, "--provider", "email", "--account", ME], env)
+    expect(task.task.source).toBe(LOCATOR)
+    expect((await run(["search", "mail", "tag:follow-up"], env)).items.map(({ id }: { id: string }) => id)).toEqual([
+      "9001",
+    ])
+  })
+})
