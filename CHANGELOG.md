@@ -4,6 +4,14 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## 0.11.0 — 11.10.2026
+
+### Changed — may break scripts
+
+- **memo runs on `@wirecat/cli-messaging` 0.233.0.** An imported email's attachments are now found by meaning
+  too: their text is cut into pieces and embedded after import, and tg/max `search conversations` answer a match
+  in an attachment with its email.
+
 ## 0.10.0 — 11.10.2026
 
 ### Added
