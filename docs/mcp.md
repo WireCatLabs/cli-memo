@@ -56,7 +56,7 @@ Use the memo tools to list the memories waiting for my review.
 | `vocabulary_list`, `vocabulary_resolve`, `vocabulary_preflight` | Look up projects, tags and topics, read only |
 | `task_relations`, `task_readiness`, `tasks_ready` | See how tasks depend on each other, read only |
 
-Everything the app adds is saved as its own (`memo-mcp`) and waits as proposed. You review it with
+Everything the app adds is saved under the agent name `memo-mcp` and waits as proposed. You review it with
 `memo memories list --status proposed` and the commands in [Memories and facts](memories.md).
 
 ## The agent log
