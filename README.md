@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/WireCatLabs/cli-memo/main/docs/images/social-preview.png" alt="Local knowledge for your AI agents" width="100%">
+</p>
+
 <h1 align="center">memo</h1>
 
 <p align="center">
