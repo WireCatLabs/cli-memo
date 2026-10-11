@@ -256,29 +256,76 @@ describe("importMail", () => {
   })
 })
 
-describe("memo mail import", () => {
+describe("memo mail <account> import", () => {
   const run = async (args: string[], env: NodeJS.ProcessEnv) => {
     const streams = captureStreams()
-    await createProgram({ streams, env }).exitOverride().parseAsync(args, { from: "user" })
+    const program = createProgram({ streams, env })
+    for (const command of [program, ...program.commands]) command.exitOverride().configureOutput({ writeErr: () => {} })
+    await program.parseAsync(args, { from: "user" })
     return streams.stdout.join("")
+  }
+  const OTHER = "alice@example.com"
+  const configured = (dir: string, env: NodeJS.ProcessEnv) => {
+    const config = join(dir, "config")
+    mkdirSync(config)
+    writeFileSync(
+      join(config, "config.json"),
+      JSON.stringify({
+        mail: {
+          accounts: [
+            { name: "test", address: ME },
+            { name: "second", address: OTHER },
+          ],
+        },
+      }),
+    )
+    return { ...env, MEMO_CONFIG_DIR: config, MEMO_STATE_DIR: join(dir, "state") }
   }
 
   it("says how to add an account when none is set", async () => {
     const { env } = setup([])
 
     await expect(
-      run(["mail", "import"], { ...env, MEMO_CONFIG_DIR: mkdtempSync(join(tmpdir(), "c-")) }),
+      run(["mail", "test", "import"], { ...env, MEMO_CONFIG_DIR: mkdtempSync(join(tmpdir(), "c-")) }),
     ).rejects.toThrow("add mail.accounts")
   })
 
-  it("imports the configured account and reports what it did", async () => {
+  it("picks no account itself: without one, or with an unknown one, it lists the configured names", async () => {
     const { dir, env } = setup([mail(1)])
-    const config = join(dir, "config")
-    mkdirSync(config)
-    writeFileSync(join(config, "config.json"), JSON.stringify({ mail: { accounts: [{ name: "test", address: ME }] } }))
+    const withConfig = configured(dir, env)
 
-    const text = await run(["mail", "import", "--since", "2026-09-01"], { ...env, MEMO_CONFIG_DIR: config })
+    await expect(run(["mail", "import"], withConfig)).rejects.toMatchObject({
+      code: "validation_error",
+      message: expect.stringContaining("mail.accounts holds test, second"),
+    })
+    await expect(run(["mail", "nobody", "import"], withConfig)).rejects.toMatchObject({
+      code: "not_found",
+      message: expect.stringContaining("it holds test, second"),
+    })
+    await expect(run(["mail", "import", "--account", "test"], withConfig)).rejects.toThrow("unknown option")
+    expect(await (await store(env)).accounts()).toEqual([])
+  })
 
-    expect(text).toContain(`${ME}: 1 in All Mail since 2026-09-01, 1 saved, 0 already stored, 0 marked deleted.`)
+  it("imports only the account named, and reports what it did", async () => {
+    const { dir, env } = setup([mail(1)])
+
+    const text = await run(["mail", "second", "import", "--since", "2026-09-01", "--no-embed"], configured(dir, env))
+
+    expect(text).toContain(`${OTHER}: 1 in All Mail since 2026-09-01, 1 saved, 0 already stored, 0 marked deleted.`)
+    expect((await (await store(env)).accounts()).filter(({ provider }) => provider === "email")).toEqual([
+      { provider: "email", account: OTHER },
+    ])
+  })
+
+  it("refuses while another import holds the lock", async () => {
+    const { dir, env } = setup([mail(1)])
+    const withConfig = configured(dir, env)
+    mkdirSync(join(dir, "state"))
+    writeFileSync(
+      join(dir, "state", "import.lock"),
+      JSON.stringify({ pid: process.ppid, startedAt: new Date().toISOString() }),
+    )
+
+    await expect(run(["mail", "test", "import"], withConfig)).rejects.toThrow("already running")
   })
 })

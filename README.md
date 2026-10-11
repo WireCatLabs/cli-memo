@@ -71,7 +71,7 @@ tasks stay closed on repeated creation. If several accounts of the requested pro
 memo search notes '"budget review" AND NOT cancelled' --limit 20
 memo search notes 'project progress' --filter 'date:2026-10-08' --tag project --folder /path/to/vault
 memo notes show note:NOTE_ID --json
-memo search all 'budget AND after:2026-09-01' --json
+memo search all 'budget AND date:[2026-09-01 TO *]' --json
 memo ask 'What work is pending?' --query budget --all --json
 ```
 
@@ -293,12 +293,18 @@ completely before deletion checks; a changed folder scope skips deletion for tha
 Imports report the proven date/folder window. No thread is called globally complete on the basis of one
 window. To, CC and BCC are kept. A readable attachment's text is kept with its email and searched with it
 (`content:`, `filename:`); extraction failures are reported. After installing an optional engine, use
-`memo mail import --retry-attachments` to reread a bounded batch of stored mail. Mail in the mail tables is
-searched by words, not yet by meaning.
+`memo mail <account> import --retry-attachments` to reread a bounded batch of stored mail. Import embeds mail
+for search by meaning (`--no-embed` skips it); `memo search mail` itself matches words, and `tg search
+conversations` finds mail by meaning.
 
 ```sh
-memo mail import --since 2026-09-01
+memo mail work import --since 2026-09-01      # work: the account's name in mail.accounts
+memo search mail 'budget' --account you@example.com   # one mail account; every one without --account
 ```
+
+`<account>` is required, even with one account configured: memo never picks one for you, and names the
+configured accounts when it is missing or unknown. `memo import` and the timer import every account in
+`mail.accounts`. A mail import and `memo import` share one lock, so they never run at the same time.
 
 Reads a Gmail account's All Mail through [Himalaya](https://github.com/pimalaya/himalaya) into the
 shared store's mail tables: one thread per Gmail thread, each folder a mailbox, the mailbox address as
@@ -319,7 +325,7 @@ Set the account up in Himalaya first (an IMAP account with a Gmail
 keyring), then name it in `~/.config/cli-memo/config.json`:
 
 ```json
-{ "mail": { "accounts": [{ "name": "gmail", "address": "you@example.com" }] } }
+{ "mail": { "accounts": [{ "name": "work", "address": "you@example.com" }] } }
 ```
 
 `mail.maxBodyChars` (default 1,000,000) and `mail.maxAttachmentChars` (default 200,000) set how many characters

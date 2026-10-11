@@ -1,8 +1,9 @@
 import { CliError, createRenderer, type Streams } from "@wirecat/cli-core"
 import { openStore } from "@wirecat/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
-import { loadConfig } from "../config.js"
+import { type Config, loadConfig } from "../config.js"
 import { positive } from "../options.js"
+import { withImportLock } from "../run/lock.js"
 import { himalaya } from "./himalaya.js"
 import { type ImportResult, importMail } from "./import.js"
 
@@ -23,59 +24,77 @@ const text = (result: ImportResult): string =>
     ...(result.deletionsSkipped === undefined ? [] : [`Deletions skipped: ${result.deletionsSkipped}`]),
   ].join("\n")
 
-export const mailCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
-  const mail = program.command("mail").description("Mail, read through Himalaya into the shared message store")
+const chooseAccount = (
+  accounts: NonNullable<Config["mail"]>["accounts"],
+  name: string | undefined,
+): NonNullable<Config["mail"]>["accounts"][number] => {
+  if (accounts.length === 0)
+    throw new CliError("configuration_error", "no mail account: add mail.accounts [{ name, address }] to the config")
+  const found = accounts.find((account) => account.name === name)
+  if (found !== undefined) return found
+  const choices = accounts.map((account) => account.name).join(", ")
+  throw new CliError(
+    name === undefined || name === "import" ? "validation_error" : "not_found",
+    name === undefined || name === "import"
+      ? `name the account: memo mail <account> import — mail.accounts holds ${choices}`
+      : `no mail account "${name}" in mail.accounts — it holds ${choices}`,
+  )
+}
 
-  mail
-    .command("import")
-    .description("Read a Gmail account's All Mail into the store, and drop the text of mail deleted at the source")
-    .option("--account <name>", "the account's name in Himalaya's config (default: the first in mail.accounts)")
+export const mailCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
+  program
+    .command("mail")
+    .description("Read one mail account through Himalaya into the shared message store")
+    .usage("<account> import [options]")
+    .argument("[account]", "the account's name in mail.accounts of the config, also its name in Himalaya")
+    .argument("[action]", "import: read the account's mail, and drop the text of mail deleted at the source")
     .option("--since <date>", "first day to read, YYYY-MM-DD (default: 30 days ago)", day)
     .option("--max <n>", "most new messages to read in this run", positive, 200)
     .option("--json", "print JSON")
     .option("--no-embed", "skip semantic embedding; local words remain searchable")
     .option("--retry-attachments", "reread bounded stored messages after installing an extraction engine")
     .action(
-      async (options: {
-        account?: string
-        since?: Date
-        max: number
-        json?: boolean
-        embed: boolean
-        retryAttachments?: boolean
-      }) => {
+      async (
+        name: string | undefined,
+        action: string | undefined,
+        options: {
+          since?: Date
+          max: number
+          json?: boolean
+          embed: boolean
+          retryAttachments?: boolean
+        },
+      ) => {
         const mailConfig = loadConfig(env).mail
-        const accounts = mailConfig?.accounts ?? []
-        const account =
-          options.account === undefined ? accounts[0] : accounts.find(({ name }) => name === options.account)
-        if (account === undefined)
+        const account = chooseAccount(mailConfig?.accounts ?? [], name)
+        if (action !== "import")
           throw new CliError(
-            "configuration_error",
-            options.account === undefined
-              ? "no mail account: add mail.accounts [{ name, address }] to the config"
-              : `no mail account "${options.account}" in mail.accounts of the config`,
+            "validation_error",
+            `memo mail ${account.name} takes import: memo mail ${account.name} import`,
           )
-        const store = await openStore({ env })
-        try {
-          const result = await importMail({
-            store,
-            run: himalaya(env),
-            account,
-            since: options.since ?? new Date(Date.now() - 30 * DAY),
-            max: options.max,
-            env,
-            embed: options.embed,
-            ...(mailConfig?.maxBodyChars === undefined ? {} : { maxBodyChars: mailConfig.maxBodyChars }),
-            ...(mailConfig?.maxAttachmentChars === undefined
-              ? {}
-              : { maxAttachmentChars: mailConfig.maxAttachmentChars }),
-            retryAttachments: options.retryAttachments,
-          })
-          if (options.json) createRenderer({ format: "json", color: false, streams }).result(result)
-          else streams.data(`${text(result)}\n`)
-        } finally {
-          await store.close()
-        }
+        const result = await withImportLock(env, async () => {
+          const store = await openStore({ env })
+          try {
+            return await importMail({
+              store,
+              run: himalaya(env),
+              account,
+              since: options.since ?? new Date(Date.now() - 30 * DAY),
+              max: options.max,
+              env,
+              embed: options.embed,
+              ...(mailConfig?.maxBodyChars === undefined ? {} : { maxBodyChars: mailConfig.maxBodyChars }),
+              ...(mailConfig?.maxAttachmentChars === undefined
+                ? {}
+                : { maxAttachmentChars: mailConfig.maxAttachmentChars }),
+              retryAttachments: options.retryAttachments,
+            })
+          } finally {
+            await store.close()
+          }
+        })
+        if (options.json) createRenderer({ format: "json", color: false, streams }).result(result)
+        else streams.data(`${text(result)}\n`)
       },
     )
 }

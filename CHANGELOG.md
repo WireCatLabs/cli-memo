@@ -4,6 +4,22 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Changed — may break scripts
+
+- **`memo mail <account> import` replaces `memo mail import --account <name>`; the old form is gone.** `<account>`
+  is the name in `mail.accounts` and is required even when one account is configured: memo no longer falls back
+  to the first. A missing or unknown name is an error that lists the configured ones. A mail import now takes the
+  lock `memo import` and the timer take, so the two never run at once. `memo import` still imports every account.
+- **`bin/mail-password <account>` requires the account**; without it the script prints its usage and the
+  configured names instead of assuming `gmail`.
+
+### Added
+
+- **`memo search mail --account <address>`** searches one mail account; without it, every mail account. An
+  address the store does not hold is `not_found` and lists the ones it does.
+
 ## 0.14.1 — 11.10.2026
 
 ### Fixed
