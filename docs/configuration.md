@@ -16,7 +16,7 @@ The file is `~/.config/cli-memo/config.json`. `MEMO_CONFIG_DIR` moves the folder
     "export": { "dir": "/path/to/vault/memo", "format": "obsidian" }
   },
   "mail": {
-    "accounts": [{ "name": "gmail", "address": "you@example.com" }]
+    "accounts": [{ "name": "work", "address": "you@example.com" }]
   },
   "auto": { "enabled": true, "every": "5m" }
 }
@@ -37,7 +37,7 @@ The file is `~/.config/cli-memo/config.json`. `MEMO_CONFIG_DIR` moves the folder
 
 | Key | Meaning |
 | --- | --- |
-| `name` | The account's name in Himalaya's config. |
+| `name` | The account's name in Himalaya's config, and the `<account>` in `memo mail <account> import`. |
 | `address` | The mailbox address, which becomes the account in the store. |
 | `mode` | `gmail` (the default) or `imap`. |
 | `folders` | The folders an `imap` account imports, such as `["INBOX", "Archive"]`. |

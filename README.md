@@ -64,7 +64,7 @@ That is all notes need. Then add more context:
 - **Messages:** install [tg-cli](https://github.com/WireCatLabs/tg-cli) or
   [max-cli](https://github.com/WireCatLabs/max-cli); memo reads the same local store.
 - **Search by meaning:** `tg models text download e5-small` downloads the local model once.
-- **Mail:** set up [Himalaya](https://github.com/pimalaya/himalaya), then `memo mail import`.
+- **Mail:** set up [Himalaya](https://github.com/pimalaya/himalaya), then `memo mail <account> import`.
 - **Stay current:** `memo auto on` runs `memo import` every five minutes (Linux, systemd).
 
 Or ask your agent: "Help me install memo with `npm install -g @wirecat/cli-memo`, read `memo --help`, then
@@ -154,16 +154,18 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 | Task | Commands |
 | --- | --- |
 | Connect notes folders | `memo folders add` · `folders attach` · `folders list` |
-| Import what changed | `memo import` · `notes import` · `mail import` · `auto on` / `off` / `status` |
+| Import what changed | `memo import` · `notes import` · `mail <account> import` · `auto on` / `off` / `status` |
 | Read notes | `memo notes list` · `notes show` · `notes about` · `memo note` (the note about a person) |
 | Write your own notes | `memo notes add` · `notes edit` · `notes remove` · `notes export` |
 | Search | `memo search all` · `search notes` · `search mail` · `search messages` |
 | Hand evidence to an agent | `memo ask` |
 | Know a person | `memo context` |
-| Organizations and projects | `memo organizations add` / `list` / `context` · `projects add` / `list` / `context` |
+| Organizations and projects | `memo organizations add` / `list` / `context` · `projects add` / `list` / `context` · `projects meetings list` / `link` |
+| Project and topic aliases | `memo vocabulary list` / `resolve` / `preflight` · `vocabulary aliases add` / `remove` |
 | Relationships | `memo relationships add` / `list` / `remove` / `confirm` / `suggest` |
 | Labels | `memo tags add` · `tags remove` · `tags list` |
 | Open work | `memo tasks add` · `tasks list` · `tasks update` · `tasks assign` · `tasks close` |
+| Task dependencies | `memo tasks link` / `unlink` / `relations` · `tasks readiness` · `tasks ready` |
 | Reminders | `memo reminders schedule` / `list` / `poll` / `ack` / `snooze` / `cancel` |
 | Agents | `memo memories …` · `facts …` · `actions …` · `agents log` · `memo mcp` |
 
@@ -225,7 +227,9 @@ decided in messaging — `tg contacts link <person> email:<address>` — and a s
 `memo note telegram:"Alice Example" /path/to/notes/people/Alice.md` names the note that is about her.
 
 Organizations and projects are yours, not one account's. Relationships (`member-of`, `related-to`) are
-manual statements; `relationships suggest` only proposes shared-domain links for you to confirm.
+manual statements; `relationships suggest` only proposes shared-domain links for you to confirm. A project
+can hold meetings (`projects meetings link`), and `memo vocabulary` gives projects and topics reviewed
+aliases, so one name always means one project.
 
 ```sh
 memo organizations add 'Synthetic Studio' --kind company
@@ -242,10 +246,11 @@ memo reads mail through [Himalaya](https://github.com/pimalaya/himalaya), a comm
 set up first. Gmail is the default; another IMAP provider uses `mode: "imap"` with the folders to read. The
 mailbox is opened read-only, `--max` (default 200) bounds the new mail per run and the next run continues.
 Gmail labels become mailboxes, attachments' text is searched with its email, and mail deleted at the
-source loses its text in the store.
+source loses its text in the store. Each account is named in `mail.accounts`, and the import names it:
+memo never picks one for you. `memo import` and the timer import every account.
 
 ```sh
-memo mail import --since 2026-09-01
+memo mail work import --since 2026-09-01   # work: the account's name in mail.accounts
 memo search mail 'mailbox:important budget'
 ```
 
@@ -256,8 +261,9 @@ More: [mail](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mail.md) ·
 
 Tags are your labels on a note, an email, a message, a chat, a person, an organization, a project, a task,
 a meeting, or every note under a folder. They live in the store; files, Gmail labels and mailbox flags are
-never changed. A task points at the message or note it came from, or is your own in a project (`--project LH --title …`). Reminders are local: a caller you choose
-polls for them, and nothing is delivered to a messenger or mailbox.
+never changed. A task points at the message or note it came from, or is your own in a
+project (`--project RES --title …`), and can be blocked by another until it is done. Reminders are local:
+a caller you choose polls for them, and nothing is delivered to a messenger or mailbox.
 
 ```sh
 memo tags add follow-up --note note:NOTE_ID
@@ -302,7 +308,7 @@ to skip, mail accounts and where exported notes go:
 ```json
 {
   "notes": { "ignore": ["Journal/Private.md", "Archive"], "export": { "dir": "/path/to/vault/memo" } },
-  "mail": { "accounts": [{ "name": "gmail", "address": "you@example.com" }] }
+  "mail": { "accounts": [{ "name": "work", "address": "you@example.com" }] }
 }
 ```
 
@@ -326,8 +332,8 @@ More: [security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security
 - Files up to 50 MiB; stored text up to 200,000 characters a file. Scanned PDFs and legacy DOC/XLS are
   reported, not read.
 - Search by meaning embeds at most 600 chunks a run; the next run continues.
-- `memo mail import` reads 200 new messages a run by default (`--max`) and keeps up to 1,000,000 characters of
-  a body and 200,000 of an attachment's text (`mail.maxBodyChars`, `mail.maxAttachmentChars`).
+- `memo mail <account> import` reads 200 new messages a run by default (`--max`) and keeps up to 1,000,000
+  characters of a body and 200,000 of an attachment's text (`mail.maxBodyChars`, `mail.maxAttachmentChars`).
 - Searches return at most 100 results; `tags list` shows 100 labels unless `--limit` says more.
 - Tags are 1–32 letters a–z, digits or hyphens.
 

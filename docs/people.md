@@ -52,4 +52,37 @@ shared-domain proposals for direct email contacts. Proposals retain rule provena
 unconfirmed; they do not enter confirmed person context. `relationships confirm <id>` records your
 explicit acceptance. Common free-mail domains are excluded from this heuristic.
 
+## Project meetings
+
+```sh
+memo projects add 'Research Example' --key RES --scope work
+memo projects meetings list RES --provider zoom --account STORED_ACCOUNT --json
+memo projects meetings link RES MEETING_ID --provider zoom --account STORED_ACCOUNT --json
+memo projects meetings list RES --proposed --provider zoom --account STORED_ACCOUNT --json
+```
+
+Select the exact stored account explicitly. Meeting links are reviewed owner operations;
+confirming an agent's existing proposal requires its current `--expected FINGERPRINT`. Names and
+explicit aliases resolve to one project; ambiguous names require a canonical reference.
+
+## Project and topic aliases
+
+```sh
+memo vocabulary list --kind project --scope work --json
+memo vocabulary resolve 'Lab Example' --kind project --json
+memo vocabulary aliases add project:1 'Lab Example' --expected FINGERPRINT --json
+memo vocabulary aliases remove project:1 ALIAS_ID --expected FINGERPRINT --json
+memo vocabulary preflight on-boarding --json
+```
+
+Use canonical IDs and the fingerprint from `vocabulary list` when reviewing an alias change.
+Exact aliases reuse one project or label; ambiguous names remain candidates. Preflight suggests
+likely lexical duplicates without creating labels, merging records or loading a model. Existing
+automatic tag creation still needs the native duplicate-review rollout; this preflight alone does
+not protect every creation path.
+
+Read-only MCP tools `vocabulary_list`, `vocabulary_resolve` and `vocabulary_preflight` expose the same
+catalog to an agent. Alias changes remain owner operations. An agent's `facts_add` can name the
+canonical `project:<id>` and retains its proposed status until reviewed.
+
 Next: [write a note about one of them](notes.md#your-notes-on-messages-people-and-projects).

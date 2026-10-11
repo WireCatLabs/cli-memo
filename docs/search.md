@@ -9,7 +9,7 @@ not that the thing never happened.
 memo search notes '"budget review" AND NOT cancelled' --limit 20
 memo search notes 'project progress' --filter 'date:2026-10-08' --tag project --folder /path/to/vault
 memo notes show note:NOTE_ID --json
-memo search all 'budget AND after:2026-09-01' --json
+memo search all 'budget AND date:[2026-09-01 TO *]' --json
 memo ask 'What work is pending?' --query budget --all --json
 ```
 

@@ -46,7 +46,8 @@ agent, the tool, its tier, the outcome and the times, never the arguments.
 
 `memo mcp` serves the same to an agent over MCP, on stdin and stdout: `memories_add`, `memories_list`,
 `memories_show`, `memories_search`, `facts_add`, `facts_list`, `facts_show`, `actions_propose`, `actions_list`,
-`actions_show` and `agents_log`. An agent's memories, facts and proposals are its own (`memo-mcp`) and wait for
+`actions_show` and `agents_log`, plus the read-only `vocabulary_list`, `vocabulary_resolve`,
+`vocabulary_preflight`, `task_relations`, `task_readiness` and `tasks_ready`. An agent's memories, facts and proposals are its own (`memo-mcp`) and wait for
 you; it cannot confirm, accept, approve or reject. Every call goes into the agent log.
 
 ```json

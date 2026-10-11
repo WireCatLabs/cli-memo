@@ -8,11 +8,11 @@ mailbox is opened read-only: nothing is sent, moved or marked read.
 ## Set up the account
 
 Set the account up in Himalaya first (an IMAP account with a Gmail
-[app password](https://myaccount.google.com/apppasswords); `bin/mail-password <name>` stores it in the
+[app password](https://myaccount.google.com/apppasswords); `bin/mail-password <account>` stores it in the
 keyring; the script is in this repository, not in the npm package), then name it in `~/.config/cli-memo/config.json`:
 
 ```json
-{ "mail": { "accounts": [{ "name": "gmail", "address": "you@example.com" }] } }
+{ "mail": { "accounts": [{ "name": "work", "address": "you@example.com" }] } }
 ```
 
 `mail.maxBodyChars` (default 1,000,000) and `mail.maxAttachmentChars` (default 200,000) set how many characters
@@ -27,8 +27,13 @@ completely before deletion checks; a changed folder scope skips deletion for tha
 ## Import
 
 ```sh
-memo mail import --since 2026-09-01
+memo mail work import --since 2026-09-01      # work: the account's name in mail.accounts
+memo search mail 'budget' --account you@example.com   # one mail account; every one without --account
 ```
+
+`<account>` is required, even with one account configured: memo never picks one for you, and names the
+configured accounts when it is missing or unknown. `memo import` and the timer import every account in
+`mail.accounts`. A mail import and `memo import` share one lock, so they never run at the same time.
 
 Reads a Gmail account's All Mail through [Himalaya](https://github.com/pimalaya/himalaya) into the
 shared store's mail tables: one thread per Gmail thread, each folder a mailbox, the mailbox address as
@@ -50,7 +55,7 @@ Imports report the proven date/folder window. No thread is called globally compl
 window. To, CC and BCC are kept, and read and starred stay as the mailbox shows them; a flagged IMAP
 message carries the `Starred` label. A readable attachment's text is kept with its email and searched with it
 (`content:`, `filename:`); extraction failures are reported. After installing an optional engine, use
-`memo mail import --retry-attachments` to reread a bounded batch of stored mail. `memo search mail` matches
+`memo mail <account> import --retry-attachments` to reread a bounded batch of stored mail. `memo search mail` matches
 words; mail is embedded on import, so `tg search conversations` finds it by meaning. `--no-embed`, or
 `embed: false` on the account, skips the embedding.
 
