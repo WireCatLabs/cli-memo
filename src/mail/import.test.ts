@@ -164,6 +164,20 @@ describe("importMail", () => {
     expect((await emails(env))[0]).toMatchObject({ read: true, flagged: true })
   })
 
+  it("keeps a body up to the configured length", async () => {
+    const { env } = setup([mail(1, { text: "x".repeat(50) })])
+    await importMail({
+      store: await store(env),
+      run: himalaya(env),
+      account: { name: "test", address: ME },
+      since: SINCE,
+      now: () => NOW,
+      maxBodyChars: 10,
+      indexThreads: async () => ({ chats: 0, chunks: 0, left: false }),
+    })
+    expect((await emails(env))[0]?.bodyText).toBe("x".repeat(10))
+  })
+
   it("names labels as people read them", () => {
     expect(labelName("\\Important")).toBe("Important")
     expect(labelName("Important")).toBe("Important")

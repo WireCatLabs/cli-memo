@@ -37,6 +37,10 @@ const ConfigSchema = v.object({
           embed: v.optional(v.boolean()),
         }),
       ),
+      /** The most characters of an email body kept; 1,000,000 by default. */
+      maxBodyChars: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
+      /** The most characters of one attachment's extracted text kept; 200,000 by default. */
+      maxAttachmentChars: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
     }),
   ),
 })

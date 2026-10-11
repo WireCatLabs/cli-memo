@@ -44,7 +44,8 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         embed: boolean
         retryAttachments?: boolean
       }) => {
-        const accounts = loadConfig(env).mail?.accounts ?? []
+        const mailConfig = loadConfig(env).mail
+        const accounts = mailConfig?.accounts ?? []
         const account =
           options.account === undefined ? accounts[0] : accounts.find(({ name }) => name === options.account)
         if (account === undefined)
@@ -64,6 +65,10 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
             max: options.max,
             env,
             embed: options.embed,
+            ...(mailConfig?.maxBodyChars === undefined ? {} : { maxBodyChars: mailConfig.maxBodyChars }),
+            ...(mailConfig?.maxAttachmentChars === undefined
+              ? {}
+              : { maxAttachmentChars: mailConfig.maxAttachmentChars }),
             retryAttachments: options.retryAttachments,
           })
           if (options.json) createRenderer({ format: "json", color: false, streams }).result(result)
