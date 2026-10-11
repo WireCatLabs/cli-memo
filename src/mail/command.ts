@@ -1,4 +1,4 @@
-import { CliError, createRenderer, type Streams } from "@wirecat/cli-core"
+import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { type Config, loadConfig } from "../config.js"

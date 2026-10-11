@@ -1,4 +1,4 @@
-import { createRenderer, type Streams } from "@wirecat/cli-core"
+import { createRenderer, type Streams } from "@wirecat/cli-base"
 import { type MessageStore, openStore } from "@wirecat/cli-messaging/store"
 
 /** Opens the store for one command, prints its answer as JSON or as indented text, and closes the store. */

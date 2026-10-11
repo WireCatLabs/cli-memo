@@ -1,6 +1,6 @@
 import { resolve } from "node:path"
-import { writeArtifacts } from "@wirecat/cli-core/codegen"
-import { COMMANDS_PAGE_LABELS, commandsPage, describeOptions, describeProgram } from "@wirecat/cli-core/commands"
+import { writeArtifacts } from "@wirecat/cli-base/codegen"
+import { COMMANDS_PAGE_LABELS, commandsPage, describeOptions, describeProgram } from "@wirecat/cli-base/commands"
 import { createProgram } from "../dist/program.js"
 
 const root = resolve(import.meta.dirname, "..")

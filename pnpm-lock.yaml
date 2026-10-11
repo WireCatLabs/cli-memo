@@ -14,12 +14,12 @@ importers:
       '@valibot/to-json-schema':
         specifier: 1.8.0
         version: 1.8.0(valibot@1.5.0(typescript@7.0.2))
-      '@wirecat/cli-core':
-        specifier: 0.20.0
-        version: 0.20.0(commander@15.0.0)(typescript@7.0.2)
+      '@wirecat/cli-base':
+        specifier: 0.21.0
+        version: 0.21.0(commander@15.0.0)(typescript@7.0.2)
       '@wirecat/cli-messaging':
-        specifier: 0.251.0
-        version: 0.251.0(@wirecat/cli-core@0.20.0(commander@15.0.0)(typescript@7.0.2))(commander@15.0.0)(typescript@7.0.2)(zod@4.6.5)
+        specifier: 0.253.0
+        version: 0.253.0(@wirecat/cli-base@0.21.0(commander@15.0.0)(typescript@7.0.2))(commander@15.0.0)(typescript@7.0.2)(zod@4.6.5)
       commander:
         specifier: 15.0.0
         version: 15.0.0
@@ -925,8 +925,8 @@ packages:
   '@wasm-audio-decoders/opus-ml@0.0.3':
     resolution: {integrity: sha512-SEeTmk0eb3q5etJA/NHCRWW6BivTx9tqvNTmG0kg2ynuATEQRUZnwQE6Ibvl1BBvqIGHqI57+qyJMWmJBwb5XQ==}
 
-  '@wirecat/cli-core@0.20.0':
-    resolution: {integrity: sha512-c8laz5vGTaRwYzeUw2Q09Luy2Q4mLSNXlVOcSIQ3zfiJcXSlIMWAAl3XRjfQX917NsGiRKusBxtq2624n+BdkQ==}
+  '@wirecat/cli-base@0.21.0':
+    resolution: {integrity: sha512-MGd5BcKK+ckO9E2ubxgCWgXhSJxVCvnPbqn5CdyHQtEfED1VsOCbtY0oMrGW7j73WjudS6zu9lL5X/aXfKK6Ag==}
     engines: {node: '>=22'}
     hasBin: true
     peerDependencies:
@@ -941,13 +941,13 @@ packages:
   '@wirecat/cli-messaging-sqlite@1.0.1':
     resolution: {integrity: sha512-hnB4eL6ER/++nTPrlSCAUzDJH7MN3V+Obx9B2xXMwBN1KrLkJHIrybQCikfNOnwnyrkultSkLulM7vd+qSG5Hg==}
 
-  '@wirecat/cli-messaging@0.251.0':
-    resolution: {integrity: sha512-6gswuSwNXNmbF/LmoKr1xqyFw2TCmINBwbcpW0580FteuJNH1lf8GGjTNQJ4g3fiDiP4MS1+Dbso4Lzj72tH4A==}
+  '@wirecat/cli-messaging@0.253.0':
+    resolution: {integrity: sha512-Wy1pHoD2XOMyFHaekm1Eajn+HcV4rYuwGqGs90AV/lCc5Mb/IlteZsJubJr7aksmudSG7bcq17LIyKL464oOWw==}
     engines: {node: ^22.16.0 || >=24}
     hasBin: true
     peerDependencies:
       '@napi-rs/canvas': '>=0.1.69 <2'
-      '@wirecat/cli-core': '>=0.20.0 <0.21.0'
+      '@wirecat/cli-base': '>=0.21.0 <0.22.0'
       commander: '>=15'
       mammoth: '>=1.8.0 <2'
       unpdf: '>=1.0.0 <2'
@@ -2520,7 +2520,7 @@ snapshots:
     dependencies:
       '@wasm-audio-decoders/common': 9.0.7
 
-  '@wirecat/cli-core@0.20.0(commander@15.0.0)(typescript@7.0.2)':
+  '@wirecat/cli-base@0.21.0(commander@15.0.0)(typescript@7.0.2)':
     dependencies:
       cli-table3: 0.6.5
       cross-spawn: 7.0.6
@@ -2539,7 +2539,7 @@ snapshots:
 
   '@wirecat/cli-messaging-sqlite@1.0.1': {}
 
-  '@wirecat/cli-messaging@0.251.0(@wirecat/cli-core@0.20.0(commander@15.0.0)(typescript@7.0.2))(commander@15.0.0)(typescript@7.0.2)(zod@4.6.5)':
+  '@wirecat/cli-messaging@0.253.0(@wirecat/cli-base@0.21.0(commander@15.0.0)(typescript@7.0.2))(commander@15.0.0)(typescript@7.0.2)(zod@4.6.5)':
     dependencies:
       '@anthropic-ai/sdk': 0.131.0(zod@4.6.5)
       '@bomb.sh/tab': 0.0.22(commander@15.0.0)
@@ -2547,7 +2547,7 @@ snapshots:
       '@modelcontextprotocol/server': 2.1.0
       '@resvg/resvg-js': 2.6.2
       '@valibot/to-json-schema': 1.8.0(valibot@1.5.0(typescript@7.0.2))
-      '@wirecat/cli-core': 0.20.0(commander@15.0.0)(typescript@7.0.2)
+      '@wirecat/cli-base': 0.21.0(commander@15.0.0)(typescript@7.0.2)
       '@wirecat/cli-messaging-onnx': 1.0.1
       '@wirecat/cli-messaging-sqlite': 1.0.1
       '@xmldom/xmldom': 0.9.12

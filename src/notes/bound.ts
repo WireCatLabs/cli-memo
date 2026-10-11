@@ -1,5 +1,5 @@
 import { resolve } from "node:path"
-import { CliError } from "@wirecat/cli-core"
+import { CliError } from "@wirecat/cli-base"
 import type { MessageStore } from "@wirecat/cli-messaging/store"
 import { loadConfig } from "../config.js"
 import { type NoteFolder, noteFolders } from "./folders.js"

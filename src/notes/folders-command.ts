@@ -1,6 +1,6 @@
 import { statSync } from "node:fs"
 import { basename, resolve } from "node:path"
-import { CliError, createRenderer, type Streams } from "@wirecat/cli-core"
+import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
 import { type MessageStore, openStore } from "@wirecat/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { loadConfig, updateConfig } from "../config.js"

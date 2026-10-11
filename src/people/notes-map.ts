@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import { loadConfigFile, resolvePaths } from "@wirecat/cli-core"
+import { loadConfigFile, resolvePaths } from "@wirecat/cli-base"
 import type { MessageStore } from "@wirecat/cli-messaging/store"
 import * as v from "valibot"
 import { type BoundFolder, folderOfFile } from "../notes/bound.js"

@@ -1,5 +1,5 @@
 import { join } from "node:path"
-import { CliError, type Streams } from "@wirecat/cli-core"
+import { CliError, type Streams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"
 import { boundFolders, folderOfFile } from "../notes/bound.js"

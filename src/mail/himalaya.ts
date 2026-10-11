@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process"
-import { CliError } from "@wirecat/cli-core"
+import { CliError } from "@wirecat/cli-base"
 
 export type Himalaya = (args: string[], input?: string) => Promise<string>
 

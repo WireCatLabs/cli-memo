@@ -1,4 +1,4 @@
-import { CliError } from "@wirecat/cli-core"
+import { CliError } from "@wirecat/cli-base"
 import { type PersonContext, personContext } from "@wirecat/cli-messaging/services"
 import type { Link, MessageStore, Note } from "@wirecat/cli-messaging/store"
 import { type NotesAbout, notesAbout } from "../notes/about.js"

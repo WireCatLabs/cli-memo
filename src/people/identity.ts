@@ -1,4 +1,4 @@
-import { CliError } from "@wirecat/cli-core"
+import { CliError } from "@wirecat/cli-base"
 import { pickPerson } from "@wirecat/cli-messaging"
 import type { IdentityRef, MessageStore } from "@wirecat/cli-messaging/store"
 

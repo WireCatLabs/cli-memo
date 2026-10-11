@@ -1,5 +1,5 @@
-import { CliError, createRenderer, type Streams } from "@wirecat/cli-core"
-import { describeOptions, describeProgram, flatten } from "@wirecat/cli-core/commands"
+import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
+import { describeOptions, describeProgram, flatten } from "@wirecat/cli-base/commands"
 import type { Command } from "commander"
 
 export const commandsCommand = (program: Command, streams: Streams): void => {

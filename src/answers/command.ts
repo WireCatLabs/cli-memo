@@ -1,4 +1,4 @@
-import { CliError, createRenderer, type Streams } from "@wirecat/cli-core"
+import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
 import { type ModelAdapter, type ModelTarget, modelGateway } from "@wirecat/cli-messaging/models"
 import { openStore } from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"

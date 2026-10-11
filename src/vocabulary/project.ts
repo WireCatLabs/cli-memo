@@ -1,4 +1,4 @@
-import { CliError } from "@wirecat/cli-core"
+import { CliError } from "@wirecat/cli-base"
 import type { MessageStore } from "@wirecat/cli-messaging/store"
 
 export const canonicalProject = async (store: MessageStore, reference: string): Promise<string> => {
