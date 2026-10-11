@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.20.0 — 11.10.2026
+
 ### Added
 
 - The guides in `docs/` follow the wirecat.dev tool layout: an overview, daily use, how memo works,
