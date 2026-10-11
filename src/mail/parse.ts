@@ -89,7 +89,7 @@ export const parseMail = (json: string, maxBodyChars = MAX_BODY_CHARS): ParsedMa
   return {
     subject,
     from: addresses(header("from"))[0] ?? null,
-    to: [...addresses(header("to")), ...addresses(header("cc"))],
+    to: addresses(header("to")),
     cc: addresses(header("cc")),
     bcc: addresses(header("bcc")),
     attachments: (parsed.attachments ?? []).slice(0, 50).map((id) => {

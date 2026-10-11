@@ -141,3 +141,68 @@ it("searches every mail account, or with --account only that address", async () 
     message: expect.stringContaining("alice@example.com, bob@example.com"),
   })
 })
+
+it("shows each email reference first, with its people, labels, subject and an excerpt, at the detail asked", async () => {
+  const root = mkdtempSync(join(tmpdir(), "memo-mail-detail-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const store = await openStore({ env })
+  const accountId = await store.saveAccount({ provider: "email", account: "owner@example.com" }, { name: null })
+  const body = `${"Notes from the planning call. ".repeat(12)}The offsite budget is approved.`
+  await store.mail.saveThread({
+    accountId,
+    externalId: "thread-1",
+    now: Date.UTC(2026, 9, 1),
+    emails: [
+      {
+        externalId: "<one@example.com>",
+        subject: "Offsite",
+        from: { address: "alice@example.com", name: "Alice Example" },
+        to: [{ address: "bob@example.com", name: "Bob Sample" }],
+        cc: [{ address: "kai@example.com", name: "Kai Sample" }],
+        sentAt: Date.UTC(2026, 9, 1),
+        bodyText: body,
+        mailboxes: [{ externalId: "starred", name: "Starred", kind: null }],
+      },
+    ],
+  })
+  await store.close()
+  const run = async (...args: string[]) => {
+    const streams = captureStreams()
+    const program = createProgram({ streams, env })
+    const override = (command: Command) => {
+      command.exitOverride()
+      command.configureOutput({ writeErr: () => {} })
+      for (const child of command.commands) override(child)
+    }
+    override(program)
+    await program.parseAsync(args, { from: "user" })
+    return streams.stdout.join("")
+  }
+
+  const shown = await run("search", "mail", "budget")
+  expect(shown.split("\n")).toEqual([
+    "msg:email/owner%40example.com/thread-1/%3Cone%40example.com%3E",
+    "  2026-10-01T00:00:00.000Z  Alice Example  to Bob Sample · cc Kai Sample · Starred",
+    "  Offsite",
+    expect.stringMatching(/^ {2}….*The offsite budget is approved\.$/),
+    "",
+  ])
+  expect(shown).not.toContain(body)
+  expect(await run("search", "mail", "budget", "--full")).toContain(body)
+
+  const [hit] = JSON.parse(await run("search", "mail", "budget", "--json")).items
+  expect(hit).not.toHaveProperty("text")
+  expect(hit.email).toMatchObject({
+    to: [{ address: "bob@example.com" }],
+    cc: [{ address: "kai@example.com" }],
+    labels: ["Starred"],
+  })
+  expect(Object.keys(JSON.parse(await run("search", "mail", "budget", "--json", "--brief")).items[0]).sort()).toEqual([
+    "chatTitle",
+    "excerpt",
+    "locator",
+    "score",
+    "senderName",
+    "timestamp",
+  ])
+})

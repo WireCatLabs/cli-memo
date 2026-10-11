@@ -1,9 +1,10 @@
-import { CliError, createRenderer, type Streams } from "@wirecat/cli-core"
-import { parseLocator } from "@wirecat/cli-messaging"
+import { CliError, type Streams } from "@wirecat/cli-core"
+import { parseLocator, resolveOutput } from "@wirecat/cli-messaging"
 import {
   parseLucene,
   type QueryNode,
   type SearchedResource,
+  type SearchFound,
   searchAll,
   searchNotes,
   searchNotesQuery,
@@ -193,6 +194,42 @@ const searchFolderIds = async (store: MessageStore, env: NodeJS.ProcessEnv, sele
   return [...new Set([...selected.filter((value) => known.has(value)), ...bound.map(({ id }) => id)])]
 }
 
+type Level = "brief" | "full"
+
+const levelOf = ({ brief, full }: { brief?: boolean; full?: boolean }): Level | undefined => {
+  if (brief && full) throw new CliError("validation_error", "--brief and --full ask for opposite things — pick one")
+  return brief ? "brief" : full ? "full" : undefined
+}
+
+const line = (text: string) => text.replace(/\s+/g, " ").trim()
+
+/**
+ * A found message or email for a reader: its reference first, then when and from whom, who else it went to and
+ * where it is filed, its subject or chat, and an excerpt — the whole text only with --full.
+ */
+const found = (item: SearchFound["items"][number], level: Level | undefined): string => {
+  const mail = item.email
+  const names = (people: { name: string | null; address: string }[]) =>
+    people.map(({ name, address }) => line(name ?? address)).join(", ")
+  const between = mail
+    ? [
+        mail.to.length ? `to ${names(mail.to)}` : "",
+        mail.cc.length ? `cc ${names(mail.cc)}` : "",
+        mail.labels.join(", "),
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : ""
+  const who = line(item.senderName ?? item.senderId ?? "unknown")
+  const lines = [
+    item.locator,
+    `  ${item.timestamp}  ${who}${level === "brief" || !between ? "" : `  ${between}`}`,
+    ...(level === "brief" || !item.chatTitle ? [] : [`  ${line(item.chatTitle)}`]),
+    `  ${level === "full" ? item.text.replace(/\n/g, "\n  ") : line(item.excerpt ?? item.text)}`,
+  ]
+  return lines.join("\n")
+}
+
 export const searchCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const group = program
     .command("search")
@@ -205,8 +242,11 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       await store.close()
     }
   }
-  const print = (json: boolean | undefined, answer: unknown, text: string) => {
-    if (json) createRenderer({ format: "json", color: false, streams }).result(answer)
+  const print = (json: boolean | undefined, answer: unknown, text: string, level?: Level) => {
+    if (json)
+      resolveOutput({ json: true, streams, ...(level === undefined ? {} : { hitDetail: level }) }).renderer.result(
+        answer,
+      )
     else streams.data(`${text}\n`)
   }
   const queryOptions = (leaf: Command) =>
@@ -226,6 +266,8 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       .option("--exact", "words as written; skip meaning search")
       .option("--timezone <zone>", "IANA timezone for calendar date boundaries")
       .option("--json", "print JSON")
+      .option("--brief", "each message or email as reference, time, sender and excerpt only")
+      .option("--full", "each message or email with its whole text and every field")
 
   queryOptions(
     group
@@ -306,8 +348,11 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
           type?: "text" | "voice" | "file"
           account?: string
           json?: boolean
+          brief?: boolean
+          full?: boolean
         },
       ) => {
+        const level = levelOf(options)
         const answer = await withStore(async (store) => {
           const [runsAs] = (await store.accounts()).filter(
             ({ provider }) => provider !== "notes" && (kind === "mail" ? provider === "email" : provider !== "email"),
@@ -339,7 +384,7 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
             { app: APP },
           )
         })
-        print(options.json, answer, answer.items.map((item) => `${item.locator}\n  ${item.text}`).join("\n"))
+        print(options.json, answer, answer.items.map((item) => found(item, level)).join("\n"), level)
       },
     )
   }

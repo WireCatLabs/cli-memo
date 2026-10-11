@@ -6,6 +6,20 @@ the API.
 
 ## Unreleased
 
+### Changed — may break scripts
+
+- **`memo search mail` and `memo search messages` show each hit as a reference, then who and when, then an
+  excerpt.** For an email the second line names To, Cc and its Gmail labels, and the third its subject; the whole
+  body comes back with `--full`. `--json` gives each email `email` (from, to, cc, bcc and reply-to with their
+  `person:` references, labels, thread, read and starred) and an `excerpt` instead of the whole `text`; `--brief`
+  keeps only reference, title, time, sender, excerpt and score. Mail search no longer answers `coverage`.
+  Built on the shared library 0.251.0.
+
+### Fixed
+
+- **Mail import no longer files Cc addresses under To.** Mail imported before keeps them in both; search shows
+  them in Cc only.
+
 ## 0.20.0 — 11.10.2026
 
 ### Added
