@@ -4,6 +4,15 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- **The MCP server searches every source.** `search_all`, `search_messages`, `search_mail`, `search_notes` and
+  `person_context` read the same store as `memo search` and `memo context`. memo is where an agent searches across
+  messengers, mail and notes; tg and max will search only their own messages
+  ([which tool owns which command](https://github.com/WireCatLabs/cli-messaging/blob/main/docs/dev/TOOL-BOUNDARIES.md)).
+
 ## 0.21.0 — 11.10.2026
 
 ### Fixed

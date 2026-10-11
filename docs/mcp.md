@@ -49,6 +49,9 @@ Use the memo tools to list the memories waiting for my review.
 
 | Tool | What it does |
 |---|---|
+| `search_all` | Search messages from every messenger, mail and notes together, read only |
+| `search_messages`, `search_mail`, `search_notes` | Search one kind with all its fields, read only |
+| `person_context` | One person across messengers and mail, with linked notes and tasks, read only |
 | `memories_add`, `memories_list`, `memories_show`, `memories_search` | Save and read memories |
 | `facts_add`, `facts_list`, `facts_show` | Record and read facts |
 | `actions_propose`, `actions_list`, `actions_show` | Propose actions and read them |

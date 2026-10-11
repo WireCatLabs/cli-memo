@@ -152,3 +152,25 @@ it("exposes ready task discovery without offering dependency mutation or claims"
     await client.close()
   }
 })
+
+it("searches every source the store holds, where tg and max read only their own", async () => {
+  const { client, call } = await connected()
+  try {
+    expect((await call("search_notes", { text: "Fridays", exact: true })).structuredContent).toMatchObject({
+      hits: [{ ref: "note:1", line: "Bob Sample prefers Fridays" }],
+      hasMore: false,
+    })
+    const all = (await call("search_all", { text: "Fridays", exact: true, only: ["notes"] })).structuredContent as {
+      items: { kind: string; text: string }[]
+    }
+    expect(all.items).toMatchObject([{ kind: "note", text: expect.stringContaining("Fridays") }])
+    expect((await call("search_mail", { text: "invoice" })).structuredContent).toMatchObject({
+      error: { code: "not_found" },
+    })
+    expect((await call("person_context", { person: "Bob Sample" })).structuredContent).toMatchObject({
+      error: { code: "validation_error" },
+    })
+  } finally {
+    await client.close()
+  }
+})
