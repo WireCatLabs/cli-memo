@@ -17,7 +17,7 @@ one with `memo notes show` or in the original app.
 
 ## Choose where to search
 
-| You know it is in | Command |
+| Where it is | Command |
 |---|---|
 | You do not know | `memo search all 'budget'` |
 | Your notes and files | `memo search notes 'budget'` |
@@ -78,7 +78,7 @@ With the search model on your computer, Memo also searches by meaning, so `holid
 about a vacation. tg or max downloads the model once:
 
 ```sh
-tg models text download e5-small
+tg models text download e5-small    # or: max models text download e5-small
 ```
 
 The model runs on your computer. After the download, run `memo import` so your notes are prepared

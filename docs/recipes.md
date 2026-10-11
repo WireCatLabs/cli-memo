@@ -83,8 +83,8 @@ Your agent combines `memo tasks list`, `memo tasks ready`, and the review lists 
 ## Write a summary into your vault
 
 ```text prompt
-Use memo CLI to write a short note summarising what I know about the Harbour project, about project
-Harbour, with the sources it is based on. Show me the note, then export it to my vault.
+Use memo CLI to write a short note about the Harbour project that summarises what I know,
+with the sources it is based on. Show me the note, then export it to my vault.
 ```
 
 Your agent writes the note with `memo notes add --about project:…` and exports it with

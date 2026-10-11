@@ -34,7 +34,7 @@ Three words appear on every page:
 1. **You choose your sources.** You add a folder of notes, connect a mail account, or use tg and max
    to save your chats. Nothing is read until you choose it.
 2. **Memo copies the text into the local store.** It reads your files and mail and never changes
-   them. It runs again on its own if you turn on the timer.
+   them. On Linux, a timer can run it again on its own.
 3. **You or your agent ask.** Memo answers with the matching text and a reference to each source,
    so you can open the original and check it.
 4. **Your agent can suggest, but you decide.** What an app adds through MCP, and every proposed

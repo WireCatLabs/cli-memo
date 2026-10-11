@@ -68,8 +68,8 @@ memo projects context 1
 ```
 
 `--scope` is `personal` or `work`. `projects context` takes the project's number from `projects list`.
-`projects context` and `organizations context` show the people
-linked to it, the notes about it or linking to it, and its tags. A project's key is also used for its
+`projects context` and `organizations context` show the people linked to the project or
+organization, the notes about it or linking to it, and its tags. A project's key is also used for its
 tasks, such as `HRB-1` ([tasks](tasks.md#tasks-in-a-project)).
 
 ## Who belongs where

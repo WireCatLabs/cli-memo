@@ -63,7 +63,7 @@ memo search all 'tag:follow-up'             # messages, mail and notes with the 
 memo tags list                              # every tag, up to 100
 ```
 
-`memo tags list` shows 100 labels at a time; add `--limit 500` to see more. `--type note` or
+`memo tags list` shows 100 tags at a time; add `--limit 500` to see more. `--type note` or
 `--type person` shows only one kind.
 
 ## Remove a tag

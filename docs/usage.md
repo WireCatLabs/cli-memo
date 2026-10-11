@@ -70,7 +70,8 @@ Do not confirm or approve anything; I will decide.
 
 [Memories and facts](memories.md) explains how to confirm or reject them. Approving an action makes
 it a task for you; Memo never sends anything. A memory or fact added with the `memo` command is
-confirmed at once, so ask an agent with a terminal to show it to you before it adds it.
+confirmed at once. Ask an agent with a terminal to show you the text first, and to add it only after
+you agree.
 
 ## Answers for scripts and agents
 

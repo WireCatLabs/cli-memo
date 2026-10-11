@@ -1480,6 +1480,22 @@ memo auto status [options]
 |---|---|
 | `--json` | print JSON. |
 
+## `memo commands`
+
+Discover the command tree and options as shared registry data
+
+```sh
+memo commands [path] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `path` | optional | one command, such as tags add. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
 ## Exit codes
 
 Failures use the shared WireCat error contract.

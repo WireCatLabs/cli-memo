@@ -81,8 +81,8 @@ memo tasks relations HRB-2
 memo tasks unlink HRB-2 HRB-1 --kind blocked-by
 ```
 
-A task becomes ready only when every task it waits for is done. A dismissed task it waits for needs
-your review. `follow-up-of` and `related-to` links are for information and do not block anything.
+A task becomes ready only when every task it waits for is done. If a task it waits for was
+dismissed, Memo asks you to review the link. `follow-up-of` and `related-to` links are for information and do not block anything.
 
 ## Reminders
 
