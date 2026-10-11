@@ -12,6 +12,13 @@ the API.
   checks are running. Review the new main before retrying; stale preparation cannot merge a
   redundant version heading or dispatch an unverified source.
 
+## 0.18.0 — 11.10.2026
+
+### Fixed
+
+- The source changelog has one 0.17.0 heading after release preparation raced with its feature
+  merge. Vocabulary commands and the shared-store pin remain the same as 0.17.0.
+
 ## 0.17.0 — 11.10.2026
 
 ### Added
