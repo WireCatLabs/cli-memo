@@ -1,10 +1,15 @@
 # Changelog
 
-Notable changes to `@wirecat/cli-memo` (`@leemour/cli-memo` up to 0.4.0), one section per version, newest
+Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
-## Unreleased
+## 0.6.1 — 11.10.2026
+
+### Fixed
+
+- Package references, documentation and fixtures use the WireCat namespace throughout.
+- The printed Memo version matches the published package version.
 
 ### Changed
 
@@ -47,10 +52,8 @@ the API.
 
 ### Changed — may break callers
 
-- **The package is now `@wirecat/cli-memo`, and the repository is `WireCatLabs/cli-memo`.** Install with
-  `npm install -g @wirecat/cli-memo`; the `memo` command is the same. Uninstall `@leemour/cli-memo` first —
-  both packages provide `memo`. It depends on `@wirecat/cli-core` 0.18.1 and `@wirecat/cli-messaging`
-  0.215.0. `@leemour/cli-memo` gets no new versions.
+- **The package is `@wirecat/cli-memo` and its repository belongs to WireCatLabs.** Use this package for installations and updates.
+
 
 ## 0.4.0 — 09.10.2026
 
