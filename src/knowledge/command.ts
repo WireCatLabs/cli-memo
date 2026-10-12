@@ -160,9 +160,15 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       (
         from: string,
         to: string,
-        options: { kind: KnowledgeRelation["kind"]; role?: string; evidence?: string; by?: "owner"; json?: boolean },
+        options: {
+          kind: KnowledgeRelation["kind"]
+          role?: string
+          evidence?: string
+          asOwner?: boolean
+          json?: boolean
+        },
       ) => {
-        const author = authorOf(env, options.by)
+        const author = authorOf(env, options.asOwner)
         return owned(options, (store) =>
           store.knowledge.relate(null, {
             from,

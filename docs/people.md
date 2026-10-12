@@ -85,7 +85,7 @@ memo relationships remove 4
 
 Relationships are statements you make. They never link two accounts into one person. One an agent
 adds in its terminal waits unconfirmed, with `provenance` naming the agent (`agent:claude-code`), until
-you `memo relationships confirm` it; `--by owner` makes it yours at once.
+you `memo relationships confirm` it; `--as-owner` makes it yours at once.
 
 Memo can suggest relationships from email: people who write to you from the same company domain.
 

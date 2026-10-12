@@ -63,7 +63,7 @@ it("names Claude Code when only CLAUDECODE says an agent runs", async () => {
 
 it("keeps a write the owner's when they say so in an agent's terminal, and when no agent runs", async () => {
   for (const [agent, by] of [
-    [{ CLAUDECODE: "1" }, ["--by", "owner"]],
+    [{ CLAUDECODE: "1" }, ["--as-owner"]],
     [{}, []],
   ] as const) {
     const { writes } = await setUp(agent)

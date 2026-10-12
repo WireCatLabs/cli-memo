@@ -40,7 +40,7 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
           kind: Memory["kind"]
           scope: Memory["scope"]
           evidence: string[]
-          by?: "owner"
+          asOwner?: boolean
         },
       ) =>
         run(options.json, (store) =>
@@ -53,7 +53,7 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
               evidence: options.evidence,
               ...(options.subject === undefined ? {} : { subject: options.subject }),
             },
-            authorOf(env, options.by),
+            authorOf(env, options.asOwner),
           ),
         ),
     )

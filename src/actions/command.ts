@@ -28,8 +28,9 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     .option("--target <ref>", "what it acts on: msg:, chat:, contact:, person:, task:, …")
     .option("--payload <json>", "what to do, as JSON, such as the reply's text")
     .option("--json", "print JSON")
-    .action((kind: string, { by, ...options }: Omit<NewProposal, "kind"> & { by?: "owner"; json?: boolean }) =>
-      run(options.json, (store) => propose(store, { ...options, kind }, authorOf(env, by))),
+    .action(
+      (kind: string, { asOwner, ...options }: Omit<NewProposal, "kind"> & { asOwner?: boolean; json?: boolean }) =>
+        run(options.json, (store) => propose(store, { ...options, kind }, authorOf(env, asOwner))),
     )
 
   actions

@@ -28,8 +28,8 @@ shows how.
 **What waits for you.** A proposed action always waits until you approve or reject it. A memory or
 fact waits when an agent adds it: through [the MCP server](mcp.md), or with the `memo` command in an
 agent's terminal (`AI_AGENT` or `CLAUDECODE` set), where the agent is recorded as its author. One you
-add yourself is confirmed at once; in an agent's terminal, add `--by owner` to make it yours. An agent
-can pass `--by owner` too, so tell it not to.
+add yourself is confirmed at once; in an agent's terminal, add `--as-owner` to make it yours. An agent
+can pass `--as-owner` too, so tell it not to.
 
 ## Memories
 

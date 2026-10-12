@@ -699,7 +699,7 @@ memo relationships add <from> <to> [options]
 | `--json` | print JSON. |
 | `--kind <kind>` | member-of or related-to. Default: `member-of`. |
 | `--role <role>` |  |
-| `--by <author>` | owner: record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--evidence <text>` |  |
 
 ### `memo relationships list`
@@ -1027,7 +1027,7 @@ memo memories add <text> [options]
 | `--kind <kind>` | summary, digest, preference. |
 | `--scope <scope>` | personal or work. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
-| `--by <author>` | owner: record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--subject <ref>` | what it is about, as a reference. |
 | `--json` | print JSON. |
 
@@ -1135,7 +1135,7 @@ memo facts add <statement> [options]
 | `--type <type>` | fact, statement, question, decision, promise. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
 | `--project <ref>` | the project it belongs to, project:<id>. |
-| `--by <author>` | owner: record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--subject <ref>` | what it is about, as a reference. |
 | `--occurred <iso>` | when it happened, as the evidence shows. |
 | `--scope <scope>` | personal or work. |
@@ -1228,7 +1228,7 @@ memo actions propose <kind> [options]
 | `--reason <text>` | why it should be done. |
 | `--provider <provider>` | the provider of the account that would act. |
 | `--account <account>` | the account that would act, when the provider has several. |
-| `--by <author>` | owner: record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--target <ref>` | what it acts on: msg:, chat:, contact:, person:, task:, …. |
 | `--payload <json>` | what to do, as JSON, such as the reply's text. |
 | `--json` | print JSON. |

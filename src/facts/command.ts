@@ -23,7 +23,7 @@ interface AddOptions {
   occurred?: string
   scope?: (typeof MEMORY_SCOPES)[number]
   supersedes?: string
-  by?: "owner"
+  asOwner?: boolean
   json?: boolean
 }
 
@@ -54,7 +54,7 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         store.facts.add({
           type: options.type,
           statement: words.join(" "),
-          by: authorOf(env, options.by),
+          by: authorOf(env, options.asOwner),
           ...(options.evidence === undefined ? {} : { evidence: options.evidence }),
           ...(options.project === undefined ? {} : { project: options.project }),
           ...(options.subject === undefined ? {} : { subject: options.subject }),

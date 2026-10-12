@@ -12,7 +12,7 @@ the API.
   and `actions propose` run with `AI_AGENT` or `CLAUDECODE` set record the agent as author (`claude-code`, the
   name before the version in `AI_AGENT`), as the MCP server does: the fact or memory waits as `proposed`, the
   relationship unconfirmed with `provenance: agent:<name>`. They were recorded as the owner's and accepted.
-  `--by owner` keeps a write yours inside an agent's terminal.
+  `--as-owner` keeps a write yours inside an agent's terminal.
 
 ## 0.23.0 — 12.10.2026
 
