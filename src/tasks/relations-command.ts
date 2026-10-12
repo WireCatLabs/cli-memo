@@ -1,20 +1,14 @@
-import { createRenderer, type Streams } from "@wirecat/cli-base"
-import { type MessageStore, openStore, TASK_RELATION_KINDS, type TaskRelationKind } from "@wirecat/cli-messaging/store"
+import type { Streams } from "@wirecat/cli-base"
+import { type MessageStore, TASK_RELATION_KINDS, type TaskRelationKind } from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"
 import { oneOf, positive } from "../options.js"
+import { answering } from "../records/run.js"
 import { canonicalProject } from "../vocabulary/project.js"
 
 export const taskRelationsCommand = (tasks: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
-  const execute = async (options: { json?: boolean }, work: (store: MessageStore) => Promise<unknown>) => {
-    const store = await openStore({ env })
-    try {
-      const result = await work(store)
-      if (options.json) createRenderer({ format: "json", color: false, streams }).result(result)
-      else streams.data(`${JSON.stringify(result, null, 2)}\n`)
-    } finally {
-      await store.close()
-    }
-  }
+  const run = answering(streams, env)
+  const execute = (options: { json?: boolean }, work: (store: MessageStore) => Promise<unknown>) =>
+    run(options.json, work)
   for (const operation of ["link", "unlink"] as const) {
     tasks
       .command(operation)

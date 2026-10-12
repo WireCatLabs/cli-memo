@@ -1,13 +1,8 @@
-import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
-import {
-  type MessageStore,
-  openStore,
-  type VocabularyKind,
-  type VocabularyOptions,
-  type VocabularyTarget,
-} from "@wirecat/cli-messaging/store"
+import { CliError, type Streams } from "@wirecat/cli-base"
+import type { MessageStore, VocabularyKind, VocabularyOptions, VocabularyTarget } from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"
 import { oneOf, positive } from "../options.js"
+import { answering } from "../records/run.js"
 
 const kinds = ["project", "tag", "topic"] as const
 const targetOf = (reference: string): VocabularyTarget => {
@@ -21,16 +16,8 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
   const vocabulary = program
     .command("vocabulary")
     .description("Canonical projects, tags and topics with explicit aliases")
-  const execute = async (options: Options, work: (store: MessageStore) => Promise<unknown>) => {
-    const store = await openStore({ env })
-    try {
-      const result = await work(store)
-      if (options.json) createRenderer({ format: "json", color: false, streams }).result(result)
-      else streams.data(`${JSON.stringify(result, null, 2)}\n`)
-    } finally {
-      await store.close()
-    }
-  }
+  const run = answering(streams, env)
+  const execute = (options: Options, work: (store: MessageStore) => Promise<unknown>) => run(options.json, work)
   const readOptions = (command: Command) =>
     command
       .option("--kind <kind>", "project, tag or topic", oneOf(kinds))

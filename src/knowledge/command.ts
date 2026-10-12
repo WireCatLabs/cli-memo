@@ -12,23 +12,16 @@ import {
 import type { Command } from "commander"
 import { notesAbout } from "../notes/about.js"
 import { accountOptions, oneOf, positive } from "../options.js"
+import { answering } from "../records/run.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 import { meetingProjectsCommand } from "./meeting-projects-command.js"
 
 export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
-  const execute = async (
+  const run = answering(streams, env)
+  const execute = (
     options: AccountScope & { json?: boolean },
     work: (store: MessageStore, key: Awaited<ReturnType<typeof selectAccount>>) => Promise<unknown>,
-  ) => {
-    const store = await openStore({ env })
-    try {
-      const answer = await work(store, await selectAccount(store, options))
-      if (options.json) createRenderer({ format: "json", color: false, streams }).result(answer)
-      else streams.data(`${JSON.stringify(answer, null, 2)}\n`)
-    } finally {
-      await store.close()
-    }
-  }
+  ) => run(options.json, async (store) => work(store, await selectAccount(store, options)))
   /** Organisations and relations are the owner's, not an account's. */
   const owned = async (options: { json?: boolean }, work: (store: MessageStore) => Promise<unknown>) => {
     const store = await openStore({ env })
