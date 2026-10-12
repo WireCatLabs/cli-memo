@@ -12,8 +12,8 @@ the API.
   a zsh loop over `"$c"` passes — printed the root help; it now says `"projects add" was given as one argument;
   run: memo projects add`.
 - **Search help says where file text and references are.** `search messages`, `search mail` and `search all` say
-  the text of files is searched only with `content:`, and each search's `--help` and MCP tool names the list
-  (`items` or `hits`) and the reference (`locator` or `ref`) of its `--json` answer. The usage and
+  `content:` and `filename:` narrow a search to the text or names of files, and each search's `--help` and MCP
+  tool names the list (`items` or `hits`) and the reference (`locator` or `ref`) of its `--json` answer. The usage and
   troubleshooting guides say the same, and to compare `memo --version` with npm before reporting a bug.
 
 ## 0.23.0 — 12.10.2026

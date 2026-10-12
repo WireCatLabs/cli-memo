@@ -90,9 +90,9 @@ Where a search answer keeps its list and references:
 | `memo search all` | `items` | `ref`, with `kind` |
 | `memo search notes` | `hits` | `ref` |
 
-A plain word matches what a message says. The text of its files is searched only with `content:`:
-compare `memo search messages 'content:invoice'` with `tg search messages 'content:invoice'`, not a
-plain word with `content:`.
+`content:` narrows a search to the text of files and `filename:` to their names. Compare like with
+like: `memo search messages 'content:invoice'` with `tg search messages 'content:invoice'`, a plain
+word with a plain word.
 
 ## Choosing an account
 

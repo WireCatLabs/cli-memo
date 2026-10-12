@@ -373,7 +373,7 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     .addHelpText(
       "after",
       `
-The text of a message's or email's files is searched only with content: — memo search all 'content:invoice'.
+content: narrows a search to the text of files, filename: to their names — memo search all 'content:invoice'.
 --json: the list is items; each result's reference is ref, its kind is kind (tg search uses locator).`,
     )
     .action(
@@ -416,11 +416,11 @@ The text of a message's or email's files is searched only with content: — memo
       "after",
       kind === "messages"
         ? `
-A plain word matches what a message says; the text of its files only with content: —
-memo search messages 'content:invoice', as tg search messages 'content:invoice'.
+content: narrows a search to the text of files, filename: to their names — memo search messages
+'content:invoice'. Compare it with tg search messages 'content:invoice', a plain word with a plain word.
 --json: the list is items; each hit's reference is locator (msg:…), as in tg search messages.`
         : `
-The text of attachments is searched with content: and their names with filename: — memo search mail 'content:invoice'.
+content: narrows a search to the text of attachments, filename: to their names — memo search mail 'content:invoice'.
 --json: the list is items; each email's reference is locator (msg:email/…).`,
     )
     leaf.action(

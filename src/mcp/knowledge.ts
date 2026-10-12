@@ -16,14 +16,14 @@ const query = {
 export const knowledgeTools = {
   search_all: define({
     title: "Search everything",
-    description: `Messages from every messenger, mail and notes ranked together, with the open tasks that point at a hit. Use it when you do not know where something was written; search_messages, search_mail or search_notes read one kind with all its fields. The text of files is searched only with content:, as content:invoice. Each result's reference is ref. ${DATA}`,
+    description: `Messages from every messenger, mail and notes ranked together, with the open tasks that point at a hit. Use it when you do not know where something was written; search_messages, search_mail or search_notes read one kind with all its fields. content: narrows a search to the text of files, filename: to their names, as content:invoice. Each result's reference is ref. ${DATA}`,
     writes: false,
     input: v.object({ ...query, only: v.optional(v.array(v.picklist(RESOURCES_SEARCHED))) }),
     run: (store, args, env) => searchEverywhere(store, env, args),
   }),
   search_messages: define({
     title: "Search messages",
-    description: `Stored messages from every messenger, with all their fields. A plain word matches what a message says; the text of its files only with content:, as content:invoice. Each hit's reference is locator. ${DATA}`,
+    description: `Stored messages from every messenger, with all their fields. content: narrows a search to the text of files, filename: to their names, as content:invoice. Each hit's reference is locator. ${DATA}`,
     writes: false,
     input: v.object({ ...query, type: v.optional(v.picklist(["text", "voice", "file"])) }),
     run: (store, args) => searchKind(store, "messages", args),
