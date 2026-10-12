@@ -142,5 +142,32 @@ describe("project context", () => {
     await run("projects", "add", "Synthetic Harbour", "--key", "SYH", "--json")
     for (const reference of ["SYH", "syh", "project:1", "1"])
       expect((await run("projects", "context", reference, "--json")).project).toMatchObject({ id: "1", key: "SYH" })
+    expect((await run("projects", "context", "project:1", "--json")).notes.subject).toBe("project:1")
+  })
+
+  it("finds an organization by organization:<id> as well as its id", async () => {
+    const root = mkdtempSync(join(tmpdir(), "memo-organization-ref-")),
+      env = { ...process.env, MESSAGING_STORE: join(root, "store.db") }
+    const run = async (...args: string[]) => {
+      const streams = captureStreams()
+      await createProgram({ streams, env }).parseAsync(args, { from: "user" })
+      return JSON.parse(streams.stdout.join(""))
+    }
+    await run("organizations", "add", "Synthetic Studio", "--kind", "company", "--json")
+    for (const reference of ["organization:1", "1"])
+      expect((await run("organizations", "context", reference, "--json")).organization).toMatchObject({ id: "1" })
+  })
+
+  it("refuses a project or organization the store does not hold", async () => {
+    const root = mkdtempSync(join(tmpdir(), "memo-unknown-ref-")),
+      env = { ...process.env, MESSAGING_STORE: join(root, "store.db") }
+    const run = (...args: string[]) =>
+      createProgram({ streams: captureStreams(), env }).parseAsync(args, { from: "user" })
+    await run("projects", "add", "Synthetic Harbour", "--key", "SYH", "--json")
+    for (const reference of ["NOPE", "project:9", "9"])
+      await expect(run("projects", "context", reference, "--json")).rejects.toMatchObject({ code: "not_found" })
+    await expect(run("organizations", "context", "organization:9", "--json")).rejects.toMatchObject({
+      code: "not_found",
+    })
   })
 })

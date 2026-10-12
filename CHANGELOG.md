@@ -4,6 +4,14 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- **`memo projects context` and `memo organizations context` refuse what the store does not hold** with
+  `not_found` instead of an empty answer, and `organizations context` takes `organization:<id>` as well as
+  its id.
+
 ## 0.23.0 — 12.10.2026
 
 ### Fixed
