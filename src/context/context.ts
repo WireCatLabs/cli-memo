@@ -11,7 +11,7 @@ export interface MemoContext {
   /** Notes linked to them: file notes about them, notes linking them or a note about them. */
   notes: Omit<NotesAbout, "subject" | "name">
   /** What you wrote about them here (`memo notes add --about`). */
-  yourNotes: Pick<Note, "id" | "text" | "revision" | "updatedAt">[]
+  yourNotes: Pick<Note, "id" | "ref" | "text" | "revision" | "updatedAt">[]
   /** Sources that gave nothing, and why. */
   notRead: { source: string; reason: string }[]
   tasks: Awaited<ReturnType<typeof personTasks>>
@@ -42,7 +42,7 @@ export const memoContext = async (
   const yourNotes = []
   for (const ref of linked.about.filter((note) => note.source === "internal")) {
     const note = await store.notes.note(ref.ref)
-    yourNotes.push({ id: note.id, text: note.text, revision: note.revision, updatedAt: note.updatedAt })
+    yourNotes.push({ id: note.id, ref: note.ref, text: note.text, revision: note.revision, updatedAt: note.updatedAt })
   }
   const notRead: MemoContext["notRead"] = []
   if ((await store.notes.folders()).length === 0)

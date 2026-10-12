@@ -4,6 +4,17 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- **Terminal answers name things by the references memo's commands take.** `notes list` and `context` printed a
+  bare note id that `notes show` refuses; they print `note:`/`document:` references. `notes show` printed only the
+  text; it starts with the reference, path or title, update time and tags, and ends with what it links and what
+  links it. `context` names the person as `person:<id>` and each message by its `msg:` locator, and tasks as
+  `task:<id>`. `tags list` names a chat as `chat:…`, a contact as `<messenger>:<id>` and every other label's
+  target as `<type>:<id>`, not as JSON. `context --json` gives each of your notes its `ref`.
+
 ## 0.22.0 — 12.10.2026
 
 ### Changed

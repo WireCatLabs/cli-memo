@@ -139,6 +139,9 @@ describe("memo source tags", () => {
       added: ["work"],
     })
     expect((await json("tags", "list", "--type", "chat")).items).toHaveLength(1)
+    expect(await run("tags", "list", "--type", "chat")).toContain(
+      `work  chat  chat:email/${encodeURIComponent(mail.account)}/7`,
+    )
     expect(await json("tags", "remove", "work", ...args)).toMatchObject({ removed: ["work"], unchanged: [] })
     expect(await json("tags", "remove", "work", ...args)).toMatchObject({ removed: [], unchanged: ["work"] })
   })
