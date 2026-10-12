@@ -23,6 +23,9 @@ const directory = (path: string): string => {
   return at
 }
 
+// drive-cli owns these folders; bound to a disk folder, an import would delete the Drive documents missing there.
+const keptByDrive = (name: string) => name.startsWith("google-drive:")
+
 const line = (folder: NoteFolder) =>
   `${folder.id ?? "(no id — memo folders add <path>)"}  ${folder.format}  ${folder.path}`
 
@@ -78,6 +81,11 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
         const stored = (await store.notes.folders()).find((candidate) => candidate.id === id)
         if (!stored)
           throw new CliError("not_found", `the store has no folder ${id} — memo folders list shows those it has`)
+        if (keptByDrive(stored.name))
+          throw new CliError(
+            "validation_error",
+            `folder ${id} is Google Drive's (${stored.name}) — drive keeps it, and memo search already reads it`,
+          )
         let bound: NoteFolder | undefined
         updateConfig((config) => {
           const result = attachFolder(config, id, at, options.format ?? stored.format)
@@ -98,7 +106,7 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
         const here = noteFolders(loadConfig(env).notes)
         const elsewhere = (await store.notes.folders())
           .filter((folder) => !here.some((entry) => entry.id === folder.id))
-          .map(({ id, name, format }) => ({ id, name, format }))
+          .map(({ id, name, format }) => ({ id, name, format, ...(keptByDrive(name) ? { keptBy: "drive" } : {}) }))
         return { items: here, elsewhere }
       })
       print(
@@ -106,8 +114,10 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
         answer,
         [
           ...answer.items.map(line),
-          ...answer.elsewhere.map(
-            ({ id, name }) => `${id}  not on this computer (${name}) — memo folders attach ${id} <path>`,
+          ...answer.elsewhere.map(({ id, name, keptBy }) =>
+            keptBy
+              ? `${id}  kept by drive (${name})`
+              : `${id}  not on this computer (${name}) — memo folders attach ${id} <path>`,
           ),
         ].join("\n") || "no folders: memo folders add <path>",
       )
