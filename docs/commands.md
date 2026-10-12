@@ -677,9 +677,6 @@ memo projects context <project> [options]
 |---|---|
 | `--json` | print JSON. |
 
-## `memo relationships`
-
-Explicit relations between people, organizations and projects; this never links identities
 ### `memo projects key-documents`
 
 The notes, files and messages to read first about a project, each with why
@@ -739,6 +736,9 @@ memo projects key-documents list <project> [options]
 
 ### `memo relationships add`
 
+## `memo relationships`
+
+Explicit relations between people, organizations and projects; this never links identities
 State that a person, organization or project belongs to or relates to another; an agent's waits for you to confirm it
 
 ```sh
