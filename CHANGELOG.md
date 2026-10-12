@@ -8,9 +8,8 @@ the API.
 
 ### Fixed
 
-- **The search guide names `content:` for messages.** A word without it matches what a Telegram or MAX message
-  says, not the text of its files, as in tg; `memo search messages 'content:invoice'` and `memo search all`
-  with `content:` look inside them.
+- **The search guide names `content:` for messages.** It narrows a search to the text of files, in
+  `memo search messages` and `memo search all` as in tg; the guide listed it for mail only.
 
 ## 0.23.0 — 12.10.2026
 

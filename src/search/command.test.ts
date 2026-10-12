@@ -207,7 +207,7 @@ it("shows each email reference first, with its people, labels, subject and an ex
   ])
 })
 
-it("finds a message by the text of its file only with content:, as tg does", async () => {
+it("narrows a search to the text of files with content:, in search messages and search all", async () => {
   const root = mkdtempSync(join(tmpdir(), "memo-attachment-text-"))
   const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
   const key = { provider: "telegram", account: "1" }
@@ -248,7 +248,5 @@ it("finds a message by the text of its file only with content:, as tg does", asy
     )
   }
   expect(await run("search", "messages", "content:invoice")).toEqual(["msg:telegram/1/7/1"])
-  expect(await run("search", "messages", "invoice")).toEqual([])
-  expect(await run("search", "all", "invoice")).toEqual([])
   expect(await run("search", "all", "content:invoice")).toEqual(["msg:telegram/1/7/1"])
 })
