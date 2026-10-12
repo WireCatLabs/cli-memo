@@ -39,7 +39,7 @@ describe("memo auto", () => {
     await run("auto", "on", "--every", "2m")
 
     expect(readFileSync(join(units(), "memo-import.timer"), "utf8")).toContain("OnUnitActiveSec=2min")
-    expect(readFileSync(join(units(), "memo-import.service"), "utf8")).toMatch(/ExecStart=".*" ".*memo\.js" "import"/)
+    expect(readFileSync(join(units(), "memo-import.service"), "utf8")).toMatch(/ExecStart=".*" ".*memo\.js" "sync"/)
     expect(calls()).toContain("--user enable --now memo-import.timer")
     expect(loadConfig(env).auto).toEqual({ enabled: true, every: "2m" })
   })
@@ -71,15 +71,15 @@ describe("memo auto", () => {
     await run("auto", "on", "--every", "5m")
     updateConfig((config) => ({ ...config, auto: { enabled: true, every: "15m" } }), env)
 
-    await run("import")
+    await run("sync")
     expect(readFileSync(join(units(), "memo-import.timer"), "utf8")).toContain("OnUnitActiveSec=5min")
 
     env = { ...env, MEMO_AUTO: "1" }
-    await run("import")
+    await run("sync")
     expect(readFileSync(join(units(), "memo-import.timer"), "utf8")).toContain("OnUnitActiveSec=15min")
 
     updateConfig((config) => ({ ...config, auto: { enabled: false } }), env)
-    expect(await run("import")).toBe("")
+    expect(await run("sync")).toBe("")
     expect(existsSync(join(units(), "memo-import.timer"))).toBe(false)
   })
 
@@ -98,13 +98,19 @@ describe("memo auto", () => {
   })
 })
 
-describe("memo import", () => {
+describe("memo sync", () => {
   it("names a folder with no id as failed, and imports it once it has one", async () => {
-    expect(await run("import")).toMatch(/failed notes .*: no folder id — memo folders add/)
+    expect(await run("sync")).toMatch(/failed notes .*: no folder id — memo folders add/)
     process.exitCode = 0
     await run("folders", "add", join(dir, "vault"))
-    expect(await run("import")).toMatch(/notes .*: 1 notes, 1 changed, 0 moved, 0 gone/)
-    expect(await run("import")).toMatch(/1 notes, 0 changed/)
+    expect(await run("sync")).toMatch(/notes .*: 1 notes, 1 changed, 0 moved, 0 gone/)
+    expect(await run("sync")).toMatch(/1 notes, 0 changed/)
+  })
+
+  it("lists memo sync and no longer memo import", async () => {
+    const commands = await run("commands", "--json")
+    expect(commands).toContain('"path":["sync"]')
+    expect(commands).not.toContain('"path":["import"]')
   })
 
   it("refuses to start while another import holds the lock", async () => {
@@ -114,6 +120,6 @@ describe("memo import", () => {
       JSON.stringify({ pid: process.ppid, startedAt: new Date().toISOString() }),
     )
 
-    await expect(run("import")).rejects.toThrow("already running")
+    await expect(run("sync")).rejects.toThrow("already running")
   })
 })

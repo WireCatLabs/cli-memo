@@ -17,7 +17,7 @@ const ConfigSchema = v.object({
         ]),
       ),
       ignore: v.optional(v.array(v.string())),
-      /** `false` keeps notes out of search by meaning: `memo import` does not embed them. */
+      /** `false` keeps notes out of search by meaning: `memo sync` does not embed them. */
       embed: v.optional(v.boolean()),
       /** Where `memo notes export` and `--export` write internal notes when no folder is given. */
       export: v.optional(

@@ -4,6 +4,12 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Changed
+
+- `memo import` is now `memo sync` (owner, 2026-10-12; WireCat glossary in cli-messaging). `memo import` stops working. `memo auto on` now writes `memo sync` into the unit; a timer installed before runs `memo import` and fails until `memo auto on` is run again. `notes import` and `mail <account> import` keep their names for now.
+
 ## 0.23.0 — 12.10.2026
 
 ### Fixed

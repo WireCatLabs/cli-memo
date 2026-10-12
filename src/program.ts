@@ -14,7 +14,7 @@ import { notesCommand } from "./notes/command.js"
 import { foldersCommand } from "./notes/folders-command.js"
 import { noteCommand } from "./people/command.js"
 import { autoCommand } from "./run/auto.js"
-import { importCommand } from "./run/import.js"
+import { syncCommand } from "./run/import.js"
 import { searchCommand } from "./search/command.js"
 import { tagsCommand } from "./tags/command.js"
 import { tasksCommand } from "./tasks/command.js"
@@ -48,7 +48,7 @@ export const createProgram = ({
   mcpCommand(program, streams, env)
   searchCommand(program, streams, env)
   askCommand(program, streams, env)
-  importCommand(program, streams, env)
+  syncCommand(program, streams, env)
   autoCommand(program, streams, env)
   commandsCommand(program, streams)
 

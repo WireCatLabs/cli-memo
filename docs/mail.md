@@ -43,7 +43,7 @@ never picks an account for you, and lists the accounts it knows when the name is
 - Without `--since`, Memo reads the last 30 days.
 - Each run reads up to 200 new emails (`--max` changes this). Run it again and it continues where it
   stopped; emails already stored are skipped.
-- `memo import` and the timer import every account in the config.
+- `memo sync` and the timer import every account in the config.
 
 ## Find your mail
 

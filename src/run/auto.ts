@@ -30,11 +30,11 @@ const memoBin = (): string => resolve(dirname(fileURLToPath(import.meta.url)), "
 export const serviceUnit = (env: NodeJS.ProcessEnv): string =>
   [
     "[Unit]",
-    "Description=memo: import notes and mail into the shared store",
+    "Description=memo: sync notes and mail into the shared store",
     "",
     "[Service]",
     "Type=oneshot",
-    `ExecStart=${[process.execPath, memoBin(), "import"].map(quote).join(" ")}`,
+    `ExecStart=${[process.execPath, memoBin(), "sync"].map(quote).join(" ")}`,
     // Himalaya and the keyring helper it calls are found on the PATH memo was set up with.
     `Environment=${quote(`PATH=${env.PATH ?? ""}`)} MEMO_AUTO=1`,
     "Nice=10",
@@ -44,7 +44,7 @@ export const serviceUnit = (env: NodeJS.ProcessEnv): string =>
 export const timerUnit = (every: string): string =>
   [
     "[Unit]",
-    `Description=memo: import notes and mail every ${every}`,
+    `Description=memo: sync notes and mail every ${every}`,
     "",
     "[Timer]",
     "OnActiveSec=1min",
@@ -111,7 +111,7 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
   const run = systemctl(env)
   const auto = program
     .command("auto")
-    .description("Run memo import on a timer (systemd user timer); on/off and the interval live in the config")
+    .description("Run memo sync on a timer (systemd user timer); on/off and the interval live in the config")
 
   auto
     .command("on")
@@ -123,7 +123,7 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         env,
       )
       await applyAuto(env, autoState(config))
-      streams.data(`memo import runs every ${autoState(config).every}.\n`)
+      streams.data(`memo sync runs every ${autoState(config).every}.\n`)
     })
 
   auto
@@ -132,7 +132,7 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .action(async () => {
       const config = updateConfig((current) => ({ ...current, auto: { ...current.auto, enabled: false } }), env)
       await applyAuto(env, autoState(config))
-      streams.data("memo import no longer runs on a timer.\n")
+      streams.data("memo sync no longer runs on a timer.\n")
     })
 
   auto

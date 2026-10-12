@@ -26,7 +26,7 @@ contains your words. To also search by meaning, download the model with tg or ma
 
 ```sh
 tg models text download e5-small    # or: max models text download e5-small
-memo import
+memo sync
 ```
 
 ## "nobody by that name yet"
