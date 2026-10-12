@@ -86,6 +86,7 @@ it("offers the memo tools, saves an agent's memory and proposal as its own, and 
       "actions_propose ok",
       "memories_add ok",
     ])
+    expect((await call("memories_list", { limit: 1 })).structuredContent).toMatchObject({ hasMore: false })
     expect(log.items.every(({ actor }) => actor.name === AGENT)).toBe(true)
   } finally {
     await client.close()
@@ -142,7 +143,7 @@ it("exposes ready task discovery without offering dependency mutation or claims"
       blockers: [{ task: first.ref, state: "open" }],
     })
     expect((await call("tasks_ready", { project: "RES" })).structuredContent).toMatchObject({
-      items: [{ key: first.key }],
+      items: [{ ref: first.ref, key: first.key }],
       hasMore: false,
     })
     expect((await client.listTools()).tools.some((x) => x.name === "tasks_claim" || x.name === "tasks_link")).toBe(

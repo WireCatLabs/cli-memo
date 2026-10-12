@@ -1,6 +1,7 @@
 import type { Streams } from "@wirecat/cli-base"
 import type { Command } from "commander"
 import { positive } from "../options.js"
+import { pageOf } from "../page.js"
 import { answering } from "../records/run.js"
 
 export const agentsCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
@@ -15,12 +16,14 @@ export const agentsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     .option("--limit <n>", "most rows, up to 500", positive, 100)
     .option("--json", "print JSON")
     .action((options: { tool?: string; agent?: string; limit: number; json?: boolean }) =>
-      run(options.json, async (store) => ({
-        items: await store.agentActions.list({
-          ...(options.tool === undefined ? {} : { tool: options.tool }),
-          ...(options.agent === undefined ? {} : { agent: options.agent }),
-          limit: options.limit,
-        }),
-      })),
+      run(options.json, (store) =>
+        pageOf(options.limit, (limit) =>
+          store.agentActions.list({
+            ...(options.tool === undefined ? {} : { tool: options.tool }),
+            ...(options.agent === undefined ? {} : { agent: options.agent }),
+            limit,
+          }),
+        ),
+      ),
     )
 }

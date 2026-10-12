@@ -2,6 +2,7 @@ import type { Streams } from "@wirecat/cli-base"
 import { MEMORY_KINDS, MEMORY_SCOPES, MEMORY_STATUSES, type Memory } from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"
 import { oneOf, positive } from "../options.js"
+import { pageOf } from "../page.js"
 import { answering } from "../records/run.js"
 import { addMemory } from "./memories.js"
 
@@ -63,7 +64,7 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     .option("--limit <n>", "most memories, up to 500", positive, 100)
     .option("--json", "print JSON")
     .action(({ json, ...filters }: Filters) =>
-      run(json, async (store) => ({ items: await store.memories.list(filters) })),
+      run(json, (store) => pageOf(filters.limit, (limit) => store.memories.list({ ...filters, limit }))),
     )
 
   memories
@@ -81,12 +82,17 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     .option("--limit <n>", "most memories, up to 500", positive, 20)
     .option("--json", "print JSON")
     .action((words: string[], options: { scope?: Memory["scope"]; limit: number; json?: boolean }) =>
-      run(options.json, async (store) => ({
-        items: await store.memories.search(words.join(" "), {
-          limit: options.limit,
-          ...(options.scope === undefined ? {} : { scope: options.scope }),
-        }),
-      })),
+      run(options.json, (store) =>
+        pageOf(
+          options.limit,
+          (limit) =>
+            store.memories.search(words.join(" "), {
+              limit,
+              ...(options.scope === undefined ? {} : { scope: options.scope }),
+            }),
+          { fallback: 20, cap: 200 },
+        ),
+      ),
     )
 
   memories

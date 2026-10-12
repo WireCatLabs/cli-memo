@@ -2,6 +2,7 @@ import type { Streams } from "@wirecat/cli-base"
 import { FACT_STATUSES, FACT_TYPES, type Fact, MEMORY_SCOPES } from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"
 import { oneOf, positive } from "../options.js"
+import { pageOf } from "../page.js"
 import { answering } from "../records/run.js"
 
 interface Filters {
@@ -67,7 +68,9 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .option("--subject <ref>", "only facts about this reference")
     .option("--limit <n>", "most facts, up to 500", positive, 100)
     .option("--json", "print JSON")
-    .action(({ json, ...filters }: Filters) => run(json, async (store) => ({ items: await store.facts.list(filters) })))
+    .action(({ json, ...filters }: Filters) =>
+      run(json, (store) => pageOf(filters.limit, (limit) => store.facts.list({ ...filters, limit }))),
+    )
 
   facts
     .command("show")

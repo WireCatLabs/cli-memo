@@ -13,6 +13,7 @@ import {
 import * as v from "valibot"
 import { propose } from "../actions/actions.js"
 import { addMemory } from "../memories/memories.js"
+import { pageOf } from "../page.js"
 import { VERSION } from "../version.js"
 import { knowledgeTools } from "./knowledge.js"
 import { taskRelationTools } from "./task-relations.js"
@@ -72,7 +73,7 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
       subject: v.optional(v.string()),
       limit: limit(500),
     }),
-    run: async (store, args) => ({ items: await store.memories.list(args) }),
+    run: (store, args) => pageOf(args.limit, (limit) => store.memories.list({ ...args, limit })),
   }),
   memories_show: define({
     title: "Show a memory",
@@ -90,7 +91,8 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
       scope: v.optional(v.picklist(MEMORY_SCOPES)),
       limit: limit(500),
     }),
-    run: async (store, { text, ...options }) => ({ items: await store.memories.search(text, options) }),
+    run: (store, { text, ...options }) =>
+      pageOf(options.limit, (limit) => store.memories.search(text, { ...options, limit }), { fallback: 20, cap: 200 }),
   }),
   facts_add: define({
     title: "Propose a fact",
@@ -120,7 +122,7 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
       subject: v.optional(v.string()),
       limit: limit(500),
     }),
-    run: async (store, args) => ({ items: await store.facts.list(args) }),
+    run: (store, args) => pageOf(args.limit, (limit) => store.facts.list({ ...args, limit })),
   }),
   facts_show: define({
     title: "Show a fact",
@@ -150,7 +152,7 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
     description: `Proposed actions, newest first, by status. ${UNTRUSTED}`,
     writes: false,
     input: v.object({ status: v.optional(v.picklist(PROPOSAL_STATUSES)), limit: limit(500) }),
-    run: async (store, args) => ({ items: await store.proposedActions.list(args) }),
+    run: (store, args) => pageOf(args.limit, (limit) => store.proposedActions.list({ ...args, limit })),
   }),
   actions_show: define({
     title: "Show a proposed action",
@@ -164,7 +166,7 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
     description: "What agents did through the MCP servers, newest first: agent, tool, tier, outcome and times.",
     writes: false,
     input: v.object({ tool: v.optional(v.string()), agent: v.optional(v.string()), limit: limit(500) }),
-    run: async (store, args) => ({ items: await store.agentActions.list(args) }),
+    run: (store, args) => pageOf(args.limit, (limit) => store.agentActions.list({ ...args, limit })),
   }),
 }
 

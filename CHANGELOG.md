@@ -8,6 +8,9 @@ the API.
 
 ### Fixed
 
+- **Memory, fact, action and agent-log lists say whether there are more** (`hasMore`, CLI and MCP), as the other
+  lists do; asked for the whole 500, a full answer says it may have more. `tasks list` (of an account), `tasks
+  ready` and `tasks_ready` give each task its `task:` reference.
 - **Terminal answers name things by the references memo's commands take.** `notes list` and `context` printed a
   bare note id that `notes show` refuses; they print `note:`/`document:` references. `notes show` printed only the
   text; it starts with the reference, path or title, update time and tags, and ends with what it links and what
