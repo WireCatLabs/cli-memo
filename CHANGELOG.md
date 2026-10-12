@@ -4,6 +4,16 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Changed — may break scripts
+
+- **A write from an agent's terminal is the agent's.** `memo facts add`, `memories add`, `relationships add`
+  and `actions propose` run with `AI_AGENT` or `CLAUDECODE` set record the agent as author (`claude-code`, the
+  name before the version in `AI_AGENT`), as the MCP server does: the fact or memory waits as `proposed`, the
+  relationship unconfirmed with `provenance: agent:<name>`. They were recorded as the owner's and accepted.
+  `--by owner` keeps a write yours inside an agent's terminal.
+
 ## 0.23.0 — 12.10.2026
 
 ### Fixed

@@ -2,6 +2,7 @@ import type { Streams } from "@wirecat/cli-base"
 import { approveAsTask } from "@wirecat/cli-messaging/services"
 import { PROPOSAL_STATUSES, type ProposedAction } from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"
+import { authorOf, byOption } from "../author.js"
 import { oneOf, positive } from "../options.js"
 import { pageOf } from "../page.js"
 import { answering } from "../records/run.js"
@@ -13,9 +14,13 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     .command("actions")
     .description("What an agent proposes to do; approving one makes it your task, nothing is sent")
 
-  actions
-    .command("propose")
-    .description("Propose an action, such as a reply or a ban, in the account that would act")
+  byOption(
+    actions
+      .command("propose")
+      .description(
+        "Propose an action, such as a reply or a ban, in the account that would act; it records who proposed it",
+      ),
+  )
     .argument("<kind>", "a lower-case word: reply, send, ban, mute, pin, invite, create_task, …")
     .requiredOption("--reason <text>", "why it should be done")
     .requiredOption("--provider <provider>", "the provider of the account that would act")
@@ -23,8 +28,8 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     .option("--target <ref>", "what it acts on: msg:, chat:, contact:, person:, task:, …")
     .option("--payload <json>", "what to do, as JSON, such as the reply's text")
     .option("--json", "print JSON")
-    .action((kind: string, options: Omit<NewProposal, "kind"> & { json?: boolean }) =>
-      run(options.json, (store) => propose(store, { ...options, kind }, "owner")),
+    .action((kind: string, { by, ...options }: Omit<NewProposal, "kind"> & { by?: "owner"; json?: boolean }) =>
+      run(options.json, (store) => propose(store, { ...options, kind }, authorOf(env, by))),
     )
 
   actions

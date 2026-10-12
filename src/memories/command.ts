@@ -1,6 +1,7 @@
 import type { Streams } from "@wirecat/cli-base"
 import { MEMORY_KINDS, MEMORY_SCOPES, MEMORY_STATUSES, type Memory } from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"
+import { authorOf, byOption } from "../author.js"
 import { oneOf, positive } from "../options.js"
 import { pageOf } from "../page.js"
 import { answering } from "../records/run.js"
@@ -19,11 +20,13 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
   const run = answering(streams, env)
   const memories = program
     .command("memories")
-    .description("What agents and you concluded, each with its evidence: agents propose, you confirm")
+    .description("What agents and you concluded, each with its evidence: an agent's waits for you to confirm it")
 
-  memories
-    .command("add")
-    .description("Write a memory of your own; it is confirmed at once")
+  byOption(
+    memories
+      .command("add")
+      .description("Write a memory: yours is confirmed at once, an agent's waits as proposed until you confirm it"),
+  )
     .argument("<text...>", "what is true, in a sentence or two")
     .requiredOption("--kind <kind>", MEMORY_KINDS.join(", "), oneOf(MEMORY_KINDS))
     .requiredOption("--scope <scope>", MEMORY_SCOPES.join(" or "), oneOf(MEMORY_SCOPES))
@@ -37,6 +40,7 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
           kind: Memory["kind"]
           scope: Memory["scope"]
           evidence: string[]
+          by?: "owner"
         },
       ) =>
         run(options.json, (store) =>
@@ -49,7 +53,7 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
               evidence: options.evidence,
               ...(options.subject === undefined ? {} : { subject: options.subject }),
             },
-            "owner",
+            authorOf(env, options.by),
           ),
         ),
     )

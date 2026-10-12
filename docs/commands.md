@@ -683,7 +683,7 @@ Explicit relations between people, organizations and projects; this never links 
 
 ### `memo relationships add`
 
-State that a person, organization or project belongs to or relates to another
+State that a person, organization or project belongs to or relates to another; an agent's waits for you to confirm it
 
 ```sh
 memo relationships add <from> <to> [options]
@@ -699,6 +699,7 @@ memo relationships add <from> <to> [options]
 | `--json` | print JSON. |
 | `--kind <kind>` | member-of or related-to. Default: `member-of`. |
 | `--role <role>` |  |
+| `--by <author>` | owner: record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--evidence <text>` |  |
 
 ### `memo relationships list`
@@ -1007,11 +1008,11 @@ memo vocabulary aliases remove <reference> <alias-id> [options]
 
 ## `memo memories`
 
-What agents and you concluded, each with its evidence: agents propose, you confirm
+What agents and you concluded, each with its evidence: an agent's waits for you to confirm it
 
 ### `memo memories add`
 
-Write a memory of your own; it is confirmed at once
+Write a memory: yours is confirmed at once, an agent's waits as proposed until you confirm it
 
 ```sh
 memo memories add <text> [options]
@@ -1026,6 +1027,7 @@ memo memories add <text> [options]
 | `--kind <kind>` | summary, digest, preference. |
 | `--scope <scope>` | personal or work. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
+| `--by <author>` | owner: record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--subject <ref>` | what it is about, as a reference. |
 | `--json` | print JSON. |
 
@@ -1114,11 +1116,11 @@ memo memories stale <ref> [options]
 
 ## `memo facts`
 
-What happened — said, asked, decided, promised — with its evidence: agents propose, you accept
+What happened — said, asked, decided, promised — with its evidence: an agent's waits for you to accept it
 
 ### `memo facts add`
 
-Record a fact of your own; it is accepted at once
+Record a fact: yours is accepted at once, an agent's waits as proposed until you accept it
 
 ```sh
 memo facts add <statement> [options]
@@ -1133,6 +1135,7 @@ memo facts add <statement> [options]
 | `--type <type>` | fact, statement, question, decision, promise. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
 | `--project <ref>` | the project it belongs to, project:<id>. |
+| `--by <author>` | owner: record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--subject <ref>` | what it is about, as a reference. |
 | `--occurred <iso>` | when it happened, as the evidence shows. |
 | `--scope <scope>` | personal or work. |
@@ -1210,7 +1213,7 @@ What an agent proposes to do; approving one makes it your task, nothing is sent
 
 ### `memo actions propose`
 
-Propose an action, such as a reply or a ban, in the account that would act
+Propose an action, such as a reply or a ban, in the account that would act; it records who proposed it
 
 ```sh
 memo actions propose <kind> [options]
@@ -1225,6 +1228,7 @@ memo actions propose <kind> [options]
 | `--reason <text>` | why it should be done. |
 | `--provider <provider>` | the provider of the account that would act. |
 | `--account <account>` | the account that would act, when the provider has several. |
+| `--by <author>` | owner: record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--target <ref>` | what it acts on: msg:, chat:, contact:, person:, task:, …. |
 | `--payload <json>` | what to do, as JSON, such as the reply's text. |
 | `--json` | print JSON. |

@@ -10,6 +10,7 @@ import {
   SCOPES,
 } from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"
+import { authorOf, byOption } from "../author.js"
 import { notesAbout } from "../notes/about.js"
 import { accountOptions, oneOf, positive } from "../options.js"
 import { answering } from "../records/run.js"
@@ -142,9 +143,13 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   const relations = program
     .command("relationships")
     .description("Explicit relations between people, organizations and projects; this never links identities")
-  relations
-    .command("add")
-    .description("State that a person, organization or project belongs to or relates to another")
+  byOption(
+    relations
+      .command("add")
+      .description(
+        "State that a person, organization or project belongs to or relates to another; an agent's waits for you to confirm it",
+      ),
+  )
     .argument("<from>")
     .argument("<to>")
     .option("--json", "print JSON")
@@ -155,17 +160,20 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       (
         from: string,
         to: string,
-        options: { kind: KnowledgeRelation["kind"]; role?: string; evidence?: string; json?: boolean },
-      ) =>
-        owned(options, (store) =>
+        options: { kind: KnowledgeRelation["kind"]; role?: string; evidence?: string; by?: "owner"; json?: boolean },
+      ) => {
+        const author = authorOf(env, options.by)
+        return owned(options, (store) =>
           store.knowledge.relate(null, {
             from,
             to,
             kind: options.kind,
+            ...(author === "owner" ? {} : { confirmed: false, provenance: `agent:${author.bot}` }),
             ...(options.role === undefined ? {} : { role: options.role }),
             ...(options.evidence === undefined ? {} : { evidence: options.evidence }),
           }),
-        ),
+        )
+      },
     )
   relations
     .command("list")

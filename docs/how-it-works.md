@@ -109,9 +109,11 @@ What an app adds through the [MCP server](mcp.md) waits as **proposed** until yo
 or accept the fact. Through MCP, an agent cannot confirm, accept, approve or reject, and every call it
 makes is written to the agent log (`memo agents log`), without the details it sent.
 
-A memory or fact added with the `memo` command counts as yours and is confirmed at once: the command
-cannot tell whether you or your agent typed it. Ask an agent with a terminal to show you the text and
-its source before it adds anything.
+The `memo` command tells an agent's terminal by `AI_AGENT` or `CLAUDECODE`, the variables agents such
+as Claude Code set. There, a fact, memory, relationship or proposed action is recorded as the agent's
+and waits for you, as through MCP. Without them, or with `--by owner`, it is yours and confirmed at
+once. The variables and `--by owner` are labels, not a lock: an agent that sets or passes them can
+still write as you.
 
 ## What can leave your computer
 
