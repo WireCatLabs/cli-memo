@@ -701,7 +701,7 @@ memo projects key-documents add <project> <reference> [options]
 |---|---|
 | `--reason <text>` | why it is key, in a few words. |
 | `--json` | print JSON. |
-| `--by <author>` | owner: record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 
 #### `memo projects key-documents remove`
 

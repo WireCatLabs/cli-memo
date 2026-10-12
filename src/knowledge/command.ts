@@ -153,9 +153,9 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       .argument("<reference>", "note:, document: or msg: reference")
       .requiredOption("--reason <text>", "why it is key, in a few words")
       .option("--json", "print JSON"),
-  ).action((project: string, reference: string, options: { reason: string; by?: "owner"; json?: boolean }) =>
+  ).action((project: string, reference: string, options: { reason: string; asOwner?: boolean; json?: boolean }) =>
     owned(options, async (store) =>
-      markKey(store, await projectOf(store, project), reference, options.reason, authorOf(env, options.by)),
+      markKey(store, await projectOf(store, project), reference, options.reason, authorOf(env, options.asOwner)),
     ),
   )
   keys
