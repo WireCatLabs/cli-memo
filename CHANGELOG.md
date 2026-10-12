@@ -8,6 +8,12 @@ the API.
 
 ### Added
 
+- **An agent skill, as tg has.** `memo skill show` prints it and `memo skill install --for claude|agents|all`
+  writes it where Claude Code, Codex and Gemini CLI look; a global npm install does that too, unless
+  `MEMO_INSTALL_AGENT=none`. It starts with the traps agents fell into: choosing an account, `content:` and
+  answer keys, starting project work with `memo projects context`, `--as-owner`, accepting their own proposals,
+  writing message text to files, old versions and zsh word splitting.
+
 - **Key documents of a project.** `memo projects key-documents add <project> <note:|document:|msg:> --reason
   <text>` marks what to read first about one project; `remove` and `list` go with it. `memo projects context`
   starts with them — title, path, why, who marked it — and keeps a mark whose source is gone as
