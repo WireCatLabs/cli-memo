@@ -82,6 +82,18 @@ Every result names its source with a **reference**, such as `note:12`, `document
 `msg:telegram/1/77/42`. You can pass a reference to other commands: to tag it, write a note about
 it or use it as evidence. [How Memo works](how-it-works.md#references) explains each kind.
 
+Where a search answer keeps its list and references:
+
+| Command | List | Reference of each result |
+|---|---|---|
+| `memo search messages`, `memo search mail` | `items` | `locator`, as in `tg search messages` |
+| `memo search all` | `items` | `ref`, with `kind` |
+| `memo search notes` | `hits` | `ref` |
+
+A plain word matches what a message says. The text of its files is searched only with `content:`:
+compare `memo search messages 'content:invoice'` with `tg search messages 'content:invoice'`, not a
+plain word with `content:`.
+
 ## Choosing an account
 
 When you have several Telegram, MAX or mail accounts, Memo does not choose one for you. Commands

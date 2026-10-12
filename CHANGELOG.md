@@ -4,6 +4,18 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- **A command path given as one argument is refused with the words to type.** `memo "projects add" --help` — what
+  a zsh loop over `"$c"` passes — printed the root help; it now says `"projects add" was given as one argument;
+  run: memo projects add`.
+- **Search help says where file text and references are.** `search messages`, `search mail` and `search all` say
+  the text of files is searched only with `content:`, and each search's `--help` and MCP tool names the list
+  (`items` or `hits`) and the reference (`locator` or `ref`) of its `--json` answer. The usage and
+  troubleshooting guides say the same, and to compare `memo --version` with npm before reporting a bug.
+
 ## 0.23.0 — 12.10.2026
 
 ### Fixed

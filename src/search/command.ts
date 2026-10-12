@@ -370,6 +370,12 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       ),
   )
     .option("--only <resources>", "messages,mail,notes, separated by commas", onlyOf)
+    .addHelpText(
+      "after",
+      `
+The text of a message's or email's files is searched only with content: — memo search all 'content:invoice'.
+--json: the list is items; each result's reference is ref, its kind is kind (tg search uses locator).`,
+    )
     .action(
       async (
         words: string[],
@@ -406,6 +412,17 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     )
     if (kind === "messages") leaf.option("--type <type>", "text, voice or file", messageType)
     else leaf.option("--account <address>", "only this mail account, by its address (default: every mail account)")
+    leaf.addHelpText(
+      "after",
+      kind === "messages"
+        ? `
+A plain word matches what a message says; the text of its files only with content: —
+memo search messages 'content:invoice', as tg search messages 'content:invoice'.
+--json: the list is items; each hit's reference is locator (msg:…), as in tg search messages.`
+        : `
+The text of attachments is searched with content: and their names with filename: — memo search mail 'content:invoice'.
+--json: the list is items; each email's reference is locator (msg:email/…).`,
+    )
     leaf.action(
       async (
         words: string[],
@@ -437,6 +454,7 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
   }
 
   queryOptions(group.command("notes").description("Native notes by words and, with the local model, meaning"))
+    .addHelpText("after", "\n--json: the list is hits, not items; each note's reference is ref (note: or document:).")
     .option("--type <type>", "file or internal", noteType)
     .option("--tag <tag>", "only notes with this tag")
     .option("--filter <query>", "another query every note must match")
