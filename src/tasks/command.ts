@@ -167,13 +167,8 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
             return
           }
           const key = await selectAccount(store, options)
-          print(
-            options.json,
-            await taskPage(store, key, {
-              state: options.state,
-              limit: options.limit,
-            }),
-          )
+          const page = await taskPage(store, key, { state: options.state, limit: options.limit })
+          print(options.json, { ...page, items: page.items.map((task) => ({ ref: `task:${task.id}`, ...task })) })
         } finally {
           await store.close()
         }

@@ -3,6 +3,7 @@ import { approveAsTask } from "@wirecat/cli-messaging/services"
 import { PROPOSAL_STATUSES, type ProposedAction } from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"
 import { oneOf, positive } from "../options.js"
+import { pageOf } from "../page.js"
 import { answering } from "../records/run.js"
 import { type NewProposal, propose } from "./actions.js"
 
@@ -33,12 +34,11 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     .option("--limit <n>", "most actions, up to 500", positive, 100)
     .option("--json", "print JSON")
     .action((options: { status?: ProposedAction["status"]; limit: number; json?: boolean }) =>
-      run(options.json, async (store) => ({
-        items: await store.proposedActions.list({
-          limit: options.limit,
-          ...(options.status === undefined ? {} : { status: options.status }),
-        }),
-      })),
+      run(options.json, (store) =>
+        pageOf(options.limit, (limit) =>
+          store.proposedActions.list({ limit, ...(options.status === undefined ? {} : { status: options.status }) }),
+        ),
+      ),
     )
 
   actions

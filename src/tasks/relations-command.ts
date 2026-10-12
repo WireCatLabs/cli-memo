@@ -52,10 +52,11 @@ export const taskRelationsCommand = (tasks: Command, streams: Streams, env: Node
     .option("--limit <n>", "tasks per page", positive)
     .option("--json", "print JSON")
     .action((options: { project: string; limit?: number; json?: boolean }) =>
-      execute(options, async (store) =>
-        store.tasks.readyTasks(await canonicalProject(store, options.project), {
+      execute(options, async (store) => {
+        const page = await store.tasks.readyTasks(await canonicalProject(store, options.project), {
           ...(options.limit === undefined ? {} : { limit: options.limit }),
-        }),
-      ),
+        })
+        return { ...page, items: page.items.map((task) => ({ ref: `task:${task.id}`, ...task })) }
+      }),
     )
 }

@@ -26,7 +26,9 @@ export const taskRelationTools = {
       project: v.string(),
       limit: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(500))),
     }),
-    run: async (store, { project, ...options }) =>
-      store.tasks.readyTasks(await canonicalProject(store, project), options),
+    run: async (store, { project, ...options }) => {
+      const page = await store.tasks.readyTasks(await canonicalProject(store, project), options)
+      return { ...page, items: page.items.map((task) => ({ ref: `task:${task.id}`, ...task })) }
+    },
   }),
 }
