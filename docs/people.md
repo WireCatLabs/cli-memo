@@ -72,6 +72,29 @@ memo projects context HRB
 organization, the notes about it or linking to it, and its tags. A project's key is also used for its
 tasks, such as `HRB-1` ([tasks](tasks.md#tasks-in-a-project)).
 
+## Key documents of a project
+
+A **key document** is a note, a file or a stored message to read first about a project, with a
+short reason. It belongs to one project: the same file can be key to one and not to another.
+
+```sh
+memo projects key-documents add HRB document:3 --reason 'the plan everyone follows'
+memo projects key-documents add HRB msg:telegram/1/77/42 --reason 'the agreed budget'
+memo projects key-documents list HRB
+memo projects key-documents remove HRB document:3
+```
+
+`projects context` starts with them: title, path and why. When the file or message is gone from
+the store, the mark stays and says `available: false` until you remove it. `memo search all` and
+`memo search notes` with `--project HRB` put the project's key documents first, labelled `key`,
+and leave out nothing else. A mark your agent adds waits unconfirmed and names the agent, as a
+relationship does.
+
+**Start work on a project with `memo projects context <key>`** — you, or your agent.
+
+A global tag such as `key` (`memo tags add key --note document:3`) says nothing about the project.
+Move it to a key document with `memo projects key-documents add`, then `memo tags remove key`.
+
 ## Who belongs where
 
 A **relationship** says that a person belongs to an organization or works on a project:

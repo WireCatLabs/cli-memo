@@ -6,6 +6,14 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **Key documents of a project.** `memo projects key-documents add <project> <note:|document:|msg:> --reason
+  <text>` marks what to read first about one project; `remove` and `list` go with it. `memo projects context`
+  starts with them — title, path, why, who marked it — and keeps a mark whose source is gone as
+  `available: false`. `memo search all` and `search notes` with `--project <project>` put the project's key
+  documents first, labelled `key`, and leave nothing out. An agent's mark waits unconfirmed and names the agent.
+
 ### Changed — may break scripts
 
 - **A write from an agent's terminal is the agent's.** `memo facts add`, `memories add`, `relationships add`

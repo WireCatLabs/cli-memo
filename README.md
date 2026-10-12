@@ -160,7 +160,7 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 | Search | `memo search all` · `search notes` · `search mail` · `search messages` |
 | Hand evidence to an agent | `memo ask` |
 | Know a person | `memo context` |
-| Organizations and projects | `memo organizations add` / `list` / `context` · `projects add` / `list` / `context` · `projects meetings list` / `link` |
+| Organizations and projects | `memo organizations add` / `list` / `context` · `projects add` / `list` / `context` · `projects key-documents add` / `remove` / `list` · `projects meetings list` / `link` |
 | Project and topic aliases | `memo vocabulary list` / `resolve` / `preflight` · `vocabulary aliases add` / `remove` · `vocabulary create` |
 | Relationships | `memo relationships add` / `list` / `remove` / `confirm` / `suggest` |
 | Labels | `memo tags add` · `tags remove` · `tags list` |
@@ -243,7 +243,8 @@ merged automatically. Use `--kind tag`, `--kind topic` or `--kind project` to na
 ```sh
 memo organizations add 'Synthetic Studio' --kind company
 memo projects add 'Synthetic Harbour' --organization organization:ORGANIZATION_ID
-memo projects context PROJECT_ID --json
+memo projects key-documents add PROJECT_ID document:DOCUMENT_ID --reason 'read this first'
+memo projects context PROJECT_ID --json   # start project work here: key documents come first
 ```
 
 More: [people and projects](https://github.com/WireCatLabs/cli-memo/blob/main/docs/people.md) ·

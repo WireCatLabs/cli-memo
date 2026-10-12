@@ -663,7 +663,7 @@ memo projects list [options]
 
 ### `memo projects context`
 
-One project by its id, key or project:<id>: its relationships, the notes about or linking it, and its tags
+One project by its id, key or project:<id>: its key documents first, then its relationships, the notes about or linking it, and its tags. Start work on a project here
 
 ```sh
 memo projects context <project> [options]
@@ -680,6 +680,62 @@ memo projects context <project> [options]
 ## `memo relationships`
 
 Explicit relations between people, organizations and projects; this never links identities
+### `memo projects key-documents`
+
+The notes, files and messages to read first about a project, each with why
+
+#### `memo projects key-documents add`
+
+Mark a note:, document: or msg: reference as a key document of the project
+
+```sh
+memo projects key-documents add <project> <reference> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `project` | required | id, key or project:<id>. |
+| `reference` | required | note:, document: or msg: reference. |
+
+| Option | What it does |
+|---|---|
+| `--reason <text>` | why it is key, in a few words. |
+| `--json` | print JSON. |
+| `--by <author>` | owner: record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+
+#### `memo projects key-documents remove`
+
+Unmark a key document; the note, file or message stays
+
+```sh
+memo projects key-documents remove <project> <reference> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `project` | required | id, key or project:<id>. |
+| `reference` | required |  |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+#### `memo projects key-documents list`
+
+A project's key documents: title, path, why, who marked it and whether it is still there
+
+```sh
+memo projects key-documents list <project> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `project` | required | id, key or project:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
 
 ### `memo relationships add`
 
@@ -1350,6 +1406,7 @@ memo search all <query> [options]
 
 ### `memo search messages`
 
+| `--project <project>` | rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out. |
 Stored messenger messages only
 
 ```sh
@@ -1420,6 +1477,7 @@ memo search notes <query> [options]
 
 ## `memo ask`
 
+| `--project <project>` | rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out. |
 Prepare cited evidence for your agent, or explicitly call a configured model
 
 ```sh
