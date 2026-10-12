@@ -4,6 +4,14 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- **The search guide names `content:` for messages.** A word without it matches what a Telegram or MAX message
+  says, not the text of its files, as in tg; `memo search messages 'content:invoice'` and `memo search all`
+  with `content:` look inside them.
+
 ## 0.23.0 — 12.10.2026
 
 ### Fixed

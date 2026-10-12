@@ -206,3 +206,49 @@ it("shows each email reference first, with its people, labels, subject and an ex
     "timestamp",
   ])
 })
+
+it("finds a message by the text of its file only with content:, as tg does", async () => {
+  const root = mkdtempSync(join(tmpdir(), "memo-attachment-text-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const key = { provider: "telegram", account: "1" }
+  const store = await openStore({ env })
+  await store.saveMessages(
+    key,
+    "7",
+    [
+      {
+        id: "1",
+        chatId: "7",
+        senderId: "9",
+        senderName: null,
+        timestamp: "2026-10-09T00:00:00Z",
+        editedAt: null,
+        text: "see attached",
+        outgoing: false,
+        attachments: [{ kind: "file", name: "a.pdf" }],
+        replyTo: null,
+        forwardedFrom: null,
+        reactions: null,
+      },
+    ],
+    { via: "test" },
+  )
+  const [file] = await store.fileAttachments(key, { limit: 10 })
+  await store.keepAttachmentText(file?.pk as number, {
+    text: "Synthetic invoice 42",
+    origin: "agent",
+    extractor: "agent",
+  })
+  await store.close()
+  const run = async (...args: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env }).parseAsync([...args, "--json"], { from: "user" })
+    return JSON.parse(streams.stdout.join("")).items.map(
+      (item: { locator?: string; ref?: string }) => item.locator ?? item.ref,
+    )
+  }
+  expect(await run("search", "messages", "content:invoice")).toEqual(["msg:telegram/1/7/1"])
+  expect(await run("search", "messages", "invoice")).toEqual([])
+  expect(await run("search", "all", "invoice")).toEqual([])
+  expect(await run("search", "all", "content:invoice")).toEqual(["msg:telegram/1/7/1"])
+})

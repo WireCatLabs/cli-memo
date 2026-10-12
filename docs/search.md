@@ -44,6 +44,11 @@ A search finds results that contain **every** word you type, including other for
 | On a day, or from a day on | `date:2026-10-08`, `date:[2026-09-01 TO *]` |
 | From or to someone (mail and messages) | `from:kai`, `to:kai@example.com` |
 | In the subject or a mail folder (mail) | `subject:invoice`, `mailbox:important` |
+| Inside an attached file (messages and mail) | `content:invoice`, `filename:*.pdf` |
+
+In Telegram and MAX messages, a word without `content:` matches what the message itself says, not
+the text of its files: `memo search messages 'content:invoice'` looks inside them. A file's text is
+there once tg or max has read it (`tg attachments extract`) or an agent has written it.
 
 Put the search in single quotes so the terminal passes it to Memo as it is:
 `memo search notes '"budget review" NOT cancelled'`. `--exact` matches words only as written.
