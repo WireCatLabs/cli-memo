@@ -4,12 +4,13 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
-## Unreleased
+## 0.22.0 — 12.10.2026
 
 ### Changed
 
-- **Built on `@wirecat/cli-base` 0.21.0, the framework's new name, and the shared library 0.253.0.** Nothing
-  changes in memo's commands; `memo search` answers carry `nextOffset` where the shared search gives it.
+- **Built on `@wirecat/cli-base` 0.21.0, the framework's new name, and the shared library 0.254.0.** Nothing
+  changes in memo's commands; `memo search` answers carry `nextOffset` where the shared search gives it, and
+  `memo context person:<id>` takes the `person:` references search answers give.
 
 ### Added
 
