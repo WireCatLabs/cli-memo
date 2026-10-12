@@ -1,7 +1,8 @@
-import { createRenderer, type Streams } from "@wirecat/cli-base"
-import { type MessageStore, openStore } from "@wirecat/cli-messaging/store"
+import type { Streams } from "@wirecat/cli-base"
+import type { MessageStore } from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"
 import { positive } from "../options.js"
+import { answering } from "../records/run.js"
 import { canonicalProject } from "../vocabulary/project.js"
 
 type Options = {
@@ -21,21 +22,12 @@ export const meetingProjectsCommand = (projects: Command, streams: Streams, env:
       .requiredOption("--provider <provider>", "meeting provider")
       .requiredOption("--account <account>", "exact stored meeting account")
       .option("--json", "print JSON")
-  const execute = async (
+  const run = answering(streams, env)
+  const execute = (
     project: string,
     options: Options,
     work: (store: MessageStore, projectId: string) => Promise<unknown>,
-  ) => {
-    const store = await openStore({ env })
-    try {
-      const reference = await canonicalProject(store, project)
-      const answer = await work(store, reference.slice(8))
-      if (options.json) createRenderer({ format: "json", color: false, streams }).result(answer)
-      else streams.data(`${JSON.stringify(answer, null, 2)}\n`)
-    } finally {
-      await store.close()
-    }
-  }
+  ) => run(options.json, async (store) => work(store, (await canonicalProject(store, project)).slice(8)))
   options(
     group
       .command("list")

@@ -1,9 +1,10 @@
 import { statSync } from "node:fs"
 import { basename, resolve } from "node:path"
-import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
+import { CliError, type Streams } from "@wirecat/cli-base"
 import { type MessageStore, openStore } from "@wirecat/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { loadConfig, updateConfig } from "../config.js"
+import { printing } from "../records/run.js"
 import { DIALECTS, type DialectName } from "./dialects/index.js"
 import { attachFolder, bindFolder, type NoteFolder, noteFolders } from "./folders.js"
 
@@ -26,10 +27,7 @@ const line = (folder: NoteFolder) =>
   `${folder.id ?? "(no id — memo folders add <path>)"}  ${folder.format}  ${folder.path}`
 
 export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
-  const print = (json: boolean | undefined, value: unknown, text: string) => {
-    if (json) createRenderer({ format: "json", color: false, streams }).result(value)
-    else streams.data(`${text}\n`)
-  }
+  const print = printing(streams)
   const withStore = async <T>(work: (store: MessageStore) => Promise<T>): Promise<T> => {
     const store = await openStore({ env })
     try {

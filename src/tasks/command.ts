@@ -1,4 +1,4 @@
-import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
+import { CliError, type Streams } from "@wirecat/cli-base"
 import { parseLocator } from "@wirecat/cli-messaging"
 import { closedStateOf, storeOnlyDeps, taskStateOf, tasksService } from "@wirecat/cli-messaging/services"
 import {
@@ -16,6 +16,7 @@ import { type Command, InvalidArgumentError } from "commander"
 import { APP } from "../app.js"
 import { isNoteReference } from "../notes/about.js"
 import { accountOptions, oneOf, positive } from "../options.js"
+import { printing } from "../records/run.js"
 import { heldMessage } from "../store/held.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 import { canonicalProject } from "../vocabulary/project.js"
@@ -58,10 +59,7 @@ const assignAll = async (store: MessageStore, id: string, people: string[] | und
 export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const group = program.command("tasks").description("Open work linked to stored messages, documents and emails")
   taskRelationsCommand(group, streams, env)
-  const print = (json: boolean | undefined, answer: unknown) =>
-    json
-      ? createRenderer({ format: "json", color: false, streams }).result(answer)
-      : streams.data(`${JSON.stringify(answer, null, 2)}\n`)
+  const print = printing(streams)
   fieldOptions(accountOptions(group.command("add")))
     .description("Add a task: from a message, note or document, or with --project and --title a task of your own")
     .argument("[source]", "msg: source locator, note:<id> or document:<id>; leave out for a task in a project")

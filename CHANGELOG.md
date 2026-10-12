@@ -8,6 +8,8 @@ the API.
 
 ### Fixed
 
+- **An MCP answer over 4 MiB is refused with `invalid_response`**, as cli-messaging's tools refuse one, instead of
+  reaching the agent whole.
 - **Memory, fact, action and agent-log lists say whether there are more** (`hasMore`, CLI and MCP), as the other
   lists do; asked for the whole 500, a full answer says it may have more. `tasks list` (of an account), `tasks
   ready` and `tasks_ready` give each task its `task:` reference.

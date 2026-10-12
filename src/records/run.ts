@@ -1,16 +1,23 @@
 import { createRenderer, type Streams } from "@wirecat/cli-base"
 import { type MessageStore, openStore } from "@wirecat/cli-messaging/store"
 
+/** Prints an answer as JSON, or for a person as `text`, or as indented JSON where a command has no text view. */
+export const printing =
+  (streams: Streams) =>
+  (json: boolean | undefined, answer: unknown, text?: string): void => {
+    if (json) createRenderer({ format: "json", color: false, streams }).result(answer)
+    else streams.data(`${text ?? JSON.stringify(answer, null, 2)}\n`)
+  }
+
 /** Opens the store for one command, prints its answer as JSON or as indented text, and closes the store. */
-export const answering =
-  (streams: Streams, env: NodeJS.ProcessEnv) =>
-  async (json: boolean | undefined, work: (store: MessageStore) => Promise<unknown>): Promise<void> => {
+export const answering = (streams: Streams, env: NodeJS.ProcessEnv) => {
+  const print = printing(streams)
+  return async (json: boolean | undefined, work: (store: MessageStore) => Promise<unknown>): Promise<void> => {
     const store = await openStore({ env })
     try {
-      const answer = await work(store)
-      if (json) createRenderer({ format: "json", color: false, streams }).result(answer)
-      else streams.data(`${JSON.stringify(answer, null, 2)}\n`)
+      print(json, await work(store))
     } finally {
       await store.close()
     }
   }
+}

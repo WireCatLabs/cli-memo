@@ -1,6 +1,6 @@
 import { type CallToolResult, McpServer } from "@modelcontextprotocol/server"
 import { toStandardJsonSchema } from "@valibot/to-json-schema"
-import { isCliError } from "@wirecat/cli-base"
+import { CliError, isCliError } from "@wirecat/cli-base"
 import {
   FACT_STATUSES,
   FACT_TYPES,
@@ -170,10 +170,19 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
   }),
 }
 
-const answer = (value: object): CallToolResult => ({
-  content: [{ type: "text", text: JSON.stringify(value) }],
-  structuredContent: value as Record<string, unknown>,
-})
+/** What an MCP answer may hold, as cli-messaging's tools allow: a bigger one is refused, never cut. */
+const MAX_ANSWER_BYTES = 4 * 1024 * 1024
+
+const answer = (value: object): CallToolResult => {
+  const text = JSON.stringify(value)
+  if (Buffer.byteLength(text) > MAX_ANSWER_BYTES)
+    throw new CliError("invalid_response", "the answer exceeds 4 MiB — lower limit or ask for less", {
+      reason: "output_limit",
+      maxBytes: MAX_ANSWER_BYTES,
+      retryable: false,
+    })
+  return { content: [{ type: "text", text }], structuredContent: value as Record<string, unknown> }
+}
 
 const failure = (error: unknown): CallToolResult => {
   const body = isCliError(error)

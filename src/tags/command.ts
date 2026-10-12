@@ -1,8 +1,9 @@
-import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
+import { CliError, type Streams } from "@wirecat/cli-base"
 import { formatReference, normalizeTag } from "@wirecat/cli-messaging"
 import { type MessageStore, openStore, type StoredTag } from "@wirecat/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { positive } from "../options.js"
+import { printing } from "../records/run.js"
 import { heldMessage } from "../store/held.js"
 import { selectTarget, type TargetInput } from "../store/scope.js"
 import { type SourceScope, type SourceTarget, type SourceTargetInput, sourceTarget } from "../store/source-target.js"
@@ -85,10 +86,7 @@ const listTags = async (store: MessageStore, options: ListOptions) => {
 
 export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const tags = program.command("tags").description("Your labels on stored sources and folders or threads")
-  const print = (json: boolean | undefined, value: unknown, text: string) => {
-    if (json) createRenderer({ format: "json", color: false, streams }).result(value)
-    else streams.data(`${text}\n`)
-  }
+  const print = printing(streams)
   const mutate = async (
     operation: "add" | "remove",
     given: string[],

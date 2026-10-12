@@ -1,11 +1,12 @@
 import { readFileSync } from "node:fs"
-import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
+import { CliError, type Streams } from "@wirecat/cli-base"
 import { type MessageStore, type Note, openStore } from "@wirecat/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { loadConfig } from "../config.js"
 import { positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { subjectOf } from "../people/subject.js"
+import { printing } from "../records/run.js"
 import { SAVE_HELP } from "../save-help.js"
 import { meetingReference } from "../store/scope.js"
 import { aboutText, isNoteReference, notesAbout } from "./about.js"
@@ -53,10 +54,7 @@ const noteOf = async (store: MessageStore, env: NodeJS.ProcessEnv, reference: st
 }
 
 export const notesCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
-  const print = (json: boolean | undefined, value: unknown, text: string) => {
-    if (json) createRenderer({ format: "json", color: false, streams }).result(value)
-    else streams.data(`${text}\n`)
-  }
+  const print = printing(streams)
   const withStore = async <T>(work: (store: MessageStore) => Promise<T>): Promise<T> => {
     const store = await openStore({ env })
     try {
