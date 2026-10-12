@@ -1,5 +1,5 @@
 import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
-import { normalizeTag } from "@wirecat/cli-messaging"
+import { formatReference, normalizeTag } from "@wirecat/cli-messaging"
 import { type MessageStore, openStore, type StoredTag } from "@wirecat/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { positive } from "../options.js"
@@ -23,8 +23,8 @@ const typeOf = (value: string): SourceTagType => {
   return value as SourceTagType
 }
 
-const reference = (key: SourceScope, chat: string) =>
-  `${key.provider}/${JSON.stringify(key.account)}/${JSON.stringify(chat)}`
+const reference = ({ provider, account }: SourceScope, chat: string) =>
+  provider && account ? formatReference({ type: "chat", provider, account, chat }) : chat
 
 const targetOptions = (command: Command) =>
   command
@@ -211,7 +211,11 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         const knowledge = owned.items
         answer.hasMore ||= owned.hasMore
         const lines = answer.items.map(
-          (row) => `${row.tag}  ${row.type}  ${row.locator ?? reference(row, row.chatId ?? row.personId ?? "")}`,
+          (row) =>
+            `${row.tag}  ${row.type}  ${
+              row.locator ??
+              (row.type === "contact" ? `${row.provider}:${row.personId ?? ""}` : reference(row, row.chatId ?? ""))
+            }`,
         )
         if (answer.hasMore) lines.push("More labels match; raise --limit to see them.")
         answer.hasMore ||= knowledge.length > options.limit
@@ -224,7 +228,9 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
               .slice(0, options.limit)
               .map(
                 (item) =>
-                  `${item.labels.map(({ tag, origin }) => (origin === "file" ? `${tag} (file)` : tag)).join(", ")}  ${item.target.type}  ${JSON.stringify(item.target)}`,
+                  `${item.labels.map(({ tag, origin }) => (origin === "file" ? `${tag} (file)` : tag)).join(", ")}  ${item.target.type}  ${
+                    item.target.type === "message" ? item.target.locator : `${item.target.type}:${item.target.id}`
+                  }`,
               ),
           ].join("\n") || "No source tags.",
         )

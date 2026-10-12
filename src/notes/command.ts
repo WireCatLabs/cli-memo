@@ -136,7 +136,18 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
               : (loadFolderState(env, note.folderId)?.documents[note.path as string] ?? null),
         }
       })
-      print(options.json, answer, answer.text)
+      print(
+        options.json,
+        answer,
+        [
+          `${answer.ref}  ${answer.path ?? answer.title ?? ""}`.trimEnd(),
+          `  updated ${new Date(answer.updatedAt).toISOString().slice(0, 16).replace("T", " ")}${answer.tags.length ? `  tags: ${answer.tags.join(", ")}` : ""}`,
+          "",
+          answer.text,
+          ...(answer.links.length ? ["", `links: ${answer.links.map(({ to }) => to).join(", ")}`] : []),
+          ...(answer.backlinks.length ? [`linked from: ${answer.backlinks.map(({ from }) => from).join(", ")}`] : []),
+        ].join("\n"),
+      )
     })
 
   notes
@@ -170,7 +181,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
           options.json,
           page,
           page.items
-            .map((note) => `${note.id}  ${note.source}  ${note.path ?? note.title ?? note.text.split("\n")[0]}`)
+            .map((note) => `${note.ref}  ${note.source}  ${note.path ?? note.title ?? note.text.split("\n")[0]}`)
             .join("\n") || "No notes.",
         )
       },

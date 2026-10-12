@@ -100,7 +100,8 @@ export const notesAbout = async (store: MessageStore, subject: Subject, limit = 
 }
 
 export const aboutText = (answer: NotesAbout): string => {
-  const line = (note: NoteRef) => `  ${note.path ?? note.ref}${note.anchor ? ` ${note.anchor}` : ""}`
+  const line = (note: NoteRef) =>
+    `  ${note.ref}${(note.path ?? note.title) ? `  ${note.path ?? note.title}` : ""}${note.anchor ? ` ${note.anchor}` : ""}`
   const section = (title: string, notes: NoteRef[]) => (notes.length ? [title, ...notes.map(line), ""] : [])
   const who = answer.name ?? answer.subject
   return [

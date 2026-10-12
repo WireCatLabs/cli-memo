@@ -136,11 +136,21 @@ describe("memo context", () => {
     expect(answer.notRead.map(({ source }: { source: string }) => source)).toEqual(["notes", "mail"])
   })
 
-  it("prints a readable answer", async () => {
+  it("prints a readable answer, naming the person, each message and each note by a reference memo takes", async () => {
+    const added = JSON.parse(await run("notes", "add", "Prefers mornings", "--about", "telegram:101", "--json"))
     const text = await run("context", "telegram:101")
 
     expect(text).toContain("Last from them")
     expect(text).toContain("Are we still on for Friday?")
+    expect(text.split("\n")[0]).toMatch(/ {2}person:\d+$/)
+    expect(text).toMatch(/Are we still on for Friday\? {2}msg:telegram\/1\/101\/1/)
+    expect(text).toContain(`  ${added.note.ref}  Prefers mornings`)
+
+    const listed = await run("notes", "list", "--source", "internal")
+    expect(listed).toContain(`${added.note.ref}  internal`)
+    const shown = (await run("notes", "show", added.note.ref)).split("\n")
+    expect(shown[0]).toBe(added.note.ref)
+    expect(shown).toContain("Prefers mornings")
   })
 
   it("asks for the messenger, and names a messenger the store does not hold", async () => {

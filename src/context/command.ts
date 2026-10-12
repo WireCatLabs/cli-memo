@@ -13,12 +13,16 @@ const one = (message: ContextMessage | null): string =>
   message === null
     ? "—"
     : `${message.timestamp.slice(0, 16).replace("T", " ")}  ${message.provider}  ${message.chatTitle ?? message.chatId}: ` +
-      message.text.replace(/\s+/g, " ").slice(0, MAX_TEXT)
+      `${message.text.replace(/\s+/g, " ").slice(0, MAX_TEXT)}  ${message.locator}`
+
+/** A note by the reference `notes show` takes, then where it is. */
+const noteLine = (note: { ref: string; path: string | null; title?: string | null }) =>
+  `  ${note.ref}${(note.path ?? note.title) ? `  ${note.path ?? note.title}` : ""}`
 
 export const contextText = ({ messages, notes, notRead, tasks, yourNotes }: MemoContext): string => {
   const { person, last, recent, shared } = messages
   return [
-    `${person.name ?? person.uid}`,
+    `${person.name ?? person.uid}  person:${person.uid}`,
     ...person.identities.map(({ provider, id, name }) => `  ${provider}:${id}  ${name ?? ""}`),
     "",
     `Last from them   ${one(last.fromThemAnywhere ?? last.fromThem)}`,
@@ -30,13 +34,11 @@ export const contextText = ({ messages, notes, notRead, tasks, yourNotes }: Memo
     "",
     ...(notes.about.length === 0
       ? ["Note about them  none — memo note <identity> <path>"]
-      : ["Notes about them", ...notes.about.map((note) => `  ${note.path ?? note.ref}`)]),
-    ...(notes.linking.length === 0
-      ? []
-      : ["Notes linking them", ...notes.linking.map((note) => `  ${note.path ?? note.ref}`)]),
+      : ["Notes about them", ...notes.about.map(noteLine)]),
+    ...(notes.linking.length === 0 ? [] : ["Notes linking them", ...notes.linking.map(noteLine)]),
     ...(notes.throughNotes.length === 0
       ? []
-      : ["Notes linking a note about them", ...notes.throughNotes.map((note) => `  ${note.path ?? note.ref}`)]),
+      : ["Notes linking a note about them", ...notes.throughNotes.map(noteLine)]),
     ...(notes.hasMore ? ["  more — raise --limit"] : []),
     ...(messages.complete ? [] : ["", `Not read in full: ${messages.notRead.length} chats — store fetch <chat>`]),
     ...notRead.map(({ source, reason }) => `Not read: ${source} — ${reason}`),
@@ -46,11 +48,17 @@ export const contextText = ({ messages, notes, notRead, tasks, yourNotes }: Memo
           "Open tasks",
           ...tasks.items.map(
             (task) =>
-              `  ${task.id}  ${task.kind}  ${task.source}  ${task.note?.text ?? task.message?.text ?? "source unavailable"}`,
+              `  task:${task.id}  ${task.kind}  ${task.source}  ${task.note?.text ?? task.message?.text ?? "source unavailable"}`,
           ),
         ]
       : []),
-    ...(yourNotes.length ? ["", "Your notes", ...yourNotes.map((note) => `  ${note.id}  ${note.text}`)] : []),
+    ...(yourNotes.length
+      ? [
+          "",
+          "Your notes",
+          ...yourNotes.map((note) => `  ${note.ref}  ${note.text.replace(/\s+/g, " ").slice(0, MAX_TEXT)}`),
+        ]
+      : []),
   ].join("\n")
 }
 
