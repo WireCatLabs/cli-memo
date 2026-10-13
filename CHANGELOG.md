@@ -8,7 +8,7 @@ the API.
 
 ### Changed
 
-- `memo import` is now `memo sync` (owner, 2026-10-12; WireCat glossary in cli-messaging). The old name still runs for three releases, hidden from help and `commands`, and prints one line on stderr that names `memo sync`. A timer installed by `memo auto on` keeps working: its first run rewrites the unit to `memo sync`. `notes import` and `mail <account> import` keep their names for now.
+- `memo import` is now `memo sync` (owner, 2026-10-12; WireCat glossary in cli-messaging). `memo import` stops working. `memo auto on` now writes `memo sync` into the unit; a timer installed before runs `memo import` and fails until `memo auto on` is run again. `notes import` and `mail <account> import` keep their names for now.
 
 ## 0.23.0 — 12.10.2026
 

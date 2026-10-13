@@ -52,10 +52,6 @@ const text = (run: ImportRun): string =>
 
 export const syncCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   syncLeaf(program, "sync", streams, env)
-  // The old name, kept for a few releases: installed timers and saved scripts still run `memo import` (NEED-985).
-  syncLeaf(program, "import", streams, env, { hidden: true }).hook("preAction", () => {
-    streams.diagnostic("memo import is now memo sync — `memo sync`; the old name will stop working\n")
-  })
 }
 
 const syncLeaf = (

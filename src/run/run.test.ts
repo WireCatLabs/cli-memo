@@ -107,10 +107,7 @@ describe("memo sync", () => {
     expect(await run("sync")).toMatch(/1 notes, 0 changed/)
   })
 
-  it("still runs as memo import, hidden from commands, and names memo sync on stderr", async () => {
-    const streams = captureStreams()
-    await createProgram({ streams, env }).exitOverride().parseAsync(["import"], { from: "user" })
-    expect(streams.stderr.join("")).toContain("memo import is now memo sync")
+  it("lists memo sync and no longer memo import", async () => {
     const commands = await run("commands", "--json")
     expect(commands).toContain('"path":["sync"]')
     expect(commands).not.toContain('"path":["import"]')
