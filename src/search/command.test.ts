@@ -250,3 +250,54 @@ it("narrows a search to the text of files with content:, in search messages and 
   expect(await run("search", "messages", "content:invoice")).toEqual(["msg:telegram/1/7/1"])
   expect(await run("search", "all", "content:invoice")).toEqual(["msg:telegram/1/7/1"])
 })
+
+it("search all runs as no stored account and names every account it read", async () => {
+  const root = mkdtempSync(join(tmpdir(), "memo-all-accounts-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const store = await openStore({ env })
+  const message = {
+    id: "1",
+    chatId: "7",
+    senderId: "9",
+    senderName: null,
+    timestamp: "2026-10-09T00:00:00Z",
+    editedAt: null,
+    text: "Beaconword synthetic",
+    outgoing: false,
+    attachments: [],
+    replyTo: null,
+    forwardedFrom: null,
+    reactions: null,
+  }
+  for (const key of [
+    { provider: "email", account: "a@example.com" },
+    { provider: "max", account: "2" },
+    { provider: "telegram", account: "1" },
+  ])
+    await store.saveMessages(key, "7", [message], { via: "test" })
+  const folder = await store.notes.addFolder({ name: "Synthetic folder" })
+  await store.close()
+  const streams = captureStreams()
+  await createProgram({ streams, env }).parseAsync(["search", "all", "Beaconword", "--json"], { from: "user" })
+  const answer = JSON.parse(streams.stdout.join(""))
+  expect(answer.items.map((item: { ref: string }) => item.ref).sort()).toEqual([
+    "msg:email/a%40example.com/7/1",
+    "msg:max/2/7/1",
+    "msg:telegram/1/7/1",
+  ])
+  expect(answer.accounts).toEqual(
+    expect.arrayContaining([
+      { resource: "messages", provider: "max", account: "2" },
+      { resource: "messages", provider: "telegram", account: "1" },
+      { resource: "mail", provider: "email", account: "a@example.com" },
+      { resource: "notes", provider: "notes", account: "internal" },
+      { resource: "notes", provider: "notes", account: folder.id },
+    ]),
+  )
+  expect(answer.accounts).not.toContainEqual(expect.objectContaining({ resource: "messages", provider: "email" }))
+
+  const text = captureStreams()
+  await createProgram({ streams: text, env }).parseAsync(["search", "all", "Beaconword"], { from: "user" })
+  expect(text.stderr.join("")).toContain("searched: ")
+  expect(text.stderr.join("")).toContain("telegram:1")
+})
