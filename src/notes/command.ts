@@ -128,7 +128,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
           page.items
             .map(
               (note) =>
-                `${note.ref}  ${note.source}${note.via ? `  ${note.via}` : ""}  ${note.path ?? note.title ?? note.text.split("\n")[0]}`,
+                `${note.ref}  ${note.source}${note.via ? `  ${note.via}` : ""}  ${note.path ?? note.title ?? note.text.split("\n")[0]}${note.anchors?.length ? ` ${note.anchors.join(" ")}` : ""}${note.linkText ? `  as "${note.linkText}"` : ""}`,
             )
             .join("\n") || "No notes.",
         )

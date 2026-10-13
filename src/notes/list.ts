@@ -11,7 +11,8 @@ export interface NotesFilter {
   limit: number
 }
 
-export type ListedNote = Note & { via?: Via }
+/** `anchors`: the headings or blocks its links point at; `linkText`: the name a `name` link was written with. */
+export type ListedNote = Note & { via?: Via; anchors?: string[]; linkText?: string }
 
 const PRIORITY: Via[] = ["about", "link", "through", "name"]
 
@@ -26,9 +27,13 @@ export const listNotes = async (
   const { about, offset, limit, ...rest } = filter
   if (about === undefined) return store.notes.notes({ offset, limit, ...rest })
   const byRef = new Map<string, ListedNote>()
-  for (const { note, via } of await notesReaching(store, about)) {
+  for (const { note, via, anchor, text } of await notesReaching(store, about)) {
     const known = byRef.get(note.ref)
-    if (!known || PRIORITY.indexOf(via) < PRIORITY.indexOf(known.via as Via)) byRef.set(note.ref, { ...note, via })
+    const row =
+      !known || PRIORITY.indexOf(via) < PRIORITY.indexOf(known.via as Via) ? { ...known, ...note, via } : known
+    if (anchor !== null && !row.anchors?.includes(anchor)) row.anchors = [...(row.anchors ?? []), anchor]
+    if (via === "name" && text !== null) row.linkText = text
+    byRef.set(note.ref, row)
   }
   const all = [...byRef.values()]
     .filter((note) => holds(note, filter))
