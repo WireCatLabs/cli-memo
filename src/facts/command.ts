@@ -1,6 +1,7 @@
 import type { Streams } from "@wirecat/cli-base"
 import { FACT_STATUSES, FACT_TYPES, type Fact, MEMORY_SCOPES } from "@wirecat/cli-messaging/store"
 import type { Command } from "commander"
+import { authorOf, byOption } from "../author.js"
 import { oneOf, positive } from "../options.js"
 import { pageOf } from "../page.js"
 import { answering } from "../records/run.js"
@@ -22,6 +23,7 @@ interface AddOptions {
   occurred?: string
   scope?: (typeof MEMORY_SCOPES)[number]
   supersedes?: string
+  asOwner?: boolean
   json?: boolean
 }
 
@@ -29,11 +31,15 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   const run = answering(streams, env)
   const facts = program
     .command("facts")
-    .description("What happened — said, asked, decided, promised — with its evidence: agents propose, you accept")
+    .description(
+      "What happened — said, asked, decided, promised — with its evidence: an agent's waits for you to accept it",
+    )
 
-  facts
-    .command("add")
-    .description("Record a fact of your own; it is accepted at once")
+  byOption(
+    facts
+      .command("add")
+      .description("Record a fact: yours is accepted at once, an agent's waits as proposed until you accept it"),
+  )
     .argument("<statement...>", "what happened, in one sentence")
     .requiredOption("--type <type>", FACT_TYPES.join(", "), oneOf(FACT_TYPES))
     .option("--evidence <ref...>", "what shows it: msg:, note:, meeting:, person: or another reference")
@@ -48,7 +54,7 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         store.facts.add({
           type: options.type,
           statement: words.join(" "),
-          by: "owner",
+          by: authorOf(env, options.asOwner),
           ...(options.evidence === undefined ? {} : { evidence: options.evidence }),
           ...(options.project === undefined ? {} : { project: options.project }),
           ...(options.subject === undefined ? {} : { subject: options.subject }),

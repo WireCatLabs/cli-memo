@@ -2,6 +2,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
+import { openStore } from "@wirecat/cli-messaging/store"
 import { beforeEach, describe, expect, it } from "vitest"
 import { configPath, loadConfig } from "../config.js"
 import { createProgram } from "../program.js"
@@ -71,6 +72,19 @@ describe("memo folders", () => {
 
   it("refuses to attach an id the store does not have", async () => {
     await expect(run("folders", "attach", "fld_unknown", join(root, "plain"))).rejects.toThrow(/has no folder/)
+  })
+
+  it("lists drive's Google Drive folder as drive's and refuses to attach it", async () => {
+    const store = await openStore({ env })
+    const drive = await store.notes.addFolder({ name: "google-drive:someone@example.com", format: "markdown" })
+    await store.close()
+
+    expect(JSON.parse(await run("folders", "list", "--json")).elsewhere).toEqual([
+      { id: drive.id, name: "google-drive:someone@example.com", format: "markdown", keptBy: "drive" },
+    ])
+    expect(await run("folders", "list")).not.toContain("memo folders attach")
+    await expect(run("folders", "attach", drive.id, join(root, "plain"))).rejects.toThrow(/drive keeps it/)
+    expect(noteFolders(loadConfig(env).notes)).toEqual([])
   })
 
   it("refuses a path that is not a folder", async () => {

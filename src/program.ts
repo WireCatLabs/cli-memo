@@ -1,8 +1,10 @@
-import { CliError, processStreams, type Streams } from "@wirecat/cli-base"
+import { CliError, createRenderer, processStreams, type Streams } from "@wirecat/cli-base"
+import { skillCommand } from "@wirecat/cli-base/skill"
 import { Command } from "commander"
 import { actionsCommand } from "./actions/command.js"
 import { agentsCommand } from "./agents/command.js"
 import { askCommand } from "./answers/command.js"
+import { APP } from "./app.js"
 import { contextCommand } from "./context/command.js"
 import { commandsCommand } from "./discovery/command.js"
 import { factsCommand } from "./facts/command.js"
@@ -51,6 +53,13 @@ export const createProgram = ({
   importCommand(program, streams, env)
   autoCommand(program, streams, env)
   commandsCommand(program, streams)
+  program.addCommand(
+    skillCommand(APP, new URL("../skills/cli-memo/SKILL.md", import.meta.url), () => ({
+      renderer: createRenderer({ format: "pretty", color: false, streams }),
+      streams,
+      env,
+    })),
+  )
 
   return program
 }
