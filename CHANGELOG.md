@@ -20,6 +20,10 @@ the API.
   `available: false`. `memo search all` and `search notes` with `--project <project>` put the project's key
   documents first, labelled `key`, and leave nothing out. An agent's mark waits unconfirmed and names the agent.
 
+- **Every command shows one to three examples** at the end of its `--help` and in `memo commands --json`
+  (`examples`). A test runs each through memo's own parser, so an example never names a command, option or value
+  memo does not take.
+
 ### Changed — may break scripts
 
 - **`memo commands --json` prints cli-base's commands document**, the shape tg and max print: `cli`, `version`,
