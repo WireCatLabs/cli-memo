@@ -129,7 +129,7 @@ it("creates an owner-reviewed distinct label and rejects a stale creation receip
   expect(preview.disposition).toBe("review")
   await expect(
     run("vocabulary", "create", "onboardings", "--expected", preview.creationFingerprint),
-  ).rejects.toMatchObject({ details: { reason: "stale_tag_review" } })
+  ).rejects.toMatchObject({ details: { reason: "tag-review.stale" } })
   expect(await run("vocabulary", "create", "on-boarding", "--expected", preview.creationFingerprint)).toMatchObject({
     name: "on-boarding",
     kind: "tag",
@@ -139,7 +139,7 @@ it("creates an owner-reviewed distinct label and rejects a stale creation receip
   await run("vocabulary", "create", "garden", "--expected", garden.creationFingerprint)
   await expect(
     run("vocabulary", "create", "delivery", "--kind", "topic", "--expected", old.creationFingerprint),
-  ).rejects.toMatchObject({ details: { reason: "stale_tag_review" } })
+  ).rejects.toMatchObject({ details: { reason: "tag-review.stale" } })
   const current = await run("vocabulary", "check", "delivery", "--kind", "topic")
   expect(
     await run("vocabulary", "create", "delivery", "--kind", "topic", "--expected", current.creationFingerprint),

@@ -177,7 +177,7 @@ const answer = (value: object): CallToolResult => {
   const text = JSON.stringify(value)
   if (Buffer.byteLength(text) > MAX_ANSWER_BYTES)
     throw new CliError("invalid_response", "the answer exceeds 4 MiB — lower limit or ask for less", {
-      reason: "output_limit",
+      reason: "output.too-large",
       maxBytes: MAX_ANSWER_BYTES,
       retryable: false,
     })
@@ -187,7 +187,7 @@ const answer = (value: object): CallToolResult => {
 const failure = (error: unknown): CallToolResult => {
   const body = isCliError(error)
     ? { code: error.code, message: error.message }
-    : { code: "generic_failure", message: error instanceof Error ? error.message : String(error) }
+    : { code: "internal_error", message: error instanceof Error ? error.message : String(error) }
   return {
     content: [{ type: "text", text: JSON.stringify({ error: body }) }],
     structuredContent: { error: body },
