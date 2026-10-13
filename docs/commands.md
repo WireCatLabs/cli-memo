@@ -1502,12 +1502,12 @@ memo ask <question> [options]
 | `--allow-remote` | explicitly consent to sending this evidence to the configured model. |
 | `--json` |  |
 
-## `memo import`
+## `memo sync`
 
 Bring notes and mail up to date in the shared store — only what changed; the timer runs this
 
 ```sh
-memo import [options]
+memo sync [options]
 ```
 
 | Option | What it does |
@@ -1519,7 +1519,7 @@ memo import [options]
 
 ## `memo auto`
 
-Run memo import on a timer (systemd user timer); on/off and the interval live in the config
+Run memo sync on a timer (systemd user timer); on/off and the interval live in the config
 
 ### `memo auto on`
 

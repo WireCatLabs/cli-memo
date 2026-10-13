@@ -65,7 +65,7 @@ That is all notes need. Then add more context:
   [max-cli](https://github.com/WireCatLabs/max-cli); memo reads the same local store.
 - **Search by meaning:** `tg models text download e5-small` downloads the local model once.
 - **Mail:** set up [Himalaya](https://github.com/pimalaya/himalaya), then `memo mail <account> import`.
-- **Stay current:** `memo auto on` runs `memo import` every five minutes (Linux, systemd).
+- **Stay current:** `memo auto on` runs `memo sync` every five minutes (Linux, systemd).
 - **Your agent:** the install puts memo's skill where Claude Code, Codex and Gemini CLI read it;
   `memo skill show` prints it, `memo skill install --for all` installs it again.
 
@@ -156,7 +156,7 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 | Task | Commands |
 | --- | --- |
 | Connect notes folders | `memo folders add` · `folders attach` · `folders list` |
-| Import what changed | `memo import` · `notes import` · `mail <account> import` · `auto on` / `off` / `status` |
+| Sync what changed | `memo sync` · `notes import` · `mail <account> import` · `auto on` / `off` / `status` |
 | Read notes | `memo notes list` · `notes show` · `notes about` · `memo note` (the note about a person) |
 | Write your own notes | `memo notes add` · `notes edit` · `notes remove` · `notes export` |
 | Search | `memo search all` · `search notes` · `search mail` · `search messages` |
@@ -259,7 +259,7 @@ set up first. Gmail is the default; another IMAP provider uses `mode: "imap"` wi
 mailbox is opened read-only, `--max` (default 200) bounds the new mail per run and the next run continues.
 Gmail labels become mailboxes, attachments' text is searched with its email, and mail deleted at the
 source loses its text in the store. Each account is named in `mail.accounts`, and the import names it:
-memo never picks one for you. `memo import` and the timer import every account.
+memo never picks one for you. `memo sync` and the timer import every account.
 
 ```sh
 memo mail work import --since 2026-09-01   # work: the account's name in mail.accounts
@@ -305,7 +305,7 @@ More: [memories and facts](https://github.com/WireCatLabs/cli-memo/blob/main/doc
 
 ## Keeping it current
 
-`memo import` brings notes and mail up to date and reads only what changed. `memo auto on --every 5m` runs
+`memo sync` brings notes and mail up to date and reads only what changed. `memo auto on --every 5m` runs
 it on a systemd user timer; `auto status` shows the next and last run. A lock keeps two imports apart, and
 one failing source does not stop the others.
 
@@ -386,7 +386,7 @@ more context when you need it. Your context. Any agent.
 | [Tasks and reminders](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tasks.md) | Tasks, dependencies and local reminders |
 | [Memories and facts](https://github.com/WireCatLabs/cli-memo/blob/main/docs/memories.md) | What agents and you record, and proposed actions |
 | [The MCP server](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md) | Apps without a terminal, the agent log |
-| [Keeping memo up to date](https://github.com/WireCatLabs/cli-memo/blob/main/docs/archive.md) | `memo import` and the timer |
+| [Keeping memo up to date](https://github.com/WireCatLabs/cli-memo/blob/main/docs/archive.md) | `memo sync` and the timer |
 | [Recipes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/recipes.md) | Whole tasks to hand to your agent |
 | [All commands](https://github.com/WireCatLabs/cli-memo/blob/main/docs/commands.md) | Every command and option, generated |
 | [Configuration](https://github.com/WireCatLabs/cli-memo/blob/main/docs/configuration.md) | Every setting and variable |

@@ -7,7 +7,7 @@ what changed is read, so every run after the first is quick.
 ## Import what changed
 
 ```sh
-memo import
+memo sync
 ```
 
 This imports every folder and mail account in the [config file](configuration.md). It reports what
@@ -23,7 +23,7 @@ notes /path/to/notes: 24 notes, 2 changed, 0 moved, 0 gone
 | `--mail` | Only mail accounts |
 | `--no-embed` | Skip the preparation for search by meaning |
 
-Telegram and MAX messages are kept current by tg and max, not by `memo import`.
+Telegram and MAX messages are kept current by tg and max, not by `memo sync`.
 
 ## Import on a timer (Linux)
 
@@ -34,10 +34,10 @@ memo auto off               # stop and remove the timer
 ```
 
 `--every` takes `90s`, `5m`, `1h` and so on; the shortest is one minute. The timer uses systemd, the
-service manager of most Linux systems. On macOS and Windows, run `memo import` yourself or from your
+service manager of most Linux systems. On macOS and Windows, run `memo sync` yourself or from your
 own scheduler.
 
-The timer runs `memo import` with the settings of the terminal you turned it on from, so it finds
+The timer runs `memo sync` with the settings of the terminal you turned it on from, so it finds
 Himalaya and your passwords the same way. `memo auto on` and `off` write `auto` in the config file;
 if you edit it there, the timer follows at its next run.
 

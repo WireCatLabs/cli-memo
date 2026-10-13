@@ -19,7 +19,7 @@ need Node.js; everything else on this page is needed only for the sources that u
   Memo searches by words.
 - **Mail:** [Himalaya](https://github.com/pimalaya/himalaya), a mail program that Memo uses to read
   your mailbox ([mail](mail.md)).
-- **Importing on a timer** (`memo auto`): Linux. On macOS and Windows, run `memo import` yourself or
+- **Importing on a timer** (`memo auto`): Linux. On macOS and Windows, run `memo sync` yourself or
   from your own scheduler ([keeping Memo up to date](archive.md)).
 
 ## Install

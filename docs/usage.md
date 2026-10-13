@@ -11,7 +11,7 @@ Memo reads your folders and mailboxes when you ask, not all the time. One comman
 everything that changed since the last run:
 
 ```sh
-memo import
+memo sync
 ```
 
 Only changed files and new mail are read, so a second run is quick. On Linux, `memo auto on` runs it

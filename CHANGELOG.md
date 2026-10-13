@@ -22,6 +22,7 @@ the API.
 
 ### Changed — may break scripts
 
+- `memo import` is now `memo sync` (owner, 2026-10-12; WireCat glossary in cli-messaging). `memo import` stops working. `memo auto on` now writes `memo sync` into the unit; a timer installed before runs `memo import` and fails until `memo auto on` is run again. `notes import` and `mail <account> import` keep their names for now.
 - **A write from an agent's terminal is the agent's.** `memo facts add`, `memories add`, `relationships add`
   and `actions propose` run with `AI_AGENT` or `CLAUDECODE` set record the agent as author (`claude-code`, the
   name before the version in `AI_AGENT`), as the MCP server does: the fact or memory waits as `proposed`, the

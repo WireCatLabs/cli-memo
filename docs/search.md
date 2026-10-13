@@ -86,7 +86,7 @@ about a vacation. tg or max downloads the model once:
 tg models text download e5-small    # or: max models text download e5-small
 ```
 
-The model runs on your computer. After the download, run `memo import` so your notes are prepared
+The model runs on your computer. After the download, run `memo sync` so your notes are prepared
 for it. Each result says whether it was found by words, by meaning or both. Without the model,
 Memo says "Searched by words only" and still finds every note that contains the words.
 

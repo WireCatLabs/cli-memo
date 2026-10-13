@@ -50,9 +50,19 @@ const text = (run: ImportRun): string =>
     ...run.failed.map(({ source, reason }) => `failed ${source}: ${reason}`),
   ].join("\n") || "Nothing to import: set notes.folders or mail.accounts in the config."
 
-export const importCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
+export const syncCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
+  syncLeaf(program, "sync", streams, env)
+}
+
+const syncLeaf = (
+  program: Command,
+  name: string,
+  streams: Streams,
+  env: NodeJS.ProcessEnv,
+  options: { hidden?: boolean } = {},
+): Command =>
   program
-    .command("import")
+    .command(name, options)
     .description("Bring notes and mail up to date in the shared store — only what changed; the timer runs this")
     .option("--notes", "notes only")
     .option("--mail", "mail only")
@@ -122,4 +132,3 @@ export const importCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       else streams.data(`${text(run)}\n`)
       if (run.failed.length > 0) process.exitCode = 1
     })
-}
