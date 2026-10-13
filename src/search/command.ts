@@ -254,17 +254,31 @@ export interface QueryInput {
   timezone?: string
 }
 
-/** Messages, mail and notes ranked together, with the open tasks that point at a hit. */
+/**
+ * The account memo's searches run as: its own notes, never a stored account picked for the owner. The scope comes
+ * from the query alone, and every account it covers is named in the answer.
+ */
+const MEMO: AccountKey = { provider: "notes", account: "internal" }
+
+export interface SearchedAccount {
+  resource: SearchedResource
+  provider: string
+  account: string
+}
+
+/** Messages, mail and notes ranked together, with the open tasks that point at a hit and every account read. */
 export const searchEverywhere = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
   { text, limit, only, exact, timezone }: QueryInput & { only?: SearchedResource[] },
 ) => {
   const accounts = await store.accounts()
-  const key = accounts.find(({ provider }) => provider !== "notes") ?? { provider: "notes", account: "internal" }
+  // The shared search names this command only in the model hint, and the model comes from tg.
+  const messenger = { app: { ...APP, command: "tg" } }
+  let messageAccounts: AccountKey[] = []
   const found = await searchAll(
     store,
-    key,
+    MEMO,
     {
       text,
       limit,
@@ -273,9 +287,29 @@ export const searchEverywhere = async (
       ...(exact ? { exact: true } : {}),
       ...(timezone === undefined ? {} : { timezone }),
     },
-    // The shared search names this command only in the model hint, and the model comes from tg.
-    { app: { ...APP, command: "tg" } },
+    messenger,
+    async (query) => {
+      const read = await searchStore(store, MEMO, query, messenger)
+      messageAccounts = read.coverage?.accounts ?? []
+      return read
+    },
   )
+  const searched: SearchedAccount[] = []
+  for (const resource of found.searched) {
+    if (resource === "messages")
+      searched.push(...messageAccounts.map(({ provider, account }) => ({ resource, provider, account })))
+    if (resource === "mail")
+      searched.push(
+        ...accounts
+          .filter(({ provider }) => provider === "email")
+          .map(({ provider, account }) => ({ resource, provider, account })),
+      )
+    if (resource === "notes")
+      searched.push(
+        { resource, provider: "notes", account: "internal" },
+        ...(await store.notes.folders()).map(({ id }) => ({ resource, provider: "notes", account: id })),
+      )
+  }
   const tasks = []
   let tasksIncomplete = false
   const sources = found.items.map((item) => item.ref)
@@ -284,7 +318,12 @@ export const searchEverywhere = async (
     tasks.push(...page.items)
     tasksIncomplete ||= page.hasMore
   }
-  return { ...found, tasks: tasks.slice(0, limit), tasksIncomplete: tasksIncomplete || tasks.length > limit }
+  return {
+    ...found,
+    accounts: searched,
+    tasks: tasks.slice(0, limit),
+    tasksIncomplete: tasksIncomplete || tasks.length > limit,
+  }
 }
 
 /** One kind with all its fields: messenger messages from every messenger, or imported mail. */
@@ -293,18 +332,17 @@ export const searchKind = async (
   kind: "messages" | "mail",
   { text, limit, type, account, exact, timezone }: QueryInput & { type?: "text" | "voice" | "file"; account?: string },
 ) => {
-  const [runsAs] = (await store.accounts()).filter(
+  const held = (await store.accounts()).some(
     ({ provider }) => provider !== "notes" && (kind === "mail" ? provider === "email" : provider !== "email"),
   )
-  if (runsAs === undefined)
+  if (!held)
     throw new CliError(
       "not_found",
       kind === "mail" ? "no imported mail; run memo mail <account> import" : "no stored messenger messages",
     )
-  // The store needs an account to run as; the kind, the query and the mail account choose what it reads.
   return searchStore(
     store,
-    runsAs,
+    MEMO,
     {
       text:
         type === undefined
@@ -385,6 +423,9 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
           }),
         )
         if (!options.json) {
+          streams.diagnostic(
+            `searched: ${answer.accounts.map(({ provider, account }) => `${provider}:${account}`).join(", ") || "nothing"}\n`,
+          )
           for (const skipped of answer.skipped)
             streams.diagnostic(`${skipped.resource} not searched: ${skipped.reason}\n`)
           if (answer.notes?.meaningSkipped) streams.diagnostic(`Notes by words only: ${answer.notes.meaningSkipped}\n`)
