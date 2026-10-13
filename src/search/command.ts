@@ -15,9 +15,9 @@ import { openStore } from "@wirecat/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { APP } from "../app.js"
 import { keyDocuments, keyFirst, projectOf } from "../knowledge/key-documents.js"
-import { boundFolders } from "../notes/bound.js"
+import { folderIds } from "../notes/bound.js"
 import { searchText } from "../notes/search.js"
-import { positive } from "../options.js"
+import { collect, positive } from "../options.js"
 import { SAVE_HELP } from "../save-help.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 import { taskPage } from "../tasks/context.js"
@@ -205,13 +205,6 @@ const hasSource = (node: QueryNode): boolean =>
     ? node.field === "in"
     : node.clauses.some(({ occur, node }) => occur !== "mustNot" && hasSource(node))
 
-const searchFolderIds = async (store: MessageStore, env: NodeJS.ProcessEnv, selected: string[]): Promise<string[]> => {
-  const known = new Set((await store.notes.folders()).map(({ id }) => id))
-  const paths = selected.filter((value) => !known.has(value))
-  const bound = paths.length ? await boundFolders(store, env, { only: paths }) : []
-  return [...new Set([...selected.filter((value) => known.has(value)), ...bound.map(({ id }) => id)])]
-}
-
 export type Level = "brief" | "full"
 
 const levelOf = ({ brief, full }: { brief?: boolean; full?: boolean }): Level | undefined => {
@@ -370,7 +363,7 @@ const keyRefs = async (store: MessageStore, project: string) =>
 export const searchCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const group = program
     .command("search")
-    .description("Search stored messages, mail and notes: one kind when you know it, search all when you do not")
+    .description("search stored messages, mail and notes; search all when you do not know the kind")
   const withStore = async <T>(work: (store: MessageStore) => Promise<T>) => {
     const store = await openStore({ env })
     try {
@@ -410,9 +403,10 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     group
       .command("all")
       .description(
-        "Messages, mail and notes ranked together; not people, memories, projects or decisions. A kind you know " +
+        "messages, mail and notes ranked together; not people, memories, projects or decisions. A kind you know " +
           "reads better with its own search, with all its fields",
-      ),
+      )
+      .summary("messages, mail and notes ranked together"),
   )
     .option("--only <resources>", "messages,mail,notes, separated by commas", onlyOf)
     .option("--project <project>", PROJECT_HELP)
@@ -467,10 +461,10 @@ content: narrows a search to the text of files, transcript: to voice transcripts
 
   for (const kind of ["messages", "mail"] as const) {
     const leaf = queryOptions(
-      group.command(kind).description(kind === "mail" ? "Imported emails only" : "Stored messenger messages only"),
+      group.command(kind).description(kind === "mail" ? "imported emails only" : "stored messenger messages only"),
     )
     if (kind === "messages") leaf.option("--type <type>", "text, voice or file", messageType)
-    else leaf.option("--account <address>", "only this mail account, by its address (default: every mail account)")
+    else leaf.option("--account <account>", "only this mail account, by its address (default: every mail account)")
     leaf.addHelpText(
       "after",
       kind === "messages"
@@ -512,12 +506,12 @@ content: narrows a search to the text of attachments, filename: to their names â
     )
   }
 
-  queryOptions(group.command("notes").description("Native notes by words and, with the local model, meaning"))
+  queryOptions(group.command("notes").description("native notes by words and, with the local model, meaning"))
     .addHelpText("after", "\n--json: the list is hits, not items; each note's reference is ref (note: or document:).")
     .option("--type <type>", "file or internal", noteType)
     .option("--tag <tag>", "only notes with this tag")
     .option("--filter <query>", "another query every note must match")
-    .option("--folder <path-or-id...>", "only these folders")
+    .option("--folder <folder>", "only this folder, by its id or path; repeat for more", collect)
     .option("--offset <n>", "continue from nextOffset", Number, 0)
     .option("--project <project>", PROJECT_HELP)
     .action(
@@ -545,7 +539,7 @@ content: narrows a search to the text of attachments, filename: to their names â
             ...(options.type === undefined ? {} : { source: options.type }),
             ...(options.tag === undefined ? {} : { tag: options.tag }),
             ...(options.filter === undefined ? {} : { filter: options.filter }),
-            ...(options.folder === undefined ? {} : { folderIds: await searchFolderIds(store, env, options.folder) }),
+            ...(options.folder === undefined ? {} : { folderIds: await folderIds(store, env, options.folder) }),
             ...(options.exact ? { exact: true } : {}),
             ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
           })

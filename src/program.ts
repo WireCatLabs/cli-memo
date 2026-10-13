@@ -31,7 +31,7 @@ export const createProgram = ({
   env?: NodeJS.ProcessEnv
 } = {}): Command => {
   const program = new Command("memo")
-    .description("Context about people across messengers, notes and mail")
+    .description("context about people across messengers, notes and mail")
     .version(VERSION)
 
   contextCommand(program, streams, env)

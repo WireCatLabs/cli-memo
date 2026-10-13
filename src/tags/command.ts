@@ -2,11 +2,13 @@ import { CliError, type Streams } from "@wirecat/cli-base"
 import { formatReference, normalizeTag } from "@wirecat/cli-messaging"
 import { type MessageStore, openStore, type StoredTag } from "@wirecat/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
+import { folderIds } from "../notes/bound.js"
 import { positive } from "../options.js"
 import { printing } from "../records/run.js"
 import { heldMessage } from "../store/held.js"
 import { selectTarget, type TargetInput } from "../store/scope.js"
 import { type SourceScope, type SourceTarget, type SourceTargetInput, sourceTarget } from "../store/source-target.js"
+import { canonicalProject } from "../vocabulary/project.js"
 
 const OWNED = ["note", "document", "person", "organization", "project", "task", "meeting", "folder"] as const
 const TYPES = ["chat", "message", "contact", ...OWNED] as const
@@ -38,10 +40,13 @@ const targetOptions = (command: Command) =>
     .option("--task <id>", "label a task")
     .option("--contact <id>", "label a contact identity, with provider/account")
     .option("--person <uid>", "label a unified person")
-    .option("--organization <id>", "label an organization")
-    .option("--project <id>", "label a project")
+    .option("--organization <organization>", "label an organization: its id or organization:<id>")
+    .option("--project <project>", "label a project: its key or project:<id>")
     .option("--meeting <id>", "label a meeting by its store id, with --provider and --account")
-    .option("--folder <id>", "label a notes folder, or with --path one subfolder: every note under it")
+    .option(
+      "--folder <folder>",
+      "label a notes folder by its id or path, or with --path one subfolder: every note under it",
+    )
     .option("--path <subfolder>", "the subfolder inside --folder")
     .option("--json", "print JSON")
 
@@ -85,7 +90,7 @@ const listTags = async (store: MessageStore, options: ListOptions) => {
 }
 
 export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
-  const tags = program.command("tags").description("Your labels on stored sources and folders or threads")
+  const tags = program.command("tags").description("your labels on stored sources and folders or threads")
   const print = printing(streams)
   const mutate = async (
     operation: "add" | "remove",
@@ -102,7 +107,7 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           : options.organization !== undefined
             ? { type: "organization" as const, id: options.organization.replace(/^organization:/, "") }
             : options.project !== undefined
-              ? { type: "project" as const, id: options.project.replace(/^project:/, "") }
+              ? { type: "project" as const, id: options.project }
               : options.task !== undefined
                 ? { type: "task" as const, id: options.task.replace(/^task:/, "") }
                 : options.folder !== undefined
@@ -113,6 +118,12 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     if (target !== undefined) {
       const store = await openStore({ env })
       try {
+        if (target.type === "project") target.id = (await canonicalProject(store, target.id)).slice("project:".length)
+        if (target.type === "folder") {
+          const [id, ...more] = await folderIds(store, env, [target.id])
+          if (id === undefined || more.length > 0) throw new CliError("not_found", `no folder of notes ${target.id}`)
+          target.id = id
+        }
         const changed = await (operation === "add" ? store.knowledge.addTags : store.knowledge.removeTags)(
           null,
           target,
@@ -177,7 +188,7 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     targetOptions(
       tags
         .command(operation)
-        .description(operation === "add" ? "Put labels on one source" : "Remove labels from one source"),
+        .description(operation === "add" ? "put labels on one source" : "remove labels from one source"),
     ).action(
       (
         given: string[],
@@ -187,7 +198,7 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
 
   tags
     .command("list")
-    .description("List source labels, optionally in one provider or account")
+    .description("list source labels, optionally in one provider or account")
     .option("--provider <provider>", "only this provider")
     .option("--account <account>", "only this account; requires --provider")
     .option("--tag <tag>", "only this tag", normalizeTag)

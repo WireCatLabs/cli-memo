@@ -6,7 +6,7 @@ import { createMemoServer } from "./server.js"
 export const mcpCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   program
     .command("mcp")
-    .description("Serve memories, proposed actions and the agent log to an agent over MCP, on stdin and stdout")
+    .description("serve memories, proposed actions and the agent log over MCP on stdin and stdout")
     .action(async () => {
       serveStdio(() => createMemoServer(env), { onerror: (error) => streams.diagnostic(`mcp: ${error.message}`) })
       await new Promise<void>((resolve) => {

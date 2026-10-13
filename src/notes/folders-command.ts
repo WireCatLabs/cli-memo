@@ -41,11 +41,11 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
   }
   const folders = program
     .command("folders")
-    .description("Folders of notes: an id that links and the store use, and where the folder is on this computer")
+    .description("folders of notes: the id links and the store use, and the path on this computer")
 
   folders
     .command("add")
-    .description("Give a folder of notes an id, or show the one it has")
+    .description("give a folder of notes an id, or show the one it has")
     .argument("<path>", "the folder on this computer")
     .option("--format <format>", `how its notes are written: ${DIALECTS.join(", ")} (default: obsidian)`, formatOf)
     .option("--json", "print JSON")
@@ -70,7 +70,7 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
 
   folders
     .command("attach")
-    .description("Bind a folder id from another computer to the folder's path on this one")
+    .description("bind a folder id from another computer to the folder's path on this one")
     .argument("<id>", "the folder's id, as memo folders add printed it")
     .argument("<path>", "the same folder on this computer")
     .option("--format <format>", `how its notes are written: ${DIALECTS.join(", ")}`, formatOf)
@@ -99,7 +99,7 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
 
   folders
     .command("list")
-    .description("The folders of notes: those on this computer, and those the store has from another")
+    .description("folders of notes on this computer, and those the store knows from another")
     .option("--json", "print JSON")
     .action(async (options: { json?: boolean }) => {
       const answer = await withStore(async (store) => {

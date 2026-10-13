@@ -11,7 +11,7 @@ import { importNotesMap } from "./notes-map.js"
 export const noteCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   program
     .command("note")
-    .description("Name the note that is about a person, or show it")
+    .description("name the note that is about a person, or show it")
     .argument("<identity>", "<messenger>:<name or id> of any identity of the person")
     .argument("[path]", "the note about them, a file in a configured folder")
     .option("--clear", "forget which file note is about them")

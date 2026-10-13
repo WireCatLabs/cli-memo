@@ -109,13 +109,11 @@ export const applyAuto = async (env: NodeJS.ProcessEnv, state: AutoState): Promi
 
 export const autoCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const run = systemctl(env)
-  const auto = program
-    .command("auto")
-    .description("Run memo sync on a timer (systemd user timer); on/off and the interval live in the config")
+  const auto = program.command("auto").description("run memo sync on a systemd user timer, set in the config")
 
   auto
     .command("on")
-    .description("Import every --every (default: auto.every in the config, else 5m), starting a minute from now")
+    .description("sync every --every (default auto.every, else 5m), starting a minute from now")
     .option("--every <interval>", "how often: 5m, 90s, 1h — a minute or more", interval)
     .action(async (options: { every?: string }) => {
       const config = updateConfig(
@@ -128,7 +126,7 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
 
   auto
     .command("off")
-    .description("Stop importing on a timer and remove the timer")
+    .description("stop syncing on a timer and remove the timer")
     .action(async () => {
       const config = updateConfig((current) => ({ ...current, auto: { ...current.auto, enabled: false } }), env)
       await applyAuto(env, autoState(config))
@@ -137,7 +135,7 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
 
   auto
     .command("status")
-    .description("Whether the timer is on, its interval, when it runs next and how the last run ended")
+    .description("whether the timer is on, its interval, its next run and how the last one ended")
     .option("--json", "print JSON")
     .action(async (options: { json?: boolean }) => {
       const state = autoState(loadConfig(env))

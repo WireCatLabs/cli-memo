@@ -38,6 +38,14 @@ export const boundFolders = async (
   })
 }
 
+/** Folder ids for folders named by id, even one only another computer has, or by a configured path. */
+export const folderIds = async (store: MessageStore, env: NodeJS.ProcessEnv, selected: string[]): Promise<string[]> => {
+  const known = new Set((await store.notes.folders()).map(({ id }) => id))
+  const paths = selected.filter((value) => !known.has(value))
+  const bound = paths.length ? await boundFolders(store, env, { only: paths }) : []
+  return [...new Set([...selected.filter((value) => known.has(value)), ...bound.map(({ id }) => id)])]
+}
+
 /** The folder a file lies in, and its path inside it. */
 export const folderOfFile = (folders: BoundFolder[], file: string): { folder: BoundFolder; path: string } => {
   const at = resolve(file)

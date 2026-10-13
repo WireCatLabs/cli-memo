@@ -32,8 +32,17 @@ the API.
   relationship unconfirmed with `provenance: agent:<name>`. They were recorded as the owner's and accepted.
   `--as-owner` keeps a write yours inside an agent's terminal.
 
+- **One meaning per flag (WireCat command standard).** A flag that takes several values is given once per value:
+  `memo notes add --about a --about b`, `notes import` and `search notes` `--folder a --folder b`.
+  `reminders schedule` and `snooze` take `--at-time` instead of `--at`. `relationships add` takes `--reason <text>`
+  instead of `--evidence`, which in `facts` and `memories` names references. `--project` takes a key or
+  `project:<id>` in `facts add`, `facts list` and `tags add|remove`, as it does in `tasks`; `tags --folder` takes a
+  folder's path as well as its id; `projects add --organization` takes a bare id as well as `organization:<id>`.
+
 ### Fixed
 
+- **Every argument and option of memo is described in its help**, and every summary is lower case, at most 80
+  characters.
 - **A command path given as one argument is refused with the words to type.** `memo "projects add" --help` — what
   a zsh loop over `"$c"` passes — printed the root help; it now says `"projects add" was given as one argument;
   run: memo projects add`.

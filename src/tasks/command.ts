@@ -57,11 +57,11 @@ const assignAll = async (store: MessageStore, id: string, people: string[] | und
 }
 
 export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
-  const group = program.command("tasks").description("Open work linked to stored messages, documents and emails")
+  const group = program.command("tasks").description("open work linked to stored messages, documents and emails")
   taskRelationsCommand(group, streams, env)
   const print = printing(streams)
   fieldOptions(accountOptions(group.command("add")))
-    .description("Add a task: from a message, note or document, or with --project and --title a task of your own")
+    .description("add a task from a message, note or document, or one of your own in a project")
     .argument("[source]", "msg: source locator, note:<id> or document:<id>; leave out for a task in a project")
     .option(
       "--type <type>",
@@ -140,7 +140,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         }
       },
     )
-  accountOptions(group.command("list").description("Tasks of one account or one project, open by default"))
+  accountOptions(group.command("list").description("tasks of one account or one project, open by default"))
     .option("--state <state>", "open, done or dismissed", taskStateOf, "open")
     .option("--project <project>", "a project's tasks, by its key or project:<id>, instead of an account's")
     .option("--limit <n>", "most tasks", positive, 100)
@@ -172,7 +172,9 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         }
       },
     )
-  accountOptions(group.command("close").description("Close a task as done or dismissed").argument("<id>"))
+  accountOptions(
+    group.command("close").description("close a task as done or dismissed").argument("<id>", "the task's id"),
+  )
     .option("--as <state>", "done or dismissed", closedStateOf, "done")
     .option("--reason <text>", "why it is closed")
     .action(
@@ -201,7 +203,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         }
       },
     )
-  fieldOptions(group.command("update").description("Change a task's title, priority, parent or description"))
+  fieldOptions(group.command("update").description("change a task's title, priority, parent or description"))
     .argument("<id>", "the task's id or key")
     .option("--json", "print JSON")
     .action(async (id: string, options: FieldOptions & { json?: boolean }) => {
@@ -217,7 +219,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     })
   group
     .command("assign")
-    .description("Name who works on a task")
+    .description("name who works on a task")
     .argument("<id>", "the task's id or key")
     .argument("<person>", "explicit canonical person UID")
     .option("--role <role>", TASK_ROLES.join(", "), oneOf(TASK_ROLES), "assignee")

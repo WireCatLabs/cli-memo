@@ -55,11 +55,11 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   }
   const organizations = program
     .command("organizations")
-    .description("Companies, teams, families and communities of yours")
+    .description("companies, teams, families and communities of yours")
   organizations
     .command("add")
-    .description("Add an organization of yours: a company, team, family or community")
-    .argument("<name>")
+    .description("add an organization of yours: a company, team, family or community")
+    .argument("<name>", "the organization's name")
     .requiredOption("--kind <kind>", ORGANIZATION_KINDS.join(", "), oneOf(ORGANIZATION_KINDS))
     .option("--scope <scope>", SCOPES.join(", "), oneOf(SCOPES))
     .option("--json", "print JSON")
@@ -74,15 +74,16 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     )
   organizations
     .command("list")
-    .description("Your organizations")
+    .description("your organizations")
     .option("--json", "print JSON")
     .action((options: { json?: boolean }) => owned(options, (store) => store.knowledge.organizations()))
   organizations
     .command("context")
     .description(
-      "One organization by its id or organization:<id>: its relationships, the notes about or linking it, and its tags",
+      "one organization by its id or organization:<id>: its relationships, the notes about or linking it, and its tags",
     )
-    .argument("<organization>")
+    .summary("one organization: its relationships, notes and tags")
+    .argument("<organization>", "its id or organization:<id>")
     .option("--json", "print JSON")
     .action((reference: string, options: { json?: boolean }) =>
       owned(options, async (store) => {
@@ -95,15 +96,15 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         )
       }),
     )
-  const projects = program.command("projects").description("Projects of yours, each with a short key")
+  const projects = program.command("projects").description("projects of yours, each with a short key")
   meetingProjectsCommand(projects, streams, env)
   projects
     .command("add")
-    .description("Add a project of yours, with a short key its tasks use")
-    .argument("<name>")
+    .description("add a project of yours, with a short key its tasks use")
+    .argument("<name>", "the project's name")
     .option("--key <key>", "3–4 letters and digits; made from the name when left out")
     .option("--type <type>", PROJECT_TYPES.join(", "), oneOf(PROJECT_TYPES))
-    .option("--organization <reference>", "organization:<id> it belongs to")
+    .option("--organization <organization>", "the organization it belongs to: its id or organization:<id>")
     .option("--scope <scope>", SCOPES.join(", "), oneOf(SCOPES))
     .option("--json", "print JSON")
     .action(
@@ -122,23 +123,26 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
             name,
             ...(options.key === undefined ? {} : { key: options.key }),
             ...(options.type === undefined ? {} : { type: options.type }),
-            ...(options.organization === undefined ? {} : { organization: options.organization }),
+            ...(options.organization === undefined
+              ? {}
+              : { organization: `organization:${options.organization.replace(/^organization:/, "")}` }),
             ...(options.scope === undefined ? {} : { scope: options.scope }),
           }),
         ),
     )
   projects
     .command("list")
-    .description("Your projects")
+    .description("your projects")
     .option("--json", "print JSON")
     .action((options: { json?: boolean }) => owned(options, (store) => store.knowledge.projects()))
   projects
     .command("context")
     .description(
-      "One project by its id, key or project:<id>: its key documents first, then its relationships, the notes " +
+      "one project by its id, key or project:<id>: its key documents first, then its relationships, the notes " +
         "about or linking it, and its tags. Start work on a project here",
     )
-    .argument("<project>")
+    .summary("one project: key documents, relationships, notes and tags; start work here")
+    .argument("<project>", "its id, key or project:<id>")
     .option("--json", "print JSON")
     .action((reference: string, options: { json?: boolean }) =>
       owned(options, async (store) => {
@@ -151,11 +155,11 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     )
   const keys = projects
     .command("key-documents")
-    .description("The notes, files and messages to read first about a project, each with why")
+    .description("the notes, files and messages to read first about a project, each with why")
   byOption(
     keys
       .command("add")
-      .description("Mark a note:, document: or msg: reference as a key document of the project")
+      .description("mark a note:, document: or msg: reference as a key document of the project")
       .argument("<project>", "id, key or project:<id>")
       .argument("<reference>", "note:, document: or msg: reference")
       .requiredOption("--reason <text>", "why it is key, in a few words")
@@ -167,16 +171,16 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   )
   keys
     .command("remove")
-    .description("Unmark a key document; the note, file or message stays")
+    .description("unmark a key document; the note, file or message stays")
     .argument("<project>", "id, key or project:<id>")
-    .argument("<reference>")
+    .argument("<reference>", "the key document's note:, document: or msg: reference")
     .option("--json", "print JSON")
     .action((project: string, reference: string, options: { json?: boolean }) =>
       owned(options, async (store) => unmarkKey(store, await projectOf(store, project), reference)),
     )
   keys
     .command("list")
-    .description("A project's key documents: title, path, why, who marked it and whether it is still there")
+    .description("a project's key documents: why, who marked each and whether it is still there")
     .argument("<project>", "id, key or project:<id>")
     .option("--json", "print JSON")
     .action((project: string, options: { json?: boolean }) =>
@@ -184,20 +188,21 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     )
   const relations = program
     .command("relationships")
-    .description("Explicit relations between people, organizations and projects; this never links identities")
+    .description("relations between people, organizations and projects; never between identities")
   byOption(
     relations
       .command("add")
       .description(
-        "State that a person, organization or project belongs to or relates to another; an agent's waits for you to confirm it",
-      ),
+        "state that a person, organization or project belongs to or relates to another; an agent's waits for you to confirm it",
+      )
+      .summary("state that a person, organization or project belongs or relates to another"),
   )
-    .argument("<from>")
-    .argument("<to>")
+    .argument("<from>", "the person:, organization: or project: that belongs or relates")
+    .argument("<to>", "the person:, organization: or project: it belongs or relates to")
     .option("--json", "print JSON")
     .option("--kind <kind>", "member-of or related-to", "member-of")
-    .option("--role <role>")
-    .option("--evidence <text>")
+    .option("--role <role>", "the role it has there, in a few words, such as cto")
+    .option("--reason <text>", "why you think so, in a sentence")
     .action(
       (
         from: string,
@@ -205,7 +210,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         options: {
           kind: KnowledgeRelation["kind"]
           role?: string
-          evidence?: string
+          reason?: string
           asOwner?: boolean
           json?: boolean
         },
@@ -218,31 +223,31 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
             kind: options.kind,
             ...(author === "owner" ? {} : { confirmed: false, provenance: `agent:${author.bot}` }),
             ...(options.role === undefined ? {} : { role: options.role }),
-            ...(options.evidence === undefined ? {} : { evidence: options.evidence }),
+            ...(options.reason === undefined ? {} : { evidence: options.reason }),
           }),
         )
       },
     )
   relations
     .command("list")
-    .description("Relationships, all or those of one reference")
-    .option("--reference <reference>")
+    .description("relationships, all or those of one reference")
+    .option("--reference <reference>", "only those of this person:, organization: or project:")
     .option("--json", "print JSON")
     .action((options: { reference?: string; json?: boolean }) =>
       owned(options, (store) => store.knowledge.relations(null, options.reference)),
     )
   relations
     .command("remove")
-    .description("Remove a relationship")
-    .argument("<id>")
+    .description("remove a relationship")
+    .argument("<id>", "the relationship's id, as relationships list gives it")
     .option("--json", "print JSON")
     .action((id: string, options: { json?: boolean }) =>
       owned(options, (store) => store.knowledge.removeRelation(null, id)),
     )
   relations
     .command("confirm")
-    .description("Accept a suggested relationship")
-    .argument("<id>")
+    .description("accept a suggested relationship")
+    .argument("<id>", "the relationship's id, as relationships list gives it")
     .option("--json", "print JSON")
     .action((id: string, options: { json?: boolean }) =>
       owned(options, (store) => store.knowledge.confirmRelation(null, id)),
@@ -250,7 +255,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   accountOptions(
     relations
       .command("suggest")
-      .description("Store weak shared-domain suggestions for direct email contacts; confirmation is explicit"),
+      .description("suggest relationships between email contacts of one domain; you confirm each"),
   )
     .option("--limit <n>", "most suggestions, at most 100", positive, 20)
     .action((options: AccountScope & { limit: number; json?: boolean }) =>
@@ -296,17 +301,22 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     )
   const reminders = program
     .command("reminders")
-    .description("Durable local reminders; poll leases a delivery and ack confirms it")
-  accountOptions(reminders.command("schedule").description("Schedule a reminder for an open task").argument("<task>"))
-    .requiredOption("--at <timestamp>", "ISO timestamp with UTC offset")
+    .description("durable local reminders; poll hands one out and ack confirms it was shown")
+  accountOptions(
+    reminders
+      .command("schedule")
+      .description("schedule a reminder for an open task")
+      .argument("<task>", "the task's id"),
+  )
+    .requiredOption("--at-time <time>", "when to remind: an ISO 8601 time with its UTC offset")
     .option("--timezone <zone>", "IANA timezone", "UTC")
-    .action((task: string, options: AccountScope & { at: string; timezone: string; json?: boolean }) =>
-      execute(options, (store, key) => store.knowledge.schedule(key, task, options.at, options.timezone)),
+    .action((task: string, options: AccountScope & { atTime: string; timezone: string; json?: boolean }) =>
+      execute(options, (store, key) => store.knowledge.schedule(key, task, options.atTime, options.timezone)),
     )
-  accountOptions(reminders.command("list").description("Pending reminders of one account")).action(
+  accountOptions(reminders.command("list").description("pending reminders of one account")).action(
     (options: AccountScope & { json?: boolean }) => execute(options, (store, key) => store.knowledge.reminders(key)),
   )
-  accountOptions(reminders.command("poll").description("Hand out due reminders, each with a receipt to acknowledge"))
+  accountOptions(reminders.command("poll").description("hand out due reminders, each with a receipt to acknowledge"))
     .option("--limit <n>", "most due reminders, at most 500", positive, 100)
     .action((options: AccountScope & { limit: number; json?: boolean }) =>
       execute(options, async (store, key) =>
@@ -320,20 +330,23 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   accountOptions(
     reminders
       .command("ack")
-      .description("Confirm that a handed-out reminder was shown")
-      .argument("<id>")
-      .argument("<receipt>"),
+      .description("confirm that a handed-out reminder was shown")
+      .argument("<id>", "the reminder's id")
+      .argument("<receipt>", "the receipt reminders poll handed out with it"),
   ).action((id: string, receipt: string, options: AccountScope & { json?: boolean }) =>
     execute(options, (store, key) => store.knowledge.acknowledgeReminder(key, id, receipt)),
   )
-  accountOptions(reminders.command("cancel").description("Cancel a reminder").argument("<id>")).action(
-    (id: string, options: AccountScope & { json?: boolean }) =>
-      execute(options, (store, key) => store.knowledge.cancelReminder(key, id)),
+  accountOptions(
+    reminders.command("cancel").description("cancel a reminder").argument("<id>", "the reminder's id"),
+  ).action((id: string, options: AccountScope & { json?: boolean }) =>
+    execute(options, (store, key) => store.knowledge.cancelReminder(key, id)),
   )
-  accountOptions(reminders.command("snooze").description("Move a reminder to a later time").argument("<id>"))
-    .requiredOption("--at <timestamp>")
-    .requiredOption("--revision <n>", "current revision", positive)
-    .action((id: string, options: AccountScope & { at: string; revision: number; json?: boolean }) =>
-      execute(options, (store, key) => store.knowledge.snoozeReminder(key, id, options.at, options.revision)),
+  accountOptions(
+    reminders.command("snooze").description("move a reminder to a later time").argument("<id>", "the reminder's id"),
+  )
+    .requiredOption("--at-time <time>", "the new time: an ISO 8601 time with its UTC offset")
+    .requiredOption("--revision <n>", "the reminder's current revision, as reminders list gives it", positive)
+    .action((id: string, options: AccountScope & { atTime: string; revision: number; json?: boolean }) =>
+      execute(options, (store, key) => store.knowledge.snoozeReminder(key, id, options.atTime, options.revision)),
     )
 }

@@ -20,13 +20,9 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
   const run = answering(streams, env)
   const memories = program
     .command("memories")
-    .description("What agents and you concluded, each with its evidence: an agent's waits for you to confirm it")
+    .description("what agents and you concluded, with evidence; you confirm an agent's")
 
-  byOption(
-    memories
-      .command("add")
-      .description("Write a memory: yours is confirmed at once, an agent's waits as proposed until you confirm it"),
-  )
+  byOption(memories.command("add").description("write a memory; an agent's waits as proposed until you confirm it"))
     .argument("<text...>", "what is true, in a sentence or two")
     .requiredOption("--kind <kind>", MEMORY_KINDS.join(", "), oneOf(MEMORY_KINDS))
     .requiredOption("--scope <scope>", MEMORY_SCOPES.join(" or "), oneOf(MEMORY_SCOPES))
@@ -60,7 +56,7 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
 
   memories
     .command("list")
-    .description("Memories, newest first")
+    .description("memories, newest first")
     .option("--status <status>", MEMORY_STATUSES.join(", "), oneOf(MEMORY_STATUSES))
     .option("--kind <kind>", MEMORY_KINDS.join(", "), oneOf(MEMORY_KINDS))
     .option("--scope <scope>", MEMORY_SCOPES.join(" or "), oneOf(MEMORY_SCOPES))
@@ -73,14 +69,14 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
 
   memories
     .command("show")
-    .description("One memory with its evidence")
+    .description("one memory with its evidence")
     .argument("<ref>", "memory:<id>")
     .option("--json", "print JSON")
     .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.memories.get(ref)))
 
   memories
     .command("search")
-    .description("Memories holding every word, best first")
+    .description("memories holding every word, best first")
     .argument("<words...>", "the words to find")
     .option("--scope <scope>", MEMORY_SCOPES.join(" or "), oneOf(MEMORY_SCOPES))
     .option("--limit <n>", "most memories, up to 500", positive, 20)
@@ -101,14 +97,14 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
 
   memories
     .command("confirm")
-    .description("Stand behind a memory: its evidence was checked now")
+    .description("stand behind a memory: its evidence was checked now")
     .argument("<ref>", "memory:<id>")
     .option("--json", "print JSON")
     .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.memories.confirm(ref)))
 
   memories
     .command("stale")
-    .description("Mark a memory whose evidence no longer holds")
+    .description("mark a memory whose evidence no longer holds")
     .argument("<ref>", "memory:<id>")
     .option("--json", "print JSON")
     .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.memories.markStale(ref)))

@@ -13,8 +13,8 @@ export const taskRelationsCommand = (tasks: Command, streams: Streams, env: Node
     tasks
       .command(operation)
       .description(`${operation} reviewed project task relationships`)
-      .argument("<task>")
-      .argument("<other-task>")
+      .argument("<task>", "the task: task:<id> or its id")
+      .argument("<other-task>", "the task it relates to: task:<id> or its id")
       .requiredOption("--kind <kind>", TASK_RELATION_KINDS.join(", "), oneOf(TASK_RELATION_KINDS))
       .option("--json", "print JSON")
       .action((task: string, other: string, options: { kind: TaskRelationKind; json?: boolean }) =>
@@ -27,21 +27,21 @@ export const taskRelationsCommand = (tasks: Command, streams: Streams, env: Node
   }
   tasks
     .command("relations")
-    .description("A task's links to other tasks")
-    .argument("<task>")
+    .description("a task's links to other tasks")
+    .argument("<task>", "the task: task:<id> or its id")
     .option("--json", "print JSON")
     .action((task: string, options: { json?: boolean }) =>
       execute(options, async (store) => ({ items: await store.tasks.taskRelations(task) })),
     )
   tasks
     .command("readiness")
-    .description("Whether a task can start, and what it still waits for")
-    .argument("<task>")
+    .description("whether a task can start, and what it still waits for")
+    .argument("<task>", "the task: task:<id> or its id")
     .option("--json", "print JSON")
     .action((task: string, options: { json?: boolean }) => execute(options, (store) => store.tasks.taskReadiness(task)))
   tasks
     .command("ready")
-    .description("Discover project work with completed prerequisites; this does not claim a task")
+    .description("discover project work with completed prerequisites; this does not claim a task")
     .requiredOption("--project <project>", "canonical project reference, key or explicit alias")
     .option("--limit <n>", "tasks per page", positive)
     .option("--json", "print JSON")

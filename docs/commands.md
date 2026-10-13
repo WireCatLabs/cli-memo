@@ -14,7 +14,7 @@ These options work with the `memo` command itself.
 
 ## `memo context`
 
-What the store holds about a person — messages, mail and notes — with a link to each source
+messages, mail and notes about a person, each with a link to its source
 
 ```sh
 memo context <person> [options]
@@ -28,15 +28,15 @@ memo context <person> [options]
 |---|---|
 | `--limit <n>` | most messages and notes of each kind. Default: `20`. |
 | `--json` | print JSON. |
-| `--account <id>` | required when several accounts of the requested provider are stored. |
+| `--account <account>` | the stored account to read; required when the store holds several of that messenger. |
 
 ## `memo notes`
 
-Notes: files from your folders, and notes you write here about messages, people and projects
+notes from your folders, and notes you write here
 
 ### `memo notes import`
 
-Bring the folders' notes, their links and tags into the shared store — only what changed
+bring the folders' notes, links and tags into the store, only what changed
 
 ```sh
 memo notes import [options]
@@ -44,14 +44,14 @@ memo notes import [options]
 
 | Option | What it does |
 |---|---|
-| `--folder <path-or-id...>` | only these configured folders. |
+| `--folder <folder>` | only this configured folder, by its id or path; repeat for more. |
 | `--ignore <path...>` | files or folders inside them to skip, added to notes.ignore — a path or a glob. |
 | `--no-embed` | skip embedding the notes for search by meaning this run. |
 | `--json` | print JSON. |
 
 ### `memo notes about`
 
-Notes about a person, project or note, and the notes that link them — through links, never a name in plain text
+notes about a subject and the notes that link it, through links only
 
 ```sh
 memo notes about <subject> [options]
@@ -68,7 +68,7 @@ memo notes about <subject> [options]
 
 ### `memo notes show`
 
-One note: its text, tags, what it links and what links it
+one note: its text, tags, what it links and what links it
 
 ```sh
 memo notes show <note> [options]
@@ -84,7 +84,7 @@ memo notes show <note> [options]
 
 ### `memo notes list`
 
-Notes, newest first
+notes, newest first
 
 ```sh
 memo notes list [options]
@@ -101,7 +101,7 @@ memo notes list [options]
 
 ### `memo notes add`
 
-Write a note of your own about messages, people, projects or other notes
+write a note of your own about messages, people, projects or other notes
 
 ```sh
 memo notes add [text] [options]
@@ -116,7 +116,7 @@ memo notes add [text] [options]
 | `--text <text>` | the note. |
 | `--file <path>` | read the note from a file; - reads stdin. |
 | `--title <title>` | a title. |
-| `--about <subject...>` | what it is about: <messenger>:<name or id>, msg:, chat:, person:, organization:, project:, task:, note:, document:, meeting:. |
+| `--about <subject>` | what it is about: <messenger>:<name or id>, msg:, chat:, person:, organization:, project:, task:, note:, document:, meeting:; repeat for more. |
 | `--meeting <id>` | also about this meeting, by its store id, with --provider and --account. |
 | `--provider <provider>` | the meeting's provider. |
 | `--account <account>` | the meeting's account. |
@@ -126,7 +126,7 @@ memo notes add [text] [options]
 
 ### `memo notes edit`
 
-Change a note you wrote here; a file's note is edited in its file
+change a note you wrote here; a file's note is edited in its file
 
 ```sh
 memo notes edit <id> [options]
@@ -147,7 +147,7 @@ memo notes edit <id> [options]
 
 ### `memo notes remove`
 
-Delete a note you wrote here; a file it was exported to stays
+delete a note you wrote here; a file it was exported to stays
 
 ```sh
 memo notes remove <id> [options]
@@ -163,7 +163,7 @@ memo notes remove <id> [options]
 
 ### `memo notes export`
 
-Write the notes you wrote here as files, never overwriting one you edited
+write the notes you wrote here as files, never overwriting one you edited
 
 ```sh
 memo notes export [options]
@@ -177,11 +177,11 @@ memo notes export [options]
 
 ## `memo folders`
 
-Folders of notes: an id that links and the store use, and where the folder is on this computer
+folders of notes: the id links and the store use, and the path on this computer
 
 ### `memo folders add`
 
-Give a folder of notes an id, or show the one it has
+give a folder of notes an id, or show the one it has
 
 ```sh
 memo folders add <path> [options]
@@ -198,7 +198,7 @@ memo folders add <path> [options]
 
 ### `memo folders attach`
 
-Bind a folder id from another computer to the folder's path on this one
+bind a folder id from another computer to the folder's path on this one
 
 ```sh
 memo folders attach <id> <path> [options]
@@ -216,7 +216,7 @@ memo folders attach <id> <path> [options]
 
 ### `memo folders list`
 
-The folders of notes: those on this computer, and those the store has from another
+folders of notes on this computer, and those the store knows from another
 
 ```sh
 memo folders list [options]
@@ -228,7 +228,7 @@ memo folders list [options]
 
 ## `memo mail`
 
-Read one mail account through Himalaya into the shared message store
+read one mail account through Himalaya into the shared message store
 
 ```sh
 memo mail [account] [action] [reference] [options]
@@ -252,7 +252,7 @@ memo mail [account] [action] [reference] [options]
 
 ## `memo note`
 
-Name the note that is about a person, or show it
+name the note that is about a person, or show it
 
 ```sh
 memo note <identity> [path] [options]
@@ -269,11 +269,11 @@ memo note <identity> [path] [options]
 
 ## `memo tags`
 
-Your labels on stored sources and folders or threads
+your labels on stored sources and folders or threads
 
 ### `memo tags add`
 
-Put labels on one source
+put labels on one source
 
 ```sh
 memo tags add <tag> [options]
@@ -293,16 +293,16 @@ memo tags add <tag> [options]
 | `--task <id>` | label a task. |
 | `--contact <id>` | label a contact identity, with provider/account. |
 | `--person <uid>` | label a unified person. |
-| `--organization <id>` | label an organization. |
-| `--project <id>` | label a project. |
+| `--organization <organization>` | label an organization: its id or organization:<id>. |
+| `--project <project>` | label a project: its key or project:<id>. |
 | `--meeting <id>` | label a meeting by its store id, with --provider and --account. |
-| `--folder <id>` | label a notes folder, or with --path one subfolder: every note under it. |
+| `--folder <folder>` | label a notes folder by its id or path, or with --path one subfolder: every note under it. |
 | `--path <subfolder>` | the subfolder inside --folder. |
 | `--json` | print JSON. |
 
 ### `memo tags remove`
 
-Remove labels from one source
+remove labels from one source
 
 ```sh
 memo tags remove <tag> [options]
@@ -322,16 +322,16 @@ memo tags remove <tag> [options]
 | `--task <id>` | label a task. |
 | `--contact <id>` | label a contact identity, with provider/account. |
 | `--person <uid>` | label a unified person. |
-| `--organization <id>` | label an organization. |
-| `--project <id>` | label a project. |
+| `--organization <organization>` | label an organization: its id or organization:<id>. |
+| `--project <project>` | label a project: its key or project:<id>. |
 | `--meeting <id>` | label a meeting by its store id, with --provider and --account. |
-| `--folder <id>` | label a notes folder, or with --path one subfolder: every note under it. |
+| `--folder <folder>` | label a notes folder by its id or path, or with --path one subfolder: every note under it. |
 | `--path <subfolder>` | the subfolder inside --folder. |
 | `--json` | print JSON. |
 
 ### `memo tags list`
 
-List source labels, optionally in one provider or account
+list source labels, optionally in one provider or account
 
 ```sh
 memo tags list [options]
@@ -348,7 +348,7 @@ memo tags list [options]
 
 ## `memo tasks`
 
-Open work linked to stored messages, documents and emails
+open work linked to stored messages, documents and emails
 
 ### `memo tasks link`
 
@@ -360,8 +360,8 @@ memo tasks link <task> <other-task> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `task` | required |  |
-| `other-task` | required |  |
+| `task` | required | the task: task:<id> or its id. |
+| `other-task` | required | the task it relates to: task:<id> or its id. |
 
 | Option | What it does |
 |---|---|
@@ -378,8 +378,8 @@ memo tasks unlink <task> <other-task> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `task` | required |  |
-| `other-task` | required |  |
+| `task` | required | the task: task:<id> or its id. |
+| `other-task` | required | the task it relates to: task:<id> or its id. |
 
 | Option | What it does |
 |---|---|
@@ -388,7 +388,7 @@ memo tasks unlink <task> <other-task> [options]
 
 ### `memo tasks relations`
 
-A task's links to other tasks
+a task's links to other tasks
 
 ```sh
 memo tasks relations <task> [options]
@@ -396,7 +396,7 @@ memo tasks relations <task> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `task` | required |  |
+| `task` | required | the task: task:<id> or its id. |
 
 | Option | What it does |
 |---|---|
@@ -404,7 +404,7 @@ memo tasks relations <task> [options]
 
 ### `memo tasks readiness`
 
-Whether a task can start, and what it still waits for
+whether a task can start, and what it still waits for
 
 ```sh
 memo tasks readiness <task> [options]
@@ -412,7 +412,7 @@ memo tasks readiness <task> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `task` | required |  |
+| `task` | required | the task: task:<id> or its id. |
 
 | Option | What it does |
 |---|---|
@@ -420,7 +420,7 @@ memo tasks readiness <task> [options]
 
 ### `memo tasks ready`
 
-Discover project work with completed prerequisites; this does not claim a task
+discover project work with completed prerequisites; this does not claim a task
 
 ```sh
 memo tasks ready [options]
@@ -434,7 +434,7 @@ memo tasks ready [options]
 
 ### `memo tasks add`
 
-Add a task: from a message, note or document, or with --project and --title a task of your own
+add a task from a message, note or document, or one of your own in a project
 
 ```sh
 memo tasks add [source] [options]
@@ -459,7 +459,7 @@ memo tasks add [source] [options]
 
 ### `memo tasks list`
 
-Tasks of one account or one project, open by default
+tasks of one account or one project, open by default
 
 ```sh
 memo tasks list [options]
@@ -476,7 +476,7 @@ memo tasks list [options]
 
 ### `memo tasks close`
 
-Close a task as done or dismissed
+close a task as done or dismissed
 
 ```sh
 memo tasks close <id> [options]
@@ -484,7 +484,7 @@ memo tasks close <id> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `id` | required |  |
+| `id` | required | the task's id. |
 
 | Option | What it does |
 |---|---|
@@ -496,7 +496,7 @@ memo tasks close <id> [options]
 
 ### `memo tasks update`
 
-Change a task's title, priority, parent or description
+change a task's title, priority, parent or description
 
 ```sh
 memo tasks update <id> [options]
@@ -516,7 +516,7 @@ memo tasks update <id> [options]
 
 ### `memo tasks assign`
 
-Name who works on a task
+name who works on a task
 
 ```sh
 memo tasks assign <id> <person> [options]
@@ -534,11 +534,11 @@ memo tasks assign <id> <person> [options]
 
 ## `memo organizations`
 
-Companies, teams, families and communities of yours
+companies, teams, families and communities of yours
 
 ### `memo organizations add`
 
-Add an organization of yours: a company, team, family or community
+add an organization of yours: a company, team, family or community
 
 ```sh
 memo organizations add <name> [options]
@@ -546,7 +546,7 @@ memo organizations add <name> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `name` | required |  |
+| `name` | required | the organization's name. |
 
 | Option | What it does |
 |---|---|
@@ -556,7 +556,7 @@ memo organizations add <name> [options]
 
 ### `memo organizations list`
 
-Your organizations
+your organizations
 
 ```sh
 memo organizations list [options]
@@ -568,7 +568,7 @@ memo organizations list [options]
 
 ### `memo organizations context`
 
-One organization by its id or organization:<id>: its relationships, the notes about or linking it, and its tags
+one organization by its id or organization:<id>: its relationships, the notes about or linking it, and its tags
 
 ```sh
 memo organizations context <organization> [options]
@@ -576,7 +576,7 @@ memo organizations context <organization> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `organization` | required |  |
+| `organization` | required | its id or organization:<id>. |
 
 | Option | What it does |
 |---|---|
@@ -584,15 +584,15 @@ memo organizations context <organization> [options]
 
 ## `memo projects`
 
-Projects of yours, each with a short key
+projects of yours, each with a short key
 
 ### `memo projects meetings`
 
-Explicit account-scoped project membership
+explicit account-scoped project membership
 
 #### `memo projects meetings list`
 
-Meetings linked to a project in one account, or proposed links
+meetings linked to a project in one account, or proposed links
 
 ```sh
 memo projects meetings list <project> [options]
@@ -613,7 +613,7 @@ memo projects meetings list <project> [options]
 
 #### `memo projects meetings link`
 
-Link a stored meeting to a project, or confirm a proposed link
+link a stored meeting to a project, or confirm a proposed link
 
 ```sh
 memo projects meetings link <project> <meeting-id> [options]
@@ -621,7 +621,7 @@ memo projects meetings link <project> <meeting-id> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `project` | required |  |
+| `project` | required | project reference, key or explicit alias. |
 | `meeting-id` | required | positive stored meeting id. |
 
 | Option | What it does |
@@ -634,7 +634,7 @@ memo projects meetings link <project> <meeting-id> [options]
 
 ### `memo projects add`
 
-Add a project of yours, with a short key its tasks use
+add a project of yours, with a short key its tasks use
 
 ```sh
 memo projects add <name> [options]
@@ -642,19 +642,19 @@ memo projects add <name> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `name` | required |  |
+| `name` | required | the project's name. |
 
 | Option | What it does |
 |---|---|
 | `--key <key>` | 3–4 letters and digits; made from the name when left out. |
 | `--type <type>` | work, client, personal, oss, other. |
-| `--organization <reference>` | organization:<id> it belongs to. |
+| `--organization <organization>` | the organization it belongs to: its id or organization:<id>. |
 | `--scope <scope>` | personal, work. |
 | `--json` | print JSON. |
 
 ### `memo projects list`
 
-Your projects
+your projects
 
 ```sh
 memo projects list [options]
@@ -666,7 +666,7 @@ memo projects list [options]
 
 ### `memo projects context`
 
-One project by its id, key or project:<id>: its key documents first, then its relationships, the notes about or linking it, and its tags. Start work on a project here
+one project by its id, key or project:<id>: its key documents first, then its relationships, the notes about or linking it, and its tags. Start work on a project here
 
 ```sh
 memo projects context <project> [options]
@@ -674,7 +674,7 @@ memo projects context <project> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `project` | required |  |
+| `project` | required | its id, key or project:<id>. |
 
 | Option | What it does |
 |---|---|
@@ -682,11 +682,11 @@ memo projects context <project> [options]
 
 ### `memo projects key-documents`
 
-The notes, files and messages to read first about a project, each with why
+the notes, files and messages to read first about a project, each with why
 
 #### `memo projects key-documents add`
 
-Mark a note:, document: or msg: reference as a key document of the project
+mark a note:, document: or msg: reference as a key document of the project
 
 ```sh
 memo projects key-documents add <project> <reference> [options]
@@ -705,7 +705,7 @@ memo projects key-documents add <project> <reference> [options]
 
 #### `memo projects key-documents remove`
 
-Unmark a key document; the note, file or message stays
+unmark a key document; the note, file or message stays
 
 ```sh
 memo projects key-documents remove <project> <reference> [options]
@@ -714,7 +714,7 @@ memo projects key-documents remove <project> <reference> [options]
 | Argument | | What it is |
 |---|---|---|
 | `project` | required | id, key or project:<id>. |
-| `reference` | required |  |
+| `reference` | required | the key document's note:, document: or msg: reference. |
 
 | Option | What it does |
 |---|---|
@@ -722,7 +722,7 @@ memo projects key-documents remove <project> <reference> [options]
 
 #### `memo projects key-documents list`
 
-A project's key documents: title, path, why, who marked it and whether it is still there
+a project's key documents: why, who marked each and whether it is still there
 
 ```sh
 memo projects key-documents list <project> [options]
@@ -738,11 +738,11 @@ memo projects key-documents list <project> [options]
 
 ## `memo relationships`
 
-Explicit relations between people, organizations and projects; this never links identities
+relations between people, organizations and projects; never between identities
 
 ### `memo relationships add`
 
-State that a person, organization or project belongs to or relates to another; an agent's waits for you to confirm it
+state that a person, organization or project belongs to or relates to another; an agent's waits for you to confirm it
 
 ```sh
 memo relationships add <from> <to> [options]
@@ -750,20 +750,20 @@ memo relationships add <from> <to> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `from` | required |  |
-| `to` | required |  |
+| `from` | required | the person:, organization: or project: that belongs or relates. |
+| `to` | required | the person:, organization: or project: it belongs or relates to. |
 
 | Option | What it does |
 |---|---|
 | `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--json` | print JSON. |
 | `--kind <kind>` | member-of or related-to. Default: `member-of`. |
-| `--role <role>` |  |
-| `--evidence <text>` |  |
+| `--role <role>` | the role it has there, in a few words, such as cto. |
+| `--reason <text>` | why you think so, in a sentence. |
 
 ### `memo relationships list`
 
-Relationships, all or those of one reference
+relationships, all or those of one reference
 
 ```sh
 memo relationships list [options]
@@ -771,12 +771,12 @@ memo relationships list [options]
 
 | Option | What it does |
 |---|---|
-| `--reference <reference>` |  |
+| `--reference <reference>` | only those of this person:, organization: or project:. |
 | `--json` | print JSON. |
 
 ### `memo relationships remove`
 
-Remove a relationship
+remove a relationship
 
 ```sh
 memo relationships remove <id> [options]
@@ -784,7 +784,7 @@ memo relationships remove <id> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `id` | required |  |
+| `id` | required | the relationship's id, as relationships list gives it. |
 
 | Option | What it does |
 |---|---|
@@ -792,7 +792,7 @@ memo relationships remove <id> [options]
 
 ### `memo relationships confirm`
 
-Accept a suggested relationship
+accept a suggested relationship
 
 ```sh
 memo relationships confirm <id> [options]
@@ -800,7 +800,7 @@ memo relationships confirm <id> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `id` | required |  |
+| `id` | required | the relationship's id, as relationships list gives it. |
 
 | Option | What it does |
 |---|---|
@@ -808,7 +808,7 @@ memo relationships confirm <id> [options]
 
 ### `memo relationships suggest`
 
-Store weak shared-domain suggestions for direct email contacts; confirmation is explicit
+suggest relationships between email contacts of one domain; you confirm each
 
 ```sh
 memo relationships suggest [options]
@@ -823,11 +823,11 @@ memo relationships suggest [options]
 
 ## `memo reminders`
 
-Durable local reminders; poll leases a delivery and ack confirms it
+durable local reminders; poll hands one out and ack confirms it was shown
 
 ### `memo reminders schedule`
 
-Schedule a reminder for an open task
+schedule a reminder for an open task
 
 ```sh
 memo reminders schedule <task> [options]
@@ -835,19 +835,19 @@ memo reminders schedule <task> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `task` | required |  |
+| `task` | required | the task's id. |
 
 | Option | What it does |
 |---|---|
 | `--provider <provider>` | source provider. |
 | `--account <account>` | exact stored account. |
 | `--json` | print JSON. |
-| `--at <timestamp>` | ISO timestamp with UTC offset. |
+| `--at-time <time>` | when to remind: an ISO 8601 time with its UTC offset. |
 | `--timezone <zone>` | IANA timezone. Default: `UTC`. |
 
 ### `memo reminders list`
 
-Pending reminders of one account
+pending reminders of one account
 
 ```sh
 memo reminders list [options]
@@ -861,7 +861,7 @@ memo reminders list [options]
 
 ### `memo reminders poll`
 
-Hand out due reminders, each with a receipt to acknowledge
+hand out due reminders, each with a receipt to acknowledge
 
 ```sh
 memo reminders poll [options]
@@ -876,7 +876,7 @@ memo reminders poll [options]
 
 ### `memo reminders ack`
 
-Confirm that a handed-out reminder was shown
+confirm that a handed-out reminder was shown
 
 ```sh
 memo reminders ack <id> <receipt> [options]
@@ -884,8 +884,8 @@ memo reminders ack <id> <receipt> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `id` | required |  |
-| `receipt` | required |  |
+| `id` | required | the reminder's id. |
+| `receipt` | required | the receipt reminders poll handed out with it. |
 
 | Option | What it does |
 |---|---|
@@ -895,7 +895,7 @@ memo reminders ack <id> <receipt> [options]
 
 ### `memo reminders cancel`
 
-Cancel a reminder
+cancel a reminder
 
 ```sh
 memo reminders cancel <id> [options]
@@ -903,7 +903,7 @@ memo reminders cancel <id> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `id` | required |  |
+| `id` | required | the reminder's id. |
 
 | Option | What it does |
 |---|---|
@@ -913,7 +913,7 @@ memo reminders cancel <id> [options]
 
 ### `memo reminders snooze`
 
-Move a reminder to a later time
+move a reminder to a later time
 
 ```sh
 memo reminders snooze <id> [options]
@@ -921,23 +921,23 @@ memo reminders snooze <id> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `id` | required |  |
+| `id` | required | the reminder's id. |
 
 | Option | What it does |
 |---|---|
 | `--provider <provider>` | source provider. |
 | `--account <account>` | exact stored account. |
 | `--json` | print JSON. |
-| `--at <timestamp>` |  |
-| `--revision <n>` | current revision. |
+| `--at-time <time>` | the new time: an ISO 8601 time with its UTC offset. |
+| `--revision <n>` | the reminder's current revision, as reminders list gives it. |
 
 ## `memo vocabulary`
 
-Canonical projects, tags and topics with explicit aliases
+canonical projects, tags and topics with explicit aliases
 
 ### `memo vocabulary list`
 
-List canonical IDs, aliases, usage counts and a preview fingerprint
+list canonical IDs, aliases, usage counts and a preview fingerprint
 
 ```sh
 memo vocabulary list [options]
@@ -953,7 +953,7 @@ memo vocabulary list [options]
 
 ### `memo vocabulary resolve`
 
-Resolve an exact name or alias; ambiguity is reported
+resolve an exact name or alias; ambiguity is reported
 
 ```sh
 memo vocabulary resolve <name> [options]
@@ -961,7 +961,7 @@ memo vocabulary resolve <name> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `name` | required |  |
+| `name` | required | the name or alias to look up, exactly. |
 
 | Option | What it does |
 |---|---|
@@ -973,7 +973,7 @@ memo vocabulary resolve <name> [options]
 
 ### `memo vocabulary audit`
 
-Discover likely synonyms without accepting or merging them
+discover likely synonyms without accepting or merging them
 
 ```sh
 memo vocabulary audit [options]
@@ -992,7 +992,7 @@ memo vocabulary audit [options]
 
 ### `memo vocabulary preflight`
 
-Review an existing label or likely lexical duplicates before creation
+review an existing label or likely lexical duplicates before creation
 
 ```sh
 memo vocabulary preflight <name> [options]
@@ -1000,7 +1000,7 @@ memo vocabulary preflight <name> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `name` | required |  |
+| `name` | required | the tag or topic you mean to create. |
 
 | Option | What it does |
 |---|---|
@@ -1009,7 +1009,7 @@ memo vocabulary preflight <name> [options]
 
 ### `memo vocabulary create`
 
-Owner: create a distinct tag or topic after reviewing its preflight
+owner: create a distinct tag or topic after reviewing its preflight
 
 ```sh
 memo vocabulary create <name> [options]
@@ -1017,7 +1017,7 @@ memo vocabulary create <name> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `name` | required |  |
+| `name` | required | the new tag or topic. |
 
 | Option | What it does |
 |---|---|
@@ -1027,11 +1027,11 @@ memo vocabulary create <name> [options]
 
 ### `memo vocabulary aliases`
 
-Owner-reviewed aliases on stable canonical IDs
+owner-reviewed aliases on stable canonical IDs
 
 #### `memo vocabulary aliases add`
 
-Owner: add another name for a project, tag or topic
+owner: add another name for a project, tag or topic
 
 ```sh
 memo vocabulary aliases add <reference> <name> [options]
@@ -1039,8 +1039,8 @@ memo vocabulary aliases add <reference> <name> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `reference` | required |  |
-| `name` | required |  |
+| `reference` | required | project:<id>, tag:<id> or topic:<id>, from vocabulary list. |
+| `name` | required | the other name. |
 
 | Option | What it does |
 |---|---|
@@ -1049,7 +1049,7 @@ memo vocabulary aliases add <reference> <name> [options]
 
 #### `memo vocabulary aliases remove`
 
-Owner: remove another name from a project, tag or topic
+owner: remove another name from a project, tag or topic
 
 ```sh
 memo vocabulary aliases remove <reference> <alias-id> [options]
@@ -1057,8 +1057,8 @@ memo vocabulary aliases remove <reference> <alias-id> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `reference` | required |  |
-| `alias-id` | required |  |
+| `reference` | required | project:<id>, tag:<id> or topic:<id>, from vocabulary list. |
+| `alias-id` | required | the alias's id, from vocabulary list. |
 
 | Option | What it does |
 |---|---|
@@ -1067,11 +1067,11 @@ memo vocabulary aliases remove <reference> <alias-id> [options]
 
 ## `memo memories`
 
-What agents and you concluded, each with its evidence: an agent's waits for you to confirm it
+what agents and you concluded, with evidence; you confirm an agent's
 
 ### `memo memories add`
 
-Write a memory: yours is confirmed at once, an agent's waits as proposed until you confirm it
+write a memory; an agent's waits as proposed until you confirm it
 
 ```sh
 memo memories add <text> [options]
@@ -1092,7 +1092,7 @@ memo memories add <text> [options]
 
 ### `memo memories list`
 
-Memories, newest first
+memories, newest first
 
 ```sh
 memo memories list [options]
@@ -1109,7 +1109,7 @@ memo memories list [options]
 
 ### `memo memories show`
 
-One memory with its evidence
+one memory with its evidence
 
 ```sh
 memo memories show <ref> [options]
@@ -1125,7 +1125,7 @@ memo memories show <ref> [options]
 
 ### `memo memories search`
 
-Memories holding every word, best first
+memories holding every word, best first
 
 ```sh
 memo memories search <words> [options]
@@ -1143,7 +1143,7 @@ memo memories search <words> [options]
 
 ### `memo memories confirm`
 
-Stand behind a memory: its evidence was checked now
+stand behind a memory: its evidence was checked now
 
 ```sh
 memo memories confirm <ref> [options]
@@ -1159,7 +1159,7 @@ memo memories confirm <ref> [options]
 
 ### `memo memories stale`
 
-Mark a memory whose evidence no longer holds
+mark a memory whose evidence no longer holds
 
 ```sh
 memo memories stale <ref> [options]
@@ -1175,11 +1175,11 @@ memo memories stale <ref> [options]
 
 ## `memo facts`
 
-What happened — said, asked, decided, promised — with its evidence: an agent's waits for you to accept it
+what happened — said, asked, decided, promised — with evidence
 
 ### `memo facts add`
 
-Record a fact: yours is accepted at once, an agent's waits as proposed until you accept it
+record a fact; an agent's waits as proposed until you accept it
 
 ```sh
 memo facts add <statement> [options]
@@ -1194,7 +1194,7 @@ memo facts add <statement> [options]
 | `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--type <type>` | fact, statement, question, decision, promise. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
-| `--project <ref>` | the project it belongs to, project:<id>. |
+| `--project <project>` | the project it belongs to: its key or project:<id>. |
 | `--subject <ref>` | what it is about, as a reference. |
 | `--occurred <iso>` | when it happened, as the evidence shows. |
 | `--scope <scope>` | personal or work. |
@@ -1203,7 +1203,7 @@ memo facts add <statement> [options]
 
 ### `memo facts list`
 
-Facts, latest first
+facts, latest first
 
 ```sh
 memo facts list [options]
@@ -1213,14 +1213,14 @@ memo facts list [options]
 |---|---|
 | `--type <type>` | fact, statement, question, decision, promise. |
 | `--status <status>` | proposed, accepted, superseded, reversed. |
-| `--project <ref>` | only this project's, project:<id>. |
+| `--project <project>` | only this project's: its key or project:<id>. |
 | `--subject <ref>` | only facts about this reference. |
 | `--limit <n>` | most facts, up to 500. Default: `100`. |
 | `--json` | print JSON. |
 
 ### `memo facts show`
 
-One fact with its evidence
+one fact with its evidence
 
 ```sh
 memo facts show <ref> [options]
@@ -1236,7 +1236,7 @@ memo facts show <ref> [options]
 
 ### `memo facts accept`
 
-Stand behind a fact an agent proposed; a decision it supersedes stops holding
+stand behind a fact an agent proposed; a decision it supersedes stops holding
 
 ```sh
 memo facts accept <ref> [options]
@@ -1252,7 +1252,7 @@ memo facts accept <ref> [options]
 
 ### `memo facts reverse`
 
-An accepted decision no longer holds, and nothing replaced it
+an accepted decision no longer holds, and nothing replaced it
 
 ```sh
 memo facts reverse <ref> [options]
@@ -1268,11 +1268,11 @@ memo facts reverse <ref> [options]
 
 ## `memo actions`
 
-What an agent proposes to do; approving one makes it your task, nothing is sent
+what an agent proposes to do; approving one makes it your task, nothing is sent
 
 ### `memo actions propose`
 
-Propose an action, such as a reply or a ban, in the account that would act; it records who proposed it
+propose an action, such as a reply or a ban, in the account that would act
 
 ```sh
 memo actions propose <kind> [options]
@@ -1294,7 +1294,7 @@ memo actions propose <kind> [options]
 
 ### `memo actions list`
 
-Proposed actions, newest first
+proposed actions, newest first
 
 ```sh
 memo actions list [options]
@@ -1308,7 +1308,7 @@ memo actions list [options]
 
 ### `memo actions show`
 
-One proposed action, with its payload
+one proposed action, with its payload
 
 ```sh
 memo actions show <id> [options]
@@ -1316,7 +1316,7 @@ memo actions show <id> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `id` | required |  |
+| `id` | required | the action's id, as actions list gives it. |
 
 | Option | What it does |
 |---|---|
@@ -1324,7 +1324,7 @@ memo actions show <id> [options]
 
 ### `memo actions approve`
 
-Approve it: it becomes a task in the account that would act; nothing is sent
+approve it: it becomes a task in the account that would act; nothing is sent
 
 ```sh
 memo actions approve <id> [options]
@@ -1332,7 +1332,7 @@ memo actions approve <id> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `id` | required |  |
+| `id` | required | the action's id, as actions list gives it. |
 
 | Option | What it does |
 |---|---|
@@ -1340,7 +1340,7 @@ memo actions approve <id> [options]
 
 ### `memo actions reject`
 
-Reject it; nothing is done
+reject it; nothing is done
 
 ```sh
 memo actions reject <id> [options]
@@ -1348,7 +1348,7 @@ memo actions reject <id> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `id` | required |  |
+| `id` | required | the action's id, as actions list gives it. |
 
 | Option | What it does |
 |---|---|
@@ -1356,11 +1356,11 @@ memo actions reject <id> [options]
 
 ## `memo agents`
 
-What agents did through the MCP servers that share the store
+what agents did through the MCP servers that share the store
 
 ### `memo agents log`
 
-One row per tool call, newest first: agent, tool, tier, outcome and times, never its arguments
+one row per tool call, newest first: agent, tool, tier, outcome and times, never its arguments
 
 ```sh
 memo agents log [options]
@@ -1375,7 +1375,7 @@ memo agents log [options]
 
 ## `memo mcp`
 
-Serve memories, proposed actions and the agent log to an agent over MCP, on stdin and stdout
+serve memories, proposed actions and the agent log over MCP on stdin and stdout
 
 ```sh
 memo mcp
@@ -1383,11 +1383,11 @@ memo mcp
 
 ## `memo search`
 
-Search stored messages, mail and notes: one kind when you know it, search all when you do not
+search stored messages, mail and notes; search all when you do not know the kind
 
 ### `memo search all`
 
-Messages, mail and notes ranked together; not people, memories, projects or decisions. A kind you know reads better with its own search, with all its fields
+messages, mail and notes ranked together; not people, memories, projects or decisions. A kind you know reads better with its own search, with all its fields
 
 ```sh
 memo search all <query> [options]
@@ -1410,7 +1410,7 @@ memo search all <query> [options]
 
 ### `memo search messages`
 
-Stored messenger messages only
+stored messenger messages only
 
 ```sh
 memo search messages <query> [options]
@@ -1432,7 +1432,7 @@ memo search messages <query> [options]
 
 ### `memo search mail`
 
-Imported emails only
+imported emails only
 
 ```sh
 memo search mail <query> [options]
@@ -1450,11 +1450,11 @@ memo search mail <query> [options]
 | `--json` | print JSON. |
 | `--brief` | each message or email as reference, time, sender and excerpt only. |
 | `--full` | each message or email with its whole text and every field. |
-| `--account <address>` | only this mail account, by its address (default: every mail account). |
+| `--account <account>` | only this mail account, by its address (default: every mail account). |
 
 ### `memo search notes`
 
-Native notes by words and, with the local model, meaning
+native notes by words and, with the local model, meaning
 
 ```sh
 memo search notes <query> [options]
@@ -1475,13 +1475,13 @@ memo search notes <query> [options]
 | `--type <type>` | file or internal. |
 | `--tag <tag>` | only notes with this tag. |
 | `--filter <query>` | another query every note must match. |
-| `--folder <path-or-id...>` | only these folders. |
+| `--folder <folder>` | only this folder, by its id or path; repeat for more. |
 | `--offset <n>` | continue from nextOffset. Default: `0`. |
 | `--project <project>` | rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out. |
 
 ## `memo ask`
 
-Prepare cited evidence for your agent, or explicitly call a configured model
+prepare cited evidence for your agent, or explicitly call a configured model
 
 ```sh
 memo ask <question> [options]
@@ -1489,22 +1489,22 @@ memo ask <question> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `question` | required |  |
+| `question` | required | the question, in your own words. |
 
 | Option | What it does |
 |---|---|
 | `--query <query>` | structured retrieval query; defaults to the question. |
-| `--all` |  |
-| `--provider <provider>` |  |
-| `--account <account>` |  |
+| `--all` | look in every stored account and the notes. |
+| `--provider <provider>` | look in this provider's accounts only, such as telegram or email. |
+| `--account <account>` | look in this stored account only, with --provider. |
 | `--limit <n>` | most evidence items, at most 100. Default: `20`. |
 | `--model` | call MEMO_MODELS_ANALYSIS_PROVIDER/MODEL instead of returning an evidence bundle. |
 | `--allow-remote` | explicitly consent to sending this evidence to the configured model. |
-| `--json` |  |
+| `--json` | print JSON. |
 
 ## `memo sync`
 
-Bring notes and mail up to date in the shared store — only what changed; the timer runs this
+bring notes and mail up to date in the store, only what changed
 
 ```sh
 memo sync [options]
@@ -1519,11 +1519,11 @@ memo sync [options]
 
 ## `memo auto`
 
-Run memo sync on a timer (systemd user timer); on/off and the interval live in the config
+run memo sync on a systemd user timer, set in the config
 
 ### `memo auto on`
 
-Import every --every (default: auto.every in the config, else 5m), starting a minute from now
+sync every --every (default auto.every, else 5m), starting a minute from now
 
 ```sh
 memo auto on [options]
@@ -1535,7 +1535,7 @@ memo auto on [options]
 
 ### `memo auto off`
 
-Stop importing on a timer and remove the timer
+stop syncing on a timer and remove the timer
 
 ```sh
 memo auto off
@@ -1543,7 +1543,7 @@ memo auto off
 
 ### `memo auto status`
 
-Whether the timer is on, its interval, when it runs next and how the last run ended
+whether the timer is on, its interval, its next run and how the last one ended
 
 ```sh
 memo auto status [options]
@@ -1555,7 +1555,7 @@ memo auto status [options]
 
 ## `memo commands`
 
-Discover the command tree and options as shared registry data
+discover the command tree and options as shared registry data
 
 ```sh
 memo commands [path] [options]

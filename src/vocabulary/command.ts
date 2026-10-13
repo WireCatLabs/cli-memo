@@ -15,7 +15,7 @@ type Options = VocabularyOptions & { json?: boolean; expected?: string }
 export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const vocabulary = program
     .command("vocabulary")
-    .description("Canonical projects, tags and topics with explicit aliases")
+    .description("canonical projects, tags and topics with explicit aliases")
   const run = answering(streams, env)
   const execute = (options: Options, work: (store: MessageStore) => Promise<unknown>) => run(options.json, work)
   const readOptions = (command: Command) =>
@@ -32,17 +32,17 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
     ...(options.maxReadBytes === undefined ? {} : { maxReadBytes: options.maxReadBytes }),
   })
   readOptions(
-    vocabulary.command("list").description("List canonical IDs, aliases, usage counts and a preview fingerprint"),
+    vocabulary.command("list").description("list canonical IDs, aliases, usage counts and a preview fingerprint"),
   ).action((options: Options) => execute(options, (store) => store.knowledge.vocabulary(catalogOptions(options))))
   readOptions(
     vocabulary
       .command("resolve")
-      .argument("<name>")
-      .description("Resolve an exact name or alias; ambiguity is reported"),
+      .argument("<name>", "the name or alias to look up, exactly")
+      .description("resolve an exact name or alias; ambiguity is reported"),
   ).action((name: string, options: Options) =>
     execute(options, (store) => store.knowledge.resolveVocabulary(name, catalogOptions(options))),
   )
-  readOptions(vocabulary.command("audit").description("Discover likely synonyms without accepting or merging them"))
+  readOptions(vocabulary.command("audit").description("discover likely synonyms without accepting or merging them"))
     .option("--min-similarity <n>", "minimum lexical similarity, 0.65–1", Number)
     .option("--max-comparisons <n>", "bound name comparisons", positive)
     .option("--limit <n>", "maximum candidate pairs", positive)
@@ -58,8 +58,8 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
     )
   vocabulary
     .command("preflight")
-    .argument("<name>")
-    .description("Review an existing label or likely lexical duplicates before creation")
+    .argument("<name>", "the tag or topic you mean to create")
+    .description("review an existing label or likely lexical duplicates before creation")
     .option("--kind <kind>", "tag or topic", oneOf(["tag", "topic"] as const))
     .option("--json", "print JSON")
     .action((name: string, options: Options & { kind?: "tag" | "topic" }) =>
@@ -69,8 +69,8 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
     )
   vocabulary
     .command("create")
-    .argument("<name>")
-    .description("Owner: create a distinct tag or topic after reviewing its preflight")
+    .argument("<name>", "the new tag or topic")
+    .description("owner: create a distinct tag or topic after reviewing its preflight")
     .option("--kind <kind>", "tag or topic", oneOf(["tag", "topic"] as const))
     .requiredOption("--expected <fingerprint>", "the current preflight creationFingerprint")
     .option("--json", "print JSON")
@@ -83,12 +83,12 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
         }),
       ),
     )
-  const aliases = vocabulary.command("aliases").description("Owner-reviewed aliases on stable canonical IDs")
+  const aliases = vocabulary.command("aliases").description("owner-reviewed aliases on stable canonical IDs")
   aliases
     .command("add")
-    .description("Owner: add another name for a project, tag or topic")
-    .argument("<reference>")
-    .argument("<name>")
+    .description("owner: add another name for a project, tag or topic")
+    .argument("<reference>", "project:<id>, tag:<id> or topic:<id>, from vocabulary list")
+    .argument("<name>", "the other name")
     .requiredOption("--expected <fingerprint>", "the current vocabulary preview fingerprint")
     .option("--json", "print JSON")
     .action((reference: string, name: string, options: Options) => {
@@ -99,9 +99,9 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
     })
   aliases
     .command("remove")
-    .description("Owner: remove another name from a project, tag or topic")
-    .argument("<reference>")
-    .argument("<alias-id>")
+    .description("owner: remove another name from a project, tag or topic")
+    .argument("<reference>", "project:<id>, tag:<id> or topic:<id>, from vocabulary list")
+    .argument("<alias-id>", "the alias's id, from vocabulary list")
     .requiredOption("--expected <fingerprint>", "the current vocabulary preview fingerprint")
     .option("--json", "print JSON")
     .action((reference: string, aliasId: string, options: Options) => {
