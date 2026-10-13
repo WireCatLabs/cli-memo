@@ -77,7 +77,16 @@ Older Memo versions kept data in a file called `messages.db`. The current versio
 local store, `wirecat.db`, and does not read the old file. Add each folder again with
 `memo folders add`, then run `memo notes import` and `memo mail <account> import`.
 
+## Help shows every command instead of one
+
+A command path in one argument, such as `memo "projects add" --help`, is refused with the words to
+type. A shell loop passes it that way: in zsh, `for c in "projects add"; do memo $c --help; done`
+keeps `$c` whole. Write `memo ${=c} --help` in zsh, or loop over the words.
+
 ## Still stuck
+
+Before you report a bug, compare `memo --version` with `npm view @wirecat/cli-memo version`. If
+yours is older, update and try again: the bug may be fixed already.
 
 Run the failing command again with `--json` and give your agent the full answer, or
 [open an issue](https://github.com/WireCatLabs/cli-memo/issues) with the command and the message.

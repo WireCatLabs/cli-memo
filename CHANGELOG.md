@@ -30,6 +30,13 @@ the API.
 
 ### Fixed
 
+- **A command path given as one argument is refused with the words to type.** `memo "projects add" --help` — what
+  a zsh loop over `"$c"` passes — printed the root help; it now says `"projects add" was given as one argument;
+  run: memo projects add`.
+- **Search help says where file text and references are.** `search messages`, `search mail` and `search all` say
+  `content:`, `transcript:` and `filename:` narrow a search to the text of files, voice transcripts or file names, and each search's `--help` and MCP
+  tool names the list (`items` or `hits`) and the reference (`locator` or `ref`) of its `--json` answer. The usage and
+  troubleshooting guides say the same, and to compare `memo --version` with npm before reporting a bug.
 - **The search guide names `content:` for messages.** It narrows a search to the text of files, in
   `memo search messages` and `memo search all` as in tg; the guide listed it for mail only.
 - **`memo projects context` and `memo organizations context` refuse what the store does not hold** with

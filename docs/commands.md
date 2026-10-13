@@ -231,13 +231,14 @@ memo folders list [options]
 Read one mail account through Himalaya into the shared message store
 
 ```sh
-memo mail [account] [action] [options]
+memo mail [account] [action] [reference] [options]
 ```
 
 | Argument | | What it is |
 |---|---|---|
 | `account` | optional | the account's name in mail.accounts of the config, also its name in Himalaya. |
-| `action` | optional | import: read the account's mail, and drop the text of mail deleted at the source. |
+| `action` | optional | import: read the account's mail, and drop the text of mail deleted at the source; show: one stored email. |
+| `reference` | optional | show: the email's msg:email/… reference, as search answers give it. |
 
 | Option | What it does |
 |---|---|
@@ -246,6 +247,8 @@ memo mail [account] [action] [options]
 | `--json` | print JSON. |
 | `--no-embed` | skip semantic embedding; local words remain searchable. |
 | `--retry-attachments` | reread bounded stored messages after installing an extraction engine. |
+| `--before-n <n>` | show: also this many earlier emails of its thread. Default: `0`. |
+| `--after-n <n>` | show: also this many later emails of its thread. Default: `0`. |
 
 ## `memo note`
 
@@ -736,12 +739,12 @@ memo projects key-documents list <project> [options]
 ## `memo relationships`
 
 Explicit relations between people, organizations and projects; this never links identities
-State that a person, organization or project belongs to or relates to another; an agent's waits for you to confirm it
-
-```sh
 
 ### `memo relationships add`
 
+State that a person, organization or project belongs to or relates to another; an agent's waits for you to confirm it
+
+```sh
 memo relationships add <from> <to> [options]
 ```
 
@@ -752,10 +755,10 @@ memo relationships add <from> <to> [options]
 
 | Option | What it does |
 |---|---|
+| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--json` | print JSON. |
 | `--kind <kind>` | member-of or related-to. Default: `member-of`. |
 | `--role <role>` |  |
-| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--evidence <text>` |  |
 
 ### `memo relationships list`
@@ -1080,10 +1083,10 @@ memo memories add <text> [options]
 
 | Option | What it does |
 |---|---|
+| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--kind <kind>` | summary, digest, preference. |
 | `--scope <scope>` | personal or work. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
-| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--subject <ref>` | what it is about, as a reference. |
 | `--json` | print JSON. |
 
@@ -1188,10 +1191,10 @@ memo facts add <statement> [options]
 
 | Option | What it does |
 |---|---|
+| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--type <type>` | fact, statement, question, decision, promise. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
 | `--project <ref>` | the project it belongs to, project:<id>. |
-| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--subject <ref>` | what it is about, as a reference. |
 | `--occurred <iso>` | when it happened, as the evidence shows. |
 | `--scope <scope>` | personal or work. |
@@ -1281,10 +1284,10 @@ memo actions propose <kind> [options]
 
 | Option | What it does |
 |---|---|
+| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--reason <text>` | why it should be done. |
 | `--provider <provider>` | the provider of the account that would act. |
 | `--account <account>` | the account that would act, when the provider has several. |
-| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--target <ref>` | what it acts on: msg:, chat:, contact:, person:, task:, …. |
 | `--payload <json>` | what to do, as JSON, such as the reply's text. |
 | `--json` | print JSON. |
@@ -1403,10 +1406,10 @@ memo search all <query> [options]
 | `--brief` | each message or email as reference, time, sender and excerpt only. |
 | `--full` | each message or email with its whole text and every field. |
 | `--only <resources>` | messages,mail,notes, separated by commas. |
+| `--project <project>` | rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out. |
 
 ### `memo search messages`
 
-| `--project <project>` | rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out. |
 Stored messenger messages only
 
 ```sh
@@ -1474,10 +1477,10 @@ memo search notes <query> [options]
 | `--filter <query>` | another query every note must match. |
 | `--folder <path-or-id...>` | only these folders. |
 | `--offset <n>` | continue from nextOffset. Default: `0`. |
+| `--project <project>` | rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out. |
 
 ## `memo ask`
 
-| `--project <project>` | rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out. |
 Prepare cited evidence for your agent, or explicitly call a configured model
 
 ```sh
@@ -1566,9 +1569,6 @@ memo commands [path] [options]
 |---|---|
 | `--json` | print JSON. |
 
-## Exit codes
-
-Failures use the shared WireCat error contract.
 ## `memo skill`
 
 the instructions an agent is given for this tool
@@ -1593,6 +1593,9 @@ memo skill install [options]
 |---|---|
 | `--for <agents>` | which agents to install for. One of: `claude`, `agents`, `all`. Default: `all`. |
 
+## Exit codes
+
+Failures use the shared WireCat error contract.
 
 | Code | When |
 |---|---|

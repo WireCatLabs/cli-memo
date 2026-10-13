@@ -8,9 +8,11 @@ import { APP } from "../app.js"
 migrateFolders(APP)
 await ensureSqlite()
 // A static import would load the store's SQLite before ensureSqlite could swap it.
-const { createProgram } = await import("../program.js")
+const { createProgram, refuseJoinedPath } = await import("../program.js")
 try {
-  await createProgram().parseAsync(process.argv)
+  const program = createProgram()
+  refuseJoinedPath(program, process.argv.slice(2))
+  await program.parseAsync(process.argv)
 } catch (error) {
   process.stderr.write(`memo: ${error instanceof Error ? error.message : String(error)}\n`)
   process.exitCode = isCliError(error) ? exitCodeFor(error.code) : GENERIC_FAILURE
