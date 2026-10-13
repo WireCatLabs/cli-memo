@@ -8,6 +8,9 @@ the API.
 
 ### Fixed
 
+- **`memo projects context` and `memo organizations context` refuse what the store does not hold** with
+  `not_found` instead of an empty answer, and `organizations context` takes `organization:<id>` as well as
+  its id.
 - **`memo folders attach` refuses drive-cli's `google-drive:` folder**, and `memo folders list` marks it "kept by
   drive" (`keptBy: "drive"` in JSON) instead of offering to attach it. Bound to a disk folder, the next import
   would have deleted the Drive documents missing from it.
