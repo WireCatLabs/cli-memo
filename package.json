@@ -50,6 +50,7 @@
     "@wirecat/cli-base": "0.24.0",
     "@wirecat/cli-messaging": "0.258.0",
     "commander": "15.0.0",
+    "postal-mime": "4.0.0",
     "valibot": "1.5.0",
     "yaml": "2.9.1"
   },

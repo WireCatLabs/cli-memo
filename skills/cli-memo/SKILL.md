@@ -35,6 +35,10 @@ anything. Add `--json` and read the answer, not the text meant for people.
    older install may lack the fix.
 9. **zsh does not split `$c` into words.** `memo $c --help` with `c="projects add"` passes one
    argument, not a command path; write `${=c}` or loop over the words.
+10. **A large first mail import takes days, not one run.** `memo sync --mail` reads about 10 emails
+    (~1 MB) a second and Gmail caps IMAP downloads (2,500 MB a day for Workspace,
+    <https://knowledge.workspace.google.com/admin/gmail/gmail-bandwidth-limits>; the consumer limit is
+    not published). Raise `--limit` gradually; each run continues where the last stopped.
 
 ## The usual path
 

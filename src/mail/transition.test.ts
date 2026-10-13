@@ -7,6 +7,7 @@ import { type MessageStore, openStore } from "@wirecat/cli-messaging/store"
 import { afterEach, describe, expect, it } from "vitest"
 import { himalaya } from "./himalaya.js"
 import { importMail } from "./import.js"
+import { himalayaSource } from "./source.js"
 
 const ME = "owner@example.test"
 const KEY = { provider: "email", account: ME }
@@ -78,7 +79,7 @@ describe("moving mail from messages into the mail tables", () => {
     const run = () =>
       importMail({
         store,
-        run: himalaya(env),
+        source: himalayaSource(himalaya(env), { name: "test" }),
         account: { name: "test", address: ME },
         since: new Date("2026-09-01T00:00:00Z"),
         now: () => Date.parse("2026-10-04T12:00:00Z"),

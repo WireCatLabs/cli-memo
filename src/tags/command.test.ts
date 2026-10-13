@@ -9,6 +9,7 @@ import { beforeEach, describe, expect, it } from "vitest"
 import { APP } from "../app.js"
 import { himalaya } from "../mail/himalaya.js"
 import { importMail } from "../mail/import.js"
+import { himalayaSource } from "../mail/source.js"
 import { createProgram } from "../program.js"
 
 let env: NodeJS.ProcessEnv
@@ -65,7 +66,7 @@ beforeEach(async () => {
     for (const key of [mail, otherMail])
       await importMail({
         store,
-        run: himalaya(env),
+        source: himalayaSource(himalaya(env), { name: "test" }),
         account: { name: "test", address: key.account },
         since: new Date("2026-09-01"),
       })

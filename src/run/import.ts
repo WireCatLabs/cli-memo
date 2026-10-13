@@ -4,6 +4,7 @@ import { type Command, Option } from "commander"
 import { type Config, loadConfig } from "../config.js"
 import { himalaya } from "../mail/himalaya.js"
 import { type ImportResult, importMail } from "../mail/import.js"
+import { himalayaSource } from "../mail/source.js"
 import { boundFolders, unboundReason } from "../notes/bound.js"
 import { embedNoteChunks, type NoteChunksEmbedded } from "../notes/embed.js"
 import { noteFolders } from "../notes/folders.js"
@@ -15,6 +16,11 @@ import { withImportLock } from "./lock.js"
 
 const DAY = 86_400_000
 const MAIL_WINDOW_DAYS = 30
+const LARGE_IMPORT_HELP =
+  "Large first import: mail is read at about 10 emails (~1 MB) a second, and Gmail caps IMAP downloads " +
+  "(2,500 MB a day for Workspace, https://knowledge.workspace.google.com/admin/gmail/gmail-bandwidth-limits; " +
+  "the consumer limit is not published), so a mailbox of many GB takes days: raise --limit gradually and let " +
+  "each run continue where the last stopped."
 
 export interface ImportRun {
   notes: NotesImport[]
@@ -46,6 +52,7 @@ const text = (run: ImportRun): string =>
       (m) =>
         `mail ${m.account}: ${m.listed} listed, ${m.saved} new, ${m.deleted} gone` +
         (m.complete ? "" : " — more to read next run") +
+        (m.failed === undefined ? "" : ` — ${m.failed.length} unreadable, tried again next run`) +
         (m.deletionsSkipped === undefined ? "" : ` — deletions skipped: ${m.deletionsSkipped}`),
     ),
     ...run.failed.map(({ source, reason }) => `failed ${source}: ${reason}`),
@@ -125,6 +132,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     )
     .option("--no-embed", "skip embedding notes and mail for search by meaning this run")
     .option("--json", "print JSON")
+    .addHelpText("after", `\n${LARGE_IMPORT_HELP}`)
     .action(async (options: SyncOptions) => {
       const both = !options.notes && !options.mail
       const config = loadConfig(env)
@@ -180,7 +188,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
               run.mail.push(
                 await importMail({
                   store,
-                  run: himalaya(env),
+                  source: himalayaSource(himalaya(env), account),
                   account,
                   since,
                   env,

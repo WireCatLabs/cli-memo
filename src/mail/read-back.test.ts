@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest"
 import { createProgram } from "../program.js"
 import { himalaya } from "./himalaya.js"
 import { importMail } from "./import.js"
+import { himalayaSource } from "./source.js"
 
 const ME = "owner@example.test"
 const KEY = { provider: "email", account: ME }
@@ -52,7 +53,7 @@ describe("mail imported into the mail tables reads back through memo", () => {
     try {
       await importMail({
         store,
-        run: himalaya(env),
+        source: himalayaSource(himalaya(env), { name: "test" }),
         account: { name: "test", address: ME },
         since: new Date("2026-09-01T00:00:00Z"),
         now: () => Date.parse("2026-10-04T12:00:00Z"),
