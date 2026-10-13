@@ -240,9 +240,22 @@ describe("memo sync --notes", () => {
     await run("sync", "--notes")
 
     const kai = await json("notes", "list", "--about", "telegram:102")
+    expect(kai.items.map(({ linkText }: { linkText: string }) => linkText)).toEqual(["Kai Sample", "Kai Sample"])
     expect(kai.items.map(({ path, via }: { path: string; via: string }) => [path, via]).sort()).toEqual([
       ["Projects/Harbour.md", "name"],
       ["Projects/Lighthouse.md", "name"],
+    ])
+  })
+
+  it("names every heading a note links the subject under", async () => {
+    write("Projects/Harbour.md", "Harbour plan, with [[Kai Sample#Budget]] and [[Kai Sample#Dates]].\n")
+    await telegramPeople(["102", "Kai Sample"])
+    await run("sync", "--notes")
+
+    const { items } = await json("notes", "list", "--about", "telegram:102")
+    expect(items.find(({ path }: { path: string }) => path === "Projects/Harbour.md").anchors).toEqual([
+      "#Budget",
+      "#Dates",
     ])
   })
 
