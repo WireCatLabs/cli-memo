@@ -14,6 +14,7 @@ import type { AccountKey, MessageStore, Note } from "@wirecat/cli-messaging/stor
 import { openStore } from "@wirecat/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { APP } from "../app.js"
+import { keyDocuments, keyFirst, projectOf } from "../knowledge/key-documents.js"
 import { boundFolders } from "../notes/bound.js"
 import { searchText } from "../notes/search.js"
 import { positive } from "../options.js"
@@ -360,6 +361,12 @@ export const searchKind = async (
   )
 }
 
+const PROJECT_HELP =
+  "rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out"
+
+const keyRefs = async (store: MessageStore, project: string) =>
+  new Set((await keyDocuments(store, await projectOf(store, project))).map((item) => item.ref))
+
 export const searchCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const group = program
     .command("search")
@@ -408,20 +415,31 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       ),
   )
     .option("--only <resources>", "messages,mail,notes, separated by commas", onlyOf)
+    .option("--project <project>", PROJECT_HELP)
     .action(
       async (
         words: string[],
-        options: { limit: number; only?: SearchedResource[]; exact?: boolean; timezone?: string; json?: boolean },
+        options: {
+          limit: number
+          only?: SearchedResource[]
+          exact?: boolean
+          timezone?: string
+          project?: string
+          json?: boolean
+        },
       ) => {
-        const answer = await withStore((store) =>
-          searchEverywhere(store, env, {
+        const answer = await withStore(async (store) => {
+          const found = await searchEverywhere(store, env, {
             text: words.join(" "),
             limit: options.limit,
             ...(options.only === undefined ? {} : { only: options.only }),
             ...(options.exact ? { exact: true } : {}),
             ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
-          }),
-        )
+          })
+          return options.project === undefined
+            ? found
+            : { ...found, items: keyFirst(found.items, await keyRefs(store, options.project)) }
+        })
         if (!options.json) {
           streams.diagnostic(
             `searched: ${answer.accounts.map(({ provider, account }) => `${provider}:${account}`).join(", ") || "nothing"}\n`,
@@ -434,7 +452,7 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
           options.json,
           answer,
           [
-            ...answer.items.map((item) => `${item.kind}  ${item.ref}\n  ${item.text}`),
+            ...answer.items.map((item) => `${"key" in item ? "key  " : ""}${item.kind}  ${item.ref}\n  ${item.text}`),
             ...answer.tasks.map((task) => `task  task:${task.id}  ${task.kind}  ${task.source}`),
           ].join("\n"),
         )
@@ -483,6 +501,7 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     .option("--filter <query>", "another query every note must match")
     .option("--folder <path-or-id...>", "only these folders")
     .option("--offset <n>", "continue from nextOffset", Number, 0)
+    .option("--project <project>", PROJECT_HELP)
     .action(
       async (
         words: string[],
@@ -493,13 +512,14 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
           tag?: string
           filter?: string
           folder?: string[]
+          project?: string
           exact?: boolean
           timezone?: string
           json?: boolean
         },
       ) => {
-        const answer = await withStore(async (store) =>
-          searchNotes(store, words.join(" "), {
+        const answer = await withStore(async (store) => {
+          const found = await searchNotes(store, words.join(" "), {
             limit: options.limit,
             offset: options.offset,
             env,
@@ -510,8 +530,11 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
             ...(options.folder === undefined ? {} : { folderIds: await searchFolderIds(store, env, options.folder) }),
             ...(options.exact ? { exact: true } : {}),
             ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
-          }),
-        )
+          })
+          return options.project === undefined
+            ? found
+            : { ...found, hits: keyFirst(found.hits, await keyRefs(store, options.project)) }
+        })
         if (answer.meaningSkipped && !options.json)
           streams.diagnostic(`Searched by words only: ${answer.meaningSkipped}\n`)
         print(options.json, answer, searchText(answer))

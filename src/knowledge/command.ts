@@ -15,6 +15,7 @@ import { notesAbout } from "../notes/about.js"
 import { accountOptions, oneOf, positive } from "../options.js"
 import { answering } from "../records/run.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
+import { keyDocuments, markKey, projectOf, unmarkKey } from "./key-documents.js"
 import { meetingProjectsCommand } from "./meeting-projects-command.js"
 
 export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
@@ -47,7 +48,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       [type]: thing,
       relationships: (await store.notes.links({ to: `${type}:${id}` }))
         .concat(await store.notes.links({ from: `${type}:${id}` }))
-        .filter((link) => link.kind !== "about" && link.kind !== "links-to"),
+        .filter((link) => link.kind !== "about" && link.kind !== "links-to" && link.role !== "key"),
       notes: await notesAbout(store, { ref: `${type}:${id}` }),
       tags: await store.knowledge.tags(null, { type, id }),
     }
@@ -134,18 +135,52 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   projects
     .command("context")
     .description(
-      "One project by its id, key or project:<id>: its relationships, the notes about or linking it, and its tags",
+      "One project by its id, key or project:<id>: its key documents first, then its relationships, the notes " +
+        "about or linking it, and its tags. Start work on a project here",
     )
     .argument("<project>")
     .option("--json", "print JSON")
     .action((reference: string, options: { json?: boolean }) =>
       owned(options, async (store) => {
-        const wanted = reference.replace(/^project:/, "")
-        const project = (await store.knowledge.projects()).find(
-          (candidate) => candidate.id === wanted || candidate.key?.toLowerCase() === wanted.toLowerCase(),
-        )
-        return contextOf(store, project, "project", reference)
+        const project = await projectOf(store, reference)
+        return {
+          keyDocuments: await keyDocuments(store, project),
+          ...(await contextOf(store, project, "project", reference)),
+        }
       }),
+    )
+  const keys = projects
+    .command("key-documents")
+    .description("The notes, files and messages to read first about a project, each with why")
+  byOption(
+    keys
+      .command("add")
+      .description("Mark a note:, document: or msg: reference as a key document of the project")
+      .argument("<project>", "id, key or project:<id>")
+      .argument("<reference>", "note:, document: or msg: reference")
+      .requiredOption("--reason <text>", "why it is key, in a few words")
+      .option("--json", "print JSON"),
+  ).action((project: string, reference: string, options: { reason: string; asOwner?: boolean; json?: boolean }) =>
+    owned(options, async (store) =>
+      markKey(store, await projectOf(store, project), reference, options.reason, authorOf(env, options.asOwner)),
+    ),
+  )
+  keys
+    .command("remove")
+    .description("Unmark a key document; the note, file or message stays")
+    .argument("<project>", "id, key or project:<id>")
+    .argument("<reference>")
+    .option("--json", "print JSON")
+    .action((project: string, reference: string, options: { json?: boolean }) =>
+      owned(options, async (store) => unmarkKey(store, await projectOf(store, project), reference)),
+    )
+  keys
+    .command("list")
+    .description("A project's key documents: title, path, why, who marked it and whether it is still there")
+    .argument("<project>", "id, key or project:<id>")
+    .option("--json", "print JSON")
+    .action((project: string, options: { json?: boolean }) =>
+      owned(options, async (store) => ({ items: await keyDocuments(store, await projectOf(store, project)) })),
     )
   const relations = program
     .command("relationships")
