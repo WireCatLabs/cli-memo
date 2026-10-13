@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest"
 import { listImapMail } from "./gmail.js"
 import type { Himalaya } from "./himalaya.js"
 import { importMail } from "./import.js"
+import { himalayaSource } from "./source.js"
 
 const runner =
   (validity: string, folder: string, fail = false): Himalaya =>
@@ -24,15 +25,11 @@ describe("generic IMAP identities", () => {
         return input.includes("UID SEARCH")
           ? `a OK selected\r\n* SEARCH${present ? " 1" : ""}\r\nb OK searched\r\n`
           : 'a OK selected\r\n* 1 FETCH (UID 1 X-GM-MSGID 9001 X-GM-THRID 7001 INTERNALDATE "08-Oct-2026 09:00:00 +0000")\r\nf0 OK fetched\r\n'
-      return JSON.stringify({
-        text_body: [0],
-        html_body: [],
-        parts: [{ headers: [], body: { Text: "Synthetic source" } }],
-      })
+      return JSON.stringify({ messages: [{ uid: 1, body: Buffer.from("\r\nSynthetic source").toString("base64") }] })
     }
     const options = {
       store,
-      run,
+      source: himalayaSource(run, { name: "synthetic" }),
       since: new Date("2026-10-01T00:00:00Z"),
       now: () => Date.parse("2026-10-08T12:00:00Z"),
       indexThreads: async () => ({ chats: 0, chunks: 0, left: false }),

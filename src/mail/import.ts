@@ -2,9 +2,8 @@ import { extractText, importEngine, type LoadEngine } from "@wirecat/cli-messagi
 import type { AccountKey, AttachmentInput, EmailAddress, MessageStore } from "@wirecat/cli-messaging/store"
 import { embedChanged, embedMailChunks, type NotesEmbedded } from "../notes/embed.js"
 import { dropMissing, tooManyGone } from "../store/gone.js"
-import { listAllMail, listImapMail } from "./gmail.js"
-import type { Himalaya } from "./himalaya.js"
-import { type Address, MAX_BODY_CHARS, parseMail } from "./parse.js"
+import { type Address, MAX_BODY_CHARS, type ParsedMail, parseMail } from "./parse.js"
+import type { Listed, MailSource } from "./source.js"
 
 export interface MailAccount {
   /** The account's name in Himalaya's config. */
@@ -25,6 +24,8 @@ export interface ImportResult {
   deleted: number
   /** False when `max` stopped the run before every new message was read; the next run continues. */
   complete: boolean
+  /** Emails that could not be read or parsed; they are tried again next run. */
+  failed?: { message: string; reason: string }[]
   /** Why stored messages missing at the source were left alone, when they were. */
   deletionsSkipped?: string
   indexed?: NotesEmbedded
@@ -36,12 +37,14 @@ const DAY = 86_400_000
 /** IMAP's SINCE counts whole days in the server's zone, so the window's first days are not trusted. */
 const EDGE = 2 * DAY
 export const MAX_ATTACHMENT_CHARS = 200_000
+/** One chunk of raw mail is held in memory at a time. */
+const FETCH_CHUNK = 50
 
 const addressOf = ({ email, name }: Address): EmailAddress => ({ address: email, name })
 
 export const importMail = async ({
   store,
-  run,
+  source,
   account,
   since,
   max = 200,
@@ -56,7 +59,7 @@ export const importMail = async ({
   embedMail = embedMailChunks,
 }: {
   store: MessageStore
-  run: Himalaya
+  source: MailSource
   account: MailAccount
   since: Date
   max?: number
@@ -76,16 +79,9 @@ export const importMail = async ({
 
   const folders = account.folders ?? [account.mode === "imap" ? "INBOX" : "[Gmail]/All Mail"]
   if (folders.length < 1 || folders.length > 50) throw new Error("select 1–50 mail folders")
-  const collected = []
+  const collected: Listed[] = []
   for (const folder of folders) {
-    const found =
-      account.mode === "imap"
-        ? await listImapMail(run, account.name, since, folder)
-        : (await listAllMail(run, account.name, since, folder)).map((item) => ({
-            ...item,
-            folder: folder === "[Gmail]/All Mail" ? "archive" : folder,
-            scopeFolder: folder,
-          }))
+    const found = await source.list(since, folder)
     // Spreading a whole mailbox into push() overflows the stack past ~120,000 emails.
     for (const item of found) collected.push(item)
   }
@@ -96,7 +92,7 @@ export const importMail = async ({
   const foundFolders = new Map<string, Set<string>>()
   for (const item of collected) {
     const current = foundFolders.get(item.messageId) ?? new Set<string>()
-    current.add(item.scopeFolder ?? item.folder ?? (folders[0] as string))
+    current.add(item.folder ?? (folders[0] as string))
     foundFolders.set(item.messageId, current)
   }
   const mailbox = (folder: string) => ({ externalId: folder, name: folder, kind: null })
@@ -161,85 +157,99 @@ export const importMail = async ({
   }
 
   const attachments: NonNullable<ImportResult["attachments"]> = []
+  const failed: NonNullable<ImportResult["failed"]> = []
   let saved = 0
   let alreadyStored = 0
-  let read = 0
+  const pending: Listed[] = []
   for (const item of listed) {
     if (!retryAttachments && (await store.mail.email(accountId, item.messageId)) !== null) {
       alreadyStored++
       continue
     }
-    if (read >= max) break
-    read++
-    const mail = parseMail(
-      await run(["--json", "message", "read", "-a", account.name, "-m", item.folder ?? "archive", item.uid]),
-      maxBodyChars,
-    )
-    const files: AttachmentInput[] = []
-    for (const [position, part] of mail.attachments.entries()) {
-      const extraction =
-        part.bytes === null
-          ? { status: "unavailable" as const }
-          : await extractText(
-              part.bytes,
-              { kind: "file", name: part.name, mime: part.mime, path: part.name },
-              loadEngine,
-            )
-      attachments.push({ message: item.messageId, part: part.id, status: extraction.status })
-      const extracted = extraction.status === "extracted" ? extraction : undefined
-      files.push({
-        position,
-        kind: "file",
-        mime: part.mime,
-        name: part.name,
-        title: null,
-        url: null,
-        size: part.bytes === null ? null : part.bytes.byteLength,
-        width: null,
-        height: null,
-        duration: null,
-        providerRef: { message: item.messageId, part: part.id },
-        localPath: null,
-        text: extracted ? extracted.text.slice(0, maxAttachmentChars) : null,
-        normalizedText: null,
-        extraction: extracted ? "text" : "failed",
-        extractor: extracted ? extracted.extractor : null,
-        extractionError: extracted ? null : extraction.status,
-        contentSha256: null,
-        extractedAt: startedAt,
+    if (pending.length >= max) break
+    pending.push(item)
+  }
+  for (let start = 0; start < pending.length; start += FETCH_CHUNK) {
+    const chunk = pending.slice(start, start + FETCH_CHUNK)
+    const raws = await source.fetchRaw(chunk)
+    // Every email of a chunk failing is the connection or the login, not the mail: stop instead of trying the rest.
+    if (chunk.length > 1 && raws.every((raw) => raw instanceof Error)) throw raws[0]
+    for (const [index, item] of chunk.entries()) {
+      let mail: ParsedMail
+      try {
+        const raw = raws[index]
+        if (raw === undefined || raw instanceof Error) throw raw ?? new Error("not read")
+        mail = await parseMail(raw, maxBodyChars)
+      } catch (error) {
+        failed.push({ message: item.messageId, reason: error instanceof Error ? error.message : String(error) })
+        continue
+      }
+      const files: AttachmentInput[] = []
+      for (const [position, part] of mail.attachments.entries()) {
+        const extraction =
+          part.bytes === null
+            ? { status: "unavailable" as const }
+            : await extractText(
+                part.bytes,
+                { kind: "file", name: part.name, mime: part.mime, path: part.name },
+                loadEngine,
+              )
+        attachments.push({ message: item.messageId, part: part.id, status: extraction.status })
+        const extracted = extraction.status === "extracted" ? extraction : undefined
+        files.push({
+          position,
+          kind: "file",
+          mime: part.mime,
+          name: part.name,
+          title: null,
+          url: null,
+          size: part.bytes === null ? null : part.bytes.byteLength,
+          width: null,
+          height: null,
+          duration: null,
+          providerRef: { message: item.messageId, part: part.id },
+          localPath: null,
+          text: extracted ? extracted.text.slice(0, maxAttachmentChars) : null,
+          normalizedText: null,
+          extraction: extracted ? "text" : "failed",
+          extractor: extracted ? extracted.extractor : null,
+          extractionError: extracted ? null : extraction.status,
+          contentSha256: null,
+          extractedAt: startedAt,
+        })
+      }
+      await store.mail.saveThread({
+        accountId,
+        externalId: item.threadId,
+        now: startedAt,
+        emails: [
+          {
+            externalId: item.messageId,
+            subject: mail.subject,
+            from: mail.from === null ? null : addressOf(mail.from),
+            to: mail.to.map(addressOf),
+            cc: mail.cc.map(addressOf),
+            bcc: mail.bcc.map(addressOf),
+            sentAt: null,
+            receivedAt: Date.parse(item.receivedAt),
+            bodyText: mail.text || null,
+            outgoing: mail.from === null ? null : mail.from.email === key.account,
+            mailboxes: [
+              ...[...(foundFolders.get(item.messageId) ?? [])].map(mailbox),
+              ...(labelsOf.get(item.messageId)?.labels ?? []).map(label),
+            ],
+            ...(labelsOf.get(item.messageId)?.seen === undefined
+              ? {}
+              : { read: labelsOf.get(item.messageId)?.seen ?? null }),
+            ...(labelsOf.get(item.messageId)?.flagged === undefined
+              ? {}
+              : { flagged: labelsOf.get(item.messageId)?.flagged ?? null }),
+            attachments: files,
+          },
+        ],
       })
+      saved++
     }
-    await store.mail.saveThread({
-      accountId,
-      externalId: item.threadId,
-      now: startedAt,
-      emails: [
-        {
-          externalId: item.messageId,
-          subject: mail.subject,
-          from: mail.from === null ? null : addressOf(mail.from),
-          to: mail.to.map(addressOf),
-          cc: mail.cc.map(addressOf),
-          bcc: mail.bcc.map(addressOf),
-          sentAt: null,
-          receivedAt: Date.parse(item.receivedAt),
-          bodyText: mail.text || null,
-          outgoing: mail.from === null ? null : mail.from.email === key.account,
-          mailboxes: [
-            ...[...(foundFolders.get(item.messageId) ?? [])].map(mailbox),
-            ...(labelsOf.get(item.messageId)?.labels ?? []).map(label),
-          ],
-          ...(labelsOf.get(item.messageId)?.seen === undefined
-            ? {}
-            : { read: labelsOf.get(item.messageId)?.seen ?? null }),
-          ...(labelsOf.get(item.messageId)?.flagged === undefined
-            ? {}
-            : { flagged: labelsOf.get(item.messageId)?.flagged ?? null }),
-          attachments: files,
-        },
-      ],
-    })
-    saved++
   }
 
   // Read and starred change at the source after import; mail saved in this run already holds them.
@@ -286,6 +296,7 @@ export const importMail = async ({
     indexed,
     coverage,
     ...(attachments.length ? { attachments } : {}),
+    ...(failed.length ? { failed } : {}),
     ...(skipped === undefined ? {} : { deletionsSkipped: skipped }),
   }
 }

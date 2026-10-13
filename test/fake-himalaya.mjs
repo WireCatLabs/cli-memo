@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Stands in for himalaya in tests: answers `imap raw` and `message read` from the mailbox JSON at
+// Stands in for himalaya in tests: answers `imap raw` and `imap fetch` from the mailbox JSON at
 // MEMO_FAKE_MAILBOX, in the shapes Himalaya 2.2.1 printed against a real Gmail account.
 import { readFileSync } from "node:fs"
 
@@ -10,6 +10,24 @@ const internal = (iso) => {
   const d = new Date(iso)
   const pad = (n) => String(n).padStart(2, "0")
   return `${pad(d.getUTCDate())}-${months[d.getUTCMonth()]}-${d.getUTCFullYear()} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())} +0000`
+}
+
+const person = ([name, address]) => (name ? `"${name}" <${address}>` : address)
+const raw = (m) => {
+  const type = m.html ? "text/html" : "text/plain"
+  const headers = [
+    `From: ${person(m.from)}`,
+    `To: ${m.to.map(person).join(", ")}`,
+    ...(m.cc ? [`Cc: ${m.cc.map(person).join(", ")}`] : []),
+    `Subject: ${m.subject}`,
+    `Message-ID: <${m.messageId}@example.test>`,
+    `Date: ${new Date(m.receivedAt).toUTCString()}`,
+    "MIME-Version: 1.0",
+    `Content-Type: ${type}; charset=utf-8`,
+    "Content-Transfer-Encoding: base64",
+  ]
+  const body = Buffer.from(m.html ?? m.text ?? "").toString("base64")
+  return Buffer.from(`${headers.join("\r\n")}\r\n\r\n${body}\r\n`)
 }
 
 if (mailbox.fail) {
@@ -47,30 +65,23 @@ if (args[0] === "imap" && args[1] === "raw") {
       for (const [index, m] of mailbox.messages.entries()) {
         if (set.includes(m.uid))
           out.push(
-            `* ${index + 1} FETCH (X-GM-THRID ${m.threadId} X-GM-MSGID ${m.messageId} UID ${m.uid} INTERNALDATE "${internal(m.receivedAt)}")`,
+            `* ${index + 1} FETCH (X-GM-THRID ${m.threadId} X-GM-MSGID ${m.messageId} UID ${m.uid} INTERNALDATE "${internal(m.receivedAt)}" RFC822.SIZE ${raw(m).length})`,
           )
       }
       out.push(`${tag} OK Success`)
     }
   }
   process.stdout.write(`${out.join("\r\n")}\r\n`)
-} else if (args.includes("message") && args.includes("read")) {
-  const m = mailbox.messages.find((item) => item.uid === args.at(-1))
-  const address = (list) => ({ Address: { List: list.map(([name, address]) => ({ name, address })) } })
-  const headers = [
-    { name: "from", value: address([m.from]) },
-    { name: "subject", value: { Text: m.subject } },
-    { name: "to", value: address(m.to) },
-  ]
-  const parts = m.html
-    ? [{ headers, body: { Html: m.html } }]
-    : [
-        { headers, body: { Multipart: [1] } },
-        { headers: [], body: { Text: m.text } },
-      ]
-  process.stdout.write(
-    JSON.stringify({ html_body: m.html ? [0] : [], text_body: m.html ? [0] : [1], attachments: [], parts }),
-  )
+} else if (args.includes("imap") && args.includes("fetch")) {
+  const set = args[args.indexOf("fetch") + 1].split(",")
+  if (set.some((uid) => mailbox.unreadable?.includes(uid))) {
+    process.stderr.write("fake himalaya: unreadable message\n")
+    process.exit(1)
+  }
+  const messages = mailbox.messages
+    .filter((m) => set.includes(m.uid))
+    .map((m, index) => ({ seq: index + 1, uid: Number(m.uid), body: raw(m).toString("base64") }))
+  process.stdout.write(JSON.stringify({ messages }))
 } else {
   process.stderr.write(`fake himalaya: unexpected ${args.join(" ")}\n`)
   process.exit(2)

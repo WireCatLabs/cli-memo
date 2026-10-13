@@ -9,11 +9,12 @@ export interface Listed {
   threadId: string
   receivedAt: string
   folder?: string
-  scopeFolder?: string
   /** Gmail labels, plain names; absent when the answer could not be read, so nothing is changed. */
   labels?: string[]
   seen?: boolean
   flagged?: boolean
+  /** RFC822.SIZE in bytes, to size fetch batches. */
+  size?: number
 }
 
 const SYSTEM_LABELS: Record<string, string> = {
@@ -71,6 +72,8 @@ export const labelName = (raw: string): string => {
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 const FETCH_BATCH = 500
+/** One himalaya call reads its whole answer into memory, so a mailbox of 300,000+ emails is listed in parts. */
+const CALL_UIDS = 10_000
 
 const imapDate = (day: Date): string => `${day.getUTCDate()}-${MONTHS[day.getUTCMonth()]}-${day.getUTCFullYear()}`
 
@@ -122,49 +125,58 @@ export const listAllMail = async (
   const uids = (/^\* SEARCH(.*)$/m.exec(search)?.[1] ?? "").trim().split(/\s+/).filter(Boolean)
   if (uids.length === 0) return []
 
-  const batches: string[] = []
-  for (let start = 0; start < uids.length; start += FETCH_BATCH)
-    batches.push(uids.slice(start, start + FETCH_BATCH).join(","))
-  const tags = batches.map((_, index) => `f${index}`)
-  const fetched = await run(
-    ["imap", "raw", "-a", account],
-    `a EXAMINE ${mailbox}\r\n${batches
-      .map((set, index) => `${tags[index]} UID FETCH ${set} (UID X-GM-MSGID X-GM-THRID INTERNALDATE)\r\n`)
-      .join("")}`,
-  )
-  assertCompleted(fetched, ["a", ...tags])
+  const listed: Omit<Listed, "labels" | "seen" | "flagged">[] = []
+  const marks = new Map<string, Pick<Listed, "labels" | "seen" | "flagged">>()
+  for (let from = 0; from < uids.length; from += CALL_UIDS) {
+    const batches: string[] = []
+    for (let start = from; start < Math.min(from + CALL_UIDS, uids.length); start += FETCH_BATCH)
+      batches.push(uids.slice(start, start + FETCH_BATCH).join(","))
+    const tags = batches.map((_, index) => `f${index}`)
+    const fetched = await run(
+      ["imap", "raw", "-a", account],
+      `a EXAMINE ${mailbox}\r\n${batches
+        .map((set, index) => `${tags[index]} UID FETCH ${set} (UID X-GM-MSGID X-GM-THRID INTERNALDATE RFC822.SIZE)\r\n`)
+        .join("")}`,
+    )
+    assertCompleted(fetched, ["a", ...tags])
+    for (const [, items = ""] of fetched.matchAll(/^\* \d+ FETCH \((.*)\)\s*$/gm)) {
+      const item = (name: string) => new RegExp(`${name} (\\d+)`).exec(items)?.[1]
+      const internal = /INTERNALDATE "([^"]+)"/.exec(items)?.[1]
+      const uid = item("UID")
+      const messageId = item("X-GM-MSGID")
+      const threadId = item("X-GM-THRID")
+      const size = item("RFC822\\.SIZE")
+      if (!uid || !messageId || !threadId || !internal)
+        throw new CliError("invalid_response", `IMAP FETCH answer without the Gmail ids: ${items}`)
+      listed.push({
+        uid,
+        messageId,
+        threadId,
+        receivedAt: isoOf(internal),
+        ...(size === undefined ? {} : { size: Number(size) }),
+      })
+    }
 
-  const listed = [...fetched.matchAll(/^\* \d+ FETCH \((.*)\)\s*$/gm)].map(([, items = ""]) => {
-    const item = (name: string) => new RegExp(`${name} (\\d+)`).exec(items)?.[1]
-    const internal = /INTERNALDATE "([^"]+)"/.exec(items)?.[1]
-    const uid = item("UID")
-    const messageId = item("X-GM-MSGID")
-    const threadId = item("X-GM-THRID")
-    if (!uid || !messageId || !threadId || !internal)
-      throw new CliError("invalid_response", `IMAP FETCH answer without the Gmail ids: ${items}`)
-    return { uid, messageId, threadId, receivedAt: isoOf(internal) }
-  })
+    // A separate answer, so a label the parser cannot read costs that message its labels, never the listing.
+    const labelled = await run(
+      ["imap", "raw", "-a", account],
+      `a EXAMINE ${mailbox}\r\n${batches
+        .map((set, index) => `l${index} UID FETCH ${set} (UID X-GM-LABELS FLAGS)\r\n`)
+        .join("")}`,
+    )
+    for (const [, items = ""] of labelled.matchAll(/^\* \d+ FETCH \((.*)\)\s*$/gm)) {
+      const uid = /(?:^|\s)UID (\d+)/.exec(items)?.[1]
+      const labels = imapList(items, "X-GM-LABELS")
+      const flags = imapList(items, "FLAGS")
+      if (!uid || labels === undefined || flags === undefined) continue
+      const flagged = flags.includes("\\Flagged")
+      const names = new Set(labels.map(labelName))
+      if (flagged) names.add("Starred")
+      marks.set(uid, { labels: [...names].sort(), seen: flags.includes("\\Seen"), flagged })
+    }
+  }
   if (listed.length !== uids.length)
     throw new CliError("invalid_response", `IMAP listed ${uids.length} messages but fetched ${listed.length}`)
-
-  // A separate answer, so a label the parser cannot read costs that message its labels, never the listing.
-  const labelled = await run(
-    ["imap", "raw", "-a", account],
-    `a EXAMINE ${mailbox}\r\n${batches
-      .map((set, index) => `l${index} UID FETCH ${set} (UID X-GM-LABELS FLAGS)\r\n`)
-      .join("")}`,
-  )
-  const marks = new Map<string, Pick<Listed, "labels" | "seen" | "flagged">>()
-  for (const [, items = ""] of labelled.matchAll(/^\* \d+ FETCH \((.*)\)\s*$/gm)) {
-    const uid = /(?:^|\s)UID (\d+)/.exec(items)?.[1]
-    const labels = imapList(items, "X-GM-LABELS")
-    const flags = imapList(items, "FLAGS")
-    if (!uid || labels === undefined || flags === undefined) continue
-    const flagged = flags.includes("\\Flagged")
-    const names = new Set(labels.map(labelName))
-    if (flagged) names.add("Starred")
-    marks.set(uid, { labels: [...names].sort(), seen: flags.includes("\\Seen"), flagged })
-  }
   return listed.map((item) => ({ ...item, ...marks.get(item.uid) }))
 }
 
@@ -189,7 +201,7 @@ export const listImapMail = async (run: Himalaya, account: string, since: Date, 
     const before = listed.length
     const output = await run(
       ["imap", "raw", "-a", account],
-      `a EXAMINE ${mailbox}\r\nf UID FETCH ${batch.join(",")} (UID FLAGS INTERNALDATE BODY.PEEK[HEADER.FIELDS (MESSAGE-ID REFERENCES IN-REPLY-TO)])\r\n`,
+      `a EXAMINE ${mailbox}\r\nf UID FETCH ${batch.join(",")} (UID FLAGS INTERNALDATE RFC822.SIZE BODY.PEEK[HEADER.FIELDS (MESSAGE-ID REFERENCES IN-REPLY-TO)])\r\n`,
     )
     assertCompleted(output, ["a", "f"])
     for (const match of output.matchAll(
@@ -205,8 +217,10 @@ export const listImapMail = async (run: Himalaya, account: string, since: Date, 
       const parent = /^In-Reply-To:\s*(<[^>]+>)/im.exec(unfolded)?.[1]
       const identity = messageId ?? `uid:${folder}:${validity}:${uid}`
       const flags = imapList(fields, "FLAGS")
+      const size = /RFC822\.SIZE (\d+)/.exec(fields)?.[1]
       listed.push({
         uid,
+        ...(size === undefined ? {} : { size: Number(size) }),
         messageId: digest(identity),
         threadId: digest(refs?.[0] ?? parent ?? identity),
         receivedAt: isoOf(internal),

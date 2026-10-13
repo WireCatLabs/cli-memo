@@ -8,6 +8,7 @@ import { createProgram } from "../program.js"
 import { decodeMailboxName, labelName } from "./gmail.js"
 import { himalaya } from "./himalaya.js"
 import { importMail } from "./import.js"
+import { himalayaSource } from "./source.js"
 
 const ME = "owner@example.test"
 const KEY = { provider: "email", account: ME }
@@ -24,6 +25,7 @@ interface Fixture {
   subject: string
   from: [string | null, string]
   to: [string | null, string][]
+  cc?: [string | null, string][]
   text?: string
   html?: string
 }
@@ -61,7 +63,7 @@ const store = async (env: NodeJS.ProcessEnv) => {
 const importInto = async (env: NodeJS.ProcessEnv, max?: number) =>
   importMail({
     store: await store(env),
-    run: himalaya(env),
+    source: himalayaSource(himalaya(env), { name: "test" }),
     account: { name: "test", address: ME },
     since: SINCE,
     now: () => NOW,
@@ -110,7 +112,7 @@ describe("importMail", () => {
     const asked: (boolean | undefined)[] = []
     const result = await importMail({
       store: await store(env),
-      run: himalaya(env),
+      source: himalayaSource(himalaya(env), { name: "test" }),
       account: { name: "test", address: ME },
       since: SINCE,
       now: () => NOW,
@@ -168,7 +170,7 @@ describe("importMail", () => {
     const { env } = setup([mail(1, { text: "x".repeat(50) })])
     await importMail({
       store: await store(env),
-      run: himalaya(env),
+      source: himalayaSource(himalaya(env), { name: "test" }),
       account: { name: "test", address: ME },
       since: SINCE,
       now: () => NOW,
@@ -191,6 +193,24 @@ describe("importMail", () => {
     await importInto(env)
 
     expect(await importInto(env)).toMatchObject({ saved: 0, alreadyStored: 2, deleted: 0 })
+  })
+
+  it("saves the rest when one mail cannot be read, and reads that one next run", async () => {
+    const { env, write } = setup([mail(1), mail(2), mail(3)], { unreadable: ["102"] })
+
+    const first = await importInto(env)
+
+    expect(first).toMatchObject({ saved: 2, complete: false, failed: [{ message: "9002" }] })
+    write([mail(1), mail(2), mail(3)], { unreadable: [] })
+    expect(await importInto(env)).toMatchObject({ saved: 1, alreadyStored: 2, complete: true })
+  })
+
+  it("keeps Cc addresses out of To", async () => {
+    const { env } = setup([mail(1, { cc: [["Bob Sample", "bob@example.test"]] })])
+    await importInto(env)
+
+    const roles = (await emails(env))[0]?.recipients.map(({ address, role }) => `${role}:${address}`)
+    expect(roles).toEqual([`to:${ME}`, "cc:bob@example.test"])
   })
 
   it("drops the text of a mail deleted at the source", async () => {

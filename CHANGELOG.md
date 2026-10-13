@@ -10,6 +10,21 @@ the API.
 
 - **`memo sync` imports a mailbox of more than ~120,000 emails.** A long `--since-time` window failed with
   "Maximum call stack size exceeded" before saving anything.
+- **`memo sync --mail` reads mail about ten times faster.** Emails are fetched raw, up to 50 (or 20 MB) per
+  IMAP call instead of one himalaya call each, and parsed in-process with `postal-mime`. An email that cannot
+  be read or parsed is listed under `failed` and tried again next run instead of failing the account.
+- **Listing a mailbox of several hundred thousand emails no longer reads one huge answer.** All Mail is listed
+  10,000 emails per himalaya call.
+
+### Changed
+
+- **`attachments[].part` and an attachment's `providerRef.part` count the email's attachments from 0** instead
+  of being himalaya's MIME part index. Attachments stored earlier keep theirs.
+- **Mail bodies are read from the raw message.** Text matches the old reader except for whitespace between
+  parts; HTML parts that the old reader filed as attachments are now the body, and attachments the old reader
+  named `attachment-N` keep their real file names.
+- **`memo sync --help` and the agent skill say how long a large first mail import takes**, and that Gmail caps
+  IMAP downloads per day.
 
 ## 0.24.0 — 13.10.2026
 
