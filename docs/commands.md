@@ -565,15 +565,15 @@ memo organizations list [options]
 
 ### `memo organizations context`
 
-One organization: its relationships, the notes about or linking it, and its tags
+One organization by its id or organization:<id>: its relationships, the notes about or linking it, and its tags
 
 ```sh
-memo organizations context <id> [options]
+memo organizations context <organization> [options]
 ```
 
 | Argument | | What it is |
 |---|---|---|
-| `id` | required |  |
+| `organization` | required |  |
 
 | Option | What it does |
 |---|---|
