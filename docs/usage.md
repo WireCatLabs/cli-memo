@@ -90,9 +90,9 @@ Where a search answer keeps its list and references:
 | `memo search all` | `items` | `ref`, with `kind` |
 | `memo search notes` | `hits` | `ref` |
 
-`content:` narrows a search to the text of files and `filename:` to their names. Compare like with
-like: `memo search messages 'content:invoice'` with `tg search messages 'content:invoice'`, a plain
-word with a plain word.
+`content:` narrows a search to the text of files, `transcript:` to voice transcripts and `filename:` to file
+names. Compare like with like: `memo search messages 'content:invoice'` with
+`tg search messages 'content:invoice'`, a plain word with a plain word.
 
 ## Choosing an account
 

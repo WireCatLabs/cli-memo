@@ -231,13 +231,14 @@ memo folders list [options]
 Read one mail account through Himalaya into the shared message store
 
 ```sh
-memo mail [account] [action] [options]
+memo mail [account] [action] [reference] [options]
 ```
 
 | Argument | | What it is |
 |---|---|---|
 | `account` | optional | the account's name in mail.accounts of the config, also its name in Himalaya. |
-| `action` | optional | import: read the account's mail, and drop the text of mail deleted at the source. |
+| `action` | optional | import: read the account's mail, and drop the text of mail deleted at the source; show: one stored email. |
+| `reference` | optional | show: the email's msg:email/… reference, as search answers give it. |
 
 | Option | What it does |
 |---|---|
@@ -246,6 +247,8 @@ memo mail [account] [action] [options]
 | `--json` | print JSON. |
 | `--no-embed` | skip semantic embedding; local words remain searchable. |
 | `--retry-attachments` | reread bounded stored messages after installing an extraction engine. |
+| `--before-n <n>` | show: also this many earlier emails of its thread. Default: `0`. |
+| `--after-n <n>` | show: also this many later emails of its thread. Default: `0`. |
 
 ## `memo note`
 

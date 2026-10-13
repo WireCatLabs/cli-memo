@@ -373,7 +373,7 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     .addHelpText(
       "after",
       `
-content: narrows a search to the text of files, filename: to their names — memo search all 'content:invoice'.
+content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names — memo search all 'content:invoice'.
 --json: the list is items; each result's reference is ref, its kind is kind (tg search uses locator).`,
     )
     .action(
@@ -416,7 +416,7 @@ content: narrows a search to the text of files, filename: to their names — mem
       "after",
       kind === "messages"
         ? `
-content: narrows a search to the text of files, filename: to their names — memo search messages
+content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names — memo search messages
 'content:invoice'. Compare it with tg search messages 'content:invoice', a plain word with a plain word.
 --json: the list is items; each hit's reference is locator (msg:…), as in tg search messages.`
         : `
