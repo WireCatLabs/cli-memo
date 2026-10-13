@@ -1,0 +1,10 @@
+[
+  "ask --account",
+  "ask --all",
+  "ask --json",
+  "ask --provider",
+  "relationships add --evidence",
+  "relationships add --role",
+  "relationships list --reference",
+  "reminders snooze --at"
+]

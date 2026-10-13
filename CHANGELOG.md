@@ -22,6 +22,9 @@ the API.
 
 ### Changed — may break scripts
 
+- **`memo commands --json` prints cli-base's commands document**, the shape tg and max print: `cli`, `version`,
+  `contract`, `description`, `globalOptions`, `commands`, `exitCodes`. `items` is gone; `memo commands <path> --json`
+  puts the one command under `commands` with `scope` and `inheritedOptions`.
 - `memo import` is now `memo sync` (owner, 2026-10-12; WireCat glossary in cli-messaging). `memo import` stops working. `memo auto on` now writes `memo sync` into the unit; a timer installed before runs `memo import` and fails until `memo auto on` is run again. `notes import` and `mail <account> import` keep their names for now.
 - **A write from an agent's terminal is the agent's.** `memo facts add`, `memories add`, `relationships add`
   and `actions propose` run with `AI_AGENT` or `CLAUDECODE` set record the agent as author (`claude-code`, the

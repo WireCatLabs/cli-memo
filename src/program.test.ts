@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs"
 import { captureStreams } from "@wirecat/cli-base"
+import { parseCommandsDocument } from "@wirecat/cli-base/commands"
 import { describe, expect, it } from "vitest"
 import { createProgram, refuseJoinedPath } from "./program.js"
 
@@ -23,6 +24,12 @@ describe("memo", () => {
     const answer = JSON.parse(streams.stdout.join(""))
     expect(answer.cli).toBe("memo")
     expect(answer.commands.map((command: { name: string }) => command.name)).toContain("notes")
+  })
+
+  it.each([[[]], [["tags", "add"]]])("prints a commands document in cli-base's shape for %j", async (path) => {
+    const streams = captureStreams()
+    await createProgram({ streams }).parseAsync(["commands", ...path, "--json"], { from: "user" })
+    expect(parseCommandsDocument(JSON.parse(streams.stdout.join(""))).problems).toBeUndefined()
   })
 
   it("refuses an unknown command path", async () => {
