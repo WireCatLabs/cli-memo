@@ -20,3 +20,4 @@ jobs:
     with:
       pack: ${{ inputs.pack || false }}
       bun: false
+      checks: pnpm lint:commands

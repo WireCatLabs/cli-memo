@@ -1,6 +1,10 @@
 import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
-import { describeOptions, describeProgram, flatten } from "@wirecat/cli-base/commands"
+import { commandsDocument, flatten } from "@wirecat/cli-base/commands"
 import type { Command } from "commander"
+import { VERSION } from "../version.js"
+
+/** The major version of the JSON memo's commands print; raise it when a field is removed or renamed. */
+export const CONTRACT = 0
 
 export const commandsCommand = (program: Command, streams: Streams): void => {
   program
@@ -9,14 +13,20 @@ export const commandsCommand = (program: Command, streams: Streams): void => {
     .description("Discover the command tree and options as shared registry data")
     .option("--json", "print JSON")
     .action((path: string[], options: { json?: boolean }) => {
-      const commands = describeProgram(program)
-      const found = path.length ? flatten(commands).filter((item) => item.path.join(" ") === path.join(" ")) : commands
-      if (path.length && !found.length) throw new CliError("not_found", "command path was not found")
-      const answer = {
-        items: found,
-        ...(path.length ? {} : { cli: "memo", commands, globalOptions: describeOptions(program) }),
-      }
+      const document = commandsDocument(program, { cli: "memo", version: VERSION, contract: CONTRACT })
+      const answer = path.length ? scoped(document, path) : document
       if (options.json) createRenderer({ format: "json", color: false, streams }).result(answer)
       else streams.data(`${JSON.stringify(answer, null, 2)}\n`)
     })
+}
+
+const scoped = (document: ReturnType<typeof commandsDocument>, path: string[]) => {
+  const all = flatten(document.commands)
+  const found = all.find((item) => item.path.join(" ") === path.join(" "))
+  if (!found) throw new CliError("not_found", "command path was not found")
+  const inheritedOptions = all
+    .filter((item) => item.path.length < path.length && item.path.every((word, index) => word === path[index]))
+    .filter((item) => item.options.length > 0)
+    .map((item) => ({ path: item.path, options: item.options }))
+  return { ...document, scope: found.path, inheritedOptions, commands: [found] }
 }
