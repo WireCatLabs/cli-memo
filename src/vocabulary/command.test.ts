@@ -24,7 +24,7 @@ it("resolves owner project aliases through reviewed CLI writes and rejects a sta
   const preview = await run("vocabulary", "list", "--kind", "project", "--scope", "work")
   const added = await run("vocabulary", "aliases", "add", project.ref, "Lab Example", "--expected", preview.fingerprint)
   expect(added).toMatchObject({ changed: true, target: { kind: "project", id: project.id } })
-  expect(await run("vocabulary", "resolve", "LAB EXAMPLE", "--kind", "project")).toMatchObject({
+  expect(await run("vocabulary", "show", "LAB EXAMPLE", "--kind", "project")).toMatchObject({
     ambiguous: false,
     matches: [{ id: project.id, name: project.name }],
   })
@@ -35,7 +35,7 @@ it("resolves owner project aliases through reviewed CLI writes and rejects a sta
   expect(
     await run("vocabulary", "aliases", "remove", project.ref, added.alias.id, "--expected", current.fingerprint),
   ).toMatchObject({ changed: true })
-  expect((await run("vocabulary", "resolve", "Lab Example", "--kind", "project")).matches).toEqual([])
+  expect((await run("vocabulary", "show", "Lab Example", "--kind", "project")).matches).toEqual([])
   await expect(
     run("vocabulary", "aliases", "add", "person:1", "Wrong", "--expected", current.fingerprint),
   ).rejects.toMatchObject({ code: "validation_error" })
@@ -51,7 +51,7 @@ it("returns likely label duplicates without changing the catalog", async () => {
   const streams = captureStreams()
   await createProgram({ streams, env })
     .exitOverride()
-    .parseAsync(["vocabulary", "preflight", "on-boarding", "--json"], { from: "user" })
+    .parseAsync(["vocabulary", "check", "on-boarding", "--json"], { from: "user" })
   expect(JSON.parse(streams.stdout.join(""))).toMatchObject({
     disposition: "review",
     existing: null,
@@ -125,7 +125,7 @@ it("creates an owner-reviewed distinct label and rejects a stale creation receip
       .parseAsync([...args, "--json"], { from: "user" })
     return JSON.parse(streams.stdout.join(""))
   }
-  const preview = await run("vocabulary", "preflight", "on-boarding")
+  const preview = await run("vocabulary", "check", "on-boarding")
   expect(preview.disposition).toBe("review")
   await expect(
     run("vocabulary", "create", "onboardings", "--expected", preview.creationFingerprint),
@@ -134,13 +134,13 @@ it("creates an owner-reviewed distinct label and rejects a stale creation receip
     name: "on-boarding",
     kind: "tag",
   })
-  const old = await run("vocabulary", "preflight", "delivery", "--kind", "topic")
-  const garden = await run("vocabulary", "preflight", "garden")
+  const old = await run("vocabulary", "check", "delivery", "--kind", "topic")
+  const garden = await run("vocabulary", "check", "garden")
   await run("vocabulary", "create", "garden", "--expected", garden.creationFingerprint)
   await expect(
     run("vocabulary", "create", "delivery", "--kind", "topic", "--expected", old.creationFingerprint),
   ).rejects.toMatchObject({ details: { reason: "stale_tag_review" } })
-  const current = await run("vocabulary", "preflight", "delivery", "--kind", "topic")
+  const current = await run("vocabulary", "check", "delivery", "--kind", "topic")
   expect(
     await run("vocabulary", "create", "delivery", "--kind", "topic", "--expected", current.creationFingerprint),
   ).toMatchObject({ name: "delivery", kind: "topic" })

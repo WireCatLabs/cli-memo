@@ -36,43 +36,56 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
   ).action((options: Options) => execute(options, (store) => store.knowledge.vocabulary(catalogOptions(options))))
   readOptions(
     vocabulary
-      .command("resolve")
+      .command("show")
       .argument("<name>", "the name or alias to look up, exactly")
-      .description("resolve an exact name or alias; ambiguity is reported"),
+      .description("the project, tag or topic an exact name or alias names; ambiguity is reported"),
   ).action((name: string, options: Options) =>
     execute(options, (store) => store.knowledge.resolveVocabulary(name, catalogOptions(options))),
   )
-  readOptions(vocabulary.command("audit").description("discover likely synonyms without accepting or merging them"))
-    .option("--min-similarity <n>", "minimum lexical similarity, 0.65–1", Number)
-    .option("--max-comparisons <n>", "bound name comparisons", positive)
-    .option("--limit <n>", "maximum candidate pairs", positive)
-    .action((options: Options & { minSimilarity?: number; maxComparisons?: number; limit?: number }) =>
-      execute(options, (store) =>
-        store.knowledge.auditVocabulary({
-          ...catalogOptions(options),
-          ...(options.minSimilarity === undefined ? {} : { minSimilarity: options.minSimilarity }),
-          ...(options.maxComparisons === undefined ? {} : { maxComparisons: options.maxComparisons }),
-          ...(options.limit === undefined ? {} : { limit: options.limit }),
+  readOptions(
+    vocabulary
+      .command("check")
+      .argument("[name]", "a tag or topic you mean to create; without it, the whole vocabulary")
+      .summary("check a new name for existing labels, or the vocabulary for likely synonyms")
+      .description(
+        "check a new name for an existing label or likely duplicates before vocabulary create, or without a name " +
+          "the whole vocabulary for likely synonyms. It accepts, merges and creates nothing",
+      ),
+  )
+    .option("--min-similarity <n>", "without a name: minimum lexical similarity, 0.65–1", Number)
+    .option("--max-comparisons <n>", "without a name: most name comparisons", positive)
+    .option("--limit <n>", "without a name: most candidate pairs", positive)
+    .action(
+      (
+        name: string | undefined,
+        options: Options & { minSimilarity?: number; maxComparisons?: number; limit?: number },
+      ) =>
+        execute(options, (store) => {
+          if (name === undefined)
+            return store.knowledge.auditVocabulary({
+              ...catalogOptions(options),
+              ...(options.minSimilarity === undefined ? {} : { minSimilarity: options.minSimilarity }),
+              ...(options.maxComparisons === undefined ? {} : { maxComparisons: options.maxComparisons }),
+              ...(options.limit === undefined ? {} : { limit: options.limit }),
+            })
+          if (options.kind === "project" || options.scope !== undefined)
+            throw new CliError(
+              "validation_error",
+              "a new name is a tag or topic: --kind tag or --kind topic, no --scope",
+            )
+          return store.knowledge.tagPreflight(name, {
+            ...(options.kind === undefined ? {} : { kind: options.kind }),
+            ...(options.maxEntries === undefined ? {} : { maxEntries: options.maxEntries }),
+            ...(options.maxReadBytes === undefined ? {} : { maxReadBytes: options.maxReadBytes }),
+          })
         }),
-      ),
-    )
-  vocabulary
-    .command("preflight")
-    .argument("<name>", "the tag or topic you mean to create")
-    .description("review an existing label or likely lexical duplicates before creation")
-    .option("--kind <kind>", "tag or topic", oneOf(["tag", "topic"] as const))
-    .option("--json", "print JSON")
-    .action((name: string, options: Options & { kind?: "tag" | "topic" }) =>
-      execute(options, (store) =>
-        store.knowledge.tagPreflight(name, { ...(options.kind === undefined ? {} : { kind: options.kind }) }),
-      ),
     )
   vocabulary
     .command("create")
     .argument("<name>", "the new tag or topic")
-    .description("owner: create a distinct tag or topic after reviewing its preflight")
+    .description("owner: create a distinct tag or topic after vocabulary check <name>")
     .option("--kind <kind>", "tag or topic", oneOf(["tag", "topic"] as const))
-    .requiredOption("--expected <fingerprint>", "the current preflight creationFingerprint")
+    .requiredOption("--expected <fingerprint>", "the creationFingerprint vocabulary check <name> gave")
     .option("--json", "print JSON")
     .action((name: string, options: Options & { kind?: "tag" | "topic" }) =>
       execute(options, (store) =>

@@ -55,7 +55,7 @@ You need Node.js 22.16 or newer.
 ```sh
 npm install -g @wirecat/cli-memo
 memo folders add /path/to/notes   # your notes folder; Obsidian format by default
-memo notes import                 # reads the notes, their links and tags; run again after edits
+memo sync --notes                # reads the notes, their links and tags; run again after edits
 memo search notes "budget"
 ```
 
@@ -64,8 +64,8 @@ That is all notes need. Then add more context:
 - **Messages:** install [tg-cli](https://github.com/WireCatLabs/tg-cli) or
   [max-cli](https://github.com/WireCatLabs/max-cli); memo reads the same local store.
 - **Search by meaning:** `tg models text download e5-small` downloads the local model once.
-- **Mail:** set up [Himalaya](https://github.com/pimalaya/himalaya), then `memo mail <account> import`.
-- **Stay current:** `memo auto on` runs `memo sync` every five minutes (Linux, systemd).
+- **Mail:** set up [Himalaya](https://github.com/pimalaya/himalaya), then `memo sync --mail`.
+- **Stay current:** `memo auto start` runs `memo sync` every five minutes (Linux, systemd).
 - **Your agent:** the install puts memo's skill where Claude Code, Codex and Gemini CLI read it;
   `memo skill show` prints it, `memo skill install --for all` installs it again.
 
@@ -156,7 +156,7 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 | Task | Commands |
 | --- | --- |
 | Connect notes folders | `memo folders add` · `folders attach` · `folders list` |
-| Sync what changed | `memo sync` · `notes import` · `mail <account> import` · `auto on` / `off` / `status` |
+| Sync what changed | `memo sync` · `sync --notes` · `sync --mail` · `auto start` / `stop` / `status` |
 | Read notes | `memo notes list` · `notes show` · `notes about` · `memo note` (the note about a person) |
 | Write your own notes | `memo notes add` · `notes edit` · `notes remove` · `notes export` |
 | Search | `memo search all` · `search notes` · `search mail` · `search messages` |
@@ -167,8 +167,8 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 | Relationships | `memo relationships add` / `list` / `remove` / `confirm` / `suggest` |
 | Labels | `memo tags add` · `tags remove` · `tags list` |
 | Open work | `memo tasks add` · `tasks list` · `tasks update` · `tasks assign` · `tasks close` |
-| Task dependencies | `memo tasks link` / `unlink` / `relations` · `tasks readiness` · `tasks ready` |
-| Reminders | `memo reminders schedule` / `list` / `poll` / `ack` / `snooze` / `cancel` |
+| Task dependencies | `memo tasks link` / `unlink` / `relations` · `tasks status` · `tasks list --ready` |
+| Reminders | `memo reminders add` / `list` / `poll` / `ack` / `update` / `cancel` |
 | Agents | `memo memories …` · `facts …` · `actions …` · `agents log` · `memo mcp` |
 
 Every command takes `--help`; most take `--json`.
@@ -179,7 +179,7 @@ More: [technical docs](#technical-docs) · [memo on wirecat.dev](https://wirecat
 
 **From a folder.** `memo folders add` gives a folder an id that the store uses; its path is only where it is
 on this computer, so the same folder on another computer is attached with `memo folders attach <id> <path>`.
-`memo notes import` stores each file as a note named by its path. An edited file keeps its old text as a
+`memo sync --notes` stores each file as a note named by its path. An edited file keeps its old text as a
 revision; a moved file keeps its id, links and tags; a deleted file loses its text on the next import. The
 `obsidian` format (the default) reads `[[Note|label]]` links, aliases, `tags:` and `#tags`; `markdown` reads
 `[label](path.md)` links and `tags:`. A `[[Kai Sample]]` link becomes a link to a person once someone by that
@@ -233,12 +233,12 @@ manual statements; `relationships suggest` only proposes shared-domain links for
 can hold meetings (`projects meetings link`), and `memo vocabulary` gives projects and topics reviewed
 aliases, so one name always means one project.
 
-Before adding a new tag or topic, run `memo vocabulary preflight <name> --json`. Reuse a
+Before adding a new tag or topic, run `memo vocabulary check <name> --json`. Reuse a
 canonical label or add an alias if it means the same thing. For a deliberately distinct label,
 run `memo vocabulary create <name> --expected <creationFingerprint> --json`; select `--kind topic`
 on both commands when creating a topic. The owner accepts this review; MCP exposes preflight
 but no label-creation tool. An intervening label or alias change requires a fresh review.
-`memo vocabulary audit --json` finds likely synonyms already in the catalog. Its `complete`
+`memo vocabulary check --json` finds likely synonyms already in the catalog. Its `complete`
 flag reports whether the bounded comparison finished; candidates require review and are never
 merged automatically. Use `--kind tag`, `--kind topic` or `--kind project` to narrow the review.
 
@@ -256,13 +256,13 @@ More: [people and projects](https://github.com/WireCatLabs/cli-memo/blob/main/do
 
 memo reads mail through [Himalaya](https://github.com/pimalaya/himalaya), a command-line mail client you
 set up first. Gmail is the default; another IMAP provider uses `mode: "imap"` with the folders to read. The
-mailbox is opened read-only, `--max` (default 200) bounds the new mail per run and the next run continues.
+mailbox is opened read-only, `--limit` (default 200) bounds the new mail per run and the next run continues.
 Gmail labels become mailboxes, attachments' text is searched with its email, and mail deleted at the
-source loses its text in the store. Each account is named in `mail.accounts`, and the import names it:
-memo never picks one for you. `memo sync` and the timer import every account.
+source loses its text in the store. Each account is named in `mail.accounts`; `memo sync` and the timer read
+every account and name each in the report, and `--account <name>` narrows it to one.
 
 ```sh
-memo mail work import --since 2026-09-01   # work: the account's name in mail.accounts
+memo sync --account work --since-time 2026-09-01   # work: the account's name in mail.accounts
 memo search mail 'mailbox:important budget'
 ```
 
@@ -280,7 +280,7 @@ a caller you choose polls for them, and nothing is delivered to a messenger or m
 ```sh
 memo tags add follow-up --note note:NOTE_ID
 memo tasks add 'msg:telegram/1/77/42' --type request
-memo reminders schedule TASK_ID --at-time 2026-10-09T09:00:00+02:00 --provider telegram --account 1
+memo reminders add TASK_ID --at-time 2026-10-09T09:00:00+02:00 --provider telegram --account 1
 ```
 
 More: [tags](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tags.md) ·
@@ -305,7 +305,7 @@ More: [memories and facts](https://github.com/WireCatLabs/cli-memo/blob/main/doc
 
 ## Keeping it current
 
-`memo sync` brings notes and mail up to date and reads only what changed. `memo auto on --every 5m` runs
+`memo sync` brings notes and mail up to date and reads only what changed. `memo auto start --every 5m` runs
 it on a systemd user timer; `auto status` shows the next and last run. A lock keeps two imports apart, and
 one failing source does not stop the others.
 
@@ -314,7 +314,7 @@ More: [keeping memo up to date](https://github.com/WireCatLabs/cli-memo/blob/mai
 
 ## Configuration
 
-`memo folders add` and `memo auto on` write `~/.config/cli-memo/config.json` for you. By hand you set what
+`memo folders add` and `memo auto start` write `~/.config/cli-memo/config.json` for you. By hand you set what
 to skip, mail accounts and where exported notes go:
 
 ```json
@@ -344,7 +344,7 @@ More: [security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security
 - Files up to 50 MiB; stored text up to 200,000 characters a file. Scanned PDFs and legacy DOC/XLS are
   reported, not read.
 - Search by meaning embeds at most 600 chunks a run; the next run continues.
-- `memo mail <account> import` reads 200 new messages a run by default (`--max`) and keeps up to 1,000,000
+- `memo sync --mail` reads 200 new messages per account a run by default (`--limit`) and keeps up to 1,000,000
   characters of a body and 200,000 of an attachment's text (`mail.maxBodyChars`, `mail.maxAttachmentChars`).
 - Searches return at most 100 results; `tags list` shows 100 labels unless `--limit` says more.
 - Tags are 1–32 letters a–z, digits or hyphens.

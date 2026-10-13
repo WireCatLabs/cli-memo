@@ -36,7 +36,7 @@ beforeEach(() => {
 
 describe("memo auto", () => {
   it("installs a timer with the interval asked for, and remembers it in the config", async () => {
-    await run("auto", "on", "--every", "2m")
+    await run("auto", "start", "--every", "2m")
 
     expect(readFileSync(join(units(), "memo-import.timer"), "utf8")).toContain("OnUnitActiveSec=2min")
     expect(readFileSync(join(units(), "memo-import.service"), "utf8")).toMatch(/ExecStart=".*" ".*memo\.js" "sync"/)
@@ -45,22 +45,22 @@ describe("memo auto", () => {
   })
 
   it("leaves a timer that already matches the config alone", async () => {
-    await run("auto", "on")
+    await run("auto", "start")
     writeFileSync(join(dir, "systemctl.log"), "")
 
-    await run("auto", "on")
+    await run("auto", "start")
 
     expect(calls()).toBe("")
   })
 
   it("refuses an interval under a minute", async () => {
-    await expect(run("auto", "on", "--every", "30s")).rejects.toThrow()
+    await expect(run("auto", "start", "--every", "30s")).rejects.toThrow()
   })
 
   it("removes the timer when turned off", async () => {
-    await run("auto", "on")
+    await run("auto", "start")
 
-    await run("auto", "off")
+    await run("auto", "stop")
 
     expect(existsSync(join(units(), "memo-import.timer"))).toBe(false)
     expect(calls()).toContain("--user disable --now memo-import.timer")
@@ -68,7 +68,7 @@ describe("memo auto", () => {
   })
 
   it("follows a hand edit of the config at the next timer run", async () => {
-    await run("auto", "on", "--every", "5m")
+    await run("auto", "start", "--every", "5m")
     updateConfig((config) => ({ ...config, auto: { enabled: true, every: "15m" } }), env)
 
     await run("sync")
@@ -84,7 +84,7 @@ describe("memo auto", () => {
   })
 
   it("shows whether the timer is on and when it runs next", async () => {
-    await run("auto", "on")
+    await run("auto", "start")
 
     const status = JSON.parse(await run("auto", "status", "--json"))
 
@@ -100,7 +100,7 @@ describe("memo auto", () => {
 
 describe("memo sync", () => {
   it("names a folder with no id as failed, and imports it once it has one", async () => {
-    expect(await run("sync")).toMatch(/failed notes .*: no folder id — memo folders add/)
+    expect(await run("sync")).toMatch(/failed notes .*has no folder id — memo folders add/)
     process.exitCode = 0
     await run("folders", "add", join(dir, "vault"))
     expect(await run("sync")).toMatch(/notes .*: 1 notes, 1 changed, 0 moved, 0 gone/)

@@ -34,21 +34,6 @@ memo context <person> [options]
 
 notes from your folders, and notes you write here
 
-### `memo notes import`
-
-bring the folders' notes, links and tags into the store, only what changed
-
-```sh
-memo notes import [options]
-```
-
-| Option | What it does |
-|---|---|
-| `--folder <folder>` | only this configured folder, by its id or path; repeat for more. |
-| `--ignore <path...>` | files or folders inside them to skip, added to notes.ignore — a path or a glob. |
-| `--no-embed` | skip embedding the notes for search by meaning this run. |
-| `--json` | print JSON. |
-
 ### `memo notes about`
 
 notes about a subject and the notes that link it, through links only
@@ -226,29 +211,27 @@ memo folders list [options]
 |---|---|
 | `--json` | print JSON. |
 
-## `memo mail`
+## `memo messages`
 
-read one mail account through Himalaya into the shared message store
+stored emails; tg and max read messenger messages
+
+### `memo messages show`
+
+one stored email, whole, and the emails of its thread around it
 
 ```sh
-memo mail [account] [action] [reference] [options]
+memo messages show <message> [options]
 ```
 
 | Argument | | What it is |
 |---|---|---|
-| `account` | optional | the account's name in mail.accounts of the config, also its name in Himalaya. |
-| `action` | optional | import: read the account's mail, and drop the text of mail deleted at the source; show: one stored email. |
-| `reference` | optional | show: the email's msg:email/… reference, as search answers give it. |
+| `message` | required | the email's msg:email/… reference, as search answers give it. |
 
 | Option | What it does |
 |---|---|
-| `--since <date>` | first day to read, YYYY-MM-DD (default: 30 days ago). |
-| `--max <n>` | most new messages to read in this run. Default: `200`. |
+| `--before-n <n>` | also this many earlier emails of its thread. Default: `0`. |
+| `--after-n <n>` | also this many later emails of its thread. Default: `0`. |
 | `--json` | print JSON. |
-| `--no-embed` | skip semantic embedding; local words remain searchable. |
-| `--retry-attachments` | reread bounded stored messages after installing an extraction engine. |
-| `--before-n <n>` | show: also this many earlier emails of its thread. Default: `0`. |
-| `--after-n <n>` | show: also this many later emails of its thread. Default: `0`. |
 
 ## `memo note`
 
@@ -402,12 +385,12 @@ memo tasks relations <task> [options]
 |---|---|
 | `--json` | print JSON. |
 
-### `memo tasks readiness`
+### `memo tasks status`
 
 whether a task can start, and what it still waits for
 
 ```sh
-memo tasks readiness <task> [options]
+memo tasks status <task> [options]
 ```
 
 | Argument | | What it is |
@@ -416,20 +399,6 @@ memo tasks readiness <task> [options]
 
 | Option | What it does |
 |---|---|
-| `--json` | print JSON. |
-
-### `memo tasks ready`
-
-discover project work with completed prerequisites; this does not claim a task
-
-```sh
-memo tasks ready [options]
-```
-
-| Option | What it does |
-|---|---|
-| `--project <project>` | canonical project reference, key or explicit alias. |
-| `--limit <n>` | tasks per page. |
 | `--json` | print JSON. |
 
 ### `memo tasks add`
@@ -472,6 +441,7 @@ memo tasks list [options]
 | `--json` | print JSON. |
 | `--state <state>` | open, done or dismissed. Default: `open`. |
 | `--project <project>` | a project's tasks, by its key or project:<id>, instead of an account's. |
+| `--ready` | with --project: only open tasks whose prerequisites are done; this claims none. |
 | `--limit <n>` | most tasks. Default: `100`. |
 
 ### `memo tasks close`
@@ -825,12 +795,12 @@ memo relationships suggest [options]
 
 durable local reminders; poll hands one out and ack confirms it was shown
 
-### `memo reminders schedule`
+### `memo reminders add`
 
-schedule a reminder for an open task
+add a reminder for an open task
 
 ```sh
-memo reminders schedule <task> [options]
+memo reminders add <task> [options]
 ```
 
 | Argument | | What it is |
@@ -911,12 +881,12 @@ memo reminders cancel <id> [options]
 | `--account <account>` | exact stored account. |
 | `--json` | print JSON. |
 
-### `memo reminders snooze`
+### `memo reminders update`
 
-move a reminder to a later time
+move a reminder to another time
 
 ```sh
-memo reminders snooze <id> [options]
+memo reminders update <id> [options]
 ```
 
 | Argument | | What it is |
@@ -951,12 +921,12 @@ memo vocabulary list [options]
 | `--max-read-bytes <n>` | catalog input byte budget. |
 | `--json` | print JSON. |
 
-### `memo vocabulary resolve`
+### `memo vocabulary show`
 
-resolve an exact name or alias; ambiguity is reported
+the project, tag or topic an exact name or alias names; ambiguity is reported
 
 ```sh
-memo vocabulary resolve <name> [options]
+memo vocabulary show <name> [options]
 ```
 
 | Argument | | What it is |
@@ -971,13 +941,17 @@ memo vocabulary resolve <name> [options]
 | `--max-read-bytes <n>` | catalog input byte budget. |
 | `--json` | print JSON. |
 
-### `memo vocabulary audit`
+### `memo vocabulary check`
 
-discover likely synonyms without accepting or merging them
+check a new name for an existing label or likely duplicates before vocabulary create, or without a name the whole vocabulary for likely synonyms. It accepts, merges and creates nothing
 
 ```sh
-memo vocabulary audit [options]
+memo vocabulary check [name] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | optional | a tag or topic you mean to create; without it, the whole vocabulary. |
 
 | Option | What it does |
 |---|---|
@@ -986,30 +960,13 @@ memo vocabulary audit [options]
 | `--max-entries <n>` | catalog input budget, not a page size. |
 | `--max-read-bytes <n>` | catalog input byte budget. |
 | `--json` | print JSON. |
-| `--min-similarity <n>` | minimum lexical similarity, 0.65–1. |
-| `--max-comparisons <n>` | bound name comparisons. |
-| `--limit <n>` | maximum candidate pairs. |
-
-### `memo vocabulary preflight`
-
-review an existing label or likely lexical duplicates before creation
-
-```sh
-memo vocabulary preflight <name> [options]
-```
-
-| Argument | | What it is |
-|---|---|---|
-| `name` | required | the tag or topic you mean to create. |
-
-| Option | What it does |
-|---|---|
-| `--kind <kind>` | tag or topic. |
-| `--json` | print JSON. |
+| `--min-similarity <n>` | without a name: minimum lexical similarity, 0.65–1. |
+| `--max-comparisons <n>` | without a name: most name comparisons. |
+| `--limit <n>` | without a name: most candidate pairs. |
 
 ### `memo vocabulary create`
 
-owner: create a distinct tag or topic after reviewing its preflight
+owner: create a distinct tag or topic after vocabulary check <name>
 
 ```sh
 memo vocabulary create <name> [options]
@@ -1022,7 +979,7 @@ memo vocabulary create <name> [options]
 | Option | What it does |
 |---|---|
 | `--kind <kind>` | tag or topic. |
-| `--expected <fingerprint>` | the current preflight creationFingerprint. |
+| `--expected <fingerprint>` | the creationFingerprint vocabulary check <name> gave. |
 | `--json` | print JSON. |
 
 ### `memo vocabulary aliases`
@@ -1123,24 +1080,6 @@ memo memories show <ref> [options]
 |---|---|
 | `--json` | print JSON. |
 
-### `memo memories search`
-
-memories holding every word, best first
-
-```sh
-memo memories search <words> [options]
-```
-
-| Argument | | What it is |
-|---|---|---|
-| `words` | required | the words to find. |
-
-| Option | What it does |
-|---|---|
-| `--scope <scope>` | personal or work. |
-| `--limit <n>` | most memories, up to 500. Default: `20`. |
-| `--json` | print JSON. |
-
 ### `memo memories confirm`
 
 stand behind a memory: its evidence was checked now
@@ -1234,12 +1173,12 @@ memo facts show <ref> [options]
 |---|---|
 | `--json` | print JSON. |
 
-### `memo facts accept`
+### `memo facts confirm`
 
 stand behind a fact an agent proposed; a decision it supersedes stops holding
 
 ```sh
-memo facts accept <ref> [options]
+memo facts confirm <ref> [options]
 ```
 
 | Argument | | What it is |
@@ -1268,14 +1207,14 @@ memo facts reverse <ref> [options]
 
 ## `memo actions`
 
-what an agent proposes to do; approving one makes it your task, nothing is sent
+what an agent proposes to do; confirming one makes it your task, nothing is sent
 
-### `memo actions propose`
+### `memo actions add`
 
 propose an action, such as a reply or a ban, in the account that would act
 
 ```sh
-memo actions propose <kind> [options]
+memo actions add <kind> [options]
 ```
 
 | Argument | | What it is |
@@ -1322,12 +1261,12 @@ memo actions show <id> [options]
 |---|---|
 | `--json` | print JSON. |
 
-### `memo actions approve`
+### `memo actions confirm`
 
-approve it: it becomes a task in the account that would act; nothing is sent
+confirm it: it becomes a task in the account that would act; nothing is sent
 
 ```sh
-memo actions approve <id> [options]
+memo actions confirm <id> [options]
 ```
 
 | Argument | | What it is |
@@ -1383,7 +1322,7 @@ memo mcp
 
 ## `memo search`
 
-search stored messages, mail and notes; search all when you do not know the kind
+search stored messages, mail, notes and memories; search all when unsure where
 
 ### `memo search all`
 
@@ -1479,6 +1418,24 @@ memo search notes <query> [options]
 | `--offset <n>` | continue from nextOffset. Default: `0`. |
 | `--project <project>` | rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out. |
 
+### `memo search memories`
+
+memories holding every word, best first
+
+```sh
+memo search memories <words> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `words` | required | the words to find. |
+
+| Option | What it does |
+|---|---|
+| `--scope <scope>` | personal or work. |
+| `--limit <n>` | most memories, up to 500. Default: `20`. |
+| `--json` | print JSON. |
+
 ## `memo ask`
 
 prepare cited evidence for your agent, or explicitly call a configured model
@@ -1504,7 +1461,7 @@ memo ask <question> [options]
 
 ## `memo sync`
 
-bring notes and mail up to date in the store, only what changed
+bring notes and mail up to date in the store, only what changed. Every configured folder and mail account unless narrowed; a notes option syncs notes only, a mail option mail only, unless both are given
 
 ```sh
 memo sync [options]
@@ -1514,6 +1471,12 @@ memo sync [options]
 |---|---|
 | `--notes` | notes only. |
 | `--mail` | mail only. |
+| `--folder <folder>` | notes: only this configured folder, by its id or path; repeat for more. |
+| `--ignore <path>` | notes: also skip this file or folder, a path or a glob; repeat for more. |
+| `--account <account>` | mail: only this account, its name in mail.accounts; repeat for more. |
+| `--since-time <time>` | mail: read from this time, ISO 8601 or 30d ago (default: 30d). |
+| `--limit <n>` | mail: most new emails to read per account this run (default: 200). |
+| `--retry-attachments` | mail: reread stored emails' attachments after installing an extraction engine. |
 | `--no-embed` | skip embedding notes and mail for search by meaning this run. |
 | `--json` | print JSON. |
 
@@ -1521,24 +1484,24 @@ memo sync [options]
 
 run memo sync on a systemd user timer, set in the config
 
-### `memo auto on`
+### `memo auto start`
 
 sync every --every (default auto.every, else 5m), starting a minute from now
 
 ```sh
-memo auto on [options]
+memo auto start [options]
 ```
 
 | Option | What it does |
 |---|---|
 | `--every <interval>` | how often: 5m, 90s, 1h — a minute or more. |
 
-### `memo auto off`
+### `memo auto stop`
 
 stop syncing on a timer and remove the timer
 
 ```sh
-memo auto off
+memo auto stop
 ```
 
 ### `memo auto status`

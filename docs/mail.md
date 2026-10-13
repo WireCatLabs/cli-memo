@@ -31,19 +31,19 @@ Gmail is the default. For another provider, add `"mode": "imap"` and the folders
 { "mail": { "accounts": [{ "name": "home", "address": "me@example.org", "mode": "imap", "folders": ["INBOX", "Archive"] }] } }
 ```
 
-## Import mail
+## Sync mail
 
 ```sh
-memo mail work import --since 2026-09-01
+memo sync --account work --since-time 2026-09-01
 ```
 
-`work` is the account's `name` from the config. Name it every time, even with one account: Memo
-never picks an account for you, and lists the accounts it knows when the name is missing or wrong.
+`work` is the account's `name` from the config. Without `--account`, Memo reads every account in the
+config and names each one in its report; it lists the accounts it knows when a name is wrong.
 
-- Without `--since`, Memo reads the last 30 days.
-- Each run reads up to 200 new emails (`--max` changes this). Run it again and it continues where it
-  stopped; emails already stored are skipped.
-- `memo sync` and the timer import every account in the config.
+- Without `--since-time`, Memo reads the last 30 days. It takes a date, an ISO 8601 time or `30d` ago.
+- Each run reads up to 200 new emails per account (`--limit` changes this). Run it again and it continues
+  where it stopped; emails already stored are skipped.
+- `memo sync` and the timer read every account in the config.
 
 ## Find your mail
 
@@ -63,7 +63,7 @@ Gmail labels such as Inbox, Important, Starred and your own labels become mail f
 - Whether an email is read or starred, as your mailbox shows it.
 - The text of readable attachments, searched with the email. PDF and Word attachments need the
   [optional readers](notes.md#files-memo-can-read). After you install them, run
-  `memo mail work import --retry-attachments` to read attachments that were skipped.
+  `memo sync --account work --retry-attachments` to read attachments that were skipped.
 - Up to 1,000,000 characters of each email and 200,000 of each attachment
   ([change the limits](configuration.md#mail)).
 

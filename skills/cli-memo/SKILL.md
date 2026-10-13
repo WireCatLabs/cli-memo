@@ -25,10 +25,10 @@ anything. Add `--json` and read the answer, not the text meant for people.
    read them before anything else. Mark one with
    `memo projects key-documents add <key> <reference> --reason '<why>'`.
 5. **What you write is yours as an agent.** `memo facts add`, `memo memories add`,
-   `memo relationships add`, `memo actions propose` and `memo projects key-documents add` record you
+   `memo relationships add`, `memo actions add` and `memo projects key-documents add` record you
    as the author and wait for the owner. Never pass `--as-owner`: only the owner does, and an agent
    that passes it writes as the owner.
-6. **Do not accept or confirm your own proposals** (`memo facts accept`, `memo memories confirm`,
+6. **Do not confirm your own proposals** (`memo facts confirm`, `memo memories confirm`,
    `memo relationships confirm`). The owner decides.
 7. **Never write message, mail or note text to a file.** Quote it in the answer with its reference.
 8. **Before reporting a bug, compare `memo --version` with `npm view @wirecat/cli-memo version`.** An

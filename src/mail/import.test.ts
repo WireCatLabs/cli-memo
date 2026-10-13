@@ -256,7 +256,7 @@ describe("importMail", () => {
   })
 })
 
-describe("memo mail <account> import", () => {
+describe("memo sync --mail", () => {
   const run = async (args: string[], env: NodeJS.ProcessEnv) => {
     const streams = captureStreams()
     const program = createProgram({ streams, env })
@@ -285,33 +285,33 @@ describe("memo mail <account> import", () => {
   it("says how to add an account when none is set", async () => {
     const { env } = setup([])
 
-    await expect(
-      run(["mail", "test", "import"], { ...env, MEMO_CONFIG_DIR: mkdtempSync(join(tmpdir(), "c-")) }),
-    ).rejects.toThrow("add mail.accounts")
+    expect(await run(["sync", "--mail"], { ...env, MEMO_CONFIG_DIR: mkdtempSync(join(tmpdir(), "c-")) })).toContain(
+      "mail.accounts",
+    )
   })
 
-  it("picks no account itself: without one, or with an unknown one, it lists the configured names", async () => {
+  it("names the configured accounts when --account names none of them", async () => {
     const { dir, env } = setup([mail(1)])
-    const withConfig = configured(dir, env)
 
-    await expect(run(["mail", "import"], withConfig)).rejects.toMatchObject({
-      code: "validation_error",
-      message: expect.stringContaining("mail.accounts holds test, second"),
-    })
-    await expect(run(["mail", "nobody", "import"], withConfig)).rejects.toMatchObject({
+    await expect(run(["sync", "--account", "nobody"], configured(dir, env))).rejects.toMatchObject({
       code: "not_found",
       message: expect.stringContaining("it holds test, second"),
     })
-    await expect(run(["mail", "import", "--account", "test"], withConfig)).rejects.toThrow("unknown option")
     expect(await (await store(env)).accounts()).toEqual([])
   })
 
-  it("imports only the account named, and reports what it did", async () => {
+  it("syncs only the account named, from the time asked, and reports what it did", async () => {
     const { dir, env } = setup([mail(1)])
 
-    const text = await run(["mail", "second", "import", "--since", "2026-09-01", "--no-embed"], configured(dir, env))
+    const result = JSON.parse(
+      await run(
+        ["sync", "--account", "second", "--since-time", "2026-09-01", "--no-embed", "--json"],
+        configured(dir, env),
+      ),
+    )
 
-    expect(text).toContain(`${OTHER}: 1 in All Mail since 2026-09-01, 1 saved, 0 already stored, 0 marked deleted.`)
+    expect(result.notes).toEqual([])
+    expect(result.mail).toMatchObject([{ account: OTHER, saved: 1, since: expect.stringMatching(/^2026-09-01/) }])
     expect((await (await store(env)).accounts()).filter(({ provider }) => provider === "email")).toEqual([
       { provider: "email", account: OTHER },
     ])
@@ -326,6 +326,6 @@ describe("memo mail <account> import", () => {
       JSON.stringify({ pid: process.ppid, startedAt: new Date().toISOString() }),
     )
 
-    await expect(run(["mail", "test", "import"], withConfig)).rejects.toThrow("already running")
+    await expect(run(["sync", "--account", "test"], withConfig)).rejects.toThrow("already running")
   })
 })

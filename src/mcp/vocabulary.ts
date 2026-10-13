@@ -1,3 +1,4 @@
+import { CliError } from "@wirecat/cli-base"
 import * as v from "valibot"
 import { define } from "./tool.js"
 
@@ -17,38 +18,39 @@ export const vocabularyTools = {
     input: v.object(options),
     run: (store, args) => store.knowledge.vocabulary(args),
   }),
-  vocabulary_audit: define({
-    title: "Discover vocabulary synonyms",
+  vocabulary_check: define({
+    title: "Check vocabulary names",
     description:
-      "Bounded lexical comparison of canonical names and aliases. Review candidates; incomplete scans do not prove uniqueness. This tool neither accepts synonyms nor merges or creates records.",
+      "With a name: the existing canonical tag or topic, or lexical candidates to review, before creating a label. Without one: a bounded lexical comparison of canonical names and aliases; an incomplete scan does not prove uniqueness. Similarity never merges records, and this tool accepts, merges and creates nothing.",
     writes: false,
     input: v.object({
       ...options,
+      name: v.optional(v.pipe(v.string(), v.minLength(1), v.maxLength(200))),
       minSimilarity: v.optional(v.pipe(v.number(), v.minValue(0.65), v.maxValue(1))),
       maxComparisons: bounded(100000),
       limit: bounded(200),
     }),
-    run: (store, args) => store.knowledge.auditVocabulary(args),
+    run: (store, { name, kind, scope, minSimilarity, maxComparisons, limit, ...budget }) => {
+      if (name === undefined)
+        return store.knowledge.auditVocabulary({
+          ...budget,
+          ...(kind === undefined ? {} : { kind }),
+          ...(scope === undefined ? {} : { scope }),
+          ...(minSimilarity === undefined ? {} : { minSimilarity }),
+          ...(maxComparisons === undefined ? {} : { maxComparisons }),
+          ...(limit === undefined ? {} : { limit }),
+        })
+      if (kind === "project" || scope !== undefined)
+        throw new CliError("validation_error", "a new name is a tag or topic: kind tag or topic, no scope")
+      return store.knowledge.tagPreflight(name, { ...budget, ...(kind === undefined ? {} : { kind }) })
+    },
   }),
-  vocabulary_resolve: define({
-    title: "Resolve a canonical name",
+  vocabulary_show: define({
+    title: "Show a canonical name",
     description:
       "Resolve only exact names and explicit aliases. Ambiguous matches remain candidates; never infer identity from similarity.",
     writes: false,
     input: v.object({ name: v.pipe(v.string(), v.minLength(1), v.maxLength(200)), ...options }),
     run: (store, { name, ...args }) => store.knowledge.resolveVocabulary(name, args),
-  }),
-  vocabulary_preflight: define({
-    title: "Review a proposed label",
-    description:
-      "Find the existing canonical tag/topic or lexical candidates to review before creating a label. Similarity never merges records and this tool creates nothing.",
-    writes: false,
-    input: v.object({
-      name: v.pipe(v.string(), v.minLength(1), v.maxLength(200)),
-      kind: v.optional(v.picklist(["tag", "topic"])),
-      maxEntries: bounded(20000),
-      maxReadBytes: bounded(16777216),
-    }),
-    run: (store, { name, ...args }) => store.knowledge.tagPreflight(name, args),
   }),
 }

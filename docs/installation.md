@@ -76,7 +76,7 @@ npm install -g @wirecat/cli-memo     # update to the latest version
 npm uninstall -g @wirecat/cli-memo   # remove the memo command
 ```
 
-If you turned on the timer, run `memo auto off` before you remove Memo. Removing Memo keeps the local
+If you turned on the timer, run `memo auto stop` before you remove Memo. Removing Memo keeps the local
 store and the settings, because tg and max use the same store.
 
 ## Development

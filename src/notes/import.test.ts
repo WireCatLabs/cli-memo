@@ -67,14 +67,22 @@ beforeEach(async () => {
   await run("folders", "add", vault)
 })
 
-describe("memo notes import", () => {
+describe("memo sync --notes", () => {
   it("refuses a folder with no id, naming both ways to give it one", async () => {
     writeFileSync(configPath(env), JSON.stringify({ notes: { folders: [join(root, "elsewhere")] } }))
-    await expect(run("notes", "import")).rejects.toThrow(/memo folders add .*memo folders attach/)
+    const synced = await json("sync", "--notes")
+    process.exitCode = 0
+
+    expect(synced.failed).toEqual([
+      {
+        source: `notes ${join(root, "elsewhere")}`,
+        reason: expect.stringMatching(/memo folders add .*memo folders attach/),
+      },
+    ])
   })
 
   it("finds stored notes by their words and lists what they link", async () => {
-    await run("notes", "import")
+    await run("sync", "--notes")
 
     const result = await json("search", "notes", "lighthouse")
 
@@ -92,51 +100,51 @@ describe("memo notes import", () => {
   })
 
   it("never stores an ignored note, and drops one ignored after it was stored", async () => {
-    await run("notes", "import")
+    await run("sync", "--notes")
 
-    await run("notes", "import", "--ignore", "Psychology/Private Notes.md")
+    await run("sync", "--notes", "--ignore", "Psychology/Private Notes.md")
 
     expect((await json("search", "notes", "dreams")).hits).toEqual([])
   })
 
   it("keeps an edited note's new text searchable, and drops a deleted one", async () => {
-    await run("notes", "import")
+    await run("sync", "--notes")
     write("Projects/Harbour.md", "Harbour plan moved to the quay.\n")
     utimesSync(join(vault, "Projects/Harbour.md"), new Date("2030-01-01"), new Date("2030-01-01"))
     rmSync(join(vault, "Psychology/Private Notes.md"))
 
-    const second = await json("notes", "import")
+    const second = await json("sync", "--notes")
 
-    expect(second[0]).toMatchObject({ changed: 1, deleted: 1 })
+    expect(second.notes[0]).toMatchObject({ changed: 1, deleted: 1 })
     expect(paths((await json("search", "notes", "quay")).hits)).toEqual(["Projects/Harbour.md"])
     expect((await json("search", "notes", "dreams")).hits).toEqual([])
   })
 
   it("saves only what changed since the last run", async () => {
-    expect((await json("notes", "import"))[0]).toMatchObject({ notes: 4, changed: 4 })
-    expect((await json("notes", "import"))[0]).toMatchObject({ notes: 4, changed: 0 })
+    expect((await json("sync", "--notes")).notes[0]).toMatchObject({ notes: 4, changed: 4 })
+    expect((await json("sync", "--notes")).notes[0]).toMatchObject({ notes: 4, changed: 0 })
   })
 
   it("refuses to drop most notes at once, and weighs them again next run", async () => {
     for (const name of ["a", "b", "c", "d", "e", "f"]) write(`Bulk/${name}.md`, `bulk ${name}\n`)
-    await run("notes", "import")
+    await run("sync", "--notes")
     rmSync(join(vault, "Bulk"), { recursive: true })
     rmSync(join(vault, "Projects"), { recursive: true })
 
-    const refused = await json("notes", "import")
+    const refused = await json("sync", "--notes")
 
-    expect(refused[0].deletionsSkipped).toMatch(/too many to trust/)
+    expect(refused.notes[0].deletionsSkipped).toMatch(/too many to trust/)
     expect(paths((await json("search", "notes", "bulk")).hits)).toHaveLength(6)
-    expect((await json("notes", "import"))[0].deletionsSkipped).toMatch(/too many to trust/)
+    expect((await json("sync", "--notes")).notes[0].deletionsSkipped).toMatch(/too many to trust/)
   })
 
   it("keeps a moved note's id, its links and its tags", async () => {
     await telegramPeople(["101", "Owner Example"])
-    await run("notes", "import")
+    await run("sync", "--notes")
     const before = await json("notes", "show", join(vault, "Projects/Lighthouse.md"))
     renameSync(join(vault, "Projects/Lighthouse.md"), join(vault, "Projects/Beacon.md"))
 
-    expect((await json("notes", "import"))[0]).toMatchObject({ renamed: 1, deleted: 0 })
+    expect((await json("sync", "--notes")).notes[0]).toMatchObject({ renamed: 1, deleted: 0 })
 
     const after = await json("notes", "show", before.ref)
     expect(after).toMatchObject({ path: "Projects/Beacon.md", tags: ["work"] })
@@ -144,30 +152,30 @@ describe("memo notes import", () => {
   })
 
   it("stores a file's tags and drops one the file no longer has", async () => {
-    await run("notes", "import")
+    await run("sync", "--notes")
     expect((await json("search", "notes", "budget", "--tag", "work")).hits).toHaveLength(1)
 
     write("Projects/Lighthouse.md", "Kickoff with [[Rin Example]].\nBudget is open.\n")
     utimesSync(join(vault, "Projects/Lighthouse.md"), new Date("2030-01-01"), new Date("2030-01-01"))
-    await run("notes", "import")
+    await run("sync", "--notes")
 
     expect((await json("search", "notes", "budget", "--tag", "work")).hits).toEqual([])
   })
 
   it("keeps a tag the owner added when the file stops stating it", async () => {
-    await run("notes", "import")
+    await run("sync", "--notes")
     const ref = (await json("notes", "show", join(vault, "Projects/Lighthouse.md"))).ref
     await run("tags", "add", "work", "--note", ref)
 
     write("Projects/Lighthouse.md", "Kickoff with [[Rin Example]].\nBudget is open.\n")
     utimesSync(join(vault, "Projects/Lighthouse.md"), new Date("2030-01-01"), new Date("2030-01-01"))
-    await run("notes", "import")
+    await run("sync", "--notes")
 
     expect((await json("notes", "show", ref)).labels).toEqual([{ tag: "work", origin: "owner" }])
   })
 
   it("labels every note under a subfolder, and none beside it", async () => {
-    await run("notes", "import")
+    await run("sync", "--notes")
     const [folder] = (await json("folders", "list")).items
     expect(await json("tags", "add", "port", "--folder", folder.id, "--path", "Projects")).toMatchObject({
       added: ["port"],
@@ -181,14 +189,14 @@ describe("memo notes import", () => {
   })
 
   it("searches by words alone when the model is not downloaded, and says why", async () => {
-    await run("notes", "import")
+    await run("sync", "--notes")
     const found = await json("search", "notes", "budget")
     expect(found).toMatchObject({ by: "words", hits: [{ path: "Projects/Lighthouse.md", foundBy: ["words"] }] })
     expect(found.meaningSkipped).toMatch(/not downloaded/)
   })
 
   it("names the person a found note links", async () => {
-    await run("notes", "import")
+    await run("sync", "--notes")
     await telegramPeople(["102", "Kai Sample"])
 
     const { linked } = await json("search", "notes", "harbour")
@@ -198,13 +206,13 @@ describe("memo notes import", () => {
   it("does not import a note memo exported", async () => {
     write("Inbox/From memo.md", "---\nmemo-id: 01SYNTHETIC\nmemo-hash: x\n---\nexported lighthouse\n")
 
-    await run("notes", "import")
+    await run("sync", "--notes")
 
     expect(paths((await json("search", "notes", "exported")).hits)).toEqual([])
   })
 
   it("links a name no note has to the person, the moment someone by that name appears", async () => {
-    await run("notes", "import")
+    await run("sync", "--notes")
     expect((await json("notes", "about", "person:nobody")).linking).toEqual([])
 
     await telegramPeople(["102", "Kai Sample"])
@@ -215,7 +223,7 @@ describe("memo notes import", () => {
 
   it("names the note about a person, and the notes linking that note", async () => {
     await telegramPeople(["101", "Rin Example"])
-    await run("notes", "import")
+    await run("sync", "--notes")
 
     await run("note", "telegram:101", join(vault, "People/Rin Example.md"))
 
@@ -254,7 +262,7 @@ describe("notes written in memo", () => {
   })
 
   it("refuses to edit a file's note, which is edited in its file", async () => {
-    await run("notes", "import")
+    await run("sync", "--notes")
     const note = await json("notes", "show", join(vault, "Projects/Harbour.md"))
     await expect(run("notes", "edit", note.ref, "--revision", "1", "--text", "x")).rejects.toThrow(/edited in its file/)
   })

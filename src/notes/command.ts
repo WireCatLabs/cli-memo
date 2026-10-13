@@ -12,8 +12,7 @@ import { meetingReference } from "../store/scope.js"
 import { aboutText, isNoteReference, notesAbout } from "./about.js"
 import { boundFolders, folderOfFile } from "./bound.js"
 import { DIALECTS, type DialectName } from "./dialects/index.js"
-import { embedNoteChunks } from "./embed.js"
-import { folderNotes, importNotes, type NotesImport } from "./import.js"
+import { folderNotes } from "./import.js"
 import { exportInternal, exportTarget, internalNotes } from "./internal.js"
 import { loadFolderState } from "./state.js"
 
@@ -26,15 +25,6 @@ const sourceOf = (value: string): Note["source"] => {
   if (value !== "file" && value !== "internal") throw new InvalidArgumentError("choose file or internal")
   return value
 }
-
-const importText = (results: NotesImport[]): string =>
-  results
-    .map(
-      (result) =>
-        `${result.folder}: ${result.notes} notes, ${result.changed} changed, ${result.renamed} moved, ${result.deleted} gone` +
-        (result.deletionsSkipped === undefined ? "" : `\nDeletions skipped: ${result.deletionsSkipped}`),
-    )
-    .join("\n")
 
 const textOf = (options: { text?: string; file?: string }, given?: string): string => {
   const sources = [given, options.text, options.file].filter((value) => value !== undefined)
@@ -49,7 +39,7 @@ const noteOf = async (store: MessageStore, env: NodeJS.ProcessEnv, reference: st
   if (isNoteReference(reference)) return store.notes.note(reference)
   const { folder, path } = folderOfFile(await boundFolders(store, env, { strict: false }), reference)
   const found = (await folderNotes(store, folder.id)).find((note) => note.path === path)
-  if (!found) throw new CliError("not_found", `${reference} is not imported — memo notes import`)
+  if (!found) throw new CliError("not_found", `${reference} is not imported — memo sync --notes`)
   return found
 }
 
@@ -65,32 +55,6 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     }
   }
   const notes = program.command("notes").description("notes from your folders, and notes you write here")
-
-  notes
-    .command("import")
-    .description("bring the folders' notes, links and tags into the store, only what changed")
-    .option("--folder <folder>", "only this configured folder, by its id or path; repeat for more", collect)
-    .option("--ignore <path...>", "files or folders inside them to skip, added to notes.ignore — a path or a glob")
-    .option("--no-embed", "skip embedding the notes for search by meaning this run")
-    .option("--json", "print JSON")
-    .action(async (options: { folder?: string[]; ignore?: string[]; embed: boolean; json?: boolean }) => {
-      const results = await withStore(async (store) => {
-        const config = loadConfig(env).notes
-        const folders = await boundFolders(store, env, options.folder === undefined ? {} : { only: options.folder })
-        if (folders.length === 0)
-          throw new CliError("configuration_error", "no folders of notes — memo folders add <path>")
-        const ignore = [...(config?.ignore ?? []), ...(options.ignore ?? [])]
-        const imported: NotesImport[] = []
-        for (const folder of folders) imported.push(await importNotes(store, folder, { ignore, env }))
-        await importNotesMap(store, env, folders)
-        const embedded = await embedNoteChunks(store, { embed: options.embed && config?.embed !== false, env })
-        if (embedded.notEmbedded !== undefined)
-          streams.diagnostic(`Not searchable by meaning: ${embedded.notEmbedded}\n`)
-        else if (embedded.left) streams.diagnostic(`${embedded.chunks} chunks embedded; run again to embed the rest\n`)
-        return imported
-      })
-      print(options.json, results, importText(results))
-    })
 
   notes
     .command("about")

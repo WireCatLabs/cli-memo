@@ -112,7 +112,7 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
   const auto = program.command("auto").description("run memo sync on a systemd user timer, set in the config")
 
   auto
-    .command("on")
+    .command("start")
     .description("sync every --every (default auto.every, else 5m), starting a minute from now")
     .option("--every <interval>", "how often: 5m, 90s, 1h — a minute or more", interval)
     .action(async (options: { every?: string }) => {
@@ -125,7 +125,7 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     })
 
   auto
-    .command("off")
+    .command("stop")
     .description("stop syncing on a timer and remove the timer")
     .action(async () => {
       const config = updateConfig((current) => ({ ...current, auto: { ...current.auto, enabled: false } }), env)

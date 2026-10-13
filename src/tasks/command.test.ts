@@ -56,7 +56,7 @@ it("creates native note tasks through the CLI and connects context, search, assi
     type: "task",
     id: task.task.id,
   })
-  const reminder = await run("reminders", "schedule", task.task.id, "--at-time", "2026-01-01T00:00:00Z", ...scope)
+  const reminder = await run("reminders", "add", task.task.id, "--at-time", "2026-01-01T00:00:00Z", ...scope)
   const [delivery] = await run("reminders", "poll", ...scope)
   await run("reminders", "ack", reminder.id, delivery.receipt, ...scope)
   expect(await run("reminders", "poll", ...scope)).toEqual([])

@@ -25,7 +25,7 @@ one with `memo notes show` or in the original app.
 | Telegram or MAX messages | `memo search messages 'budget'` |
 
 `search all` looks in messages, mail and notes together. It does not search people, memories,
-projects or tasks; use `memo context`, `memo memories search` and `memo tasks list` for those.
+projects or tasks; use `memo context`, `memo search memories` and `memo tasks list` for those.
 When you know where something is, its own search is better, because it understands more search
 words.
 

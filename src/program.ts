@@ -9,7 +9,7 @@ import { contextCommand } from "./context/command.js"
 import { commandsCommand } from "./discovery/command.js"
 import { factsCommand } from "./facts/command.js"
 import { knowledgeCommands } from "./knowledge/command.js"
-import { mailCommand } from "./mail/command.js"
+import { messagesCommand } from "./mail/messages-command.js"
 import { mcpCommand } from "./mcp/command.js"
 import { memoriesCommand } from "./memories/command.js"
 import { notesCommand } from "./notes/command.js"
@@ -37,7 +37,7 @@ export const createProgram = ({
   contextCommand(program, streams, env)
   notesCommand(program, streams, env)
   foldersCommand(program, streams, env)
-  mailCommand(program, streams, env)
+  messagesCommand(program, streams, env)
   noteCommand(program, streams, env)
   tagsCommand(program, streams, env)
   tasksCommand(program, streams, env)

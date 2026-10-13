@@ -51,18 +51,18 @@ it("adds a memory of the owner's as confirmed, finds it, and marks it stale", as
   expect(
     (await json("memories", "list", "--status", "confirmed")).items.map(({ ref }: { ref: string }) => ref),
   ).toEqual([memory.ref])
-  expect((await json("memories", "search", "Fridays")).items.map(({ ref }: { ref: string }) => ref)).toEqual([
+  expect((await json("search", "memories", "Fridays")).items.map(({ ref }: { ref: string }) => ref)).toEqual([
     memory.ref,
   ])
   expect(await json("memories", "stale", memory.ref)).toMatchObject({ status: "stale" })
   expect(await json("memories", "show", memory.ref)).toMatchObject({ ref: memory.ref, status: "stale" })
 })
 
-it("approves a proposed action as a task in the account that would act, and rejects another", async () => {
+it("confirms a proposed action as a task in the account that would act, and rejects another", async () => {
   const scope = ["--provider", account.provider, "--account", account.account]
   const reply = await json(
     "actions",
-    "propose",
+    "add",
     "reply",
     "--reason",
     "Bob Sample asked twice",
@@ -70,10 +70,10 @@ it("approves a proposed action as a task in the account that would act, and reje
     "--payload",
     '{"text":"Friday works"}',
   )
-  const ban = await json("actions", "propose", "ban", "--reason", "spam", ...scope)
+  const ban = await json("actions", "add", "ban", "--reason", "spam", ...scope)
   expect(reply).toMatchObject({ status: "proposed", account, payload: { text: "Friday works" } })
 
-  const approved = await json("actions", "approve", reply.id)
+  const approved = await json("actions", "confirm", reply.id)
   expect(approved.proposal).toMatchObject({ status: "approved", result: { task: approved.task.id } })
   expect(await json("actions", "reject", ban.id)).toMatchObject({ status: "rejected" })
   expect((await json("actions", "list", "--status", "proposed")).items).toEqual([])

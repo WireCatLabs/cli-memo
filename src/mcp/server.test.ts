@@ -34,7 +34,7 @@ it("tells a connecting agent when to save a fact, a memory or an action, within 
   const { client } = await connected()
   try {
     expect(client.getInstructions()).toBe(INSTRUCTIONS)
-    for (const tool of ["facts_add", "memories_add", "actions_propose"]) expect(INSTRUCTIONS).toContain(tool)
+    for (const tool of ["facts_add", "memories_add", "actions_add"]) expect(INSTRUCTIONS).toContain(tool)
     expect(INSTRUCTIONS.length).toBeLessThanOrEqual(2048)
   } finally {
     await client.close()
@@ -54,7 +54,7 @@ it("offers the memo tools, saves an agent's memory and proposal as its own, and 
     })
     expect(memory.structuredContent).toMatchObject({ status: "proposed", author: { type: "bot" } })
 
-    const proposal = await call("actions_propose", {
+    const proposal = await call("actions_add", {
       kind: "reply",
       reason: "Bob Sample asked twice",
       provider: account.provider,
@@ -83,7 +83,7 @@ it("offers the memo tools, saves an agent's memory and proposal as its own, and 
     expect(log.items.map(({ tool, status }) => `${tool} ${status}`)).toEqual([
       "memories_add failed",
       "facts_add ok",
-      "actions_propose ok",
+      "actions_add ok",
       "memories_add ok",
     ])
     expect((await call("memories_list", { limit: 1 })).structuredContent).toMatchObject({ hasMore: false })
@@ -100,17 +100,17 @@ it("offers vocabulary discovery and preflight without accepting alias changes", 
   await store.close()
   const { client, call } = await connected()
   try {
-    const resolved = await call("vocabulary_resolve", { name: "Lab Example", kind: "project" })
+    const resolved = await call("vocabulary_show", { name: "Lab Example", kind: "project" })
     expect(resolved.structuredContent).toMatchObject({ ambiguous: false, matches: [{ id: project.id }] })
-    expect((await call("vocabulary_preflight", { name: "on-boarding" })).structuredContent).toMatchObject({
+    expect((await call("vocabulary_check", { name: "on-boarding" })).structuredContent).toMatchObject({
       disposition: "review",
     })
-    expect((await call("vocabulary_audit", { limit: 1 })).structuredContent).toMatchObject({
+    expect((await call("vocabulary_check", { limit: 1 })).structuredContent).toMatchObject({
       pairs: [],
       complete: true,
       semantic: "not-requested",
     })
-    expect((await call("vocabulary_audit", { maxComparisons: 100001 })).isError).toBe(true)
+    expect((await call("vocabulary_check", { maxComparisons: 100001 })).isError).toBe(true)
     expect(
       (await client.listTools()).tools.some((x) => ["vocabulary_alias_add", "vocabulary_create"].includes(x.name)),
     ).toBe(false)
@@ -138,11 +138,11 @@ it("exposes ready task discovery without offering dependency mutation or claims"
   await store.close()
   const { client, call } = await connected()
   try {
-    expect((await call("task_readiness", { task: second.id })).structuredContent).toEqual({
+    expect((await call("tasks_status", { task: second.id })).structuredContent).toEqual({
       ready: false,
       blockers: [{ task: first.ref, state: "open" }],
     })
-    expect((await call("tasks_ready", { project: "RES" })).structuredContent).toMatchObject({
+    expect((await call("tasks_list", { project: "RES", ready: true })).structuredContent).toMatchObject({
       items: [{ ref: first.ref, key: first.key }],
       hasMore: false,
     })

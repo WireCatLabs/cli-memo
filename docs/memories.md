@@ -43,7 +43,7 @@ meetings that show it. It has a kind and a scope:
 memo memories add 'Kai Sample prefers Friday meetings' --kind preference --scope work --evidence note:12
 memo memories list
 memo memories show memory:3
-memo memories search friday meetings
+memo search memories friday meetings
 memo memories confirm memory:3
 memo memories stale memory:3
 ```
@@ -61,7 +61,7 @@ A fact records what happened, with its evidence. Its type is `fact`, `statement`
 memo facts add 'We moved the launch to spring' --type decision --evidence 'msg:telegram/1/77/42'
 memo facts list --type decision
 memo facts show fact:4
-memo facts accept fact:4
+memo facts confirm fact:4
 ```
 
 A fact you add with the `memo` command is accepted at once. One an agent adds waits as `proposed`
@@ -79,7 +79,7 @@ ban in a group. Memo never does it.
 ```sh
 memo actions list --status proposed
 memo actions show 5
-memo actions approve 5
+memo actions confirm 5
 memo actions reject 5
 ```
 
@@ -90,7 +90,7 @@ closes it, and nothing is done.
 An agent proposes an action like this:
 
 ```sh
-memo actions propose reply --reason 'Kai asked twice' --provider telegram --target 'msg:telegram/1/77/42' --payload '{"text":"Friday works"}'
+memo actions add reply --reason 'Kai asked twice' --provider telegram --target 'msg:telegram/1/77/42' --payload '{"text":"Friday works"}'
 ```
 
 ## What agents did

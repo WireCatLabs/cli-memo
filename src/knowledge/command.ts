@@ -303,10 +303,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .command("reminders")
     .description("durable local reminders; poll hands one out and ack confirms it was shown")
   accountOptions(
-    reminders
-      .command("schedule")
-      .description("schedule a reminder for an open task")
-      .argument("<task>", "the task's id"),
+    reminders.command("add").description("add a reminder for an open task").argument("<task>", "the task's id"),
   )
     .requiredOption("--at-time <time>", "when to remind: an ISO 8601 time with its UTC offset")
     .option("--timezone <zone>", "IANA timezone", "UTC")
@@ -342,7 +339,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     execute(options, (store, key) => store.knowledge.cancelReminder(key, id)),
   )
   accountOptions(
-    reminders.command("snooze").description("move a reminder to a later time").argument("<id>", "the reminder's id"),
+    reminders.command("update").description("move a reminder to another time").argument("<id>", "the reminder's id"),
   )
     .requiredOption("--at-time <time>", "the new time: an ISO 8601 time with its UTC offset")
     .requiredOption("--revision <n>", "the reminder's current revision, as reminders list gives it", positive)

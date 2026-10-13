@@ -84,7 +84,7 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.facts.get(ref)))
 
   facts
-    .command("accept")
+    .command("confirm")
     .description("stand behind a fact an agent proposed; a decision it supersedes stops holding")
     .argument("<ref>", "fact:<id>")
     .option("--json", "print JSON")
