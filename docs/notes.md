@@ -201,4 +201,7 @@ memo folders attach 1 /other/path/to/notes
 
 With the same ID, the notes keep their links and tags on both computers.
 
+A folder named `google-drive:…` holds the Google Drive documents drive-cli saved. `memo folders list` marks it
+"kept by drive", and `memo folders attach` refuses it: memo search reads it already.
+
 Next: [label your notes with tags](tags.md), or [search them](search.md).

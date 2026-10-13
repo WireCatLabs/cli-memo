@@ -37,17 +37,21 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   /** What the store knows around an organization or a project: its relations, the notes about it, its tags. */
   const contextOf = async (
     store: MessageStore,
-    thing: { ref: string } | undefined,
+    thing: { id: string } | undefined,
     type: "organization" | "project",
-    id: string,
-  ) => ({
-    [type]: thing ?? null,
-    relationships: (await store.notes.links({ to: `${type}:${id}` }))
-      .concat(await store.notes.links({ from: `${type}:${id}` }))
-      .filter((link) => link.kind !== "about" && link.kind !== "links-to"),
-    notes: await notesAbout(store, { ref: `${type}:${id}` }),
-    tags: await store.knowledge.tags(null, { type, id }),
-  })
+    reference: string,
+  ) => {
+    if (thing === undefined) throw new CliError("not_found", `no ${type} ${reference}; memo ${type}s list shows them`)
+    const { id } = thing
+    return {
+      [type]: thing,
+      relationships: (await store.notes.links({ to: `${type}:${id}` }))
+        .concat(await store.notes.links({ from: `${type}:${id}` }))
+        .filter((link) => link.kind !== "about" && link.kind !== "links-to"),
+      notes: await notesAbout(store, { ref: `${type}:${id}` }),
+      tags: await store.knowledge.tags(null, { type, id }),
+    }
+  }
   const organizations = program
     .command("organizations")
     .description("Companies, teams, families and communities of yours")
@@ -74,18 +78,21 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .action((options: { json?: boolean }) => owned(options, (store) => store.knowledge.organizations()))
   organizations
     .command("context")
-    .description("One organization: its relationships, the notes about or linking it, and its tags")
-    .argument("<id>")
+    .description(
+      "One organization by its id or organization:<id>: its relationships, the notes about or linking it, and its tags",
+    )
+    .argument("<organization>")
     .option("--json", "print JSON")
-    .action((id: string, options: { json?: boolean }) =>
-      owned(options, async (store) =>
-        contextOf(
+    .action((reference: string, options: { json?: boolean }) =>
+      owned(options, async (store) => {
+        const wanted = reference.replace(/^organization:/, "")
+        return contextOf(
           store,
-          (await store.knowledge.organizations()).find((organization) => organization.id === id),
+          (await store.knowledge.organizations()).find((organization) => organization.id === wanted),
           "organization",
-          id,
-        ),
-      ),
+          reference,
+        )
+      }),
     )
   const projects = program.command("projects").description("Projects of yours, each with a short key")
   meetingProjectsCommand(projects, streams, env)
@@ -137,7 +144,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         const project = (await store.knowledge.projects()).find(
           (candidate) => candidate.id === wanted || candidate.key?.toLowerCase() === wanted.toLowerCase(),
         )
-        return contextOf(store, project, "project", project?.id ?? wanted)
+        return contextOf(store, project, "project", reference)
       }),
     )
   const relations = program
