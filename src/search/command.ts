@@ -3,6 +3,7 @@ import { parseLocator, resolveOutput } from "@wirecat/cli-messaging"
 import {
   parseLucene,
   type QueryNode,
+  type SearchAllFound,
   type SearchedResource,
   type SearchFound,
   searchAll,
@@ -261,12 +262,18 @@ export interface SearchedAccount {
   account: string
 }
 
+interface EverywhereExtras {
+  accounts: SearchedAccount[]
+  tasks: Awaited<ReturnType<typeof taskPage>>["items"]
+  tasksIncomplete: boolean
+}
+
 /** Messages, mail and notes ranked together, with the open tasks that point at a hit and every account read. */
 export const searchEverywhere = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
   { text, limit, only, exact, timezone }: QueryInput & { only?: SearchedResource[] },
-) => {
+): Promise<SearchAllFound & EverywhereExtras> => {
   const accounts = await store.accounts()
   // The shared search names this command only in the model hint, and the model comes from tg.
   const messenger = { app: { ...APP, command: "tg" } }

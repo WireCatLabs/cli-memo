@@ -26,6 +26,7 @@ the API.
 
 ### Changed — may break scripts
 
+- `memo context` tells you to run `messages sync <chat>` for chats not read in full; the hint said `store fetch <chat>`, which cli-messaging 0.256.0 renamed. Text read from a CSV attachment or note now comes as rows (`name: Bravo; value: 200`), not raw comma separated lines.
 - **`memo commands --json` prints cli-base's commands document**, the shape tg and max print: `cli`, `version`,
   `contract`, `description`, `globalOptions`, `commands`, `exitCodes`. `items` is gone; `memo commands <path> --json`
   puts the one command under `commands` with `scope` and `inheritedOptions`.

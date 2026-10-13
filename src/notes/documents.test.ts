@@ -45,7 +45,7 @@ describe("document ingestion", () => {
       const later = new Date("2026-10-08T00:00:01Z")
       utimesSync(csv, later, later)
       expect((await importNotes(store, folder, { loadEngine: load, env })).changed).toBe(1)
-      expect((await store.notes.note(budget?.ref as string)).text).toContain("Bravo,200")
+      expect((await store.notes.note(budget?.ref as string)).text).toContain("name: Bravo; value: 200")
 
       renameSync(csv, join(vault, "renamed.csv"))
       const moved = await importNotes(store, folder, { loadEngine: load, env })

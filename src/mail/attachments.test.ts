@@ -69,7 +69,7 @@ describe("read-only email attachment sources", () => {
         name: "budget.csv",
         providerRef: { message: "9001", part: 2 },
       })
-      expect((await store.mail.email(id, "9001"))?.attachments[0]?.text).toContain("Synthetic,123")
+      expect((await store.mail.email(id, "9001"))?.attachments[0]?.text).toContain("name: Synthetic; value: 123")
       present = false
       expect((await importMail(input)).deleted).toBe(1)
       expect((await store.mail.email(id, "9001"))?.attachments[0]?.text).toBeNull()

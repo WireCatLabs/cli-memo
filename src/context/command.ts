@@ -40,7 +40,7 @@ export const contextText = ({ messages, notes, notRead, tasks, yourNotes }: Memo
       ? []
       : ["Notes linking a note about them", ...notes.throughNotes.map(noteLine)]),
     ...(notes.hasMore ? ["  more — raise --limit"] : []),
-    ...(messages.complete ? [] : ["", `Not read in full: ${messages.notRead.length} chats — store fetch <chat>`]),
+    ...(messages.complete ? [] : ["", `Not read in full: ${messages.notRead.length} chats — messages sync <chat>`]),
     ...notRead.map(({ source, reason }) => `Not read: ${source} — ${reason}`),
     ...(tasks.items.length
       ? [
