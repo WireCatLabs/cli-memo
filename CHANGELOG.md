@@ -6,6 +6,14 @@ the API.
 
 ## Unreleased
 
+### Changed — may break scripts
+
+- **A write from an agent's terminal is the agent's.** `memo facts add`, `memories add`, `relationships add`
+  and `actions propose` run with `AI_AGENT` or `CLAUDECODE` set record the agent as author (`claude-code`, the
+  name before the version in `AI_AGENT`), as the MCP server does: the fact or memory waits as `proposed`, the
+  relationship unconfirmed with `provenance: agent:<name>`. They were recorded as the owner's and accepted.
+  `--as-owner` keeps a write yours inside an agent's terminal.
+
 ### Fixed
 
 - **The search guide names `content:` for messages.** It narrows a search to the text of files, in
