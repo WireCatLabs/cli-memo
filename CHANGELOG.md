@@ -8,6 +8,8 @@ the API.
 
 ### Fixed
 
+- **The search guide names `content:` for messages.** It narrows a search to the text of files, in
+  `memo search messages` and `memo search all` as in tg; the guide listed it for mail only.
 - **`memo projects context` and `memo organizations context` refuse what the store does not hold** with
   `not_found` instead of an empty answer, and `organizations context` takes `organization:<id>` as well as
   its id.
