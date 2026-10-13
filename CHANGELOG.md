@@ -8,6 +8,8 @@ the API.
 
 ### Added
 
+- **The skill tells an agent to search again in other words before saying something is not there.** A
+  paraphrase shares no words with its answer; an agent can rephrase without a query-expansion model.
 - **An agent skill, as tg has.** `memo skill show` prints it and `memo skill install --for claude|agents|all`
   writes it where Claude Code, Codex and Gemini CLI look; a global npm install does that too, unless
   `MEMO_INSTALL_AGENT=none`. It starts with the traps agents fell into: choosing an account, `content:` and

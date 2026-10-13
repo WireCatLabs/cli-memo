@@ -35,6 +35,10 @@ anything. Add `--json` and read the answer, not the text meant for people.
    older install may lack the fix.
 9. **zsh does not split `$c` into words.** `memo $c --help` with `c="projects add"` passes one
    argument, not a command path; write `${=c}` or loop over the words.
+10. **Nothing relevant: search again in other words before saying it is not there.** Words find words; a
+    paraphrase misses, and `search notes` by meaning still misses some. Try the words the answer itself would
+    contain (a document's title, the sender's term), one or two key words instead of a sentence, a synonym, the
+    other language. After two or three tries, say what you searched for.
 
 ## The usual path
 
