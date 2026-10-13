@@ -6,6 +6,11 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **`memo sync` imports a mailbox of more than ~120,000 emails.** A long `--since-time` window failed with
+  "Maximum call stack size exceeded" before saving anything.
+
 ## 0.24.0 — 13.10.2026
 
 ### Added

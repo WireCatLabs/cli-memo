@@ -77,16 +77,18 @@ export const importMail = async ({
   const folders = account.folders ?? [account.mode === "imap" ? "INBOX" : "[Gmail]/All Mail"]
   if (folders.length < 1 || folders.length > 50) throw new Error("select 1–50 mail folders")
   const collected = []
-  for (const folder of folders)
-    collected.push(
-      ...(account.mode === "imap"
+  for (const folder of folders) {
+    const found =
+      account.mode === "imap"
         ? await listImapMail(run, account.name, since, folder)
         : (await listAllMail(run, account.name, since, folder)).map((item) => ({
             ...item,
             folder: folder === "[Gmail]/All Mail" ? "archive" : folder,
             scopeFolder: folder,
-          }))),
-    )
+          }))
+    // Spreading a whole mailbox into push() overflows the stack past ~120,000 emails.
+    for (const item of found) collected.push(item)
+  }
   const listed = [...new Map(collected.map((item) => [item.messageId, item])).values()].sort((a, b) =>
     b.receivedAt.localeCompare(a.receivedAt),
   )
