@@ -25,7 +25,7 @@ export interface ImportResult {
   /** False when `max` stopped the run before every new message was read; the next run continues. */
   complete: boolean
   /** Emails that could not be read or parsed; they are tried again next run. */
-  failed?: { message: string; reason: string }[]
+  unreadable?: { message: string; reason: string }[]
   /** Why stored messages missing at the source were left alone, when they were. */
   deletionsSkipped?: string
   indexed?: NotesEmbedded
@@ -157,7 +157,7 @@ export const importMail = async ({
   }
 
   const attachments: NonNullable<ImportResult["attachments"]> = []
-  const failed: NonNullable<ImportResult["failed"]> = []
+  const unreadable: NonNullable<ImportResult["unreadable"]> = []
   let saved = 0
   let alreadyStored = 0
   const pending: Listed[] = []
@@ -181,7 +181,7 @@ export const importMail = async ({
         if (raw === undefined || raw instanceof Error) throw raw ?? new Error("not read")
         mail = await parseMail(raw, maxBodyChars)
       } catch (error) {
-        failed.push({ message: item.messageId, reason: error instanceof Error ? error.message : String(error) })
+        unreadable.push({ message: item.messageId, reason: error instanceof Error ? error.message : String(error) })
         continue
       }
       const files: AttachmentInput[] = []
@@ -296,7 +296,7 @@ export const importMail = async ({
     indexed,
     coverage,
     ...(attachments.length ? { attachments } : {}),
-    ...(failed.length ? { failed } : {}),
+    ...(unreadable.length ? { unreadable } : {}),
     ...(skipped === undefined ? {} : { deletionsSkipped: skipped }),
   }
 }
