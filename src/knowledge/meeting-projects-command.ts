@@ -16,7 +16,7 @@ type Options = {
   provenance?: string
 }
 export const meetingProjectsCommand = (projects: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
-  const group = projects.command("meetings").description("Explicit account-scoped project membership")
+  const group = projects.command("meetings").description("explicit account-scoped project membership")
   const options = (command: Command) =>
     command
       .requiredOption("--provider <provider>", "meeting provider")
@@ -31,7 +31,7 @@ export const meetingProjectsCommand = (projects: Command, streams: Streams, env:
   options(
     group
       .command("list")
-      .description("Meetings linked to a project in one account, or proposed links")
+      .description("meetings linked to a project in one account, or proposed links")
       .argument("<project>", "project reference, key or explicit alias"),
   )
     .option("--proposed", "show proposed memberships instead of confirmed ones")
@@ -53,8 +53,8 @@ export const meetingProjectsCommand = (projects: Command, streams: Streams, env:
   options(
     group
       .command("link")
-      .description("Link a stored meeting to a project, or confirm a proposed link")
-      .argument("<project>")
+      .description("link a stored meeting to a project, or confirm a proposed link")
+      .argument("<project>", "project reference, key or explicit alias")
       .argument("<meeting-id>", "positive stored meeting id"),
   )
     .option("--expected <fingerprint>", "required when confirming an existing proposal")

@@ -8,9 +8,10 @@ export const agentsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
   const run = answering(streams, env)
   program
     .command("agents")
-    .description("What agents did through the MCP servers that share the store")
+    .description("what agents did through the MCP servers that share the store")
     .command("log")
-    .description("One row per tool call, newest first: agent, tool, tier, outcome and times, never its arguments")
+    .summary("one row per tool call, newest first: agent, tool, outcome and times")
+    .description("one row per tool call, newest first: agent, tool, tier, outcome and times, never its arguments")
     .option("--tool <name>", "only this tool")
     .option("--agent <name>", "only this agent, such as tg-mcp or memo-mcp")
     .option("--limit <n>", "most rows, up to 500", positive, 100)

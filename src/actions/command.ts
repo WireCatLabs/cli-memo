@@ -12,14 +12,12 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
   const run = answering(streams, env)
   const actions = program
     .command("actions")
-    .description("What an agent proposes to do; approving one makes it your task, nothing is sent")
+    .description("what an agent proposes to do; approving one makes it your task, nothing is sent")
 
   byOption(
     actions
       .command("propose")
-      .description(
-        "Propose an action, such as a reply or a ban, in the account that would act; it records who proposed it",
-      ),
+      .description("propose an action, such as a reply or a ban, in the account that would act"),
   )
     .argument("<kind>", "a lower-case word: reply, send, ban, mute, pin, invite, create_task, …")
     .requiredOption("--reason <text>", "why it should be done")
@@ -35,7 +33,7 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
 
   actions
     .command("list")
-    .description("Proposed actions, newest first")
+    .description("proposed actions, newest first")
     .option("--status <status>", PROPOSAL_STATUSES.join(", "), oneOf(PROPOSAL_STATUSES))
     .option("--limit <n>", "most actions, up to 500", positive, 100)
     .option("--json", "print JSON")
@@ -49,22 +47,22 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
 
   actions
     .command("show")
-    .description("One proposed action, with its payload")
-    .argument("<id>")
+    .description("one proposed action, with its payload")
+    .argument("<id>", "the action's id, as actions list gives it")
     .option("--json", "print JSON")
     .action((id: string, options: { json?: boolean }) => run(options.json, (store) => store.proposedActions.get(id)))
 
   actions
     .command("approve")
-    .description("Approve it: it becomes a task in the account that would act; nothing is sent")
-    .argument("<id>")
+    .description("approve it: it becomes a task in the account that would act; nothing is sent")
+    .argument("<id>", "the action's id, as actions list gives it")
     .option("--json", "print JSON")
     .action((id: string, options: { json?: boolean }) => run(options.json, (store) => approveAsTask(store, id)))
 
   actions
     .command("reject")
-    .description("Reject it; nothing is done")
-    .argument("<id>")
+    .description("reject it; nothing is done")
+    .argument("<id>", "the action's id, as actions list gives it")
     .option("--json", "print JSON")
     .action((id: string, options: { json?: boolean }) => run(options.json, (store) => store.proposedActions.reject(id)))
 }

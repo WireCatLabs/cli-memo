@@ -116,7 +116,7 @@ describe("combined evidence, relationships and local reminders", () => {
         withGaps: expect.any(Number),
       },
     })
-    const reminder = await run("reminders", "schedule", document.task.id, "--at", "2026-01-01T00:00:00Z", ...scope)
+    const reminder = await run("reminders", "schedule", document.task.id, "--at-time", "2026-01-01T00:00:00Z", ...scope)
     const [delivery] = await run("reminders", "poll", ...scope)
     expect(delivery.deliveryId).toBe(`${reminder.id}:1`)
     expect(await run("reminders", "poll", ...scope)).toEqual([])

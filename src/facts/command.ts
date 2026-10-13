@@ -5,6 +5,7 @@ import { authorOf, byOption } from "../author.js"
 import { oneOf, positive } from "../options.js"
 import { pageOf } from "../page.js"
 import { answering } from "../records/run.js"
+import { canonicalProject } from "../vocabulary/project.js"
 
 interface Filters {
   type?: Fact["type"]
@@ -29,34 +30,26 @@ interface AddOptions {
 
 export const factsCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const run = answering(streams, env)
-  const facts = program
-    .command("facts")
-    .description(
-      "What happened — said, asked, decided, promised — with its evidence: an agent's waits for you to accept it",
-    )
+  const facts = program.command("facts").description("what happened — said, asked, decided, promised — with evidence")
 
-  byOption(
-    facts
-      .command("add")
-      .description("Record a fact: yours is accepted at once, an agent's waits as proposed until you accept it"),
-  )
+  byOption(facts.command("add").description("record a fact; an agent's waits as proposed until you accept it"))
     .argument("<statement...>", "what happened, in one sentence")
     .requiredOption("--type <type>", FACT_TYPES.join(", "), oneOf(FACT_TYPES))
     .option("--evidence <ref...>", "what shows it: msg:, note:, meeting:, person: or another reference")
-    .option("--project <ref>", "the project it belongs to, project:<id>")
+    .option("--project <project>", "the project it belongs to: its key or project:<id>")
     .option("--subject <ref>", "what it is about, as a reference")
     .option("--occurred <iso>", "when it happened, as the evidence shows")
     .option("--scope <scope>", MEMORY_SCOPES.join(" or "), oneOf(MEMORY_SCOPES))
     .option("--supersedes <ref>", "a decision only: the decision this one replaces")
     .option("--json", "print JSON")
     .action((words: string[], options: AddOptions) =>
-      run(options.json, (store) =>
+      run(options.json, async (store) =>
         store.facts.add({
           type: options.type,
           statement: words.join(" "),
           by: authorOf(env, options.asOwner),
           ...(options.evidence === undefined ? {} : { evidence: options.evidence }),
-          ...(options.project === undefined ? {} : { project: options.project }),
+          ...(options.project === undefined ? {} : { project: await canonicalProject(store, options.project) }),
           ...(options.subject === undefined ? {} : { subject: options.subject }),
           ...(options.occurred === undefined ? {} : { occurredAt: options.occurred }),
           ...(options.scope === undefined ? {} : { scope: options.scope }),
@@ -67,34 +60,39 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
 
   facts
     .command("list")
-    .description("Facts, latest first")
+    .description("facts, latest first")
     .option("--type <type>", FACT_TYPES.join(", "), oneOf(FACT_TYPES))
     .option("--status <status>", FACT_STATUSES.join(", "), oneOf(FACT_STATUSES))
-    .option("--project <ref>", "only this project's, project:<id>")
+    .option("--project <project>", "only this project's: its key or project:<id>")
     .option("--subject <ref>", "only facts about this reference")
     .option("--limit <n>", "most facts, up to 500", positive, 100)
     .option("--json", "print JSON")
     .action(({ json, ...filters }: Filters) =>
-      run(json, (store) => pageOf(filters.limit, (limit) => store.facts.list({ ...filters, limit }))),
+      run(json, async (store) => {
+        const project = filters.project === undefined ? undefined : await canonicalProject(store, filters.project)
+        return pageOf(filters.limit, (limit) =>
+          store.facts.list({ ...filters, ...(project === undefined ? {} : { project }), limit }),
+        )
+      }),
     )
 
   facts
     .command("show")
-    .description("One fact with its evidence")
+    .description("one fact with its evidence")
     .argument("<ref>", "fact:<id>")
     .option("--json", "print JSON")
     .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.facts.get(ref)))
 
   facts
     .command("accept")
-    .description("Stand behind a fact an agent proposed; a decision it supersedes stops holding")
+    .description("stand behind a fact an agent proposed; a decision it supersedes stops holding")
     .argument("<ref>", "fact:<id>")
     .option("--json", "print JSON")
     .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.facts.accept(ref)))
 
   facts
     .command("reverse")
-    .description("An accepted decision no longer holds, and nothing replaced it")
+    .description("an accepted decision no longer holds, and nothing replaced it")
     .argument("<ref>", "fact:<id>")
     .option("--json", "print JSON")
     .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.facts.reverse(ref)))

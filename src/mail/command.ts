@@ -71,7 +71,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
 
   program
     .command("mail")
-    .description("Read one mail account through Himalaya into the shared message store")
+    .description("read one mail account through Himalaya into the shared message store")
     .usage("<account> import [options] | <account> show <reference> [options]")
     .argument("[account]", "the account's name in mail.accounts of the config, also its name in Himalaya")
     .argument(

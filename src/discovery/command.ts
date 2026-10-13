@@ -10,7 +10,7 @@ export const commandsCommand = (program: Command, streams: Streams): void => {
   program
     .command("commands")
     .argument("[path...]", "one command, such as tags add")
-    .description("Discover the command tree and options as shared registry data")
+    .description("discover the command tree and options as shared registry data")
     .option("--json", "print JSON")
     .action((path: string[], options: { json?: boolean }) => {
       const document = commandsDocument(program, { cli: "memo", version: VERSION, contract: CONTRACT })

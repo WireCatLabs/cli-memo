@@ -3,7 +3,7 @@ import { CliError, type Streams } from "@wirecat/cli-base"
 import { type MessageStore, type Note, openStore } from "@wirecat/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { loadConfig } from "../config.js"
-import { positive } from "../options.js"
+import { collect, positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { subjectOf } from "../people/subject.js"
 import { printing } from "../records/run.js"
@@ -64,14 +64,12 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       await store.close()
     }
   }
-  const notes = program
-    .command("notes")
-    .description("Notes: files from your folders, and notes you write here about messages, people and projects")
+  const notes = program.command("notes").description("notes from your folders, and notes you write here")
 
   notes
     .command("import")
-    .description("Bring the folders' notes, their links and tags into the shared store — only what changed")
-    .option("--folder <path-or-id...>", "only these configured folders")
+    .description("bring the folders' notes, links and tags into the store, only what changed")
+    .option("--folder <folder>", "only this configured folder, by its id or path; repeat for more", collect)
     .option("--ignore <path...>", "files or folders inside them to skip, added to notes.ignore — a path or a glob")
     .option("--no-embed", "skip embedding the notes for search by meaning this run")
     .option("--json", "print JSON")
@@ -96,9 +94,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
 
   notes
     .command("about")
-    .description(
-      "Notes about a person, project or note, and the notes that link them — through links, never a name in plain text",
-    )
+    .description("notes about a subject and the notes that link it, through links only")
     .argument(
       "<subject>",
       "<messenger>:<name or id>, person:<uid>, organization:<id>, project:<id>, note:<id> or document:<id>",
@@ -112,7 +108,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
 
   notes
     .command("show")
-    .description("One note: its text, tags, what it links and what links it")
+    .description("one note: its text, tags, what it links and what links it")
     .addHelpText("after", SAVE_HELP)
     .argument("<note>", "note:<id>, document:<id>, or a file in a configured folder")
     .option("--json", "print JSON")
@@ -150,7 +146,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
 
   notes
     .command("list")
-    .description("Notes, newest first")
+    .description("notes, newest first")
     .option("--about <subject>", "only notes about this: <messenger>:<name or id> or a typed reference")
     .option("--source <source>", "file or internal", sourceOf)
     .option("--search <text>", "only notes holding this text, as written")
@@ -187,14 +183,15 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
 
   notes
     .command("add")
-    .description("Write a note of your own about messages, people, projects or other notes")
+    .description("write a note of your own about messages, people, projects or other notes")
     .argument("[text]", "the note; or --text, or --file")
     .option("--text <text>", "the note")
     .option("--file <path>", "read the note from a file; - reads stdin")
     .option("--title <title>", "a title")
     .option(
-      "--about <subject...>",
-      "what it is about: <messenger>:<name or id>, msg:, chat:, person:, organization:, project:, task:, note:, document:, meeting:",
+      "--about <subject>",
+      "what it is about: <messenger>:<name or id>, msg:, chat:, person:, organization:, project:, task:, note:, document:, meeting:; repeat for more",
+      collect,
     )
     .option("--meeting <id>", "also about this meeting, by its store id, with --provider and --account")
     .option("--provider <provider>", "the meeting's provider")
@@ -241,7 +238,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
 
   notes
     .command("edit")
-    .description("Change a note you wrote here; a file's note is edited in its file")
+    .description("change a note you wrote here; a file's note is edited in its file")
     .argument("<id>", "note:<id> or its id")
     .requiredOption("--revision <n>", "its current revision, so an edit made meanwhile is not lost", positive)
     .option("--text <text>", "the new text")
@@ -274,7 +271,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
 
   notes
     .command("remove")
-    .description("Delete a note you wrote here; a file it was exported to stays")
+    .description("delete a note you wrote here; a file it was exported to stays")
     .argument("<id>", "note:<id> or its id")
     .option("--json", "print JSON")
     .action(async (id: string, options: { json?: boolean }) => {
@@ -284,7 +281,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
 
   notes
     .command("export")
-    .description("Write the notes you wrote here as files, never overwriting one you edited")
+    .description("write the notes you wrote here as files, never overwriting one you edited")
     .option("--to <dir>", "the folder to write to (default: notes.export.dir)")
     .option("--format <format>", `the files' format: ${DIALECTS.join(", ")}`, formatOf)
     .option("--json", "print JSON")

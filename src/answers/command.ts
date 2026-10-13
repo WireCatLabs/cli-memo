@@ -87,16 +87,16 @@ export const answerEvidence = async (
 export const askCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   program
     .command("ask")
-    .description("Prepare cited evidence for your agent, or explicitly call a configured model")
-    .argument("<question>")
+    .description("prepare cited evidence for your agent, or explicitly call a configured model")
+    .argument("<question>", "the question, in your own words")
     .option("--query <query>", "structured retrieval query; defaults to the question")
-    .option("--all")
-    .option("--provider <provider>")
-    .option("--account <account>")
+    .option("--all", "look in every stored account and the notes")
+    .option("--provider <provider>", "look in this provider's accounts only, such as telegram or email")
+    .option("--account <account>", "look in this stored account only, with --provider")
     .option("--limit <n>", "most evidence items, at most 100", positive, 20)
     .option("--model", "call MEMO_MODELS_ANALYSIS_PROVIDER/MODEL instead of returning an evidence bundle")
     .option("--allow-remote", "explicitly consent to sending this evidence to the configured model")
-    .option("--json")
+    .option("--json", "print JSON")
     .action(
       async (
         question: string,

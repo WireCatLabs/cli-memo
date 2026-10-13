@@ -63,7 +63,7 @@ const syncLeaf = (
 ): Command =>
   program
     .command(name, options)
-    .description("Bring notes and mail up to date in the shared store — only what changed; the timer runs this")
+    .description("bring notes and mail up to date in the store, only what changed")
     .option("--notes", "notes only")
     .option("--mail", "mail only")
     .option("--no-embed", "skip embedding notes and mail for search by meaning this run")

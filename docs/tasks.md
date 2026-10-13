@@ -92,9 +92,9 @@ another program you choose, such as your agent or a script, asks Memo for remind
 shows them to you.
 
 ```sh
-memo reminders schedule 7 --at 2026-10-20T09:00:00+02:00 --timezone Europe/Madrid --provider telegram --account 1
+memo reminders schedule 7 --at-time 2026-10-20T09:00:00+02:00 --timezone Europe/Madrid --provider telegram --account 1
 memo reminders list --provider telegram --account 1
-memo reminders snooze 3 --revision 1 --at 2026-10-21T09:00:00+02:00 --provider telegram --account 1
+memo reminders snooze 3 --revision 1 --at-time 2026-10-21T09:00:00+02:00 --provider telegram --account 1
 memo reminders cancel 3 --provider telegram --account 1
 ```
 
