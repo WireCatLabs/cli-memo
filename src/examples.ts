@@ -3,9 +3,12 @@ import type { Command } from "commander"
 
 export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   context: ["memo context telegram:'Kai Sample'", "memo context email:kai@example.com --limit 5 --json"],
-  "notes about": ["memo notes about person:3", "memo notes about project:2 --json"],
   "notes show": ["memo notes show note:12", "memo notes show ~/notes/People/Kai.md --json"],
-  "notes list": ["memo notes list --about telegram:'Kai Sample'", "memo notes list --source internal --limit 50"],
+  "notes list": [
+    "memo notes list --about telegram:'Kai Sample'",
+    "memo notes list --about project:2 --search budget --json",
+    "memo notes list --source internal --limit 50",
+  ],
   "notes add": [
     "memo notes add 'Prefers calls in the morning' --about telegram:'Kai Sample'",
     "memo notes add --file draft.md --title 'Harbour kickoff' --about project:2 --about organization:1",

@@ -213,23 +213,50 @@ describe("memo sync --notes", () => {
 
   it("links a name no note has to the person, the moment someone by that name appears", async () => {
     await run("sync", "--notes")
-    expect((await json("notes", "about", "person:nobody")).linking).toEqual([])
+    expect((await json("notes", "list", "--about", "person:nobody")).items).toEqual([])
 
     await telegramPeople(["102", "Kai Sample"])
 
-    const about = await json("notes", "about", "telegram:Kai Sample")
-    expect(paths(about.linking)).toEqual(["Projects/Harbour.md", "Projects/Lighthouse.md"])
+    const { items } = await json("notes", "list", "--about", "telegram:Kai Sample")
+    expect(paths(items)).toEqual(["Projects/Harbour.md", "Projects/Lighthouse.md"])
+    expect(items.map(({ via }: { via: string }) => via)).toEqual(["link", "link"])
   })
 
-  it("names the note about a person, and the notes linking that note", async () => {
+  it("lists the note about a person, and the notes linking that note", async () => {
     await telegramPeople(["101", "Rin Example"])
     await run("sync", "--notes")
 
     await run("note", "telegram:101", join(vault, "People/Rin Example.md"))
 
-    const about = await json("notes", "about", "telegram:Rin Example")
-    expect(paths(about.about)).toEqual(["People/Rin Example.md"])
-    expect(paths(about.throughNotes)).toEqual(["Projects/Lighthouse.md"])
+    const { items } = await json("notes", "list", "--about", "telegram:Rin Example")
+    expect(items.map(({ path, via }: { path: string; via: string }) => [path, via]).sort()).toEqual([
+      ["People/Rin Example.md", "about"],
+      ["Projects/Lighthouse.md", "through"],
+    ])
+  })
+
+  it("lists the notes naming a person in a link two people's names fit", async () => {
+    await telegramPeople(["102", "Kai Sample"], ["103", "Kai Sample"])
+    await run("sync", "--notes")
+
+    const kai = await json("notes", "list", "--about", "telegram:102")
+    expect(kai.items.map(({ path, via }: { path: string; via: string }) => [path, via]).sort()).toEqual([
+      ["Projects/Harbour.md", "name"],
+      ["Projects/Lighthouse.md", "name"],
+    ])
+  })
+
+  it("filters and pages the notes linking a subject like any other list", async () => {
+    await telegramPeople(["102", "Kai Sample"])
+    await run("sync", "--notes")
+
+    const budget = await json("notes", "list", "--about", "telegram:102", "--search", "BUDGET")
+    expect(paths(budget.items)).toEqual(["Projects/Lighthouse.md"])
+    expect((await json("notes", "list", "--about", "telegram:102", "--source", "internal")).items).toEqual([])
+    const first = await json("notes", "list", "--about", "telegram:102", "--limit", "1")
+    const second = await json("notes", "list", "--about", "telegram:102", "--limit", "1", "--offset", "1")
+    expect([first.hasMore, second.hasMore]).toEqual([true, false])
+    expect(paths([...first.items, ...second.items])).toEqual(["Projects/Harbour.md", "Projects/Lighthouse.md"])
   })
 })
 

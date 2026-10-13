@@ -34,23 +34,6 @@ memo context <person> [options]
 
 notes from your folders, and notes you write here
 
-### `memo notes about`
-
-notes about a subject and the notes that link it, through links only
-
-```sh
-memo notes about <subject> [options]
-```
-
-| Argument | | What it is |
-|---|---|---|
-| `subject` | required | <messenger>:<name or id>, person:<uid>, organization:<id>, project:<id>, note:<id> or document:<id>. |
-
-| Option | What it does |
-|---|---|
-| `--limit <n>` | most notes of each kind. Default: `20`. |
-| `--json` | print JSON. |
-
 ### `memo notes show`
 
 one note: its text, tags, what it links and what links it
@@ -77,7 +60,7 @@ memo notes list [options]
 
 | Option | What it does |
 |---|---|
-| `--about <subject>` | only notes about this: <messenger>:<name or id> or a typed reference. |
+| `--about <subject>` | only notes about or linking this: <messenger>:<name or id> or a typed reference. |
 | `--source <source>` | file or internal. |
 | `--search <text>` | only notes holding this text, as written. |
 | `--offset <n>` | skip this many. Default: `0`. |

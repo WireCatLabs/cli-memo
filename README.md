@@ -157,7 +157,7 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 | --- | --- |
 | Connect notes folders | `memo folders add` · `folders attach` · `folders list` |
 | Sync what changed | `memo sync` · `sync --notes` · `sync --mail` · `auto start` / `stop` / `status` |
-| Read notes | `memo notes list` · `notes show` · `notes about` · `memo note` (the note about a person) |
+| Read notes | `memo notes list` · `notes show` · `memo note` (the note about a person) |
 | Write your own notes | `memo notes add` · `notes edit` · `notes remove` · `notes export` |
 | Search | `memo search all` · `search notes` · `search mail` · `search messages` |
 | Hand evidence to an agent | `memo ask` |

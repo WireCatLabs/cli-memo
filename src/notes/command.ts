@@ -9,11 +9,12 @@ import { subjectOf } from "../people/subject.js"
 import { printing } from "../records/run.js"
 import { SAVE_HELP } from "../save-help.js"
 import { meetingReference } from "../store/scope.js"
-import { aboutText, isNoteReference, notesAbout } from "./about.js"
+import { isNoteReference } from "./about.js"
 import { boundFolders, folderOfFile } from "./bound.js"
 import { DIALECTS, type DialectName } from "./dialects/index.js"
 import { folderNotes } from "./import.js"
 import { exportInternal, exportTarget, internalNotes } from "./internal.js"
+import { listNotes } from "./list.js"
 import { loadFolderState } from "./state.js"
 
 const formatOf = (value: string): DialectName => {
@@ -57,20 +58,6 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   const notes = program.command("notes").description("notes from your folders, and notes you write here")
 
   notes
-    .command("about")
-    .description("notes about a subject and the notes that link it, through links only")
-    .argument(
-      "<subject>",
-      "<messenger>:<name or id>, person:<uid>, organization:<id>, project:<id>, note:<id> or document:<id>",
-    )
-    .option("--limit <n>", "most notes of each kind", positive, 20)
-    .option("--json", "print JSON")
-    .action(async (subject: string, options: { limit: number; json?: boolean }) => {
-      const answer = await withStore(async (store) => notesAbout(store, await subjectOf(store, subject), options.limit))
-      print(options.json, answer, aboutText(answer))
-    })
-
-  notes
     .command("show")
     .description("one note: its text, tags, what it links and what links it")
     .addHelpText("after", SAVE_HELP)
@@ -111,7 +98,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   notes
     .command("list")
     .description("notes, newest first")
-    .option("--about <subject>", "only notes about this: <messenger>:<name or id> or a typed reference")
+    .option("--about <subject>", "only notes about or linking this: <messenger>:<name or id> or a typed reference")
     .option("--source <source>", "file or internal", sourceOf)
     .option("--search <text>", "only notes holding this text, as written")
     .option("--offset <n>", "skip this many", Number, 0)
@@ -127,10 +114,10 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         json?: boolean
       }) => {
         const page = await withStore(async (store) =>
-          store.notes.notes({
+          listNotes(store, {
             limit: options.limit,
             offset: options.offset,
-            ...(options.about === undefined ? {} : { about: (await subjectOf(store, options.about)).ref }),
+            ...(options.about === undefined ? {} : { about: await subjectOf(store, options.about) }),
             ...(options.source === undefined ? {} : { source: options.source }),
             ...(options.search === undefined ? {} : { search: options.search }),
           }),
@@ -139,7 +126,10 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
           options.json,
           page,
           page.items
-            .map((note) => `${note.ref}  ${note.source}  ${note.path ?? note.title ?? note.text.split("\n")[0]}`)
+            .map(
+              (note) =>
+                `${note.ref}  ${note.source}${note.via ? `  ${note.via}` : ""}  ${note.path ?? note.title ?? note.text.split("\n")[0]}`,
+            )
             .join("\n") || "No notes.",
         )
       },
