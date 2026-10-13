@@ -63,7 +63,7 @@ Memo has no login step. Next, [add a folder of notes](notes.md#add-a-folder) or
 | What | Where |
 |---|---|
 | Settings | `~/.config/cli-memo/config.json` ([configuration](configuration.md)) |
-| Your messages, mail, notes, tags, tasks and memories | The local store, `wirecat.db`, shared with tg and max |
+| Your messages, mail, notes, tags, tasks and memories | The local store, `~/.local/share/WireCat/wirecat.db`, shared with tg and max |
 | What this computer imported last, for each folder | Memo's state folder |
 
 `~` means your home folder. Your note files and your mailbox stay where they are; the local store

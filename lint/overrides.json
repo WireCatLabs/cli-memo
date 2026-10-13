@@ -1,7 +1,1 @@
-[
-  {
-    "rule": "unknown-verb",
-    "target": "search memories",
-    "reason": "STANDARD places a search under search <resource>; the lint does not know the search namespace yet, as for search messages in tg and max"
-  }
-]
+[]

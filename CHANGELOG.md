@@ -26,6 +26,11 @@ the API.
 
 ### Changed — may break scripts
 
+- **The local store and the search models move to one WireCat folder** (cli-messaging 0.258.0):
+  `~/.local/share/WireCat/` on Linux and macOS, `%LOCALAPPDATA%\WireCat\Data\` on Windows. The first start of
+  memo, tg or max after the update moves `wirecat.db` and the models there, once; the old folders stay.
+  `WIRECAT_STATE_DIR` moves the whole folder and replaces `CLI_COMMON_CACHE_DIR`.
+- **An MCP tool failure that is not a memo error is `internal_error`**, the shared name; it was `generic_failure`.
 - **`memo notes about` is gone; `memo notes list --about <subject>` returns what it did.** The list now holds the
   notes about the subject and the notes linking it, a note about it, or a name two people share, each with `via`
   (`about`, `link`, `through`, `name`), the headings it links under (`anchors`) and, for `name`, the name as written
@@ -67,6 +72,8 @@ the API.
 
 ### Fixed
 
+- **Mail hints name `memo sync --mail`.** `memo search mail` and its MCP tool named `memo mail <account> import`,
+  which is gone.
 - **`memo sync` keeps `mail.maxBodyChars` and `mail.maxAttachmentChars`.** Only `memo mail <account> import`
   read them; the timer stored mail with the defaults.
 - **Every argument and option of memo is described in its help**, and every summary is lower case, at most 80
