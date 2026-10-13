@@ -135,7 +135,10 @@ memo notes add 'Prefers morning meetings' --about telegram:'Kai Sample'
 memo notes list --about telegram:'Kai Sample'
 ```
 
-`--about` says what the note is about. Use it more than once for several subjects:
+`notes list --about` lists the notes about a subject and the notes that link it: directly, through a note about it, or
+by a name two people share. `via` in `--json` says which: `about`, `link`, `through` or `name`.
+
+`--about` on `notes add` says what the note is about. Use it more than once for several subjects:
 
 | About | Write |
 |---|---|

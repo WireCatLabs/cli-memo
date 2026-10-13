@@ -30,8 +30,6 @@ export interface NotesAbout {
   hasMore: boolean
 }
 
-type Found = { note: Note; anchor: string | null; text: string | null }
-
 const fold = (value: string) => value.normalize("NFC").toLocaleLowerCase("en").trim().replace(/^@/, "")
 
 const refOf = (note: Note, anchor: string | null = null): NoteRef => ({
@@ -44,33 +42,51 @@ const refOf = (note: Note, anchor: string | null = null): NoteRef => ({
   ...(anchor === null ? {} : { anchor }),
 })
 
-/** What notes say about a subject, through the links the store holds — never a name found in plain text. */
-export const notesAbout = async (store: MessageStore, subject: Subject, limit = 20): Promise<NotesAbout> => {
+/** How a note reaches its subject: says it is about it, links it, links a note about it, or names it in a link. */
+export type Via = "about" | "link" | "through" | "name"
+
+export type Found = { note: Note; anchor: string | null; text: string | null; via: Via }
+
+const PAGE = 500
+
+/** Every live note that reaches a subject through the links the store holds — never a name found in plain text. */
+export const notesReaching = async (store: MessageStore, subject: Subject): Promise<Found[]> => {
   const refs = [
     subject.ref,
     ...(subject.person?.identities.map((identity) =>
       formatReference({ type: "contact", provider: identity.provider, id: identity.id }),
     ) ?? []),
   ]
-  const live = async (links: Link[]) => {
+  const live = async (links: Link[], via: Via) => {
     const found: Found[] = []
     for (const link of links) {
       if (!isNoteReference(link.from)) continue
       const note = await store.notes.resolveNote(link.from)
-      if (note && note.deletedAt === null) found.push({ note, anchor: link.anchor, text: link.targetText })
+      if (note && note.deletedAt === null) found.push({ note, anchor: link.anchor, text: link.targetText, via })
     }
     return found
   }
+  const aboutOne = async (ref: string) => {
+    const notes: Note[] = []
+    for (let offset = 0; ; offset += PAGE) {
+      const page = await store.notes.notes({ about: ref, limit: PAGE, offset })
+      notes.push(...page.items)
+      if (!page.hasMore) return notes
+    }
+  }
   // A written note's first subject is the note's own, not a link, so only `notes({ about })` sees all of them.
-  const pages = await Promise.all(refs.map((ref) => store.notes.notes({ about: ref, limit: 500 })))
-  const about: Found[] = pages.flatMap(({ items }) => items.map((note) => ({ note, anchor: null, text: null })))
+  const about: Found[] = (await Promise.all(refs.map(aboutOne)))
+    .flat()
+    .map((note) => ({ note, anchor: null, text: null, via: "about" }))
   const linking = await live(
     (await Promise.all(refs.map((to) => store.notes.links({ to })))).flat().filter((link) => link.kind === "links-to"),
+    "link",
   )
   const through = await live(
     (await Promise.all(about.map(({ note }) => store.notes.links({ to: note.ref }))))
       .flat()
       .filter((link) => link.kind === "links-to"),
+    "through",
   )
   const names = new Set(
     [subject.person?.name, ...(subject.person?.identities.map(({ name }) => name) ?? [])]
@@ -82,35 +98,28 @@ export const notesAbout = async (store: MessageStore, subject: Subject, limit = 
       ? []
       : await live(
           (await store.notes.links({ unresolved: true })).filter((link) => names.has(fold(link.targetText ?? ""))),
+          "name",
         )
-  const unique = (items: Found[]) =>
-    [...new Map(items.map((item) => [`${item.note.ref}#${item.anchor ?? ""}`, item])).values()].sort((a, b) =>
-      b.note.updatedAt.localeCompare(a.note.updatedAt),
-    )
-  const lists = [about, linking, through, waiting].map(unique)
+  return [...about, ...linking, ...through, ...waiting]
+}
+
+/** What notes say about a subject, split by how each reaches it. */
+export const notesAbout = async (store: MessageStore, subject: Subject, limit = 20): Promise<NotesAbout> => {
+  const found = await notesReaching(store, subject)
+  const unique = (via: Via) =>
+    [
+      ...new Map(
+        found.filter((item) => item.via === via).map((item) => [`${item.note.ref}#${item.anchor ?? ""}`, item]),
+      ).values(),
+    ].sort((a, b) => b.note.updatedAt.localeCompare(a.note.updatedAt))
+  const [about, linking, through, waiting] = (["about", "link", "through", "name"] as const).map(unique)
   return {
     subject: subject.ref,
     name: subject.person?.name ?? null,
-    about: (lists[0] ?? []).slice(0, limit).map(({ note }) => refOf(note)),
-    linking: (lists[1] ?? []).slice(0, limit).map(({ note, anchor }) => refOf(note, anchor)),
-    throughNotes: (lists[2] ?? []).slice(0, limit).map(({ note, anchor }) => refOf(note, anchor)),
-    waiting: (lists[3] ?? []).slice(0, limit).map(({ note, text }) => ({ ...refOf(note), text: text ?? "" })),
-    hasMore: pages.some((page) => page.hasMore) || lists.some((list) => list.length > limit),
+    about: (about ?? []).slice(0, limit).map(({ note }) => refOf(note)),
+    linking: (linking ?? []).slice(0, limit).map(({ note, anchor }) => refOf(note, anchor)),
+    throughNotes: (through ?? []).slice(0, limit).map(({ note, anchor }) => refOf(note, anchor)),
+    waiting: (waiting ?? []).slice(0, limit).map(({ note, text }) => ({ ...refOf(note), text: text ?? "" })),
+    hasMore: [about, linking, through, waiting].some((list) => (list ?? []).length > limit),
   }
-}
-
-export const aboutText = (answer: NotesAbout): string => {
-  const line = (note: NoteRef) =>
-    `  ${note.ref}${(note.path ?? note.title) ? `  ${note.path ?? note.title}` : ""}${note.anchor ? ` ${note.anchor}` : ""}`
-  const section = (title: string, notes: NoteRef[]) => (notes.length ? [title, ...notes.map(line), ""] : [])
-  const who = answer.name ?? answer.subject
-  return [
-    ...(answer.about.length ? section("About", answer.about) : [`No note about ${who}.`, ""]),
-    ...section("Linking them", answer.linking),
-    ...section("Linking a note about them", answer.throughNotes),
-    ...section("Written with their name, but two people share it — link one with tg contacts link", answer.waiting),
-    ...(answer.hasMore ? ["More were found; raise --limit to see them."] : []),
-  ]
-    .join("\n")
-    .trimEnd()
 }
