@@ -66,6 +66,8 @@ That is all notes need. Then add more context:
 - **Search by meaning:** `tg models text download e5-small` downloads the local model once.
 - **Mail:** set up [Himalaya](https://github.com/pimalaya/himalaya), then `memo mail <account> import`.
 - **Stay current:** `memo auto on` runs `memo import` every five minutes (Linux, systemd).
+- **Your agent:** the install puts memo's skill where Claude Code, Codex and Gemini CLI read it;
+  `memo skill show` prints it, `memo skill install --for all` installs it again.
 
 Or ask your agent: "Help me install memo with `npm install -g @wirecat/cli-memo`, read `memo --help`, then
 help me connect a notes folder I choose."

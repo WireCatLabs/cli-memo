@@ -18,6 +18,8 @@
   },
   "files": [
     "dist",
+    "skills",
+    "install",
     "README.md",
     "LICENSE"
   ],
@@ -31,6 +33,7 @@
     "test:coverage": "vitest run --coverage",
     "release:check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm secrets:scan",
     "prepare": "lefthook install || true",
+    "postinstall": "node install/postinstall.mjs",
     "secrets:scan": "gitleaks git --no-banner --redact .",
     "prepublishOnly": "pnpm build",
     "standards:check": "node config/wirecat/check.mjs",

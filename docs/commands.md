@@ -733,15 +733,15 @@ memo projects key-documents list <project> [options]
 |---|---|
 | `--json` | print JSON. |
 
-
-### `memo relationships add`
-
 ## `memo relationships`
 
 Explicit relations between people, organizations and projects; this never links identities
 State that a person, organization or project belongs to or relates to another; an agent's waits for you to confirm it
 
 ```sh
+
+### `memo relationships add`
+
 memo relationships add <from> <to> [options]
 ```
 
@@ -1569,6 +1569,30 @@ memo commands [path] [options]
 ## Exit codes
 
 Failures use the shared WireCat error contract.
+## `memo skill`
+
+the instructions an agent is given for this tool
+
+### `memo skill show`
+
+print SKILL.md — `memo skill install` puts it where Claude Code, Codex and Gemini CLI look for it
+
+```sh
+memo skill show
+```
+
+### `memo skill install`
+
+write SKILL.md to \~/.claude/skills/cli-memo/ (Claude Code) and \~/.agents/skills/cli-memo/ (Codex, Gemini CLI)
+
+```sh
+memo skill install [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--for <agents>` | which agents to install for. One of: `claude`, `agents`, `all`. Default: `all`. |
+
 
 | Code | When |
 |---|---|
