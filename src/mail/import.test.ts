@@ -200,7 +200,7 @@ describe("importMail", () => {
 
     const first = await importInto(env)
 
-    expect(first).toMatchObject({ saved: 2, complete: false, failed: [{ message: "9002" }] })
+    expect(first).toMatchObject({ saved: 2, complete: false, unreadable: [{ message: "9002" }] })
     write([mail(1), mail(2), mail(3)], { unreadable: [] })
     expect(await importInto(env)).toMatchObject({ saved: 1, alreadyStored: 2, complete: true })
   })

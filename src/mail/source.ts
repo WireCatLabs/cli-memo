@@ -16,24 +16,30 @@ const BATCH_COUNT = 50
 const BATCH_BYTES = 20 * 1024 * 1024
 const MIN_BUFFER = 64 * 1024 * 1024
 
+/** One IMAP call reads one folder, so items are grouped by folder first; the newest-first order mixes folders. */
 const batchesOf = (items: Listed[]): Listed[][] => {
-  const batches: Listed[][] = []
-  let current: Listed[] = []
-  let bytes = 0
+  const byFolder = new Map<string | undefined, Listed[]>()
   for (const item of items) {
-    const size = item.size ?? 0
-    if (
-      current.length > 0 &&
-      (current.length >= BATCH_COUNT || bytes + size > BATCH_BYTES || current[0]?.folder !== item.folder)
-    ) {
-      batches.push(current)
-      current = []
-      bytes = 0
-    }
-    current.push(item)
-    bytes += size
+    const group = byFolder.get(item.folder)
+    if (group) group.push(item)
+    else byFolder.set(item.folder, [item])
   }
-  if (current.length > 0) batches.push(current)
+  const batches: Listed[][] = []
+  for (const group of byFolder.values()) {
+    let current: Listed[] = []
+    let bytes = 0
+    for (const item of group) {
+      const size = item.size ?? 0
+      if (current.length > 0 && (current.length >= BATCH_COUNT || bytes + size > BATCH_BYTES)) {
+        batches.push(current)
+        current = []
+        bytes = 0
+      }
+      current.push(item)
+      bytes += size
+    }
+    if (current.length > 0) batches.push(current)
+  }
   return batches
 }
 

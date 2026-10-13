@@ -47,6 +47,25 @@ describe("himalayaSource.fetchRaw", () => {
     expect(raws.every((raw) => raw instanceof Uint8Array)).toBe(true)
   })
 
+  it("fetches each folder's emails together, and answers in the order asked", async () => {
+    const folders: string[] = []
+    const run: Himalaya = async (args) => {
+      folders.push(args[args.indexOf("-m") + 1] ?? "")
+      return answer((args[3] ?? "").split(","))
+    }
+    const items = [1, 2, 3, 4].map((uid) => ({ ...item(uid), folder: uid % 2 ? "INBOX" : "Archive" }))
+
+    const raws = await himalayaSource(run, { name: "test", mode: "imap" }).fetchRaw(items)
+
+    expect(folders).toEqual(["INBOX", "Archive"])
+    expect(raws.map((raw) => new TextDecoder().decode(raw as Uint8Array).split("\r\n")[0])).toEqual([
+      "Subject: 1",
+      "Subject: 2",
+      "Subject: 3",
+      "Subject: 4",
+    ])
+  })
+
   it("reads a failed batch one email at a time, so a bad email costs only itself", async () => {
     const run: Himalaya = async (args) => {
       const uids = (args[3] ?? "").split(",")

@@ -52,7 +52,7 @@ const text = (run: ImportRun): string =>
       (m) =>
         `mail ${m.account}: ${m.listed} listed, ${m.saved} new, ${m.deleted} gone` +
         (m.complete ? "" : " — more to read next run") +
-        (m.failed === undefined ? "" : ` — ${m.failed.length} unreadable, tried again next run`) +
+        (m.unreadable === undefined ? "" : ` — ${m.unreadable.length} unreadable, tried again next run`) +
         (m.deletionsSkipped === undefined ? "" : ` — deletions skipped: ${m.deletionsSkipped}`),
     ),
     ...run.failed.map(({ source, reason }) => `failed ${source}: ${reason}`),
