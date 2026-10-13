@@ -22,6 +22,21 @@ the API.
   relationship unconfirmed with `provenance: agent:<name>`. They were recorded as the owner's and accepted.
   `--as-owner` keeps a write yours inside an agent's terminal.
 
+### Fixed
+
+- **The search guide names `content:` for messages.** It narrows a search to the text of files, in
+  `memo search messages` and `memo search all` as in tg; the guide listed it for mail only.
+- **`memo projects context` and `memo organizations context` refuse what the store does not hold** with
+  `not_found` instead of an empty answer, and `organizations context` takes `organization:<id>` as well as
+  its id.
+- **`memo folders attach` refuses drive-cli's `google-drive:` folder**, and `memo folders list` marks it "kept by
+  drive" (`keptBy: "drive"` in JSON) instead of offering to attach it. Bound to a disk folder, the next import
+  would have deleted the Drive documents missing from it.
+- **`memo search all` no longer runs as the first stored account.** It searched every account before too, but
+  picked one as its own; now it runs as memo's notes and its answer names every account it read, as `accounts`
+  (`{ resource, provider, account }`) in JSON and a `searched:` line on stderr. `memo search messages` and
+  `memo search mail` stop picking one as well.
+
 ## 0.23.0 — 12.10.2026
 
 ### Fixed
