@@ -76,8 +76,8 @@ One task can wait for another. Link them, then ask Memo which tasks can start:
 
 ```sh
 memo tasks link HRB-2 HRB-1 --kind blocked-by     # HRB-2 waits for HRB-1
-memo tasks ready --project HRB                    # tasks with nothing left to wait for
-memo tasks readiness HRB-2                        # why HRB-2 can or cannot start
+memo tasks list --ready --project HRB           # tasks with nothing left to wait for
+memo tasks status HRB-2                           # why HRB-2 can or cannot start
 memo tasks relations HRB-2
 memo tasks unlink HRB-2 HRB-1 --kind blocked-by
 ```
@@ -92,9 +92,9 @@ another program you choose, such as your agent or a script, asks Memo for remind
 shows them to you.
 
 ```sh
-memo reminders schedule 7 --at-time 2026-10-20T09:00:00+02:00 --timezone Europe/Madrid --provider telegram --account 1
+memo reminders add 7 --at-time 2026-10-20T09:00:00+02:00 --timezone Europe/Madrid --provider telegram --account 1
 memo reminders list --provider telegram --account 1
-memo reminders snooze 3 --revision 1 --at-time 2026-10-21T09:00:00+02:00 --provider telegram --account 1
+memo reminders update 3 --revision 1 --at-time 2026-10-21T09:00:00+02:00 --provider telegram --account 1
 memo reminders cancel 3 --provider telegram --account 1
 ```
 

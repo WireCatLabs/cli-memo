@@ -28,7 +28,7 @@ it("records the owner's facts as accepted and lets the owner accept, supersede a
   })
   await store.close()
   expect((await run("facts", "list", "--status", "proposed")).items).toMatchObject([{ ref: proposed.ref }])
-  expect(await run("facts", "accept", proposed.ref)).toMatchObject({ status: "accepted" })
+  expect(await run("facts", "confirm", proposed.ref)).toMatchObject({ status: "accepted" })
 
   const replacing = await run(
     "facts",

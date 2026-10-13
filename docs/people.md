@@ -139,13 +139,13 @@ search or an agent finds it by any of them:
 
 ```sh
 memo vocabulary list --kind project
-memo vocabulary resolve 'Harbor' --kind project
+memo vocabulary show 'Harbor' --kind project
 memo vocabulary aliases add project:1 'Harbor' --expected VALUE
 ```
 
 `vocabulary list` shows each project, tag and topic with its other names and a check value. Pass
 that value to `--expected` when you add or remove a name; if the list changed in the meantime, Memo
-refuses and you look again. `memo vocabulary preflight 'on-boarding'` shows similar existing tags
+refuses and you look again. `memo vocabulary check 'on-boarding'` shows similar existing tags
 before you create a new one, so you do not end up with `onboarding` and `on-boarding`.
 
 Next: [write a note about one of them](notes.md#write-your-own-notes).

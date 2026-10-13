@@ -70,7 +70,7 @@ describe("memo note", () => {
     )
     await store.close()
     await run("folders", "add", vault)
-    await run("notes", "import")
+    await run("sync", "--notes")
 
     await run("note", "telegram:101", join(vault, "people", "Rin Example.md"))
 
@@ -95,11 +95,11 @@ describe("memo note", () => {
     await run("folders", "add", vault)
     expect(await run("note", "telegram:101")).toBe("Rin Example: no note\n")
 
-    await run("notes", "import")
+    await run("sync", "--notes")
 
     expect(await run("note", "telegram:101")).toBe(`Rin Example: ${join(vault, "people", "Rin Example.md")}\n`)
     await run("note", "telegram:101", "--clear")
-    await run("notes", "import")
+    await run("sync", "--notes")
     expect(await run("note", "telegram:101")).toBe("Rin Example: no note\n")
   })
 })

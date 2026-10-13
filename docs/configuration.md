@@ -2,7 +2,7 @@
 
 This page lists every setting in Memo's config file and every environment variable Memo reads. Use
 it to look up a setting; you rarely need to edit the file by hand. `memo folders add` adds a folder
-and `memo auto on` turns the timer on for you. Edit the file yourself for files to skip, mail
+and `memo auto start` turns the timer on for you. Edit the file yourself for files to skip, mail
 accounts and where exported notes go.
 
 The file is `~/.config/cli-memo/config.json`. It is a JSON file: keep the quotes, commas and braces
@@ -43,7 +43,7 @@ The folder `id` is the same on every computer; the `path` is different on each. 
 
 | Key | Meaning |
 |---|---|
-| `name` | The account's name in Himalaya, and the name in `memo mail <name> import`. |
+| `name` | The account's name in Himalaya, and the name `memo sync --account` takes. |
 | `address` | The email address. |
 | `mode` | `gmail` (the default) or `imap`. |
 | `folders` | For `imap`: the mail folders to read, such as `["INBOX", "Archive"]`. |
@@ -65,7 +65,7 @@ See [Mail](mail.md).
 | `enabled` | `true` when the import timer is on. |
 | `every` | How often it runs: `90s`, `5m`, `1h`; one minute or more. |
 
-`memo auto on` and `memo auto off` write these. If you edit them by hand, the timer follows at its
+`memo auto start` and `memo auto stop` write these. If you edit them by hand, the timer follows at its
 next run. See [importing on a timer](archive.md#import-on-a-timer-linux).
 
 ## Environment variables

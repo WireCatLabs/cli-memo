@@ -15,6 +15,7 @@ import { openStore } from "@wirecat/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { APP } from "../app.js"
 import { keyDocuments, keyFirst, projectOf } from "../knowledge/key-documents.js"
+import { searchMemoriesCommand } from "../memories/command.js"
 import { folderIds } from "../notes/bound.js"
 import { searchText } from "../notes/search.js"
 import { collect, positive } from "../options.js"
@@ -332,7 +333,7 @@ export const searchKind = async (
   if (!held)
     throw new CliError(
       "not_found",
-      kind === "mail" ? "no imported mail; run memo mail <account> import" : "no stored messenger messages",
+      kind === "mail" ? "no imported mail; run memo sync --mail" : "no stored messenger messages",
     )
   return searchStore(
     store,
@@ -363,7 +364,7 @@ const keyRefs = async (store: MessageStore, project: string) =>
 export const searchCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const group = program
     .command("search")
-    .description("search stored messages, mail and notes; search all when you do not know the kind")
+    .description("search stored messages, mail, notes and memories; search all when unsure where")
   const withStore = async <T>(work: (store: MessageStore) => Promise<T>) => {
     const store = await openStore({ env })
     try {
@@ -552,4 +553,5 @@ content: narrows a search to the text of attachments, filename: to their names â
         print(options.json, answer, searchText(answer))
       },
     )
+  searchMemoriesCommand(group, streams, env)
 }

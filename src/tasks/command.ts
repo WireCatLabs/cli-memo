@@ -143,18 +143,29 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   accountOptions(group.command("list").description("tasks of one account or one project, open by default"))
     .option("--state <state>", "open, done or dismissed", taskStateOf, "open")
     .option("--project <project>", "a project's tasks, by its key or project:<id>, instead of an account's")
+    .option("--ready", "with --project: only open tasks whose prerequisites are done; this claims none")
     .option("--limit <n>", "most tasks", positive, 100)
     .action(
       async (
         options: AccountScope & {
           state: ReturnType<typeof taskStateOf>
           project?: string
+          ready?: boolean
           limit: number
           json?: boolean
         },
       ) => {
+        if (options.ready && (options.project === undefined || options.state !== "open"))
+          throw new CliError("validation_error", "--ready lists a project's open tasks: give --project, not --state")
         const store = await openStore({ env })
         try {
+          if (options.ready && options.project !== undefined) {
+            const page = await store.tasks.readyTasks(await canonicalProject(store, options.project), {
+              limit: options.limit,
+            })
+            print(options.json, { ...page, items: page.items.map((task) => ({ ref: `task:${task.id}`, ...task })) })
+            return
+          }
           if (options.project !== undefined) {
             const items = await store.tasks.find({
               project: await canonicalProject(store, options.project),

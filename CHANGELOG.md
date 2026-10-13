@@ -25,22 +25,39 @@ the API.
 - **`memo commands --json` prints cli-base's commands document**, the shape tg and max print: `cli`, `version`,
   `contract`, `description`, `globalOptions`, `commands`, `exitCodes`. `items` is gone; `memo commands <path> --json`
   puts the one command under `commands` with `scope` and `inheritedOptions`.
-- `memo import` is now `memo sync` (owner, 2026-10-12; WireCat glossary in cli-messaging). `memo import` stops working. `memo auto on` now writes `memo sync` into the unit; a timer installed before runs `memo import` and fails until `memo auto on` is run again. `notes import` and `mail <account> import` keep their names for now.
+- `memo import` is now `memo sync` (owner, 2026-10-12; WireCat glossary in cli-messaging). `memo import` stops working. `memo auto start` writes `memo sync` into the unit; a timer installed before runs `memo import` and fails until `memo auto start` is run.
 - **A write from an agent's terminal is the agent's.** `memo facts add`, `memories add`, `relationships add`
-  and `actions propose` run with `AI_AGENT` or `CLAUDECODE` set record the agent as author (`claude-code`, the
+  and `actions add` run with `AI_AGENT` or `CLAUDECODE` set record the agent as author (`claude-code`, the
   name before the version in `AI_AGENT`), as the MCP server does: the fact or memory waits as `proposed`, the
   relationship unconfirmed with `provenance: agent:<name>`. They were recorded as the owner's and accepted.
   `--as-owner` keeps a write yours inside an agent's terminal.
 
 - **One meaning per flag (WireCat command standard).** A flag that takes several values is given once per value:
-  `memo notes add --about a --about b`, `notes import` and `search notes` `--folder a --folder b`.
-  `reminders schedule` and `snooze` take `--at-time` instead of `--at`. `relationships add` takes `--reason <text>`
+  `memo notes add --about a --about b`, `sync` and `search notes` `--folder a --folder b`.
+  `reminders add` and `update` take `--at-time` instead of `--at`. `relationships add` takes `--reason <text>`
   instead of `--evidence`, which in `facts` and `memories` names references. `--project` takes a key or
   `project:<id>` in `facts add`, `facts list` and `tags add|remove`, as it does in `tasks`; `tags --folder` takes a
   folder's path as well as its id; `projects add --organization` takes a bare id as well as `organization:<id>`.
 
+- **One way to bring notes and mail in: `memo sync` (WireCat command standard, no two commands overlap).**
+  `memo notes import` and `memo mail <account> import` are gone. `memo sync --notes` and `--mail` take one side;
+  `--folder` and `--ignore` narrow the notes, `--account <name>`, `--since-time <time>` (a date, ISO 8601 or
+  `30d` ago), `--limit <n>` and `--retry-attachments` narrow the mail. Without `--account` it reads every account
+  and names each. `memo mail <account> show <reference>` is `memo messages show <reference>`.
+- **Verbs from the shared list.** `facts accept` and `actions approve` are `confirm`; `actions propose` is
+  `actions add`; `tasks readiness` is `tasks status`; `tasks ready` is `tasks list --ready --project <project>`;
+  `auto on` / `off` are `auto start` / `stop`; `reminders schedule` / `snooze` are `reminders add` / `update`;
+  `vocabulary resolve` is `vocabulary show`; `vocabulary preflight <name>` and `vocabulary audit` are one
+  `vocabulary check [name]`; `memories search` is `search memories`. The old names stop working.
+- **MCP tools follow their commands:** `actions_add`, `search_memories`, `tasks_relations`, `tasks_status`,
+  `tasks_list` (with `ready`), `vocabulary_check` (with or without `name`) and `vocabulary_show` replace
+  `actions_propose`, `memories_search`, `task_relations`, `task_readiness`, `tasks_ready`, `vocabulary_audit`,
+  `vocabulary_preflight` and `vocabulary_resolve`.
+
 ### Fixed
 
+- **`memo sync` keeps `mail.maxBodyChars` and `mail.maxAttachmentChars`.** Only `memo mail <account> import`
+  read them; the timer stored mail with the defaults.
 - **Every argument and option of memo is described in its help**, and every summary is lower case, at most 80
   characters.
 - **A command path given as one argument is refused with the words to type.** `memo "projects add" --help` — what

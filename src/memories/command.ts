@@ -75,7 +75,24 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.memories.get(ref)))
 
   memories
-    .command("search")
+    .command("confirm")
+    .description("stand behind a memory: its evidence was checked now")
+    .argument("<ref>", "memory:<id>")
+    .option("--json", "print JSON")
+    .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.memories.confirm(ref)))
+
+  memories
+    .command("stale")
+    .description("mark a memory whose evidence no longer holds")
+    .argument("<ref>", "memory:<id>")
+    .option("--json", "print JSON")
+    .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.memories.markStale(ref)))
+}
+
+export const searchMemoriesCommand = (search: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
+  const run = answering(streams, env)
+  search
+    .command("memories")
     .description("memories holding every word, best first")
     .argument("<words...>", "the words to find")
     .option("--scope <scope>", MEMORY_SCOPES.join(" or "), oneOf(MEMORY_SCOPES))
@@ -94,18 +111,4 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
         ),
       ),
     )
-
-  memories
-    .command("confirm")
-    .description("stand behind a memory: its evidence was checked now")
-    .argument("<ref>", "memory:<id>")
-    .option("--json", "print JSON")
-    .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.memories.confirm(ref)))
-
-  memories
-    .command("stale")
-    .description("mark a memory whose evidence no longer holds")
-    .argument("<ref>", "memory:<id>")
-    .option("--json", "print JSON")
-    .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.memories.markStale(ref)))
 }

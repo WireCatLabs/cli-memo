@@ -28,9 +28,9 @@ Telegram and MAX messages are kept current by tg and max, not by `memo sync`.
 ## Import on a timer (Linux)
 
 ```sh
-memo auto on --every 5m     # import every 5 minutes, starting a minute from now
-memo auto status            # whether the timer is on, when it runs next and how the last run ended
-memo auto off               # stop and remove the timer
+memo auto start --every 5m   # sync every 5 minutes, starting a minute from now
+memo auto status             # whether the timer is on, when it runs next and how the last run ended
+memo auto stop               # stop and remove the timer
 ```
 
 `--every` takes `90s`, `5m`, `1h` and so on; the shortest is one minute. The timer uses systemd, the
@@ -38,7 +38,7 @@ service manager of most Linux systems. On macOS and Windows, run `memo sync` you
 own scheduler.
 
 The timer runs `memo sync` with the settings of the terminal you turned it on from, so it finds
-Himalaya and your passwords the same way. `memo auto on` and `off` write `auto` in the config file;
+Himalaya and your passwords the same way. `memo auto start` and `stop` write `auto` in the config file;
 if you edit it there, the timer follows at its next run.
 
 ## What an import reads

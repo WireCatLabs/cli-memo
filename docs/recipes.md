@@ -77,7 +77,7 @@ Use memo CLI to give me a weekly review: open tasks by project, tasks that are r
 and the memories, facts and actions waiting for my review. Do not approve or confirm anything.
 ```
 
-Your agent combines `memo tasks list`, `memo tasks ready`, and the review lists from
+Your agent combines `memo tasks list`, `memo tasks list --ready`, and the review lists from
 [Memories and facts](memories.md). Decide each item yourself.
 
 ## Write a summary into your vault
@@ -103,5 +103,5 @@ set one up and allow it ([search](search.md#give-your-agent-the-sources)).
 
 ## Run it on a schedule
 
-On Linux, `memo auto on` keeps your notes and mail current. To run a recipe every morning, use your
+On Linux, `memo auto start` keeps your notes and mail current. To run a recipe every morning, use your
 agent's own scheduling, or a scheduler on your computer that starts your agent with the request.

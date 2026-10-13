@@ -12,12 +12,10 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
   const run = answering(streams, env)
   const actions = program
     .command("actions")
-    .description("what an agent proposes to do; approving one makes it your task, nothing is sent")
+    .description("what an agent proposes to do; confirming one makes it your task, nothing is sent")
 
   byOption(
-    actions
-      .command("propose")
-      .description("propose an action, such as a reply or a ban, in the account that would act"),
+    actions.command("add").description("propose an action, such as a reply or a ban, in the account that would act"),
   )
     .argument("<kind>", "a lower-case word: reply, send, ban, mute, pin, invite, create_task, …")
     .requiredOption("--reason <text>", "why it should be done")
@@ -53,8 +51,8 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     .action((id: string, options: { json?: boolean }) => run(options.json, (store) => store.proposedActions.get(id)))
 
   actions
-    .command("approve")
-    .description("approve it: it becomes a task in the account that would act; nothing is sent")
+    .command("confirm")
+    .description("confirm it: it becomes a task in the account that would act; nothing is sent")
     .argument("<id>", "the action's id, as actions list gives it")
     .option("--json", "print JSON")
     .action((id: string, options: { json?: boolean }) => run(options.json, (store) => approveAsTask(store, id)))

@@ -14,7 +14,7 @@ everything that changed since the last run:
 memo sync
 ```
 
-Only changed files and new mail are read, so a second run is quick. On Linux, `memo auto on` runs it
+Only changed files and new mail are read, so a second run is quick. On Linux, `memo auto start` runs it
 for you every few minutes ([keeping Memo up to date](archive.md)). Telegram and MAX messages come in
 through tg and max, not through Memo.
 

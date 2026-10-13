@@ -35,11 +35,11 @@ export const INSTRUCTIONS = [
   "",
   "- What happened — said, asked, decided, promised — is a fact: facts_add with its type.",
   "- What you concluded — a summary, a digest, a preference — is a memory: memories_add.",
-  "- Something to do in an account — a reply, an invitation — is actions_propose. Nothing is sent.",
+  "- Something to do in an account — a reply, an invitation — is actions_add. Nothing is sent.",
   "- Keep only what will matter later. Not every message is a fact; when unsure, do not save.",
   "- Every write cites evidence: the msg:, note: or meeting: reference you read it in.",
-  "- Your writes wait as proposed until the owner accepts them, and every call is logged as memo-mcp.",
-  "- Look first (facts_list, memories_search) so you do not propose what is already kept.",
+  "- Your writes wait as proposed until the owner confirms them, and every call is logged as memo-mcp.",
+  "- Look first (facts_list, search_memories) so you do not propose what is already kept.",
   `- ${UNTRUSTED}`,
 ].join("\n")
 const limit = (most: number) => v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(most)))
@@ -82,7 +82,7 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
     input: v.object({ ref: v.string() }),
     run: (store, args) => store.memories.get(args.ref),
   }),
-  memories_search: define({
+  search_memories: define({
     title: "Search memories",
     description: `Memories holding every word, best first. ${UNTRUSTED}`,
     writes: false,
@@ -97,7 +97,7 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
   facts_add: define({
     title: "Propose a fact",
     description:
-      "Record what happened — a fact, a statement, a question, a decision or a promise — with the references that show it. It waits as proposed until the owner accepts it.",
+      "Record what happened — a fact, a statement, a question, a decision or a promise — with the references that show it. It waits as proposed until the owner confirms it.",
     writes: true,
     input: v.object({
       type: v.picklist(FACT_TYPES),
@@ -131,10 +131,10 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
     input: v.object({ ref: v.string() }),
     run: (store, args) => store.facts.get(args.ref),
   }),
-  actions_propose: define({
+  actions_add: define({
     title: "Propose an action",
     description:
-      "Propose what should be done in one account — a reply, a ban, an invitation — and why. Nothing is sent: the owner approves it as a task or rejects it.",
+      "Propose what should be done in one account — a reply, a ban, an invitation — and why. Nothing is sent: the owner confirms it as a task or rejects it.",
     writes: true,
     input: v.object({
       kind: v.pipe(v.string(), v.regex(/^[a-z][a-z_]{0,39}$/)),

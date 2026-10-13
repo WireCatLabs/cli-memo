@@ -25,11 +25,11 @@ it("creates keyed project tasks, reviews dependencies and discovers ready work t
   expect([first.key, second.key]).toEqual(["RES-1", "RES-2"])
   expect(await run("tasks", "link", second.id, first.id, "--kind", "blocked-by")).toMatchObject({ changed: true })
   expect(await run("tasks", "link", second.id, first.id, "--kind", "blocked-by")).toMatchObject({ changed: false })
-  expect(await run("tasks", "ready", "--project", "Lab Example")).toMatchObject({
+  expect(await run("tasks", "list", "--ready", "--project", "Lab Example")).toMatchObject({
     items: [{ key: first.key }],
     hasMore: false,
   })
-  expect(await run("tasks", "readiness", second.id)).toEqual({
+  expect(await run("tasks", "status", second.id)).toEqual({
     ready: false,
     blockers: [{ task: first.ref, state: "open" }],
   })
@@ -39,5 +39,5 @@ it("creates keyed project tasks, reviews dependencies and discovers ready work t
   expect(await run("tasks", "unlink", second.id, first.id, "--kind", "blocked-by")).toEqual({ changed: true })
   await run("tasks", "link", second.id, first.id, "--kind", "follow-up-of")
   expect((await run("tasks", "relations", second.id)).items).toMatchObject([{ kind: "follow-up-of" }])
-  expect((await run("tasks", "ready", "--project", project.ref)).items).toHaveLength(2)
+  expect((await run("tasks", "list", "--ready", "--project", project.ref)).items).toHaveLength(2)
 })

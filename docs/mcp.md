@@ -52,12 +52,12 @@ Use the memo tools to list the memories waiting for my review.
 | `search_all` | Search messages from every messenger, mail and notes together, read only |
 | `search_messages`, `search_mail`, `search_notes` | Search one kind with all its fields, read only |
 | `person_context` | One person across messengers and mail, with linked notes and tasks, read only |
-| `memories_add`, `memories_list`, `memories_show`, `memories_search` | Save and read memories |
+| `memories_add`, `memories_list`, `memories_show`, `search_memories` | Save and read memories |
 | `facts_add`, `facts_list`, `facts_show` | Record and read facts |
-| `actions_propose`, `actions_list`, `actions_show` | Propose actions and read them |
+| `actions_add`, `actions_list`, `actions_show` | Propose actions and read them |
 | `agents_log` | Read the agent log |
-| `vocabulary_list`, `vocabulary_resolve`, `vocabulary_preflight` | Look up projects, tags and topics, read only |
-| `task_relations`, `task_readiness`, `tasks_ready` | See how tasks depend on each other, read only |
+| `vocabulary_list`, `vocabulary_show`, `vocabulary_check` | Look up projects, tags and topics, read only |
+| `tasks_relations`, `tasks_status`, `tasks_list` | See how tasks depend on each other, read only |
 
 Everything the app adds is saved under the agent name `memo-mcp` and waits as proposed. You review it with
 `memo memories list --status proposed` and the commands in [Memories and facts](memories.md).

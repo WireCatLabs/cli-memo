@@ -5,7 +5,6 @@ import { captureStreams } from "@wirecat/cli-base"
 import { formatLocator } from "@wirecat/cli-messaging"
 import { openStore } from "@wirecat/cli-messaging/store"
 import { describe, expect, it } from "vitest"
-import { updateConfig } from "../config.js"
 import { createProgram } from "../program.js"
 import { himalaya } from "./himalaya.js"
 import { importMail } from "./import.js"
@@ -84,11 +83,10 @@ describe("mail imported into the mail tables reads back through memo", () => {
       "9001",
     ])
 
-    updateConfig(() => ({ mail: { accounts: [{ name: "test", address: ME }] } }), env)
-    const shown = await run(["mail", "test", "show", LOCATOR], env)
+    const shown = await run(["messages", "show", LOCATOR], env)
     expect(shown).toMatchObject({ locator: LOCATOR, anchor: true, email: { from: { address: "rin@example.test" } } })
     expect(shown.text).toContain("The roadmap review moves to Friday.")
-    await expect(run(["mail", "test", "show", LOCATOR.replace("owner%40", "other%40")], env)).rejects.toMatchObject({
+    await expect(run(["messages", "show", "msg:telegram/1/2/3"], env)).rejects.toMatchObject({
       code: "validation_error",
     })
   })
