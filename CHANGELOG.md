@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.24.0 — 13.10.2026
+
 ### Added
 
 - **An agent skill, as tg has.** `memo skill show` prints it and `memo skill install --for claude|agents|all`
