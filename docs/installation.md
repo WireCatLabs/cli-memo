@@ -49,6 +49,12 @@ memo --help
 `memo --help` should list commands such as `notes`, `search` and `tags`. If the terminal says the
 command is not found, close it, open a new one and try again.
 
+**Your agent's instructions.** A global install also puts Memo's skill where Claude Code
+(`~/.claude/skills/cli-memo/`) and Codex or Gemini CLI (`~/.agents/skills/cli-memo/`) look for it.
+`MEMO_INSTALL_AGENT` chooses: `all` (the default), `claude`, `codex`, `cursor`, `gemini`, or `none`
+to skip it. Install it again, or after an update, with `memo skill install --for all`
+(`claude` or `agents` for one); `memo skill show` prints it.
+
 Memo has no login step. Next, [add a folder of notes](notes.md#add-a-folder) or
 [connect a mail account](mail.md).
 

@@ -69,9 +69,9 @@ Do not confirm or approve anything; I will decide.
 ```
 
 [Memories and facts](memories.md) explains how to confirm or reject them. Approving an action makes
-it a task for you; Memo never sends anything. A memory or fact added with the `memo` command is
-confirmed at once. Ask an agent with a terminal to show you the text first, and to add it only after
-you agree.
+it a task for you; Memo never sends anything. A memory or fact your agent adds with the `memo` command
+waits for you too: memo records the agent as its author when `AI_AGENT` or `CLAUDECODE` is set. One you
+add yourself is confirmed at once.
 
 ## Answers for scripts and agents
 
@@ -81,6 +81,18 @@ agents and scripts should ask for JSON.
 Every result names its source with a **reference**, such as `note:12`, `document:3` or
 `msg:telegram/1/77/42`. You can pass a reference to other commands: to tag it, write a note about
 it or use it as evidence. [How Memo works](how-it-works.md#references) explains each kind.
+
+Where a search answer keeps its list and references:
+
+| Command | List | Reference of each result |
+|---|---|---|
+| `memo search messages`, `memo search mail` | `items` | `locator`, as in `tg search messages` |
+| `memo search all` | `items` | `ref`, with `kind` |
+| `memo search notes` | `hits` | `ref` |
+
+`content:` narrows a search to the text of files, `transcript:` to voice transcripts and `filename:` to file
+names. Compare like with like: `memo search messages 'content:invoice'` with
+`tg search messages 'content:invoice'`, a plain word with a plain word.
 
 ## Choosing an account
 

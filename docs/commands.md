@@ -568,15 +568,15 @@ memo organizations list [options]
 
 ### `memo organizations context`
 
-One organization: its relationships, the notes about or linking it, and its tags
+One organization by its id or organization:<id>: its relationships, the notes about or linking it, and its tags
 
 ```sh
-memo organizations context <id> [options]
+memo organizations context <organization> [options]
 ```
 
 | Argument | | What it is |
 |---|---|---|
-| `id` | required |  |
+| `organization` | required |  |
 
 | Option | What it does |
 |---|---|
@@ -666,7 +666,7 @@ memo projects list [options]
 
 ### `memo projects context`
 
-One project by its id, key or project:<id>: its relationships, the notes about or linking it, and its tags
+One project by its id, key or project:<id>: its key documents first, then its relationships, the notes about or linking it, and its tags. Start work on a project here
 
 ```sh
 memo projects context <project> [options]
@@ -680,13 +680,69 @@ memo projects context <project> [options]
 |---|---|
 | `--json` | print JSON. |
 
+### `memo projects key-documents`
+
+The notes, files and messages to read first about a project, each with why
+
+#### `memo projects key-documents add`
+
+Mark a note:, document: or msg: reference as a key document of the project
+
+```sh
+memo projects key-documents add <project> <reference> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `project` | required | id, key or project:<id>. |
+| `reference` | required | note:, document: or msg: reference. |
+
+| Option | What it does |
+|---|---|
+| `--reason <text>` | why it is key, in a few words. |
+| `--json` | print JSON. |
+| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+
+#### `memo projects key-documents remove`
+
+Unmark a key document; the note, file or message stays
+
+```sh
+memo projects key-documents remove <project> <reference> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `project` | required | id, key or project:<id>. |
+| `reference` | required |  |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+#### `memo projects key-documents list`
+
+A project's key documents: title, path, why, who marked it and whether it is still there
+
+```sh
+memo projects key-documents list <project> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `project` | required | id, key or project:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
 ## `memo relationships`
 
 Explicit relations between people, organizations and projects; this never links identities
 
 ### `memo relationships add`
 
-State that a person, organization or project belongs to or relates to another
+State that a person, organization or project belongs to or relates to another; an agent's waits for you to confirm it
 
 ```sh
 memo relationships add <from> <to> [options]
@@ -699,6 +755,7 @@ memo relationships add <from> <to> [options]
 
 | Option | What it does |
 |---|---|
+| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--json` | print JSON. |
 | `--kind <kind>` | member-of or related-to. Default: `member-of`. |
 | `--role <role>` |  |
@@ -1010,11 +1067,11 @@ memo vocabulary aliases remove <reference> <alias-id> [options]
 
 ## `memo memories`
 
-What agents and you concluded, each with its evidence: agents propose, you confirm
+What agents and you concluded, each with its evidence: an agent's waits for you to confirm it
 
 ### `memo memories add`
 
-Write a memory of your own; it is confirmed at once
+Write a memory: yours is confirmed at once, an agent's waits as proposed until you confirm it
 
 ```sh
 memo memories add <text> [options]
@@ -1026,6 +1083,7 @@ memo memories add <text> [options]
 
 | Option | What it does |
 |---|---|
+| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--kind <kind>` | summary, digest, preference. |
 | `--scope <scope>` | personal or work. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
@@ -1117,11 +1175,11 @@ memo memories stale <ref> [options]
 
 ## `memo facts`
 
-What happened — said, asked, decided, promised — with its evidence: agents propose, you accept
+What happened — said, asked, decided, promised — with its evidence: an agent's waits for you to accept it
 
 ### `memo facts add`
 
-Record a fact of your own; it is accepted at once
+Record a fact: yours is accepted at once, an agent's waits as proposed until you accept it
 
 ```sh
 memo facts add <statement> [options]
@@ -1133,6 +1191,7 @@ memo facts add <statement> [options]
 
 | Option | What it does |
 |---|---|
+| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--type <type>` | fact, statement, question, decision, promise. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
 | `--project <ref>` | the project it belongs to, project:<id>. |
@@ -1213,7 +1272,7 @@ What an agent proposes to do; approving one makes it your task, nothing is sent
 
 ### `memo actions propose`
 
-Propose an action, such as a reply or a ban, in the account that would act
+Propose an action, such as a reply or a ban, in the account that would act; it records who proposed it
 
 ```sh
 memo actions propose <kind> [options]
@@ -1225,6 +1284,7 @@ memo actions propose <kind> [options]
 
 | Option | What it does |
 |---|---|
+| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--reason <text>` | why it should be done. |
 | `--provider <provider>` | the provider of the account that would act. |
 | `--account <account>` | the account that would act, when the provider has several. |
@@ -1346,6 +1406,7 @@ memo search all <query> [options]
 | `--brief` | each message or email as reference, time, sender and excerpt only. |
 | `--full` | each message or email with its whole text and every field. |
 | `--only <resources>` | messages,mail,notes, separated by commas. |
+| `--project <project>` | rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out. |
 
 ### `memo search messages`
 
@@ -1416,6 +1477,7 @@ memo search notes <query> [options]
 | `--filter <query>` | another query every note must match. |
 | `--folder <path-or-id...>` | only these folders. |
 | `--offset <n>` | continue from nextOffset. Default: `0`. |
+| `--project <project>` | rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out. |
 
 ## `memo ask`
 
@@ -1506,6 +1568,30 @@ memo commands [path] [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON. |
+
+## `memo skill`
+
+the instructions an agent is given for this tool
+
+### `memo skill show`
+
+print SKILL.md — `memo skill install` puts it where Claude Code, Codex and Gemini CLI look for it
+
+```sh
+memo skill show
+```
+
+### `memo skill install`
+
+write SKILL.md to \~/.claude/skills/cli-memo/ (Claude Code) and \~/.agents/skills/cli-memo/ (Codex, Gemini CLI)
+
+```sh
+memo skill install [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--for <agents>` | which agents to install for. One of: `claude`, `agents`, `all`. Default: `all`. |
 
 ## Exit codes
 

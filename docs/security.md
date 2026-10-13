@@ -30,8 +30,11 @@ nothing and tells you.
 
 - Proposed actions, and memories and facts added through the MCP server, wait for your review.
   Through the MCP server, an agent cannot confirm, accept, approve or reject.
-- A memory or fact added with the `memo` command is confirmed at once, whoever typed it. Ask an agent
-  with a terminal to show you what it wants to add first.
+- A fact, memory, relationship or proposed action added with the `memo` command records who wrote it.
+  When an agent's terminal runs it (`AI_AGENT` or `CLAUDECODE` is set), the agent is the author and the
+  fact, memory or relationship waits for you like one added through MCP. Yours is confirmed at once;
+  in an agent's terminal, add `--as-owner`. `--as-owner` is a label, not a lock: an agent can pass it
+  too, so tell your agent never to.
 - Approving an action makes it a task for you. Memo never sends a message or an email.
 - The agent log records the agent, the tool, the result and the time, never what the agent sent.
 - Two accounts are treated as one person only after you link them. A matching name or email domain

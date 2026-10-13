@@ -6,9 +6,50 @@ the API.
 
 ## Unreleased
 
-### Changed
+### Added
+
+- **An agent skill, as tg has.** `memo skill show` prints it and `memo skill install --for claude|agents|all`
+  writes it where Claude Code, Codex and Gemini CLI look; a global npm install does that too, unless
+  `MEMO_INSTALL_AGENT=none`. It starts with the traps agents fell into: choosing an account, `content:` and
+  answer keys, starting project work with `memo projects context`, `--as-owner`, accepting their own proposals,
+  writing message text to files, old versions and zsh word splitting.
+
+- **Key documents of a project.** `memo projects key-documents add <project> <note:|document:|msg:> --reason
+  <text>` marks what to read first about one project; `remove` and `list` go with it. `memo projects context`
+  starts with them — title, path, why, who marked it — and keeps a mark whose source is gone as
+  `available: false`. `memo search all` and `search notes` with `--project <project>` put the project's key
+  documents first, labelled `key`, and leave nothing out. An agent's mark waits unconfirmed and names the agent.
+
+### Changed — may break scripts
 
 - `memo import` is now `memo sync` (owner, 2026-10-12; WireCat glossary in cli-messaging). `memo import` stops working. `memo auto on` now writes `memo sync` into the unit; a timer installed before runs `memo import` and fails until `memo auto on` is run again. `notes import` and `mail <account> import` keep their names for now.
+- **A write from an agent's terminal is the agent's.** `memo facts add`, `memories add`, `relationships add`
+  and `actions propose` run with `AI_AGENT` or `CLAUDECODE` set record the agent as author (`claude-code`, the
+  name before the version in `AI_AGENT`), as the MCP server does: the fact or memory waits as `proposed`, the
+  relationship unconfirmed with `provenance: agent:<name>`. They were recorded as the owner's and accepted.
+  `--as-owner` keeps a write yours inside an agent's terminal.
+
+### Fixed
+
+- **A command path given as one argument is refused with the words to type.** `memo "projects add" --help` — what
+  a zsh loop over `"$c"` passes — printed the root help; it now says `"projects add" was given as one argument;
+  run: memo projects add`.
+- **Search help says where file text and references are.** `search messages`, `search mail` and `search all` say
+  `content:`, `transcript:` and `filename:` narrow a search to the text of files, voice transcripts or file names, and each search's `--help` and MCP
+  tool names the list (`items` or `hits`) and the reference (`locator` or `ref`) of its `--json` answer. The usage and
+  troubleshooting guides say the same, and to compare `memo --version` with npm before reporting a bug.
+- **The search guide names `content:` for messages.** It narrows a search to the text of files, in
+  `memo search messages` and `memo search all` as in tg; the guide listed it for mail only.
+- **`memo projects context` and `memo organizations context` refuse what the store does not hold** with
+  `not_found` instead of an empty answer, and `organizations context` takes `organization:<id>` as well as
+  its id.
+- **`memo folders attach` refuses drive-cli's `google-drive:` folder**, and `memo folders list` marks it "kept by
+  drive" (`keptBy: "drive"` in JSON) instead of offering to attach it. Bound to a disk folder, the next import
+  would have deleted the Drive documents missing from it.
+- **`memo search all` no longer runs as the first stored account.** It searched every account before too, but
+  picked one as its own; now it runs as memo's notes and its answer names every account it read, as `accounts`
+  (`{ resource, provider, account }`) in JSON and a `searched:` line on stderr. `memo search messages` and
+  `memo search mail` stop picking one as well.
 
 ## 0.23.0 — 12.10.2026
 

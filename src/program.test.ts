@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 import { captureStreams } from "@wirecat/cli-base"
 import { describe, expect, it } from "vitest"
-import { createProgram } from "./program.js"
+import { createProgram, refuseJoinedPath } from "./program.js"
 
 const packaged = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version
 
@@ -29,5 +29,29 @@ describe("memo", () => {
     await expect(
       createProgram({ streams: captureStreams() }).parseAsync(["commands", "nope"], { from: "user" }),
     ).rejects.toMatchObject({ code: "not_found" })
+  })
+})
+
+describe("a command path given as one argument", () => {
+  const check =
+    (...args: string[]) =>
+    () =>
+      refuseJoinedPath(createProgram(), args)
+
+  it("names the words to split instead of printing the root help", () => {
+    expect(check("projects add", "--help")).toThrow(
+      expect.objectContaining({
+        code: "validation_error",
+        message: expect.stringContaining('"projects add" was given as one argument; run: memo projects add'),
+      }),
+    )
+    expect(check("tags", "add work", "--help")).toThrow(/run: memo tags add work/)
+  })
+
+  it("leaves a command path in separate words and quoted values alone", () => {
+    expect(check("projects", "add", "--help")).not.toThrow()
+    expect(check("facts", "add", "two words", "--type", "fact")).not.toThrow()
+    expect(check("search", "all", "budget review")).not.toThrow()
+    expect(check("nothing here")).not.toThrow()
   })
 })

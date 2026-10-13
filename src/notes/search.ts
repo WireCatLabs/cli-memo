@@ -13,7 +13,8 @@ export const searchText = (result: NotesSearch): string =>
         ]
       : []),
     ...result.hits.map(
-      (hit) => `${hit.path ?? hit.ref}${hit.foundBy.includes("words") ? "" : "  (by meaning)"}\n  ${hit.line}`,
+      (hit) =>
+        `${"key" in hit ? "key  " : ""}${hit.path ?? hit.ref}${hit.foundBy.includes("words") ? "" : "  (by meaning)"}\n  ${hit.line}`,
     ),
     ...(result.hasMore ? ["More notes match; raise --limit or follow nextOffset."] : []),
     ...(result.linked.length === 0

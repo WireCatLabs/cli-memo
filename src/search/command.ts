@@ -14,6 +14,7 @@ import type { AccountKey, MessageStore, Note } from "@wirecat/cli-messaging/stor
 import { openStore } from "@wirecat/cli-messaging/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { APP } from "../app.js"
+import { keyDocuments, keyFirst, projectOf } from "../knowledge/key-documents.js"
 import { boundFolders } from "../notes/bound.js"
 import { searchText } from "../notes/search.js"
 import { positive } from "../options.js"
@@ -254,17 +255,31 @@ export interface QueryInput {
   timezone?: string
 }
 
-/** Messages, mail and notes ranked together, with the open tasks that point at a hit. */
+/**
+ * The account memo's searches run as: its own notes, never a stored account picked for the owner. The scope comes
+ * from the query alone, and every account it covers is named in the answer.
+ */
+const MEMO: AccountKey = { provider: "notes", account: "internal" }
+
+export interface SearchedAccount {
+  resource: SearchedResource
+  provider: string
+  account: string
+}
+
+/** Messages, mail and notes ranked together, with the open tasks that point at a hit and every account read. */
 export const searchEverywhere = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
   { text, limit, only, exact, timezone }: QueryInput & { only?: SearchedResource[] },
 ) => {
   const accounts = await store.accounts()
-  const key = accounts.find(({ provider }) => provider !== "notes") ?? { provider: "notes", account: "internal" }
+  // The shared search names this command only in the model hint, and the model comes from tg.
+  const messenger = { app: { ...APP, command: "tg" } }
+  let messageAccounts: AccountKey[] = []
   const found = await searchAll(
     store,
-    key,
+    MEMO,
     {
       text,
       limit,
@@ -273,9 +288,29 @@ export const searchEverywhere = async (
       ...(exact ? { exact: true } : {}),
       ...(timezone === undefined ? {} : { timezone }),
     },
-    // The shared search names this command only in the model hint, and the model comes from tg.
-    { app: { ...APP, command: "tg" } },
+    messenger,
+    async (query) => {
+      const read = await searchStore(store, MEMO, query, messenger)
+      messageAccounts = read.coverage?.accounts ?? []
+      return read
+    },
   )
+  const searched: SearchedAccount[] = []
+  for (const resource of found.searched) {
+    if (resource === "messages")
+      searched.push(...messageAccounts.map(({ provider, account }) => ({ resource, provider, account })))
+    if (resource === "mail")
+      searched.push(
+        ...accounts
+          .filter(({ provider }) => provider === "email")
+          .map(({ provider, account }) => ({ resource, provider, account })),
+      )
+    if (resource === "notes")
+      searched.push(
+        { resource, provider: "notes", account: "internal" },
+        ...(await store.notes.folders()).map(({ id }) => ({ resource, provider: "notes", account: id })),
+      )
+  }
   const tasks = []
   let tasksIncomplete = false
   const sources = found.items.map((item) => item.ref)
@@ -284,7 +319,12 @@ export const searchEverywhere = async (
     tasks.push(...page.items)
     tasksIncomplete ||= page.hasMore
   }
-  return { ...found, tasks: tasks.slice(0, limit), tasksIncomplete: tasksIncomplete || tasks.length > limit }
+  return {
+    ...found,
+    accounts: searched,
+    tasks: tasks.slice(0, limit),
+    tasksIncomplete: tasksIncomplete || tasks.length > limit,
+  }
 }
 
 /** One kind with all its fields: messenger messages from every messenger, or imported mail. */
@@ -293,18 +333,17 @@ export const searchKind = async (
   kind: "messages" | "mail",
   { text, limit, type, account, exact, timezone }: QueryInput & { type?: "text" | "voice" | "file"; account?: string },
 ) => {
-  const [runsAs] = (await store.accounts()).filter(
+  const held = (await store.accounts()).some(
     ({ provider }) => provider !== "notes" && (kind === "mail" ? provider === "email" : provider !== "email"),
   )
-  if (runsAs === undefined)
+  if (!held)
     throw new CliError(
       "not_found",
       kind === "mail" ? "no imported mail; run memo mail <account> import" : "no stored messenger messages",
     )
-  // The store needs an account to run as; the kind, the query and the mail account choose what it reads.
   return searchStore(
     store,
-    runsAs,
+    MEMO,
     {
       text:
         type === undefined
@@ -321,6 +360,12 @@ export const searchKind = async (
     { app: APP },
   )
 }
+
+const PROJECT_HELP =
+  "rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out"
+
+const keyRefs = async (store: MessageStore, project: string) =>
+  new Set((await keyDocuments(store, await projectOf(store, project))).map((item) => item.ref))
 
 export const searchCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const group = program
@@ -370,21 +415,41 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       ),
   )
     .option("--only <resources>", "messages,mail,notes, separated by commas", onlyOf)
+    .option("--project <project>", PROJECT_HELP)
+    .addHelpText(
+      "after",
+      `
+content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names — memo search all 'content:invoice'.
+--json: the list is items; each result's reference is ref, its kind is kind (tg search uses locator).`,
+    )
     .action(
       async (
         words: string[],
-        options: { limit: number; only?: SearchedResource[]; exact?: boolean; timezone?: string; json?: boolean },
+        options: {
+          limit: number
+          only?: SearchedResource[]
+          exact?: boolean
+          timezone?: string
+          project?: string
+          json?: boolean
+        },
       ) => {
-        const answer = await withStore((store) =>
-          searchEverywhere(store, env, {
+        const answer = await withStore(async (store) => {
+          const found = await searchEverywhere(store, env, {
             text: words.join(" "),
             limit: options.limit,
             ...(options.only === undefined ? {} : { only: options.only }),
             ...(options.exact ? { exact: true } : {}),
             ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
-          }),
-        )
+          })
+          return options.project === undefined
+            ? found
+            : { ...found, items: keyFirst(found.items, await keyRefs(store, options.project)) }
+        })
         if (!options.json) {
+          streams.diagnostic(
+            `searched: ${answer.accounts.map(({ provider, account }) => `${provider}:${account}`).join(", ") || "nothing"}\n`,
+          )
           for (const skipped of answer.skipped)
             streams.diagnostic(`${skipped.resource} not searched: ${skipped.reason}\n`)
           if (answer.notes?.meaningSkipped) streams.diagnostic(`Notes by words only: ${answer.notes.meaningSkipped}\n`)
@@ -393,7 +458,7 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
           options.json,
           answer,
           [
-            ...answer.items.map((item) => `${item.kind}  ${item.ref}\n  ${item.text}`),
+            ...answer.items.map((item) => `${"key" in item ? "key  " : ""}${item.kind}  ${item.ref}\n  ${item.text}`),
             ...answer.tasks.map((task) => `task  task:${task.id}  ${task.kind}  ${task.source}`),
           ].join("\n"),
         )
@@ -406,6 +471,17 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     )
     if (kind === "messages") leaf.option("--type <type>", "text, voice or file", messageType)
     else leaf.option("--account <address>", "only this mail account, by its address (default: every mail account)")
+    leaf.addHelpText(
+      "after",
+      kind === "messages"
+        ? `
+content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names — memo search messages
+'content:invoice'. Compare it with tg search messages 'content:invoice', a plain word with a plain word.
+--json: the list is items; each hit's reference is locator (msg:…), as in tg search messages.`
+        : `
+content: narrows a search to the text of attachments, filename: to their names — memo search mail 'content:invoice'.
+--json: the list is items; each email's reference is locator (msg:email/…).`,
+    )
     leaf.action(
       async (
         words: string[],
@@ -437,11 +513,13 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
   }
 
   queryOptions(group.command("notes").description("Native notes by words and, with the local model, meaning"))
+    .addHelpText("after", "\n--json: the list is hits, not items; each note's reference is ref (note: or document:).")
     .option("--type <type>", "file or internal", noteType)
     .option("--tag <tag>", "only notes with this tag")
     .option("--filter <query>", "another query every note must match")
     .option("--folder <path-or-id...>", "only these folders")
     .option("--offset <n>", "continue from nextOffset", Number, 0)
+    .option("--project <project>", PROJECT_HELP)
     .action(
       async (
         words: string[],
@@ -452,13 +530,14 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
           tag?: string
           filter?: string
           folder?: string[]
+          project?: string
           exact?: boolean
           timezone?: string
           json?: boolean
         },
       ) => {
-        const answer = await withStore(async (store) =>
-          searchNotes(store, words.join(" "), {
+        const answer = await withStore(async (store) => {
+          const found = await searchNotes(store, words.join(" "), {
             limit: options.limit,
             offset: options.offset,
             env,
@@ -469,8 +548,11 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
             ...(options.folder === undefined ? {} : { folderIds: await searchFolderIds(store, env, options.folder) }),
             ...(options.exact ? { exact: true } : {}),
             ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
-          }),
-        )
+          })
+          return options.project === undefined
+            ? found
+            : { ...found, hits: keyFirst(found.hits, await keyRefs(store, options.project)) }
+        })
         if (answer.meaningSkipped && !options.json)
           streams.diagnostic(`Searched by words only: ${answer.meaningSkipped}\n`)
         print(options.json, answer, searchText(answer))

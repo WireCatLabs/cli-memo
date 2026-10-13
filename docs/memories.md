@@ -26,9 +26,10 @@ Open each source, then confirm what is right and leave or reject the rest. The r
 shows how.
 
 **What waits for you.** A proposed action always waits until you approve or reject it. A memory or
-fact waits when an app adds it through [the MCP server](mcp.md). A memory or fact added with the
-`memo` command counts as yours and is confirmed at once, whether you or your agent typed it. So ask an
-agent with a terminal to show you the text and its source first, and to add it only after you agree.
+fact waits when an agent adds it: through [the MCP server](mcp.md), or with the `memo` command in an
+agent's terminal (`AI_AGENT` or `CLAUDECODE` set), where the agent is recorded as its author. One you
+add yourself is confirmed at once; in an agent's terminal, add `--as-owner` to make it yours. An agent
+can pass `--as-owner` too, so tell it not to.
 
 ## Memories
 
@@ -47,7 +48,7 @@ memo memories confirm memory:3
 memo memories stale memory:3
 ```
 
-A memory added with the `memo` command is confirmed at once. One added through MCP waits as
+A memory you add with the `memo` command is confirmed at once. One an agent adds waits as
 `proposed` until you check its evidence and `confirm` it. When the evidence no longer holds, for
 example Kai now prefers Mondays, mark it `stale`. `--subject person:…` says who or what the memory is about.
 
@@ -63,8 +64,8 @@ memo facts show fact:4
 memo facts accept fact:4
 ```
 
-A fact added with the `memo` command is accepted at once. One added through MCP waits as `proposed`
-until you `accept` it. `--project project:1` puts the fact in a project, and `--occurred` gives the date it happened.
+A fact you add with the `memo` command is accepted at once. One an agent adds waits as `proposed`
+until you `accept` it; `author` and `source` say who wrote it. `--project project:1` puts the fact in a project, and `--occurred` gives the date it happened.
 
 A decision can replace an earlier one: add `--supersedes fact:2`. When you accept the new decision,
 the old one stops holding. When a decision no longer holds and nothing replaced it, run
