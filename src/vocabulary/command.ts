@@ -49,7 +49,7 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
       .summary("check a new name for existing labels, or the vocabulary for likely synonyms")
       .description(
         "check a new name for an existing label or likely duplicates before vocabulary create, or without a name " +
-          "the whole vocabulary for likely synonyms. It accepts, merges and creates nothing",
+          "the whole vocabulary for likely synonyms. It merges and creates nothing",
       ),
   )
     .option("--min-similarity <n>", "without a name: minimum lexical similarity, 0.65–1", Number)
@@ -72,6 +72,15 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
             throw new CliError(
               "validation_error",
               "a new name is a tag or topic: --kind tag or --kind topic, no --scope",
+            )
+          if (
+            options.minSimilarity !== undefined ||
+            options.maxComparisons !== undefined ||
+            options.limit !== undefined
+          )
+            throw new CliError(
+              "validation_error",
+              "--min-similarity, --max-comparisons and --limit check the whole vocabulary: leave out the name",
             )
           return store.knowledge.tagPreflight(name, {
             ...(options.kind === undefined ? {} : { kind: options.kind }),

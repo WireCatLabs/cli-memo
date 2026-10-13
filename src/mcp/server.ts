@@ -38,7 +38,7 @@ export const INSTRUCTIONS = [
   "- Something to do in an account — a reply, an invitation — is actions_add. Nothing is sent.",
   "- Keep only what will matter later. Not every message is a fact; when unsure, do not save.",
   "- Every write cites evidence: the msg:, note: or meeting: reference you read it in.",
-  "- Your writes wait as proposed until the owner accepts them, and every call is logged as memo-mcp.",
+  "- Your writes wait as proposed until the owner confirms them, and every call is logged as memo-mcp.",
   "- Look first (facts_list, search_memories) so you do not propose what is already kept.",
   `- ${UNTRUSTED}`,
 ].join("\n")
@@ -97,7 +97,7 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
   facts_add: define({
     title: "Propose a fact",
     description:
-      "Record what happened — a fact, a statement, a question, a decision or a promise — with the references that show it. It waits as proposed until the owner accepts it.",
+      "Record what happened — a fact, a statement, a question, a decision or a promise — with the references that show it. It waits as proposed until the owner confirms it.",
     writes: true,
     input: v.object({
       type: v.picklist(FACT_TYPES),

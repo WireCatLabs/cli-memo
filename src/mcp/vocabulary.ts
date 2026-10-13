@@ -42,6 +42,11 @@ export const vocabularyTools = {
         })
       if (kind === "project" || scope !== undefined)
         throw new CliError("validation_error", "a new name is a tag or topic: kind tag or topic, no scope")
+      if (minSimilarity !== undefined || maxComparisons !== undefined || limit !== undefined)
+        throw new CliError(
+          "validation_error",
+          "minSimilarity, maxComparisons and limit check the whole vocabulary: no name",
+        )
       return store.knowledge.tagPreflight(name, { ...budget, ...(kind === undefined ? {} : { kind }) })
     },
   }),

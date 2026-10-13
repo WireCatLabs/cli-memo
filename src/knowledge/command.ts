@@ -246,7 +246,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     )
   relations
     .command("confirm")
-    .description("accept a suggested relationship")
+    .description("confirm a suggested relationship")
     .argument("<id>", "the relationship's id, as relationships list gives it")
     .option("--json", "print JSON")
     .action((id: string, options: { json?: boolean }) =>

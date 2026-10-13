@@ -69,7 +69,9 @@ type MailAccount = NonNullable<Config["mail"]>["accounts"][number]
 const mailAccounts = (accounts: MailAccount[], names: string[] | undefined): MailAccount[] => {
   if (names === undefined) return accounts
   return names.map((name) => {
-    const found = accounts.find((account) => account.name === name)
+    const found = accounts.find(
+      (account) => account.name === name || account.address.toLowerCase() === name.toLowerCase(),
+    )
     if (found) return found
     const choices = accounts.map((account) => account.name).join(", ") || "none"
     throw new CliError("not_found", `no mail account "${name}" in mail.accounts — it holds ${choices}`)
@@ -97,7 +99,10 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         .implies({ notes: true }),
     )
     .addOption(
-      new Option("--account <account>", "mail: only this account, its name in mail.accounts; repeat for more")
+      new Option(
+        "--account <account>",
+        "mail: only this account, by its name in mail.accounts or its address; repeat for more",
+      )
         .argParser(collect)
         .implies({ mail: true }),
     )

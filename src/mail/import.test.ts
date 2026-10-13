@@ -300,6 +300,14 @@ describe("memo sync --mail", () => {
     expect(await (await store(env)).accounts()).toEqual([])
   })
 
+  it("takes an account by its address as well as its name", async () => {
+    const { dir, env } = setup([mail(1)])
+
+    const result = JSON.parse(await run(["sync", "--account", OTHER, "--no-embed", "--json"], configured(dir, env)))
+
+    expect(result.mail).toMatchObject([{ account: OTHER }])
+  })
+
   it("syncs only the account named, from the time asked, and reports what it did", async () => {
     const { dir, env } = setup([mail(1)])
 

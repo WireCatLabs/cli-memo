@@ -37,7 +37,7 @@ Gmail is the default. For another provider, add `"mode": "imap"` and the folders
 memo sync --account work --since-time 2026-09-01
 ```
 
-`work` is the account's `name` from the config. Without `--account`, Memo reads every account in the
+`work` is the account's `name` from the config, or use its address. Without `--account`, Memo reads every account in the
 config and names each one in its report; it lists the accounts it knows when a name is wrong.
 
 - Without `--since-time`, Memo reads the last 30 days. It takes a date, an ISO 8601 time or `30d` ago.

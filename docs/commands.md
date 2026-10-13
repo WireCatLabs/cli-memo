@@ -762,7 +762,7 @@ memo relationships remove <id> [options]
 
 ### `memo relationships confirm`
 
-accept a suggested relationship
+confirm a suggested relationship
 
 ```sh
 memo relationships confirm <id> [options]
@@ -943,7 +943,7 @@ memo vocabulary show <name> [options]
 
 ### `memo vocabulary check`
 
-check a new name for an existing label or likely duplicates before vocabulary create, or without a name the whole vocabulary for likely synonyms. It accepts, merges and creates nothing
+check a new name for an existing label or likely duplicates before vocabulary create, or without a name the whole vocabulary for likely synonyms. It merges and creates nothing
 
 ```sh
 memo vocabulary check [name] [options]
@@ -1118,7 +1118,7 @@ what happened — said, asked, decided, promised — with evidence
 
 ### `memo facts add`
 
-record a fact; an agent's waits as proposed until you accept it
+record a fact; an agent's waits as proposed until you confirm it
 
 ```sh
 memo facts add <statement> [options]
@@ -1473,7 +1473,7 @@ memo sync [options]
 | `--mail` | mail only. |
 | `--folder <folder>` | notes: only this configured folder, by its id or path; repeat for more. |
 | `--ignore <path>` | notes: also skip this file or folder, a path or a glob; repeat for more. |
-| `--account <account>` | mail: only this account, its name in mail.accounts; repeat for more. |
+| `--account <account>` | mail: only this account, by its name in mail.accounts or its address; repeat for more. |
 | `--since-time <time>` | mail: read from this time, ISO 8601 or 30d ago (default: 30d). |
 | `--limit <n>` | mail: most new emails to read per account this run (default: 200). |
 | `--retry-attachments` | mail: reread stored emails' attachments after installing an extraction engine. |

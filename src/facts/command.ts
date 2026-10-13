@@ -32,7 +32,7 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   const run = answering(streams, env)
   const facts = program.command("facts").description("what happened — said, asked, decided, promised — with evidence")
 
-  byOption(facts.command("add").description("record a fact; an agent's waits as proposed until you accept it"))
+  byOption(facts.command("add").description("record a fact; an agent's waits as proposed until you confirm it"))
     .argument("<statement...>", "what happened, in one sentence")
     .requiredOption("--type <type>", FACT_TYPES.join(", "), oneOf(FACT_TYPES))
     .option("--evidence <ref...>", "what shows it: msg:, note:, meeting:, person: or another reference")

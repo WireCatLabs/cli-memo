@@ -25,16 +25,16 @@ the API.
 - **`memo commands --json` prints cli-base's commands document**, the shape tg and max print: `cli`, `version`,
   `contract`, `description`, `globalOptions`, `commands`, `exitCodes`. `items` is gone; `memo commands <path> --json`
   puts the one command under `commands` with `scope` and `inheritedOptions`.
-- `memo import` is now `memo sync` (owner, 2026-10-12; WireCat glossary in cli-messaging). `memo import` stops working. `memo auto on` now writes `memo sync` into the unit; a timer installed before runs `memo import` and fails until `memo auto on` is run again.
+- `memo import` is now `memo sync` (owner, 2026-10-12; WireCat glossary in cli-messaging). `memo import` stops working. `memo auto start` writes `memo sync` into the unit; a timer installed before runs `memo import` and fails until `memo auto start` is run.
 - **A write from an agent's terminal is the agent's.** `memo facts add`, `memories add`, `relationships add`
-  and `actions propose` run with `AI_AGENT` or `CLAUDECODE` set record the agent as author (`claude-code`, the
+  and `actions add` run with `AI_AGENT` or `CLAUDECODE` set record the agent as author (`claude-code`, the
   name before the version in `AI_AGENT`), as the MCP server does: the fact or memory waits as `proposed`, the
   relationship unconfirmed with `provenance: agent:<name>`. They were recorded as the owner's and accepted.
   `--as-owner` keeps a write yours inside an agent's terminal.
 
 - **One meaning per flag (WireCat command standard).** A flag that takes several values is given once per value:
-  `memo notes add --about a --about b`, `notes import` and `search notes` `--folder a --folder b`.
-  `reminders schedule` and `snooze` take `--at-time` instead of `--at`. `relationships add` takes `--reason <text>`
+  `memo notes add --about a --about b`, `sync` and `search notes` `--folder a --folder b`.
+  `reminders add` and `update` take `--at-time` instead of `--at`. `relationships add` takes `--reason <text>`
   instead of `--evidence`, which in `facts` and `memories` names references. `--project` takes a key or
   `project:<id>` in `facts add`, `facts list` and `tags add|remove`, as it does in `tasks`; `tags --folder` takes a
   folder's path as well as its id; `projects add --organization` takes a bare id as well as `organization:<id>`.
