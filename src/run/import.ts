@@ -12,7 +12,7 @@ import { importNotes, type NotesImport } from "../notes/import.js"
 import { collect, positive } from "../options.js"
 import { metaOf, snakeKeys } from "../output.js"
 import { importNotesMap } from "../people/notes-map.js"
-import { applyAuto, autoState } from "./auto.js"
+import { applyAuto, autoState, recordAutoRun } from "./auto.js"
 import { withImportLock } from "./lock.js"
 
 const DAY = 86_400_000
@@ -85,6 +85,9 @@ interface SyncOptions {
   embed: boolean
   json?: boolean
 }
+
+const failedReason = ([first, ...rest]: ImportRun["failed"]): string | undefined =>
+  first === undefined ? undefined : `${first.source}: ${first.reason}${rest.length ? ` (and ${rest.length} more)` : ""}`
 
 export const syncCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   program
@@ -236,6 +239,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         (error: unknown) => {
           if (env.MEMO_AUTO === "1" && isCliError(error) && error.details.reason === "sync.running")
             return `another memo sync is running (process ${String(error.details.pid)})`
+          recordAutoRun(env, startedAt, error instanceof Error ? error.message : String(error))
           throw error
         },
       )
@@ -245,6 +249,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         if (options.json) printRun()
         return
       }
+      recordAutoRun(env, startedAt, failedReason(run.failed))
       if (options.json) printRun()
       else streams.data(`${text(run)}\n`)
       if (run.failed.length > 0) process.exitCode = 1

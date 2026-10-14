@@ -319,6 +319,7 @@ export const importMail = async ({
             sentAt: null,
             receivedAt: Date.parse(item.receivedAt),
             bodyText: mail.text || null,
+            size: item.size ?? null,
             outgoing: mail.from === null ? null : mail.from.email === key.account,
             mailboxes: inMailboxes(item),
             ...flagsOf(item),
