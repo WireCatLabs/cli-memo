@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.26.0 — 14.10.2026
+
 ### Changed
 
 - **Errors are one object, the same on the CLI and in MCP:** `{"error": {"code", "reason", "message", "param"?,
