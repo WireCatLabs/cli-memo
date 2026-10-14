@@ -77,7 +77,8 @@ nothing. A tag that came from a file is removed by editing the file.
 
 ## Tags and tg or max
 
-tg and max read the same tags: `tg search mail 'tag:follow-up'` finds tagged mail too. Tags on a
-contact are also available through `tg tags` and `max tags`.
+tg and max read the same tags: `tg search messages 'tag:follow-up'` finds tagged Telegram messages, and
+`memo search mail 'tag:follow-up'` finds tagged mail. Tags on a contact are also available through `tg tags` and
+`max tags`.
 
 Next: [search by tag and by words](search.md).
