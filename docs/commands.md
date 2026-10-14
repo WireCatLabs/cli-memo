@@ -56,14 +56,15 @@ memo notes show <note> [options]
 notes, newest first
 
 ```sh
-memo notes list [options]
+memo notes list [query] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
 
 | Option | What it does |
 |---|---|
-| `--about <subject>` | only notes about or linking this: <messenger>:<name or id> or a typed reference. |
-| `--source <source>` | file or internal. |
-| `--search <text>` | only notes holding this text, as written. |
 | `--limit <n>` | most notes, at most 500. Default: `20`. |
 | `--page <n>` | which page, from 1. Default: `1`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
@@ -597,15 +598,18 @@ memo tasks add [source] [options]
 tasks of one account or one project, open by default
 
 ```sh
-memo tasks list [options]
+memo tasks list [query] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
 
 | Option | What it does |
 |---|---|
 | `--provider <provider>` | source provider. |
 | `--account <account>` | exact stored account. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--state <state>` | open, done or dismissed. Default: `open`. |
 | `--project <project>` | a project's tasks, by its key or project:<id>, instead of an account's. |
 | `--ready` | with --project: only open tasks whose prerequisites are done; this claims none. |
 | `--limit <n>` | most tasks. Default: `100`. |

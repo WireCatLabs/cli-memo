@@ -231,7 +231,7 @@ describe("memo source tags", () => {
     ])
     const note = await json("notes", "add", "Follow up with Bob Sample", "--about", `meeting:${accountId}/${meetingId}`)
     expect(note.ref).toMatch(/^note:/)
-    const about = await json("notes", "list", "--about", `meeting:${accountId}/${meetingId}`)
+    const about = await json("notes", "list", `about:"meeting:${accountId}/${meetingId}"`)
     expect(JSON.stringify(about)).toContain(note.ref)
 
     const byId = await json(
@@ -245,7 +245,7 @@ describe("memo source tags", () => {
       String(meetingId),
     )
     for (const subject of [note.ref, `meeting:${accountId}/${meetingId}`])
-      expect(JSON.stringify(await json("notes", "list", "--about", subject))).toContain(byId.ref)
+      expect(JSON.stringify(await json("notes", "list", `about:"${subject}"`))).toContain(byId.ref)
     await expect(json("notes", "add", "x", "--meeting", String(meetingId + 1), ...scope)).rejects.toMatchObject({
       code: "not_found",
     })

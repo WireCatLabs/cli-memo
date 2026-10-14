@@ -147,7 +147,7 @@ describe("memo context", () => {
     expect(text).toMatch(/Are we still on for Friday\? {2}msg:telegram\/1\/101\/1/)
     expect(text).toContain(`  ${added.ref}  Prefers mornings`)
 
-    const listed = await run("notes", "list", "--source", "internal")
+    const listed = await run("notes", "list", "source:internal")
     expect(listed).toContain(`${added.ref}  internal`)
     const shown = (await run("notes", "show", added.ref)).split("\n")
     expect(shown[0]).toBe(added.ref)
