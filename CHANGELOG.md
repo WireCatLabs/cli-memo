@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.30.0 — 14.10.2026
+
 ### Added
 
 - **A mail sync goes on where the last one stopped, without listing the mailbox again.** Each run keeps, in the
