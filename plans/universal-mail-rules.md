@@ -72,7 +72,7 @@ Each one runs only from an explicit `memo mail clean … --yes` after a dry run,
 - **Loading:** one query per account at the start of a process. A long-running process (`memo mcp`, a server) keeps
   the rules in memory and reloads them when the table's change counter moves, so a rule added from the CLI takes
   effect without a restart.
-- **Migration:** the first run of the new memo moves `mail.accounts[].rules` from `config.json` into the table, keeps
+- **Migration (automatic, no command):** the first run of the new memo moves `mail.accounts[].rules` from `config.json` into the table, keeps
   a copy at `config.json.rules-backup`, and removes the key. The move happens once.
 - **Review as a file:**
   - `memo mail rules export <account> > rules.json` writes them out;
@@ -137,9 +137,9 @@ probe suggestions.
 3. **memo:** conditions beyond sender, domain and list; the `protected` flag; tags.
 4. **memo:** presets and `import-filters`.
 
-## Decisions for the owner
+## Decisions (owner, 2026-10-14)
 
-1. **Protected mail:** a rule flag that also blocks server cleanup, as above, or a separate "never touch" list?
-2. **Presets:** off by default, so the owner turns each one on, or proposed automatically after the first probe?
-3. **Migration:** move the rules out of `config.json` automatically on the first run, keeping a backup, or only on an
-   explicit `memo mail rules migrate`?
+1. **Protected mail is a rule flag**, not a separate list. It blocks every cleanup, local and on the server.
+2. **Presets are proposed after the first probe** of a mailbox. Nothing applies until the owner confirms.
+3. **The move out of `config.json` is automatic** on the first run of the new memo, with a backup. There is no
+   separate command for it.
