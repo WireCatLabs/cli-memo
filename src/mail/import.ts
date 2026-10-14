@@ -172,10 +172,11 @@ export const importMail = async ({
   let alreadyStored = 0
   let ruledOut = 0
   const pending: Listed[] = []
-  // Live emails only: one marked deleted that is listed again is saved again, which brings it back.
+  // IMAP lists what exists now, so a mail marked deleted that it lists again is saved again, which brings it back.
+  // An archive is old: what it holds that IMAP proved deleted stays deleted.
   const stored = retryAttachments
     ? new Set<string>()
-    : new Set((await store.mail.emailRefs({ accountId })).map(({ externalId }) => externalId))
+    : new Set((await store.mail.emailRefs({ accountId, includeDeleted: snapshot })).map(({ externalId }) => externalId))
   for (const item of listed) {
     if (stored.has(item.messageId)) {
       alreadyStored++

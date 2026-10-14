@@ -30,8 +30,8 @@ the API.
 - **A whole-mailbox `memo sync` no longer loads every stored email's text.** The deletion check and the "already
   stored" check read only Message-IDs and mailboxes, in one query each, instead of every body and one lookup per
   listed email.
-- **A mail marked deleted by mistake is saved again when the source lists it again.** It used to count as already
-  stored and stayed without its text.
+- **A mail marked deleted by mistake is saved again when IMAP lists it again.** It used to count as already
+  stored and stayed without its text. An mbox archive still leaves mail that IMAP proved deleted alone.
 
 ### Changed
 

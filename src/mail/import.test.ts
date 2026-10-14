@@ -366,6 +366,31 @@ describe("importMail with the owner's rules", () => {
     expect(result.deletionsSkipped).toContain("snapshot")
     expect((await emails(env)).map(({ externalId }) => externalId).sort()).toEqual(["8001", "9001"])
   })
+
+  it("leaves a mail IMAP proved deleted deleted when an mbox archive still holds it", async () => {
+    const all = [1, 2, 3, 4, 5, 6].map((n) => mail(n))
+    const { dir, env, write } = setup(all)
+    await importInto(env)
+    write(all.slice(0, 5))
+    await importInto(env)
+    const path = join(dir, "archive.mbox")
+    writeFileSync(
+      path,
+      `From 9006@xxx Mon Jul 24 10:00:00 +0000 2023\nX-GM-THRID: 9006\nFrom: rin@example.test\nTo: ${ME}\nSubject: Old\n\nOld body\n\n`,
+    )
+
+    const result = await importMail({
+      store: await store(env),
+      source: mboxSource(path),
+      account: { name: "archive", address: ME, mode: "mbox" },
+      since: new Date(0),
+      now: () => NOW,
+      indexThreads: async () => ({ chats: 0, chunks: 0, left: false }),
+    })
+
+    expect(result).toMatchObject({ listed: 1, saved: 0, alreadyStored: 1 })
+    expect((await emails(env)).map(({ externalId }) => externalId)).not.toContain("9006")
+  })
 })
 
 describe("memo sync --mail", () => {
