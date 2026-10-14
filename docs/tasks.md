@@ -66,8 +66,8 @@ memo tasks close HRB-1 --reason booked
 memo tasks close 7 --provider telegram --account 1 --as dismissed
 ```
 
-Close a task with `--as done` (the default) or `--as dismissed`. `memo tasks list --state done` shows
-closed tasks.
+Close a task with `--as done` (the default) or `--as dismissed`. `memo tasks list state:done` shows
+closed tasks; with `--project`, `kind:bug` narrows by kind.
 Every change of status, priority or assignee is recorded with the task.
 
 ## What to do first

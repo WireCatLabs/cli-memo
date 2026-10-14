@@ -73,7 +73,7 @@ it("creates native note tasks through the CLI and connects context, search, assi
   await run("tasks", "close", task.task.id, ...scope)
   expect(await run("tasks", "add", source, ...scope)).toMatchObject({ created: false, task: { state: "done" } })
   await run("notes", "remove", source)
-  expect((await run("tasks", "list", "--state", "done", ...scope)).items[0]).toMatchObject({
+  expect((await run("tasks", "list", "state:done", ...scope)).items[0]).toMatchObject({
     id: task.task.id,
     note: null,
     message: null,
@@ -140,5 +140,7 @@ it("adds a bug to a project with its fields and assignee, updates, lists and clo
     "LHT-2",
   ])
   expect(await run("tasks", "close", bug.id, "--reason", "fixed")).toMatchObject({ status: "done", reason: "fixed" })
-  expect((await run("tasks", "list", "--project", "LHT", "--state", "done")).items).toMatchObject([{ id: "LHT-1" }])
+  expect((await run("tasks", "list", "state:done", "--project", "LHT")).items).toMatchObject([{ id: "LHT-1" }])
+  expect((await run("tasks", "list", "kind:chore", "--project", "LHT")).items).toMatchObject([{ id: "LHT-2" }])
+  await expect(run("tasks", "list", "kind:chore")).rejects.toMatchObject({ code: "validation_error" })
 })

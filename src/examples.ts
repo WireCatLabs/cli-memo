@@ -5,9 +5,9 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   context: ["memo context telegram:'Kai Sample'", "memo context email:kai@example.com --limit 5 --json"],
   "notes show": ["memo notes show note:12", "memo notes show ~/notes/People/Kai.md --json"],
   "notes list": [
-    "memo notes list --about telegram:'Kai Sample'",
-    "memo notes list --about project:2 --search budget --json",
-    "memo notes list --source internal --limit 50",
+    "memo notes list 'about:\"telegram:Kai Sample\"'",
+    "memo notes list source:internal text:budget --json",
+    "memo notes list source:internal --limit 50",
   ],
   "notes add": [
     "memo notes add 'Prefers calls in the morning' --about telegram:'Kai Sample'",
@@ -44,7 +44,10 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo tasks add 'msg:telegram/1/77/42' --provider telegram --account 1 --type request",
     "memo tasks add --project HRB --title 'Draft the budget' --type feature",
   ],
-  "tasks list": ["memo tasks list --provider telegram --account 1", "memo tasks list --project HRB --ready --json"],
+  "tasks list": [
+    "memo tasks list state:done --provider telegram --account 1",
+    "memo tasks list --project HRB --ready --json",
+  ],
   "tasks close": ["memo tasks close 7 --provider telegram --account 1 --as dismissed --reason 'answered by phone'"],
   "tasks update": ["memo tasks update 7 --title 'Send the budget' --priority 1"],
   "tasks assign": ["memo tasks assign 7 person:3"],

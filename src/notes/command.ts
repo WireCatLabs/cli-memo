@@ -1,9 +1,11 @@
 import { readFileSync } from "node:fs"
 import { CliError, type Streams } from "@wirecat/cli-base"
+import type { QueryRegistry } from "@wirecat/cli-base/query"
 import type { MessageStore, Note } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
 import { loadConfig } from "../config.js"
+import { queryField, queryTerms, withQuery } from "../list-query.js"
 import { collect, positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { subjectOf } from "../people/subject.js"
@@ -23,10 +25,17 @@ const formatOf = (value: string): DialectName => {
   return value as DialectName
 }
 
-const sourceOf = (value: string): Note["source"] => {
-  if (value !== "file" && value !== "internal") throw new InvalidArgumentError("choose file or internal")
-  return value
-}
+const NOTES_LIST_QUERY = {
+  entity: "note",
+  backend: "native",
+  fields: [
+    queryField("about", "ref", 'about:"telegram:Kai Sample"', {
+      relation: "notes about it or linking it: <messenger>:<name or id> or a typed reference; stands alone",
+    }),
+    queryField("source", "enum", "source:internal", { values: ["file", "internal"] }),
+    queryField("text", "txt", "text:budget"),
+  ],
+} as const satisfies QueryRegistry
 
 const textOf = (options: { text?: string; file?: string }, given?: string): string => {
   const sources = [given, options.text, options.file].filter((value) => value !== undefined)
@@ -98,55 +107,44 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       )
     })
 
-  notes
-    .command("list")
-    .description("notes, newest first")
-    .option("--about <subject>", "only notes about or linking this: <messenger>:<name or id> or a typed reference")
-    .option("--source <source>", "file or internal", sourceOf)
-    .option("--search <text>", "only notes holding this text, as written")
+  withQuery(notes.command("list").description("notes, newest first"), NOTES_LIST_QUERY)
     .option("--limit <n>", "most notes, at most 500", positive, 20)
     .option("--page <n>", "which page, from 1", positive, 1)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action(
-      async (options: {
-        about?: string
-        source?: Note["source"]
-        search?: string
-        limit: number
-        page: number
-        json?: boolean
-      }) => {
-        const page = await withNotes(async (store) =>
-          listNotes(store, {
-            limit: options.limit,
-            offset: (options.page - 1) * options.limit,
-            ...(options.about === undefined ? {} : { about: await subjectOf(store, options.about) }),
-            ...(options.source === undefined ? {} : { source: options.source }),
-            ...(options.search === undefined ? {} : { search: options.search }),
-          }),
-        )
-        print(
-          options.json,
-          listAnswer("notes list", {
-            items: page.items,
-            limit: options.limit,
-            has_more: page.hasMore,
-            page: options.page,
-            args: {
-              ...(options.about === undefined ? {} : { about: options.about }),
-              ...(options.source === undefined ? {} : { source: options.source }),
-              ...(options.search === undefined ? {} : { search: options.search }),
-            },
-          }),
-          page.items
-            .map(
-              (note) =>
-                `${note.ref}  ${note.source}${note.via ? `  ${note.via}` : ""}  ${note.path ?? note.title ?? note.text.split("\n")[0]}${note.anchors?.length ? ` ${note.anchors.join(" ")}` : ""}${note.linkText ? `  as "${note.linkText}"` : ""}`,
-            )
-            .join("\n") || "No notes.",
-        )
-      },
-    )
+    .action(async (words: string[], { json, ...paging }: { limit: number; page: number; json?: boolean }) => {
+      const terms = queryTerms(words, NOTES_LIST_QUERY, "notes list")
+      const about = terms.get("about")
+      const source = terms.get("source") as Note["source"] | undefined
+      const search = terms.get("text")
+      if (about !== undefined && terms.size > 1)
+        throw new CliError("validation_error", "about: stands alone in notes list: its notes are found through links")
+      const options = { ...paging, json }
+      const page = await withNotes(async (store) =>
+        listNotes(store, {
+          limit: options.limit,
+          offset: (options.page - 1) * options.limit,
+          ...(about === undefined
+            ? { ...(source === undefined ? {} : { source }), ...(search === undefined ? {} : { search }) }
+            : { about: await subjectOf(store, about) }),
+        }),
+      )
+      print(
+        options.json,
+        listAnswer("notes list", {
+          items: page.items,
+          limit: options.limit,
+          has_more: page.hasMore,
+          page: options.page,
+          ...(words.length === 0 ? {} : { args: { query: words.join(" ") } }),
+        }),
+        page.items
+          .map(
+            (note) =>
+              `${note.ref}  ${note.source}${note.via ? `  ${note.via}` : ""}  ${note.path ?? note.title ?? note.text.split("\n")[0]}${note.anchors?.length ? ` ${note.anchors.join(" ")}` : ""}${note.linkText ? `  as "${note.linkText}"` : ""}`,
+          )
+          .join("\n") || "No notes.",
+      )
+    })
 
   notes
     .command("add")

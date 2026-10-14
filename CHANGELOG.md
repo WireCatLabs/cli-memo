@@ -19,6 +19,11 @@ the API.
 - **`tags list` and `relationships list` take a query**: `memo tags list tag:follow-up type:note`, `memo
   relationships list 'about:"project:1"'` instead of `--tag`, `--type` and `--reference`. `--provider` and
   `--account` stay on `tags list`: they pick the accounts, they do not filter rows.
+- **`tasks list` and `notes list` take a query**: `memo tasks list state:done`, `memo tasks list kind:bug --project
+  HRB`, `memo notes list source:internal text:budget`, `memo notes list 'about:"telegram:Kai Sample"'` instead of
+  `--state`, `--about`, `--source` and `--search`. `about:` stands alone: the notes it finds through links are no
+  longer narrowed further. `--project` and `--ready` stay on `tasks list`: they pick which tasks are read. A next
+  page of `notes list` carries the query.
 
 ## 0.32.0 — 15.10.2026
 

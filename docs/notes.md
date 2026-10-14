@@ -132,11 +132,12 @@ Or yourself:
 
 ```sh
 memo notes add 'Prefers morning meetings' --about telegram:'Kai Sample'
-memo notes list --about telegram:'Kai Sample'
+memo notes list 'about:"telegram:Kai Sample"'
 ```
 
-`notes list --about` lists the notes about a subject and the notes that link it: directly, through a note about it, or
-by a name two people share. `via` in `--json` says which: `about`, `link`, `through` or `name`.
+`notes list about:` lists the notes about a subject and the notes that link it: directly, through a note about it, or
+by a name two people share. `via` in `--json` says which: `about`, `link`, `through` or `name`. It stands alone in
+the query; `source:internal` and `text:budget` narrow the whole list.
 
 `--about` on `notes add` says what the note is about. Use it more than once for several subjects:
 
