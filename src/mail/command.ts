@@ -81,7 +81,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
 
   mail
     .command("probe")
-    .description("group an account's mail by sender and list, to decide what to keep and what to skip")
+    .description("group an account's mail by sender and list, to decide what to keep or skip")
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .option("--since-time <time>", "only mail from this time, ISO 8601 or 30d ago (default: all mail)")
     .option("--limit-groups <n>", "show this many of the largest groups (default: 50)", positive, 50)
@@ -111,7 +111,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
 
   const rules = mail
     .command("rules")
-    .description("the owner's decisions on which mail to import: skip or keep, by sender, domain or list")
+    .description("the owner's decisions on which mail to skip or keep, by sender, domain or list")
 
   rules
     .command("list")
@@ -125,7 +125,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
 
   rules
     .command("add")
-    .description("skip or keep mail by sender, domain or list; the same match again replaces its rule")
+    .description("skip or keep mail by sender, domain or list; a repeated match replaces its rule")
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .option("--from <address>", "one sender address")
     .option("--domain <domain>", "a sender domain, and its subdomains")
