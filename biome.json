@@ -11,5 +11,196 @@
       "!config/wirecat",
       "!lint/baseline"
     ]
-  }
+  },
+  "linter": {
+    "rules": {
+      "suspicious": {
+        "noImportCycles": "error"
+      },
+      "style": {
+        "noExcessiveLinesPerFile": {
+          "level": "error",
+          "options": {
+            "maxLines": 1000
+          }
+        }
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["src/**", "!**/*.test.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["postal-mime"],
+                    "message": "parsing raw mail stays in src/mail; the rest of memo reads parsed messages"
+                  },
+                  {
+                    "group": ["@modelcontextprotocol/**"],
+                    "message": "only src/mcp serves MCP; commands and services do not know the protocol"
+                  },
+                  {
+                    "group": ["yaml"],
+                    "message": "front matter is read by the note dialects; the rest of memo gets parsed notes"
+                  },
+                  {
+                    "group": ["@wirecat/cli-core/sqlite-runtime"],
+                    "message": "the SQLite runtime is chosen once, at the entry point"
+                  },
+                  {
+                    "group": ["@wirecat/*/src/**", "@wirecat/*/dist/**"],
+                    "message": "use the WireCat packages through their public exports; their src and dist layout is not a contract"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/mail/**", "!**/*.test.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@modelcontextprotocol/**"],
+                    "message": "only src/mcp serves MCP; commands and services do not know the protocol"
+                  },
+                  {
+                    "group": ["yaml"],
+                    "message": "front matter is read by the note dialects; the rest of memo gets parsed notes"
+                  },
+                  {
+                    "group": ["@wirecat/cli-core/sqlite-runtime"],
+                    "message": "the SQLite runtime is chosen once, at the entry point"
+                  },
+                  {
+                    "group": ["@wirecat/*/src/**", "@wirecat/*/dist/**"],
+                    "message": "use the WireCat packages through their public exports; their src and dist layout is not a contract"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/mcp/**", "!**/*.test.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["postal-mime"],
+                    "message": "parsing raw mail stays in src/mail; the rest of memo reads parsed messages"
+                  },
+                  {
+                    "group": ["yaml"],
+                    "message": "front matter is read by the note dialects; the rest of memo gets parsed notes"
+                  },
+                  {
+                    "group": ["@wirecat/cli-core/sqlite-runtime"],
+                    "message": "the SQLite runtime is chosen once, at the entry point"
+                  },
+                  {
+                    "group": ["@wirecat/*/src/**", "@wirecat/*/dist/**"],
+                    "message": "use the WireCat packages through their public exports; their src and dist layout is not a contract"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/notes/dialects/**", "!**/*.test.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["postal-mime"],
+                    "message": "parsing raw mail stays in src/mail; the rest of memo reads parsed messages"
+                  },
+                  {
+                    "group": ["@modelcontextprotocol/**"],
+                    "message": "only src/mcp serves MCP; commands and services do not know the protocol"
+                  },
+                  {
+                    "group": ["@wirecat/cli-core/sqlite-runtime"],
+                    "message": "the SQLite runtime is chosen once, at the entry point"
+                  },
+                  {
+                    "group": ["@wirecat/*/src/**", "@wirecat/*/dist/**"],
+                    "message": "use the WireCat packages through their public exports; their src and dist layout is not a contract"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/bin/**", "!**/*.test.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["postal-mime"],
+                    "message": "parsing raw mail stays in src/mail; the rest of memo reads parsed messages"
+                  },
+                  {
+                    "group": ["@modelcontextprotocol/**"],
+                    "message": "only src/mcp serves MCP; commands and services do not know the protocol"
+                  },
+                  {
+                    "group": ["yaml"],
+                    "message": "front matter is read by the note dialects; the rest of memo gets parsed notes"
+                  },
+                  {
+                    "group": ["@wirecat/*/src/**", "@wirecat/*/dist/**"],
+                    "message": "use the WireCat packages through their public exports; their src and dist layout is not a contract"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.test.ts", "test/**", "**/generated/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noExcessiveLinesPerFile": "off"
+          }
+        }
+      }
+    }
+  ]
 }
