@@ -1,5 +1,5 @@
 import type { Streams } from "@wirecat/cli-base"
-import { type MessageStore, TASK_RELATION_KINDS, type TaskRelationKind } from "@wirecat/cli-messaging/store"
+import { type MessageStore, TASK_RELATION_KINDS, type TaskRelationKind } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { oneOf } from "../options.js"
 import { answering } from "../records/run.js"

@@ -1,5 +1,5 @@
-import { formatReference } from "@wirecat/cli-messaging"
-import type { MessageStore, PersonRecord } from "@wirecat/cli-messaging/store"
+import { formatReference } from "@wirecat/cli-core"
+import type { MessageStore, PersonRecord } from "@wirecat/cli-core/store"
 import { identityOf } from "./identity.js"
 
 const TYPED = /^(person|organization|project|note|document|task|msg|chat|contact|folder|meeting):\S+$/

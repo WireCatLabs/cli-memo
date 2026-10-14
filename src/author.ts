@@ -1,4 +1,4 @@
-import type { Author } from "@wirecat/cli-messaging/store"
+import type { Author } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 
 /**

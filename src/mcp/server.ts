@@ -9,7 +9,7 @@ import {
   MEMORY_STATUSES,
   openStore,
   PROPOSAL_STATUSES,
-} from "@wirecat/cli-messaging/store"
+} from "@wirecat/cli-core/store"
 import * as v from "valibot"
 import { propose } from "../actions/actions.js"
 import { addMemory } from "../memories/memories.js"
@@ -170,7 +170,7 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
   }),
 }
 
-/** What an MCP answer may hold, as cli-messaging's tools allow: a bigger one is refused, never cut. */
+/** What an MCP answer may hold, as cli-core's tools allow: a bigger one is refused, never cut. */
 const MAX_ANSWER_BYTES = 4 * 1024 * 1024
 
 const answer = (value: object): CallToolResult => {

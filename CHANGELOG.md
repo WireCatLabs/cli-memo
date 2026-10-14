@@ -30,6 +30,9 @@ the API.
 
 ### Changed
 
+- **Depends on `@wirecat/cli-core` 0.265.0 and `@wirecat/cli-base` 0.27.1.** `@wirecat/cli-core` is the new name
+  of `@wirecat/cli-messaging`; opening the store with it runs store migrations up to version 7. `memo commands
+  <path> --json` says `inherited_options` instead of `inheritedOptions`, and its `contract` is 1.
 - **`attachments[].part` and an attachment's `providerRef.part` count the email's attachments from 0** instead
   of being himalaya's MIME part index. Attachments stored earlier keep theirs.
 - **Mail bodies are read from the raw message.** Text matches the old reader once whitespace is collapsed; blank

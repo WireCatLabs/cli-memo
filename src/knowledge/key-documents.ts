@@ -1,6 +1,6 @@
 import { CliError } from "@wirecat/cli-base"
-import { parseLocator } from "@wirecat/cli-messaging"
-import type { Author, Link, MessageStore, Project } from "@wirecat/cli-messaging/store"
+import { parseLocator } from "@wirecat/cli-core"
+import type { Author, Link, MessageStore, Project } from "@wirecat/cli-core/store"
 import { heldMessage } from "../store/held.js"
 
 export interface KeyDocument {

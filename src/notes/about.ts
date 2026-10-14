@@ -1,5 +1,5 @@
-import { formatReference } from "@wirecat/cli-messaging"
-import type { Link, MessageStore, Note } from "@wirecat/cli-messaging/store"
+import { formatReference } from "@wirecat/cli-core"
+import type { Link, MessageStore, Note } from "@wirecat/cli-core/store"
 import type { Subject } from "../people/subject.js"
 
 /** A file in a notes folder is a `document:`, a written note a `note:`. */

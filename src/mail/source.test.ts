@@ -1,7 +1,7 @@
 import { mkdtempSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { openStore } from "@wirecat/cli-messaging/store"
+import { openStore } from "@wirecat/cli-core/store"
 import { describe, expect, it } from "vitest"
 import type { Listed } from "./gmail.js"
 import type { Himalaya } from "./himalaya.js"

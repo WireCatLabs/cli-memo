@@ -1,5 +1,5 @@
 import { posix } from "node:path"
-import type { LinkInput, Note } from "@wirecat/cli-messaging/store"
+import type { LinkInput, Note } from "@wirecat/cli-core/store"
 import { isReference } from "./dialects/common.js"
 import type { NoteLink } from "./dialects/index.js"
 

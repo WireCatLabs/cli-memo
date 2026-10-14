@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs"
 import { CliError, type Streams } from "@wirecat/cli-base"
-import { type MessageStore, type Note, openStore } from "@wirecat/cli-messaging/store"
+import { type MessageStore, type Note, openStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { loadConfig } from "../config.js"
 import { collect, positive } from "../options.js"

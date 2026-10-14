@@ -1,6 +1,6 @@
 import { createRenderer, type Streams } from "@wirecat/cli-base"
-import type { ContextMessage } from "@wirecat/cli-messaging/services"
-import { openStore } from "@wirecat/cli-messaging/store"
+import type { ContextMessage } from "@wirecat/cli-core/services"
+import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { boundFolders } from "../notes/bound.js"
 import { positive } from "../options.js"

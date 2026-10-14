@@ -2,7 +2,7 @@ import { mkdtempSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
-import { openStore } from "@wirecat/cli-messaging/store"
+import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { createProgram } from "../program.js"
 
@@ -76,7 +76,7 @@ it("selects project meetings through aliases and refuses a foreign account link"
   const project = await store.knowledge.addProject({ name: "Research Example", key: "RES" })
   await store.knowledge.addVocabularyAlias({ kind: "project", id: project.id }, "Lab Example")
   await store.close()
-  const { openCache } = await import("@wirecat/cli-messaging/store")
+  const { openCache } = await import("@wirecat/cli-core/store")
   const database = await openCache(env.MESSAGING_STORE)
   let meeting: string
   try {

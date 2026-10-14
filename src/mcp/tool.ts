@@ -1,4 +1,4 @@
-import type { MessageStore } from "@wirecat/cli-messaging/store"
+import type { MessageStore } from "@wirecat/cli-core/store"
 import type * as v from "valibot"
 
 export interface MemoTool {

@@ -8,7 +8,7 @@ import {
   PROJECT_TYPES,
   type Project,
   SCOPES,
-} from "@wirecat/cli-messaging/store"
+} from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { authorOf, byOption } from "../author.js"
 import { notesAbout } from "../notes/about.js"
