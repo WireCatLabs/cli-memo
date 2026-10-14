@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.32.0 — 15.10.2026
+
 ### Changed
 
 - **Mail rules live in the store**, beside the mail they decide, instead of `config.json`. `memo mail rules list`
