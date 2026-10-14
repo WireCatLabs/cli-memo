@@ -66,8 +66,13 @@ Check that it works:
 ```sh
 memo --version
 memo --help            # the list of commands
+memo doctor            # where Memo keeps its files and what needs attention; connects to nothing
 memo commands --json   # every command and option, for agents and scripts
 ```
+
+`memo doctor` lists the settings file, the store, your notes folders, the mail accounts and Himalaya, the search
+model, the timer and the agent skill. Each problem comes with the command that fixes it, and the command exits 1
+while something needs attention. `memo doctor --json` gives the same for an agent.
 
 `memo --help` lists commands such as `notes`, `search`, `mail` and `sync`. If the install finished but the terminal
 says `memo` is not found, open a new terminal: a terminal that was already open does not see a new command. If it is
@@ -149,22 +154,25 @@ node dist/bin/memo.js --help
 models).
 
 > ⚠ **Set these variables everywhere, or nowhere.** A command run without them reads other settings and another
-> store, and says your folders or mail are not there. The timer does not carry them: it starts `memo sync` with the
-> default places. tg and max read the same store only when they get the same `MESSAGING_STORE` or
-> `WIRECAT_STATE_DIR`. The variables are meant for tests and throwaway profiles.
+> store, and says your folders or mail are not there. The timer keeps the ones set when you ran `memo auto start`;
+> run it again after you change them. tg and max read the same store only when they get the same `MESSAGING_STORE`
+> or `WIRECAT_STATE_DIR`. The variables are meant for tests and throwaway profiles.
 
 ## Update
 
-Memo does not update itself and has no update command. Install the latest version with the same package manager:
-
 ```sh
-npm install -g @wirecat/cli-memo
-memo --version
+memo upgrade --check           # only say whether a newer version exists; installs nothing
+memo upgrade                   # update with the package manager that installed Memo: npm, pnpm or Bun
 memo skill install --for all   # a global npm install does this for you; pnpm and Bun may not
 ```
 
-- **The timer** runs the updated Memo on its next run; nothing to restart. If you change Node.js versions (for
-  example with nvm), run `memo auto start` again: the timer keeps the path of the Node.js that set it up.
+Once a day Memo asks npm whether a newer version exists and, if so, prints one line after a command, on stderr. Only
+a person at a terminal sees it: not with `--json`, not in a pipe, not on the timer's runs. Turn it off with
+`"update_check": false` in the settings, or `MEMO_NO_UPDATE_CHECK=1`. Memo never updates itself.
+
+- **The timer** runs the updated Memo on its next run; nothing to restart. After you change Node.js versions (for
+  example with nvm) and install Memo there, the next `memo` command you run points the timer at that Memo, so
+  removing the old Node.js does not break it. A Memo run from a checkout or with `npx` leaves the timer alone.
 - **`memo mcp`** keeps running the old version until your agent restarts it. Restart the agent, or its MCP server.
 
 From sources: `git pull && pnpm install && pnpm build`.

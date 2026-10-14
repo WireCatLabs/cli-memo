@@ -7,6 +7,7 @@ import { askCommand } from "./answers/command.js"
 import { APP } from "./app.js"
 import { contextCommand } from "./context/command.js"
 import { commandsCommand } from "./discovery/command.js"
+import { doctorCommand } from "./doctor/command.js"
 import { addEffects } from "./effects.js"
 import { addExamples } from "./examples.js"
 import { factsCommand } from "./facts/command.js"
@@ -24,6 +25,7 @@ import { syncCommand } from "./run/import.js"
 import { searchCommand } from "./search/command.js"
 import { tagsCommand } from "./tags/command.js"
 import { tasksCommand } from "./tasks/command.js"
+import { upgradeCommand } from "./update.js"
 import { VERSION } from "./version.js"
 import { vocabularyCommand } from "./vocabulary/command.js"
 
@@ -60,6 +62,8 @@ export const createProgram = ({
   askCommand(program, streams, env)
   syncCommand(program, streams, env)
   autoCommand(program, streams, env)
+  doctorCommand(program, streams, env)
+  program.addCommand(upgradeCommand(streams))
   commandsCommand(program, streams)
   program.addCommand(
     skillCommand(APP, new URL("../skills/cli-memo/SKILL.md", import.meta.url), () => ({

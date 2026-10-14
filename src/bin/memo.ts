@@ -21,10 +21,17 @@ try {
     const notice = (await import("../run/auto.js")).autoNotice(process.env)
     if (notice) processStreams.diagnostic(notice)
   }
+  const { followInstall } = await import("../run/auto.js")
+  const { updateNotice } = await import("../update.js")
+  const notice = updateNotice(args)
   program = createProgram()
   throwParseFailures(program)
   refuseJoinedPath(program, args)
   await program.parseAsync(process.argv)
+  // After the command, so a broken systemctl never stands between the owner and the answer.
+  await followInstall(process.env).catch(() => undefined)
+  const line = await notice
+  if (line && !process.exitCode) processStreams.diagnostic(line)
 } catch (error) {
   // Help and the version were printed already; only their exit code is left to give.
   if (error instanceof CommanderError && (error.exitCode === 0 || error.code.startsWith("commander.help")))

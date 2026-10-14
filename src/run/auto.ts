@@ -1,9 +1,10 @@
 import { execFile } from "node:child_process"
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { CliError, createRenderer, resolvePaths, type Streams } from "@wirecat/cli-base"
+import { installerOf } from "@wirecat/cli-base/update"
 import { failingNotice, type LastRun, recordRun } from "@wirecat/cli-core/background"
 import { type Command, InvalidArgumentError } from "commander"
 import { type Config, loadConfig, updateConfig } from "../config.js"
@@ -56,7 +57,19 @@ const quote = (arg: string): string => `"${arg.replace(/(["\\])/g, "\\$1")}"`
 
 const memoBin = (): string => resolve(dirname(fileURLToPath(import.meta.url)), "../bin/memo.js")
 
-export const serviceUnit = (env: NodeJS.ProcessEnv): string =>
+/** The variables that move memo's folders and the store; the timer runs with the ones set at `memo auto start`. */
+export const PLACE_VARIABLES = [
+  "MEMO_CONFIG_DIR",
+  "MEMO_STATE_DIR",
+  "MEMO_CACHE_DIR",
+  "MESSAGING_STORE",
+  "WIRECAT_STATE_DIR",
+] as const
+
+export const placesOf = (env: NodeJS.ProcessEnv): Record<string, string> =>
+  Object.fromEntries(PLACE_VARIABLES.flatMap((name) => (env[name] ? [[name, env[name]]] : [])))
+
+export const serviceUnit = (env: NodeJS.ProcessEnv, places: Record<string, string> = {}): string =>
   [
     "[Unit]",
     "Description=memo: sync notes and mail into the shared store",
@@ -65,7 +78,9 @@ export const serviceUnit = (env: NodeJS.ProcessEnv): string =>
     "Type=oneshot",
     `ExecStart=${[process.execPath, memoBin(), "sync"].map(quote).join(" ")}`,
     // Himalaya and the keyring helper it calls are found on the PATH memo was set up with.
-    `Environment=${quote(`PATH=${env.PATH ?? ""}`)} MEMO_AUTO=1`,
+    `Environment=${[`PATH=${env.PATH ?? ""}`, ...Object.entries(places).map(([name, value]) => `${name}=${value}`)]
+      .map(quote)
+      .join(" ")} MEMO_AUTO=1`,
     "Nice=10",
     "",
   ].join("\n")
@@ -103,11 +118,13 @@ const systemctl =
 export interface AutoState {
   enabled: boolean
   every: string
+  places: Record<string, string>
 }
 
 export const autoState = (config: Config): AutoState => ({
   enabled: config.auto?.enabled ?? false,
   every: config.auto?.every ?? DEFAULT_EVERY,
+  places: config.auto?.places ?? {},
 })
 
 /**
@@ -127,7 +144,7 @@ export const applyAuto = async (env: NodeJS.ProcessEnv, state: AutoState): Promi
     await run("daemon-reload")
     return
   }
-  const wanted = { [servicePath]: serviceUnit(env), [timerPath]: timerUnit(state.every) }
+  const wanted = { [servicePath]: serviceUnit(env, state.places), [timerPath]: timerUnit(state.every) }
   const stale = Object.entries(wanted).filter(
     ([path, text]) => !existsSync(path) || readFileSync(path, "utf8") !== text,
   )
@@ -138,6 +155,19 @@ export const applyAuto = async (env: NodeJS.ProcessEnv, state: AutoState): Promi
   await run("enable", "--now", `${UNIT}.timer`)
   // A timer already running keeps its old interval until restarted.
   if (stale.some(([path]) => path === timerPath)) await run("restart", `${UNIT}.timer`)
+}
+
+/**
+ * The timer runs the memo that last ran here: after `nvm use` and an install under the new Node, the
+ * first memo command points the unit at it, so removing the old Node does not leave the timer broken.
+ * Only an installed memo moves it — a checkout or `npx` would point it at a folder that goes away.
+ */
+export const followInstall = async (env: NodeJS.ProcessEnv, scriptPath?: string): Promise<void> => {
+  if (env.MEMO_AUTO === "1") return
+  scriptPath ??= realpathSync(memoBin())
+  if (!["npm", "pnpm", "bun"].includes(installerOf(scriptPath))) return
+  const state = autoState(loadConfig(env))
+  if (state.enabled) await applyAuto(env, state)
 }
 
 const failingOf = (last: LastRun | undefined) =>
@@ -155,7 +185,10 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .option("--every <interval>", "how often: 5m, 90s, 1h — a minute or more", interval)
     .action(async (options: { every?: string }) => {
       const config = updateConfig(
-        (current) => ({ ...current, auto: { enabled: true, every: options.every ?? autoState(current).every } }),
+        (current) => ({
+          ...current,
+          auto: { enabled: true, every: options.every ?? autoState(current).every, places: placesOf(env) },
+        }),
         env,
       )
       await applyAuto(env, autoState(config))

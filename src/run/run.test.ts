@@ -5,7 +5,7 @@ import { captureStreams } from "@wirecat/cli-base"
 import { beforeEach, describe, expect, it } from "vitest"
 import { loadConfig, updateConfig } from "../config.js"
 import { createProgram } from "../program.js"
-import { autoNotice } from "./auto.js"
+import { autoNotice, followInstall } from "./auto.js"
 
 let env: NodeJS.ProcessEnv
 let dir: string
@@ -42,7 +42,7 @@ describe("memo auto", () => {
     expect(readFileSync(join(units(), "memo-import.timer"), "utf8")).toContain("OnUnitActiveSec=2min")
     expect(readFileSync(join(units(), "memo-import.service"), "utf8")).toMatch(/ExecStart=".*" ".*memo\.js" "sync"/)
     expect(calls()).toContain("--user enable --now memo-import.timer")
-    expect(loadConfig(env).auto).toEqual({ enabled: true, every: "2m" })
+    expect(loadConfig(env).auto).toMatchObject({ enabled: true, every: "2m" })
   })
 
   it("leaves a timer that already matches the config alone", async () => {
@@ -82,6 +82,33 @@ describe("memo auto", () => {
     updateConfig((config) => ({ ...config, auto: { enabled: false } }), env)
     expect(await run("sync")).toBe("")
     expect(existsSync(join(units(), "memo-import.timer"))).toBe(false)
+  })
+
+  it("passes the folders and store memo was started with to every timer run", async () => {
+    await run("auto", "start")
+
+    const unit = readFileSync(join(units(), "memo-import.service"), "utf8")
+    expect(unit).toContain(`"MESSAGING_STORE=${join(dir, "messages.db")}"`)
+    expect(unit).toContain(`"MEMO_CONFIG_DIR=${join(dir, "config")}"`)
+    expect(loadConfig(env).auto?.places).toMatchObject({ MEMO_STATE_DIR: join(dir, "state") })
+  })
+
+  it("points the timer at the installed memo that ran last, and never at a checkout", async () => {
+    await run("auto", "start")
+    const service = join(units(), "memo-import.service")
+    writeFileSync(
+      service,
+      readFileSync(service, "utf8").replace(/ExecStart=.*/, 'ExecStart="/gone/node" "/gone/memo.js" "sync"'),
+    )
+
+    await followInstall(env, "/home/someone/project/cli-memo/dist/bin/memo.js")
+    expect(readFileSync(service, "utf8")).toContain("/gone/node")
+
+    await followInstall({ ...env, MEMO_AUTO: "1" }, "/usr/lib/node_modules/@wirecat/cli-memo/dist/bin/memo.js")
+    expect(readFileSync(service, "utf8")).toContain("/gone/node")
+
+    await followInstall(env, "/usr/lib/node_modules/@wirecat/cli-memo/dist/bin/memo.js")
+    expect(readFileSync(service, "utf8")).toContain(process.execPath)
   })
 
   it("shows whether the timer is on and when it runs next", async () => {
