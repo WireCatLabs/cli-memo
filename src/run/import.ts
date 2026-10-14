@@ -1,5 +1,5 @@
 import { createRenderer, type Streams } from "@wirecat/cli-base"
-import { openStore } from "@wirecat/cli-messaging/store"
+import { openStore } from "@wirecat/cli-core/store"
 import { type Command, Option } from "commander"
 import { loadConfig } from "../config.js"
 import { mailAccounts, mailSource } from "../mail/accounts.js"
@@ -135,7 +135,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       const since = new Date(
         options.sinceTime === undefined
           ? Date.now() - MAIL_WINDOW_DAYS * DAY
-          : (await import("@wirecat/cli-messaging/cli")).momentOf(options.sinceTime, "--since-time"),
+          : (await import("@wirecat/cli-core/cli")).momentOf(options.sinceTime, "--since-time"),
       )
       // An archive file is read whole each run, so only a sync that names it reads it.
       const accounts =

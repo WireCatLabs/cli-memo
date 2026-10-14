@@ -1,5 +1,5 @@
 import { createRenderer, type Streams } from "@wirecat/cli-base"
-import { type MessageStore, openStore } from "@wirecat/cli-messaging/store"
+import { type MessageStore, openStore } from "@wirecat/cli-core/store"
 
 /** Prints an answer as JSON, or for a person as `text`, or as indented JSON where a command has no text view. */
 export const printing =

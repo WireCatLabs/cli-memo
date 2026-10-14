@@ -1,4 +1,4 @@
-import type { AccountKey, MessageStore } from "@wirecat/cli-messaging/store"
+import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
 
 export interface HeldMessage {
   text: string

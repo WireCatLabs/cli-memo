@@ -5,8 +5,8 @@ import {
   embedMail as embedMailChunksOf,
   embedNotes as embedNoteChunksOf,
   storeOnlyDeps,
-} from "@wirecat/cli-messaging/services"
-import type { AccountKey, MessageStore } from "@wirecat/cli-messaging/store"
+} from "@wirecat/cli-core/services"
+import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
 import { APP } from "../app.js"
 
 /** About three chunks a second with e5-small on this laptop (2026-10-06): a run stays near three minutes, under a five-minute timer, and the next resumes. */

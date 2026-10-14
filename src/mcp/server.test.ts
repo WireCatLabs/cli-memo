@@ -3,7 +3,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { Client } from "@modelcontextprotocol/client"
 import { InMemoryTransport } from "@modelcontextprotocol/server"
-import { openStore } from "@wirecat/cli-messaging/store"
+import { openStore } from "@wirecat/cli-core/store"
 import { beforeEach, expect, it } from "vitest"
 import { AGENT, createMemoServer, INSTRUCTIONS, MEMO_TOOLS } from "./server.js"
 

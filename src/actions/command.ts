@@ -1,6 +1,6 @@
 import type { Streams } from "@wirecat/cli-base"
-import { approveAsTask } from "@wirecat/cli-messaging/services"
-import { PROPOSAL_STATUSES, type ProposedAction } from "@wirecat/cli-messaging/store"
+import { approveAsTask } from "@wirecat/cli-core/services"
+import { PROPOSAL_STATUSES, type ProposedAction } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { authorOf, byOption } from "../author.js"
 import { oneOf, positive } from "../options.js"

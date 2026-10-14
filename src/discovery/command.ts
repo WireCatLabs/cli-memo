@@ -4,7 +4,7 @@ import type { Command } from "commander"
 import { VERSION } from "../version.js"
 
 /** The major version of the JSON memo's commands print; raise it when a field is removed or renamed. */
-export const CONTRACT = 0
+export const CONTRACT = 1
 
 export const commandsCommand = (program: Command, streams: Streams): void => {
   program
@@ -28,5 +28,5 @@ const scoped = (document: ReturnType<typeof commandsDocument>, path: string[]) =
     .filter((item) => item.path.length < path.length && item.path.every((word, index) => word === path[index]))
     .filter((item) => item.options.length > 0)
     .map((item) => ({ path: item.path, options: item.options }))
-  return { ...document, scope: found.path, inheritedOptions, commands: [found] }
+  return { ...document, scope: found.path, inherited_options: inheritedOptions, commands: [found] }
 }

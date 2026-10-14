@@ -1,6 +1,6 @@
 import { CliError } from "@wirecat/cli-base"
-import { pickPerson } from "@wirecat/cli-messaging"
-import type { IdentityRef, MessageStore } from "@wirecat/cli-messaging/store"
+import { pickPerson } from "@wirecat/cli-core"
+import type { IdentityRef, MessageStore } from "@wirecat/cli-core/store"
 
 /** `telegram:Ana`, `max:12345`, `email:ana@example.com` — the messenger is always named. */
 export const identityOf = async (store: MessageStore, reference: string): Promise<IdentityRef> => {

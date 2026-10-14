@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, readFileSync, renameSync, utimesSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import type { LoadEngine } from "@wirecat/cli-messaging/documents"
-import { openStore } from "@wirecat/cli-messaging/store"
+import type { LoadEngine } from "@wirecat/cli-core/documents"
+import { openStore } from "@wirecat/cli-core/store"
 import { describe, expect, it } from "vitest"
 import { folderNotes, importNotes } from "./import.js"
 

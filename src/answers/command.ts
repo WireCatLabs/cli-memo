@@ -1,6 +1,6 @@
 import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
-import { type ModelAdapter, type ModelTarget, modelGateway } from "@wirecat/cli-messaging/models"
-import { openStore } from "@wirecat/cli-messaging/store"
+import { type ModelAdapter, type ModelTarget, modelGateway } from "@wirecat/cli-core/models"
+import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { positive } from "../options.js"
 import { type EvidenceItem, searchAccounts, unifiedSearch } from "../search/command.js"

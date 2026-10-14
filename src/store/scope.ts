@@ -1,6 +1,6 @@
 import { CliError } from "@wirecat/cli-base"
-import { parseLocator } from "@wirecat/cli-messaging"
-import type { AccountKey, KnowledgeTarget, MessageStore } from "@wirecat/cli-messaging/store"
+import { parseLocator } from "@wirecat/cli-core"
+import type { AccountKey, KnowledgeTarget, MessageStore } from "@wirecat/cli-core/store"
 
 export interface AccountScope {
   provider?: string

@@ -1,5 +1,5 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
-import type { MessageStore, VocabularyKind, VocabularyOptions, VocabularyTarget } from "@wirecat/cli-messaging/store"
+import type { MessageStore, VocabularyKind, VocabularyOptions, VocabularyTarget } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { oneOf, positive } from "../options.js"
 import { answering } from "../records/run.js"
@@ -23,7 +23,7 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
       .option("--kind <kind>", "project, tag or topic", oneOf(kinds))
       .option("--scope <scope>", "personal or work projects", oneOf(["personal", "work"] as const))
       .option("--max-entries <n>", "catalog input budget, not a page size", positive)
-      .option("--max-read-bytes <n>", "catalog input byte budget", positive)
+      .option("--max-read-bytes <bytes>", "catalog input byte budget", positive)
       .option("--json", "print JSON")
   const catalogOptions = (options: Options): VocabularyOptions => ({
     ...(options.kind === undefined ? {} : { kind: options.kind }),

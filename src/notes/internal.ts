@@ -1,6 +1,6 @@
 import { resolve } from "node:path"
 import { CliError } from "@wirecat/cli-base"
-import type { MessageStore, Note } from "@wirecat/cli-messaging/store"
+import type { MessageStore, Note } from "@wirecat/cli-core/store"
 import type { Config } from "../config.js"
 import { type DialectName, dialectOf } from "./dialects/index.js"
 import { type ExportedNote, type ExportResult, exportNotes } from "./export.js"

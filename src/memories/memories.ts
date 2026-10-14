@@ -1,4 +1,4 @@
-import type { Author, Memory, MessageStore } from "@wirecat/cli-messaging/store"
+import type { Author, Memory, MessageStore } from "@wirecat/cli-core/store"
 
 export interface NewMemory {
   text: string

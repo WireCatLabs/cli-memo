@@ -1,6 +1,6 @@
 import { CliError } from "@wirecat/cli-base"
-import { type PersonContext, personContext } from "@wirecat/cli-messaging/services"
-import type { Link, MessageStore, Note } from "@wirecat/cli-messaging/store"
+import { type PersonContext, personContext } from "@wirecat/cli-core/services"
+import type { Link, MessageStore, Note } from "@wirecat/cli-core/store"
 import { type NotesAbout, notesAbout } from "../notes/about.js"
 import { selectAccount } from "../store/scope.js"
 import { personTasks } from "../tasks/context.js"
@@ -22,7 +22,7 @@ export interface MemoContext {
 const RELATIONS = new Set(["member-of", "related-to"])
 
 /**
- * One answer about a person: what the store holds of them across messengers and mail (cli-messaging's
+ * One answer about a person: what the store holds of them across messengers and mail (cli-core's
  * person context), and every note linked to them. A name in a note's plain text is not a link.
  */
 export const memoContext = async (

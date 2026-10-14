@@ -1,6 +1,6 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
-import { formatReference, normalizeTag } from "@wirecat/cli-messaging"
-import { type MessageStore, openStore, type StoredTag } from "@wirecat/cli-messaging/store"
+import { formatReference, normalizeTag } from "@wirecat/cli-core"
+import { type MessageStore, openStore, type StoredTag } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { folderIds } from "../notes/bound.js"
 import { positive } from "../options.js"

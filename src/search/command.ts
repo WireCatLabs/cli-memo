@@ -1,8 +1,7 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
-import { parseLocator, resolveOutput } from "@wirecat/cli-messaging"
+import { parseLucene, type QueryNode } from "@wirecat/cli-base/query"
+import { parseLocator, resolveOutput } from "@wirecat/cli-core"
 import {
-  parseLucene,
-  type QueryNode,
   type SearchAllFound,
   type SearchedResource,
   type SearchFound,
@@ -10,9 +9,9 @@ import {
   searchNotes,
   searchNotesQuery,
   searchStore,
-} from "@wirecat/cli-messaging/services"
-import type { AccountKey, MessageStore, Note } from "@wirecat/cli-messaging/store"
-import { openStore } from "@wirecat/cli-messaging/store"
+} from "@wirecat/cli-core/services"
+import type { AccountKey, MessageStore, Note } from "@wirecat/cli-core/store"
+import { openStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { APP } from "../app.js"
 import { keyDocuments, keyFirst, projectOf } from "../knowledge/key-documents.js"
@@ -205,7 +204,7 @@ const messageType = (value: string): "text" | "voice" | "file" => {
 const hasSource = (node: QueryNode): boolean =>
   node.kind === "predicate"
     ? node.field === "in"
-    : node.clauses.some(({ occur, node }) => occur !== "mustNot" && hasSource(node))
+    : node.clauses.some(({ occur, node }) => occur !== "must_not" && hasSource(node))
 
 export type Level = "brief" | "full"
 

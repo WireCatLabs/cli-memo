@@ -1,4 +1,4 @@
-import { RESOURCES_SEARCHED, searchNotes } from "@wirecat/cli-messaging/services"
+import { RESOURCES_SEARCHED, searchNotes } from "@wirecat/cli-core/services"
 import * as v from "valibot"
 import { memoContext } from "../context/context.js"
 import { searchEverywhere, searchKind } from "../search/command.js"

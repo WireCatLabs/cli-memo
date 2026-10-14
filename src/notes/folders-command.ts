@@ -1,7 +1,7 @@
 import { statSync } from "node:fs"
 import { basename, resolve } from "node:path"
 import { CliError, type Streams } from "@wirecat/cli-base"
-import { type MessageStore, openStore } from "@wirecat/cli-messaging/store"
+import { type MessageStore, openStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { loadConfig, updateConfig } from "../config.js"
 import { printing } from "../records/run.js"

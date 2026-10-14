@@ -1,5 +1,5 @@
 import type { Streams } from "@wirecat/cli-base"
-import { MEMORY_KINDS, MEMORY_SCOPES, MEMORY_STATUSES, type Memory } from "@wirecat/cli-messaging/store"
+import { MEMORY_KINDS, MEMORY_SCOPES, MEMORY_STATUSES, type Memory } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { authorOf, byOption } from "../author.js"
 import { oneOf, positive } from "../options.js"

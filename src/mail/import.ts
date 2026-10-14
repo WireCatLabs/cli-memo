@@ -1,5 +1,5 @@
-import { extractText, importEngine, type LoadEngine } from "@wirecat/cli-messaging/documents"
-import type { AccountKey, AttachmentInput, EmailAddress, MessageStore } from "@wirecat/cli-messaging/store"
+import { extractText, importEngine, type LoadEngine } from "@wirecat/cli-core/documents"
+import type { AccountKey, AttachmentInput, EmailAddress, MessageStore } from "@wirecat/cli-core/store"
 import { embedChanged, embedMailChunks, type NotesEmbedded } from "../notes/embed.js"
 import { dropMissing, tooManyGone } from "../store/gone.js"
 import { mailFolders } from "./accounts.js"

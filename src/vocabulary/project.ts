@@ -1,5 +1,5 @@
 import { CliError } from "@wirecat/cli-base"
-import type { MessageStore } from "@wirecat/cli-messaging/store"
+import type { MessageStore } from "@wirecat/cli-core/store"
 
 export const canonicalProject = async (store: MessageStore, reference: string): Promise<string> => {
   if (/^project:[1-9]\d*$/.test(reference)) {

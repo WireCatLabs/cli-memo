@@ -97,7 +97,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       const since = new Date(
         options.sinceTime === undefined
           ? 0
-          : (await import("@wirecat/cli-messaging/cli")).momentOf(options.sinceTime, "--since-time"),
+          : (await import("@wirecat/cli-core/cli")).momentOf(options.sinceTime, "--since-time"),
       )
       const started = Date.now()
       const source = mailSource(account, env)

@@ -1,6 +1,6 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
-import { parseLocator } from "@wirecat/cli-messaging"
-import { closedStateOf, storeOnlyDeps, taskStateOf, tasksService } from "@wirecat/cli-messaging/services"
+import { parseLocator } from "@wirecat/cli-core"
+import { closedStateOf, storeOnlyDeps, taskStateOf, tasksService } from "@wirecat/cli-core/services"
 import {
   type MessageStore,
   openStore,
@@ -11,7 +11,7 @@ import {
   type TaskType,
   WORK_TASK_TYPES,
   type WorkTaskType,
-} from "@wirecat/cli-messaging/store"
+} from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { APP } from "../app.js"
 import { isNoteReference } from "../notes/about.js"
