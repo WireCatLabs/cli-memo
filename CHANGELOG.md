@@ -6,6 +6,19 @@ the API.
 
 ## Unreleased
 
+### Changed
+
+- **Mail rules live in the store**, beside the mail they decide, instead of `config.json`. `memo mail rules list`
+  counts every rule's emails in one query (it took minutes with hundreds of rules), and each envelope email
+  remembers the rule that recorded it. The first command that reads rules moves them from the config, checks
+  they all arrived, then drops them from it; the old config stays as `config.json.<time>.before-rules-in-store`
+  (mode 600) and stderr says so once. A keep rule whose reason says "never remove" becomes protected.
+
+### Added
+
+- **`memo mail rules export <account>`** prints the rules as JSON; **`memo mail rules import <account> <file>`**
+  adds them, replacing a rule with the same match.
+
 ### Changed — may break scripts
 
 - **Every `--json` answer, and every MCP answer, is the standard envelope.** One thing comes in `item`, a list in

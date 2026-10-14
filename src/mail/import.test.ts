@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
@@ -773,6 +773,69 @@ describe("memo sync --mail", () => {
     const listed = answerOf(await run(["mail", "rules", "list", "test", "--json"], withConfig))
     expect(listed.items[0].recorded.emails).toBe(1)
     expect(await (await store(env)).mail.search("coupon")).toEqual([])
+  })
+
+  it("moves the config's rules into the store on first use, keeps a backup, and counts mail recorded before", async () => {
+    const { dir, env } = setup([mail(1), mail(2, { from: [null, "deals@shop.example"] })])
+    const withConfig = configured(dir, env)
+    const envelope: MailRule = { match: { domain: "shop.example" }, action: "envelope", decided_at: "2026-10-01" }
+    // Recorded by a memo that kept its rules in the config: the email knows its rule only by its mailbox.
+    await importMail({
+      store: await store(env),
+      source: himalayaSource(himalaya(env), { name: "test" }),
+      account: { name: "test", address: ME, rules: [envelope] },
+      since: SINCE,
+      now: () => NOW,
+      indexThreads: async () => ({ chats: 0, chunks: 0, left: false }),
+    })
+    const configFile = join(withConfig.MEMO_CONFIG_DIR, "config.json")
+    const config = JSON.parse(readFileSync(configFile, "utf8"))
+    config.mail.accounts[0].rules = [
+      { match: { domain: "shop.example" }, action: "envelope", decidedAt: "2026-10-01" },
+      {
+        match: { domain: "gov.example" },
+        action: "keep",
+        reason: "government notices: never remove",
+        decidedAt: "2026-10-02",
+      },
+    ]
+    writeFileSync(configFile, JSON.stringify(config))
+
+    const listed = answerOf(await run(["mail", "rules", "list", "test", "--json"], withConfig))
+
+    expect(listed.items).toMatchObject([
+      { action: "envelope", match: { domain: "shop.example" }, recorded: { emails: 1 } },
+      { action: "keep", match: { domain: "gov.example" }, protected: true },
+    ])
+    expect(JSON.parse(readFileSync(configFile, "utf8")).mail.accounts[0].rules).toBeUndefined()
+    const backups = readdirSync(withConfig.MEMO_CONFIG_DIR).filter((name) => name.includes("before-rules-in-store"))
+    expect(backups).toHaveLength(1)
+    expect(statSync(join(withConfig.MEMO_CONFIG_DIR, backups[0] as string)).mode & 0o777).toBe(0o600)
+    expect(answerOf(await run(["mail", "rules", "list", "test", "--json"], withConfig)).items).toHaveLength(2)
+  })
+
+  it("exports an account's rules to a file and imports them into another account", async () => {
+    const { dir, env } = setup([mail(1)])
+    const withConfig = configured(dir, env)
+    await run(
+      ["mail", "rules", "add", "test", "--list-id", "news.shop.example", "--skip", "--reason", "noise"],
+      withConfig,
+    )
+    await run(["mail", "rules", "add", "test", "--from", "boss@work.example", "--keep"], withConfig)
+
+    const file = join(dir, "rules.json")
+    writeFileSync(file, await run(["mail", "rules", "export", "test"], withConfig))
+    expect(JSON.parse(readFileSync(file, "utf8"))).toMatchObject({ version: 1, account: ME })
+    expect(await run(["mail", "rules", "import", "second", file], withConfig)).toBe("imported 2 rules into second\n")
+
+    expect(answerOf(await run(["mail", "rules", "list", "second", "--json"], withConfig)).items).toMatchObject([
+      { action: "skip", match: { list_id: "news.shop.example" }, reason: "noise" },
+      { action: "keep", match: { from: "boss@work.example" } },
+    ])
+    writeFileSync(file, JSON.stringify({ rules: [{ match: {}, action: "skip" }] }))
+    await expect(run(["mail", "rules", "import", "second", file], withConfig)).rejects.toMatchObject({
+      details: { reason: "mail.rules-file-invalid" },
+    })
   })
 
   it("refuses memo mail rules apply while a sync holds the lock", async () => {

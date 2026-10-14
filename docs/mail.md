@@ -126,6 +126,20 @@ List-Id lacks it. Each matching email loses its text, attachments and search ent
 size, labels and subject in metadata. Mail only a skip rule matches stays as stored. Nothing changes in the
 mailbox, and changing the rule to keep reads the emails in full again on the next sync.
 
+Rules live in the local store, beside the mail they decide, so `memo mail rules list` counts each rule's
+emails in one query. Each envelope email remembers the rule that recorded it. To review rules, keep a copy or
+move them to another computer:
+
+```sh
+memo mail rules export work > rules.json
+memo mail rules import work rules.json   # a rule with the same sender, domain or list is replaced
+```
+
+Before 0.32.0 rules were kept in `config.json`. The first memo command that reads rules moves them into the
+store, checks they all arrived, and only then drops them from the config. The old config stays beside it as
+`config.json.<time>.before-rules-in-store`, readable only by you, and memo says so on stderr once. A keep rule
+whose reason says "never remove" becomes protected: no cleanup may cut or delete what it matches.
+
 ## Old mail from Google Takeout
 
 Gmail limits how much IMAP can download a day, so years of old mail are faster from a

@@ -50,7 +50,8 @@ anything. Add `--json` and read the answer, not the text meant for people.
     `memo mail rules add … --skip` or `--envelope` unasked. A skipped email is never imported. An envelope
     email is stored without its text and is never a search hit; `memo mail rules list` counts it. Mail
     already stored stays until `memo mail rules apply <account> --yes` cuts it; run it without `--yes`
-    first and show the owner what it would cut.
+    first and show the owner what it would cut. Rules live in the store, not in `config.json`: never edit
+    them there; `memo mail rules export|import` moves them as a file. A protected rule is never cut.
 13. **Old years come from a Google Takeout mbox**, an account with `"mode": "mbox"` and the Gmail
     address; it syncs only when named, and reads the whole file each run, so give a large `--limit`:
     `memo sync --account <name> --since-time 2000-01-01 --limit 5000`.

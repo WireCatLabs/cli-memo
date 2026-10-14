@@ -362,6 +362,7 @@ export const importMail = async ({
           outgoing: headers?.from === key.account,
           mailboxes: [...inMailboxes(item), envelopeBox(rule.match)],
           ...flagsOf(item),
+          mailRuleId: rule.id ?? null,
           metadata: {
             rule: { action: rule.action, match: { ...rule.match } },
             ...(headers?.subject ? { subject: headers.subject } : {}),
@@ -447,6 +448,7 @@ export const importMail = async ({
             mailboxes: inMailboxes(item),
             ...flagsOf(item),
             ...(upgraded.has(item.messageId) ? { metadata: {} } : {}),
+            mailRuleId: decide(rules, item.headers)?.id ?? null,
             attachments: files,
           },
         ],

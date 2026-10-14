@@ -29,6 +29,12 @@ export const REASONS: ErrorReason[] = defineReasons([
   },
   { reason: "mail.rule-not-found", code: "not_found", message: "the account has no such mail rule", details: [] },
   {
+    reason: "mail.rules-file-invalid",
+    code: "validation_error",
+    message: "the rules file is not one memo mail rules export wrote",
+    details: [],
+  },
+  {
     reason: "mail.source-failed",
     code: "provider_error",
     message: "the mail program failed",
