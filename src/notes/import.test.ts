@@ -191,7 +191,7 @@ describe("memo sync --notes", () => {
       "Projects/Harbour.md",
       "Projects/Lighthouse.md",
     ])
-    expect((await json("tags", "list", "--type", "folder")).items).toHaveLength(1)
+    expect((await json("tags", "list", "type:folder")).items).toHaveLength(1)
   })
 
   it("searches by words alone when the model is not downloaded, and says why", async () => {

@@ -57,14 +57,14 @@ added the same tag in Memo. `memo tags list` shows `(file)` next to tags that ca
 ## Find things by tag
 
 ```sh
-memo tags list --tag follow-up              # everything with this tag
+memo tags list tag:follow-up               # everything with this tag
 memo search notes 'budget' --filter 'tag:work'  # notes with the tag that contain a word
 memo search all 'tag:follow-up'             # messages, mail and notes with the tag
 memo tags list                              # every tag, up to 100
 ```
 
-`memo tags list` shows 100 tags at a time; add `--limit 500` to see more. `--type note` or
-`--type person` shows only one kind.
+`memo tags list` shows 100 tags at a time; add `--limit 500` to see more. `type:note` or
+`type:person` shows only one kind.
 
 ## Remove a tag
 

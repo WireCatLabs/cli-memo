@@ -20,13 +20,18 @@ import * as v from "valibot"
 const GUIDE = "https://github.com/WireCatLabs/cli-core/blob/main/docs/search/query-language.md"
 
 /** A field the store filters by itself, named as in the entity; it compares whole values only. */
-export const queryField = (name: string, type: FieldType, example: string, values?: readonly string[]): FieldSpec => ({
+export const queryField = (
+  name: string,
+  type: FieldType,
+  example: string,
+  more: Pick<FieldSpec, "values" | "relation"> = {},
+): FieldSpec => ({
   name,
   type,
   operators: OPERATORS_BY_TYPE[type].filter((operator) => operator === "term" || operator === "phrase"),
   example,
   native: true,
-  ...(values === undefined ? {} : { values }),
+  ...more,
 })
 
 /** The fields a list filters by: on a store-filtered (`native`) list, only those its store takes. */
@@ -36,10 +41,11 @@ const askable = (registry: QueryRegistry) =>
 /**
  * A list narrowed by one query: `[query...]` last, a Fields section in its help, and the query and entity in
  * `commands --json`. An old filter flag stays an unknown option, so it fails rather than reads as a word.
+ * `answersEntity: false` for a list whose rows are memo's own shape, not the entity's.
  */
-export const withQuery = (command: Command, registry: QueryRegistry): Command => {
+export const withQuery = (command: Command, registry: QueryRegistry, { answersEntity = true } = {}): Command => {
   const query = defineQuery(registry)
-  annotate(command, { query, output: { entity: registry.entity } })
+  annotate(command, { query, ...(answersEntity ? { output: { entity: registry.entity } } : {}) })
   return command
     .argument("[query...]", "field:value terms that narrow the list — the fields are below")
     .addHelpText("after", `\n${fieldsHelp({ ...query, fields: askable(query) }, GUIDE)}`)

@@ -475,15 +475,17 @@ memo tags remove <tag> [options]
 list source labels, optionally in one provider or account
 
 ```sh
-memo tags list [options]
+memo tags list [query] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
 
 | Option | What it does |
 |---|---|
 | `--provider <provider>` | only this provider. |
 | `--account <account>` | only this account; requires --provider. |
-| `--tag <tag>` | only this tag. |
-| `--type <type>` | chat, message, contact, note, document, person, organization, project, task, meeting, folder. |
 | `--limit <n>` | most labels to show. Default: `100`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
@@ -918,12 +920,15 @@ memo relationships add <from> <to> [options]
 relationships, all or those of one reference
 
 ```sh
-memo relationships list [options]
+memo relationships list [query] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
 
 | Option | What it does |
 |---|---|
-| `--reference <reference>` | only those of this person:, organization: or project:. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 ### `memo relationships remove`
