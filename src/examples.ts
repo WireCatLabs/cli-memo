@@ -28,6 +28,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo mail rules add personal --from alice@news.example --keep",
   ],
   "mail rules remove": ["memo mail rules remove personal --domain news.example"],
+  "mail rules apply": ["memo mail rules apply personal", "memo mail rules apply personal --yes --json"],
   note: ["memo note telegram:'Kai Sample' People/Kai.md", "memo note telegram:'Kai Sample' --clear"],
   "tags add": ["memo tags add follow-up --note note:12", "memo tags add harbour --project HRB"],
   "tags remove": ["memo tags remove follow-up --note note:12"],
