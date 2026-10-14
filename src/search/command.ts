@@ -23,6 +23,7 @@ import { printAtDetail } from "../output.js"
 import { SAVE_HELP } from "../save-help.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 import { taskPage } from "../tasks/context.js"
+import { allAnswer, kindAnswer, notesAnswer } from "./answers.js"
 
 export interface EvidenceItem {
   kind: "message" | "note" | "email" | "task"
@@ -433,6 +434,7 @@ content: narrows a search to the text of files, transcript: to voice transcripts
           json?: boolean
         },
       ) => {
+        const startedAt = Date.now()
         const answer = await withStore(async (store) => {
           const found = await searchEverywhere(store, env, {
             text: words.join(" "),
@@ -455,7 +457,7 @@ content: narrows a search to the text of files, transcript: to voice transcripts
         }
         print(
           options.json,
-          answer,
+          allAnswer(answer, options.limit, startedAt),
           [
             ...answer.items.map((item) => `${"key" in item ? "key  " : ""}${item.kind}  ${item.ref}\n  ${item.text}`),
             ...answer.tasks.map((task) => `task  task:${task.id}  ${task.kind}  ${task.source}`),
@@ -496,6 +498,7 @@ content: narrows a search to the text of attachments, filename: to their names â
         },
       ) => {
         const level = levelOf(options)
+        const startedAt = Date.now()
         const answer = await withStore((store) =>
           searchKind(store, kind, {
             text: words.join(" "),
@@ -506,18 +509,23 @@ content: narrows a search to the text of attachments, filename: to their names â
             ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
           }),
         )
-        print(options.json, answer, answer.items.map((item) => found(item, level)).join("\n"), level)
+        print(
+          options.json,
+          kindAnswer(answer, options.limit, startedAt),
+          answer.items.map((item) => found(item, level)).join("\n"),
+          level,
+        )
       },
     )
   }
 
   queryOptions(group.command("notes").description("native notes by words and, with the local model, meaning"))
-    .addHelpText("after", "\n--json: the list is hits, not items; each note's reference is ref (note: or document:).")
+    .addHelpText("after", "\n--json: the list is items; each note's reference is ref (note: or document:).")
     .option("--type <type>", "file or internal", noteType)
     .option("--tag <tag>", "only notes with this tag")
     .option("--filter <query>", "another query every note must match")
     .option("--folder <folder>", "only this folder, by its id or path; repeat for more", collect)
-    .option("--offset <n>", "continue from next_offset", Number, 0)
+    .option("--offset <n>", "continue from page.next_cursor", Number, 0)
     .option("--project <project>", PROJECT_HELP)
     .action(
       async (
@@ -535,6 +543,7 @@ content: narrows a search to the text of attachments, filename: to their names â
           json?: boolean
         },
       ) => {
+        const startedAt = Date.now()
         const answer = await withStore(async (store) => {
           const found = await searchNotes(store, words.join(" "), {
             limit: options.limit,
@@ -554,7 +563,7 @@ content: narrows a search to the text of attachments, filename: to their names â
         })
         if (answer.meaning_skipped && !options.json)
           streams.diagnostic(`Searched by words only: ${answer.meaning_skipped}\n`)
-        print(options.json, answer, searchText(answer))
+        print(options.json, notesAnswer(answer, options.limit, startedAt), searchText(answer))
       },
     )
   searchMemoriesCommand(group, streams, env)

@@ -56,8 +56,8 @@ describe("memo folders", () => {
     expect(await run("folders", "add", join(root, "vault"))).toBe(id)
 
     env = { ...env, MEMO_CONFIG_DIR: join(root, "laptop") }
-    expect(JSON.parse(await run("folders", "list", "--json")).elsewhere).toEqual([
-      { id, name: "vault", format: "obsidian" },
+    expect(JSON.parse(await run("folders", "list", "--json")).items).toEqual([
+      { id, name: "vault", format: "obsidian", path: null },
     ])
     await run("folders", "attach", id, join(root, "plain"), "--format", "markdown")
     expect(JSON.parse(await run("folders", "list", "--json")).items).toEqual([
@@ -79,8 +79,8 @@ describe("memo folders", () => {
     const drive = await store.notes.addFolder({ name: "google-drive:someone@example.com", format: "markdown" })
     await store.close()
 
-    expect(JSON.parse(await run("folders", "list", "--json")).elsewhere).toEqual([
-      { id: drive.id, name: "google-drive:someone@example.com", format: "markdown", kept_by: "drive" },
+    expect(JSON.parse(await run("folders", "list", "--json")).items).toEqual([
+      { id: drive.id, name: "google-drive:someone@example.com", format: "markdown", kept_by: "drive", path: null },
     ])
     expect(await run("folders", "list")).not.toContain("memo folders attach")
     await expect(run("folders", "attach", drive.id, join(root, "plain"))).rejects.toThrow(/drive keeps it/)

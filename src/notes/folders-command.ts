@@ -113,7 +113,8 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
       })
       print(
         options.json,
-        answer,
+        // A folder the store knows from another computer has no path here.
+        [...answer.items, ...answer.elsewhere.map((folder) => ({ ...folder, path: null }))],
         [
           ...answer.items.map(line),
           ...answer.elsewhere.map(({ id, name, keptBy }) =>

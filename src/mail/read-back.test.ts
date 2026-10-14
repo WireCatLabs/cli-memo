@@ -79,14 +79,18 @@ describe("mail imported into the mail tables reads back through memo", () => {
     expect(listed.items.map(({ locator }: { locator?: string }) => locator)).toContain(LOCATOR)
 
     const task = await run(["tasks", "add", LOCATOR, "--provider", "email", "--account", ME], env)
-    expect(task.task.source).toBe(LOCATOR)
+    expect(task.item.task.source).toBe(LOCATOR)
     expect((await run(["search", "mail", "tag:follow-up"], env)).items.map(({ id }: { id: string }) => id)).toEqual([
       "9001",
     ])
 
     const shown = await run(["messages", "show", LOCATOR], env)
-    expect(shown).toMatchObject({ locator: LOCATOR, anchor: true, email: { from: { address: "rin@example.test" } } })
-    expect(shown.text).toContain("The roadmap review moves to Friday.")
+    expect(shown.item).toMatchObject({
+      locator: LOCATOR,
+      anchor: true,
+      email: { from: { address: "rin@example.test" } },
+    })
+    expect(shown.item.text).toContain("The roadmap review moves to Friday.")
     await expect(run(["messages", "show", "msg:telegram/1/2/3"], env)).rejects.toMatchObject({
       code: "validation_error",
     })

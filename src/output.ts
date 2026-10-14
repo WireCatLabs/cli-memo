@@ -31,13 +31,53 @@ export const metaOf = (
   ...extra,
 })
 
-/** Prints JSON at cli-core's detail level, which picks a hit's fields by their camelCase names, then snake_case. */
-export const printAtDetail = (streams: Streams, value: unknown, level?: "brief" | "default" | "full"): void => {
+const atLevel = (streams: Streams, value: unknown, level?: "brief" | "default" | "full"): unknown => {
   let picked = ""
   resolveOutput({
     json: true,
     streams: { ...streams, data: (chunk: string) => (picked += chunk) },
     ...(level === undefined ? {} : { hitDetail: level }),
   }).renderer.result(value)
-  createRenderer({ format: "json", color: false, streams }).result(snakeKeys(JSON.parse(picked)))
+  return JSON.parse(picked)
 }
+
+/** Prints JSON at cli-core's detail level, which picks a hit's fields by their camelCase names, then snake_case. */
+export const printAtDetail = (streams: Streams, value: unknown, level?: "brief" | "default" | "full"): void => {
+  const body =
+    isRecord(value) && "item" in value
+      ? { ...value, item: atLevel(streams, value.item, level) }
+      : atLevel(streams, value, level)
+  createRenderer({ format: "json", color: false, streams }).result(snakeKeys(body))
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === "object" && !Array.isArray(value) && !(value instanceof Date)
+
+const PAGE_KEYS = new Set(["items", "hasMore", "has_more"])
+
+/**
+ * Any answer in the standard's envelope. An array, or a page of only `items` and `hasMore`, is a list; anything
+ * else is one item, so a list that carries more than its page keeps all of it.
+ */
+export const envelopeOf = (value: unknown, startedAt: number, extra: Parameters<typeof metaOf>[1] = {}): object => {
+  const meta = metaOf(startedAt, extra)
+  const rows = Array.isArray(value)
+    ? { items: value }
+    : isRecord(value) && Array.isArray(value.items) && Object.keys(value).every((key) => PAGE_KEYS.has(key))
+      ? value
+      : undefined
+  if (rows === undefined) return { item: value, meta }
+  const items = rows.items as unknown[]
+  return {
+    items,
+    page: { mode: "page", limit: Math.max(1, items.length), has_more: rows.hasMore === true || rows.has_more === true },
+    meta,
+  }
+}
+
+/** {@link envelopeOf} with every key snake_case. */
+export const answerOf = (value: unknown, startedAt: number, extra: Parameters<typeof metaOf>[1] = {}): unknown =>
+  snakeKeys(envelopeOf(value, startedAt, extra))
+
+/** When this process started: a command that prints through a shared printer times its answer from here. */
+export const processStart = (): number => performance.timeOrigin

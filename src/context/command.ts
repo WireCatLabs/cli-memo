@@ -4,7 +4,7 @@ import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { boundFolders } from "../notes/bound.js"
 import { positive } from "../options.js"
-import { snakeKeys } from "../output.js"
+import { answerOf } from "../output.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { type MemoContext, memoContext } from "./context.js"
 
@@ -75,6 +75,7 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
       "the stored account to read; required when the store holds several of that messenger",
     )
     .action(async (person: string, options: { limit: number; json?: boolean; account?: string }) => {
+      const startedAt = Date.now()
       const store = await openStore({ env })
       try {
         await importNotesMap(store, env, await boundFolders(store, env, { strict: false }))
@@ -82,7 +83,7 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
           limit: options.limit,
           ...(options.account === undefined ? {} : { account: options.account }),
         })
-        if (options.json) createRenderer({ format: "json", color: false, streams }).result(snakeKeys(answer))
+        if (options.json) createRenderer({ format: "json", color: false, streams }).result(answerOf(answer, startedAt))
         else streams.data(`${contextText(answer)}\n`)
       } finally {
         await store.close()

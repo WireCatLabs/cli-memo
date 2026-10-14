@@ -8,6 +8,15 @@ the API.
 
 ### Changed
 
+- **Breaking: every `--json` answer is the shared envelope.** One thing is under `item`, a list under `items`
+  with `page`, and each answer carries `meta` (`run_id`, `duration_ms`, `complete`, `accounts` where read).
+  `memo tags list` lists labels on notes, people, projects and folders in `items` too, one row per label with
+  its `origin`, instead of a separate `knowledge` list. `memo search notes` answers `items` instead of `hits`,
+  and the next page's offset in `page.next_cursor` instead of `next_offset`; a search that left something out
+  says so in `missing`; it no longer answers `linked`, as `tg search notes` does not. `memo folders list` lists
+  folders known from another computer in `items` with `path: null`, not in `elsewhere`. In `memo search all`, the open tasks that point at a result ride on that result as
+  `tasks`. `memo auto status`, `memo context`, `memo ask` and the knowledge commands answer `item`. The
+  commands document's `contract` is 4.
 - **Config settings are named in snake_case:** `mail.max_body_chars`, `mail.max_attachment_chars`, and `list_id`
   and `decided_at` in `mail.accounts[].rules[]`, which `memo mail rules` writes and prints that way. The camelCase
   names older versions wrote are still read, and the file is saved in snake_case; both spellings with different

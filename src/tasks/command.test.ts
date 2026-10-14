@@ -21,7 +21,8 @@ it("creates native note tasks through the CLI and connects context, search, assi
     await createProgram({ streams, env })
       .exitOverride()
       .parseAsync([...args, "--json"], { from: "user" })
-    return JSON.parse(streams.stdout.join(""))
+    const answer = JSON.parse(streams.stdout.join(""))
+    return "item" in answer ? answer.item : answer
   }
   const scope = ["--provider", key.provider, "--account", key.account]
   const added = await run("notes", "add", "Synthetic budget request", "--about", `person:${person?.uid}`)
@@ -48,18 +49,17 @@ it("creates native note tasks through the CLI and connects context, search, assi
   await run("tasks", "assign", other.task.id, person?.uid as string)
   expect((await run("context", "telegram:101", "--account", "1")).tasks.items).toHaveLength(2)
   const search = await run("search", "all", "budget")
-  expect(search.tasks.map((item: { source: string }) => item.source).sort()).toEqual(
-    [source, `note:${unrelated.note.id}`].sort(),
-  )
+  expect(
+    search.items.flatMap(({ tasks = [] }: { tasks?: { source: string }[] }) => tasks.map((item) => item.source)).sort(),
+  ).toEqual([source, `note:${unrelated.note.id}`].sort())
   await run("tags", "add", "budget", "--task", task.task.id, ...scope)
-  expect((await run("tags", "list", "--tag", "budget", ...scope)).knowledge[0].target).toMatchObject({
-    type: "task",
-    id: task.task.id,
-  })
+  expect((await run("tags", "list", "--tag", "budget", ...scope)).items).toContainEqual(
+    expect.objectContaining({ type: "task", id: task.task.id, tag: "budget" }),
+  )
   const reminder = await run("reminders", "add", task.task.id, "--at-time", "2026-01-01T00:00:00Z", ...scope)
-  const [delivery] = await run("reminders", "poll", ...scope)
+  const [delivery] = (await run("reminders", "poll", ...scope)).items
   await run("reminders", "ack", reminder.id, delivery.receipt, ...scope)
-  expect(await run("reminders", "poll", ...scope)).toEqual([])
+  expect((await run("reminders", "poll", ...scope)).items).toEqual([])
   await run("notes", "edit", source, "--text", "Updated budget", "--revision", "1")
   expect(
     (await run("tasks", "list", ...scope)).items.find((item: { id: string }) => item.id === task.task.id).note.text,
@@ -88,7 +88,8 @@ it("adds a bug to a project with its fields and assignee, updates, lists and clo
     await createProgram({ streams, env })
       .exitOverride()
       .parseAsync([...args, "--json"], { from: "user" })
-    return JSON.parse(streams.stdout.join(""))
+    const answer = JSON.parse(streams.stdout.join(""))
+    return "item" in answer ? answer.item : answer
   }
   await run("projects", "add", "Lighthouse", "--key", "LHT")
 

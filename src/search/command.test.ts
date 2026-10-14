@@ -61,7 +61,9 @@ it("searches three typed resources together, separates mail and messages, and fi
     return JSON.parse(streams.stdout.join(""))
   }
   const all = await run("search", "all", "Sharedsignal", "--exact")
-  expect(all.tasks.map((task: { id: string }) => task.id)).toEqual(["legacy-note-task"])
+  expect(
+    all.items.flatMap((item: { tasks?: { id: string }[] }) => item.tasks ?? []).map((task: { id: string }) => task.id),
+  ).toEqual(["legacy-note-task"])
   expect(all.items.map((item: { kind: string }) => item.kind).sort()).toEqual(["mail", "message", "note", "note"])
   expect(all.items.map((item: { ref: string }) => item.ref)).toEqual(
     expect.arrayContaining([internal.ref, file.note.ref]),
@@ -79,10 +81,10 @@ it("searches three typed resources together, separates mail and messages, and fi
   expect((await run("search", "messages", "Sharedsignal", "--type", "text")).items).toHaveLength(1)
   expect((await run("search", "messages", "Sharedsignal", "--type", "file")).items).toEqual([])
   expect(
-    (await run("search", "notes", "Sharedsignal", "--type", "internal")).hits.map((hit: { ref: string }) => hit.ref),
+    (await run("search", "notes", "Sharedsignal", "--type", "internal")).items.map((hit: { ref: string }) => hit.ref),
   ).toEqual([internal.ref])
   expect(
-    (await run("search", "notes", "Sharedsignal", "--folder", folder.id)).hits.map((hit: { ref: string }) => hit.ref),
+    (await run("search", "notes", "Sharedsignal", "--folder", folder.id)).items.map((hit: { ref: string }) => hit.ref),
   ).toEqual([file.note.ref])
   for (const args of [
     ["search", "Sharedsignal"],
@@ -285,16 +287,9 @@ it("search all runs as no stored account and names every account it read", async
     "msg:max/2/7/1",
     "msg:telegram/1/7/1",
   ])
-  expect(answer.accounts).toEqual(
-    expect.arrayContaining([
-      { resource: "messages", provider: "max", account: "2" },
-      { resource: "messages", provider: "telegram", account: "1" },
-      { resource: "mail", provider: "email", account: "a@example.com" },
-      { resource: "notes", provider: "notes", account: "internal" },
-      { resource: "notes", provider: "notes", account: folder.id },
-    ]),
+  expect(answer.meta.accounts.sort()).toEqual(
+    ["email:a@example.com", "max:2", "notes:internal", `notes:${folder.id}`, "telegram:1"].sort(),
   )
-  expect(answer.accounts).not.toContainEqual(expect.objectContaining({ resource: "messages", provider: "email" }))
 
   const text = captureStreams()
   await createProgram({ streams: text, env }).parseAsync(["search", "all", "Beaconword"], { from: "user" })
