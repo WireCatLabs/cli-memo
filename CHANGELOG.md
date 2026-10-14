@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.27.0 — 14.10.2026
+
 ### Changed
 
 - **Every JSON key memo prints is snake_case**, on the CLI and in MCP: `has_more`, `next_offset`, `key_documents`,
