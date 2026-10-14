@@ -68,9 +68,14 @@ See [Mail](mail.md).
 |---|---|
 | `enabled` | `true` when the import timer is on. |
 | `every` | How often it runs: `90s`, `5m`, `1h`; one minute or more. |
+| `places` | The variables that move memo's folders and the store (`MEMO_CONFIG_DIR`, `MESSAGING_STORE`…), as they were at `memo auto start`; every timer run gets them. |
 
 `memo auto start` and `memo auto stop` write these. If you edit them by hand, the timer follows at its
 next run. See [importing on a timer](archive.md#import-on-a-timer-linux).
+
+## `update_check`
+
+`false` stops the once-a-day check for a newer memo. `MEMO_NO_UPDATE_CHECK=1` does the same for one shell.
 
 ## Environment variables
 
