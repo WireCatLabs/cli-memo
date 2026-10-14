@@ -16,6 +16,14 @@ the API.
 - **memo registers its own reasons** in `APP.errors`: `sync.running` (with `pid`) for a sync refused by the lock.
 - A source that fails during `memo sync` shows its registered message; a crash's text shows only with `--debug`.
 
+### Added
+
+- **`memo mail rules add --envelope`** records matching mail without its text: sender, date, size, labels and
+  the Gmail id, with the subject in metadata and out of search. `memo mail rules list` shows how many emails
+  each envelope rule recorded and their size. A keep wins over an envelope, an envelope over a skip; removing
+  an envelope rule or changing it to keep reads those emails in full on the next sync. `memo sync --json`
+  reports `envelopes` beside `skipped`.
+
 ### Fixed
 
 - **The `memo auto` timer no longer fails when a sync is still running.** A timer run that finds the lock held

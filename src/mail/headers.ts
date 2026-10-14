@@ -1,9 +1,17 @@
-/** The header fields memo reads at list time: enough to group mail by sender and apply the owner's rules. */
-export const HEADER_FIELDS = "FROM TO CC LIST-ID LIST-UNSUBSCRIBE PRECEDENCE"
+import { decodeWords } from "postal-mime"
+
+/**
+ * The header fields memo reads at list time: enough to group mail by sender, apply the owner's rules and keep
+ * an envelope of the mail a rule records without its text.
+ */
+export const HEADER_FIELDS = "FROM TO CC SUBJECT LIST-ID LIST-UNSUBSCRIBE PRECEDENCE"
 
 export interface MailHeaders {
   /** The sender's address, lower case; absent when From holds none. */
   from?: string
+  /** The sender's display name, decoded. */
+  fromName?: string
+  subject?: string
   /** To and Cc addresses, lower case. */
   to: string[]
   listId?: string
@@ -23,10 +31,19 @@ export const addressesOf = (value: string | undefined): string[] => {
   return found.map((address) => address.toLowerCase())
 }
 
+const nameOf = (value: string): string | undefined => {
+  const before = /^\s*(.*?)\s*<[^<>]+>\s*$/.exec(value)?.[1]
+  const name = before?.replace(/^"(.*)"$/, "$1").trim()
+  return name ? decodeWords(name) : undefined
+}
+
 /** The header fields of one email, from its header text. */
 export const headersOf = (text: string): MailHeaders => {
   const unfolded = unfold(text)
-  const [from] = addressesOf(field(unfolded, "From"))
+  const sender = field(unfolded, "From")
+  const [from] = addressesOf(sender)
+  const fromName = sender === undefined ? undefined : nameOf(sender)
+  const subject = field(unfolded, "Subject")
   const rawList = field(unfolded, "List-Id")
   const listId = rawList === undefined ? undefined : (/<([^>]+)>/.exec(rawList)?.[1] ?? rawList).trim().toLowerCase()
   const bulk =
@@ -35,6 +52,8 @@ export const headersOf = (text: string): MailHeaders => {
     /^(bulk|list|junk)\b/i.test(field(unfolded, "Precedence") ?? "")
   return {
     ...(from === undefined ? {} : { from }),
+    ...(fromName ? { fromName } : {}),
+    ...(subject === undefined ? {} : { subject: decodeWords(subject).trim() }),
     to: [...addressesOf(field(unfolded, "To")), ...addressesOf(field(unfolded, "Cc"))],
     ...(listId ? { listId } : {}),
     bulk,

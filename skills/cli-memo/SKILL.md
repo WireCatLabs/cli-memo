@@ -41,8 +41,10 @@ anything. Add `--json` and read the answer, not the text meant for people.
     not published). Raise `--limit` gradually; each run continues where the last stopped.
 11. **Probe before a first large mail import.** `memo mail probe <account> --json` groups mail by
     sender and list from headers only; its `suggest` is a hint, not a decision.
-12. **Mail rules are the owner's decision.** Suggest groups to skip; never run `memo mail rules add … --skip`
-    unasked. A skipped email is never imported; mail already stored stays.
+12. **Mail rules are the owner's decision.** Suggest groups to skip or record; never run
+    `memo mail rules add … --skip` or `--envelope` unasked. A skipped email is never imported. An envelope
+    email is stored without its text and is never a search hit; `memo mail rules list` counts it. Mail
+    already stored stays.
 13. **Old years come from a Google Takeout mbox**, an account with `"mode": "mbox"` and the Gmail
     address; it syncs only when named, and reads the whole file each run, so give a large `--limit`:
     `memo sync --account <name> --since-time 2000-01-01 --limit 5000`.

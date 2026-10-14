@@ -78,7 +78,13 @@ describe("mboxSource", () => {
           flagged: false,
         },
       ])
-      expect(listed[1]?.headers).toEqual({ from: "news@shop.example", to: [], listId: "news.shop.example", bulk: true })
+      expect(listed[1]?.headers).toEqual({
+        from: "news@shop.example",
+        subject: "Sale",
+        to: [],
+        listId: "news.shop.example",
+        bulk: true,
+      })
       const raws = await source.fetchRaw(listed)
       expect(raws.map((raw) => Buffer.from(raw as Uint8Array).toString())).toEqual([first, second])
     }

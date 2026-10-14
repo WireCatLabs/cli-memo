@@ -261,7 +261,7 @@ memo mail rules list <account> [options]
 
 #### `memo mail rules add`
 
-skip or keep mail by sender, domain or list; a repeated match replaces its rule
+skip, record or keep mail by sender, domain or list; a repeat replaces its rule
 
 ```sh
 memo mail rules add <account> [options]
@@ -276,8 +276,9 @@ memo mail rules add <account> [options]
 | `--from <address>` | one sender address. |
 | `--domain <domain>` | a sender domain, and its subdomains. |
 | `--list-id <id>` | a mailing list, by its List-Id. |
-| `--skip` | never import this mail. |
-| `--keep` | import this mail even when a skip rule matches it. |
+| `--skip` | never read or store this mail. |
+| `--envelope` | store only sender, date, size and labels: counted, out of search, cleanable later. |
+| `--keep` | import this mail even when a skip or envelope rule matches it. |
 | `--reason <text>` | why, for the owner later. |
 | `--json` | print JSON. |
 
