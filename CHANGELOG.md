@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.31.0 — 14.10.2026
+
 ### Added
 
 - **`memo doctor`** says where memo keeps its files and what needs attention, and connects to nothing: the settings
