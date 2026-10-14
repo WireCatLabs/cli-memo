@@ -84,7 +84,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .description("group an account's mail by sender and list, to decide what to keep or skip")
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .option("--since-time <time>", "only mail from this time, ISO 8601 or 30d ago (default: all mail)")
-    .option("--limit-groups <n>", "show this many of the largest groups (default: 50)", positive, 50)
+    .option("--limit-groups <n>", "show this many of the largest groups", positive, 50)
     .option("--json", "print JSON")
     .addHelpText(
       "after",
