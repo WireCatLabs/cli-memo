@@ -50,7 +50,9 @@
     "@wirecat/cli-base": "0.28.2",
     "@wirecat/cli-core": "0.279.0",
     "commander": "15.0.0",
+    "disposable-email-domains-js": "1.26.0",
     "postal-mime": "4.0.0",
+    "tldts": "7.4.16",
     "valibot": "1.5.0",
     "yaml": "2.9.1"
   },

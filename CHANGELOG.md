@@ -18,6 +18,13 @@ the API.
 - **`memo upgrade`** updates memo with the package manager that installed it; `--check` only looks. Once a day memo
   asks npm for a newer version and says so in one stderr line, only to a person at a terminal — never with
   `--json`, in a pipe or on a timer run. `"update_check": false` or `MEMO_NO_UPDATE_CHECK=1` turns it off.
+- **`memo mail probe` scores each sender group** for spam, scams and robots, with the signals behind it: Gmail's
+  DMARC verdict, a brand in the display name sent from another domain, Reply-To on another domain, a
+  throwaway-mail domain, bulk mail never replied to, Gmail's Spam, and replies from the owner (−5).
+  `--domain-age` adds the sender domain's age from its registry (RDAP), asked once per domain and kept.
+- **Gmail's SPF, DKIM and DMARC verdicts and Reply-To are kept** on new mail: in the headers of mail stored in
+  full, and in the metadata of envelopes. Listing reads two more header fields, about 1 KB an email instead of
+  300 bytes.
 
 ### Changed
 

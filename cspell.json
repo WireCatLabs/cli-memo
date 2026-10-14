@@ -2,5 +2,5 @@
   "version": "0.2",
   "files": ["README.md", "docs/*.md"],
   "import": ["./config/wirecat/cspell.json"],
-  "words": ["CLAUDECODE", "UIDVALIDITY"]
+  "words": ["CLAUDECODE", "DMARC", "RDAP", "UIDVALIDITY"]
 }
