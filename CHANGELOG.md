@@ -44,6 +44,8 @@ the API.
 
 ### Fixed
 
+- **A himalaya that exits before reading its input no longer crashes memo** with an unhandled `write EPIPE`; the
+  failure is reported with how himalaya ended, as for any other himalaya error.
 - **The timer follows the memo you run.** After a Node.js switch and an install under the new version, the next
   memo command points the `memo auto` unit at it, so removing the old Node.js no longer breaks the timer silently.
   A checkout or `npx` never moves it.
