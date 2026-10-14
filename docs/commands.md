@@ -678,6 +678,94 @@ memo tasks assign <id> <person> [options]
 | `--role <role>` | assignee, reviewer, watcher. Default: `assignee`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+### `memo tasks agenda`
+
+what needs a look today, from the local store and without message text: tasks overdue, due or to check, chats where you owe an answer, chats where you wait for one
+
+```sh
+memo tasks agenda [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--due <span>` | list tasks due within this: 30m, 2h, 1d (default 1d). |
+| `--unanswered <span>` | list chats where someone else wrote last this long ago (default 1d). |
+| `--waiting <span>` | list chats where you wrote last this long ago (default 7d). |
+| `--within <span>` | leave out chats silent longer than this: they ended (default 30d). |
+| `--provider <provider>` | the messenger account's provider: telegram, max. |
+| `--account <account>` | the messenger account, as the store holds it. |
+| `--json` | print JSON. |
+
+### `memo tasks plan`
+
+set a task's title, description, due date and next check; nothing reaches the messenger
+
+This command changes the local store or your files.
+
+```sh
+memo tasks plan <task> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `task` | required | the task's id or key, as tasks list shows it. |
+
+| Option | What it does |
+|---|---|
+| `--title <text>` | one line: the action and its object — send Alex the API token. |
+| `--description <text>` | the detail, in Markdown: who owes whom, done when, next step, keywords. |
+| `--due <when>` | when it must be done: an ISO 8601 time or 2h, 3d from now; none clears it. |
+| `--check <when>` | when to look at it again: an ISO 8601 time or 2h, 3d from now; none clears it. |
+| `--provider <provider>` | the messenger account's provider: telegram, max. |
+| `--account <account>` | the messenger account, as the store holds it. |
+| `--json` | print JSON. |
+
+### `memo tasks show`
+
+one task: its plan and everything linked to it
+
+```sh
+memo tasks show <task> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `task` | required | the task's id or key, as tasks list shows it. |
+
+| Option | What it does |
+|---|---|
+| `--provider <provider>` | the messenger account's provider: telegram, max. |
+| `--account <account>` | the messenger account, as the store holds it. |
+| `--json` | print JSON. |
+
+## `memo stats`
+
+statistics about what the store holds
+
+### `memo stats tasks`
+
+task statistics
+
+#### `memo stats tasks show`
+
+per chat: how many tasks are open, the oldest open one, the median time to close
+
+```sh
+memo stats tasks show [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--chat <chat>` | only this chat; a stored chat, by its id or title. |
+| `--type <name>` | only this type: question, request, mention or promise. |
+| `--provider <provider>` | the messenger account's provider: telegram, max. |
+| `--account <account>` | the messenger account, as the store holds it. |
+| `--json` | print JSON. |
+
 ## `memo organizations`
 
 companies, teams, families and communities of yours

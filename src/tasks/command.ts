@@ -23,6 +23,7 @@ import { type AccountScope, selectAccount } from "../store/scope.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { taskPage } from "./context.js"
 import { taskRelationsCommand } from "./relations-command.js"
+import { sharedTaskCommands } from "./shared.js"
 
 interface FieldOptions {
   title?: string
@@ -259,4 +260,5 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         )
       })
     })
+  sharedTaskCommands(program, group, streams, env)
 }

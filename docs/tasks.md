@@ -26,6 +26,20 @@ A task from a source has a type: `request` (the default), `question`, `mention` 
 belongs to one messenger account. A message reference already names its account; for a note or a
 file, add `--provider` and `--account`. Adding the same task twice gives you the existing one.
 
+## What needs a look today
+
+The agenda, the plan and the card are the same commands tg and max have; name the messenger account:
+
+```sh
+memo tasks agenda --provider telegram --account 1           # overdue, due, owed and waiting chats
+memo tasks plan 1a2b3c4d --due 2d --check 1d --title 'Send the revised budget' --provider telegram --account 1
+memo tasks show 1a2b3c4d --provider telegram --account 1
+memo stats tasks show --provider telegram --account 1       # open tasks per chat
+```
+
+A command without `--provider` and `--account` lists the accounts the store holds. tg and max open these tasks
+when they sync; memo reads the same store.
+
 ## Tasks in a project
 
 A task in a project does not need a source. It gets a key made of the project's key and a number,

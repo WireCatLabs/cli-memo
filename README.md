@@ -166,7 +166,7 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 | Project and topic aliases | `memo vocabulary list` / `resolve` / `preflight` · `vocabulary aliases add` / `remove` · `vocabulary create` |
 | Relationships | `memo relationships add` / `list` / `remove` / `confirm` / `suggest` |
 | Labels | `memo tags add` · `tags remove` · `tags list` |
-| Open work | `memo tasks add` · `tasks list` · `tasks update` · `tasks assign` · `tasks close` |
+| Open work | `memo tasks add` · `tasks list` · `tasks agenda` · `tasks plan` · `tasks show` · `tasks update` · `tasks assign` · `tasks close` · `stats tasks show` |
 | Task dependencies | `memo tasks link` / `unlink` / `relations` · `tasks status` · `tasks list --ready` |
 | Reminders | `memo reminders add` / `list` / `poll` / `ack` / `update` / `cancel` |
 | Agents | `memo memories …` · `facts …` · `actions …` · `agents log` · `memo mcp` |
@@ -274,7 +274,8 @@ More: [mail](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mail.md) ·
 Tags are your labels on a note, an email, a message, a chat, a person, an organization, a project, a task,
 a meeting, or every note under a folder. They live in the store; files, Gmail labels and mailbox flags are
 never changed. A task points at the message or note it came from, or is your own in a
-project (`--project RES --title …`), and can be blocked by another until it is done. Reminders are local:
+project (`--project RES --title …`), and can be blocked by another until it is done. `memo tasks agenda`
+says what needs a look today, across every messenger account the store holds. Reminders are local:
 a caller you choose polls for them, and nothing is delivered to a messenger or mailbox.
 
 ```sh

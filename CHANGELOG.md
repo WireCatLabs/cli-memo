@@ -151,6 +151,12 @@ the API.
   server or a model, and on this machine. A failed read is marked safe to retry (`memo sync` while another sync
   runs, for one); before, nothing was, because a command with no effects counts as a write.
 
+### Added
+
+- **`memo tasks agenda`, `tasks plan`, `tasks show` and `memo stats tasks show`**, the same commands tg and max
+  have: cli-core's builders, mounted with `--provider --account`, so memo's agenda reads any messenger account the
+  store holds. Without them a command fails and lists the accounts.
+
 ## 0.28.0 — 14.10.2026
 
 ### Added
