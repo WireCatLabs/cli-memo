@@ -89,10 +89,12 @@ export interface ReportOptions {
 export const reportFailure = async (error: unknown, { args, program, streams, tty }: ReportOptions) => {
   const failure = recognisable(error)
   const flags = optionsOf(args)
-  const effects = EFFECTS[commandOf(program, flags)]
-  // A retry is judged on what the mail server or model sees; rewriting the same local rows again is harmless.
-  const judged = effects && { remote: effects.remote, local: "none" as const }
-  const object = errorObjectOf(failure, { ...(await contextOf()), ...(judged ? { effects: judged } : {}) })
+  const judge = await import("@wirecat/cli-core/cli").then(
+    ({ judgedEffects }) => judgedEffects,
+    () => undefined,
+  )
+  const effects = judge?.(EFFECTS[commandOf(program, flags)])
+  const object = errorObjectOf(failure, { ...(await contextOf()), ...(effects ? { effects } : {}) })
   const record = flags.includes("--debug")
     ? errorRecordOf(failure, object, { command: commandOf(program, flags), service: APP.command, version: APP.version })
     : undefined
