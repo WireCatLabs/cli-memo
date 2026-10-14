@@ -11,6 +11,7 @@ import {
 import { type Command, CommanderError } from "commander"
 import { ValiError } from "valibot"
 import { APP } from "./app.js"
+import { EFFECTS } from "./effects.js"
 import { REASONS } from "./reasons.js"
 
 let shared: FailureContext | undefined
@@ -87,8 +88,11 @@ export interface ReportOptions {
 /** One error object on stderr, `✗ message` at a terminal; returns the exit code. */
 export const reportFailure = async (error: unknown, { args, program, streams, tty }: ReportOptions) => {
   const failure = recognisable(error)
-  const object = errorObjectOf(failure, await contextOf())
   const flags = optionsOf(args)
+  const effects = EFFECTS[commandOf(program, flags)]
+  // A retry is judged on what the mail server or model sees; rewriting the same local rows again is harmless.
+  const judged = effects && { remote: effects.remote, local: "none" as const }
+  const object = errorObjectOf(failure, { ...(await contextOf()), ...(judged ? { effects: judged } : {}) })
   const record = flags.includes("--debug")
     ? errorRecordOf(failure, object, { command: commandOf(program, flags), service: APP.command, version: APP.version })
     : undefined

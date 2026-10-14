@@ -72,6 +72,8 @@ memo notes list [options]
 
 write a note of your own about messages, people, projects or other notes
 
+This command changes the local store or your files.
+
 ```sh
 memo notes add [text] [options]
 ```
@@ -97,6 +99,8 @@ memo notes add [text] [options]
 
 change a note you wrote here; a file's note is edited in its file
 
+This command changes the local store or your files.
+
 ```sh
 memo notes edit <id> [options]
 ```
@@ -118,6 +122,8 @@ memo notes edit <id> [options]
 
 delete a note you wrote here; a file it was exported to stays
 
+This command changes the local store or your files.
+
 ```sh
 memo notes remove <id> [options]
 ```
@@ -133,6 +139,8 @@ memo notes remove <id> [options]
 ### `memo notes export`
 
 write the notes you wrote here as files, never overwriting one you edited
+
+This command changes the local store or your files.
 
 ```sh
 memo notes export [options]
@@ -152,6 +160,8 @@ folders of notes: the id links and the store use, and the path on this computer
 
 give a folder of notes an id, or show the one it has
 
+This command changes the local store or your files.
+
 ```sh
 memo folders add <path> [options]
 ```
@@ -168,6 +178,8 @@ memo folders add <path> [options]
 ### `memo folders attach`
 
 bind a folder id from another computer to the folder's path on this one
+
+This command changes the local store or your files.
 
 ```sh
 memo folders attach <id> <path> [options]
@@ -263,6 +275,8 @@ memo mail rules list <account> [options]
 
 skip, record or keep mail by sender, domain or list; a repeat replaces its rule
 
+This command changes the local store or your files.
+
 ```sh
 memo mail rules add <account> [options]
 ```
@@ -286,6 +300,8 @@ memo mail rules add <account> [options]
 
 drop the rule for a sender, domain or list
 
+This command changes the local store or your files.
+
 ```sh
 memo mail rules remove <account> [options]
 ```
@@ -305,6 +321,8 @@ memo mail rules remove <account> [options]
 
 cut stored mail an envelope rule matches to its envelope; dry run unless --yes
 
+This command changes the local store or your files.
+
 ```sh
 memo mail rules apply <account> [options]
 ```
@@ -322,6 +340,8 @@ memo mail rules apply <account> [options]
 ## `memo note`
 
 name the note that is about a person, or show it
+
+This command changes the local store or your files.
 
 ```sh
 memo note <identity> [path] [options]
@@ -343,6 +363,8 @@ your labels on stored sources and folders or threads
 ### `memo tags add`
 
 put labels on one source
+
+This command changes the local store or your files.
 
 ```sh
 memo tags add <tag> [options]
@@ -372,6 +394,8 @@ memo tags add <tag> [options]
 ### `memo tags remove`
 
 remove labels from one source
+
+This command changes the local store or your files.
 
 ```sh
 memo tags remove <tag> [options]
@@ -423,6 +447,8 @@ open work linked to stored messages, documents and emails
 
 link reviewed project task relationships
 
+This command changes the local store or your files.
+
 ```sh
 memo tasks link <task> <other-task> [options]
 ```
@@ -440,6 +466,8 @@ memo tasks link <task> <other-task> [options]
 ### `memo tasks unlink`
 
 unlink reviewed project task relationships
+
+This command changes the local store or your files.
 
 ```sh
 memo tasks unlink <task> <other-task> [options]
@@ -491,6 +519,8 @@ memo tasks status <task> [options]
 
 add a task from a message, note or document, or one of your own in a project
 
+This command changes the local store or your files.
+
 ```sh
 memo tasks add [source] [options]
 ```
@@ -534,6 +564,8 @@ memo tasks list [options]
 
 close a task as done or dismissed
 
+This command changes the local store or your files.
+
 ```sh
 memo tasks close <id> [options]
 ```
@@ -554,6 +586,8 @@ memo tasks close <id> [options]
 
 change a task's title, priority, parent or description
 
+This command changes the local store or your files.
+
 ```sh
 memo tasks update <id> [options]
 ```
@@ -573,6 +607,8 @@ memo tasks update <id> [options]
 ### `memo tasks assign`
 
 name who works on a task
+
+This command changes the local store or your files.
 
 ```sh
 memo tasks assign <id> <person> [options]
@@ -595,6 +631,8 @@ companies, teams, families and communities of yours
 ### `memo organizations add`
 
 add an organization of yours: a company, team, family or community
+
+This command changes the local store or your files.
 
 ```sh
 memo organizations add <name> [options]
@@ -671,6 +709,8 @@ memo projects meetings list <project> [options]
 
 link a stored meeting to a project, or confirm a proposed link
 
+This command changes the local store or your files.
+
 ```sh
 memo projects meetings link <project> <meeting-id> [options]
 ```
@@ -691,6 +731,8 @@ memo projects meetings link <project> <meeting-id> [options]
 ### `memo projects add`
 
 add a project of yours, with a short key its tasks use
+
+This command changes the local store or your files.
 
 ```sh
 memo projects add <name> [options]
@@ -744,6 +786,8 @@ the notes, files and messages to read first about a project, each with why
 
 mark a note:, document: or msg: reference as a key document of the project
 
+This command changes the local store or your files.
+
 ```sh
 memo projects key-documents add <project> <reference> [options]
 ```
@@ -762,6 +806,8 @@ memo projects key-documents add <project> <reference> [options]
 #### `memo projects key-documents remove`
 
 unmark a key document; the note, file or message stays
+
+This command changes the local store or your files.
 
 ```sh
 memo projects key-documents remove <project> <reference> [options]
@@ -800,6 +846,8 @@ relations between people, organizations and projects; never between identities
 
 state that a person, organization or project belongs to or relates to another; an agent's waits for you to confirm it
 
+This command changes the local store or your files.
+
 ```sh
 memo relationships add <from> <to> [options]
 ```
@@ -834,6 +882,8 @@ memo relationships list [options]
 
 remove a relationship
 
+This command changes the local store or your files.
+
 ```sh
 memo relationships remove <id> [options]
 ```
@@ -849,6 +899,8 @@ memo relationships remove <id> [options]
 ### `memo relationships confirm`
 
 confirm a suggested relationship
+
+This command changes the local store or your files.
 
 ```sh
 memo relationships confirm <id> [options]
@@ -885,6 +937,8 @@ durable local reminders; poll hands one out and ack confirms it was shown
 
 add a reminder for an open task
 
+This command changes the local store or your files.
+
 ```sh
 memo reminders add <task> [options]
 ```
@@ -919,6 +973,8 @@ memo reminders list [options]
 
 hand out due reminders, each with a receipt to acknowledge
 
+This command changes the local store or your files.
+
 ```sh
 memo reminders poll [options]
 ```
@@ -933,6 +989,8 @@ memo reminders poll [options]
 ### `memo reminders ack`
 
 confirm that a handed-out reminder was shown
+
+This command changes the local store or your files.
 
 ```sh
 memo reminders ack <id> <receipt> [options]
@@ -953,6 +1011,8 @@ memo reminders ack <id> <receipt> [options]
 
 cancel a reminder
 
+This command changes the local store or your files.
+
 ```sh
 memo reminders cancel <id> [options]
 ```
@@ -970,6 +1030,8 @@ memo reminders cancel <id> [options]
 ### `memo reminders update`
 
 move a reminder to another time
+
+This command changes the local store or your files.
 
 ```sh
 memo reminders update <id> [options]
@@ -1054,6 +1116,8 @@ memo vocabulary check [name] [options]
 
 owner: create a distinct tag or topic after vocabulary check <name>
 
+This command changes the local store or your files.
+
 ```sh
 memo vocabulary create <name> [options]
 ```
@@ -1076,6 +1140,8 @@ owner-reviewed aliases on stable canonical IDs
 
 owner: add another name for a project, tag or topic
 
+This command changes the local store or your files.
+
 ```sh
 memo vocabulary aliases add <reference> <name> [options]
 ```
@@ -1093,6 +1159,8 @@ memo vocabulary aliases add <reference> <name> [options]
 #### `memo vocabulary aliases remove`
 
 owner: remove another name from a project, tag or topic
+
+This command changes the local store or your files.
 
 ```sh
 memo vocabulary aliases remove <reference> <alias-id> [options]
@@ -1115,6 +1183,8 @@ what agents and you concluded, with evidence; you confirm an agent's
 ### `memo memories add`
 
 write a memory; an agent's waits as proposed until you confirm it
+
+This command changes the local store or your files.
 
 ```sh
 memo memories add <text> [options]
@@ -1170,6 +1240,8 @@ memo memories show <ref> [options]
 
 stand behind a memory: its evidence was checked now
 
+This command changes the local store or your files.
+
 ```sh
 memo memories confirm <ref> [options]
 ```
@@ -1185,6 +1257,8 @@ memo memories confirm <ref> [options]
 ### `memo memories stale`
 
 mark a memory whose evidence no longer holds
+
+This command changes the local store or your files.
 
 ```sh
 memo memories stale <ref> [options]
@@ -1205,6 +1279,8 @@ what happened — said, asked, decided, promised — with evidence
 ### `memo facts add`
 
 record a fact; an agent's waits as proposed until you confirm it
+
+This command changes the local store or your files.
 
 ```sh
 memo facts add <statement> [options]
@@ -1263,6 +1339,8 @@ memo facts show <ref> [options]
 
 stand behind a fact an agent proposed; a decision it supersedes stops holding
 
+This command changes the local store or your files.
+
 ```sh
 memo facts confirm <ref> [options]
 ```
@@ -1278,6 +1356,8 @@ memo facts confirm <ref> [options]
 ### `memo facts reverse`
 
 an accepted decision no longer holds, and nothing replaced it
+
+This command changes the local store or your files.
 
 ```sh
 memo facts reverse <ref> [options]
@@ -1298,6 +1378,8 @@ what an agent proposes to do; confirming one makes it your task, nothing is sent
 ### `memo actions add`
 
 propose an action, such as a reply or a ban, in the account that would act
+
+This command changes the local store or your files.
 
 ```sh
 memo actions add <kind> [options]
@@ -1351,6 +1433,8 @@ memo actions show <id> [options]
 
 confirm it: it becomes a task in the account that would act; nothing is sent
 
+This command changes the local store or your files.
+
 ```sh
 memo actions confirm <id> [options]
 ```
@@ -1366,6 +1450,8 @@ memo actions confirm <id> [options]
 ### `memo actions reject`
 
 reject it; nothing is done
+
+This command changes the local store or your files.
 
 ```sh
 memo actions reject <id> [options]
@@ -1401,6 +1487,8 @@ memo agents log [options]
 ## `memo mcp`
 
 serve memories, proposed actions and the agent log over MCP on stdin and stdout
+
+This command changes the local store or your files.
 
 ```sh
 memo mcp
@@ -1549,6 +1637,8 @@ memo ask <question> [options]
 
 bring notes and mail up to date in the store, only what changed. Every configured folder and mail account unless narrowed; a notes option syncs notes only, a mail option mail only, unless both are given
 
+This command changes the local store or your files.
+
 ```sh
 memo sync [options]
 ```
@@ -1574,6 +1664,8 @@ run memo sync on a systemd user timer, set in the config
 
 sync every --every (default auto.every, else 5m), starting a minute from now
 
+This command changes the local store or your files.
+
 ```sh
 memo auto start [options]
 ```
@@ -1585,6 +1677,8 @@ memo auto start [options]
 ### `memo auto stop`
 
 stop syncing on a timer and remove the timer
+
+This command changes the local store or your files.
 
 ```sh
 memo auto stop
@@ -1633,6 +1727,8 @@ memo skill show
 ### `memo skill install`
 
 write SKILL.md to \~/.claude/skills/cli-memo/ (Claude Code) and \~/.agents/skills/cli-memo/ (Codex, Gemini CLI)
+
+This command changes the local store or your files.
 
 ```sh
 memo skill install [options]

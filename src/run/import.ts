@@ -1,4 +1,4 @@
-import { createRenderer, isCliError, type Streams } from "@wirecat/cli-base"
+import { createRenderer, type ErrorCode, errorCodes, isCliError, type Streams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { type Command, Option } from "commander"
 import { loadConfig } from "../config.js"
@@ -28,13 +28,19 @@ const LARGE_IMPORT_HELP =
   "the whole file, its mail is old so it needs a --since-time far back, and a large --limit. It only adds " +
   "mail; nothing missing from the file is marked deleted."
 
+// An unexpected crash has no standard code to name it by; it still leaves the answer incomplete.
+const issuesOf = (failed: ImportRun["failed"]) =>
+  failed.flatMap(({ code, source }) =>
+    (errorCodes as readonly string[]).includes(code) ? [{ code: code as ErrorCode, source }] : [],
+  )
+
 export interface ImportRun {
   notes: NotesImport[]
   /** The notes' chunks embedded for search by meaning this run. */
   notesEmbedded?: NoteChunksEmbedded
   mail: ImportResult[]
   /** A source that failed; the others still ran. */
-  failed: { source: string; reason: string }[]
+  failed: { source: string; code: ErrorCode | "internal_error"; reason: string }[]
   /** Why a timer run did nothing: another sync held the lock. */
   skipped?: string
 }
@@ -154,7 +160,11 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       const printRun = () =>
         createRenderer({ format: "json", color: false, streams }).result({
           item: snakeKeys(run),
-          meta: metaOf(startedAt, accounts.length ? { accounts: accounts.map(({ name }) => name) } : {}),
+          meta: metaOf(startedAt, {
+            ...(accounts.length ? { accounts: accounts.map(({ name }) => name) } : {}),
+            complete: run.failed.length === 0,
+            ...(run.failed.length ? { issues: issuesOf(run.failed) } : {}),
+          }),
         })
       const work = withImportLock(env, async () => {
         const store = await openStore({ env })
@@ -162,10 +172,9 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           try {
             await work()
           } catch (error) {
-            const reason = debug
-              ? String(error instanceof Error ? error.message : error)
-              : (await errorObject(error)).error.message
-            run.failed.push({ source, reason })
+            const { error: failure } = await errorObject(error)
+            const reason = debug ? String(error instanceof Error ? error.message : error) : failure.message
+            run.failed.push({ source, code: failure.code, reason })
           }
         }
         try {
@@ -177,7 +186,11 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
             if (options.folder === undefined)
               for (const folder of noteFolders(config.notes))
                 if (!folders.some(({ path }) => path === folder.path))
-                  run.failed.push({ source: `notes ${folder.path}`, reason: unboundReason(folder.path) })
+                  run.failed.push({
+                    source: `notes ${folder.path}`,
+                    code: "configuration_error",
+                    reason: unboundReason(folder.path),
+                  })
             const ignore = [...(config.notes?.ignore ?? []), ...(options.ignore ?? [])]
             for (const folder of folders)
               await attempt(`notes ${folder.path}`, async () => {

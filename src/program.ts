@@ -7,6 +7,7 @@ import { askCommand } from "./answers/command.js"
 import { APP } from "./app.js"
 import { contextCommand } from "./context/command.js"
 import { commandsCommand } from "./discovery/command.js"
+import { addEffects } from "./effects.js"
 import { addExamples } from "./examples.js"
 import { factsCommand } from "./facts/command.js"
 import { knowledgeCommands } from "./knowledge/command.js"
@@ -65,6 +66,7 @@ export const createProgram = ({
     })),
   )
   addExamples(program)
+  addEffects(program)
 
   return program
 }

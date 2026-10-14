@@ -1,0 +1,111 @@
+import { annotate } from "@wirecat/cli-base/commands"
+import type { Effects } from "@wirecat/cli-base/standards"
+import type { Command } from "commander"
+import { leaves } from "./examples.js"
+
+// cli-core's FETCH, LOCAL_READ… spelled out: importing its CLI module would cost every memo command ~70 ms.
+const REMOTE_READ: Effects = { remote: "read", local: "read" }
+const FETCH: Effects = { remote: "read", local: "write" }
+const LOCAL_READ: Effects = { remote: "none", local: "read" }
+const LOCAL_WRITE: Effects = { remote: "none", local: "write" }
+const NO_EFFECTS: Effects = { remote: "none", local: "none" }
+
+// memo's remote side is the mail server and a configured model; it only ever reads there. Notes folders and the
+// store are this machine. A command missing here counts as a write: never retried, never run as an unasked step.
+export const EFFECTS: Readonly<Record<string, Effects>> = {
+  context: LOCAL_READ,
+  "notes show": LOCAL_READ,
+  "notes list": LOCAL_READ,
+  "notes add": LOCAL_WRITE,
+  "notes edit": LOCAL_WRITE,
+  "notes remove": LOCAL_WRITE,
+  "notes export": LOCAL_WRITE,
+  "folders add": LOCAL_WRITE,
+  "folders attach": LOCAL_WRITE,
+  "folders list": LOCAL_READ,
+  "messages show": LOCAL_READ,
+  "mail probe": REMOTE_READ,
+  "mail rules list": LOCAL_READ,
+  "mail rules add": LOCAL_WRITE,
+  "mail rules remove": LOCAL_WRITE,
+  "mail rules apply": LOCAL_WRITE,
+  note: LOCAL_WRITE,
+  "tags add": LOCAL_WRITE,
+  "tags remove": LOCAL_WRITE,
+  "tags list": LOCAL_READ,
+  "tasks link": LOCAL_WRITE,
+  "tasks unlink": LOCAL_WRITE,
+  "tasks relations": LOCAL_READ,
+  "tasks status": LOCAL_READ,
+  "tasks add": LOCAL_WRITE,
+  "tasks list": LOCAL_READ,
+  "tasks close": LOCAL_WRITE,
+  "tasks update": LOCAL_WRITE,
+  "tasks assign": LOCAL_WRITE,
+  "organizations add": LOCAL_WRITE,
+  "organizations list": LOCAL_READ,
+  "organizations context": LOCAL_READ,
+  "projects meetings list": LOCAL_READ,
+  "projects meetings link": LOCAL_WRITE,
+  "projects add": LOCAL_WRITE,
+  "projects list": LOCAL_READ,
+  "projects context": LOCAL_READ,
+  "projects key-documents add": LOCAL_WRITE,
+  "projects key-documents remove": LOCAL_WRITE,
+  "projects key-documents list": LOCAL_READ,
+  "relationships add": LOCAL_WRITE,
+  "relationships list": LOCAL_READ,
+  "relationships remove": LOCAL_WRITE,
+  "relationships confirm": LOCAL_WRITE,
+  "relationships suggest": LOCAL_READ,
+  "reminders add": LOCAL_WRITE,
+  "reminders list": LOCAL_READ,
+  "reminders poll": LOCAL_WRITE,
+  "reminders ack": LOCAL_WRITE,
+  "reminders cancel": LOCAL_WRITE,
+  "reminders update": LOCAL_WRITE,
+  "vocabulary list": LOCAL_READ,
+  "vocabulary show": LOCAL_READ,
+  "vocabulary check": LOCAL_READ,
+  "vocabulary create": LOCAL_WRITE,
+  "vocabulary aliases add": LOCAL_WRITE,
+  "vocabulary aliases remove": LOCAL_WRITE,
+  "memories add": LOCAL_WRITE,
+  "memories list": LOCAL_READ,
+  "memories show": LOCAL_READ,
+  "memories confirm": LOCAL_WRITE,
+  "memories stale": LOCAL_WRITE,
+  "facts add": LOCAL_WRITE,
+  "facts list": LOCAL_READ,
+  "facts show": LOCAL_READ,
+  "facts confirm": LOCAL_WRITE,
+  "facts reverse": LOCAL_WRITE,
+  "actions add": LOCAL_WRITE,
+  "actions list": LOCAL_READ,
+  "actions show": LOCAL_READ,
+  "actions confirm": LOCAL_WRITE,
+  "actions reject": LOCAL_WRITE,
+  "agents log": LOCAL_READ,
+  mcp: LOCAL_WRITE,
+  "search all": LOCAL_READ,
+  "search messages": LOCAL_READ,
+  "search mail": LOCAL_READ,
+  "search notes": LOCAL_READ,
+  "search memories": LOCAL_READ,
+  ask: REMOTE_READ,
+  sync: FETCH,
+  "auto start": LOCAL_WRITE,
+  "auto stop": LOCAL_WRITE,
+  "auto status": LOCAL_READ,
+  commands: NO_EFFECTS,
+  "skill show": NO_EFFECTS,
+  "skill install": LOCAL_WRITE,
+}
+
+/** Puts each leaf's effects in `commands --json`, where retries, steps and MCP hints are judged from them. */
+export const addEffects = (program: Command): void => {
+  for (const [path, command] of leaves(program)) {
+    const effects = EFFECTS[path]
+    if (effects) annotate(command, { effects })
+  }
+}

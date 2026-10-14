@@ -21,9 +21,13 @@ export const snakeKeys = (value: unknown): unknown => {
 }
 
 /** One run's `meta`: memo keeps no run log yet, so the id names this answer only. */
-export const metaOf = (startedAt: number, extra: Omit<Meta, "run_id" | "duration_ms"> = {}): Meta => ({
+export const metaOf = (
+  startedAt: number,
+  extra: Omit<Meta, "run_id" | "duration_ms" | "complete"> & Partial<Pick<Meta, "complete">> = {},
+): Meta => ({
   run_id: randomUUID(),
   duration_ms: Math.max(0, Math.round(Date.now() - startedAt)),
+  complete: true,
   ...extra,
 })
 

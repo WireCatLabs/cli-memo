@@ -70,12 +70,19 @@ beforeEach(async () => {
 describe("memo sync --notes", () => {
   it("refuses a folder with no id, naming both ways to give it one", async () => {
     writeFileSync(configPath(env), JSON.stringify({ notes: { folders: [join(root, "elsewhere")] } }))
-    const synced = (await json("sync", "--notes")).item
+    const answer = await json("sync", "--notes")
+    const synced = answer.item
     process.exitCode = 0
+
+    expect(answer.meta).toMatchObject({
+      complete: false,
+      issues: [{ code: "configuration_error", source: `notes ${join(root, "elsewhere")}` }],
+    })
 
     expect(synced.failed).toEqual([
       {
         source: `notes ${join(root, "elsewhere")}`,
+        code: "configuration_error",
         reason: expect.stringMatching(/memo folders add .*memo folders attach/),
       },
     ])
