@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
+import { answerOf } from "../test/answer.js"
 import { createProgram } from "./program.js"
 
 const setUp = async (agent: Record<string, string>) => {
@@ -16,8 +17,7 @@ const setUp = async (agent: Record<string, string>) => {
     await createProgram({ streams, env })
       .exitOverride()
       .parseAsync([...args, "--json"], { from: "user" })
-    const answer = JSON.parse(streams.stdout.join(""))
-    return "item" in answer ? answer.item : answer
+    return answerOf(streams.stdout.join(""))
   }
   const note = await run("notes", "add", "Synthetic note")
   const project = await run("projects", "add", "Synthetic Harbour", "--key", "SYH")

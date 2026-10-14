@@ -1,6 +1,8 @@
-import { createRenderer, type ErrorCode, errorCodes, isCliError, type Streams } from "@wirecat/cli-base"
+import { type ErrorCode, errorCodes, isCliError, type Streams } from "@wirecat/cli-base"
+import { momentOf } from "@wirecat/cli-core/cli"
 import { openStore } from "@wirecat/cli-core/store"
 import { type Command, Option } from "commander"
+import { answers, itemAnswer } from "../answer.js"
 import { loadConfig } from "../config.js"
 import { errorObject } from "../failure.js"
 import { mailAccounts, mailSource } from "../mail/accounts.js"
@@ -10,7 +12,6 @@ import { embedNoteChunks, type NoteChunksEmbedded } from "../notes/embed.js"
 import { noteFolders } from "../notes/folders.js"
 import { importNotes, type NotesImport } from "../notes/import.js"
 import { collect, positive } from "../options.js"
-import { metaOf, snakeKeys } from "../output.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { applyAuto, autoState, recordAutoRun } from "./auto.js"
 import { withImportLock } from "./lock.js"
@@ -96,6 +97,7 @@ const failedReason = ([first, ...rest]: ImportRun["failed"]): string | undefined
   first === undefined ? undefined : `${first.source}: ${first.reason}${rest.length ? ` (and ${rest.length} more)` : ""}`
 
 export const syncCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
+  const { print } = answers(program, streams, env)
   program
     .command("sync")
     .summary("bring notes and mail up to date in the store, only what changed")
@@ -157,11 +159,10 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         await applyAuto(env, autoState(config))
         if (!autoState(config).enabled) return
       }
-      // The messenger CLI module costs every memo command ~70 ms to load; only --since-time needs it.
       const since = new Date(
         options.sinceTime === undefined
           ? Date.now() - MAIL_WINDOW_DAYS * DAY
-          : (await import("@wirecat/cli-core/cli")).momentOf(options.sinceTime, "--since-time"),
+          : momentOf(options.sinceTime, "--since-time"),
       )
       // An archive file is read whole each run, so only a sync that names it reads it.
       const accounts =
@@ -172,14 +173,13 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           : []
       const run: ImportRun = { notes: [], mail: [], failed: [] }
       const startedAt = Date.now()
-      const printRun = () =>
-        createRenderer({ format: "json", color: false, streams }).result({
-          item: snakeKeys(run),
-          meta: metaOf(startedAt, {
+      const answer = () =>
+        itemAnswer(run, {
+          meta: {
             ...(accounts.length ? { accounts: accounts.map(({ name }) => name) } : {}),
             complete: run.failed.length === 0,
             ...(run.failed.length ? { issues: issuesOf(run.failed) } : {}),
-          }),
+          },
         })
       const work = withImportLock(env, async () => {
         const store = await openStore({ env })
@@ -259,12 +259,11 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       if (skipped !== undefined) {
         run.skipped = skipped
         streams.diagnostic(`memo sync skipped: ${skipped}`)
-        if (options.json) printRun()
+        if (options.json) print(true, answer())
         return
       }
       recordAutoRun(env, startedAt, failedReason(run.failed))
-      if (options.json) printRun()
-      else streams.data(`${text(run)}\n`)
+      print(options.json, answer(), text(run))
       if (run.failed.length > 0) process.exitCode = 1
     })
 }

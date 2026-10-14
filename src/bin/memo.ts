@@ -4,7 +4,7 @@ import { migrateFolders } from "@wirecat/cli-core/background"
 import { ensureSqlite } from "@wirecat/cli-core/sqlite-runtime"
 import { type Command, CommanderError } from "commander"
 import { APP } from "../app.js"
-import { interactiveOf, reportFailure, throwParseFailures } from "../failure.js"
+import { interactiveOf } from "../terminal.js"
 
 const args = process.argv.slice(2)
 const tty = process.stdout.isTTY === true
@@ -16,6 +16,7 @@ try {
   await ensureSqlite()
   // A static import would load the store's SQLite before ensureSqlite could swap it.
   const { createProgram, refuseJoinedPath } = await import("../program.js")
+  const { throwParseFailures } = await import("../failure.js")
   // `memo auto status` says it in full; everywhere else one line, until a timer run passes again.
   if (args[0] !== "auto") {
     const notice = (await import("../run/auto.js")).autoNotice(process.env)
@@ -36,7 +37,13 @@ try {
   // Help and the version were printed already; only their exit code is left to give.
   if (error instanceof CommanderError && (error.exitCode === 0 || error.code.startsWith("commander.help")))
     process.exitCode = error.exitCode
-  else process.exitCode = await reportFailure(error, { args, program, streams: processStreams, tty })
+  else
+    process.exitCode = (await import("../failure.js")).reportFailure(error, {
+      args,
+      program,
+      streams: processStreams,
+      tty,
+    })
 } finally {
   release()
 }

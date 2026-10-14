@@ -6,6 +6,7 @@ import { formatLocator, type Message } from "@wirecat/cli-core"
 import { messagesService, storeOnlyDeps } from "@wirecat/cli-core/services"
 import { openStore } from "@wirecat/cli-core/store"
 import { beforeEach, describe, expect, it } from "vitest"
+import { answerOf } from "../../test/answer.js"
 import { APP } from "../app.js"
 import { himalaya } from "../mail/himalaya.js"
 import { importMail } from "../mail/import.js"
@@ -19,7 +20,7 @@ const path = "Projects/Lighthouse.md"
 const mail = { provider: "email", account: "owner@example.test" }
 const otherMail = { provider: "email", account: "other@example.test" }
 const tg = { provider: "telegram", account: mail.account }
-const noteRef = async () => (await json("notes", "show", join(vault, path))).item.ref as string
+const noteRef = async () => (await json("notes", "show", join(vault, path))).ref as string
 const mailLocator = () => formatLocator({ ...mail, chat: "7", message: "42" })
 
 const run = async (...args: string[]) => {
@@ -27,7 +28,7 @@ const run = async (...args: string[]) => {
   await createProgram({ streams, env }).exitOverride().parseAsync(args, { from: "user" })
   return streams.stdout.join("")
 }
-const json = async (...args: string[]) => JSON.parse(await run(...args, "--json"))
+const json = async (...args: string[]) => answerOf(await run(...args, "--json"))
 
 beforeEach(async () => {
   const dir = mkdtempSync(join(tmpdir(), "memo-tags-"))
@@ -97,13 +98,13 @@ describe("memo source tags", () => {
     const before = readFileSync(join(vault, path))
     const ref = await noteRef()
     const added = await json("tags", "add", "Work", "work", "FOLLOW-UP", "--note", ref)
-    expect(added.item).toMatchObject({
+    expect(added).toMatchObject({
       target: { type: "document", id: ref.slice("document:".length) },
       added: ["work", "follow-up"],
     })
-    expect((await json("tags", "add", "work", "--note", ref)).item).toMatchObject({ added: [] })
+    expect(await json("tags", "add", "work", "--note", ref)).toMatchObject({ added: [] })
     expect(readFileSync(join(vault, path))).toEqual(before)
-    expect((await json("notes", "show", ref)).item.tags).toEqual(["follow-up", "work"])
+    expect((await json("notes", "show", ref)).tags).toEqual(["follow-up", "work"])
   })
 
   it("isolates identical email message and thread ids by account and provider, and shared search finds the label", async () => {
@@ -134,7 +135,7 @@ describe("memo source tags", () => {
 
   it("labels an email thread and removes tags idempotently", async () => {
     const args = ["--chat", "7", "--provider", "email", "--account", mail.account]
-    expect((await json("tags", "add", "work", ...args)).item).toMatchObject({
+    expect(await json("tags", "add", "work", ...args)).toMatchObject({
       target: { type: "chat", chat_id: "7" },
       added: ["work"],
     })
@@ -142,8 +143,8 @@ describe("memo source tags", () => {
     expect(await run("tags", "list", "--type", "chat")).toContain(
       `work  chat  chat:email/${encodeURIComponent(mail.account)}/7`,
     )
-    expect((await json("tags", "remove", "work", ...args)).item).toMatchObject({ removed: ["work"], unchanged: [] })
-    expect((await json("tags", "remove", "work", ...args)).item).toMatchObject({ removed: [], unchanged: ["work"] })
+    expect(await json("tags", "remove", "work", ...args)).toMatchObject({ removed: ["work"], unchanged: [] })
+    expect(await json("tags", "remove", "work", ...args)).toMatchObject({ removed: [], unchanged: ["work"] })
   })
 
   it("preserves labels through edits and hides deleted notes from search", async () => {
@@ -222,22 +223,16 @@ describe("memo source tags", () => {
     const scope = ["--provider", zoom.provider, "--account", zoom.account]
 
     const added = await json("tags", "add", "planning", "--meeting", String(meetingId), ...scope)
-    expect(added.item).toMatchObject({ target: { type: "meeting", id: String(meetingId) }, added: ["planning"] })
+    expect(added).toMatchObject({ target: { type: "meeting", id: String(meetingId) }, added: ["planning"] })
     expect((await json("tags", "list", "--type", "meeting")).items).toMatchObject([
-      { type: "meeting", id: String(meetingId), tag: "planning" },
+      { type: "meeting", id: String(meetingId), tag: "planning", origin: expect.any(String) },
     ])
-    const { item: note } = await json(
-      "notes",
-      "add",
-      "Follow up with Bob Sample",
-      "--about",
-      `meeting:${accountId}/${meetingId}`,
-    )
+    const note = await json("notes", "add", "Follow up with Bob Sample", "--about", `meeting:${accountId}/${meetingId}`)
     expect(note.note.ref).toMatch(/^note:/)
     const about = await json("notes", "list", "--about", `meeting:${accountId}/${meetingId}`)
     expect(JSON.stringify(about)).toContain(note.note.ref)
 
-    const { item: byId } = await json(
+    const byId = await json(
       "notes",
       "add",
       "Send the agenda",

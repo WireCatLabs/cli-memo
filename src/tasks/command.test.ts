@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
+import { answerOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
 
 it("creates native note tasks through the CLI and connects context, search, assignments, tags and reminders", async () => {
@@ -21,8 +22,7 @@ it("creates native note tasks through the CLI and connects context, search, assi
     await createProgram({ streams, env })
       .exitOverride()
       .parseAsync([...args, "--json"], { from: "user" })
-    const answer = JSON.parse(streams.stdout.join(""))
-    return "item" in answer ? answer.item : answer
+    return answerOf(streams.stdout.join(""))
   }
   const scope = ["--provider", key.provider, "--account", key.account]
   const added = await run("notes", "add", "Synthetic budget request", "--about", `person:${person?.uid}`)
@@ -50,12 +50,20 @@ it("creates native note tasks through the CLI and connects context, search, assi
   expect((await run("context", "telegram:101", "--account", "1")).tasks.items).toHaveLength(2)
   const search = await run("search", "all", "budget")
   expect(
-    search.items.flatMap(({ tasks = [] }: { tasks?: { source: string }[] }) => tasks.map((item) => item.source)).sort(),
+    search.items
+      .flatMap((item: { tasks?: { source: string }[] }) => item.tasks ?? [])
+      .map((task: { source: string }) => task.source)
+      .sort(),
   ).toEqual([source, `note:${unrelated.note.id}`].sort())
   await run("tags", "add", "budget", "--task", task.task.id, ...scope)
-  expect((await run("tags", "list", "--tag", "budget", ...scope)).items).toContainEqual(
-    expect.objectContaining({ type: "task", id: task.task.id, tag: "budget" }),
-  )
+  expect(
+    (await run("tags", "list", "--tag", "budget", ...scope)).items.find(
+      ({ type }: { type: string }) => type === "task",
+    ),
+  ).toMatchObject({
+    type: "task",
+    id: task.task.id,
+  })
   const reminder = await run("reminders", "add", task.task.id, "--at-time", "2026-01-01T00:00:00Z", ...scope)
   const [delivery] = (await run("reminders", "poll", ...scope)).items
   await run("reminders", "ack", reminder.id, delivery.receipt, ...scope)
@@ -88,8 +96,7 @@ it("adds a bug to a project with its fields and assignee, updates, lists and clo
     await createProgram({ streams, env })
       .exitOverride()
       .parseAsync([...args, "--json"], { from: "user" })
-    const answer = JSON.parse(streams.stdout.join(""))
-    return "item" in answer ? answer.item : answer
+    return answerOf(streams.stdout.join(""))
   }
   await run("projects", "add", "Lighthouse", "--key", "LHT")
 

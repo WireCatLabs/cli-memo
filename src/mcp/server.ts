@@ -1,6 +1,8 @@
+import { randomUUID } from "node:crypto"
 import { type CallToolResult, McpServer } from "@modelcontextprotocol/server"
 import { toStandardJsonSchema } from "@valibot/to-json-schema"
 import { CliError } from "@wirecat/cli-base"
+import { type Body, inRun, sealed } from "@wirecat/cli-core/cli"
 import {
   FACT_STATUSES,
   FACT_TYPES,
@@ -12,9 +14,9 @@ import {
 } from "@wirecat/cli-core/store"
 import * as v from "valibot"
 import { propose } from "../actions/actions.js"
+import { itemAnswer } from "../answer.js"
 import { mcpFailure } from "../failure.js"
 import { addMemory } from "../memories/memories.js"
-import { snakeKeys } from "../output.js"
 import { pageOf } from "../page.js"
 import { VERSION } from "../version.js"
 import { knowledgeTools } from "./knowledge.js"
@@ -62,7 +64,7 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
       evidence: v.pipe(v.array(v.string()), v.minLength(1)),
       subject: v.optional(v.string()),
     }),
-    run: (store, args) => addMemory(store, args, by),
+    run: async (store, args) => itemAnswer(await addMemory(store, args, by)),
   }),
   memories_list: define({
     title: "List memories",
@@ -75,14 +77,14 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
       subject: v.optional(v.string()),
       limit: limit(500),
     }),
-    run: (store, args) => pageOf(args.limit, (limit) => store.memories.list({ ...args, limit })),
+    run: (store, args) => pageOf("memories list", args.limit, (limit) => store.memories.list({ ...args, limit })),
   }),
   memories_show: define({
     title: "Show a memory",
     description: `One memory with its evidence. ${UNTRUSTED}`,
     writes: false,
     input: v.object({ ref: v.string() }),
-    run: (store, args) => store.memories.get(args.ref),
+    run: async (store, args) => itemAnswer(await store.memories.get(args.ref)),
   }),
   search_memories: define({
     title: "Search memories",
@@ -94,7 +96,10 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
       limit: limit(500),
     }),
     run: (store, { text, ...options }) =>
-      pageOf(options.limit, (limit) => store.memories.search(text, { ...options, limit }), { fallback: 20, cap: 200 }),
+      pageOf("search memories", options.limit, (limit) => store.memories.search(text, { ...options, limit }), {
+        fallback: 20,
+        cap: 200,
+      }),
   }),
   facts_add: define({
     title: "Propose a fact",
@@ -111,7 +116,7 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
       scope: v.optional(v.picklist(MEMORY_SCOPES)),
       supersedes: v.optional(v.string()),
     }),
-    run: (store, args) => store.facts.add({ ...args, by }),
+    run: async (store, args) => itemAnswer(await store.facts.add({ ...args, by })),
   }),
   facts_list: define({
     title: "List facts",
@@ -124,14 +129,14 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
       subject: v.optional(v.string()),
       limit: limit(500),
     }),
-    run: (store, args) => pageOf(args.limit, (limit) => store.facts.list({ ...args, limit })),
+    run: (store, args) => pageOf("facts list", args.limit, (limit) => store.facts.list({ ...args, limit })),
   }),
   facts_show: define({
     title: "Show a fact",
     description: `One fact with its evidence. ${UNTRUSTED}`,
     writes: false,
     input: v.object({ ref: v.string() }),
-    run: (store, args) => store.facts.get(args.ref),
+    run: async (store, args) => itemAnswer(await store.facts.get(args.ref)),
   }),
   actions_add: define({
     title: "Propose an action",
@@ -146,37 +151,43 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
       target: v.optional(v.string()),
       payload: v.optional(v.unknown()),
     }),
-    run: (store, { payload, ...proposal }) =>
-      propose(store, { ...proposal, ...(payload === undefined ? {} : { payload: JSON.stringify(payload) }) }, by),
+    run: async (store, { payload, ...proposal }) =>
+      itemAnswer(
+        await propose(
+          store,
+          { ...proposal, ...(payload === undefined ? {} : { payload: JSON.stringify(payload) }) },
+          by,
+        ),
+      ),
   }),
   actions_list: define({
     title: "List proposed actions",
     description: `Proposed actions, newest first, by status. ${UNTRUSTED}`,
     writes: false,
     input: v.object({ status: v.optional(v.picklist(PROPOSAL_STATUSES)), limit: limit(500) }),
-    run: (store, args) => pageOf(args.limit, (limit) => store.proposedActions.list({ ...args, limit })),
+    run: (store, args) => pageOf("actions list", args.limit, (limit) => store.proposedActions.list({ ...args, limit })),
   }),
   actions_show: define({
     title: "Show a proposed action",
     description: `One proposed action with its payload and the task it became. ${UNTRUSTED}`,
     writes: false,
     input: v.object({ id: v.string() }),
-    run: (store, args) => store.proposedActions.get(args.id),
+    run: async (store, args) => itemAnswer(await store.proposedActions.get(args.id)),
   }),
   agents_log: define({
     title: "Read the agent log",
     description: "What agents did through the MCP servers, newest first: agent, tool, tier, outcome and times.",
     writes: false,
     input: v.object({ tool: v.optional(v.string()), agent: v.optional(v.string()), limit: limit(500) }),
-    run: (store, args) => pageOf(args.limit, (limit) => store.agentActions.list({ ...args, limit })),
+    run: (store, args) => pageOf("agents log", args.limit, (limit) => store.agentActions.list({ ...args, limit })),
   }),
 }
 
 /** What an MCP answer may hold, as cli-core's tools allow: a bigger one is refused, never cut. */
 const MAX_ANSWER_BYTES = 4 * 1024 * 1024
 
-const answer = (raw: object): CallToolResult => {
-  const value = snakeKeys(raw) as object
+const answer = (body: Body): CallToolResult => {
+  const value = sealed(body)
   const text = JSON.stringify(value)
   if (Buffer.byteLength(text) > MAX_ANSWER_BYTES)
     throw new CliError("invalid_response", "the answer exceeds 4 MiB — lower limit or ask for less", {
@@ -218,9 +229,10 @@ export const createMemoServer = (env: NodeJS.ProcessEnv): McpServer => {
         try {
           let result: CallToolResult
           try {
-            result = answer(await tool.run(store, v.parse(tool.input, args) as never, env))
+            const body = await tool.run(store, v.parse(tool.input, args) as never, env)
+            result = inRun({ runId: randomUUID(), command: name, startedAt }, () => answer(body))
           } catch (error) {
-            result = await mcpFailure(error)
+            result = mcpFailure(error)
           }
           const code = (result.structuredContent as { error?: { code?: string } } | undefined)?.error?.code
           await store.agentActions.record({

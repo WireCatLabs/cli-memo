@@ -1,10 +1,10 @@
-import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
+import { CliError, type Streams } from "@wirecat/cli-base"
+import { momentOf } from "@wirecat/cli-core/cli"
 import { type MessageStore, openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
+import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { type Config, loadConfig, updateConfig } from "../config.js"
 import { positive } from "../options.js"
-import { metaOf, snakeKeys } from "../output.js"
-import { printing } from "../records/run.js"
 import { withImportLock } from "../run/lock.js"
 import { type MailAccountConfig, mailAccounts, mailFolders, mailSource } from "./accounts.js"
 import { type ApplyResult, applyRules } from "./apply.js"
@@ -127,7 +127,7 @@ const probeText = (probe: Probe & { seconds: number }): string => {
 }
 
 export const mailCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
-  const print = printing(streams)
+  const { print } = answers(program, streams, env)
   const mail = program.command("mail").description("look at a mail account before importing it, and the owner's rules")
 
   mail
@@ -158,11 +158,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         options: { sinceTime?: string; limitGroups: number; domainAge?: boolean; json?: boolean },
       ) => {
         const account = accountOf(loadConfig(env), name)
-        const since = new Date(
-          options.sinceTime === undefined
-            ? 0
-            : (await import("@wirecat/cli-core/cli")).momentOf(options.sinceTime, "--since-time"),
-        )
+        const since = new Date(options.sinceTime === undefined ? 0 : momentOf(options.sinceTime, "--since-time"))
         const started = Date.now()
         const source = mailSource(account, env)
         const listed = new Map<string, Listed>()
@@ -180,7 +176,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           ...(lookups === undefined ? {} : { domainLookups: lookups }),
           seconds: Math.round((Date.now() - started) / 100) / 10,
         }
-        print(options.json, shown, probeText(shown))
+        print(options.json, itemAnswer(shown), probeText(shown))
       },
     )
 
@@ -196,19 +192,8 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     )
     .action(async (name: string, options: { json?: boolean }) => {
       const account = accountOf(loadConfig(env), name)
-      const startedAt = Date.now()
-      const store = await openStore({ env })
-      try {
-        const status = await mailStatus(store, account)
-        if (options.json)
-          createRenderer({ format: "json", color: false, streams }).result({
-            item: snakeKeys(status),
-            meta: metaOf(startedAt, { accounts: [account.name] }),
-          })
-        else streams.data(`${statusText(status)}\n`)
-      } finally {
-        await store.close()
-      }
+      const status = await withStore(env, (store) => mailStatus(store, account))
+      print(options.json, itemAnswer(status, { meta: { accounts: [account.name] } }), statusText(status))
     })
 
   const rules = mail
@@ -233,7 +218,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
               ? { ...rule, recorded: await recordedBy(store, account.address, rule) }
               : rule,
           )
-        print(options.json, { items }, items.map(ruleLine).join("\n") || "no rules")
+        print(options.json, wholeList("mail rules list", items), items.map(ruleLine).join("\n") || "no rules")
       } finally {
         await store?.close()
       }
@@ -275,7 +260,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           decided_at: new Date().toISOString(),
         }
         changeRules(env, name, (current) => [...current.filter((each) => !sameMatch(each.match, match)), rule])
-        print(options.json, rule, ruleLine(rule))
+        print(options.json, itemAnswer(rule), ruleLine(rule))
       },
     )
 
@@ -294,7 +279,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           reason: "mail.rule-not-found",
         })
       const left = changeRules(env, name, (current) => current.filter((rule) => !sameMatch(rule.match, match)))
-      print(options.json, { removed: match, items: left }, `removed the rule for ${describe(match)}`)
+      print(options.json, itemAnswer({ removed: match, rules: left }), `removed the rule for ${describe(match)}`)
     })
 
   rules
@@ -313,31 +298,12 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     )
     .action(async (name: string, options: { sinceTime?: string; yes?: boolean; json?: boolean }) => {
       const account = accountOf(loadConfig(env), name)
-      const since = new Date(
-        options.sinceTime === undefined
-          ? 0
-          : (await import("@wirecat/cli-core/cli")).momentOf(options.sinceTime, "--since-time"),
+      const since = new Date(options.sinceTime === undefined ? 0 : momentOf(options.sinceTime, "--since-time"))
+      const result = await withImportLock(env, () =>
+        withStore(env, (store) =>
+          applyRules({ store, source: mailSource(account, env), account, since, apply: options.yes === true }),
+        ),
       )
-      const startedAt = Date.now()
-      const result = await withImportLock(env, async () => {
-        const store = await openStore({ env })
-        try {
-          return await applyRules({
-            store,
-            source: mailSource(account, env),
-            account,
-            since,
-            apply: options.yes === true,
-          })
-        } finally {
-          await store.close()
-        }
-      })
-      if (options.json)
-        createRenderer({ format: "json", color: false, streams }).result({
-          item: snakeKeys(result),
-          meta: metaOf(startedAt, { accounts: [account.name] }),
-        })
-      else streams.data(`${applyText(result)}\n`)
+      print(options.json, itemAnswer(result, { meta: { accounts: [account.name] } }), applyText(result))
     })
 }

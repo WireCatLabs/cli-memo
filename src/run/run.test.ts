@@ -3,6 +3,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { beforeEach, describe, expect, it } from "vitest"
+import { answerOf } from "../../test/answer.js"
 import { loadConfig, updateConfig } from "../config.js"
 import { createProgram } from "../program.js"
 import { autoNotice, followInstall } from "./auto.js"
@@ -114,17 +115,14 @@ describe("memo auto", () => {
   it("shows whether the timer is on and when it runs next", async () => {
     await run("auto", "start")
 
-    const status = JSON.parse(await run("auto", "status", "--json"))
+    const status = answerOf(await run("auto", "status", "--json"))
 
     expect(status).toMatchObject({
-      item: {
-        enabled: true,
-        every: "5m",
-        timer: "active",
-        next: "2026-10-05T22:50:13.053Z",
-        last: null,
-      },
-      meta: { complete: true },
+      enabled: true,
+      every: "5m",
+      timer: "active",
+      next: "2026-10-05T22:50:13.053Z",
+      last: null,
     })
   })
 })
@@ -144,7 +142,7 @@ describe("a failing timer run", () => {
     expect(autoNotice(env)).toMatch(
       /^memo: scheduled sync failing since .* \(2 runs\): notes .*vault.*has no folder id.* — memo auto status$/,
     )
-    expect(JSON.parse(await run("auto", "status", "--json")).item.failing).toMatchObject({
+    expect(answerOf(await run("auto", "status", "--json")).failing).toMatchObject({
       runs: 2,
       reason: expect.stringContaining("has no folder id"),
     })
@@ -153,7 +151,7 @@ describe("a failing timer run", () => {
     await timerSync()
 
     expect(autoNotice(env)).toBeUndefined()
-    expect(JSON.parse(await run("auto", "status", "--json")).item.failing).toBeNull()
+    expect(answerOf(await run("auto", "status", "--json")).failing).toBeNull()
   })
 
   it("is not recorded for a sync started by hand", async () => {
@@ -204,6 +202,6 @@ describe("memo sync", () => {
 
     expect(process.exitCode).toBeUndefined()
     expect(streams.stderr.join("")).toBe(`memo sync skipped: another memo sync is running (process ${process.ppid})`)
-    expect(JSON.parse(streams.stdout.join("")).item).toMatchObject({ skipped: expect.stringContaining("running") })
+    expect(answerOf(streams.stdout.join(""))).toMatchObject({ skipped: expect.stringContaining("running") })
   })
 })

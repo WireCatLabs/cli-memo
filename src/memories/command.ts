@@ -1,10 +1,10 @@
 import type { Streams } from "@wirecat/cli-base"
 import { MEMORY_KINDS, MEMORY_SCOPES, MEMORY_STATUSES, type Memory } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
+import { answers, itemAnswer } from "../answer.js"
 import { authorOf, byOption } from "../author.js"
 import { oneOf, positive } from "../options.js"
 import { pageOf } from "../page.js"
-import { answering } from "../records/run.js"
 import { addMemory } from "./memories.js"
 
 interface Filters {
@@ -17,7 +17,7 @@ interface Filters {
 }
 
 export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
-  const run = answering(streams, env)
+  const { run } = answers(program, streams, env)
   const memories = program
     .command("memories")
     .description("what agents and you concluded, with evidence; you confirm an agent's")
@@ -39,17 +39,19 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
           asOwner?: boolean
         },
       ) =>
-        run(options.json, (store) =>
-          addMemory(
-            store,
-            {
-              text: words.join(" "),
-              kind: options.kind,
-              scope: options.scope,
-              evidence: options.evidence,
-              ...(options.subject === undefined ? {} : { subject: options.subject }),
-            },
-            authorOf(env, options.asOwner),
+        run(options.json, async (store) =>
+          itemAnswer(
+            await addMemory(
+              store,
+              {
+                text: words.join(" "),
+                kind: options.kind,
+                scope: options.scope,
+                evidence: options.evidence,
+                ...(options.subject === undefined ? {} : { subject: options.subject }),
+              },
+              authorOf(env, options.asOwner),
+            ),
           ),
         ),
     )
@@ -64,7 +66,9 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     .option("--limit <n>", "most memories, up to 500", positive, 100)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(({ json, ...filters }: Filters) =>
-      run(json, (store) => pageOf(filters.limit, (limit) => store.memories.list({ ...filters, limit }))),
+      run(json, (store) =>
+        pageOf("memories list", filters.limit, (limit) => store.memories.list({ ...filters, limit })),
+      ),
     )
 
   memories
@@ -72,25 +76,31 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     .description("one memory with its evidence")
     .argument("<ref>", "memory:<id>")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.memories.get(ref)))
+    .action((ref: string, options: { json?: boolean }) =>
+      run(options.json, async (store) => itemAnswer(await store.memories.get(ref))),
+    )
 
   memories
     .command("confirm")
     .description("stand behind a memory: its evidence was checked now")
     .argument("<ref>", "memory:<id>")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.memories.confirm(ref)))
+    .action((ref: string, options: { json?: boolean }) =>
+      run(options.json, async (store) => itemAnswer(await store.memories.confirm(ref))),
+    )
 
   memories
     .command("stale")
     .description("mark a memory whose evidence no longer holds")
     .argument("<ref>", "memory:<id>")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.memories.markStale(ref)))
+    .action((ref: string, options: { json?: boolean }) =>
+      run(options.json, async (store) => itemAnswer(await store.memories.markStale(ref))),
+    )
 }
 
 export const searchMemoriesCommand = (search: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
-  const run = answering(streams, env)
+  const { run } = answers(search, streams, env)
   search
     .command("memories")
     .description("memories holding every word, best first")
@@ -101,6 +111,7 @@ export const searchMemoriesCommand = (search: Command, streams: Streams, env: No
     .action((words: string[], options: { scope?: Memory["scope"]; limit: number; json?: boolean }) =>
       run(options.json, (store) =>
         pageOf(
+          "search memories",
           options.limit,
           (limit) =>
             store.memories.search(words.join(" "), {

@@ -6,6 +6,24 @@ the API.
 
 ## Unreleased
 
+### Changed — may break scripts
+
+- **Every `--json` answer, and every MCP answer, is the standard envelope.** One thing comes in `item`, a list in
+  `items` with `page` (`mode`, `limit`, `has_more`, and `next_page` where the command takes `--page`), and each
+  answer carries `meta` with its `run_id`. Before, most commands printed the bare record. `commands --json` reports
+  contract 4.
+- **`--offset` is now `--page`** in `notes list`, `search notes` and `projects meetings list`; MCP `search_notes`
+  takes `page`. A list that only grows with `--limit` says `has_more` and names no next page.
+- **`search notes`** lists its notes in `items`, not `hits`; why meaning was not searched is in `missing`. Its
+  `linked` summary is no longer in JSON or MCP (the text view keeps it): ask `memo context <person>` instead.
+- **`search all`** carries the open tasks that point at a hit on that hit, as `tasks`; the accounts read are
+  `meta.accounts`, and a resource it could not read is a `meta.issues` entry.
+- **`folders list`** puts the folders known only from another computer in the same list, with `path: null`;
+  **`tags list`** puts labels on notes, people, projects and folders in the same list as source labels, one row
+  per label with its `origin`, instead of a separate `knowledge` list.
+- **`mail rules remove`** answers the rules left as `rules`; `relationships suggest` answers a list and no
+  longer names its scope; `reminders list` and `reminders poll` answer lists.
+
 ## 0.31.0 — 14.10.2026
 
 ### Added
@@ -28,15 +46,6 @@ the API.
 
 ### Changed
 
-- **Breaking: every `--json` answer is the shared envelope.** One thing is under `item`, a list under `items`
-  with `page`, and each answer carries `meta` (`run_id`, `duration_ms`, `complete`, `accounts` where read).
-  `memo tags list` lists labels on notes, people, projects and folders in `items` too, one row per label with
-  its `origin`, instead of a separate `knowledge` list. `memo search notes` answers `items` instead of `hits`,
-  and the next page's offset in `page.next_cursor` instead of `next_offset`; a search that left something out
-  says so in `missing`; it no longer answers `linked`, as `tg search notes` does not. `memo folders list` lists
-  folders known from another computer in `items` with `path: null`, not in `elsewhere`. In `memo search all`, the open tasks that point at a result ride on that result as
-  `tasks`. `memo auto status`, `memo context`, `memo ask` and the knowledge commands answer `item`. The
-  commands document's `contract` is 4.
 - **Config settings are named in snake_case:** `mail.max_body_chars`, `mail.max_attachment_chars`, and `list_id`
   and `decided_at` in `mail.accounts[].rules[]`, which `memo mail rules` writes and prints that way. The camelCase
   names older versions wrote are still read, and the file is saved in snake_case; both spellings with different

@@ -1,8 +1,8 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import type { MessageStore, VocabularyKind, VocabularyOptions, VocabularyTarget } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
+import { answers, itemAnswer } from "../answer.js"
 import { oneOf, positive } from "../options.js"
-import { answering } from "../records/run.js"
 
 const kinds = ["project", "tag", "topic"] as const
 const targetOf = (reference: string): VocabularyTarget => {
@@ -16,8 +16,9 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
   const vocabulary = program
     .command("vocabulary")
     .description("canonical projects, tags and topics with explicit aliases")
-  const run = answering(streams, env)
-  const execute = (options: Options, work: (store: MessageStore) => Promise<unknown>) => run(options.json, work)
+  const { run } = answers(program, streams, env)
+  const execute = (options: Options, work: (store: MessageStore) => Promise<unknown>) =>
+    run(options.json, async (store) => itemAnswer(await work(store)))
   const readOptions = (command: Command) =>
     command
       .option("--kind <kind>", "project, tag or topic", oneOf(kinds))

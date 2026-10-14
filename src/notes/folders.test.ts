@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { beforeEach, describe, expect, it } from "vitest"
+import { answerOf } from "../../test/answer.js"
 import { configPath, loadConfig } from "../config.js"
 import { createProgram } from "../program.js"
 import { attachFolder, bindFolder, folderPaths, noteFolders } from "./folders.js"
@@ -56,11 +57,11 @@ describe("memo folders", () => {
     expect(await run("folders", "add", join(root, "vault"))).toBe(id)
 
     env = { ...env, MEMO_CONFIG_DIR: join(root, "laptop") }
-    expect(JSON.parse(await run("folders", "list", "--json")).items).toEqual([
+    expect(answerOf(await run("folders", "list", "--json")).items).toEqual([
       { id, name: "vault", format: "obsidian", path: null },
     ])
     await run("folders", "attach", id, join(root, "plain"), "--format", "markdown")
-    expect(JSON.parse(await run("folders", "list", "--json")).items).toEqual([
+    expect(answerOf(await run("folders", "list", "--json")).items).toEqual([
       { id, path: join(root, "plain"), format: "markdown" },
     ])
     expect(JSON.parse(readFileSync(configPath(env), "utf8")).notes.folders[0]).toEqual({
@@ -79,8 +80,8 @@ describe("memo folders", () => {
     const drive = await store.notes.addFolder({ name: "google-drive:someone@example.com", format: "markdown" })
     await store.close()
 
-    expect(JSON.parse(await run("folders", "list", "--json")).items).toEqual([
-      { id: drive.id, name: "google-drive:someone@example.com", format: "markdown", kept_by: "drive", path: null },
+    expect(answerOf(await run("folders", "list", "--json")).items).toEqual([
+      { id: drive.id, name: "google-drive:someone@example.com", format: "markdown", path: null, kept_by: "drive" },
     ])
     expect(await run("folders", "list")).not.toContain("memo folders attach")
     await expect(run("folders", "attach", drive.id, join(root, "plain"))).rejects.toThrow(/drive keeps it/)

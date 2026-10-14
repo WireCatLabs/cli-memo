@@ -1,10 +1,9 @@
-import { createRenderer, type Streams } from "@wirecat/cli-base"
+import type { Streams } from "@wirecat/cli-base"
 import type { ContextMessage } from "@wirecat/cli-core/services"
-import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
+import { answers, itemAnswer, withStore } from "../answer.js"
 import { boundFolders } from "../notes/bound.js"
 import { positive } from "../options.js"
-import { answerOf } from "../output.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { type MemoContext, memoContext } from "./context.js"
 
@@ -64,6 +63,7 @@ export const contextText = ({ messages, notes, notRead, tasks, yourNotes }: Memo
 }
 
 export const contextCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
+  const { print } = answers(program, streams, env)
   program
     .command("context")
     .description("messages, mail and notes about a person, each with a link to its source")
@@ -75,18 +75,13 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
       "the stored account to read; required when the store holds several of that messenger",
     )
     .action(async (person: string, options: { limit: number; json?: boolean; account?: string }) => {
-      const startedAt = Date.now()
-      const store = await openStore({ env })
-      try {
+      const answer = await withStore(env, async (store) => {
         await importNotesMap(store, env, await boundFolders(store, env, { strict: false }))
-        const answer = await memoContext(store, person, {
+        return memoContext(store, person, {
           limit: options.limit,
           ...(options.account === undefined ? {} : { account: options.account }),
         })
-        if (options.json) createRenderer({ format: "json", color: false, streams }).result(answerOf(answer, startedAt))
-        else streams.data(`${contextText(answer)}\n`)
-      } finally {
-        await store.close()
-      }
+      })
+      print(options.json, itemAnswer(answer), contextText(answer))
     })
 }

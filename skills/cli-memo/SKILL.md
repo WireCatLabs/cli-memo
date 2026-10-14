@@ -21,6 +21,7 @@ anything. Add `--json` and read the answer, not the text meant for people.
 3. **Every answer is `item` (one thing) or `items` with `page` (a list), plus `meta`.** References:
    `search messages` and `search mail`: `items[].locator`; `search all` and `search notes`:
    `items[].ref`. Pass a reference back unchanged. `missing` says what was not searched and why.
+   Who a note links to: `memo context <person>`.
 4. **Start work on a project with `memo projects context <key>`.** Its key documents come first:
    read them before anything else. Mark one with
    `memo projects key-documents add <key> <reference> --reason '<why>'`.

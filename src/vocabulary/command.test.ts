@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
+import { answerOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
 
 it("resolves owner project aliases through reviewed CLI writes and rejects a stale fingerprint", async () => {
@@ -19,43 +20,25 @@ it("resolves owner project aliases through reviewed CLI writes and rejects a sta
     await createProgram({ streams, env })
       .exitOverride()
       .parseAsync([...args, "--json"], { from: "user" })
-    return JSON.parse(streams.stdout.join(""))
+    return answerOf(streams.stdout.join(""))
   }
   const preview = await run("vocabulary", "list", "--kind", "project", "--scope", "work")
-  const added = await run(
-    "vocabulary",
-    "aliases",
-    "add",
-    project.ref,
-    "Lab Example",
-    "--expected",
-    preview.item.fingerprint,
-  )
-  expect(added.item).toMatchObject({ changed: true, target: { kind: "project", id: project.id } })
-  expect((await run("vocabulary", "show", "LAB EXAMPLE", "--kind", "project")).item).toMatchObject({
+  const added = await run("vocabulary", "aliases", "add", project.ref, "Lab Example", "--expected", preview.fingerprint)
+  expect(added).toMatchObject({ changed: true, target: { kind: "project", id: project.id } })
+  expect(await run("vocabulary", "show", "LAB EXAMPLE", "--kind", "project")).toMatchObject({
     ambiguous: false,
     matches: [{ id: project.id, name: project.name }],
   })
   await expect(
-    run("vocabulary", "aliases", "add", project.ref, "Other Alias", "--expected", preview.item.fingerprint),
+    run("vocabulary", "aliases", "add", project.ref, "Other Alias", "--expected", preview.fingerprint),
   ).rejects.toMatchObject({ code: "configuration_error" })
   const current = await run("vocabulary", "list", "--kind", "project")
   expect(
-    (
-      await run(
-        "vocabulary",
-        "aliases",
-        "remove",
-        project.ref,
-        added.item.alias.id,
-        "--expected",
-        current.item.fingerprint,
-      )
-    ).item,
+    await run("vocabulary", "aliases", "remove", project.ref, added.alias.id, "--expected", current.fingerprint),
   ).toMatchObject({ changed: true })
-  expect((await run("vocabulary", "show", "Lab Example", "--kind", "project")).item.matches).toEqual([])
+  expect((await run("vocabulary", "show", "Lab Example", "--kind", "project")).matches).toEqual([])
   await expect(
-    run("vocabulary", "aliases", "add", "person:1", "Wrong", "--expected", current.item.fingerprint),
+    run("vocabulary", "aliases", "add", "person:1", "Wrong", "--expected", current.fingerprint),
   ).rejects.toMatchObject({ code: "validation_error" })
 })
 it("returns likely label duplicates without changing the catalog", async () => {
@@ -70,7 +53,7 @@ it("returns likely label duplicates without changing the catalog", async () => {
   await createProgram({ streams, env })
     .exitOverride()
     .parseAsync(["vocabulary", "check", "on-boarding", "--json"], { from: "user" })
-  expect(JSON.parse(streams.stdout.join("")).item).toMatchObject({
+  expect(answerOf(streams.stdout.join(""))).toMatchObject({
     disposition: "review",
     existing: null,
     suggestions: [{ entry: { name: "onboarding" } }],
@@ -112,10 +95,10 @@ it("selects project meetings through aliases and refuses a foreign account link"
     await createProgram({ streams, env })
       .exitOverride()
       .parseAsync([...args, "--json"], { from: "user" })
-    return JSON.parse(streams.stdout.join(""))
+    return answerOf(streams.stdout.join(""))
   }
   const flags = ["--provider", account.provider, "--account", account.account]
-  expect((await run("projects", "meetings", "link", "Lab Example", meeting, ...flags)).item).toMatchObject({
+  expect(await run("projects", "meetings", "link", "Lab Example", meeting, ...flags)).toMatchObject({
     changed: true,
     link: { project: project.ref, confirmed: true },
   })
@@ -141,27 +124,25 @@ it("creates an owner-reviewed distinct label and rejects a stale creation receip
     await createProgram({ streams, env })
       .exitOverride()
       .parseAsync([...args, "--json"], { from: "user" })
-    return JSON.parse(streams.stdout.join(""))
+    return answerOf(streams.stdout.join(""))
   }
-  const { item: preview } = await run("vocabulary", "check", "on-boarding")
+  const preview = await run("vocabulary", "check", "on-boarding")
   expect(preview.disposition).toBe("review")
   await expect(
     run("vocabulary", "create", "onboardings", "--expected", preview.creation_fingerprint),
   ).rejects.toMatchObject({ details: { reason: "tag-review.stale" } })
-  expect(
-    (await run("vocabulary", "create", "on-boarding", "--expected", preview.creation_fingerprint)).item,
-  ).toMatchObject({
+  expect(await run("vocabulary", "create", "on-boarding", "--expected", preview.creation_fingerprint)).toMatchObject({
     name: "on-boarding",
     kind: "tag",
   })
-  const { item: old } = await run("vocabulary", "check", "delivery", "--kind", "topic")
-  const { item: garden } = await run("vocabulary", "check", "garden")
+  const old = await run("vocabulary", "check", "delivery", "--kind", "topic")
+  const garden = await run("vocabulary", "check", "garden")
   await run("vocabulary", "create", "garden", "--expected", garden.creation_fingerprint)
   await expect(
     run("vocabulary", "create", "delivery", "--kind", "topic", "--expected", old.creation_fingerprint),
   ).rejects.toMatchObject({ details: { reason: "tag-review.stale" } })
-  const { item: current } = await run("vocabulary", "check", "delivery", "--kind", "topic")
+  const current = await run("vocabulary", "check", "delivery", "--kind", "topic")
   expect(
-    (await run("vocabulary", "create", "delivery", "--kind", "topic", "--expected", current.creation_fingerprint)).item,
+    await run("vocabulary", "create", "delivery", "--kind", "topic", "--expected", current.creation_fingerprint),
   ).toMatchObject({ name: "delivery", kind: "topic" })
 })

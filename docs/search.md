@@ -62,8 +62,8 @@ memo search notes 'budget' --type internal               # only notes you wrote 
 memo search notes 'budget' --filter 'date:2026-10-08'    # and a second condition
 ```
 
-`--type file` shows only notes from files. Results come 20 at a time; when there are more, the answer
-gives `page.next_cursor`, and `--offset` with that number shows the next page.
+`--type file` shows only notes from files. Results come 20 at a time; when there are more, `--page 2`
+shows the next page, and the answer's `page.next_page` says which page that is.
 
 ## Search mail
 

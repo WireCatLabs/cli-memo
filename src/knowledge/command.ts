@@ -1,39 +1,34 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
+import type { Body } from "@wirecat/cli-core/cli"
 import {
   type KnowledgeRelation,
   type MessageStore,
   ORGANIZATION_KINDS,
   type Organization,
-  openStore,
   PROJECT_TYPES,
   type Project,
   SCOPES,
 } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
+import { answers, itemAnswer, listAnswer, wholeList } from "../answer.js"
 import { authorOf, byOption } from "../author.js"
 import { notesAbout } from "../notes/about.js"
 import { accountOptions, oneOf, positive } from "../options.js"
-import { answering, printing } from "../records/run.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 import { keyDocuments, markKey, projectOf, unmarkKey } from "./key-documents.js"
 import { meetingProjectsCommand } from "./meeting-projects-command.js"
 
 export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
-  const run = answering(streams, env)
-  const print = printing(streams)
+  const { run } = answers(program, streams, env)
   const execute = (
     options: AccountScope & { json?: boolean },
-    work: (store: MessageStore, key: Awaited<ReturnType<typeof selectAccount>>) => Promise<unknown>,
+    work: (store: MessageStore, key: Awaited<ReturnType<typeof selectAccount>>) => Promise<Body>,
   ) => run(options.json, async (store) => work(store, await selectAccount(store, options)))
   /** Organisations and relations are the owner's, not an account's. */
-  const owned = async (options: { json?: boolean }, work: (store: MessageStore) => Promise<unknown>) => {
-    const store = await openStore({ env })
-    try {
-      print(options.json, await work(store))
-    } finally {
-      await store.close()
-    }
-  }
+  const owned = (options: { json?: boolean }, work: (store: MessageStore) => Promise<unknown>) =>
+    run(options.json, async (store) => itemAnswer(await work(store)))
+  const ownedList = (command: string, options: { json?: boolean }, work: (store: MessageStore) => Promise<unknown[]>) =>
+    run(options.json, async (store) => wholeList(command, await work(store)))
   /** What the store knows around an organization or a project: its relations, the notes about it, its tags. */
   const contextOf = async (
     store: MessageStore,
@@ -75,7 +70,9 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .command("list")
     .description("your organizations")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((options: { json?: boolean }) => owned(options, (store) => store.knowledge.organizations()))
+    .action((options: { json?: boolean }) =>
+      ownedList("organizations list", options, (store) => store.knowledge.organizations()),
+    )
   organizations
     .command("context")
     .description(
@@ -133,7 +130,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .command("list")
     .description("your projects")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((options: { json?: boolean }) => owned(options, (store) => store.knowledge.projects()))
+    .action((options: { json?: boolean }) => ownedList("projects list", options, (store) => store.knowledge.projects()))
   projects
     .command("context")
     .description(
@@ -183,7 +180,9 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .argument("<project>", "id, key or project:<id>")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((project: string, options: { json?: boolean }) =>
-      owned(options, async (store) => ({ items: await keyDocuments(store, await projectOf(store, project)) })),
+      ownedList("projects key-documents list", options, async (store) =>
+        keyDocuments(store, await projectOf(store, project)),
+      ),
     )
   const relations = program
     .command("relationships")
@@ -233,7 +232,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .option("--reference <reference>", "only those of this person:, organization: or project:")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((options: { reference?: string; json?: boolean }) =>
-      owned(options, (store) => store.knowledge.relations(null, options.reference)),
+      ownedList("relationships list", options, (store) => store.knowledge.relations(null, options.reference)),
     )
   relations
     .command("remove")
@@ -283,7 +282,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
           for (let left = 0; left < people.length; left++)
             for (let right = left + 1; right < people.length; right++) {
               if (suggestions.length >= options.limit)
-                return { suggestions, complete: false, scope: "stored-direct-email-contacts" }
+                return listAnswer("relationships suggest", { items: suggestions, limit: options.limit, has_more: true })
               suggestions.push(
                 await store.knowledge.relate(key, {
                   from: `person:${people[left]}`,
@@ -295,7 +294,11 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
                 }),
               )
             }
-        return { suggestions, complete: !contacts.hasMore, scope: "stored-direct-email-contacts" }
+        return listAnswer("relationships suggest", {
+          items: suggestions,
+          limit: options.limit,
+          has_more: contacts.hasMore,
+        })
       }),
     )
   const reminders = program
@@ -307,21 +310,29 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .requiredOption("--at-time <time>", "when to remind: an ISO 8601 time with its UTC offset")
     .option("--timezone <zone>", "IANA timezone", "UTC")
     .action((task: string, options: AccountScope & { atTime: string; timezone: string; json?: boolean }) =>
-      execute(options, (store, key) => store.knowledge.schedule(key, task, options.atTime, options.timezone)),
+      execute(options, async (store, key) =>
+        itemAnswer(await store.knowledge.schedule(key, task, options.atTime, options.timezone)),
+      ),
     )
   accountOptions(reminders.command("list").description("pending reminders of one account")).action(
-    (options: AccountScope & { json?: boolean }) => execute(options, (store, key) => store.knowledge.reminders(key)),
+    (options: AccountScope & { json?: boolean }) =>
+      execute(options, async (store, key) => wholeList("reminders list", await store.knowledge.reminders(key))),
   )
   accountOptions(reminders.command("poll").description("hand out due reminders, each with a receipt to acknowledge"))
     .option("--limit <n>", "most due reminders, at most 500", positive, 100)
     .action((options: AccountScope & { limit: number; json?: boolean }) =>
-      execute(options, async (store, key) =>
-        (await store.knowledge.claimReminders(key, { limit: options.limit })).map((reminder) => ({
-          ...reminder,
-          deliveryId: `${reminder.id}:${reminder.revision}`,
-          delivery: "local",
-        })),
-      ),
+      execute(options, async (store, key) => {
+        const claimed = await store.knowledge.claimReminders(key, { limit: options.limit })
+        return listAnswer("reminders poll", {
+          items: claimed.map((reminder) => ({
+            ...reminder,
+            deliveryId: `${reminder.id}:${reminder.revision}`,
+            delivery: "local",
+          })),
+          limit: options.limit,
+          has_more: claimed.length >= options.limit,
+        })
+      }),
     )
   accountOptions(
     reminders
@@ -330,12 +341,12 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       .argument("<id>", "the reminder's id")
       .argument("<receipt>", "the receipt reminders poll handed out with it"),
   ).action((id: string, receipt: string, options: AccountScope & { json?: boolean }) =>
-    execute(options, (store, key) => store.knowledge.acknowledgeReminder(key, id, receipt)),
+    execute(options, async (store, key) => itemAnswer(await store.knowledge.acknowledgeReminder(key, id, receipt))),
   )
   accountOptions(
     reminders.command("cancel").description("cancel a reminder").argument("<id>", "the reminder's id"),
   ).action((id: string, options: AccountScope & { json?: boolean }) =>
-    execute(options, (store, key) => store.knowledge.cancelReminder(key, id)),
+    execute(options, async (store, key) => itemAnswer(await store.knowledge.cancelReminder(key, id))),
   )
   accountOptions(
     reminders.command("update").description("move a reminder to another time").argument("<id>", "the reminder's id"),
@@ -343,6 +354,8 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .requiredOption("--at-time <time>", "the new time: an ISO 8601 time with its UTC offset")
     .requiredOption("--revision <n>", "the reminder's current revision, as reminders list gives it", positive)
     .action((id: string, options: AccountScope & { atTime: string; revision: number; json?: boolean }) =>
-      execute(options, (store, key) => store.knowledge.snoozeReminder(key, id, options.atTime, options.revision)),
+      execute(options, async (store, key) =>
+        itemAnswer(await store.knowledge.snoozeReminder(key, id, options.atTime, options.revision)),
+      ),
     )
 }

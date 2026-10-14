@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
+import { answerOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
 
 const telegram = { provider: "telegram", account: "1" }
@@ -32,12 +33,12 @@ const setUp = async (agent: Record<string, string> = {}) => {
     await createProgram({ streams, env })
       .exitOverride()
       .parseAsync([...args, "--json"], { from: "user" })
-    return JSON.parse(streams.stdout.join(""))
+    return answerOf(streams.stdout.join(""))
   }
   await run("projects", "add", "Synthetic Harbour", "--key", "SYH")
   const plan = await run("notes", "add", "# Harbour plan\n\nHarbour plan, the one to read first")
   const draft = await run("notes", "add", "# Harbour draft\n\nHarbour draft notes")
-  return { env, run, plan: plan.item.note.ref as string, draft: draft.item.note.ref as string }
+  return { env, run, plan: plan.note.ref as string, draft: draft.note.ref as string }
 }
 
 it("marks a note and a message as key documents of a project, with the reason and who marked it", async () => {
@@ -51,7 +52,7 @@ it("marks a note and a message as key documents of a project, with the reason an
     { ref: "msg:telegram/1/7/5", reason: "the agreed budget", available: true, origin: "owner" },
   ])
 
-  const { item: context } = await run("projects", "context", "SYH")
+  const context = await run("projects", "context", "SYH")
   expect(Object.keys(context)[0]).toBe("key_documents")
   expect(context.key_documents.map((item: { ref: string }) => item.ref)).toEqual([plan, "msg:telegram/1/7/5"])
   expect(context.relationships).toEqual([])
@@ -67,14 +68,14 @@ it("keeps a key document whose source is gone, marked unavailable", async () => 
   await store.markDeleted(telegram, ["5"], { chatId: "7" })
   await store.close()
 
-  expect((await run("projects", "context", "SYH")).item.key_documents).toMatchObject([
+  expect((await run("projects", "context", "SYH")).key_documents).toMatchObject([
     { ref: "msg:telegram/1/7/5", reason: "the agreed budget", available: false },
   ])
 })
 
 it("records an agent's mark as unconfirmed, by that agent", async () => {
   const { run, plan } = await setUp({ AI_AGENT: "claude-code_2-1-296_agent" })
-  expect((await run("projects", "key-documents", "add", "SYH", plan, "--reason", "read first")).item).toMatchObject({
+  expect(await run("projects", "key-documents", "add", "SYH", plan, "--reason", "read first")).toMatchObject({
     confirmed: false,
     origin: "suggested",
     provenance: "agent:claude-code",

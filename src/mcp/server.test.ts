@@ -5,6 +5,7 @@ import { Client } from "@modelcontextprotocol/client"
 import { InMemoryTransport } from "@modelcontextprotocol/server"
 import { openStore } from "@wirecat/cli-core/store"
 import { beforeEach, expect, it } from "vitest"
+import { answerOf } from "../../test/answer.js"
 import { AGENT, createMemoServer, INSTRUCTIONS, MEMO_TOOLS } from "./server.js"
 
 let env: NodeJS.ProcessEnv
@@ -27,7 +28,9 @@ const connected = async () => {
   const client = new Client({ name: "fixture", version: "0" })
   await client.connect(clientSide)
   const call = async (name: string, args: Record<string, unknown>) => client.callTool({ name, arguments: args })
-  return { client, call }
+  const answer = async (name: string, args: Record<string, unknown>) =>
+    answerOf(JSON.stringify((await call(name, args)).structuredContent))
+  return { client, call, answer }
 }
 
 it("tells a connecting agent when to save a fact, a memory or an action, within 2048 characters", async () => {
@@ -42,7 +45,7 @@ it("tells a connecting agent when to save a fact, a memory or an action, within 
 })
 
 it("offers the memo tools, saves an agent's memory and proposal as its own, and logs every call", async () => {
-  const { client, call } = await connected()
+  const { client, call, answer } = await connected()
   try {
     expect((await client.listTools()).tools.map(({ name }) => name).sort()).toEqual(Object.keys(MEMO_TOOLS).sort())
 
@@ -52,7 +55,10 @@ it("offers the memo tools, saves an agent's memory and proposal as its own, and 
       scope: "work",
       evidence: ["note:1"],
     })
-    expect(memory.structuredContent).toMatchObject({ status: "proposed", author: { type: "bot" } })
+    expect(answerOf(JSON.stringify(memory.structuredContent))).toMatchObject({
+      status: "proposed",
+      author: { type: "bot" },
+    })
 
     const proposal = await call("actions_add", {
       kind: "reply",
@@ -60,14 +66,22 @@ it("offers the memo tools, saves an agent's memory and proposal as its own, and 
       provider: account.provider,
       payload: { text: "Friday works" },
     })
-    expect(proposal.structuredContent).toMatchObject({ status: "proposed", account, payload: { text: "Friday works" } })
+    expect(answerOf(JSON.stringify(proposal.structuredContent))).toMatchObject({
+      status: "proposed",
+      account,
+      payload: { text: "Friday works" },
+    })
 
     const fact = await call("facts_add", {
       type: "decision",
       statement: "Bob Sample runs the Friday review",
       evidence: ["note:1"],
     })
-    expect(fact.structuredContent).toMatchObject({ type: "decision", status: "proposed", author: { type: "bot" } })
+    expect(answerOf(JSON.stringify(fact.structuredContent))).toMatchObject({
+      type: "decision",
+      status: "proposed",
+      author: { type: "bot" },
+    })
 
     const refused = await call("memories_add", {
       text: "Missing evidence",
@@ -77,7 +91,7 @@ it("offers the memo tools, saves an agent's memory and proposal as its own, and 
     })
     expect(refused).toMatchObject({ isError: true, structuredContent: { error: { code: expect.any(String) } } })
 
-    const log = (await call("agents_log", { agent: AGENT })).structuredContent as {
+    const log = (await answer("agents_log", { agent: AGENT })) as {
       items: { tool: string; status: string; actor: { name: string } }[]
     }
     expect(log.items.map(({ tool, status }) => `${tool} ${status}`)).toEqual([
@@ -86,7 +100,7 @@ it("offers the memo tools, saves an agent's memory and proposal as its own, and 
       "actions_add ok",
       "memories_add ok",
     ])
-    expect((await call("memories_list", { limit: 1 })).structuredContent).toMatchObject({ has_more: false })
+    expect((await answer("memories_list", { limit: 1 })).page).toMatchObject({ has_more: false })
     expect(log.items.every(({ actor }) => actor.name === AGENT)).toBe(true)
   } finally {
     await client.close()
@@ -98,14 +112,17 @@ it("offers vocabulary discovery and preflight without accepting alias changes", 
   await store.knowledge.addVocabularyAlias({ kind: "project", id: project.id }, "Lab Example")
   await store.knowledge.createTag("onboarding")
   await store.close()
-  const { client, call } = await connected()
+  const { client, call, answer } = await connected()
   try {
     const resolved = await call("vocabulary_show", { name: "Lab Example", kind: "project" })
-    expect(resolved.structuredContent).toMatchObject({ ambiguous: false, matches: [{ id: project.id }] })
-    expect((await call("vocabulary_check", { name: "on-boarding" })).structuredContent).toMatchObject({
+    expect(answerOf(JSON.stringify(resolved.structuredContent))).toMatchObject({
+      ambiguous: false,
+      matches: [{ id: project.id }],
+    })
+    expect(await answer("vocabulary_check", { name: "on-boarding" })).toMatchObject({
       disposition: "review",
     })
-    expect((await call("vocabulary_check", { limit: 1 })).structuredContent).toMatchObject({
+    expect(await answer("vocabulary_check", { limit: 1 })).toMatchObject({
       pairs: [],
       complete: true,
       semantic: "not-requested",
@@ -124,7 +141,7 @@ it("offers vocabulary discovery and preflight without accepting alias changes", 
       project: project.ref,
       evidence: ["note:1"],
     })
-    expect(proposed.structuredContent).toMatchObject({
+    expect(answerOf(JSON.stringify(proposed.structuredContent))).toMatchObject({
       status: "proposed",
       project: project.ref,
       author: { type: "bot" },
@@ -140,15 +157,15 @@ it("exposes ready task discovery without offering dependency mutation or claims"
   const second = await store.tasks.create({ project: project.ref, title: "Review draft", type: "chore" }, "owner")
   await store.tasks.linkTask(second.id, first.id, "blocked-by", "owner")
   await store.close()
-  const { client, call } = await connected()
+  const { client, answer } = await connected()
   try {
-    expect((await call("tasks_status", { task: second.id })).structuredContent).toEqual({
+    expect(await answer("tasks_status", { task: second.id })).toEqual({
       ready: false,
       blockers: [{ task: first.ref, state: "open" }],
     })
-    expect((await call("tasks_list", { project: "RES", ready: true })).structuredContent).toMatchObject({
+    expect(await answer("tasks_list", { project: "RES", ready: true })).toMatchObject({
       items: [{ ref: first.ref, key: first.key }],
-      has_more: false,
+      page: { has_more: false },
     })
     expect((await client.listTools()).tools.some((x) => x.name === "tasks_claim" || x.name === "tasks_link")).toBe(
       false,
@@ -159,13 +176,13 @@ it("exposes ready task discovery without offering dependency mutation or claims"
 })
 
 it("searches every source the store holds, where tg and max read only their own", async () => {
-  const { client, call } = await connected()
+  const { client, call, answer } = await connected()
   try {
-    expect((await call("search_notes", { text: "Fridays", exact: true })).structuredContent).toMatchObject({
-      hits: [{ ref: "note:1", excerpt: "Bob Sample prefers Fridays" }],
-      has_more: false,
+    expect(await answer("search_notes", { text: "Fridays", exact: true })).toMatchObject({
+      items: [{ ref: "note:1", excerpt: "Bob Sample prefers Fridays" }],
+      page: { has_more: false },
     })
-    const all = (await call("search_all", { text: "Fridays", exact: true, only: ["notes"] })).structuredContent as {
+    const all = (await answer("search_all", { text: "Fridays", exact: true, only: ["notes"] })) as {
       items: { kind: string; text: string }[]
     }
     expect(all.items).toMatchObject([{ kind: "note", text: expect.stringContaining("Fridays") }])

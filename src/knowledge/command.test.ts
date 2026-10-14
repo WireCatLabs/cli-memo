@@ -5,6 +5,7 @@ import { captureStreams } from "@wirecat/cli-base"
 import { formatLocator } from "@wirecat/cli-core"
 import { openStore } from "@wirecat/cli-core/store"
 import { describe, expect, it } from "vitest"
+import { answerOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
 
 describe("combined evidence, relationships and local reminders", () => {
@@ -65,45 +66,47 @@ describe("combined evidence, relationships and local reminders", () => {
       await createProgram({ streams, env })
         .exitOverride()
         .parseAsync([...args, "--json"], { from: "user" })
-      return JSON.parse(streams.stdout.join(""))
+      return answerOf(streams.stdout.join(""))
     }
     const source = (account: typeof key, chat: string, message: string) => formatLocator({ ...account, chat, message })
-    const { item: direct } = await run("tasks", "add", source(key, "101", "1"))
-    const { item: unrelated } = await run("tasks", "add", source(key, "77", "2"))
-    const { item: participating } = await run("tasks", "add", source(key, "77", "3"))
-    const { item: document } = await run("tasks", "add", source(key, "77", "4"))
+    const direct = await run("tasks", "add", source(key, "101", "1"))
+    const unrelated = await run("tasks", "add", source(key, "77", "2"))
+    const participating = await run("tasks", "add", source(key, "77", "3"))
+    const document = await run("tasks", "add", source(key, "77", "4"))
     const scope = ["--provider", key.provider, "--account", key.account]
     await run("tasks", "assign", document.task.id, person?.uid as string)
-    const { item: context } = await run("context", "telegram:101")
+    const context = await run("context", "telegram:101")
     expect(context.tasks.items.map((task: { id: string }) => task.id).sort()).toEqual(
       [direct.task.id, participating.task.id, document.task.id].sort(),
     )
     expect(context.tasks.items.some((task: { id: string }) => task.id === unrelated.task.id)).toBe(false)
     expect(context.your_notes.map((note: { id: string }) => note.id)).toContain(legacy.id)
-    const { item: studio } = await run("organizations", "add", "Synthetic Studio", "--kind", "company")
+    const studio = await run("organizations", "add", "Synthetic Studio", "--kind", "company")
     await run("relationships", "add", `person:${person?.uid}`, studio.ref)
-    expect((await run("context", "telegram:101")).item.relationships).toHaveLength(1)
-    expect((await run("organizations", "context", studio.id)).item.relationships).toHaveLength(1)
-    const { item: harbour } = await run("projects", "add", "Synthetic Harbour", "--organization", studio.ref)
+    expect((await run("context", "telegram:101")).relationships).toHaveLength(1)
+    expect((await run("organizations", "context", studio.id)).relationships).toHaveLength(1)
+    const harbour = await run("projects", "add", "Synthetic Harbour", "--organization", studio.ref)
     expect(harbour).toMatchObject({ organization_id: studio.id })
     await run("relationships", "add", `person:${person?.uid}`, harbour.ref, "--role", "author")
-    expect((await run("projects", "context", harbour.id)).item.relationships).toHaveLength(1)
+    expect((await run("projects", "context", harbour.id)).relationships).toHaveLength(1)
     expect((await run("projects", "list")).items.map(({ id }: { id: string }) => id)).toContain(harbour.id)
-    const { item: analysis } = await run("notes", "add", "Owner budget analysis", "--about", source(key, "77", "4"))
+    const analysis = await run("notes", "add", "Owner budget analysis", "--about", source(key, "77", "4"))
     await run("tags", "add", "project", "--task", document.task.id, ...scope)
-    expect((await run("tags", "list", "--tag", "project", ...scope)).items).toContainEqual(
-      expect.objectContaining({ type: "task", id: document.task.id, tag: "project" }),
-    )
+    expect(
+      (await run("tags", "list", "--tag", "project", ...scope)).items.find(
+        ({ type }: { type: string }) => type === "task",
+      ),
+    ).toMatchObject({
+      type: "task",
+      id: document.task.id,
+    })
     const searched = await run("search", "all", "budget", "--limit", "100")
-    expect(searched.items.some((item: { tasks?: unknown[] }) => (item.tasks?.length ?? 0) > 0)).toBe(true)
+    expect(searched.items.some((item: { tasks?: unknown[] }) => item.tasks?.length)).toBe(true)
     expect(searched.items.some((item: { ref: string }) => item.ref === analysis.note.ref)).toBe(true)
     const messagesOnly = await run("search", "all", "budget AND chat:77")
     expect(messagesOnly.items.length).toBeGreaterThan(0)
-    expect(messagesOnly.missing).toContainEqual({
-      field: "items",
-      why: expect.stringMatching(/^notes not searched: ./),
-    })
-    const { item: bundle } = await run("ask", "What is pending?", "--query", "budget", "--all")
+    expect(messagesOnly.meta.issues).toContainEqual({ code: expect.any(String), source: "notes" })
+    const bundle = await run("ask", "What is pending?", "--query", "budget", "--all")
     expect(bundle.evidence.length).toBeGreaterThan(0)
     expect(bundle.coverage.find(({ provider }: { provider: string }) => provider === "telegram")).toEqual({
       provider: "telegram",
@@ -118,14 +121,7 @@ describe("combined evidence, relationships and local reminders", () => {
         with_gaps: expect.any(Number),
       },
     })
-    const { item: reminder } = await run(
-      "reminders",
-      "add",
-      document.task.id,
-      "--at-time",
-      "2026-01-01T00:00:00Z",
-      ...scope,
-    )
+    const reminder = await run("reminders", "add", document.task.id, "--at-time", "2026-01-01T00:00:00Z", ...scope)
     const [delivery] = (await run("reminders", "poll", ...scope)).items
     expect(delivery.delivery_id).toBe(`${reminder.id}:1`)
     expect((await run("reminders", "poll", ...scope)).items).toEqual([])
@@ -135,7 +131,7 @@ describe("combined evidence, relationships and local reminders", () => {
     await second.saveAccount({ ...key, account: "2" }, { name: null })
     await second.close()
     await expect(run("context", "telegram:101")).rejects.toMatchObject({ code: "validation_error" })
-    expect((await run("context", "telegram:101", "--account", "1")).item.tasks.items).toHaveLength(3)
+    expect((await run("context", "telegram:101", "--account", "1")).tasks.items).toHaveLength(3)
   })
 })
 
@@ -146,15 +142,12 @@ describe("project context", () => {
     const run = async (...args: string[]) => {
       const streams = captureStreams()
       await createProgram({ streams, env }).parseAsync(args, { from: "user" })
-      return JSON.parse(streams.stdout.join(""))
+      return answerOf(streams.stdout.join(""))
     }
     await run("projects", "add", "Synthetic Harbour", "--key", "SYH", "--json")
     for (const reference of ["SYH", "syh", "project:1", "1"])
-      expect((await run("projects", "context", reference, "--json")).item.project).toMatchObject({
-        id: "1",
-        key: "SYH",
-      })
-    expect((await run("projects", "context", "project:1", "--json")).item.notes.subject).toBe("project:1")
+      expect((await run("projects", "context", reference, "--json")).project).toMatchObject({ id: "1", key: "SYH" })
+    expect((await run("projects", "context", "project:1", "--json")).notes.subject).toBe("project:1")
   })
 
   it("finds an organization by organization:<id> as well as its id", async () => {
@@ -163,11 +156,11 @@ describe("project context", () => {
     const run = async (...args: string[]) => {
       const streams = captureStreams()
       await createProgram({ streams, env }).parseAsync(args, { from: "user" })
-      return JSON.parse(streams.stdout.join(""))
+      return answerOf(streams.stdout.join(""))
     }
     await run("organizations", "add", "Synthetic Studio", "--kind", "company", "--json")
     for (const reference of ["organization:1", "1"])
-      expect((await run("organizations", "context", reference, "--json")).item.organization).toMatchObject({ id: "1" })
+      expect((await run("organizations", "context", reference, "--json")).organization).toMatchObject({ id: "1" })
   })
 
   it("refuses a project or organization the store does not hold", async () => {

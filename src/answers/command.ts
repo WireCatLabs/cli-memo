@@ -1,9 +1,8 @@
-import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
+import { CliError, type Streams } from "@wirecat/cli-base"
 import { type ModelAdapter, type ModelTarget, modelGateway } from "@wirecat/cli-core/models"
-import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
+import { answers, itemAnswer, withStore } from "../answer.js"
 import { positive } from "../options.js"
-import { answerOf, snakeKeys } from "../output.js"
 import { type EvidenceItem, searchAccounts, unifiedSearch } from "../search/command.js"
 import type { AccountScope } from "../store/scope.js"
 
@@ -86,6 +85,7 @@ export const answerEvidence = async (
 }
 
 export const askCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
+  const { print } = answers(program, streams, env)
   program
     .command("ask")
     .description("prepare cited evidence for your agent, or explicitly call a configured model")
@@ -110,9 +110,7 @@ export const askCommand = (program: Command, streams: Streams, env: NodeJS.Proce
           json?: boolean
         },
       ) => {
-        const startedAt = Date.now()
-        const store = await openStore({ env })
-        try {
+        await withStore(env, async (store) => {
           const found = await unifiedSearch(store, options.query ?? question, {
             ...(await searchAccounts(store, options)),
             limit: options.limit,
@@ -153,12 +151,8 @@ export const askCommand = (program: Command, streams: Streams, env: NodeJS.Proce
               })),
             }
           }
-          if (options.json)
-            createRenderer({ format: "json", color: false, streams }).result(answerOf(answer, startedAt))
-          else streams.data(`${JSON.stringify(snakeKeys(answer), null, 2)}\n`)
-        } finally {
-          await store.close()
-        }
+          print(options.json, itemAnswer(answer))
+        })
       },
     )
 }

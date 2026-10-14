@@ -3,6 +3,7 @@ import { skillCommand } from "@wirecat/cli-base/skill"
 import { Command } from "commander"
 import { actionsCommand } from "./actions/command.js"
 import { agentsCommand } from "./agents/command.js"
+import { trackAnswers } from "./answer.js"
 import { askCommand } from "./answers/command.js"
 import { APP } from "./app.js"
 import { contextCommand } from "./context/command.js"
@@ -75,6 +76,7 @@ export const createProgram = ({
   addExamples(program)
   addEffects(program)
   fields.install(program)
+  trackAnswers(program)
 
   return program
 }

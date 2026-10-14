@@ -1,6 +1,8 @@
 import { RESOURCES_SEARCHED, searchNotes } from "@wirecat/cli-core/services"
 import * as v from "valibot"
+import { itemAnswer } from "../answer.js"
 import { memoContext } from "../context/context.js"
+import { allAnswer, kindAnswer, notesAnswer } from "../search/answers.js"
 import { searchEverywhere, searchKind } from "../search/command.js"
 import { define } from "./tool.js"
 
@@ -19,32 +21,42 @@ export const knowledgeTools = {
     description: `Messages from every messenger, mail and notes ranked together, with the open tasks that point at a hit. Use it when you do not know where something was written; search_messages, search_mail or search_notes read one kind with all its fields. content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names, as content:invoice. Each result's reference is ref. ${DATA}`,
     writes: false,
     input: v.object({ ...query, only: v.optional(v.array(v.picklist(RESOURCES_SEARCHED))) }),
-    run: (store, args, env) => searchEverywhere(store, env, args),
+    run: async (store, args, env) => allAnswer(await searchEverywhere(store, env, args), args.limit, args.exact),
   }),
   search_messages: define({
     title: "Search messages",
     description: `Stored messages from every messenger, with all their fields. content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names, as content:invoice. Each hit's reference is locator. ${DATA}`,
     writes: false,
     input: v.object({ ...query, type: v.optional(v.picklist(["text", "voice", "file"])) }),
-    run: (store, args) => searchKind(store, "messages", args),
+    run: async (store, args) => kindAnswer("messages", await searchKind(store, "messages", args), args.limit),
   }),
   search_mail: define({
     title: "Search mail",
     description: `Imported mail, every mail account unless account names one by its address. ${DATA}`,
     writes: false,
     input: v.object({ ...query, account: v.optional(v.pipe(v.string(), v.minLength(1))) }),
-    run: (store, args) => searchKind(store, "mail", args),
+    run: async (store, args) => kindAnswer("mail", await searchKind(store, "mail", args), args.limit),
   }),
   search_notes: define({
     title: "Search notes",
-    description: `Notes from imported folders and your own, by words and, with the local model, meaning. The list is hits; each note's reference is ref. ${DATA}`,
+    description: `Notes from imported folders and your own, by words and, with the local model, meaning. Each note's reference is ref. ${DATA}`,
     writes: false,
     input: v.object({
       ...query,
-      offset: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(1000))),
+      page: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1)), 1),
       tag: v.optional(v.pipe(v.string(), v.minLength(1))),
     }),
-    run: (store, { text, ...options }, env) => searchNotes(store, text, { ...options, env, command: "tg" }),
+    run: async (store, { text, page, ...options }, env) =>
+      notesAnswer(
+        await searchNotes(store, text, { ...options, offset: (page - 1) * options.limit, env, command: "tg" }),
+        options.limit,
+        page,
+        {
+          text,
+          ...(options.tag === undefined ? {} : { tag: options.tag }),
+          ...(options.exact ? { exact: true } : {}),
+        },
+      ),
   }),
   person_context: define({
     title: "What the store holds about a person",
@@ -55,6 +67,6 @@ export const knowledgeTools = {
       account: v.optional(v.pipe(v.string(), v.minLength(1))),
       limit: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(100))),
     }),
-    run: (store, { person, ...options }) => memoContext(store, person, options),
+    run: async (store, { person, ...options }) => itemAnswer(await memoContext(store, person, options)),
   }),
 }
