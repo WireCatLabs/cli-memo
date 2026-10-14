@@ -8,24 +8,14 @@ import {
   renderError,
   type Streams,
 } from "@wirecat/cli-base"
+import { failureContext, judgedEffects } from "@wirecat/cli-core/cli"
 import { type Command, CommanderError } from "commander"
 import { ValiError } from "valibot"
 import { APP } from "./app.js"
 import { EFFECTS } from "./effects.js"
-import { REASONS } from "./reasons.js"
+import { interactiveOf, optionsOf } from "./terminal.js"
 
-let shared: FailureContext | undefined
-
-// cli-core's CLI module costs every memo command ~70 ms to load, so only a failure loads it.
-const contextOf = async (): Promise<FailureContext> => {
-  if (shared) return shared
-  try {
-    shared = (await import("@wirecat/cli-core/cli")).failureContext(APP.errors)
-  } catch {
-    return { reasons: REASONS }
-  }
-  return shared
-}
+const context: FailureContext = failureContext(APP.errors)
 
 const recognisable = (error: unknown): unknown => {
   if (error instanceof CommanderError)
@@ -41,21 +31,10 @@ const recognisable = (error: unknown): unknown => {
   return error
 }
 
-export const errorObject = async (error: unknown) => errorObjectOf(recognisable(error), await contextOf())
+export const errorObject = (error: unknown) => errorObjectOf(recognisable(error), context)
 
 /** The same object as `--json` prints on stderr, as MCP's `isError` answer. */
-export const mcpFailure = async (error: unknown) => mcpErrorResult(await errorObject(error))
-
-const MACHINE_FLAGS = new Set(["--json", "--jsonl"])
-
-const optionsOf = (args: readonly string[]) => {
-  const end = args.indexOf("--")
-  return end < 0 ? args : args.slice(0, end)
-}
-
-/** A person at a terminal who did not ask for machine output. */
-export const interactiveOf = (args: readonly string[], tty: boolean) =>
-  tty && !optionsOf(args).some((flag) => MACHINE_FLAGS.has(flag))
+export const mcpFailure = (error: unknown) => mcpErrorResult(errorObject(error))
 
 const commandOf = (program: Command | undefined, args: readonly string[]) => {
   const path: string[] = []
@@ -86,15 +65,11 @@ export interface ReportOptions {
 }
 
 /** One error object on stderr, `✗ message` at a terminal; returns the exit code. */
-export const reportFailure = async (error: unknown, { args, program, streams, tty }: ReportOptions) => {
+export const reportFailure = (error: unknown, { args, program, streams, tty }: ReportOptions) => {
   const failure = recognisable(error)
   const flags = optionsOf(args)
-  const judge = await import("@wirecat/cli-core/cli").then(
-    ({ judgedEffects }) => judgedEffects,
-    () => undefined,
-  )
-  const effects = judge?.(EFFECTS[commandOf(program, flags)])
-  const object = errorObjectOf(failure, { ...(await contextOf()), ...(effects ? { effects } : {}) })
+  const effects = judgedEffects(EFFECTS[commandOf(program, flags)])
+  const object = errorObjectOf(failure, { ...context, ...(effects ? { effects } : {}) })
   const record = flags.includes("--debug")
     ? errorRecordOf(failure, object, { command: commandOf(program, flags), service: APP.command, version: APP.version })
     : undefined

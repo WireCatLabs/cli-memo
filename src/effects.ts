@@ -1,14 +1,8 @@
 import { annotate } from "@wirecat/cli-base/commands"
 import type { Effects } from "@wirecat/cli-base/standards"
+import { FETCH, LOCAL_READ, LOCAL_WRITE, NO_EFFECTS, REMOTE_READ } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { leaves } from "./examples.js"
-
-// cli-core's FETCH, LOCAL_READ… spelled out: importing its CLI module would cost every memo command ~70 ms.
-const REMOTE_READ: Effects = { remote: "read", local: "read" }
-const FETCH: Effects = { remote: "read", local: "write" }
-const LOCAL_READ: Effects = { remote: "none", local: "read" }
-const LOCAL_WRITE: Effects = { remote: "none", local: "write" }
-const NO_EFFECTS: Effects = { remote: "none", local: "none" }
 
 // memo's remote side is the mail server and a configured model; it only ever reads there. Notes folders and the
 // store are this machine. A command missing here counts as a write: never retried, never run as an unasked step.

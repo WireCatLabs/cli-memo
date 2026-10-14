@@ -1,10 +1,9 @@
 import { statSync } from "node:fs"
 import { basename, resolve } from "node:path"
 import { CliError, type Streams } from "@wirecat/cli-base"
-import { type MessageStore, openStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
+import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { loadConfig, updateConfig } from "../config.js"
-import { printing } from "../records/run.js"
 import { DIALECTS, type DialectName } from "./dialects/index.js"
 import { attachFolder, bindFolder, type NoteFolder, noteFolders } from "./folders.js"
 
@@ -29,16 +28,16 @@ const keptByDrive = (name: string) => name.startsWith("google-drive:")
 const line = (folder: NoteFolder) =>
   `${folder.id ?? "(no id — memo folders add <path>)"}  ${folder.format}  ${folder.path}`
 
+interface ElsewhereFolder {
+  id: string
+  name: string
+  format: string
+  path: null
+  keptBy?: "drive"
+}
+
 export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
-  const print = printing(streams)
-  const withStore = async <T>(work: (store: MessageStore) => Promise<T>): Promise<T> => {
-    const store = await openStore({ env })
-    try {
-      return await work(store)
-    } finally {
-      await store.close()
-    }
-  }
+  const { print } = answers(program, streams, env)
   const folders = program
     .command("folders")
     .description("folders of notes: the id links and the store use, and the path on this computer")
@@ -51,7 +50,7 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (path: string, options: { format?: DialectName; json?: boolean }) => {
       const at = directory(path)
-      const answer = await withStore(async (store) => {
+      const answer = await withStore(env, async (store) => {
         const known = new Set((await store.notes.folders()).map(({ id }) => id))
         const current = noteFolders(loadConfig(env).notes).find((folder) => folder.path === at)
         if (current?.id && known.has(current.id)) {
@@ -65,7 +64,7 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
         updateConfig((config) => bindFolder(config, folder), env)
         return { ...folder, created: true }
       })
-      print(options.json, answer, answer.id)
+      print(options.json, itemAnswer(answer), answer.id)
     })
 
   folders
@@ -77,7 +76,7 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (id: string, path: string, options: { format?: DialectName; json?: boolean }) => {
       const at = directory(path)
-      const folder = await withStore(async (store) => {
+      const folder = await withStore(env, async (store) => {
         const stored = (await store.notes.folders()).find((candidate) => candidate.id === id)
         if (!stored)
           throw new CliError("not_found", `the store has no folder ${id} — memo folders list shows those it has`, {
@@ -96,7 +95,7 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
         }, env)
         return bound as NoteFolder
       })
-      print(options.json, folder, line(folder))
+      print(options.json, itemAnswer(folder), line(folder))
     })
 
   folders
@@ -104,20 +103,24 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
     .description("folders of notes on this computer, and those the store knows from another")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (options: { json?: boolean }) => {
-      const answer = await withStore(async (store) => {
-        const here = noteFolders(loadConfig(env).notes)
-        const elsewhere = (await store.notes.folders())
+      const here = noteFolders(loadConfig(env).notes)
+      const elsewhere: ElsewhereFolder[] = await withStore(env, async (store) =>
+        (await store.notes.folders())
           .filter((folder) => !here.some((entry) => entry.id === folder.id))
-          .map(({ id, name, format }) => ({ id, name, format, ...(keptByDrive(name) ? { keptBy: "drive" } : {}) }))
-        return { items: here, elsewhere }
-      })
+          .map(({ id, name, format }) => ({
+            id,
+            name,
+            format,
+            path: null,
+            ...(keptByDrive(name) ? { keptBy: "drive" as const } : {}),
+          })),
+      )
       print(
         options.json,
-        // A folder the store knows from another computer has no path here.
-        [...answer.items, ...answer.elsewhere.map((folder) => ({ ...folder, path: null }))],
+        wholeList("folders list", [...here, ...elsewhere]),
         [
-          ...answer.items.map(line),
-          ...answer.elsewhere.map(({ id, name, keptBy }) =>
+          ...here.map(line),
+          ...elsewhere.map(({ id, name, keptBy }) =>
             keptBy
               ? `${id}  kept by drive (${name})`
               : `${id}  not on this computer (${name}) — memo folders attach ${id} <path>`,

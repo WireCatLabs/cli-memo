@@ -1,7 +1,7 @@
 import { join } from "node:path"
 import { CliError, type Streams } from "@wirecat/cli-base"
-import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
+import { withStore } from "../answer.js"
 import { boundFolders, folderOfFile } from "../notes/bound.js"
 import { folderNotes } from "../notes/import.js"
 import { identityOf } from "./identity.js"
@@ -16,8 +16,7 @@ export const noteCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .argument("[path]", "the note about them, a file in a configured folder")
     .option("--clear", "forget which file note is about them")
     .action(async (identity: string, path: string | undefined, options: { clear?: boolean }) => {
-      const store = await openStore({ env })
-      try {
+      await withStore(env, async (store) => {
         const folders = await boundFolders(store, env, { strict: false })
         await importNotesMap(store, env, folders)
         const person = await store.personOf(await identityOf(store, identity))
@@ -50,8 +49,6 @@ export const noteCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           return folder ? join(folder.path, note.path as string) : note.ref
         })
         streams.data(`${person.name ?? person.uid}: ${shown.join(", ") || "no note"}\n`)
-      } finally {
-        await store.close()
-      }
+      })
     })
 }

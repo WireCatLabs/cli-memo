@@ -64,8 +64,8 @@ memo notes list [options]
 | `--about <subject>` | only notes about or linking this: <messenger>:<name or id> or a typed reference. |
 | `--source <source>` | file or internal. |
 | `--search <text>` | only notes holding this text, as written. |
-| `--offset <n>` | skip this many. Default: `0`. |
 | `--limit <n>` | most notes, at most 500. Default: `20`. |
+| `--page <n>` | which page, from 1. Default: `1`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 ### `memo notes add`
@@ -719,8 +719,8 @@ memo projects meetings list <project> [options]
 | `--account <account>` | exact stored meeting account. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--proposed` | show proposed memberships instead of confirmed ones. |
-| `--limit <n>` | meetings per page. |
-| `--offset <n>` | rows to skip. |
+| `--limit <n>` | meetings per page, at most 500. Default: `50`. |
+| `--page <n>` | which page, from 1. |
 
 #### `memo projects meetings link`
 
@@ -1606,7 +1606,7 @@ memo search notes <query> [options]
 | `--tag <tag>` | only notes with this tag. |
 | `--filter <query>` | another query every note must match. |
 | `--folder <folder>` | only this folder, by its id or path; repeat for more. |
-| `--offset <n>` | continue from page.next_cursor. Default: `0`. |
+| `--page <n>` | which page, from 1. Default: `1`. |
 | `--project <project>` | rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out. |
 
 ### `memo search memories`

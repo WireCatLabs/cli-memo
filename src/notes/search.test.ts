@@ -3,6 +3,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { beforeEach, describe, expect, it } from "vitest"
+import { answerOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
 
 let vault: string, env: NodeJS.ProcessEnv
@@ -11,7 +12,7 @@ const run = async (...args: string[]) => {
   await createProgram({ streams, env })
     .exitOverride()
     .parseAsync([...args, "--json"], { from: "user" })
-  return JSON.parse(streams.stdout.join(""))
+  return answerOf(streams.stdout.join(""))
 }
 beforeEach(async () => {
   const root = mkdtempSync(join(tmpdir(), "memo-search-"))
@@ -40,9 +41,9 @@ describe("structured note retrieval and saved links", () => {
   it("uses shared phrase/Boolean filters, provides exact current excerpts and paginates distinct notes", async () => {
     const first = await run("search", "notes", '"budget review" AND NOT cancelled', "--limit", "2")
     expect(first.items).toHaveLength(2)
-    expect(first.page).toEqual({ mode: "cursor", limit: 2, has_more: true, next_cursor: "2" })
+    expect(first.page).toEqual({ mode: "page", limit: 2, has_more: true, next_page: 2 })
     expect(first.items.every((hit: { excerpt: string }) => /budget review/i.test(hit.excerpt))).toBe(true)
-    const second = await run("search", "notes", '"budget review" AND NOT cancelled', "--limit", "2", "--offset", "2")
+    const second = await run("search", "notes", '"budget review" AND NOT cancelled', "--limit", "2", "--page", "2")
     expect(second.items).toHaveLength(1)
     expect(second.page.has_more).toBe(false)
     expect(new Set([...first.items, ...second.items].map((hit: { ref: string }) => hit.ref)).size).toBe(3)
@@ -52,7 +53,7 @@ describe("structured note retrieval and saved links", () => {
   it("links relative paths and aliases to the note, and keeps an ambiguous or unknown name as written", async () => {
     const answer = await run("search", "notes", "agreed OR Missing")
     const review = answer.items.find((hit: { path: string }) => hit.path === "Meetings/Review.md")
-    const rin = (await run("notes", "show", join(vault, "People/Rin.md"))).item.ref
+    const rin = (await run("notes", "show", join(vault, "People/Rin.md"))).ref
     expect(review.links).toHaveLength(4)
     expect(review.links).toEqual(
       expect.arrayContaining([

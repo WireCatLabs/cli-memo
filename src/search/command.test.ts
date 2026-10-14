@@ -5,6 +5,7 @@ import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { expect, it } from "vitest"
+import { answerOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
 
 it("searches three typed resources together, separates mail and messages, and filters native note/message types", async () => {
@@ -58,7 +59,7 @@ it("searches three typed resources together, separates mail and messages, and fi
     }
     override(program)
     await program.parseAsync([...args, "--json"], { from: "user" })
-    return JSON.parse(streams.stdout.join(""))
+    return answerOf(streams.stdout.join(""))
   }
   const all = await run("search", "all", "Sharedsignal", "--exact")
   expect(
@@ -126,7 +127,7 @@ it("searches every mail account, or with --account only that address", async () 
     }
     override(program)
     await program.parseAsync([...args, "--json"], { from: "user" })
-    return JSON.parse(streams.stdout.join(""))
+    return answerOf(streams.stdout.join(""))
       .items.map((item: { locator: string }) => item.locator)
       .sort()
   }
@@ -192,14 +193,14 @@ it("shows each email reference first, with its people, labels, subject and an ex
   expect(shown).not.toContain(body)
   expect(await run("search", "mail", "budget", "--full")).toContain(body)
 
-  const [hit] = JSON.parse(await run("search", "mail", "budget", "--json")).items
+  const [hit] = answerOf(await run("search", "mail", "budget", "--json")).items
   expect(hit).not.toHaveProperty("text")
   expect(hit.email).toMatchObject({
     to: [{ address: "bob@example.com" }],
     cc: [{ address: "kai@example.com" }],
     labels: ["Starred"],
   })
-  expect(Object.keys(JSON.parse(await run("search", "mail", "budget", "--json", "--brief")).items[0]).sort()).toEqual([
+  expect(Object.keys(answerOf(await run("search", "mail", "budget", "--json", "--brief")).items[0]).sort()).toEqual([
     "chat_title",
     "excerpt",
     "locator",
@@ -245,7 +246,7 @@ it("narrows a search to the text of files with content:, in search messages and 
   const run = async (...args: string[]) => {
     const streams = captureStreams()
     await createProgram({ streams, env }).parseAsync([...args, "--json"], { from: "user" })
-    return JSON.parse(streams.stdout.join("")).items.map(
+    return answerOf(streams.stdout.join("")).items.map(
       (item: { locator?: string; ref?: string }) => item.locator ?? item.ref,
     )
   }
@@ -281,14 +282,14 @@ it("search all runs as no stored account and names every account it read", async
   await store.close()
   const streams = captureStreams()
   await createProgram({ streams, env }).parseAsync(["search", "all", "Beaconword", "--json"], { from: "user" })
-  const answer = JSON.parse(streams.stdout.join(""))
+  const answer = answerOf(streams.stdout.join(""))
   expect(answer.items.map((item: { ref: string }) => item.ref).sort()).toEqual([
     "msg:email/a%40example.com/7/1",
     "msg:max/2/7/1",
     "msg:telegram/1/7/1",
   ])
   expect(answer.meta.accounts.sort()).toEqual(
-    ["email:a@example.com", "max:2", "notes:internal", `notes:${folder.id}`, "telegram:1"].sort(),
+    ["max:2", "telegram:1", "email:a@example.com", "notes:internal", `notes:${folder.id}`].sort(),
   )
 
   const text = captureStreams()

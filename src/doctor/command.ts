@@ -2,15 +2,15 @@ import { execFile } from "node:child_process"
 import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { join } from "node:path"
-import { createRenderer, resolvePaths, type Streams } from "@wirecat/cli-base"
+import { resolvePaths, type Streams } from "@wirecat/cli-base"
 import { SKILL_TARGETS, skillPath, skillVersion } from "@wirecat/cli-base/skill"
 import { storeSummary } from "@wirecat/cli-core/cli"
 import { sharedModelsDirectory } from "@wirecat/cli-core/speech"
 import type { Command } from "commander"
+import { answers, itemAnswer } from "../answer.js"
 import { APP } from "../app.js"
 import { type Config, configPath, loadConfig } from "../config.js"
 import { noteFolders } from "../notes/folders.js"
-import { metaOf, snakeKeys } from "../output.js"
 import { autoState, lastAutoRun } from "../run/auto.js"
 import { installer } from "../update.js"
 import { VERSION } from "../version.js"
@@ -162,6 +162,7 @@ export const doctorText = (d: Diagnosis): string =>
   ].join("\n")
 
 export const doctorCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
+  const { print } = answers(program, streams, env)
   program
     .command("doctor")
     .description("where memo keeps its files and what needs attention; connects to nothing")
@@ -172,14 +173,8 @@ export const doctorCommand = (program: Command, streams: Streams, env: NodeJS.Pr
         "and the agent skill. Exits 1 when something needs attention, each with the command that fixes it.",
     )
     .action(async (options: { json?: boolean }) => {
-      const startedAt = Date.now()
       const diagnosis = await diagnose(env)
-      if (options.json)
-        createRenderer({ format: "json", color: false, streams }).result({
-          item: snakeKeys(diagnosis),
-          meta: metaOf(startedAt),
-        })
-      else streams.data(`${doctorText(diagnosis)}\n`)
+      print(options.json, itemAnswer(diagnosis), doctorText(diagnosis))
       if (diagnosis.problems.length > 0) process.exitCode = 1
     })
 }

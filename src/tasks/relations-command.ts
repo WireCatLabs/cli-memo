@@ -1,13 +1,13 @@
 import type { Streams } from "@wirecat/cli-base"
 import { type MessageStore, TASK_RELATION_KINDS, type TaskRelationKind } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
+import { answers, itemAnswer, wholeList } from "../answer.js"
 import { oneOf } from "../options.js"
-import { answering } from "../records/run.js"
 
 export const taskRelationsCommand = (tasks: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
-  const run = answering(streams, env)
+  const { run } = answers(tasks, streams, env)
   const execute = (options: { json?: boolean }, work: (store: MessageStore) => Promise<unknown>) =>
-    run(options.json, work)
+    run(options.json, async (store) => itemAnswer(await work(store)))
   for (const operation of ["link", "unlink"] as const) {
     tasks
       .command(operation)
@@ -30,7 +30,7 @@ export const taskRelationsCommand = (tasks: Command, streams: Streams, env: Node
     .argument("<task>", "the task: task:<id> or its id")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((task: string, options: { json?: boolean }) =>
-      execute(options, async (store) => ({ items: await store.tasks.taskRelations(task) })),
+      run(options.json, async (store) => wholeList("tasks relations", await store.tasks.taskRelations(task))),
     )
   tasks
     .command("status")

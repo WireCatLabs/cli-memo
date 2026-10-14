@@ -3,7 +3,6 @@ import { parseLocator } from "@wirecat/cli-core"
 import { closedStateOf, storeOnlyDeps, taskStateOf, tasksService } from "@wirecat/cli-core/services"
 import {
   type MessageStore,
-  openStore,
   TASK_ROLES,
   TASK_TYPES,
   type TaskFields,
@@ -13,10 +12,10 @@ import {
   type WorkTaskType,
 } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
+import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
 import { APP } from "../app.js"
 import { isNoteReference } from "../notes/about.js"
 import { accountOptions, oneOf, positive } from "../options.js"
-import { printing } from "../records/run.js"
 import { heldMessage } from "../store/held.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 import { canonicalProject } from "../vocabulary/project.js"
@@ -56,10 +55,17 @@ const assignAll = async (store: MessageStore, id: string, people: string[] | und
   for (const person of people ?? []) await store.tasks.assign(id, { to: personRef(person), role: "assignee" }, "owner")
 }
 
+const tasksPage = (page: { items: { id: string | number }[]; hasMore: boolean }, limit: number) =>
+  listAnswer("tasks list", {
+    items: page.items.map((task) => ({ ref: `task:${task.id}`, ...task })),
+    limit,
+    has_more: page.hasMore,
+  })
+
 export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const group = program.command("tasks").description("open work linked to stored messages, documents and emails")
   taskRelationsCommand(group, streams, env)
-  const print = printing(streams)
+  const { print } = answers(program, streams, env)
   fieldOptions(accountOptions(group.command("add")))
     .description("add a task from a message, note or document, or one of your own in a project")
     .argument("[source]", "msg: source locator, note:<id> or document:<id>; leave out for a task in a project")
@@ -76,8 +82,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         options: AccountScope &
           FieldOptions & { type?: TaskType; project?: string; assignee?: string[]; json?: boolean },
       ) => {
-        const store = await openStore({ env })
-        try {
+        await withStore(env, async (store) => {
           if (source === undefined) {
             if (options.project === undefined || options.title === undefined)
               throw new CliError("validation_error", "a task without a source needs --project and --title")
@@ -94,7 +99,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
               "owner",
             )
             await assignAll(store, task.id, options.assignee)
-            print(options.json, await store.tasks.details(task.id))
+            print(options.json, itemAnswer(await store.tasks.details(task.id)))
             return
           }
           if (options.project !== undefined)
@@ -129,15 +134,13 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
           )
           const fields = fieldsOf(options)
           if (Object.keys(fields).length === 0 && !options.assignee?.length) {
-            print(options.json, answer)
+            print(options.json, itemAnswer(answer))
             return
           }
           await store.tasks.edit(answer.task.id, fields, "owner")
           await assignAll(store, answer.task.id, options.assignee)
-          print(options.json, { ...answer, details: await store.tasks.details(answer.task.id) })
-        } finally {
-          await store.close()
-        }
+          print(options.json, itemAnswer({ ...answer, details: await store.tasks.details(answer.task.id) }))
+        })
       },
     )
   accountOptions(group.command("list").description("tasks of one account or one project, open by default"))
@@ -157,13 +160,12 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       ) => {
         if (options.ready && (options.project === undefined || options.state !== "open"))
           throw new CliError("validation_error", "--ready lists a project's open tasks: give --project, not --state")
-        const store = await openStore({ env })
-        try {
+        await withStore(env, async (store) => {
           if (options.ready && options.project !== undefined) {
             const page = await store.tasks.readyTasks(await canonicalProject(store, options.project), {
               limit: options.limit,
             })
-            print(options.json, { ...page, items: page.items.map((task) => ({ ref: `task:${task.id}`, ...task })) })
+            print(options.json, tasksPage(page, options.limit))
             return
           }
           if (options.project !== undefined) {
@@ -172,15 +174,16 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
               status: options.state,
               limit: options.limit + 1,
             })
-            print(options.json, { items: items.slice(0, options.limit), hasMore: items.length > options.limit })
+            print(
+              options.json,
+              tasksPage({ items: items.slice(0, options.limit), hasMore: items.length > options.limit }, options.limit),
+            )
             return
           }
           const key = await selectAccount(store, options)
           const page = await taskPage(store, key, { state: options.state, limit: options.limit })
-          print(options.json, { ...page, items: page.items.map((task) => ({ ref: `task:${task.id}`, ...task })) })
-        } finally {
-          await store.close()
-        }
+          print(options.json, tasksPage(page, options.limit))
+        })
       },
     )
   accountOptions(
@@ -193,25 +196,24 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         id: string,
         options: AccountScope & { as: ReturnType<typeof closedStateOf>; reason?: string; json?: boolean },
       ) => {
-        const store = await openStore({ env })
-        try {
+        await withStore(env, async (store) => {
           if ((await store.tasks.get(id)) === undefined) {
             const reason = options.reason === undefined ? {} : { reason: options.reason }
-            print(options.json, await store.tasks.edit(id, { status: options.as, ...reason }, "owner"))
+            print(options.json, itemAnswer(await store.tasks.edit(id, { status: options.as, ...reason }, "owner")))
             return
           }
           const key = await selectAccount(store, options)
           print(
             options.json,
-            await tasksService(storeOnlyDeps(store, key, { app: APP, env })).close(id, {
-              as: options.as,
-              by: "owner",
-              ...(options.reason === undefined ? {} : { reason: options.reason }),
-            }),
+            itemAnswer(
+              await tasksService(storeOnlyDeps(store, key, { app: APP, env })).close(id, {
+                as: options.as,
+                by: "owner",
+                ...(options.reason === undefined ? {} : { reason: options.reason }),
+              }),
+            ),
           )
-        } finally {
-          await store.close()
-        }
+        })
       },
     )
   fieldOptions(group.command("update").description("change a task's title, priority, parent or description"))
@@ -221,12 +223,9 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       const fields = fieldsOf(options)
       if (Object.keys(fields).length === 0)
         throw new CliError("validation_error", "give --title, --priority, --parent or --description")
-      const store = await openStore({ env })
-      try {
-        print(options.json, await store.tasks.edit(id, fields, "owner"))
-      } finally {
-        await store.close()
-      }
+      await withStore(env, async (store) => {
+        print(options.json, itemAnswer(await store.tasks.edit(id, fields, "owner")))
+      })
     })
   group
     .command("assign")
@@ -236,11 +235,11 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .option("--role <role>", TASK_ROLES.join(", "), oneOf(TASK_ROLES), "assignee")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (id: string, person: string, options: { role: TaskRole; json?: boolean }) => {
-      const store = await openStore({ env })
-      try {
-        print(options.json, await store.tasks.assign(id, { to: personRef(person), role: options.role }, "owner"))
-      } finally {
-        await store.close()
-      }
+      await withStore(env, async (store) => {
+        print(
+          options.json,
+          itemAnswer(await store.tasks.assign(id, { to: personRef(person), role: options.role }, "owner")),
+        )
+      })
     })
 }

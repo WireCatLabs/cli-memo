@@ -1,4 +1,5 @@
 import { CliError, isCliError, type Streams } from "@wirecat/cli-base"
+import { annotate } from "@wirecat/cli-base/commands"
 import { parseLucene, type QueryNode } from "@wirecat/cli-base/query"
 import { parseLocator } from "@wirecat/cli-core"
 import {
@@ -11,15 +12,14 @@ import {
   searchStore,
 } from "@wirecat/cli-core/services"
 import type { AccountKey, MessageStore, Note } from "@wirecat/cli-core/store"
-import { openStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
+import { answers, withStore } from "../answer.js"
 import { APP } from "../app.js"
 import { keyDocuments, keyFirst, projectOf } from "../knowledge/key-documents.js"
 import { searchMemoriesCommand } from "../memories/command.js"
 import { folderIds } from "../notes/bound.js"
 import { searchText } from "../notes/search.js"
 import { collect, positive } from "../options.js"
-import { printAtDetail } from "../output.js"
 import { SAVE_HELP } from "../save-help.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 import { taskPage } from "../tasks/context.js"
@@ -373,18 +373,7 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
   const group = program
     .command("search")
     .description("search stored messages, mail, notes and memories; search all when unsure where")
-  const withStore = async <T>(work: (store: MessageStore) => Promise<T>) => {
-    const store = await openStore({ env })
-    try {
-      return await work(store)
-    } finally {
-      await store.close()
-    }
-  }
-  const print = (json: boolean | undefined, answer: unknown, text: string, level?: Level) => {
-    if (json) printAtDetail(streams, answer, level)
-    else streams.data(`${text}\n`)
-  }
+  const { print } = answers(group, streams, env)
   const queryOptions = (leaf: Command) =>
     leaf
       .addHelpText("after", SAVE_HELP)
@@ -434,8 +423,7 @@ content: narrows a search to the text of files, transcript: to voice transcripts
           json?: boolean
         },
       ) => {
-        const startedAt = Date.now()
-        const answer = await withStore(async (store) => {
+        const answer = await withStore(env, async (store) => {
           const found = await searchEverywhere(store, env, {
             text: words.join(" "),
             limit: options.limit,
@@ -457,7 +445,7 @@ content: narrows a search to the text of files, transcript: to voice transcripts
         }
         print(
           options.json,
-          allAnswer(answer, options.limit, startedAt),
+          allAnswer(answer, options.limit, options.exact),
           [
             ...answer.items.map((item) => `${"key" in item ? "key  " : ""}${item.kind}  ${item.ref}\n  ${item.text}`),
             ...answer.tasks.map((task) => `task  task:${task.id}  ${task.kind}  ${task.source}`),
@@ -498,8 +486,7 @@ content: narrows a search to the text of attachments, filename: to their names â
         },
       ) => {
         const level = levelOf(options)
-        const startedAt = Date.now()
-        const answer = await withStore((store) =>
+        const answer = await withStore(env, (store) =>
           searchKind(store, kind, {
             text: words.join(" "),
             limit: options.limit,
@@ -511,28 +498,27 @@ content: narrows a search to the text of attachments, filename: to their names â
         )
         print(
           options.json,
-          kindAnswer(answer, options.limit, startedAt),
+          kindAnswer(kind, answer, options.limit, level),
           answer.items.map((item) => found(item, level)).join("\n"),
-          level,
         )
       },
     )
   }
 
   queryOptions(group.command("notes").description("native notes by words and, with the local model, meaning"))
-    .addHelpText("after", "\n--json: the list is items; each note's reference is ref (note: or document:).")
+    .addHelpText("after", "\n--json: each note's reference is ref (note: or document:).")
     .option("--type <type>", "file or internal", noteType)
     .option("--tag <tag>", "only notes with this tag")
     .option("--filter <query>", "another query every note must match")
     .option("--folder <folder>", "only this folder, by its id or path; repeat for more", collect)
-    .option("--offset <n>", "continue from page.next_cursor", Number, 0)
+    .option("--page <n>", "which page, from 1", positive, 1)
     .option("--project <project>", PROJECT_HELP)
     .action(
       async (
         words: string[],
         options: {
           limit: number
-          offset: number
+          page: number
           type?: Note["source"]
           tag?: string
           filter?: string
@@ -543,11 +529,10 @@ content: narrows a search to the text of attachments, filename: to their names â
           json?: boolean
         },
       ) => {
-        const startedAt = Date.now()
-        const answer = await withStore(async (store) => {
+        const answer = await withStore(env, async (store) => {
           const found = await searchNotes(store, words.join(" "), {
             limit: options.limit,
-            offset: options.offset,
+            offset: (options.page - 1) * options.limit,
             env,
             command: "tg",
             ...(options.type === undefined ? {} : { source: options.type }),
@@ -563,8 +548,14 @@ content: narrows a search to the text of attachments, filename: to their names â
         })
         if (answer.meaning_skipped && !options.json)
           streams.diagnostic(`Searched by words only: ${answer.meaning_skipped}\n`)
-        print(options.json, notesAnswer(answer, options.limit, startedAt), searchText(answer))
+        const { limit, page, json, folder, ...rest } = options
+        // A next-page step names one value per option; with several folders it would search every folder.
+        const body = notesAnswer(answer, limit, page, { query: words.join(" "), ...rest, folder: folder?.[0] })
+        if ((folder?.length ?? 0) > 1) delete body.next
+        print(json, body, searchText(answer))
       },
     )
   searchMemoriesCommand(group, streams, env)
+  // A source left unread is named in meta.issues; the rest is still the answer, so the search exits 0.
+  for (const leaf of group.commands) annotate(leaf, { partial: true })
 }

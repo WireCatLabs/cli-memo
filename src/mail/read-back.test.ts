@@ -5,6 +5,7 @@ import { captureStreams } from "@wirecat/cli-base"
 import { formatLocator } from "@wirecat/cli-core"
 import { openStore } from "@wirecat/cli-core/store"
 import { describe, expect, it } from "vitest"
+import { answerOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
 import { himalaya } from "./himalaya.js"
 import { importMail } from "./import.js"
@@ -19,7 +20,7 @@ const run = async (args: string[], env: NodeJS.ProcessEnv) => {
   await createProgram({ streams, env })
     .exitOverride()
     .parseAsync([...args, "--json"], { from: "user" })
-  return JSON.parse(streams.stdout.join(""))
+  return answerOf(streams.stdout.join(""))
 }
 
 describe("mail imported into the mail tables reads back through memo", () => {
@@ -79,18 +80,14 @@ describe("mail imported into the mail tables reads back through memo", () => {
     expect(listed.items.map(({ locator }: { locator?: string }) => locator)).toContain(LOCATOR)
 
     const task = await run(["tasks", "add", LOCATOR, "--provider", "email", "--account", ME], env)
-    expect(task.item.task.source).toBe(LOCATOR)
+    expect(task.task.source).toBe(LOCATOR)
     expect((await run(["search", "mail", "tag:follow-up"], env)).items.map(({ id }: { id: string }) => id)).toEqual([
       "9001",
     ])
 
     const shown = await run(["messages", "show", LOCATOR], env)
-    expect(shown.item).toMatchObject({
-      locator: LOCATOR,
-      anchor: true,
-      email: { from: { address: "rin@example.test" } },
-    })
-    expect(shown.item.text).toContain("The roadmap review moves to Friday.")
+    expect(shown).toMatchObject({ locator: LOCATOR, anchor: true, email: { from: { address: "rin@example.test" } } })
+    expect(shown.text).toContain("The roadmap review moves to Friday.")
     await expect(run(["messages", "show", "msg:telegram/1/2/3"], env)).rejects.toMatchObject({
       code: "validation_error",
     })

@@ -1,11 +1,11 @@
 import type { Streams } from "@wirecat/cli-base"
 import type { Command } from "commander"
+import { answers } from "../answer.js"
 import { positive } from "../options.js"
 import { pageOf } from "../page.js"
-import { answering } from "../records/run.js"
 
 export const agentsCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
-  const run = answering(streams, env)
+  const { run } = answers(program, streams, env)
   program
     .command("agents")
     .description("what agents did through the MCP servers that share the store")
@@ -18,7 +18,7 @@ export const agentsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((options: { tool?: string; agent?: string; limit: number; json?: boolean }) =>
       run(options.json, (store) =>
-        pageOf(options.limit, (limit) =>
+        pageOf("agents log", options.limit, (limit) =>
           store.agentActions.list({
             ...(options.tool === undefined ? {} : { tool: options.tool }),
             ...(options.agent === undefined ? {} : { agent: options.agent }),

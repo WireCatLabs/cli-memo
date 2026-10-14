@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { type MessageStore, openStore } from "@wirecat/cli-core/store"
 import { afterEach, describe, expect, it } from "vitest"
+import { answerOf, envelopeOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
 import { applyRules } from "./apply.js"
 import { decodeMailboxName, labelName } from "./gmail.js"
@@ -677,7 +678,7 @@ describe("memo sync --mail", () => {
   it("takes an account by its address as well as its name", async () => {
     const { dir, env } = setup([mail(1)])
 
-    const answer = JSON.parse(await run(["sync", "--account", OTHER, "--no-embed", "--json"], configured(dir, env)))
+    const answer = envelopeOf(await run(["sync", "--account", OTHER, "--no-embed", "--json"], configured(dir, env)))
 
     expect(answer.item.mail).toMatchObject([{ account: OTHER, already_stored: 0 }])
     expect(answer.meta).toMatchObject({
@@ -693,7 +694,7 @@ describe("memo sync --mail", () => {
     await run(["sync", "--account", "test", "--since-time", "2026-09-01", "--limit", "2", "--no-embed"], withConfig)
 
     expect(await run(["mail", "status", "test"], withConfig)).toContain("2 stored in full, 0 recorded as envelopes")
-    const answer = JSON.parse(await run(["mail", "status", "test", "--json"], withConfig))
+    const answer = envelopeOf(await run(["mail", "status", "test", "--json"], withConfig))
     expect(answer.item).toMatchObject({
       stored: 2,
       envelopes: 0,
@@ -706,12 +707,12 @@ describe("memo sync --mail", () => {
   it("syncs only the account named, from the time asked, and reports what it did", async () => {
     const { dir, env } = setup([mail(1)])
 
-    const result = JSON.parse(
+    const result = answerOf(
       await run(
         ["sync", "--account", "second", "--since-time", "2026-09-01", "--no-embed", "--json"],
         configured(dir, env),
       ),
-    ).item
+    )
 
     expect(result.notes).toEqual([])
     expect(result.mail).toMatchObject([{ account: OTHER, saved: 1, since: expect.stringMatching(/^2026-09-01/) }])
@@ -726,7 +727,7 @@ describe("memo sync --mail", () => {
     await run(["mail", "rules", "add", "test", "--domain", "shop.example", "--envelope"], withConfig)
 
     await run(["sync", "--account", "test", "--since-time", "2026-09-01", "--no-embed", "--json"], withConfig)
-    const listed = JSON.parse(await run(["mail", "rules", "list", "test", "--json"], withConfig))
+    const listed = answerOf(await run(["mail", "rules", "list", "test", "--json"], withConfig))
 
     expect(listed.items).toMatchObject([
       { action: "envelope", match: { domain: "shop.example" }, recorded: { emails: 1, bytes: expect.any(Number) } },
@@ -758,7 +759,7 @@ describe("memo sync --mail", () => {
     await run(["sync", "--account", "test", "--since-time", "2026-09-01", "--no-embed", "--json"], withConfig)
     await run(["mail", "rules", "add", "test", "--domain", "shop.example", "--envelope"], withConfig)
 
-    const dry = JSON.parse(await run(["mail", "rules", "apply", "test", "--json"], withConfig))
+    const dry = envelopeOf(await run(["mail", "rules", "apply", "test", "--json"], withConfig))
 
     expect(dry.item).toMatchObject({ applied: false, envelopes: 1, skip_matched: 0 })
     expect(dry.item.rules).toMatchObject([{ rule: { match: { domain: "shop.example" } }, emails: 1 }])
@@ -769,7 +770,7 @@ describe("memo sync --mail", () => {
       /^domain shop\.example\s+1 emails/,
     )
 
-    const listed = JSON.parse(await run(["mail", "rules", "list", "test", "--json"], withConfig))
+    const listed = answerOf(await run(["mail", "rules", "list", "test", "--json"], withConfig))
     expect(listed.items[0].recorded.emails).toBe(1)
     expect(await (await store(env)).mail.search("coupon")).toEqual([])
   })

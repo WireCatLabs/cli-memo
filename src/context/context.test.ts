@@ -5,6 +5,7 @@ import { captureStreams } from "@wirecat/cli-base"
 import type { Chat, Message } from "@wirecat/cli-core"
 import { openStore } from "@wirecat/cli-core/store"
 import { beforeEach, describe, expect, it } from "vitest"
+import { answerOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
 
 const tg = { provider: "telegram", account: "1" }
@@ -92,7 +93,7 @@ describe("memo context", () => {
     await store.saveMembers(tg, "101", [])
     await store.close()
 
-    const answer = JSON.parse(await run("context", "telegram:101", "--json")).item
+    const answer = answerOf(await run("context", "telegram:101", "--json"))
 
     expect(answer.messages.last.from_them?.id).toBe("1")
     expect(answer.messages.last.from_me?.id).toBe("2")
@@ -114,7 +115,7 @@ describe("memo context", () => {
     await run("note", "telegram:101", join(vault, "People", "Rin Example.md"))
     await run("notes", "add", "Prefers mornings", "--about", "email:rin@example.test")
 
-    const answer = JSON.parse(await run("context", "telegram:Rin Example", "--json")).item
+    const answer = answerOf(await run("context", "telegram:Rin Example", "--json"))
 
     expect(answer.messages.person.identities.map(({ provider }: { provider: string }) => provider).sort()).toEqual([
       "email",
@@ -131,13 +132,13 @@ describe("memo context", () => {
   })
 
   it("says which sources gave nothing, and why", async () => {
-    const answer = JSON.parse(await run("context", "telegram:101", "--json")).item
+    const answer = answerOf(await run("context", "telegram:101", "--json"))
 
     expect(answer.not_read.map(({ source }: { source: string }) => source)).toEqual(["notes", "mail"])
   })
 
   it("prints a readable answer, naming the person, each message and each note by a reference memo takes", async () => {
-    const added = JSON.parse(await run("notes", "add", "Prefers mornings", "--about", "telegram:101", "--json")).item
+    const added = answerOf(await run("notes", "add", "Prefers mornings", "--about", "telegram:101", "--json"))
     const text = await run("context", "telegram:101")
 
     expect(text).toContain("Last from them")

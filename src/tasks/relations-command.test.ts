@@ -3,6 +3,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { expect, it } from "vitest"
+import { answerOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
 
 it("creates keyed project tasks, reviews dependencies and discovers ready work through an alias", async () => {
@@ -15,8 +16,7 @@ it("creates keyed project tasks, reviews dependencies and discovers ready work t
     await createProgram({ streams, env })
       .exitOverride()
       .parseAsync([...args, "--json"], { from: "user" })
-    const answer = JSON.parse(streams.stdout.join(""))
-    return "item" in answer ? answer.item : answer
+    return answerOf(streams.stdout.join(""))
   }
   const project = await run("projects", "add", "Research Example", "--key", "RES")
   const catalog = await run("vocabulary", "list", "--kind", "project")

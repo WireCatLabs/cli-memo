@@ -2,14 +2,14 @@ import type { Streams } from "@wirecat/cli-base"
 import { approveAsTask } from "@wirecat/cli-core/services"
 import { PROPOSAL_STATUSES, type ProposedAction } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
+import { answers, itemAnswer } from "../answer.js"
 import { authorOf, byOption } from "../author.js"
 import { oneOf, positive } from "../options.js"
 import { pageOf } from "../page.js"
-import { answering } from "../records/run.js"
 import { type NewProposal, propose } from "./actions.js"
 
 export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
-  const run = answering(streams, env)
+  const { run } = answers(program, streams, env)
   const actions = program
     .command("actions")
     .description("what an agent proposes to do; confirming one makes it your task, nothing is sent")
@@ -26,7 +26,9 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(
       (kind: string, { asOwner, ...options }: Omit<NewProposal, "kind"> & { asOwner?: boolean; json?: boolean }) =>
-        run(options.json, (store) => propose(store, { ...options, kind }, authorOf(env, asOwner))),
+        run(options.json, async (store) =>
+          itemAnswer(await propose(store, { ...options, kind }, authorOf(env, asOwner))),
+        ),
     )
 
   actions
@@ -37,7 +39,7 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((options: { status?: ProposedAction["status"]; limit: number; json?: boolean }) =>
       run(options.json, (store) =>
-        pageOf(options.limit, (limit) =>
+        pageOf("actions list", options.limit, (limit) =>
           store.proposedActions.list({ limit, ...(options.status === undefined ? {} : { status: options.status }) }),
         ),
       ),
@@ -48,19 +50,25 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     .description("one proposed action, with its payload")
     .argument("<id>", "the action's id, as actions list gives it")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((id: string, options: { json?: boolean }) => run(options.json, (store) => store.proposedActions.get(id)))
+    .action((id: string, options: { json?: boolean }) =>
+      run(options.json, async (store) => itemAnswer(await store.proposedActions.get(id))),
+    )
 
   actions
     .command("confirm")
     .description("confirm it: it becomes a task in the account that would act; nothing is sent")
     .argument("<id>", "the action's id, as actions list gives it")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((id: string, options: { json?: boolean }) => run(options.json, (store) => approveAsTask(store, id)))
+    .action((id: string, options: { json?: boolean }) =>
+      run(options.json, async (store) => itemAnswer(await approveAsTask(store, id))),
+    )
 
   actions
     .command("reject")
     .description("reject it; nothing is done")
     .argument("<id>", "the action's id, as actions list gives it")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((id: string, options: { json?: boolean }) => run(options.json, (store) => store.proposedActions.reject(id)))
+    .action((id: string, options: { json?: boolean }) =>
+      run(options.json, async (store) => itemAnswer(await store.proposedActions.reject(id))),
+    )
 }

@@ -1,12 +1,12 @@
 import { readFileSync } from "node:fs"
 import { CliError, type Streams } from "@wirecat/cli-base"
-import { type MessageStore, type Note, openStore } from "@wirecat/cli-core/store"
+import type { MessageStore, Note } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
+import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
 import { loadConfig } from "../config.js"
 import { collect, positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { subjectOf } from "../people/subject.js"
-import { printing } from "../records/run.js"
 import { SAVE_HELP } from "../save-help.js"
 import { meetingReference } from "../store/scope.js"
 import { isNoteReference } from "./about.js"
@@ -46,16 +46,12 @@ const noteOf = async (store: MessageStore, env: NodeJS.ProcessEnv, reference: st
 }
 
 export const notesCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
-  const print = printing(streams)
-  const withStore = async <T>(work: (store: MessageStore) => Promise<T>): Promise<T> => {
-    const store = await openStore({ env })
-    try {
+  const { print } = answers(program, streams, env)
+  const withNotes = <T>(work: (store: MessageStore) => Promise<T>): Promise<T> =>
+    withStore(env, async (store) => {
       await importNotesMap(store, env, await boundFolders(store, env, { strict: false }))
-      return await work(store)
-    } finally {
-      await store.close()
-    }
-  }
+      return work(store)
+    })
   const notes = program.command("notes").description("notes from your folders, and notes you write here")
 
   notes
@@ -65,7 +61,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .argument("<note>", "note:<id>, document:<id>, or a file in a configured folder")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (reference: string, options: { json?: boolean }) => {
-      const answer = await withStore(async (store) => {
+      const answer = await withNotes(async (store) => {
         const note = await noteOf(store, env, reference)
         const ref = note.ref
         const labels = await store.notes.noteTags(ref)
@@ -84,7 +80,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       })
       print(
         options.json,
-        answer,
+        itemAnswer(answer),
         [
           `${answer.ref}  ${answer.path ?? answer.title ?? ""}`.trimEnd(),
           `  updated ${new Date(answer.updatedAt).toISOString().slice(0, 16).replace("T", " ")}${answer.tags.length ? `  tags: ${answer.tags.join(", ")}` : ""}`,
@@ -102,22 +98,22 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .option("--about <subject>", "only notes about or linking this: <messenger>:<name or id> or a typed reference")
     .option("--source <source>", "file or internal", sourceOf)
     .option("--search <text>", "only notes holding this text, as written")
-    .option("--offset <n>", "skip this many", Number, 0)
     .option("--limit <n>", "most notes, at most 500", positive, 20)
+    .option("--page <n>", "which page, from 1", positive, 1)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(
       async (options: {
         about?: string
         source?: Note["source"]
         search?: string
-        offset: number
         limit: number
+        page: number
         json?: boolean
       }) => {
-        const page = await withStore(async (store) =>
+        const page = await withNotes(async (store) =>
           listNotes(store, {
             limit: options.limit,
-            offset: options.offset,
+            offset: (options.page - 1) * options.limit,
             ...(options.about === undefined ? {} : { about: await subjectOf(store, options.about) }),
             ...(options.source === undefined ? {} : { source: options.source }),
             ...(options.search === undefined ? {} : { search: options.search }),
@@ -125,7 +121,17 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         )
         print(
           options.json,
-          page,
+          listAnswer("notes list", {
+            items: page.items,
+            limit: options.limit,
+            has_more: page.hasMore,
+            page: options.page,
+            args: {
+              ...(options.about === undefined ? {} : { about: options.about }),
+              ...(options.source === undefined ? {} : { source: options.source }),
+              ...(options.search === undefined ? {} : { search: options.search }),
+            },
+          }),
           page.items
             .map(
               (note) =>
@@ -173,7 +179,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         const body = textOf(options, given)
         if (options.meeting === undefined && (options.provider !== undefined || options.account !== undefined))
           throw new CliError("validation_error", "--provider and --account select the account of --meeting")
-        const answer = await withStore(async (store) => {
+        const answer = await withNotes(async (store) => {
           const about = await Promise.all(
             (options.about ?? []).map(async (subject) => (await subjectOf(store, subject)).ref),
           )
@@ -187,7 +193,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
           const target = exportTarget(loadConfig(env), options.export, options.format)
           return { note, exported: await exportInternal(store, { ...target, notes: [note] }) }
         })
-        print(options.json, answer, answer.note.id)
+        print(options.json, itemAnswer(answer), answer.note.id)
       },
     )
 
@@ -214,13 +220,13 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         },
       ) => {
         const body = textOf(options)
-        const answer = await withStore(async (store) => {
+        const answer = await withNotes(async (store) => {
           const note = await store.notes.editNote(id.replace(/^note:/, ""), body, options.revision)
           if (options.export === undefined) return { note }
           const target = exportTarget(loadConfig(env), options.export, options.format)
           return { note, exported: await exportInternal(store, { ...target, notes: [note] }) }
         })
-        print(options.json, answer, `${answer.note.id} revision ${answer.note.revision}`)
+        print(options.json, itemAnswer(answer), `${answer.note.id} revision ${answer.note.revision}`)
       },
     )
 
@@ -230,8 +236,8 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .argument("<id>", "note:<id> or its id")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (id: string, options: { json?: boolean }) => {
-      const answer = await withStore((store) => store.notes.removeNote(id.replace(/^note:/, "")))
-      print(options.json, answer, `${answer.id} removed`)
+      const answer = await withNotes((store) => store.notes.removeNote(id.replace(/^note:/, "")))
+      print(options.json, itemAnswer(answer), `${answer.id} removed`)
     })
 
   notes
@@ -242,12 +248,12 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (options: { to?: string; format?: DialectName; json?: boolean }) => {
       const target = exportTarget(loadConfig(env), options.to, options.format)
-      const result = await withStore(async (store) =>
+      const result = await withNotes(async (store) =>
         exportInternal(store, { ...target, notes: await internalNotes(store) }),
       )
       print(
         options.json,
-        result,
+        itemAnswer(result),
         [
           `${result.dir}: ${result.written.length} written, ${result.unchanged.length} unchanged`,
           ...result.edited.map(({ path }) => `Edited since export, left as it is: ${path}`),
