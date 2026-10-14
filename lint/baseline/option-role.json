@@ -20,6 +20,7 @@
   "facts list --status",
   "facts list --subject",
   "facts list --type",
+  "mail probe --domain-age",
   "mail probe --limit-groups",
   "mail rules add --domain",
   "mail rules add --envelope",

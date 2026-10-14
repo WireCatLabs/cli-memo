@@ -249,6 +249,7 @@ memo mail probe <account> [options]
 |---|---|
 | `--since-time <time>` | only mail from this time, ISO 8601 or 30d ago (default: all mail). |
 | `--limit-groups <n>` | show this many of the largest groups. Default: `50`. |
+| `--domain-age` | ask each shown sender domain's registry when it was registered (RDAP); tells each registry its domain. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 ### `memo mail status`

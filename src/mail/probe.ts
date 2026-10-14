@@ -1,3 +1,4 @@
+import { type DomainAge, registrableOf, type Signal, scoreGroup } from "./score.js"
 import type { Listed } from "./source.js"
 
 export const SUGGEST_RULE =
@@ -19,6 +20,9 @@ export interface ProbeGroup {
   /** The owner sent mail to one of the group's senders. */
   replied: boolean
   suggest: "skip" | null
+  /** How much the group looks like spam, a scam or a robot: the sum of its signals' weights (SCORE_RULE). */
+  score: number
+  signals: Signal[]
 }
 
 export interface Probe {
@@ -37,7 +41,7 @@ const share = (part: number, whole: number) => Math.round((part / whole) * 100) 
 const isSent = (item: Listed) => item.labels?.includes("Sent") || /(^|\/)sent\b/i.test(item.folder ?? "")
 
 /** Groups mail by List-Id when it has one, else by sender address; largest groups first. */
-export const probeMail = (items: Listed[], limit: number): Probe => {
+export const probeMail = (items: Listed[], limit: number, ages: ReadonlyMap<string, DomainAge> = new Map()): Probe => {
   const sent = items.filter(isSent)
   const recipients = new Set(sent.flatMap((item) => item.headers?.to ?? []))
   const groups = new Map<string, Listed[]>()
@@ -71,6 +75,7 @@ export const probeMail = (items: Listed[], limit: number): Probe => {
       lastYear: years.reduce((a, b) => Math.max(a, b)),
       replied,
       suggest: group.length >= 20 && bulk >= 0.8 && !replied ? "skip" : null,
+      ...scoreGroup(group, { replied, bulk, ages }),
     }
   })
   all.sort((a, b) => b.emails - a.emails || b.bytes - a.bytes)
@@ -83,3 +88,14 @@ export const probeMail = (items: Listed[], limit: number): Probe => {
     items: all.slice(0, limit),
   }
 }
+
+/** The sender domains of the groups worth asking a registry about: not a big mailbox provider, never replied to. */
+export const domainsToAge = (groups: ProbeGroup[], skip: ReadonlySet<string>): string[] => [
+  ...new Set(
+    groups.flatMap((group) => {
+      if (group.replied || group.from === null) return []
+      const domain = registrableOf(group.from)
+      return skip.has(domain) ? [] : [domain]
+    }),
+  ),
+]

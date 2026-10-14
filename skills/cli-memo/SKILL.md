@@ -42,7 +42,9 @@ anything. Add `--json` and read the answer, not the text meant for people.
     mail not done. `memo mail status <account> --json` says how far it is; `--rescan` lists everything
     again (needed only to mark deletions sooner than the daily whole listing).
 11. **Probe before a first large mail import.** `memo mail probe <account> --json` groups mail by
-    sender and list from headers only; its `suggest` is a hint, not a decision.
+    sender and list from headers only; its `suggest` is a hint, not a decision. Its `score` and `signals`
+    flag likely spam, scams and robots; a high score is a reason to show the owner, not to add a rule.
+    Pass `--domain-age` only when the owner agrees: it tells domain registries the sender domains.
 12. **Mail rules are the owner's decision.** Suggest groups to skip or record; never run
     `memo mail rules add … --skip` or `--envelope` unasked. A skipped email is never imported. An envelope
     email is stored without its text and is never a search hit; `memo mail rules list` counts it. Mail

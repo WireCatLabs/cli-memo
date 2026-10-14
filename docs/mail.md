@@ -61,9 +61,37 @@ A large mailbox is mostly newsletters and notifications. Look before a first lar
 memo mail probe work
 ```
 
-It reads headers only (about 300 bytes an email) and groups mail by sender and mailing list: how many
+It reads headers only (about 1 KB an email) and groups mail by sender and mailing list: how many
 emails, how much space, how much is unread or bulk mail, the years, and whether you ever wrote to the
 sender. It suggests `skip` for groups of at least 20 emails, at least 80% bulk mail, that you never wrote to.
+
+Each group also gets a **score** for how much it looks like spam, a scam or a robot, with the signals that
+make it up. Gmail already filters most spam, so a high score usually means a spoofed sender or a robot that no
+rule covers yet:
+
+| Signal | Adds | From |
+|---|---:|---|
+| `spam_folder` | 4 | Most of the group's mail is in Gmail's Spam |
+| `dmarc_fail` | 3 | Gmail's own DMARC check failed when the mail arrived (`Authentication-Results: mx.google.com`) |
+| `brand_spoof` | 3 | A brand in the display name, such as PayPal or Apple, sent from another domain |
+| `young_domain` | 3 | The sender's domain was under 180 days old when the first email came |
+| `reply_to_elsewhere` | 2 | Replies go to another domain than the sender's |
+| `disposable_domain` | 2 | A throwaway-mail domain |
+| `bulk_never_replied` | 1 | At least 80% bulk mail, and you never wrote to the sender |
+| `replied` | −5 | You wrote to the sender |
+
+`young_domain` needs each domain's registration date. memo asks for it only when you add `--domain-age`:
+
+```sh
+memo mail probe work --domain-age
+```
+
+It asks the registry of each shown group's sender domain through RDAP, using IANA's list of registries, one
+domain a second, and keeps the answer on this computer for good. **Each question tells that registry the
+domain's name**, so it learns that someone looks at mail from it. Big mailbox providers such as gmail.com and
+senders you wrote to are never asked. Most country domains, such as .ru, .de, .es and .io, have no RDAP:
+they stay unknown and add nothing. Without `--domain-age`, only dates already kept are used.
+
 You decide:
 
 ```sh

@@ -366,6 +366,8 @@ export const importMail = async ({
             rule: { action: rule.action, match: { ...rule.match } },
             ...(headers?.subject ? { subject: headers.subject } : {}),
             ...(headers?.listId ? { listId: headers.listId } : {}),
+            ...(headers?.replyTo ? { replyTo: headers.replyTo } : {}),
+            ...(headers?.auth ? { auth: { ...headers.auth } } : {}),
           },
         },
       ],

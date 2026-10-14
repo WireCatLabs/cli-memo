@@ -8,8 +8,10 @@ import { printing } from "../records/run.js"
 import { withImportLock } from "../run/lock.js"
 import { type MailAccountConfig, mailAccounts, mailFolders, mailSource } from "./accounts.js"
 import { type ApplyResult, applyRules } from "./apply.js"
-import { type Probe, probeMail, SUGGEST_RULE } from "./probe.js"
+import { knownAges, lookUpAges } from "./domain-age.js"
+import { domainsToAge, type Probe, probeMail, SUGGEST_RULE } from "./probe.js"
 import { envelopeBox, type MailRule, type MailRuleMatch, sameMatch } from "./rules.js"
+import { FREE_MAIL, SCORE_RULE } from "./score.js"
 import type { Listed } from "./source.js"
 import { mailStatus, statusText } from "./status.js"
 
@@ -106,9 +108,10 @@ const probeText = (probe: Probe & { seconds: number }): string => {
     group.firstYear === group.lastYear ? String(group.firstYear) : `${group.firstYear}-${group.lastYear}`,
     group.replied ? "yes" : "no",
     group.suggest ?? "",
+    String(group.score),
     group.listId === null ? (group.from ?? "") : `${group.listId} (${group.from ?? "?"})`,
   ])
-  const header = ["emails", "MB", "unread", "bulk", "years", "replied", "suggest", "sender or list"]
+  const header = ["emails", "MB", "unread", "bulk", "years", "replied", "suggest", "score", "sender or list"]
   const widths = header.map((title, column) => Math.max(title.length, ...rows.map((row) => row[column]?.length ?? 0)))
   const line = (row: string[]) =>
     row
@@ -133,29 +136,53 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .option("--since-time <time>", "only mail from this time, ISO 8601 or 30d ago (default: all mail)")
     .option("--limit-groups <n>", "show this many of the largest groups", positive, 50)
+    .option(
+      "--domain-age",
+      "ask each shown sender domain's registry when it was registered (RDAP); tells each registry its domain",
+    )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText(
       "after",
-      "\nRead-only and headers only: about 300 bytes per email (From, To, Cc, List-Id, List-Unsubscribe, " +
-        "Precedence), against Gmail's daily download limit. An mbox account reads the whole file once.\n\n" +
-        `Each group's ${SUGGEST_RULE}. The owner decides; add a rule with memo mail rules add.`,
+      "\nRead-only and headers only: about 1 KB per email (From, To, Cc, Reply-To, List-Id, List-Unsubscribe, " +
+        "Precedence and Gmail's SPF, DKIM and DMARC verdicts), against Gmail's daily download limit. An mbox " +
+        "account reads the whole file once.\n\n" +
+        `Each group's ${SUGGEST_RULE}. Its ${SCORE_RULE}. The owner decides; add a rule with memo mail rules add.\n\n` +
+        "--domain-age asks the registry of each shown group's sender domain, one a second, and keeps the answer " +
+        "on this computer for good. Big mailbox providers and senders the owner replied to are never asked; " +
+        "most country domains (.ru, .de, .es, .io) have no RDAP and stay unknown. Without it, only ages " +
+        "already kept are used and nothing leaves this computer.",
     )
-    .action(async (name: string, options: { sinceTime?: string; limitGroups: number; json?: boolean }) => {
-      const account = accountOf(loadConfig(env), name)
-      const since = new Date(
-        options.sinceTime === undefined
-          ? 0
-          : (await import("@wirecat/cli-core/cli")).momentOf(options.sinceTime, "--since-time"),
-      )
-      const started = Date.now()
-      const source = mailSource(account, env)
-      const listed = new Map<string, Listed>()
-      for (const folder of mailFolders(account))
-        for (const item of await source.list(since, folder, { headers: true })) listed.set(item.messageId, item)
-      const probe = { ...probeMail([...listed.values()], options.limitGroups), seconds: 0 }
-      probe.seconds = Math.round((Date.now() - started) / 100) / 10
-      print(options.json, probe, probeText(probe))
-    })
+    .action(
+      async (
+        name: string,
+        options: { sinceTime?: string; limitGroups: number; domainAge?: boolean; json?: boolean },
+      ) => {
+        const account = accountOf(loadConfig(env), name)
+        const since = new Date(
+          options.sinceTime === undefined
+            ? 0
+            : (await import("@wirecat/cli-core/cli")).momentOf(options.sinceTime, "--since-time"),
+        )
+        const started = Date.now()
+        const source = mailSource(account, env)
+        const listed = new Map<string, Listed>()
+        for (const folder of mailFolders(account))
+          for (const item of await source.list(since, folder, { headers: true })) listed.set(item.messageId, item)
+        const items = [...listed.values()]
+        let probe = probeMail(items, options.limitGroups, knownAges(env))
+        let lookups: { looked: number; failed: number } | undefined
+        if (options.domainAge) {
+          lookups = await lookUpAges(env, domainsToAge(probe.items, FREE_MAIL))
+          probe = probeMail(items, options.limitGroups, knownAges(env))
+        }
+        const shown = {
+          ...probe,
+          ...(lookups === undefined ? {} : { domainLookups: lookups }),
+          seconds: Math.round((Date.now() - started) / 100) / 10,
+        }
+        print(options.json, shown, probeText(shown))
+      },
+    )
 
   mail
     .command("status")
