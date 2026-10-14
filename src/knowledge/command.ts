@@ -1,4 +1,4 @@
-import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
+import { CliError, type Streams } from "@wirecat/cli-base"
 import {
   type KnowledgeRelation,
   type MessageStore,
@@ -13,14 +13,14 @@ import type { Command } from "commander"
 import { authorOf, byOption } from "../author.js"
 import { notesAbout } from "../notes/about.js"
 import { accountOptions, oneOf, positive } from "../options.js"
-import { snakeKeys } from "../output.js"
-import { answering } from "../records/run.js"
+import { answering, printing } from "../records/run.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 import { keyDocuments, markKey, projectOf, unmarkKey } from "./key-documents.js"
 import { meetingProjectsCommand } from "./meeting-projects-command.js"
 
 export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const run = answering(streams, env)
+  const print = printing(streams)
   const execute = (
     options: AccountScope & { json?: boolean },
     work: (store: MessageStore, key: Awaited<ReturnType<typeof selectAccount>>) => Promise<unknown>,
@@ -29,9 +29,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   const owned = async (options: { json?: boolean }, work: (store: MessageStore) => Promise<unknown>) => {
     const store = await openStore({ env })
     try {
-      const answer = await work(store)
-      if (options.json) createRenderer({ format: "json", color: false, streams }).result(snakeKeys(answer))
-      else streams.data(`${JSON.stringify(snakeKeys(answer), null, 2)}\n`)
+      print(options.json, await work(store))
     } finally {
       await store.close()
     }

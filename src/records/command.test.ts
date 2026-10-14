@@ -34,8 +34,8 @@ beforeEach(async () => {
 })
 
 it("adds a memory of the owner's as confirmed, finds it, and marks it stale", async () => {
-  const note = await json("notes", "add", "Bob Sample prefers Fridays")
-  const memory = await json(
+  const { item: note } = await json("notes", "add", "Bob Sample prefers Fridays")
+  const { item: memory } = await json(
     "memories",
     "add",
     "Bob Sample prefers meetings on Fridays",
@@ -54,13 +54,13 @@ it("adds a memory of the owner's as confirmed, finds it, and marks it stale", as
   expect((await json("search", "memories", "Fridays")).items.map(({ ref }: { ref: string }) => ref)).toEqual([
     memory.ref,
   ])
-  expect(await json("memories", "stale", memory.ref)).toMatchObject({ status: "stale" })
-  expect(await json("memories", "show", memory.ref)).toMatchObject({ ref: memory.ref, status: "stale" })
+  expect((await json("memories", "stale", memory.ref)).item).toMatchObject({ status: "stale" })
+  expect((await json("memories", "show", memory.ref)).item).toMatchObject({ ref: memory.ref, status: "stale" })
 })
 
 it("confirms a proposed action as a task in the account that would act, and rejects another", async () => {
   const scope = ["--provider", account.provider, "--account", account.account]
-  const reply = await json(
+  const { item: reply } = await json(
     "actions",
     "add",
     "reply",
@@ -70,12 +70,12 @@ it("confirms a proposed action as a task in the account that would act, and reje
     "--payload",
     '{"text":"Friday works"}',
   )
-  const ban = await json("actions", "add", "ban", "--reason", "spam", ...scope)
+  const { item: ban } = await json("actions", "add", "ban", "--reason", "spam", ...scope)
   expect(reply).toMatchObject({ status: "proposed", account, payload: { text: "Friday works" } })
 
-  const approved = await json("actions", "confirm", reply.id)
+  const { item: approved } = await json("actions", "confirm", reply.id)
   expect(approved.proposal).toMatchObject({ status: "approved", result: { task: approved.task.id } })
-  expect(await json("actions", "reject", ban.id)).toMatchObject({ status: "rejected" })
+  expect((await json("actions", "reject", ban.id)).item).toMatchObject({ status: "rejected" })
   expect((await json("actions", "list", "--status", "proposed")).items).toEqual([])
   const tasks = await json("tasks", "list", ...scope)
   expect(JSON.stringify(tasks)).toContain(approved.task.id)

@@ -22,22 +22,40 @@ it("resolves owner project aliases through reviewed CLI writes and rejects a sta
     return JSON.parse(streams.stdout.join(""))
   }
   const preview = await run("vocabulary", "list", "--kind", "project", "--scope", "work")
-  const added = await run("vocabulary", "aliases", "add", project.ref, "Lab Example", "--expected", preview.fingerprint)
-  expect(added).toMatchObject({ changed: true, target: { kind: "project", id: project.id } })
-  expect(await run("vocabulary", "show", "LAB EXAMPLE", "--kind", "project")).toMatchObject({
+  const added = await run(
+    "vocabulary",
+    "aliases",
+    "add",
+    project.ref,
+    "Lab Example",
+    "--expected",
+    preview.item.fingerprint,
+  )
+  expect(added.item).toMatchObject({ changed: true, target: { kind: "project", id: project.id } })
+  expect((await run("vocabulary", "show", "LAB EXAMPLE", "--kind", "project")).item).toMatchObject({
     ambiguous: false,
     matches: [{ id: project.id, name: project.name }],
   })
   await expect(
-    run("vocabulary", "aliases", "add", project.ref, "Other Alias", "--expected", preview.fingerprint),
+    run("vocabulary", "aliases", "add", project.ref, "Other Alias", "--expected", preview.item.fingerprint),
   ).rejects.toMatchObject({ code: "configuration_error" })
   const current = await run("vocabulary", "list", "--kind", "project")
   expect(
-    await run("vocabulary", "aliases", "remove", project.ref, added.alias.id, "--expected", current.fingerprint),
+    (
+      await run(
+        "vocabulary",
+        "aliases",
+        "remove",
+        project.ref,
+        added.item.alias.id,
+        "--expected",
+        current.item.fingerprint,
+      )
+    ).item,
   ).toMatchObject({ changed: true })
-  expect((await run("vocabulary", "show", "Lab Example", "--kind", "project")).matches).toEqual([])
+  expect((await run("vocabulary", "show", "Lab Example", "--kind", "project")).item.matches).toEqual([])
   await expect(
-    run("vocabulary", "aliases", "add", "person:1", "Wrong", "--expected", current.fingerprint),
+    run("vocabulary", "aliases", "add", "person:1", "Wrong", "--expected", current.item.fingerprint),
   ).rejects.toMatchObject({ code: "validation_error" })
 })
 it("returns likely label duplicates without changing the catalog", async () => {
@@ -52,7 +70,7 @@ it("returns likely label duplicates without changing the catalog", async () => {
   await createProgram({ streams, env })
     .exitOverride()
     .parseAsync(["vocabulary", "check", "on-boarding", "--json"], { from: "user" })
-  expect(JSON.parse(streams.stdout.join(""))).toMatchObject({
+  expect(JSON.parse(streams.stdout.join("")).item).toMatchObject({
     disposition: "review",
     existing: null,
     suggestions: [{ entry: { name: "onboarding" } }],
@@ -97,13 +115,13 @@ it("selects project meetings through aliases and refuses a foreign account link"
     return JSON.parse(streams.stdout.join(""))
   }
   const flags = ["--provider", account.provider, "--account", account.account]
-  expect(await run("projects", "meetings", "link", "Lab Example", meeting, ...flags)).toMatchObject({
+  expect((await run("projects", "meetings", "link", "Lab Example", meeting, ...flags)).item).toMatchObject({
     changed: true,
     link: { project: project.ref, confirmed: true },
   })
   expect(await run("projects", "meetings", "list", "Lab Example", ...flags)).toMatchObject({
     items: [{ project: project.ref, confirmed: true }],
-    has_more: false,
+    page: { has_more: false },
   })
   await expect(
     run("projects", "meetings", "link", "Lab Example", meeting, "--provider", "example", "--account", "BobSample"),
@@ -125,23 +143,25 @@ it("creates an owner-reviewed distinct label and rejects a stale creation receip
       .parseAsync([...args, "--json"], { from: "user" })
     return JSON.parse(streams.stdout.join(""))
   }
-  const preview = await run("vocabulary", "check", "on-boarding")
+  const { item: preview } = await run("vocabulary", "check", "on-boarding")
   expect(preview.disposition).toBe("review")
   await expect(
     run("vocabulary", "create", "onboardings", "--expected", preview.creation_fingerprint),
   ).rejects.toMatchObject({ details: { reason: "tag-review.stale" } })
-  expect(await run("vocabulary", "create", "on-boarding", "--expected", preview.creation_fingerprint)).toMatchObject({
+  expect(
+    (await run("vocabulary", "create", "on-boarding", "--expected", preview.creation_fingerprint)).item,
+  ).toMatchObject({
     name: "on-boarding",
     kind: "tag",
   })
-  const old = await run("vocabulary", "check", "delivery", "--kind", "topic")
-  const garden = await run("vocabulary", "check", "garden")
+  const { item: old } = await run("vocabulary", "check", "delivery", "--kind", "topic")
+  const { item: garden } = await run("vocabulary", "check", "garden")
   await run("vocabulary", "create", "garden", "--expected", garden.creation_fingerprint)
   await expect(
     run("vocabulary", "create", "delivery", "--kind", "topic", "--expected", old.creation_fingerprint),
   ).rejects.toMatchObject({ details: { reason: "tag-review.stale" } })
-  const current = await run("vocabulary", "check", "delivery", "--kind", "topic")
+  const { item: current } = await run("vocabulary", "check", "delivery", "--kind", "topic")
   expect(
-    await run("vocabulary", "create", "delivery", "--kind", "topic", "--expected", current.creation_fingerprint),
+    (await run("vocabulary", "create", "delivery", "--kind", "topic", "--expected", current.creation_fingerprint)).item,
   ).toMatchObject({ name: "delivery", kind: "topic" })
 })

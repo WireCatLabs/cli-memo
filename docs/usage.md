@@ -82,13 +82,18 @@ Every result names its source with a **reference**, such as `note:12`, `document
 `msg:telegram/1/77/42`. You can pass a reference to other commands: to tag it, write a note about
 it or use it as evidence. [How Memo works](how-it-works.md#references) explains each kind.
 
-Where a search answer keeps its list and references:
+Every JSON answer has the same shape. One thing is under `item`; a list is under `items`, with `page`
+saying whether more follow (`page.has_more`). `meta` names the run and the accounts read, and `missing`, when
+present, says what the answer could not cover and why. `--json=a,b` keeps only those fields of the item or of
+each item in the list.
 
-| Command | List | Reference of each result |
-|---|---|---|
-| `memo search messages`, `memo search mail` | `items` | `locator`, as in `tg search messages` |
-| `memo search all` | `items` | `ref`, with `kind` |
-| `memo search notes` | `hits` | `ref` |
+Where a search answer keeps its references:
+
+| Command | Reference of each result |
+|---|---|
+| `memo search messages`, `memo search mail` | `items[].locator`, as in `tg search messages` |
+| `memo search all` | `items[].ref`, with `kind`; open tasks that point at a result are in its `tasks` |
+| `memo search notes` | `items[].ref` |
 
 `content:` narrows a search to the text of files, `transcript:` to voice transcripts and `filename:` to file
 names. Compare like with like: `memo search messages 'content:invoice'` with

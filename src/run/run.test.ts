@@ -117,11 +117,14 @@ describe("memo auto", () => {
     const status = JSON.parse(await run("auto", "status", "--json"))
 
     expect(status).toMatchObject({
-      enabled: true,
-      every: "5m",
-      timer: "active",
-      next: "2026-10-05T22:50:13.053Z",
-      last: null,
+      item: {
+        enabled: true,
+        every: "5m",
+        timer: "active",
+        next: "2026-10-05T22:50:13.053Z",
+        last: null,
+      },
+      meta: { complete: true },
     })
   })
 })
@@ -141,7 +144,7 @@ describe("a failing timer run", () => {
     expect(autoNotice(env)).toMatch(
       /^memo: scheduled sync failing since .* \(2 runs\): notes .*vault.*has no folder id.* — memo auto status$/,
     )
-    expect(JSON.parse(await run("auto", "status", "--json")).failing).toMatchObject({
+    expect(JSON.parse(await run("auto", "status", "--json")).item.failing).toMatchObject({
       runs: 2,
       reason: expect.stringContaining("has no folder id"),
     })
@@ -150,7 +153,7 @@ describe("a failing timer run", () => {
     await timerSync()
 
     expect(autoNotice(env)).toBeUndefined()
-    expect(JSON.parse(await run("auto", "status", "--json")).failing).toBeNull()
+    expect(JSON.parse(await run("auto", "status", "--json")).item.failing).toBeNull()
   })
 
   it("is not recorded for a sync started by hand", async () => {

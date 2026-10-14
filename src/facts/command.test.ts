@@ -15,8 +15,14 @@ it("records the owner's facts as accepted and lets the owner accept, supersede a
       .parseAsync([...args, "--json"], { from: "user" })
     return JSON.parse(streams.stdout.join(""))
   }
-  const note = await run("notes", "add", "Alice Example: we ship on Fridays")
-  const said = await run("facts", "add", "Alice Example said releases go out on Fridays", "--type", "statement")
+  const { item: note } = await run("notes", "add", "Alice Example: we ship on Fridays")
+  const { item: said } = await run(
+    "facts",
+    "add",
+    "Alice Example said releases go out on Fridays",
+    "--type",
+    "statement",
+  )
   expect(said).toMatchObject({ type: "statement", status: "accepted" })
 
   const store = await openStore({ env })
@@ -28,9 +34,9 @@ it("records the owner's facts as accepted and lets the owner accept, supersede a
   })
   await store.close()
   expect((await run("facts", "list", "--status", "proposed")).items).toMatchObject([{ ref: proposed.ref }])
-  expect(await run("facts", "confirm", proposed.ref)).toMatchObject({ status: "accepted" })
+  expect((await run("facts", "confirm", proposed.ref)).item).toMatchObject({ status: "accepted" })
 
-  const replacing = await run(
+  const { item: replacing } = await run(
     "facts",
     "add",
     "Releases go out on Thursdays",
@@ -40,8 +46,8 @@ it("records the owner's facts as accepted and lets the owner accept, supersede a
     proposed.ref,
   )
   expect(replacing).toMatchObject({ status: "accepted", supersedes: proposed.ref })
-  expect(await run("facts", "show", proposed.ref)).toMatchObject({ status: "superseded" })
-  expect(await run("facts", "reverse", replacing.ref)).toMatchObject({ status: "reversed" })
+  expect((await run("facts", "show", proposed.ref)).item).toMatchObject({ status: "superseded" })
+  expect((await run("facts", "reverse", replacing.ref)).item).toMatchObject({ status: "reversed" })
   await expect(run("facts", "reverse", said.ref)).rejects.toMatchObject({ code: "validation_error" })
   expect((await run("facts", "list", "--type", "decision")).items).toHaveLength(2)
 })

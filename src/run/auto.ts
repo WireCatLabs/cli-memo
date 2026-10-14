@@ -8,7 +8,7 @@ import { installerOf } from "@wirecat/cli-base/update"
 import { failingNotice, type LastRun, recordRun } from "@wirecat/cli-core/background"
 import { type Command, InvalidArgumentError } from "commander"
 import { type Config, loadConfig, updateConfig } from "../config.js"
-import { snakeKeys } from "../output.js"
+import { answerOf } from "../output.js"
 
 export const DEFAULT_EVERY = "5m"
 const UNIT = "memo-import"
@@ -209,6 +209,7 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .description("whether the timer is on, its interval, its next run and how the last one ended")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (options: { json?: boolean }) => {
+      const startedAt = Date.now()
       const state = autoState(loadConfig(env))
       const show = async (unit: string, properties: string) =>
         Object.fromEntries(
@@ -233,7 +234,7 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         lastResult: service.Result || null,
         failing: failingOf(lastAutoRun(env)),
       }
-      if (options.json) createRenderer({ format: "json", color: false, streams }).result(snakeKeys(status))
+      if (options.json) createRenderer({ format: "json", color: false, streams }).result(answerOf(status, startedAt))
       else
         streams.data(
           `${status.enabled ? `on, every ${status.every}` : "off"} — timer ${status.timer}` +

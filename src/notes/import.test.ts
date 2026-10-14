@@ -88,22 +88,16 @@ describe("memo sync --notes", () => {
     ])
   })
 
-  it("finds stored notes by their words and lists what they link", async () => {
+  it("finds stored notes by their words", async () => {
     await run("sync", "--notes")
 
     const result = await json("search", "notes", "lighthouse")
 
-    expect(paths(result.hits)).toEqual([
+    expect(paths(result.items)).toEqual([
       "People/Rin Example.md",
       "Projects/Lighthouse.md",
       "Psychology/Private Notes.md",
     ])
-    expect(result.linked).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ name: "Rin Example", notes: 1 }),
-        { ref: null, name: "Kai Sample", notes: 1 },
-      ]),
-    )
   })
 
   it("never stores an ignored note, and drops one ignored after it was stored", async () => {
@@ -111,7 +105,7 @@ describe("memo sync --notes", () => {
 
     await run("sync", "--notes", "--ignore", "Psychology/Private Notes.md")
 
-    expect((await json("search", "notes", "dreams")).hits).toEqual([])
+    expect((await json("search", "notes", "dreams")).items).toEqual([])
   })
 
   it("keeps an edited note's new text searchable, and drops a deleted one", async () => {
@@ -123,8 +117,8 @@ describe("memo sync --notes", () => {
     const second = (await json("sync", "--notes")).item
 
     expect(second.notes[0]).toMatchObject({ changed: 1, deleted: 1 })
-    expect(paths((await json("search", "notes", "quay")).hits)).toEqual(["Projects/Harbour.md"])
-    expect((await json("search", "notes", "dreams")).hits).toEqual([])
+    expect(paths((await json("search", "notes", "quay")).items)).toEqual(["Projects/Harbour.md"])
+    expect((await json("search", "notes", "dreams")).items).toEqual([])
   })
 
   it("saves only what changed since the last run", async () => {
@@ -141,73 +135,67 @@ describe("memo sync --notes", () => {
     const refused = (await json("sync", "--notes")).item
 
     expect(refused.notes[0].deletions_skipped).toMatch(/too many to trust/)
-    expect(paths((await json("search", "notes", "bulk")).hits)).toHaveLength(6)
+    expect(paths((await json("search", "notes", "bulk")).items)).toHaveLength(6)
     expect((await json("sync", "--notes")).item.notes[0].deletions_skipped).toMatch(/too many to trust/)
   })
 
   it("keeps a moved note's id, its links and its tags", async () => {
     await telegramPeople(["101", "Owner Example"])
     await run("sync", "--notes")
-    const before = await json("notes", "show", join(vault, "Projects/Lighthouse.md"))
+    const before = (await json("notes", "show", join(vault, "Projects/Lighthouse.md"))).item
     renameSync(join(vault, "Projects/Lighthouse.md"), join(vault, "Projects/Beacon.md"))
 
     expect((await json("sync", "--notes")).item.notes[0]).toMatchObject({ renamed: 1, deleted: 0 })
 
-    const after = await json("notes", "show", before.ref)
+    const after = (await json("notes", "show", before.ref)).item
     expect(after).toMatchObject({ path: "Projects/Beacon.md", tags: ["work"] })
     expect(after.links).toHaveLength(2)
   })
 
   it("stores a file's tags and drops one the file no longer has", async () => {
     await run("sync", "--notes")
-    expect((await json("search", "notes", "budget", "--tag", "work")).hits).toHaveLength(1)
+    expect((await json("search", "notes", "budget", "--tag", "work")).items).toHaveLength(1)
 
     write("Projects/Lighthouse.md", "Kickoff with [[Rin Example]].\nBudget is open.\n")
     utimesSync(join(vault, "Projects/Lighthouse.md"), new Date("2030-01-01"), new Date("2030-01-01"))
     await run("sync", "--notes")
 
-    expect((await json("search", "notes", "budget", "--tag", "work")).hits).toEqual([])
+    expect((await json("search", "notes", "budget", "--tag", "work")).items).toEqual([])
   })
 
   it("keeps a tag the owner added when the file stops stating it", async () => {
     await run("sync", "--notes")
-    const ref = (await json("notes", "show", join(vault, "Projects/Lighthouse.md"))).ref
+    const ref = (await json("notes", "show", join(vault, "Projects/Lighthouse.md"))).item.ref
     await run("tags", "add", "work", "--note", ref)
 
     write("Projects/Lighthouse.md", "Kickoff with [[Rin Example]].\nBudget is open.\n")
     utimesSync(join(vault, "Projects/Lighthouse.md"), new Date("2030-01-01"), new Date("2030-01-01"))
     await run("sync", "--notes")
 
-    expect((await json("notes", "show", ref)).labels).toEqual([{ tag: "work", origin: "owner" }])
+    expect((await json("notes", "show", ref)).item.labels).toEqual([{ tag: "work", origin: "owner" }])
   })
 
   it("labels every note under a subfolder, and none beside it", async () => {
     await run("sync", "--notes")
     const [folder] = (await json("folders", "list")).items
-    expect(await json("tags", "add", "port", "--folder", folder.id, "--path", "Projects")).toMatchObject({
+    expect((await json("tags", "add", "port", "--folder", folder.id, "--path", "Projects")).item).toMatchObject({
       added: ["port"],
     })
 
-    expect(paths((await json("search", "notes", "plan OR budget", "--tag", "port")).hits)).toEqual([
+    expect(paths((await json("search", "notes", "plan OR budget", "--tag", "port")).items)).toEqual([
       "Projects/Harbour.md",
       "Projects/Lighthouse.md",
     ])
-    expect((await json("tags", "list", "--type", "folder")).knowledge).toHaveLength(1)
+    expect((await json("tags", "list", "--type", "folder")).items).toEqual([
+      expect.objectContaining({ type: "folder", tag: "port" }),
+    ])
   })
 
   it("searches by words alone when the model is not downloaded, and says why", async () => {
     await run("sync", "--notes")
     const found = await json("search", "notes", "budget")
-    expect(found).toMatchObject({ by: "words", hits: [{ path: "Projects/Lighthouse.md", found_by: ["words"] }] })
-    expect(found.meaning_skipped).toMatch(/not downloaded/)
-  })
-
-  it("names the person a found note links", async () => {
-    await run("sync", "--notes")
-    await telegramPeople(["102", "Kai Sample"])
-
-    const { linked } = await json("search", "notes", "harbour")
-    expect(linked).toEqual([expect.objectContaining({ ref: expect.stringMatching(/^person:/), name: "Kai Sample" })])
+    expect(found).toMatchObject({ items: [{ path: "Projects/Lighthouse.md", found_by: ["words"] }] })
+    expect(found.missing).toEqual([{ field: "found_by", why: expect.stringMatching(/not downloaded/) }])
   })
 
   it("does not import a note memo exported", async () => {
@@ -215,7 +203,7 @@ describe("memo sync --notes", () => {
 
     await run("sync", "--notes")
 
-    expect(paths((await json("search", "notes", "exported")).hits)).toEqual([])
+    expect(paths((await json("search", "notes", "exported")).items)).toEqual([])
   })
 
   it("links a name no note has to the person, the moment someone by that name appears", async () => {
@@ -275,7 +263,7 @@ describe("memo sync --notes", () => {
     expect((await json("notes", "list", "--about", "telegram:102", "--source", "internal")).items).toEqual([])
     const first = await json("notes", "list", "--about", "telegram:102", "--limit", "1")
     const second = await json("notes", "list", "--about", "telegram:102", "--limit", "1", "--offset", "1")
-    expect([first.has_more, second.has_more]).toEqual([true, false])
+    expect([first.page.has_more, second.page.has_more]).toEqual([true, false])
     expect(paths([...first.items, ...second.items])).toEqual(["Projects/Harbour.md", "Projects/Lighthouse.md"])
   })
 })
@@ -300,8 +288,8 @@ describe("notes written in memo", () => {
       "--export",
       out,
     )
-    expect(edited.exported.written).toHaveLength(1)
-    expect((await json("notes", "export", "--to", out)).unchanged).toHaveLength(1)
+    expect(edited.item.exported.written).toHaveLength(1)
+    expect((await json("notes", "export", "--to", out)).item.unchanged).toHaveLength(1)
     await expect(run("notes", "edit", id, "--revision", "1", "--text", "stale")).rejects.toThrow(/changed/)
 
     await run("notes", "remove", id)
@@ -310,7 +298,7 @@ describe("notes written in memo", () => {
 
   it("refuses to edit a file's note, which is edited in its file", async () => {
     await run("sync", "--notes")
-    const note = await json("notes", "show", join(vault, "Projects/Harbour.md"))
+    const note = (await json("notes", "show", join(vault, "Projects/Harbour.md"))).item
     await expect(run("notes", "edit", note.ref, "--revision", "1", "--text", "x")).rejects.toThrow(/edited in its file/)
   })
 })

@@ -12,7 +12,8 @@ const setUp = () => {
     await createProgram({ streams, env })
       .exitOverride()
       .parseAsync([...args, "--json"], { from: "user" })
-    return JSON.parse(streams.stdout.join(""))
+    const answer = JSON.parse(streams.stdout.join(""))
+    return "item" in answer ? answer.item : answer
   }
 }
 

@@ -39,21 +39,20 @@ beforeEach(async () => {
 describe("structured note retrieval and saved links", () => {
   it("uses shared phrase/Boolean filters, provides exact current excerpts and paginates distinct notes", async () => {
     const first = await run("search", "notes", '"budget review" AND NOT cancelled', "--limit", "2")
-    expect(first.hits).toHaveLength(2)
-    expect(first.has_more).toBe(true)
-    expect(first.next_offset).toBe(2)
-    expect(first.hits.every((hit: { excerpt: string }) => /budget review/i.test(hit.excerpt))).toBe(true)
+    expect(first.items).toHaveLength(2)
+    expect(first.page).toEqual({ mode: "cursor", limit: 2, has_more: true, next_cursor: "2" })
+    expect(first.items.every((hit: { excerpt: string }) => /budget review/i.test(hit.excerpt))).toBe(true)
     const second = await run("search", "notes", '"budget review" AND NOT cancelled', "--limit", "2", "--offset", "2")
-    expect(second.hits).toHaveLength(1)
-    expect(second.has_more).toBe(false)
-    expect(new Set([...first.hits, ...second.hits].map((hit: { ref: string }) => hit.ref)).size).toBe(3)
+    expect(second.items).toHaveLength(1)
+    expect(second.page.has_more).toBe(false)
+    expect(new Set([...first.items, ...second.items].map((hit: { ref: string }) => hit.ref)).size).toBe(3)
     await expect(run("search", "notes", '"unfinished')).rejects.toMatchObject({ code: "validation_error" })
   })
 
   it("links relative paths and aliases to the note, and keeps an ambiguous or unknown name as written", async () => {
     const answer = await run("search", "notes", "agreed OR Missing")
-    const review = answer.hits.find((hit: { path: string }) => hit.path === "Meetings/Review.md")
-    const rin = (await run("notes", "show", join(vault, "People/Rin.md"))).ref
+    const review = answer.items.find((hit: { path: string }) => hit.path === "Meetings/Review.md")
+    const rin = (await run("notes", "show", join(vault, "People/Rin.md"))).item.ref
     expect(review.links).toHaveLength(4)
     expect(review.links).toEqual(
       expect.arrayContaining([

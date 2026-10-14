@@ -18,9 +18,9 @@ anything. Add `--json` and read the answer, not the text meant for people.
    also reads file text and voice transcripts depends on the version. Compare like with like:
    `memo search messages 'content:invoice'` with `tg search messages 'content:invoice'`, a plain word
    with a plain word.
-3. **Each search keeps its list and references under its own keys.** `search messages` and
-   `search mail`: `items[].locator`; `search all`: `items[].ref` with `kind`; `search notes`:
-   `hits[].ref`. Pass a reference back unchanged.
+3. **Every answer is `item` (one thing) or `items` with `page` (a list), plus `meta`.** References:
+   `search messages` and `search mail`: `items[].locator`; `search all` and `search notes`:
+   `items[].ref`. Pass a reference back unchanged. `missing` says what was not searched and why.
 4. **Start work on a project with `memo projects context <key>`.** Its key documents come first:
    read them before anything else. Mark one with
    `memo projects key-documents add <key> <reference> --reason '<why>'`.

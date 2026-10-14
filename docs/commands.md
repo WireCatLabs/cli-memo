@@ -1606,7 +1606,7 @@ memo search notes <query> [options]
 | `--tag <tag>` | only notes with this tag. |
 | `--filter <query>` | another query every note must match. |
 | `--folder <folder>` | only this folder, by its id or path; repeat for more. |
-| `--offset <n>` | continue from next_offset. Default: `0`. |
+| `--offset <n>` | continue from page.next_cursor. Default: `0`. |
 | `--project <project>` | rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out. |
 
 ### `memo search memories`

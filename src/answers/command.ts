@@ -3,7 +3,7 @@ import { type ModelAdapter, type ModelTarget, modelGateway } from "@wirecat/cli-
 import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { positive } from "../options.js"
-import { snakeKeys } from "../output.js"
+import { answerOf, snakeKeys } from "../output.js"
 import { type EvidenceItem, searchAccounts, unifiedSearch } from "../search/command.js"
 import type { AccountScope } from "../store/scope.js"
 
@@ -110,6 +110,7 @@ export const askCommand = (program: Command, streams: Streams, env: NodeJS.Proce
           json?: boolean
         },
       ) => {
+        const startedAt = Date.now()
         const store = await openStore({ env })
         try {
           const found = await unifiedSearch(store, options.query ?? question, {
@@ -152,7 +153,8 @@ export const askCommand = (program: Command, streams: Streams, env: NodeJS.Proce
               })),
             }
           }
-          if (options.json) createRenderer({ format: "json", color: false, streams }).result(snakeKeys(answer))
+          if (options.json)
+            createRenderer({ format: "json", color: false, streams }).result(answerOf(answer, startedAt))
           else streams.data(`${JSON.stringify(snakeKeys(answer), null, 2)}\n`)
         } finally {
           await store.close()

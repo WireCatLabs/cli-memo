@@ -231,7 +231,15 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         answer.hasMore ||= knowledge.length > options.limit
         print(
           options.json,
-          { ...answer, knowledge: knowledge.slice(0, options.limit) },
+          {
+            items: [
+              ...answer.items,
+              ...knowledge
+                .slice(0, options.limit)
+                .flatMap(({ target, labels }) => labels.map(({ tag, origin }) => ({ ...target, tag, origin }))),
+            ],
+            hasMore: answer.hasMore,
+          },
           [
             ...lines,
             ...knowledge

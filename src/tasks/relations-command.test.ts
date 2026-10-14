@@ -15,7 +15,8 @@ it("creates keyed project tasks, reviews dependencies and discovers ready work t
     await createProgram({ streams, env })
       .exitOverride()
       .parseAsync([...args, "--json"], { from: "user" })
-    return JSON.parse(streams.stdout.join(""))
+    const answer = JSON.parse(streams.stdout.join(""))
+    return "item" in answer ? answer.item : answer
   }
   const project = await run("projects", "add", "Research Example", "--key", "RES")
   const catalog = await run("vocabulary", "list", "--kind", "project")
@@ -27,7 +28,7 @@ it("creates keyed project tasks, reviews dependencies and discovers ready work t
   expect(await run("tasks", "link", second.id, first.id, "--kind", "blocked-by")).toMatchObject({ changed: false })
   expect(await run("tasks", "list", "--ready", "--project", "Lab Example")).toMatchObject({
     items: [{ key: first.key }],
-    has_more: false,
+    page: { has_more: false },
   })
   expect(await run("tasks", "status", second.id)).toEqual({
     ready: false,
