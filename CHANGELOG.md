@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Changed
+
+- **Config settings are named in snake_case:** `mail.max_body_chars`, `mail.max_attachment_chars`, and `list_id`
+  and `decided_at` in `mail.accounts[].rules[]`, which `memo mail rules` writes and prints that way. The camelCase
+  names older versions wrote are still read, and the file is saved in snake_case; both spellings with different
+  values are an error. Renaming inside `rules` needs the cli-core release carrying PR #1224.
+
 ## 0.30.0 — 14.10.2026
 
 ### Added

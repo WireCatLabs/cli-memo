@@ -1,4 +1,5 @@
-import { configFilePath, loadConfigFile, resolvePaths, saveConfigFile } from "@wirecat/cli-base"
+import { configFilePath, resolvePaths, saveConfigFile } from "@wirecat/cli-base"
+import { loadSnakeCaseConfig } from "@wirecat/cli-core/cli"
 import * as v from "valibot"
 import { DIALECTS } from "./notes/dialects/index.js"
 
@@ -44,20 +45,20 @@ const ConfigSchema = v.object({
                 match: v.object({
                   from: v.optional(v.string()),
                   domain: v.optional(v.string()),
-                  listId: v.optional(v.string()),
+                  list_id: v.optional(v.string()),
                 }),
                 action: v.picklist(["skip", "envelope", "keep"]),
                 reason: v.optional(v.string()),
-                decidedAt: v.string(),
+                decided_at: v.string(),
               }),
             ),
           ),
         }),
       ),
       /** The most characters of an email body kept; 1,000,000 by default. */
-      maxBodyChars: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
+      max_body_chars: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
       /** The most characters of one attachment's extracted text kept; 200,000 by default. */
-      maxAttachmentChars: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
+      max_attachment_chars: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
     }),
   ),
 })
@@ -68,7 +69,7 @@ export const configPath = (env: NodeJS.ProcessEnv = process.env): string =>
   configFilePath(resolvePaths({ appName: "cli-memo", prefix: "MEMO", env }).config)
 
 export const loadConfig = (env: NodeJS.ProcessEnv = process.env): Config =>
-  loadConfigFile(configPath(env), ConfigSchema, () => ({}))
+  loadSnakeCaseConfig(configPath(env), ConfigSchema, () => ({}))
 
 /** Changes one part of the config and keeps the rest as written. */
 export const updateConfig = (change: (config: Config) => Config, env: NodeJS.ProcessEnv = process.env): Config => {

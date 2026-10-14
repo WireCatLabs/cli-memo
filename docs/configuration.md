@@ -18,8 +18,8 @@ as in the example.
   },
   "mail": {
     "accounts": [{ "name": "work", "address": "you@example.com" }],
-    "maxBodyChars": 1000000,
-    "maxAttachmentChars": 200000
+    "max_body_chars": 1000000,
+    "max_attachment_chars": 200000
   },
   "auto": { "enabled": true, "every": "5m" }
 }
@@ -55,8 +55,10 @@ Next to `accounts`:
 
 | Key | Meaning |
 |---|---|
-| `maxBodyChars` | How many characters of each email are kept. Default 1,000,000. |
-| `maxAttachmentChars` | How many characters of each attachment's text are kept. Default 200,000. |
+| `max_body_chars` | How many characters of each email are kept. Default 1,000,000. |
+| `max_attachment_chars` | How many characters of each attachment's text are kept. Default 200,000. |
+
+Settings are named in snake_case. The camelCase names older versions wrote are still read, and the file is saved in snake_case.
 
 See [Mail](mail.md).
 

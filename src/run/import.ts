@@ -233,10 +233,10 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
                   env,
                   embed: options.embed,
                   ...(options.limit === undefined ? {} : { max: options.limit }),
-                  ...(config.mail?.maxBodyChars === undefined ? {} : { maxBodyChars: config.mail.maxBodyChars }),
-                  ...(config.mail?.maxAttachmentChars === undefined
+                  ...(config.mail?.max_body_chars === undefined ? {} : { maxBodyChars: config.mail.max_body_chars }),
+                  ...(config.mail?.max_attachment_chars === undefined
                     ? {}
-                    : { maxAttachmentChars: config.mail.maxAttachmentChars }),
+                    : { maxAttachmentChars: config.mail.max_attachment_chars }),
                   retryAttachments: options.retryAttachments ?? false,
                   rescan: options.rescan ?? false,
                 }),

@@ -346,7 +346,7 @@ More: [security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security
   reported, not read.
 - Search by meaning embeds at most 600 chunks a run; the next run continues.
 - `memo sync --mail` reads 200 new messages per account a run by default (`--limit`) and keeps up to 1,000,000
-  characters of a body and 200,000 of an attachment's text (`mail.maxBodyChars`, `mail.maxAttachmentChars`).
+  characters of a body and 200,000 of an attachment's text (`mail.max_body_chars`, `mail.max_attachment_chars`).
 - Searches return at most 100 results; `tags list` shows 100 labels unless `--limit` says more.
 - Tags are 1–32 letters a–z, digits or hyphens.
 

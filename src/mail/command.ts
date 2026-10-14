@@ -25,7 +25,7 @@ const accountOf = (config: Config, name: string): MailAccountConfig =>
 const matchOf = ({ from, domain, listId }: MatchOptions): MailRuleMatch => {
   const given = [from, domain, listId].filter((value) => value !== undefined)
   if (given.length !== 1) throw new CliError("validation_error", "give exactly one of --from, --domain, --list-id")
-  return from !== undefined ? { from } : domain !== undefined ? { domain } : { listId: listId as string }
+  return from !== undefined ? { from } : domain !== undefined ? { domain } : { list_id: listId as string }
 }
 
 const describe = (match: MailRuleMatch): string =>
@@ -33,7 +33,7 @@ const describe = (match: MailRuleMatch): string =>
     ? `from ${match.from}`
     : match.domain !== undefined
       ? `domain ${match.domain}`
-      : `list-id ${match.listId}`
+      : `list-id ${match.list_id}`
 
 interface Recorded {
   emails: number
@@ -44,7 +44,7 @@ const ruleLine = (rule: MailRule & { recorded?: Recorded }): string =>
   [
     rule.action.padEnd(8),
     describe(rule.match),
-    rule.decidedAt.slice(0, 10),
+    rule.decided_at.slice(0, 10),
     rule.recorded === undefined ? "" : `${rule.recorded.emails} emails, ${megabytes(rule.recorded.bytes)} MB`,
     rule.reason ?? "",
   ]
@@ -245,7 +245,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           match,
           action: actions[0] as MailRule["action"],
           ...(options.reason === undefined ? {} : { reason: options.reason }),
-          decidedAt: new Date().toISOString(),
+          decided_at: new Date().toISOString(),
         }
         changeRules(env, name, (current) => [...current.filter((each) => !sameMatch(each.match, match)), rule])
         print(options.json, rule, ruleLine(rule))
