@@ -471,6 +471,6 @@ describe("memo sync --mail", () => {
       JSON.stringify({ pid: process.ppid, startedAt: new Date().toISOString() }),
     )
 
-    await expect(run(["sync", "--account", "test"], withConfig)).rejects.toThrow("already running")
+    await expect(run(["sync", "--account", "test"], withConfig)).rejects.toThrow("is running")
   })
 })

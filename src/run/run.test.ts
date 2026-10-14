@@ -120,6 +120,24 @@ describe("memo sync", () => {
       JSON.stringify({ pid: process.ppid, startedAt: new Date().toISOString() }),
     )
 
-    await expect(run("sync")).rejects.toThrow("already running")
+    await expect(run("sync")).rejects.toMatchObject({ code: "rate_limited", details: { reason: "sync.running" } })
+  })
+
+  it("skips a timer run while another sync holds the lock, and exits 0", async () => {
+    mkdirSync(join(dir, "state"), { recursive: true })
+    writeFileSync(
+      join(dir, "state", "import.lock"),
+      JSON.stringify({ pid: process.ppid, startedAt: new Date().toISOString() }),
+    )
+    updateConfig((config) => ({ ...config, auto: { enabled: true, every: "5m" } }), env)
+    env = { ...env, MEMO_AUTO: "1" }
+    process.exitCode = undefined
+    const streams = captureStreams()
+
+    await createProgram({ streams, env }).exitOverride().parseAsync(["sync", "--json"], { from: "user" })
+
+    expect(process.exitCode).toBeUndefined()
+    expect(streams.stderr.join("")).toBe(`memo sync skipped: another memo sync is running (process ${process.ppid})`)
+    expect(JSON.parse(streams.stdout.join(""))).toMatchObject({ skipped: expect.stringContaining("running") })
   })
 })

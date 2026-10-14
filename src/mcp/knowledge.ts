@@ -44,7 +44,7 @@ export const knowledgeTools = {
       offset: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(1000))),
       tag: v.optional(v.pipe(v.string(), v.minLength(1))),
     }),
-    run: (store, { text, ...options }, env) => searchNotes(store, text, { ...options, env, command: "memo" }),
+    run: (store, { text, ...options }, env) => searchNotes(store, text, { ...options, env, command: "tg" }),
   }),
   person_context: define({
     title: "What the store holds about a person",
