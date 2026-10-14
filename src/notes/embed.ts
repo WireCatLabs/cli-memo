@@ -1,4 +1,4 @@
-import { CliError } from "@wirecat/cli-base"
+import { isCliError } from "@wirecat/cli-base"
 import {
   conversationsService,
   embeddingsService,
@@ -22,8 +22,11 @@ export interface NotesEmbedded {
   pendingChats?: string[]
 }
 
+// memo has no `models` command: the model folder is shared, and tg or max fills it.
+const MISSING_MODEL = "the e5-small model is not downloaded — tg or max downloads it: tg models text download e5-small"
+
 const isMissingModel = (error: unknown): boolean =>
-  error instanceof CliError && error.code === "not_found" && /is not downloaded/.test(error.message)
+  isCliError(error) && error.code === "not_found" && /is not downloaded/.test(error.message)
 
 /**
  * Builds each chat's conversations (one per note) — what search by words and by meaning both read — and,
@@ -47,7 +50,7 @@ export const embedNotes = async (
   for (const chat of chats) {
     await conversations.build(chat).catch((error: unknown) => {
       // A folder whose every note was deleted has nothing left to build.
-      if (!(error instanceof CliError && error.code === "not_found")) throw error
+      if (!(isCliError(error) && error.code === "not_found")) throw error
     })
   }
   let chunks = 0
@@ -72,7 +75,7 @@ export const embedNotes = async (
         chats: chats.length,
         chunks,
         left: true,
-        notEmbedded: "the e5-small model is not downloaded — tg models text download e5-small",
+        notEmbedded: MISSING_MODEL,
         pendingChats: [...pendingChats, ...chats.slice(index)],
       }
     }
@@ -149,7 +152,7 @@ export const embedNoteChunks = async (
     return {
       chunks: 0,
       left: true,
-      notEmbedded: "the e5-small model is not downloaded — tg models text download e5-small",
+      notEmbedded: MISSING_MODEL,
     }
   }
 }
@@ -172,7 +175,7 @@ export const embedMailChunks = async (
     return {
       chunks: 0,
       left: true,
-      notEmbedded: "the e5-small model is not downloaded — tg models text download e5-small",
+      notEmbedded: MISSING_MODEL,
     }
   }
 }

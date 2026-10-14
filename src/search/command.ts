@@ -1,4 +1,4 @@
-import { CliError, type Streams } from "@wirecat/cli-base"
+import { CliError, isCliError, type Streams } from "@wirecat/cli-base"
 import { parseLucene, type QueryNode } from "@wirecat/cli-base/query"
 import { parseLocator, resolveOutput } from "@wirecat/cli-core"
 import {
@@ -96,7 +96,7 @@ export const unifiedSearch = async (
       coverage.push({ notes: "searched" })
     } catch (error) {
       // A field only messages have (`from:`, `after:`) is refused by notes; the messages still answer.
-      if (!(error instanceof CliError) || error.code !== "validation_error" || !options.keys.length) throw error
+      if (!isCliError(error) || error.code !== "validation_error" || !options.keys.length) throw error
       coverage.push({ notes: `not searched: ${error.message}` })
       incomplete = true
     }

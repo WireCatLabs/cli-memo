@@ -1,6 +1,6 @@
 import { type CallToolResult, McpServer } from "@modelcontextprotocol/server"
 import { toStandardJsonSchema } from "@valibot/to-json-schema"
-import { CliError, isCliError } from "@wirecat/cli-base"
+import { CliError } from "@wirecat/cli-base"
 import {
   FACT_STATUSES,
   FACT_TYPES,
@@ -12,6 +12,7 @@ import {
 } from "@wirecat/cli-core/store"
 import * as v from "valibot"
 import { propose } from "../actions/actions.js"
+import { mcpFailure } from "../failure.js"
 import { addMemory } from "../memories/memories.js"
 import { pageOf } from "../page.js"
 import { VERSION } from "../version.js"
@@ -178,21 +179,18 @@ const answer = (value: object): CallToolResult => {
   if (Buffer.byteLength(text) > MAX_ANSWER_BYTES)
     throw new CliError("invalid_response", "the answer exceeds 4 MiB — lower limit or ask for less", {
       reason: "output.too-large",
-      maxBytes: MAX_ANSWER_BYTES,
-      retryable: false,
+      max_bytes: MAX_ANSWER_BYTES,
     })
   return { content: [{ type: "text", text }], structuredContent: value as Record<string, unknown> }
 }
 
-const failure = (error: unknown): CallToolResult => {
-  const body = isCliError(error)
-    ? { code: error.code, message: error.message }
-    : { code: "internal_error", message: error instanceof Error ? error.message : String(error) }
-  return {
-    content: [{ type: "text", text: JSON.stringify({ error: body }) }],
-    structuredContent: { error: body },
-    isError: true,
-  }
+/**
+ * The SDK would refuse a bad argument with its own text before the handler runs; passing everything through
+ * lets the handler's parse answer with the shared error object, and the agent log record the call.
+ */
+const advertised = (input: MemoTool["input"]) => {
+  const schema = toStandardJsonSchema(input)
+  return { "~standard": { ...schema["~standard"], validate: (value: unknown) => ({ value }) } } as typeof schema
 }
 
 /** One store per call: memo serves rarely and briefly, and a held store would keep its file open between calls. */
@@ -204,18 +202,23 @@ export const createMemoServer = (env: NodeJS.ProcessEnv): McpServer => {
       {
         title: tool.title,
         description: tool.description,
-        inputSchema: toStandardJsonSchema(tool.input),
+        inputSchema: advertised(tool.input),
         annotations: { readOnlyHint: !tool.writes, destructiveHint: false, openWorldHint: false },
       },
       async (args: Record<string, unknown>) => {
         const startedAt = Date.now()
-        const store = await openStore({ env })
+        let store: Awaited<ReturnType<typeof openStore>>
+        try {
+          store = await openStore({ env })
+        } catch (error) {
+          return mcpFailure(error)
+        }
         try {
           let result: CallToolResult
           try {
             result = answer(await tool.run(store, v.parse(tool.input, args) as never, env))
           } catch (error) {
-            result = failure(error)
+            result = await mcpFailure(error)
           }
           const code = (result.structuredContent as { error?: { code?: string } } | undefined)?.error?.code
           await store.agentActions.record({

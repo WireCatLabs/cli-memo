@@ -110,7 +110,11 @@ it("offers vocabulary discovery and preflight without accepting alias changes", 
       complete: true,
       semantic: "not-requested",
     })
-    expect((await call("vocabulary_check", { maxComparisons: 100001 })).isError).toBe(true)
+    const check = (await client.listTools()).tools.find((tool) => tool.name === "vocabulary_check")
+    expect(check?.inputSchema.properties).toHaveProperty("maxComparisons")
+    expect((await call("vocabulary_check", { maxComparisons: 100001 })).structuredContent).toMatchObject({
+      error: { code: "validation_error", reason: "input.invalid", param: "maxComparisons" },
+    })
     expect(
       (await client.listTools()).tools.some((x) => ["vocabulary_alias_add", "vocabulary_create"].includes(x.name)),
     ).toBe(false)

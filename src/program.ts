@@ -35,6 +35,7 @@ export const createProgram = ({
   const program = new Command("memo")
     .description("context about people across messengers, notes and mail")
     .version(VERSION)
+    .option("--debug", "on failure, show the full error record: cause and stack")
 
   contextCommand(program, streams, env)
   notesCommand(program, streams, env)

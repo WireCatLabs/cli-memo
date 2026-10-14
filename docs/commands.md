@@ -11,6 +11,7 @@ These options work with the `memo` command itself.
 | Option | What it does |
 |---|---|
 | `-V, --version` | output the version number. |
+| `--debug` | on failure, show the full error record: cause and stack. |
 
 ## `memo context`
 

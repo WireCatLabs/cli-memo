@@ -7,7 +7,10 @@ export const withImportLock = async <T>(env: NodeJS.ProcessEnv, work: () => Prom
   const lock = join(resolvePaths({ appName: "cli-memo", prefix: "MEMO", env }).state, "import.lock")
   const holder = takeLock(lock, { pid: process.pid, startedAt: new Date().toISOString() })
   if (holder !== undefined)
-    throw new CliError("rate_limited", `an import is already running (process ${holder.pid}); try again when it ends`)
+    throw new CliError("rate_limited", `another memo sync is running (process ${holder.pid}); try again when it ends`, {
+      reason: "sync.running",
+      pid: holder.pid,
+    })
   try {
     return await work()
   } finally {

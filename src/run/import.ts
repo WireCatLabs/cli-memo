@@ -1,7 +1,8 @@
-import { createRenderer, type Streams } from "@wirecat/cli-base"
+import { createRenderer, isCliError, type Streams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { type Command, Option } from "commander"
 import { loadConfig } from "../config.js"
+import { errorObject } from "../failure.js"
 import { mailAccounts, mailSource } from "../mail/accounts.js"
 import { type ImportResult, importMail } from "../mail/import.js"
 import { boundFolders, unboundReason } from "../notes/bound.js"
@@ -33,6 +34,8 @@ export interface ImportRun {
   mail: ImportResult[]
   /** A source that failed; the others still ran. */
   failed: { source: string; reason: string }[]
+  /** Why a timer run did nothing: another sync held the lock. */
+  skipped?: string
 }
 
 const text = (run: ImportRun): string =>
@@ -124,7 +127,8 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .option("--no-embed", "skip embedding notes and mail for search by meaning this run")
     .option("--json", "print JSON")
     .addHelpText("after", `\n${LARGE_IMPORT_HELP}`)
-    .action(async (options: SyncOptions) => {
+    .action(async (options: SyncOptions, command: Command) => {
+      const debug = command.optsWithGlobals().debug === true
       const both = !options.notes && !options.mail
       const config = loadConfig(env)
       if (env.MEMO_AUTO === "1") {
@@ -145,13 +149,16 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
             )
           : []
       const run: ImportRun = { notes: [], mail: [], failed: [] }
-      await withImportLock(env, async () => {
+      const work = withImportLock(env, async () => {
         const store = await openStore({ env })
         const attempt = async (source: string, work: () => Promise<void>) => {
           try {
             await work()
           } catch (error) {
-            run.failed.push({ source, reason: error instanceof Error ? error.message : String(error) })
+            const reason = debug
+              ? String(error instanceof Error ? error.message : error)
+              : (await errorObject(error)).error.message
+            run.failed.push({ source, reason })
           }
         }
         try {
@@ -203,6 +210,21 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           await store.close()
         }
       })
+      // The timer fires on schedule whatever the last run is doing; an overlap is not a failure of the unit.
+      const skipped = await work.then(
+        () => undefined,
+        (error: unknown) => {
+          if (env.MEMO_AUTO === "1" && isCliError(error) && error.details.reason === "sync.running")
+            return `another memo sync is running (process ${String(error.details.pid)})`
+          throw error
+        },
+      )
+      if (skipped !== undefined) {
+        run.skipped = skipped
+        streams.diagnostic(`memo sync skipped: ${skipped}`)
+        if (options.json) createRenderer({ format: "json", color: false, streams }).result(run)
+        return
+      }
       if (options.json) createRenderer({ format: "json", color: false, streams }).result(run)
       else streams.data(`${text(run)}\n`)
       if (run.failed.length > 0) process.exitCode = 1

@@ -6,6 +6,24 @@ the API.
 
 ## Unreleased
 
+### Changed
+
+- **Errors are one object, the same on the CLI and in MCP:** `{"error": {"code", "reason", "message", "param"?,
+  "details"?}}`. The CLI prints it as one JSON line on stderr in machine mode and `✗ message` at a terminal; MCP
+  returns it as `structuredContent` with `isError`. A failure that is not memo's own is `internal_error` /
+  `command.crashed` and its text is hidden. A bad option is `validation_error` with Commander's words, exit 2.
+- **New global `--debug`** prints the whole error record after the object: the thrown text, cause and stack.
+- **memo registers its own reasons** in `APP.errors`: `sync.running` (with `pid`) for a sync refused by the lock.
+- A source that fails during `memo sync` shows its registered message; a crash's text shows only with `--debug`.
+
+### Fixed
+
+- **The `memo auto` timer no longer fails when a sync is still running.** A timer run that finds the lock held
+  exits 0 and writes `memo sync skipped: …` to stderr (`skipped` in `--json`). A sync started by hand still
+  refuses with `rate_limited` / `sync.running`.
+- **The missing-model hint names the CLIs that download it** — memo has no `models` command: `tg or max
+  downloads it: tg models text download e5-small`. MCP `search_notes` no longer suggests `memo models …`.
+
 ## 0.25.0 — 14.10.2026
 
 ### Added
