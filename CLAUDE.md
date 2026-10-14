@@ -4,6 +4,11 @@
 shared store of [`@wirecat/cli-core`](https://github.com/WireCatLabs/cli-core); this repository
 reads notes, imports mail into that store, and answers.
 
+Security audits of this repository follow the shared
+[security method](https://github.com/WireCatLabs/cli-testing/tree/main/docs/security) in cli-testing;
+vulnerabilities are reported as the
+[security policy](https://github.com/WireCatLabs/.github/blob/main/SECURITY.md) says.
+
 ## The constraints that shape everything
 
 1. **This repository is public; the owner's data is not.** No real name, address, subject, note or
@@ -42,6 +47,7 @@ text. `CHANGELOG.md` is the one place for history.
 Local commits check only staged lint and secrets. There is no pre-push check.
 Config integrity, repository lint, Markdown, and secret detection run in PR CI.
 The bounded `ci:quick` step adds typechecking for CLI packages or synthetic unit tests for the docs site.
-Full tests, coverage, builds, parity, browser and platform suites run for releases,
-explicit manual validation, and monthly nonpublishing validation. See the
+Full tests, coverage and builds also run once on each merge to `main` (Linux only, no publishing).
+Browser and platform suites run for releases, explicit manual validation, and monthly nonpublishing
+validation. See the
 [shared policy](https://github.com/WireCatLabs/community/blob/main/standards/README.md#ci-and-hooks).
