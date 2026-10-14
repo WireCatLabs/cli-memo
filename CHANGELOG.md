@@ -6,6 +6,14 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo mail rules apply <account>`** cuts mail stored in full that an envelope rule matches down to its
+  envelope: text, attachments and search entries go, sender, date, size, labels and the subject in metadata stay.
+  A dry run by default that says per rule how many emails and how much text it would cut; `--yes` cuts them.
+  Matching reads the headers from the mailbox, as `memo sync` does. Mail only a skip rule matches stays as
+  stored. It takes the sync lock and refuses with `sync.running` while a sync runs.
+
 ## 0.27.0 — 14.10.2026
 
 ### Changed

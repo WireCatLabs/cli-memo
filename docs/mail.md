@@ -78,6 +78,18 @@ A rule does one of three things:
 A keep wins over an envelope, and an envelope wins over a skip. When you remove an envelope rule, or change it
 to keep, the next sync reads those emails in full. Mail stored in full before a rule stays as it is.
 
+Mail stored in full before an envelope rule existed stays whole until you cut it:
+
+```sh
+memo mail rules apply work        # says how many emails and how much text each rule would cut
+memo mail rules apply work --yes  # cuts them to envelopes
+```
+
+It reads the account's headers from the mailbox, as `memo sync` does, because the List-Id of a stored email
+is not kept. Each matching email loses its text, attachments and search entries and keeps its sender, date,
+size, labels and subject in metadata. Mail only a skip rule matches stays as stored. Nothing changes in the
+mailbox, and changing the rule to keep reads the emails in full again on the next sync.
+
 ## Old mail from Google Takeout
 
 Gmail limits how much IMAP can download a day, so years of old mail are faster from a

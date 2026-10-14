@@ -1,10 +1,13 @@
-import { CliError, type Streams } from "@wirecat/cli-base"
+import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
 import { type MessageStore, openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { type Config, loadConfig, updateConfig } from "../config.js"
 import { positive } from "../options.js"
+import { metaOf, snakeKeys } from "../output.js"
 import { printing } from "../records/run.js"
+import { withImportLock } from "../run/lock.js"
 import { type MailAccountConfig, mailAccounts, mailFolders, mailSource } from "./accounts.js"
+import { type ApplyResult, applyRules } from "./apply.js"
 import { type Probe, probeMail, SUGGEST_RULE } from "./probe.js"
 import { envelopeBox, type MailRule, type MailRuleMatch, sameMatch } from "./rules.js"
 import type { Listed } from "./source.js"
@@ -78,6 +81,17 @@ const changeRules = (env: NodeJS.ProcessEnv, name: string, change: (rules: MailR
   }, env)
   return changed
 }
+
+const applyText = (result: ApplyResult): string =>
+  [
+    ...result.rules
+      .filter(({ emails }) => emails > 0)
+      .map(({ rule, emails, bytes }) => `${describe(rule.match)}  ${emails} emails, ${megabytes(bytes)} MB of text`),
+    `${result.applied ? "cut" : "would cut"} ${result.envelopes} emails to envelopes, ` +
+      `${megabytes(result.bytes)} MB of text, of ${result.listed} listed; ` +
+      `${result.skipMatched} match only a skip rule and stay as stored` +
+      (result.applied || result.envelopes === 0 ? "" : `; memo mail rules apply ${result.account} --yes cuts them`),
+  ].join("\n")
 
 const megabytes = (bytes: number) => (bytes / 1024 / 1024).toFixed(1)
 const percent = (value: number | null) => (value === null ? "?" : `${Math.round(value * 100)}%`)
@@ -226,5 +240,49 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         })
       const left = changeRules(env, name, (current) => current.filter((rule) => !sameMatch(rule.match, match)))
       print(options.json, { removed: match, items: left }, `removed the rule for ${describe(match)}`)
+    })
+
+  rules
+    .command("apply")
+    .description("cut stored mail an envelope rule matches to its envelope; dry run unless --yes")
+    .argument("<account>", "the account's name in mail.accounts, or its address")
+    .option("--since-time <time>", "only mail from this time, ISO 8601 or 30d ago (default: all mail)")
+    .option("--yes", "change the store; without it, only say what would change")
+    .option("--json", "print JSON")
+    .addHelpText(
+      "after",
+      "\nReads the account's headers from the mailbox, as memo sync does (List-Id is not stored), then drops the " +
+        "text, attachments and search entries of each matching stored email and keeps its sender, date, size, " +
+        "labels and subject in metadata. Mail a skip rule matches is left as stored. Nothing changes in the " +
+        "mailbox. Changing a rule to keep, or removing it, reads those emails in full on the next sync.",
+    )
+    .action(async (name: string, options: { sinceTime?: string; yes?: boolean; json?: boolean }) => {
+      const account = accountOf(loadConfig(env), name)
+      const since = new Date(
+        options.sinceTime === undefined
+          ? 0
+          : (await import("@wirecat/cli-core/cli")).momentOf(options.sinceTime, "--since-time"),
+      )
+      const startedAt = Date.now()
+      const result = await withImportLock(env, async () => {
+        const store = await openStore({ env })
+        try {
+          return await applyRules({
+            store,
+            source: mailSource(account, env),
+            account,
+            since,
+            apply: options.yes === true,
+          })
+        } finally {
+          await store.close()
+        }
+      })
+      if (options.json)
+        createRenderer({ format: "json", color: false, streams }).result({
+          item: snakeKeys(result),
+          meta: metaOf(startedAt, { accounts: [account.name] }),
+        })
+      else streams.data(`${applyText(result)}\n`)
     })
 }

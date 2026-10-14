@@ -301,6 +301,24 @@ memo mail rules remove <account> [options]
 | `--list-id <id>` | a mailing list, by its List-Id. |
 | `--json` | print JSON. |
 
+#### `memo mail rules apply`
+
+cut stored mail an envelope rule matches to its envelope; dry run unless --yes
+
+```sh
+memo mail rules apply <account> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `account` | required | the account's name in mail.accounts, or its address. |
+
+| Option | What it does |
+|---|---|
+| `--since-time <time>` | only mail from this time, ISO 8601 or 30d ago (default: all mail). |
+| `--yes` | change the store; without it, only say what would change. |
+| `--json` | print JSON. |
+
 ## `memo note`
 
 name the note that is about a person, or show it
