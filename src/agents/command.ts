@@ -15,7 +15,7 @@ export const agentsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     .option("--tool <name>", "only this tool")
     .option("--agent <name>", "only this agent, such as tg-mcp or memo-mcp")
     .option("--limit <n>", "most rows, up to 500", positive, 100)
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((options: { tool?: string; agent?: string; limit: number; json?: boolean }) =>
       run(options.json, (store) =>
         pageOf(options.limit, (limit) =>

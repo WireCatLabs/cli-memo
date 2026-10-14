@@ -63,7 +63,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .description("one note: its text, tags, what it links and what links it")
     .addHelpText("after", SAVE_HELP)
     .argument("<note>", "note:<id>, document:<id>, or a file in a configured folder")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (reference: string, options: { json?: boolean }) => {
       const answer = await withStore(async (store) => {
         const note = await noteOf(store, env, reference)
@@ -104,7 +104,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .option("--search <text>", "only notes holding this text, as written")
     .option("--offset <n>", "skip this many", Number, 0)
     .option("--limit <n>", "most notes, at most 500", positive, 20)
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(
       async (options: {
         about?: string
@@ -153,7 +153,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .option("--account <account>", "the meeting's account")
     .option("--export [dir]", "also write it as a file — to this folder, or notes.export.dir")
     .option("--format <format>", `the file's format: ${DIALECTS.join(", ")}`, formatOf)
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(
       async (
         given: string | undefined,
@@ -200,7 +200,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .option("--file <path>", "read the new text from a file; - reads stdin")
     .option("--export [dir]", "also rewrite its file — in this folder, or notes.export.dir")
     .option("--format <format>", `the file's format: ${DIALECTS.join(", ")}`, formatOf)
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(
       async (
         id: string,
@@ -228,7 +228,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .command("remove")
     .description("delete a note you wrote here; a file it was exported to stays")
     .argument("<id>", "note:<id> or its id")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (id: string, options: { json?: boolean }) => {
       const answer = await withStore((store) => store.notes.removeNote(id.replace(/^note:/, "")))
       print(options.json, answer, `${answer.id} removed`)
@@ -239,7 +239,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .description("write the notes you wrote here as files, never overwriting one you edited")
     .option("--to <dir>", "the folder to write to (default: notes.export.dir)")
     .option("--format <format>", `the files' format: ${DIALECTS.join(", ")}`, formatOf)
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (options: { to?: string; format?: DialectName; json?: boolean }) => {
       const target = exportTarget(loadConfig(env), options.to, options.format)
       const result = await withStore(async (store) =>

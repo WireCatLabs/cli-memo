@@ -27,4 +27,4 @@ export const accountOptions = (command: Command) =>
   command
     .option("--provider <provider>", "source provider")
     .option("--account <account>", "exact stored account")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")

@@ -11,7 +11,7 @@ export const commandsCommand = (program: Command, streams: Streams): void => {
     .command("commands")
     .argument("[path...]", "one command, such as tags add")
     .description("discover the command tree and options as shared registry data")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((path: string[], options: { json?: boolean }) => {
       const document = commandsDocument(program, { cli: "memo", version: VERSION, contract: CONTRACT })
       const answer = path.length ? scoped(document, path) : document

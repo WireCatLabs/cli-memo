@@ -97,7 +97,7 @@ export const askCommand = (program: Command, streams: Streams, env: NodeJS.Proce
     .option("--limit <n>", "most evidence items, at most 100", positive, 20)
     .option("--model", "call MEMO_MODELS_ANALYSIS_PROVIDER/MODEL instead of returning an evidence bundle")
     .option("--allow-remote", "explicitly consent to sending this evidence to the configured model")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(
       async (
         question: string,

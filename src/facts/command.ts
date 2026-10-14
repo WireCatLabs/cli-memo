@@ -41,7 +41,7 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .option("--occurred <iso>", "when it happened, as the evidence shows")
     .option("--scope <scope>", MEMORY_SCOPES.join(" or "), oneOf(MEMORY_SCOPES))
     .option("--supersedes <ref>", "a decision only: the decision this one replaces")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((words: string[], options: AddOptions) =>
       run(options.json, async (store) =>
         store.facts.add({
@@ -66,7 +66,7 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .option("--project <project>", "only this project's: its key or project:<id>")
     .option("--subject <ref>", "only facts about this reference")
     .option("--limit <n>", "most facts, up to 500", positive, 100)
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(({ json, ...filters }: Filters) =>
       run(json, async (store) => {
         const project = filters.project === undefined ? undefined : await canonicalProject(store, filters.project)
@@ -80,20 +80,20 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .command("show")
     .description("one fact with its evidence")
     .argument("<ref>", "fact:<id>")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.facts.get(ref)))
 
   facts
     .command("confirm")
     .description("stand behind a fact an agent proposed; a decision it supersedes stops holding")
     .argument("<ref>", "fact:<id>")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.facts.accept(ref)))
 
   facts
     .command("reverse")
     .description("an accepted decision no longer holds, and nothing replaced it")
     .argument("<ref>", "fact:<id>")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.facts.reverse(ref)))
 }

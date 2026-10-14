@@ -21,7 +21,7 @@ export const meetingProjectsCommand = (projects: Command, streams: Streams, env:
     command
       .requiredOption("--provider <provider>", "meeting provider")
       .requiredOption("--account <account>", "exact stored meeting account")
-      .option("--json", "print JSON")
+      .option("--json", "print JSON; --json=id,title keeps only those fields")
   const run = answering(streams, env)
   const execute = (
     project: string,

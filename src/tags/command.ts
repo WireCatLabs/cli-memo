@@ -48,7 +48,7 @@ const targetOptions = (command: Command) =>
       "label a notes folder by its id or path, or with --path one subfolder: every note under it",
     )
     .option("--path <subfolder>", "the subfolder inside --folder")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
 
 const listTags = async (store: MessageStore, options: ListOptions) => {
   if (options.account !== undefined && options.provider === undefined)
@@ -205,7 +205,7 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .option("--tag <tag>", "only this tag", normalizeTag)
     .option("--type <type>", TYPES.join(", "), typeOf)
     .option("--limit <n>", "most labels to show", positive, 100)
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (options: ListOptions) => {
       const store = await openStore({ env })
       try {

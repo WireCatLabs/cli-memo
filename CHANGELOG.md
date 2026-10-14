@@ -6,6 +6,11 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`--json=id,title` keeps only those fields** of an answer's item or items, read the way tg and max read it
+  (cli-core 0.277.0's `liftJson` and `checkJson`). Adopts cli-core 0.277.0 and cli-base 0.28.2.
+
 ## 0.29.0 — 14.10.2026
 
 ### Added

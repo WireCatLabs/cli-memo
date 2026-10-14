@@ -23,7 +23,7 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     .option("--account <account>", "the account that would act, when the provider has several")
     .option("--target <ref>", "what it acts on: msg:, chat:, contact:, person:, task:, …")
     .option("--payload <json>", "what to do, as JSON, such as the reply's text")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(
       (kind: string, { asOwner, ...options }: Omit<NewProposal, "kind"> & { asOwner?: boolean; json?: boolean }) =>
         run(options.json, (store) => propose(store, { ...options, kind }, authorOf(env, asOwner))),
@@ -34,7 +34,7 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     .description("proposed actions, newest first")
     .option("--status <status>", PROPOSAL_STATUSES.join(", "), oneOf(PROPOSAL_STATUSES))
     .option("--limit <n>", "most actions, up to 500", positive, 100)
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((options: { status?: ProposedAction["status"]; limit: number; json?: boolean }) =>
       run(options.json, (store) =>
         pageOf(options.limit, (limit) =>
@@ -47,20 +47,20 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     .command("show")
     .description("one proposed action, with its payload")
     .argument("<id>", "the action's id, as actions list gives it")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((id: string, options: { json?: boolean }) => run(options.json, (store) => store.proposedActions.get(id)))
 
   actions
     .command("confirm")
     .description("confirm it: it becomes a task in the account that would act; nothing is sent")
     .argument("<id>", "the action's id, as actions list gives it")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((id: string, options: { json?: boolean }) => run(options.json, (store) => approveAsTask(store, id)))
 
   actions
     .command("reject")
     .description("reject it; nothing is done")
     .argument("<id>", "the action's id, as actions list gives it")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((id: string, options: { json?: boolean }) => run(options.json, (store) => store.proposedActions.reject(id)))
 }

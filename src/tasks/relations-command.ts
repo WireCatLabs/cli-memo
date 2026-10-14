@@ -15,7 +15,7 @@ export const taskRelationsCommand = (tasks: Command, streams: Streams, env: Node
       .argument("<task>", "the task: task:<id> or its id")
       .argument("<other-task>", "the task it relates to: task:<id> or its id")
       .requiredOption("--kind <kind>", TASK_RELATION_KINDS.join(", "), oneOf(TASK_RELATION_KINDS))
-      .option("--json", "print JSON")
+      .option("--json", "print JSON; --json=id,title keeps only those fields")
       .action((task: string, other: string, options: { kind: TaskRelationKind; json?: boolean }) =>
         execute(options, (store) =>
           operation === "link"
@@ -28,7 +28,7 @@ export const taskRelationsCommand = (tasks: Command, streams: Streams, env: Node
     .command("relations")
     .description("a task's links to other tasks")
     .argument("<task>", "the task: task:<id> or its id")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((task: string, options: { json?: boolean }) =>
       execute(options, async (store) => ({ items: await store.tasks.taskRelations(task) })),
     )
@@ -36,6 +36,6 @@ export const taskRelationsCommand = (tasks: Command, streams: Streams, env: Node
     .command("status")
     .description("whether a task can start, and what it still waits for")
     .argument("<task>", "the task: task:<id> or its id")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((task: string, options: { json?: boolean }) => execute(options, (store) => store.tasks.taskReadiness(task)))
 }

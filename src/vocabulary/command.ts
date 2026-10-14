@@ -24,7 +24,7 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
       .option("--scope <scope>", "personal or work projects", oneOf(["personal", "work"] as const))
       .option("--max-entries <n>", "catalog input budget, not a page size", positive)
       .option("--max-read-bytes <bytes>", "catalog input byte budget", positive)
-      .option("--json", "print JSON")
+      .option("--json", "print JSON; --json=id,title keeps only those fields")
   const catalogOptions = (options: Options): VocabularyOptions => ({
     ...(options.kind === undefined ? {} : { kind: options.kind }),
     ...(options.scope === undefined ? {} : { scope: options.scope }),
@@ -95,7 +95,7 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
     .description("owner: create a distinct tag or topic after vocabulary check <name>")
     .option("--kind <kind>", "tag or topic", oneOf(["tag", "topic"] as const))
     .requiredOption("--expected <fingerprint>", "the creation_fingerprint vocabulary check <name> gave")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((name: string, options: Options & { kind?: "tag" | "topic" }) =>
       execute(options, (store) =>
         store.knowledge.createTag(name, {
@@ -112,7 +112,7 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
     .argument("<reference>", "project:<id>, tag:<id> or topic:<id>, from vocabulary list")
     .argument("<name>", "the other name")
     .requiredOption("--expected <fingerprint>", "the current vocabulary preview fingerprint")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((reference: string, name: string, options: Options) => {
       const target = targetOf(reference)
       return execute(options, (store) =>
@@ -125,7 +125,7 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
     .argument("<reference>", "project:<id>, tag:<id> or topic:<id>, from vocabulary list")
     .argument("<alias-id>", "the alias's id, from vocabulary list")
     .requiredOption("--expected <fingerprint>", "the current vocabulary preview fingerprint")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((reference: string, aliasId: string, options: Options) => {
       const target = targetOf(reference)
       return execute(options, (store) =>

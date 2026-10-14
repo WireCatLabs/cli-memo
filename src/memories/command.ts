@@ -28,7 +28,7 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     .requiredOption("--scope <scope>", MEMORY_SCOPES.join(" or "), oneOf(MEMORY_SCOPES))
     .requiredOption("--evidence <ref...>", "what shows it: msg:, note:, meeting:, person: or another reference")
     .option("--subject <ref>", "what it is about, as a reference")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(
       (
         words: string[],
@@ -62,7 +62,7 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     .option("--scope <scope>", MEMORY_SCOPES.join(" or "), oneOf(MEMORY_SCOPES))
     .option("--subject <ref>", "only memories about this reference")
     .option("--limit <n>", "most memories, up to 500", positive, 100)
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(({ json, ...filters }: Filters) =>
       run(json, (store) => pageOf(filters.limit, (limit) => store.memories.list({ ...filters, limit }))),
     )
@@ -71,21 +71,21 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     .command("show")
     .description("one memory with its evidence")
     .argument("<ref>", "memory:<id>")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.memories.get(ref)))
 
   memories
     .command("confirm")
     .description("stand behind a memory: its evidence was checked now")
     .argument("<ref>", "memory:<id>")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.memories.confirm(ref)))
 
   memories
     .command("stale")
     .description("mark a memory whose evidence no longer holds")
     .argument("<ref>", "memory:<id>")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((ref: string, options: { json?: boolean }) => run(options.json, (store) => store.memories.markStale(ref)))
 }
 
@@ -97,7 +97,7 @@ export const searchMemoriesCommand = (search: Command, streams: Streams, env: No
     .argument("<words...>", "the words to find")
     .option("--scope <scope>", MEMORY_SCOPES.join(" or "), oneOf(MEMORY_SCOPES))
     .option("--limit <n>", "most memories, up to 500", positive, 20)
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((words: string[], options: { scope?: Memory["scope"]; limit: number; json?: boolean }) =>
       run(options.json, (store) =>
         pageOf(
