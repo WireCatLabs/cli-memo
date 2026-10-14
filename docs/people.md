@@ -102,7 +102,7 @@ A **relationship** says that a person belongs to an organization or works on a p
 ```sh
 memo relationships add person:PERSON_UID organization:1 --kind member-of
 memo relationships add person:PERSON_UID project:1 --kind related-to --role author
-memo relationships list --reference project:1
+memo relationships list 'about:"project:1"'
 memo relationships remove 4
 ```
 

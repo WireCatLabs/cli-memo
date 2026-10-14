@@ -1,8 +1,10 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
+import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { formatReference, normalizeTag } from "@wirecat/cli-core"
 import type { MessageStore, StoredTag } from "@wirecat/cli-core/store"
-import { type Command, InvalidArgumentError } from "commander"
+import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
+import { queryField, queryTerms, withQuery } from "../list-query.js"
 import { folderIds } from "../notes/bound.js"
 import { positive } from "../options.js"
 import { heldMessage } from "../store/held.js"
@@ -21,10 +23,12 @@ interface ListOptions extends SourceScope {
   json?: boolean
 }
 
-const typeOf = (value: string): SourceTagType => {
-  if (!(TYPES as readonly string[]).includes(value)) throw new InvalidArgumentError(`choose ${TYPES.join(", ")}`)
-  return value as SourceTagType
-}
+/** memo's rows carry labels on notes, people and folders too, beyond cli-core's `tagging` entity. */
+const TAG_QUERY = {
+  entity: "tagging",
+  backend: "native",
+  fields: [queryField("tag", "kw", "tag:work"), queryField("type", "enum", "type:note", { values: TYPES })],
+} as const satisfies QueryRegistry
 
 const reference = ({ provider, account }: SourceScope, chat: string) =>
   provider && account ? formatReference({ type: "chat", provider, account, chat }) : chat
@@ -188,16 +192,21 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       ) => mutate(operation, given, options),
     )
 
-  tags
-    .command("list")
-    .description("list source labels, optionally in one provider or account")
+  withQuery(tags.command("list").description("list source labels, optionally in one provider or account"), TAG_QUERY, {
+    answersEntity: false,
+  })
     .option("--provider <provider>", "only this provider")
     .option("--account <account>", "only this account; requires --provider")
-    .option("--tag <tag>", "only this tag", normalizeTag)
-    .option("--type <type>", TYPES.join(", "), typeOf)
     .option("--limit <n>", "most labels to show", positive, 100)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action(async (options: ListOptions) => {
+    .action(async (words: string[], scope: Omit<ListOptions, "tag" | "type">) => {
+      const terms = queryTerms(words, TAG_QUERY, "tags list")
+      const tag = terms.get("tag")
+      const options: ListOptions = {
+        ...scope,
+        ...(tag === undefined ? {} : { tag: normalizeTag(tag) }),
+        ...(terms.has("type") ? { type: terms.get("type") as SourceTagType } : {}),
+      }
       await withStore(env, async (store) => {
         const answer = await listTags(store, options)
         const owned =

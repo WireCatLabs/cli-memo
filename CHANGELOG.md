@@ -16,6 +16,9 @@ the API.
   are `kind`, `text` and `origin`; a memory's `body` is `text`. `facts add` takes `--kind` instead of `--type`,
   and MCP `facts_add` takes `kind` and `text` instead of `type` and `statement`. `--json=<field>` on facts and
   memories refuses a field the entity lacks.
+- **`tags list` and `relationships list` take a query**: `memo tags list tag:follow-up type:note`, `memo
+  relationships list 'about:"project:1"'` instead of `--tag`, `--type` and `--reference`. `--provider` and
+  `--account` stay on `tags list`: they pick the accounts, they do not filter rows.
 
 ## 0.32.0 — 15.10.2026
 

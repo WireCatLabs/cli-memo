@@ -57,9 +57,7 @@ it("creates native note tasks through the CLI and connects context, search, assi
   ).toEqual([source, `note:${unrelated.id}`].sort())
   await run("tags", "add", "budget", "--task", task.task.id, ...scope)
   expect(
-    (await run("tags", "list", "--tag", "budget", ...scope)).items.find(
-      ({ type }: { type: string }) => type === "task",
-    ),
+    (await run("tags", "list", "tag:budget", ...scope)).items.find(({ type }: { type: string }) => type === "task"),
   ).toMatchObject({
     type: "task",
     id: task.task.id,

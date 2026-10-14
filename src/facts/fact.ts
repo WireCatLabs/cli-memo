@@ -8,8 +8,8 @@ export const FACT_QUERY = {
   entity: "fact",
   backend: "native",
   fields: [
-    queryField("kind", "enum", "kind:decision", FACT_TYPES),
-    queryField("status", "enum", "status:proposed", FACT_STATUSES),
+    queryField("kind", "enum", "kind:decision", { values: FACT_TYPES }),
+    queryField("status", "enum", "status:proposed", { values: FACT_STATUSES }),
     queryField("project", "kw", "project:SYH"),
     queryField("subject", "ref", 'subject:"person:42"'),
   ],

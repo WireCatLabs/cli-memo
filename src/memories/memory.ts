@@ -7,9 +7,9 @@ export const MEMORY_QUERY = {
   entity: "memory",
   backend: "native",
   fields: [
-    queryField("kind", "enum", "kind:preference", MEMORY_KINDS),
-    queryField("status", "enum", "status:proposed", MEMORY_STATUSES),
-    queryField("scope", "enum", "scope:work", MEMORY_SCOPES),
+    queryField("kind", "enum", "kind:preference", { values: MEMORY_KINDS }),
+    queryField("status", "enum", "status:proposed", { values: MEMORY_STATUSES }),
+    queryField("scope", "enum", "scope:work", { values: MEMORY_SCOPES }),
     queryField("subject", "ref", 'subject:"person:42"'),
   ],
 } as const satisfies QueryRegistry

@@ -141,8 +141,8 @@ describe("memo source tags", () => {
       target: { type: "chat", chat_id: "7" },
       added: ["work"],
     })
-    expect((await json("tags", "list", "--type", "chat")).items).toHaveLength(1)
-    expect(await run("tags", "list", "--type", "chat")).toContain(
+    expect((await json("tags", "list", "type:chat")).items).toHaveLength(1)
+    expect(await run("tags", "list", "type:chat")).toContain(
       `work  chat  chat:email/${encodeURIComponent(mail.account)}/7`,
     )
     expect(await json("tags", "remove", "work", ...args)).toMatchObject({ removed: ["work"], unchanged: [] })
@@ -226,7 +226,7 @@ describe("memo source tags", () => {
 
     const added = await json("tags", "add", "planning", "--meeting", String(meetingId), ...scope)
     expect(added).toMatchObject({ target: { type: "meeting", id: String(meetingId) }, added: ["planning"] })
-    expect((await json("tags", "list", "--type", "meeting")).items).toMatchObject([
+    expect((await json("tags", "list", "type:meeting")).items).toMatchObject([
       { type: "meeting", id: String(meetingId), tag: "planning", origin: expect.any(String) },
     ])
     const note = await json("notes", "add", "Follow up with Bob Sample", "--about", `meeting:${accountId}/${meetingId}`)
