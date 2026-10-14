@@ -354,6 +354,37 @@ memo mail rules apply <account> [options]
 | `--yes` | change the store; without it, only say what would change. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+#### `memo mail rules export`
+
+print one account's rules as JSON, to review, keep or move elsewhere
+
+```sh
+memo mail rules export <account>
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `account` | required | the account's name in mail.accounts, or its address. |
+
+#### `memo mail rules import`
+
+add the rules of a file from memo mail rules export; same match replaces
+
+This command changes the local store or your files.
+
+```sh
+memo mail rules import <account> <file> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `account` | required | the account's name in mail.accounts, or its address. |
+| `file` | required | the file memo mail rules export wrote. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
 ## `memo note`
 
 name the note that is about a person, or show it

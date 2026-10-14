@@ -1,16 +1,17 @@
+import { readFileSync } from "node:fs"
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { momentOf } from "@wirecat/cli-core/cli"
-import { type MessageStore, openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
-import { type Config, loadConfig, updateConfig } from "../config.js"
+import { type Config, loadConfig } from "../config.js"
 import { positive } from "../options.js"
 import { withImportLock } from "../run/lock.js"
 import { type MailAccountConfig, mailAccounts, mailFolders, mailSource } from "./accounts.js"
 import { type ApplyResult, applyRules } from "./apply.js"
 import { knownAges, lookUpAges } from "./domain-age.js"
 import { domainsToAge, type Probe, probeMail, SUGGEST_RULE } from "./probe.js"
-import { envelopeBox, type MailRule, type MailRuleMatch, sameMatch } from "./rules.js"
+import { removeRule, ruleCounts, rulesOf, saveRule } from "./rule-store.js"
+import type { MailAction, MailRule, MailRuleMatch } from "./rules.js"
 import { FREE_MAIL, SCORE_RULE } from "./score.js"
 import type { Listed } from "./source.js"
 import { mailStatus, statusText } from "./status.js"
@@ -45,6 +46,7 @@ interface Recorded {
 const ruleLine = (rule: MailRule & { recorded?: Recorded }): string =>
   [
     rule.action.padEnd(8),
+    rule.protected ? "protected" : "",
     describe(rule.match),
     rule.decided_at.slice(0, 10),
     rule.recorded === undefined ? "" : `${rule.recorded.emails} emails, ${megabytes(rule.recorded.bytes)} MB`,
@@ -54,35 +56,39 @@ const ruleLine = (rule: MailRule & { recorded?: Recorded }): string =>
     .join("  ")
     .trimEnd()
 
-const PAGE = 1000
-
-/** What each envelope rule has recorded so far, read from the store; nothing is fetched from the mailbox. */
-const recordedBy = async (store: MessageStore, address: string, rule: MailRule): Promise<Recorded> => {
-  const account = await store.storedAccount({ provider: "email", account: address.toLowerCase() }).catch(() => null)
-  const recorded = { emails: 0, bytes: 0 }
-  if (account === null) return recorded
-  const mailbox = envelopeBox(rule.match).externalId
-  for (let offset = 0; ; offset += PAGE) {
-    const page = await store.mail.emails({ accountId: account.id, mailbox, limit: PAGE, offset })
-    for (const email of page) {
-      recorded.emails++
-      recorded.bytes += email.size ?? 0
-    }
-    if (page.length < PAGE) return recorded
-  }
+interface RulesFile {
+  version: 1
+  account: string
+  rules: Omit<MailRule, "id">[]
 }
 
-const changeRules = (env: NodeJS.ProcessEnv, name: string, change: (rules: MailRule[]) => MailRule[]): MailRule[] => {
-  let changed: MailRule[] = []
-  updateConfig((config) => {
-    const account = accountOf(config, name)
-    changed = change(account.rules ?? [])
-    const accounts = (config.mail?.accounts ?? []).map((each) =>
-      each === account ? { ...each, rules: changed } : each,
-    )
-    return { ...config, mail: { ...config.mail, accounts } }
-  }, env)
-  return changed
+const ACTIONS: readonly MailAction[] = ["skip", "envelope", "keep"]
+
+const rulesFileOf = (text: string, path: string): MailRule[] => {
+  const bad = (why: string) =>
+    new CliError("validation_error", `${path}: ${why}`, { reason: "mail.rules-file-invalid" })
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(text)
+  } catch {
+    throw bad("not JSON")
+  }
+  const rules = (parsed as { rules?: unknown }).rules
+  if (!Array.isArray(rules)) throw bad("no rules list; write it with memo mail rules export")
+  return rules.map((raw, index) => {
+    const rule = raw as Partial<MailRule>
+    const match = rule.match ?? {}
+    const given = [match.from, match.domain, match.list_id].filter((value) => typeof value === "string")
+    if (given.length !== 1 || !ACTIONS.includes(rule.action as MailAction))
+      throw bad(`rule ${index + 1} needs one of match.from, match.domain, match.list_id and an action`)
+    return {
+      match: matchOf({ from: match.from, domain: match.domain, listId: match.list_id }),
+      action: rule.action as MailAction,
+      ...(typeof rule.reason === "string" ? { reason: rule.reason } : {}),
+      ...(rule.protected === true ? { protected: true } : {}),
+      decided_at: typeof rule.decided_at === "string" ? rule.decided_at : new Date().toISOString(),
+    }
+  })
 }
 
 const applyText = (result: ApplyResult): string =>
@@ -208,20 +214,15 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .addHelpText("after", "\nAn envelope rule shows how many emails it recorded and their size at the source.")
     .action(async (name: string, options: { json?: boolean }) => {
       const account = accountOf(loadConfig(env), name)
-      const rules = account.rules ?? []
-      const store = rules.some(({ action }) => action === "envelope") ? await openStore({ env }) : undefined
-      try {
-        const items: (MailRule & { recorded?: Recorded })[] = []
-        for (const rule of rules)
-          items.push(
-            store !== undefined && rule.action === "envelope"
-              ? { ...rule, recorded: await recordedBy(store, account.address, rule) }
-              : rule,
-          )
-        print(options.json, wholeList("mail rules list", items), items.map(ruleLine).join("\n") || "no rules")
-      } finally {
-        await store?.close()
-      }
+      const items = await withStore(env, async (store) => {
+        const rules = await rulesOf(store, account, env, streams.diagnostic)
+        const counts = await ruleCounts(store, account.address)
+        return rules.map((rule) => {
+          const recorded = rule.id === undefined ? undefined : counts.get(rule.id)
+          return rule.action === "envelope" ? { ...rule, recorded: recorded ?? { emails: 0, bytes: 0 } } : rule
+        })
+      })
+      print(options.json, wholeList("mail rules list", items), items.map(ruleLine).join("\n") || "no rules")
     })
 
   rules
@@ -245,7 +246,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         "Mail already stored in full stays.",
     )
     .action(
-      (
+      async (
         name: string,
         options: MatchOptions & { skip?: boolean; envelope?: boolean; keep?: boolean; reason?: string; json?: boolean },
       ) => {
@@ -259,8 +260,12 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           ...(options.reason === undefined ? {} : { reason: options.reason }),
           decided_at: new Date().toISOString(),
         }
-        changeRules(env, name, (current) => [...current.filter((each) => !sameMatch(each.match, match)), rule])
-        print(options.json, itemAnswer(rule), ruleLine(rule))
+        const account = accountOf(loadConfig(env), name)
+        const saved = await withStore(env, async (store) => {
+          await rulesOf(store, account, env, streams.diagnostic)
+          return saveRule(store, account.address, rule)
+        })
+        print(options.json, itemAnswer(saved), ruleLine(saved))
       },
     )
 
@@ -272,14 +277,18 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .option("--domain <domain>", "a sender domain")
     .option("--list-id <id>", "a mailing list, by its List-Id")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((name: string, options: MatchOptions & { json?: boolean }) => {
+    .action(async (name: string, options: MatchOptions & { json?: boolean }) => {
       const match = matchOf(options)
-      if (!(accountOf(loadConfig(env), name).rules ?? []).some((rule) => sameMatch(rule.match, match)))
+      const account = accountOf(loadConfig(env), name)
+      const removed = await withStore(env, async (store) => {
+        await rulesOf(store, account, env, streams.diagnostic)
+        return removeRule(store, account.address, match)
+      })
+      if (!removed)
         throw new CliError("not_found", `no rule for ${describe(match)}; memo mail rules list ${name} shows them`, {
           reason: "mail.rule-not-found",
         })
-      const left = changeRules(env, name, (current) => current.filter((rule) => !sameMatch(rule.match, match)))
-      print(options.json, itemAnswer({ removed: match, rules: left }), `removed the rule for ${describe(match)}`)
+      print(options.json, itemAnswer({ removed: match }), `removed the rule for ${describe(match)}`)
     })
 
   rules
@@ -300,10 +309,50 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       const account = accountOf(loadConfig(env), name)
       const since = new Date(options.sinceTime === undefined ? 0 : momentOf(options.sinceTime, "--since-time"))
       const result = await withImportLock(env, () =>
-        withStore(env, (store) =>
-          applyRules({ store, source: mailSource(account, env), account, since, apply: options.yes === true }),
+        withStore(env, async (store) =>
+          applyRules({
+            store,
+            source: mailSource(account, env),
+            account: { ...account, rules: await rulesOf(store, account, env, streams.diagnostic) },
+            since,
+            apply: options.yes === true,
+          }),
         ),
       )
       print(options.json, itemAnswer(result, { meta: { accounts: [account.name] } }), applyText(result))
+    })
+
+  rules
+    .command("export")
+    .description("print one account's rules as JSON, to review, keep or move elsewhere")
+    .argument("<account>", "the account's name in mail.accounts, or its address")
+    .addHelpText("after", "\nmemo mail rules export personal > rules.json; memo mail rules import reads it back.")
+    .action(async (name: string) => {
+      const account = accountOf(loadConfig(env), name)
+      const rules = await withStore(env, (store) => rulesOf(store, account, env, streams.diagnostic))
+      const file: RulesFile = {
+        version: 1,
+        account: account.address,
+        rules: rules.map(({ id: _, ...rule }) => rule),
+      }
+      streams.data(`${JSON.stringify(file, null, 2)}\n`)
+    })
+
+  rules
+    .command("import")
+    .description("add the rules of a file from memo mail rules export; same match replaces")
+    .argument("<account>", "the account's name in mail.accounts, or its address")
+    .argument("<file>", "the file memo mail rules export wrote")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .action(async (name: string, path: string, options: { json?: boolean }) => {
+      const account = accountOf(loadConfig(env), name)
+      const rules = rulesFileOf(readFileSync(path, "utf8"), path)
+      const saved = await withStore(env, async (store) => {
+        await rulesOf(store, account, env, streams.diagnostic)
+        const out: MailRule[] = []
+        for (const rule of rules) out.push(await saveRule(store, account.address, rule))
+        return out
+      })
+      print(options.json, wholeList("mail rules import", saved), `imported ${saved.length} rules into ${account.name}`)
     })
 }

@@ -113,6 +113,7 @@ export const applyRules = async ({
           snippet: null,
           size: email.size ?? item.size ?? null,
           mailboxes: [envelopeBox(rule.match)],
+          mailRuleId: rule.id ?? null,
           attachments: [],
           metadata: {
             ...email.metadata,

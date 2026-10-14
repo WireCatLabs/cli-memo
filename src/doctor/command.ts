@@ -74,7 +74,8 @@ export const diagnose = async (env: NodeJS.ProcessEnv) => {
     address,
     mode: mode ?? "gmail",
     ...(mode === "mbox" ? { path: path ?? null, exists: path !== undefined && existsSync(path) } : {}),
-    rules: rules?.length ?? 0,
+    /** Rules still in config.json; the next mail command moves them into the store. */
+    rules_in_config: rules?.length ?? 0,
   }))
   const imap = accounts.some(({ mode }) => mode !== "mbox")
   const himalaya = imap ? await himalayaVersion(env) : null
@@ -150,7 +151,13 @@ export const doctorText = (d: Diagnosis): string =>
           : ""
     }`,
     ...d.notes.map((f) => `notes      ${f.path} — exists ${yes(f.exists)}, folder id ${yes(f.bound)}`),
-    ...d.mail.accounts.map((a) => `mail       ${a.name} <${a.address}> ${a.mode}, ${a.rules} rules`),
+    ...d.mail.accounts.map(
+      (a) =>
+        `mail       ${a.name} <${a.address}> ${a.mode}` +
+        (a.rules_in_config
+          ? `, ${a.rules_in_config} rules in the config, moved into the store by the next mail command`
+          : ""),
+    ),
     ...(d.mail.accounts.some(({ mode }) => mode !== "mbox") ? [`himalaya   ${d.mail.himalaya ?? "not found"}`] : []),
     `search     ${d.search_model.name} ${d.search_model.present ? "present" : "not downloaded — search is by words"}`,
     `timer      ${d.timer.enabled ? `on, every ${d.timer.every}` : "off"}`,

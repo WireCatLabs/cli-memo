@@ -9,10 +9,14 @@ export interface MailRuleMatch {
 export type MailAction = "skip" | "envelope" | "keep"
 
 export interface MailRule {
+  /** The store's id; absent until the rule is saved. */
+  id?: number
   match: MailRuleMatch
   /** skip: never read or stored · envelope: stored without its text, so it can be counted and cleaned later. */
   action: MailAction
   reason?: string
+  /** No cleanup may cut, archive or trash what this rule matches. */
+  protected?: boolean
   decided_at: string
 }
 

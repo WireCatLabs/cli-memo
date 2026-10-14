@@ -49,7 +49,7 @@ The folder `id` is the same on every computer; the `path` is different on each. 
 | `path` | For `mbox`: the Takeout file, such as `~/Takeout/Mail/All mail Including Spam and Trash.mbox`. |
 | `folders` | For `imap`: the mail folders to read, such as `["INBOX", "Archive"]`. |
 | `embed` | `false` keeps this account's mail out of search by meaning. |
-| `rules` | Which mail to skip or keep, written by `memo mail rules`. See [Mail](mail.md#choose-what-to-import). |
+| `rules` | Read only to move them into the store: since 0.32.0 rules live there, managed by `memo mail rules`. See [Mail](mail.md#choose-what-to-import). |
 
 Next to `accounts`:
 

@@ -24,6 +24,8 @@ export const EFFECTS: Readonly<Record<string, Effects>> = {
   "mail rules add": LOCAL_WRITE,
   "mail rules remove": LOCAL_WRITE,
   "mail rules apply": LOCAL_WRITE,
+  "mail rules export": LOCAL_READ,
+  "mail rules import": LOCAL_WRITE,
   note: LOCAL_WRITE,
   "tags add": LOCAL_WRITE,
   "tags remove": LOCAL_WRITE,

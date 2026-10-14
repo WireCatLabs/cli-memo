@@ -7,6 +7,7 @@ import { loadConfig } from "../config.js"
 import { errorObject } from "../failure.js"
 import { mailAccounts, mailSource } from "../mail/accounts.js"
 import { type ImportResult, importMail } from "../mail/import.js"
+import { rulesOf } from "../mail/rule-store.js"
 import { boundFolders, unboundReason } from "../notes/bound.js"
 import { embedNoteChunks, type NoteChunksEmbedded } from "../notes/embed.js"
 import { noteFolders } from "../notes/folders.js"
@@ -228,7 +229,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
                 await importMail({
                   store,
                   source: mailSource(account, env),
-                  account,
+                  account: { ...account, rules: await rulesOf(store, account, env, streams.diagnostic) },
                   since,
                   env,
                   embed: options.embed,
