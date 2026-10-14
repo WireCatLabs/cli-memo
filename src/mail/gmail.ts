@@ -203,6 +203,8 @@ export const listAllMail = async (
           .map((set, index) => `h${index} UID FETCH ${set} (UID BODY.PEEK[HEADER.FIELDS (${HEADER_FIELDS})])\r\n`)
           .join("")}`,
       )
+      // A refused fetch would leave a whole batch without headers, and rules would not keep its mail out.
+      assertCompleted(headed, ["a", ...batches.map((_, index) => `h${index}`)])
       for (const [uid, text] of fetchedHeaders(headed)) marks.set(uid, { ...marks.get(uid), headers: headersOf(text) })
     }
   }

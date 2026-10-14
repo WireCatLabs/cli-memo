@@ -44,7 +44,8 @@ anything. Add `--json` and read the answer, not the text meant for people.
 12. **Mail rules are the owner's decision.** Suggest groups to skip; never run `memo mail rules add … --skip`
     unasked. A skipped email is never imported; mail already stored stays.
 13. **Old years come from a Google Takeout mbox**, an account with `"mode": "mbox"` and the Gmail
-    address; it syncs only when named: `memo sync --account <name> --since-time 2000-01-01`.
+    address; it syncs only when named, and reads the whole file each run, so give a large `--limit`:
+    `memo sync --account <name> --since-time 2000-01-01 --limit 5000`.
 
 ## The usual path
 

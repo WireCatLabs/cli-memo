@@ -45,6 +45,45 @@ config and names each one in its report; it lists the accounts it knows when a n
   where it stopped; emails already stored are skipped.
 - `memo sync` and the timer read every account in the config.
 
+## Choose what to import
+
+A large mailbox is mostly newsletters and notifications. Look before a first large import:
+
+```sh
+memo mail probe work
+```
+
+It reads headers only (about 300 bytes an email) and groups mail by sender and mailing list: how many
+emails, how much space, how much is unread or bulk mail, the years, and whether you ever wrote to the
+sender. It suggests `skip` for groups of at least 20 emails, at least 80% bulk mail, that you never wrote to.
+You decide:
+
+```sh
+memo mail rules add work --domain shop.example --skip --reason 'newsletters'
+memo mail rules add work --from orders@shop.example --keep
+memo mail rules list work
+```
+
+A keep wins over a skip. `memo sync` never reads or stores an email a skip rule matches, and counts it as
+skipped. Mail stored before the rule stays in the store.
+
+## Old mail from Google Takeout
+
+Gmail limits how much IMAP can download a day, so years of old mail are faster from a
+[Google Takeout](https://takeout.google.com/) export of Mail. Add the file as a second account with the
+same address, so its emails and the Gmail account's are one set:
+
+```json
+{ "name": "archive", "address": "you@example.com", "mode": "mbox", "path": "~/Takeout/Mail/All mail Including Spam and Trash.mbox" }
+```
+
+```sh
+memo sync --account archive --since-time 2000-01-01 --limit 5000
+```
+
+The file is only read when you name the account, and each run reads all of it. It only adds mail: nothing
+missing from the file is deleted from the store, and Spam and Trash are left out.
+
 ## Find your mail
 
 ```sh
