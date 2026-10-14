@@ -98,6 +98,8 @@ export const EFFECTS: Readonly<Record<string, Effects>> = {
   "auto start": LOCAL_WRITE,
   "auto stop": LOCAL_WRITE,
   "auto status": LOCAL_READ,
+  doctor: LOCAL_READ,
+  upgrade: FETCH,
   commands: NO_EFFECTS,
   "skill show": NO_EFFECTS,
   "skill install": LOCAL_WRITE,

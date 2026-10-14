@@ -53,6 +53,9 @@ anything. Add `--json` and read the answer, not the text meant for people.
     `memo sync --account <name> --since-time 2000-01-01 --limit 5000`.
 14. **A stderr line `memo: scheduled sync failing since …` means the owner's timer is broken** and their
     notes or mail are going stale. Tell the owner, quote its reason; `memo auto status` has the rest.
+15. **When something seems missing or broken, run `memo doctor --json` first.** It reads this computer only and
+    lists each problem with the command that fixes it. A sync failure with reason `mail.throttled` means Gmail is
+    limiting the account: wait an hour or more, do not retry in a loop.
 
 ## The usual path
 

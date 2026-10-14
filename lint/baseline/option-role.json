@@ -128,6 +128,7 @@
   "tasks update --parent",
   "tasks update --priority",
   "tasks update --title",
+  "upgrade --check",
   "vocabulary aliases add --expected",
   "vocabulary aliases remove --expected",
   "vocabulary check --kind",

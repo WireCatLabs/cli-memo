@@ -32,6 +32,12 @@ export const REASONS: ErrorReason[] = defineReasons([
     reason: "mail.source-failed",
     code: "provider_error",
     message: "the mail program failed",
+    details: ["exit_code", "signal", "stderr_tail"],
+  },
+  {
+    reason: "mail.throttled",
+    code: "rate_limited",
+    message: "Gmail is limiting this account's IMAP traffic; try again in an hour or more",
     details: [],
   },
   {

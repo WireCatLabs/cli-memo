@@ -470,7 +470,7 @@ describe("importMail with the owner's rules", () => {
         now: () => NOW,
         indexThreads: async () => ({ chats: 0, chunks: 0, left: false }),
       }),
-    ).rejects.toThrow("THROTTLED")
+    ).rejects.toMatchObject({ code: "rate_limited", details: { reason: "mail.throttled" } })
     expect(await emails(env)).toEqual([])
   })
 

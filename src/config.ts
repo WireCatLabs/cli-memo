@@ -26,7 +26,16 @@ const ConfigSchema = v.object({
       ),
     }),
   ),
-  auto: v.optional(v.object({ enabled: v.optional(v.boolean()), every: v.optional(v.string()) })),
+  auto: v.optional(
+    v.object({
+      enabled: v.optional(v.boolean()),
+      every: v.optional(v.string()),
+      /** MEMO_CONFIG_DIR, MESSAGING_STORE… as they were at `memo auto start`, passed to every timer run. */
+      places: v.optional(v.record(v.string(), v.string())),
+    }),
+  ),
+  /** `false` stops the once-a-day check for a newer memo. */
+  update_check: v.optional(v.boolean()),
   mail: v.optional(
     v.object({
       accounts: v.array(

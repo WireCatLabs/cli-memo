@@ -119,6 +119,8 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "auto start": ["memo auto start --every 10m"],
   "auto stop": ["memo auto stop"],
   "auto status": ["memo auto status --json"],
+  doctor: ["memo doctor", "memo doctor --json"],
+  upgrade: ["memo upgrade --check", "memo upgrade"],
   commands: ["memo commands --json", "memo commands tags add --json"],
   "skill show": ["memo skill show"],
   "skill install": ["memo skill install --for all"],

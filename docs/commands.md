@@ -1713,6 +1713,33 @@ memo auto status [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+## `memo doctor`
+
+where memo keeps its files and what needs attention; connects to nothing
+
+```sh
+memo doctor [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+## `memo upgrade`
+
+upgrade memo with the package manager that installed it; --check only looks
+
+This command changes the local store or your files.
+
+```sh
+memo upgrade [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--check` | say whether a newer version exists, and install nothing. |
+| `--json` | print JSON. |
+
 ## `memo commands`
 
 discover the command tree and options as shared registry data

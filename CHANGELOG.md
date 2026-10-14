@@ -6,12 +6,36 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo doctor`** says where memo keeps its files and what needs attention, and connects to nothing: the settings
+  file, the store and its schema, the notes folders and their ids, the mail accounts and Himalaya's version, the
+  search model, the timer (including a program it runs that is gone, and its failing streak) and the agent skill's
+  version. Each problem names the command that fixes it; the exit code is 1 while one is left. `--json` answers
+  `{item, meta}`.
+- **`memo upgrade`** updates memo with the package manager that installed it; `--check` only looks. Once a day memo
+  asks npm for a newer version and says so in one stderr line, only to a person at a terminal — never with
+  `--json`, in a pipe or on a timer run. `"update_check": false` or `MEMO_NO_UPDATE_CHECK=1` turns it off.
+
 ### Changed
 
 - **Config settings are named in snake_case:** `mail.max_body_chars`, `mail.max_attachment_chars`, and `list_id`
   and `decided_at` in `mail.accounts[].rules[]`, which `memo mail rules` writes and prints that way. The camelCase
   names older versions wrote are still read, and the file is saved in snake_case; both spellings with different
   values are an error. Renaming inside `rules` needs the cli-core release carrying PR #1224.
+
+### Fixed
+
+- **The timer follows the memo you run.** After a Node.js switch and an install under the new version, the next
+  memo command points the `memo auto` unit at it, so removing the old Node.js no longer breaks the timer silently.
+  A checkout or `npx` never moves it.
+- **The timer keeps the places memo was started with.** `memo auto start` records `MEMO_CONFIG_DIR`,
+  `MEMO_STATE_DIR`, `MEMO_CACHE_DIR`, `MESSAGING_STORE` and `WIRECAT_STATE_DIR` in `auto.places` and passes them to
+  every timer run, which used the default places before.
+- **A failed Himalaya call says why.** The message names the exit code or signal and Himalaya's last line, instead
+  of repeating the command; `exit_code`, `signal` and the last five stderr lines, with passwords and tokens cut,
+  are in the error's details. Gmail's `[THROTTLED]` is its own reason, `mail.throttled` (`rate_limited`), with the
+  advice to wait an hour or more.
 
 ## 0.30.0 — 14.10.2026
 

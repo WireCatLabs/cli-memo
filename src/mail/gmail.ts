@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto"
 import { CliError } from "@wirecat/cli-base"
 import { HEADER_FIELDS, headersOf, type MailHeaders } from "./headers.js"
-import type { Himalaya } from "./himalaya.js"
+import { type Himalaya, isThrottled, throttledError } from "./himalaya.js"
 
 export interface Listed {
   uid: string
@@ -120,7 +120,10 @@ const assertCompleted = (output: string, tags: string[]): void => {
   for (const tag of tags) {
     if (!new RegExp(`^${tag} OK`, "m").test(output)) {
       const line = output.split(/\r?\n/).find((text) => text.startsWith(`${tag} `)) ?? "no answer"
-      throw new CliError("provider_error", `IMAP command ${tag} did not complete: ${line}`)
+      if (isThrottled(line)) throw throttledError(`IMAP command ${tag}`)
+      throw new CliError("provider_error", `IMAP command ${tag} did not complete: ${line}`, {
+        reason: "mail.source-failed",
+      })
     }
   }
 }
