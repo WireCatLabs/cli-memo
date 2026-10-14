@@ -27,6 +27,11 @@ the API.
   be read or parsed is listed under `unreadable` and tried again next run instead of failing the account.
 - **Listing a mailbox of several hundred thousand emails no longer reads one huge answer.** All Mail is listed
   10,000 emails per himalaya call.
+- **A whole-mailbox `memo sync` no longer loads every stored email's text.** The deletion check and the "already
+  stored" check read only Message-IDs and mailboxes, in one query each, instead of every body and one lookup per
+  listed email.
+- **A mail marked deleted by mistake is saved again when the source lists it again.** It used to count as already
+  stored and stayed without its text.
 
 ### Changed
 

@@ -224,6 +224,18 @@ describe("importMail", () => {
     expect((await emails(env)).map(({ externalId }) => externalId)).not.toContain("9006")
   })
 
+  it("saves a mail marked deleted again when the source lists it again", async () => {
+    const all = [1, 2, 3, 4, 5, 6].map((n) => mail(n))
+    const { env, write } = setup(all)
+    await importInto(env)
+    write(all.slice(0, 5))
+    await importInto(env)
+    write(all)
+
+    expect(await importInto(env)).toMatchObject({ saved: 1, alreadyStored: 5, deleted: 0 })
+    expect((await emails(env)).find(({ externalId }) => externalId === "9006")?.bodyText).toContain("Synthetic body 6")
+  })
+
   it("leaves a stored mail at the window's edge alone", async () => {
     const edge = mail(1, { receivedAt: "2026-09-02T08:00:00Z" })
     const { env, write } = setup([edge, mail(2)])
