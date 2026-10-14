@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.28.0 — 14.10.2026
+
 ### Added
 
 - **`memo mail rules apply <account>`** cuts mail stored in full that an envelope rule matches down to its
