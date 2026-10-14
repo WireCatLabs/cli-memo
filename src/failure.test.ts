@@ -21,7 +21,12 @@ describe("failure handler", () => {
     const { exit, text } = await report(new Error("password=hunter2"), ["notes", "list", "--json"])
     expect(exit).toBe(1)
     expect(JSON.parse(text)).toEqual({
-      error: { code: "internal_error", reason: "command.crashed", message: "the command failed; this is a bug" },
+      error: {
+        code: "internal_error",
+        reason: "command.crashed",
+        message: "the command failed; this is a bug",
+        retry: { safe: false },
+      },
     })
     expect(text).not.toContain("hunter2")
   })
@@ -54,6 +59,7 @@ describe("failure handler", () => {
       reason: "sync.running",
       message: "another memo sync is running (process 42)",
       details: { pid: 42 },
+      retry: { safe: true },
     })
   })
 
@@ -65,6 +71,7 @@ describe("failure handler", () => {
       code: "validation_error",
       reason: "input.invalid",
       message: "unknown option '--nope'",
+      retry: { safe: false },
     })
   })
 

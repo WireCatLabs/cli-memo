@@ -4,7 +4,7 @@ import type { Command } from "commander"
 import { VERSION } from "../version.js"
 
 /** The major version of the JSON memo's commands print; raise it when a field is removed or renamed. */
-export const CONTRACT = 2
+export const CONTRACT = 3
 
 export const commandsCommand = (program: Command, streams: Streams): void => {
   program

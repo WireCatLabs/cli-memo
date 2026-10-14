@@ -123,7 +123,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "skill install": ["memo skill install --for all"],
 }
 
-const leaves = (command: Command, path: string[] = []): [string, Command][] =>
+export const leaves = (command: Command, path: string[] = []): [string, Command][] =>
   command.commands.flatMap((child) => {
     const at = [...path, child.name()]
     return child.commands.length ? leaves(child, at) : [[at.join(" "), child] as [string, Command]]
