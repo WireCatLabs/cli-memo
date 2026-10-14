@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto"
 import { CliError } from "@wirecat/cli-base"
+import { HEADER_FIELDS, headersOf, type MailHeaders } from "./headers.js"
 import type { Himalaya } from "./himalaya.js"
 
 export interface Listed {
@@ -15,6 +16,8 @@ export interface Listed {
   flagged?: boolean
   /** RFC822.SIZE in bytes, to size fetch batches. */
   size?: number
+  /** Read only when asked for; absent when not asked or unreadable, so no rule applies to it. */
+  headers?: MailHeaders
 }
 
 const SYSTEM_LABELS: Record<string, string> = {
@@ -64,11 +67,28 @@ const imapList = (items: string, name: string): string[] | undefined => {
   return undefined
 }
 
+export const systemLabel = (name: string): string => SYSTEM_LABELS[name.toLowerCase()] ?? name
+
 /** A label as people read it: `\\Important` and `Important` are one label, and names are decoded. */
 export const labelName = (raw: string): string => {
   const system = raw.startsWith("\\") ? raw.slice(1) : raw
   return SYSTEM_LABELS[system.toLowerCase()] ?? decodeMailboxName(system)
 }
+
+/** One FETCH answer per email, across lines, since a header field comes back as a multi-line literal. */
+const FETCH_ANSWERS = /^\* \d+ FETCH \(([\s\S]*?)(?=^\* \d+ FETCH|^[a-z]\d* (?:OK|NO|BAD)|$(?![\s\S]))/gm
+
+/** Each answer's UID and header text; the UID is looked for outside the literal, so a header cannot fake it. */
+const fetchedHeaders = (output: string): [string, string][] =>
+  [...output.matchAll(FETCH_ANSWERS)].flatMap(([, fields = ""]) => {
+    const literal = /\{\d+\}\r?\n/.exec(fields)
+    if (literal === null) return []
+    const start = literal.index + literal[0].length
+    const blank = fields.slice(start).search(/\r?\n\r?\n/)
+    const end = blank === -1 ? fields.length : start + blank
+    const uid = /(?:^|\s)UID (\d+)/.exec(`${fields.slice(0, literal.index)} ${fields.slice(end)}`)?.[1]
+    return uid === undefined ? [] : [[uid, fields.slice(start, end)] as [string, string]]
+  })
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 const FETCH_BATCH = 500
@@ -113,6 +133,7 @@ export const listAllMail = async (
   account: string,
   since: Date,
   folder = "[Gmail]/All Mail",
+  headers = false,
 ): Promise<Listed[]> => {
   if (/[\r\n]/.test(folder) || folder.includes(String.fromCharCode(0)))
     throw new CliError("validation_error", "invalid mailbox name")
@@ -126,7 +147,7 @@ export const listAllMail = async (
   if (uids.length === 0) return []
 
   const listed: Omit<Listed, "labels" | "seen" | "flagged">[] = []
-  const marks = new Map<string, Pick<Listed, "labels" | "seen" | "flagged">>()
+  const marks = new Map<string, Pick<Listed, "labels" | "seen" | "flagged" | "headers">>()
   for (let from = 0; from < uids.length; from += CALL_UIDS) {
     const batches: string[] = []
     for (let start = from; start < Math.min(from + CALL_UIDS, uids.length); start += FETCH_BATCH)
@@ -174,6 +195,16 @@ export const listAllMail = async (
       if (flagged) names.add("Starred")
       marks.set(uid, { labels: [...names].sort(), seen: flags.includes("\\Seen"), flagged })
     }
+
+    if (headers) {
+      const headed = await run(
+        ["imap", "raw", "-a", account],
+        `a EXAMINE ${mailbox}\r\n${batches
+          .map((set, index) => `h${index} UID FETCH ${set} (UID BODY.PEEK[HEADER.FIELDS (${HEADER_FIELDS})])\r\n`)
+          .join("")}`,
+      )
+      for (const [uid, text] of fetchedHeaders(headed)) marks.set(uid, { ...marks.get(uid), headers: headersOf(text) })
+    }
   }
   if (listed.length !== uids.length)
     throw new CliError("invalid_response", `IMAP listed ${uids.length} messages but fetched ${listed.length}`)
@@ -201,7 +232,7 @@ export const listImapMail = async (run: Himalaya, account: string, since: Date, 
     const before = listed.length
     const output = await run(
       ["imap", "raw", "-a", account],
-      `a EXAMINE ${mailbox}\r\nf UID FETCH ${batch.join(",")} (UID FLAGS INTERNALDATE RFC822.SIZE BODY.PEEK[HEADER.FIELDS (MESSAGE-ID REFERENCES IN-REPLY-TO)])\r\n`,
+      `a EXAMINE ${mailbox}\r\nf UID FETCH ${batch.join(",")} (UID FLAGS INTERNALDATE RFC822.SIZE BODY.PEEK[HEADER.FIELDS (MESSAGE-ID REFERENCES IN-REPLY-TO ${HEADER_FIELDS})])\r\n`,
     )
     assertCompleted(output, ["a", "f"])
     for (const match of output.matchAll(
@@ -225,6 +256,7 @@ export const listImapMail = async (run: Himalaya, account: string, since: Date, 
         threadId: digest(refs?.[0] ?? parent ?? identity),
         receivedAt: isoOf(internal),
         folder,
+        headers: headersOf(unfolded),
         // IMAP has no labels; a flagged message is Starred, as in Gmail, so one search finds both.
         ...(flags === undefined
           ? {}

@@ -32,9 +32,26 @@ const ConfigSchema = v.object({
         v.object({
           name: v.string(),
           address: v.string(),
-          mode: v.optional(v.picklist(["gmail", "imap"])),
+          /** `mbox` reads a Google Takeout file at `path`; give it the Gmail account's address, so both are one set. */
+          mode: v.optional(v.picklist(["gmail", "imap", "mbox"])),
+          path: v.optional(v.pipe(v.string(), v.minLength(1))),
           folders: v.optional(v.array(v.string())),
           embed: v.optional(v.boolean()),
+          /** The owner's keep/skip decisions per sender, domain or list; written by `memo mail rules`. */
+          rules: v.optional(
+            v.array(
+              v.object({
+                match: v.object({
+                  from: v.optional(v.string()),
+                  domain: v.optional(v.string()),
+                  listId: v.optional(v.string()),
+                }),
+                action: v.picklist(["skip", "keep"]),
+                reason: v.optional(v.string()),
+                decidedAt: v.string(),
+              }),
+            ),
+          ),
         }),
       ),
       /** The most characters of an email body kept; 1,000,000 by default. */

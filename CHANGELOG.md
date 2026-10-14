@@ -6,6 +6,18 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo mail probe <account>`** groups an account's mail by sender and List-Id from headers only (about 300
+  bytes an email): emails, size, unread and bulk shares, years, whether the owner ever wrote to the sender,
+  and a `skip` suggestion for large, bulk, never-answered groups. `--json` for agents.
+- **`memo mail rules list|add|remove <account>`** keep the owner's skip/keep decisions by sender, domain or
+  List-Id in `mail.accounts[].rules`; a keep wins over a skip. `memo sync` never reads or stores an email a
+  skip rule matches and reports it as `skipped`; mail stored before stays.
+- **Google Takeout mbox accounts** (`"mode": "mbox", "path": "…"`, with the Gmail address) import old mail by
+  Gmail's message and thread ids, so it joins the IMAP account's mail. The file is read in one streaming
+  pass; it only adds mail, never marks any deleted, and syncs only when named with `--account`.
+
 ### Fixed
 
 - **`memo sync` imports a mailbox of more than ~120,000 emails.** A long `--since-time` window failed with

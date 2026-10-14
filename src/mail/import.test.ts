@@ -8,6 +8,7 @@ import { createProgram } from "../program.js"
 import { decodeMailboxName, labelName } from "./gmail.js"
 import { himalaya } from "./himalaya.js"
 import { importMail } from "./import.js"
+import { mboxSource } from "./mbox.js"
 import { himalayaSource } from "./source.js"
 
 const ME = "owner@example.test"
@@ -28,6 +29,7 @@ interface Fixture {
   cc?: [string | null, string][]
   text?: string
   html?: string
+  listId?: string
 }
 
 const mail = (n: number, overrides: Partial<Fixture> = {}): Fixture => ({
@@ -273,6 +275,68 @@ describe("importMail", () => {
     await importInto(env)
 
     expect((await emails(env))[0]?.bodyText).toBe("Hello there\nA & B")
+  })
+})
+
+describe("importMail with the owner's rules", () => {
+  const rules = [
+    { match: { domain: "shop.example" }, action: "skip" as const, decidedAt: "2026-10-14T00:00:00.000Z" },
+    { match: { from: "orders@shop.example" }, action: "keep" as const, decidedAt: "2026-10-14T00:00:00.000Z" },
+  ]
+
+  it("never reads or stores a new email a skip rule matches, and keeps what was stored before", async () => {
+    const news = mail(2, { from: ["Shop", "news@shop.example"], listId: "news.shop.example" })
+    const { env, write } = setup([mail(1), mail(3, { from: [null, "orders@shop.example"] })])
+    await importInto(env)
+    write([
+      mail(1),
+      news,
+      mail(3, { from: [null, "orders@shop.example"] }),
+      mail(4, { from: [null, "sale@shop.example"] }),
+    ])
+
+    const result = await importMail({
+      store: await store(env),
+      source: himalayaSource(himalaya(env), { name: "test" }),
+      account: { name: "test", address: ME, rules },
+      since: SINCE,
+      now: () => NOW,
+      indexThreads: async () => ({ chats: 0, chunks: 0, left: false }),
+    })
+
+    expect(result).toMatchObject({ listed: 4, saved: 0, alreadyStored: 2, skipped: 2, deleted: 0, complete: true })
+    expect((await emails(env)).map(({ externalId }) => externalId).sort()).toEqual(["9001", "9003"])
+  })
+
+  it("adds an mbox archive's mail to the IMAP account by Gmail id, skips by rule and deletes nothing", async () => {
+    const { dir, env } = setup([mail(1)])
+    await importInto(env)
+    const body = (from: string) => `From: ${from}\nTo: ${ME}\nSubject: Old\n\nOld body\n`
+    const path = join(dir, "archive.mbox")
+    writeFileSync(
+      path,
+      [
+        ["8001", "Alice Example <alice@example.test>"],
+        ["8002", "news@shop.example"],
+      ]
+        .map(
+          ([id, from]) => `From ${id}@xxx Mon Jul 24 10:00:00 +0000 2023\nX-GM-THRID: ${id}\n${body(from as string)}\n`,
+        )
+        .join(""),
+    )
+
+    const result = await importMail({
+      store: await store(env),
+      source: mboxSource(path),
+      account: { name: "archive", address: ME, mode: "mbox", rules },
+      since: new Date(0),
+      now: () => NOW,
+      indexThreads: async () => ({ chats: 0, chunks: 0, left: false }),
+    })
+
+    expect(result).toMatchObject({ listed: 2, saved: 1, skipped: 1, deleted: 0 })
+    expect(result.deletionsSkipped).toContain("snapshot")
+    expect((await emails(env)).map(({ externalId }) => externalId).sort()).toEqual(["8001", "9001"])
   })
 })
 

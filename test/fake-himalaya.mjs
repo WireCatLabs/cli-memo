@@ -19,6 +19,7 @@ const raw = (m) => {
     `From: ${person(m.from)}`,
     `To: ${m.to.map(person).join(", ")}`,
     ...(m.cc ? [`Cc: ${m.cc.map(person).join(", ")}`] : []),
+    ...(m.listId ? [`List-Id: News <${m.listId}>`, `List-Unsubscribe: <mailto:leave@${m.listId}>`] : []),
     `Subject: ${m.subject}`,
     `Message-ID: <${m.messageId}@example.test>`,
     `Date: ${new Date(m.receivedAt).toUTCString()}`,
@@ -51,6 +52,20 @@ if (args[0] === "imap" && args[1] === "raw") {
         `* SEARCH ${uids.join(" ")}`.trimEnd(),
         `${tag} ${mailbox.searchFails ? "NO failed" : "OK SEARCH completed (Success)"}`,
       )
+    } else if (
+      command.startsWith("UID FETCH") &&
+      command.includes("HEADER.FIELDS") &&
+      !command.includes("INTERNALDATE")
+    ) {
+      const set = command.split(" ")[2].split(",")
+      for (const [index, m] of mailbox.messages.entries()) {
+        if (!set.includes(m.uid)) continue
+        const head = `${raw(m).toString().split("\r\n\r\n")[0]}\r\n\r\n`
+        out.push(
+          `* ${index + 1} FETCH (UID ${m.uid} BODY[HEADER.FIELDS (FROM)] {${Buffer.byteLength(head)}}\r\n${head})`,
+        )
+      }
+      out.push(`${tag} OK Success`)
     } else if (command.startsWith("UID FETCH") && command.includes("X-GM-LABELS")) {
       const set = command.split(" ")[2].split(",")
       for (const [index, m] of mailbox.messages.entries()) {

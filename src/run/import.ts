@@ -1,10 +1,9 @@
-import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
+import { createRenderer, type Streams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-messaging/store"
 import { type Command, Option } from "commander"
-import { type Config, loadConfig } from "../config.js"
-import { himalaya } from "../mail/himalaya.js"
+import { loadConfig } from "../config.js"
+import { mailAccounts, mailSource } from "../mail/accounts.js"
 import { type ImportResult, importMail } from "../mail/import.js"
-import { himalayaSource } from "../mail/source.js"
 import { boundFolders, unboundReason } from "../notes/bound.js"
 import { embedNoteChunks, type NoteChunksEmbedded } from "../notes/embed.js"
 import { noteFolders } from "../notes/folders.js"
@@ -20,7 +19,12 @@ const LARGE_IMPORT_HELP =
   "Large first import: mail is read at about 10 emails (~1 MB) a second, and Gmail caps IMAP downloads " +
   "(2,500 MB a day for Workspace, https://knowledge.workspace.google.com/admin/gmail/gmail-bandwidth-limits; " +
   "the consumer limit is not published), so a mailbox of many GB takes days: raise --limit gradually and let " +
-  "each run continue where the last stopped."
+  "each run continue where the last stopped.\n\n" +
+  "Rules: an email a skip rule of `memo mail rules` matches is never read or stored, and is counted as " +
+  "skipped; mail stored before the rule stays.\n\n" +
+  "An mbox account (a Google Takeout file, mode mbox) syncs only when named with --account: each run reads " +
+  "the whole file, its mail is old so it needs a --since-time far back, and a large --limit. It only adds " +
+  "mail; nothing missing from the file is marked deleted."
 
 export interface ImportRun {
   notes: NotesImport[]
@@ -51,6 +55,7 @@ const text = (run: ImportRun): string =>
     ...run.mail.map(
       (m) =>
         `mail ${m.account}: ${m.listed} listed, ${m.saved} new, ${m.deleted} gone` +
+        (m.skipped ? `, ${m.skipped} skipped by rule` : "") +
         (m.complete ? "" : " — more to read next run") +
         (m.unreadable === undefined ? "" : ` — ${m.unreadable.length} unreadable, tried again next run`) +
         (m.deletionsSkipped === undefined ? "" : ` — deletions skipped: ${m.deletionsSkipped}`),
@@ -69,20 +74,6 @@ interface SyncOptions {
   retryAttachments?: boolean
   embed: boolean
   json?: boolean
-}
-
-type MailAccount = NonNullable<Config["mail"]>["accounts"][number]
-
-const mailAccounts = (accounts: MailAccount[], names: string[] | undefined): MailAccount[] => {
-  if (names === undefined) return accounts
-  return names.map((name) => {
-    const found = accounts.find(
-      (account) => account.name === name || account.address.toLowerCase() === name.toLowerCase(),
-    )
-    if (found) return found
-    const choices = accounts.map((account) => account.name).join(", ") || "none"
-    throw new CliError("not_found", `no mail account "${name}" in mail.accounts — it holds ${choices}`)
-  })
 }
 
 export const syncCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
@@ -146,7 +137,13 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           ? Date.now() - MAIL_WINDOW_DAYS * DAY
           : (await import("@wirecat/cli-messaging/cli")).momentOf(options.sinceTime, "--since-time"),
       )
-      const accounts = both || options.mail ? mailAccounts(config.mail?.accounts ?? [], options.account) : []
+      // An archive file is read whole each run, so only a sync that names it reads it.
+      const accounts =
+        both || options.mail
+          ? mailAccounts(config.mail?.accounts ?? [], options.account).filter(
+              (account) => account.mode !== "mbox" || options.account !== undefined,
+            )
+          : []
       const run: ImportRun = { notes: [], mail: [], failed: [] }
       await withImportLock(env, async () => {
         const store = await openStore({ env })
@@ -188,7 +185,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
               run.mail.push(
                 await importMail({
                   store,
-                  source: himalayaSource(himalaya(env), account),
+                  source: mailSource(account, env),
                   account,
                   since,
                   env,
