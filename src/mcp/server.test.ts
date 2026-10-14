@@ -183,9 +183,9 @@ it("searches every source the store holds, where tg and max read only their own"
       page: { has_more: false },
     })
     const all = (await answer("search_all", { text: "Fridays", exact: true, only: ["notes"] })) as {
-      items: { kind: string; text: string }[]
+      items: { kind: string; excerpt: string }[]
     }
-    expect(all.items).toMatchObject([{ kind: "note", text: expect.stringContaining("Fridays") }])
+    expect(all.items).toMatchObject([{ kind: "note", excerpt: expect.stringContaining("Fridays") }])
     expect((await call("search_mail", { text: "invoice" })).structuredContent).toMatchObject({
       error: { code: "not_found" },
     })

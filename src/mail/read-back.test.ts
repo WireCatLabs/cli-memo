@@ -63,9 +63,9 @@ describe("mail imported into the mail tables reads back through memo", () => {
       await store.close()
     }
 
-    expect(
-      (await run(["search", "mail", "roadmap"], env)).items.map(({ locator }: { locator: string }) => locator),
-    ).toEqual([LOCATOR])
+    expect((await run(["search", "mail", "roadmap"], env)).items.map(({ ref }: { ref: string }) => ref)).toEqual([
+      LOCATOR,
+    ])
     const all = await run(["search", "all", "roadmap"], env)
     expect(all.items.find(({ kind }: { kind: string }) => kind === "mail")?.ref).toBe(LOCATOR)
 
@@ -81,8 +81,8 @@ describe("mail imported into the mail tables reads back through memo", () => {
 
     const task = await run(["tasks", "add", LOCATOR, "--provider", "email", "--account", ME], env)
     expect(task.task.source).toBe(LOCATOR)
-    expect((await run(["search", "mail", "tag:follow-up"], env)).items.map(({ id }: { id: string }) => id)).toEqual([
-      "9001",
+    expect((await run(["search", "mail", "tag:follow-up"], env)).items.map(({ ref }: { ref: string }) => ref)).toEqual([
+      LOCATOR,
     ])
 
     const shown = await run(["messages", "show", LOCATOR], env)

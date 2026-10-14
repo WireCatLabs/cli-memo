@@ -28,7 +28,7 @@ it("takes a project by its key or project:<id> in every --project", async () => 
     "--type",
     "decision",
     "--evidence",
-    note.note.ref,
+    note.ref,
     "--project",
     "SYH",
   )
@@ -48,5 +48,5 @@ it("takes --about once per subject", async () => {
   const added = await run("notes", "add", "About both", "--about", project.ref, "--about", organization.ref)
 
   for (const subject of [project.ref, organization.ref])
-    expect((await run("notes", "list", "--about", subject)).items).toMatchObject([{ id: added.note.id }])
+    expect((await run("notes", "list", "--about", subject)).items).toMatchObject([{ id: added.id }])
 })

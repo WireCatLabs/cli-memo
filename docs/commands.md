@@ -1534,7 +1534,7 @@ memo search all <query> [options]
 | `--timezone <zone>` | IANA timezone for calendar date boundaries. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--brief` | each message or email as reference, time, sender and excerpt only. |
-| `--full` | each message or email with its whole text and every field. |
+| `--full` | each message or email with its whole text; --json keeps the excerpt, messages show the text. |
 | `--only <resources>` | messages,mail,notes, separated by commas. |
 | `--project <project>` | rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out. |
 
@@ -1557,7 +1557,7 @@ memo search messages <query> [options]
 | `--timezone <zone>` | IANA timezone for calendar date boundaries. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--brief` | each message or email as reference, time, sender and excerpt only. |
-| `--full` | each message or email with its whole text and every field. |
+| `--full` | each message or email with its whole text; --json keeps the excerpt, messages show the text. |
 | `--type <type>` | text, voice or file. |
 
 ### `memo search mail`
@@ -1579,7 +1579,7 @@ memo search mail <query> [options]
 | `--timezone <zone>` | IANA timezone for calendar date boundaries. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--brief` | each message or email as reference, time, sender and excerpt only. |
-| `--full` | each message or email with its whole text and every field. |
+| `--full` | each message or email with its whole text; --json keeps the excerpt, messages show the text. |
 | `--account <account>` | only this mail account, by its address (default: every mail account). |
 
 ### `memo search notes`
@@ -1601,9 +1601,8 @@ memo search notes <query> [options]
 | `--timezone <zone>` | IANA timezone for calendar date boundaries. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--brief` | each message or email as reference, time, sender and excerpt only. |
-| `--full` | each message or email with its whole text and every field. |
+| `--full` | each message or email with its whole text; --json keeps the excerpt, messages show the text. |
 | `--type <type>` | file or internal. |
-| `--tag <tag>` | only notes with this tag. |
 | `--filter <query>` | another query every note must match. |
 | `--folder <folder>` | only this folder, by its id or path; repeat for more. |
 | `--page <n>` | which page, from 1. Default: `1`. |

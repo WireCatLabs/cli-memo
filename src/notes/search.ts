@@ -5,13 +5,7 @@ export { searchNotes } from "@wirecat/cli-core/services"
 
 export const searchText = (result: NotesSearch): string =>
   [
-    ...(result.hits.length === 0
-      ? [
-          result.tag === undefined
-            ? `No note holds "${result.query}". Run memo sync --notes if notes changed.`
-            : `No note tagged ${result.tag} matches "${result.query}".`,
-        ]
-      : []),
+    ...(result.hits.length === 0 ? [`No note holds "${result.query}". Run memo sync --notes if notes changed.`] : []),
     ...result.hits.map(
       (hit) =>
         `${"key" in hit ? "key  " : ""}${hit.path ?? hit.ref}${hit.found_by.includes("words") ? "" : "  (by meaning)"}\n  ${hit.excerpt}`,

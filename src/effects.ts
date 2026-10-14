@@ -1,4 +1,4 @@
-import { annotate } from "@wirecat/cli-base/commands"
+import { annotate, type CommandOutput } from "@wirecat/cli-base/commands"
 import type { Effects } from "@wirecat/cli-base/standards"
 import { FETCH, LOCAL_READ, LOCAL_WRITE, NO_EFFECTS, REMOTE_READ } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
@@ -99,10 +99,21 @@ export const EFFECTS: Readonly<Record<string, Effects>> = {
   "skill install": LOCAL_WRITE,
 }
 
-/** Puts each leaf's effects in `commands --json`, where retries, steps and MCP hints are judged from them. */
+/** The cli-core entity each answer's items are, so `--json=<field>` is checked and the CLIs compare. */
+export const OUTPUTS: Readonly<Record<string, CommandOutput>> = {
+  "search all": { entity: "hit" },
+  "search messages": { entity: "message", view: "hit" },
+  "search mail": { entity: "message", view: "hit" },
+  "search notes": { entity: "note", view: "hit" },
+}
+
+/**
+ * Puts each leaf's effects and answer in `commands --json`, where retries, steps and MCP hints are judged from them.
+ */
 export const addEffects = (program: Command): void => {
   for (const [path, command] of leaves(program)) {
     const effects = EFFECTS[path]
-    if (effects) annotate(command, { effects })
+    const output = OUTPUTS[path]
+    annotate(command, { ...(effects ? { effects } : {}), ...(output ? { output } : {}) })
   }
 }

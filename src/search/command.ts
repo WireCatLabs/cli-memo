@@ -18,6 +18,7 @@ import { APP } from "../app.js"
 import { keyDocuments, keyFirst, projectOf } from "../knowledge/key-documents.js"
 import { searchMemoriesCommand } from "../memories/command.js"
 import { folderIds } from "../notes/bound.js"
+import { modelHint } from "../notes/embed.js"
 import { searchText } from "../notes/search.js"
 import { collect, positive } from "../options.js"
 import { SAVE_HELP } from "../save-help.js"
@@ -392,7 +393,7 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       .option("--timezone <zone>", "IANA timezone for calendar date boundaries")
       .option("--json", "print JSON; --json=id,title keeps only those fields")
       .option("--brief", "each message or email as reference, time, sender and excerpt only")
-      .option("--full", "each message or email with its whole text and every field")
+      .option("--full", "each message or email with its whole text; --json keeps the excerpt, messages show the text")
 
   queryOptions(
     group
@@ -409,7 +410,7 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       "after",
       `
 content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names — memo search all 'content:invoice'.
---json: the list is items; each result's reference is ref, its kind is kind (tg search uses locator).`,
+--json: the list is items, each a hit as in tg search all: ref, kind, title, timestamp, excerpt.`,
     )
     .action(
       async (
@@ -441,7 +442,8 @@ content: narrows a search to the text of files, transcript: to voice transcripts
           )
           for (const skipped of answer.skipped)
             streams.diagnostic(`${skipped.resource} not searched: ${skipped.reason}\n`)
-          if (answer.notes?.meaningSkipped) streams.diagnostic(`Notes by words only: ${answer.notes.meaningSkipped}\n`)
+          if (answer.notes?.meaningSkipped)
+            streams.diagnostic(`Notes by words only: ${modelHint(answer.notes.meaningSkipped)}\n`)
         }
         print(
           options.json,
@@ -466,10 +468,10 @@ content: narrows a search to the text of files, transcript: to voice transcripts
         ? `
 content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names — memo search messages
 'content:invoice'. Compare it with tg search messages 'content:invoice', a plain word with a plain word.
---json: the list is items; each hit's reference is locator (msg:…), as in tg search messages.`
+--json: the list is items, each a hit as in tg search messages: ref (msg:…), timestamp, sender_name, excerpt.`
         : `
 content: narrows a search to the text of attachments, filename: to their names — memo search mail 'content:invoice'.
---json: the list is items; each email's reference is locator (msg:email/…).`,
+--json: the list is items, each a hit as in tg search mail: ref (msg:email/…), timestamp, email, excerpt.`,
     )
     leaf.action(
       async (
@@ -506,9 +508,12 @@ content: narrows a search to the text of attachments, filename: to their names �
   }
 
   queryOptions(group.command("notes").description("native notes by words and, with the local model, meaning"))
-    .addHelpText("after", "\n--json: each note's reference is ref (note: or document:).")
+    .addHelpText(
+      "after",
+      "\ntag: in --filter keeps the notes with that tag and leaves the search by meaning as it is — --filter 'tag:work'." +
+        "\n--json: each note's reference is ref (note: or document:).",
+    )
     .option("--type <type>", "file or internal", noteType)
-    .option("--tag <tag>", "only notes with this tag")
     .option("--filter <query>", "another query every note must match")
     .option("--folder <folder>", "only this folder, by its id or path; repeat for more", collect)
     .option("--page <n>", "which page, from 1", positive, 1)
@@ -520,7 +525,6 @@ content: narrows a search to the text of attachments, filename: to their names �
           limit: number
           page: number
           type?: Note["source"]
-          tag?: string
           filter?: string
           folder?: string[]
           project?: string
@@ -534,9 +538,7 @@ content: narrows a search to the text of attachments, filename: to their names �
             limit: options.limit,
             offset: (options.page - 1) * options.limit,
             env,
-            command: "tg",
             ...(options.type === undefined ? {} : { source: options.type }),
-            ...(options.tag === undefined ? {} : { tag: options.tag }),
             ...(options.filter === undefined ? {} : { filter: options.filter }),
             ...(options.folder === undefined ? {} : { folderIds: await folderIds(store, env, options.folder) }),
             ...(options.exact ? { exact: true } : {}),
@@ -547,7 +549,7 @@ content: narrows a search to the text of attachments, filename: to their names �
             : { ...found, hits: keyFirst(found.hits, await keyRefs(store, options.project)) }
         })
         if (answer.meaning_skipped && !options.json)
-          streams.diagnostic(`Searched by words only: ${answer.meaning_skipped}\n`)
+          streams.diagnostic(`Searched by words only: ${modelHint(answer.meaning_skipped)}\n`)
         const { limit, page, json, folder, ...rest } = options
         // A next-page step names one value per option; with several folders it would search every folder.
         const body = notesAnswer(answer, limit, page, { query: words.join(" "), ...rest, folder: folder?.[0] })

@@ -56,7 +56,7 @@ Put the search in single quotes so the terminal passes it to Memo as it is:
 ## Narrow down your notes
 
 ```sh
-memo search notes 'budget' --tag work                   # only notes with a tag
+memo search notes 'budget' --filter 'tag:work'          # only notes with a tag
 memo search notes 'budget' --folder /path/to/notes       # only one folder
 memo search notes 'budget' --type internal               # only notes you wrote in Memo
 memo search notes 'budget' --filter 'date:2026-10-08'    # and a second condition

@@ -25,7 +25,7 @@ it("records the owner's facts as accepted and lets the owner accept, supersede a
     type: "decision",
     statement: "Releases go out on Fridays",
     by: { bot: "memo-mcp" },
-    evidence: [note.note.ref],
+    evidence: [note.ref],
   })
   await store.close()
   expect((await run("facts", "list", "--status", "proposed")).items).toMatchObject([{ ref: proposed.ref }])

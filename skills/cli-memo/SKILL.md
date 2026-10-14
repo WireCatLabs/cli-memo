@@ -19,8 +19,8 @@ anything. Add `--json` and read the answer, not the text meant for people.
    `memo search messages 'content:invoice'` with `tg search messages 'content:invoice'`, a plain word
    with a plain word.
 3. **Every answer is `item` (one thing) or `items` with `page` (a list), plus `meta`.** References:
-   `search messages` and `search mail`: `items[].locator`; `search all` and `search notes`:
-   `items[].ref`. Pass a reference back unchanged. `missing` says what was not searched and why.
+   every search's `items[].ref`. Pass a reference back unchanged. A search names its fields, so
+   `--json=ref,excerpt` keeps those and refuses one it does not have. `missing` says what was not searched and why.
    Who a note links to: `memo context <person>`.
 4. **Start work on a project with `memo projects context <key>`.** Its key documents come first:
    read them before anything else. Mark one with

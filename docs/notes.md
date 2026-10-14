@@ -110,7 +110,7 @@ it is skipped) or a pattern:
 
 ```sh
 memo search notes 'budget'
-memo search notes 'budget' --tag work
+memo search notes 'budget' --filter 'tag:work'
 memo notes show document:3
 ```
 
