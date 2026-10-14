@@ -132,7 +132,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .option("--since-time <time>", "only mail from this time, ISO 8601 or 30d ago (default: all mail)")
     .option("--limit-groups <n>", "show this many of the largest groups", positive, 50)
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText(
       "after",
       "\nRead-only and headers only: about 300 bytes per email (From, To, Cc, List-Id, List-Unsubscribe, " +
@@ -164,7 +164,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .command("list")
     .description("one account's rules")
     .argument("<account>", "the account's name in mail.accounts, or its address")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText("after", "\nAn envelope rule shows how many emails it recorded and their size at the source.")
     .action(async (name: string, options: { json?: boolean }) => {
       const account = accountOf(loadConfig(env), name)
@@ -195,7 +195,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .option("--envelope", "store only sender, date, size and labels: counted, out of search, cleanable later")
     .option("--keep", "import this mail even when a skip or envelope rule matches it")
     .option("--reason <text>", "why, for the owner later")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText(
       "after",
       "\nA keep wins over an envelope, an envelope over a skip, so --keep --from one sender overrides " +
@@ -231,7 +231,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .option("--from <address>", "one sender address")
     .option("--domain <domain>", "a sender domain")
     .option("--list-id <id>", "a mailing list, by its List-Id")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((name: string, options: MatchOptions & { json?: boolean }) => {
       const match = matchOf(options)
       if (!(accountOf(loadConfig(env), name).rules ?? []).some((rule) => sameMatch(rule.match, match)))
@@ -248,7 +248,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .option("--since-time <time>", "only mail from this time, ISO 8601 or 30d ago (default: all mail)")
     .option("--yes", "change the store; without it, only say what would change")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText(
       "after",
       "\nReads the account's headers from the mailbox, as memo sync does (List-Id is not stored), then drops the " +

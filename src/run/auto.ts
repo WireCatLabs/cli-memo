@@ -174,7 +174,7 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
   auto
     .command("status")
     .description("whether the timer is on, its interval, its next run and how the last one ended")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (options: { json?: boolean }) => {
       const state = autoState(loadConfig(env))
       const show = async (unit: string, properties: string) =>

@@ -10,6 +10,7 @@ import { commandsCommand } from "./discovery/command.js"
 import { addEffects } from "./effects.js"
 import { addExamples } from "./examples.js"
 import { factsCommand } from "./facts/command.js"
+import { jsonFields } from "./json-fields.js"
 import { knowledgeCommands } from "./knowledge/command.js"
 import { mailCommand } from "./mail/command.js"
 import { messagesCommand } from "./mail/messages-command.js"
@@ -27,12 +28,14 @@ import { VERSION } from "./version.js"
 import { vocabularyCommand } from "./vocabulary/command.js"
 
 export const createProgram = ({
-  streams = processStreams,
+  streams: raw = processStreams,
   env = process.env,
 }: {
   streams?: Streams
   env?: NodeJS.ProcessEnv
 } = {}): Command => {
+  const fields = jsonFields(raw)
+  const { streams } = fields
   const program = new Command("memo")
     .description("context about people across messengers, notes and mail")
     .version(VERSION)
@@ -67,6 +70,7 @@ export const createProgram = ({
   )
   addExamples(program)
   addEffects(program)
+  fields.install(program)
 
   return program
 }

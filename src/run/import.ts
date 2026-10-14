@@ -135,7 +135,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       ).implies({ mail: true }),
     )
     .option("--no-embed", "skip embedding notes and mail for search by meaning this run")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText("after", `\n${LARGE_IMPORT_HELP}`)
     .action(async (options: SyncOptions, command: Command) => {
       const debug = command.optsWithGlobals().debug === true

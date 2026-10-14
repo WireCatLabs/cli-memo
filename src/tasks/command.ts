@@ -216,7 +216,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     )
   fieldOptions(group.command("update").description("change a task's title, priority, parent or description"))
     .argument("<id>", "the task's id or key")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (id: string, options: FieldOptions & { json?: boolean }) => {
       const fields = fieldsOf(options)
       if (Object.keys(fields).length === 0)
@@ -234,7 +234,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .argument("<id>", "the task's id or key")
     .argument("<person>", "explicit canonical person UID")
     .option("--role <role>", TASK_ROLES.join(", "), oneOf(TASK_ROLES), "assignee")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (id: string, person: string, options: { role: TaskRole; json?: boolean }) => {
       const store = await openStore({ env })
       try {

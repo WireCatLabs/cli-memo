@@ -400,7 +400,7 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       )
       .option("--exact", "words as written; skip meaning search")
       .option("--timezone <zone>", "IANA timezone for calendar date boundaries")
-      .option("--json", "print JSON")
+      .option("--json", "print JSON; --json=id,title keeps only those fields")
       .option("--brief", "each message or email as reference, time, sender and excerpt only")
       .option("--full", "each message or email with its whole text and every field")
 

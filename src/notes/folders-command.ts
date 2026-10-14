@@ -48,7 +48,7 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
     .description("give a folder of notes an id, or show the one it has")
     .argument("<path>", "the folder on this computer")
     .option("--format <format>", `how its notes are written: ${DIALECTS.join(", ")} (default: obsidian)`, formatOf)
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (path: string, options: { format?: DialectName; json?: boolean }) => {
       const at = directory(path)
       const answer = await withStore(async (store) => {
@@ -74,7 +74,7 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
     .argument("<id>", "the folder's id, as memo folders add printed it")
     .argument("<path>", "the same folder on this computer")
     .option("--format <format>", `how its notes are written: ${DIALECTS.join(", ")}`, formatOf)
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (id: string, path: string, options: { format?: DialectName; json?: boolean }) => {
       const at = directory(path)
       const folder = await withStore(async (store) => {
@@ -102,7 +102,7 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
   folders
     .command("list")
     .description("folders of notes on this computer, and those the store knows from another")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (options: { json?: boolean }) => {
       const answer = await withStore(async (store) => {
         const here = noteFolders(loadConfig(env).notes)

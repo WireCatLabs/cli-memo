@@ -63,7 +63,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .argument("<name>", "the organization's name")
     .requiredOption("--kind <kind>", ORGANIZATION_KINDS.join(", "), oneOf(ORGANIZATION_KINDS))
     .option("--scope <scope>", SCOPES.join(", "), oneOf(SCOPES))
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((name: string, options: { kind: Organization["kind"]; scope?: Organization["scope"]; json?: boolean }) =>
       owned(options, (store) =>
         store.knowledge.addOrganization({
@@ -76,7 +76,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   organizations
     .command("list")
     .description("your organizations")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((options: { json?: boolean }) => owned(options, (store) => store.knowledge.organizations()))
   organizations
     .command("context")
@@ -85,7 +85,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     )
     .summary("one organization: its relationships, notes and tags")
     .argument("<organization>", "its id or organization:<id>")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((reference: string, options: { json?: boolean }) =>
       owned(options, async (store) => {
         const wanted = reference.replace(/^organization:/, "")
@@ -107,7 +107,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .option("--type <type>", PROJECT_TYPES.join(", "), oneOf(PROJECT_TYPES))
     .option("--organization <organization>", "the organization it belongs to: its id or organization:<id>")
     .option("--scope <scope>", SCOPES.join(", "), oneOf(SCOPES))
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(
       (
         name: string,
@@ -134,7 +134,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   projects
     .command("list")
     .description("your projects")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((options: { json?: boolean }) => owned(options, (store) => store.knowledge.projects()))
   projects
     .command("context")
@@ -144,7 +144,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     )
     .summary("one project: key documents, relationships, notes and tags; start work here")
     .argument("<project>", "its id, key or project:<id>")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((reference: string, options: { json?: boolean }) =>
       owned(options, async (store) => {
         const project = await projectOf(store, reference)
@@ -164,7 +164,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       .argument("<project>", "id, key or project:<id>")
       .argument("<reference>", "note:, document: or msg: reference")
       .requiredOption("--reason <text>", "why it is key, in a few words")
-      .option("--json", "print JSON"),
+      .option("--json", "print JSON; --json=id,title keeps only those fields"),
   ).action((project: string, reference: string, options: { reason: string; asOwner?: boolean; json?: boolean }) =>
     owned(options, async (store) =>
       markKey(store, await projectOf(store, project), reference, options.reason, authorOf(env, options.asOwner)),
@@ -175,7 +175,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .description("unmark a key document; the note, file or message stays")
     .argument("<project>", "id, key or project:<id>")
     .argument("<reference>", "the key document's note:, document: or msg: reference")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((project: string, reference: string, options: { json?: boolean }) =>
       owned(options, async (store) => unmarkKey(store, await projectOf(store, project), reference)),
     )
@@ -183,7 +183,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .command("list")
     .description("a project's key documents: why, who marked each and whether it is still there")
     .argument("<project>", "id, key or project:<id>")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((project: string, options: { json?: boolean }) =>
       owned(options, async (store) => ({ items: await keyDocuments(store, await projectOf(store, project)) })),
     )
@@ -200,7 +200,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   )
     .argument("<from>", "the person:, organization: or project: that belongs or relates")
     .argument("<to>", "the person:, organization: or project: it belongs or relates to")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .option("--kind <kind>", "member-of or related-to", "member-of")
     .option("--role <role>", "the role it has there, in a few words, such as cto")
     .option("--reason <text>", "why you think so, in a sentence")
@@ -233,7 +233,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .command("list")
     .description("relationships, all or those of one reference")
     .option("--reference <reference>", "only those of this person:, organization: or project:")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((options: { reference?: string; json?: boolean }) =>
       owned(options, (store) => store.knowledge.relations(null, options.reference)),
     )
@@ -241,7 +241,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .command("remove")
     .description("remove a relationship")
     .argument("<id>", "the relationship's id, as relationships list gives it")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((id: string, options: { json?: boolean }) =>
       owned(options, (store) => store.knowledge.removeRelation(null, id)),
     )
@@ -249,7 +249,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .command("confirm")
     .description("confirm a suggested relationship")
     .argument("<id>", "the relationship's id, as relationships list gives it")
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((id: string, options: { json?: boolean }) =>
       owned(options, (store) => store.knowledge.confirmRelation(null, id)),
     )

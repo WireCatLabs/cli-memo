@@ -15,7 +15,7 @@ export const messagesCommand = (program: Command, streams: Streams, env: NodeJS.
     .argument("<message>", "the email's msg:email/… reference, as search answers give it")
     .option("--before-n <n>", "also this many earlier emails of its thread", whole, 0)
     .option("--after-n <n>", "also this many later emails of its thread", whole, 0)
-    .option("--json", "print JSON")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (reference: string, options: { json?: boolean; beforeN: number; afterN: number }) => {
       if (parseLocator(reference).provider !== "email")
         throw new CliError("validation_error", `${reference} is not an email; tg and max show messenger messages`)
