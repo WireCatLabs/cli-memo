@@ -21,6 +21,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "folders list": ["memo folders list --json"],
   "messages show": ["memo messages show 'msg:email/me%40example.com/thread/42' --before-n 2 --after-n 2"],
   "mail probe": ["memo mail probe personal --limit-groups 30", "memo mail probe work --since-time 365d --json"],
+  "mail status": ["memo mail status personal", "memo mail status personal --json"],
   "mail rules list": ["memo mail rules list personal --json"],
   "mail rules add": [
     "memo mail rules add personal --domain news.example --envelope --reason 'newsletters'",

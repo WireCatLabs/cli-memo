@@ -85,6 +85,7 @@
   "sync --mail",
   "sync --no-embed",
   "sync --notes",
+  "sync --rescan",
   "sync --retry-attachments",
   "tags add --chat",
   "tags add --contact",

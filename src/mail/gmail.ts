@@ -125,9 +125,37 @@ const assertCompleted = (output: string, tags: string[]): void => {
   }
 }
 
+/** A mailbox's UIDs in the window and its UIDVALIDITY, read without fetching any message. */
+export interface Searched {
+  /** Absent when the server does not say; then no UID is trusted across runs. */
+  validity?: string
+  uids: string[]
+}
+
+const mailboxOf = (folder: string): string => {
+  if (!folder || /[\r\n]/.test(folder) || folder.includes(String.fromCharCode(0)))
+    throw new CliError("validation_error", "invalid mailbox name")
+  return JSON.stringify(folder)
+}
+
+/** One cheap call: the UIDs a listing would fetch, so a rerun can fetch only those not done before. */
+export const searchMail = async (run: Himalaya, account: string, since: Date, folder: string): Promise<Searched> => {
+  const searched = await run(
+    ["imap", "raw", "-a", account],
+    `a EXAMINE ${mailboxOf(folder)}\r\nb UID SEARCH SINCE ${imapDate(since)}\r\n`,
+  )
+  assertCompleted(searched, ["a", "b"])
+  const validity = /\[UIDVALIDITY (\d+)\]/.exec(searched)?.[1]
+  const uids = [...new Set((/^\* SEARCH(.*)$/m.exec(searched)?.[1] ?? "").trim().split(/\s+/).filter(Boolean))]
+  if (!uids.every((uid) => /^\d+$/.test(uid)))
+    throw new CliError("invalid_response", "invalid IMAP UID listing", { reason: "mail.invalid-imap" })
+  return { ...(validity === undefined ? {} : { validity }), uids }
+}
+
 /**
  * Every message in All Mail received since `since`, read with EXAMINE so nothing can change a flag.
  * All Mail rather than INBOX: an archived message leaves INBOX but is not deleted.
+ * `searched` limits it to those UIDs, from `searchMail`, so mail done in an earlier run is not fetched again.
  */
 export const listAllMail = async (
   run: Himalaya,
@@ -135,16 +163,10 @@ export const listAllMail = async (
   since: Date,
   folder = "[Gmail]/All Mail",
   headers = false,
+  searched?: Searched,
 ): Promise<Listed[]> => {
-  if (/[\r\n]/.test(folder) || folder.includes(String.fromCharCode(0)))
-    throw new CliError("validation_error", "invalid mailbox name")
-  const mailbox = JSON.stringify(folder)
-  const search = await run(
-    ["imap", "raw", "-a", account],
-    `a EXAMINE ${mailbox}\r\nb UID SEARCH SINCE ${imapDate(since)}\r\n`,
-  )
-  assertCompleted(search, ["a", "b"])
-  const uids = (/^\* SEARCH(.*)$/m.exec(search)?.[1] ?? "").trim().split(/\s+/).filter(Boolean)
+  const mailbox = mailboxOf(folder)
+  const { uids } = searched ?? (await searchMail(run, account, since, folder))
   if (uids.length === 0) return []
 
   const listed: Omit<Listed, "labels" | "seen" | "flagged">[] = []
@@ -219,21 +241,18 @@ export const listAllMail = async (
 }
 
 /** Message-ID is stable across folders; absent headers fall back to a UIDVALIDITY-scoped identity. */
-export const listImapMail = async (run: Himalaya, account: string, since: Date, folder: string): Promise<Listed[]> => {
-  if (!folder || /[\r\n]/.test(folder) || folder.includes(String.fromCharCode(0)))
-    throw new CliError("validation_error", "invalid mailbox name")
-  const mailbox = JSON.stringify(folder)
-  const searched = await run(
-    ["imap", "raw", "-a", account],
-    `a EXAMINE ${mailbox}\r\nb UID SEARCH SINCE ${imapDate(since)}\r\n`,
-  )
-  assertCompleted(searched, ["a", "b"])
-  const validity = /\[UIDVALIDITY (\d+)\]/.exec(searched)?.[1]
+export const listImapMail = async (
+  run: Himalaya,
+  account: string,
+  since: Date,
+  folder: string,
+  searched?: Searched,
+): Promise<Listed[]> => {
+  const mailbox = mailboxOf(folder)
+  const { validity, uids } = searched ?? (await searchMail(run, account, since, folder))
+  // Without Message-ID the identity is the UID, which means nothing without its UIDVALIDITY.
   if (!validity)
     throw new CliError("invalid_response", "IMAP did not report UIDVALIDITY", { reason: "mail.invalid-imap" })
-  const uids = [...new Set((/^\* SEARCH(.*)$/m.exec(searched)?.[1] ?? "").trim().split(/\s+/).filter(Boolean))]
-  if (!uids.every((uid) => /^\d+$/.test(uid)))
-    throw new CliError("invalid_response", "invalid IMAP UID listing", { reason: "mail.invalid-imap" })
   const listed: Listed[] = []
   const digest = (id: string) => `imap:${createHash("sha256").update(id).digest("hex")}`
   for (let start = 0; start < uids.length; start += FETCH_BATCH) {

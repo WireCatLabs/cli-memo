@@ -37,6 +37,9 @@ const nameOf = (value: string): string | undefined => {
   return name ? decodeWords(name) : undefined
 }
 
+const listIdOf = (raw: string | undefined): string | undefined =>
+  raw === undefined ? undefined : (/<([^>]+)>/.exec(raw)?.[1] ?? raw).trim().toLowerCase() || undefined
+
 /** The header fields of one email, from its header text. */
 export const headersOf = (text: string): MailHeaders => {
   const unfolded = unfold(text)
@@ -44,8 +47,7 @@ export const headersOf = (text: string): MailHeaders => {
   const [from] = addressesOf(sender)
   const fromName = sender === undefined ? undefined : nameOf(sender)
   const subject = field(unfolded, "Subject")
-  const rawList = field(unfolded, "List-Id")
-  const listId = rawList === undefined ? undefined : (/<([^>]+)>/.exec(rawList)?.[1] ?? rawList).trim().toLowerCase()
+  const listId = listIdOf(field(unfolded, "List-Id"))
   const bulk =
     Boolean(listId) ||
     field(unfolded, "List-Unsubscribe") !== undefined ||
@@ -57,5 +59,23 @@ export const headersOf = (text: string): MailHeaders => {
     to: [...addressesOf(field(unfolded, "To")), ...addressesOf(field(unfolded, "Cc"))],
     ...(listId ? { listId } : {}),
     bulk,
+  }
+}
+
+/**
+ * List-Id and the bulk-mail fields of a whole email, kept on mail stored in full so a rule can be matched from
+ * the store later. Names are the header names, lower case.
+ */
+export const mailHeadersOf = (raw: Uint8Array): Record<string, string | boolean> => {
+  const bytes = Buffer.from(raw.buffer, raw.byteOffset, raw.byteLength)
+  const end = [bytes.indexOf("\r\n\r\n"), bytes.indexOf("\n\n")].filter((at) => at !== -1)
+  const head = bytes.subarray(0, end.length ? Math.min(...end) : Math.min(bytes.length, 256 * 1024))
+  const unfolded = unfold(head.toString("utf8"))
+  const listId = listIdOf(field(unfolded, "List-Id"))
+  const precedence = field(unfolded, "Precedence")?.trim().toLowerCase()
+  return {
+    ...(listId ? { "list-id": listId } : {}),
+    ...(field(unfolded, "List-Unsubscribe") === undefined ? {} : { "list-unsubscribe": true }),
+    ...(precedence ? { precedence } : {}),
   }
 }

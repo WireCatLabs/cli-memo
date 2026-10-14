@@ -8,6 +8,20 @@ the API.
 
 ### Added
 
+- **A mail sync goes on where the last one stopped, without listing the mailbox again.** Each run keeps, in the
+  store, the mailbox's UIDVALIDITY and the UIDs whose outcome is final (stored, recorded or skipped by a rule), so a
+  rerun reads metadata only for mail not done: a 305,000-email mailbox no longer costs 15–25 minutes of listing
+  per run. A whole listing — the only kind that marks deleted mail and refreshes labels and read state — still runs
+  at least daily, whenever the rules change, when UIDVALIDITY changes, and with the new `memo sync --rescan`. A
+  window under 5,000 emails, like the timer's 30 days, is listed whole every run. An mbox file read to the end is
+  not read again until its size or time changes. `memo sync --json` adds `pass` (`full` or `resumed`) to each
+  account.
+- **`memo mail status <account>`** says how far an account's import is, from the store: stored in full, recorded
+  as envelopes, and done of the mail in the widest window searched, as cli-core's progress line;
+  `--json` answers the shared progress shape.
+- **Mail stored in full keeps List-Id, List-Unsubscribe and Precedence** in its headers (`list-id`,
+  `list-unsubscribe`, `precedence`), so a rule can later be matched from the store.
+
 - **`--json=id,title` keeps only those fields** of an answer's item or items, read the way tg and max read it
   (cli-core 0.277.0's `liftJson` and `checkJson`). Adopts cli-core 0.277.0 and cli-base 0.28.2.
 
