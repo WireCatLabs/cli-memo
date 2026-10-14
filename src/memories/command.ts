@@ -1,20 +1,13 @@
 import type { Streams } from "@wirecat/cli-base"
-import { MEMORY_KINDS, MEMORY_SCOPES, MEMORY_STATUSES, type Memory } from "@wirecat/cli-core/store"
+import { MEMORY_KINDS, MEMORY_SCOPES, type Memory } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { authorOf, byOption } from "../author.js"
+import { withQuery } from "../list-query.js"
 import { oneOf, positive } from "../options.js"
 import { pageOf } from "../page.js"
 import { addMemory } from "./memories.js"
-
-interface Filters {
-  status?: Memory["status"]
-  kind?: Memory["kind"]
-  scope?: Memory["scope"]
-  subject?: string
-  limit: number
-  json?: boolean
-}
+import { listMemories, MEMORY_QUERY, memoryItem } from "./memory.js"
 
 export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { run } = answers(program, streams, env)
@@ -32,43 +25,39 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     .action(
       (
         words: string[],
-        options: Omit<Filters, "limit" | "status"> & {
+        options: {
           kind: Memory["kind"]
           scope: Memory["scope"]
           evidence: string[]
+          subject?: string
           asOwner?: boolean
+          json?: boolean
         },
       ) =>
         run(options.json, async (store) =>
           itemAnswer(
-            await addMemory(
-              store,
-              {
-                text: words.join(" "),
-                kind: options.kind,
-                scope: options.scope,
-                evidence: options.evidence,
-                ...(options.subject === undefined ? {} : { subject: options.subject }),
-              },
-              authorOf(env, options.asOwner),
+            memoryItem(
+              await addMemory(
+                store,
+                {
+                  text: words.join(" "),
+                  kind: options.kind,
+                  scope: options.scope,
+                  evidence: options.evidence,
+                  ...(options.subject === undefined ? {} : { subject: options.subject }),
+                },
+                authorOf(env, options.asOwner),
+              ),
             ),
           ),
         ),
     )
 
-  memories
-    .command("list")
-    .description("memories, newest first")
-    .option("--status <status>", MEMORY_STATUSES.join(", "), oneOf(MEMORY_STATUSES))
-    .option("--kind <kind>", MEMORY_KINDS.join(", "), oneOf(MEMORY_KINDS))
-    .option("--scope <scope>", MEMORY_SCOPES.join(" or "), oneOf(MEMORY_SCOPES))
-    .option("--subject <ref>", "only memories about this reference")
+  withQuery(memories.command("list").description("memories, newest first"), MEMORY_QUERY)
     .option("--limit <n>", "most memories, up to 500", positive, 100)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action(({ json, ...filters }: Filters) =>
-      run(json, (store) =>
-        pageOf("memories list", filters.limit, (limit) => store.memories.list({ ...filters, limit })),
-      ),
+    .action((words: string[], { json, limit }: { limit: number; json?: boolean }) =>
+      run(json, (store) => listMemories(store, words, limit)),
     )
 
   memories
@@ -77,7 +66,7 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     .argument("<ref>", "memory:<id>")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(await store.memories.get(ref))),
+      run(options.json, async (store) => itemAnswer(memoryItem(await store.memories.get(ref)))),
     )
 
   memories
@@ -86,7 +75,7 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     .argument("<ref>", "memory:<id>")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(await store.memories.confirm(ref))),
+      run(options.json, async (store) => itemAnswer(memoryItem(await store.memories.confirm(ref)))),
     )
 
   memories
@@ -95,7 +84,7 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     .argument("<ref>", "memory:<id>")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(await store.memories.markStale(ref))),
+      run(options.json, async (store) => itemAnswer(memoryItem(await store.memories.markStale(ref)))),
     )
 }
 
@@ -113,11 +102,13 @@ export const searchMemoriesCommand = (search: Command, streams: Streams, env: No
         pageOf(
           "search memories",
           options.limit,
-          (limit) =>
-            store.memories.search(words.join(" "), {
-              limit,
-              ...(options.scope === undefined ? {} : { scope: options.scope }),
-            }),
+          async (limit) =>
+            (
+              await store.memories.search(words.join(" "), {
+                limit,
+                ...(options.scope === undefined ? {} : { scope: options.scope }),
+              })
+            ).map(memoryItem),
           { fallback: 20, cap: 200 },
         ),
       ),

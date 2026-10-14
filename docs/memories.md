@@ -17,8 +17,8 @@ Do not confirm or approve anything; I will decide.
 Or yourself:
 
 ```sh
-memo memories list --status proposed
-memo facts list --status proposed
+memo memories list status:proposed
+memo facts list status:proposed
 memo actions list --status proposed
 ```
 
@@ -41,7 +41,7 @@ meetings that show it. It has a kind and a scope:
 
 ```sh
 memo memories add 'Kai Sample prefers Friday meetings' --kind preference --scope work --evidence note:12
-memo memories list
+memo memories list kind:preference scope:work
 memo memories show memory:3
 memo search memories friday meetings
 memo memories confirm memory:3
@@ -51,21 +51,23 @@ memo memories stale memory:3
 A memory you add with the `memo` command is confirmed at once. One an agent adds waits as
 `proposed` until you check its evidence and `confirm` it. When the evidence no longer holds, for
 example Kai now prefers Mondays, mark it `stale`. `--subject person:…` says who or what the memory is about.
+`memories list` narrows by `kind`, `status`, `scope` and `subject` in its query: `subject:"person:42"`.
 
 ## Facts
 
-A fact records what happened, with its evidence. Its type is `fact`, `statement`, `question`,
+A fact records what happened, with its evidence. Its kind is `fact`, `statement`, `question`,
 `decision` or `promise`.
 
 ```sh
-memo facts add 'We moved the launch to spring' --type decision --evidence 'msg:telegram/1/77/42'
-memo facts list --type decision
+memo facts add 'We moved the launch to spring' --kind decision --evidence 'msg:telegram/1/77/42'
+memo facts list kind:decision project:HRB
 memo facts show fact:4
 memo facts confirm fact:4
 ```
 
 A fact you add with the `memo` command is accepted at once. One an agent adds waits as `proposed`
-until you `accept` it; `author` and `source` say who wrote it. `--project project:1` puts the fact in a project, and `--occurred` gives the date it happened.
+until you `accept` it; `author` and `origin` say who wrote it. `facts list` narrows by `kind`,
+`status`, `project` and `subject` in its query. `--project project:1` puts the fact in a project, and `--occurred` gives the date it happened.
 
 A decision can replace an earlier one: add `--supersedes fact:2`. When you accept the new decision,
 the old one stops holding. When a decision no longer holds and nothing replaced it, run

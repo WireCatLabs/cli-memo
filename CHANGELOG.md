@@ -6,6 +6,17 @@ the API.
 
 ## Unreleased
 
+### Changed — may break scripts
+
+- **`facts list` and `memories list` take a query, not filter flags**: `memo facts list kind:decision
+  status:proposed project:HRB`, `memo memories list scope:work subject:"person:42"`. The store filters by the
+  terms, joined by AND; `--type`, `--status`, `--kind`, `--scope`, `--project` and `--subject` are unknown options
+  there now. MCP `facts_list` and `memories_list` take one `query` string instead of those arguments.
+- **Facts and memories answer cli-core's `fact` and `memory` entities**: a fact's `type`, `statement` and `source`
+  are `kind`, `text` and `origin`; a memory's `body` is `text`. `facts add` takes `--kind` instead of `--type`,
+  and MCP `facts_add` takes `kind` and `text` instead of `type` and `statement`. `--json=<field>` on facts and
+  memories refuses a field the entity lacks.
+
 ## 0.32.0 — 15.10.2026
 
 ### Changed
