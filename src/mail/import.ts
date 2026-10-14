@@ -119,7 +119,7 @@ export const importMail = async ({
     skipped = "folder scope changed; missing mail is not proven deleted"
   else {
     // A label is not where mail lives, so only folders prove that a missing mail was deleted.
-    const candidates = (await store.mail.emails({ accountId, since: windowStart.getTime() })).filter(
+    const candidates = (await store.mail.emailRefs({ accountId, since: windowStart.getTime() })).filter(
       ({ mailboxes }) => {
         const inFolders = mailboxes.filter(({ kind }) => kind !== "label")
         return inFolders.length ? inFolders.every(({ externalId }) => folders.includes(externalId)) : allMailOnly
@@ -172,8 +172,12 @@ export const importMail = async ({
   let alreadyStored = 0
   let ruledOut = 0
   const pending: Listed[] = []
+  // Live emails only: one marked deleted that is listed again is saved again, which brings it back.
+  const stored = retryAttachments
+    ? new Set<string>()
+    : new Set((await store.mail.emailRefs({ accountId })).map(({ externalId }) => externalId))
   for (const item of listed) {
-    if (!retryAttachments && (await store.mail.email(accountId, item.messageId)) !== null) {
+    if (stored.has(item.messageId)) {
       alreadyStored++
       continue
     }
