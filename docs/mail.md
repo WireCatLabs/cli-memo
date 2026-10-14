@@ -59,13 +59,24 @@ sender. It suggests `skip` for groups of at least 20 emails, at least 80% bulk m
 You decide:
 
 ```sh
-memo mail rules add work --domain shop.example --skip --reason 'newsletters'
+memo mail rules add work --domain shop.example --envelope --reason 'newsletters'
+memo mail rules add work --domain spam.example --skip
 memo mail rules add work --from orders@shop.example --keep
 memo mail rules list work
 ```
 
-A keep wins over a skip. `memo sync` never reads or stores an email a skip rule matches, and counts it as
-skipped. Mail stored before the rule stays in the store.
+A rule does one of three things:
+
+- `--skip`: `memo sync` never reads or stores the email, and counts it as skipped.
+- `--envelope`: `memo sync` stores the sender, date, size, labels and the Gmail id, but not the text or
+  attachments. The subject is kept in the email's metadata, so the email is never a search hit.
+  `memo mail rules list` shows how many emails each envelope rule recorded and their size, so you can see
+  what a cleanup would remove. An envelope costs no more from Gmail than a skip: its fields come with the
+  listing.
+- `--keep`: imports the email even when a skip or envelope rule matches it.
+
+A keep wins over an envelope, and an envelope wins over a skip. When you remove an envelope rule, or change it
+to keep, the next sync reads those emails in full. Mail stored in full before a rule stays as it is.
 
 ## Old mail from Google Takeout
 

@@ -4,7 +4,7 @@ import { embedChanged, embedMailChunks, type NotesEmbedded } from "../notes/embe
 import { dropMissing, tooManyGone } from "../store/gone.js"
 import { mailFolders } from "./accounts.js"
 import { type Address, MAX_BODY_CHARS, type ParsedMail, parseMail } from "./parse.js"
-import { decide, type MailRule } from "./rules.js"
+import { decide, ENVELOPE, envelopeBox, envelopeBoxOf, type MailRule } from "./rules.js"
 import type { Listed, MailSource } from "./source.js"
 
 export interface MailAccount {
@@ -26,6 +26,8 @@ export interface ImportResult {
   alreadyStored: number
   /** New emails a skip rule kept out: never read, never stored. */
   skipped: number
+  /** New emails an envelope rule recorded: sender, date, size and labels, never their text. */
+  envelopes: number
   deleted: number
   /** False when `max` stopped the run before every new message was read; the next run continues. */
   complete: boolean
@@ -121,7 +123,7 @@ export const importMail = async ({
     // A label is not where mail lives, so only folders prove that a missing mail was deleted.
     const candidates = (await store.mail.emailRefs({ accountId, since: windowStart.getTime() })).filter(
       ({ mailboxes }) => {
-        const inFolders = mailboxes.filter(({ kind }) => kind !== "label")
+        const inFolders = mailboxes.filter(({ kind }) => kind !== "label" && kind !== ENVELOPE)
         return inFolders.length ? inFolders.every(({ externalId }) => folders.includes(externalId)) : allMailOnly
       },
     )
@@ -171,24 +173,87 @@ export const importMail = async ({
   let saved = 0
   let alreadyStored = 0
   let ruledOut = 0
+  let envelopes = 0
   const pending: Listed[] = []
   // IMAP lists what exists now, so a mail marked deleted that it lists again is saved again, which brings it back.
   // An archive is old: what it holds that IMAP proved deleted stays deleted.
-  const stored = retryAttachments
-    ? new Set<string>()
-    : new Set((await store.mail.emailRefs({ accountId, includeDeleted: snapshot })).map(({ externalId }) => externalId))
+  const refs = await store.mail.emailRefs({ accountId, includeDeleted: snapshot })
+  const known = new Set(refs.map(({ externalId }) => externalId))
+  const stored = retryAttachments ? new Set<string>() : known
+  const enveloped = new Map(
+    refs.flatMap(({ externalId, mailboxes }) => {
+      const boxes = mailboxes.filter(({ kind }) => kind === ENVELOPE).map((box) => box.externalId)
+      return boxes.length ? [[externalId, boxes] as const] : []
+    }),
+  )
+  const upgraded = new Map<string, string[]>()
+  const toRecord: { item: Listed; rule: MailRule }[] = []
+  let full = false
   for (const item of listed) {
+    const rule = decide(rules, item.headers)
+    const boxes = enveloped.get(item.messageId)
+    // An envelope whose rule is gone or now keeps the mail is read in full; one a skip now matches stays as it is.
+    if (boxes !== undefined && rule?.action !== ENVELOPE && rule?.action !== "skip") {
+      if (pending.length < max) {
+        upgraded.set(item.messageId, boxes)
+        pending.push(item)
+      } else full = true
+      continue
+    }
     if (stored.has(item.messageId)) {
       alreadyStored++
       continue
     }
-    // Stored mail a newer skip rule matches stays: removing it is a separate, explicit step.
-    if (decide(rules, item.headers) === "skip") {
+    // Stored mail a newer skip or envelope rule matches stays whole: removing it is a separate, explicit step.
+    if (rule?.action === "skip") {
       ruledOut++
       continue
     }
-    if (pending.length >= max) break
-    pending.push(item)
+    if (rule?.action === ENVELOPE) {
+      if (!known.has(item.messageId)) toRecord.push({ item, rule })
+      else alreadyStored++
+      continue
+    }
+    if (pending.length < max) pending.push(item)
+    else full = true
+  }
+  const inMailboxes = (item: Listed) => [
+    ...[...(foundFolders.get(item.messageId) ?? [])].map(mailbox),
+    ...(labelsOf.get(item.messageId)?.labels ?? []).map(label),
+  ]
+  const flagsOf = (item: Listed) => {
+    const { seen, flagged } = labelsOf.get(item.messageId) ?? {}
+    return { ...(seen === undefined ? {} : { read: seen }), ...(flagged === undefined ? {} : { flagged }) }
+  }
+  // An envelope costs nothing more from the source: its fields were read with the listing.
+  for (const { item, rule } of toRecord) {
+    const headers = item.headers
+    await store.mail.saveThread({
+      accountId,
+      externalId: item.threadId,
+      now: startedAt,
+      emails: [
+        {
+          externalId: item.messageId,
+          // Subject and text stay out of the columns search reads, so recorded mail is never a search hit.
+          subject: null,
+          from: headers?.from === undefined ? null : { address: headers.from, name: headers.fromName ?? null },
+          sentAt: null,
+          receivedAt: Date.parse(item.receivedAt),
+          bodyText: null,
+          size: item.size ?? null,
+          outgoing: headers?.from === key.account,
+          mailboxes: [...inMailboxes(item), envelopeBox(rule.match)],
+          ...flagsOf(item),
+          metadata: {
+            rule: { action: rule.action, match: { ...rule.match } },
+            ...(headers?.subject ? { subject: headers.subject } : {}),
+            ...(headers?.listId ? { listId: headers.listId } : {}),
+          },
+        },
+      ],
+    })
+    envelopes++
   }
   for (let start = 0; start < pending.length; start += FETCH_CHUNK) {
     const chunk = pending.slice(start, start + FETCH_CHUNK)
@@ -255,21 +320,17 @@ export const importMail = async ({
             receivedAt: Date.parse(item.receivedAt),
             bodyText: mail.text || null,
             outgoing: mail.from === null ? null : mail.from.email === key.account,
-            mailboxes: [
-              ...[...(foundFolders.get(item.messageId) ?? [])].map(mailbox),
-              ...(labelsOf.get(item.messageId)?.labels ?? []).map(label),
-            ],
-            ...(labelsOf.get(item.messageId)?.seen === undefined
-              ? {}
-              : { read: labelsOf.get(item.messageId)?.seen ?? null }),
-            ...(labelsOf.get(item.messageId)?.flagged === undefined
-              ? {}
-              : { flagged: labelsOf.get(item.messageId)?.flagged ?? null }),
+            mailboxes: inMailboxes(item),
+            ...flagsOf(item),
+            ...(upgraded.has(item.messageId) ? { metadata: {} } : {}),
             attachments: files,
           },
         ],
       })
       saved++
+      const boxes = upgraded.get(item.messageId)
+      if (boxes !== undefined)
+        await store.mail.setMailboxes(accountId, boxes.map(envelopeBoxOf), new Map([[item.messageId, []]]), startedAt)
     }
   }
 
@@ -287,7 +348,7 @@ export const importMail = async ({
       startedAt,
     )
 
-  const complete = listed.length - alreadyStored - ruledOut - saved === 0
+  const complete = !full && unreadable.length === 0
   if (!snapshot) await store.setSyncState(key, "mail_folder_scope", scope)
   const embedding = { embed: embed && account.embed !== false, ...(env === undefined ? {} : { env }) }
   // Chats an earlier import saved as messages may still wait for vectors; the mail tables have their own.
@@ -314,6 +375,7 @@ export const importMail = async ({
     saved,
     alreadyStored,
     skipped: ruledOut,
+    envelopes,
     deleted,
     complete,
     indexed,

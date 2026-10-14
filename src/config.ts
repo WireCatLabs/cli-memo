@@ -37,7 +37,7 @@ const ConfigSchema = v.object({
           path: v.optional(v.pipe(v.string(), v.minLength(1))),
           folders: v.optional(v.array(v.string())),
           embed: v.optional(v.boolean()),
-          /** The owner's keep/skip decisions per sender, domain or list; written by `memo mail rules`. */
+          /** The owner's keep, envelope and skip decisions per sender, domain or list; written by `memo mail rules`. */
           rules: v.optional(
             v.array(
               v.object({
@@ -46,7 +46,7 @@ const ConfigSchema = v.object({
                   domain: v.optional(v.string()),
                   listId: v.optional(v.string()),
                 }),
-                action: v.picklist(["skip", "keep"]),
+                action: v.picklist(["skip", "envelope", "keep"]),
                 reason: v.optional(v.string()),
                 decidedAt: v.string(),
               }),

@@ -1,11 +1,12 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
+import { type MessageStore, openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { type Config, loadConfig, updateConfig } from "../config.js"
 import { positive } from "../options.js"
 import { printing } from "../records/run.js"
 import { type MailAccountConfig, mailAccounts, mailFolders, mailSource } from "./accounts.js"
 import { type Probe, probeMail, SUGGEST_RULE } from "./probe.js"
-import { type MailRule, type MailRuleMatch, sameMatch } from "./rules.js"
+import { envelopeBox, type MailRule, type MailRuleMatch, sameMatch } from "./rules.js"
 import type { Listed } from "./source.js"
 
 interface MatchOptions {
@@ -30,8 +31,40 @@ const describe = (match: MailRuleMatch): string =>
       ? `domain ${match.domain}`
       : `list-id ${match.listId}`
 
-const ruleLine = (rule: MailRule): string =>
-  [rule.action.padEnd(4), describe(rule.match), rule.decidedAt.slice(0, 10), rule.reason ?? ""].join("  ").trimEnd()
+interface Recorded {
+  emails: number
+  bytes: number
+}
+
+const ruleLine = (rule: MailRule & { recorded?: Recorded }): string =>
+  [
+    rule.action.padEnd(8),
+    describe(rule.match),
+    rule.decidedAt.slice(0, 10),
+    rule.recorded === undefined ? "" : `${rule.recorded.emails} emails, ${megabytes(rule.recorded.bytes)} MB`,
+    rule.reason ?? "",
+  ]
+    .filter(Boolean)
+    .join("  ")
+    .trimEnd()
+
+const PAGE = 1000
+
+/** What each envelope rule has recorded so far, read from the store; nothing is fetched from the mailbox. */
+const recordedBy = async (store: MessageStore, address: string, rule: MailRule): Promise<Recorded> => {
+  const account = await store.storedAccount({ provider: "email", account: address.toLowerCase() }).catch(() => null)
+  const recorded = { emails: 0, bytes: 0 }
+  if (account === null) return recorded
+  const mailbox = envelopeBox(rule.match).externalId
+  for (let offset = 0; ; offset += PAGE) {
+    const page = await store.mail.emails({ accountId: account.id, mailbox, limit: PAGE, offset })
+    for (const email of page) {
+      recorded.emails++
+      recorded.bytes += email.size ?? 0
+    }
+    if (page.length < PAGE) return recorded
+  }
+}
 
 const changeRules = (env: NodeJS.ProcessEnv, name: string, change: (rules: MailRule[]) => MailRule[]): MailRule[] => {
   let changed: MailRule[] = []
@@ -118,35 +151,57 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .description("one account's rules")
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .option("--json", "print JSON")
-    .action((name: string, options: { json?: boolean }) => {
-      const items = accountOf(loadConfig(env), name).rules ?? []
-      print(options.json, { items }, items.map(ruleLine).join("\n") || "no rules")
+    .addHelpText("after", "\nAn envelope rule shows how many emails it recorded and their size at the source.")
+    .action(async (name: string, options: { json?: boolean }) => {
+      const account = accountOf(loadConfig(env), name)
+      const rules = account.rules ?? []
+      const store = rules.some(({ action }) => action === "envelope") ? await openStore({ env }) : undefined
+      try {
+        const items: (MailRule & { recorded?: Recorded })[] = []
+        for (const rule of rules)
+          items.push(
+            store !== undefined && rule.action === "envelope"
+              ? { ...rule, recorded: await recordedBy(store, account.address, rule) }
+              : rule,
+          )
+        print(options.json, { items }, items.map(ruleLine).join("\n") || "no rules")
+      } finally {
+        await store?.close()
+      }
     })
 
   rules
     .command("add")
-    .description("skip or keep mail by sender, domain or list; a repeated match replaces its rule")
+    .description("skip, record or keep mail by sender, domain or list; a repeat replaces its rule")
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .option("--from <address>", "one sender address")
     .option("--domain <domain>", "a sender domain, and its subdomains")
     .option("--list-id <id>", "a mailing list, by its List-Id")
-    .option("--skip", "never import this mail")
-    .option("--keep", "import this mail even when a skip rule matches it")
+    .option("--skip", "never read or store this mail")
+    .option("--envelope", "store only sender, date, size and labels: counted, out of search, cleanable later")
+    .option("--keep", "import this mail even when a skip or envelope rule matches it")
     .option("--reason <text>", "why, for the owner later")
     .option("--json", "print JSON")
     .addHelpText(
       "after",
-      "\nA keep wins over a skip, so --keep --from one sender overrides --skip --domain of its domain. " +
-        "A skipped email is never read or stored by memo sync; mail already stored stays.",
+      "\nA keep wins over an envelope, an envelope over a skip, so --keep --from one sender overrides " +
+        "--skip --domain of its domain. A skipped email is never read or stored by memo sync. An envelope " +
+        "email costs no more from the mailbox than a skipped one; its subject is kept in its metadata, not in " +
+        "search. Changing an envelope rule to keep, or removing it, reads those emails in full on the next sync. " +
+        "Mail already stored in full stays.",
     )
     .action(
-      (name: string, options: MatchOptions & { skip?: boolean; keep?: boolean; reason?: string; json?: boolean }) => {
+      (
+        name: string,
+        options: MatchOptions & { skip?: boolean; envelope?: boolean; keep?: boolean; reason?: string; json?: boolean },
+      ) => {
         const match = matchOf(options)
-        if (Boolean(options.skip) === Boolean(options.keep))
-          throw new CliError("validation_error", "give exactly one of --skip, --keep")
+        const actions = (["skip", "envelope", "keep"] as const).filter((action) => options[action])
+        if (actions.length !== 1)
+          throw new CliError("validation_error", "give exactly one of --skip, --envelope, --keep")
         const rule: MailRule = {
           match,
-          action: options.skip ? "skip" : "keep",
+          action: actions[0] as MailRule["action"],
           ...(options.reason === undefined ? {} : { reason: options.reason }),
           decidedAt: new Date().toISOString(),
         }

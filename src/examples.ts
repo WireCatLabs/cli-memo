@@ -23,7 +23,8 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "mail probe": ["memo mail probe personal --limit-groups 30", "memo mail probe work --since-time 365d --json"],
   "mail rules list": ["memo mail rules list personal --json"],
   "mail rules add": [
-    "memo mail rules add personal --domain news.example --skip --reason 'newsletters'",
+    "memo mail rules add personal --domain news.example --envelope --reason 'newsletters'",
+    "memo mail rules add personal --domain spam.example --skip",
     "memo mail rules add personal --from alice@news.example --keep",
   ],
   "mail rules remove": ["memo mail rules remove personal --domain news.example"],

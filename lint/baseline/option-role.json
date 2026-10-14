@@ -25,6 +25,7 @@
   "facts list --type",
   "mail probe --limit-groups",
   "mail rules add --domain",
+  "mail rules add --envelope",
   "mail rules add --from",
   "mail rules add --keep",
   "mail rules add --list-id",

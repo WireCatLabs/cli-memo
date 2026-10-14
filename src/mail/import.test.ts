@@ -9,6 +9,7 @@ import { decodeMailboxName, labelName } from "./gmail.js"
 import { himalaya } from "./himalaya.js"
 import { importMail } from "./import.js"
 import { mboxSource } from "./mbox.js"
+import type { MailRule } from "./rules.js"
 import { himalayaSource } from "./source.js"
 
 const ME = "owner@example.test"
@@ -320,6 +321,81 @@ describe("importMail with the owner's rules", () => {
     expect((await emails(env)).map(({ externalId }) => externalId).sort()).toEqual(["9001", "9003"])
   })
 
+  const importRuled = async (env: NodeJS.ProcessEnv, ruled: MailRule[]) =>
+    importMail({
+      store: await store(env),
+      source: himalayaSource(himalaya(env), { name: "test" }),
+      account: { name: "test", address: ME, rules: ruled },
+      since: SINCE,
+      now: () => NOW,
+      indexThreads: async () => ({ chats: 0, chunks: 0, left: false }),
+    })
+  const envelope = (match: MailRule["match"]): MailRule => ({
+    match,
+    action: "envelope",
+    decidedAt: "2026-10-14T00:00:00.000Z",
+  })
+
+  it("records an email an envelope rule matches without its text, out of search, under the rule's mailbox", async () => {
+    const deal = mail(2, {
+      from: ["Shop Deals", "deals@shop.example"],
+      subject: "Unrepeatable bargain",
+      text: "Unrepeatable bargain inside",
+      listId: "deals.shop.example",
+    })
+    const { env } = setup([mail(1), deal])
+
+    const result = await importRuled(env, [...rules, envelope({ listId: "deals.shop.example" })])
+
+    expect(result).toMatchObject({ listed: 2, saved: 1, skipped: 0, envelopes: 1, complete: true })
+    const recorded = (await emails(env)).find(({ externalId }) => externalId === "9002")
+    expect(recorded).toMatchObject({
+      subject: null,
+      bodyText: null,
+      fromAddress: "deals@shop.example",
+      fromName: "Shop Deals",
+      metadata: {
+        rule: { action: "envelope", match: { listId: "deals.shop.example" } },
+        subject: "Unrepeatable bargain",
+        listId: "deals.shop.example",
+      },
+    })
+    expect(recorded?.size).toBeGreaterThan(0)
+    const opening = await store(env)
+    expect(await opening.mail.search("Unrepeatable")).toEqual([])
+    expect(
+      await opening.mail.emailRefs({
+        accountId: (await opening.storedAccount(KEY)).id,
+        mailbox: "memo:envelope:list-id:deals.shop.example",
+      }),
+    ).toHaveLength(1)
+    expect((await importRuled(env, [envelope({ listId: "deals.shop.example" })])).envelopes).toBe(0)
+  })
+
+  it("reads an envelope email in full once its rule is removed, and leaves the rule's mailbox", async () => {
+    const deal = mail(2, { from: [null, "deals@shop.example"], subject: "Second look", text: "Now wanted" })
+    const { env } = setup([deal])
+    await importRuled(env, [envelope({ domain: "shop.example" })])
+
+    const result = await importRuled(env, [])
+
+    expect(result).toMatchObject({ saved: 1, envelopes: 0, complete: true })
+    const [read] = await emails(env)
+    expect(read).toMatchObject({ subject: "Second look", bodyText: "Now wanted", metadata: {} })
+    expect(read?.mailboxes.map(({ kind }) => kind)).not.toContain("envelope")
+    expect(await (await store(env)).mail.search("wanted")).toHaveLength(1)
+  })
+
+  it("leaves mail stored in full whole when an envelope rule later matches it", async () => {
+    const { env } = setup([mail(1, { from: [null, "deals@shop.example"] })])
+    await importInto(env)
+
+    const result = await importRuled(env, [envelope({ domain: "shop.example" })])
+
+    expect(result).toMatchObject({ alreadyStored: 1, envelopes: 0 })
+    expect((await emails(env))[0]?.bodyText).toBe("Synthetic body 1")
+  })
+
   it("fails the listing instead of importing mail unruled when Gmail refuses the header fetch", async () => {
     const { env } = setup([mail(1, { from: [null, "news@shop.example"] })], { headersFail: true })
 
@@ -460,6 +536,26 @@ describe("memo sync --mail", () => {
     expect((await (await store(env)).accounts()).filter(({ provider }) => provider === "email")).toEqual([
       { provider: "email", account: OTHER },
     ])
+  })
+
+  it("adds an envelope rule, records its mail on sync, and lists how many emails and bytes it recorded", async () => {
+    const { dir, env } = setup([mail(1), mail(2, { from: [null, "deals@shop.example"] })])
+    const withConfig = configured(dir, env)
+    await run(["mail", "rules", "add", "test", "--domain", "shop.example", "--envelope"], withConfig)
+
+    await run(["sync", "--account", "test", "--since-time", "2026-09-01", "--no-embed", "--json"], withConfig)
+    const listed = JSON.parse(await run(["mail", "rules", "list", "test", "--json"], withConfig))
+
+    expect(listed.items).toMatchObject([
+      { action: "envelope", match: { domain: "shop.example" }, recorded: { emails: 1, bytes: expect.any(Number) } },
+    ])
+    expect(listed.items[0].recorded.bytes).toBeGreaterThan(0)
+    expect(await run(["mail", "rules", "list", "test"], withConfig)).toMatch(
+      /^envelope\s+domain shop\.example .* 1 emails/,
+    )
+    await expect(
+      run(["mail", "rules", "add", "test", "--domain", "shop.example", "--envelope", "--skip"], withConfig),
+    ).rejects.toThrow("give exactly one of --skip, --envelope, --keep")
   })
 
   it("refuses while another import holds the lock", async () => {
