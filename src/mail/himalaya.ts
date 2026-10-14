@@ -65,5 +65,7 @@ export const himalaya =
           )
         },
       )
+      // A himalaya that exits before reading its input breaks the pipe (EPIPE); how it ended is reported above.
+      child.stdin?.on("error", () => {})
       child.stdin?.end(input ?? "")
     })

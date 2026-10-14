@@ -30,6 +30,8 @@ beforeEach(() => {
     WIRECAT_STATE_DIR: join(dir, "wirecat"),
     MEMO_HIMALAYA: join(dir, "no-himalaya"),
   }
+  // cli-base's notice stays silent under CI and the opt-out variables; the release check runs with CI set.
+  for (const name of ["CI", "NO_UPDATE_NOTIFIER", "MEMO_NO_UPDATE_CHECK"]) delete env[name]
 })
 
 afterEach(() => {
