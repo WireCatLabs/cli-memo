@@ -184,6 +184,15 @@ const answer = (value: object): CallToolResult => {
   return { content: [{ type: "text", text }], structuredContent: value as Record<string, unknown> }
 }
 
+/**
+ * The SDK would refuse a bad argument with its own text before the handler runs; passing everything through
+ * lets the handler's parse answer with the shared error object, and the agent log record the call.
+ */
+const advertised = (input: MemoTool["input"]) => {
+  const schema = toStandardJsonSchema(input)
+  return { "~standard": { ...schema["~standard"], validate: (value: unknown) => ({ value }) } } as typeof schema
+}
+
 /** One store per call: memo serves rarely and briefly, and a held store would keep its file open between calls. */
 export const createMemoServer = (env: NodeJS.ProcessEnv): McpServer => {
   const server = new McpServer({ name: "memo", version: VERSION }, { instructions: INSTRUCTIONS })
@@ -193,7 +202,7 @@ export const createMemoServer = (env: NodeJS.ProcessEnv): McpServer => {
       {
         title: tool.title,
         description: tool.description,
-        inputSchema: toStandardJsonSchema(tool.input),
+        inputSchema: advertised(tool.input),
         annotations: { readOnlyHint: !tool.writes, destructiveHint: false, openWorldHint: false },
       },
       async (args: Record<string, unknown>) => {
