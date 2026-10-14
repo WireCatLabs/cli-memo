@@ -38,7 +38,9 @@ anything. Add `--json` and read the answer, not the text meant for people.
 10. **A large first mail import takes days, not one run.** `memo sync --mail` reads about 10 emails
     (~1 MB) a second and Gmail caps IMAP downloads (2,500 MB a day for Workspace,
     <https://knowledge.workspace.google.com/admin/gmail/gmail-bandwidth-limits>; the consumer limit is
-    not published). Raise `--limit` gradually; each run continues where the last stopped.
+    not published). Raise `--limit` gradually; each run continues where the last stopped and lists only
+    mail not done. `memo mail status <account> --json` says how far it is; `--rescan` lists everything
+    again (needed only to mark deletions sooner than the daily whole listing).
 11. **Probe before a first large mail import.** `memo mail probe <account> --json` groups mail by
     sender and list from headers only; its `suggest` is a hint, not a decision.
 12. **Mail rules are the owner's decision.** Suggest groups to skip or record; never run

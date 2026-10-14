@@ -251,6 +251,22 @@ memo mail probe <account> [options]
 | `--limit-groups <n>` | show this many of the largest groups. Default: `50`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+### `memo mail status`
+
+how far an account's import is: mail stored, recorded, and left to read
+
+```sh
+memo mail status <account> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `account` | required | the account's name in mail.accounts, or its address. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
 ### `memo mail rules`
 
 the owner's decisions on which mail to skip or keep, by sender, domain or list
@@ -1653,6 +1669,7 @@ memo sync [options]
 | `--since-time <time>` | mail: read from this time, ISO 8601 or 30d ago (default: 30d). |
 | `--limit <n>` | mail: most new emails to read per account this run (default: 200). |
 | `--retry-attachments` | mail: reread stored emails' attachments after installing an extraction engine. |
+| `--rescan` | mail: list every message again, not only mail an earlier run left; also checks deletions. |
 | `--no-embed` | skip embedding notes and mail for search by meaning this run. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 

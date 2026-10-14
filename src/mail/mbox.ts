@@ -1,5 +1,5 @@
 import { createReadStream } from "node:fs"
-import { open } from "node:fs/promises"
+import { open, stat } from "node:fs/promises"
 import { CliError } from "@wirecat/cli-base"
 import { type Listed, systemLabel } from "./gmail.js"
 import { field, headersOf, unfold } from "./headers.js"
@@ -213,6 +213,11 @@ export const mboxSource = (path: string, { chunkSize = 1024 * 1024 }: { chunkSiz
             !item.labels?.some((label) => label === "Spam" || label === "Trash"),
         )
         .map(({ item }) => ({ ...item, folder })),
+
+    stamp: async () => {
+      const { size, mtimeMs } = await stat(path)
+      return { size, mtimeMs }
+    },
 
     fetchRaw: async (items) => {
       const entries = await indexed()

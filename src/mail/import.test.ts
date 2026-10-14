@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
@@ -531,6 +531,105 @@ describe("importMail with the owner's rules", () => {
   })
 })
 
+describe("importMail resuming", () => {
+  const resumable = async (
+    env: NodeJS.ProcessEnv,
+    options: { max?: number; rescan?: boolean; at?: number; rules?: MailRule[] } = {},
+  ) =>
+    importMail({
+      store: await store(env),
+      source: himalayaSource(himalaya(env), { name: "test" }),
+      account: { name: "test", address: ME, ...(options.rules ? { rules: options.rules } : {}) },
+      since: SINCE,
+      now: () => options.at ?? NOW,
+      resumeFrom: 0,
+      indexThreads: async () => ({ chats: 0, chunks: 0, left: false }),
+      ...(options.max === undefined ? {} : { max: options.max }),
+      ...(options.rescan === undefined ? {} : { rescan: options.rescan }),
+    })
+  const listedUids = (log: string) => {
+    const lines = readFileSync(log, "utf8").trim().split("\n")
+    writeFileSync(log, "")
+    return lines
+      .filter(Boolean)
+      .flatMap((line) => line.split(","))
+      .sort()
+  }
+  const withLog = (messages: Fixture[], extra: Record<string, unknown> = {}) => {
+    const log = join(mkdtempSync(join(tmpdir(), "log-")), "fetched.log")
+    writeFileSync(log, "")
+    return { ...setup(messages, { log, ...extra }), log }
+  }
+
+  it("lists only mail no earlier run finished, so a run cut short by max goes on without listing again", async () => {
+    const { env, log } = withLog([mail(1), mail(2), mail(3), mail(4)])
+
+    expect(await resumable(env, { max: 2 })).toMatchObject({ pass: "full", saved: 2, complete: false })
+    expect(listedUids(log)).toEqual(["101", "102", "103", "104"])
+    expect(await resumable(env, { max: 2 })).toMatchObject({ pass: "resumed", listed: 2, saved: 2, complete: true })
+    expect(listedUids(log)).toEqual(["101", "102"])
+    expect(await resumable(env)).toMatchObject({ pass: "resumed", listed: 0, saved: 0 })
+    expect(listedUids(log)).toEqual([])
+  })
+
+  it("leaves deletions to a whole listing: with --rescan, after a day, or once the rules change", async () => {
+    const all = [1, 2, 3, 4, 5, 6].map((n) => mail(n))
+    const { env, write, log } = withLog(all)
+    await resumable(env)
+    write(all.slice(0, 5))
+
+    const resumed = await resumable(env)
+    expect(resumed).toMatchObject({ pass: "resumed", deleted: 0 })
+    expect(resumed.deletionsSkipped).toContain("--rescan")
+    expect(await resumable(env, { rescan: true })).toMatchObject({ pass: "full", deleted: 1 })
+    listedUids(log)
+    expect(await resumable(env, { at: NOW + 86_400_000 })).toMatchObject({ pass: "full", listed: 5 })
+    const rules: MailRule[] = [{ match: { domain: "shop.example" }, action: "envelope", decidedAt: "2026-10-01" }]
+    expect(await resumable(env, { rules })).toMatchObject({ pass: "full", listed: 5 })
+    expect(await resumable(env, { rules })).toMatchObject({ pass: "resumed", listed: 0 })
+  })
+
+  it("lists everything again when the mailbox's UIDVALIDITY changes", async () => {
+    const { env, write } = withLog([mail(1), mail(2)])
+    await resumable(env)
+    write([mail(1), mail(2)], { validity: 13 })
+
+    expect(await resumable(env)).toMatchObject({ pass: "full", listed: 2, alreadyStored: 2 })
+  })
+
+  it("keeps List-Id and the bulk fields on mail stored in full", async () => {
+    const { env } = setup([mail(1, { listId: "news.shop.example" }), mail(2)])
+    await importInto(env)
+
+    const byId = new Map((await emails(env)).map((email) => [email.externalId, email.headers]))
+    expect(byId.get("9001")).toEqual({ "list-id": "news.shop.example", "list-unsubscribe": true })
+    expect(byId.get("9002")).toBeNull()
+  })
+
+  it("does not read an unchanged mbox file again once it was read to the end", async () => {
+    const { dir, env } = setup([])
+    const path = join(dir, "archive.mbox")
+    const entry = (id: string) =>
+      `From ${id}@xxx Mon Jul 24 10:00:00 +0000 2023\nX-GM-THRID: ${id}\nFrom: rin@example.test\nTo: ${ME}\n` +
+      "Subject: Old\n\nOld body\n\n"
+    writeFileSync(path, entry("8001"))
+    const fromFile = async () =>
+      importMail({
+        store: await store(env),
+        source: mboxSource(path),
+        account: { name: "archive", address: ME, mode: "mbox" },
+        since: new Date(0),
+        now: () => NOW,
+        indexThreads: async () => ({ chats: 0, chunks: 0, left: false }),
+      })
+
+    expect(await fromFile()).toMatchObject({ listed: 1, saved: 1 })
+    expect(await fromFile()).toMatchObject({ listed: 0, saved: 0 })
+    writeFileSync(path, entry("8001") + entry("8002"))
+    expect(await fromFile()).toMatchObject({ listed: 2, saved: 1, alreadyStored: 1 })
+  })
+})
+
 describe("memo sync --mail", () => {
   const run = async (args: string[], env: NodeJS.ProcessEnv) => {
     const streams = captureStreams()
@@ -586,6 +685,22 @@ describe("memo sync --mail", () => {
       duration_ms: expect.any(Number),
       accounts: ["second"],
     })
+  })
+
+  it("says how far an account's import is, from the store, in text and in JSON", async () => {
+    const { dir, env } = setup([mail(1), mail(2), mail(3)])
+    const withConfig = configured(dir, env)
+    await run(["sync", "--account", "test", "--since-time", "2026-09-01", "--limit", "2", "--no-embed"], withConfig)
+
+    expect(await run(["mail", "status", "test"], withConfig)).toContain("2 stored in full, 0 recorded as envelopes")
+    const answer = JSON.parse(await run(["mail", "status", "test", "--json"], withConfig))
+    expect(answer.item).toMatchObject({
+      stored: 2,
+      envelopes: 0,
+      progress: { job: "mail", profile: "test", done: 2, total: 3, remaining: 1, state: "partial" },
+      folders: [{ folder: "[Gmail]/All Mail", done: 2, total: 3, full_at: expect.any(String) }],
+    })
+    expect(answer.meta).toMatchObject({ accounts: ["test"] })
   })
 
   it("syncs only the account named, from the time asked, and reports what it did", async () => {

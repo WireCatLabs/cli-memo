@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Stands in for himalaya in tests: answers `imap raw` and `imap fetch` from the mailbox JSON at
 // MEMO_FAKE_MAILBOX, in the shapes Himalaya 2.2.1 printed against a real Gmail account.
-import { readFileSync } from "node:fs"
+import { appendFileSync, readFileSync } from "node:fs"
 
 const mailbox = JSON.parse(readFileSync(process.env.MEMO_FAKE_MAILBOX, "utf8"))
 const args = process.argv.slice(2)
@@ -43,7 +43,7 @@ if (args[0] === "imap" && args[1] === "raw") {
     const [tag, ...rest] = line.split(" ")
     const command = rest.join(" ")
     if (command.startsWith("EXAMINE"))
-      out.push("* OK [UIDVALIDITY 12] UIDs valid.", `${tag} OK [READ-ONLY] selected. (Success)`)
+      out.push(`* OK [UIDVALIDITY ${mailbox.validity ?? 12}] UIDs valid.`, `${tag} OK [READ-ONLY] selected. (Success)`)
     else if (command.startsWith("UID SEARCH SINCE")) {
       const [day, month, year] = command.slice("UID SEARCH SINCE ".length).split("-")
       const since = Date.UTC(Number(year), months.indexOf(month), Number(day))
@@ -77,6 +77,8 @@ if (args[0] === "imap" && args[1] === "raw") {
       out.push(`${tag} OK Success`)
     } else if (command.startsWith("UID FETCH")) {
       const set = command.split(" ")[2].split(",")
+      // Which messages a listing asked for, so a test can see what a resumed run lists.
+      if (mailbox.log) appendFileSync(mailbox.log, `${set.join(",")}\n`)
       for (const [index, m] of mailbox.messages.entries()) {
         if (set.includes(m.uid))
           out.push(

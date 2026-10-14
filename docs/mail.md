@@ -42,8 +42,16 @@ config and names each one in its report; it lists the accounts it knows when a n
 
 - Without `--since-time`, Memo reads the last 30 days. It takes a date, an ISO 8601 time or `30d` ago.
 - Each run reads up to 200 new emails per account (`--limit` changes this). Run it again and it continues
-  where it stopped; emails already stored are skipped.
+  where it stopped: it lists only the mail no earlier run finished, so a large mailbox is not listed again.
+- A whole listing marks mail deleted at the source and refreshes labels and read state. It runs at least once a
+  day, after any change to your rules, and with `--rescan`; a window under 5,000 emails is listed whole every run.
 - `memo sync` and the timer read every account in the config.
+
+See how far an import is, without asking the mailbox:
+
+```sh
+memo mail status work
+```
 
 ## Choose what to import
 
@@ -85,8 +93,8 @@ memo mail rules apply work        # says how many emails and how much text each 
 memo mail rules apply work --yes  # cuts them to envelopes
 ```
 
-It reads the account's headers from the mailbox, as `memo sync` does, because the List-Id of a stored email
-is not kept. Each matching email loses its text, attachments and search entries and keeps its sender, date,
+It reads the account's headers from the mailbox, as `memo sync` does, because mail stored before memo kept
+List-Id lacks it. Each matching email loses its text, attachments and search entries and keeps its sender, date,
 size, labels and subject in metadata. Mail only a skip rule matches stays as stored. Nothing changes in the
 mailbox, and changing the rule to keep reads the emails in full again on the next sync.
 

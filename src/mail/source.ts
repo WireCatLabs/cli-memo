@@ -1,8 +1,9 @@
 import { CliError } from "@wirecat/cli-base"
-import { type Listed, listAllMail, listImapMail } from "./gmail.js"
+import { type Listed, listAllMail, listImapMail, type Searched, searchMail } from "./gmail.js"
 import type { Himalaya } from "./himalaya.js"
+import type { FileStamp } from "./resume.js"
 
-export type { Listed }
+export type { Listed, Searched }
 
 /** Everything the import asks of a mail client, so himalaya can be replaced without touching the import. */
 export interface MailSource {
@@ -10,7 +11,14 @@ export interface MailSource {
    * Every message in `folder` received since `since`; all or nothing, since deletions are proved from it.
    * `headers` also reads From, To, Cc and the list fields, for the probe and the owner's rules.
    */
-  list(since: Date, folder: string, options?: { headers?: boolean }): Promise<Listed[]>
+  list(since: Date, folder: string, options?: { headers?: boolean; searched?: Searched }): Promise<Listed[]>
+  /**
+   * The folder's UIDs in the window and its UIDVALIDITY, without reading a message; `list` given them reads only
+   * those. Absent for a file, which has no UIDs.
+   */
+  search?(since: Date, folder: string): Promise<Searched>
+  /** A file's size and modification time, so an unchanged file read to the end is not read again. */
+  stamp?(): Promise<FileStamp>
   /** Each item's raw RFC 5322 bytes, in order; one that could not be read is an Error, not a failed call. */
   fetchRaw(items: Listed[]): Promise<(Uint8Array | Error)[]>
 }
@@ -84,8 +92,13 @@ export const himalayaSource = (
   return {
     list: async (since, folder, options) =>
       account.mode === "imap"
-        ? listImapMail(run, account.name, since, folder)
-        : (await listAllMail(run, account.name, since, folder, options?.headers)).map((item) => ({ ...item, folder })),
+        ? listImapMail(run, account.name, since, folder, options?.searched)
+        : (await listAllMail(run, account.name, since, folder, options?.headers, options?.searched)).map((item) => ({
+            ...item,
+            folder,
+          })),
+
+    search: (since, folder) => searchMail(run, account.name, since, folder),
 
     fetchRaw: async (items) => {
       const read = new Map<Listed, Uint8Array | Error>()

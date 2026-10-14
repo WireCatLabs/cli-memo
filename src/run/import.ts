@@ -22,6 +22,9 @@ const LARGE_IMPORT_HELP =
   "(2,500 MB a day for Workspace, https://knowledge.workspace.google.com/admin/gmail/gmail-bandwidth-limits; " +
   "the consumer limit is not published), so a mailbox of many GB takes days: raise --limit gradually and let " +
   "each run continue where the last stopped.\n\n" +
+  "Resuming: a run lists only the mail no earlier run finished, so a large mailbox is not listed again each " +
+  "time. A whole listing, which marks deleted mail and refreshes labels and read state, runs at least once a " +
+  "day, after any change to the rules, and with --rescan.\n\n" +
   "Rules: an email a skip rule of `memo mail rules` matches is never read or stored, and is counted as " +
   "skipped; mail stored before the rule stays.\n\n" +
   "An mbox account (a Google Takeout file, mode mbox) syncs only when named with --account: each run reads " +
@@ -64,7 +67,9 @@ const text = (run: ImportRun): string =>
         ]),
     ...run.mail.map(
       (m) =>
-        `mail ${m.account}: ${m.listed} listed, ${m.saved} new, ${m.deleted} gone` +
+        `mail ${m.account}: ${m.listed} listed${m.pass === "resumed" ? " (resumed)" : ""}, ${m.saved} new, ` +
+        `${m.deleted} gone` +
+        (m.envelopes ? `, ${m.envelopes} recorded as envelopes` : "") +
         (m.skipped ? `, ${m.skipped} skipped by rule` : "") +
         (m.complete ? "" : " — more to read next run") +
         (m.unreadable === undefined ? "" : ` — ${m.unreadable.length} unreadable, tried again next run`) +
@@ -82,6 +87,7 @@ interface SyncOptions {
   sinceTime?: string
   limit?: number
   retryAttachments?: boolean
+  rescan?: boolean
   embed: boolean
   json?: boolean
 }
@@ -132,6 +138,12 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       new Option(
         "--retry-attachments",
         "mail: reread stored emails' attachments after installing an extraction engine",
+      ).implies({ mail: true }),
+    )
+    .addOption(
+      new Option(
+        "--rescan",
+        "mail: list every message again, not only mail an earlier run left; also checks deletions",
       ).implies({ mail: true }),
     )
     .option("--no-embed", "skip embedding notes and mail for search by meaning this run")
@@ -226,6 +238,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
                     ? {}
                     : { maxAttachmentChars: config.mail.maxAttachmentChars }),
                   retryAttachments: options.retryAttachments ?? false,
+                  rescan: options.rescan ?? false,
                 }),
               )
             })
