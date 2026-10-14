@@ -20,10 +20,6 @@ const keep = (text: string, paths: string[]): string => {
     return text
   }
   if (!value || typeof value !== "object") return text
-  const answer = value as { item?: unknown; items?: unknown }
-  if (Array.isArray(answer.items))
-    return JSON.stringify({ ...answer, items: answer.items.map((item) => projectFields(item, paths)) })
-  if ("item" in answer) return JSON.stringify({ ...answer, item: projectFields(answer.item, paths) })
   return JSON.stringify(projectFields(value, paths))
 }
 

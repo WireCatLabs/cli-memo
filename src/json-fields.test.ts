@@ -22,6 +22,17 @@ const run = async (answer: unknown, args: string[]) => {
 }
 
 describe("--json [fields]", () => {
+  it("projects nested report arrays while retaining incomplete coverage and continuation", async () => {
+    const report = {
+      item: { hits: [{ ref: "note:example", excerpt: "Example", body: "Large" }], coverage: { complete: false } },
+      next: [{ cursor: "later" }],
+      meta: { complete: false },
+    }
+    expect(await run(report, ["show", "--json=hits.ref,hits.excerpt"])).toEqual({
+      ...report,
+      item: { ...report.item, hits: [{ ref: "note:example", excerpt: "Example" }] },
+    })
+  })
   it("keeps only the named fields of each item and leaves page and meta alone", async () => {
     const list = { items: [{ id: "1", title: "a", body: "x" }], page: { has_more: false }, meta: { complete: true } }
     expect(await run(list, ["show", "--json=id,title"])).toEqual({

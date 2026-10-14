@@ -119,6 +119,10 @@ the API.
 - **`mail rules remove`** answers the rules left as `rules`; `relationships suggest` answers a list and no
   longer names its scope; `reminders list` and `reminders poll` answer lists.
 
+### Fixed
+
+- **Nested JSON report fields use the shared projector.** Selecting note hit fields preserves coverage and continuation. The bundled skill documents bounded output and removes fixed import-speed claims.
+
 ## 0.31.0 — 14.10.2026
 
 ### Added
