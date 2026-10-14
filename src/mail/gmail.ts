@@ -100,7 +100,8 @@ const imapDate = (day: Date): string => `${day.getUTCDate()}-${MONTHS[day.getUTC
 /** IMAP's `INTERNALDATE`: `"04-Oct-2026 19:51:09 +0000"`. */
 const isoOf = (internal: string): string => {
   const match = /^\s*(\d{1,2})-(\w{3})-(\d{4}) (\d{2}):(\d{2}):(\d{2}) ([+-])(\d{2})(\d{2})$/.exec(internal)
-  if (match === null) throw new CliError("invalid_response", `unexpected IMAP date "${internal}"`)
+  if (match === null)
+    throw new CliError("invalid_response", `unexpected IMAP date "${internal}"`, { reason: "mail.invalid-imap" })
   const [, day, month, year, hour, minute, second, sign, offsetHours, offsetMinutes] = match
   const local = Date.UTC(
     Number(year),
@@ -168,7 +169,9 @@ export const listAllMail = async (
       const threadId = item("X-GM-THRID")
       const size = item("RFC822\\.SIZE")
       if (!uid || !messageId || !threadId || !internal)
-        throw new CliError("invalid_response", `IMAP FETCH answer without the Gmail ids: ${items}`)
+        throw new CliError("invalid_response", `IMAP FETCH answer without the Gmail ids: ${items}`, {
+          reason: "mail.invalid-imap",
+        })
       listed.push({
         uid,
         messageId,
@@ -209,7 +212,9 @@ export const listAllMail = async (
     }
   }
   if (listed.length !== uids.length)
-    throw new CliError("invalid_response", `IMAP listed ${uids.length} messages but fetched ${listed.length}`)
+    throw new CliError("invalid_response", `IMAP listed ${uids.length} messages but fetched ${listed.length}`, {
+      reason: "mail.invalid-imap",
+    })
   return listed.map((item) => ({ ...item, ...marks.get(item.uid) }))
 }
 
@@ -224,9 +229,11 @@ export const listImapMail = async (run: Himalaya, account: string, since: Date, 
   )
   assertCompleted(searched, ["a", "b"])
   const validity = /\[UIDVALIDITY (\d+)\]/.exec(searched)?.[1]
-  if (!validity) throw new CliError("invalid_response", "IMAP did not report UIDVALIDITY")
+  if (!validity)
+    throw new CliError("invalid_response", "IMAP did not report UIDVALIDITY", { reason: "mail.invalid-imap" })
   const uids = [...new Set((/^\* SEARCH(.*)$/m.exec(searched)?.[1] ?? "").trim().split(/\s+/).filter(Boolean))]
-  if (!uids.every((uid) => /^\d+$/.test(uid))) throw new CliError("invalid_response", "invalid IMAP UID listing")
+  if (!uids.every((uid) => /^\d+$/.test(uid)))
+    throw new CliError("invalid_response", "invalid IMAP UID listing", { reason: "mail.invalid-imap" })
   const listed: Listed[] = []
   const digest = (id: string) => `imap:${createHash("sha256").update(id).digest("hex")}`
   for (let start = 0; start < uids.length; start += FETCH_BATCH) {
@@ -243,7 +250,8 @@ export const listImapMail = async (run: Himalaya, account: string, since: Date, 
       const fields = match[1] ?? "",
         uid = /(?:^|\s)UID (\d+)/.exec(fields)?.[1],
         internal = /INTERNALDATE "([^"]+)"/.exec(fields)?.[1]
-      if (!uid || !internal || !batch.includes(uid)) throw new CliError("invalid_response", "incomplete IMAP envelope")
+      if (!uid || !internal || !batch.includes(uid))
+        throw new CliError("invalid_response", "incomplete IMAP envelope", { reason: "mail.invalid-imap" })
       const unfolded = fields.replace(/\r?\n[ \t]+/g, " ")
       const messageId = /^Message-ID:\s*(.+)$/im.exec(unfolded)?.[1]?.trim()
       const refs = /^References:\s*(.+)$/im.exec(unfolded)?.[1]?.match(/<[^>]+>/g)
@@ -273,7 +281,9 @@ export const listImapMail = async (run: Himalaya, account: string, since: Date, 
       listed.length - before !== batch.length ||
       new Set(listed.slice(before).map((item) => item.uid)).size !== batch.length
     )
-      throw new CliError("invalid_response", "IMAP returned a partial envelope batch; deletions were not checked")
+      throw new CliError("invalid_response", "IMAP returned a partial envelope batch; deletions were not checked", {
+        reason: "mail.invalid-imap",
+      })
   }
   return listed
 }

@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url"
 import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
 import { type Command, InvalidArgumentError } from "commander"
 import { type Config, loadConfig, updateConfig } from "../config.js"
+import { snakeKeys } from "../output.js"
 
 export const DEFAULT_EVERY = "5m"
 const UNIT = "memo-import"
@@ -63,7 +64,11 @@ const systemctl =
       execFile(env.MEMO_SYSTEMCTL ?? "systemctl", ["--user", ...args], { env }, (error, stdout, stderr) =>
         error === null
           ? done(stdout)
-          : fail(new CliError("provider_error", `systemctl ${args.join(" ")}: ${stderr.trim() || error.message}`)),
+          : fail(
+              new CliError("provider_error", `systemctl ${args.join(" ")}: ${stderr.trim() || error.message}`, {
+                reason: "auto.systemctl-failed",
+              }),
+            ),
       ),
     )
 
@@ -161,7 +166,7 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         last: when(listed?.last),
         lastResult: service.Result || null,
       }
-      if (options.json) createRenderer({ format: "json", color: false, streams }).result(status)
+      if (options.json) createRenderer({ format: "json", color: false, streams }).result(snakeKeys(status))
       else
         streams.data(
           `${status.enabled ? `on, every ${status.every}` : "off"} — timer ${status.timer}` +

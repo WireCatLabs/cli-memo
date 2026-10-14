@@ -13,6 +13,7 @@ import type { Command } from "commander"
 import { authorOf, byOption } from "../author.js"
 import { notesAbout } from "../notes/about.js"
 import { accountOptions, oneOf, positive } from "../options.js"
+import { snakeKeys } from "../output.js"
 import { answering } from "../records/run.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 import { keyDocuments, markKey, projectOf, unmarkKey } from "./key-documents.js"
@@ -29,8 +30,8 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     const store = await openStore({ env })
     try {
       const answer = await work(store)
-      if (options.json) createRenderer({ format: "json", color: false, streams }).result(answer)
-      else streams.data(`${JSON.stringify(answer, null, 2)}\n`)
+      if (options.json) createRenderer({ format: "json", color: false, streams }).result(snakeKeys(answer))
+      else streams.data(`${JSON.stringify(snakeKeys(answer), null, 2)}\n`)
     } finally {
       await store.close()
     }

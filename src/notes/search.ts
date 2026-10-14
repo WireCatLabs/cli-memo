@@ -14,9 +14,9 @@ export const searchText = (result: NotesSearch): string =>
       : []),
     ...result.hits.map(
       (hit) =>
-        `${"key" in hit ? "key  " : ""}${hit.path ?? hit.ref}${hit.foundBy.includes("words") ? "" : "  (by meaning)"}\n  ${hit.line}`,
+        `${"key" in hit ? "key  " : ""}${hit.path ?? hit.ref}${hit.found_by.includes("words") ? "" : "  (by meaning)"}\n  ${hit.excerpt}`,
     ),
-    ...(result.hasMore ? ["More notes match; raise --limit or follow nextOffset."] : []),
+    ...(result.has_more ? ["More notes match; raise --limit or follow next_offset."] : []),
     ...(result.linked.length === 0
       ? []
       : [

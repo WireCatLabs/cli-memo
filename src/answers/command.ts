@@ -3,6 +3,7 @@ import { type ModelAdapter, type ModelTarget, modelGateway } from "@wirecat/cli-
 import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { positive } from "../options.js"
+import { snakeKeys } from "../output.js"
 import { type EvidenceItem, searchAccounts, unifiedSearch } from "../search/command.js"
 import type { AccountScope } from "../store/scope.js"
 
@@ -151,8 +152,8 @@ export const askCommand = (program: Command, streams: Streams, env: NodeJS.Proce
               })),
             }
           }
-          if (options.json) createRenderer({ format: "json", color: false, streams }).result(answer)
-          else streams.data(`${JSON.stringify(answer, null, 2)}\n`)
+          if (options.json) createRenderer({ format: "json", color: false, streams }).result(snakeKeys(answer))
+          else streams.data(`${JSON.stringify(snakeKeys(answer), null, 2)}\n`)
         } finally {
           await store.close()
         }

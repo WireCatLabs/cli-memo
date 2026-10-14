@@ -6,7 +6,9 @@ import type { IdentityRef, MessageStore } from "@wirecat/cli-core/store"
 export const identityOf = async (store: MessageStore, reference: string): Promise<IdentityRef> => {
   const match = /^([a-z][a-z0-9-]*):(.+)$/.exec(reference.trim())
   if (match === null)
-    throw new CliError("validation_error", `"${reference}" names no messenger — write it as <messenger>:<name or id>`)
+    throw new CliError("validation_error", `"${reference}" names no messenger — write it as <messenger>:<name or id>`, {
+      reason: "identity.no-messenger",
+    })
   const [, provider = "", who = ""] = match
   const people = await store.people(provider)
   const exact = people.get(provider === "email" ? who.toLowerCase() : who)

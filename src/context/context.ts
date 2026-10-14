@@ -32,7 +32,9 @@ export const memoContext = async (
 ): Promise<MemoContext> => {
   const [, provider, who] = /^([a-z][a-z0-9-]*):(.+)$/.exec(reference.trim()) ?? []
   if (provider === undefined || who === undefined)
-    throw new CliError("validation_error", `"${reference}" names no messenger — write it as <messenger>:<name or id>`)
+    throw new CliError("validation_error", `"${reference}" names no messenger — write it as <messenger>:<name or id>`, {
+      reason: "identity.no-messenger",
+    })
   const accounts = await store.accounts()
   const asked = await selectAccount(store, { provider, ...(account === undefined ? {} : { account }) })
 

@@ -21,7 +21,10 @@ export const noteCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         const folders = await boundFolders(store, env, { strict: false })
         await importNotesMap(store, env, folders)
         const person = await store.personOf(await identityOf(store, identity))
-        if (person === undefined) throw new CliError("not_found", `the store has no person for "${identity}"`)
+        if (person === undefined)
+          throw new CliError("not_found", `the store has no person for "${identity}"`, {
+            reason: "person.not-found",
+          })
         const to = `person:${person.uid}`
         const files = async () => {
           const found = []
@@ -36,7 +39,10 @@ export const noteCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         else if (path !== undefined) {
           const { folder, path: inside } = folderOfFile(folders, path)
           const note = (await folderNotes(store, folder.id)).find((candidate) => candidate.path === inside)
-          if (!note) throw new CliError("not_found", `${path} is not imported yet — memo sync --notes`)
+          if (!note)
+            throw new CliError("not_found", `${path} is not imported yet — memo sync --notes`, {
+              reason: "note.not-imported",
+            })
           await store.notes.addLink({ from: note.ref, to, kind: "about", origin: "owner" })
         }
         const shown = (await files()).map(({ note }) => {

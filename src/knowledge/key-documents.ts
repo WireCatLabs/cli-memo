@@ -24,7 +24,10 @@ export const projectOf = async (store: MessageStore, reference: string): Promise
   const project = (await store.knowledge.projects()).find(
     (candidate) => candidate.id === wanted || candidate.key?.toLowerCase() === wanted.toLowerCase(),
   )
-  if (!project) throw new CliError("not_found", `no project ${reference}; memo projects list shows them`)
+  if (!project)
+    throw new CliError("not_found", `no project ${reference}; memo projects list shows them`, {
+      reason: "project.not-found",
+    })
   return project
 }
 

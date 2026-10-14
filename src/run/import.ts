@@ -10,6 +10,7 @@ import { embedNoteChunks, type NoteChunksEmbedded } from "../notes/embed.js"
 import { noteFolders } from "../notes/folders.js"
 import { importNotes, type NotesImport } from "../notes/import.js"
 import { collect, positive } from "../options.js"
+import { metaOf, snakeKeys } from "../output.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { applyAuto, autoState } from "./auto.js"
 import { withImportLock } from "./lock.js"
@@ -149,6 +150,12 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
             )
           : []
       const run: ImportRun = { notes: [], mail: [], failed: [] }
+      const startedAt = Date.now()
+      const printRun = () =>
+        createRenderer({ format: "json", color: false, streams }).result({
+          item: snakeKeys(run),
+          meta: metaOf(startedAt, accounts.length ? { accounts: accounts.map(({ name }) => name) } : {}),
+        })
       const work = withImportLock(env, async () => {
         const store = await openStore({ env })
         const attempt = async (source: string, work: () => Promise<void>) => {
@@ -222,10 +229,10 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       if (skipped !== undefined) {
         run.skipped = skipped
         streams.diagnostic(`memo sync skipped: ${skipped}`)
-        if (options.json) createRenderer({ format: "json", color: false, streams }).result(run)
+        if (options.json) printRun()
         return
       }
-      if (options.json) createRenderer({ format: "json", color: false, streams }).result(run)
+      if (options.json) printRun()
       else streams.data(`${text(run)}\n`)
       if (run.failed.length > 0) process.exitCode = 1
     })

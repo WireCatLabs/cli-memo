@@ -1,9 +1,10 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
-import { parseLocator, resolveOutput } from "@wirecat/cli-core"
+import { parseLocator } from "@wirecat/cli-core"
 import { readMail } from "@wirecat/cli-core/services"
 import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { whole } from "../options.js"
+import { printAtDetail } from "../output.js"
 import { found } from "../search/command.js"
 
 export const messagesCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
@@ -21,10 +22,7 @@ export const messagesCommand = (program: Command, streams: Streams, env: NodeJS.
       const store = await openStore({ env })
       try {
         const emails = await readMail(store, reference, { before: options.beforeN, after: options.afterN })
-        if (options.json)
-          resolveOutput({ json: true, streams }).renderer.result(
-            options.beforeN || options.afterN ? { items: emails } : emails[0],
-          )
+        if (options.json) printAtDetail(streams, options.beforeN || options.afterN ? { items: emails } : emails[0])
         else streams.data(`${emails.map((email) => found(email, "full")).join("\n\n")}\n`)
       } finally {
         await store.close()

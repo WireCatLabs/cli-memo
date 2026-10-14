@@ -63,7 +63,7 @@ memo search notes 'budget' --filter 'date:2026-10-08'    # and a second conditio
 ```
 
 `--type file` shows only notes from files. Results come 20 at a time; when there are more, the answer
-gives a `nextOffset`, and `--offset` with that number shows the next page.
+gives a `next_offset`, and `--offset` with that number shows the next page.
 
 ## Search mail
 

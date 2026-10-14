@@ -40,12 +40,12 @@ describe("structured note retrieval and saved links", () => {
   it("uses shared phrase/Boolean filters, provides exact current excerpts and paginates distinct notes", async () => {
     const first = await run("search", "notes", '"budget review" AND NOT cancelled', "--limit", "2")
     expect(first.hits).toHaveLength(2)
-    expect(first.hasMore).toBe(true)
-    expect(first.nextOffset).toBe(2)
-    expect(first.hits.every((hit: { line: string }) => /budget review/i.test(hit.line))).toBe(true)
+    expect(first.has_more).toBe(true)
+    expect(first.next_offset).toBe(2)
+    expect(first.hits.every((hit: { excerpt: string }) => /budget review/i.test(hit.excerpt))).toBe(true)
     const second = await run("search", "notes", '"budget review" AND NOT cancelled', "--limit", "2", "--offset", "2")
     expect(second.hits).toHaveLength(1)
-    expect(second.hasMore).toBe(false)
+    expect(second.has_more).toBe(false)
     expect(new Set([...first.hits, ...second.hits].map((hit: { ref: string }) => hit.ref)).size).toBe(3)
     await expect(run("search", "notes", '"unfinished')).rejects.toMatchObject({ code: "validation_error" })
   })
@@ -57,10 +57,10 @@ describe("structured note retrieval and saved links", () => {
     expect(review.links).toHaveLength(4)
     expect(review.links).toEqual(
       expect.arrayContaining([
-        { to: rin, targetText: null, kind: "links-to", anchor: "#Budget" },
-        { to: rin, targetText: null, kind: "links-to", anchor: null },
-        { to: null, targetText: "Rin", kind: "links-to", anchor: null },
-        { to: null, targetText: "Missing", kind: "links-to", anchor: null },
+        { to: rin, target_text: null, kind: "links-to", anchor: "#Budget" },
+        { to: rin, target_text: null, kind: "links-to", anchor: null },
+        { to: null, target_text: "Rin", kind: "links-to", anchor: null },
+        { to: null, target_text: "Missing", kind: "links-to", anchor: null },
       ]),
     )
   })

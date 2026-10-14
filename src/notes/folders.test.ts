@@ -80,7 +80,7 @@ describe("memo folders", () => {
     await store.close()
 
     expect(JSON.parse(await run("folders", "list", "--json")).elsewhere).toEqual([
-      { id: drive.id, name: "google-drive:someone@example.com", format: "markdown", keptBy: "drive" },
+      { id: drive.id, name: "google-drive:someone@example.com", format: "markdown", kept_by: "drive" },
     ])
     expect(await run("folders", "list")).not.toContain("memo folders attach")
     await expect(run("folders", "attach", drive.id, join(root, "plain"))).rejects.toThrow(/drive keeps it/)

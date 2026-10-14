@@ -27,7 +27,7 @@ it("creates keyed project tasks, reviews dependencies and discovers ready work t
   expect(await run("tasks", "link", second.id, first.id, "--kind", "blocked-by")).toMatchObject({ changed: false })
   expect(await run("tasks", "list", "--ready", "--project", "Lab Example")).toMatchObject({
     items: [{ key: first.key }],
-    hasMore: false,
+    has_more: false,
   })
   expect(await run("tasks", "status", second.id)).toEqual({
     ready: false,

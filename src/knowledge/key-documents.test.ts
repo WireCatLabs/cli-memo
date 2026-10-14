@@ -52,8 +52,8 @@ it("marks a note and a message as key documents of a project, with the reason an
   ])
 
   const context = await run("projects", "context", "SYH")
-  expect(Object.keys(context)[0]).toBe("keyDocuments")
-  expect(context.keyDocuments.map((item: { ref: string }) => item.ref)).toEqual([plan, "msg:telegram/1/7/5"])
+  expect(Object.keys(context)[0]).toBe("key_documents")
+  expect(context.key_documents.map((item: { ref: string }) => item.ref)).toEqual([plan, "msg:telegram/1/7/5"])
   expect(context.relationships).toEqual([])
 
   await run("projects", "key-documents", "remove", "SYH", plan)
@@ -67,7 +67,7 @@ it("keeps a key document whose source is gone, marked unavailable", async () => 
   await store.markDeleted(telegram, ["5"], { chatId: "7" })
   await store.close()
 
-  expect((await run("projects", "context", "SYH")).keyDocuments).toMatchObject([
+  expect((await run("projects", "context", "SYH")).key_documents).toMatchObject([
     { ref: "msg:telegram/1/7/5", reason: "the agreed budget", available: false },
   ])
 })

@@ -9,7 +9,8 @@ export type BoundFolder = NoteFolder & { id: string }
 export const unboundReason = (path: string) =>
   `${path} has no folder id — memo folders add ${path}, or memo folders attach <id> ${path} if another computer made one`
 
-const unbound = (path: string) => new CliError("configuration_error", unboundReason(path))
+const unbound = (path: string) =>
+  new CliError("configuration_error", unboundReason(path), { reason: "folder.unbound", path })
 
 /**
  * The configured folders the store knows; `only` narrows them by path or id.
@@ -49,6 +50,7 @@ export const folderIds = async (store: MessageStore, env: NodeJS.ProcessEnv, sel
 export const folderOfFile = (folders: BoundFolder[], file: string): { folder: BoundFolder; path: string } => {
   const at = resolve(file)
   const folder = folders.find((candidate) => at.startsWith(`${candidate.path}/`))
-  if (!folder) throw new CliError("not_found", `${at} is in no configured folder of notes`)
+  if (!folder)
+    throw new CliError("not_found", `${at} is in no configured folder of notes`, { reason: "folder.not-found" })
   return { folder, path: at.slice(folder.path.length + 1) }
 }

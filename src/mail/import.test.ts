@@ -516,9 +516,14 @@ describe("memo sync --mail", () => {
   it("takes an account by its address as well as its name", async () => {
     const { dir, env } = setup([mail(1)])
 
-    const result = JSON.parse(await run(["sync", "--account", OTHER, "--no-embed", "--json"], configured(dir, env)))
+    const answer = JSON.parse(await run(["sync", "--account", OTHER, "--no-embed", "--json"], configured(dir, env)))
 
-    expect(result.mail).toMatchObject([{ account: OTHER }])
+    expect(answer.item.mail).toMatchObject([{ account: OTHER, already_stored: 0 }])
+    expect(answer.meta).toMatchObject({
+      run_id: expect.any(String),
+      duration_ms: expect.any(Number),
+      accounts: ["second"],
+    })
   })
 
   it("syncs only the account named, from the time asked, and reports what it did", async () => {
@@ -529,7 +534,7 @@ describe("memo sync --mail", () => {
         ["sync", "--account", "second", "--since-time", "2026-09-01", "--no-embed", "--json"],
         configured(dir, env),
       ),
-    )
+    ).item
 
     expect(result.notes).toEqual([])
     expect(result.mail).toMatchObject([{ account: OTHER, saved: 1, since: expect.stringMatching(/^2026-09-01/) }])

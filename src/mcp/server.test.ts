@@ -86,7 +86,7 @@ it("offers the memo tools, saves an agent's memory and proposal as its own, and 
       "actions_add ok",
       "memories_add ok",
     ])
-    expect((await call("memories_list", { limit: 1 })).structuredContent).toMatchObject({ hasMore: false })
+    expect((await call("memories_list", { limit: 1 })).structuredContent).toMatchObject({ has_more: false })
     expect(log.items.every(({ actor }) => actor.name === AGENT)).toBe(true)
   } finally {
     await client.close()
@@ -148,7 +148,7 @@ it("exposes ready task discovery without offering dependency mutation or claims"
     })
     expect((await call("tasks_list", { project: "RES", ready: true })).structuredContent).toMatchObject({
       items: [{ ref: first.ref, key: first.key }],
-      hasMore: false,
+      has_more: false,
     })
     expect((await client.listTools()).tools.some((x) => x.name === "tasks_claim" || x.name === "tasks_link")).toBe(
       false,
@@ -162,8 +162,8 @@ it("searches every source the store holds, where tg and max read only their own"
   const { client, call } = await connected()
   try {
     expect((await call("search_notes", { text: "Fridays", exact: true })).structuredContent).toMatchObject({
-      hits: [{ ref: "note:1", line: "Bob Sample prefers Fridays" }],
-      hasMore: false,
+      hits: [{ ref: "note:1", excerpt: "Bob Sample prefers Fridays" }],
+      has_more: false,
     })
     const all = (await call("search_all", { text: "Fridays", exact: true, only: ["notes"] })).structuredContent as {
       items: { kind: string; text: string }[]

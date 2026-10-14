@@ -33,7 +33,7 @@ it("creates native note tasks through the CLI and connects context, search, assi
   const task = await run("tasks", "add", source, ...scope)
   expect(task).toMatchObject({
     created: true,
-    task: { source, sourceKind: "note", note: { text: "Synthetic budget request" } },
+    task: { source, source_kind: "note", note: { text: "Synthetic budget request" } },
   })
   expect(await run("tasks", "add", source, ...scope)).toMatchObject({ created: false, task: { id: task.task.id } })
   expect((await run("tasks", "list", "--provider", "telegram", "--account", "2")).items).toEqual([])

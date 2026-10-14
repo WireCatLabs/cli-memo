@@ -6,6 +6,22 @@ the API.
 
 ## Unreleased
 
+### Changed
+
+- **Every JSON key memo prints is snake_case**, on the CLI and in MCP: `has_more`, `next_offset`, `key_documents`,
+  `your_notes`, `not_read`, `from_them`, `proposed_by`, `creation_fingerprint`, `already_stored`,
+  `deletions_skipped`, and the rest. A note's front matter, an email's headers and metadata keep their own keys.
+  `memo commands --json` says contract 2.
+- **`memo sync --json` prints the shared envelope:** `{"item": {"notes", "mail", "failed", …}, "meta": {"run_id",
+  "duration_ms", "accounts"?}}`. What was the whole answer is now `item`.
+- **Notes search uses cli-core's names:** a hit's line is `excerpt`, and `found_by`, `has_more`, `next_offset`,
+  `meaning_skipped`, `links[].target_text`.
+- **More registered reasons:** `folder.unbound` (with `path`), `folder.not-found`, `note.not-imported`,
+  `mail.account-unknown` (with `account`), `mail.rule-not-found`, `mail.source-failed`, `mail.invalid-imap`,
+  `project.not-found`, `person.not-found`, `identity.no-messenger`, `auto.systemctl-failed`.
+- A missing embedding model is recognised by its reason, `model.not-downloaded`, not by its text.
+- Moves to `@wirecat/cli-core` 0.268.0 and `@wirecat/cli-base` 0.27.2.
+
 ## 0.26.0 — 14.10.2026
 
 ### Changed

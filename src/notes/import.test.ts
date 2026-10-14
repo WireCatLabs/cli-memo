@@ -70,7 +70,7 @@ beforeEach(async () => {
 describe("memo sync --notes", () => {
   it("refuses a folder with no id, naming both ways to give it one", async () => {
     writeFileSync(configPath(env), JSON.stringify({ notes: { folders: [join(root, "elsewhere")] } }))
-    const synced = await json("sync", "--notes")
+    const synced = (await json("sync", "--notes")).item
     process.exitCode = 0
 
     expect(synced.failed).toEqual([
@@ -113,7 +113,7 @@ describe("memo sync --notes", () => {
     utimesSync(join(vault, "Projects/Harbour.md"), new Date("2030-01-01"), new Date("2030-01-01"))
     rmSync(join(vault, "Psychology/Private Notes.md"))
 
-    const second = await json("sync", "--notes")
+    const second = (await json("sync", "--notes")).item
 
     expect(second.notes[0]).toMatchObject({ changed: 1, deleted: 1 })
     expect(paths((await json("search", "notes", "quay")).hits)).toEqual(["Projects/Harbour.md"])
@@ -121,8 +121,8 @@ describe("memo sync --notes", () => {
   })
 
   it("saves only what changed since the last run", async () => {
-    expect((await json("sync", "--notes")).notes[0]).toMatchObject({ notes: 4, changed: 4 })
-    expect((await json("sync", "--notes")).notes[0]).toMatchObject({ notes: 4, changed: 0 })
+    expect((await json("sync", "--notes")).item.notes[0]).toMatchObject({ notes: 4, changed: 4 })
+    expect((await json("sync", "--notes")).item.notes[0]).toMatchObject({ notes: 4, changed: 0 })
   })
 
   it("refuses to drop most notes at once, and weighs them again next run", async () => {
@@ -131,11 +131,11 @@ describe("memo sync --notes", () => {
     rmSync(join(vault, "Bulk"), { recursive: true })
     rmSync(join(vault, "Projects"), { recursive: true })
 
-    const refused = await json("sync", "--notes")
+    const refused = (await json("sync", "--notes")).item
 
-    expect(refused.notes[0].deletionsSkipped).toMatch(/too many to trust/)
+    expect(refused.notes[0].deletions_skipped).toMatch(/too many to trust/)
     expect(paths((await json("search", "notes", "bulk")).hits)).toHaveLength(6)
-    expect((await json("sync", "--notes")).notes[0].deletionsSkipped).toMatch(/too many to trust/)
+    expect((await json("sync", "--notes")).item.notes[0].deletions_skipped).toMatch(/too many to trust/)
   })
 
   it("keeps a moved note's id, its links and its tags", async () => {
@@ -144,7 +144,7 @@ describe("memo sync --notes", () => {
     const before = await json("notes", "show", join(vault, "Projects/Lighthouse.md"))
     renameSync(join(vault, "Projects/Lighthouse.md"), join(vault, "Projects/Beacon.md"))
 
-    expect((await json("sync", "--notes")).notes[0]).toMatchObject({ renamed: 1, deleted: 0 })
+    expect((await json("sync", "--notes")).item.notes[0]).toMatchObject({ renamed: 1, deleted: 0 })
 
     const after = await json("notes", "show", before.ref)
     expect(after).toMatchObject({ path: "Projects/Beacon.md", tags: ["work"] })
@@ -191,8 +191,8 @@ describe("memo sync --notes", () => {
   it("searches by words alone when the model is not downloaded, and says why", async () => {
     await run("sync", "--notes")
     const found = await json("search", "notes", "budget")
-    expect(found).toMatchObject({ by: "words", hits: [{ path: "Projects/Lighthouse.md", foundBy: ["words"] }] })
-    expect(found.meaningSkipped).toMatch(/not downloaded/)
+    expect(found).toMatchObject({ by: "words", hits: [{ path: "Projects/Lighthouse.md", found_by: ["words"] }] })
+    expect(found.meaning_skipped).toMatch(/not downloaded/)
   })
 
   it("names the person a found note links", async () => {
@@ -240,7 +240,7 @@ describe("memo sync --notes", () => {
     await run("sync", "--notes")
 
     const kai = await json("notes", "list", "--about", "telegram:102")
-    expect(kai.items.map(({ linkText }: { linkText: string }) => linkText)).toEqual(["Kai Sample", "Kai Sample"])
+    expect(kai.items.map(({ link_text }: { link_text: string }) => link_text)).toEqual(["Kai Sample", "Kai Sample"])
     expect(kai.items.map(({ path, via }: { path: string; via: string }) => [path, via]).sort()).toEqual([
       ["Projects/Harbour.md", "name"],
       ["Projects/Lighthouse.md", "name"],
@@ -268,7 +268,7 @@ describe("memo sync --notes", () => {
     expect((await json("notes", "list", "--about", "telegram:102", "--source", "internal")).items).toEqual([])
     const first = await json("notes", "list", "--about", "telegram:102", "--limit", "1")
     const second = await json("notes", "list", "--about", "telegram:102", "--limit", "1", "--offset", "1")
-    expect([first.hasMore, second.hasMore]).toEqual([true, false])
+    expect([first.has_more, second.has_more]).toEqual([true, false])
     expect(paths([...first.items, ...second.items])).toEqual(["Projects/Harbour.md", "Projects/Lighthouse.md"])
   })
 })

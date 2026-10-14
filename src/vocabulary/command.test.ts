@@ -103,7 +103,7 @@ it("selects project meetings through aliases and refuses a foreign account link"
   })
   expect(await run("projects", "meetings", "list", "Lab Example", ...flags)).toMatchObject({
     items: [{ project: project.ref, confirmed: true }],
-    hasMore: false,
+    has_more: false,
   })
   await expect(
     run("projects", "meetings", "link", "Lab Example", meeting, "--provider", "example", "--account", "BobSample"),
@@ -128,20 +128,20 @@ it("creates an owner-reviewed distinct label and rejects a stale creation receip
   const preview = await run("vocabulary", "check", "on-boarding")
   expect(preview.disposition).toBe("review")
   await expect(
-    run("vocabulary", "create", "onboardings", "--expected", preview.creationFingerprint),
+    run("vocabulary", "create", "onboardings", "--expected", preview.creation_fingerprint),
   ).rejects.toMatchObject({ details: { reason: "tag-review.stale" } })
-  expect(await run("vocabulary", "create", "on-boarding", "--expected", preview.creationFingerprint)).toMatchObject({
+  expect(await run("vocabulary", "create", "on-boarding", "--expected", preview.creation_fingerprint)).toMatchObject({
     name: "on-boarding",
     kind: "tag",
   })
   const old = await run("vocabulary", "check", "delivery", "--kind", "topic")
   const garden = await run("vocabulary", "check", "garden")
-  await run("vocabulary", "create", "garden", "--expected", garden.creationFingerprint)
+  await run("vocabulary", "create", "garden", "--expected", garden.creation_fingerprint)
   await expect(
-    run("vocabulary", "create", "delivery", "--kind", "topic", "--expected", old.creationFingerprint),
+    run("vocabulary", "create", "delivery", "--kind", "topic", "--expected", old.creation_fingerprint),
   ).rejects.toMatchObject({ details: { reason: "tag-review.stale" } })
   const current = await run("vocabulary", "check", "delivery", "--kind", "topic")
   expect(
-    await run("vocabulary", "create", "delivery", "--kind", "topic", "--expected", current.creationFingerprint),
+    await run("vocabulary", "create", "delivery", "--kind", "topic", "--expected", current.creation_fingerprint),
   ).toMatchObject({ name: "delivery", kind: "topic" })
 })

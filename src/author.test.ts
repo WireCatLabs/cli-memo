@@ -49,9 +49,9 @@ it("records a write made in an agent's terminal as the agent's, waiting for the 
   expect(fact).toMatchObject({ status: "proposed", author: { type: "bot" } })
   expect(memory).toMatchObject({ status: "proposed", author: { type: "bot" } })
   expect(relation).toMatchObject({ confirmed: false, provenance: "agent:claude-code" })
-  expect(action).toMatchObject({ status: "proposed", proposedBy: { type: "bot" } })
+  expect(action).toMatchObject({ status: "proposed", proposed_by: { type: "bot" } })
   expect(fact.author.id).toBe(memory.author.id)
-  expect(action.proposedBy.id).toBe(fact.author.id)
+  expect(action.proposed_by.id).toBe(fact.author.id)
   expect((await run("facts", "list", "--status", "proposed")).items).toMatchObject([{ ref: fact.ref }])
 })
 
@@ -70,7 +70,7 @@ it("keeps a write the owner's when they say so in an agent's terminal, and when 
     const [fact, memory, relation, action] = await writes(...by)
     expect(fact).toMatchObject({ status: "accepted", author: { type: "person" } })
     expect(memory).toMatchObject({ status: "confirmed", author: { type: "person" } })
-    expect(relation).toMatchObject({ confirmed: true, confidenceCategory: "owner-confirmed" })
-    expect(action.proposedBy).toMatchObject({ type: "person" })
+    expect(relation).toMatchObject({ confirmed: true, confidence_category: "owner-confirmed" })
+    expect(action.proposed_by).toMatchObject({ type: "person" })
   }
 })
