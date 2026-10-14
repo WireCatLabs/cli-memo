@@ -1,6 +1,6 @@
 import { CliError, isCliError, type Streams } from "@wirecat/cli-base"
 import { parseLucene, type QueryNode } from "@wirecat/cli-base/query"
-import { parseLocator, resolveOutput } from "@wirecat/cli-core"
+import { parseLocator } from "@wirecat/cli-core"
 import {
   type SearchAllFound,
   type SearchedResource,
@@ -19,6 +19,7 @@ import { searchMemoriesCommand } from "../memories/command.js"
 import { folderIds } from "../notes/bound.js"
 import { searchText } from "../notes/search.js"
 import { collect, positive } from "../options.js"
+import { printAtDetail } from "../output.js"
 import { SAVE_HELP } from "../save-help.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 import { taskPage } from "../tasks/context.js"
@@ -380,10 +381,7 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     }
   }
   const print = (json: boolean | undefined, answer: unknown, text: string, level?: Level) => {
-    if (json)
-      resolveOutput({ json: true, streams, ...(level === undefined ? {} : { hitDetail: level }) }).renderer.result(
-        answer,
-      )
+    if (json) printAtDetail(streams, answer, level)
     else streams.data(`${text}\n`)
   }
   const queryOptions = (leaf: Command) =>
@@ -519,7 +517,7 @@ content: narrows a search to the text of attachments, filename: to their names â
     .option("--tag <tag>", "only notes with this tag")
     .option("--filter <query>", "another query every note must match")
     .option("--folder <folder>", "only this folder, by its id or path; repeat for more", collect)
-    .option("--offset <n>", "continue from nextOffset", Number, 0)
+    .option("--offset <n>", "continue from next_offset", Number, 0)
     .option("--project <project>", PROJECT_HELP)
     .action(
       async (
@@ -554,8 +552,8 @@ content: narrows a search to the text of attachments, filename: to their names â
             ? found
             : { ...found, hits: keyFirst(found.hits, await keyRefs(store, options.project)) }
         })
-        if (answer.meaningSkipped && !options.json)
-          streams.diagnostic(`Searched by words only: ${answer.meaningSkipped}\n`)
+        if (answer.meaning_skipped && !options.json)
+          streams.diagnostic(`Searched by words only: ${answer.meaning_skipped}\n`)
         print(options.json, answer, searchText(answer))
       },
     )

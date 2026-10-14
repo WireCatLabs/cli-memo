@@ -80,7 +80,9 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
       const folder = await withStore(async (store) => {
         const stored = (await store.notes.folders()).find((candidate) => candidate.id === id)
         if (!stored)
-          throw new CliError("not_found", `the store has no folder ${id} — memo folders list shows those it has`)
+          throw new CliError("not_found", `the store has no folder ${id} — memo folders list shows those it has`, {
+            reason: "folder.not-found",
+          })
         if (keptByDrive(stored.name))
           throw new CliError(
             "validation_error",

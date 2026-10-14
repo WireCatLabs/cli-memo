@@ -16,7 +16,9 @@ export const himalaya =
           if (error === null) resolve(stdout)
           else
             reject(
-              new CliError("provider_error", `himalaya ${args[0] ?? ""} failed: ${stderr.trim() || error.message}`),
+              new CliError("provider_error", `himalaya ${args[0] ?? ""} failed: ${stderr.trim() || error.message}`, {
+                reason: "mail.source-failed",
+              }),
             )
         },
       )

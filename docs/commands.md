@@ -1047,7 +1047,7 @@ memo vocabulary create <name> [options]
 | Option | What it does |
 |---|---|
 | `--kind <kind>` | tag or topic. |
-| `--expected <fingerprint>` | the creationFingerprint vocabulary check <name> gave. |
+| `--expected <fingerprint>` | the creation_fingerprint vocabulary check <name> gave. |
 | `--json` | print JSON. |
 
 ### `memo vocabulary aliases`
@@ -1483,7 +1483,7 @@ memo search notes <query> [options]
 | `--tag <tag>` | only notes with this tag. |
 | `--filter <query>` | another query every note must match. |
 | `--folder <folder>` | only this folder, by its id or path; repeat for more. |
-| `--offset <n>` | continue from nextOffset. Default: `0`. |
+| `--offset <n>` | continue from next_offset. Default: `0`. |
 | `--project <project>` | rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out. |
 
 ### `memo search memories`

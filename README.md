@@ -235,7 +235,7 @@ aliases, so one name always means one project.
 
 Before adding a new tag or topic, run `memo vocabulary check <name> --json`. Reuse a
 canonical label or add an alias if it means the same thing. For a deliberately distinct label,
-run `memo vocabulary create <name> --expected <creationFingerprint> --json`; select `--kind topic`
+run `memo vocabulary create <name> --expected <creation_fingerprint> --json`; select `--kind topic`
 on both commands when creating a topic. The owner accepts this review; MCP exposes preflight
 but no label-creation tool. An intervening label or alias change requires a fresh review.
 `memo vocabulary check --json` finds likely synonyms already in the catalog. Its `complete`

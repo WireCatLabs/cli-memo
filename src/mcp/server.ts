@@ -14,6 +14,7 @@ import * as v from "valibot"
 import { propose } from "../actions/actions.js"
 import { mcpFailure } from "../failure.js"
 import { addMemory } from "../memories/memories.js"
+import { snakeKeys } from "../output.js"
 import { pageOf } from "../page.js"
 import { VERSION } from "../version.js"
 import { knowledgeTools } from "./knowledge.js"
@@ -174,7 +175,8 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
 /** What an MCP answer may hold, as cli-core's tools allow: a bigger one is refused, never cut. */
 const MAX_ANSWER_BYTES = 4 * 1024 * 1024
 
-const answer = (value: object): CallToolResult => {
+const answer = (raw: object): CallToolResult => {
+  const value = snakeKeys(raw) as object
   const text = JSON.stringify(value)
   if (Buffer.byteLength(text) > MAX_ANSWER_BYTES)
     throw new CliError("invalid_response", "the answer exceeds 4 MiB — lower limit or ask for less", {

@@ -4,6 +4,7 @@ import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { boundFolders } from "../notes/bound.js"
 import { positive } from "../options.js"
+import { snakeKeys } from "../output.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { type MemoContext, memoContext } from "./context.js"
 
@@ -81,7 +82,7 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
           limit: options.limit,
           ...(options.account === undefined ? {} : { account: options.account }),
         })
-        if (options.json) createRenderer({ format: "json", color: false, streams }).result(answer)
+        if (options.json) createRenderer({ format: "json", color: false, streams }).result(snakeKeys(answer))
         else streams.data(`${contextText(answer)}\n`)
       } finally {
         await store.close()

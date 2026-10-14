@@ -136,7 +136,7 @@ describe("memo source tags", () => {
   it("labels an email thread and removes tags idempotently", async () => {
     const args = ["--chat", "7", "--provider", "email", "--account", mail.account]
     expect(await json("tags", "add", "work", ...args)).toMatchObject({
-      target: { type: "chat", chatId: "7" },
+      target: { type: "chat", chat_id: "7" },
       added: ["work"],
     })
     expect((await json("tags", "list", "--type", "chat")).items).toHaveLength(1)
@@ -258,7 +258,7 @@ describe("memo source tags", () => {
     expect(text).toContain(mailLocator())
     const page = await json("tags", "list", "--limit", "1")
     expect(page.items).toHaveLength(1)
-    expect(page.hasMore).toBe(true)
+    expect(page.has_more).toBe(true)
     expect(await run("tags", "list", "--limit", "1")).toContain("More labels match")
   })
 })

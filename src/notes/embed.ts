@@ -25,8 +25,7 @@ export interface NotesEmbedded {
 // memo has no `models` command: the model folder is shared, and tg or max fills it.
 const MISSING_MODEL = "the e5-small model is not downloaded — tg or max downloads it: tg models text download e5-small"
 
-const isMissingModel = (error: unknown): boolean =>
-  isCliError(error) && error.code === "not_found" && /is not downloaded/.test(error.message)
+const isMissingModel = (error: unknown): boolean => isCliError(error) && error.details.reason === "model.not-downloaded"
 
 /**
  * Builds each chat's conversations (one per note) — what search by words and by meaning both read — and,

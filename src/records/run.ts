@@ -1,12 +1,13 @@
 import { createRenderer, type Streams } from "@wirecat/cli-base"
 import { type MessageStore, openStore } from "@wirecat/cli-core/store"
+import { snakeKeys } from "../output.js"
 
 /** Prints an answer as JSON, or for a person as `text`, or as indented JSON where a command has no text view. */
 export const printing =
   (streams: Streams) =>
   (json: boolean | undefined, answer: unknown, text?: string): void => {
-    if (json) createRenderer({ format: "json", color: false, streams }).result(answer)
-    else streams.data(`${text ?? JSON.stringify(answer, null, 2)}\n`)
+    if (json) createRenderer({ format: "json", color: false, streams }).result(snakeKeys(answer))
+    else streams.data(`${text ?? JSON.stringify(snakeKeys(answer), null, 2)}\n`)
   }
 
 /** Opens the store for one command, prints its answer as JSON or as indented text, and closes the store. */

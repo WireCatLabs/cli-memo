@@ -94,7 +94,7 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
     .argument("<name>", "the new tag or topic")
     .description("owner: create a distinct tag or topic after vocabulary check <name>")
     .option("--kind <kind>", "tag or topic", oneOf(["tag", "topic"] as const))
-    .requiredOption("--expected <fingerprint>", "the creationFingerprint vocabulary check <name> gave")
+    .requiredOption("--expected <fingerprint>", "the creation_fingerprint vocabulary check <name> gave")
     .option("--json", "print JSON")
     .action((name: string, options: Options & { kind?: "tag" | "topic" }) =>
       execute(options, (store) =>

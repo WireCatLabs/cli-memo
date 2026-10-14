@@ -121,7 +121,8 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         if (target.type === "project") target.id = (await canonicalProject(store, target.id)).slice("project:".length)
         if (target.type === "folder") {
           const [id, ...more] = await folderIds(store, env, [target.id])
-          if (id === undefined || more.length > 0) throw new CliError("not_found", `no folder of notes ${target.id}`)
+          if (id === undefined || more.length > 0)
+            throw new CliError("not_found", `no folder of notes ${target.id}`, { reason: "folder.not-found" })
           target.id = id
         }
         const changed = await (operation === "add" ? store.knowledge.addTags : store.knowledge.removeTags)(

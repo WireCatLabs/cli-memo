@@ -16,7 +16,10 @@ export const mailAccounts = (accounts: MailAccountConfig[], names: string[] | un
     )
     if (found) return found
     const choices = accounts.map((account) => account.name).join(", ") || "none"
-    throw new CliError("not_found", `no mail account "${name}" in mail.accounts — it holds ${choices}`)
+    throw new CliError("not_found", `no mail account "${name}" in mail.accounts — it holds ${choices}`, {
+      reason: "mail.account-unknown",
+      account: name,
+    })
   })
 }
 

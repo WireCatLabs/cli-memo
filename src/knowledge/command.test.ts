@@ -79,13 +79,13 @@ describe("combined evidence, relationships and local reminders", () => {
       [direct.task.id, participating.task.id, document.task.id].sort(),
     )
     expect(context.tasks.items.some((task: { id: string }) => task.id === unrelated.task.id)).toBe(false)
-    expect(context.yourNotes.map((note: { id: string }) => note.id)).toContain(legacy.id)
+    expect(context.your_notes.map((note: { id: string }) => note.id)).toContain(legacy.id)
     const studio = await run("organizations", "add", "Synthetic Studio", "--kind", "company")
     await run("relationships", "add", `person:${person?.uid}`, studio.ref)
     expect((await run("context", "telegram:101")).relationships).toHaveLength(1)
     expect((await run("organizations", "context", studio.id)).relationships).toHaveLength(1)
     const harbour = await run("projects", "add", "Synthetic Harbour", "--organization", studio.ref)
-    expect(harbour).toMatchObject({ organizationId: studio.id })
+    expect(harbour).toMatchObject({ organization_id: studio.id })
     await run("relationships", "add", `person:${person?.uid}`, harbour.ref, "--role", "author")
     expect((await run("projects", "context", harbour.id)).relationships).toHaveLength(1)
     expect((await run("projects", "list")).map(({ id }: { id: string }) => id)).toContain(harbour.id)
@@ -111,14 +111,14 @@ describe("combined evidence, relationships and local reminders", () => {
         more: false,
         complete: expect.any(Number),
         partial: expect.any(Number),
-        neverFetched: expect.any(Number),
+        never_fetched: expect.any(Number),
         behind: expect.any(Number),
-        withGaps: expect.any(Number),
+        with_gaps: expect.any(Number),
       },
     })
     const reminder = await run("reminders", "add", document.task.id, "--at-time", "2026-01-01T00:00:00Z", ...scope)
     const [delivery] = await run("reminders", "poll", ...scope)
-    expect(delivery.deliveryId).toBe(`${reminder.id}:1`)
+    expect(delivery.delivery_id).toBe(`${reminder.id}:1`)
     expect(await run("reminders", "poll", ...scope)).toEqual([])
     await run("reminders", "ack", reminder.id, delivery.receipt, ...scope)
     expect(await run("reminders", "poll", ...scope)).toEqual([])

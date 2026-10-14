@@ -94,8 +94,8 @@ describe("memo context", () => {
 
     const answer = JSON.parse(await run("context", "telegram:101", "--json"))
 
-    expect(answer.messages.last.fromThem?.id).toBe("1")
-    expect(answer.messages.last.fromMe?.id).toBe("2")
+    expect(answer.messages.last.from_them?.id).toBe("1")
+    expect(answer.messages.last.from_me?.id).toBe("2")
     expect(answer.messages.recent.direct.map(({ id }: { id: string }) => id)).toEqual(["2", "1"])
   })
 
@@ -120,20 +120,20 @@ describe("memo context", () => {
       "email",
       "telegram",
     ])
-    expect(answer.messages.last.fromThem.text).toBe("Are we still on for Friday?")
-    expect(answer.messages.last.fromThemAnywhere.text).toBe("Budget attached.")
-    expect(answer.messages.last.fromMe.text).toBe("Yes, see you then.")
+    expect(answer.messages.last.from_them.text).toBe("Are we still on for Friday?")
+    expect(answer.messages.last.from_them_anywhere.text).toBe("Budget attached.")
+    expect(answer.messages.last.from_me.text).toBe("Yes, see you then.")
     expect(answer.notes.about.map(({ path }: { path: string }) => path)).toEqual(["People/Rin Example.md"])
     expect(answer.notes.linking.map(({ path }: { path: string }) => path)).toEqual(["Call.md"])
-    expect(answer.notes.throughNotes.map(({ path }: { path: string }) => path)).toEqual(["Meeting.md"])
-    expect(answer.yourNotes.map(({ text }: { text: string }) => text)).toEqual(["Prefers mornings"])
-    expect(answer.notRead).toEqual([])
+    expect(answer.notes.through_notes.map(({ path }: { path: string }) => path)).toEqual(["Meeting.md"])
+    expect(answer.your_notes.map(({ text }: { text: string }) => text)).toEqual(["Prefers mornings"])
+    expect(answer.not_read).toEqual([])
   })
 
   it("says which sources gave nothing, and why", async () => {
     const answer = JSON.parse(await run("context", "telegram:101", "--json"))
 
-    expect(answer.notRead.map(({ source }: { source: string }) => source)).toEqual(["notes", "mail"])
+    expect(answer.not_read.map(({ source }: { source: string }) => source)).toEqual(["notes", "mail"])
   })
 
   it("prints a readable answer, naming the person, each message and each note by a reference memo takes", async () => {

@@ -221,7 +221,9 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .action((name: string, options: MatchOptions & { json?: boolean }) => {
       const match = matchOf(options)
       if (!(accountOf(loadConfig(env), name).rules ?? []).some((rule) => sameMatch(rule.match, match)))
-        throw new CliError("not_found", `no rule for ${describe(match)}; memo mail rules list ${name} shows them`)
+        throw new CliError("not_found", `no rule for ${describe(match)}; memo mail rules list ${name} shows them`, {
+          reason: "mail.rule-not-found",
+        })
       const left = changeRules(env, name, (current) => current.filter((rule) => !sameMatch(rule.match, match)))
       print(options.json, { removed: match, items: left }, `removed the rule for ${describe(match)}`)
     })

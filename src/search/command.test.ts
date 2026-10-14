@@ -198,11 +198,11 @@ it("shows each email reference first, with its people, labels, subject and an ex
     labels: ["Starred"],
   })
   expect(Object.keys(JSON.parse(await run("search", "mail", "budget", "--json", "--brief")).items[0]).sort()).toEqual([
-    "chatTitle",
+    "chat_title",
     "excerpt",
     "locator",
     "score",
-    "senderName",
+    "sender_name",
     "timestamp",
   ])
 })

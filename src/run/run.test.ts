@@ -138,6 +138,6 @@ describe("memo sync", () => {
 
     expect(process.exitCode).toBeUndefined()
     expect(streams.stderr.join("")).toBe(`memo sync skipped: another memo sync is running (process ${process.ppid})`)
-    expect(JSON.parse(streams.stdout.join(""))).toMatchObject({ skipped: expect.stringContaining("running") })
+    expect(JSON.parse(streams.stdout.join("")).item).toMatchObject({ skipped: expect.stringContaining("running") })
   })
 })
