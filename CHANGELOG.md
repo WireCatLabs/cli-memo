@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.29.0 — 14.10.2026
+
 ### Added
 
 - **A failing timer run is said on every command.** While the last `memo auto` run failed, every memo command
