@@ -42,7 +42,7 @@
                     "message": "parsing raw mail stays in src/mail; the rest of memo reads parsed messages"
                   },
                   {
-                    "group": ["@modelcontextprotocol/*"],
+                    "group": ["@modelcontextprotocol/**"],
                     "message": "only src/mcp serves MCP; commands and services do not know the protocol"
                   },
                   {
@@ -74,7 +74,7 @@
               "options": {
                 "patterns": [
                   {
-                    "group": ["@modelcontextprotocol/*"],
+                    "group": ["@modelcontextprotocol/**"],
                     "message": "only src/mcp serves MCP; commands and services do not know the protocol"
                   },
                   {
@@ -142,7 +142,7 @@
                     "message": "parsing raw mail stays in src/mail; the rest of memo reads parsed messages"
                   },
                   {
-                    "group": ["@modelcontextprotocol/*"],
+                    "group": ["@modelcontextprotocol/**"],
                     "message": "only src/mcp serves MCP; commands and services do not know the protocol"
                   },
                   {
@@ -174,7 +174,7 @@
                     "message": "parsing raw mail stays in src/mail; the rest of memo reads parsed messages"
                   },
                   {
-                    "group": ["@modelcontextprotocol/*"],
+                    "group": ["@modelcontextprotocol/**"],
                     "message": "only src/mcp serves MCP; commands and services do not know the protocol"
                   },
                   {
