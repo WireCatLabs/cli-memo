@@ -3,20 +3,15 @@ import { type CallToolResult, McpServer } from "@modelcontextprotocol/server"
 import { toStandardJsonSchema } from "@valibot/to-json-schema"
 import { CliError } from "@wirecat/cli-base"
 import { type Body, inRun, sealed } from "@wirecat/cli-core/cli"
-import {
-  FACT_STATUSES,
-  FACT_TYPES,
-  MEMORY_KINDS,
-  MEMORY_SCOPES,
-  MEMORY_STATUSES,
-  openStore,
-  PROPOSAL_STATUSES,
-} from "@wirecat/cli-core/store"
+import { FACT_TYPES, MEMORY_KINDS, MEMORY_SCOPES, openStore, PROPOSAL_STATUSES } from "@wirecat/cli-core/store"
 import * as v from "valibot"
 import { propose } from "../actions/actions.js"
 import { itemAnswer } from "../answer.js"
+import { FACT_QUERY, factItem, listFacts } from "../facts/fact.js"
 import { mcpFailure } from "../failure.js"
+import { queryArgument } from "../list-query.js"
 import { addMemory } from "../memories/memories.js"
+import { listMemories, MEMORY_QUERY, memoryItem } from "../memories/memory.js"
 import { pageOf } from "../page.js"
 import { VERSION } from "../version.js"
 import { knowledgeTools } from "./knowledge.js"
@@ -37,7 +32,7 @@ export const INSTRUCTIONS = [
   "search_mail, search_notes for one kind; person_context for one person across messengers and mail. tg, max and zm",
   "search only their own messages. Then keep what a conversation showed:",
   "",
-  "- What happened — said, asked, decided, promised — is a fact: facts_add with its type.",
+  "- What happened — said, asked, decided, promised — is a fact: facts_add with its kind.",
   "- What you concluded — a summary, a digest, a preference — is a memory: memories_add.",
   "- Something to do in an account — a reply, an invitation — is actions_add. Nothing is sent.",
   "- Keep only what will matter later. Not every message is a fact; when unsure, do not save.",
@@ -64,27 +59,21 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
       evidence: v.pipe(v.array(v.string()), v.minLength(1)),
       subject: v.optional(v.string()),
     }),
-    run: async (store, args) => itemAnswer(await addMemory(store, args, by)),
+    run: async (store, args) => itemAnswer(memoryItem(await addMemory(store, args, by))),
   }),
   memories_list: define({
     title: "List memories",
-    description: `Memories, newest first, by status, kind, scope or subject. ${UNTRUSTED}`,
+    description: `Memories, newest first, narrowed by a query such as kind:preference status:proposed. ${UNTRUSTED}`,
     writes: false,
-    input: v.object({
-      status: v.optional(v.picklist(MEMORY_STATUSES)),
-      kind: v.optional(v.picklist(MEMORY_KINDS)),
-      scope: v.optional(v.picklist(MEMORY_SCOPES)),
-      subject: v.optional(v.string()),
-      limit: limit(500),
-    }),
-    run: (store, args) => pageOf("memories list", args.limit, (limit) => store.memories.list({ ...args, limit })),
+    input: v.object({ query: queryArgument(MEMORY_QUERY), limit: limit(500) }),
+    run: (store, args) => listMemories(store, args.query, args.limit),
   }),
   memories_show: define({
     title: "Show a memory",
     description: `One memory with its evidence. ${UNTRUSTED}`,
     writes: false,
     input: v.object({ ref: v.string() }),
-    run: async (store, args) => itemAnswer(await store.memories.get(args.ref)),
+    run: async (store, args) => itemAnswer(memoryItem(await store.memories.get(args.ref))),
   }),
   search_memories: define({
     title: "Search memories",
@@ -96,10 +85,12 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
       limit: limit(500),
     }),
     run: (store, { text, ...options }) =>
-      pageOf("search memories", options.limit, (limit) => store.memories.search(text, { ...options, limit }), {
-        fallback: 20,
-        cap: 200,
-      }),
+      pageOf(
+        "search memories",
+        options.limit,
+        async (limit) => (await store.memories.search(text, { ...options, limit })).map(memoryItem),
+        { fallback: 20, cap: 200 },
+      ),
   }),
   facts_add: define({
     title: "Propose a fact",
@@ -107,8 +98,8 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
       "Record what happened — a fact, a statement, a question, a decision or a promise — with the references that show it. It waits as proposed until the owner confirms it.",
     writes: true,
     input: v.object({
-      type: v.picklist(FACT_TYPES),
-      statement: v.pipe(v.string(), v.minLength(1)),
+      kind: v.picklist(FACT_TYPES),
+      text: v.pipe(v.string(), v.minLength(1)),
       evidence: v.pipe(v.array(v.string()), v.minLength(1)),
       project: v.optional(v.string()),
       subject: v.optional(v.string()),
@@ -116,27 +107,22 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
       scope: v.optional(v.picklist(MEMORY_SCOPES)),
       supersedes: v.optional(v.string()),
     }),
-    run: async (store, args) => itemAnswer(await store.facts.add({ ...args, by })),
+    run: async (store, { kind, text, ...args }) =>
+      itemAnswer(factItem(await store.facts.add({ ...args, type: kind, statement: text, by }))),
   }),
   facts_list: define({
     title: "List facts",
-    description: `Facts, latest first, by type, status, project or subject. ${UNTRUSTED}`,
+    description: `Facts, latest first, narrowed by a query such as kind:decision status:proposed. ${UNTRUSTED}`,
     writes: false,
-    input: v.object({
-      type: v.optional(v.picklist(FACT_TYPES)),
-      status: v.optional(v.picklist(FACT_STATUSES)),
-      project: v.optional(v.string()),
-      subject: v.optional(v.string()),
-      limit: limit(500),
-    }),
-    run: (store, args) => pageOf("facts list", args.limit, (limit) => store.facts.list({ ...args, limit })),
+    input: v.object({ query: queryArgument(FACT_QUERY), limit: limit(500) }),
+    run: (store, args) => listFacts(store, args.query, args.limit),
   }),
   facts_show: define({
     title: "Show a fact",
     description: `One fact with its evidence. ${UNTRUSTED}`,
     writes: false,
     input: v.object({ ref: v.string() }),
-    run: async (store, args) => itemAnswer(await store.facts.get(args.ref)),
+    run: async (store, args) => itemAnswer(factItem(await store.facts.get(args.ref))),
   }),
   actions_add: define({
     title: "Propose an action",

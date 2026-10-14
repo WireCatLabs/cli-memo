@@ -107,6 +107,15 @@ export const OUTPUTS: Readonly<Record<string, CommandOutput>> = {
   "search messages": { entity: "message", view: "hit" },
   "search mail": { entity: "message", view: "hit" },
   "search notes": { entity: "note", view: "hit" },
+  "search memories": { entity: "memory" },
+  "facts add": { entity: "fact" },
+  "facts show": { entity: "fact" },
+  "facts confirm": { entity: "fact" },
+  "facts reverse": { entity: "fact" },
+  "memories add": { entity: "memory" },
+  "memories show": { entity: "memory" },
+  "memories confirm": { entity: "memory" },
+  "memories stale": { entity: "memory" },
 }
 
 /**

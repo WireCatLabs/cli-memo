@@ -25,7 +25,7 @@ it("takes a project by its key or project:<id> in every --project", async () => 
     "facts",
     "add",
     "Ships on Fridays",
-    "--type",
+    "--kind",
     "decision",
     "--evidence",
     note.ref,
@@ -34,8 +34,8 @@ it("takes a project by its key or project:<id> in every --project", async () => 
   )
 
   expect(fact.project).toBe(project.ref)
-  expect((await run("facts", "list", "--project", "SYH")).items).toMatchObject([{ ref: fact.ref }])
-  expect((await run("facts", "list", "--project", project.ref)).items).toMatchObject([{ ref: fact.ref }])
+  expect((await run("facts", "list", "project:SYH")).items).toMatchObject([{ ref: fact.ref }])
+  expect((await run("facts", "list", `project:"${project.ref}"`)).items).toMatchObject([{ ref: fact.ref }])
   expect(await run("tags", "add", "harbour", "--project", "SYH")).toMatchObject({
     target: { type: "project", id: project.ref.slice("project:".length) },
   })

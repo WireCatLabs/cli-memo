@@ -56,6 +56,7 @@ it("offers the memo tools, saves an agent's memory and proposal as its own, and 
       evidence: ["note:1"],
     })
     expect(answerOf(JSON.stringify(memory.structuredContent))).toMatchObject({
+      text: "Bob Sample prefers Friday meetings",
       status: "proposed",
       author: { type: "bot" },
     })
@@ -73,15 +74,20 @@ it("offers the memo tools, saves an agent's memory and proposal as its own, and 
     })
 
     const fact = await call("facts_add", {
-      type: "decision",
-      statement: "Bob Sample runs the Friday review",
+      kind: "decision",
+      text: "Bob Sample runs the Friday review",
       evidence: ["note:1"],
     })
     expect(answerOf(JSON.stringify(fact.structuredContent))).toMatchObject({
-      type: "decision",
+      kind: "decision",
+      text: "Bob Sample runs the Friday review",
       status: "proposed",
+      origin: "agent",
       author: { type: "bot" },
     })
+    expect((await answer("facts_list", { query: "kind:decision status:proposed" })).items).toMatchObject([
+      { kind: "decision" },
+    ])
 
     const refused = await call("memories_add", {
       text: "Missing evidence",
@@ -96,6 +102,7 @@ it("offers the memo tools, saves an agent's memory and proposal as its own, and 
     }
     expect(log.items.map(({ tool, status }) => `${tool} ${status}`)).toEqual([
       "memories_add failed",
+      "facts_list ok",
       "facts_add ok",
       "actions_add ok",
       "memories_add ok",
@@ -136,8 +143,8 @@ it("offers vocabulary discovery and preflight without accepting alias changes", 
       (await client.listTools()).tools.some((x) => ["vocabulary_alias_add", "vocabulary_create"].includes(x.name)),
     ).toBe(false)
     const proposed = await call("facts_add", {
-      type: "decision",
-      statement: "Use a weekly review",
+      kind: "decision",
+      text: "Use a weekly review",
       project: project.ref,
       evidence: ["note:1"],
     })

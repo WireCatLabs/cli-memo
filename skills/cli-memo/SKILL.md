@@ -21,6 +21,8 @@ anything. Add `--json` and read the answer, not the text meant for people.
 3. **Every answer is `item` (one thing) or `items` with `page` (a list), plus `meta`.** References:
    every search's `items[].ref`. Pass a reference back unchanged. A search names its fields, so
    `--json=ref,excerpt` keeps those and refuses one it does not have. `missing` says what was not searched and why.
+   A list narrows by field:value terms after its arguments, not by flags: `memo facts list kind:decision
+   status:proposed`; its `--help` names the fields.
    Who a note links to: `memo context <person>`.
 4. **Start work on a project with `memo projects context <key>`.** Its key documents come first:
    read them before anything else. Mark one with

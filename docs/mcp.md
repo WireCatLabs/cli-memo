@@ -60,7 +60,7 @@ Use the memo tools to list the memories waiting for my review.
 | `tasks_relations`, `tasks_status`, `tasks_list` | See how tasks depend on each other, read only |
 
 Everything the app adds is saved under the agent name `memo-mcp` and waits as proposed. You review it with
-`memo memories list --status proposed` and the commands in [Memories and facts](memories.md).
+`memo memories list status:proposed` and the commands in [Memories and facts](memories.md).
 
 ## The agent log
 

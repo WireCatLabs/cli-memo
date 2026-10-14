@@ -1,23 +1,15 @@
 import type { Streams } from "@wirecat/cli-base"
-import { FACT_STATUSES, FACT_TYPES, type Fact, MEMORY_SCOPES } from "@wirecat/cli-core/store"
+import { FACT_TYPES, type Fact, MEMORY_SCOPES } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { authorOf, byOption } from "../author.js"
+import { withQuery } from "../list-query.js"
 import { oneOf, positive } from "../options.js"
-import { pageOf } from "../page.js"
 import { canonicalProject } from "../vocabulary/project.js"
-
-interface Filters {
-  type?: Fact["type"]
-  status?: Fact["status"]
-  project?: string
-  subject?: string
-  limit: number
-  json?: boolean
-}
+import { FACT_QUERY, factItem, listFacts } from "./fact.js"
 
 interface AddOptions {
-  type: Fact["type"]
+  kind: Fact["type"]
   evidence?: string[]
   project?: string
   subject?: string
@@ -34,7 +26,7 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
 
   byOption(facts.command("add").description("record a fact; an agent's waits as proposed until you confirm it"))
     .argument("<statement...>", "what happened, in one sentence")
-    .requiredOption("--type <type>", FACT_TYPES.join(", "), oneOf(FACT_TYPES))
+    .requiredOption("--kind <kind>", FACT_TYPES.join(", "), oneOf(FACT_TYPES))
     .option("--evidence <ref...>", "what shows it: msg:, note:, meeting:, person: or another reference")
     .option("--project <project>", "the project it belongs to: its key or project:<id>")
     .option("--subject <ref>", "what it is about, as a reference")
@@ -45,37 +37,28 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .action((words: string[], options: AddOptions) =>
       run(options.json, async (store) =>
         itemAnswer(
-          await store.facts.add({
-            type: options.type,
-            statement: words.join(" "),
-            by: authorOf(env, options.asOwner),
-            ...(options.evidence === undefined ? {} : { evidence: options.evidence }),
-            ...(options.project === undefined ? {} : { project: await canonicalProject(store, options.project) }),
-            ...(options.subject === undefined ? {} : { subject: options.subject }),
-            ...(options.occurred === undefined ? {} : { occurredAt: options.occurred }),
-            ...(options.scope === undefined ? {} : { scope: options.scope }),
-            ...(options.supersedes === undefined ? {} : { supersedes: options.supersedes }),
-          }),
+          factItem(
+            await store.facts.add({
+              type: options.kind,
+              statement: words.join(" "),
+              by: authorOf(env, options.asOwner),
+              ...(options.evidence === undefined ? {} : { evidence: options.evidence }),
+              ...(options.project === undefined ? {} : { project: await canonicalProject(store, options.project) }),
+              ...(options.subject === undefined ? {} : { subject: options.subject }),
+              ...(options.occurred === undefined ? {} : { occurredAt: options.occurred }),
+              ...(options.scope === undefined ? {} : { scope: options.scope }),
+              ...(options.supersedes === undefined ? {} : { supersedes: options.supersedes }),
+            }),
+          ),
         ),
       ),
     )
 
-  facts
-    .command("list")
-    .description("facts, latest first")
-    .option("--type <type>", FACT_TYPES.join(", "), oneOf(FACT_TYPES))
-    .option("--status <status>", FACT_STATUSES.join(", "), oneOf(FACT_STATUSES))
-    .option("--project <project>", "only this project's: its key or project:<id>")
-    .option("--subject <ref>", "only facts about this reference")
+  withQuery(facts.command("list").description("facts, latest first"), FACT_QUERY)
     .option("--limit <n>", "most facts, up to 500", positive, 100)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action(({ json, ...filters }: Filters) =>
-      run(json, async (store) => {
-        const project = filters.project === undefined ? undefined : await canonicalProject(store, filters.project)
-        return pageOf("facts list", filters.limit, (limit) =>
-          store.facts.list({ ...filters, ...(project === undefined ? {} : { project }), limit }),
-        )
-      }),
+    .action((words: string[], { json, limit }: { limit: number; json?: boolean }) =>
+      run(json, (store) => listFacts(store, words, limit)),
     )
 
   facts
@@ -84,7 +67,7 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .argument("<ref>", "fact:<id>")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(await store.facts.get(ref))),
+      run(options.json, async (store) => itemAnswer(factItem(await store.facts.get(ref)))),
     )
 
   facts
@@ -93,7 +76,7 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .argument("<ref>", "fact:<id>")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(await store.facts.accept(ref))),
+      run(options.json, async (store) => itemAnswer(factItem(await store.facts.accept(ref)))),
     )
 
   facts
@@ -102,6 +85,6 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .argument("<ref>", "fact:<id>")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(await store.facts.reverse(ref))),
+      run(options.json, async (store) => itemAnswer(factItem(await store.facts.reverse(ref)))),
     )
 }

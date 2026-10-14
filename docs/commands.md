@@ -1256,15 +1256,15 @@ memo memories add <text> [options]
 memories, newest first
 
 ```sh
-memo memories list [options]
+memo memories list [query] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
 
 | Option | What it does |
 |---|---|
-| `--status <status>` | proposed, confirmed, stale, superseded. |
-| `--kind <kind>` | summary, digest, preference. |
-| `--scope <scope>` | personal or work. |
-| `--subject <ref>` | only memories about this reference. |
 | `--limit <n>` | most memories, up to 500. Default: `100`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
@@ -1341,7 +1341,7 @@ memo facts add <statement> [options]
 | Option | What it does |
 |---|---|
 | `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
-| `--type <type>` | fact, statement, question, decision, promise. |
+| `--kind <kind>` | fact, statement, question, decision, promise. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
 | `--project <project>` | the project it belongs to: its key or project:<id>. |
 | `--subject <ref>` | what it is about, as a reference. |
@@ -1355,15 +1355,15 @@ memo facts add <statement> [options]
 facts, latest first
 
 ```sh
-memo facts list [options]
+memo facts list [query] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
 
 | Option | What it does |
 |---|---|
-| `--type <type>` | fact, statement, question, decision, promise. |
-| `--status <status>` | proposed, accepted, superseded, reversed. |
-| `--project <project>` | only this project's: its key or project:<id>. |
-| `--subject <ref>` | only facts about this reference. |
 | `--limit <n>` | most facts, up to 500. Default: `100`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 

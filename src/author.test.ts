@@ -24,7 +24,7 @@ const setUp = async (agent: Record<string, string>) => {
   const organization = await run("organizations", "add", "Synthetic Studio", "--kind", "company")
   const writes = (...by: string[]) =>
     Promise.all([
-      run("facts", "add", "Releases go out on Fridays", "--type", "decision", "--evidence", note.ref, ...by),
+      run("facts", "add", "Releases go out on Fridays", "--kind", "decision", "--evidence", note.ref, ...by),
       run(
         "memories",
         "add",
@@ -53,7 +53,7 @@ it("records a write made in an agent's terminal as the agent's, waiting for the 
   expect(action).toMatchObject({ status: "proposed", proposed_by: { type: "bot" } })
   expect(fact.author.id).toBe(memory.author.id)
   expect(action.proposed_by.id).toBe(fact.author.id)
-  expect((await run("facts", "list", "--status", "proposed")).items).toMatchObject([{ ref: fact.ref }])
+  expect((await run("facts", "list", "status:proposed")).items).toMatchObject([{ ref: fact.ref }])
 })
 
 it("names Claude Code when only CLAUDECODE says an agent runs", async () => {
