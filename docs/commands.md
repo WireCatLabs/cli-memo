@@ -216,6 +216,89 @@ memo messages show <message> [options]
 | `--after-n <n>` | also this many later emails of its thread. Default: `0`. |
 | `--json` | print JSON. |
 
+## `memo mail`
+
+look at a mail account before importing it, and the owner's rules
+
+### `memo mail probe`
+
+group an account's mail by sender and list, to decide what to keep or skip
+
+```sh
+memo mail probe <account> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `account` | required | the account's name in mail.accounts, or its address. |
+
+| Option | What it does |
+|---|---|
+| `--since-time <time>` | only mail from this time, ISO 8601 or 30d ago (default: all mail). |
+| `--limit-groups <n>` | show this many of the largest groups. Default: `50`. |
+| `--json` | print JSON. |
+
+### `memo mail rules`
+
+the owner's decisions on which mail to skip or keep, by sender, domain or list
+
+#### `memo mail rules list`
+
+one account's rules
+
+```sh
+memo mail rules list <account> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `account` | required | the account's name in mail.accounts, or its address. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+#### `memo mail rules add`
+
+skip or keep mail by sender, domain or list; a repeated match replaces its rule
+
+```sh
+memo mail rules add <account> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `account` | required | the account's name in mail.accounts, or its address. |
+
+| Option | What it does |
+|---|---|
+| `--from <address>` | one sender address. |
+| `--domain <domain>` | a sender domain, and its subdomains. |
+| `--list-id <id>` | a mailing list, by its List-Id. |
+| `--skip` | never import this mail. |
+| `--keep` | import this mail even when a skip rule matches it. |
+| `--reason <text>` | why, for the owner later. |
+| `--json` | print JSON. |
+
+#### `memo mail rules remove`
+
+drop the rule for a sender, domain or list
+
+```sh
+memo mail rules remove <account> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `account` | required | the account's name in mail.accounts, or its address. |
+
+| Option | What it does |
+|---|---|
+| `--from <address>` | one sender address. |
+| `--domain <domain>` | a sender domain. |
+| `--list-id <id>` | a mailing list, by its List-Id. |
+| `--json` | print JSON. |
+
 ## `memo note`
 
 name the note that is about a person, or show it
@@ -901,7 +984,7 @@ memo vocabulary list [options]
 | `--kind <kind>` | project, tag or topic. |
 | `--scope <scope>` | personal or work projects. |
 | `--max-entries <n>` | catalog input budget, not a page size. |
-| `--max-read-bytes <n>` | catalog input byte budget. |
+| `--max-read-bytes <bytes>` | catalog input byte budget. |
 | `--json` | print JSON. |
 
 ### `memo vocabulary show`
@@ -921,7 +1004,7 @@ memo vocabulary show <name> [options]
 | `--kind <kind>` | project, tag or topic. |
 | `--scope <scope>` | personal or work projects. |
 | `--max-entries <n>` | catalog input budget, not a page size. |
-| `--max-read-bytes <n>` | catalog input byte budget. |
+| `--max-read-bytes <bytes>` | catalog input byte budget. |
 | `--json` | print JSON. |
 
 ### `memo vocabulary check`
@@ -941,7 +1024,7 @@ memo vocabulary check [name] [options]
 | `--kind <kind>` | project, tag or topic. |
 | `--scope <scope>` | personal or work projects. |
 | `--max-entries <n>` | catalog input budget, not a page size. |
-| `--max-read-bytes <n>` | catalog input byte budget. |
+| `--max-read-bytes <bytes>` | catalog input byte budget. |
 | `--json` | print JSON. |
 | `--min-similarity <n>` | without a name: minimum lexical similarity, 0.65–1. |
 | `--max-comparisons <n>` | without a name: most name comparisons. |
