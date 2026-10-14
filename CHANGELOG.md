@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.25.0 — 14.10.2026
+
 ### Added
 
 - **`memo mail probe <account>`** groups an account's mail by sender and List-Id from headers only (about 300
