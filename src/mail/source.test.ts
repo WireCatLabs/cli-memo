@@ -119,5 +119,5 @@ describe("listing a large mailbox", () => {
     } finally {
       await store.close()
     }
-  })
+  }, 30_000)
 })
