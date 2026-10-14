@@ -80,7 +80,7 @@ export const rulesKey = (rules: readonly MailRule[]): string =>
       JSON.stringify(
         rules
           .map(({ match, action }) =>
-            JSON.stringify([action, match.from ?? null, match.domain ?? null, match.listId ?? null]),
+            JSON.stringify([action, match.from ?? null, match.domain ?? null, match.list_id ?? null]),
           )
           .sort(),
       ),

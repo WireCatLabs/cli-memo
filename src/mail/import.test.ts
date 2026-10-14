@@ -294,8 +294,8 @@ describe("importMail", () => {
 
 describe("importMail with the owner's rules", () => {
   const rules = [
-    { match: { domain: "shop.example" }, action: "skip" as const, decidedAt: "2026-10-14T00:00:00.000Z" },
-    { match: { from: "orders@shop.example" }, action: "keep" as const, decidedAt: "2026-10-14T00:00:00.000Z" },
+    { match: { domain: "shop.example" }, action: "skip" as const, decided_at: "2026-10-14T00:00:00.000Z" },
+    { match: { from: "orders@shop.example" }, action: "keep" as const, decided_at: "2026-10-14T00:00:00.000Z" },
   ]
 
   it("never reads or stores a new email a skip rule matches, and keeps what was stored before", async () => {
@@ -334,7 +334,7 @@ describe("importMail with the owner's rules", () => {
   const envelope = (match: MailRule["match"]): MailRule => ({
     match,
     action: "envelope",
-    decidedAt: "2026-10-14T00:00:00.000Z",
+    decided_at: "2026-10-14T00:00:00.000Z",
   })
 
   it("records an email an envelope rule matches without its text, out of search, under the rule's mailbox", async () => {
@@ -346,7 +346,7 @@ describe("importMail with the owner's rules", () => {
     })
     const { env } = setup([mail(1), deal])
 
-    const result = await importRuled(env, [...rules, envelope({ listId: "deals.shop.example" })])
+    const result = await importRuled(env, [...rules, envelope({ list_id: "deals.shop.example" })])
 
     expect(result).toMatchObject({ listed: 2, saved: 1, skipped: 0, envelopes: 1, complete: true })
     expect((await emails(env)).find(({ externalId }) => externalId === "9001")?.size).toBeGreaterThan(0)
@@ -357,7 +357,7 @@ describe("importMail with the owner's rules", () => {
       fromAddress: "deals@shop.example",
       fromName: "Shop Deals",
       metadata: {
-        rule: { action: "envelope", match: { listId: "deals.shop.example" } },
+        rule: { action: "envelope", match: { list_id: "deals.shop.example" } },
         subject: "Unrepeatable bargain",
         listId: "deals.shop.example",
       },
@@ -371,7 +371,7 @@ describe("importMail with the owner's rules", () => {
         mailbox: "memo:envelope:list-id:deals.shop.example",
       }),
     ).toHaveLength(1)
-    expect((await importRuled(env, [envelope({ listId: "deals.shop.example" })])).envelopes).toBe(0)
+    expect((await importRuled(env, [envelope({ list_id: "deals.shop.example" })])).envelopes).toBe(0)
   })
 
   it("reads an envelope email in full once its rule is removed, and leaves the rule's mailbox", async () => {
@@ -419,15 +419,15 @@ describe("importMail with the owner's rules", () => {
     const { env } = setup([mail(1), deal, news])
     await importInto(env)
     const ruled = [
-      envelope({ listId: "deals.shop.example" }),
-      { match: { domain: "other.example" }, action: "skip" as const, decidedAt: "2026-10-14T00:00:00.000Z" },
+      envelope({ list_id: "deals.shop.example" }),
+      { match: { domain: "other.example" }, action: "skip" as const, decided_at: "2026-10-14T00:00:00.000Z" },
     ]
 
     const dry = await applyRuled(env, ruled, false)
 
     expect(dry).toMatchObject({ applied: false, listed: 3, envelopes: 1, skipMatched: 1 })
     expect(dry.bytes).toBe(Buffer.byteLength("Unrepeatable bargain inside"))
-    expect(dry.rules).toMatchObject([{ rule: { match: { listId: "deals.shop.example" } }, emails: 1 }])
+    expect(dry.rules).toMatchObject([{ rule: { match: { list_id: "deals.shop.example" } }, emails: 1 }])
     expect((await (await store(env)).mail.search("Unrepeatable")).map(({ externalId }) => externalId)).toEqual(["9002"])
 
     expect(await applyRuled(env, ruled, true)).toMatchObject({ applied: true, envelopes: 1 })
@@ -438,7 +438,7 @@ describe("importMail with the owner's rules", () => {
       bodyText: null,
       fromAddress: "deals@shop.example",
       metadata: {
-        rule: { action: "envelope", match: { listId: "deals.shop.example" } },
+        rule: { action: "envelope", match: { list_id: "deals.shop.example" } },
         subject: "Unrepeatable bargain",
         listId: "deals.shop.example",
       },
@@ -452,7 +452,7 @@ describe("importMail with the owner's rules", () => {
     ).toEqual([])
     expect(await applyRuled(env, ruled, true)).toMatchObject({ envelopes: 0 })
 
-    const reread = await importRuled(env, [{ ...envelope({ listId: "deals.shop.example" }), action: "keep" }])
+    const reread = await importRuled(env, [{ ...envelope({ list_id: "deals.shop.example" }), action: "keep" }])
 
     expect(reread).toMatchObject({ saved: 1 })
     expect(await (await store(env)).mail.search("Unrepeatable")).toHaveLength(1)
@@ -584,7 +584,7 @@ describe("importMail resuming", () => {
     expect(await resumable(env, { rescan: true })).toMatchObject({ pass: "full", deleted: 1 })
     listedUids(log)
     expect(await resumable(env, { at: NOW + 86_400_000 })).toMatchObject({ pass: "full", listed: 5 })
-    const rules: MailRule[] = [{ match: { domain: "shop.example" }, action: "envelope", decidedAt: "2026-10-01" }]
+    const rules: MailRule[] = [{ match: { domain: "shop.example" }, action: "envelope", decided_at: "2026-10-01" }]
     expect(await resumable(env, { rules })).toMatchObject({ pass: "full", listed: 5 })
     expect(await resumable(env, { rules })).toMatchObject({ pass: "resumed", listed: 0 })
   })

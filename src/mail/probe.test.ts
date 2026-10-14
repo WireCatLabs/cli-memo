@@ -44,7 +44,7 @@ describe("decide", () => {
   const rule = (match: MailRule["match"], action: MailRule["action"]): MailRule => ({
     match,
     action,
-    decidedAt: "2026-10-14T00:00:00.000Z",
+    decided_at: "2026-10-14T00:00:00.000Z",
   })
   const rules = [rule({ domain: "shop.example" }, "skip"), rule({ from: "orders@mail.shop.example" }, "keep")]
 
@@ -56,10 +56,10 @@ describe("decide", () => {
   })
 
   it("records mail an envelope rule and a skip rule both match, and keeps mail a keep rule matches", () => {
-    const layered = [...rules, rule({ listId: "deals.shop.example" }, "envelope")]
+    const layered = [...rules, rule({ list_id: "deals.shop.example" }, "envelope")]
     const deal = { from: "news@mail.shop.example", to: [], listId: "deals.shop.example", bulk: true }
 
-    expect(decide(layered, deal)).toMatchObject({ action: "envelope", match: { listId: "deals.shop.example" } })
+    expect(decide(layered, deal)).toMatchObject({ action: "envelope", match: { list_id: "deals.shop.example" } })
     expect(decide(layered, { ...deal, from: "orders@mail.shop.example" })?.action).toBe("keep")
   })
 })

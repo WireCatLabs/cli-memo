@@ -3,7 +3,7 @@ import type { MailHeaders } from "./headers.js"
 export interface MailRuleMatch {
   from?: string
   domain?: string
-  listId?: string
+  list_id?: string
 }
 
 export type MailAction = "skip" | "envelope" | "keep"
@@ -13,14 +13,14 @@ export interface MailRule {
   /** skip: never read or stored · envelope: stored without its text, so it can be counted and cleaned later. */
   action: MailAction
   reason?: string
-  decidedAt: string
+  decided_at: string
 }
 
 const domainOf = (address: string): string => address.slice(address.lastIndexOf("@") + 1)
 
 /** A domain also matches its subdomains: bulk mail often comes from `mail.` or `news.` of the same domain. */
 export const matches = (match: MailRuleMatch, headers: MailHeaders): boolean => {
-  const { from, domain, listId } = match
+  const { from, domain, list_id: listId } = match
   if (from === undefined && domain === undefined && listId === undefined) return false
   const sender = headers.from
   const host = sender === undefined ? undefined : domainOf(sender)
@@ -50,7 +50,7 @@ export const envelopeBox = (match: MailRuleMatch) => {
       ? ["from", match.from]
       : match.domain !== undefined
         ? ["domain", match.domain]
-        : ["list-id", match.listId ?? ""]
+        : ["list-id", match.list_id ?? ""]
   return {
     externalId: `memo:envelope:${kind}:${value.toLowerCase()}`,
     name: `envelope: ${kind} ${value}`,
@@ -63,7 +63,7 @@ export const ENVELOPE = "envelope"
 export const sameMatch = (a: MailRuleMatch, b: MailRuleMatch): boolean =>
   a.from?.toLowerCase() === b.from?.toLowerCase() &&
   a.domain?.toLowerCase() === b.domain?.toLowerCase() &&
-  a.listId?.toLowerCase() === b.listId?.toLowerCase()
+  a.list_id?.toLowerCase() === b.list_id?.toLowerCase()
 
 export const envelopeBoxOf = (externalId: string) => {
   const [, , kind, ...value] = externalId.split(":")
