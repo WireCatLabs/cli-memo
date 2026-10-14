@@ -8,7 +8,7 @@ the API.
 
 ### Changed
 
-- **On cli-core 0.272.0 and cli-base 0.28.1**, the versions tg and max pin. Every answer's `meta` has
+- **On cli-core 0.273.0 and cli-base 0.28.1**, the versions tg and max pin. Every answer's `meta` has
   `complete`; `memo sync` answers `complete: false` with `issues` (`{ code, source }`) when a source failed, and
   each entry of its `failed` list carries `code`. Errors carry `retry: { safe, after_ms? }`.
 - **Every command declares its effects** in `commands --json`, now contract 3: what it reads or writes on the mail
