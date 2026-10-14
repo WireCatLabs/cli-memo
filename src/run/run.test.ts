@@ -5,6 +5,7 @@ import { captureStreams } from "@wirecat/cli-base"
 import { beforeEach, describe, expect, it } from "vitest"
 import { loadConfig, updateConfig } from "../config.js"
 import { createProgram } from "../program.js"
+import { autoNotice } from "./auto.js"
 
 let env: NodeJS.ProcessEnv
 let dir: string
@@ -95,6 +96,41 @@ describe("memo auto", () => {
       next: "2026-10-05T22:50:13.053Z",
       last: null,
     })
+  })
+})
+
+describe("a failing timer run", () => {
+  it("is said on every command until a timer run passes, and memo auto status shows the streak", async () => {
+    updateConfig((config) => ({ ...config, auto: { enabled: true, every: "5m" } }), env)
+    const timer = { ...env, MEMO_AUTO: "1" }
+    const timerSync = () =>
+      createProgram({ streams: captureStreams(), env: timer }).exitOverride().parseAsync(["sync"], { from: "user" })
+
+    await timerSync()
+    await timerSync()
+    process.exitCode = 0
+
+    expect(autoNotice(timer)).toBeUndefined()
+    expect(autoNotice(env)).toMatch(
+      /^memo: scheduled sync failing since .* \(2 runs\): notes .*vault.*has no folder id.* — memo auto status$/,
+    )
+    expect(JSON.parse(await run("auto", "status", "--json")).failing).toMatchObject({
+      runs: 2,
+      reason: expect.stringContaining("has no folder id"),
+    })
+
+    await run("folders", "add", join(dir, "vault"))
+    await timerSync()
+
+    expect(autoNotice(env)).toBeUndefined()
+    expect(JSON.parse(await run("auto", "status", "--json")).failing).toBeNull()
+  })
+
+  it("is not recorded for a sync started by hand", async () => {
+    await run("sync")
+    process.exitCode = 0
+
+    expect(autoNotice(env)).toBeUndefined()
   })
 })
 

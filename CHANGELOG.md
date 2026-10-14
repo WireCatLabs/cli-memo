@@ -6,9 +6,18 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **A failing timer run is said on every command.** While the last `memo auto` run failed, every memo command
+  writes one line to stderr — `memo: scheduled sync failing since 2026-10-14 00:58 (12 runs): notes … has no
+  folder id — memo auto status` — until a timer run passes. `memo auto status` shows `failing` (`since`, `runs`,
+  `reason`). Runs are kept in `<state>/auto/last.json` with cli-core's `recordRun`; the timer run itself and a sync
+  started by hand do not print or count.
+- **Mail stored in full keeps its size at the source** (RFC822.SIZE), as envelopes already did.
+
 ### Changed
 
-- **On cli-core 0.273.0 and cli-base 0.28.1**, the versions tg and max pin. Every answer's `meta` has
+- **On cli-core 0.274.0 and cli-base 0.28.1.** Every answer's `meta` has
   `complete`; `memo sync` answers `complete: false` with `issues` (`{ code, source }`) when a source failed, and
   each entry of its `failed` list carries `code`. Errors carry `retry: { safe, after_ms? }`.
 - **Every command declares its effects** in `commands --json`, now contract 3: what it reads or writes on the mail

@@ -33,6 +33,9 @@ memo auto status             # whether the timer is on, when it runs next and ho
 memo auto stop               # stop and remove the timer
 ```
 
+While the timer's runs fail, every memo command writes one line to stderr saying since when, how many runs and
+why, and `memo auto status` shows the same under `failing`. The line goes once a timer run passes.
+
 `--every` takes `90s`, `5m`, `1h` and so on; the shortest is one minute. The timer uses systemd, the
 service manager of most Linux systems. On macOS and Windows, run `memo sync` yourself or from your
 own scheduler.

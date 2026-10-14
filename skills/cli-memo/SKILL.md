@@ -49,6 +49,8 @@ anything. Add `--json` and read the answer, not the text meant for people.
 13. **Old years come from a Google Takeout mbox**, an account with `"mode": "mbox"` and the Gmail
     address; it syncs only when named, and reads the whole file each run, so give a large `--limit`:
     `memo sync --account <name> --since-time 2000-01-01 --limit 5000`.
+14. **A stderr line `memo: scheduled sync failing since …` means the owner's timer is broken** and their
+    notes or mail are going stale. Tell the owner, quote its reason; `memo auto status` has the rest.
 
 ## The usual path
 

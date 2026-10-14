@@ -349,6 +349,7 @@ describe("importMail with the owner's rules", () => {
     const result = await importRuled(env, [...rules, envelope({ listId: "deals.shop.example" })])
 
     expect(result).toMatchObject({ listed: 2, saved: 1, skipped: 0, envelopes: 1, complete: true })
+    expect((await emails(env)).find(({ externalId }) => externalId === "9001")?.size).toBeGreaterThan(0)
     const recorded = (await emails(env)).find(({ externalId }) => externalId === "9002")
     expect(recorded).toMatchObject({
       subject: null,

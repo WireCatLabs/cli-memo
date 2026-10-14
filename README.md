@@ -306,7 +306,8 @@ More: [memories and facts](https://github.com/WireCatLabs/cli-memo/blob/main/doc
 ## Keeping it current
 
 `memo sync` brings notes and mail up to date and reads only what changed. `memo auto start --every 5m` runs
-it on a systemd user timer; `auto status` shows the next and last run. A lock keeps two imports apart: a
+it on a systemd user timer; `auto status` shows the next and last run, and while timer runs fail every memo
+command says so in one stderr line. A lock keeps two imports apart: a
 timer run that finds a sync still running skips and exits 0. One failing source does not stop the others.
 
 More: [keeping memo up to date](https://github.com/WireCatLabs/cli-memo/blob/main/docs/archive.md) ·

@@ -3,13 +3,41 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node
 import { homedir } from "node:os"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
-import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
+import { CliError, createRenderer, resolvePaths, type Streams } from "@wirecat/cli-base"
+import { failingNotice, type LastRun, recordRun } from "@wirecat/cli-core/background"
 import { type Command, InvalidArgumentError } from "commander"
 import { type Config, loadConfig, updateConfig } from "../config.js"
 import { snakeKeys } from "../output.js"
 
 export const DEFAULT_EVERY = "5m"
 const UNIT = "memo-import"
+
+const lastRunPath = (env: NodeJS.ProcessEnv): string =>
+  join(resolvePaths({ appName: "cli-memo", prefix: "MEMO", env }).state, "auto", "last.json")
+
+export const lastAutoRun = (env: NodeJS.ProcessEnv): LastRun | undefined => {
+  try {
+    return JSON.parse(readFileSync(lastRunPath(env), "utf8")) as LastRun
+  } catch {
+    return undefined
+  }
+}
+
+/** Only the timer's own runs count: a sync started by hand is watched by whoever started it. */
+export const recordAutoRun = (env: NodeJS.ProcessEnv, at: number, reason: string | undefined): void => {
+  if (env.MEMO_AUTO !== "1") return
+  recordRun(lastRunPath(env), {
+    at: new Date(at).toISOString(),
+    exitCode: reason === undefined ? 0 : 1,
+    output: `journalctl --user -u ${UNIT}.service`,
+    ...(reason === undefined ? {} : { reason }),
+  })
+}
+
+export const autoNotice = (env: NodeJS.ProcessEnv): string | undefined =>
+  env.MEMO_AUTO === "1"
+    ? undefined
+    : failingNotice("memo", [{ job: "sync", last: lastAutoRun(env) }], "memo auto status")
 
 /** `5m`, `90s`, `1h` → systemd's `5min`, `90s`, `1h`; under a minute is refused. */
 export const interval = (value: string): string => {
@@ -112,6 +140,11 @@ export const applyAuto = async (env: NodeJS.ProcessEnv, state: AutoState): Promi
   if (stale.some(([path]) => path === timerPath)) await run("restart", `${UNIT}.timer`)
 }
 
+const failingOf = (last: LastRun | undefined) =>
+  last && last.exitCode !== 0
+    ? { since: last.failingSince ?? last.at, runs: last.failures ?? 1, reason: last.reason ?? null }
+    : null
+
 export const autoCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const run = systemctl(env)
   const auto = program.command("auto").description("run memo sync on a systemd user timer, set in the config")
@@ -165,6 +198,7 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         next: when(listed?.next),
         last: when(listed?.last),
         lastResult: service.Result || null,
+        failing: failingOf(lastAutoRun(env)),
       }
       if (options.json) createRenderer({ format: "json", color: false, streams }).result(snakeKeys(status))
       else
@@ -172,6 +206,10 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           `${status.enabled ? `on, every ${status.every}` : "off"} — timer ${status.timer}` +
             (status.next ? `, next ${status.next}` : "") +
             (status.last ? `, last ${status.last} (${status.lastResult ?? "?"})` : "") +
+            (status.failing
+              ? `\nfailing since ${status.failing.since} (${status.failing.runs} runs)` +
+                (status.failing.reason ? `: ${status.failing.reason}` : "")
+              : "") +
             "\n",
         )
     })
