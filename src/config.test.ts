@@ -50,8 +50,7 @@ describe("config setting names", () => {
     })
   })
 
-  // Skipped until cli-core carries PR #1224: the installed one does not rename keys inside arrays.
-  it.skip("reads camelCase listId and decidedAt inside rules and saves them in snake_case", () => {
+  it("reads camelCase listId and decidedAt inside rules and saves them in snake_case", () => {
     const rule = { match: { listId: "x.example" }, action: "skip", decidedAt: "2026-10-14" }
     const env = setup({ mail: { accounts: [{ name: "a", address: "a@example.test", rules: [rule] }] } })
     expect(loadConfig(env).mail?.accounts[0]?.rules).toEqual([
