@@ -20,6 +20,13 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "folders attach": ["memo folders attach 1 ~/notes"],
   "folders list": ["memo folders list --json"],
   "messages show": ["memo messages show 'msg:email/me%40example.com/thread/42' --before-n 2 --after-n 2"],
+  "mail probe": ["memo mail probe personal --limit-groups 30", "memo mail probe work --since-time 365d --json"],
+  "mail rules list": ["memo mail rules list personal --json"],
+  "mail rules add": [
+    "memo mail rules add personal --domain news.example --skip --reason 'newsletters'",
+    "memo mail rules add personal --from alice@news.example --keep",
+  ],
+  "mail rules remove": ["memo mail rules remove personal --domain news.example"],
   note: ["memo note telegram:'Kai Sample' People/Kai.md", "memo note telegram:'Kai Sample' --clear"],
   "tags add": ["memo tags add follow-up --note note:12", "memo tags add harbour --project HRB"],
   "tags remove": ["memo tags remove follow-up --note note:12"],

@@ -6,8 +6,11 @@ export type { Listed }
 
 /** Everything the import asks of a mail client, so himalaya can be replaced without touching the import. */
 export interface MailSource {
-  /** Every message in `folder` received since `since`; all or nothing, since deletions are proved from it. */
-  list(since: Date, folder: string): Promise<Listed[]>
+  /**
+   * Every message in `folder` received since `since`; all or nothing, since deletions are proved from it.
+   * `headers` also reads From, To, Cc and the list fields, for the probe and the owner's rules.
+   */
+  list(since: Date, folder: string, options?: { headers?: boolean }): Promise<Listed[]>
   /** Each item's raw RFC 5322 bytes, in order; one that could not be read is an Error, not a failed call. */
   fetchRaw(items: Listed[]): Promise<(Uint8Array | Error)[]>
 }
@@ -43,7 +46,10 @@ const batchesOf = (items: Listed[]): Listed[][] => {
   return batches
 }
 
-export const himalayaSource = (run: Himalaya, account: { name: string; mode?: "gmail" | "imap" }): MailSource => {
+export const himalayaSource = (
+  run: Himalaya,
+  account: { name: string; mode?: "gmail" | "imap" | "mbox" },
+): MailSource => {
   const fetchBatch = async (batch: Listed[]): Promise<Map<string, Uint8Array>> => {
     const bytes = batch.reduce((sum, item) => sum + (item.size ?? 0), 0)
     const output = await run(
@@ -76,10 +82,10 @@ export const himalayaSource = (run: Himalaya, account: { name: string; mode?: "g
   }
 
   return {
-    list: async (since, folder) =>
+    list: async (since, folder, options) =>
       account.mode === "imap"
         ? listImapMail(run, account.name, since, folder)
-        : (await listAllMail(run, account.name, since, folder)).map((item) => ({ ...item, folder })),
+        : (await listAllMail(run, account.name, since, folder, options?.headers)).map((item) => ({ ...item, folder })),
 
     fetchRaw: async (items) => {
       const read = new Map<Listed, Uint8Array | Error>()

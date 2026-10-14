@@ -2,7 +2,9 @@ import { extractText, importEngine, type LoadEngine } from "@wirecat/cli-messagi
 import type { AccountKey, AttachmentInput, EmailAddress, MessageStore } from "@wirecat/cli-messaging/store"
 import { embedChanged, embedMailChunks, type NotesEmbedded } from "../notes/embed.js"
 import { dropMissing, tooManyGone } from "../store/gone.js"
+import { mailFolders } from "./accounts.js"
 import { type Address, MAX_BODY_CHARS, type ParsedMail, parseMail } from "./parse.js"
+import { decide, type MailRule } from "./rules.js"
 import type { Listed, MailSource } from "./source.js"
 
 export interface MailAccount {
@@ -10,9 +12,10 @@ export interface MailAccount {
   name: string
   /** The mailbox address: the store's account id. */
   address: string
-  mode?: "gmail" | "imap"
+  mode?: "gmail" | "imap" | "mbox"
   folders?: string[]
   embed?: boolean
+  rules?: MailRule[]
 }
 
 export interface ImportResult {
@@ -21,6 +24,8 @@ export interface ImportResult {
   listed: number
   saved: number
   alreadyStored: number
+  /** New emails a skip rule kept out: never read, never stored. */
+  skipped: number
   deleted: number
   /** False when `max` stopped the run before every new message was read; the next run continues. */
   complete: boolean
@@ -77,11 +82,14 @@ export const importMail = async ({
   const key: AccountKey = { provider: "email", account: account.address.toLowerCase() }
   const accountId = await store.saveAccount(key, { name: account.address })
 
-  const folders = account.folders ?? [account.mode === "imap" ? "INBOX" : "[Gmail]/All Mail"]
+  const folders = mailFolders(account)
   if (folders.length < 1 || folders.length > 50) throw new Error("select 1–50 mail folders")
+  const rules = account.rules ?? []
+  // An archive file is a snapshot of the same account: it adds mail, and changes nothing IMAP keeps current.
+  const snapshot = account.mode === "mbox"
   const collected: Listed[] = []
   for (const folder of folders) {
-    const found = await source.list(since, folder)
+    const found = await source.list(since, folder, { headers: rules.length > 0 })
     // Spreading a whole mailbox into push() overflows the stack past ~120,000 emails.
     for (const item of found) collected.push(item)
   }
@@ -102,11 +110,12 @@ export const importMail = async ({
 
   // Deletions are proved against the mailboxes as stored before this scan moves anything.
   const scope = JSON.stringify({ mode: account.mode ?? "gmail", folders: [...folders].sort() })
-  const previousScope = await store.syncState(key, "mail_folder_scope")
+  const previousScope = snapshot ? undefined : await store.syncState(key, "mail_folder_scope")
   const windowStart = new Date(since.getTime() + EDGE)
   let deleted = 0
   let skipped: string | undefined
-  if (previousScope !== undefined && previousScope.value !== scope)
+  if (snapshot) skipped = "an mbox file is a snapshot; mail missing from it is not proven deleted"
+  else if (previousScope !== undefined && previousScope.value !== scope)
     skipped = "folder scope changed; missing mail is not proven deleted"
   else {
     // A label is not where mail lives, so only folders prove that a missing mail was deleted.
@@ -134,14 +143,15 @@ export const importMail = async ({
     deleted += older.deleted
     skipped ??= older.skipped
   }
-  await store.mail.setMailboxes(
-    accountId,
-    folders.map(mailbox),
-    new Map([...foundFolders].map(([id, found]) => [id, [...found]])),
-    startedAt,
-  )
+  if (!snapshot)
+    await store.mail.setMailboxes(
+      accountId,
+      folders.map(mailbox),
+      new Map([...foundFolders].map(([id, found]) => [id, [...found]])),
+      startedAt,
+    )
   // A message's label list is whole, so every label the account has is replaced for each message read.
-  if (labelsOf.size) {
+  if (labelsOf.size && !snapshot) {
     const known = (await store.mail.mailboxes(accountId)).filter(({ kind }) => kind === "label")
     const seen = [...labelsOf.values()].flatMap(({ labels }) => labels ?? [])
     const scanned = new Map([
@@ -160,10 +170,16 @@ export const importMail = async ({
   const unreadable: NonNullable<ImportResult["unreadable"]> = []
   let saved = 0
   let alreadyStored = 0
+  let ruledOut = 0
   const pending: Listed[] = []
   for (const item of listed) {
     if (!retryAttachments && (await store.mail.email(accountId, item.messageId)) !== null) {
       alreadyStored++
+      continue
+    }
+    // Stored mail a newer skip rule matches stays: removing it is a separate, explicit step.
+    if (decide(rules, item.headers) === "skip") {
+      ruledOut++
       continue
     }
     if (pending.length >= max) break
@@ -253,20 +269,21 @@ export const importMail = async ({
   }
 
   // Read and starred change at the source after import; mail saved in this run already holds them.
-  await store.mail.setFlags(
-    accountId,
-    new Map(
-      [...labelsOf].flatMap(([id, { seen, flagged }]) =>
-        seen === undefined && flagged === undefined
-          ? []
-          : [[id, { ...(seen === undefined ? {} : { read: seen }), ...(flagged === undefined ? {} : { flagged }) }]],
+  if (!snapshot)
+    await store.mail.setFlags(
+      accountId,
+      new Map(
+        [...labelsOf].flatMap(([id, { seen, flagged }]) =>
+          seen === undefined && flagged === undefined
+            ? []
+            : [[id, { ...(seen === undefined ? {} : { read: seen }), ...(flagged === undefined ? {} : { flagged }) }]],
+        ),
       ),
-    ),
-    startedAt,
-  )
+      startedAt,
+    )
 
-  const complete = listed.length - alreadyStored - saved === 0
-  await store.setSyncState(key, "mail_folder_scope", scope)
+  const complete = listed.length - alreadyStored - ruledOut - saved === 0
+  if (!snapshot) await store.setSyncState(key, "mail_folder_scope", scope)
   const embedding = { embed: embed && account.embed !== false, ...(env === undefined ? {} : { env }) }
   // Chats an earlier import saved as messages may still wait for vectors; the mail tables have their own.
   const older = await indexThreads(store, key, [], embedding)
@@ -284,13 +301,14 @@ export const importMail = async ({
     state: complete ? ("window" as const) : ("partial" as const),
     identity: account.mode === "imap" ? "message-id-or-uidvalidity-folder-uid" : "gmail-message-id",
   }
-  await store.setSyncState(key, "mail_coverage", JSON.stringify(coverage))
+  if (!snapshot) await store.setSyncState(key, "mail_coverage", JSON.stringify(coverage))
   return {
     account: key.account,
     since: since.toISOString(),
     listed: listed.length,
     saved,
     alreadyStored,
+    skipped: ruledOut,
     deleted,
     complete,
     indexed,
