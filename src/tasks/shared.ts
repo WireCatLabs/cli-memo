@@ -4,7 +4,9 @@ import { type AccountKey, openStore } from "@wirecat/cli-core/store"
 import { Command } from "commander"
 import { APP } from "../app.js"
 
-const SHARED = ["agenda", "plan", "show"] as const
+const SHARED = ["agenda", "plan", "show", "link"] as const
+/** `task:15`, a bare id or a project key: a `tasks link` target that needs no messenger account. */
+const TASKISH = /^(task:.+|\d+|[A-Z][A-Z0-9]*-\d+)$/
 
 /** memo's own sources in the store: every other provider is a messenger a source tool syncs. */
 const NOT_MESSENGERS: ReadonlySet<string> = new Set(["email", "notes"])
@@ -29,10 +31,22 @@ const messenger: Messenger = {
   },
 }
 
-/** Never one picked for the owner: a command that names no account fails, listing the ones the store holds. */
+/**
+ * Never one picked for the owner: a command that names no account fails, listing the ones the store holds.
+ * `tasks link` between two project tasks needs none: project tasks belong to no messenger account.
+ */
 const requireAccount = (env: NodeJS.ProcessEnv) => async (_: Command, command: Command) => {
   const { provider, account } = flagged(command)
   if (provider && account) return
+  const [, ...targets] = command.args
+  const chats = command.opts<{ chat?: string[] }>().chat ?? []
+  if (
+    command.name() === "link" &&
+    targets.length > 0 &&
+    chats.length === 0 &&
+    targets.every((one) => TASKISH.test(one))
+  )
+    return
   const store = await openStore({ env })
   try {
     const listed = (await store.accounts())
@@ -56,7 +70,7 @@ const scoped = (command: Command, env: NodeJS.ProcessEnv): Command =>
     .hook("preAction", requireAccount(env))
 
 /**
- * `tasks agenda|plan|show` and `stats tasks show` are cli-core's builders, the ones tg and max have, mounted
+ * `tasks agenda|plan|show|link` and `stats tasks show` are cli-core's builders, the ones tg and max have, mounted
  * with memo's own `--provider --account` (`Messenger.accountOf`).
  */
 export const sharedTaskCommands = (program: Command, tasks: Command, streams: Streams, env: NodeJS.ProcessEnv) => {

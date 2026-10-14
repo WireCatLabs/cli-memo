@@ -110,6 +110,7 @@
   "tasks assign --role",
   "tasks close --as",
   "tasks close --reason",
+  "tasks link --chat",
   "tasks link --kind",
   "tasks list --project",
   "tasks list --ready",
