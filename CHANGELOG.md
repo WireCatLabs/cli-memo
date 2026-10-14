@@ -21,6 +21,16 @@ the API.
 - **`folders list`** puts the folders known only from another computer in the same list, with `path: null`;
   **`tags list`** puts labels on notes, people, projects and folders in the same list as source labels, one row
   per label with its `origin`, instead of a separate `knowledge` list.
+- **`search all`, `search messages`, `search mail` and `search notes` answer cli-core's entities**, as tg and max
+  do: `search all` items are `hit`s (`excerpt`, `sender_name`, `sender_ref`, no `text` or `from`), `search messages`
+  and `search mail` items are the `message.hit` view (`ref`, not `locator`; no whole `text` — `messages show` has
+  it). `--json=<field>` refuses a field the entity lacks, and a bare `--json` at a terminal asks which fields.
+- **`search notes --tag` is gone**: `tag:work` goes in the query or in `--filter`; MCP `search_notes` takes
+  `filter` instead of `tag`.
+- **`notes add` and `notes edit`** answer the note itself as `item`, so `--json=id` works; with `--export` the
+  file written is the note's `export_path`.
+- **Search by meaning, when its model is missing,** says tg or max downloads it, not a `tg` command as memo's
+  own.
 - **`mail rules remove`** answers the rules left as `rules`; `relationships suggest` answers a list and no
   longer names its scope; `reminders list` and `reminders poll` answer lists.
 

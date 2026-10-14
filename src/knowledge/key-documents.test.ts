@@ -38,7 +38,7 @@ const setUp = async (agent: Record<string, string> = {}) => {
   await run("projects", "add", "Synthetic Harbour", "--key", "SYH")
   const plan = await run("notes", "add", "# Harbour plan\n\nHarbour plan, the one to read first")
   const draft = await run("notes", "add", "# Harbour draft\n\nHarbour draft notes")
-  return { env, run, plan: plan.note.ref as string, draft: draft.note.ref as string }
+  return { env, run, plan: plan.ref as string, draft: draft.ref as string }
 }
 
 it("marks a note and a message as key documents of a project, with the reason and who marked it", async () => {

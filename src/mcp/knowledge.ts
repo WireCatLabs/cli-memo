@@ -25,7 +25,7 @@ export const knowledgeTools = {
   }),
   search_messages: define({
     title: "Search messages",
-    description: `Stored messages from every messenger, with all their fields. content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names, as content:invoice. Each hit's reference is locator. ${DATA}`,
+    description: `Stored messages from every messenger, with all their fields. content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names, as content:invoice. Each hit's reference is ref. ${DATA}`,
     writes: false,
     input: v.object({ ...query, type: v.optional(v.picklist(["text", "voice", "file"])) }),
     run: async (store, args) => kindAnswer("messages", await searchKind(store, "messages", args), args.limit),
@@ -44,16 +44,18 @@ export const knowledgeTools = {
     input: v.object({
       ...query,
       page: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1)), 1),
-      tag: v.optional(v.pipe(v.string(), v.minLength(1))),
+      filter: v.optional(
+        v.pipe(v.string(), v.minLength(1), v.description("a query every note must match, as tag:work")),
+      ),
     }),
     run: async (store, { text, page, ...options }, env) =>
       notesAnswer(
-        await searchNotes(store, text, { ...options, offset: (page - 1) * options.limit, env, command: "tg" }),
+        await searchNotes(store, text, { ...options, offset: (page - 1) * options.limit, env }),
         options.limit,
         page,
         {
           text,
-          ...(options.tag === undefined ? {} : { tag: options.tag }),
+          ...(options.filter === undefined ? {} : { filter: options.filter }),
           ...(options.exact ? { exact: true } : {}),
         },
       ),

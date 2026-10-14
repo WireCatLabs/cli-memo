@@ -129,8 +129,10 @@ describe("memo source tags", () => {
   it("finds only the tagged note when notes search asks for a tag", async () => {
     const ref = await noteRef()
     await json("tags", "add", "selected", "--note", ref)
-    const one = await json("search", "notes", "budget", "--tag", "selected")
+    const one = await json("search", "notes", "budget", "--filter", "tag:selected")
     expect(one.items.map((hit: { ref: string }) => hit.ref)).toEqual([ref])
+    const asked = await json("search", "notes", "budget AND tag:selected")
+    expect(asked.items.map((hit: { ref: string }) => hit.ref)).toEqual([ref])
   })
 
   it("labels an email thread and removes tags idempotently", async () => {
@@ -153,11 +155,11 @@ describe("memo source tags", () => {
     writeFileSync(join(vault, path), "Lighthouse revised budget.\n")
     utimesSync(join(vault, path), new Date("2030-01-01"), new Date("2030-01-01"))
     await run("sync", "--notes")
-    expect((await json("search", "notes", "revised", "--tag", "work")).items).toHaveLength(1)
+    expect((await json("search", "notes", "revised", "--filter", "tag:work")).items).toHaveLength(1)
     rmSync(join(vault, path))
     await run("sync", "--notes")
-    expect((await json("search", "notes", "lighthouse", "--tag", "work")).items).toEqual([])
-    expect(await run("search", "notes", "lighthouse", "--tag", "work")).toContain("No note tagged work")
+    expect((await json("search", "notes", "lighthouse", "--filter", "tag:work")).items).toEqual([])
+    expect(await run("search", "notes", "lighthouse", "--filter", "tag:work")).toContain("No note holds")
     await expect(json("tags", "add", "again", "--note", ref)).rejects.toMatchObject({ code: "not_found" })
   })
 
@@ -228,22 +230,22 @@ describe("memo source tags", () => {
       { type: "meeting", id: String(meetingId), tag: "planning", origin: expect.any(String) },
     ])
     const note = await json("notes", "add", "Follow up with Bob Sample", "--about", `meeting:${accountId}/${meetingId}`)
-    expect(note.note.ref).toMatch(/^note:/)
+    expect(note.ref).toMatch(/^note:/)
     const about = await json("notes", "list", "--about", `meeting:${accountId}/${meetingId}`)
-    expect(JSON.stringify(about)).toContain(note.note.ref)
+    expect(JSON.stringify(about)).toContain(note.ref)
 
     const byId = await json(
       "notes",
       "add",
       "Send the agenda",
       "--about",
-      note.note.ref,
+      note.ref,
       ...scope,
       "--meeting",
       String(meetingId),
     )
-    for (const subject of [note.note.ref, `meeting:${accountId}/${meetingId}`])
-      expect(JSON.stringify(await json("notes", "list", "--about", subject))).toContain(byId.note.ref)
+    for (const subject of [note.ref, `meeting:${accountId}/${meetingId}`])
+      expect(JSON.stringify(await json("notes", "list", "--about", subject))).toContain(byId.ref)
     await expect(json("notes", "add", "x", "--meeting", String(meetingId + 1), ...scope)).rejects.toMatchObject({
       code: "not_found",
     })

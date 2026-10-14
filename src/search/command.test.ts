@@ -69,14 +69,14 @@ it("searches three typed resources together, separates mail and messages, and fi
   expect(all.items.map((item: { ref: string }) => item.ref)).toEqual(
     expect.arrayContaining([internal.ref, file.note.ref]),
   )
-  expect(
-    (await run("search", "messages", "Sharedsignal")).items.map((item: { locator: string }) => item.locator),
-  ).toEqual(["msg:telegram/1/7/1"])
+  expect((await run("search", "messages", "Sharedsignal")).items.map((item: { ref: string }) => item.ref)).toEqual([
+    "msg:telegram/1/7/1",
+  ])
   await expect(run("search", "messages", "Sharedsignal AND in:email")).rejects.toMatchObject({
     code: "validation_error",
     message: expect.stringContaining("search mail"),
   })
-  expect((await run("search", "mail", "Sharedsignal")).items.map((item: { locator: string }) => item.locator)).toEqual([
+  expect((await run("search", "mail", "Sharedsignal")).items.map((item: { ref: string }) => item.ref)).toEqual([
     "msg:email/mailbox/7/1",
   ])
   expect((await run("search", "messages", "Sharedsignal", "--type", "text")).items).toHaveLength(1)
@@ -128,7 +128,7 @@ it("searches every mail account, or with --account only that address", async () 
     override(program)
     await program.parseAsync([...args, "--json"], { from: "user" })
     return answerOf(streams.stdout.join(""))
-      .items.map((item: { locator: string }) => item.locator)
+      .items.map((item: { ref: string }) => item.ref)
       .sort()
   }
 
@@ -203,7 +203,7 @@ it("shows each email reference first, with its people, labels, subject and an ex
   expect(Object.keys(answerOf(await run("search", "mail", "budget", "--json", "--brief")).items[0]).sort()).toEqual([
     "chat_title",
     "excerpt",
-    "locator",
+    "ref",
     "score",
     "sender_name",
     "timestamp",

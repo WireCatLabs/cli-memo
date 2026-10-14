@@ -45,9 +45,9 @@ it("adds a memory of the owner's as confirmed, finds it, and marks it stale", as
     "--scope",
     "work",
     "--evidence",
-    note.note.ref,
+    note.ref,
   )
-  expect(memory).toMatchObject({ status: "confirmed", scope: "work", evidence: [note.note.ref] })
+  expect(memory).toMatchObject({ status: "confirmed", scope: "work", evidence: [note.ref] })
 
   expect(
     (await json("memories", "list", "--status", "confirmed")).items.map(({ ref }: { ref: string }) => ref),

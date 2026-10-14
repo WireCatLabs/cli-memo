@@ -12,6 +12,7 @@ import { meetingReference } from "../store/scope.js"
 import { isNoteReference } from "./about.js"
 import { boundFolders, folderOfFile } from "./bound.js"
 import { DIALECTS, type DialectName } from "./dialects/index.js"
+import type { ExportResult } from "./export.js"
 import { folderNotes } from "./import.js"
 import { exportInternal, exportTarget, internalNotes } from "./internal.js"
 import { listNotes } from "./list.js"
@@ -47,6 +48,11 @@ const noteOf = async (store: MessageStore, env: NodeJS.ProcessEnv, reference: st
 
 export const notesCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
+  // The note's own export_path says where it was written; a file edited since is left as it is, and said so.
+  const exportedPath = ({ written, unchanged, edited }: ExportResult): string | null => {
+    for (const { path } of edited) streams.diagnostic(`Edited since export, left as it is: ${path}\n`)
+    return written[0] ?? unchanged[0] ?? edited[0]?.path ?? null
+  }
   const withNotes = <T>(work: (store: MessageStore) => Promise<T>): Promise<T> =>
     withStore(env, async (store) => {
       await importNotesMap(store, env, await boundFolders(store, env, { strict: false }))
@@ -189,11 +195,11 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
             about,
             ...(options.title === undefined ? {} : { title: options.title }),
           })
-          if (options.export === undefined) return { note }
+          if (options.export === undefined) return note
           const target = exportTarget(loadConfig(env), options.export, options.format)
-          return { note, exported: await exportInternal(store, { ...target, notes: [note] }) }
+          return { ...note, exportPath: exportedPath(await exportInternal(store, { ...target, notes: [note] })) }
         })
-        print(options.json, itemAnswer(answer), answer.note.id)
+        print(options.json, itemAnswer(answer), answer.id)
       },
     )
 
@@ -222,11 +228,11 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         const body = textOf(options)
         const answer = await withNotes(async (store) => {
           const note = await store.notes.editNote(id.replace(/^note:/, ""), body, options.revision)
-          if (options.export === undefined) return { note }
+          if (options.export === undefined) return note
           const target = exportTarget(loadConfig(env), options.export, options.format)
-          return { note, exported: await exportInternal(store, { ...target, notes: [note] }) }
+          return { ...note, exportPath: exportedPath(await exportInternal(store, { ...target, notes: [note] })) }
         })
-        print(options.json, itemAnswer(answer), `${answer.note.id} revision ${answer.note.revision}`)
+        print(options.json, itemAnswer(answer), `${answer.id} revision ${answer.revision}`)
       },
     )
 

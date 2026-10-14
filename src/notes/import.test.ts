@@ -159,13 +159,13 @@ describe("memo sync --notes", () => {
 
   it("stores a file's tags and drops one the file no longer has", async () => {
     await run("sync", "--notes")
-    expect((await json("search", "notes", "budget", "--tag", "work")).items).toHaveLength(1)
+    expect((await json("search", "notes", "budget", "--filter", "tag:work")).items).toHaveLength(1)
 
     write("Projects/Lighthouse.md", "Kickoff with [[Rin Example]].\nBudget is open.\n")
     utimesSync(join(vault, "Projects/Lighthouse.md"), new Date("2030-01-01"), new Date("2030-01-01"))
     await run("sync", "--notes")
 
-    expect((await json("search", "notes", "budget", "--tag", "work")).items).toEqual([])
+    expect((await json("search", "notes", "budget", "--filter", "tag:work")).items).toEqual([])
   })
 
   it("keeps a tag the owner added when the file stops stating it", async () => {
@@ -187,7 +187,7 @@ describe("memo sync --notes", () => {
       added: ["port"],
     })
 
-    expect(paths((await json("search", "notes", "plan OR budget", "--tag", "port")).items)).toEqual([
+    expect(paths((await json("search", "notes", "plan OR budget", "--filter", "tag:port")).items)).toEqual([
       "Projects/Harbour.md",
       "Projects/Lighthouse.md",
     ])
@@ -302,12 +302,24 @@ describe("notes written in memo", () => {
       "--export",
       out,
     )
-    expect(edited.exported.written).toHaveLength(1)
+    expect(edited).toMatchObject({ id, revision: 2, text: "Prefers early mornings" })
+    expect(edited.export_path).toMatch(new RegExp(`^${out}/`))
     expect((await json("notes", "export", "--to", out)).unchanged).toHaveLength(1)
     await expect(run("notes", "edit", id, "--revision", "1", "--text", "stale")).rejects.toThrow(/changed/)
 
     await run("notes", "remove", id)
     expect((await json("notes", "list", "--about", "telegram:101")).items).toEqual([])
+  })
+
+  it("answers the note itself, so --json picks its fields, and refuses a field a note search lacks", async () => {
+    const added = JSON.parse(await run("notes", "add", "Prefers tea", "--json=id,ref"))
+    expect(added.item).toEqual({ id: expect.any(String), ref: `note:${added.item.id}` })
+    const searched = JSON.parse(await run("search", "notes", "tea", "--json"))
+    for (const { why } of searched.missing ?? []) expect(why).not.toMatch(/`tg models/)
+    await expect(run("search", "notes", "tea", "--json=text")).rejects.toMatchObject({
+      code: "validation_error",
+      details: { reason: "output.unknown-field" },
+    })
   })
 
   it("refuses to edit a file's note, which is edited in its file", async () => {

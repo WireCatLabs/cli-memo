@@ -24,7 +24,7 @@ const setUp = async (agent: Record<string, string>) => {
   const organization = await run("organizations", "add", "Synthetic Studio", "--kind", "company")
   const writes = (...by: string[]) =>
     Promise.all([
-      run("facts", "add", "Releases go out on Fridays", "--type", "decision", "--evidence", note.note.ref, ...by),
+      run("facts", "add", "Releases go out on Fridays", "--type", "decision", "--evidence", note.ref, ...by),
       run(
         "memories",
         "add",
@@ -34,7 +34,7 @@ const setUp = async (agent: Record<string, string>) => {
         "--scope",
         "work",
         "--evidence",
-        note.note.ref,
+        note.ref,
         ...by,
       ),
       run("relationships", "add", project.ref, organization.ref, "--kind", "related-to", ...by),

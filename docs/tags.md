@@ -58,7 +58,7 @@ added the same tag in Memo. `memo tags list` shows `(file)` next to tags that ca
 
 ```sh
 memo tags list --tag follow-up              # everything with this tag
-memo search notes 'budget' --tag work       # notes with the tag that contain a word
+memo search notes 'budget' --filter 'tag:work'  # notes with the tag that contain a word
 memo search all 'tag:follow-up'             # messages, mail and notes with the tag
 memo tags list                              # every tag, up to 100
 ```

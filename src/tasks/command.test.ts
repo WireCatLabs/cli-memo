@@ -26,7 +26,7 @@ it("creates native note tasks through the CLI and connects context, search, assi
   }
   const scope = ["--provider", key.provider, "--account", key.account]
   const added = await run("notes", "add", "Synthetic budget request", "--about", `person:${person?.uid}`)
-  const source = `note:${added.note.id}`
+  const source = `note:${added.id}`
   await expect(run("tasks", "add", source)).rejects.toMatchObject({ code: "validation_error" })
   await expect(run("tasks", "add", source, "--provider", "telegram")).rejects.toMatchObject({
     code: "validation_error",
@@ -42,7 +42,7 @@ it("creates native note tasks through the CLI and connects context, search, assi
     code: "not_found",
   })
   const unrelated = await run("notes", "add", "Unrelated budget")
-  const other = await run("tasks", "add", `note:${unrelated.note.id}`, ...scope)
+  const other = await run("tasks", "add", `note:${unrelated.id}`, ...scope)
   expect(
     (await run("context", "telegram:101", "--account", "1")).tasks.items.map((item: { id: string }) => item.id),
   ).toEqual([task.task.id])
@@ -54,7 +54,7 @@ it("creates native note tasks through the CLI and connects context, search, assi
       .flatMap((item: { tasks?: { source: string }[] }) => item.tasks ?? [])
       .map((task: { source: string }) => task.source)
       .sort(),
-  ).toEqual([source, `note:${unrelated.note.id}`].sort())
+  ).toEqual([source, `note:${unrelated.id}`].sort())
   await run("tags", "add", "budget", "--task", task.task.id, ...scope)
   expect(
     (await run("tags", "list", "--tag", "budget", ...scope)).items.find(
