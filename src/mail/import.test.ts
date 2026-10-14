@@ -308,6 +308,22 @@ describe("importMail with the owner's rules", () => {
     expect((await emails(env)).map(({ externalId }) => externalId).sort()).toEqual(["9001", "9003"])
   })
 
+  it("fails the listing instead of importing mail unruled when Gmail refuses the header fetch", async () => {
+    const { env } = setup([mail(1, { from: [null, "news@shop.example"] })], { headersFail: true })
+
+    await expect(
+      importMail({
+        store: await store(env),
+        source: himalayaSource(himalaya(env), { name: "test" }),
+        account: { name: "test", address: ME, rules },
+        since: SINCE,
+        now: () => NOW,
+        indexThreads: async () => ({ chats: 0, chunks: 0, left: false }),
+      }),
+    ).rejects.toThrow("THROTTLED")
+    expect(await emails(env)).toEqual([])
+  })
+
   it("adds an mbox archive's mail to the IMAP account by Gmail id, skips by rule and deletes nothing", async () => {
     const { dir, env } = setup([mail(1)])
     await importInto(env)

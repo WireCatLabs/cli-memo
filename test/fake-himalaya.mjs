@@ -65,7 +65,7 @@ if (args[0] === "imap" && args[1] === "raw") {
           `* ${index + 1} FETCH (UID ${m.uid} BODY[HEADER.FIELDS (FROM)] {${Buffer.byteLength(head)}}\r\n${head})`,
         )
       }
-      out.push(`${tag} OK Success`)
+      out.push(`${tag} ${mailbox.headersFail ? "NO [THROTTLED]" : "OK Success"}`)
     } else if (command.startsWith("UID FETCH") && command.includes("X-GM-LABELS")) {
       const set = command.split(" ")[2].split(",")
       for (const [index, m] of mailbox.messages.entries()) {

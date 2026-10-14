@@ -45,9 +45,11 @@ The folder `id` is the same on every computer; the `path` is different on each. 
 |---|---|
 | `name` | The account's name in Himalaya, and the name `memo sync --account` takes. |
 | `address` | The email address. |
-| `mode` | `gmail` (the default) or `imap`. |
+| `mode` | `gmail` (the default), `imap`, or `mbox` for a Google Takeout file. |
+| `path` | For `mbox`: the Takeout file, such as `~/Takeout/Mail/All mail Including Spam and Trash.mbox`. |
 | `folders` | For `imap`: the mail folders to read, such as `["INBOX", "Archive"]`. |
 | `embed` | `false` keeps this account's mail out of search by meaning. |
+| `rules` | Which mail to skip or keep, written by `memo mail rules`. See [Mail](mail.md#choose-what-to-import). |
 
 Next to `accounts`:
 
