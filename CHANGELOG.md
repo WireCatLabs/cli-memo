@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.45.0 — 16.10.2026
+
 ### Fixed
 
 - **The `memo auto` timer follows only a global install of memo.** A memo run from another tool's own
