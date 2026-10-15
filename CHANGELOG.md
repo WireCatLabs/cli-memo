@@ -32,9 +32,9 @@ the API.
 - `memo mail rules add --do` takes a comma list: one of `skip`, `envelope`, `keep`, `protect`, plus any
   `tag:<name>`. A rules file may hold the new conditions; `rules remove` drops the rule with exactly the
   conditions given.
-- **`memo search mail` leaves out bulk mail** — newsletters, notices and mailing lists, by their List-Id,
-  List-Unsubscribe or `Precedence` header — so mail people wrote ranks first; `--include bulk` brings it back.
-  Import marks such mail with its own mailbox, `memo:bulk`, for an account with rules.
+- **Mail sent to many is marked**: import puts mail with a List-Id, List-Unsubscribe or `Precedence: bulk`
+  header in the mailbox `memo:bulk` (accounts with rules), so `memo search mail '… NOT mailbox:bulk'`
+  leaves newsletters out. Search keeps them by default: bills and bookings carry the same headers.
 
 ### Fixed
 

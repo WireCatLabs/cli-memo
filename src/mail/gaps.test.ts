@@ -114,7 +114,7 @@ describe("bulk mail", () => {
     return (answerOf(streams.stdout.join("")).items as { ref: string }[]).map(({ ref }) => ref)
   }
 
-  it("is marked when read and left out of mail search unless --include bulk asks for it", async () => {
+  it("is marked when read, kept in mail search, and left out by NOT mailbox:bulk", async () => {
     const env = setup()
     await importMail({
       store: await openAt(env),
@@ -133,9 +133,7 @@ describe("bulk mail", () => {
     await store.close()
     opened.splice(opened.indexOf(store), 1)
 
-    const plain = await search(["trip", "--account", "test"], env)
-    const all = await search(["trip", "--account", "test", "--include", "bulk"], env)
-    expect(plain).toHaveLength(1)
-    expect(all).toHaveLength(2)
+    expect(await search(["trip", "--account", "test"], env)).toHaveLength(2)
+    expect(await search(["trip NOT mailbox:bulk", "--account", "test"], env)).toHaveLength(1)
   })
 })
