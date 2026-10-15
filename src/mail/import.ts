@@ -120,6 +120,8 @@ export const importMail = async ({
   const searches = new Map<string, Searched>()
   /** The earlier point of each folder whose UIDs and rules still hold; its done mail stays done. */
   const earlier = new Map<string, ResumePoint>()
+  /** Every folder's stored point, valid or not: the widest window outlives what invalidates the rest. */
+  const storedPoints = new Map<string, ResumePoint>()
   const resumed = new Set<string>()
   let mboxPoint: MboxPoint | undefined
   let mboxStamp: Awaited<ReturnType<NonNullable<MailSource["stamp"]>>> | undefined
@@ -136,7 +138,9 @@ export const importMail = async ({
     let wanted = searched
     if (searched !== undefined) {
       searches.set(folder, searched)
-      const point = fresh ? undefined : parsePoint<ResumePoint>((await store.syncState(key, resumeKey(folder)))?.value)
+      const kept = parsePoint<ResumePoint>((await store.syncState(key, resumeKey(folder)))?.value)
+      if (kept !== undefined) storedPoints.set(folder, kept)
+      const point = fresh ? undefined : kept
       if (point !== undefined && point.validity === searched.validity && point.rules === ruleSet) {
         earlier.set(folder, point)
         if (
@@ -317,6 +321,15 @@ export const importMail = async ({
           (Date.parse(before.full.since) < since.getTime() && startedAt - Date.parse(before.full.at) < FULL_PASS_MS))
       const merged = mergeRanges(before?.done ?? ([] as Ranges), rangesOf(done))
       const widest = before === undefined || since.getTime() <= Date.parse(before.window.since)
+      const thisRun = { since: since.toISOString(), total: searched.uids.length, at: new Date(startedAt).toISOString() }
+      const prior = storedPoints.get(folder)
+      const priorWidest =
+        prior?.widest ??
+        (prior === undefined
+          ? undefined
+          : { since: prior.window.since, total: prior.window.total, at: prior.updatedAt })
+      const widestEver =
+        priorWidest === undefined || since.getTime() <= Date.parse(priorWidest.since) ? thisRun : priorWidest
       const point: ResumePoint = {
         validity: searched.validity,
         done: merged,
@@ -329,6 +342,8 @@ export const importMail = async ({
               done: searched.uids.filter((uid) => within(merged, Number(uid))).length,
             }
           : before.window,
+        widest: widestEver,
+        last: { ...thisRun, done: searched.uids.filter((uid) => within(merged, Number(uid))).length },
         updatedAt: new Date(now()).toISOString(),
       }
       await store.setSyncState(key, resumeKey(folder), JSON.stringify(point))

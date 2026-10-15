@@ -5,15 +5,27 @@ import type { MailAccount } from "./import.js"
 import { MBOX_RESUME, type MboxPoint, parsePoint, type ResumePoint, resumeKey } from "./resume.js"
 import { ENVELOPE } from "./rules.js"
 
+export interface FolderStatus {
+  folder: string
+  /** The widest window ever listed, and how much of it is stored. */
+  since: string
+  done: number
+  total: number
+  /** The latest run, which may be the timer's few days and must not be read as the whole mailbox. */
+  last?: { since: string; done: number; total: number; at: string }
+  fullAt: string
+  updatedAt: string
+}
+
 export interface MailStatus {
   account: string
   /** Emails stored with their text. */
   stored: number
   /** Emails a rule recorded without their text. */
   envelopes: number
-  /** Mail whose outcome is final, of the mail in the widest window searched. */
+  /** Mail whose outcome is final, of the mail in the widest window ever listed. */
   progress: Progress
-  folders: { folder: string; done: number; total: number; fullAt: string; updatedAt: string }[]
+  folders: FolderStatus[]
   /** An mbox account: the file read last, and whether it was read to the end. */
   file?: MboxPoint
 }
@@ -24,17 +36,29 @@ export const mailStatus = async (store: MessageStore, account: MailAccount, now 
   const stored = await store.storedAccount(key).catch(() => null)
   const refs = stored === null ? [] : await store.mail.emailRefs({ accountId: stored.id })
   const envelopes = refs.filter(({ mailboxes }) => mailboxes.some(({ kind }) => kind === ENVELOPE)).length
-  const folders: MailStatus["folders"] = []
+  const folders: FolderStatus[] = []
   for (const folder of mailFolders(account)) {
     const point = parsePoint<ResumePoint>((await store.syncState(key, resumeKey(folder)))?.value)
-    if (point !== undefined)
-      folders.push({
-        folder,
-        done: point.window.done,
-        total: point.window.total,
-        fullAt: point.full.at,
-        updatedAt: point.updatedAt,
-      })
+    if (point === undefined) continue
+    const widest = point.widest ?? { since: point.window.since, total: point.window.total, at: point.updatedAt }
+    // The UID ranges count only while the window they describe is the widest; after a rule change or a new
+    // UIDVALIDITY they start over, and the stored mail is what is known to be done.
+    const ranged = point.window.since === widest.since ? point.window.done : 0
+    const inStore =
+      stored === null
+        ? 0
+        : (
+            await store.mail.emailRefs({ accountId: stored.id, mailbox: folder, since: Date.parse(widest.since) })
+          ).filter(({ deleted }) => !deleted).length
+    folders.push({
+      folder,
+      since: widest.since,
+      done: Math.min(widest.total, Math.max(ranged, inStore)),
+      total: widest.total,
+      ...(point.last === undefined ? {} : { last: point.last }),
+      fullAt: point.full.at,
+      updatedAt: point.updatedAt,
+    })
   }
   const file = parsePoint<MboxPoint>((await store.syncState(key, MBOX_RESUME))?.value)
   const updatedAt = [...folders.map((each) => each.updatedAt), ...(file ? [file.updatedAt] : [])].sort().at(-1)
@@ -65,14 +89,19 @@ export const mailStatus = async (store: MessageStore, account: MailAccount, now 
   }
 }
 
+const day = (iso: string): string => iso.slice(0, 10)
+const minute = (iso: string): string => `${iso.slice(0, 16).replace("T", " ")} UTC`
+
 export const statusText = (status: MailStatus): string =>
   [
     progressLine(status.progress),
     `${status.stored} stored in full, ${status.envelopes} recorded as envelopes`,
-    ...status.folders.map(
-      ({ folder, done, total, fullAt }) =>
-        `${folder}: ${done} of ${total} done; last whole listing ${fullAt.slice(0, 16).replace("T", " ")} UTC`,
-    ),
+    ...status.folders.flatMap(({ folder, since, done, total, last, fullAt }) => [
+      `${folder}: since ${day(since)}, ${done} of ${total} stored; last whole listing ${minute(fullAt)}`,
+      ...(last === undefined || last.since === since
+        ? []
+        : [`  last run, since ${day(last.since)} only: ${last.done} of ${last.total} done at ${minute(last.at)}`]),
+    ]),
     ...(status.file === undefined
       ? []
       : [`file: ${status.file.size} bytes, ${status.file.complete ? "read to the end" : "partly read"}`]),

@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **`memo mail status` counts the widest window ever imported**, not the latest run. A rule change, a new
+  UIDVALIDITY or `--rescan` starts the resume point over, and the timer's 30-day run then made status say
+  "complete" while most of a mailbox was still unread. The widest window and the last run are now shown apart;
+  `--json` gains `folders[].since` and `folders[].last`.
+
 ## 0.34.0 — 15.10.2026
 
 ### Changed — may break scripts
