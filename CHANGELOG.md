@@ -22,6 +22,10 @@ the API.
   `from:` or `to:` term becomes its own rule, and words become subject words.
 - **`--filter` takes `from:<address|domain|word>` and `to:<address>`**: `from:sample` matches a sender whose
   address or display name contains the word.
+- **Two more spam signals in the sender score:** `never_opened` (+2, you opened none of a sender's mail) and
+  `dkim_not_passed` (+2, Gmail's DKIM check did not pass on most of it). On the owner's mailbox they raised the
+  share of Gmail Spam reaching score 3 from 22.9% to 84.2%, with the same 1 of 63 replied-to senders flagged
+  ([cli-testing](https://github.com/WireCatLabs/cli-testing/tree/main/performance/mail/spam-scoring)).
 
 ### Changed — may break scripts
 

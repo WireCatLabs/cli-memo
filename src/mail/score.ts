@@ -12,6 +12,8 @@ export const WEIGHTS = {
   brand_spoof: 3,
   young_domain: 3,
   reply_to_elsewhere: 2,
+  never_opened: 2,
+  dkim_not_passed: 2,
   disposable_domain: 2,
   bulk_never_replied: 1,
   replied: -5,
@@ -22,7 +24,8 @@ export type Signal = keyof typeof WEIGHTS
 export const SCORE_RULE =
   "score adds: in Gmail's Spam +4, Gmail's DMARC check failed +3, a brand in the display name sent from another " +
   "domain +3, the domain under 180 days old when the mail came +3 (only with looked-up ages), Reply-To on another " +
-  "domain +2, a throwaway-mail domain +2, bulk mail never replied to +1, replied to by the owner -5"
+  "domain +2, none of its mail ever opened +2, Gmail's DKIM check not passed +2, a throwaway-mail domain +2, bulk mail " +
+  "never replied to +1, replied to by the owner -5"
 
 /** A domain registered too recently to trust: under this many days old when the mail arrived. */
 export const YOUNG_DAYS = 180
@@ -139,6 +142,11 @@ export const scoreGroup = (
     })
   )
     signals.push("reply_to_elsewhere")
+  const known = items.filter((item) => item.seen !== undefined)
+  if (known.length && known.every((item) => !item.seen)) signals.push("never_opened")
+  // Gmail's stamp without a dkim= verdict means the mail carried no signature: that counts as not passed.
+  const stamped = items.filter((item) => item.headers?.auth !== undefined)
+  if (stamped.length && most(stamped, (item) => item.headers?.auth?.dkim !== "pass")) signals.push("dkim_not_passed")
   if (domain !== undefined && isDisposableEmailDomain(domain)) signals.push("disposable_domain")
   if (context.bulk >= 0.8 && !context.replied) signals.push("bulk_never_replied")
   if (context.replied) signals.push("replied")
