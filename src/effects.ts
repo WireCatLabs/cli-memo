@@ -120,6 +120,12 @@ export const OUTPUTS: Readonly<Record<string, CommandOutput>> = {
   "memories show": { entity: "memory" },
   "memories confirm": { entity: "memory" },
   "memories stale": { entity: "memory" },
+  "tags list": { entity: "source_tag" },
+  "vocabulary list": { entity: "vocabulary" },
+  "actions list": { entity: "proposed_action" },
+  "agents log": { entity: "agent_action" },
+  "projects meetings list": { entity: "meeting_project" },
+  "folders list": { entity: "notes_folder" },
 }
 
 /**

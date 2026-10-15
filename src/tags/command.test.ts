@@ -149,6 +149,16 @@ describe("memo source tags", () => {
     expect(await json("tags", "remove", "work", ...args)).toMatchObject({ removed: [], unchanged: ["work"] })
   })
 
+  it("keeps the label fields --json names, and refuses one a label row lacks", async () => {
+    await json("tags", "add", "work", "--chat", "7", "--provider", "email", "--account", mail.account)
+    const kept = JSON.parse(await run("tags", "list", "type:chat", "--json=tag,type,chat_id"))
+    expect(kept.items).toEqual([{ tag: "work", type: "chat", chat_id: "7" }])
+    await expect(run("tags", "list", "--json=subject")).rejects.toMatchObject({
+      code: "validation_error",
+      details: { reason: "output.unknown-field" },
+    })
+  })
+
   it("preserves labels through edits and hides deleted notes from search", async () => {
     const ref = await noteRef()
     await json("tags", "add", "work", "--note", ref)

@@ -1,5 +1,6 @@
 import { CliError, createRenderer, processStreams, type Streams } from "@wirecat/cli-base"
 import { skillCommand } from "@wirecat/cli-base/skill"
+import { entityFields } from "@wirecat/cli-core/cli"
 import { Command } from "commander"
 import { actionsCommand } from "./actions/command.js"
 import { agentsCommand } from "./agents/command.js"
@@ -30,6 +31,49 @@ import { upgradeCommand } from "./update.js"
 import { VERSION } from "./version.js"
 import { vocabularyCommand } from "./vocabulary/command.js"
 
+/** memo's own answers, beyond cli-core's entities, so `--json=<field>` is checked against what each row holds. */
+const OWN_ENTITIES = entityFields({
+  source_tag: [
+    "provider",
+    "account",
+    "tag",
+    "type",
+    "chat_id",
+    "chat_title",
+    "person_id",
+    "name",
+    "message_id",
+    "locator",
+    "task_id",
+    "sources",
+    "created_at",
+    "id",
+    "path",
+    "origin",
+  ],
+  vocabulary: ["entries", "fingerprint", "coverage"],
+  proposed_action: [
+    "id",
+    "kind",
+    "account",
+    "target",
+    "payload",
+    "reason",
+    "status",
+    "proposed_by",
+    "decided_by",
+    "decided_at",
+    "executed_at",
+    "result",
+    "error",
+    "verdict",
+    "created_at",
+  ],
+  agent_action: ["id", "actor", "tool", "tier", "target", "status", "error", "started_at", "finished_at"],
+  meeting_project: ["id", "meeting", "project", "confirmed", "provenance", "fingerprint"],
+  notes_folder: ["id", "name", "path", "format", "kept_by"],
+})
+
 export const createProgram = ({
   streams: raw = processStreams,
   env = process.env,
@@ -37,7 +81,7 @@ export const createProgram = ({
   streams?: Streams
   env?: NodeJS.ProcessEnv
 } = {}): Command => {
-  const fields = jsonFields(raw)
+  const fields = jsonFields(raw, OWN_ENTITIES)
   const { streams } = fields
   const program = new Command("memo")
     .description("context about people across messengers, notes and mail")
