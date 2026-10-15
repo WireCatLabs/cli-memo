@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.46.0 — 16.10.2026
+
 ### Changed
 
 - **`memo mail probe` is now `memo mail inspect`.** Same command and output; `inspect` is the shared word for
