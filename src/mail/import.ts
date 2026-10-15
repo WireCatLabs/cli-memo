@@ -21,6 +21,7 @@ import {
   rulesKey,
   within,
 } from "./resume.js"
+import { ruleTagger, settleRuleTags, type TagOutcome } from "./rule-tags.js"
 import { decide, ENVELOPE, envelopeBox, envelopeBoxOf, type MailRule, tagsOf } from "./rules.js"
 import type { Listed, MailSource, Searched } from "./source.js"
 
@@ -57,6 +58,10 @@ export interface ImportResult {
   indexed?: NotesEmbedded
   coverage?: { folders: string[]; since: string; until: string; state: "window" | "partial"; identity: string }
   attachments?: { message: string; part: number; status: string }[]
+  /** Rule tags put on mail as an existing label the store pointed to. */
+  tagsReused?: TagOutcome["reused"]
+  /** Rule tags the store refused with nothing to reuse; that mail is stored untagged. */
+  tagsSkipped?: TagOutcome["skipped"]
 }
 
 const DAY = 86_400_000
@@ -169,10 +174,10 @@ export const importMail = async ({
   const present = new Set(listed.map(({ messageId }) => messageId))
   const factsFor = factsOf(listed, rules, env === undefined ? undefined : knownAges(env))
   // A rule's tag goes on mail this run stores or records; mail stored earlier gets it from memo mail rules apply.
+  const tagger = ruleTagger(store, key)
   const tagStored = async (item: Listed) => {
     const tags = tagsOf(rules, factsFor(item))
-    if (tags.length)
-      await store.addTags(key, { type: "message", chatId: item.threadId, messageId: item.messageId }, tags)
+    if (tags.length) await tagger.tag({ type: "message", chatId: item.threadId, messageId: item.messageId }, tags)
   }
   const foundFolders = new Map<string, Set<string>>()
   for (const item of collected) {
@@ -536,6 +541,8 @@ export const importMail = async ({
     identity: account.mode === "imap" ? "message-id-or-uidvalidity-folder-uid" : "gmail-message-id",
   }
   if (!snapshot) await store.setSyncState(key, "mail_coverage", JSON.stringify(coverage))
+  const tagging = tagger.outcome()
+  await settleRuleTags(store, accountId, rules, tagging)
   return {
     account: key.account,
     since: since.toISOString(),
@@ -552,5 +559,7 @@ export const importMail = async ({
     ...(unreadable.length ? { unreadable } : {}),
     ...(skipped === undefined ? {} : { deletionsSkipped: skipped }),
     ...(searches.size > 0 ? { pass: resumed.size > 0 ? ("resumed" as const) : ("full" as const) } : {}),
+    ...(tagging.reused.length ? { tagsReused: tagging.reused } : {}),
+    ...(tagging.skipped.length ? { tagsSkipped: tagging.skipped } : {}),
   }
 }

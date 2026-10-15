@@ -14,6 +14,7 @@ import { PRESET_NAMES, type PresetName } from "./presets.js"
 import { domainsToAge, type Probe, probeMail, SUGGEST_RULE } from "./probe.js"
 import { ACTION_HELP, actionsOf, FILTER_HELP, filterMatch } from "./rule-query.js"
 import { removeRule, ruleCounts, rulesOf, saveRule } from "./rule-store.js"
+import { mapProposedTags } from "./rule-tags.js"
 import { conditionKeys, describeMatch, type MailAction, type MailRule, type MailRuleMatch } from "./rules.js"
 import { FREE_MAIL, SCORE_RULE } from "./score.js"
 import type { Listed } from "./source.js"
@@ -63,6 +64,7 @@ const ruleLine = (rule: MailRule & { recorded?: Recorded }): string =>
     rule.protected ? "PROTECTED" : rule.action.padEnd(8),
     describe(rule.match),
     rule.tags?.length ? `tag ${rule.tags.join(", ")}` : "",
+    rule.tags_skipped ? `tags skipped: ${Object.keys(rule.tags_skipped).join(", ")}` : "",
     rule.source === undefined ? "" : `(${rule.source})`,
     rule.decided_at.slice(0, 10),
     rule.recorded === undefined ? "" : `${rule.recorded.emails} emails, ${megabytes(rule.recorded.bytes)} MB`,
@@ -356,20 +358,24 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     )
     .action(async (name: string, path: string, options: { yes?: boolean; json?: boolean }) => {
       const account = accountOf(loadConfig(env), name)
-      const proposal = importFilters(readFileSync(path, "utf8"), path)
-      const added = options.yes
-        ? await withStore(env, async (store) => {
-            await rulesOf(store, account, env, streams.diagnostic)
-            const out: MailRule[] = []
-            for (const rule of proposal.rules) out.push(await saveRule(store, account.address, rule))
-            return out.length
-          })
-        : 0
+      const parsed = importFilters(readFileSync(path, "utf8"), path)
+      const { proposal, mapping, added } = await withStore(env, async (store) => {
+        const { rules: mapped, mapping } = await mapProposedTags(store, parsed.rules)
+        const proposal = { ...parsed, rules: mapped }
+        if (!options.yes) return { proposal, mapping, added: 0 }
+        await rulesOf(store, account, env, streams.diagnostic)
+        const out: MailRule[] = []
+        for (const rule of proposal.rules) out.push(await saveRule(store, account.address, rule))
+        return { proposal, mapping, added: out.length }
+      })
       print(
         options.json,
-        itemAnswer({ ...proposal, added }),
+        itemAnswer({ ...proposal, tagMapping: mapping, added }),
         [
           ...proposal.rules.map(ruleLine),
+          ...mapping.map(
+            ({ tag, as, why }) => `label    ${tag} → ${as} (${why === "reuse" ? "same label" : "similar label"})`,
+          ),
           ...proposal.skipped.map(({ filter, why }) => `skipped  ${filter}: ${why}`),
           options.yes
             ? `added ${added} rules to ${account.name}`

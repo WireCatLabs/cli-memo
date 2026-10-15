@@ -37,6 +37,8 @@ export interface MailRule {
   action: MailAction
   /** memo tags put on every email the rule matches, with any action. */
   tags?: string[]
+  /** Tags the store refused with no label to reuse, and why; the mail is stored untagged. */
+  tags_skipped?: Record<string, string>
   reason?: string
   /** Stored in full, and no cleanup may cut, archive or trash it, whatever other rules or presets say. */
   protected?: boolean
