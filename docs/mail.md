@@ -107,7 +107,7 @@ memo mail rules add work --sender orders@shop.example --do keep
 memo mail rules list work
 ```
 
-A rule's `--do` is one of three actions:
+The basic `--do` actions are listed below; protection and tags follow in the next section:
 
 - `skip`: `memo sync` never reads or stores the email, and counts it as skipped.
 - `envelope`: `memo sync` stores the sender, date, size, labels and the Gmail id, but not the text or
