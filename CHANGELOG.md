@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.37.1 — 15.10.2026
+
 ### Security
 
 - **A hostile HTML email no longer stalls `memo sync`**: an HTML-only mail is turned into text in time linear in
