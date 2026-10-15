@@ -2,7 +2,7 @@ import { chmodSync, mkdtempSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { describe, expect, it } from "vitest"
-import { himalaya, stderrTail } from "./himalaya.js"
+import { errorReport, himalaya, stderrTail } from "./himalaya.js"
 
 const fake = (script: string): NodeJS.ProcessEnv => {
   const path = join(mkdtempSync(join(tmpdir(), "himalaya-")), "himalaya")
@@ -39,6 +39,48 @@ describe("a failing himalaya", () => {
       code: "rate_limited",
       details: { reason: "mail.throttled" },
     })
+  })
+})
+
+describe("himalaya's own error report", () => {
+  it("is read from stdout, where himalaya 2.2 prints it, when stderr is empty", async () => {
+    const env = fake(
+      'printf "* OK Gimap ready\\nError: cannot connect to IMAP server\\n\\nSuggestions:\\n - Run with --log-level\\n"; exit 1',
+    )
+
+    await expect(himalaya(env)(["imap", "raw", "-a", "home"])).rejects.toMatchObject({
+      message: "himalaya imap raw failed (exit 1): Error: cannot connect to IMAP server",
+      details: { stderr_tail: ["Error: cannot connect to IMAP server"] },
+    })
+  })
+
+  it("is a throttled account when the report says so", async () => {
+    const env = fake('echo "Error: NO [THROTTLED] Account exceeded command or bandwidth limits"; exit 1')
+
+    await expect(himalaya(env)(["imap", "raw"])).rejects.toMatchObject({ details: { reason: "mail.throttled" } })
+  })
+
+  it("leaves the IMAP answer above the report out", () => {
+    expect(
+      errorReport("* 1 FETCH (UID 7)\nError: connection reset\ncaused by: os error 104\n\nSuggestions:\n - x"),
+    ).toEqual(["Error: connection reset", "caused by: os error 104"])
+  })
+})
+
+describe("a read that fails once", () => {
+  const flaky = () => {
+    const mark = join(mkdtempSync(join(tmpdir(), "himalaya-")), "tried")
+    return fake(`if [ -e ${mark} ]; then echo "a OK"; else touch ${mark}; echo "Error: connection reset"; exit 1; fi`)
+  }
+
+  it("is tried once more", async () => {
+    await expect(himalaya(flaky())(["imap", "raw"], "a EXAMINE INBOX\r\n")).resolves.toBe("a OK\n")
+  })
+
+  it("is not repeated when it writes", async () => {
+    await expect(himalaya(flaky())(["imap", "raw"], "a UID STORE 1 +FLAGS (\\Seen)\r\n")).rejects.toThrow(
+      "connection reset",
+    )
   })
 })
 

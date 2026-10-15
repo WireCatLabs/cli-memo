@@ -18,6 +18,13 @@ the API.
   gone. The query is words and at most one `scope:`, joined by AND; `OR`, `NOT` and other fields are refused
   rather than filtered after the search. The MCP `search memories` tool lost its `scope` argument the same way.
 
+### Fixed
+
+- **A failed mail listing says why.** himalaya 2.2 prints its error on stdout, so memo reported "no error text"; the
+  failed line now carries himalaya's `Error:` report, and a `[THROTTLED]` in it is `mail.throttled`.
+- **A read that fails once is tried again** after 15 s (`MEMO_HIMALAYA_RETRY_MS`); IMAP commands that write are never
+  repeated.
+
 ## 0.45.0 — 16.10.2026
 
 ### Fixed

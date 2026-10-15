@@ -20,6 +20,7 @@ process.env.WIRECAT_STATE_DIR = join(sandbox, "wirecat")
 process.env.HIMALAYA_CONFIG = join(sandbox, "himalaya.toml")
 process.env.MEMO_HIMALAYA = join(import.meta.dirname, "fake-himalaya.mjs")
 process.env.MEMO_SYSTEMCTL = join(import.meta.dirname, "fake-systemctl.mjs")
+process.env.MEMO_HIMALAYA_RETRY_MS = "0"
 delete process.env.MEMO_AUTO
 // Set when the suite runs inside an agent's terminal; it would make every write the agent's.
 delete process.env.AI_AGENT

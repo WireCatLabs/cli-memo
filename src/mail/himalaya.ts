@@ -24,6 +24,21 @@ export const stderrTail = (stderr: string): string[] =>
 
 export const isThrottled = (text: string): boolean => THROTTLED.test(text)
 
+/**
+ * himalaya 2.2 prints its own failure on stdout, not stderr ("Error: …" then "Suggestions:"), so a failure whose
+ * stderr is empty reads it from there; an IMAP answer above it is left out.
+ */
+export const errorReport = (stdout: string): string[] => {
+  const lines = stdout.split(/\r?\n/)
+  const start = lines.findLastIndex((line) => line.startsWith("Error:"))
+  if (start < 0) return []
+  const end = lines.findIndex((line, index) => index > start && line.startsWith("Suggestions:"))
+  return stderrTail(lines.slice(start, end < 0 ? undefined : end).join("\n"))
+}
+
+// Every IMAP command memo sends only reads, so running one again is safe; a write must never be repeated.
+const WRITES = /^\S+\s+(?:UID\s+)?(?:STORE|EXPUNGE|COPY|MOVE|APPEND|DELETE|CREATE|RENAME)\b/im
+
 export const throttledError = (what: string): CliError =>
   new CliError("rate_limited", `${what}: Gmail is limiting this account's IMAP traffic; try again in an hour or more`, {
     reason: "mail.throttled",
@@ -37,9 +52,8 @@ interface ExecFailure extends Error {
 const howItEnded = ({ code, signal }: ExecFailure): string =>
   signal ? `killed by ${signal}` : typeof code === "number" ? `exit ${code}` : String(code ?? "failed")
 
-/** `MEMO_HIMALAYA` names the program, so the test sandbox can point it at a fake. */
-export const himalaya =
-  (env: NodeJS.ProcessEnv = process.env): Himalaya =>
+const once =
+  (env: NodeJS.ProcessEnv): Himalaya =>
   (args, input, options) =>
     new Promise((resolve, reject) => {
       const child = execFile(
@@ -51,7 +65,9 @@ export const himalaya =
           const what = `himalaya ${args[0] ?? ""} ${args[1] ?? ""}`.trim()
           if (isThrottled(stderr) || isThrottled(String(stdout).slice(-4096))) return reject(throttledError(what))
           const failure = error as ExecFailure
-          const tail = stderrTail(stderr)
+          const printed = stderrTail(stderr)
+          const tail = printed.length ? printed : errorReport(String(stdout))
+          if (isThrottled(tail.join("\n"))) return reject(throttledError(what))
           const ended = howItEnded(failure)
           const said =
             tail.at(-1) ?? (/maxBuffer/i.test(failure.message) ? "its answer was too large" : "no error text")
@@ -69,3 +85,27 @@ export const himalaya =
       child.stdin?.on("error", () => {})
       child.stdin?.end(input ?? "")
     })
+
+const pause = (ms: number) => new Promise((done) => setTimeout(done, ms))
+
+/**
+ * `MEMO_HIMALAYA` names the program, so the test sandbox can point it at a fake. A read that fails is tried once
+ * more after `MEMO_HIMALAYA_RETRY_MS` (15 s): six failed runs in two days (2026-10-14/15) each passed on the next run.
+ */
+export const himalaya =
+  (env: NodeJS.ProcessEnv = process.env): Himalaya =>
+  async (args, input, options) => {
+    const run = once(env)
+    try {
+      return await run(args, input, options)
+    } catch (error) {
+      const again =
+        error instanceof CliError &&
+        error.code === "provider_error" &&
+        !error.message.includes("too large") &&
+        !WRITES.test(input ?? "")
+      if (!again) throw error
+      await pause(Number(env.MEMO_HIMALAYA_RETRY_MS ?? 15_000))
+      return run(args, input, options)
+    }
+  }
