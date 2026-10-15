@@ -23,7 +23,11 @@ const conditionsOf = (match: MailRuleMatch): Record<string, string | number | bo
 
 export const ruleInput = (rule: MailRule, source = rule.source ?? "owner") => ({
   conditions: conditionsOf(rule.match),
-  actions: { store: STORE_ACTION[rule.action], ...(rule.tags?.length ? { tags: rule.tags } : {}) },
+  actions: {
+    store: STORE_ACTION[rule.action],
+    ...(rule.tags?.length ? { tags: rule.tags } : {}),
+    ...(rule.tags_skipped && Object.keys(rule.tags_skipped).length ? { tags_skipped: rule.tags_skipped } : {}),
+  },
   protected: rule.protected === true,
   source,
   reason: rule.reason ?? null,
@@ -59,11 +63,17 @@ const fromStored = (stored: StoredRule): MailRule | undefined => {
   )
   if (action === undefined || !known || entries.length === 0) return undefined
   const tags = Array.isArray(stored.actions.tags) ? stored.actions.tags.filter((tag) => typeof tag === "string") : []
+  const skipped = stored.actions.tags_skipped
+  const tagsSkipped =
+    skipped !== null && typeof skipped === "object" && !Array.isArray(skipped)
+      ? Object.fromEntries(Object.entries(skipped).filter(([, why]) => typeof why === "string"))
+      : {}
   return {
     id: stored.id,
     match: Object.fromEntries(entries) as MailRuleMatch,
     action,
     ...(tags.length ? { tags: tags as string[] } : {}),
+    ...(Object.keys(tagsSkipped).length ? { tags_skipped: tagsSkipped as Record<string, string> } : {}),
     ...(stored.reason === null ? {} : { reason: stored.reason }),
     ...(stored.protected ? { protected: true } : {}),
     ...(stored.source === "owner" ? {} : { source: stored.source }),

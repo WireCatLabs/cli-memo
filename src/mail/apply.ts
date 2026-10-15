@@ -2,6 +2,7 @@ import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
 import { mailFolders } from "./accounts.js"
 import { factsOf } from "./facts.js"
 import type { MailAccount } from "./import.js"
+import { ruleTagger, settleRuleTags, type TagOutcome } from "./rule-tags.js"
 import { decide, ENVELOPE, envelopeBox, type MailRule, type MailRuleMatch, sameMatch, tagsOf } from "./rules.js"
 import type { Listed, MailSource } from "./source.js"
 
@@ -26,6 +27,8 @@ export interface ApplyResult {
   /** Stored emails a rule's tag was put on, or would be. */
   tagged: number
   rules: RuleEffect[]
+  tagsReused?: TagOutcome["reused"]
+  tagsSkipped?: TagOutcome["skipped"]
 }
 
 const textBytes = (text: string | null | undefined) => (text ? Buffer.byteLength(text) : 0)
@@ -83,13 +86,14 @@ export const applyRules = async ({
   const effectOf = (match: MailRuleMatch) => effects.find(({ rule }) => sameMatch(rule.match, match)) as RuleEffect
   const all = new Set((await store.mail.emailRefs({ accountId: stored.id })).map(({ externalId }) => externalId))
   const factsFor = factsOf([...listed.values()], rules)
+  const tagger = ruleTagger(store, key)
   const chosen: { item: Listed; rule: MailRule }[] = []
   for (const item of listed.values()) {
     const facts = factsFor(item)
     const tags = all.has(item.messageId) ? tagsOf(rules, facts) : []
     if (tags.length) {
       result.tagged++
-      if (apply) await store.addTags(key, { type: "message", chatId: item.threadId, messageId: item.messageId }, tags)
+      if (apply) await tagger.tag({ type: "message", chatId: item.threadId, messageId: item.messageId }, tags)
     }
     if (!full.has(item.messageId)) continue
     const rule = decide(rules, facts)
@@ -141,5 +145,9 @@ export const applyRules = async ({
       ],
     })
   }
+  const tagging = tagger.outcome()
+  if (apply) await settleRuleTags(store, stored.id, rules, tagging)
+  if (tagging.reused.length) result.tagsReused = tagging.reused
+  if (tagging.skipped.length) result.tagsSkipped = tagging.skipped
   return result
 }

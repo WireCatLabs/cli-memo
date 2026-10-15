@@ -150,7 +150,10 @@ memo mail rules list work --filter is:protected
 ```
 
 - **`tag:<name>`** puts a memo tag on every email the rule matches, whichever rule decides the action. A sync
-  tags the mail it stores or records; `memo mail rules apply` tags mail stored earlier.
+  tags the mail it stores or records; `memo mail rules apply` tags mail stored earlier. A tag the store refuses
+  as too close to an existing label is put on as that label, and the rule is updated to it (`tags_reused` in
+  `--json`). A tag refused with nothing to reuse is skipped, the mail is still stored, and the rule lists it as
+  `tags skipped` (`tags_skipped`). A refused tag never stops the sync.
 - **`protect`** keeps the mail whole and out of every cleanup, whatever other rules or kinds say. A protected
   rule wins over all others and always stores in full, so `memo mail rules apply` never cuts its mail and a later
   mailbox cleanup must refuse it. Use it for government, tax and bank mail. `memo mail rules list` shows
@@ -187,6 +190,9 @@ rule for each filter it can express:
 memo mail rules import-filters work Filters.json        # shows the proposed rules and the skipped filters
 memo mail rules import-filters work Filters.json --yes  # adds them
 ```
+
+Each Gmail label a filter adds is matched to memo's labels first: the same label in other capitals is reused,
+and a close one is suggested in its place; the proposal lists each mapping as `label … → …`.
 
 A filter that skips the inbox, marks read or deletes becomes an envelope rule; one that only adds a label becomes
 a keep rule with that label as a tag. A filter naming several senders or recipients (`from:a from:b`,

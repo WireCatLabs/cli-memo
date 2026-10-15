@@ -42,6 +42,12 @@ the API.
 
 ### Fixed
 
+- **A rule's tag never fails the mail sync.** A Gmail label the store refused as too similar to an existing label
+  stopped the whole account's sync ("similar labels exist"). memo now puts the mail under the label the store
+  points to and rewrites the rule to it (`tags_reused`), or skips a tag with nothing to reuse (`tags_skipped`,
+  also shown by `memo mail rules list`). `memo mail rules import-filters` maps Gmail labels to existing memo labels
+  before proposing, and lists the mapping. Labels stored with capitals or a slash need cli-core's matching fix.
+
 - **An HTML page sent as the text part is read as text.** Some senders (airline itineraries among them) put HTML
   in text/plain, and memo stored the markup. The next `memo sync` converts mail already stored, once per account.
 - HTML comments no longer leave their text and a stray `-->` in an email's text.
