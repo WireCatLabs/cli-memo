@@ -65,6 +65,9 @@ const TASKS_LIST_QUERY = {
   fields: [
     queryField("state", "enum", "state:done", { values: ["open", "done", "dismissed"] }),
     queryField("kind", "enum", "kind:bug", { values: TASK_TYPES }),
+    queryField("source", "ref", 'source:"msg:telegram/1/7/1"', {
+      relation: "tasks from this message, note or document; an account's tasks only",
+    }),
   ],
   defaults: ["state:open"],
 } as const satisfies QueryRegistry
@@ -173,10 +176,13 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         const terms = queryTerms(words, TASKS_LIST_QUERY, "tasks list")
         const state = terms.get("state") as "open" | "done" | "dismissed"
         const kind = terms.get("kind") as TaskType | undefined
+        const source = terms.get("source")
         if (options.ready && (options.project === undefined || words.length > 0))
           throw new CliError("validation_error", "--ready lists a project's open tasks: give --project and no query")
         if (kind !== undefined && options.project === undefined)
           throw new CliError("validation_error", "kind: narrows a project's tasks: give --project")
+        if (source !== undefined && options.project !== undefined)
+          throw new CliError("validation_error", "source: narrows an account's tasks: give --provider, not --project")
         await withStore(env, async (store) => {
           if (options.ready && options.project !== undefined) {
             const page = await store.tasks.readyTasks(await canonicalProject(store, options.project), {
@@ -199,7 +205,11 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
             return
           }
           const key = await selectAccount(store, options)
-          const page = await taskPage(store, key, { state, limit: options.limit })
+          const page = await taskPage(store, key, {
+            state,
+            limit: options.limit,
+            ...(source === undefined ? {} : { sources: [source] }),
+          })
           print(options.json, tasksPage(page, options.limit))
         })
       },

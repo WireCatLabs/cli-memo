@@ -1,9 +1,11 @@
 import type { ErrorCode } from "@wirecat/cli-base"
-import type { Missing } from "@wirecat/cli-base/standards"
+import { type Missing, type StepDefinition, stepOf } from "@wirecat/cli-base/standards"
+import { allHitItem, messageHitItem, noteHitItem } from "@wirecat/cli-core/cli"
 import type { NotesFound, SearchAllFound, SearchFound } from "@wirecat/cli-core/services"
+import type { AccountKey } from "@wirecat/cli-core/store"
 import { listAnswer } from "../answer.js"
 import { modelHint } from "../notes/embed.js"
-import { allHit, briefHit, messageHit } from "./hits.js"
+import { briefHit } from "./hits.js"
 
 interface Account {
   provider: string
@@ -27,32 +29,47 @@ const metaOf = (
 const meaningMissed = (why: string | undefined, exact = false): Missing[] =>
   why === undefined || exact ? [] : [{ field: "found_by", why: modelHint(why) }]
 
-/** `search all`, CLI and MCP alike: the open tasks that point at a hit ride on that hit, so the list stays hits. */
+const TASKS_OF_HIT: StepDefinition = {
+  id: "hit.tasks",
+  kind: "command",
+  command: "tasks list",
+  args: [
+    { name: "query", required: true },
+    { name: "provider", required: true },
+    { name: "account", required: true },
+  ],
+  why: "{count} open tasks point at this result",
+}
+
+/** `search all`, CLI and MCP alike: a hit that open tasks point at gets a step listing them, at most two. */
 export const allAnswer = (
-  found: Omit<SearchAllFound, "items"> & {
-    items: (SearchAllFound["items"][number] & { key?: true })[]
-    tasks: { source: string }[]
+  found: SearchAllFound & {
+    tasks: { source: string; heldBy: AccountKey }[]
     tasksIncomplete: boolean
   },
   limit: number,
   exact = false,
-) =>
-  listAnswer("search all", {
-    items: found.items.map((item) => {
-      const tasks = found.tasks.filter((task) => task.source === item.ref)
-      const hit = { ...allHit(item), ...(item.key ? { key: true } : {}) }
-      return tasks.length ? { ...hit, tasks } : hit
-    }),
+) => {
+  const next = found.items.flatMap((item) => {
+    const tasks = found.tasks.filter((task) => task.source === item.ref)
+    const held = tasks[0]?.heldBy
+    if (held === undefined) return []
+    return [
+      stepOf(TASKS_OF_HIT, {
+        args: { query: `source:"${item.ref}"`, provider: held.provider, account: held.account },
+        values: { count: tasks.length },
+      }),
+    ]
+  })
+  return listAnswer("search all", {
+    items: found.items.map(allHitItem),
     limit,
     has_more: found.hasMore,
-    missing: [
-      ...meaningMissed(found.notes?.meaningSkipped, exact),
-      ...(found.tasksIncomplete
-        ? [{ field: "tasks", why: "more open tasks point at these results than are shown" }]
-        : []),
-    ],
+    ...(next.length ? { next: next.slice(0, 2) } : {}),
+    missing: meaningMissed(found.notes?.meaningSkipped, exact),
     meta: metaOf(found.accounts, found.skipped),
   })
+}
 
 /** `search messages` and `search mail`, CLI and MCP alike: each hit the `message.hit` view, `brief` cut shorter. */
 export const kindAnswer = (
@@ -60,9 +77,12 @@ export const kindAnswer = (
   found: SearchFound,
   limit: number,
   level?: "brief" | "default" | "full",
+  query = "",
 ) =>
   listAnswer(`search ${kind}`, {
-    items: found.items.map((item) => (level === "brief" ? briefHit(messageHit(item)) : messageHit(item))),
+    items: found.items.map((item) =>
+      level === "brief" ? briefHit(messageHitItem(item, query)) : messageHitItem(item, query),
+    ),
     limit,
     has_more: found.hasMore,
     missing: found.wordsReady ? [] : [{ field: "text", why: "the word index is still being built" }],
@@ -72,7 +92,7 @@ export const kindAnswer = (
 /** `search notes`, CLI and MCP alike; `args` reruns the same search for the next page. */
 export const notesAnswer = (found: NotesFound, limit: number, page: number, args: Record<string, unknown> = {}) =>
   listAnswer("search notes", {
-    items: found.hits,
+    items: found.hits.map(noteHitItem),
     limit,
     has_more: found.has_more && found.next_offset !== undefined,
     page,

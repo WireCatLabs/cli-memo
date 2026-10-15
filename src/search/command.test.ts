@@ -62,9 +62,7 @@ it("searches three typed resources together, separates mail and messages, and fi
     return answerOf(streams.stdout.join(""))
   }
   const all = await run("search", "all", "Sharedsignal", "--exact")
-  expect(
-    all.items.flatMap((item: { tasks?: { id: string }[] }) => item.tasks ?? []).map((task: { id: string }) => task.id),
-  ).toEqual(["legacy-note-task"])
+  expect(all.next.map(({ args }: { args: { query: string } }) => args.query)).toEqual([`source:"${file.note.ref}"`])
   expect(all.items.map((item: { kind: string }) => item.kind).sort()).toEqual(["mail", "message", "note", "note"])
   expect(all.items.map((item: { ref: string }) => item.ref)).toEqual(
     expect.arrayContaining([internal.ref, file.note.ref]),

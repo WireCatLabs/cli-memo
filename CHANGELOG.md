@@ -24,6 +24,20 @@ the API.
   `--state`, `--about`, `--source` and `--search`. `about:` stands alone: the notes it finds through links are no
   longer narrowed further. `--project` and `--ready` stay on `tasks list`: they pick which tasks are read. A next
   page of `notes list` carries the query.
+- **`notes show`, `notes add` and `notes edit` answer cli-core's `note` entity**: `labels` and `provenance` are
+  gone from `notes show` (`tags` keeps the tag names); each of `links` is `{to, target_text, kind, anchor}` and each
+  of `backlinks` is `{from, target_text, kind, anchor}`. `--json=<field>` refuses a field a note lacks.
+- **`search all` answers cli-core's `hit` items**: `key` is gone (key documents still come first with
+  `--project`), and a result's open `tasks` moved into `next`: a `tasks list source:"<ref>"` step for the account
+  holding them. The `missing: tasks` entry is gone.
+- **`search` over several accounts no longer runs as the first one**: it runs as memo and reads exactly the
+  accounts selected. An account error lists the accounts to choose from.
+- **cli-core 0.281.0**: a note whose title matches the query ranks first in `search notes` and `search all`, and
+  lists `title` in `found_by`.
+
+### Added
+
+- **`tasks list source:"<ref>"`** keeps an account's tasks from one message, note or document.
 
 ### Added
 

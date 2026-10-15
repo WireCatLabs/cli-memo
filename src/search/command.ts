@@ -39,6 +39,12 @@ export interface EvidenceItem {
 
 const CHATS_CHECKED = 500
 
+/**
+ * The account memo's searches run as: its own notes, never a stored account picked for the owner. The scope comes
+ * from the query alone, and every account it covers is named in the answer.
+ */
+const MEMO: AccountKey = { provider: "notes", account: "internal" }
+
 export const unifiedSearch = async (
   store: MessageStore,
   query: string,
@@ -59,9 +65,8 @@ export const unifiedSearch = async (
   if ((!options.keys.length && !options.notes) || options.keys.length > 50)
     throw new CliError("validation_error", "select 1â€“50 accounts, or notes")
   const answer = options.keys.length
-    ? await searchStore(store, options.keys[0] as AccountKey, {
+    ? await searchStore(store, MEMO, {
         text: query,
-        language: "lucene",
         accounts: options.keys,
         limit: Math.min(2000, offset + limit + 1),
         newest: true,
@@ -252,12 +257,6 @@ export interface QueryInput {
   timezone?: string
 }
 
-/**
- * The account memo's searches run as: its own notes, never a stored account picked for the owner. The scope comes
- * from the query alone, and every account it covers is named in the answer.
- */
-const MEMO: AccountKey = { provider: "notes", account: "internal" }
-
 export interface SearchedAccount {
   resource: SearchedResource
   provider: string
@@ -266,7 +265,7 @@ export interface SearchedAccount {
 
 interface EverywhereExtras {
   accounts: SearchedAccount[]
-  tasks: Awaited<ReturnType<typeof taskPage>>["items"]
+  tasks: (Awaited<ReturnType<typeof taskPage>>["items"][number] & { heldBy: AccountKey })[]
   tasksIncomplete: boolean
 }
 
@@ -314,12 +313,12 @@ export const searchEverywhere = async (
         ...(await store.notes.folders()).map(({ id }) => ({ resource, provider: "notes", account: id })),
       )
   }
-  const tasks = []
+  const tasks: EverywhereExtras["tasks"] = []
   let tasksIncomplete = false
   const sources = found.items.map((item) => item.ref)
   for (const account of accounts) {
     const page = await taskPage(store, account, { state: "open", sources, limit: Math.min(limit, 500) })
-    tasks.push(...page.items)
+    tasks.push(...page.items.map((task) => ({ ...task, heldBy: account })))
     tasksIncomplete ||= page.hasMore
   }
   return {
@@ -352,7 +351,6 @@ export const searchKind = async (
         type === undefined
           ? text
           : `(${text}) AND ${{ text: "NOT has:attachment", voice: "has:voice", file: "has:file" }[type]}`,
-      language: "lucene",
       kind,
       ...(kind === "messages" && !hasSource(parseLucene(text).root) ? { source: "all" as const } : {}),
       limit,
@@ -366,6 +364,7 @@ export const searchKind = async (
 
 const PROJECT_HELP =
   "rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out"
+const PROJECT_ORDER_HELP = "rank the key documents of this project (id, key or project:<id>) first; nothing is left out"
 
 const keyRefs = async (store: MessageStore, project: string) =>
   new Set((await keyDocuments(store, await projectOf(store, project))).map((item) => item.ref))
@@ -405,7 +404,7 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       .summary("messages, mail and notes ranked together"),
   )
     .option("--only <resources>", "messages,mail,notes, separated by commas", onlyOf)
-    .option("--project <project>", PROJECT_HELP)
+    .option("--project <project>", PROJECT_ORDER_HELP)
     .addHelpText(
       "after",
       `
@@ -500,7 +499,7 @@ content: narrows a search to the text of attachments, filename: to their names â
         )
         print(
           options.json,
-          kindAnswer(kind, answer, options.limit, level),
+          kindAnswer(kind, answer, options.limit, level, words.join(" ")),
           answer.items.map((item) => found(item, level)).join("\n"),
         )
       },

@@ -92,7 +92,7 @@ Where a search answer keeps its references:
 | Command | Reference of each result |
 |---|---|
 | `memo search messages`, `memo search mail` | `items[].ref`, as in `tg search messages` |
-| `memo search all` | `items[].ref`, with `kind`; open tasks that point at a result are in its `tasks` |
+| `memo search all` | `items[].ref`, with `kind`; `next` lists the open tasks that point at a result (`tasks list source:"<ref>"`) |
 | `memo search notes` | `items[].ref` |
 
 `content:` narrows a search to the text of files, `transcript:` to voice transcripts and `filename:` to file

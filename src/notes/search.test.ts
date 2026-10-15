@@ -63,5 +63,15 @@ describe("structured note retrieval and saved links", () => {
         { to: null, target_text: "Missing", kind: "links-to", anchor: null },
       ]),
     )
+    const shown = await run("notes", "show", rin)
+    expect(shown.backlinks).toContainEqual({
+      from: review.ref,
+      target_text: null,
+      kind: "links-to",
+      anchor: "#Budget",
+    })
+    expect(shown.front_matter).toEqual({ aliases: ["Navigator"] })
+    expect(shown).not.toHaveProperty("labels")
+    expect(shown).not.toHaveProperty("provenance")
   })
 })

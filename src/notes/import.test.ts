@@ -177,7 +177,7 @@ describe("memo sync --notes", () => {
     utimesSync(join(vault, "Projects/Lighthouse.md"), new Date("2030-01-01"), new Date("2030-01-01"))
     await run("sync", "--notes")
 
-    expect((await json("notes", "show", ref)).labels).toEqual([{ tag: "work", origin: "owner" }])
+    expect((await json("notes", "show", ref)).tags).toEqual(["work"])
   })
 
   it("labels every note under a subfolder, and none beside it", async () => {
@@ -318,6 +318,9 @@ describe("notes written in memo", () => {
   it("answers the note itself, so --json picks its fields, and refuses a field a note search lacks", async () => {
     const added = JSON.parse(await run("notes", "add", "Prefers tea", "--json=id,ref"))
     expect(added.item).toEqual({ id: expect.any(String), ref: `note:${added.item.id}` })
+    await expect(run("notes", "show", added.item.ref, "--json=labels")).rejects.toMatchObject({
+      details: { reason: "output.unknown-field" },
+    })
     const searched = JSON.parse(await run("search", "notes", "tea", "--json"))
     for (const { why } of searched.missing ?? []) expect(why).not.toMatch(/`tg models/)
     await expect(run("search", "notes", "tea", "--json=text")).rejects.toMatchObject({

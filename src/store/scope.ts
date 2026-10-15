@@ -17,18 +17,25 @@ export interface TargetInput extends AccountScope {
   meeting?: string
 }
 
+const choices = (keys: AccountKey[]) =>
+  keys.length ? `; choose one of ${keys.map(({ provider, account }) => `${provider}:${account}`).join(", ")}` : ""
+
 export const selectAccount = async (store: MessageStore, scope: AccountScope): Promise<AccountKey> => {
+  const held = await store.accounts()
   if (!scope.provider)
-    throw new CliError("validation_error", "select --provider and, when several accounts exist, --account")
-  const matches = (await store.accounts()).filter(
+    throw new CliError(
+      "validation_error",
+      `select --provider and, when several accounts exist, --account${choices(held)}`,
+    )
+  const matches = held.filter(
     (key) => key.provider === scope.provider && (scope.account === undefined || key.account === scope.account),
   )
   if (matches.length !== 1)
     throw new CliError(
       matches.length ? "validation_error" : "not_found",
       matches.length
-        ? "several accounts match; select --account explicitly"
-        : `the store holds no ${scope.provider} account matching this selection`,
+        ? `several accounts match; select --account explicitly${choices(matches)}`
+        : `the store holds no ${scope.provider} account matching this selection${choices(held)}`,
     )
   return matches[0] as AccountKey
 }

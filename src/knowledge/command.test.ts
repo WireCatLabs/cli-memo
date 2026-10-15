@@ -101,7 +101,7 @@ describe("combined evidence, relationships and local reminders", () => {
       id: document.task.id,
     })
     const searched = await run("search", "all", "budget", "--limit", "100")
-    expect(searched.items.some((item: { tasks?: unknown[] }) => item.tasks?.length)).toBe(true)
+    expect(searched.next?.[0]).toMatchObject({ step: "hit.tasks", command: "tasks list" })
     expect(searched.items.some((item: { ref: string }) => item.ref === analysis.ref)).toBe(true)
     const messagesOnly = await run("search", "all", "budget AND chat:77")
     expect(messagesOnly.items.length).toBeGreaterThan(0)

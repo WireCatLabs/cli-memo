@@ -18,7 +18,6 @@ import type { ExportResult } from "./export.js"
 import { folderNotes } from "./import.js"
 import { exportInternal, exportTarget, internalNotes } from "./internal.js"
 import { listNotes } from "./list.js"
-import { loadFolderState } from "./state.js"
 
 const formatOf = (value: string): DialectName => {
   if (!(DIALECTS as readonly string[]).includes(value)) throw new InvalidArgumentError(`choose ${DIALECTS.join(", ")}`)
@@ -79,18 +78,22 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       const answer = await withNotes(async (store) => {
         const note = await noteOf(store, env, reference)
         const ref = note.ref
-        const labels = await store.notes.noteTags(ref)
         return {
           ...note,
           ref,
-          tags: labels.map(({ tag }) => tag),
-          labels,
-          links: await store.notes.links({ from: ref }),
-          backlinks: await store.notes.links({ to: ref }),
-          provenance:
-            note.folderId === null
-              ? null
-              : (loadFolderState(env, note.folderId)?.documents[note.path as string] ?? null),
+          tags: (await store.notes.noteTags(ref)).map(({ tag }) => tag),
+          links: (await store.notes.links({ from: ref })).map(({ to, targetText, kind, anchor }) => ({
+            to,
+            targetText,
+            kind,
+            anchor,
+          })),
+          backlinks: (await store.notes.links({ to: ref })).map(({ from, targetText, kind, anchor }) => ({
+            from,
+            targetText,
+            kind,
+            anchor,
+          })),
         }
       })
       print(

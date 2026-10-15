@@ -511,7 +511,7 @@ memo tasks link <task> <other-task> [options]
 
 | Option | What it does |
 |---|---|
-| `--kind <kind>` | blocked-by, follow-up-of, related-to. |
+| `--kind <kind>` | blocked-by, follow-up-of, related-to, duplicate-of, discovered-from. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 ### `memo tasks unlink`
@@ -531,7 +531,7 @@ memo tasks unlink <task> <other-task> [options]
 
 | Option | What it does |
 |---|---|
-| `--kind <kind>` | blocked-by, follow-up-of, related-to. |
+| `--kind <kind>` | blocked-by, follow-up-of, related-to, duplicate-of, discovered-from. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 ### `memo tasks relations`
@@ -1664,7 +1664,7 @@ memo search all <query> [options]
 | `--brief` | each message or email as reference, time, sender and excerpt only. |
 | `--full` | each message or email with its whole text; --json keeps the excerpt, messages show the text. |
 | `--only <resources>` | messages,mail,notes, separated by commas. |
-| `--project <project>` | rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out. |
+| `--project <project>` | rank the key documents of this project (id, key or project:<id>) first; nothing is left out. |
 
 ### `memo search messages`
 
