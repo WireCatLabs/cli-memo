@@ -6,6 +6,9 @@ the API.
 
 ## Unreleased
 
+- **Nested JSON report fields use the shared projector.** Dotted paths traverse report objects and arrays while preserving coverage, pagination and execution metadata. The bundled skill documents bounded output and removes fixed import-speed claims.
+- **Obsolete config keys are refused without rewriting the file.** Rename camelCase settings to snake_case before using the configuration.
+
 ## 0.35.0 — 15.10.2026
 
 ### Fixed

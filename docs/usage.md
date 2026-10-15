@@ -85,7 +85,10 @@ it or use it as evidence. [How Memo works](how-it-works.md#references) explains 
 Every JSON answer has the same shape. One thing is under `item`; a list is under `items`, with `page`
 saying whether more follow (`page.has_more`). `meta` names the run and the accounts read, and `missing`, when
 present, says what the answer could not cover and why. `--json=a,b` keeps only those fields of the item or of
-each item in the list.
+each item in the list. Dotted paths traverse nested objects and arrays, for example
+`--json=ref,excerpt,tasks.id` for `memo search all`. Paths are relative to the answer payload;
+pagination, coverage, next steps, missing data and execution metadata remain. Field selection
+reduces printed output, not the work scanned.
 
 Where a search answer keeps its references:
 

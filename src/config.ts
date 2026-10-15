@@ -3,14 +3,14 @@ import { loadSnakeCaseConfig } from "@wirecat/cli-core/cli"
 import * as v from "valibot"
 import { DIALECTS } from "./notes/dialects/index.js"
 
-const ConfigSchema = v.object({
+const ConfigSchema = v.strictObject({
   notes: v.optional(
-    v.object({
+    v.strictObject({
       /** A bare path is the form before folder ids; `memo folders add` turns it into an entry. */
       folders: v.array(
         v.union([
           v.string(),
-          v.object({
+          v.strictObject({
             id: v.pipe(v.string(), v.minLength(1)),
             path: v.pipe(v.string(), v.minLength(1)),
             format: v.optional(v.picklist(DIALECTS)),
@@ -22,12 +22,12 @@ const ConfigSchema = v.object({
       embed: v.optional(v.boolean()),
       /** Where `memo notes export` and `--export` write internal notes when no folder is given. */
       export: v.optional(
-        v.object({ dir: v.pipe(v.string(), v.minLength(1)), format: v.optional(v.picklist(DIALECTS)) }),
+        v.strictObject({ dir: v.pipe(v.string(), v.minLength(1)), format: v.optional(v.picklist(DIALECTS)) }),
       ),
     }),
   ),
   auto: v.optional(
-    v.object({
+    v.strictObject({
       enabled: v.optional(v.boolean()),
       every: v.optional(v.string()),
       /** MEMO_CONFIG_DIR, MESSAGING_STORE… as they were at `memo auto start`, passed to every timer run. */
@@ -37,9 +37,9 @@ const ConfigSchema = v.object({
   /** `false` stops the once-a-day check for a newer memo. */
   update_check: v.optional(v.boolean()),
   mail: v.optional(
-    v.object({
+    v.strictObject({
       accounts: v.array(
-        v.object({
+        v.strictObject({
           name: v.string(),
           address: v.string(),
           /** `mbox` reads a Google Takeout file at `path`; give it the Gmail account's address, so both are one set. */
@@ -50,8 +50,8 @@ const ConfigSchema = v.object({
           /** The owner's keep, envelope and skip decisions per sender, domain or list; written by `memo mail rules`. */
           rules: v.optional(
             v.array(
-              v.object({
-                match: v.object({
+              v.strictObject({
+                match: v.strictObject({
                   from: v.optional(v.string()),
                   domain: v.optional(v.string()),
                   list_id: v.optional(v.string()),
