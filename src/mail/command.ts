@@ -4,7 +4,7 @@ import { momentOf } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { type Config, loadConfig } from "../config.js"
-import { positive } from "../options.js"
+import { oneOf, positive } from "../options.js"
 import { withImportLock } from "../run/lock.js"
 import { type MailAccountConfig, mailAccounts, mailFolders, mailSource } from "./accounts.js"
 import { type ApplyResult, applyRules } from "./apply.js"
@@ -17,7 +17,7 @@ import type { Listed } from "./source.js"
 import { mailStatus, statusText } from "./status.js"
 
 interface MatchOptions {
-  from?: string
+  sender?: string
   domain?: string
   listId?: string
 }
@@ -25,10 +25,10 @@ interface MatchOptions {
 const accountOf = (config: Config, name: string): MailAccountConfig =>
   mailAccounts(config.mail?.accounts ?? [], [name])[0] as MailAccountConfig
 
-const matchOf = ({ from, domain, listId }: MatchOptions): MailRuleMatch => {
-  const given = [from, domain, listId].filter((value) => value !== undefined)
-  if (given.length !== 1) throw new CliError("validation_error", "give exactly one of --from, --domain, --list-id")
-  return from !== undefined ? { from } : domain !== undefined ? { domain } : { list_id: listId as string }
+const matchOf = ({ sender, domain, listId }: MatchOptions): MailRuleMatch => {
+  const given = [sender, domain, listId].filter((value) => value !== undefined)
+  if (given.length !== 1) throw new CliError("validation_error", "give exactly one of --sender, --domain, --list-id")
+  return sender !== undefined ? { from: sender } : domain !== undefined ? { domain } : { list_id: listId as string }
 }
 
 const describe = (match: MailRuleMatch): string =>
@@ -82,7 +82,7 @@ const rulesFileOf = (text: string, path: string): MailRule[] => {
     if (given.length !== 1 || !ACTIONS.includes(rule.action as MailAction))
       throw bad(`rule ${index + 1} needs one of match.from, match.domain, match.list_id and an action`)
     return {
-      match: matchOf({ from: match.from, domain: match.domain, listId: match.list_id }),
+      match: matchOf({ sender: match.from, domain: match.domain, listId: match.list_id }),
       action: rule.action as MailAction,
       ...(typeof rule.reason === "string" ? { reason: rule.reason } : {}),
       ...(rule.protected === true ? { protected: true } : {}),
@@ -226,51 +226,46 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .command("add")
     .description("skip, record or keep mail by sender, domain or list; a repeat replaces its rule")
     .argument("<account>", "the account's name in mail.accounts, or its address")
-    .option("--from <address>", "one sender address")
+    .option("--sender <address>", "one sender address")
     .option("--domain <domain>", "a sender domain, and its subdomains")
     .option("--list-id <id>", "a mailing list, by its List-Id")
-    .option("--skip", "never read or store this mail")
-    .option("--envelope", "store only sender, date, size and labels: counted, out of search, cleanable later")
-    .option("--keep", "import this mail even when a skip or envelope rule matches it")
+    .requiredOption(
+      "--do <actions>",
+      "one of skip (never read or store this mail), envelope (store only sender, date, size and labels: " +
+        "counted, out of search, cleanable later), keep (import it even when a skip or envelope rule matches)",
+      oneOf(ACTIONS),
+    )
     .option("--reason <text>", "why, for the owner later")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText(
       "after",
-      "\nA keep wins over an envelope, an envelope over a skip, so --keep --from one sender overrides " +
-        "--skip --domain of its domain. A skipped email is never read or stored by memo sync. An envelope " +
+      "\nA keep wins over an envelope, an envelope over a skip, so --do keep --sender one sender overrides " +
+        "--do skip --domain of its domain. A skipped email is never read or stored by memo sync. An envelope " +
         "email costs no more from the mailbox than a skipped one; its subject is kept in its metadata, not in " +
         "search. Changing an envelope rule to keep, or removing it, reads those emails in full on the next sync. " +
         "Mail already stored in full stays.",
     )
-    .action(
-      async (
-        name: string,
-        options: MatchOptions & { skip?: boolean; envelope?: boolean; keep?: boolean; reason?: string; json?: boolean },
-      ) => {
-        const match = matchOf(options)
-        const actions = (["skip", "envelope", "keep"] as const).filter((action) => options[action])
-        if (actions.length !== 1)
-          throw new CliError("validation_error", "give exactly one of --skip, --envelope, --keep")
-        const rule: MailRule = {
-          match,
-          action: actions[0] as MailRule["action"],
-          ...(options.reason === undefined ? {} : { reason: options.reason }),
-          decided_at: new Date().toISOString(),
-        }
-        const account = accountOf(loadConfig(env), name)
-        const saved = await withStore(env, async (store) => {
-          await rulesOf(store, account, env, streams.diagnostic)
-          return saveRule(store, account.address, rule)
-        })
-        print(options.json, itemAnswer(saved), ruleLine(saved))
-      },
-    )
+    .action(async (name: string, options: MatchOptions & { do: MailAction; reason?: string; json?: boolean }) => {
+      const match = matchOf(options)
+      const rule: MailRule = {
+        match,
+        action: options.do,
+        ...(options.reason === undefined ? {} : { reason: options.reason }),
+        decided_at: new Date().toISOString(),
+      }
+      const account = accountOf(loadConfig(env), name)
+      const saved = await withStore(env, async (store) => {
+        await rulesOf(store, account, env, streams.diagnostic)
+        return saveRule(store, account.address, rule)
+      })
+      print(options.json, itemAnswer(saved), ruleLine(saved))
+    })
 
   rules
     .command("remove")
     .description("drop the rule for a sender, domain or list")
     .argument("<account>", "the account's name in mail.accounts, or its address")
-    .option("--from <address>", "one sender address")
+    .option("--sender <address>", "one sender address")
     .option("--domain <domain>", "a sender domain")
     .option("--list-id <id>", "a mailing list, by its List-Id")
     .option("--json", "print JSON; --json=id,title keeps only those fields")

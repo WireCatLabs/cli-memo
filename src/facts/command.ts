@@ -13,7 +13,7 @@ interface AddOptions {
   evidence?: string[]
   project?: string
   subject?: string
-  occurred?: string
+  occurredTime?: string
   scope?: (typeof MEMORY_SCOPES)[number]
   supersedes?: string
   asOwner?: boolean
@@ -30,7 +30,7 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .option("--evidence <ref...>", "what shows it: msg:, note:, meeting:, person: or another reference")
     .option("--project <project>", "the project it belongs to: its key or project:<id>")
     .option("--subject <ref>", "what it is about, as a reference")
-    .option("--occurred <iso>", "when it happened, as the evidence shows")
+    .option("--occurred-time <time>", "when it happened, as the evidence shows, ISO 8601")
     .option("--scope <scope>", MEMORY_SCOPES.join(" or "), oneOf(MEMORY_SCOPES))
     .option("--supersedes <ref>", "a decision only: the decision this one replaces")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
@@ -45,7 +45,7 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
               ...(options.evidence === undefined ? {} : { evidence: options.evidence }),
               ...(options.project === undefined ? {} : { project: await canonicalProject(store, options.project) }),
               ...(options.subject === undefined ? {} : { subject: options.subject }),
-              ...(options.occurred === undefined ? {} : { occurredAt: options.occurred }),
+              ...(options.occurredTime === undefined ? {} : { occurredAt: options.occurredTime }),
               ...(options.scope === undefined ? {} : { scope: options.scope }),
               ...(options.supersedes === undefined ? {} : { supersedes: options.supersedes }),
             }),

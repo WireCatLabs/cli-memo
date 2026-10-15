@@ -6,6 +6,16 @@ the API.
 
 ## Unreleased
 
+### Changed — may break scripts
+
+- **cli-core 0.287.0 and cli-base 0.32.0**, with no old names kept. Shared commands take the new option names:
+  `tasks plan --check` → `--remind-time`; `tasks agenda --within` takes a `<duration>`. Every `--json` answer is an
+  envelope (`item`, or `items` and `page`).
+- **memo's own option names follow cli-base 0.32.0's vocabulary**: `mail rules add|remove --from` → `--sender`;
+  `mail rules add --skip|--envelope|--keep` → one `--do <actions>` (`skip`, `envelope` or `keep`; more than one is
+  refused); `tags add|remove --path` → `--subfolder`; `facts add --occurred` → `--occurred-time`.
+- The MCP tool `facts_add` takes `occurred_time` instead of `occurredAt`.
+
 ## 0.39.0 — 15.10.2026
 
 ### Changed — may break scripts

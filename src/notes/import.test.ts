@@ -183,7 +183,7 @@ describe("memo sync --only notes", () => {
   it("labels every note under a subfolder, and none beside it", async () => {
     await run("sync", "--only", "notes")
     const [folder] = (await json("folders", "list")).items
-    expect(await json("tags", "add", "port", "--folder", folder.id, "--path", "Projects")).toMatchObject({
+    expect(await json("tags", "add", "port", "--folder", folder.id, "--subfolder", "Projects")).toMatchObject({
       added: ["port"],
     })
 

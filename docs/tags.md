@@ -30,7 +30,7 @@ A tag has 1 to 32 characters: letters a–z, digits and hyphens. Capital letters
 |---|---|
 | A note you wrote | `--note note:12` |
 | A file from a note folder | `--note document:3` |
-| Every note in a folder, or in one folder inside it | `--folder 1` or `--folder 1 --path Projects` |
+| Every note in a folder, or in one folder inside it | `--folder 1` or `--folder 1 --subfolder Projects` |
 | A message or an email | `--message 'msg:telegram/1/77/42'` (the full reference) |
 | A chat or an email thread | `--chat 77 --provider telegram --account 1` |
 | A contact in one account | `--contact 101 --provider telegram --account 1` |

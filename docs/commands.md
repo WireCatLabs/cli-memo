@@ -309,12 +309,10 @@ memo mail rules add <account> [options]
 
 | Option | What it does |
 |---|---|
-| `--from <address>` | one sender address. |
+| `--sender <address>` | one sender address. |
 | `--domain <domain>` | a sender domain, and its subdomains. |
 | `--list-id <id>` | a mailing list, by its List-Id. |
-| `--skip` | never read or store this mail. |
-| `--envelope` | store only sender, date, size and labels: counted, out of search, cleanable later. |
-| `--keep` | import this mail even when a skip or envelope rule matches it. |
+| `--do <actions>` | one of skip (never read or store this mail), envelope (store only sender, date, size and labels: counted, out of search, cleanable later), keep (import it even when a skip or envelope rule matches). |
 | `--reason <text>` | why, for the owner later. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
@@ -334,7 +332,7 @@ memo mail rules remove <account> [options]
 
 | Option | What it does |
 |---|---|
-| `--from <address>` | one sender address. |
+| `--sender <address>` | one sender address. |
 | `--domain <domain>` | a sender domain. |
 | `--list-id <id>` | a mailing list, by its List-Id. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
@@ -440,8 +438,8 @@ memo tags add <tag> [options]
 | `--organization <organization>` | label an organization: its id or organization:<id>. |
 | `--project <project>` | label a project: its key or project:<id>. |
 | `--meeting <id>` | label a meeting by its store id, with --provider and --account. |
-| `--folder <folder>` | label a notes folder by its id or path, or with --path one subfolder: every note under it. |
-| `--path <subfolder>` | the subfolder inside --folder. |
+| `--folder <folder>` | label a notes folder by its id or path, or with --subfolder one subfolder: every note under it. |
+| `--subfolder <path>` | the subfolder inside --folder. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 ### `memo tags remove`
@@ -471,8 +469,8 @@ memo tags remove <tag> [options]
 | `--organization <organization>` | label an organization: its id or organization:<id>. |
 | `--project <project>` | label a project: its key or project:<id>. |
 | `--meeting <id>` | label a meeting by its store id, with --provider and --account. |
-| `--folder <folder>` | label a notes folder by its id or path, or with --path one subfolder: every note under it. |
-| `--path <subfolder>` | the subfolder inside --folder. |
+| `--folder <folder>` | label a notes folder by its id or path, or with --subfolder one subfolder: every note under it. |
+| `--subfolder <path>` | the subfolder inside --folder. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 ### `memo tags list`
@@ -679,7 +677,7 @@ memo tasks agenda [query] [options]
 | `--due <span>` | list tasks due within this: 30m, 2h, 1d (default 1d). |
 | `--unanswered <span>` | list chats where someone else wrote last this long ago (default 1d). |
 | `--waiting <span>` | list chats where you wrote last this long ago (default 7d). |
-| `--within <span>` | leave out chats silent longer than this: they ended (default 30d). |
+| `--within <duration>` | leave out chats silent longer than this: they ended (default 30d). |
 | `--claimed` | also list tasks someone else holds (tasks claim); hidden by default. |
 | `--category <name>` | only tasks of this category, from the list tasks categories prints. |
 | `--tag <name>` | only tasks with this tag (tags add --task). |
@@ -708,7 +706,7 @@ memo tasks plan <task> [options]
 | `--title <text>` | one line: the action and its object — send Alex the API token. |
 | `--description <text>` | the detail, in Markdown: who owes whom, done when, next step, keywords. |
 | `--due <when>` | when it must be done: an ISO 8601 time or 2h, 3d from now; none clears it. |
-| `--check <when>` | when to look at it again: an ISO 8601 time or 2h, 3d from now; none clears it. |
+| `--remind-time <time>` | when to look at it again: an ISO 8601 time or 2h, 3d from now; none clears it. |
 | `--provider <provider>` | the messenger account's provider: telegram, max. |
 | `--account <account>` | the messenger account, as the store holds it. |
 | `--json` | print JSON. |
@@ -1456,7 +1454,7 @@ memo facts add <statement> [options]
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
 | `--project <project>` | the project it belongs to: its key or project:<id>. |
 | `--subject <ref>` | what it is about, as a reference. |
-| `--occurred <iso>` | when it happened, as the evidence shows. |
+| `--occurred-time <time>` | when it happened, as the evidence shows, ISO 8601. |
 | `--scope <scope>` | personal or work. |
 | `--supersedes <ref>` | a decision only: the decision this one replaces. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |

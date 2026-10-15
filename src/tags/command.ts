@@ -49,9 +49,9 @@ const targetOptions = (command: Command) =>
     .option("--meeting <id>", "label a meeting by its store id, with --provider and --account")
     .option(
       "--folder <folder>",
-      "label a notes folder by its id or path, or with --path one subfolder: every note under it",
+      "label a notes folder by its id or path, or with --subfolder one subfolder: every note under it",
     )
-    .option("--path <subfolder>", "the subfolder inside --folder")
+    .option("--subfolder <path>", "the subfolder inside --folder")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
 
 const listTags = async (store: MessageStore, options: ListOptions) => {
@@ -99,7 +99,7 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
   const mutate = async (
     operation: "add" | "remove",
     given: string[],
-    options: SourceTargetInput & TargetInput & { note?: string; folder?: string; path?: string; json?: boolean },
+    options: SourceTargetInput & TargetInput & { note?: string; folder?: string; subfolder?: string; json?: boolean },
   ) => {
     const target =
       options.note !== undefined
@@ -115,10 +115,10 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
               : options.task !== undefined
                 ? { type: "task" as const, id: options.task.replace(/^task:/, "") }
                 : options.folder !== undefined
-                  ? { type: "folder" as const, id: options.folder, path: options.path ?? null }
+                  ? { type: "folder" as const, id: options.folder, path: options.subfolder ?? null }
                   : undefined
-    if (options.path !== undefined && options.folder === undefined)
-      throw new CliError("validation_error", "--path names a subfolder of --folder")
+    if (options.subfolder !== undefined && options.folder === undefined)
+      throw new CliError("validation_error", "--subfolder names a subfolder of --folder")
     if (target !== undefined) {
       await withStore(env, async (store) => {
         if (target.type === "project") target.id = (await canonicalProject(store, target.id)).slice("project:".length)
@@ -188,7 +188,8 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     ).action(
       (
         given: string[],
-        options: SourceTargetInput & TargetInput & { note?: string; folder?: string; path?: string; json?: boolean },
+        options: SourceTargetInput &
+          TargetInput & { note?: string; folder?: string; subfolder?: string; json?: boolean },
       ) => mutate(operation, given, options),
     )
 

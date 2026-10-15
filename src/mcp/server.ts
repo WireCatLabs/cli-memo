@@ -109,12 +109,22 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
       evidence: v.pipe(v.array(v.string()), v.minLength(1)),
       project: v.optional(v.string()),
       subject: v.optional(v.string()),
-      occurredAt: v.optional(v.string()),
+      occurred_time: v.optional(v.string()),
       scope: v.optional(v.picklist(MEMORY_SCOPES)),
       supersedes: v.optional(v.string()),
     }),
-    run: async (store, { kind, text, ...args }) =>
-      itemAnswer(factItem(await store.facts.add({ ...args, type: kind, statement: text, by }))),
+    run: async (store, { kind, text, occurred_time, ...args }) =>
+      itemAnswer(
+        factItem(
+          await store.facts.add({
+            ...args,
+            ...(occurred_time === undefined ? {} : { occurredAt: occurred_time }),
+            type: kind,
+            statement: text,
+            by,
+          }),
+        ),
+      ),
   }),
   facts_list: define({
     title: "List facts",

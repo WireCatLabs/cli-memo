@@ -24,9 +24,9 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "mail status": ["memo mail status personal", "memo mail status personal --json"],
   "mail rules list": ["memo mail rules list personal --json"],
   "mail rules add": [
-    "memo mail rules add personal --domain news.example --envelope --reason 'newsletters'",
-    "memo mail rules add personal --domain spam.example --skip",
-    "memo mail rules add personal --from alice@news.example --keep",
+    "memo mail rules add personal --domain news.example --do envelope --reason 'newsletters'",
+    "memo mail rules add personal --domain spam.example --do skip",
+    "memo mail rules add personal --sender alice@news.example --do keep",
   ],
   "mail rules remove": ["memo mail rules remove personal --domain news.example"],
   "mail rules apply": ["memo mail rules apply personal", "memo mail rules apply personal --yes --json"],
