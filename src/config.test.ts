@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { describe, expect, it } from "vitest"
-import { configPath, updateConfig } from "./config.js"
+import { configPath, loadConfig, updateConfig } from "./config.js"
 
 const setup = (config: unknown) => {
   const root = mkdtempSync(join(tmpdir(), "memo-config-"))
@@ -15,6 +15,17 @@ const setup = (config: unknown) => {
 const saved = (env: NodeJS.ProcessEnv) => JSON.parse(readFileSync(configPath(env), "utf8"))
 
 describe("config setting names", () => {
+  it("refuses camelCase mail limits without rewriting the file", () => {
+    const env = setup({ mail: { accounts: [], maxBodyChars: 10, maxAttachmentChars: 20 } })
+    expect(() => loadConfig(env)).toThrow()
+    expect(saved(env).mail).toEqual({ accounts: [], maxBodyChars: 10, maxAttachmentChars: 20 })
+  })
+
+  it("rejects both spellings of one setting with different values", () => {
+    const env = setup({ mail: { accounts: [], maxBodyChars: 10, max_body_chars: 11 } })
+    expect(() => loadConfig(env)).toThrow()
+  })
+
   it("writes rules in snake_case", () => {
     const env = setup({ mail: { accounts: [{ name: "a", address: "a@example.test" }] } })
     updateConfig(
@@ -37,5 +48,12 @@ describe("config setting names", () => {
       action: "skip",
       decided_at: "2026-10-14",
     })
+  })
+
+  it("refuses camelCase rule names without rewriting the file", () => {
+    const rule = { match: { listId: "x.example" }, action: "skip", decidedAt: "2026-10-14" }
+    const env = setup({ mail: { accounts: [{ name: "a", address: "a@example.test", rules: [rule] }] } })
+    expect(() => loadConfig(env)).toThrow()
+    expect(saved(env).mail.accounts[0].rules).toEqual([rule])
   })
 })

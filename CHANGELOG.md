@@ -32,6 +32,9 @@ the API.
 
 ### Changed — may break scripts
 
+- **Nested JSON selectors share the Base projector.** Dotted paths traverse report objects and arrays while preserving coverage, pagination and execution metadata.
+- **Config names must be snake_case, and startup no longer moves folders.** Older camelCase fields are refused without rewriting; rename them and explicitly choose the current folders before upgrading.
+
 - **`facts list` and `memories list` take a query, not filter flags**: `memo facts list kind:decision
   status:proposed project:HRB`, `memo memories list scope:work subject:"person:42"`. The store filters by the
   terms, joined by AND; `--type`, `--status`, `--kind`, `--scope`, `--project` and `--subject` are unknown options
