@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.38.0 — 15.10.2026
+
 ### Changed — may break scripts
 
 - **cli-core 0.285.0**, the version tg and max move to. `memo tasks add` refuses a task that may be the same job as
