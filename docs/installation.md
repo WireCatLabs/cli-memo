@@ -172,7 +172,8 @@ a person at a terminal sees it: not with `--json`, not in a pipe, not on the tim
 
 - **The timer** runs the updated Memo on its next run; nothing to restart. After you change Node.js versions (for
   example with nvm) and install Memo there, the next `memo` command you run points the timer at that Memo, so
-  removing the old Node.js does not break it. A Memo run from a checkout or with `npx` leaves the timer alone.
+  removing the old Node.js does not break it. Only a global install moves the timer: a Memo run from a checkout, with `npx` or from another
+  tool's own `node_modules` leaves it alone.
 - **`memo mcp`** keeps running the old version until your agent restarts it. Restart the agent, or its MCP server.
 
 From sources: `git pull && pnpm install && pnpm build`.

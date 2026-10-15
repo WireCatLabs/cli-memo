@@ -158,14 +158,42 @@ export const applyAuto = async (env: NodeJS.ProcessEnv, state: AutoState): Promi
 }
 
 /**
+ * Where a global install of npm, pnpm or Bun keeps its packages. A memo in any other node_modules belongs to a
+ * project or a tool's private folder, which can be deleted at any time.
+ */
+export const globalRoots = (env: NodeJS.ProcessEnv, execPath = process.execPath): string[] => {
+  const home = env.HOME ?? homedir()
+  const bin = dirname(execPath)
+  const npmPrefix = env.npm_config_prefix ?? env.NPM_CONFIG_PREFIX
+  return [
+    resolve(bin, "..", "lib", "node_modules"),
+    resolve(bin, "node_modules"),
+    ...(npmPrefix ? [resolve(npmPrefix, "lib", "node_modules"), resolve(npmPrefix, "node_modules")] : []),
+    "/usr/lib/node_modules",
+    "/usr/local/lib/node_modules",
+    resolve(env.PNPM_HOME ?? join(home, ".local", "share", "pnpm"), "global"),
+    resolve(env.BUN_INSTALL ?? join(home, ".bun"), "install", "global"),
+  ]
+}
+
+const isGlobal = (scriptPath: string, roots: string[]): boolean =>
+  roots.some((root) => scriptPath.startsWith(`${root}/`) || scriptPath.startsWith(`${root}\\`))
+
+/**
  * The timer runs the memo that last ran here: after `nvm use` and an install under the new Node, the
  * first memo command points the unit at it, so removing the old Node does not leave the timer broken.
- * Only an installed memo moves it — a checkout or `npx` would point it at a folder that goes away.
+ * Only a global install moves it: a checkout, `npx` or another tool's private install would point it at a
+ * folder that goes away.
  */
-export const followInstall = async (env: NodeJS.ProcessEnv, scriptPath?: string): Promise<void> => {
+export const followInstall = async (
+  env: NodeJS.ProcessEnv,
+  scriptPath?: string,
+  roots = globalRoots(env),
+): Promise<void> => {
   if (env.MEMO_AUTO === "1") return
   scriptPath ??= realpathSync(memoBin())
   if (!["npm", "pnpm", "bun"].includes(installerOf(scriptPath))) return
+  if (!isGlobal(scriptPath, roots)) return
   const state = autoState(loadConfig(env))
   if (state.enabled) await applyAuto(env, state)
 }
