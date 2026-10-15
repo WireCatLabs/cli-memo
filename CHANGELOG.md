@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.34.0 — 15.10.2026
+
 ### Changed — may break scripts
 
 - **Option names follow the shared vocabulary of cli-base 0.31.1**, with no old names kept:
