@@ -18,7 +18,6 @@ import { APP } from "../app.js"
 import { loadConfig } from "../config.js"
 import { keyDocuments, keyFirst, projectOf } from "../knowledge/key-documents.js"
 import { mailAccounts } from "../mail/accounts.js"
-import { bulkBox } from "../mail/bulk.js"
 import { searchMemoriesCommand } from "../memories/command.js"
 import { folderIds } from "../notes/bound.js"
 import { modelHint } from "../notes/embed.js"
@@ -356,14 +355,6 @@ export const searchKind = async (
   )
 }
 
-const bulkOnly = (value: string): "bulk" => {
-  if (value !== "bulk") throw new InvalidArgumentError("bulk is the one kind left out by default")
-  return value
-}
-
-/** Newsletters and notices outrank the mail someone wrote; they come back with --include bulk. */
-export const withoutBulk = (text: string): string => `(${text}) NOT mailbox:"${bulkBox.externalId}"`
-
 /** The rules and `memo mail status` take an account's name; search takes it too, or the address. */
 const mailAddressOf = (env: NodeJS.ProcessEnv, account: string): string =>
   account.includes("@")
@@ -468,16 +459,10 @@ content: narrows a search to the text of files, transcript: to voice transcripts
       group.command(kind).description(kind === "mail" ? "imported emails only" : "stored messenger messages only"),
     )
     if (kind === "mail")
-      leaf
-        .option(
-          "--account <account>",
-          "only this mail account, by its name in mail.accounts or its address (default: every mail account)",
-        )
-        .option(
-          "--include <kinds>",
-          "bulk: also mail sent to many, like newsletters, which is left out by default",
-          bulkOnly,
-        )
+      leaf.option(
+        "--account <account>",
+        "only this mail account, by its name in mail.accounts or its address (default: every mail account)",
+      )
     leaf.addHelpText(
       "after",
       kind === "messages"
@@ -488,6 +473,7 @@ has:voice, has:file or NOT has:attachment keeps voice messages, files or plain t
 --json: the list is items, each a hit as in tg search messages: ref (msg:â€¦), timestamp, sender_name, excerpt.`
         : `
 content: narrows a search to the text of attachments, filename: to their names â€” memo search mail 'content:invoice'.
+Mail sent to many is in the mailbox bulk; NOT mailbox:bulk leaves it out, and bills and bookings with it.
 --json: the list is items, each a hit as in tg search mail: ref (msg:email/â€¦), timestamp, email, excerpt.`,
     )
     leaf.action(
@@ -498,7 +484,6 @@ content: narrows a search to the text of attachments, filename: to their names â
           exact?: boolean
           timezone?: string
           account?: string
-          include?: "bulk"
           json?: boolean
           brief?: boolean
           full?: boolean
@@ -509,7 +494,7 @@ content: narrows a search to the text of attachments, filename: to their names â
         const text = words.join(" ")
         const answer = await withStore(env, (store) =>
           searchKind(store, kind, {
-            text: kind === "mail" && options.include !== "bulk" ? withoutBulk(text) : text,
+            text,
             limit: options.limit,
             ...(account === undefined ? {} : { account }),
             ...(options.exact ? { exact: true } : {}),
