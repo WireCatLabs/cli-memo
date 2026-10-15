@@ -1697,7 +1697,6 @@ memo search messages <query> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--brief` | each message or email as reference, time, sender and excerpt only. |
 | `--full` | each message or email with its whole text; --json keeps the excerpt, messages show the text. |
-| `--type <type>` | text, voice or file. |
 
 ### `memo search mail`
 
@@ -1770,16 +1769,16 @@ memo search memories <words> [options]
 prepare cited evidence for your agent, or explicitly call a configured model
 
 ```sh
-memo ask <question> [options]
+memo ask <question> [query] [options]
 ```
 
 | Argument | | What it is |
 |---|---|---|
 | `question` | required | the question, in your own words. |
+| `query` | optional | what to search for: words, phrases, Boolean operators and field queries; default the question. |
 
 | Option | What it does |
 |---|---|
-| `--query <query>` | structured retrieval query; defaults to the question. |
 | `--all` | look in every stored account and the notes. |
 | `--provider <provider>` | look in this provider's accounts only, such as telegram or email. |
 | `--account <account>` | look in this stored account only, with --provider. |
@@ -1800,8 +1799,7 @@ memo sync [options]
 
 | Option | What it does |
 |---|---|
-| `--notes` | notes only. |
-| `--mail` | mail only. |
+| `--only <resources>` | notes,mail, separated by commas. |
 | `--folder <folder>` | notes: only this configured folder, by its id or path; repeat for more. |
 | `--ignore <path>` | notes: also skip this file or folder, a path or a glob; repeat for more. |
 | `--account <account>` | mail: only this account, by its name in mail.accounts or its address; repeat for more. |

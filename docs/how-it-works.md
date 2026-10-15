@@ -14,8 +14,8 @@ notes together.
 | Where it comes from | Who puts it in the local store |
 |---|---|
 | Telegram and MAX messages | tg and max, when they download your chats |
-| Email | `memo sync --mail` or `memo sync` |
-| Files in your note folders | `memo sync --notes` or `memo sync` |
+| Email | `memo sync --only mail` or `memo sync` |
+| Files in your note folders | `memo sync --only notes` or `memo sync` |
 | Your own notes, tags, tasks, memories and facts | Memo, when you or your agent add them |
 
 Memo never changes the original: your files stay as they are, and your mailbox is opened read-only.

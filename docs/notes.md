@@ -29,17 +29,17 @@ For a folder of ordinary Markdown files:
 
 ```sh
 memo folders add /path/to/notes --format markdown
-memo sync --notes --no-embed
+memo sync --only notes --no-embed
 ```
 
 For an Obsidian vault:
 
 ```sh
 memo folders add /path/to/vault --format obsidian
-memo sync --notes --no-embed
+memo sync --only notes --no-embed
 ```
 
-`memo folders add` prints the folder's ID, for example `1`. `memo sync --notes` reads the notes and
+`memo folders add` prints the folder's ID, for example `1`. `memo sync --only notes` reads the notes and
 reports how many it found:
 
 ```text
@@ -47,7 +47,7 @@ reports how many it found:
 ```
 
 `--no-embed` skips the preparation for search by meaning, so you do not need the search model to
-start. Run `memo sync --notes` again after you add or edit files; only the changes are read.
+start. Run `memo sync --only notes` again after you add or edit files; only the changes are read.
 
 You can add more than one folder. `memo folders list` shows them all.
 
@@ -104,7 +104,7 @@ it is skipped) or a pattern:
 { "notes": { "ignore": ["Journal/Private.md", "Archive", "**/Private*"] } }
 ```
 
-`memo sync --notes --ignore Drafts` skips a folder for one run only.
+`memo sync --only notes --ignore Drafts` skips a folder for one run only.
 
 ## Find your notes
 

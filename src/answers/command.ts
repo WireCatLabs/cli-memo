@@ -90,7 +90,10 @@ export const askCommand = (program: Command, streams: Streams, env: NodeJS.Proce
     .command("ask")
     .description("prepare cited evidence for your agent, or explicitly call a configured model")
     .argument("<question>", "the question, in your own words")
-    .option("--query <query>", "structured retrieval query; defaults to the question")
+    .argument(
+      "[query...]",
+      "what to search for: words, phrases, Boolean operators and field queries; default the question",
+    )
     .option("--all", "look in every stored account and the notes")
     .option("--provider <provider>", "look in this provider's accounts only, such as telegram or email")
     .option("--account <account>", "look in this stored account only, with --provider")
@@ -101,8 +104,8 @@ export const askCommand = (program: Command, streams: Streams, env: NodeJS.Proce
     .action(
       async (
         question: string,
+        words: string[],
         options: AccountScope & {
-          query?: string
           all?: boolean
           limit: number
           analyze?: boolean
@@ -111,7 +114,7 @@ export const askCommand = (program: Command, streams: Streams, env: NodeJS.Proce
         },
       ) => {
         await withStore(env, async (store) => {
-          const found = await unifiedSearch(store, options.query ?? question, {
+          const found = await unifiedSearch(store, words.length ? words.join(" ") : question, {
             ...(await searchAccounts(store, options)),
             limit: options.limit,
           })

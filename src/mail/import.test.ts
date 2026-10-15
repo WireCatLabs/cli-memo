@@ -659,7 +659,7 @@ describe("importMail resuming", () => {
   })
 })
 
-describe("memo sync --mail", () => {
+describe("memo sync --only mail", () => {
   const run = async (args: string[], env: NodeJS.ProcessEnv) => {
     const streams = captureStreams()
     const program = createProgram({ streams, env })
@@ -688,9 +688,9 @@ describe("memo sync --mail", () => {
   it("says how to add an account when none is set", async () => {
     const { env } = setup([])
 
-    expect(await run(["sync", "--mail"], { ...env, MEMO_CONFIG_DIR: mkdtempSync(join(tmpdir(), "c-")) })).toContain(
-      "mail.accounts",
-    )
+    expect(
+      await run(["sync", "--only", "mail"], { ...env, MEMO_CONFIG_DIR: mkdtempSync(join(tmpdir(), "c-")) }),
+    ).toContain("mail.accounts")
   })
 
   it("names the configured accounts when --account names none of them", async () => {

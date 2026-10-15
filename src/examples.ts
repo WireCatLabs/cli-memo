@@ -118,7 +118,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "agents log": ["memo agents log agent:claude-code --limit 20"],
   mcp: ["memo mcp"],
   "search all": ["memo search all 'budget harbour'", "memo search all 'content:invoice' --only mail,notes --json"],
-  "search messages": ["memo search messages 'friday meeting' --type voice"],
+  "search messages": ["memo search messages 'friday meeting has:voice'"],
   "search mail": ["memo search mail 'mailbox:important budget' --account me@example.com"],
   "search notes": ["memo search notes budget --folder ~/notes", "memo search notes kickoff --project HRB --json"],
   "search memories": ["memo search memories friday meetings --scope work"],
@@ -129,7 +129,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   sync: [
     "memo sync",
     "memo sync --account work --since-time 2026-09-01",
-    "memo sync --notes --folder ~/notes --no-embed",
+    "memo sync --only notes --folder ~/notes --no-embed",
   ],
   "auto start": ["memo auto start --every 10m"],
   "auto stop": ["memo auto stop"],

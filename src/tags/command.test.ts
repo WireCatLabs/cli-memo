@@ -90,7 +90,7 @@ beforeEach(async () => {
     await store.close()
   }
   env.MEMO_HIMALAYA = "/not-a-mail-command"
-  await run("sync", "--notes")
+  await run("sync", "--only", "notes")
 })
 
 describe("memo source tags", () => {
@@ -154,10 +154,10 @@ describe("memo source tags", () => {
     await json("tags", "add", "work", "--note", ref)
     writeFileSync(join(vault, path), "Lighthouse revised budget.\n")
     utimesSync(join(vault, path), new Date("2030-01-01"), new Date("2030-01-01"))
-    await run("sync", "--notes")
+    await run("sync", "--only", "notes")
     expect((await json("search", "notes", "revised", "--filter", "tag:work")).items).toHaveLength(1)
     rmSync(join(vault, path))
-    await run("sync", "--notes")
+    await run("sync", "--only", "notes")
     expect((await json("search", "notes", "lighthouse", "--filter", "tag:work")).items).toEqual([])
     expect(await run("search", "notes", "lighthouse", "--filter", "tag:work")).toContain("No note holds")
     await expect(json("tags", "add", "again", "--note", ref)).rejects.toMatchObject({ code: "not_found" })

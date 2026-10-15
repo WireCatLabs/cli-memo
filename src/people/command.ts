@@ -39,7 +39,7 @@ export const noteCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           const { folder, path: inside } = folderOfFile(folders, path)
           const note = (await folderNotes(store, folder.id)).find((candidate) => candidate.path === inside)
           if (!note)
-            throw new CliError("not_found", `${path} is not imported yet — memo sync --notes`, {
+            throw new CliError("not_found", `${path} is not imported yet — memo sync --only notes`, {
               reason: "note.not-imported",
             })
           await store.notes.addLink({ from: note.ref, to, kind: "about", origin: "owner" })

@@ -18,7 +18,7 @@ export const REASONS: ErrorReason[] = defineReasons([
   {
     reason: "note.not-imported",
     code: "not_found",
-    message: "the note is not imported; memo sync --notes",
+    message: "the note is not imported; memo sync --only notes",
     details: [],
   },
   {

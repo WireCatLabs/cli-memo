@@ -77,8 +77,8 @@ it("searches three typed resources together, separates mail and messages, and fi
   expect((await run("search", "mail", "Sharedsignal")).items.map((item: { ref: string }) => item.ref)).toEqual([
     "msg:email/mailbox/7/1",
   ])
-  expect((await run("search", "messages", "Sharedsignal", "--type", "text")).items).toHaveLength(1)
-  expect((await run("search", "messages", "Sharedsignal", "--type", "file")).items).toEqual([])
+  expect((await run("search", "messages", "Sharedsignal NOT has:attachment")).items).toHaveLength(1)
+  expect((await run("search", "messages", "Sharedsignal has:file")).items).toEqual([])
   expect(
     (await run("search", "notes", "Sharedsignal", "--type", "internal")).items.map((hit: { ref: string }) => hit.ref),
   ).toEqual([internal.ref])

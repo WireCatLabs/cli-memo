@@ -35,7 +35,7 @@ beforeEach(async () => {
     writeFileSync(join(vault, path), text)
   }
   await run("folders", "add", vault)
-  await run("sync", "--notes")
+  await run("sync", "--only", "notes")
 })
 describe("structured note retrieval and saved links", () => {
   it("uses shared phrase/Boolean filters, provides exact current excerpts and paginates distinct notes", async () => {

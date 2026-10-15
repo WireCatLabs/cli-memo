@@ -48,7 +48,10 @@ export const memoContext = async (
   }
   const notRead: MemoContext["notRead"] = []
   if ((await store.notes.folders()).length === 0)
-    notRead.push({ source: "notes", reason: "no folder of notes — memo folders add <path>, then memo sync --notes" })
+    notRead.push({
+      source: "notes",
+      reason: "no folder of notes — memo folders add <path>, then memo sync --only notes",
+    })
   if (!messages.person.identities.some((identity) => identity.provider === "email"))
     notRead.push({
       source: "mail",

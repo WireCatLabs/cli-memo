@@ -25,9 +25,9 @@ export const knowledgeTools = {
   }),
   search_messages: define({
     title: "Search messages",
-    description: `Stored messages from every messenger, with all their fields. content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names, as content:invoice. Each hit's reference is ref. ${DATA}`,
+    description: `Stored messages from every messenger, with all their fields. content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names, as content:invoice; has:voice, has:file or NOT has:attachment keeps voice messages, files or plain text. Each hit's reference is ref. ${DATA}`,
     writes: false,
-    input: v.object({ ...query, type: v.optional(v.picklist(["text", "voice", "file"])) }),
+    input: v.object(query),
     run: async (store, args) =>
       kindAnswer("messages", await searchKind(store, "messages", args), args.limit, undefined, args.text),
   }),

@@ -1,5 +1,4 @@
 [
-  "ask --query",
   "facts add --occurred",
   "mail probe --domain-age",
   "mail rules add --domain",
@@ -13,8 +12,6 @@
   "mail rules remove --list-id",
   "note --clear",
   "sync --ignore",
-  "sync --mail",
-  "sync --notes",
   "sync --retry-attachments",
   "tags add --path",
   "tags remove --path",

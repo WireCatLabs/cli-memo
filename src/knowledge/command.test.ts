@@ -106,7 +106,7 @@ describe("combined evidence, relationships and local reminders", () => {
     const messagesOnly = await run("search", "all", "budget AND chat:77")
     expect(messagesOnly.items.length).toBeGreaterThan(0)
     expect(messagesOnly.meta.issues).toContainEqual({ code: expect.any(String), source: "notes" })
-    const bundle = await run("ask", "What is pending?", "--query", "budget", "--all")
+    const bundle = await run("ask", "What is pending?", "budget", "--all")
     expect(bundle.evidence.length).toBeGreaterThan(0)
     expect(bundle.coverage.find(({ provider }: { provider: string }) => provider === "telegram")).toEqual({
       provider: "telegram",

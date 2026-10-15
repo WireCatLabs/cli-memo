@@ -14,6 +14,11 @@ the API.
   `tasks list project:HRB ready:true`; `vocabulary list --kind tag --scope work` → `vocabulary list kind:tag
   scope:work`. The store still does the filtering. MCP `actions_list`, `agents_log`, `tasks_list` and
   `vocabulary_list` take the same terms as `query`.
+- **`memo sync --notes` and `--mail` are now `--only notes` and `--only mail`** (`--only notes,mail` for both).
+- **`memo search messages --type` is gone**: the query says it — `has:voice`, `has:file` or `NOT has:attachment`.
+  MCP `search_messages` drops its `type` input the same way.
+- **`memo ask` takes what to search for after the question**, not as `--query`:
+  `memo ask 'What did I promise?' 'promised OR "by Friday"' --all`.
 
 ## 0.36.0 — 15.10.2026
 
