@@ -6,6 +6,18 @@ the API.
 
 ## Unreleased
 
+### Changed
+
+- **`memo mail probe` is now `memo mail inspect`.** Same command and output; `inspect` is the shared word for
+  looking at a source before taking anything from it, as `tg chats inspect` looks at a link before joining.
+- **`memo search notes` names folders with `--source`, as `tg search notes` does.** `--source notes:<folder id>`
+  (the id a hit shows), `notes:internal` for notes written in Memo, comma-separated for more. `--folder` is gone,
+  and a folder path is no longer accepted: use its id from `memo folders list`. An entry naming no notes account
+  is reported on stderr and the rest is still searched.
+- **`memo search memories` narrows by scope in the query: `memo search memories friday scope:work`.** `--scope` is
+  gone. The query is words and at most one `scope:`, joined by AND; `OR`, `NOT` and other fields are refused
+  rather than filtered after the search. The MCP `search memories` tool lost its `scope` argument the same way.
+
 ## 0.45.0 — 16.10.2026
 
 ### Fixed

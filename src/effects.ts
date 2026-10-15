@@ -18,7 +18,7 @@ export const EFFECTS: Readonly<Record<string, Effects>> = {
   "folders attach": LOCAL_WRITE,
   "folders list": LOCAL_READ,
   "messages show": LOCAL_READ,
-  "mail probe": REMOTE_READ,
+  "mail inspect": REMOTE_READ,
   "mail status": LOCAL_READ,
   "mail rules list": LOCAL_READ,
   "mail rules add": LOCAL_WRITE,

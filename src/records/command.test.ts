@@ -55,6 +55,11 @@ it("adds a memory of the owner's as confirmed, finds it, and marks it stale", as
   expect((await json("search", "memories", "Fridays")).items.map(({ ref }: { ref: string }) => ref)).toEqual([
     memory.ref,
   ])
+  expect((await json("search", "memories", "Fridays", "scope:work")).items).toHaveLength(1)
+  expect((await json("search", "memories", "Fridays", "scope:personal")).items).toEqual([])
+  await expect(json("search", "memories", "Fridays", "OR", "Mondays")).rejects.toMatchObject({
+    code: "validation_error",
+  })
   expect(await json("memories", "stale", memory.ref)).toMatchObject({ status: "stale" })
   expect(await json("memories", "show", memory.ref)).toMatchObject({ ref: memory.ref, status: "stale" })
 })

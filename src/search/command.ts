@@ -7,7 +7,7 @@ import {
   type SearchedResource,
   type SearchFound,
   searchAll,
-  searchNotes,
+  searchNotesOf,
   searchNotesQuery,
   searchStore,
 } from "@wirecat/cli-core/services"
@@ -19,10 +19,9 @@ import { loadConfig } from "../config.js"
 import { keyDocuments, keyFirst, projectOf } from "../knowledge/key-documents.js"
 import { mailAccounts } from "../mail/accounts.js"
 import { searchMemoriesCommand } from "../memories/command.js"
-import { folderIds } from "../notes/bound.js"
 import { modelHint } from "../notes/embed.js"
 import { searchText } from "../notes/search.js"
-import { collect, positive } from "../options.js"
+import { positive } from "../options.js"
 import { SAVE_HELP } from "../save-help.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 import { taskPage } from "../tasks/context.js"
@@ -518,7 +517,11 @@ Mail sent to many is in the mailbox bulk; NOT mailbox:bulk leaves it out, and bi
     )
     .option("--type <type>", "file or internal", noteType)
     .option("--filter <query>", "another query every note must match")
-    .option("--folder <folder>", "only this folder, by its id or path; repeat for more", collect)
+    .option(
+      "--source <accounts>",
+      "only these notes accounts, separated by commas: notes:internal for notes written in memo, notes:<folder id> " +
+        "as a hit shows it, notes or group:<name>",
+    )
     .option("--page <n>", "which page, from 1", positive, 1)
     .option("--project <project>", PROJECT_HELP)
     .action(
@@ -529,7 +532,7 @@ Mail sent to many is in the mailbox bulk; NOT mailbox:bulk leaves it out, and bi
           page: number
           type?: Note["source"]
           filter?: string
-          folder?: string[]
+          source?: string
           project?: string
           exact?: boolean
           timezone?: string
@@ -537,13 +540,14 @@ Mail sent to many is in the mailbox bulk; NOT mailbox:bulk leaves it out, and bi
         },
       ) => {
         const answer = await withStore(env, async (store) => {
-          const found = await searchNotes(store, words.join(" "), {
+          const found = await searchNotesOf(store, MEMO, words.join(" "), {
             limit: options.limit,
             offset: (options.page - 1) * options.limit,
             env,
+            app: APP,
             ...(options.type === undefined ? {} : { source: options.type }),
             ...(options.filter === undefined ? {} : { filter: options.filter }),
-            ...(options.folder === undefined ? {} : { folderIds: await folderIds(store, env, options.folder) }),
+            ...(options.source === undefined ? {} : { accounts: options.source }),
             ...(options.exact ? { exact: true } : {}),
             ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
           })
@@ -553,11 +557,9 @@ Mail sent to many is in the mailbox bulk; NOT mailbox:bulk leaves it out, and bi
         })
         if (answer.meaning_skipped && !options.json)
           streams.diagnostic(`Searched by words only: ${modelHint(answer.meaning_skipped)}\n`)
-        const { limit, page, json, folder, ...rest } = options
-        // A next-page step names one value per option; with several folders it would search every folder.
-        const body = notesAnswer(answer, limit, page, { query: words.join(" "), ...rest, folder: folder?.[0] })
-        if ((folder?.length ?? 0) > 1) delete body.next
-        print(json, body, searchText(answer))
+        for (const { source, reason } of answer.skipped) streams.diagnostic(`${source} not searched: ${reason}\n`)
+        const { limit, page, json, ...rest } = options
+        print(json, notesAnswer(answer, limit, page, { query: words.join(" "), ...rest }), searchText(answer))
       },
     )
   searchMemoriesCommand(group, streams, env)

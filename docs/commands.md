@@ -238,12 +238,12 @@ memo messages show <message> [options]
 
 look at a mail account before importing it, and the owner's rules
 
-### `memo mail probe`
+### `memo mail inspect`
 
 group an account's mail by sender and list, to decide what to keep or skip
 
 ```sh
-memo mail probe <account> [options]
+memo mail inspect <account> [options]
 ```
 
 | Argument | | What it is |
@@ -1770,7 +1770,7 @@ memo search notes <query> [options]
 | `--full` | each message or email with its whole text; --json keeps the excerpt, messages show the text. |
 | `--type <type>` | file or internal. |
 | `--filter <query>` | another query every note must match. |
-| `--folder <folder>` | only this folder, by its id or path; repeat for more. |
+| `--source <accounts>` | only these notes accounts, separated by commas: notes:internal for notes written in memo, notes:<folder id> as a hit shows it, notes or group:<name>. |
 | `--page <n>` | which page, from 1. Default: `1`. |
 | `--project <project>` | rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out. |
 
@@ -1779,16 +1779,15 @@ memo search notes <query> [options]
 memories holding every word, best first
 
 ```sh
-memo search memories <words> [options]
+memo search memories <query> [options]
 ```
 
 | Argument | | What it is |
 |---|---|---|
-| `words` | required | the words to find. |
+| `query` | required | the words to find; scope:personal or scope:work narrows them. |
 
 | Option | What it does |
 |---|---|
-| `--scope <scope>` | personal or work. |
 | `--limit <n>` | most memories, up to 500. Default: `20`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 

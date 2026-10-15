@@ -184,7 +184,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
   const mail = program.command("mail").description("look at a mail account before importing it, and the owner's rules")
 
   mail
-    .command("probe")
+    .command("inspect")
     .description("group an account's mail by sender and list, to decide what to keep or skip")
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .option("--since-time <time>", "only mail from this time, ISO 8601 or 30d ago (default: all mail)")

@@ -21,7 +21,7 @@ export interface MailRuleMatch {
   unread?: boolean
   /** List-Id, List-Unsubscribe or `Precedence: bulk`. */
   bulk?: boolean
-  /** The sender's score (memo mail probe) is at least this. */
+  /** The sender's score (memo mail inspect) is at least this. */
   score_at_least?: number
   /** A built-in kind of mail, see presets.ts. */
   preset?: PresetName
