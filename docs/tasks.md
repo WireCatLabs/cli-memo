@@ -48,7 +48,7 @@ such as `HRB-1`:
 ```sh
 memo tasks add --project HRB --title 'Book the venue' --priority 1
 memo tasks add --project HRB --title 'Export drops the last row' --type bug
-memo tasks list --project HRB
+memo tasks list project:HRB
 memo tasks update HRB-1 --priority 0 --description 'Call before Friday'
 ```
 
@@ -91,7 +91,7 @@ One task can wait for another. Link them, then ask Memo which tasks can start:
 
 ```sh
 memo tasks link HRB-2 HRB-1 --kind blocked-by     # HRB-2 waits for HRB-1
-memo tasks list --ready --project HRB           # tasks with nothing left to wait for
+memo tasks list project:HRB ready:true          # tasks with nothing left to wait for
 memo tasks status HRB-2                           # why HRB-2 can or cannot start
 memo tasks relations HRB-2
 memo tasks unlink HRB-2 HRB-1 --kind blocked-by

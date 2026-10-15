@@ -1,7 +1,4 @@
 [
-  "actions list --status",
-  "agents log --agent",
-  "agents log --tool",
   "ask --query",
   "facts add --occurred",
   "mail probe --domain-age",
@@ -15,7 +12,6 @@
   "mail rules remove --from",
   "mail rules remove --list-id",
   "note --clear",
-  "projects meetings list --proposed",
   "sync --ignore",
   "sync --mail",
   "sync --notes",
@@ -26,7 +22,6 @@
   "tasks agenda --holder",
   "tasks agenda --unanswered",
   "tasks agenda --waiting",
-  "tasks list --ready",
   "tasks plan --category",
   "vocabulary check --min-similarity"
 ]

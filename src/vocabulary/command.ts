@@ -2,7 +2,9 @@ import { CliError, type Streams } from "@wirecat/cli-base"
 import type { MessageStore, VocabularyKind, VocabularyOptions, VocabularyTarget } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
+import { withQuery } from "../list-query.js"
 import { oneOf, positive } from "../options.js"
+import { VOCABULARY_QUERY, vocabularyFilter } from "./list.js"
 
 const kinds = ["project", "tag", "topic"] as const
 const targetOf = (reference: string): VocabularyTarget => {
@@ -19,22 +21,34 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
   const { run } = answers(program, streams, env)
   const execute = (options: Options, work: (store: MessageStore) => Promise<unknown>) =>
     run(options.json, async (store) => itemAnswer(await work(store)))
-  const readOptions = (command: Command) =>
+  const budgetOptions = (command: Command) =>
     command
-      .option("--kind <kind>", "project, tag or topic", oneOf(kinds))
-      .option("--scope <scope>", "personal or work projects", oneOf(["personal", "work"] as const))
       .option("--max-entries <n>", "catalog input budget, not a page size", positive)
       .option("--max-read-bytes <bytes>", "catalog input byte budget", positive)
       .option("--json", "print JSON; --json=id,title keeps only those fields")
+  const readOptions = (command: Command) =>
+    budgetOptions(
+      command
+        .option("--kind <kind>", "project, tag or topic", oneOf(kinds))
+        .option("--scope <scope>", "personal or work projects", oneOf(["personal", "work"] as const)),
+    )
   const catalogOptions = (options: Options): VocabularyOptions => ({
     ...(options.kind === undefined ? {} : { kind: options.kind }),
     ...(options.scope === undefined ? {} : { scope: options.scope }),
     ...(options.maxEntries === undefined ? {} : { maxEntries: options.maxEntries }),
     ...(options.maxReadBytes === undefined ? {} : { maxReadBytes: options.maxReadBytes }),
   })
-  readOptions(
-    vocabulary.command("list").description("list canonical IDs, aliases, usage counts and a preview fingerprint"),
-  ).action((options: Options) => execute(options, (store) => store.knowledge.vocabulary(catalogOptions(options))))
+  budgetOptions(
+    withQuery(
+      vocabulary.command("list").description("list canonical IDs, aliases, usage counts and a preview fingerprint"),
+      VOCABULARY_QUERY,
+      { answersEntity: false },
+    ),
+  ).action((words: string[], options: Options) =>
+    execute(options, (store) =>
+      store.knowledge.vocabulary({ ...catalogOptions(options), ...vocabularyFilter(words, "vocabulary list") }),
+    ),
+  )
   readOptions(
     vocabulary
       .command("show")

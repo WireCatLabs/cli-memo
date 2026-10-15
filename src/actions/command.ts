@@ -1,12 +1,11 @@
 import type { Streams } from "@wirecat/cli-base"
 import { approveAsTask } from "@wirecat/cli-core/services"
-import { PROPOSAL_STATUSES, type ProposedAction } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { authorOf, byOption } from "../author.js"
-import { oneOf, positive } from "../options.js"
-import { pageOf } from "../page.js"
-import { type NewProposal, propose } from "./actions.js"
+import { withQuery } from "../list-query.js"
+import { positive } from "../options.js"
+import { ACTION_QUERY, listActions, type NewProposal, propose } from "./actions.js"
 
 export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { run } = answers(program, streams, env)
@@ -31,18 +30,13 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
         ),
     )
 
-  actions
-    .command("list")
-    .description("proposed actions, newest first")
-    .option("--status <status>", PROPOSAL_STATUSES.join(", "), oneOf(PROPOSAL_STATUSES))
+  withQuery(actions.command("list").description("proposed actions, newest first"), ACTION_QUERY, {
+    answersEntity: false,
+  })
     .option("--limit <n>", "most actions, up to 500", positive, 100)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((options: { status?: ProposedAction["status"]; limit: number; json?: boolean }) =>
-      run(options.json, (store) =>
-        pageOf("actions list", options.limit, (limit) =>
-          store.proposedActions.list({ limit, ...(options.status === undefined ? {} : { status: options.status }) }),
-        ),
-      ),
+    .action((words: string[], options: { limit: number; json?: boolean }) =>
+      run(options.json, (store) => listActions(store, words, options.limit)),
     )
 
   actions

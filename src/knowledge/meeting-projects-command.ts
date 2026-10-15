@@ -1,8 +1,10 @@
 import type { Streams } from "@wirecat/cli-base"
+import type { QueryRegistry } from "@wirecat/cli-base/query"
 import type { Body } from "@wirecat/cli-core/cli"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer } from "../answer.js"
+import { queryField, queryTerms, withQuery } from "../list-query.js"
 import { positive } from "../options.js"
 import { canonicalProject } from "../vocabulary/project.js"
 
@@ -10,12 +12,18 @@ type Options = {
   provider: string
   account: string
   json?: boolean
-  proposed?: boolean
   limit: number
   page?: number
   fingerprint?: string
   reason?: string
 }
+const MEETING_PROJECTS_QUERY = {
+  entity: "meeting_project",
+  backend: "native",
+  fields: [queryField("confirmed", "bool", "confirmed:false")],
+  defaults: ["confirmed:true"],
+} as const satisfies QueryRegistry
+
 export const meetingProjectsCommand = (projects: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const group = projects.command("meetings").description("explicit account-scoped project membership")
   const options = (command: Command) =>
@@ -29,21 +37,25 @@ export const meetingProjectsCommand = (projects: Command, streams: Streams, env:
     options: Options,
     work: (store: MessageStore, projectId: string) => Promise<Body>,
   ) => run(options.json, async (store) => work(store, (await canonicalProject(store, project)).slice(8)))
-  options(
-    group
-      .command("list")
-      .description("meetings linked to a project in one account, or proposed links")
-      .argument("<project>", "project reference, key or explicit alias"),
+  withQuery(
+    options(
+      group
+        .command("list")
+        .description("meetings linked to a project in one account, or with confirmed:false proposed")
+        .argument("<project>", "project reference, key or explicit alias"),
+    ),
+    MEETING_PROJECTS_QUERY,
+    { answersEntity: false },
   )
-    .option("--proposed", "show proposed memberships instead of confirmed ones")
     .option("--limit <n>", "meetings per page, at most 500", positive, 50)
     .option("--page <n>", "which page, from 1", positive)
-    .action((project: string, given: Options) =>
+    .action((project: string, words: string[], given: Options) =>
       execute(project, given, async (store, projectId) => {
+        const confirmed = queryTerms(words, MEETING_PROJECTS_QUERY, "projects meetings list").get("confirmed")
         const page = given.page ?? 1
         const found = await store.knowledge.meetingProjects(
           { provider: given.provider, account: given.account },
-          { projectId, confirmed: !given.proposed, limit: given.limit, offset: (page - 1) * given.limit },
+          { projectId, confirmed: confirmed === "true", limit: given.limit, offset: (page - 1) * given.limit },
         )
         return listAnswer("projects meetings list", {
           items: found.items,
@@ -54,7 +66,7 @@ export const meetingProjectsCommand = (projects: Command, streams: Streams, env:
             project,
             provider: given.provider,
             account: given.account,
-            ...(given.proposed ? { proposed: true } : {}),
+            ...(words.length === 0 ? {} : { query: words.join(" ") }),
           },
         })
       }),

@@ -77,7 +77,7 @@ it("confirms a proposed action as a task in the account that would act, and reje
   const approved = await json("actions", "confirm", reply.id)
   expect(approved.proposal).toMatchObject({ status: "approved", result: { task: approved.task.id } })
   expect(await json("actions", "reject", ban.id)).toMatchObject({ status: "rejected" })
-  expect((await json("actions", "list", "--status", "proposed")).items).toEqual([])
+  expect((await json("actions", "list", "status:proposed")).items).toEqual([])
   const tasks = await json("tasks", "list", ...scope)
   expect(JSON.stringify(tasks)).toContain(approved.task.id)
 })
@@ -92,7 +92,7 @@ it("lists the agent log by agent, with each agent's name", async () => {
     await store.close()
   }
 
-  expect((await json("agents", "log", "--agent", "memo-mcp")).items).toMatchObject([
+  expect((await json("agents", "log", "agent:memo-mcp")).items).toMatchObject([
     { tool: "memories_add", actor: { name: "memo-mcp" } },
   ])
   expect((await json("agents", "log")).items).toHaveLength(2)

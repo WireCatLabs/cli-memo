@@ -1,5 +1,4 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
-import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { parseLocator } from "@wirecat/cli-core"
 import { closedStateOf, storeOnlyDeps, tasksService } from "@wirecat/cli-core/services"
 import {
@@ -13,15 +12,15 @@ import {
   type WorkTaskType,
 } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
-import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
+import { answers, itemAnswer, withStore } from "../answer.js"
 import { APP } from "../app.js"
-import { queryField, queryTerms, withQuery } from "../list-query.js"
+import { withQuery } from "../list-query.js"
 import { isNoteReference } from "../notes/about.js"
 import { accountOptions, oneOf, positive } from "../options.js"
 import { heldMessage } from "../store/held.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 import { canonicalProject } from "../vocabulary/project.js"
-import { taskPage } from "./context.js"
+import { listTasks, TASKS_LIST_QUERY } from "./list.js"
 import { taskRelationsCommand } from "./relations-command.js"
 import { sharedTaskCommands } from "./shared.js"
 
@@ -57,27 +56,6 @@ const fieldOptions = (command: Command) =>
 const assignAll = async (store: MessageStore, id: string, people: string[] | undefined) => {
   for (const person of people ?? []) await store.tasks.assign(id, { to: personRef(person), role: "assignee" }, "owner")
 }
-
-/** The store filters by state, and a project's tasks by kind too; the rows are memo's, not cli-core's task entity. */
-const TASKS_LIST_QUERY = {
-  entity: "task",
-  backend: "native",
-  fields: [
-    queryField("state", "enum", "state:done", { values: ["open", "done", "dismissed"] }),
-    queryField("kind", "enum", "kind:bug", { values: TASK_TYPES }),
-    queryField("source", "ref", 'source:"msg:telegram/1/7/1"', {
-      relation: "tasks from this message, note or document; an account's tasks only",
-    }),
-  ],
-  defaults: ["state:open"],
-} as const satisfies QueryRegistry
-
-const tasksPage = (page: { items: { id: string | number }[]; hasMore: boolean }, limit: number) =>
-  listAnswer("tasks list", {
-    items: page.items.map((task) => ({ ref: `task:${task.id}`, ...task })),
-    limit,
-    has_more: page.hasMore,
-  })
 
 export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const group = program.command("tasks").description("open work linked to stored messages, documents and emails")
@@ -165,55 +143,12 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     TASKS_LIST_QUERY,
     { answersEntity: false },
   )
-    .option("--project <project>", "a project's tasks, by its key or project:<id>, instead of an account's")
-    .option("--ready", "with --project: only open tasks whose prerequisites are done; this claims none")
     .option("--limit <n>", "most tasks", positive, 100)
-    .action(
-      async (
-        words: string[],
-        options: AccountScope & { project?: string; ready?: boolean; limit: number; json?: boolean },
-      ) => {
-        const terms = queryTerms(words, TASKS_LIST_QUERY, "tasks list")
-        const state = terms.get("state") as "open" | "done" | "dismissed"
-        const kind = terms.get("kind") as TaskType | undefined
-        const source = terms.get("source")
-        if (options.ready && (options.project === undefined || words.length > 0))
-          throw new CliError("validation_error", "--ready lists a project's open tasks: give --project and no query")
-        if (kind !== undefined && options.project === undefined)
-          throw new CliError("validation_error", "kind: narrows a project's tasks: give --project")
-        if (source !== undefined && options.project !== undefined)
-          throw new CliError("validation_error", "source: narrows an account's tasks: give --provider, not --project")
-        await withStore(env, async (store) => {
-          if (options.ready && options.project !== undefined) {
-            const page = await store.tasks.readyTasks(await canonicalProject(store, options.project), {
-              limit: options.limit,
-            })
-            print(options.json, tasksPage(page, options.limit))
-            return
-          }
-          if (options.project !== undefined) {
-            const items = await store.tasks.find({
-              project: await canonicalProject(store, options.project),
-              status: state,
-              ...(kind === undefined ? {} : { type: kind }),
-              limit: options.limit + 1,
-            })
-            print(
-              options.json,
-              tasksPage({ items: items.slice(0, options.limit), hasMore: items.length > options.limit }, options.limit),
-            )
-            return
-          }
-          const key = await selectAccount(store, options)
-          const page = await taskPage(store, key, {
-            state,
-            limit: options.limit,
-            ...(source === undefined ? {} : { sources: [source] }),
-          })
-          print(options.json, tasksPage(page, options.limit))
-        })
-      },
-    )
+    .action(async (words: string[], options: AccountScope & { limit: number; json?: boolean }) => {
+      await withStore(env, async (store) => {
+        print(options.json, await listTasks(store, words, options.limit, () => selectAccount(store, options)))
+      })
+    })
   accountOptions(
     group.command("close").description("close a task as done or dismissed").argument("<id>", "the task's id"),
   )

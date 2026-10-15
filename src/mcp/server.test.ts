@@ -97,7 +97,7 @@ it("offers the memo tools, saves an agent's memory and proposal as its own, and 
     })
     expect(refused).toMatchObject({ isError: true, structuredContent: { error: { code: expect.any(String) } } })
 
-    const log = (await answer("agents_log", { agent: AGENT })) as {
+    const log = (await answer("agents_log", { query: `agent:${AGENT}` })) as {
       items: { tool: string; status: string; actor: { name: string } }[]
     }
     expect(log.items.map(({ tool, status }) => `${tool} ${status}`)).toEqual([
@@ -170,7 +170,7 @@ it("exposes ready task discovery without offering dependency mutation or claims"
       ready: false,
       blockers: [{ task: first.ref, state: "open" }],
     })
-    expect(await answer("tasks_list", { project: "RES", ready: true })).toMatchObject({
+    expect(await answer("tasks_list", { query: "project:RES ready:true" })).toMatchObject({
       items: [{ ref: first.ref, key: first.key }],
       page: { has_more: false },
     })

@@ -77,7 +77,7 @@ Use memo CLI to give me a weekly review: open tasks by project, tasks that are r
 and the memories, facts and actions waiting for my review. Do not approve or confirm anything.
 ```
 
-Your agent combines `memo tasks list`, `memo tasks list --ready`, and the review lists from
+Your agent combines `memo tasks list`, `memo tasks list project:HRB ready:true`, and the review lists from
 [Memories and facts](memories.md). Decide each item yourself.
 
 ## Write a summary into your vault

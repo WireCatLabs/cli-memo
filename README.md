@@ -167,7 +167,7 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 | Relationships | `memo relationships add` / `list` / `remove` / `confirm` / `suggest` |
 | Labels | `memo tags add` · `tags remove` · `tags list` |
 | Open work | `memo tasks add` · `tasks list` · `tasks agenda` · `tasks plan` · `tasks show` · `tasks update` · `tasks assign` · `tasks close` · `stats tasks show` |
-| Task dependencies | `memo tasks link` / `unlink` / `relations` · `tasks status` · `tasks list --ready` |
+| Task dependencies | `memo tasks link` / `unlink` / `relations` · `tasks status` · `tasks list project:HRB ready:true` |
 | Reminders | `memo reminders add` / `list` / `poll` / `ack` / `update` / `cancel` |
 | Agents | `memo memories …` · `facts …` · `actions …` · `agents log` · `memo mcp` |
 

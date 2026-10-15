@@ -590,8 +590,6 @@ memo tasks list [query] [options]
 | `--provider <provider>` | source provider. |
 | `--account <account>` | exact stored account. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--project <project>` | a project's tasks, by its key or project:<id>, instead of an account's. |
-| `--ready` | with --project: only open tasks whose prerequisites are done; this claims none. |
 | `--limit <n>` | most tasks. Default: `100`. |
 
 ### `memo tasks close`
@@ -834,22 +832,22 @@ explicit account-scoped project membership
 
 #### `memo projects meetings list`
 
-meetings linked to a project in one account, or proposed links
+meetings linked to a project in one account, or with confirmed:false proposed
 
 ```sh
-memo projects meetings list <project> [options]
+memo projects meetings list <project> [query] [options]
 ```
 
 | Argument | | What it is |
 |---|---|---|
 | `project` | required | project reference, key or explicit alias. |
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
 
 | Option | What it does |
 |---|---|
 | `--provider <provider>` | meeting provider. |
 | `--account <account>` | exact stored meeting account. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--proposed` | show proposed memberships instead of confirmed ones. |
 | `--limit <n>` | meetings per page, at most 500. Default: `50`. |
 | `--page <n>` | which page, from 1. |
 
@@ -1209,13 +1207,15 @@ canonical projects, tags and topics with explicit aliases
 list canonical IDs, aliases, usage counts and a preview fingerprint
 
 ```sh
-memo vocabulary list [options]
+memo vocabulary list [query] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
 
 | Option | What it does |
 |---|---|
-| `--kind <kind>` | project, tag or topic. |
-| `--scope <scope>` | personal or work projects. |
 | `--max-entries <n>` | catalog input budget, not a page size. |
 | `--max-read-bytes <bytes>` | catalog input byte budget. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
@@ -1555,12 +1555,15 @@ memo actions add <kind> [options]
 proposed actions, newest first
 
 ```sh
-memo actions list [options]
+memo actions list [query] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
 
 | Option | What it does |
 |---|---|
-| `--status <status>` | proposed, approved, rejected, executed, failed. |
 | `--limit <n>` | most actions, up to 500. Default: `100`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
@@ -1625,13 +1628,15 @@ what agents did through the MCP servers that share the store
 one row per tool call, newest first: agent, tool, tier, outcome and times, never its arguments
 
 ```sh
-memo agents log [options]
+memo agents log [query] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
 
 | Option | What it does |
 |---|---|
-| `--tool <name>` | only this tool. |
-| `--agent <name>` | only this agent, such as tg-mcp or memo-mcp. |
 | `--limit <n>` | most rows, up to 500. Default: `100`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 

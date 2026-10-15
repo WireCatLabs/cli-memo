@@ -19,7 +19,7 @@ Or yourself:
 ```sh
 memo memories list status:proposed
 memo facts list status:proposed
-memo actions list --status proposed
+memo actions list status:proposed
 ```
 
 Open each source, then confirm what is right and leave or reject the rest. The rest of this page
@@ -79,7 +79,7 @@ A proposed action is something an agent wants done in one of your accounts: a re
 ban in a group. Memo never does it.
 
 ```sh
-memo actions list --status proposed
+memo actions list status:proposed
 memo actions show 5
 memo actions confirm 5
 memo actions reject 5
@@ -99,7 +99,7 @@ memo actions add reply --reason 'Kai asked twice' --provider telegram --target '
 
 ```sh
 memo agents log --limit 20
-memo agents log --agent memo-mcp
+memo agents log agent:memo-mcp
 ```
 
 The agent log lists every call an agent made through the MCP servers of Memo, tg and max, newest
