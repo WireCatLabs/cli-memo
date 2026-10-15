@@ -85,9 +85,7 @@ describe("moving mail from messages into the mail tables", () => {
         now: () => Date.parse("2026-10-04T12:00:00Z"),
       })
     const found = async (text: string) =>
-      (await searchStore(store, KEY, { text, language: "lucene", kind: "mail", limit: 10 })).items.map(
-        ({ locator }) => locator,
-      )
+      (await searchStore(store, KEY, { text, kind: "mail", limit: 10 })).items.map(({ locator }) => locator)
 
     write([1, 2])
     expect(await run()).toMatchObject({ saved: 2, alreadyStored: 0, deleted: 0 })

@@ -39,6 +39,12 @@ export interface EvidenceItem {
 
 const CHATS_CHECKED = 500
 
+/**
+ * The account memo's searches run as: its own notes, never a stored account picked for the owner. The scope comes
+ * from the query alone, and every account it covers is named in the answer.
+ */
+const MEMO: AccountKey = { provider: "notes", account: "internal" }
+
 export const unifiedSearch = async (
   store: MessageStore,
   query: string,
@@ -59,9 +65,8 @@ export const unifiedSearch = async (
   if ((!options.keys.length && !options.notes) || options.keys.length > 50)
     throw new CliError("validation_error", "select 1–50 accounts, or notes")
   const answer = options.keys.length
-    ? await searchStore(store, options.keys[0] as AccountKey, {
+    ? await searchStore(store, MEMO, {
         text: query,
-        language: "lucene",
         accounts: options.keys,
         limit: Math.min(2000, offset + limit + 1),
         newest: true,
@@ -252,12 +257,6 @@ export interface QueryInput {
   timezone?: string
 }
 
-/**
- * The account memo's searches run as: its own notes, never a stored account picked for the owner. The scope comes
- * from the query alone, and every account it covers is named in the answer.
- */
-const MEMO: AccountKey = { provider: "notes", account: "internal" }
-
 export interface SearchedAccount {
   resource: SearchedResource
   provider: string
@@ -352,7 +351,6 @@ export const searchKind = async (
         type === undefined
           ? text
           : `(${text}) AND ${{ text: "NOT has:attachment", voice: "has:voice", file: "has:file" }[type]}`,
-      language: "lucene",
       kind,
       ...(kind === "messages" && !hasSource(parseLucene(text).root) ? { source: "all" as const } : {}),
       limit,
