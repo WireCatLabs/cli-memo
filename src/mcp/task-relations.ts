@@ -1,7 +1,7 @@
 import { CliError } from "@wirecat/cli-base"
+import { queryArgument } from "@wirecat/cli-core/cli"
 import * as v from "valibot"
 import { itemAnswer, wholeList } from "../answer.js"
-import { queryArgument } from "../list-query.js"
 import { listTasks, TASKS_LIST_QUERY } from "../tasks/list.js"
 import { define } from "./tool.js"
 

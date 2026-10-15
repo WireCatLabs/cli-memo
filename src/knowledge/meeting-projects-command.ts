@@ -1,10 +1,9 @@
 import type { Streams } from "@wirecat/cli-base"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
-import type { Body } from "@wirecat/cli-core/cli"
+import { type Body, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer } from "../answer.js"
-import { queryField, queryTerms, withQuery } from "../list-query.js"
 import { positive } from "../options.js"
 import { canonicalProject } from "../vocabulary/project.js"
 
@@ -20,7 +19,7 @@ type Options = {
 const MEETING_PROJECTS_QUERY = {
   entity: "meeting_project",
   backend: "native",
-  fields: [queryField("confirmed", "bool", "confirmed:false")],
+  fields: [termField("confirmed", "bool", "confirmed:false")],
   defaults: ["confirmed:true"],
 } as const satisfies QueryRegistry
 
@@ -45,7 +44,6 @@ export const meetingProjectsCommand = (projects: Command, streams: Streams, env:
         .argument("<project>", "project reference, key or explicit alias"),
     ),
     MEETING_PROJECTS_QUERY,
-    { answersEntity: false },
   )
     .option("--limit <n>", "meetings per page, at most 500", positive, 50)
     .option("--page <n>", "which page, from 1", positive)

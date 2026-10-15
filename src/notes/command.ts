@@ -1,11 +1,11 @@
 import { readFileSync } from "node:fs"
 import { CliError, type Streams } from "@wirecat/cli-base"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
+import { queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
 import type { MessageStore, Note } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
 import { loadConfig } from "../config.js"
-import { queryField, queryTerms, withQuery } from "../list-query.js"
 import { collect, positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { subjectOf } from "../people/subject.js"
@@ -28,11 +28,11 @@ const NOTES_LIST_QUERY = {
   entity: "note",
   backend: "native",
   fields: [
-    queryField("about", "ref", 'about:"telegram:Kai Sample"', {
+    termField("about", "ref", 'about:"telegram:Kai Sample"', {
       relation: "notes about it or linking it: <messenger>:<name or id> or a typed reference; stands alone",
     }),
-    queryField("source", "enum", "source:internal", { values: ["file", "internal"] }),
-    queryField("text", "txt", "text:budget"),
+    termField("source", "enum", "source:internal", { values: ["file", "internal"] }),
+    termField("text", "txt", "text:budget"),
   ],
 } as const satisfies QueryRegistry
 

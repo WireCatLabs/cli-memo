@@ -1,5 +1,6 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { parseLocator } from "@wirecat/cli-core"
+import { withQuery } from "@wirecat/cli-core/cli"
 import { closedStateOf, storeOnlyDeps, tasksService } from "@wirecat/cli-core/services"
 import {
   type MessageStore,
@@ -14,7 +15,6 @@ import {
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
 import { APP } from "../app.js"
-import { withQuery } from "../list-query.js"
 import { isNoteReference } from "../notes/about.js"
 import { accountOptions, oneOf, positive } from "../options.js"
 import { heldMessage } from "../store/held.js"
@@ -157,7 +157,6 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   withQuery(
     accountOptions(group.command("list").description("tasks of one account or one project, open by default")),
     TASKS_LIST_QUERY,
-    { answersEntity: false },
   )
     .option("--limit <n>", "most tasks", positive, 100)
     .action(async (words: string[], options: AccountScope & { limit: number; json?: boolean }) => {

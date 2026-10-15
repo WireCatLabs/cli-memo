@@ -1,6 +1,6 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
-import type { Body } from "@wirecat/cli-core/cli"
+import { type Body, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
 import {
   type KnowledgeRelation,
   type MessageStore,
@@ -13,19 +13,17 @@ import {
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, wholeList } from "../answer.js"
 import { authorOf, byOption } from "../author.js"
-import { queryField, queryTerms, withQuery } from "../list-query.js"
 import { notesAbout } from "../notes/about.js"
 import { accountOptions, oneOf, positive } from "../options.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 import { keyDocuments, markKey, projectOf, unmarkKey } from "./key-documents.js"
 import { meetingProjectsCommand } from "./meeting-projects-command.js"
 
-/** memo's own relationship rows: cli-core has no relationship entity. */
 const RELATIONSHIP_QUERY = {
   entity: "relationship",
   backend: "native",
   fields: [
-    queryField("about", "ref", 'about:"project:1"', {
+    termField("about", "ref", 'about:"project:1"', {
       relation: "the person, organization or project at either end",
     }),
   ],
@@ -239,9 +237,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         )
       },
     )
-  withQuery(relations.command("list").description("relationships, all or those of one reference"), RELATIONSHIP_QUERY, {
-    answersEntity: false,
-  })
+  withQuery(relations.command("list").description("relationships, all or those of one reference"), RELATIONSHIP_QUERY)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((words: string[], options: { json?: boolean }) =>
       ownedList("relationships list", options, (store) =>

@@ -201,8 +201,12 @@ memo folders attach <id> <path> [options]
 folders of notes on this computer, and those the store knows from another
 
 ```sh
-memo folders list [options]
+memo folders list [query] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms; this list filters by none yet. |
 
 | Option | What it does |
 |---|---|

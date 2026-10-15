@@ -2,6 +2,7 @@ import { mkdtempSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
+import { answerFields } from "@wirecat/cli-core/cli"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
@@ -75,16 +76,18 @@ it("creates native note tasks through the CLI and connects context, search, assi
   await run("reminders", "ack", reminder.id, delivery.receipt, ...scope)
   expect((await run("reminders", "poll", ...scope)).items).toEqual([])
   await run("notes", "edit", source, "--text", "Updated budget", "--revision", "1")
-  expect(
-    (await run("tasks", "list", ...scope)).items.find((item: { id: string }) => item.id === task.task.id).note.text,
-  ).toBe("Updated budget")
+  const listed = (await run("tasks", "list", ...scope)).items.find((item: { id: string }) => item.id === task.task.id)
+  expect(listed).toMatchObject({ source_message: source, chat: null, state: "open", account: "telegram:1" })
+  const list = createProgram({ streams: captureStreams(), env })
+    .commands.find((command) => command.name() === "tasks")
+    ?.commands.find((command) => command.name() === "list")
+  expect(answerFields(list)).toEqual(expect.arrayContaining(Object.keys(listed)))
   await run("tasks", "close", task.task.id, ...scope)
   expect(await run("tasks", "add", source, ...scope)).toMatchObject({ created: false, task: { state: "done" } })
   await run("notes", "remove", source)
   expect((await run("tasks", "list", "state:done", ...scope)).items[0]).toMatchObject({
     id: task.task.id,
-    note: null,
-    message: null,
+    state: "done",
   })
   await expect(run("tasks", "add", source, ...scope)).rejects.toMatchObject({ code: "not_found" })
 })
@@ -143,10 +146,13 @@ it("adds a bug to a project with its fields and assignee, updates, lists and clo
       { to: `person:${person?.uid}`, role: "reviewer" },
     ],
   })
-  expect((await run("tasks", "list", "project:LHT")).items.map((task: { id: string }) => task.id)).toEqual([
-    "LHT-1",
-    "LHT-2",
-  ])
+  const project = (await run("tasks", "list", "project:LHT")).items
+  expect(project.map((task: { id: string }) => task.id)).toEqual(["LHT-1", "LHT-2"])
+  expect(project[0]).toMatchObject({ kind: "bug", state: "open", priority: 0, project: "project:1" })
+  const list = createProgram({ streams: captureStreams(), env })
+    .commands.find((command) => command.name() === "tasks")
+    ?.commands.find((command) => command.name() === "list")
+  expect(answerFields(list)).toEqual(expect.arrayContaining(Object.keys(project[0])))
   expect(await run("tasks", "close", bug.id, "--reason", "fixed")).toMatchObject({ status: "done", reason: "fixed" })
   expect((await run("tasks", "list", "state:done", "project:LHT")).items).toMatchObject([{ id: "LHT-1" }])
   expect((await run("tasks", "list", "kind:chore", "project:LHT")).items).toMatchObject([{ id: "LHT-2" }])

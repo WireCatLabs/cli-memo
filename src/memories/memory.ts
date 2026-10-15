@@ -1,16 +1,16 @@
 import type { QueryRegistry } from "@wirecat/cli-base/query"
+import { queryTerms, termField } from "@wirecat/cli-core/cli"
 import { MEMORY_KINDS, MEMORY_SCOPES, MEMORY_STATUSES, type Memory, type MessageStore } from "@wirecat/cli-core/store"
-import { queryField, queryTerms } from "../list-query.js"
 import { pageOf } from "../page.js"
 
 export const MEMORY_QUERY = {
   entity: "memory",
   backend: "native",
   fields: [
-    queryField("kind", "enum", "kind:preference", { values: MEMORY_KINDS }),
-    queryField("status", "enum", "status:proposed", { values: MEMORY_STATUSES }),
-    queryField("scope", "enum", "scope:work", { values: MEMORY_SCOPES }),
-    queryField("subject", "ref", 'subject:"person:42"'),
+    termField("kind", "enum", "kind:preference", { values: MEMORY_KINDS }),
+    termField("status", "enum", "status:proposed", { values: MEMORY_STATUSES }),
+    termField("scope", "enum", "scope:work", { values: MEMORY_SCOPES }),
+    termField("subject", "ref", 'subject:"person:42"'),
   ],
 } as const satisfies QueryRegistry
 
