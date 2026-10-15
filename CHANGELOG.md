@@ -4,7 +4,7 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
-## Unreleased
+## 0.36.0 — 15.10.2026
 
 - **Nested JSON report fields use the shared projector.** Dotted paths traverse report objects and arrays while preserving coverage, pagination and execution metadata. The bundled skill documents bounded output and removes fixed import-speed claims.
 - **Obsolete config keys are refused without rewriting the file.** Rename camelCase settings to snake_case before using the configuration.
