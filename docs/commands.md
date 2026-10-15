@@ -429,7 +429,7 @@ memo tags add <tag> [options]
 |---|---|
 | `--message <message>` | a stored email or message's full msg: locator. |
 | `--note <reference>` | a note: note:<id>, a file in a notes folder: document:<id>; a bare id is a note. |
-| `--chat <id>` | a stored mail thread or chat's exact id; requires --provider and --account. |
+| `--chat <chat>` | a stored mail thread or chat's exact id; requires --provider and --account. |
 | `--provider <provider>` | the chat's provider, such as email. |
 | `--account <account>` | the chat's account, such as a mailbox address. |
 | `--task <id>` | label a task. |
@@ -460,7 +460,7 @@ memo tags remove <tag> [options]
 |---|---|
 | `--message <message>` | a stored email or message's full msg: locator. |
 | `--note <reference>` | a note: note:<id>, a file in a notes folder: document:<id>; a bare id is a note. |
-| `--chat <id>` | a stored mail thread or chat's exact id; requires --provider and --account. |
+| `--chat <chat>` | a stored mail thread or chat's exact id; requires --provider and --account. |
 | `--provider <provider>` | the chat's provider, such as email. |
 | `--account <account>` | the chat's account, such as a mailbox address. |
 | `--task <id>` | label a task. |
@@ -574,7 +574,7 @@ memo tasks add [source] [options]
 | `--type <type>` | question, request (default), mention or promise from a source; bug, feature or chore (default) in a project. |
 | `--project <project>` | a task without a source: the project's key or project:<id>. |
 | `--assignee <person...>` | who does it: a person's UID. |
-| `--attach <task>` | link the source to this task instead of opening one that may be the same job. |
+| `--into <id>` | link the source to this task instead of opening one that may be the same job. |
 | `--new` | open the task even when one like it is open or was closed in the last 14 days. |
 
 ### `memo tasks list`
@@ -674,13 +674,10 @@ memo tasks agenda [query] [options]
 
 | Option | What it does |
 |---|---|
-| `--due <span>` | list tasks due within this: 30m, 2h, 1d (default 1d). |
-| `--unanswered <span>` | list chats where someone else wrote last this long ago (default 1d). |
-| `--waiting <span>` | list chats where you wrote last this long ago (default 7d). |
+| `--due-within <duration>` | list tasks due within this: 30m, 2h, 1d (default 1d). |
+| `--unanswered <duration>` | list chats where someone else wrote last this long ago (default 1d). |
+| `--waiting <duration>` | list chats where you wrote last this long ago (default 7d). |
 | `--within <duration>` | leave out chats silent longer than this: they ended (default 30d). |
-| `--claimed` | also list tasks someone else holds (tasks claim); hidden by default. |
-| `--category <name>` | only tasks of this category, from the list tasks categories prints. |
-| `--tag <name>` | only tasks with this tag (tags add --task). |
 | `--holder <name>` | who you are for claims: a session id or a chat id; default WIRECAT_HOLDER, else Claude Code's session, else the agent's name. |
 | `--provider <provider>` | the messenger account's provider: telegram, max. |
 | `--account <account>` | the messenger account, as the store holds it. |
@@ -703,9 +700,9 @@ memo tasks plan <task> [options]
 | Option | What it does |
 |---|---|
 | `--category <name>` | what it is about, from the list tasks categories prints: money, documents, meeting, …; a change is kept in the task's history. |
-| `--title <text>` | one line: the action and its object — send Alex the API token. |
+| `--title <title>` | one line: the action and its object — send Alex the API token. |
 | `--description <text>` | the detail, in Markdown: who owes whom, done when, next step, keywords. |
-| `--due <when>` | when it must be done: an ISO 8601 time or 2h, 3d from now; none clears it. |
+| `--due <time>` | when it must be done: an ISO 8601 time or 2h, 3d from now; none clears it. |
 | `--remind-time <time>` | when to look at it again: an ISO 8601 time or 2h, 3d from now; none clears it. |
 | `--provider <provider>` | the messenger account's provider: telegram, max. |
 | `--account <account>` | the messenger account, as the store holds it. |
@@ -771,7 +768,7 @@ memo stats tasks show [options]
 | Option | What it does |
 |---|---|
 | `--chat <chat>` | only this chat; a stored chat, by its id or title. |
-| `--type <name>` | only this type: question, request, mention or promise. |
+| `--type <type>` | only this type: question, request, mention or promise. |
 | `--provider <provider>` | the messenger account's provider: telegram, max. |
 | `--account <account>` | the messenger account, as the store holds it. |
 | `--json` | print JSON. |

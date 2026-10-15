@@ -45,7 +45,7 @@ it("attaches the source to a task or opens a new one when told to, as cli-core's
   const source = (id: string) => formatLocator({ ...key, chat: "101", message: id })
 
   const first = await run("tasks", "add", source("1"))
-  const attached = await run("tasks", "add", source("2"), "--attach", first.task.id)
+  const attached = await run("tasks", "add", source("2"), "--into", first.task.id)
   expect(attached).toMatchObject({ created: false, attached: true, task: { id: first.task.id } })
   const opened = await run("tasks", "add", source("3"), "--new")
   expect(opened.created).toBe(true)

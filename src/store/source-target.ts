@@ -38,7 +38,7 @@ export const sourceTarget = ({ message, chat, provider, account }: SourceTargetI
   if (chat === undefined || provider === undefined || account === undefined)
     throw new CliError(
       "validation_error",
-      "name --message <locator>, or --chat <id> with --provider <provider> and --account <account>",
+      "name --message <locator>, or --chat <chat> with --provider <provider> and --account <account>",
     )
   if (!chat.trim() || !provider.trim() || !account.trim())
     throw new CliError("validation_error", "the provider, account and chat id must not be empty")

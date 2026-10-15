@@ -38,7 +38,7 @@ const targetOptions = (command: Command) =>
     .argument("<tag...>", "one or more tags: 1–32 letters a–z, digits or hyphens; case is ignored")
     .option("--message <message>", "a stored email or message's full msg: locator")
     .option("--note <reference>", "a note: note:<id>, a file in a notes folder: document:<id>; a bare id is a note")
-    .option("--chat <id>", "a stored mail thread or chat's exact id; requires --provider and --account")
+    .option("--chat <chat>", "a stored mail thread or chat's exact id; requires --provider and --account")
     .option("--provider <provider>", "the chat's provider, such as email")
     .option("--account <account>", "the chat's account, such as a mailbox address")
     .option("--task <id>", "label a task")

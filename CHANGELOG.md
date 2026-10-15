@@ -6,6 +6,15 @@ the API.
 
 ## Unreleased
 
+### Changed — may break scripts
+
+- **cli-core 0.288.0 and cli-base 0.33.0**, with no old names kept. Shared commands take the new names:
+  `tasks agenda --due` → `--due-within`; `tasks agenda --tag`, `--category` and `--claimed` are gone — write the
+  query fields `tag:`, `category:` and `claimed:` instead.
+- `memo tasks add --attach <task>` → `--into <id>`, the name cli-core's `tasks add` and `tasks merge` use.
+- `memo tags add|remove --chat` shows its value as `<chat>`, as every other `--chat` does; it still takes the
+  chat's exact id.
+
 ## 0.40.0 — 15.10.2026
 
 ### Changed — may break scripts
