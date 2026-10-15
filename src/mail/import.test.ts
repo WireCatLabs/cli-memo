@@ -13,6 +13,7 @@ import { importMail } from "./import.js"
 import { mboxSource } from "./mbox.js"
 import type { MailRule } from "./rules.js"
 import { himalayaSource } from "./source.js"
+import { mailStatus, statusText } from "./status.js"
 
 const ME = "owner@example.test"
 const KEY = { provider: "email", account: ME }
@@ -588,6 +589,33 @@ describe("importMail resuming", () => {
     const rules: MailRule[] = [{ match: { domain: "shop.example" }, action: "envelope", decided_at: "2026-10-01" }]
     expect(await resumable(env, { rules })).toMatchObject({ pass: "full", listed: 5 })
     expect(await resumable(env, { rules })).toMatchObject({ pass: "resumed", listed: 0 })
+  })
+
+  it("reports the widest window ever listed, not a later narrow run that started the resume point over", async () => {
+    const { env } = withLog([1, 2, 3, 4, 5, 6].map((n) => mail(n)))
+    await resumable(env, { max: 2 })
+    const rules: MailRule[] = [{ match: { domain: "shop.example" }, action: "envelope", decided_at: "2026-10-01" }]
+    await importMail({
+      store: await store(env),
+      source: himalayaSource(himalaya(env), { name: "test" }),
+      account: { name: "test", address: ME, rules },
+      since: new Date("2026-09-15T00:00:00Z"),
+      now: () => NOW,
+      resumeFrom: 0,
+      indexThreads: async () => ({ chats: 0, chunks: 0, left: false }),
+    })
+
+    const status = await mailStatus(await store(env), { name: "test", address: ME }, new Date(NOW))
+    expect(status.folders).toEqual([
+      expect.objectContaining({
+        since: SINCE.toISOString(),
+        done: 2,
+        total: 6,
+        last: expect.objectContaining({ since: "2026-09-15T00:00:00.000Z", done: 2, total: 2 }),
+      }),
+    ])
+    expect(status.progress).toMatchObject({ done: 2, total: 6, remaining: 4, state: "partial" })
+    expect(statusText(status)).toContain("last run, since 2026-09-15 only: 2 of 2 done")
   })
 
   it("lists everything again when the mailbox's UIDVALIDITY changes", async () => {

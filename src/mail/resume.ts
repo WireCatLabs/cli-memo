@@ -17,6 +17,13 @@ export interface ResumePoint {
   full: { since: string; at: string }
   /** The widest window searched: its messages, and how many of them are done; a narrower run leaves it. */
   window: { since: string; total: number; done: number }
+  /**
+   * The widest window ever listed, kept across a rule change, a new UIDVALIDITY or --rescan, which start `window`
+   * over: a timer's 30 days must never stand in for a mailbox read since 2004.
+   */
+  widest?: { since: string; total: number; at: string }
+  /** What the latest run listed, whatever its window. */
+  last?: { since: string; total: number; done: number; at: string }
   updatedAt: string
 }
 

@@ -53,6 +53,10 @@ See how far an import is, without asking the mailbox:
 memo mail status work
 ```
 
+The first line counts the widest window ever imported, such as everything since 2004, and says "complete" only
+when all of it is stored. A narrower later run, like the timer's 30 days, is shown on its own line as the last
+run. It never counts as the whole mailbox.
+
 ## Choose what to import
 
 A large mailbox is mostly newsletters and notifications. Look before a first large import:
