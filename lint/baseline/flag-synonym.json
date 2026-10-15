@@ -1,0 +1,9 @@
+[
+  "mail probe --limit-groups",
+  "notes add --about",
+  "projects meetings link --expected",
+  "projects meetings link --provenance",
+  "vocabulary aliases add --expected",
+  "vocabulary aliases remove --expected",
+  "vocabulary create --expected"
+]
