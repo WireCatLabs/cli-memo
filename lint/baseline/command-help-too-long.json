@@ -1,6 +1,4 @@
 [
   "skill install",
-  "skill show",
-  "tasks agenda",
-  "tasks plan"
+  "skill show"
 ]

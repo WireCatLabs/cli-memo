@@ -71,7 +71,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     )
     .option("--project <project>", "a task without a source: the project's key or project:<id>")
     .option("--assignee <person...>", "who does it: a person's UID")
-    .option("--attach <task>", "link the source to this task instead of opening one that may be the same job")
+    .option("--into <id>", "link the source to this task instead of opening one that may be the same job")
     .option("--new", "open the task even when one like it is open or was closed in the last 14 days")
     .action(
       async (
@@ -81,7 +81,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
             type?: TaskType
             project?: string
             assignee?: string[]
-            attach?: string
+            into?: string
             new?: boolean
             json?: boolean
           },
@@ -90,8 +90,8 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
           if (source === undefined) {
             if (options.project === undefined || options.title === undefined)
               throw new CliError("validation_error", "a task without a source needs --project and --title")
-            if (options.attach !== undefined || options.new)
-              throw new CliError("validation_error", "--attach and --new are for a task from a source")
+            if (options.into !== undefined || options.new)
+              throw new CliError("validation_error", "--into and --new are for a task from a source")
             const type = options.type ?? "chore"
             if (!(WORK_TASK_TYPES as readonly string[]).includes(type))
               throw new CliError("validation_error", `a task in a project is ${WORK_TASK_TYPES.join(", ")}`)
@@ -139,7 +139,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
             "owner",
             undefined,
             {
-              ...(options.attach === undefined ? {} : { attach: options.attach }),
+              ...(options.into === undefined ? {} : { attach: options.into }),
               ...(options.new ? { new: true } : {}),
             },
           )

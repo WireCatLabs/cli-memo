@@ -1,10 +1,1 @@
-[
-  "tasks add --attach",
-  "tasks agenda --category",
-  "tasks agenda --claimed",
-  "tasks agenda --holder",
-  "tasks agenda --tag",
-  "tasks agenda --unanswered",
-  "tasks agenda --waiting",
-  "tasks plan --category"
-]
+[]
