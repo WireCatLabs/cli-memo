@@ -42,6 +42,16 @@ on `main`, once the first release is agreed.
 They state the current facts only: a changed fact is rewritten with no mark, and git keeps the old
 text. `CHANGELOG.md` is the one place for history.
 
+## Before a release that changes how mail is indexed
+
+A memo command that rewrites many stored emails (`mail rules apply`, a rule change, a re-import) queues their
+threads for the search index, and the next `memo sync`, often the timer's, works through that queue while it holds
+the import lock. Before releasing such a change, or a cli-core bump that touches indexing or vector cleanup, run
+cli-testing's [`performance/mail/indexing/run.sh`](https://github.com/WireCatLabs/cli-testing/tree/main/performance/mail/indexing)
+against a built cli-core checkout. It copies the store first and writes only under `~/.cache`. A queued thread
+should drain in well under a millisecond and an email with text in a few; PERF-42 (2026-10-15) was 68 ms a thread,
+which held the lock for hours after 44,000 emails were cut to envelopes.
+
 ## Development check budget
 
 Local commits check only staged lint and secrets. There is no pre-push check.
