@@ -6,6 +6,12 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **The `memo auto` timer follows only a global install of memo.** A memo run from another tool's own
+  `node_modules` (a docs build, a test tool) used to point the timer at that folder, and once the folder was
+  deleted every timer run failed with `MODULE_NOT_FOUND`. A checkout and `npx` were already ignored.
+
 ## 0.44.0 — 15.10.2026
 
 ### Fixed

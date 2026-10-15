@@ -112,6 +112,26 @@ describe("memo auto", () => {
     expect(readFileSync(service, "utf8")).toContain(process.execPath)
   })
 
+  it("never points the timer at another tool's private install of memo", async () => {
+    await run("auto", "start")
+    const service = join(units(), "memo-import.service")
+    writeFileSync(
+      service,
+      readFileSync(service, "utf8").replace(/ExecStart=.*/, 'ExecStart="/kept/node" "/kept/memo.js" "sync"'),
+    )
+    const roots = ["/home/someone/.nvm/versions/node/v24.0.0/lib/node_modules"]
+
+    await followInstall(
+      env,
+      "/home/someone/docs-tool/.tooling/memo-v1/node_modules/@wirecat/cli-memo/dist/bin/memo.js",
+      roots,
+    )
+    expect(readFileSync(service, "utf8")).toContain("/kept/node")
+
+    await followInstall(env, `${roots[0]}/@wirecat/cli-memo/dist/bin/memo.js`, roots)
+    expect(readFileSync(service, "utf8")).toContain(process.execPath)
+  })
+
   it("shows whether the timer is on and when it runs next", async () => {
     await run("auto", "start")
 
