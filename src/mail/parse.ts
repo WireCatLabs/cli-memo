@@ -56,14 +56,21 @@ const stripTags = (html: string): string => {
   return html.slice(0, end).replace(/<[^>]+>/g, "") + html.slice(end)
 }
 
-const htmlToText = (html: string): string =>
-  stripTags(dropHidden(html).replace(/<br\s*\/?>|<\/(p|div|li|tr|h\d)>/gi, "\n"))
+// Comments go first: a tag inside one, like a commented-out link, would leave its text and a stray `-->` behind.
+const dropComments = (html: string): string => html.replace(/<!--[\s\S]*?(-->|$)/g, "")
+
+export const htmlToText = (html: string): string =>
+  stripTags(dropHidden(dropComments(html)).replace(/<br\s*\/?>|<\/(p|div|li|tr|h\d)>/gi, "\n"))
     // One pass, so `&amp;lt;` stays the text `&lt;` instead of being decoded twice into `<`.
     .replace(/&(nbsp|amp|lt|gt|quot|#39);/g, (_entity, name: string) => ENTITIES[name] as string)
     // From the start of a run only: `[ \t]+\n` alone rescans a long run of spaces from each of them.
     .replace(/(?<![ \t])[ \t]+\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim()
+
+/** Some senders put their HTML in the text/plain part; its first tag gives it away. */
+export const looksLikeHtml = (text: string): boolean =>
+  /^\s*<(!doctype\s+html|html|head|body|table|div|center|meta|style)\b/i.test(text)
 
 const bytesOf = (content: ArrayBuffer | Uint8Array | string): Uint8Array =>
   typeof content === "string"
@@ -80,7 +87,8 @@ export const parseMail = async (raw: Uint8Array, maxBodyChars = MAX_BODY_CHARS):
   } catch (error) {
     throw new CliError("invalid_response", `unreadable email: ${error instanceof Error ? error.message : error}`)
   }
-  const text = email.text?.trim() || htmlToText(email.html ?? "")
+  const plain = email.text?.trim() ?? ""
+  const text = plain && !looksLikeHtml(plain) ? plain : htmlToText(email.html ?? plain)
   return {
     subject: email.subject ?? null,
     from: addresses(email.from === undefined ? [] : [email.from])[0] ?? null,

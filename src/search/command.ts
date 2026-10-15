@@ -15,7 +15,10 @@ import type { AccountKey, MessageStore, Note } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, withStore } from "../answer.js"
 import { APP } from "../app.js"
+import { loadConfig } from "../config.js"
 import { keyDocuments, keyFirst, projectOf } from "../knowledge/key-documents.js"
+import { mailAccounts } from "../mail/accounts.js"
+import { bulkBox } from "../mail/bulk.js"
 import { searchMemoriesCommand } from "../memories/command.js"
 import { folderIds } from "../notes/bound.js"
 import { modelHint } from "../notes/embed.js"
@@ -353,6 +356,20 @@ export const searchKind = async (
   )
 }
 
+const bulkOnly = (value: string): "bulk" => {
+  if (value !== "bulk") throw new InvalidArgumentError("bulk is the one kind left out by default")
+  return value
+}
+
+/** Newsletters and notices outrank the mail someone wrote; they come back with --include bulk. */
+export const withoutBulk = (text: string): string => `(${text}) NOT mailbox:"${bulkBox.externalId}"`
+
+/** The rules and `memo mail status` take an account's name; search takes it too, or the address. */
+const mailAddressOf = (env: NodeJS.ProcessEnv, account: string): string =>
+  account.includes("@")
+    ? account
+    : (mailAccounts(loadConfig(env).mail?.accounts ?? [], [account])[0]?.address ?? account)
+
 const PROJECT_HELP =
   "rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out"
 const PROJECT_ORDER_HELP = "rank the key documents of this project (id, key or project:<id>) first; nothing is left out"
@@ -451,7 +468,16 @@ content: narrows a search to the text of files, transcript: to voice transcripts
       group.command(kind).description(kind === "mail" ? "imported emails only" : "stored messenger messages only"),
     )
     if (kind === "mail")
-      leaf.option("--account <account>", "only this mail account, by its address (default: every mail account)")
+      leaf
+        .option(
+          "--account <account>",
+          "only this mail account, by its name in mail.accounts or its address (default: every mail account)",
+        )
+        .option(
+          "--include <kinds>",
+          "bulk: also mail sent to many, like newsletters, which is left out by default",
+          bulkOnly,
+        )
     leaf.addHelpText(
       "after",
       kind === "messages"
@@ -472,17 +498,20 @@ content: narrows a search to the text of attachments, filename: to their names â
           exact?: boolean
           timezone?: string
           account?: string
+          include?: "bulk"
           json?: boolean
           brief?: boolean
           full?: boolean
         },
       ) => {
         const level = levelOf(options)
+        const account = options.account === undefined ? undefined : mailAddressOf(env, options.account)
+        const text = words.join(" ")
         const answer = await withStore(env, (store) =>
           searchKind(store, kind, {
-            text: words.join(" "),
+            text: kind === "mail" && options.include !== "bulk" ? withoutBulk(text) : text,
             limit: options.limit,
-            ...(options.account === undefined ? {} : { account: options.account }),
+            ...(account === undefined ? {} : { account }),
             ...(options.exact ? { exact: true } : {}),
             ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
           }),

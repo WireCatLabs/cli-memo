@@ -25,6 +25,16 @@ the API.
 - `memo mail rules add --do` takes a comma list: one of `skip`, `envelope`, `keep`, `protect`, plus any
   `tag:<name>`. A rules file may hold the new conditions; `rules remove` drops the rule with exactly the
   conditions given.
+- **`memo search mail` leaves out bulk mail** — newsletters, notices and mailing lists, by their List-Id,
+  List-Unsubscribe or `Precedence` header — so mail people wrote ranks first; `--include bulk` brings it back.
+  Import marks such mail with its own mailbox, `memo:bulk`, for an account with rules.
+
+### Fixed
+
+- **An HTML page sent as the text part is read as text.** Some senders (airline itineraries among them) put HTML
+  in text/plain, and memo stored the markup. The next `memo sync` converts mail already stored, once per account.
+- HTML comments no longer leave their text and a stray `-->` in an email's text.
+- `memo search mail --account` takes the account's name, as the rules and `memo mail status` do, or its address.
 
 ## 0.41.0 — 15.10.2026
 
