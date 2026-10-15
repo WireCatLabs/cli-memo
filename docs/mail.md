@@ -237,7 +237,9 @@ same address, so its emails and the Gmail account's are one set:
 memo sync --account archive --since-time 2000-01-01 --limit 5000
 ```
 
-The file is only read when you name the account, and each run reads all of it. It only adds mail: nothing
+The file is only read when you name the account. An incomplete import scans it again; a completed
+snapshot is skipped until its size or modification time changes. `--rescan` forces another scan.
+It only adds mail: nothing
 missing from the file is deleted from the store, and Spam and Trash are left out.
 
 ## Find your mail
