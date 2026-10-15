@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.44.0 — 15.10.2026
+
 ### Fixed
 
 - **`memo sync --retry-attachments` reads again only the emails it has to.** It finds the stored emails whose
