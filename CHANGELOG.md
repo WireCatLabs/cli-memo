@@ -6,6 +6,9 @@ the API.
 
 ## Unreleased
 
+- **Nested JSON report fields use the shared projector.** Dotted paths traverse report objects and arrays while preserving coverage, pagination and execution metadata. The bundled skill documents bounded output and removes fixed import-speed claims.
+- **Obsolete config keys are refused without rewriting the file.** Rename camelCase settings to snake_case before using the configuration.
+
 ## 0.35.0 — 15.10.2026
 
 ### Fixed
@@ -31,9 +34,6 @@ the API.
 ## 0.33.0 — 15.10.2026
 
 ### Changed — may break scripts
-
-- **Nested JSON selectors share the Base projector.** Dotted paths traverse report objects and arrays while preserving coverage, pagination and execution metadata.
-- **Config names must be snake_case, and startup no longer moves folders.** Older camelCase fields are refused without rewriting; rename them and explicitly choose the current folders before upgrading.
 
 - **`facts list` and `memories list` take a query, not filter flags**: `memo facts list kind:decision
   status:proposed project:HRB`, `memo memories list scope:work subject:"person:42"`. The store filters by the
@@ -121,10 +121,6 @@ the API.
   own.
 - **`mail rules remove`** answers the rules left as `rules`; `relationships suggest` answers a list and no
   longer names its scope; `reminders list` and `reminders poll` answer lists.
-
-### Fixed
-
-- **Nested JSON report fields use the shared projector.** Selecting note hit fields preserves coverage and continuation. The bundled skill documents bounded output and removes fixed import-speed claims.
 
 ## 0.31.0 — 14.10.2026
 
