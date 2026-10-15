@@ -572,6 +572,8 @@ memo tasks add [source] [options]
 | `--type <type>` | question, request (default), mention or promise from a source; bug, feature or chore (default) in a project. |
 | `--project <project>` | a task without a source: the project's key or project:<id>. |
 | `--assignee <person...>` | who does it: a person's UID. |
+| `--attach <task>` | link the source to this task instead of opening one that may be the same job. |
+| `--new` | open the task even when one like it is open or was closed in the last 14 days. |
 
 ### `memo tasks list`
 
@@ -675,6 +677,8 @@ memo tasks agenda [query] [options]
 | `--waiting <span>` | list chats where you wrote last this long ago (default 7d). |
 | `--within <span>` | leave out chats silent longer than this: they ended (default 30d). |
 | `--claimed` | also list tasks someone else holds (tasks claim); hidden by default. |
+| `--category <name>` | only tasks of this category, from the list tasks categories prints. |
+| `--tag <name>` | only tasks with this tag (tags add --task). |
 | `--holder <name>` | who you are for claims: a session id or a chat id; default WIRECAT_HOLDER, else Claude Code's session, else the agent's name. |
 | `--provider <provider>` | the messenger account's provider: telegram, max. |
 | `--account <account>` | the messenger account, as the store holds it. |

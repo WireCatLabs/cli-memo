@@ -71,16 +71,27 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     )
     .option("--project <project>", "a task without a source: the project's key or project:<id>")
     .option("--assignee <person...>", "who does it: a person's UID")
+    .option("--attach <task>", "link the source to this task instead of opening one that may be the same job")
+    .option("--new", "open the task even when one like it is open or was closed in the last 14 days")
     .action(
       async (
         source: string | undefined,
         options: AccountScope &
-          FieldOptions & { type?: TaskType; project?: string; assignee?: string[]; json?: boolean },
+          FieldOptions & {
+            type?: TaskType
+            project?: string
+            assignee?: string[]
+            attach?: string
+            new?: boolean
+            json?: boolean
+          },
       ) => {
         await withStore(env, async (store) => {
           if (source === undefined) {
             if (options.project === undefined || options.title === undefined)
               throw new CliError("validation_error", "a task without a source needs --project and --title")
+            if (options.attach !== undefined || options.new)
+              throw new CliError("validation_error", "--attach and --new are for a task from a source")
             const type = options.type ?? "chore"
             if (!(WORK_TASK_TYPES as readonly string[]).includes(type))
               throw new CliError("validation_error", `a task in a project is ${WORK_TASK_TYPES.join(", ")}`)
@@ -126,6 +137,11 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
             source,
             type as Exclude<TaskType, WorkTaskType>,
             "owner",
+            undefined,
+            {
+              ...(options.attach === undefined ? {} : { attach: options.attach }),
+              ...(options.new ? { new: true } : {}),
+            },
           )
           const fields = fieldsOf(options)
           if (Object.keys(fields).length === 0 && !options.assignee?.length) {

@@ -8,7 +8,7 @@ import {
   renderError,
   type Streams,
 } from "@wirecat/cli-base"
-import { failureContext, judgedEffects } from "@wirecat/cli-core/cli"
+import { agentResult, failureContext, judgedEffects } from "@wirecat/cli-core/cli"
 import { type Command, CommanderError } from "commander"
 import { ValiError } from "valibot"
 import { APP } from "./app.js"
@@ -33,8 +33,8 @@ const recognisable = (error: unknown): unknown => {
 
 export const errorObject = (error: unknown) => errorObjectOf(recognisable(error), context)
 
-/** The same object as `--json` prints on stderr, as MCP's `isError` answer. */
-export const mcpFailure = (error: unknown) => mcpErrorResult(errorObject(error))
+/** The same object as `--json` prints on stderr, as MCP's `isError` answer, with hidden characters shown. */
+export const mcpFailure = (error: unknown) => agentResult(mcpErrorResult(errorObject(error)))
 
 const commandOf = (program: Command | undefined, args: readonly string[]) => {
   const path: string[] = []
