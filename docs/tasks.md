@@ -32,7 +32,7 @@ The agenda, the plan and the card are the same commands tg and max have; name th
 
 ```sh
 memo tasks agenda --provider telegram --account 1           # overdue, due, owed and waiting chats
-memo tasks plan 1a2b3c4d --due 2d --check 1d --title 'Send the revised budget' --provider telegram --account 1
+memo tasks plan 1a2b3c4d --due 2d --remind-time 1d --title 'Send the revised budget' --provider telegram --account 1
 memo tasks show 1a2b3c4d --provider telegram --account 1
 memo stats tasks show --provider telegram --account 1       # open tasks per chat
 ```

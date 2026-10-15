@@ -3,6 +3,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { type MessageStore, openStore } from "@wirecat/cli-core/store"
+import type { Command } from "commander"
 import { afterEach, describe, expect, it } from "vitest"
 import { answerOf, envelopeOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
@@ -663,7 +664,11 @@ describe("memo sync --only mail", () => {
   const run = async (args: string[], env: NodeJS.ProcessEnv) => {
     const streams = captureStreams()
     const program = createProgram({ streams, env })
-    for (const command of [program, ...program.commands]) command.exitOverride().configureOutput({ writeErr: () => {} })
+    const quiet = (command: Command): void => {
+      command.exitOverride().configureOutput({ writeErr: () => {} })
+      for (const child of command.commands) quiet(child)
+    }
+    quiet(program)
     await program.parseAsync(args, { from: "user" })
     return streams.stdout.join("")
   }
@@ -752,7 +757,7 @@ describe("memo sync --only mail", () => {
   it("adds an envelope rule, records its mail on sync, and lists how many emails and bytes it recorded", async () => {
     const { dir, env } = setup([mail(1), mail(2, { from: [null, "deals@shop.example"] })])
     const withConfig = configured(dir, env)
-    await run(["mail", "rules", "add", "test", "--domain", "shop.example", "--envelope"], withConfig)
+    await run(["mail", "rules", "add", "test", "--domain", "shop.example", "--do", "envelope"], withConfig)
 
     await run(["sync", "--account", "test", "--since-time", "2026-09-01", "--no-embed", "--json"], withConfig)
     const listed = answerOf(await run(["mail", "rules", "list", "test", "--json"], withConfig))
@@ -765,8 +770,8 @@ describe("memo sync --only mail", () => {
       /^envelope\s+domain shop\.example .* 1 emails/,
     )
     await expect(
-      run(["mail", "rules", "add", "test", "--domain", "shop.example", "--envelope", "--skip"], withConfig),
-    ).rejects.toThrow("give exactly one of --skip, --envelope, --keep")
+      run(["mail", "rules", "add", "test", "--domain", "shop.example", "--do", "envelope,skip"], withConfig),
+    ).rejects.toThrow("choose skip, envelope, keep")
   })
 
   it("refuses while another import holds the lock", async () => {
@@ -785,7 +790,7 @@ describe("memo sync --only mail", () => {
     const { dir, env } = setup([mail(1), mail(2, { from: [null, "deals@shop.example"], text: "Synthetic coupon" })])
     const withConfig = configured(dir, env)
     await run(["sync", "--account", "test", "--since-time", "2026-09-01", "--no-embed", "--json"], withConfig)
-    await run(["mail", "rules", "add", "test", "--domain", "shop.example", "--envelope"], withConfig)
+    await run(["mail", "rules", "add", "test", "--domain", "shop.example", "--do", "envelope"], withConfig)
 
     const dry = envelopeOf(await run(["mail", "rules", "apply", "test", "--json"], withConfig))
 
@@ -846,10 +851,10 @@ describe("memo sync --only mail", () => {
     const { dir, env } = setup([mail(1)])
     const withConfig = configured(dir, env)
     await run(
-      ["mail", "rules", "add", "test", "--list-id", "news.shop.example", "--skip", "--reason", "noise"],
+      ["mail", "rules", "add", "test", "--list-id", "news.shop.example", "--do", "skip", "--reason", "noise"],
       withConfig,
     )
-    await run(["mail", "rules", "add", "test", "--from", "boss@work.example", "--keep"], withConfig)
+    await run(["mail", "rules", "add", "test", "--sender", "boss@work.example", "--do", "keep"], withConfig)
 
     const file = join(dir, "rules.json")
     writeFileSync(file, await run(["mail", "rules", "export", "test"], withConfig))

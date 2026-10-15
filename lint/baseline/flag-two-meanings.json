@@ -1,8 +1,6 @@
 [
   "--chat",
-  "--check",
   "--due",
   "--title",
-  "--type",
-  "--within"
+  "--type"
 ]

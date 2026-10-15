@@ -67,7 +67,7 @@ memo facts confirm fact:4
 
 A fact you add with the `memo` command is accepted at once. One an agent adds waits as `proposed`
 until you `accept` it; `author` and `origin` say who wrote it. `facts list` narrows by `kind`,
-`status`, `project` and `subject` in its query. `--project project:1` puts the fact in a project, and `--occurred` gives the date it happened.
+`status`, `project` and `subject` in its query. `--project project:1` puts the fact in a project, and `--occurred-time` gives the date it happened.
 
 A decision can replace an earlier one: add `--supersedes fact:2`. When you accept the new decision,
 the old one stops holding. When a decision no longer holds and nothing replaced it, run

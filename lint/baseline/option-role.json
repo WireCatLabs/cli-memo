@@ -1,20 +1,4 @@
 [
-  "facts add --occurred",
-  "mail probe --domain-age",
-  "mail rules add --domain",
-  "mail rules add --envelope",
-  "mail rules add --from",
-  "mail rules add --keep",
-  "mail rules add --list-id",
-  "mail rules add --skip",
-  "mail rules remove --domain",
-  "mail rules remove --from",
-  "mail rules remove --list-id",
-  "note --clear",
-  "sync --ignore",
-  "sync --retry-attachments",
-  "tags add --path",
-  "tags remove --path",
   "tasks add --attach",
   "tasks agenda --category",
   "tasks agenda --claimed",
@@ -22,6 +6,5 @@
   "tasks agenda --tag",
   "tasks agenda --unanswered",
   "tasks agenda --waiting",
-  "tasks plan --category",
-  "vocabulary check --min-similarity"
+  "tasks plan --category"
 ]

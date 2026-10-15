@@ -80,10 +80,12 @@ it("offers the memo tools, saves an agent's memory and proposal as its own, and 
       kind: "decision",
       text: "Bob Sample runs the Friday review",
       evidence: ["note:1"],
+      occurred_time: "2026-10-01T09:00:00.000Z",
     })
     expect(answerOf(JSON.stringify(fact.structuredContent))).toMatchObject({
       kind: "decision",
       text: "Bob Sample runs the Friday review",
+      occurred_at: "2026-10-01T09:00:00.000Z",
       status: "proposed",
       origin: "agent",
       author: { type: "bot" },
