@@ -6,6 +6,12 @@ the API.
 
 ## Unreleased
 
+### Security
+
+- **A hostile HTML email no longer stalls `memo sync`**: an HTML-only mail is turned into text in time linear in
+  its size; one of unclosed tags or long blank runs took up to 30 seconds per 200,000 characters, holding the mail
+  import. Ordinary mail reads as before, except that `&amp;lt;` now reads as `&lt;` instead of `<`.
+
 ## 0.37.0 — 15.10.2026
 
 ### Changed — may break scripts
