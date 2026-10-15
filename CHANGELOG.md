@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.40.0 — 15.10.2026
+
 ### Changed — may break scripts
 
 - **cli-core 0.287.0 and cli-base 0.32.0**, with no old names kept. Shared commands take the new option names:
