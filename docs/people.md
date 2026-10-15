@@ -130,7 +130,7 @@ memo projects meetings list HRB --provider zoom --account ACCOUNT
 ```
 
 Name the meeting's account exactly. `--proposed` lists the links an agent suggested; to confirm one,
-repeat `link` with the `--expected` value shown in that list.
+repeat `link` with the `--fingerprint` value shown in that list.
 
 ## Other names for projects and tags
 
@@ -140,11 +140,11 @@ search or an agent finds it by any of them:
 ```sh
 memo vocabulary list --kind project
 memo vocabulary show 'Harbor' --kind project
-memo vocabulary aliases add project:1 'Harbor' --expected VALUE
+memo vocabulary aliases add project:1 'Harbor' --fingerprint VALUE
 ```
 
 `vocabulary list` shows each project, tag and topic with its other names and a check value. Pass
-that value to `--expected` when you add or remove a name; if the list changed in the meantime, Memo
+that value to `--fingerprint` when you add or remove a name; if the list changed in the meantime, Memo
 refuses and you look again. `memo vocabulary check 'on-boarding'` shows similar existing tags
 before you create a new one, so you do not end up with `onboarding` and `on-boarding`.
 

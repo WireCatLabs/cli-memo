@@ -41,11 +41,11 @@ it("takes a project by its key or project:<id> in every --project", async () => 
   })
 })
 
-it("takes --about once per subject", async () => {
+it("takes --subject once per subject", async () => {
   const run = setUp()
   const project = await run("projects", "add", "Synthetic Harbour", "--key", "SYH")
   const organization = await run("organizations", "add", "Synthetic Studio", "--kind", "company")
-  const added = await run("notes", "add", "About both", "--about", project.ref, "--about", organization.ref)
+  const added = await run("notes", "add", "About both", "--subject", project.ref, "--subject", organization.ref)
 
   for (const subject of [project.ref, organization.ref])
     expect((await run("notes", "list", `about:"${subject}"`)).items).toMatchObject([{ id: added.id }])

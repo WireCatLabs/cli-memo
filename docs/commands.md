@@ -81,14 +81,14 @@ memo notes add [text] [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `text` | optional | the note; or --text, or --file. |
+| `text` | optional | the note; or --text, or --text-file. |
 
 | Option | What it does |
 |---|---|
 | `--text <text>` | the note. |
-| `--file <path>` | read the note from a file; - reads stdin. |
+| `--text-file <path>` | read the note from a file; - reads stdin. |
 | `--title <title>` | a title. |
-| `--about <subject>` | what it is about: <messenger>:<name or id>, msg:, chat:, person:, organization:, project:, task:, note:, document:, meeting:; repeat for more. |
+| `--subject <ref>` | what it is about: <messenger>:<name or id>, msg:, chat:, person:, organization:, project:, task:, note:, document:, meeting:; repeat for more. |
 | `--meeting <id>` | also about this meeting, by its store id, with --provider and --account. |
 | `--provider <provider>` | the meeting's provider. |
 | `--account <account>` | the meeting's account. |
@@ -114,7 +114,7 @@ memo notes edit <id> [options]
 |---|---|
 | `--revision <n>` | its current revision, so an edit made meanwhile is not lost. |
 | `--text <text>` | the new text. |
-| `--file <path>` | read the new text from a file; - reads stdin. |
+| `--text-file <path>` | read the new text from a file; - reads stdin. |
 | `--export [dir]` | also rewrite its file — in this folder, or notes.export.dir. |
 | `--format <format>` | the file's format: obsidian, markdown. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
@@ -149,7 +149,7 @@ memo notes export [options]
 
 | Option | What it does |
 |---|---|
-| `--to <dir>` | the folder to write to (default: notes.export.dir). |
+| `--output-dir <dir>` | the folder to write to (default: notes.export.dir). |
 | `--format <format>` | the files' format: obsidian, markdown. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
@@ -249,7 +249,7 @@ memo mail probe <account> [options]
 | Option | What it does |
 |---|---|
 | `--since-time <time>` | only mail from this time, ISO 8601 or 30d ago (default: all mail). |
-| `--limit-groups <n>` | show this many of the largest groups. Default: `50`. |
+| `--limit <n>` | show this many of the largest groups. Default: `50`. |
 | `--domain-age` | ask each shown sender domain's registry when it was registered (RDAP); tells each registry its domain. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
@@ -425,13 +425,13 @@ memo tags add <tag> [options]
 
 | Option | What it does |
 |---|---|
-| `--message <locator>` | a stored email or message's full msg: locator. |
+| `--message <message>` | a stored email or message's full msg: locator. |
 | `--note <reference>` | a note: note:<id>, a file in a notes folder: document:<id>; a bare id is a note. |
 | `--chat <id>` | a stored mail thread or chat's exact id; requires --provider and --account. |
 | `--provider <provider>` | the chat's provider, such as email. |
 | `--account <account>` | the chat's account, such as a mailbox address. |
 | `--task <id>` | label a task. |
-| `--contact <id>` | label a contact identity, with provider/account. |
+| `--contact <person>` | label a contact identity, with provider/account. |
 | `--person <uid>` | label a unified person. |
 | `--organization <organization>` | label an organization: its id or organization:<id>. |
 | `--project <project>` | label a project: its key or project:<id>. |
@@ -456,13 +456,13 @@ memo tags remove <tag> [options]
 
 | Option | What it does |
 |---|---|
-| `--message <locator>` | a stored email or message's full msg: locator. |
+| `--message <message>` | a stored email or message's full msg: locator. |
 | `--note <reference>` | a note: note:<id>, a file in a notes folder: document:<id>; a bare id is a note. |
 | `--chat <id>` | a stored mail thread or chat's exact id; requires --provider and --account. |
 | `--provider <provider>` | the chat's provider, such as email. |
 | `--account <account>` | the chat's account, such as a mailbox address. |
 | `--task <id>` | label a task. |
-| `--contact <id>` | label a contact identity, with provider/account. |
+| `--contact <person>` | label a contact identity, with provider/account. |
 | `--person <uid>` | label a unified person. |
 | `--organization <organization>` | label an organization: its id or organization:<id>. |
 | `--project <project>` | label a project: its key or project:<id>. |
@@ -567,7 +567,7 @@ memo tasks add [source] [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--title <title>` | one line saying what is to be done. |
 | `--priority <n>` | 0 urgent … 4 low. |
-| `--parent <task>` | the parent task, in the same project. |
+| `--parent <id>` | the parent task, in the same project. |
 | `--description <text>` | the detail, in Markdown. |
 | `--type <type>` | question, request (default), mention or promise from a source; bug, feature or chore (default) in a project. |
 | `--project <project>` | a task without a source: the project's key or project:<id>. |
@@ -634,7 +634,7 @@ memo tasks update <id> [options]
 |---|---|
 | `--title <title>` | one line saying what is to be done. |
 | `--priority <n>` | 0 urgent … 4 low. |
-| `--parent <task>` | the parent task, in the same project. |
+| `--parent <id>` | the parent task, in the same project. |
 | `--description <text>` | the detail, in Markdown. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
@@ -873,8 +873,8 @@ memo projects meetings link <project> <meeting-id> [options]
 | `--provider <provider>` | meeting provider. |
 | `--account <account>` | exact stored meeting account. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--expected <fingerprint>` | required when confirming an existing proposal. |
-| `--provenance <text>` | why the reviewed meeting belongs to this project. |
+| `--fingerprint <hash>` | required when confirming an existing proposal. |
+| `--reason <text>` | why the reviewed meeting belongs to this project. |
 
 ### `memo projects add`
 
@@ -1280,7 +1280,7 @@ memo vocabulary create <name> [options]
 | Option | What it does |
 |---|---|
 | `--kind <kind>` | tag or topic. |
-| `--expected <fingerprint>` | the creation_fingerprint vocabulary check <name> gave. |
+| `--fingerprint <hash>` | the creation_fingerprint vocabulary check <name> gave. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 ### `memo vocabulary aliases`
@@ -1304,7 +1304,7 @@ memo vocabulary aliases add <reference> <name> [options]
 
 | Option | What it does |
 |---|---|
-| `--expected <fingerprint>` | the current vocabulary preview fingerprint. |
+| `--fingerprint <hash>` | the current vocabulary preview fingerprint. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 #### `memo vocabulary aliases remove`
@@ -1324,7 +1324,7 @@ memo vocabulary aliases remove <reference> <alias-id> [options]
 
 | Option | What it does |
 |---|---|
-| `--expected <fingerprint>` | the current vocabulary preview fingerprint. |
+| `--fingerprint <hash>` | the current vocabulary preview fingerprint. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 ## `memo memories`
@@ -1779,7 +1779,7 @@ memo ask <question> [options]
 | `--provider <provider>` | look in this provider's accounts only, such as telegram or email. |
 | `--account <account>` | look in this stored account only, with --provider. |
 | `--limit <n>` | most evidence items, at most 100. Default: `20`. |
-| `--model` | call MEMO_MODELS_ANALYSIS_PROVIDER/MODEL instead of returning an evidence bundle. |
+| `--analyze` | call MEMO_MODELS_ANALYSIS_PROVIDER/MODEL instead of returning an evidence bundle. |
 | `--allow-remote` | explicitly consent to sending this evidence to the configured model. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
@@ -1823,7 +1823,7 @@ memo auto start [options]
 
 | Option | What it does |
 |---|---|
-| `--every <interval>` | how often: 5m, 90s, 1h — a minute or more. |
+| `--every <duration>` | how often: 5m, 90s, 1h — a minute or more. |
 
 ### `memo auto stop`
 

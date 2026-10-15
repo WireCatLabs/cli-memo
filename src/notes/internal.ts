@@ -36,7 +36,7 @@ export const exportTarget = (
   if (chosen === undefined)
     throw new CliError(
       "configuration_error",
-      "name a folder — --to <dir>, --export <dir>, or notes.export.dir in the config",
+      "name a folder — --output-dir <dir>, --export <dir>, or notes.export.dir in the config",
     )
   return { dir: resolve(chosen), format: format ?? config.notes?.export?.format ?? "obsidian" }
 }

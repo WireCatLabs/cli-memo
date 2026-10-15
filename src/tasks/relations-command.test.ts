@@ -20,7 +20,7 @@ it("creates keyed project tasks, links them as before or with task:, and discove
   }
   const project = await run("projects", "add", "Research Example", "--key", "RES")
   const catalog = await run("vocabulary", "list", "--kind", "project")
-  await run("vocabulary", "aliases", "add", project.ref, "Lab Example", "--expected", catalog.fingerprint)
+  await run("vocabulary", "aliases", "add", project.ref, "Lab Example", "--fingerprint", catalog.fingerprint)
   const first = await run("tasks", "add", "--project", "Lab Example", "--title", "Research draft")
   const second = await run("tasks", "add", "--project", "RES", "--title", "Review draft")
   expect([first.key, second.key]).toEqual(["RES-1", "RES-2"])

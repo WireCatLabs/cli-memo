@@ -185,13 +185,13 @@ revision; a moved file keeps its id, links and tags; a deleted file loses its te
 `[label](path.md)` links and `tags:`. A `[[Kai Sample]]` link becomes a link to a person once someone by that
 name is in the store. Hidden folders such as `.obsidian` are skipped.
 
-**Written in memo.** A note you write is the store's, not a file's, and is about whatever `--about` names: a
+**Written in memo.** A note you write is the store's, not a file's, and is about whatever `--subject` names: a
 person, a message, a chat, a project, a task, another note.
 
 ```sh
-memo notes add 'Prefers mornings' --about telegram:'Alice Example'
+memo notes add 'Prefers mornings' --subject telegram:'Alice Example'
 memo notes edit NOTE_ID --revision 1 --text 'Prefers early mornings'
-memo notes export --to /path/to/vault/memo --format obsidian
+memo notes export --output-dir /path/to/vault/memo --format obsidian
 ```
 
 An edit names the revision it changes, so an edit made meanwhile is never lost. `export` writes your notes
@@ -216,7 +216,7 @@ memo notes show note:NOTE_ID --json
 
 `memo ask` needs a scope (`--all`, or `--provider` with `--account`) and returns evidence by default. To
 call a model instead, set `MEMO_MODELS_ANALYSIS_PROVIDER` and `MEMO_MODELS_ANALYSIS_MODEL` and pass
-`--model`; a remote model also needs `--allow-remote`.
+`--analyze`; a remote model also needs `--allow-remote`.
 
 More: [search](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md) ·
 [searching on wirecat.dev](https://wirecat.dev/en/docs/search)
@@ -235,7 +235,7 @@ aliases, so one name always means one project.
 
 Before adding a new tag or topic, run `memo vocabulary check <name> --json`. Reuse a
 canonical label or add an alias if it means the same thing. For a deliberately distinct label,
-run `memo vocabulary create <name> --expected <creation_fingerprint> --json`; select `--kind topic`
+run `memo vocabulary create <name> --fingerprint <creation_fingerprint> --json`; select `--kind topic`
 on both commands when creating a topic. The owner accepts this review; MCP exposes preflight
 but no label-creation tool. An intervening label or alias change requires a fresh review.
 `memo vocabulary check --json` finds likely synonyms already in the catalog. Its `complete`
@@ -335,7 +335,7 @@ More: [configuration](https://github.com/WireCatLabs/cli-memo/blob/main/docs/con
 - What memo adds — your notes, links, tags, tasks, memories — stays in the local store.
 - A note or mail deleted at the source loses its text in the store on the next import; a run that finds an
   unusually large share missing deletes nothing and says so.
-- Evidence reaches a model only with `--model`, and a remote one only with `--allow-remote`.
+- Evidence reaches a model only with `--analyze`, and a remote one only with `--allow-remote`.
 - Agents propose; only you confirm memories and approve actions.
 
 More: [security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security.md) ·

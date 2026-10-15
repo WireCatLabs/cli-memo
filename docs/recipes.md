@@ -87,7 +87,7 @@ Use memo CLI to write a short note about the Harbour project that summarises wha
 with the sources it is based on. Show me the note, then export it to my vault.
 ```
 
-Your agent writes the note with `memo notes add --about project:…` and exports it with
+Your agent writes the note with `memo notes add --subject project:…` and exports it with
 `memo notes export` ([notes](notes.md#save-your-notes-as-files)). Memo never overwrites a file you
 edited.
 

@@ -791,12 +791,12 @@ describe("memo sync --mail", () => {
     const configFile = join(withConfig.MEMO_CONFIG_DIR, "config.json")
     const config = JSON.parse(readFileSync(configFile, "utf8"))
     config.mail.accounts[0].rules = [
-      { match: { domain: "shop.example" }, action: "envelope", decidedAt: "2026-10-01" },
+      { match: { domain: "shop.example" }, action: "envelope", decided_at: "2026-10-01" },
       {
         match: { domain: "gov.example" },
         action: "keep",
         reason: "government notices: never remove",
-        decidedAt: "2026-10-02",
+        decided_at: "2026-10-02",
       },
     ]
     writeFileSync(configFile, JSON.stringify(config))

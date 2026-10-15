@@ -36,11 +36,11 @@ const NOTES_LIST_QUERY = {
   ],
 } as const satisfies QueryRegistry
 
-const textOf = (options: { text?: string; file?: string }, given?: string): string => {
-  const sources = [given, options.text, options.file].filter((value) => value !== undefined)
+const textOf = (options: { text?: string; textFile?: string }, given?: string): string => {
+  const sources = [given, options.text, options.textFile].filter((value) => value !== undefined)
   if (sources.length !== 1)
-    throw new CliError("validation_error", "give the text once: as an argument, --text or --file")
-  if (options.file !== undefined) return readFileSync(options.file === "-" ? 0 : options.file, "utf8")
+    throw new CliError("validation_error", "give the text once: as an argument, --text or --text-file")
+  if (options.textFile !== undefined) return readFileSync(options.textFile === "-" ? 0 : options.textFile, "utf8")
   return sources[0] as string
 }
 
@@ -152,12 +152,12 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   notes
     .command("add")
     .description("write a note of your own about messages, people, projects or other notes")
-    .argument("[text]", "the note; or --text, or --file")
+    .argument("[text]", "the note; or --text, or --text-file")
     .option("--text <text>", "the note")
-    .option("--file <path>", "read the note from a file; - reads stdin")
+    .option("--text-file <path>", "read the note from a file; - reads stdin")
     .option("--title <title>", "a title")
     .option(
-      "--about <subject>",
+      "--subject <ref>",
       "what it is about: <messenger>:<name or id>, msg:, chat:, person:, organization:, project:, task:, note:, document:, meeting:; repeat for more",
       collect,
     )
@@ -172,9 +172,9 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         given: string | undefined,
         options: {
           text?: string
-          file?: string
+          textFile?: string
           title?: string
-          about?: string[]
+          subject?: string[]
           meeting?: string
           provider?: string
           account?: string
@@ -188,7 +188,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
           throw new CliError("validation_error", "--provider and --account select the account of --meeting")
         const answer = await withNotes(async (store) => {
           const about = await Promise.all(
-            (options.about ?? []).map(async (subject) => (await subjectOf(store, subject)).ref),
+            (options.subject ?? []).map(async (subject) => (await subjectOf(store, subject)).ref),
           )
           if (options.meeting !== undefined) about.push(await meetingReference(store, options.meeting, options))
           const note = await store.notes.addNote({
@@ -210,7 +210,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .argument("<id>", "note:<id> or its id")
     .requiredOption("--revision <n>", "its current revision, so an edit made meanwhile is not lost", positive)
     .option("--text <text>", "the new text")
-    .option("--file <path>", "read the new text from a file; - reads stdin")
+    .option("--text-file <path>", "read the new text from a file; - reads stdin")
     .option("--export [dir]", "also rewrite its file — in this folder, or notes.export.dir")
     .option("--format <format>", `the file's format: ${DIALECTS.join(", ")}`, formatOf)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
@@ -220,7 +220,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         options: {
           revision: number
           text?: string
-          file?: string
+          textFile?: string
           export?: string | true
           format?: DialectName
           json?: boolean
@@ -250,11 +250,11 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   notes
     .command("export")
     .description("write the notes you wrote here as files, never overwriting one you edited")
-    .option("--to <dir>", "the folder to write to (default: notes.export.dir)")
+    .option("--output-dir <dir>", "the folder to write to (default: notes.export.dir)")
     .option("--format <format>", `the files' format: ${DIALECTS.join(", ")}`, formatOf)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action(async (options: { to?: string; format?: DialectName; json?: boolean }) => {
-      const target = exportTarget(loadConfig(env), options.to, options.format)
+    .action(async (options: { outputDir?: string; format?: DialectName; json?: boolean }) => {
+      const target = exportTarget(loadConfig(env), options.outputDir, options.format)
       const result = await withNotes(async (store) =>
         exportInternal(store, { ...target, notes: await internalNotes(store) }),
       )

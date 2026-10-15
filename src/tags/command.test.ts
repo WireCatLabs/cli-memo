@@ -229,7 +229,13 @@ describe("memo source tags", () => {
     expect((await json("tags", "list", "type:meeting")).items).toMatchObject([
       { type: "meeting", id: String(meetingId), tag: "planning", origin: expect.any(String) },
     ])
-    const note = await json("notes", "add", "Follow up with Bob Sample", "--about", `meeting:${accountId}/${meetingId}`)
+    const note = await json(
+      "notes",
+      "add",
+      "Follow up with Bob Sample",
+      "--subject",
+      `meeting:${accountId}/${meetingId}`,
+    )
     expect(note.ref).toMatch(/^note:/)
     const about = await json("notes", "list", `about:"meeting:${accountId}/${meetingId}"`)
     expect(JSON.stringify(about)).toContain(note.ref)
@@ -238,7 +244,7 @@ describe("memo source tags", () => {
       "notes",
       "add",
       "Send the agenda",
-      "--about",
+      "--subject",
       note.ref,
       ...scope,
       "--meeting",

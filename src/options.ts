@@ -20,7 +20,7 @@ export const oneOf =
     return value as T
   }
 
-/** A repeatable option: `--about a --about b`. */
+/** A repeatable option: `--subject a --subject b`. */
 export const collect = (value: string, previous: string[] = []): string[] => [...previous, value]
 
 export const accountOptions = (command: Command) =>

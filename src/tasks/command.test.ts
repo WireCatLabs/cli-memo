@@ -25,7 +25,7 @@ it("creates native note tasks through the CLI and connects context, search, assi
     return answerOf(streams.stdout.join(""))
   }
   const scope = ["--provider", key.provider, "--account", key.account]
-  const added = await run("notes", "add", "Synthetic budget request", "--about", `person:${person?.uid}`)
+  const added = await run("notes", "add", "Synthetic budget request", "--subject", `person:${person?.uid}`)
   const source = `note:${added.id}`
   await expect(run("tasks", "add", source)).rejects.toMatchObject({ code: "validation_error" })
   await expect(run("tasks", "add", source, "--provider", "telegram")).rejects.toMatchObject({

@@ -113,7 +113,7 @@ describe("memo context", () => {
     await run("folders", "add", vault)
     await run("sync", "--notes")
     await run("note", "telegram:101", join(vault, "People", "Rin Example.md"))
-    await run("notes", "add", "Prefers mornings", "--about", "email:rin@example.test")
+    await run("notes", "add", "Prefers mornings", "--subject", "email:rin@example.test")
 
     const answer = answerOf(await run("context", "telegram:Rin Example", "--json"))
 
@@ -138,7 +138,7 @@ describe("memo context", () => {
   })
 
   it("prints a readable answer, naming the person, each message and each note by a reference memo takes", async () => {
-    const added = answerOf(await run("notes", "add", "Prefers mornings", "--about", "telegram:101", "--json"))
+    const added = answerOf(await run("notes", "add", "Prefers mornings", "--subject", "telegram:101", "--json"))
     const text = await run("context", "telegram:101")
 
     expect(text).toContain("Last from them")
