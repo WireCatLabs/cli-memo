@@ -62,7 +62,7 @@ run. It never counts as the whole mailbox.
 A large mailbox is mostly newsletters and notifications. Look before a first large import:
 
 ```sh
-memo mail probe work
+memo mail inspect work
 ```
 
 It reads headers only (about 1 KB an email) and groups mail by sender and mailing list: how many
@@ -89,7 +89,7 @@ rule covers yet:
 `young_domain` needs each domain's registration date. memo asks for it only when you add `--domain-age`:
 
 ```sh
-memo mail probe work --domain-age
+memo mail inspect work --domain-age
 ```
 
 It asks the registry of each shown group's sender domain through RDAP, using IANA's list of registries, one
@@ -173,7 +173,7 @@ memo mail rules list work --filter is:protected
 | `shopping` | shops, and what Gmail files under Promotions |
 | `alerts` | monitoring and uptime alerts |
 
-`memo mail probe` ends with how much of your mail each kind would match. Nothing applies until you add a rule:
+`memo mail inspect` ends with how much of your mail each kind would match. Nothing applies until you add a rule:
 
 ```sh
 memo mail rules add work --kind social --do envelope

@@ -19,8 +19,7 @@ import { itemAnswer } from "../answer.js"
 import { FACT_QUERY, factItem, listFacts } from "../facts/fact.js"
 import { mcpFailure } from "../failure.js"
 import { addMemory } from "../memories/memories.js"
-import { listMemories, MEMORY_QUERY, memoryItem } from "../memories/memory.js"
-import { pageOf } from "../page.js"
+import { listMemories, MEMORY_QUERY, memoryItem, searchMemories } from "../memories/memory.js"
 import { VERSION } from "../version.js"
 import { knowledgeTools } from "./knowledge.js"
 import { taskRelationTools } from "./task-relations.js"
@@ -83,20 +82,13 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
   }),
   search_memories: define({
     title: "Search memories",
-    description: `Memories holding every word, best first.`,
+    description: "Memories holding every word, best first; scope:personal or scope:work in the text narrows them.",
     writes: false,
     input: v.object({
       text: v.pipe(v.string(), v.minLength(1)),
-      scope: v.optional(v.picklist(MEMORY_SCOPES)),
       limit: limit(500),
     }),
-    run: (store, { text, ...options }) =>
-      pageOf(
-        "search memories",
-        options.limit,
-        async (limit) => (await store.memories.search(text, { ...options, limit })).map(memoryItem),
-        { fallback: 20, cap: 200 },
-      ),
+    run: (store, { text, limit }) => searchMemories(store, text, limit),
   }),
   facts_add: define({
     title: "Propose a fact",

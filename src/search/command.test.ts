@@ -83,7 +83,9 @@ it("searches three typed resources together, separates mail and messages, and fi
     (await run("search", "notes", "Sharedsignal", "--type", "internal")).items.map((hit: { ref: string }) => hit.ref),
   ).toEqual([internal.ref])
   expect(
-    (await run("search", "notes", "Sharedsignal", "--folder", folder.id)).items.map((hit: { ref: string }) => hit.ref),
+    (await run("search", "notes", "Sharedsignal", "--source", `notes:${folder.id}`)).items.map(
+      (hit: { ref: string }) => hit.ref,
+    ),
   ).toEqual([file.note.ref])
   for (const args of [
     ["search", "Sharedsignal"],

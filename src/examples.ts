@@ -20,7 +20,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "folders attach": ["memo folders attach 1 ~/notes"],
   "folders list": ["memo folders list --json"],
   "messages show": ["memo messages show 'msg:email/me%40example.com/thread/42' --before-n 2 --after-n 2"],
-  "mail probe": ["memo mail probe personal --limit 30", "memo mail probe work --since-time 365d --json"],
+  "mail inspect": ["memo mail inspect personal --limit 30", "memo mail inspect work --since-time 365d --json"],
   "mail status": ["memo mail status personal", "memo mail status personal --json"],
   "mail rules list": ["memo mail rules list personal --json", "memo mail rules list personal --filter is:protected"],
   "mail rules add": [
@@ -124,8 +124,8 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "search all": ["memo search all 'budget harbour'", "memo search all 'content:invoice' --only mail,notes --json"],
   "search messages": ["memo search messages 'friday meeting has:voice'"],
   "search mail": ["memo search mail 'mailbox:important budget' --account me@example.com"],
-  "search notes": ["memo search notes budget --folder ~/notes", "memo search notes kickoff --project HRB --json"],
-  "search memories": ["memo search memories friday meetings --scope work"],
+  "search notes": ["memo search notes budget --source notes:2", "memo search notes kickoff --project HRB --json"],
+  "search memories": ["memo search memories friday meetings scope:work"],
   ask: [
     "memo ask 'what did Kai say about the budget?' --all",
     "memo ask 'when is the launch?' --provider telegram --account 1",

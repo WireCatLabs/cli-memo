@@ -5,9 +5,8 @@ import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { authorOf, byOption } from "../author.js"
 import { oneOf, positive } from "../options.js"
-import { pageOf } from "../page.js"
 import { addMemory } from "./memories.js"
-import { listMemories, MEMORY_QUERY, memoryItem } from "./memory.js"
+import { listMemories, MEMORY_QUERY, memoryItem, searchMemories } from "./memory.js"
 
 export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { run } = answers(program, streams, env)
@@ -93,24 +92,10 @@ export const searchMemoriesCommand = (search: Command, streams: Streams, env: No
   search
     .command("memories")
     .description("memories holding every word, best first")
-    .argument("<words...>", "the words to find")
-    .option("--scope <scope>", MEMORY_SCOPES.join(" or "), oneOf(MEMORY_SCOPES))
+    .argument("<query...>", "the words to find; scope:personal or scope:work narrows them")
     .option("--limit <n>", "most memories, up to 500", positive, 20)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((words: string[], options: { scope?: Memory["scope"]; limit: number; json?: boolean }) =>
-      run(options.json, (store) =>
-        pageOf(
-          "search memories",
-          options.limit,
-          async (limit) =>
-            (
-              await store.memories.search(words.join(" "), {
-                limit,
-                ...(options.scope === undefined ? {} : { scope: options.scope }),
-              })
-            ).map(memoryItem),
-          { fallback: 20, cap: 200 },
-        ),
-      ),
+    .action((words: string[], options: { limit: number; json?: boolean }) =>
+      run(options.json, (store) => searchMemories(store, words, options.limit)),
     )
 }
