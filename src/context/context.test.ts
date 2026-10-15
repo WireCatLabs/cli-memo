@@ -111,7 +111,7 @@ describe("memo context", () => {
     await store.close()
     writeFileSync(join(vault, "Call.md"), `Called [[person:${uid}]] about Friday.\nRin Example sounded busy.\n`)
     await run("folders", "add", vault)
-    await run("sync", "--notes")
+    await run("sync", "--only", "notes")
     await run("note", "telegram:101", join(vault, "People", "Rin Example.md"))
     await run("notes", "add", "Prefers mornings", "--subject", "email:rin@example.test")
 

@@ -55,7 +55,7 @@ You need Node.js 22.16 or newer.
 ```sh
 npm install -g @wirecat/cli-memo
 memo folders add /path/to/notes   # your notes folder; Obsidian format by default
-memo sync --notes                # reads the notes, their links and tags; run again after edits
+memo sync --only notes                # reads the notes, their links and tags; run again after edits
 memo search notes "budget"
 ```
 
@@ -64,7 +64,7 @@ That is all notes need. Then add more context:
 - **Messages:** install [tg-cli](https://github.com/WireCatLabs/tg-cli) or
   [max-cli](https://github.com/WireCatLabs/max-cli); memo reads the same local store.
 - **Search by meaning:** `tg models text download e5-small` downloads the local model once.
-- **Mail:** set up [Himalaya](https://github.com/pimalaya/himalaya), then `memo sync --mail`.
+- **Mail:** set up [Himalaya](https://github.com/pimalaya/himalaya), then `memo sync --only mail`.
 - **Stay current:** `memo auto start` runs `memo sync` every five minutes (Linux, systemd).
 - **Your agent:** the install puts memo's skill where Claude Code, Codex and Gemini CLI read it;
   `memo skill show` prints it, `memo skill install --for all` installs it again.
@@ -98,7 +98,7 @@ Messages, imported mail and notes, ranked together. When you know the kind, `sea
 **"What did I promise people this week?"**
 
 ```sh
-memo ask 'What did I promise this week?' --query 'promised OR "by Friday"' --all --json
+memo ask 'What did I promise this week?' 'promised OR "by Friday"' --all --json
 ```
 
 An evidence bundle for your agent: the matching sources with their references, what was searched, and
@@ -156,7 +156,7 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 | Task | Commands |
 | --- | --- |
 | Connect notes folders | `memo folders add` · `folders attach` · `folders list` |
-| Sync what changed | `memo sync` · `sync --notes` · `sync --mail` · `auto start` / `stop` / `status` |
+| Sync what changed | `memo sync` · `sync --only notes` · `sync --only mail` · `auto start` / `stop` / `status` |
 | Read notes | `memo notes list` · `notes show` · `memo note` (the note about a person) |
 | Write your own notes | `memo notes add` · `notes edit` · `notes remove` · `notes export` |
 | Search | `memo search all` · `search notes` · `search mail` · `search messages` |
@@ -179,7 +179,7 @@ More: [technical docs](#technical-docs) · [memo on wirecat.dev](https://wirecat
 
 **From a folder.** `memo folders add` gives a folder an id that the store uses; its path is only where it is
 on this computer, so the same folder on another computer is attached with `memo folders attach <id> <path>`.
-`memo sync --notes` stores each file as a note named by its path. An edited file keeps its old text as a
+`memo sync --only notes` stores each file as a note named by its path. An edited file keeps its old text as a
 revision; a moved file keeps its id, links and tags; a deleted file loses its text on the next import. The
 `obsidian` format (the default) reads `[[Note|label]]` links, aliases, `tags:` and `#tags`; `markdown` reads
 `[label](path.md)` links and `tags:`. A `[[Kai Sample]]` link becomes a link to a person once someone by that
@@ -346,7 +346,7 @@ More: [security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security
 - Files up to 50 MiB; stored text up to 200,000 characters a file. Scanned PDFs and legacy DOC/XLS are
   reported, not read.
 - Search by meaning embeds at most 600 chunks a run; the next run continues.
-- `memo sync --mail` reads 200 new messages per account a run by default (`--limit`) and keeps up to 1,000,000
+- `memo sync --only mail` reads 200 new messages per account a run by default (`--limit`) and keeps up to 1,000,000
   characters of a body and 200,000 of an attachment's text (`mail.max_body_chars`, `mail.max_attachment_chars`).
 - Searches return at most 100 results; `tags list` shows 100 labels unless `--limit` says more.
 - Tags are 1–32 letters a–z, digits or hyphens.

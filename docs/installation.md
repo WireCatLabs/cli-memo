@@ -85,7 +85,7 @@ Memo has no login and no setup step. Add a folder of notes, read it, and search 
 
 ```sh
 memo folders add ~/Documents/Notes   # your notes folder; Obsidian format by default
-memo sync --notes                    # reads the notes, their links and tags
+memo sync --only notes                    # reads the notes, their links and tags
 memo search notes "budget"
 ```
 

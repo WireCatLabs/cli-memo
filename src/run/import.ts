@@ -1,7 +1,7 @@
 import { type ErrorCode, errorCodes, isCliError, type Streams } from "@wirecat/cli-base"
 import { momentOf } from "@wirecat/cli-core/cli"
 import { openStore } from "@wirecat/cli-core/store"
-import { type Command, Option } from "commander"
+import { type Command, InvalidArgumentError, Option } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { loadConfig } from "../config.js"
 import { errorObject } from "../failure.js"
@@ -80,9 +80,10 @@ const text = (run: ImportRun): string =>
     ...run.failed.map(({ source, reason }) => `failed ${source}: ${reason}`),
   ].join("\n") || "Nothing to sync: set notes.folders or mail.accounts in the config."
 
+type Synced = "notes" | "mail"
+
 interface SyncOptions {
-  notes?: boolean
-  mail?: boolean
+  only?: Synced[]
   folder?: string[]
   ignore?: string[]
   account?: string[]
@@ -92,6 +93,28 @@ interface SyncOptions {
   rescan?: boolean
   embed: boolean
   json?: boolean
+}
+
+const onlyOf = (value: string): Synced[] => {
+  const selected = value.split(",").map((part) => part.trim())
+  if (!selected.length || selected.some((part) => part !== "notes" && part !== "mail"))
+    throw new InvalidArgumentError("choose notes,mail, separated by commas")
+  return [...new Set(selected)] as Synced[]
+}
+
+/** What a run syncs: --only, plus the side each narrowing option belongs to; both when nothing names a side. */
+const syncedOf = (options: SyncOptions): Set<Synced> => {
+  const synced = new Set(options.only)
+  if (options.folder || options.ignore) synced.add("notes")
+  if (
+    options.account ||
+    options.sinceTime !== undefined ||
+    options.limit !== undefined ||
+    options.retryAttachments ||
+    options.rescan
+  )
+    synced.add("mail")
+  return synced.size ? synced : new Set(["notes", "mail"])
 }
 
 const failedReason = ([first, ...rest]: ImportRun["failed"]): string | undefined =>
@@ -106,55 +129,54 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       "bring notes and mail up to date in the store, only what changed. Every configured folder and mail account " +
         "unless narrowed; a notes option syncs notes only, a mail option mail only, unless both are given",
     )
-    .option("--notes", "notes only")
-    .option("--mail", "mail only")
+    .option("--only <resources>", "notes,mail, separated by commas", onlyOf)
     .addOption(
-      new Option("--folder <folder>", "notes: only this configured folder, by its id or path; repeat for more")
-        .argParser(collect)
-        .implies({ notes: true }),
+      new Option(
+        "--folder <folder>",
+        "notes: only this configured folder, by its id or path; repeat for more",
+      ).argParser(collect),
     )
     .addOption(
-      new Option("--ignore <path>", "notes: also skip this file or folder, a path or a glob; repeat for more")
-        .argParser(collect)
-        .implies({ notes: true }),
+      new Option(
+        "--ignore <path>",
+        "notes: also skip this file or folder, a path or a glob; repeat for more",
+      ).argParser(collect),
     )
     .addOption(
       new Option(
         "--account <account>",
         "mail: only this account, by its name in mail.accounts or its address; repeat for more",
-      )
-        .argParser(collect)
-        .implies({ mail: true }),
+      ).argParser(collect),
     )
     .addOption(
       new Option(
         "--since-time <time>",
         `mail: read from this time, ISO 8601 or 30d ago (default: ${MAIL_WINDOW_DAYS}d)`,
-      ).implies({ mail: true }),
+      ),
     )
     .addOption(
-      new Option("--limit <n>", "mail: most new emails to read per account this run (default: 200)")
-        .argParser(positive)
-        .implies({ mail: true }),
+      new Option("--limit <n>", "mail: most new emails to read per account this run (default: 200)").argParser(
+        positive,
+      ),
     )
     .addOption(
       new Option(
         "--retry-attachments",
         "mail: reread stored emails' attachments after installing an extraction engine",
-      ).implies({ mail: true }),
+      ),
     )
     .addOption(
       new Option(
         "--rescan",
         "mail: list every message again, not only mail an earlier run left; also checks deletions",
-      ).implies({ mail: true }),
+      ),
     )
     .option("--no-embed", "skip embedding notes and mail for search by meaning this run")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText("after", `\n${LARGE_IMPORT_HELP}`)
     .action(async (options: SyncOptions, command: Command) => {
       const debug = command.optsWithGlobals().debug === true
-      const both = !options.notes && !options.mail
+      const synced = syncedOf(options)
       const config = loadConfig(env)
       if (env.MEMO_AUTO === "1") {
         await applyAuto(env, autoState(config))
@@ -166,12 +188,11 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           : momentOf(options.sinceTime, "--since-time"),
       )
       // An archive file is read whole each run, so only a sync that names it reads it.
-      const accounts =
-        both || options.mail
-          ? mailAccounts(config.mail?.accounts ?? [], options.account).filter(
-              (account) => account.mode !== "mbox" || options.account !== undefined,
-            )
-          : []
+      const accounts = synced.has("mail")
+        ? mailAccounts(config.mail?.accounts ?? [], options.account).filter(
+            (account) => account.mode !== "mbox" || options.account !== undefined,
+          )
+        : []
       const run: ImportRun = { notes: [], mail: [], failed: [] }
       const startedAt = Date.now()
       const answer = () =>
@@ -194,7 +215,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           }
         }
         try {
-          if (both || options.notes) {
+          if (synced.has("notes")) {
             const folders =
               options.folder === undefined
                 ? await boundFolders(store, env, { strict: false })

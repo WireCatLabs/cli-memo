@@ -11,7 +11,7 @@ new one and run `memo --help`. If it still fails, install Memo again:
 
 ## A note or file does not appear in search
 
-1. Run `memo sync --notes` and read the report. It lists files it could not read and why.
+1. Run `memo sync --only notes` and read the report. It lists files it could not read and why.
 2. Check that the file's folder is in `memo folders list`, and that the file is not skipped by
    `notes.ignore` in the [config file](configuration.md#notes).
 3. Search for one word you know is in the file. A search finds results that contain **every** word,
@@ -75,7 +75,7 @@ The command works in one account and Memo does not choose one for you. Add `--pr
 
 Older Memo versions kept data in a file called `messages.db`. The current version uses the shared
 local store, `wirecat.db`, and does not read the old file. Add each folder again with
-`memo folders add`, then run `memo sync --notes` and `memo sync --mail`.
+`memo folders add`, then run `memo sync --only notes` and `memo sync --only mail`.
 
 ## Help shows every command instead of one
 

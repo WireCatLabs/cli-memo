@@ -203,12 +203,6 @@ const noteType = (value: string): Note["source"] => {
   return value
 }
 
-const messageType = (value: string): "text" | "voice" | "file" => {
-  if (value !== "text" && value !== "voice" && value !== "file")
-    throw new InvalidArgumentError("choose text, voice or file")
-  return value
-}
-
 const hasSource = (node: QueryNode): boolean =>
   node.kind === "predicate"
     ? node.field === "in"
@@ -333,7 +327,7 @@ export const searchEverywhere = async (
 export const searchKind = async (
   store: MessageStore,
   kind: "messages" | "mail",
-  { text, limit, type, account, exact, timezone }: QueryInput & { type?: "text" | "voice" | "file"; account?: string },
+  { text, limit, account, exact, timezone }: QueryInput & { account?: string },
 ) => {
   const held = (await store.accounts()).some(
     ({ provider }) => provider !== "notes" && (kind === "mail" ? provider === "email" : provider !== "email"),
@@ -341,16 +335,13 @@ export const searchKind = async (
   if (!held)
     throw new CliError(
       "not_found",
-      kind === "mail" ? "no imported mail; run memo sync --mail" : "no stored messenger messages",
+      kind === "mail" ? "no imported mail; run memo sync --only mail" : "no stored messenger messages",
     )
   return searchStore(
     store,
     MEMO,
     {
-      text:
-        type === undefined
-          ? text
-          : `(${text}) AND ${{ text: "NOT has:attachment", voice: "has:voice", file: "has:file" }[type]}`,
+      text,
       kind,
       ...(kind === "messages" && !hasSource(parseLucene(text).root) ? { source: "all" as const } : {}),
       limit,
@@ -459,14 +450,15 @@ content: narrows a search to the text of files, transcript: to voice transcripts
     const leaf = queryOptions(
       group.command(kind).description(kind === "mail" ? "imported emails only" : "stored messenger messages only"),
     )
-    if (kind === "messages") leaf.option("--type <type>", "text, voice or file", messageType)
-    else leaf.option("--account <account>", "only this mail account, by its address (default: every mail account)")
+    if (kind === "mail")
+      leaf.option("--account <account>", "only this mail account, by its address (default: every mail account)")
     leaf.addHelpText(
       "after",
       kind === "messages"
         ? `
 content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names — memo search messages
 'content:invoice'. Compare it with tg search messages 'content:invoice', a plain word with a plain word.
+has:voice, has:file or NOT has:attachment keeps voice messages, files or plain text — memo search messages 'friday has:voice'.
 --json: the list is items, each a hit as in tg search messages: ref (msg:…), timestamp, sender_name, excerpt.`
         : `
 content: narrows a search to the text of attachments, filename: to their names — memo search mail 'content:invoice'.
@@ -479,7 +471,6 @@ content: narrows a search to the text of attachments, filename: to their names �
           limit: number
           exact?: boolean
           timezone?: string
-          type?: "text" | "voice" | "file"
           account?: string
           json?: boolean
           brief?: boolean
@@ -491,7 +482,6 @@ content: narrows a search to the text of attachments, filename: to their names �
           searchKind(store, kind, {
             text: words.join(" "),
             limit: options.limit,
-            ...(options.type === undefined ? {} : { type: options.type }),
             ...(options.account === undefined ? {} : { account: options.account }),
             ...(options.exact ? { exact: true } : {}),
             ...(options.timezone === undefined ? {} : { timezone: options.timezone }),

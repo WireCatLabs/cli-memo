@@ -50,7 +50,9 @@ const noteOf = async (store: MessageStore, env: NodeJS.ProcessEnv, reference: st
   const { folder, path } = folderOfFile(await boundFolders(store, env, { strict: false }), reference)
   const found = (await folderNotes(store, folder.id)).find((note) => note.path === path)
   if (!found)
-    throw new CliError("not_found", `${reference} is not imported — memo sync --notes`, { reason: "note.not-imported" })
+    throw new CliError("not_found", `${reference} is not imported — memo sync --only notes`, {
+      reason: "note.not-imported",
+    })
   return found
 }
 

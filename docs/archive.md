@@ -19,8 +19,8 @@ notes /path/to/notes: 24 notes, 2 changed, 0 moved, 0 gone
 
 | Option | What it does |
 |---|---|
-| `--notes` | Only note folders |
-| `--mail` | Only mail accounts |
+| `--only notes` | Only note folders |
+| `--only mail` | Only mail accounts |
 | `--no-embed` | Skip the preparation for search by meaning |
 
 Telegram and MAX messages are kept current by tg and max, not by `memo sync`.
