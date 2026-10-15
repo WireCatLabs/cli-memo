@@ -4,7 +4,11 @@ import { type PresetName, presetMatches } from "./presets.js"
 /** All given conditions must hold; a rule with none matches nothing. */
 export interface MailRuleMatch {
   from?: string
+  /** A word the sender's address or display name contains, any case: Gmail's `from:smith`. */
+  from_contains?: string
   domain?: string
+  /** One recipient address in To or Cc. */
+  to?: string
   list_id?: string
   /** Words that must all appear in the subject, any case. */
   subject?: string
@@ -77,8 +81,14 @@ export const matches = (match: MailRuleMatch, facts: MailFacts, now = Date.now()
     switch (key as keyof MailRuleMatch) {
       case "from":
         return headers?.from === String(value).toLowerCase()
+      case "from_contains": {
+        const word = String(value).toLowerCase()
+        return [headers?.from, headers?.fromName?.toLowerCase()].some((part) => part?.includes(word) ?? false)
+      }
       case "domain":
         return domainMatches(String(value), headers?.from)
+      case "to":
+        return headers?.to.includes(String(value).toLowerCase()) ?? false
       case "list_id":
         return headers?.listId === String(value).toLowerCase()
       case "subject": {

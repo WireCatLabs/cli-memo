@@ -18,7 +18,10 @@ the API.
 - **`--do <action>,tag:<name>`** tags the mail a rule matches; a sync tags what it stores, `rules apply` tags what
   is stored (`tagged`).
 - **`memo mail rules import-filters <account> <Filters.json>`** proposes rules from a Takeout export's Gmail
-  filters; `--yes` adds them.
+  filters; `--yes` adds them. It reads Takeout's `{"filter": [{query, labelsToAdd, labelsToRemove}]}`: each
+  `from:` or `to:` term becomes its own rule, and words become subject words.
+- **`--filter` takes `from:<address|domain|word>` and `to:<address>`**: `from:sample` matches a sender whose
+  address or display name contains the word.
 
 ### Changed — may break scripts
 
