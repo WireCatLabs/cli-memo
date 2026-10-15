@@ -80,6 +80,8 @@ rule covers yet:
 | `brand_spoof` | 3 | A brand in the display name, such as PayPal or Apple, sent from another domain |
 | `young_domain` | 3 | The sender's domain was under 180 days old when the first email came |
 | `reply_to_elsewhere` | 2 | Replies go to another domain than the sender's |
+| `never_opened` | 2 | You opened none of the group's mail |
+| `dkim_not_passed` | 2 | Gmail's DKIM check did not pass on most of the group's mail |
 | `disposable_domain` | 2 | A throwaway-mail domain |
 | `bulk_never_replied` | 1 | At least 80% bulk mail, and you never wrote to the sender |
 | `replied` | −5 | You wrote to the sender |

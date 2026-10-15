@@ -73,8 +73,8 @@ describe("scoreGroup", () => {
       ]),
     )
     expect(scoreGroup(scam, { replied: false, bulk: 0, ages: none })).toEqual({
-      score: 8,
-      signals: ["dmarc_fail", "brand_spoof", "reply_to_elsewhere"],
+      score: 10,
+      signals: ["dmarc_fail", "brand_spoof", "reply_to_elsewhere", "dkim_not_passed"],
     })
   })
 
@@ -95,6 +95,23 @@ describe("scoreGroup", () => {
     expect(scoreGroup(throwaway, { replied: false, bulk: 0, ages }).signals).toEqual(["disposable_domain"])
   })
 
+  it("adds mail never opened and a DKIM check most of the mail did not pass, and ignores unknowns", () => {
+    const robot = [1, 2].map((n) =>
+      email(n, ["From: deals@shop.example", "Authentication-Results: mx.google.com; spf=pass"], { seen: false }),
+    )
+    expect(scoreGroup(robot, { replied: false, bulk: 0, ages: none })).toEqual({
+      score: 4,
+      signals: ["never_opened", "dkim_not_passed"],
+    })
+    const opened = [
+      email(1, ["From: deals@shop.example"], { seen: false }),
+      email(2, ["From: deals@shop.example"], { seen: true }),
+    ]
+    expect(scoreGroup(opened, { replied: false, bulk: 0, ages: none }).signals).toEqual([])
+    const unknown = [email(1, ["From: deals@shop.example"])]
+    expect(scoreGroup(unknown, { replied: false, bulk: 0, ages: none }).signals).toEqual([])
+  })
+
   it("marks a group whose mail sits in Gmail's Spam", () => {
     const spam = [email(1, ["From: win@prize.example"], { labels: ["Spam"] })]
     expect(scoreGroup(spam, { replied: false, bulk: 0, ages: none }).signals).toEqual(["spam_folder"])
@@ -103,7 +120,7 @@ describe("scoreGroup", () => {
   it("puts the score on each probe group and asks ages only for never-replied, non-provider domains", () => {
     const probe = probeMail(
       [
-        email(1, ["From: deals@shop.example", "Authentication-Results: mx.google.com; dmarc=fail"]),
+        email(1, ["From: deals@shop.example", "Authentication-Results: mx.google.com; dkim=pass; dmarc=fail"]),
         email(2, ["From: carol@gmail.com"]),
         email(3, ["From: owner@example.test", "To: dave@friend.example"], { labels: ["Sent"] }),
         email(4, ["From: dave@friend.example"]),
