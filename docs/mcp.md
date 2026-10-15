@@ -67,7 +67,7 @@ Everything the app adds is saved under the agent name `memo-mcp` and waits as pr
 Every call the app makes is written to the agent log:
 
 ```sh
-memo agents log --agent memo-mcp --limit 20
+memo agents log agent:memo-mcp --limit 20
 ```
 
 The log shows the tool, the result and the time, never what the app sent.

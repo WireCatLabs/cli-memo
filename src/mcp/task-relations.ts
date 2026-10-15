@@ -1,6 +1,8 @@
+import { CliError } from "@wirecat/cli-base"
 import * as v from "valibot"
-import { itemAnswer, listAnswer, wholeList } from "../answer.js"
-import { canonicalProject } from "../vocabulary/project.js"
+import { itemAnswer, wholeList } from "../answer.js"
+import { queryArgument } from "../list-query.js"
+import { listTasks, TASKS_LIST_QUERY } from "../tasks/list.js"
 import { define } from "./tool.js"
 
 export const taskRelationTools = {
@@ -22,25 +24,15 @@ export const taskRelationTools = {
   tasks_list: define({
     title: "List a project's tasks",
     description:
-      "Open tasks of one owner project, or with ready only those whose prerequisites are done. Does not claim, assign or execute tasks.",
+      "Tasks of one owner project, open by default, narrowed by a query that names it: project:HRB, with ready:true only those whose prerequisites are done. Does not claim, assign or execute tasks.",
     writes: false,
     input: v.object({
-      project: v.string(),
-      ready: v.optional(v.boolean()),
-      limit: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(500))),
+      query: queryArgument(TASKS_LIST_QUERY),
+      limit: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(500)), 100),
     }),
-    run: async (store, { project, ready, limit = 100 }) => {
-      const canonical = await canonicalProject(store, project)
-      if (ready) {
-        const page = await store.tasks.readyTasks(canonical, { limit })
-        return listAnswer("tasks list", {
-          items: page.items.map((task) => ({ ref: `task:${task.id}`, ...task })),
-          limit,
-          has_more: page.hasMore,
-        })
-      }
-      const items = await store.tasks.find({ project: canonical, status: "open", limit: limit + 1 })
-      return listAnswer("tasks list", { items: items.slice(0, limit), limit, has_more: items.length > limit })
-    },
+    run: (store, { query, limit }) =>
+      listTasks(store, query, limit, () => {
+        throw new CliError("validation_error", "name the project: project:HRB")
+      }),
   }),
 }

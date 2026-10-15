@@ -3,9 +3,10 @@ import { type CallToolResult, McpServer } from "@modelcontextprotocol/server"
 import { toStandardJsonSchema } from "@valibot/to-json-schema"
 import { CliError } from "@wirecat/cli-base"
 import { type Body, inRun, sealed } from "@wirecat/cli-core/cli"
-import { FACT_TYPES, MEMORY_KINDS, MEMORY_SCOPES, openStore, PROPOSAL_STATUSES } from "@wirecat/cli-core/store"
+import { FACT_TYPES, MEMORY_KINDS, MEMORY_SCOPES, openStore } from "@wirecat/cli-core/store"
 import * as v from "valibot"
-import { propose } from "../actions/actions.js"
+import { ACTION_QUERY, listActions, propose } from "../actions/actions.js"
+import { AGENT_LOG_QUERY, listAgentActions } from "../agents/log.js"
 import { itemAnswer } from "../answer.js"
 import { FACT_QUERY, factItem, listFacts } from "../facts/fact.js"
 import { mcpFailure } from "../failure.js"
@@ -148,10 +149,10 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
   }),
   actions_list: define({
     title: "List proposed actions",
-    description: `Proposed actions, newest first, by status. ${UNTRUSTED}`,
+    description: `Proposed actions, newest first, narrowed by a query such as status:proposed. ${UNTRUSTED}`,
     writes: false,
-    input: v.object({ status: v.optional(v.picklist(PROPOSAL_STATUSES)), limit: limit(500) }),
-    run: (store, args) => pageOf("actions list", args.limit, (limit) => store.proposedActions.list({ ...args, limit })),
+    input: v.object({ query: queryArgument(ACTION_QUERY), limit: limit(500) }),
+    run: (store, args) => listActions(store, args.query, args.limit),
   }),
   actions_show: define({
     title: "Show a proposed action",
@@ -162,10 +163,11 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
   }),
   agents_log: define({
     title: "Read the agent log",
-    description: "What agents did through the MCP servers, newest first: agent, tool, tier, outcome and times.",
+    description:
+      "What agents did through the MCP servers, newest first: agent, tool, tier, outcome and times; a query such as agent:tg-mcp tool:search_all narrows it.",
     writes: false,
-    input: v.object({ tool: v.optional(v.string()), agent: v.optional(v.string()), limit: limit(500) }),
-    run: (store, args) => pageOf("agents log", args.limit, (limit) => store.agentActions.list({ ...args, limit })),
+    input: v.object({ query: queryArgument(AGENT_LOG_QUERY), limit: limit(500) }),
+    run: (store, args) => listAgentActions(store, args.query, args.limit),
   }),
 }
 

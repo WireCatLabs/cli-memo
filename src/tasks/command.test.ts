@@ -143,12 +143,12 @@ it("adds a bug to a project with its fields and assignee, updates, lists and clo
       { to: `person:${person?.uid}`, role: "reviewer" },
     ],
   })
-  expect((await run("tasks", "list", "--project", "LHT")).items.map((task: { id: string }) => task.id)).toEqual([
+  expect((await run("tasks", "list", "project:LHT")).items.map((task: { id: string }) => task.id)).toEqual([
     "LHT-1",
     "LHT-2",
   ])
   expect(await run("tasks", "close", bug.id, "--reason", "fixed")).toMatchObject({ status: "done", reason: "fixed" })
-  expect((await run("tasks", "list", "state:done", "--project", "LHT")).items).toMatchObject([{ id: "LHT-1" }])
-  expect((await run("tasks", "list", "kind:chore", "--project", "LHT")).items).toMatchObject([{ id: "LHT-2" }])
+  expect((await run("tasks", "list", "state:done", "project:LHT")).items).toMatchObject([{ id: "LHT-1" }])
+  expect((await run("tasks", "list", "kind:chore", "project:LHT")).items).toMatchObject([{ id: "LHT-2" }])
   await expect(run("tasks", "list", "kind:chore")).rejects.toMatchObject({ code: "validation_error" })
 })

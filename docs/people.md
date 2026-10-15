@@ -129,7 +129,7 @@ memo projects meetings link HRB 5 --provider zoom --account ACCOUNT
 memo projects meetings list HRB --provider zoom --account ACCOUNT
 ```
 
-Name the meeting's account exactly. `--proposed` lists the links an agent suggested; to confirm one,
+Name the meeting's account exactly. `confirmed:false` lists the links an agent suggested; to confirm one,
 repeat `link` with the `--fingerprint` value shown in that list.
 
 ## Other names for projects and tags
@@ -138,7 +138,7 @@ People call the same project by different names. You can give a project or a tag
 search or an agent finds it by any of them:
 
 ```sh
-memo vocabulary list --kind project
+memo vocabulary list kind:project
 memo vocabulary show 'Harbor' --kind project
 memo vocabulary aliases add project:1 'Harbor' --fingerprint VALUE
 ```

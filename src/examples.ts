@@ -46,7 +46,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   ],
   "tasks list": [
     "memo tasks list state:done --provider telegram --account 1",
-    "memo tasks list --project HRB --ready --json",
+    "memo tasks list project:HRB ready:true --json",
   ],
   "tasks agenda": [
     "memo tasks agenda --provider telegram --account 1",
@@ -90,7 +90,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "reminders update": [
     "memo reminders update 3 --revision 1 --at-time 2026-10-21T09:00:00+02:00 --provider telegram --account 1",
   ],
-  "vocabulary list": ["memo vocabulary list --kind tag"],
+  "vocabulary list": ["memo vocabulary list kind:tag"],
   "vocabulary show": ["memo vocabulary show Harbour --kind project"],
   "vocabulary check": ["memo vocabulary check on-boarding --kind tag", "memo vocabulary check --limit 20 --json"],
   "vocabulary create": ["memo vocabulary create onboarding --kind tag --fingerprint 3f9a"],
@@ -111,11 +111,11 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "actions add": [
     "memo actions add reply --reason 'Kai asked twice' --provider telegram --target 'msg:telegram/1/77/42' --payload '{\"text\":\"Friday works\"}'",
   ],
-  "actions list": ["memo actions list --status proposed"],
+  "actions list": ["memo actions list status:proposed"],
   "actions show": ["memo actions show 5"],
   "actions confirm": ["memo actions confirm 5"],
   "actions reject": ["memo actions reject 5"],
-  "agents log": ["memo agents log --agent claude-code --limit 20"],
+  "agents log": ["memo agents log agent:claude-code --limit 20"],
   mcp: ["memo mcp"],
   "search all": ["memo search all 'budget harbour'", "memo search all 'content:invoice' --only mail,notes --json"],
   "search messages": ["memo search messages 'friday meeting' --type voice"],

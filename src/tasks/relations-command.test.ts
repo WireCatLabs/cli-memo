@@ -19,7 +19,7 @@ it("creates keyed project tasks, links them as before or with task:, and discove
     return answerOf(streams.stdout.join(""))
   }
   const project = await run("projects", "add", "Research Example", "--key", "RES")
-  const catalog = await run("vocabulary", "list", "--kind", "project")
+  const catalog = await run("vocabulary", "list", "kind:project")
   await run("vocabulary", "aliases", "add", project.ref, "Lab Example", "--fingerprint", catalog.fingerprint)
   const first = await run("tasks", "add", "--project", "Lab Example", "--title", "Research draft")
   const second = await run("tasks", "add", "--project", "RES", "--title", "Review draft")
@@ -31,7 +31,7 @@ it("creates keyed project tasks, links them as before or with task:, and discove
   await expect(run("tasks", "link", second.id, "https://example.com/plan")).rejects.toThrow(
     "give --provider and --account",
   )
-  expect(await run("tasks", "list", "--ready", "--project", "Lab Example")).toMatchObject({
+  expect(await run("tasks", "list", "ready:true", 'project:"Lab Example"')).toMatchObject({
     items: [{ key: first.key }],
     page: { has_more: false },
   })
@@ -45,5 +45,5 @@ it("creates keyed project tasks, links them as before or with task:, and discove
   expect(await run("tasks", "unlink", second.id, first.id, "--kind", "blocked-by")).toEqual({ changed: true })
   await run("tasks", "link", second.id, first.id, "--kind", "follow-up-of")
   expect((await run("tasks", "relations", second.id)).items).toMatchObject([{ kind: "follow-up-of" }])
-  expect((await run("tasks", "list", "--ready", "--project", project.ref)).items).toHaveLength(2)
+  expect((await run("tasks", "list", "ready:true", `project:"${project.ref}"`)).items).toHaveLength(2)
 })

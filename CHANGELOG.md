@@ -4,6 +4,17 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Changed — may break scripts
+
+- **Lists filter with their query, not with flags**, and the old flags are gone: `actions list --status proposed` →
+  `actions list status:proposed`; `agents log --tool X --agent Y` → `agents log tool:X agent:Y`;
+  `projects meetings list --proposed` → `confirmed:false`; `tasks list --project HRB --ready` →
+  `tasks list project:HRB ready:true`; `vocabulary list --kind tag --scope work` → `vocabulary list kind:tag
+  scope:work`. The store still does the filtering. MCP `actions_list`, `agents_log`, `tasks_list` and
+  `vocabulary_list` take the same terms as `query`.
+
 ## 0.36.0 — 15.10.2026
 
 - **Nested JSON report fields use the shared projector.** Dotted paths traverse report objects and arrays while preserving coverage, pagination and execution metadata. The bundled skill documents bounded output and removes fixed import-speed claims.

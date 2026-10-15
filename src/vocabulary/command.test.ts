@@ -22,7 +22,7 @@ it("resolves owner project aliases through reviewed CLI writes and rejects a sta
       .parseAsync([...args, "--json"], { from: "user" })
     return answerOf(streams.stdout.join(""))
   }
-  const preview = await run("vocabulary", "list", "--kind", "project", "--scope", "work")
+  const preview = await run("vocabulary", "list", "kind:project", "scope:work")
   const added = await run(
     "vocabulary",
     "aliases",
@@ -40,7 +40,7 @@ it("resolves owner project aliases through reviewed CLI writes and rejects a sta
   await expect(
     run("vocabulary", "aliases", "add", project.ref, "Other Alias", "--fingerprint", preview.fingerprint),
   ).rejects.toMatchObject({ code: "configuration_error" })
-  const current = await run("vocabulary", "list", "--kind", "project")
+  const current = await run("vocabulary", "list", "kind:project")
   expect(
     await run("vocabulary", "aliases", "remove", project.ref, added.alias.id, "--fingerprint", current.fingerprint),
   ).toMatchObject({ changed: true })
@@ -114,6 +114,7 @@ it("selects project meetings through aliases and refuses a foreign account link"
     items: [{ project: project.ref, confirmed: true }],
     page: { has_more: false },
   })
+  expect((await run("projects", "meetings", "list", "Lab Example", "confirmed:false", ...flags)).items).toEqual([])
   await expect(
     run("projects", "meetings", "link", "Lab Example", meeting, "--provider", "example", "--account", "BobSample"),
   ).rejects.toMatchObject({ code: "not_found" })
