@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.39.0 — 15.10.2026
+
 ### Changed — may break scripts
 
 - `memo tasks list` answers each task as cli-core's `task` entity, as tg and max do: `kind`, `state`, `key`,
