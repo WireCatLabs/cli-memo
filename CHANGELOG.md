@@ -6,6 +6,10 @@ the API.
 
 ## Unreleased
 
+### Documentation
+
+- Correct the Takeout resume guidance: completed, unchanged snapshots are skipped; incomplete imports scan again. Replace the retired `tasks.id` search projection example with supported compact hit fields.
+
 ### Added
 
 - **Mail rules match more than the sender.** `memo mail rules add|remove --filter <query>` takes `subject:<word>`
