@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.33.0 — 15.10.2026
+
 ### Changed — may break scripts
 
 - **`facts list` and `memories list` take a query, not filter flags**: `memo facts list kind:decision
