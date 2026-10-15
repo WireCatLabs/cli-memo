@@ -6,6 +6,12 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo search mail` finds a letter by its whole link and by a part of a link**, also a tracking link that mail
+  keeps only as its site: `url:"https://news.example.com/click?id=1"`, `link:"/click?id=1"`. Quote both: `?`, `/`
+  and `=` mean something else in a query. cli-core 0.294.0.
+
 ## 0.46.0 — 16.10.2026
 
 ### Changed
