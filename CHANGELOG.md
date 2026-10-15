@@ -25,6 +25,12 @@ the API.
   longer narrowed further. `--project` and `--ready` stay on `tasks list`: they pick which tasks are read. A next
   page of `notes list` carries the query.
 
+### Added
+
+- **`memo tasks agenda`, `tasks plan`, `tasks show` and `memo stats tasks show`**, the same commands tg and max
+  have: cli-core's builders, mounted with `--provider --account`, so memo's agenda reads any messenger account the
+  store holds. Without them a command fails and lists the accounts.
+
 ## 0.32.0 — 15.10.2026
 
 ### Changed

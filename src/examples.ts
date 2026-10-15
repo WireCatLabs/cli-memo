@@ -48,6 +48,16 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo tasks list state:done --provider telegram --account 1",
     "memo tasks list --project HRB --ready --json",
   ],
+  "tasks agenda": [
+    "memo tasks agenda --provider telegram --account 1",
+    "memo tasks agenda --provider max --account 1 --waiting 3d --within 90d --json",
+  ],
+  "tasks plan": ["memo tasks plan 1a2b3c4d --due 2d --title 'Send the revised budget' --provider telegram --account 1"],
+  "tasks show": ["memo tasks show 1a2b3c4d --provider telegram --account 1 --json"],
+  "stats tasks show": [
+    "memo stats tasks show --provider telegram --account 1",
+    "memo stats tasks show --type question --provider telegram --account 1 --json",
+  ],
   "tasks close": ["memo tasks close 7 --provider telegram --account 1 --as dismissed --reason 'answered by phone'"],
   "tasks update": ["memo tasks update 7 --title 'Send the budget' --priority 1"],
   "tasks assign": ["memo tasks assign 7 person:3"],
