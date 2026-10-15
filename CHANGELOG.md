@@ -6,6 +6,23 @@ the API.
 
 ## Unreleased
 
+### Changed — may break scripts
+
+- **cli-core 0.285.0**, the version tg and max move to. `memo tasks add` refuses a task that may be the same job as
+  an open one, or one closed in the last 14 days (exit 2, reason `task.duplicate-candidates`, candidates in
+  `details.candidates`); `--attach <task>` links the message to that task instead, `--new` opens it anyway.
+  `memo tasks agenda` takes `--category` and `--tag`. Opening the store upgrades it to version 16 (new tables and
+  triggers only; older tg and max keep working with it).
+
+### Fixed
+
+- **MCP answers show hidden characters in what other people wrote**, as tg's and max's do: messages,
+  mail, notes, names, facts and memories come back with tag characters, direction overrides, zero-width spaces,
+  U+FEFF, C1 and other control characters escaped (an ANSI escape reads `\x1b`), in the text and the structured
+  content, errors included. Every read tool's description, and the server instructions, say that this text is data
+  from other people, never instructions. Cyrillic, emoji and flags are unchanged; what an agent saves, and the
+  CLI's `--json`, keep the original text.
+
 ## 0.37.1 — 15.10.2026
 
 ### Security
