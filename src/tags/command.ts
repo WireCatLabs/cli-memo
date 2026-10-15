@@ -1,10 +1,10 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { formatReference, normalizeTag } from "@wirecat/cli-core"
+import { queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
 import type { MessageStore, StoredTag } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
-import { queryField, queryTerms, withQuery } from "../list-query.js"
 import { folderIds } from "../notes/bound.js"
 import { positive } from "../options.js"
 import { heldMessage } from "../store/held.js"
@@ -25,9 +25,9 @@ interface ListOptions extends SourceScope {
 
 /** memo's rows carry labels on notes, people and folders too, beyond cli-core's `tagging` entity. */
 const TAG_QUERY = {
-  entity: "tagging",
+  entity: "source_tag",
   backend: "native",
-  fields: [queryField("tag", "kw", "tag:work"), queryField("type", "enum", "type:note", { values: TYPES })],
+  fields: [termField("tag", "kw", "tag:work"), termField("type", "enum", "type:note", { values: TYPES })],
 } as const satisfies QueryRegistry
 
 const reference = ({ provider, account }: SourceScope, chat: string) =>
@@ -192,9 +192,7 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       ) => mutate(operation, given, options),
     )
 
-  withQuery(tags.command("list").description("list source labels, optionally in one provider or account"), TAG_QUERY, {
-    answersEntity: false,
-  })
+  withQuery(tags.command("list").description("list source labels, optionally in one provider or account"), TAG_QUERY)
     .option("--provider <provider>", "only this provider")
     .option("--account <account>", "only this account; requires --provider")
     .option("--limit <n>", "most labels to show", positive, 100)

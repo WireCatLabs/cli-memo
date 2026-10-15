@@ -2,7 +2,15 @@ import { randomUUID } from "node:crypto"
 import { type CallToolResult, McpServer } from "@modelcontextprotocol/server"
 import { toStandardJsonSchema } from "@valibot/to-json-schema"
 import { CliError } from "@wirecat/cli-base"
-import { agentResult, type Body, inRun, sealed, UNTRUSTED, UNTRUSTED_INSTRUCTION } from "@wirecat/cli-core/cli"
+import {
+  agentResult,
+  type Body,
+  inRun,
+  queryArgument,
+  sealed,
+  UNTRUSTED,
+  UNTRUSTED_INSTRUCTION,
+} from "@wirecat/cli-core/cli"
 import { FACT_TYPES, MEMORY_KINDS, MEMORY_SCOPES, openStore } from "@wirecat/cli-core/store"
 import * as v from "valibot"
 import { ACTION_QUERY, listActions, propose } from "../actions/actions.js"
@@ -10,7 +18,6 @@ import { AGENT_LOG_QUERY, listAgentActions } from "../agents/log.js"
 import { itemAnswer } from "../answer.js"
 import { FACT_QUERY, factItem, listFacts } from "../facts/fact.js"
 import { mcpFailure } from "../failure.js"
-import { queryArgument } from "../list-query.js"
 import { addMemory } from "../memories/memories.js"
 import { listMemories, MEMORY_QUERY, memoryItem } from "../memories/memory.js"
 import { pageOf } from "../page.js"

@@ -1,14 +1,14 @@
 import { CliError } from "@wirecat/cli-base"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
+import { queryTerms, termField } from "@wirecat/cli-core/cli"
 import { type Author, type MessageStore, PROPOSAL_STATUSES, type ProposedAction } from "@wirecat/cli-core/store"
-import { queryField, queryTerms } from "../list-query.js"
 import { pageOf } from "../page.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 
 export const ACTION_QUERY = {
   entity: "proposed_action",
   backend: "native",
-  fields: [queryField("status", "enum", "status:proposed", { values: PROPOSAL_STATUSES })],
+  fields: [termField("status", "enum", "status:proposed", { values: PROPOSAL_STATUSES })],
 } as const satisfies QueryRegistry
 
 /** Proposed actions the store filters by the query's terms; CLI and MCP list through it. */

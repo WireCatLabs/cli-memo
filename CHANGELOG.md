@@ -6,6 +6,23 @@ the API.
 
 ## Unreleased
 
+### Changed — may break scripts
+
+- `memo tasks list` answers each task as cli-core's `task` entity, as tg and max do: `kind`, `state`, `key`,
+  `title`, `source_message`, `chat`, `account`, `due_at`, `created_at`, `updated_at` and the rest. A task no longer
+  carries its message or note preview (`message`, `note`), its `source`, `source_kind` or `group`; `memo tasks show`
+  has the card. A project's tasks answer the same fields, not their store row.
+- `--json=<fields>` is checked against the declared answer of `relationships list` (`relationship`) and `tasks list`
+  (`task`); `tags list`, `folders list`, `actions list`, `agents log`, `vocabulary list` and
+  `projects meetings list` declare memo's own entities.
+- `memo folders list` takes a `[query...]` like every list; it filters by no field yet, so any term is refused.
+- A list given an option it does not have answers a query error (exit 2) instead of commander's unknown option.
+
+### Internal
+
+- The list query helpers come from cli-core 0.285.0 (`termField`, `queryTerms`, `withQuery`, `queryArgument`);
+  memo's copy is gone. `factItem` builds the `fact` entity in snake_case.
+
 ## 0.38.0 — 15.10.2026
 
 ### Changed — may break scripts

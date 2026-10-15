@@ -1,14 +1,14 @@
 import type { QueryRegistry } from "@wirecat/cli-base/query"
+import { queryTerms, termField } from "@wirecat/cli-core/cli"
 import type { MessageStore } from "@wirecat/cli-core/store"
-import { queryField, queryTerms } from "../list-query.js"
 import { pageOf } from "../page.js"
 
 export const AGENT_LOG_QUERY = {
   entity: "agent_action",
   backend: "native",
   fields: [
-    queryField("tool", "kw", "tool:search_all"),
-    queryField("agent", "kw", "agent:tg-mcp", { relation: "the calls of this agent, as actor.name names it" }),
+    termField("tool", "kw", "tool:search_all"),
+    termField("agent", "kw", "agent:tg-mcp", { relation: "the calls of this agent, as actor.name names it" }),
   ],
 } as const satisfies QueryRegistry
 

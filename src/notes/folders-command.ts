@@ -1,6 +1,8 @@
 import { statSync } from "node:fs"
 import { basename, resolve } from "node:path"
 import { CliError, type Streams } from "@wirecat/cli-base"
+import type { QueryRegistry } from "@wirecat/cli-base/query"
+import { queryTerms, withQuery } from "@wirecat/cli-core/cli"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { loadConfig, updateConfig } from "../config.js"
@@ -21,6 +23,9 @@ const directory = (path: string): string => {
   if (!isDirectory) throw new CliError("not_found", `${at} is not a folder`)
   return at
 }
+
+/** memo's own entity: a notes folder, here or known to the store from another computer. */
+const FOLDERS_QUERY = { entity: "notes_folder", backend: "native", fields: [] } as const satisfies QueryRegistry
 
 // drive-cli owns these folders; bound to a disk folder, an import would delete the Drive documents missing there.
 const keptByDrive = (name: string) => name.startsWith("google-drive:")
@@ -98,11 +103,13 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
       print(options.json, itemAnswer(folder), line(folder))
     })
 
-  folders
-    .command("list")
-    .description("folders of notes on this computer, and those the store knows from another")
+  withQuery(
+    folders.command("list").description("folders of notes on this computer, and those the store knows from another"),
+    FOLDERS_QUERY,
+  )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action(async (options: { json?: boolean }) => {
+    .action(async (words: string[], options: { json?: boolean }) => {
+      queryTerms(words, FOLDERS_QUERY, "folders list")
       const here = noteFolders(loadConfig(env).notes)
       const elsewhere: ElsewhereFolder[] = await withStore(env, async (store) =>
         (await store.notes.folders())

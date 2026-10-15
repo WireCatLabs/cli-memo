@@ -1,9 +1,9 @@
 import type { Streams } from "@wirecat/cli-base"
+import { withQuery } from "@wirecat/cli-core/cli"
 import { approveAsTask } from "@wirecat/cli-core/services"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { authorOf, byOption } from "../author.js"
-import { withQuery } from "../list-query.js"
 import { positive } from "../options.js"
 import { ACTION_QUERY, listActions, type NewProposal, propose } from "./actions.js"
 
@@ -30,9 +30,7 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
         ),
     )
 
-  withQuery(actions.command("list").description("proposed actions, newest first"), ACTION_QUERY, {
-    answersEntity: false,
-  })
+  withQuery(actions.command("list").description("proposed actions, newest first"), ACTION_QUERY)
     .option("--limit <n>", "most actions, up to 500", positive, 100)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((words: string[], options: { limit: number; json?: boolean }) =>

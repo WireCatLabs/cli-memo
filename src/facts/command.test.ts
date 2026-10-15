@@ -2,6 +2,7 @@ import { mkdtempSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
+import { answerFields } from "@wirecat/cli-core/cli"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
@@ -59,13 +60,13 @@ it("filters facts by a query in the store, and refuses the old flags and a quest
   const decided = await run("facts", "add", "Releases go out on Fridays", "--kind", "decision")
   await run("facts", "add", "Alice Example asked about Fridays", "--kind", "question")
 
-  expect((await run("facts", "list", "kind:Decision", "status:accepted")).items).toMatchObject([{ ref: decided.ref }])
-  const strict = createProgram({ streams: captureStreams(), env })
-  const list = strict.commands.find((command) => command.name() === "facts")?.commands.find((c) => c.name() === "list")
-  list?.exitOverride().configureOutput({ writeErr: () => {} })
-  await expect(strict.parseAsync(["facts", "list", "--type", "decision"], { from: "user" })).rejects.toMatchObject({
-    code: "commander.unknownOption",
-  })
+  const { items } = await run("facts", "list", "kind:Decision", "status:accepted")
+  expect(items).toMatchObject([{ ref: decided.ref, confirmed_by: { type: "person" } }])
+  const list = createProgram({ streams: captureStreams(), env })
+    .commands.find((command) => command.name() === "facts")
+    ?.commands.find((command) => command.name() === "list")
+  expect(answerFields(list)).toEqual(expect.arrayContaining(Object.keys(items[0])))
+  await expect(run("facts", "list", "--type", "decision")).rejects.toMatchObject({ code: "validation_error" })
   await expect(run("facts", "list", "kind:decision OR kind:question")).rejects.toMatchObject({
     code: "validation_error",
   })

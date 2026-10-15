@@ -1,13 +1,13 @@
 import type { QueryRegistry } from "@wirecat/cli-base/query"
+import { queryTerms, termField } from "@wirecat/cli-core/cli"
 import type { VocabularyOptions } from "@wirecat/cli-core/store"
-import { queryField, queryTerms } from "../list-query.js"
 
 export const VOCABULARY_QUERY = {
   entity: "vocabulary",
   backend: "native",
   fields: [
-    queryField("kind", "enum", "kind:tag", { values: ["project", "tag", "topic"] }),
-    queryField("scope", "enum", "scope:work", { values: ["personal", "work"] }),
+    termField("kind", "enum", "kind:tag", { values: ["project", "tag", "topic"] }),
+    termField("scope", "enum", "scope:work", { values: ["personal", "work"] }),
   ],
 } as const satisfies QueryRegistry
 

@@ -1,37 +1,93 @@
 import { CliError } from "@wirecat/cli-base"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
-import { type AccountKey, type MessageStore, TASK_TYPES, type TaskType } from "@wirecat/cli-core/store"
+import { formatReference } from "@wirecat/cli-core"
+import { queryTerms, termField } from "@wirecat/cli-core/cli"
+import {
+  type AccountKey,
+  type MessageStore,
+  TASK_TYPES,
+  type TaskDetails,
+  type TaskType,
+} from "@wirecat/cli-core/store"
 import { listAnswer } from "../answer.js"
-import { queryField, queryTerms } from "../list-query.js"
 import { canonicalProject } from "../vocabulary/project.js"
-import { taskPage } from "./context.js"
 
-/** The store filters by state, and a project's tasks by kind too; the rows are memo's, not cli-core's task entity. */
+/** The store filters by state, and a project's tasks by kind too. */
 export const TASKS_LIST_QUERY = {
   entity: "task",
   backend: "native",
   fields: [
-    queryField("state", "enum", "state:done", { values: ["open", "done", "dismissed"] }),
-    queryField("kind", "enum", "kind:bug", { values: TASK_TYPES }),
-    queryField("project", "kw", "project:HRB", {
+    termField("state", "enum", "state:done", { values: ["open", "done", "dismissed"] }),
+    termField("kind", "enum", "kind:bug", { values: TASK_TYPES }),
+    termField("project", "kw", "project:HRB", {
       relation: "a project's tasks, by its key or project:<id>, instead of an account's",
     }),
-    queryField("ready", "bool", "ready:true", {
+    termField("ready", "bool", "ready:true", {
       relation: "with project: only open tasks whose prerequisites are done; this claims none",
     }),
-    queryField("source", "ref", 'source:"msg:telegram/1/7/1"', {
+    termField("source", "ref", 'source:"msg:telegram/1/7/1"', {
       relation: "tasks from this message, note or document; an account's tasks only",
     }),
   ],
   defaults: ["state:open"],
 } as const satisfies QueryRegistry
 
-const tasksPage = (page: { items: { id: string | number }[]; hasMore: boolean }, limit: number) =>
-  listAnswer("tasks list", {
-    items: page.items.map((task) => ({ ref: `task:${task.id}`, ...task })),
-    limit,
-    has_more: page.hasMore,
-  })
+type HeldTask = NonNullable<Awaited<ReturnType<MessageStore["tasks"]["get"]>>>
+
+/** A task as cli-core's `task` entity; one found in a message also names its account and chat. */
+const taskItem = (task: TaskDetails, held?: HeldTask) => ({
+  ref: task.ref,
+  id: task.id,
+  key: task.key,
+  title: task.title,
+  description: task.description,
+  kind: task.type,
+  state: task.status,
+  project: task.project,
+  ...(held
+    ? {
+        origin: held.origin,
+        account: held.account,
+        chat:
+          held.sourceKind === "note"
+            ? null
+            : formatReference({
+                type: "chat",
+                provider: held.account.split(":")[0] ?? "",
+                account: held.account.split(":").slice(1).join(":"),
+                chat: held.group,
+              }),
+      }
+    : {}),
+  source_message: task.source,
+  priority: task.priority,
+  parent: task.parent,
+  due_at: task.dueAt,
+  closed_at: task.closedAt,
+  reason: task.reason,
+  category: task.category,
+  claimed_by: task.claimedBy,
+  claimed_until: task.claimedUntil,
+  created_at: task.createdAt,
+  updated_at: task.updatedAt,
+})
+
+const tasksPage = (items: ReturnType<typeof taskItem>[], hasMore: boolean, limit: number) =>
+  listAnswer("tasks list", { items, limit, has_more: hasMore })
+
+const accountTasks = async (
+  store: MessageStore,
+  key: AccountKey,
+  options: { state: "open" | "done" | "dismissed"; limit: number; sources?: string[] },
+) => {
+  const page = await store.knowledge.taskIds(key, options)
+  const items: ReturnType<typeof taskItem>[] = []
+  for (const id of page.items) {
+    const held = await store.tasks.get(id)
+    if (held) items.push(taskItem(await store.tasks.details(id), held))
+  }
+  return tasksPage(items, page.hasMore, options.limit)
+}
 
 /**
  * A project's tasks when the query names project:, otherwise the tasks of the account `account` picks; CLI and MCP
@@ -57,19 +113,29 @@ export const listTasks = async (
     throw new CliError("validation_error", "source: narrows an account's tasks, not a project's")
   if (project !== undefined) {
     const canonical = await canonicalProject(store, project)
-    if (ready) return tasksPage(await store.tasks.readyTasks(canonical, { limit }), limit)
+    if (ready) {
+      const page = await store.tasks.readyTasks(canonical, { limit })
+      return tasksPage(
+        await Promise.all(page.items.map(async ({ id }) => taskItem(await store.tasks.details(id)))),
+        page.hasMore,
+        limit,
+      )
+    }
     const items = await store.tasks.find({
       project: canonical,
       status: state,
       ...(kind === undefined ? {} : { type: kind }),
       limit: limit + 1,
     })
-    return tasksPage({ items: items.slice(0, limit), hasMore: items.length > limit }, limit)
+    return tasksPage(
+      items.slice(0, limit).map((task) => taskItem(task)),
+      items.length > limit,
+      limit,
+    )
   }
-  const page = await taskPage(store, await account(), {
+  return accountTasks(store, await account(), {
     state,
     limit,
     ...(source === undefined ? {} : { sources: [source] }),
   })
-  return tasksPage(page, limit)
 }

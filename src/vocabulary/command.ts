@@ -1,8 +1,8 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
+import { withQuery } from "@wirecat/cli-core/cli"
 import type { MessageStore, VocabularyKind, VocabularyOptions, VocabularyTarget } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
-import { withQuery } from "../list-query.js"
 import { oneOf, positive } from "../options.js"
 import { VOCABULARY_QUERY, vocabularyFilter } from "./list.js"
 
@@ -42,7 +42,6 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
     withQuery(
       vocabulary.command("list").description("list canonical IDs, aliases, usage counts and a preview fingerprint"),
       VOCABULARY_QUERY,
-      { answersEntity: false },
     ),
   ).action((words: string[], options: Options) =>
     execute(options, (store) =>
