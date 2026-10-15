@@ -76,6 +76,11 @@ const text = (run: ImportRun): string =>
         (m.skipped ? `, ${m.skipped} skipped by rule` : "") +
         (m.complete ? "" : " — more to read next run") +
         (m.unreadable === undefined ? "" : ` — ${m.unreadable.length} unreadable, tried again next run`) +
+        (m.retried === undefined
+          ? ""
+          : ` — attachments read again in ${m.retried.emails} emails: ${m.retried.extracted} read, ` +
+            `${m.retried.stillFailed} still unread` +
+            (m.retried.missing ? `, ${m.retried.missing} emails no longer in the mailbox` : "")) +
         (m.deletionsSkipped === undefined ? "" : ` — deletions skipped: ${m.deletionsSkipped}`),
     ),
     ...run.failed.map(({ source, reason }) => `failed ${source}: ${reason}`),

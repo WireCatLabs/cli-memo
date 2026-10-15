@@ -24,11 +24,20 @@ const raw = (m) => {
     `Message-ID: <${m.messageId}@example.test>`,
     `Date: ${new Date(m.receivedAt).toUTCString()}`,
     "MIME-Version: 1.0",
-    `Content-Type: ${type}; charset=utf-8`,
-    "Content-Transfer-Encoding: base64",
   ]
   const body = Buffer.from(m.html ?? m.text ?? "").toString("base64")
-  return Buffer.from(`${headers.join("\r\n")}\r\n\r\n${body}\r\n`)
+  if (!m.attachment)
+    return Buffer.from(
+      `${[...headers, `Content-Type: ${type}; charset=utf-8`, "Content-Transfer-Encoding: base64"].join("\r\n")}\r\n\r\n${body}\r\n`,
+    )
+  const parts = [
+    `--b1\r\nContent-Type: ${type}; charset=utf-8\r\nContent-Transfer-Encoding: base64\r\n\r\n${body}`,
+    `--b1\r\nContent-Type: ${m.attachment.mime}\r\nContent-Disposition: attachment; filename="${m.attachment.name}"\r\n` +
+      `Content-Transfer-Encoding: base64\r\n\r\n${Buffer.from(m.attachment.content).toString("base64")}`,
+  ]
+  return Buffer.from(
+    `${[...headers, 'Content-Type: multipart/mixed; boundary="b1"'].join("\r\n")}\r\n\r\n${parts.join("\r\n")}\r\n--b1--\r\n`,
+  )
 }
 
 if (mailbox.fail) {
@@ -52,6 +61,12 @@ if (args[0] === "imap" && args[1] === "raw") {
         `* SEARCH ${uids.join(" ")}`.trimEnd(),
         `${tag} ${mailbox.searchFails ? "NO failed" : "OK SEARCH completed (Success)"}`,
       )
+    } else if (command.startsWith("UID SEARCH X-GM-MSGID")) {
+      const id = command.slice("UID SEARCH X-GM-MSGID ".length)
+      // Which Gmail ids a retry looked up, so a test can see that nothing else was asked for.
+      if (mailbox.log) appendFileSync(mailbox.log, `msgid:${id}\n`)
+      const uids = mailbox.messages.filter((m) => m.messageId === id).map((m) => m.uid)
+      out.push(`* SEARCH ${uids.join(" ")}`.trimEnd(), `${tag} OK SEARCH completed (Success)`)
     } else if (
       command.startsWith("UID FETCH") &&
       command.includes("HEADER.FIELDS") &&
