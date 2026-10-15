@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.35.0 — 15.10.2026
+
 ### Fixed
 
 - **`memo mail status` counts the widest window ever imported**, not the latest run. A rule change, a new
