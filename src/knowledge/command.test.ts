@@ -92,7 +92,7 @@ describe("combined evidence, relationships and local reminders", () => {
     expect((await run("relationships", "list", `about:"${harbour.ref}"`)).items).toMatchObject([{ to: harbour.ref }])
     expect((await run("relationships", "list")).items).toHaveLength(2)
     expect((await run("projects", "list")).items.map(({ id }: { id: string }) => id)).toContain(harbour.id)
-    const analysis = await run("notes", "add", "Owner budget analysis", "--about", source(key, "77", "4"))
+    const analysis = await run("notes", "add", "Owner budget analysis", "--subject", source(key, "77", "4"))
     await run("tags", "add", "project", "--task", document.task.id, ...scope)
     expect(
       (await run("tags", "list", "tag:project", ...scope)).items.find(({ type }: { type: string }) => type === "task"),

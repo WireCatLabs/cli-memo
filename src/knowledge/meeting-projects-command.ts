@@ -13,8 +13,8 @@ type Options = {
   proposed?: boolean
   limit: number
   page?: number
-  expected?: string
-  provenance?: string
+  fingerprint?: string
+  reason?: string
 }
 export const meetingProjectsCommand = (projects: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const group = projects.command("meetings").description("explicit account-scoped project membership")
@@ -66,8 +66,8 @@ export const meetingProjectsCommand = (projects: Command, streams: Streams, env:
       .argument("<project>", "project reference, key or explicit alias")
       .argument("<meeting-id>", "positive stored meeting id"),
   )
-    .option("--expected <fingerprint>", "required when confirming an existing proposal")
-    .option("--provenance <text>", "why the reviewed meeting belongs to this project")
+    .option("--fingerprint <hash>", "required when confirming an existing proposal")
+    .option("--reason <text>", "why the reviewed meeting belongs to this project")
     .action((project: string, meeting: string, given: Options) =>
       execute(project, given, async (store, projectId) =>
         itemAnswer(
@@ -77,8 +77,8 @@ export const meetingProjectsCommand = (projects: Command, streams: Streams, env:
             projectId,
             {
               by: "owner",
-              ...(given.expected === undefined ? {} : { expectedFingerprint: given.expected }),
-              ...(given.provenance === undefined ? {} : { provenance: given.provenance }),
+              ...(given.fingerprint === undefined ? {} : { expectedFingerprint: given.fingerprint }),
+              ...(given.reason === undefined ? {} : { provenance: given.reason }),
             },
           ),
         ),

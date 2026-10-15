@@ -10,7 +10,7 @@ export interface MemoContext {
   messages: PersonContext
   /** Notes linked to them: file notes about them, notes linking them or a note about them. */
   notes: Omit<NotesAbout, "subject" | "name">
-  /** What you wrote about them here (`memo notes add --about`). */
+  /** What you wrote about them here (`memo notes add --subject`). */
   yourNotes: Pick<Note, "id" | "ref" | "text" | "revision" | "updatedAt">[]
   /** Sources that gave nothing, and why. */
   notRead: { source: string; reason: string }[]

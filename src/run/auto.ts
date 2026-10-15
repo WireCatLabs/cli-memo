@@ -183,7 +183,7 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
   auto
     .command("start")
     .description("sync every --every (default auto.every, else 5m), starting a minute from now")
-    .option("--every <interval>", "how often: 5m, 90s, 1h — a minute or more", interval)
+    .option("--every <duration>", "how often: 5m, 90s, 1h — a minute or more", interval)
     .action(async (options: { every?: string }) => {
       const config = updateConfig(
         (current) => ({

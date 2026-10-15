@@ -10,7 +10,7 @@ const targetOf = (reference: string): VocabularyTarget => {
   if (!match) throw new CliError("validation_error", "choose project:<id>, tag:<id> or topic:<id> from vocabulary list")
   return { kind: match[1] as VocabularyKind, id: match[2] as string }
 }
-type Options = VocabularyOptions & { json?: boolean; expected?: string }
+type Options = VocabularyOptions & { json?: boolean; fingerprint?: string }
 
 export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const vocabulary = program
@@ -95,14 +95,14 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
     .argument("<name>", "the new tag or topic")
     .description("owner: create a distinct tag or topic after vocabulary check <name>")
     .option("--kind <kind>", "tag or topic", oneOf(["tag", "topic"] as const))
-    .requiredOption("--expected <fingerprint>", "the creation_fingerprint vocabulary check <name> gave")
+    .requiredOption("--fingerprint <hash>", "the creation_fingerprint vocabulary check <name> gave")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((name: string, options: Options & { kind?: "tag" | "topic" }) =>
       execute(options, (store) =>
         store.knowledge.createTag(name, {
           by: "owner",
           ...(options.kind === undefined ? {} : { kind: options.kind }),
-          expectedCreationFingerprint: options.expected,
+          expectedCreationFingerprint: options.fingerprint,
         }),
       ),
     )
@@ -112,12 +112,12 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
     .description("owner: add another name for a project, tag or topic")
     .argument("<reference>", "project:<id>, tag:<id> or topic:<id>, from vocabulary list")
     .argument("<name>", "the other name")
-    .requiredOption("--expected <fingerprint>", "the current vocabulary preview fingerprint")
+    .requiredOption("--fingerprint <hash>", "the current vocabulary preview fingerprint")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((reference: string, name: string, options: Options) => {
       const target = targetOf(reference)
       return execute(options, (store) =>
-        store.knowledge.addVocabularyAlias(target, name, { by: "owner", expectedFingerprint: options.expected }),
+        store.knowledge.addVocabularyAlias(target, name, { by: "owner", expectedFingerprint: options.fingerprint }),
       )
     })
   aliases
@@ -125,12 +125,15 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
     .description("owner: remove another name from a project, tag or topic")
     .argument("<reference>", "project:<id>, tag:<id> or topic:<id>, from vocabulary list")
     .argument("<alias-id>", "the alias's id, from vocabulary list")
-    .requiredOption("--expected <fingerprint>", "the current vocabulary preview fingerprint")
+    .requiredOption("--fingerprint <hash>", "the current vocabulary preview fingerprint")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((reference: string, aliasId: string, options: Options) => {
       const target = targetOf(reference)
       return execute(options, (store) =>
-        store.knowledge.removeVocabularyAlias(target, aliasId, { by: "owner", expectedFingerprint: options.expected }),
+        store.knowledge.removeVocabularyAlias(target, aliasId, {
+          by: "owner",
+          expectedFingerprint: options.fingerprint,
+        }),
       )
     })
 }

@@ -118,6 +118,6 @@ still write as you.
 ## What can leave your computer
 
 Nothing, unless you ask for it. `memo ask` prepares sources for your own agent by default. It sends
-text to an AI provider only when you set one up and add `--model`, and to a remote provider only
+text to an AI provider only when you set one up and add `--analyze`, and to a remote provider only
 with `--allow-remote` as well. What your agent does with the text it reads is up to that agent.
 See [Security](security.md).

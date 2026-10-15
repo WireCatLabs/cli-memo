@@ -49,7 +49,7 @@ to them, each with its source. See [People and projects](people.md).
 ## Save what you learned
 
 ```sh
-memo notes add 'Prefers calls in the morning' --about telegram:'Kai Sample'
+memo notes add 'Prefers calls in the morning' --subject telegram:'Kai Sample'
 memo tags add follow-up --note note:NOTE_ID
 memo tasks add --project HRB --title 'Book the venue'
 ```

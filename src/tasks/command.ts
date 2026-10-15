@@ -51,7 +51,7 @@ const fieldOptions = (command: Command) =>
   command
     .option("--title <title>", "one line saying what is to be done")
     .option("--priority <n>", "0 urgent … 4 low", priorityOf)
-    .option("--parent <task>", "the parent task, in the same project")
+    .option("--parent <id>", "the parent task, in the same project")
     .option("--description <text>", "the detail, in Markdown")
 
 const assignAll = async (store: MessageStore, id: string, people: string[] | undefined) => {

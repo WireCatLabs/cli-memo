@@ -131,7 +131,7 @@ Show me the saved note.
 Or yourself:
 
 ```sh
-memo notes add 'Prefers morning meetings' --about telegram:'Kai Sample'
+memo notes add 'Prefers morning meetings' --subject telegram:'Kai Sample'
 memo notes list 'about:"telegram:Kai Sample"'
 ```
 
@@ -139,7 +139,7 @@ memo notes list 'about:"telegram:Kai Sample"'
 by a name two people share. `via` in `--json` says which: `about`, `link`, `through` or `name`. It stands alone in
 the query; `source:internal` and `text:budget` narrow the whole list.
 
-`--about` on `notes add` says what the note is about. Use it more than once for several subjects:
+`--subject` on `notes add` says what the note is about. Use it more than once for several subjects:
 
 | About | Write |
 |---|---|
@@ -169,7 +169,7 @@ A note from a file is edited in the file, not with `memo notes edit`.
 ### Save your notes as files
 
 ```sh
-memo notes export --to /path/to/vault/memo --format obsidian
+memo notes export --output-dir /path/to/vault/memo --format obsidian
 ```
 
 Export writes the notes you wrote in Memo as Markdown files in the folder you choose. Use

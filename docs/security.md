@@ -43,7 +43,7 @@ nothing and tells you.
 ## What can leave your computer
 
 - `memo ask` gives the sources to your own agent by default. It sends them to an AI provider only
-  with `--model`, and to a provider outside your computer only with `--allow-remote` as well. The
+  with `--analyze`, and to a provider outside your computer only with `--allow-remote` as well. The
   provider's answer is generated text: check it against the sources.
 - What your agent does with the text it reads is up to that agent and its provider. Memo cannot
   control it. Point your agent only at the sources you are willing to share with it.

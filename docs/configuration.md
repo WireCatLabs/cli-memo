@@ -58,7 +58,7 @@ Next to `accounts`:
 | `max_body_chars` | How many characters of each email are kept. Default 1,000,000. |
 | `max_attachment_chars` | How many characters of each attachment's text are kept. Default 200,000. |
 
-Settings are named in snake_case. The camelCase names older versions wrote are still read, and the file is saved in snake_case.
+Settings are named in snake_case; a camelCase name is refused.
 
 See [Mail](mail.md).
 
@@ -83,9 +83,9 @@ next run. See [importing on a timer](archive.md#import-on-a-timer-linux).
 |---|---|
 | `MEMO_CONFIG_DIR` | The folder that holds `config.json`. |
 | `MEMO_STATE_DIR` | Memo's state folder: what each folder looked like at the last import. |
-| `MEMO_MODELS_ANALYSIS_PROVIDER`, `MEMO_MODELS_ANALYSIS_MODEL` | The AI provider and the model identifier (the name the provider uses for it) that `memo ask --model` calls. |
+| `MEMO_MODELS_ANALYSIS_PROVIDER`, `MEMO_MODELS_ANALYSIS_MODEL` | The AI provider and the model identifier (the name the provider uses for it) that `memo ask --analyze` calls. |
 | `MEMO_MODELS_ANALYSIS_BASE_URL` | Optional: the provider's address. |
 | `MEMO_MODEL_API_KEY` | The provider's key. |
 
-Memo calls a provider outside your computer only when `memo ask` has both `--model` and
+Memo calls a provider outside your computer only when `memo ask` has both `--analyze` and
 `--allow-remote`. See [give your agent the sources](search.md#give-your-agent-the-sources).

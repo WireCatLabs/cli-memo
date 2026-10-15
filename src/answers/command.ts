@@ -95,7 +95,7 @@ export const askCommand = (program: Command, streams: Streams, env: NodeJS.Proce
     .option("--provider <provider>", "look in this provider's accounts only, such as telegram or email")
     .option("--account <account>", "look in this stored account only, with --provider")
     .option("--limit <n>", "most evidence items, at most 100", positive, 20)
-    .option("--model", "call MEMO_MODELS_ANALYSIS_PROVIDER/MODEL instead of returning an evidence bundle")
+    .option("--analyze", "call MEMO_MODELS_ANALYSIS_PROVIDER/MODEL instead of returning an evidence bundle")
     .option("--allow-remote", "explicitly consent to sending this evidence to the configured model")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(
@@ -105,7 +105,7 @@ export const askCommand = (program: Command, streams: Streams, env: NodeJS.Proce
           query?: string
           all?: boolean
           limit: number
-          model?: boolean
+          analyze?: boolean
           allowRemote?: boolean
           json?: boolean
         },
@@ -126,7 +126,7 @@ export const askCommand = (program: Command, streams: Streams, env: NodeJS.Proce
           if (new TextEncoder().encode(JSON.stringify(bundle)).byteLength > 64_000)
             throw new CliError("validation_error", "the answer exceeds 64 KiB; lower --limit")
           let answer: unknown = bundle
-          if (options.model) {
+          if (options.analyze) {
             const provider = env.MEMO_MODELS_ANALYSIS_PROVIDER,
               model = env.MEMO_MODELS_ANALYSIS_MODEL
             if (!provider || !model)

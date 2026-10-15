@@ -141,7 +141,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .description("group an account's mail by sender and list, to decide what to keep or skip")
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .option("--since-time <time>", "only mail from this time, ISO 8601 or 30d ago (default: all mail)")
-    .option("--limit-groups <n>", "show this many of the largest groups", positive, 50)
+    .option("--limit <n>", "show this many of the largest groups", positive, 50)
     .option(
       "--domain-age",
       "ask each shown sender domain's registry when it was registered (RDAP); tells each registry its domain",
@@ -159,10 +159,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         "already kept are used and nothing leaves this computer.",
     )
     .action(
-      async (
-        name: string,
-        options: { sinceTime?: string; limitGroups: number; domainAge?: boolean; json?: boolean },
-      ) => {
+      async (name: string, options: { sinceTime?: string; limit: number; domainAge?: boolean; json?: boolean }) => {
         const account = accountOf(loadConfig(env), name)
         const since = new Date(options.sinceTime === undefined ? 0 : momentOf(options.sinceTime, "--since-time"))
         const started = Date.now()
@@ -171,11 +168,11 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         for (const folder of mailFolders(account))
           for (const item of await source.list(since, folder, { headers: true })) listed.set(item.messageId, item)
         const items = [...listed.values()]
-        let probe = probeMail(items, options.limitGroups, knownAges(env))
+        let probe = probeMail(items, options.limit, knownAges(env))
         let lookups: { looked: number; failed: number } | undefined
         if (options.domainAge) {
           lookups = await lookUpAges(env, domainsToAge(probe.items, FREE_MAIL))
-          probe = probeMail(items, options.limitGroups, knownAges(env))
+          probe = probeMail(items, options.limit, knownAges(env))
         }
         const shown = {
           ...probe,

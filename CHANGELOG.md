@@ -6,6 +6,17 @@ the API.
 
 ## Unreleased
 
+### Changed — may break scripts
+
+- **Option names follow the shared vocabulary of cli-base 0.31.1**, with no old names kept:
+  `notes add --about` → `--subject`; `notes add|edit --file` → `--text-file`; `notes export --to` → `--output-dir`;
+  `ask --model` → `--analyze`; `mail probe --limit-groups` → `--limit`; `vocabulary create`, `vocabulary aliases
+  add|remove` and `projects meetings link --expected` → `--fingerprint`; `projects meetings link --provenance` →
+  `--reason`.
+- **The config file is read only in snake_case**: a camelCase setting such as `mail.maxBodyChars` or a rule's
+  `decidedAt` is refused, and old folders are no longer moved at start (cli-core 0.283.0).
+- `@wirecat/cli-base` 0.31.1, `@wirecat/cli-core` 0.283.0.
+
 ## 0.33.0 — 15.10.2026
 
 ### Changed — may break scripts

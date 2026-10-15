@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import { catchCrashes, processStreams } from "@wirecat/cli-base"
-import { migrateFolders } from "@wirecat/cli-core/background"
 import { ensureSqlite } from "@wirecat/cli-core/sqlite-runtime"
 import { type Command, CommanderError } from "commander"
 import { APP } from "../app.js"
@@ -11,8 +10,6 @@ const tty = process.stdout.isTTY === true
 const release = catchCrashes({ cli: APP.command, interactive: interactiveOf(args, tty), reasons: APP.errors.reasons })
 let program: Command | undefined
 try {
-  // Before anything resolves a path: a write into a new folder first would strand the old one.
-  migrateFolders(APP)
   await ensureSqlite()
   // A static import would load the store's SQLite before ensureSqlite could swap it.
   const { createProgram, refuseJoinedPath } = await import("../program.js")

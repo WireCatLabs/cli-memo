@@ -119,7 +119,7 @@ word must match. `--all` searches every account; use `--provider telegram --acco
 account. The answer lists each source with its reference and text, what was searched and whether
 anything was left out. Memo does not answer the question itself and does not save the answer.
 
-Memo can also send the sources to an AI provider you set up and return its answer: add `--model`,
+Memo can also send the sources to an AI provider you set up and return its answer: add `--analyze`,
 and `--allow-remote` for a provider outside your computer. See
 [configuration](configuration.md#environment-variables). The provider's answer is generated text:
 check it against the sources.
