@@ -24,7 +24,7 @@ it("creates keyed project tasks, links them as before or with task:, and discove
   const first = await run("tasks", "add", "--project", "Lab Example", "--title", "Research draft")
   const second = await run("tasks", "add", "--project", "RES", "--title", "Review draft")
   expect([first.key, second.key]).toEqual(["RES-1", "RES-2"])
-  const blocked = { item: { relations: [{ from: second.ref, to: first.ref, kind: "blocked-by" }] } }
+  const blocked = { relations: [{ from: second.ref, to: first.ref, kind: "blocked-by" }] }
   expect(await run("tasks", "link", second.id, first.id, "--kind", "blocked-by")).toMatchObject(blocked)
   expect(await run("tasks", "link", second.id, `task:${first.id}`, "--kind", "blocked-by")).toMatchObject(blocked)
   await expect(run("tasks", "link", second.id, "999", "--kind", "related-to")).rejects.toThrow("write task:999")
