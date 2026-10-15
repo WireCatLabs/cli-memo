@@ -125,6 +125,9 @@ given must hold:
 
 | In `--filter` | Matches mail |
 |---|---|
+| `from:<address>`, `from:<domain>` | from this one sender, or from this domain and its subdomains |
+| `from:<word>` | from a sender whose address or display name contains the word, any case |
+| `to:<address>` | sent to this address, in To or Cc |
 | `subject:<word>`, or a bare word | with every such word in the subject, any case |
 | `older:<n>d` | received more than n days ago |
 | `larger:<size>` | bigger than `5MB`, `300KB` or a number of bytes at the source |
@@ -184,9 +187,13 @@ memo mail rules import-filters work Filters.json --yes  # adds them
 ```
 
 A filter that skips the inbox, marks read or deletes becomes an envelope rule; one that only adds a label becomes
-a keep rule with that label as a tag. A filter that searches words or matches several senders at once is
-skipped and listed. Gmail's API shape (`criteria` and `action`) and the settings export's flat properties
-(`from`, `shouldArchive`, `label`) are both read; a label given only by its Gmail id is tagged with that id.
+a keep rule with that label as a tag. A filter naming several senders or recipients (`from:a from:b`,
+`from:(a OR b)`) becomes one rule each, since one email cannot come from both. Words in a filter become subject
+words: Gmail searched the whole email, memo matches the subject, and the rule's reason says so. A filter that
+excludes words or uses a field memo does not match (`list:`, `size:`) is skipped and listed. Takeout's
+`{"filter": [{query, labelsToAdd, labelsToRemove}]}`, Gmail's API shape (`criteria` and `action`) and the
+settings export's flat properties (`from`, `shouldArchive`, `label`) are all read; a label given only by its Gmail
+id is tagged with that id.
 
 Mail stored in full before an envelope rule existed stays whole until you cut it:
 

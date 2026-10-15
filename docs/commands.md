@@ -313,7 +313,7 @@ memo mail rules add <account> [options]
 | `--sender <address>` | one sender address. |
 | `--domain <domain>` | a sender domain, and its subdomains. |
 | `--list-id <id>` | a mailing list, by its List-Id. |
-| `--filter <query>` | subject:<word> (or a bare word), older:<n>d, larger:<size> (5MB, 300KB), has:attachment, label:<name> (label:"Two words"), is:unread, is:bulk, score:<n> (at least); all must hold. |
+| `--filter <query>` | from:<address, domain or word>, to:<address>, subject:<word> (or a bare word), older:<n>d, larger:<size> (5MB, 300KB), has:attachment, label:<name> (label:"Two words"), is:unread, is:bulk, score:<n> (at least); all must hold. |
 | `--kind <kind>` | a built-in kind of mail: social, newsletters, developer, shopping, alerts. |
 | `--do <actions>` | one of skip (never read or store), envelope (store only sender, date, size and labels: counted, out of search, cleanable later), keep (store in full even when a skip or envelope rule matches) or protect (keep, and no cleanup may ever cut, archive or trash it); add tag:<name> to also tag the mail, e.g. envelope,tag:promo. |
 | `--reason <text>` | why, for the owner later. |
@@ -338,7 +338,7 @@ memo mail rules remove <account> [options]
 | `--sender <address>` | one sender address. |
 | `--domain <domain>` | a sender domain, and its subdomains. |
 | `--list-id <id>` | a mailing list, by its List-Id. |
-| `--filter <query>` | subject:<word> (or a bare word), older:<n>d, larger:<size> (5MB, 300KB), has:attachment, label:<name> (label:"Two words"), is:unread, is:bulk, score:<n> (at least); all must hold. |
+| `--filter <query>` | from:<address, domain or word>, to:<address>, subject:<word> (or a bare word), older:<n>d, larger:<size> (5MB, 300KB), has:attachment, label:<name> (label:"Two words"), is:unread, is:bulk, score:<n> (at least); all must hold. |
 | `--kind <kind>` | a built-in kind of mail: social, newsletters, developer, shopping, alerts. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 

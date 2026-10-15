@@ -32,7 +32,9 @@ export const ruleInput = (rule: MailRule, source = rule.source ?? "owner") => ({
 
 const KINDS: Record<keyof MailRuleMatch, "string" | "number" | "boolean"> = {
   from: "string",
+  from_contains: "string",
   domain: "string",
+  to: "string",
   list_id: "string",
   subject: "string",
   older_than_days: "number",

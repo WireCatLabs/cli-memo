@@ -2,10 +2,21 @@ import { CliError } from "@wirecat/cli-base"
 import type { MailAction, MailRuleMatch } from "./rules.js"
 
 export const FILTER_HELP =
-  "subject:<word> (or a bare word), older:<n>d, larger:<size> (5MB, 300KB), has:attachment, label:<name> " +
+  "from:<address, domain or word>, to:<address>, subject:<word> (or a bare word), older:<n>d, larger:<size> (5MB, 300KB), has:attachment, label:<name> " +
   '(label:"Two words"), is:unread, is:bulk, score:<n> (at least); all must hold'
 
 const bad = (why: string) => new CliError("validation_error", `--filter: ${why}`)
+
+const ADDRESS = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+/** `from:` as Gmail reads it: one address, a whole domain (`shop.example`, `@shop.example`), or a word it contains. */
+export const senderMatch = (value: string): MailRuleMatch => {
+  if (ADDRESS.test(value)) return { from: value.toLowerCase() }
+  const domain = value.replace(/^@/, "")
+  return /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(domain) ? { domain: domain.toLowerCase() } : { from_contains: value }
+}
+
+export const isAddress = (value: string) => ADDRESS.test(value)
 
 const bytesOf = (value: string): number => {
   const match = /^(\d+(?:\.\d+)?)(b|kb|mb|gb)?$/i.exec(value)
@@ -25,6 +36,13 @@ export const filterMatch = (query: string): MailRuleMatch => {
       continue
     }
     switch (field?.toLowerCase()) {
+      case "from":
+        Object.assign(match, senderMatch(value))
+        break
+      case "to":
+        if (!ADDRESS.test(value)) throw bad(`to:${value} needs one address, like to:me@example.com`)
+        match.to = value.toLowerCase()
+        break
       case "subject":
         words.push(...value.split(/\s+/).filter(Boolean))
         break
