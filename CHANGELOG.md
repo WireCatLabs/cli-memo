@@ -4,6 +4,16 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## 0.43.0 — 15.10.2026
+
+### Changed
+
+- **`--json=<field>` is checked on memo's own lists too.** `tags list`, `vocabulary list`, `actions list`,
+  `agents log`, `projects meetings list` and `folders list` refuse a field their rows lack
+  (`output.unknown-field`, with the fields they have) instead of printing empty rows; known fields project as
+  before.
+- cli-core 0.292.0.
+
 ## 0.42.0 — 15.10.2026
 
 ### Documentation
