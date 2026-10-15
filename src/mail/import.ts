@@ -3,6 +3,7 @@ import type { AccountKey, AttachmentInput, EmailAddress, MessageStore } from "@w
 import { embedChanged, embedMailChunks, type NotesEmbedded } from "../notes/embed.js"
 import { dropMissing, tooManyGone } from "../store/gone.js"
 import { mailFolders } from "./accounts.js"
+import { BULK, bulkBox } from "./bulk.js"
 import { knownAges } from "./domain-age.js"
 import { factsOf } from "./facts.js"
 import { mailHeadersOf } from "./headers.js"
@@ -200,7 +201,7 @@ export const importMail = async ({
     // A label is not where mail lives, so only folders prove that a missing mail was deleted.
     const candidates = (await store.mail.emailRefs({ accountId, since: windowStart.getTime() })).filter(
       ({ mailboxes }) => {
-        const inFolders = mailboxes.filter(({ kind }) => kind !== "label" && kind !== ENVELOPE)
+        const inFolders = mailboxes.filter(({ kind }) => kind !== "label" && kind !== ENVELOPE && kind !== BULK)
         return inFolders.length ? inFolders.every(({ externalId }) => folders.includes(externalId)) : allMailOnly
       },
     )
@@ -512,6 +513,10 @@ export const importMail = async ({
     )
 
   const complete = !full && unreadable.length === 0
+  const bulk = new Map(
+    listed.filter((item) => item.headers?.bulk).map((item) => [item.messageId, [bulkBox.externalId]]),
+  )
+  if (bulk.size) await store.mail.setMailboxes(accountId, [bulkBox], bulk, startedAt)
   if (!snapshot) await store.setSyncState(key, "mail_folder_scope", scope)
   const embedding = { embed: embed && account.embed !== false, ...(env === undefined ? {} : { env }) }
   // Chats an earlier import saved as messages may still wait for vectors; the mail tables have their own.

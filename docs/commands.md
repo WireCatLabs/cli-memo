@@ -1746,7 +1746,8 @@ memo search mail <query> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--brief` | each message or email as reference, time, sender and excerpt only. |
 | `--full` | each message or email with its whole text; --json keeps the excerpt, messages show the text. |
-| `--account <account>` | only this mail account, by its address (default: every mail account). |
+| `--account <account>` | only this mail account, by its name in mail.accounts or its address (default: every mail account). |
+| `--include <kinds>` | bulk: also mail sent to many, like newsletters, which is left out by default. |
 
 ### `memo search notes`
 

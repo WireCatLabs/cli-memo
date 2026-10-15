@@ -7,6 +7,7 @@ import { loadConfig } from "../config.js"
 import { errorObject } from "../failure.js"
 import { mailAccounts, mailSource } from "../mail/accounts.js"
 import { type ImportResult, importMail } from "../mail/import.js"
+import { repairHtmlText } from "../mail/repair.js"
 import { rulesOf } from "../mail/rule-store.js"
 import { boundFolders, unboundReason } from "../notes/bound.js"
 import { embedNoteChunks, type NoteChunksEmbedded } from "../notes/embed.js"
@@ -246,6 +247,8 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           }
           for (const account of accounts)
             await attempt(`mail ${account.name}`, async () => {
+              const repaired = await repairHtmlText(store, account.address)
+              if (repaired) streams.diagnostic(`mail ${account.name}: ${repaired} emails' HTML text read again as text`)
               run.mail.push(
                 await importMail({
                   store,

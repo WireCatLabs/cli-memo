@@ -236,9 +236,15 @@ missing from the file is deleted from the store, and Spam and Trash are left out
 ```sh
 memo search mail 'invoice'
 memo search mail 'from:kai subject:budget'
-memo search mail 'mailbox:starred' --account you@example.com
+memo search mail 'mailbox:starred' --account work
+memo search mail 'newsletter' --include bulk
 memo search all 'budget'
 ```
+
+`memo search mail` leaves out mail sent to many — newsletters, notices, mailing lists, anything with a List-Id,
+List-Unsubscribe or `Precedence: bulk` header — so the mail people wrote ranks first. `--include bulk` brings it
+back. memo marks such mail when it reads its headers, which it does for an account that has rules; a full listing,
+at least daily, marks mail stored earlier. `--account` takes the account's name or its address.
 
 Gmail labels such as Inbox, Important, Starred and your own labels become mail folders, so
 `mailbox:important` finds them. See [Search](search.md#search-mail).

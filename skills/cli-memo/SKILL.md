@@ -73,6 +73,7 @@ memo context telegram:<id or name> --json        # one person: messages, mail, n
 memo projects context <key> --json               # one project: key documents first
 memo search all '<words>' --project <key> --json # everything, the project's key documents first
 memo search messages 'content:invoice' --json    # inside files
+memo search mail '<words>' --account <name> --json # mail people wrote; --include bulk adds newsletters
 memo commands search messages --json             # one relevant command
 ```
 
