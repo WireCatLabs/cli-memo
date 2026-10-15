@@ -67,7 +67,8 @@ memo tasks close 7 --provider telegram --account 1 --as dismissed
 ```
 
 Close a task with `--as done` (the default) or `--as dismissed`. `memo tasks list state:done` shows
-closed tasks; with `--project`, `kind:bug` narrows by kind.
+closed tasks; with `--project`, `kind:bug` narrows by kind. `source:"note:12"` keeps an account's tasks
+from one message, note or document — the step `memo search all` suggests for a result tasks point at.
 Every change of status, priority or assignee is recorded with the task.
 
 ## What to do first

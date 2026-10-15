@@ -86,8 +86,8 @@ memo projects key-documents remove HRB document:3
 
 `projects context` starts with them: title, path and why. When the file or message is gone from
 the store, the mark stays and says `available: false` until you remove it. `memo search all` and
-`memo search notes` with `--project HRB` put the project's key documents first, labelled `key`,
-and leave out nothing else. A mark your agent adds waits unconfirmed and names the agent, as a
+`memo search notes` with `--project HRB` put the project's key documents first and leave out
+nothing else; `search notes` also labels them `key`. A mark your agent adds waits unconfirmed and names the agent, as a
 relationship does.
 
 **Start work on a project with `memo projects context <key>`** — you, or your agent.

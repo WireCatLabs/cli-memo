@@ -28,14 +28,16 @@ export const knowledgeTools = {
     description: `Stored messages from every messenger, with all their fields. content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names, as content:invoice. Each hit's reference is ref. ${DATA}`,
     writes: false,
     input: v.object({ ...query, type: v.optional(v.picklist(["text", "voice", "file"])) }),
-    run: async (store, args) => kindAnswer("messages", await searchKind(store, "messages", args), args.limit),
+    run: async (store, args) =>
+      kindAnswer("messages", await searchKind(store, "messages", args), args.limit, undefined, args.text),
   }),
   search_mail: define({
     title: "Search mail",
     description: `Imported mail, every mail account unless account names one by its address. ${DATA}`,
     writes: false,
     input: v.object({ ...query, account: v.optional(v.pipe(v.string(), v.minLength(1))) }),
-    run: async (store, args) => kindAnswer("mail", await searchKind(store, "mail", args), args.limit),
+    run: async (store, args) =>
+      kindAnswer("mail", await searchKind(store, "mail", args), args.limit, undefined, args.text),
   }),
   search_notes: define({
     title: "Search notes",

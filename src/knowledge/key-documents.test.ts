@@ -97,9 +97,8 @@ it("ranks a project's key documents first in a search, labelled, without droppin
   await run("projects", "key-documents", "add", "SYH", draft, "--reason", "the latest draft")
 
   const all = await run("search", "all", "Harbour", "--only", "notes", "--project", "SYH")
-  expect(all.items[0]).toMatchObject({ ref: draft, key: true })
+  expect(all.items[0]).toMatchObject({ ref: draft })
   expect(all.items.map((item: { ref: string }) => item.ref)).toContain(plan)
-  expect(all.items.filter((item: { key?: boolean }) => item.key)).toHaveLength(1)
 
   const notes = await run("search", "notes", "Harbour", "--project", "SYH")
   expect(notes.items[0]).toMatchObject({ ref: draft, key: true })
