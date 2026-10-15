@@ -97,6 +97,13 @@ memo tasks relations HRB-2
 memo tasks unlink HRB-2 HRB-1 --kind blocked-by
 ```
 
+`tasks link` takes the other task as `task:HRB-1` too. A target that is not a task — a message, a chat, a person,
+a URL — links a messenger account's task to what it concerns, and needs `--provider` and `--account`:
+
+```sh
+memo tasks link 12 msg:telegram/500/7/101 --provider telegram --account 500
+```
+
 A task becomes ready only when every task it waits for is done. If a task it waits for was
 dismissed, Memo asks you to review the link. `follow-up-of` and `related-to` links are for information and do not block anything.
 

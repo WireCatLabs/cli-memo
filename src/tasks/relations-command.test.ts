@@ -6,7 +6,7 @@ import { expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
 
-it("creates keyed project tasks, reviews dependencies and discovers ready work through an alias", async () => {
+it("creates keyed project tasks, links them as before or with task:, and discovers ready work through an alias", async () => {
   const env = {
     ...process.env,
     MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-task-graph-test-")), "fixture.db"),
@@ -24,8 +24,13 @@ it("creates keyed project tasks, reviews dependencies and discovers ready work t
   const first = await run("tasks", "add", "--project", "Lab Example", "--title", "Research draft")
   const second = await run("tasks", "add", "--project", "RES", "--title", "Review draft")
   expect([first.key, second.key]).toEqual(["RES-1", "RES-2"])
-  expect(await run("tasks", "link", second.id, first.id, "--kind", "blocked-by")).toMatchObject({ changed: true })
-  expect(await run("tasks", "link", second.id, first.id, "--kind", "blocked-by")).toMatchObject({ changed: false })
+  const blocked = { relations: [{ from: second.ref, to: first.ref, kind: "blocked-by" }] }
+  expect(await run("tasks", "link", second.id, first.id, "--kind", "blocked-by")).toMatchObject(blocked)
+  expect(await run("tasks", "link", second.id, `task:${first.id}`, "--kind", "blocked-by")).toMatchObject(blocked)
+  await expect(run("tasks", "link", second.id, "999", "--kind", "related-to")).rejects.toThrow("write task:999")
+  await expect(run("tasks", "link", second.id, "https://example.com/plan")).rejects.toThrow(
+    "give --provider and --account",
+  )
   expect(await run("tasks", "list", "--ready", "--project", "Lab Example")).toMatchObject({
     items: [{ key: first.key }],
     page: { has_more: false },

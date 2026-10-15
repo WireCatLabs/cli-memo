@@ -8,7 +8,7 @@ export const taskRelationsCommand = (tasks: Command, streams: Streams, env: Node
   const { run } = answers(tasks, streams, env)
   const execute = (options: { json?: boolean }, work: (store: MessageStore) => Promise<unknown>) =>
     run(options.json, async (store) => itemAnswer(await work(store)))
-  for (const operation of ["link", "unlink"] as const) {
+  for (const operation of ["unlink"] as const) {
     tasks
       .command(operation)
       .description(`${operation} reviewed project task relationships`)
@@ -17,11 +17,7 @@ export const taskRelationsCommand = (tasks: Command, streams: Streams, env: Node
       .requiredOption("--kind <kind>", TASK_RELATION_KINDS.join(", "), oneOf(TASK_RELATION_KINDS))
       .option("--json", "print JSON; --json=id,title keeps only those fields")
       .action((task: string, other: string, options: { kind: TaskRelationKind; json?: boolean }) =>
-        execute(options, (store) =>
-          operation === "link"
-            ? store.tasks.linkTask(task, other, options.kind, "owner")
-            : store.tasks.unlinkTask(task, other, options.kind, "owner"),
-        ),
+        execute(options, (store) => store.tasks.unlinkTask(task, other, options.kind, "owner")),
       )
   }
   tasks

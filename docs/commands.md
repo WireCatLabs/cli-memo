@@ -494,26 +494,6 @@ memo tags list [query] [options]
 
 open work linked to stored messages, documents and emails
 
-### `memo tasks link`
-
-link reviewed project task relationships
-
-This command changes the local store or your files.
-
-```sh
-memo tasks link <task> <other-task> [options]
-```
-
-| Argument | | What it is |
-|---|---|---|
-| `task` | required | the task: task:<id> or its id. |
-| `other-task` | required | the task it relates to: task:<id> or its id. |
-
-| Option | What it does |
-|---|---|
-| `--kind <kind>` | blocked-by, follow-up-of, related-to, duplicate-of, discovered-from. |
-| `--json` | print JSON; --json=id,title keeps only those fields. |
-
 ### `memo tasks unlink`
 
 unlink reviewed project task relationships
@@ -696,13 +676,15 @@ memo tasks agenda [query] [options]
 | `--unanswered <span>` | list chats where someone else wrote last this long ago (default 1d). |
 | `--waiting <span>` | list chats where you wrote last this long ago (default 7d). |
 | `--within <span>` | leave out chats silent longer than this: they ended (default 30d). |
+| `--claimed` | also list tasks someone else holds (tasks claim); hidden by default. |
+| `--holder <name>` | who you are for claims: a session id or a chat id; default WIRECAT_HOLDER, else Claude Code's session, else the agent's name. |
 | `--provider <provider>` | the messenger account's provider: telegram, max. |
 | `--account <account>` | the messenger account, as the store holds it. |
 | `--json` | print JSON. |
 
 ### `memo tasks plan`
 
-set a task's title, description, due date and next check; nothing reaches the messenger
+set a task's title, description, due date, next check and category; nothing reaches the messenger
 
 This command changes the local store or your files.
 
@@ -716,6 +698,7 @@ memo tasks plan <task> [options]
 
 | Option | What it does |
 |---|---|
+| `--category <name>` | what it is about, from the list tasks categories prints: money, documents, meeting, …; a change is kept in the task's history. |
 | `--title <text>` | one line: the action and its object — send Alex the API token. |
 | `--description <text>` | the detail, in Markdown: who owes whom, done when, next step, keywords. |
 | `--due <when>` | when it must be done: an ISO 8601 time or 2h, 3d from now; none clears it. |
@@ -738,6 +721,29 @@ memo tasks show <task> [options]
 
 | Option | What it does |
 |---|---|
+| `--provider <provider>` | the messenger account's provider: telegram, max. |
+| `--account <account>` | the messenger account, as the store holds it. |
+| `--json` | print JSON. |
+
+### `memo tasks link`
+
+link a task to messages, chats, people or URLs — or to another task: task:<id>
+
+This command changes the local store or your files.
+
+```sh
+memo tasks link <task> [targets] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `task` | required | the task's id or key, as tasks list shows it. |
+| `targets` | optional | msg: locators, person:<id>, document:<id>, note:<id>, a URL; or task:<id>, which links two project tasks. |
+
+| Option | What it does |
+|---|---|
+| `--chat <chat>` | a chat it concerns, repeatable; a stored chat, by its id or title. |
+| `--kind <kind>` | related-to (default), evidence — it shows the task is real — or created-from; for task:<id>, related-to, blocked-by, follow-up-of, duplicate-of or discovered-from. |
 | `--provider <provider>` | the messenger account's provider: telegram, max. |
 | `--account <account>` | the messenger account, as the store holds it. |
 | `--json` | print JSON. |

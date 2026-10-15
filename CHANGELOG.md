@@ -36,6 +36,13 @@ the API.
   accounts selected. An account error lists the accounts to choose from.
 - **cli-core 0.281.0**: a note whose title matches the query ranks first in `search notes` and `search all`, and
   lists `title` in `found_by`.
+- **`memo tasks link` is cli-core's, the one tg and max have:** a `task:<id>` target links two project tasks as
+  before (`--kind blocked-by`, `follow-up-of` or `related-to`, now `related-to` when not given); a message, chat,
+  person or URL target links a messenger account's task to it, with `--provider` and `--account`. The old form
+  keeps working: `memo tasks link HRB-2 HRB-1 --kind blocked-by` (a bare id with `blocked-by` or `follow-up-of` is a
+  task; with `related-to`, when that task exists — otherwise it is refused with "write task:<id>"). `--json`
+  answers `{ item: { relations } }`, the task's relations after the link, where it printed `{ relation, changed }`.
+  `tasks unlink` and `tasks relations` are unchanged.
 
 ### Added
 
