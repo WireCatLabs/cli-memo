@@ -35,6 +35,7 @@ interface Fixture {
   text?: string
   html?: string
   listId?: string
+  attachment?: { name: string; mime: string; content: string }
 }
 
 const mail = (n: number, overrides: Partial<Fixture> = {}): Fixture => ({
@@ -112,6 +113,57 @@ describe("importMail", () => {
     const opening = await store(env)
     const [thread] = await opening.mail.threads({ accountId: (await opening.storedAccount(KEY)).id })
     expect(thread).toMatchObject({ externalId: "9001", subject: "Synthetic subject 1", emailsCount: 2 })
+  })
+
+  it("reads again by Gmail id only the emails whose attachment a missing reader left unread", async () => {
+    const log = join(mkdtempSync(join(tmpdir(), "asked-")), "asked.log")
+    const pdf = { name: "plan.pdf", mime: "application/pdf", content: "%PDF-1.4 synthetic" }
+    const { env } = setup(
+      [mail(1, { attachment: pdf }), mail(2), mail(3, { attachment: { ...pdf, name: "notes.pdf" } })],
+      {
+        log,
+      },
+    )
+    const missing = async (name: string) => {
+      throw Object.assign(new Error(`Cannot find package '${name}'`), { code: "ERR_MODULE_NOT_FOUND" })
+    }
+    const unpdf = {
+      getDocumentProxy: async () => ({ numPages: 1, loadingTask: { destroy: async () => {} } }),
+      extractText: async () => ({ text: ["Synthetic budget plan"], totalPages: 1 }),
+    }
+    const installed = async (name: string) => (name === "unpdf" ? unpdf : missing(name))
+    const s = await store(env)
+    const run = (loadEngine: (name: string) => Promise<unknown>, retryAttachments: boolean, max?: number) =>
+      importMail({
+        store: s,
+        source: himalayaSource(himalaya(env), { name: "test" }),
+        account: { name: "test", address: ME },
+        since: SINCE,
+        now: () => NOW,
+        indexThreads: async () => ({ chats: 0, chunks: 0, left: false }),
+        loadEngine,
+        retryAttachments,
+        ...(max === undefined ? {} : { max }),
+      })
+    await run(missing, false)
+    const failures = async () =>
+      (await s.mail.emails({})).flatMap(({ attachments }) => attachments.map(({ extractionError }) => extractionError))
+    expect((await failures()).sort()).toEqual(["engine-missing", "engine-missing"])
+
+    writeFileSync(log, "")
+    const first = await run(installed, true, 1)
+    expect(first.retried).toEqual({ emails: 1, extracted: 1, stillFailed: 0, missing: 0 })
+    expect(first.complete).toBe(false)
+    const asked = readFileSync(log, "utf8").trim().split("\n")
+    expect(asked.filter((line) => line.startsWith("msgid:"))).toHaveLength(1)
+    expect(asked.filter((line) => !line.startsWith("msgid:"))).toEqual([expect.stringMatching(/^10[13]$/)])
+
+    const second = await run(installed, true)
+    expect(second.retried).toEqual({ emails: 1, extracted: 1, stillFailed: 0, missing: 0 })
+    expect(await failures()).toEqual([null, null])
+    const texts = (await s.mail.emails({})).flatMap(({ attachments }) => attachments.map(({ text }) => text))
+    expect(texts).toEqual(["Synthetic budget plan", "Synthetic budget plan"])
+    expect((await run(installed, true)).retried).toEqual({ emails: 0, extracted: 0, stillFailed: 0, missing: 0 })
   })
 
   it("embeds new mail after saving it, when embedding is on", async () => {

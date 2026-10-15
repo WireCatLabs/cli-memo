@@ -1,5 +1,5 @@
 import { CliError } from "@wirecat/cli-base"
-import { type Listed, listAllMail, listImapMail, type Searched, searchMail } from "./gmail.js"
+import { type Listed, listAllMail, listImapMail, type Searched, searchMail, uidsOfMessages } from "./gmail.js"
 import type { Himalaya } from "./himalaya.js"
 import type { FileStamp } from "./resume.js"
 
@@ -19,6 +19,11 @@ export interface MailSource {
   search?(since: Date, folder: string): Promise<Searched>
   /** A file's size and modification time, so an unchanged file read to the end is not read again. */
   stamp?(): Promise<FileStamp>
+  /**
+   * The messages of `folder` with these Gmail ids, listed as `list` lists them; a message no longer there is left
+   * out. Absent where messages have no Gmail id: a file, or plain IMAP.
+   */
+  find?(messageIds: readonly string[], folder: string): Promise<Listed[]>
   /** Each item's raw RFC 5322 bytes, in order; one that could not be read is an Error, not a failed call. */
   fetchRaw(items: Listed[]): Promise<(Uint8Array | Error)[]>
 }
@@ -99,6 +104,18 @@ export const himalayaSource = (
           })),
 
     search: (since, folder) => searchMail(run, account.name, since, folder),
+
+    ...(account.mode === undefined || account.mode === "gmail"
+      ? {
+          find: async (messageIds: readonly string[], folder: string) => {
+            const uids = await uidsOfMessages(run, account.name, messageIds, folder)
+            if (uids.length === 0) return []
+            // The window is unused: `searched` names the UIDs, so nothing is listed by date.
+            const listed = await listAllMail(run, account.name, new Date(0), folder, false, { uids })
+            return listed.map((item) => ({ ...item, folder }))
+          },
+        }
+      : {}),
 
     fetchRaw: async (items) => {
       const read = new Map<Listed, Uint8Array | Error>()

@@ -4,6 +4,16 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- **`memo sync --retry-attachments` reads again only the emails it has to.** It finds the stored emails whose
+  attachment a missing reader left unread (`engine-missing`), looks them up by Gmail id and reads those, up to
+  `--limit`. Before, it listed the whole window and re-read its newest `--limit` emails, so older unread
+  attachments were never reached. `--json` reports `retried: {emails, extracted, still_failed, missing}`. Mail
+  read from an mbox file or plain IMAP has no Gmail id, so the flag refuses there.
+
 ## 0.43.0 — 15.10.2026
 
 ### Changed

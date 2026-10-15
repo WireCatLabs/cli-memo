@@ -155,6 +155,39 @@ export const searchMail = async (run: Himalaya, account: string, since: Date, fo
   return { ...(validity === undefined ? {} : { validity }), uids }
 }
 
+/** Gmail ids looked up per call; each is one `UID SEARCH` line of the same answer. */
+const IDS_PER_CALL = 200
+
+/**
+ * The UIDs of messages known by their Gmail id, through Gmail's `X-GM-MSGID` search (Gmail IMAP extensions); a
+ * message gone from `folder` has none, so it is simply not in the answer.
+ */
+export const uidsOfMessages = async (
+  run: Himalaya,
+  account: string,
+  messageIds: readonly string[],
+  folder = "[Gmail]/All Mail",
+): Promise<string[]> => {
+  if (!messageIds.every((id) => /^\d+$/.test(id)))
+    throw new CliError("validation_error", "a Gmail message id is a number", { reason: "mail.invalid-imap" })
+  const mailbox = mailboxOf(folder)
+  const uids = new Set<string>()
+  for (let from = 0; from < messageIds.length; from += IDS_PER_CALL) {
+    const ids = messageIds.slice(from, from + IDS_PER_CALL)
+    const tags = ids.map((_, index) => `s${index}`)
+    const searched = await run(
+      ["imap", "raw", "-a", account],
+      `a EXAMINE ${mailbox}\r\n${ids.map((id, index) => `${tags[index]} UID SEARCH X-GM-MSGID ${id}\r\n`).join("")}`,
+    )
+    assertCompleted(searched, ["a", ...tags])
+    for (const [, found = ""] of searched.matchAll(/^\* SEARCH(.*)$/gm))
+      for (const uid of found.trim().split(/\s+/).filter(Boolean)) uids.add(uid)
+  }
+  if (![...uids].every((uid) => /^\d+$/.test(uid)))
+    throw new CliError("invalid_response", "invalid IMAP UID listing", { reason: "mail.invalid-imap" })
+  return [...uids]
+}
+
 /**
  * Every message in All Mail received since `since`, read with EXAMINE so nothing can change a flag.
  * All Mail rather than INBOX: an archived message leaves INBOX but is not deleted.

@@ -273,7 +273,9 @@ Gmail labels such as Inbox, Important, Starred and your own labels become mail f
 - Whether an email is read or starred, as your mailbox shows it.
 - The text of readable attachments, searched with the email. PDF and Word attachments need the
   [optional readers](notes.md#files-memo-can-read). After you install them, run
-  `memo sync --account work --retry-attachments` to read attachments that were skipped.
+  `memo sync --account work --retry-attachments` to read attachments that were skipped. It reads again, by
+  their Gmail id, only the emails whose attachment a missing reader left unread, up to `--limit` of them; it lists
+  nothing, so it is quick, and run again it continues with the rest.
 - Up to 1,000,000 characters of each email and 200,000 of each attachment
   ([change the limits](configuration.md#mail)).
 

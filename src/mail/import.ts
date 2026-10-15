@@ -1,3 +1,4 @@
+import { CliError } from "@wirecat/cli-base"
 import { extractText, importEngine, type LoadEngine } from "@wirecat/cli-core/documents"
 import type { AccountKey, AttachmentInput, EmailAddress, MessageStore } from "@wirecat/cli-core/store"
 import { embedChanged, embedMailChunks, type NotesEmbedded } from "../notes/embed.js"
@@ -62,6 +63,8 @@ export interface ImportResult {
   tagsReused?: TagOutcome["reused"]
   /** Rule tags the store refused with nothing to reuse; that mail is stored untagged. */
   tagsSkipped?: TagOutcome["skipped"]
+  /** `--retry-attachments`: emails read again for attachments a missing reader left unread. */
+  retried?: { emails: number; extracted: number; stillFailed: number; missing: number }
 }
 
 const DAY = 86_400_000
@@ -76,6 +79,48 @@ const SAVE_EVERY_MS = 30_000
 const RESUME_FROM = 5_000
 
 const addressOf = ({ email, name }: Address): EmailAddress => ({ address: email, name })
+
+type AttachmentLog = NonNullable<ImportResult["attachments"]>
+
+/** A parsed email's attachments as the store keeps them, each with its text or why it has none. */
+const readAttachments = async (
+  mail: ParsedMail,
+  messageId: string,
+  { loadEngine, maxAttachmentChars, at }: { loadEngine: LoadEngine; maxAttachmentChars: number; at: number },
+  log: AttachmentLog,
+): Promise<AttachmentInput[]> => {
+  const files: AttachmentInput[] = []
+  for (const [position, part] of mail.attachments.entries()) {
+    const extraction =
+      part.bytes === null
+        ? { status: "unavailable" as const }
+        : await extractText(part.bytes, { kind: "file", name: part.name, mime: part.mime, path: part.name }, loadEngine)
+    log.push({ message: messageId, part: part.id, status: extraction.status })
+    const extracted = extraction.status === "extracted" ? extraction : undefined
+    files.push({
+      position,
+      kind: "file",
+      mime: part.mime,
+      name: part.name,
+      title: null,
+      url: null,
+      size: part.bytes === null ? null : part.bytes.byteLength,
+      width: null,
+      height: null,
+      duration: null,
+      providerRef: { message: messageId, part: part.id },
+      localPath: null,
+      text: extracted ? extracted.text.slice(0, maxAttachmentChars) : null,
+      normalizedText: null,
+      extraction: extracted ? "text" : "failed",
+      extractor: extracted ? extracted.extractor : null,
+      extractionError: extracted ? null : extraction.status,
+      contentSha256: null,
+      extractedAt: at,
+    })
+  }
+  return files
+}
 
 export const importMail = async ({
   store,
@@ -114,6 +159,21 @@ export const importMail = async ({
   indexThreads?: typeof embedChanged
   embedMail?: typeof embedMailChunks
 }): Promise<ImportResult> => {
+  if (retryAttachments)
+    return retryUnread({
+      store,
+      source,
+      account,
+      since,
+      max,
+      maxBodyChars,
+      maxAttachmentChars,
+      now,
+      loadEngine,
+      embedding: { embed: embed && account.embed !== false, ...(env === undefined ? {} : { env }) },
+      indexThreads,
+      embedMail,
+    })
   const startedAt = now()
   const key: AccountKey = { provider: "email", account: account.address.toLowerCase() }
   const accountId = await store.saveAccount(key, { name: account.address })
@@ -134,7 +194,7 @@ export const importMail = async ({
   let mboxPoint: MboxPoint | undefined
   let mboxStamp: Awaited<ReturnType<NonNullable<MailSource["stamp"]>>> | undefined
   // A rerun lists only what the last left; --rescan, a rule change or a new UIDVALIDITY lists everything again.
-  const fresh = rescan || retryAttachments
+  const fresh = rescan
   if (snapshot && source.stamp !== undefined) {
     mboxStamp = await source.stamp()
     const point = fresh ? undefined : parsePoint<MboxPoint>((await store.syncState(key, MBOX_RESUME))?.value)
@@ -262,7 +322,7 @@ export const importMail = async ({
   // An archive is old: what it holds that IMAP proved deleted stays deleted.
   const refs = await store.mail.emailRefs({ accountId, includeDeleted: snapshot })
   const known = new Set(refs.map(({ externalId }) => externalId))
-  const stored = retryAttachments ? new Set<string>() : known
+
   const enveloped = new Map(
     refs.flatMap(({ externalId, mailboxes }) => {
       const boxes = mailboxes.filter(({ kind }) => kind === ENVELOPE).map((box) => box.externalId)
@@ -285,7 +345,7 @@ export const importMail = async ({
       } else full = true
       continue
     }
-    if (stored.has(item.messageId)) {
+    if (known.has(item.messageId)) {
       alreadyStored++
       settled.add(item.messageId)
       continue
@@ -424,40 +484,12 @@ export const importMail = async ({
         continue
       }
       const header = mailHeadersOf(raws[index] as Uint8Array)
-      const files: AttachmentInput[] = []
-      for (const [position, part] of mail.attachments.entries()) {
-        const extraction =
-          part.bytes === null
-            ? { status: "unavailable" as const }
-            : await extractText(
-                part.bytes,
-                { kind: "file", name: part.name, mime: part.mime, path: part.name },
-                loadEngine,
-              )
-        attachments.push({ message: item.messageId, part: part.id, status: extraction.status })
-        const extracted = extraction.status === "extracted" ? extraction : undefined
-        files.push({
-          position,
-          kind: "file",
-          mime: part.mime,
-          name: part.name,
-          title: null,
-          url: null,
-          size: part.bytes === null ? null : part.bytes.byteLength,
-          width: null,
-          height: null,
-          duration: null,
-          providerRef: { message: item.messageId, part: part.id },
-          localPath: null,
-          text: extracted ? extracted.text.slice(0, maxAttachmentChars) : null,
-          normalizedText: null,
-          extraction: extracted ? "text" : "failed",
-          extractor: extracted ? extracted.extractor : null,
-          extractionError: extracted ? null : extraction.status,
-          contentSha256: null,
-          extractedAt: startedAt,
-        })
-      }
+      const files = await readAttachments(
+        mail,
+        item.messageId,
+        { loadEngine, maxAttachmentChars, at: startedAt },
+        attachments,
+      )
       await store.mail.saveThread({
         accountId,
         externalId: item.threadId,
@@ -561,5 +593,146 @@ export const importMail = async ({
     ...(searches.size > 0 ? { pass: resumed.size > 0 ? ("resumed" as const) : ("full" as const) } : {}),
     ...(tagging.reused.length ? { tagsReused: tagging.reused } : {}),
     ...(tagging.skipped.length ? { tagsSkipped: tagging.skipped } : {}),
+  }
+}
+
+/** Failures a newer install mends: the reader was missing, not the file at fault, so reading again can succeed. */
+export const RETRYABLE_ATTACHMENTS = ["engine-missing"]
+
+/**
+ * Reads again, by Gmail id, only the stored emails with an attachment a missing reader left unread: memo keeps no
+ * attachment file, so the email comes from the source again. Nothing is listed, so no deletion is proved and no
+ * resume point moves; the email keeps its stored mailboxes, flags and rule.
+ */
+const retryUnread = async ({
+  store,
+  source,
+  account,
+  since,
+  max,
+  maxBodyChars,
+  maxAttachmentChars,
+  now,
+  loadEngine,
+  embedding,
+  indexThreads,
+  embedMail,
+}: {
+  store: MessageStore
+  source: MailSource
+  account: MailAccount
+  since: Date
+  max: number
+  maxBodyChars: number
+  maxAttachmentChars: number
+  now: () => number
+  loadEngine: LoadEngine
+  embedding: { embed: boolean; env?: NodeJS.ProcessEnv }
+  indexThreads: typeof embedChanged
+  embedMail: typeof embedMailChunks
+}): Promise<ImportResult> => {
+  const startedAt = now()
+  const key: AccountKey = { provider: "email", account: account.address.toLowerCase() }
+  const find = source.find
+  if (find === undefined)
+    throw new CliError(
+      "validation_error",
+      "--retry-attachments reads mail again by its Gmail id; an mbox file or a plain IMAP account has none",
+    )
+  const accountId = await store.saveAccount(key, { name: account.address })
+  const wanted = (await store.mail.emailRefs({ accountId, attachmentErrors: RETRYABLE_ATTACHMENTS })).map(
+    ({ externalId }) => externalId,
+  )
+  const chosen = wanted.slice(0, max)
+  const found = new Map<string, Listed>()
+  for (const folder of mailFolders(account)) {
+    const left = chosen.filter((id) => !found.has(id))
+    if (left.length === 0) break
+    for (const item of await find(left, folder)) if (!found.has(item.messageId)) found.set(item.messageId, item)
+  }
+  const items = [...found.values()]
+  const attachments: AttachmentLog = []
+  const unreadable: NonNullable<ImportResult["unreadable"]> = []
+  let emails = 0
+  let extracted = 0
+  let stillFailed = 0
+  for (let start = 0; start < items.length; start += FETCH_CHUNK) {
+    const chunk = items.slice(start, start + FETCH_CHUNK)
+    const raws = await source.fetchRaw(chunk)
+    for (const [index, item] of chunk.entries()) {
+      const raw = raws[index]
+      const stored = await store.mail.email(accountId, item.messageId)
+      if (stored === null) continue
+      let mail: ParsedMail
+      try {
+        if (raw === undefined || raw instanceof Error) throw raw ?? new Error("not read")
+        mail = await parseMail(raw, maxBodyChars)
+      } catch (error) {
+        unreadable.push({ message: item.messageId, reason: error instanceof Error ? error.message : String(error) })
+        continue
+      }
+      const before = new Map(stored.attachments.map(({ position, extractionError }) => [position, extractionError]))
+      const files = await readAttachments(
+        mail,
+        item.messageId,
+        { loadEngine, maxAttachmentChars, at: startedAt },
+        attachments,
+      )
+      for (const file of files)
+        if (RETRYABLE_ATTACHMENTS.includes(before.get(file.position) ?? ""))
+          if (file.extraction === "text") extracted++
+          else stillFailed++
+      const header = mailHeadersOf(raw as Uint8Array)
+      await store.mail.saveThread({
+        accountId,
+        externalId: item.threadId,
+        now: startedAt,
+        emails: [
+          {
+            externalId: item.messageId,
+            subject: mail.subject,
+            from: mail.from === null ? null : addressOf(mail.from),
+            to: mail.to.map(addressOf),
+            cc: mail.cc.map(addressOf),
+            bcc: mail.bcc.map(addressOf),
+            sentAt: null,
+            receivedAt: Date.parse(item.receivedAt),
+            bodyText: mail.text || null,
+            size: item.size ?? stored.size,
+            ...(Object.keys(header).length ? { headers: header } : {}),
+            outgoing: mail.from === null ? null : mail.from.email === key.account,
+            mailboxes: stored.mailboxes.map(({ externalId, name, kind }) => ({ externalId, name, kind })),
+            ...(stored.read === null ? {} : { read: stored.read }),
+            ...(stored.flagged === null ? {} : { flagged: stored.flagged }),
+            metadata: stored.metadata,
+            mailRuleId: stored.mailRuleId,
+            attachments: files,
+          },
+        ],
+      })
+      emails++
+    }
+  }
+  const older = await indexThreads(store, key, [], embedding)
+  const mail = await embedMail(store, embedding)
+  return {
+    account: key.account,
+    since: since.toISOString(),
+    listed: items.length,
+    saved: 0,
+    alreadyStored: 0,
+    skipped: 0,
+    envelopes: 0,
+    deleted: 0,
+    complete: wanted.length <= max && unreadable.length === 0,
+    indexed: {
+      ...older,
+      chunks: older.chunks + mail.chunks,
+      left: older.left || mail.left,
+      ...(mail.notEmbedded === undefined ? {} : { notEmbedded: mail.notEmbedded }),
+    },
+    retried: { emails, extracted, stillFailed, missing: chosen.length - items.length },
+    ...(attachments.length ? { attachments } : {}),
+    ...(unreadable.length ? { unreadable } : {}),
   }
 }
