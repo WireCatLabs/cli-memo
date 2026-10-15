@@ -48,3 +48,28 @@ it("turns an HTML-only mail into text and keeps attachment bytes", async () => {
   expect(parsed.attachments).toMatchObject([{ id: 0, name: "budget.csv", mime: "text/csv" }])
   expect(new TextDecoder().decode(parsed.attachments[0]?.bytes ?? undefined)).toBe("a,b\n1,2\n")
 })
+
+const htmlMail = (html: string) => raw("Content-Type: text/html; charset=utf-8", "", html)
+
+it("turns HTML into text: no scripts or styles, lines at blocks, entities decoded once", async () => {
+  const parsed = await parseMail(
+    htmlMail(
+      "<style>p{}</style><SCRIPT>x()</script><p>One &amp; two</p><div>a&nbsp;&quot;b&quot; &#39;c&#39;</div>  \n" +
+        "<br/>Write &amp;lt;tag&amp;gt; for &lt;tag&gt;</li>end",
+    ),
+  )
+  expect(parsed.text).toBe("One & two\na \"b\" 'c'\n\nWrite &lt;tag&gt; for <tag>\nend")
+})
+
+it.each([
+  ["<", "<".repeat(200_000)],
+  ["<a", "<a".repeat(100_000)],
+  ["<script", "<script".repeat(30_000)],
+  ["<style>", `<style>${"<script>".repeat(25_000)}`],
+  ["spaces", `${" \t".repeat(100_000)}x`],
+])("strips %s repeated to 200k characters of HTML in linear time", async (_name, hostile) => {
+  // Each of these took seconds at this size when a regex rescanned to the end from every `<`.
+  const started = performance.now()
+  await parseMail(htmlMail(hostile))
+  expect(performance.now() - started).toBeLessThan(2_000)
+})

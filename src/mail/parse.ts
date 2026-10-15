@@ -24,18 +24,44 @@ const addresses = (list: PostalAddress[]): Address[] =>
     .flatMap((entry) => entry.group ?? [entry])
     .flatMap(({ address, name }) => (address ? [{ email: address.toLowerCase(), name: name || null }] : []))
 
+const HIDDEN_OPEN = /<(script|style)/gi
+const HIDDEN_CLOSE = { script: /<\/script>/gi, style: /<\/style>/gi }
+const ENTITIES: Record<string, string> = { nbsp: " ", amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'" }
+
+// `<script[\s\S]*?</script>` as one regex rescans to the end from every unclosed opener; a tag found
+// unclosed once stays unclosed for every later opener, so each close is searched for at most once.
+const dropHidden = (html: string): string => {
+  const unclosed = new Set<string>()
+  let out = ""
+  let kept = 0
+  for (const open of html.matchAll(HIDDEN_OPEN)) {
+    const name = (open[1] as string).toLowerCase() as keyof typeof HIDDEN_CLOSE
+    if (open.index < kept || unclosed.has(name)) continue
+    const close = HIDDEN_CLOSE[name]
+    close.lastIndex = open.index + open[0].length
+    const end = close.exec(html)
+    if (!end) {
+      unclosed.add(name)
+      continue
+    }
+    out += html.slice(kept, open.index)
+    kept = end.index + end[0].length
+  }
+  return out + html.slice(kept)
+}
+
+// Past the last `>` no tag can close, yet `[^>]+` would rescan to the end from every `<` there: quadratic on `<<<<…`.
+const stripTags = (html: string): string => {
+  const end = html.lastIndexOf(">") + 1
+  return html.slice(0, end).replace(/<[^>]+>/g, "") + html.slice(end)
+}
+
 const htmlToText = (html: string): string =>
-  html
-    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, "")
-    .replace(/<br\s*\/?>|<\/(p|div|li|tr|h\d)>/gi, "\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/[ \t]+\n/g, "\n")
+  stripTags(dropHidden(html).replace(/<br\s*\/?>|<\/(p|div|li|tr|h\d)>/gi, "\n"))
+    // One pass, so `&amp;lt;` stays the text `&lt;` instead of being decoded twice into `<`.
+    .replace(/&(nbsp|amp|lt|gt|quot|#39);/g, (_entity, name: string) => ENTITIES[name] as string)
+    // From the start of a run only: `[ \t]+\n` alone rescans a long run of spaces from each of them.
+    .replace(/(?<![ \t])[ \t]+\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim()
 
