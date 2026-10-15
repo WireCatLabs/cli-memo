@@ -6,6 +6,26 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **Mail rules match more than the sender.** `memo mail rules add|remove --filter <query>` takes `subject:<word>`
+  (or bare words), `older:<n>d`, `larger:<size>`, `has:attachment`, `label:<name>`, `is:unread`, `is:bulk` and
+  `score:<n>`; `--kind social|newsletters|developer|shopping|alerts` matches a built-in kind of mail. Every
+  condition given must hold. `memo mail probe` ends with how much mail each kind would match.
+- **`--do protect`** keeps mail whole and out of every cleanup, whatever else matches; `memo mail rules list
+  --filter is:protected` lists those rules, and protected rules list first as `PROTECTED`. `rules apply` reports
+  `protected_kept`.
+- **`--do <action>,tag:<name>`** tags the mail a rule matches; a sync tags what it stores, `rules apply` tags what
+  is stored (`tagged`).
+- **`memo mail rules import-filters <account> <Filters.json>`** proposes rules from a Takeout export's Gmail
+  filters; `--yes` adds them.
+
+### Changed — may break scripts
+
+- `memo mail rules add --do` takes a comma list: one of `skip`, `envelope`, `keep`, `protect`, plus any
+  `tag:<name>`. A rules file may hold the new conditions; `rules remove` drops the rule with exactly the
+  conditions given.
+
 ## 0.41.0 — 15.10.2026
 
 ### Changed — may break scripts

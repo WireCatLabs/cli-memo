@@ -4,7 +4,8 @@ import { decodeWords } from "postal-mime"
  * The header fields memo reads at list time: enough to group mail by sender, apply the owner's rules and keep
  * an envelope of the mail a rule records without its text.
  */
-export const HEADER_FIELDS = "FROM TO CC SUBJECT LIST-ID LIST-UNSUBSCRIBE PRECEDENCE REPLY-TO AUTHENTICATION-RESULTS"
+export const HEADER_FIELDS =
+  "FROM TO CC SUBJECT LIST-ID LIST-UNSUBSCRIBE PRECEDENCE REPLY-TO AUTHENTICATION-RESULTS CONTENT-TYPE"
 
 /** SPF, DKIM and DMARC as Gmail judged them when the email arrived; each absent when Gmail did not say. */
 export interface AuthVerdicts {
@@ -27,6 +28,8 @@ export interface MailHeaders {
   /** The first Reply-To address, lower case. */
   replyTo?: string
   auth?: AuthVerdicts
+  /** `Content-Type: multipart/mixed`: how mail with attachments is sent. A guess, not a parse of the body. */
+  attachments?: boolean
 }
 
 export const unfold = (text: string): string => text.replace(/\r?\n[ \t]+/g, " ")
@@ -96,6 +99,7 @@ export const headersOf = (text: string): MailHeaders => {
     bulk,
     ...(replyTo === undefined ? {} : { replyTo }),
     ...(auth === undefined ? {} : { auth }),
+    ...(/^\s*multipart\/mixed\b/i.test(field(unfolded, "Content-Type") ?? "") ? { attachments: true } : {}),
   }
 }
 

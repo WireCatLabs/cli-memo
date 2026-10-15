@@ -35,6 +35,12 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: [],
   },
   {
+    reason: "mail.filters-file-invalid",
+    code: "validation_error",
+    message: "the file is not a list of Gmail filters",
+    details: [],
+  },
+  {
     reason: "mail.source-failed",
     code: "provider_error",
     message: "the mail program failed",

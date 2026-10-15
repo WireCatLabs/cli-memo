@@ -118,6 +118,76 @@ A rule's `--do` is one of three actions:
 A keep wins over an envelope, and an envelope wins over a skip. When you remove an envelope rule, or change it
 to keep, the next sync reads those emails in full. Mail stored in full before a rule stays as it is.
 
+### More conditions, tags and protection
+
+Besides `--sender`, `--domain` and `--list-id`, a rule can take a `--filter` query and a `--kind`. Every condition
+given must hold:
+
+| In `--filter` | Matches mail |
+|---|---|
+| `subject:<word>`, or a bare word | with every such word in the subject, any case |
+| `older:<n>d` | received more than n days ago |
+| `larger:<size>` | bigger than `5MB`, `300KB` or a number of bytes at the source |
+| `has:attachment` | sent as `multipart/mixed`, the way mail with attachments is: a guess from the header |
+| `label:<name>` | carrying this Gmail label, such as `label:Promotions` or `label:"Two words"` |
+| `is:unread` | never opened |
+| `is:bulk` | sent to many: List-Id, List-Unsubscribe or `Precedence: bulk` |
+| `score:<n>` | from a sender whose score (above) is at least n |
+
+`--do` takes one action and any number of tags, comma-separated: `skip`, `envelope`, `keep` or `protect`, plus
+`tag:<name>`.
+
+```sh
+memo mail rules add work --filter 'label:Promotions older:365d' --do envelope
+memo mail rules add work --domain shop.example --do keep,tag:shopping
+memo mail rules add work --domain tax.gov.example --do protect
+memo mail rules list work --filter is:protected
+```
+
+- **`tag:<name>`** puts a memo tag on every email the rule matches, whichever rule decides the action. A sync
+  tags the mail it stores or records; `memo mail rules apply` tags mail stored earlier.
+- **`protect`** keeps the mail whole and out of every cleanup, whatever other rules or kinds say. A protected
+  rule wins over all others and always stores in full, so `memo mail rules apply` never cuts its mail and a later
+  mailbox cleanup must refuse it. Use it for government, tax and bank mail. `memo mail rules list` shows
+  protected rules first, as `PROTECTED`.
+- **`score:` and `--kind`** judge a sender by its mail in the same listing: a sync that lists only new mail
+  judges the sender from that mail.
+
+### Kinds of mail
+
+`--kind` names a built-in kind of mail, matched by who sends it and how, not by your own senders:
+
+| Kind | Matches |
+|---|---|
+| `social` | notifications from social networks |
+| `newsletters` | mailing lists with List-Id and List-Unsubscribe, and newsletter services |
+| `developer` | code hosting, CI, package and error-tracker notifications |
+| `shopping` | shops, and what Gmail files under Promotions |
+| `alerts` | monitoring and uptime alerts |
+
+`memo mail probe` ends with how much of your mail each kind would match. Nothing applies until you add a rule:
+
+```sh
+memo mail rules add work --kind social --do envelope
+```
+
+Mail from someone you wrote to never matches a kind, and any explicit rule wins over a `--kind` rule.
+
+### Gmail filters
+
+A Google Takeout export of Mail holds your Gmail filters in `Mail/User settings/Filters.json`. memo proposes a
+rule for each filter it can express:
+
+```sh
+memo mail rules import-filters work Filters.json        # shows the proposed rules and the skipped filters
+memo mail rules import-filters work Filters.json --yes  # adds them
+```
+
+A filter that skips the inbox, marks read or deletes becomes an envelope rule; one that only adds a label becomes
+a keep rule with that label as a tag. A filter that searches words or matches several senders at once is
+skipped and listed. Gmail's API shape (`criteria` and `action`) and the settings export's flat properties
+(`from`, `shouldArchive`, `label`) are both read; a label given only by its Gmail id is tagged with that id.
+
 Mail stored in full before an envelope rule existed stays whole until you cut it:
 
 ```sh

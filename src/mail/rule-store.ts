@@ -2,42 +2,69 @@ import { chmodSync, copyFileSync, existsSync } from "node:fs"
 import type { AccountKey, MessageStore, MailRule as StoredRule } from "@wirecat/cli-core/store"
 import { configPath, loadConfig, updateConfig } from "../config.js"
 import type { MailAccountConfig } from "./accounts.js"
-import { ENVELOPE, envelopeBox, type MailAction, type MailRule, type MailRuleMatch } from "./rules.js"
+import { PRESET_NAMES, type PresetName } from "./presets.js"
+import { conditionKeys, ENVELOPE, envelopeBox, type MailAction, type MailRule, type MailRuleMatch } from "./rules.js"
 
 const STORE_ACTION: Record<MailAction, string> = { keep: "full", envelope: "envelope", skip: "skip" }
 const ACTION_OF: Record<string, MailAction> = { full: "keep", envelope: "envelope", skip: "skip" }
 
-const conditionsOf = (match: MailRuleMatch) => ({
-  ...(match.from === undefined ? {} : { from: match.from.toLowerCase() }),
-  ...(match.domain === undefined ? {} : { domain: match.domain.toLowerCase() }),
-  ...(match.list_id === undefined ? {} : { list_id: match.list_id.toLowerCase() }),
-})
+const LOWER: readonly (keyof MailRuleMatch)[] = ["from", "domain", "list_id", "subject"]
 
-export const ruleInput = (rule: MailRule, source = "owner") => ({
+const conditionsOf = (match: MailRuleMatch): Record<string, string | number | boolean> =>
+  Object.fromEntries(
+    conditionKeys(match).map((key) => {
+      const value = match[key]
+      return [
+        key,
+        LOWER.includes(key) && typeof value === "string" ? value.toLowerCase() : (value as string | number | boolean),
+      ]
+    }),
+  )
+
+export const ruleInput = (rule: MailRule, source = rule.source ?? "owner") => ({
   conditions: conditionsOf(rule.match),
-  actions: { store: STORE_ACTION[rule.action] },
+  actions: { store: STORE_ACTION[rule.action], ...(rule.tags?.length ? { tags: rule.tags } : {}) },
   protected: rule.protected === true,
   source,
   reason: rule.reason ?? null,
   decidedAt: Date.parse(rule.decided_at) || Date.now(),
 })
 
+const KINDS: Record<keyof MailRuleMatch, "string" | "number" | "boolean"> = {
+  from: "string",
+  domain: "string",
+  list_id: "string",
+  subject: "string",
+  older_than_days: "number",
+  larger_than_bytes: "number",
+  has_attachments: "boolean",
+  label: "string",
+  unread: "boolean",
+  bulk: "boolean",
+  score_at_least: "number",
+  preset: "string",
+}
+
 const fromStored = (stored: StoredRule): MailRule | undefined => {
   const action = ACTION_OF[String(stored.actions.store)]
-  const { from, domain, list_id } = stored.conditions as Record<string, unknown>
-  const match: MailRuleMatch = {
-    ...(typeof from === "string" ? { from } : {}),
-    ...(typeof domain === "string" ? { domain } : {}),
-    ...(typeof list_id === "string" ? { list_id } : {}),
-  }
-  // A condition memo does not know yet, from a newer memo or a preset, is left to that memo rather than misread.
-  if (action === undefined || Object.keys(match).length !== Object.keys(stored.conditions).length) return undefined
+  const entries = Object.entries(stored.conditions as Record<string, unknown>)
+  // A condition memo does not know yet, from a newer memo, is left to that memo rather than misread.
+  const known = entries.every(
+    ([key, value]) =>
+      key in KINDS &&
+      typeof value === KINDS[key as keyof MailRuleMatch] &&
+      !(key === "preset" && !PRESET_NAMES.includes(value as PresetName)),
+  )
+  if (action === undefined || !known || entries.length === 0) return undefined
+  const tags = Array.isArray(stored.actions.tags) ? stored.actions.tags.filter((tag) => typeof tag === "string") : []
   return {
     id: stored.id,
-    match,
+    match: Object.fromEntries(entries) as MailRuleMatch,
     action,
+    ...(tags.length ? { tags: tags as string[] } : {}),
     ...(stored.reason === null ? {} : { reason: stored.reason }),
     ...(stored.protected ? { protected: true } : {}),
+    ...(stored.source === "owner" ? {} : { source: stored.source }),
     decided_at: new Date(stored.decidedAt).toISOString(),
   }
 }

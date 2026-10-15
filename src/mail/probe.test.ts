@@ -49,9 +49,9 @@ describe("decide", () => {
   const rules = [rule({ domain: "shop.example" }, "skip"), rule({ from: "orders@mail.shop.example" }, "keep")]
 
   it("skips a domain and its subdomains, and lets a keep win over a skip", () => {
-    expect(decide(rules, { from: "news@mail.shop.example", to: [], bulk: true })?.action).toBe("skip")
-    expect(decide(rules, { from: "orders@mail.shop.example", to: [], bulk: true })?.action).toBe("keep")
-    expect(decide(rules, { from: "alice@notshop.example", to: [], bulk: false })).toBeUndefined()
+    expect(decide(rules, { headers: { from: "news@mail.shop.example", to: [], bulk: true } })?.action).toBe("skip")
+    expect(decide(rules, { headers: { from: "orders@mail.shop.example", to: [], bulk: true } })?.action).toBe("keep")
+    expect(decide(rules, { headers: { from: "alice@notshop.example", to: [], bulk: false } })).toBeUndefined()
     expect(decide(rules, undefined)).toBeUndefined()
   })
 
@@ -59,7 +59,10 @@ describe("decide", () => {
     const layered = [...rules, rule({ list_id: "deals.shop.example" }, "envelope")]
     const deal = { from: "news@mail.shop.example", to: [], listId: "deals.shop.example", bulk: true }
 
-    expect(decide(layered, deal)).toMatchObject({ action: "envelope", match: { list_id: "deals.shop.example" } })
-    expect(decide(layered, { ...deal, from: "orders@mail.shop.example" })?.action).toBe("keep")
+    expect(decide(layered, { headers: deal })).toMatchObject({
+      action: "envelope",
+      match: { list_id: "deals.shop.example" },
+    })
+    expect(decide(layered, { headers: { ...deal, from: "orders@mail.shop.example" } })?.action).toBe("keep")
   })
 })

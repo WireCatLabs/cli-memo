@@ -1,9 +1,26 @@
 import type { MailHeaders } from "./headers.js"
+import { type PresetName, presetMatches } from "./presets.js"
 
+/** All given conditions must hold; a rule with none matches nothing. */
 export interface MailRuleMatch {
   from?: string
   domain?: string
   list_id?: string
+  /** Words that must all appear in the subject, any case. */
+  subject?: string
+  older_than_days?: number
+  larger_than_bytes?: number
+  /** Sent as `multipart/mixed`, the way mail with attachments is. */
+  has_attachments?: boolean
+  /** A Gmail label, by its plain name: `Promotions`, `Inbox`, or one the owner made. */
+  label?: string
+  unread?: boolean
+  /** List-Id, List-Unsubscribe or `Precedence: bulk`. */
+  bulk?: boolean
+  /** The sender's score (memo mail probe) is at least this. */
+  score_at_least?: number
+  /** A built-in kind of mail, see presets.ts. */
+  preset?: PresetName
 }
 
 export type MailAction = "skip" | "envelope" | "keep"
@@ -14,47 +31,125 @@ export interface MailRule {
   match: MailRuleMatch
   /** skip: never read or stored · envelope: stored without its text, so it can be counted and cleaned later. */
   action: MailAction
+  /** memo tags put on every email the rule matches, with any action. */
+  tags?: string[]
   reason?: string
-  /** No cleanup may cut, archive or trash what this rule matches. */
+  /** Stored in full, and no cleanup may cut, archive or trash it, whatever other rules or presets say. */
   protected?: boolean
+  /** owner, preset:<name>, probe or gmail-filter. */
+  source?: string
   decided_at: string
 }
+
+/** What is known of one email when a rule decides it: its headers at list time, and what the listing says. */
+export interface MailFacts {
+  headers?: MailHeaders
+  receivedAt?: string
+  size?: number
+  labels?: string[]
+  seen?: boolean
+  /** The sender group's score, when a rule asks for one. */
+  score?: number
+  /** The owner wrote to this sender. */
+  replied?: boolean
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000
 
 const domainOf = (address: string): string => address.slice(address.lastIndexOf("@") + 1)
 
 /** A domain also matches its subdomains: bulk mail often comes from `mail.` or `news.` of the same domain. */
-export const matches = (match: MailRuleMatch, headers: MailHeaders): boolean => {
-  const { from, domain, list_id: listId } = match
-  if (from === undefined && domain === undefined && listId === undefined) return false
-  const sender = headers.from
-  const host = sender === undefined ? undefined : domainOf(sender)
-  const wanted = domain?.toLowerCase()
-  return (
-    (from === undefined || sender === from.toLowerCase()) &&
-    (wanted === undefined || (host !== undefined && (host === wanted || host.endsWith(`.${wanted}`)))) &&
-    (listId === undefined || headers.listId === listId.toLowerCase())
-  )
+const domainMatches = (wanted: string, sender: string | undefined): boolean => {
+  if (sender === undefined) return false
+  const host = domainOf(sender)
+  const domain = wanted.toLowerCase()
+  return host === domain || host.endsWith(`.${domain}`)
+}
+
+const words = (text: string) => text.toLowerCase().split(/\s+/).filter(Boolean)
+
+/** Unknown facts never match: a rule about size skips an email whose size the listing did not give. */
+export const matches = (match: MailRuleMatch, facts: MailFacts, now = Date.now()): boolean => {
+  const conditions = Object.entries(match).filter(([, value]) => value !== undefined)
+  if (conditions.length === 0) return false
+  const { headers } = facts
+  return conditions.every(([key, value]) => {
+    switch (key as keyof MailRuleMatch) {
+      case "from":
+        return headers?.from === String(value).toLowerCase()
+      case "domain":
+        return domainMatches(String(value), headers?.from)
+      case "list_id":
+        return headers?.listId === String(value).toLowerCase()
+      case "subject": {
+        const subject = headers?.subject?.toLowerCase()
+        return subject !== undefined && words(String(value)).every((word) => subject.includes(word))
+      }
+      case "older_than_days":
+        return facts.receivedAt !== undefined && now - Date.parse(facts.receivedAt) > Number(value) * DAY_MS
+      case "larger_than_bytes":
+        return facts.size !== undefined && facts.size > Number(value)
+      case "has_attachments":
+        return headers !== undefined && (headers.attachments === true) === value
+      case "label":
+        return facts.labels?.some((label) => label.toLowerCase() === String(value).toLowerCase()) ?? false
+      case "unread":
+        return facts.seen !== undefined && !facts.seen === value
+      case "bulk":
+        return headers !== undefined && headers.bulk === value
+      case "score_at_least":
+        return facts.score !== undefined && facts.score >= Number(value)
+      case "preset":
+        return presetMatches(value as PresetName, facts)
+      default:
+        return false
+    }
+  })
 }
 
 const RANK: Record<MailAction, number> = { keep: 0, envelope: 1, skip: 2 }
 
+const strength = (rule: MailRule) =>
+  (rule.protected ? 0 : 10) + RANK[rule.action] + (rule.source?.startsWith("preset:") ? 5 : 0)
+
 /**
- * The rule that decides an email: keep wins over envelope, envelope over skip, so a keep for one sender overrides
- * a skip of its domain, and mail both record and drop rules match is recorded, since a record can be cleaned later.
+ * The rule that decides an email. A protected rule wins over everything and keeps the mail whole; then keep wins
+ * over envelope, envelope over skip, so a keep for one sender overrides a skip of its domain and mail both record
+ * and drop rules match is recorded, since a record can be cleaned later. An explicit rule wins over a preset.
  */
-export const decide = (rules: readonly MailRule[], headers: MailHeaders | undefined): MailRule | undefined => {
-  if (headers === undefined) return undefined
-  return rules.filter((rule) => matches(rule.match, headers)).sort((a, b) => RANK[a.action] - RANK[b.action])[0]
+export const decide = (rules: readonly MailRule[], facts: MailFacts | undefined): MailRule | undefined => {
+  if (facts?.headers === undefined) return undefined
+  const now = Date.now()
+  const hit = rules.filter((rule) => matches(rule.match, facts, now)).sort((a, b) => strength(a) - strength(b))[0]
+  return hit?.protected ? { ...hit, action: "keep" } : hit
 }
+
+/** The tags of every rule that matches, whichever rule decides the action. */
+export const tagsOf = (rules: readonly MailRule[], facts: MailFacts): string[] => {
+  if (facts.headers === undefined) return []
+  const now = Date.now()
+  return [...new Set(rules.flatMap((rule) => (rule.tags?.length && matches(rule.match, facts, now) ? rule.tags : [])))]
+}
+
+/** The only conditions an envelope mailbox can be named by: one sender, domain or list. */
+const SINGLE: readonly (keyof MailRuleMatch)[] = ["from", "domain", "list_id"]
+
+export const conditionKeys = (match: MailRuleMatch) =>
+  (Object.keys(match) as (keyof MailRuleMatch)[]).filter((key) => match[key] !== undefined).sort()
+
+/** A short, stable name of a match: `domain shop.example`, or `subject invoice, larger_than_bytes 1000`. */
+export const describeMatch = (match: MailRuleMatch): string =>
+  conditionKeys(match)
+    .map((key) => `${key === "list_id" ? "list-id" : key.replace(/_/g, "-")} ${String(match[key])}`)
+    .join(", ")
 
 /** Where the store keeps the emails one envelope rule recorded: a mailbox of its own, per rule. */
 export const envelopeBox = (match: MailRuleMatch) => {
-  const [kind, value] =
-    match.from !== undefined
-      ? ["from", match.from]
-      : match.domain !== undefined
-        ? ["domain", match.domain]
-        : ["list-id", match.list_id ?? ""]
+  const keys = conditionKeys(match)
+  const single = keys.length === 1 && SINGLE.includes(keys[0] as keyof MailRuleMatch)
+  const [kind, value] = single
+    ? [keys[0] === "list_id" ? "list-id" : String(keys[0]), String(match[keys[0] as keyof MailRuleMatch])]
+    : ["rule", describeMatch(match)]
   return {
     externalId: `memo:envelope:${kind}:${value.toLowerCase()}`,
     name: `envelope: ${kind} ${value}`,
@@ -64,10 +159,15 @@ export const envelopeBox = (match: MailRuleMatch) => {
 
 export const ENVELOPE = "envelope"
 
-export const sameMatch = (a: MailRuleMatch, b: MailRuleMatch): boolean =>
-  a.from?.toLowerCase() === b.from?.toLowerCase() &&
-  a.domain?.toLowerCase() === b.domain?.toLowerCase() &&
-  a.list_id?.toLowerCase() === b.list_id?.toLowerCase()
+const normalized = (match: MailRuleMatch) =>
+  JSON.stringify(
+    conditionKeys(match).map((key) => {
+      const value = match[key]
+      return [key, typeof value === "string" ? value.toLowerCase() : value]
+    }),
+  )
+
+export const sameMatch = (a: MailRuleMatch, b: MailRuleMatch): boolean => normalized(a) === normalized(b)
 
 export const envelopeBoxOf = (externalId: string) => {
   const [, , kind, ...value] = externalId.split(":")

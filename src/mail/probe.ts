@@ -1,3 +1,4 @@
+import { PRESET_NAMES, type PresetName, presetMatches } from "./presets.js"
 import { type DomainAge, registrableOf, type Signal, scoreGroup } from "./score.js"
 import type { Listed } from "./source.js"
 
@@ -34,11 +35,17 @@ export interface Probe {
   withoutHeaders: number
   groups: number
   items: ProbeGroup[]
+  /** How much mail each built-in preset would match: proposals the owner may turn into rules. */
+  presets: { preset: PresetName; emails: number; groups: number; bytes: number }[]
 }
 
 const share = (part: number, whole: number) => Math.round((part / whole) * 100) / 100
 
 const isSent = (item: Listed) => item.labels?.includes("Sent") || /(^|\/)sent\b/i.test(item.folder ?? "")
+
+/** A list's mail is one group whoever sends it; other mail is grouped by sender. */
+export const groupKey = (headers: { from?: string; listId?: string }): string =>
+  headers.listId === undefined ? `from:${headers.from}` : `list:${headers.listId}`
 
 /** Groups mail by List-Id when it has one, else by sender address; largest groups first. */
 export const probeMail = (items: Listed[], limit: number, ages: ReadonlyMap<string, DomainAge> = new Map()): Probe => {
@@ -53,7 +60,7 @@ export const probeMail = (items: Listed[], limit: number, ages: ReadonlyMap<stri
       withoutHeaders++
       continue
     }
-    const key = headers.listId === undefined ? `from:${headers.from}` : `list:${headers.listId}`
+    const key = groupKey(headers)
     const group = groups.get(key)
     if (group) group.push(item)
     else groups.set(key, [item])
@@ -78,6 +85,18 @@ export const probeMail = (items: Listed[], limit: number, ages: ReadonlyMap<stri
       ...scoreGroup(group, { replied, bulk, ages }),
     }
   })
+  const presets = PRESET_NAMES.map((preset) => {
+    const hit = [...groups.values()].filter((group) => {
+      const replied = group.some((item) => item.headers?.from !== undefined && recipients.has(item.headers.from))
+      return presetMatches(preset, { ...(group[0] as Listed), replied })
+    })
+    return {
+      preset,
+      emails: hit.reduce((sum, group) => sum + group.length, 0),
+      groups: hit.length,
+      bytes: hit.reduce((sum, group) => sum + group.reduce((total, item) => total + (item.size ?? 0), 0), 0),
+    }
+  }).filter(({ emails }) => emails > 0)
   all.sort((a, b) => b.emails - a.emails || b.bytes - a.bytes)
   return {
     emails: items.length,
@@ -86,6 +105,7 @@ export const probeMail = (items: Listed[], limit: number, ages: ReadonlyMap<stri
     withoutHeaders,
     groups: all.length,
     items: all.slice(0, limit),
+    presets,
   }
 }
 

@@ -9,9 +9,12 @@ import { withImportLock } from "../run/lock.js"
 import { type MailAccountConfig, mailAccounts, mailFolders, mailSource } from "./accounts.js"
 import { type ApplyResult, applyRules } from "./apply.js"
 import { knownAges, lookUpAges } from "./domain-age.js"
+import { importFilters } from "./filters.js"
+import { PRESET_NAMES, type PresetName } from "./presets.js"
 import { domainsToAge, type Probe, probeMail, SUGGEST_RULE } from "./probe.js"
+import { ACTION_HELP, actionsOf, FILTER_HELP, filterMatch } from "./rule-query.js"
 import { removeRule, ruleCounts, rulesOf, saveRule } from "./rule-store.js"
-import type { MailAction, MailRule, MailRuleMatch } from "./rules.js"
+import { conditionKeys, describeMatch, type MailAction, type MailRule, type MailRuleMatch } from "./rules.js"
 import { FREE_MAIL, SCORE_RULE } from "./score.js"
 import type { Listed } from "./source.js"
 import { mailStatus, statusText } from "./status.js"
@@ -20,23 +23,35 @@ interface MatchOptions {
   sender?: string
   domain?: string
   listId?: string
+  filter?: string
+  kind?: PresetName
 }
 
 const accountOf = (config: Config, name: string): MailAccountConfig =>
   mailAccounts(config.mail?.accounts ?? [], [name])[0] as MailAccountConfig
 
-const matchOf = ({ sender, domain, listId }: MatchOptions): MailRuleMatch => {
-  const given = [sender, domain, listId].filter((value) => value !== undefined)
-  if (given.length !== 1) throw new CliError("validation_error", "give exactly one of --sender, --domain, --list-id")
-  return sender !== undefined ? { from: sender } : domain !== undefined ? { domain } : { list_id: listId as string }
+const MATCH_OPTIONS = (command: Command) =>
+  command
+    .option("--sender <address>", "one sender address")
+    .option("--domain <domain>", "a sender domain, and its subdomains")
+    .option("--list-id <id>", "a mailing list, by its List-Id")
+    .option("--filter <query>", FILTER_HELP)
+    .option("--kind <kind>", `a built-in kind of mail: ${PRESET_NAMES.join(", ")}`, oneOf(PRESET_NAMES))
+
+const matchOf = (options: MatchOptions): MailRuleMatch => {
+  const match: MailRuleMatch = {
+    ...(options.sender === undefined ? {} : { from: options.sender }),
+    ...(options.domain === undefined ? {} : { domain: options.domain }),
+    ...(options.listId === undefined ? {} : { list_id: options.listId }),
+    ...(options.filter === undefined ? {} : filterMatch(options.filter)),
+    ...(options.kind === undefined ? {} : { preset: options.kind }),
+  }
+  if (conditionKeys(match).length === 0)
+    throw new CliError("validation_error", "give at least one of --sender, --domain, --list-id, --filter, --kind")
+  return match
 }
 
-const describe = (match: MailRuleMatch): string =>
-  match.from !== undefined
-    ? `from ${match.from}`
-    : match.domain !== undefined
-      ? `domain ${match.domain}`
-      : `list-id ${match.list_id}`
+const describe = describeMatch
 
 interface Recorded {
   emails: number
@@ -45,9 +60,10 @@ interface Recorded {
 
 const ruleLine = (rule: MailRule & { recorded?: Recorded }): string =>
   [
-    rule.action.padEnd(8),
-    rule.protected ? "protected" : "",
+    rule.protected ? "PROTECTED" : rule.action.padEnd(8),
     describe(rule.match),
+    rule.tags?.length ? `tag ${rule.tags.join(", ")}` : "",
+    rule.source === undefined ? "" : `(${rule.source})`,
     rule.decided_at.slice(0, 10),
     rule.recorded === undefined ? "" : `${rule.recorded.emails} emails, ${megabytes(rule.recorded.bytes)} MB`,
     rule.reason ?? "",
@@ -77,19 +93,37 @@ const rulesFileOf = (text: string, path: string): MailRule[] => {
   if (!Array.isArray(rules)) throw bad("no rules list; write it with memo mail rules export")
   return rules.map((raw, index) => {
     const rule = raw as Partial<MailRule>
-    const match = rule.match ?? {}
-    const given = [match.from, match.domain, match.list_id].filter((value) => typeof value === "string")
-    if (given.length !== 1 || !ACTIONS.includes(rule.action as MailAction))
-      throw bad(`rule ${index + 1} needs one of match.from, match.domain, match.list_id and an action`)
+    if (!ACTIONS.includes(rule.action as MailAction) || conditionKeys(rule.match ?? {}).length === 0)
+      throw bad(`rule ${index + 1} needs at least one match condition and an action`)
+    const match = rule.match as MailRuleMatch
+    const unknown = conditionKeys(match).filter((key) => !CONDITIONS.includes(key))
+    if (unknown.length) throw bad(`rule ${index + 1} has conditions memo does not know: ${unknown.join(", ")}`)
     return {
-      match: matchOf({ sender: match.from, domain: match.domain, listId: match.list_id }),
+      match,
       action: rule.action as MailAction,
+      ...(Array.isArray(rule.tags) ? { tags: rule.tags.filter((tag) => typeof tag === "string") } : {}),
       ...(typeof rule.reason === "string" ? { reason: rule.reason } : {}),
       ...(rule.protected === true ? { protected: true } : {}),
+      ...(typeof rule.source === "string" ? { source: rule.source } : {}),
       decided_at: typeof rule.decided_at === "string" ? rule.decided_at : new Date().toISOString(),
     }
   })
 }
+
+const CONDITIONS: readonly (keyof MailRuleMatch)[] = [
+  "from",
+  "domain",
+  "list_id",
+  "subject",
+  "older_than_days",
+  "larger_than_bytes",
+  "has_attachments",
+  "label",
+  "unread",
+  "bulk",
+  "score_at_least",
+  "preset",
+]
 
 const applyText = (result: ApplyResult): string =>
   [
@@ -98,7 +132,8 @@ const applyText = (result: ApplyResult): string =>
       .map(({ rule, emails, bytes }) => `${describe(rule.match)}  ${emails} emails, ${megabytes(bytes)} MB of text`),
     `${result.applied ? "cut" : "would cut"} ${result.envelopes} emails to envelopes, ` +
       `${megabytes(result.bytes)} MB of text, of ${result.listed} listed; ` +
-      `${result.skipMatched} match only a skip rule and stay as stored` +
+      `${result.skipMatched} match only a skip rule and stay as stored; ` +
+      `${result.protectedKept} are protected and stay whole; ${result.applied ? "tagged" : "would tag"} ${result.tagged}` +
       (result.applied || result.envelopes === 0 ? "" : `; memo mail rules apply ${result.account} --yes cuts them`),
   ].join("\n")
 
@@ -129,6 +164,16 @@ const probeText = (probe: Probe & { seconds: number }): string => {
       `${probe.withoutHeaders} without readable headers; ${probe.seconds}s`,
     line(header),
     ...rows.map(line),
+    ...(probe.presets.length
+      ? [
+          "",
+          "kinds this mail would match (memo mail rules add <account> --kind <kind> --do envelope):",
+          ...probe.presets.map(
+            ({ preset, emails, groups, bytes }) =>
+              `  ${preset.padEnd(12)}${emails} emails, ${groups} groups, ${megabytes(bytes)} MB`,
+          ),
+        ]
+      : []),
   ].join("\n")
 }
 
@@ -201,73 +246,87 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
 
   const rules = mail
     .command("rules")
-    .description("the owner's decisions on which mail to skip or keep, by sender, domain or list")
+    .description("the owner's decisions on which mail to keep, record, skip, tag or protect")
 
   rules
     .command("list")
-    .description("one account's rules")
+    .description("one account's rules, protected ones first")
     .argument("<account>", "the account's name in mail.accounts, or its address")
+    .option("--filter <query>", "is:protected lists only the rules no cleanup may override")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .addHelpText("after", "\nAn envelope rule shows how many emails it recorded and their size at the source.")
-    .action(async (name: string, options: { json?: boolean }) => {
+    .addHelpText(
+      "after",
+      "\nProtected rules come first, as PROTECTED. An envelope rule shows how many emails it recorded and their " +
+        "size at the source.",
+    )
+    .action(async (name: string, options: { filter?: string; json?: boolean }) => {
+      if (options.filter !== undefined && options.filter.trim() !== "is:protected")
+        throw new CliError("validation_error", "--filter: rules list knows only is:protected")
+      const only = options.filter !== undefined
       const account = accountOf(loadConfig(env), name)
       const items = await withStore(env, async (store) => {
         const rules = await rulesOf(store, account, env, streams.diagnostic)
         const counts = await ruleCounts(store, account.address)
-        return rules.map((rule) => {
-          const recorded = rule.id === undefined ? undefined : counts.get(rule.id)
-          return rule.action === "envelope" ? { ...rule, recorded: recorded ?? { emails: 0, bytes: 0 } } : rule
-        })
+        return rules
+          .filter((rule) => !only || rule.protected)
+          .sort((a, b) => Number(b.protected === true) - Number(a.protected === true))
+          .map((rule) => {
+            const recorded = rule.id === undefined ? undefined : counts.get(rule.id)
+            return rule.action === "envelope" ? { ...rule, recorded: recorded ?? { emails: 0, bytes: 0 } } : rule
+          })
       })
       print(options.json, wholeList("mail rules list", items), items.map(ruleLine).join("\n") || "no rules")
     })
 
-  rules
-    .command("add")
-    .description("skip, record or keep mail by sender, domain or list; a repeat replaces its rule")
-    .argument("<account>", "the account's name in mail.accounts, or its address")
-    .option("--sender <address>", "one sender address")
-    .option("--domain <domain>", "a sender domain, and its subdomains")
-    .option("--list-id <id>", "a mailing list, by its List-Id")
-    .requiredOption(
-      "--do <actions>",
-      "one of skip (never read or store this mail), envelope (store only sender, date, size and labels: " +
-        "counted, out of search, cleanable later), keep (import it even when a skip or envelope rule matches)",
-      oneOf(ACTIONS),
-    )
+  MATCH_OPTIONS(
+    rules
+      .command("add")
+      .description("decide mail by sender, list, subject, age, size, label or kind; repeats replace")
+      .argument("<account>", "the account's name in mail.accounts, or its address"),
+  )
+    .requiredOption("--do <actions>", ACTION_HELP, actionsOf)
     .option("--reason <text>", "why, for the owner later")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText(
       "after",
-      "\nA keep wins over an envelope, an envelope over a skip, so --do keep --sender one sender overrides " +
-        "--do skip --domain of its domain. A skipped email is never read or stored by memo sync. An envelope " +
-        "email costs no more from the mailbox than a skipped one; its subject is kept in its metadata, not in " +
-        "search. Changing an envelope rule to keep, or removing it, reads those emails in full on the next sync. " +
-        "Mail already stored in full stays.",
+      "\nAll conditions given must hold. A protected rule wins over every other rule and kind; then keep wins over " +
+        "envelope and envelope over skip, so --do keep --sender one sender overrides --do skip --domain of its " +
+        "domain; an explicit rule wins over a --kind one. A skipped email is never read or stored by memo sync. An " +
+        "envelope email costs no more from the mailbox than a skipped one; its subject is kept in its metadata, not " +
+        "in search. Changing an envelope rule to keep, or removing it, reads those emails in full on the next sync. " +
+        "Mail already stored in full stays; memo mail rules apply cuts or tags it.\n\n" +
+        "score: and --kind judge a sender by its mail in the same listing; a sync that lists only new mail judges it " +
+        "from that mail. has:attachment reads Content-Type at list time: a guess, not a parse.",
     )
-    .action(async (name: string, options: MatchOptions & { do: MailAction; reason?: string; json?: boolean }) => {
-      const match = matchOf(options)
-      const rule: MailRule = {
-        match,
-        action: options.do,
-        ...(options.reason === undefined ? {} : { reason: options.reason }),
-        decided_at: new Date().toISOString(),
-      }
-      const account = accountOf(loadConfig(env), name)
-      const saved = await withStore(env, async (store) => {
-        await rulesOf(store, account, env, streams.diagnostic)
-        return saveRule(store, account.address, rule)
-      })
-      print(options.json, itemAnswer(saved), ruleLine(saved))
-    })
+    .action(
+      async (
+        name: string,
+        options: MatchOptions & { do: ReturnType<typeof actionsOf>; reason?: string; json?: boolean },
+      ) => {
+        const rule: MailRule = {
+          match: matchOf(options),
+          action: options.do.action,
+          ...(options.do.tags.length ? { tags: options.do.tags } : {}),
+          ...(options.do.protect ? { protected: true } : {}),
+          ...(options.kind === undefined ? {} : { source: `preset:${options.kind}` }),
+          ...(options.reason === undefined ? {} : { reason: options.reason }),
+          decided_at: new Date().toISOString(),
+        }
+        const account = accountOf(loadConfig(env), name)
+        const saved = await withStore(env, async (store) => {
+          await rulesOf(store, account, env, streams.diagnostic)
+          return saveRule(store, account.address, rule)
+        })
+        print(options.json, itemAnswer(saved), ruleLine(saved))
+      },
+    )
 
-  rules
-    .command("remove")
-    .description("drop the rule for a sender, domain or list")
-    .argument("<account>", "the account's name in mail.accounts, or its address")
-    .option("--sender <address>", "one sender address")
-    .option("--domain <domain>", "a sender domain")
-    .option("--list-id <id>", "a mailing list, by its List-Id")
+  MATCH_OPTIONS(
+    rules
+      .command("remove")
+      .description("drop the rule with exactly these conditions")
+      .argument("<account>", "the account's name in mail.accounts, or its address"),
+  )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (name: string, options: MatchOptions & { json?: boolean }) => {
       const match = matchOf(options)
@@ -281,6 +340,42 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           reason: "mail.rule-not-found",
         })
       print(options.json, itemAnswer({ removed: match }), `removed the rule for ${describe(match)}`)
+    })
+
+  rules
+    .command("import-filters")
+    .description("propose rules from a Takeout export's Gmail filters; --yes adds them")
+    .argument("<account>", "the account's name in mail.accounts, or its address")
+    .argument("<file>", "Takeout's Mail/User settings/Filters.json")
+    .option("--yes", "add the proposed rules; without it, only show them")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .addHelpText(
+      "after",
+      "\nA filter that skips the inbox, marks read or deletes becomes an envelope rule; one that only adds labels " +
+        "becomes a tag. A filter memo cannot express (a search query, a size, no sender) is listed as skipped.",
+    )
+    .action(async (name: string, path: string, options: { yes?: boolean; json?: boolean }) => {
+      const account = accountOf(loadConfig(env), name)
+      const proposal = importFilters(readFileSync(path, "utf8"), path)
+      const added = options.yes
+        ? await withStore(env, async (store) => {
+            await rulesOf(store, account, env, streams.diagnostic)
+            const out: MailRule[] = []
+            for (const rule of proposal.rules) out.push(await saveRule(store, account.address, rule))
+            return out.length
+          })
+        : 0
+      print(
+        options.json,
+        itemAnswer({ ...proposal, added }),
+        [
+          ...proposal.rules.map(ruleLine),
+          ...proposal.skipped.map(({ filter, why }) => `skipped  ${filter}: ${why}`),
+          options.yes
+            ? `added ${added} rules to ${account.name}`
+            : `${proposal.rules.length} rules proposed; memo mail rules import-filters ${name} ${path} --yes adds them`,
+        ].join("\n"),
+      )
     })
 
   rules
