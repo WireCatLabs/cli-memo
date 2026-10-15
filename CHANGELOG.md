@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.37.0 — 15.10.2026
+
 ### Changed — may break scripts
 
 - **Lists filter with their query, not with flags**, and the old flags are gone: `actions list --status proposed` →
