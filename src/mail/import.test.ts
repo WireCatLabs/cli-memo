@@ -808,6 +808,37 @@ describe("memo sync --only mail", () => {
     expect(await (await store(env)).mail.search("coupon")).toEqual([])
   })
 
+  it("keeps protected mail whole, records mail by label, and tags what a rule matches", async () => {
+    const { dir, env } = setup([
+      mail(1, { from: [null, "notice@tax.gov.example"], labels: ["Promotions"], text: "Synthetic tax notice" }),
+      mail(2, { from: [null, "deals@shop.example"], labels: ["Promotions"], text: "Synthetic coupon" }),
+      mail(3),
+    ])
+    const withConfig = configured(dir, env)
+    await run(["mail", "rules", "add", "test", "--domain", "gov.example", "--do", "protect"], withConfig)
+    await run(
+      ["mail", "rules", "add", "test", "--filter", "label:Promotions", "--do", "envelope,tag:promo"],
+      withConfig,
+    )
+    await expect(
+      run(["mail", "rules", "add", "test", "--domain", "gov.example", "--do", "protect,skip"], withConfig),
+    ).rejects.toThrow("choose skip, envelope, keep, protect")
+
+    await run(["sync", "--account", "test", "--since-time", "2026-09-01", "--no-embed", "--json"], withConfig)
+
+    const opened = await store(env)
+    const saved = await opened.mail.email(await opened.saveAccount(KEY, { name: ME }), "9001")
+    expect(saved?.bodyText).toContain("tax notice")
+    expect(await opened.mail.search("coupon")).toEqual([])
+    const tagged = (await opened.tags(KEY)).filter(({ tag }) => tag === "promo")
+    expect(tagged).toHaveLength(2)
+    expect(await run(["mail", "rules", "list", "test", "--filter", "is:protected"], withConfig)).toMatch(
+      /^PROTECTED\s+domain gov\.example\s/,
+    )
+    const dry = envelopeOf(await run(["mail", "rules", "apply", "test", "--json"], withConfig))
+    expect(dry.item).toMatchObject({ envelopes: 0, protected_kept: 1, tagged: 2 })
+  })
+
   it("moves the config's rules into the store on first use, keeps a backup, and counts mail recorded before", async () => {
     const { dir, env } = setup([mail(1), mail(2, { from: [null, "deals@shop.example"] })])
     const withConfig = configured(dir, env)
@@ -837,8 +868,8 @@ describe("memo sync --only mail", () => {
     const listed = answerOf(await run(["mail", "rules", "list", "test", "--json"], withConfig))
 
     expect(listed.items).toMatchObject([
-      { action: "envelope", match: { domain: "shop.example" }, recorded: { emails: 1 } },
       { action: "keep", match: { domain: "gov.example" }, protected: true },
+      { action: "envelope", match: { domain: "shop.example" }, recorded: { emails: 1 } },
     ])
     expect(JSON.parse(readFileSync(configFile, "utf8")).mail.accounts[0].rules).toBeUndefined()
     const backups = readdirSync(withConfig.MEMO_CONFIG_DIR).filter((name) => name.includes("before-rules-in-store"))

@@ -3,6 +3,8 @@ import type { AccountKey, AttachmentInput, EmailAddress, MessageStore } from "@w
 import { embedChanged, embedMailChunks, type NotesEmbedded } from "../notes/embed.js"
 import { dropMissing, tooManyGone } from "../store/gone.js"
 import { mailFolders } from "./accounts.js"
+import { knownAges } from "./domain-age.js"
+import { factsOf } from "./facts.js"
 import { mailHeadersOf } from "./headers.js"
 import { type Address, MAX_BODY_CHARS, type ParsedMail, parseMail } from "./parse.js"
 import {
@@ -18,7 +20,7 @@ import {
   rulesKey,
   within,
 } from "./resume.js"
-import { decide, ENVELOPE, envelopeBox, envelopeBoxOf, type MailRule } from "./rules.js"
+import { decide, ENVELOPE, envelopeBox, envelopeBoxOf, type MailRule, tagsOf } from "./rules.js"
 import type { Listed, MailSource, Searched } from "./source.js"
 
 export interface MailAccount {
@@ -164,6 +166,13 @@ export const importMail = async ({
     b.receivedAt.localeCompare(a.receivedAt),
   )
   const present = new Set(listed.map(({ messageId }) => messageId))
+  const factsFor = factsOf(listed, rules, env === undefined ? undefined : knownAges(env))
+  // A rule's tag goes on mail this run stores or records; mail stored earlier gets it from memo mail rules apply.
+  const tagStored = async (item: Listed) => {
+    const tags = tagsOf(rules, factsFor(item))
+    if (tags.length)
+      await store.addTags(key, { type: "message", chatId: item.threadId, messageId: item.messageId }, tags)
+  }
   const foundFolders = new Map<string, Set<string>>()
   for (const item of collected) {
     const current = foundFolders.get(item.messageId) ?? new Set<string>()
@@ -260,7 +269,7 @@ export const importMail = async ({
   const settled = new Set<string>()
   let full = false
   for (const item of listed) {
-    const rule = decide(rules, item.headers)
+    const rule = decide(rules, factsFor(item))
     const boxes = enveloped.get(item.messageId)
     // An envelope whose rule is gone or now keeps the mail is read in full; one a skip now matches stays as it is.
     if (boxes !== undefined && rule?.action !== ENVELOPE && rule?.action !== "skip") {
@@ -390,6 +399,7 @@ export const importMail = async ({
     })
     envelopes++
     settled.add(item.messageId)
+    await tagStored(item)
     await saveNow()
   }
   for (let start = 0; start < pending.length; start += FETCH_CHUNK) {
@@ -463,13 +473,14 @@ export const importMail = async ({
             mailboxes: inMailboxes(item),
             ...flagsOf(item),
             ...(upgraded.has(item.messageId) ? { metadata: {} } : {}),
-            mailRuleId: decide(rules, item.headers)?.id ?? null,
+            mailRuleId: decide(rules, factsFor(item))?.id ?? null,
             attachments: files,
           },
         ],
       })
       saved++
       settled.add(item.messageId)
+      await tagStored(item)
       const boxes = upgraded.get(item.messageId)
       if (boxes !== undefined)
         await store.mail.setMailboxes(accountId, boxes.map(envelopeBoxOf), new Map([[item.messageId, []]]), startedAt)

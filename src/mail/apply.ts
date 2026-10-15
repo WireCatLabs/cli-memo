@@ -1,7 +1,8 @@
 import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
 import { mailFolders } from "./accounts.js"
+import { factsOf } from "./facts.js"
 import type { MailAccount } from "./import.js"
-import { decide, ENVELOPE, envelopeBox, type MailRule, type MailRuleMatch, sameMatch } from "./rules.js"
+import { decide, ENVELOPE, envelopeBox, type MailRule, type MailRuleMatch, sameMatch, tagsOf } from "./rules.js"
 import type { Listed, MailSource } from "./source.js"
 
 export interface RuleEffect {
@@ -20,6 +21,10 @@ export interface ApplyResult {
   bytes: number
   /** Stored in full, matched only by a skip rule: left as stored, since removing them is another decision. */
   skipMatched: number
+  /** Stored in full, matched by a protected rule: never cut, whatever else matches. */
+  protectedKept: number
+  /** Stored emails a rule's tag was put on, or would be. */
+  tagged: number
   rules: RuleEffect[]
 }
 
@@ -48,7 +53,7 @@ export const applyRules = async ({
   const key: AccountKey = { provider: "email", account: account.address.toLowerCase() }
   const rules = account.rules ?? []
   const effects = rules
-    .filter(({ action }) => action === ENVELOPE)
+    .filter(({ action, protected: kept }) => action === ENVELOPE && !kept)
     .map((rule): RuleEffect => ({ rule, emails: 0, bytes: 0 }))
   const result: ApplyResult = {
     account: key.account,
@@ -57,9 +62,11 @@ export const applyRules = async ({
     envelopes: 0,
     bytes: 0,
     skipMatched: 0,
+    protectedKept: 0,
+    tagged: 0,
     rules: effects,
   }
-  if (effects.length === 0) return result
+  if (effects.length === 0 && !rules.some(({ tags, protected: kept }) => tags?.length || kept)) return result
   const stored = await store.storedAccount(key).catch(() => null)
   if (stored === null) return result
 
@@ -74,10 +81,19 @@ export const applyRules = async ({
       .map(({ externalId }) => externalId),
   )
   const effectOf = (match: MailRuleMatch) => effects.find(({ rule }) => sameMatch(rule.match, match)) as RuleEffect
+  const all = new Set((await store.mail.emailRefs({ accountId: stored.id })).map(({ externalId }) => externalId))
+  const factsFor = factsOf([...listed.values()], rules)
   const chosen: { item: Listed; rule: MailRule }[] = []
   for (const item of listed.values()) {
+    const facts = factsFor(item)
+    const tags = all.has(item.messageId) ? tagsOf(rules, facts) : []
+    if (tags.length) {
+      result.tagged++
+      if (apply) await store.addTags(key, { type: "message", chatId: item.threadId, messageId: item.messageId }, tags)
+    }
     if (!full.has(item.messageId)) continue
-    const rule = decide(rules, item.headers)
+    const rule = decide(rules, facts)
+    if (rule?.protected) result.protectedKept++
     if (rule?.action === "skip") result.skipMatched++
     if (rule?.action === ENVELOPE) chosen.push({ item, rule })
   }
