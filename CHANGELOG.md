@@ -13,6 +13,7 @@ the API.
   `--limit`. Before, it listed the whole window and re-read its newest `--limit` emails, so older unread
   attachments were never reached. `--json` reports `retried: {emails, extracted, still_failed, missing}`. Mail
   read from an mbox file or plain IMAP has no Gmail id, so the flag refuses there.
+- cli-core 0.293.0 and cli-base 0.35.0.
 
 ## 0.43.0 — 15.10.2026
 
