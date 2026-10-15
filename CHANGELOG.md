@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.47.0 — 16.10.2026
+
 ### Added
 
 - **`memo search mail` finds a letter by its whole link and by a part of a link**, also a tracking link that mail
