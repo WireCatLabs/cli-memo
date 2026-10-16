@@ -218,7 +218,7 @@ stored emails; tg and max read messenger messages
 
 ### `memo messages show`
 
-one stored email, whole, and the emails of its thread around it
+one stored email whole, with its attachments' text and nearby thread emails
 
 ```sh
 memo messages show <message> [options]
@@ -232,6 +232,7 @@ memo messages show <message> [options]
 |---|---|
 | `--before-n <n>` | also this many earlier emails of its thread. Default: `0`. |
 | `--after-n <n>` | also this many later emails of its thread. Default: `0`. |
+| `--full` | whole attachment text, not the first 4000 characters of each. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 ## `memo mail`

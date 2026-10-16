@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo messages show` gives each attachment's extracted text**, next to the name the email lists, so a bill's
+  amount reads in one call. Each text is cut at the first 4,000 characters; `--full` gives the whole of it. JSON
+  adds `text`, `text_chars` and `text_cut` to each attachment, or `extraction` (why there is no text: a scan
+  `needs-agent`, `unsupported`, …).
+
 ## 0.48.0 — 16.10.2026
 
 ### Added

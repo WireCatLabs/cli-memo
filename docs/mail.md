@@ -292,6 +292,10 @@ listing, at least daily, marks mail stored earlier. `--account` takes the accoun
 Gmail labels such as Inbox, Important, Starred and your own labels become mail folders, so
 `mailbox:important` finds them. See [Search](search.md#search-mail).
 
+`memo messages show <msg:email/…>` prints one email whole, with the text memo read from each attachment, such as
+a bill's PDF: the first 4,000 characters of each, or all of it with `--full`. An attachment with no text says why,
+for example `needs-agent` for a scanned page.
+
 ## What is kept
 
 - The sender, the recipients (To, CC and BCC), the subject, the date and the text of each email.
