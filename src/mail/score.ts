@@ -77,7 +77,17 @@ export const FREE_MAIL = new Set([
 const BRANDS: Record<string, string[]> = {
   paypal: ["paypal"],
   apple: ["apple", "icloud"],
-  microsoft: ["microsoft", "outlook", "office", "office365", "live", "hotmail", "azure"],
+  microsoft: [
+    "microsoft",
+    "outlook",
+    "office",
+    "office365",
+    "live",
+    "hotmail",
+    "azure",
+    "onedrive",
+    "microsoftadvertising",
+  ],
   google: ["google", "gmail", "youtube", "googlemail"],
   amazon: ["amazon", "amazonaws", "aws"],
   netflix: ["netflix"],
@@ -88,19 +98,32 @@ const BRANDS: Record<string, string[]> = {
   dhl: ["dhl"],
   fedex: ["fedex"],
   docusign: ["docusign"],
-  dropbox: ["dropbox"],
+  dropbox: ["dropbox", "dropboxmail", "hellosign"],
   binance: ["binance"],
   coinbase: ["coinbase"],
   revolut: ["revolut"],
 }
 
-/** The brand a display name claims while the address belongs to someone else, if any. */
+/** Platforms that name courses, spaces and pages after other companies: "Google Cloud" from Coursera is a course. */
+const NAMES_OTHERS = new Set(["coursera", "quora"])
+
+const named = (brand: string, text: string) => new RegExp(`\\b${brand}\\b`, "i").test(text)
+
+/**
+ * The brand a display name claims while the address belongs to someone else, if any. "Google via LinkedIn" from
+ * LinkedIn's own domain is LinkedIn passing a page on; "PayPal via Desk" from anywhere else is still judged whole.
+ */
 export const spoofedBrand = (name: string | undefined, address: string | undefined): string | undefined => {
   if (name === undefined || address === undefined) return undefined
   const label = registrableOf(address).split(".")[0] ?? ""
-  return Object.entries(BRANDS).find(
-    ([brand, owned]) => new RegExp(`\\b${brand}\\b`, "i").test(name) && !owned.includes(label),
-  )?.[0]
+  if (NAMES_OTHERS.has(label)) return undefined
+  const relay = /\s+via\s+(.+)$/i.exec(name)?.[1]
+  if (
+    relay !== undefined &&
+    Object.entries(BRANDS).some(([brand, owned]) => named(brand, relay) && owned.includes(label))
+  )
+    return undefined
+  return Object.entries(BRANDS).find(([brand, owned]) => named(brand, name) && !owned.includes(label))?.[0]
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -128,7 +151,11 @@ export const scoreGroup = (
   const signals: Signal[] = []
   const judged = items.filter((item) => item.headers?.auth?.dmarc !== undefined)
   if (most(items, (item) => item.labels?.includes("Spam"))) signals.push("spam_folder")
-  if (judged.length && most(judged, (item) => item.headers?.auth?.dmarc === "fail")) signals.push("dmarc_fail")
+  // A failure with a valid DKIM signature is a sender signing for another domain, common before 2021, not a forgery;
+  // one that passes DMARC on any of its mail is real, and its failures came by a path that breaks it.
+  const forged = (item: Listed) => item.headers?.auth?.dmarc === "fail" && item.headers.auth.dkim !== "pass"
+  if (judged.length && most(judged, forged) && !judged.some((item) => item.headers?.auth?.dmarc === "pass"))
+    signals.push("dmarc_fail")
   if (items.some((item) => spoofedBrand(item.headers?.fromName, item.headers?.from) !== undefined))
     signals.push("brand_spoof")
   const sender = items.find((item) => item.headers?.from !== undefined)?.headers?.from

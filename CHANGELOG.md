@@ -6,6 +6,15 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **The sender score in `memo mail inspect` no longer flags LinkedIn, Coursera, Quora or Dropbox Sign as brand
+  spoofs, nor senders whose DMARC failed only because they signed for another domain.** "Google via LinkedIn" from
+  LinkedIn's own domain is LinkedIn passing a page on; Coursera and Quora name courses and spaces after companies;
+  hellosign, dropboxmail, onedrive and microsoftadvertising are the brands' own domains. A DMARC failure counts only
+  without a valid DKIM signature, and not for a sender that passes DMARC on other mail. On the owner's mailbox the
+  senders at 3 or more on these signals went from 71 to 20.
+
 ### Documentation
 
 - Distinguish read-only imports from explicit Gmail cleanup and restore throughout the guides and README.
