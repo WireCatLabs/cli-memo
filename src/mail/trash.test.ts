@@ -219,7 +219,15 @@ describe("memo mail trash", () => {
     const id = trashRuns(env, "test")[0]?.id as string
     const source = himalayaSource(himalaya(env), { name: "test" })
 
-    const done = await restoreRun({ source, env, account: account([]), run: id, apply: true, now: () => NOW })
+    const done = await restoreRun({
+      store: await store(env),
+      source,
+      env,
+      account: account([]),
+      run: id,
+      apply: true,
+      now: () => NOW,
+    })
 
     expect(done).toMatchObject({ logged: 1, restored: 1 })
     expect(read()[0]?.folder).toBeUndefined()
@@ -242,19 +250,68 @@ describe("memo mail trash", () => {
     expect(read().every(({ folder }) => folder === TRASH)).toBe(true)
     const source = himalayaSource(himalaya(env), { name: "test" })
 
-    const dry = await restoreRun({ source, env, account: account([]), run, apply: false, now: () => NOW })
+    const dry = await restoreRun({
+      store: await store(env),
+      source,
+      env,
+      account: account([]),
+      run,
+      apply: false,
+      now: () => NOW,
+    })
     expect(dry).toMatchObject({ logged: 2, restored: 2, missing: 0, expired: false, applied: false })
 
-    const done = await restoreRun({ source, env, account: account([]), run, apply: true, now: () => NOW })
+    const done = await restoreRun({
+      store: await store(env),
+      source,
+      env,
+      account: account([]),
+      run,
+      apply: true,
+      now: () => NOW,
+    })
     expect(done).toMatchObject({ restored: 2, missing: 0 })
     const back = read()
     expect(back.every(({ folder }) => folder === undefined)).toBe(true)
     expect(back.find(({ uid }) => uid === "101")?.labels).toContain(INBOX)
     expect(back.find(({ uid }) => uid === "102")?.labels).toEqual(["Deals"])
     expect(trashRuns(env, "test")[0]).toMatchObject({ restored: 2 })
+    expect(await trash(env, false, rules)).toMatchObject({ candidates: 2 })
 
-    const twice = await restoreRun({ source, env, account: account([]), run, apply: true, now: () => NOW })
+    const twice = await restoreRun({
+      store: await store(env),
+      source,
+      env,
+      account: account([]),
+      run,
+      apply: true,
+      now: () => NOW,
+    })
     expect(twice).toMatchObject({ restored: 0, missing: 2 })
+  })
+
+  it("counts restored mail in the store again, so a protect rule keeps it and the rest can be trashed again", async () => {
+    const { env, read, change } = setup([mail(1), mail(2)])
+    await imported(env)
+    backedUp(env, "2026-10-03T00:00:00Z")
+    const run = (await trash(env, true)).run as string
+    const source = himalayaSource(himalaya(env), { name: "test" })
+    // Moved back by hand in Gmail, as an older memo's restore left it: the next restore still counts it again.
+    change({}, (messages) => {
+      for (const message of messages) message.folder = undefined
+    })
+    await restoreRun({ store: await store(env), source, env, account: account([]), run, apply: true, now: () => NOW })
+
+    const keepOne: MailRule = {
+      match: { from: "deals1@shop.example" },
+      action: "keep",
+      protected: true,
+      decided_at: DECIDED,
+    }
+    const again = await trash(env, true, [keepOne, envelope])
+
+    expect(again).toMatchObject({ trashed: 1, kept: { protected: 1 } })
+    expect(read().filter(({ folder }) => folder === TRASH)).toHaveLength(1)
   })
 
   it("says a run past Gmail's 30 days of Trash is expired", async () => {
@@ -264,6 +321,7 @@ describe("memo mail trash", () => {
     const run = (await trash(env, true)).run as string
     const source = himalayaSource(himalaya(env), { name: "test" })
     const later = await restoreRun({
+      store: await store(env),
       source,
       env,
       account: account([]),

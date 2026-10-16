@@ -406,6 +406,7 @@ const imapLabel = (label: string) => (SYSTEM_LABELS.has(label) ? `\\${label}` : 
 
 /** Moves a run's emails out of Gmail's Trash and puts back the labels they had; without `apply` it only counts. */
 export const restoreRun = async ({
+  store,
   source,
   env,
   account,
@@ -413,6 +414,7 @@ export const restoreRun = async ({
   apply,
   now = Date.now,
 }: {
+  store: MessageStore
   source: MailSource
   env: NodeJS.ProcessEnv
   account: { name: string; address: string }
@@ -449,8 +451,8 @@ export const restoreRun = async ({
     ((await source.find?.([...movedIds], trash)) ?? []).map(({ messageId }) => messageId as string),
   )
   result.missing = emails.length - inTrash.size
-  if (!apply || inTrash.size === 0) {
-    result.restored = apply ? 0 : inTrash.size
+  if (!apply) {
+    result.restored = inTrash.size
     return result
   }
   const labelsOf = (line: LogLine) => (line.labels as string[]) ?? []
@@ -473,7 +475,16 @@ export const restoreRun = async ({
     bySet.set(setKey, [...(bySet.get(setKey) ?? []), String(line.message_id)])
   }
   for (const [setKey, ids] of bySet) await source.label(ids, all, JSON.parse(setKey) as string[])
-  appendFileSync(log, `${JSON.stringify({ type: "restore", at: new Date(now()).toISOString(), restored })}\n`)
+  if (restored.length)
+    appendFileSync(log, `${JSON.stringify({ type: "restore", at: new Date(now()).toISOString(), restored })}\n`)
+  // Only envelopes are trashed, so there is no text to bring back. Without this the mail stays deleted in the store,
+  // unseen by the next cleanup and by protect rules, until a listing reaches back to its date. Mail found back in All
+  // Mail counts too: an older memo or Gmail's own "move to inbox" restored it without telling the store.
+  const stored = await store.storedAccount({ provider: "email", account: result.account }).catch(() => null)
+  if (stored !== null) {
+    const live = ((await source.find?.([...movedIds], all)) ?? []).map(({ messageId }) => messageId as string)
+    await store.mail.markRestored(stored.id, live, now())
+  }
   result.restored = restored.length
   return result
 }
