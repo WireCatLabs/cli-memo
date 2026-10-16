@@ -10,7 +10,7 @@ the API.
 
 - **`memo mail trash` and `restore` find Gmail's Trash by its role, not its English name.** Gmail names folders in
   the account's language, so in UK English Trash is `[Gmail]/Bin`; every move to `[Gmail]/Trash` failed and nothing
-  moved. memo now asks Gmail which folders are All Mail and Trash (RFC 6154 `\\All`, `\\Trash`).
+  moved. memo now asks Gmail which folders are All Mail and Trash (RFC 6154 `\All`, `\Trash`).
 - **A missing folder is reported as missing, not as Gmail throttling.** Gmail adds `[THROTTLED]` to answers that
   fail for other reasons (`NO [NONEXISTENT] Unknown Mailbox … [THROTTLED]`), so memo said "try again in an hour"
   for a folder that does not exist.
