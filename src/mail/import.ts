@@ -3,7 +3,7 @@ import { extractText, importEngine, type LoadEngine } from "@wirecat/cli-core/do
 import type { AccountKey, AttachmentInput, EmailAddress, MessageStore } from "@wirecat/cli-core/store"
 import { embedChanged, embedMailChunks, type NotesEmbedded } from "../notes/embed.js"
 import { dropMissing, tooManyGone } from "../store/gone.js"
-import { mailFolders } from "./accounts.js"
+import { GMAIL_ALL_MAIL, mailFolders } from "./accounts.js"
 import { BULK, bulkBox } from "./bulk.js"
 import { knownAges } from "./domain-age.js"
 import { factsOf } from "./facts.js"
@@ -178,7 +178,7 @@ export const importMail = async ({
   const key: AccountKey = { provider: "email", account: account.address.toLowerCase() }
   const accountId = await store.saveAccount(key, { name: account.address })
 
-  const folders = mailFolders(account)
+  const folders = await mailFolders(account, source)
   if (folders.length < 1 || folders.length > 50) throw new Error("select 1–50 mail folders")
   const rules = account.rules ?? []
   // An archive file is a snapshot of the same account: it adds mail, and changes nothing IMAP keeps current.
@@ -248,7 +248,8 @@ export const importMail = async ({
   const mailbox = (folder: string) => ({ externalId: folder, name: folder, kind: null })
   const label = (name: string) => ({ externalId: `label:${name}`, name, kind: "label" })
   const labelsOf = new Map(collected.flatMap((item) => (item.labels === undefined ? [] : [[item.messageId, item]])))
-  const allMailOnly = account.mode !== "imap" && folders.length === 1 && folders[0] === "[Gmail]/All Mail"
+  const allMailOnly =
+    account.mode !== "imap" && folders.length === 1 && (account.folders === undefined || folders[0] === GMAIL_ALL_MAIL)
 
   // Deletions are proved against the mailboxes as stored before this scan moves anything.
   const scope = JSON.stringify({ mode: account.mode ?? "gmail", folders: [...folders].sort() })
@@ -645,7 +646,7 @@ const retryUnread = async ({
   )
   const chosen = wanted.slice(0, max)
   const found = new Map<string, Listed>()
-  for (const folder of mailFolders(account)) {
+  for (const folder of await mailFolders(account, source)) {
     const left = chosen.filter((id) => !found.has(id))
     if (left.length === 0) break
     for (const item of await find(left, folder)) if (!found.has(item.messageId)) found.set(item.messageId, item)

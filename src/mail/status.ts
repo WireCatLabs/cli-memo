@@ -36,8 +36,13 @@ export const mailStatus = async (store: MessageStore, account: MailAccount, now 
   const stored = await store.storedAccount(key).catch(() => null)
   const refs = stored === null ? [] : await store.mail.emailRefs({ accountId: stored.id })
   const envelopes = refs.filter(({ mailboxes }) => mailboxes.some(({ kind }) => kind === ENVELOPE)).length
+  // Read from the store alone, so a Gmail account's All Mail is the folder the import stored, in its own language.
+  const storedFolders =
+    stored === null || account.folders !== undefined || account.mode === "imap"
+      ? []
+      : (await store.mail.mailboxes(stored.id)).filter(({ kind }) => kind === null).map(({ externalId }) => externalId)
   const folders: FolderStatus[] = []
-  for (const folder of mailFolders(account)) {
+  for (const folder of storedFolders.length ? storedFolders : await mailFolders(account)) {
     const point = parsePoint<ResumePoint>((await store.syncState(key, resumeKey(folder)))?.value)
     if (point === undefined) continue
     const widest = point.widest ?? { since: point.window.since, total: point.window.total, at: point.updatedAt }

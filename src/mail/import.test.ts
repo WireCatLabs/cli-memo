@@ -115,6 +115,13 @@ describe("importMail", () => {
     expect(thread).toMatchObject({ externalId: "9001", subject: "Synthetic subject 1", emailsCount: 2 })
   })
 
+  it("finds All Mail by its role when Gmail names it in another language", async () => {
+    const { env } = setup([mail(1)], { allMail: "[Gmail]/Todos" })
+
+    expect(await importInto(env)).toMatchObject({ listed: 1, saved: 1 })
+    expect((await emails(env))[0]?.mailboxes.map(({ externalId }) => externalId)).toEqual(["[Gmail]/Todos"])
+  })
+
   it("reads again by Gmail id only the emails whose attachment a missing reader left unread", async () => {
     const log = join(mkdtempSync(join(tmpdir(), "asked-")), "asked.log")
     const pdf = { name: "plan.pdf", mime: "application/pdf", content: "%PDF-1.4 synthetic" }

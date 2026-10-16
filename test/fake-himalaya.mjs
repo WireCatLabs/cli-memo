@@ -48,8 +48,10 @@ if (mailbox.fail) {
 // UK English names Trash "Bin"; a client that assumes "[Gmail]/Trash" gets what Gmail answers it.
 const TRASH = "[Gmail]/Bin"
 const MISSING = (tag, name) => `${tag} NO [NONEXISTENT] Unknown Mailbox: ${name} (Failure) [THROTTLED]`
+// Gmail names All Mail in the account's language too; `allMail` sets it for one test.
+const ALL = mailbox.allMail ?? "[Gmail]/All Mail"
 // Messages live in All Mail unless a move put them in Trash; INBOX is All Mail with the \\Inbox label, as on Gmail.
-let current = "[Gmail]/All Mail"
+let current = ALL
 const here = () => mailbox.messages.filter((m) => (current === TRASH ? m.folder === TRASH : m.folder !== TRASH))
 const isInbox = (label) => label.includes("Inbox")
 // One spelling per label, so a label put back is not counted twice: a quoted plain name is the bare atom.
@@ -64,13 +66,16 @@ if (args[0] === "imap" && args[1] === "raw") {
     const command = rest.join(" ")
     if (command.startsWith("LIST")) {
       out.push(
-        '* LIST (\\All \\HasNoChildren) "/" "[Gmail]/All Mail"',
+        `* LIST (\\All \\HasNoChildren) "/" ${JSON.stringify(ALL)}`,
         `* LIST (\\HasNoChildren \\Trash) "/" ${JSON.stringify(TRASH)}`,
         '* LIST (\\HasNoChildren \\Sent) "/" "[Gmail]/Sent Mail"',
         `${tag} OK Success [THROTTLED]`,
       )
-    } else if ((command.startsWith("EXAMINE") || command.startsWith("SELECT")) && command.endsWith('"[Gmail]/Trash"')) {
-      out.push(MISSING(tag, "[Gmail]/Trash"))
+    } else if (
+      (command.startsWith("EXAMINE") || command.startsWith("SELECT")) &&
+      ![ALL, TRASH, "INBOX"].includes(JSON.parse(command.slice(command.indexOf(" ") + 1)))
+    ) {
+      out.push(MISSING(tag, JSON.parse(command.slice(command.indexOf(" ") + 1))))
     } else if (command.startsWith("EXAMINE") || command.startsWith("SELECT")) {
       current = JSON.parse(command.slice(command.indexOf(" ") + 1))
       out.push(`* OK [UIDVALIDITY ${mailbox.validity ?? 12}] UIDs valid.`, `${tag} OK selected. (Success)`)
