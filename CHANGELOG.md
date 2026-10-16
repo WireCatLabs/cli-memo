@@ -13,6 +13,15 @@ the API.
   in `--filter` too. 0.53.0 on npm still has `--type`: it was published before this change.
 - cli-core 0.302.0.
 
+### Fixed
+
+- **`bin/release` restarts itself once when the release brings a newer `bin/release`**: folding the changelog and
+  raising the version both fast-forward `main`, and the shell went on reading the old script from the byte it had
+  reached, so the rest of the run was a mix of old and new text. It now starts the new script over with the same
+  arguments; a second change during that run stops it with `run it again`. The restart also works when
+  `bin/release` was started from another folder by a relative path. Only the repository's own release is affected;
+  the published package does not change.
+
 ## 0.53.0 — 16.10.2026
 
 ### Changed — may break scripts
