@@ -13,6 +13,13 @@ the API.
   adds `text`, `text_chars` and `text_cut` to each attachment, or `extraction` (why there is no text: a scan
   `needs-agent`, `unsupported`, …).
 
+### Fixed
+
+- **`memo search mail` with `mailbox:` or `NOT mailbox:bulk` answers in under a second**: on a 257k-email store
+  `London NOT mailbox:bulk` took 67 s and failed with `query.too-large` (cli-core 0.295.0).
+- **An email address works unquoted**: `from:alice@example.com`, `to:` and `cc:` failed with
+  `query.unsupported-operator`; cli-base 0.40.0 reads `user@host.tld` as one word.
+
 ## 0.48.0 — 16.10.2026
 
 ### Added
