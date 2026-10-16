@@ -4,7 +4,7 @@ import { momentOf } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { type Config, loadConfig } from "../config.js"
-import { oneOf, positive } from "../options.js"
+import { dayOf, oneOf, positive } from "../options.js"
 import { withImportLock } from "../run/lock.js"
 import { type MailAccountConfig, mailAccounts, mailFolders, mailSource } from "./accounts.js"
 import { type ApplyResult, applyRules } from "./apply.js"
@@ -312,20 +312,21 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       `most emails to move this run (default ${DEFAULT_LIMIT}; a first run moves at most 100)`,
       positive,
     )
+    .option("--since <date>", "only mail received on or after this day (YYYY-MM-DD); older mail stays", dayOf)
     .option("--yes", "move the mail; without it, only say what would move")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText(
       "after",
       "\nOnly mail stored as an envelope moves, and each email is decided again with today's rules and Gmail labels. " +
         "It stays when a protected or keep rule matches, you ever replied to the sender, it is starred, important, " +
-        "sent or a draft, it carries a label of yours, or it is under 30 days old. Reads the account's headers " +
-        "from the mailbox first, as memo sync does.\n\n" +
+        "sent or a draft, it carries a label of yours, or it is under 30 days old. Decides from what the last sync " +
+        "stored, and reads only the emails about to move from Gmail again.\n\n" +
         "--yes refuses until the store backup is under 8 days old (the backup script records it), writes each " +
         "email's labels to a restore log before moving it, and moves the oldest first. Gmail deletes Trash for " +
         `good after ${RESTORE_DAYS} days; until then memo mail restore brings a run back. A Google Takeout mbox of the ` +
         "mailbox is advised, not required. Never run from the timer.",
     )
-    .action(async (name: string, options: { limit?: number; yes?: boolean; json?: boolean }) => {
+    .action(async (name: string, options: { limit?: number; since?: Date; yes?: boolean; json?: boolean }) => {
       const config = loadConfig(env)
       const account = accountOf(config, name)
       const work = () =>
@@ -338,6 +339,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
             env,
             apply: options.yes === true,
             ...(options.limit === undefined ? {} : { limit: options.limit }),
+            ...(options.since === undefined ? {} : { since: options.since }),
           }),
         )
       const result = options.yes ? await withImportLock(env, work) : await work()

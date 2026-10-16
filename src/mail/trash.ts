@@ -31,6 +31,7 @@ export type KeptReason =
   | "sent"
   | "labelled"
   | "too_new"
+  | "before_since"
 
 export interface RuleTotals {
   rule: string
@@ -61,6 +62,8 @@ export interface TrashResult {
   gone: number
   kept: Partial<Record<KeptReason, number>>
   limit: number
+  /** Mail received before this day stays, whatever its rule says. */
+  since: string | null
   first_run: boolean
   archive: ArchiveCheck
   rules: RuleTotals[]
@@ -218,6 +221,7 @@ export const trashMail = async ({
   env,
   apply,
   limit = DEFAULT_LIMIT,
+  since,
   now = Date.now,
 }: {
   store: MessageStore
@@ -227,6 +231,7 @@ export const trashMail = async ({
   env: NodeJS.ProcessEnv
   apply: boolean
   limit?: number
+  since?: Date
   now?: () => number
 }): Promise<TrashResult> => {
   const started = now()
@@ -246,6 +251,7 @@ export const trashMail = async ({
     gone: 0,
     kept: {},
     limit: cap,
+    since: since === undefined ? null : since.toISOString(),
     first_run: firstRun,
     archive,
     rules: [],
@@ -277,7 +283,10 @@ export const trashMail = async ({
   const chosen: { item: Listed; rule: MailRule }[] = []
   for (const item of envelopes) {
     const rule = decide(rules, factsFor(item))
-    const reason = keptBecause(item, rule, replied, started)
+    const reason =
+      since !== undefined && Date.parse(item.receivedAt) < since.getTime()
+        ? "before_since"
+        : keptBecause(item, rule, replied, started)
     const totalsForRule = totalsOf(rule)
     if (reason !== undefined) {
       count(result.kept, reason)

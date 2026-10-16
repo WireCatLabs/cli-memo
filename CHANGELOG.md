@@ -4,6 +4,13 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- **`memo mail trash --since <YYYY-MM-DD>` leaves older mail in Gmail, whatever its rule says.** For keeping old
+  years while newer junk is cleaned up; such mail is counted as kept `before_since`, and JSON adds `since`.
+
 ## 0.51.0 — 16.10.2026
 
 ### Fixed
