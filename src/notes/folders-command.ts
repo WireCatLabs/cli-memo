@@ -1,8 +1,9 @@
 import { statSync } from "node:fs"
 import { basename, resolve } from "node:path"
 import { CliError, type Streams } from "@wirecat/cli-base"
+import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
-import { queryTerms, withQuery } from "@wirecat/cli-core/cli"
+import { LOCAL_READ, LOCAL_WRITE, queryTerms, withQuery } from "@wirecat/cli-core/cli"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { loadConfig, updateConfig } from "../config.js"
@@ -47,8 +48,7 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
     .command("folders")
     .description("folders of notes: the id links and the store use, and the path on this computer")
 
-  folders
-    .command("add")
+  annotate(folders.command("add"), { effects: LOCAL_WRITE })
     .description("give a folder of notes an id, or show the one it has")
     .argument("<path>", "the folder on this computer")
     .option("--format <format>", `how its notes are written: ${DIALECTS.join(", ")} (default: obsidian)`, formatOf)
@@ -72,8 +72,7 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
       print(options.json, itemAnswer(answer), answer.id)
     })
 
-  folders
-    .command("attach")
+  annotate(folders.command("attach"), { effects: LOCAL_WRITE })
     .description("bind a folder id from another computer to the folder's path on this one")
     .argument("<id>", "the folder's id, as memo folders add printed it")
     .argument("<path>", "the same folder on this computer")
@@ -104,7 +103,9 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
     })
 
   withQuery(
-    folders.command("list").description("folders of notes on this computer, and those the store knows from another"),
+    annotate(folders.command("list"), { effects: LOCAL_READ, output: { entity: "notes_folder" } }).description(
+      "folders of notes on this computer, and those the store knows from another",
+    ),
     FOLDERS_QUERY,
   )
     .option("--json", "print JSON; --json=id,title keeps only those fields")

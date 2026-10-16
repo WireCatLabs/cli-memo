@@ -8,11 +8,11 @@ import {
   renderError,
   type Streams,
 } from "@wirecat/cli-base"
+import { metaOf } from "@wirecat/cli-base/commands"
 import { agentResult, failureContext, judgedEffects } from "@wirecat/cli-core/cli"
 import { type Command, CommanderError } from "commander"
 import { ValiError } from "valibot"
 import { APP } from "./app.js"
-import { EFFECTS } from "./effects.js"
 import { interactiveOf, optionsOf } from "./terminal.js"
 
 const context: FailureContext = failureContext(APP.errors)
@@ -46,7 +46,7 @@ const commandOf = (program: Command | undefined, args: readonly string[]) => {
     path.push(child.name())
     at = child
   }
-  return path.join(" ") || "memo"
+  return { name: path.join(" ") || "memo", command: path.length ? at : undefined }
 }
 
 /** Parse failures reach the handler as `CommanderError` instead of Commander's own text and exit. */
@@ -68,10 +68,11 @@ export interface ReportOptions {
 export const reportFailure = (error: unknown, { args, program, streams, tty }: ReportOptions) => {
   const failure = recognisable(error)
   const flags = optionsOf(args)
-  const effects = judgedEffects(EFFECTS[commandOf(program, flags)])
+  const failed = commandOf(program, flags)
+  const effects = judgedEffects(failed.command && metaOf(failed.command).effects)
   const object = errorObjectOf(failure, { ...context, ...(effects ? { effects } : {}) })
   const record = flags.includes("--debug")
-    ? errorRecordOf(failure, object, { command: commandOf(program, flags), service: APP.command, version: APP.version })
+    ? errorRecordOf(failure, object, { command: failed.name, service: APP.command, version: APP.version })
     : undefined
   streams.diagnostic(
     renderError(object, { cli: APP.command, interactive: interactiveOf(args, tty), ...(record ? { record } : {}) }),

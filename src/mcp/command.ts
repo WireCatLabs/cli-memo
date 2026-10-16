@@ -1,11 +1,12 @@
 import { serveStdio } from "@modelcontextprotocol/server/stdio"
 import type { Streams } from "@wirecat/cli-base"
+import { annotate } from "@wirecat/cli-base/commands"
+import { LOCAL_WRITE } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { createMemoServer } from "./server.js"
 
 export const mcpCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
-  program
-    .command("mcp")
+  annotate(program.command("mcp"), { effects: LOCAL_WRITE })
     .description("serve memories, proposed actions and the agent log over MCP on stdin and stdout")
     .action(async () => {
       serveStdio(() => createMemoServer(env), { onerror: (error) => streams.diagnostic(`mcp: ${error.message}`) })

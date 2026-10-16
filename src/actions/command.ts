@@ -1,5 +1,6 @@
 import type { Streams } from "@wirecat/cli-base"
-import { withQuery } from "@wirecat/cli-core/cli"
+import { annotate } from "@wirecat/cli-base/commands"
+import { LOCAL_READ, LOCAL_WRITE, withQuery } from "@wirecat/cli-core/cli"
 import { approveAsTask } from "@wirecat/cli-core/services"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
@@ -14,7 +15,9 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     .description("what an agent proposes to do; confirming one makes it your task, nothing is sent")
 
   byOption(
-    actions.command("add").description("propose an action, such as a reply or a ban, in the account that would act"),
+    annotate(actions.command("add"), { effects: LOCAL_WRITE }).description(
+      "propose an action, such as a reply or a ban, in the account that would act",
+    ),
   )
     .argument("<kind>", "a lower-case word: reply, send, ban, mute, pin, invite, create_task, …")
     .requiredOption("--reason <text>", "why it should be done")
@@ -30,15 +33,19 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
         ),
     )
 
-  withQuery(actions.command("list").description("proposed actions, newest first"), ACTION_QUERY)
+  withQuery(
+    annotate(actions.command("list"), { effects: LOCAL_READ, output: { entity: "proposed_action" } }).description(
+      "proposed actions, newest first",
+    ),
+    ACTION_QUERY,
+  )
     .option("--limit <n>", "most actions, up to 500", positive, 100)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((words: string[], options: { limit: number; json?: boolean }) =>
       run(options.json, (store) => listActions(store, words, options.limit)),
     )
 
-  actions
-    .command("show")
+  annotate(actions.command("show"), { effects: LOCAL_READ })
     .description("one proposed action, with its payload")
     .argument("<id>", "the action's id, as actions list gives it")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
@@ -46,8 +53,7 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
       run(options.json, async (store) => itemAnswer(await store.proposedActions.get(id))),
     )
 
-  actions
-    .command("confirm")
+  annotate(actions.command("confirm"), { effects: LOCAL_WRITE })
     .description("confirm it: it becomes a task in the account that would act; nothing is sent")
     .argument("<id>", "the action's id, as actions list gives it")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
@@ -55,8 +61,7 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
       run(options.json, async (store) => itemAnswer(await approveAsTask(store, id))),
     )
 
-  actions
-    .command("reject")
+  annotate(actions.command("reject"), { effects: LOCAL_WRITE })
     .description("reject it; nothing is done")
     .argument("<id>", "the action's id, as actions list gives it")
     .option("--json", "print JSON; --json=id,title keeps only those fields")

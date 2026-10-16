@@ -1,50 +1,22 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
-import { parseLocator } from "@wirecat/cli-core"
-import { withQuery } from "@wirecat/cli-core/cli"
-import { closedStateOf, storeOnlyDeps, tasksService } from "@wirecat/cli-core/services"
-import {
-  type MessageStore,
-  TASK_ROLES,
-  TASK_TYPES,
-  type TaskFields,
-  type TaskRole,
-  type TaskType,
-  WORK_TASK_TYPES,
-  type WorkTaskType,
-} from "@wirecat/cli-core/store"
+import { annotate } from "@wirecat/cli-base/commands"
+import { LOCAL_READ, LOCAL_WRITE, withQuery } from "@wirecat/cli-core/cli"
+import { closedStateOf } from "@wirecat/cli-core/services"
+import { TASK_ROLES, TASK_TYPES, type TaskRole } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
-import { APP } from "../app.js"
-import { isNoteReference } from "../notes/about.js"
 import { accountOptions, oneOf, positive } from "../options.js"
-import { heldMessage } from "../store/held.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
-import { canonicalProject } from "../vocabulary/project.js"
 import { listTasks, TASKS_LIST_QUERY } from "./list.js"
 import { taskRelationsCommand } from "./relations-command.js"
 import { sharedTaskCommands } from "./shared.js"
-
-interface FieldOptions {
-  title?: string
-  priority?: number
-  parent?: string
-  description?: string
-}
+import { type AddOptions, addTask, assignTask, closeTask, type FieldOptions, fieldsOf, updateTask } from "./tasks.js"
 
 const priorityOf = (value: string): number => {
   const number = Number(value)
   if (!Number.isInteger(number) || number < 0 || number > 4) throw new InvalidArgumentError("0 (urgent) to 4 (low)")
   return number
 }
-
-const personRef = (person: string) => (person.startsWith("person:") ? person : `person:${person}`)
-
-const fieldsOf = (options: FieldOptions): TaskFields => ({
-  ...(options.title === undefined ? {} : { title: options.title }),
-  ...(options.priority === undefined ? {} : { priority: options.priority }),
-  ...(options.parent === undefined ? {} : { parent: options.parent }),
-  ...(options.description === undefined ? {} : { description: options.description }),
-})
 
 const fieldOptions = (command: Command) =>
   command
@@ -53,15 +25,11 @@ const fieldOptions = (command: Command) =>
     .option("--parent <id>", "the parent task, in the same project")
     .option("--description <text>", "the detail, in Markdown")
 
-const assignAll = async (store: MessageStore, id: string, people: string[] | undefined) => {
-  for (const person of people ?? []) await store.tasks.assign(id, { to: personRef(person), role: "assignee" }, "owner")
-}
-
 export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const group = program.command("tasks").description("open work linked to stored messages, documents and emails")
   taskRelationsCommand(group, streams, env)
   const { print } = answers(program, streams, env)
-  fieldOptions(accountOptions(group.command("add")))
+  fieldOptions(accountOptions(annotate(group.command("add"), { effects: LOCAL_WRITE })))
     .description("add a task from a message, note or document, or one of your own in a project")
     .argument("[source]", "msg: source locator, note:<id> or document:<id>; leave out for a task in a project")
     .option(
@@ -73,89 +41,17 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .option("--assignee <person...>", "who does it: a person's UID")
     .option("--into <id>", "link the source to this task instead of opening one that may be the same job")
     .option("--new", "open the task even when one like it is open or was closed in the last 14 days")
-    .action(
-      async (
-        source: string | undefined,
-        options: AccountScope &
-          FieldOptions & {
-            type?: TaskType
-            project?: string
-            assignee?: string[]
-            into?: string
-            new?: boolean
-            json?: boolean
-          },
-      ) => {
-        await withStore(env, async (store) => {
-          if (source === undefined) {
-            if (options.project === undefined || options.title === undefined)
-              throw new CliError("validation_error", "a task without a source needs --project and --title")
-            if (options.into !== undefined || options.new)
-              throw new CliError("validation_error", "--into and --new are for a task from a source")
-            const type = options.type ?? "chore"
-            if (!(WORK_TASK_TYPES as readonly string[]).includes(type))
-              throw new CliError("validation_error", `a task in a project is ${WORK_TASK_TYPES.join(", ")}`)
-            const task = await store.tasks.create(
-              {
-                project: await canonicalProject(store, options.project),
-                title: options.title,
-                type: type as WorkTaskType,
-                ...fieldsOf(options),
-              },
-              "owner",
-            )
-            await assignAll(store, task.id, options.assignee)
-            print(options.json, itemAnswer(await store.tasks.details(task.id)))
-            return
-          }
-          if (options.project !== undefined)
-            throw new CliError(
-              "validation_error",
-              "a task from a source goes in its account; --project is for one without",
-            )
-          const type = options.type ?? "request"
-          if ((WORK_TASK_TYPES as readonly string[]).includes(type))
-            throw new CliError("validation_error", "a bug, feature or chore has no source: give --project and --title")
-          const native = isNoteReference(source.trim())
-          const parsed = native ? undefined : parseLocator(source)
-          if (
-            parsed &&
-            ((options.provider && options.provider !== parsed.provider) ||
-              (options.account && options.account !== parsed.account))
-          )
-            throw new CliError("validation_error", "locator and selected account disagree")
-          const key = parsed
-            ? { provider: parsed.provider, account: parsed.account }
-            : await selectAccount(store, options)
-          if (
-            parsed &&
-            parsed.provider !== "notes" &&
-            (await heldMessage(store, key, parsed.message, parsed.chat)) === undefined
-          )
-            throw new CliError("not_found", "the task source is unavailable or deleted")
-          const answer = await tasksService(storeOnlyDeps(store, key, { app: APP, env })).add(
-            source,
-            type as Exclude<TaskType, WorkTaskType>,
-            "owner",
-            undefined,
-            {
-              ...(options.into === undefined ? {} : { attach: options.into }),
-              ...(options.new ? { new: true } : {}),
-            },
-          )
-          const fields = fieldsOf(options)
-          if (Object.keys(fields).length === 0 && !options.assignee?.length) {
-            print(options.json, itemAnswer(answer))
-            return
-          }
-          await store.tasks.edit(answer.task.id, fields, "owner")
-          await assignAll(store, answer.task.id, options.assignee)
-          print(options.json, itemAnswer({ ...answer, details: await store.tasks.details(answer.task.id) }))
-        })
-      },
-    )
+    .action(async (source: string | undefined, options: AddOptions & { json?: boolean }) => {
+      await withStore(env, async (store) => {
+        print(options.json, itemAnswer(await addTask(store, env, source, options)))
+      })
+    })
   withQuery(
-    accountOptions(group.command("list").description("tasks of one account or one project, open by default")),
+    accountOptions(
+      annotate(group.command("list"), { effects: LOCAL_READ }).description(
+        "tasks of one account or one project, open by default",
+      ),
+    ),
     TASKS_LIST_QUERY,
   )
     .option("--limit <n>", "most tasks", positive, 100)
@@ -165,7 +61,9 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       })
     })
   accountOptions(
-    group.command("close").description("close a task as done or dismissed").argument("<id>", "the task's id"),
+    annotate(group.command("close"), { effects: LOCAL_WRITE })
+      .description("close a task as done or dismissed")
+      .argument("<id>", "the task's id"),
   )
     .option("--as <state>", "done or dismissed", closedStateOf, "done")
     .option("--reason <text>", "why it is closed")
@@ -175,26 +73,15 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         options: AccountScope & { as: ReturnType<typeof closedStateOf>; reason?: string; json?: boolean },
       ) => {
         await withStore(env, async (store) => {
-          if ((await store.tasks.get(id)) === undefined) {
-            const reason = options.reason === undefined ? {} : { reason: options.reason }
-            print(options.json, itemAnswer(await store.tasks.edit(id, { status: options.as, ...reason }, "owner")))
-            return
-          }
-          const key = await selectAccount(store, options)
-          print(
-            options.json,
-            itemAnswer(
-              await tasksService(storeOnlyDeps(store, key, { app: APP, env })).close(id, {
-                as: options.as,
-                by: "owner",
-                ...(options.reason === undefined ? {} : { reason: options.reason }),
-              }),
-            ),
-          )
+          print(options.json, itemAnswer(await closeTask(store, env, id, options)))
         })
       },
     )
-  fieldOptions(group.command("update").description("change a task's title, priority, parent or description"))
+  fieldOptions(
+    annotate(group.command("update"), { effects: LOCAL_WRITE }).description(
+      "change a task's title, priority, parent or description",
+    ),
+  )
     .argument("<id>", "the task's id or key")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (id: string, options: FieldOptions & { json?: boolean }) => {
@@ -202,11 +89,10 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       if (Object.keys(fields).length === 0)
         throw new CliError("validation_error", "give --title, --priority, --parent or --description")
       await withStore(env, async (store) => {
-        print(options.json, itemAnswer(await store.tasks.edit(id, fields, "owner")))
+        print(options.json, itemAnswer(await updateTask(store, id, fields)))
       })
     })
-  group
-    .command("assign")
+  annotate(group.command("assign"), { effects: LOCAL_WRITE })
     .description("name who works on a task")
     .argument("<id>", "the task's id or key")
     .argument("<person>", "explicit canonical person UID")
@@ -214,10 +100,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (id: string, person: string, options: { role: TaskRole; json?: boolean }) => {
       await withStore(env, async (store) => {
-        print(
-          options.json,
-          itemAnswer(await store.tasks.assign(id, { to: personRef(person), role: options.role }, "owner")),
-        )
+        print(options.json, itemAnswer(await assignTask(store, id, person, options.role)))
       })
     })
   sharedTaskCommands(program, group, streams, env)

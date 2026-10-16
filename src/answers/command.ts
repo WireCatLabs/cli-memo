@@ -1,9 +1,11 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
+import { annotate } from "@wirecat/cli-base/commands"
+import { REMOTE_READ } from "@wirecat/cli-core/cli"
 import { type ModelAdapter, type ModelTarget, modelGateway } from "@wirecat/cli-core/models"
 import type { Command } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
 import { positive } from "../options.js"
-import { type EvidenceItem, searchAccounts, unifiedSearch } from "../search/command.js"
+import { type EvidenceItem, searchAccounts, unifiedSearch } from "../search/search.js"
 import type { AccountScope } from "../store/scope.js"
 
 interface Claim {
@@ -86,8 +88,7 @@ export const answerEvidence = async (
 
 export const askCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const { print } = answers(program, streams, env)
-  program
-    .command("ask")
+  annotate(program.command("ask"), { effects: REMOTE_READ })
     .description("prepare cited evidence for your agent, or explicitly call a configured model")
     .argument("<question>", "the question, in your own words")
     .argument(

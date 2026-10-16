@@ -1,196 +1,16 @@
-import { CliError, isCliError, type Streams } from "@wirecat/cli-base"
+import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { parseLucene, type QueryNode } from "@wirecat/cli-base/query"
-import { parseLocator } from "@wirecat/cli-core"
-import {
-  type SearchAllFound,
-  type SearchedResource,
-  type SearchFound,
-  searchAll,
-  searchNotesOf,
-  searchNotesQuery,
-  searchStore,
-} from "@wirecat/cli-core/services"
-import type { AccountKey, MessageStore, Note } from "@wirecat/cli-core/store"
+import { LOCAL_READ } from "@wirecat/cli-core/cli"
+import type { SearchedResource, SearchFound } from "@wirecat/cli-core/services"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, withStore } from "../answer.js"
-import { APP } from "../app.js"
-import { loadConfig } from "../config.js"
-import { keyDocuments, keyFirst, projectOf } from "../knowledge/key-documents.js"
-import { mailAccounts } from "../mail/accounts.js"
 import { searchMemoriesCommand } from "../memories/command.js"
 import { modelHint } from "../notes/embed.js"
 import { searchText } from "../notes/search.js"
 import { positive } from "../options.js"
 import { SAVE_HELP } from "../save-help.js"
-import { type AccountScope, selectAccount } from "../store/scope.js"
-import { taskPage } from "../tasks/context.js"
 import { allAnswer, kindAnswer, notesAnswer } from "./answers.js"
-
-export interface EvidenceItem {
-  kind: "message" | "note" | "email" | "task"
-  locator: string
-  provider: string
-  account: string
-  timestamp: string
-  text: string
-  match: "structured-words" | "note-text" | "task-source"
-  source?: string
-}
-
-const CHATS_CHECKED = 500
-
-/**
- * The account memo's searches run as: its own notes, never a stored account picked for the owner. The scope comes
- * from the query alone, and every account it covers is named in the answer.
- */
-const MEMO: AccountKey = { provider: "notes", account: "internal" }
-
-export const unifiedSearch = async (
-  store: MessageStore,
-  query: string,
-  options: { keys: AccountKey[]; notes?: boolean; limit?: number; offset?: number; noteText?: string },
-): Promise<{
-  query: string
-  items: EvidenceItem[]
-  hasMore: boolean
-  nextOffset?: number
-  incomplete: boolean
-  accounts: AccountKey[]
-  coverage: unknown[]
-}> => {
-  const limit = options.limit ?? 20,
-    offset = options.offset ?? 0
-  if (!Number.isInteger(limit) || limit < 1 || limit > 100 || !Number.isInteger(offset) || offset < 0 || offset > 1000)
-    throw new CliError("validation_error", "limit takes 1–100; offset takes 0–1000")
-  if ((!options.keys.length && !options.notes) || options.keys.length > 50)
-    throw new CliError("validation_error", "select 1–50 accounts, or notes")
-  const answer = options.keys.length
-    ? await searchStore(store, MEMO, {
-        text: query,
-        accounts: options.keys,
-        limit: Math.min(2000, offset + limit + 1),
-        newest: true,
-      })
-    : { items: [], hasMore: false }
-  const items: EvidenceItem[] = answer.items.map((hit) => {
-    const key = parseLocator(hit.locator)
-    return {
-      kind: key.provider === "email" ? "email" : "message",
-      locator: hit.locator,
-      provider: key.provider,
-      account: key.account,
-      timestamp: hit.timestamp,
-      text: hit.text.slice(0, 2000),
-      match: "structured-words",
-    }
-  })
-  const matched = new Set(items.map((hit) => hit.locator))
-  const coverage: unknown[] = []
-  let incomplete = answer.hasMore
-  const noteItem = (note: Note, match: EvidenceItem["match"]): EvidenceItem => ({
-    kind: "note",
-    locator: note.ref,
-    provider: "notes",
-    account: note.folderId ?? "internal",
-    timestamp: note.updatedAt,
-    text: note.text.slice(0, 2000),
-    match,
-  })
-  if (options.notes) {
-    try {
-      const notes = await searchNotesQuery(store, { text: query, limit: Math.min(500, offset + limit + 1) })
-      incomplete ||= notes.hasMore
-      items.push(...notes.items.map(({ note }) => noteItem(note, "structured-words")))
-      coverage.push({ notes: "searched" })
-    } catch (error) {
-      // A field only messages have (`from:`, `after:`) is refused by notes; the messages still answer.
-      if (!isCliError(error) || error.code !== "validation_error" || !options.keys.length) throw error
-      coverage.push({ notes: `not searched: ${error.message}` })
-      incomplete = true
-    }
-  }
-  if (options.noteText !== undefined) {
-    const notes = await store.notes.notes({
-      source: "internal",
-      search: options.noteText,
-      limit: Math.min(500, offset + limit + 1),
-    })
-    incomplete ||= notes.hasMore
-    items.push(...notes.items.map((note) => noteItem(note, "note-text")))
-  }
-  for (const item of items) matched.add(item.locator)
-  for (const key of options.keys) {
-    const taskResults = await taskPage(store, key, {
-      state: "open",
-      sources: [...matched],
-      limit: Math.min(500, offset + limit + 1),
-    })
-    incomplete ||= taskResults.hasMore
-    for (const task of taskResults.items) {
-      if (matched.has(task.source))
-        items.push({
-          kind: "task",
-          locator: `task:${task.id}`,
-          ...key,
-          timestamp: task.createdAt.toISOString(),
-          text: task.kind,
-          source: task.source,
-          match: "task-source",
-        })
-    }
-    if (key.provider === "email")
-      coverage.push({ ...key, mail: (await store.syncState(key, "mail_coverage"))?.value ?? null })
-    else {
-      // Counts, not one row per chat: an account of hundreds of chats made the rows most of an answer.
-      const chats = await store.chats(key, { limit: CHATS_CHECKED })
-      const archives = await store.chatCompleteness(
-        key,
-        chats.items.map((chat) => chat.id),
-      )
-      const count = (test: (chat: (typeof archives)[number]) => boolean) => archives.filter(test).length
-      coverage.push({
-        ...key,
-        chats: {
-          checked: archives.length,
-          more: chats.hasMore,
-          complete: count(({ state }) => state === "complete"),
-          partial: count(({ state }) => state === "partial"),
-          neverFetched: count(({ state }) => state === "unknown"),
-          behind: count(({ upToDate }) => upToDate === false),
-          withGaps: count(({ gaps }) => gaps),
-        },
-      })
-    }
-  }
-  items.sort(
-    (a, b) =>
-      b.timestamp.localeCompare(a.timestamp) || a.kind.localeCompare(b.kind) || a.locator.localeCompare(b.locator),
-  )
-  const unique = [...new Map(items.map((item) => [item.locator, item])).values()]
-  const hasMore = unique.length > offset + limit
-  return {
-    query,
-    items: unique.slice(offset, offset + limit),
-    hasMore,
-    ...(hasMore && offset + limit <= 1000 ? { nextOffset: offset + limit } : {}),
-    incomplete: incomplete || (hasMore && offset + limit > 1000),
-    accounts: options.keys,
-    coverage,
-  }
-}
-
-/** Notes are no account's: `--all` takes them with every account, `--provider notes` alone. */
-export const searchAccounts = async (
-  store: MessageStore,
-  options: AccountScope & { all?: boolean },
-): Promise<{ keys: AccountKey[]; notes: boolean }> => {
-  if (options.all && (options.provider !== undefined || options.account !== undefined))
-    throw new CliError("validation_error", "use --all alone or select one provider/account")
-  if (options.provider === "notes") return { keys: [], notes: true }
-  const messengers = (await store.accounts()).filter(({ provider }) => provider !== "notes")
-  return options.all ? { keys: messengers, notes: true } : { keys: [await selectAccount(store, options)], notes: false }
-}
+import { keyDocumentsFirst, mailAddressOf, searchEverywhere, searchKind, searchNotes } from "./search.js"
 
 const onlyOf = (value: string): SearchedResource[] => {
   const selected = value.split(",").map((part) => part.trim())
@@ -198,11 +18,6 @@ const onlyOf = (value: string): SearchedResource[] => {
     throw new InvalidArgumentError("choose messages,mail,notes, separated by commas")
   return [...new Set(selected)] as SearchedResource[]
 }
-
-const hasSource = (node: QueryNode): boolean =>
-  node.kind === "predicate"
-    ? node.field === "in"
-    : node.clauses.some(({ occur, node }) => occur !== "must_not" && hasSource(node))
 
 export type Level = "brief" | "full"
 
@@ -240,127 +55,9 @@ export const found = (item: SearchFound["items"][number], level: Level | undefin
   return lines.join("\n")
 }
 
-export interface QueryInput {
-  text: string
-  limit: number
-  exact?: boolean
-  timezone?: string
-}
-
-export interface SearchedAccount {
-  resource: SearchedResource
-  provider: string
-  account: string
-}
-
-interface EverywhereExtras {
-  accounts: SearchedAccount[]
-  tasks: (Awaited<ReturnType<typeof taskPage>>["items"][number] & { heldBy: AccountKey })[]
-  tasksIncomplete: boolean
-}
-
-/** Messages, mail and notes ranked together, with the open tasks that point at a hit and every account read. */
-export const searchEverywhere = async (
-  store: MessageStore,
-  env: NodeJS.ProcessEnv,
-  { text, limit, only, exact, timezone }: QueryInput & { only?: SearchedResource[] },
-): Promise<SearchAllFound & EverywhereExtras> => {
-  const accounts = await store.accounts()
-  // The shared search names this command only in the model hint, and the model comes from tg.
-  const messenger = { app: { ...APP, command: "tg" } }
-  let messageAccounts: AccountKey[] = []
-  const found = await searchAll(
-    store,
-    MEMO,
-    {
-      text,
-      limit,
-      env,
-      ...(only === undefined ? {} : { only }),
-      ...(exact ? { exact: true } : {}),
-      ...(timezone === undefined ? {} : { timezone }),
-    },
-    messenger,
-    async (query) => {
-      const read = await searchStore(store, MEMO, query, messenger)
-      messageAccounts = read.coverage?.accounts ?? []
-      return read
-    },
-  )
-  const searched: SearchedAccount[] = []
-  for (const resource of found.searched) {
-    if (resource === "messages")
-      searched.push(...messageAccounts.map(({ provider, account }) => ({ resource, provider, account })))
-    if (resource === "mail")
-      searched.push(
-        ...accounts
-          .filter(({ provider }) => provider === "email")
-          .map(({ provider, account }) => ({ resource, provider, account })),
-      )
-    if (resource === "notes")
-      searched.push(
-        { resource, provider: "notes", account: "internal" },
-        ...(await store.notes.folders()).map(({ id }) => ({ resource, provider: "notes", account: id })),
-      )
-  }
-  const tasks: EverywhereExtras["tasks"] = []
-  let tasksIncomplete = false
-  const sources = found.items.map((item) => item.ref)
-  for (const account of accounts) {
-    const page = await taskPage(store, account, { state: "open", sources, limit: Math.min(limit, 500) })
-    tasks.push(...page.items.map((task) => ({ ...task, heldBy: account })))
-    tasksIncomplete ||= page.hasMore
-  }
-  return {
-    ...found,
-    accounts: searched,
-    tasks: tasks.slice(0, limit),
-    tasksIncomplete: tasksIncomplete || tasks.length > limit,
-  }
-}
-
-/** One kind with all its fields: messenger messages from every messenger, or imported mail. */
-export const searchKind = async (
-  store: MessageStore,
-  kind: "messages" | "mail",
-  { text, limit, account, exact, timezone }: QueryInput & { account?: string },
-) => {
-  const held = (await store.accounts()).some(
-    ({ provider }) => provider !== "notes" && (kind === "mail" ? provider === "email" : provider !== "email"),
-  )
-  if (!held)
-    throw new CliError(
-      "not_found",
-      kind === "mail" ? "no imported mail; run memo sync --only mail" : "no stored messenger messages",
-    )
-  return searchStore(
-    store,
-    MEMO,
-    {
-      text,
-      kind,
-      ...(kind === "messages" && !hasSource(parseLucene(text).root) ? { source: "all" as const } : {}),
-      limit,
-      ...(account === undefined ? {} : { mailAccount: account }),
-      ...(exact ? { exact: true } : {}),
-      ...(timezone === undefined ? {} : { timezone }),
-    },
-    { app: APP },
-  )
-}
-
-/** The rules and `memo mail status` take an account's name; search takes it too, or the address. */
-const mailAddressOf = (env: NodeJS.ProcessEnv, account: string): string =>
-  account.includes("@")
-    ? account
-    : (mailAccounts(loadConfig(env).mail?.accounts ?? [], [account])[0]?.address ?? account)
-
 const PROJECT_HELP =
   "rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out"
 const PROJECT_ORDER_HELP = "rank the key documents of this project (id, key or project:<id>) first; nothing is left out"
-
-const keyRefs = async (store: MessageStore, project: string) =>
-  new Set((await keyDocuments(store, await projectOf(store, project))).map((item) => item.ref))
 
 export const searchCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const group = program
@@ -388,8 +85,7 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       .option("--full", "each message or email with its whole text; --json keeps the excerpt, messages show the text")
 
   queryOptions(
-    group
-      .command("all")
+    annotate(group.command("all"), { effects: LOCAL_READ, output: { entity: "hit" } })
       .description(
         "messages, mail and notes ranked together; not people, memories, projects or decisions. A kind you know " +
           "reads better with its own search, with all its fields",
@@ -424,9 +120,7 @@ content: narrows a search to the text of files, transcript: to voice transcripts
             ...(options.exact ? { exact: true } : {}),
             ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
           })
-          return options.project === undefined
-            ? found
-            : { ...found, items: keyFirst(found.items, await keyRefs(store, options.project)) }
+          return { ...found, items: await keyDocumentsFirst(store, found.items, options.project) }
         })
         if (!options.json) {
           streams.diagnostic(
@@ -450,7 +144,9 @@ content: narrows a search to the text of files, transcript: to voice transcripts
 
   for (const kind of ["messages", "mail"] as const) {
     const leaf = queryOptions(
-      group.command(kind).description(kind === "mail" ? "imported emails only" : "stored messenger messages only"),
+      annotate(group.command(kind), { effects: LOCAL_READ, output: { entity: "message", view: "hit" } }).description(
+        kind === "mail" ? "imported emails only" : "stored messenger messages only",
+      ),
     )
     if (kind === "mail")
       leaf.option(
@@ -504,7 +200,11 @@ Mail sent to many is in the mailbox bulk; NOT mailbox:bulk leaves it out, and bi
     )
   }
 
-  queryOptions(group.command("notes").description("native notes by words and, with the local model, meaning"))
+  queryOptions(
+    annotate(group.command("notes"), { effects: LOCAL_READ, output: { entity: "note", view: "hit" } }).description(
+      "native notes by words and, with the local model, meaning",
+    ),
+  )
     .addHelpText(
       "after",
       "\nsource:internal keeps the notes written in memo, source:file the notes from a folder — 'budget source:internal'." +
@@ -534,21 +234,7 @@ Mail sent to many is in the mailbox bulk; NOT mailbox:bulk leaves it out, and bi
           json?: boolean
         },
       ) => {
-        const answer = await withStore(env, async (store) => {
-          const found = await searchNotesOf(store, MEMO, words.join(" "), {
-            limit: options.limit,
-            offset: (options.page - 1) * options.limit,
-            env,
-            app: APP,
-            ...(options.filter === undefined ? {} : { filter: options.filter }),
-            ...(options.source === undefined ? {} : { accounts: options.source }),
-            ...(options.exact ? { exact: true } : {}),
-            ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
-          })
-          return options.project === undefined
-            ? found
-            : { ...found, hits: keyFirst(found.hits, await keyRefs(store, options.project)) }
-        })
+        const answer = await withStore(env, (store) => searchNotes(store, env, words.join(" "), options))
         if (answer.meaning_skipped && !options.json)
           streams.diagnostic(`Searched by words only: ${modelHint(answer.meaning_skipped)}\n`)
         for (const { source, reason } of answer.skipped) streams.diagnostic(`${source} not searched: ${reason}\n`)

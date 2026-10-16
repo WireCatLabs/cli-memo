@@ -1,5 +1,6 @@
 import { type ErrorCode, errorCodes, isCliError, type Streams } from "@wirecat/cli-base"
-import { momentOf } from "@wirecat/cli-core/cli"
+import { annotate } from "@wirecat/cli-base/commands"
+import { FETCH, momentOf } from "@wirecat/cli-core/cli"
 import { openStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError, Option } from "commander"
 import { answers, itemAnswer } from "../answer.js"
@@ -128,8 +129,7 @@ const failedReason = ([first, ...rest]: ImportRun["failed"]): string | undefined
 
 export const syncCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
-  program
-    .command("sync")
+  annotate(program.command("sync"), { effects: FETCH })
     .summary("bring notes and mail up to date in the store, only what changed")
     .description(
       "bring notes and mail up to date in the store, only what changed. Every configured folder and mail account " +

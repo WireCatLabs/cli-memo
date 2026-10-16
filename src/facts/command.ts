@@ -1,5 +1,6 @@
 import type { Streams } from "@wirecat/cli-base"
-import { withQuery } from "@wirecat/cli-core/cli"
+import { annotate } from "@wirecat/cli-base/commands"
+import { LOCAL_READ, LOCAL_WRITE, withQuery } from "@wirecat/cli-core/cli"
 import { FACT_TYPES, type Fact, MEMORY_SCOPES } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
@@ -24,7 +25,11 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   const { run } = answers(program, streams, env)
   const facts = program.command("facts").description("what happened — said, asked, decided, promised — with evidence")
 
-  byOption(facts.command("add").description("record a fact; an agent's waits as proposed until you confirm it"))
+  byOption(
+    annotate(facts.command("add"), { effects: LOCAL_WRITE, output: { entity: "fact" } }).description(
+      "record a fact; an agent's waits as proposed until you confirm it",
+    ),
+  )
     .argument("<statement...>", "what happened, in one sentence")
     .requiredOption("--kind <kind>", FACT_TYPES.join(", "), oneOf(FACT_TYPES))
     .option("--evidence <ref...>", "what shows it: msg:, note:, meeting:, person: or another reference")
@@ -54,15 +59,14 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       ),
     )
 
-  withQuery(facts.command("list").description("facts, latest first"), FACT_QUERY)
+  withQuery(annotate(facts.command("list"), { effects: LOCAL_READ }).description("facts, latest first"), FACT_QUERY)
     .option("--limit <n>", "most facts, up to 500", positive, 100)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((words: string[], { json, limit }: { limit: number; json?: boolean }) =>
       run(json, (store) => listFacts(store, words, limit)),
     )
 
-  facts
-    .command("show")
+  annotate(facts.command("show"), { effects: LOCAL_READ, output: { entity: "fact" } })
     .description("one fact with its evidence")
     .argument("<ref>", "fact:<id>")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
@@ -70,8 +74,7 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       run(options.json, async (store) => itemAnswer(factItem(await store.facts.get(ref)))),
     )
 
-  facts
-    .command("confirm")
+  annotate(facts.command("confirm"), { effects: LOCAL_WRITE, output: { entity: "fact" } })
     .description("stand behind a fact an agent proposed; a decision it supersedes stops holding")
     .argument("<ref>", "fact:<id>")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
@@ -79,8 +82,7 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       run(options.json, async (store) => itemAnswer(factItem(await store.facts.accept(ref)))),
     )
 
-  facts
-    .command("reverse")
+  annotate(facts.command("reverse"), { effects: LOCAL_WRITE, output: { entity: "fact" } })
     .description("an accepted decision no longer holds, and nothing replaced it")
     .argument("<ref>", "fact:<id>")
     .option("--json", "print JSON; --json=id,title keeps only those fields")

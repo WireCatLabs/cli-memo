@@ -1,5 +1,7 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
+import { annotate } from "@wirecat/cli-base/commands"
 import { parseLocator } from "@wirecat/cli-core"
+import { LOCAL_READ } from "@wirecat/cli-core/cli"
 import { readMail } from "@wirecat/cli-core/services"
 import type { Command } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
@@ -49,8 +51,7 @@ const attachmentText = (hit: Shown): string =>
 export const messagesCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
   const messages = program.command("messages").description("stored emails; tg and max read messenger messages")
-  messages
-    .command("show")
+  annotate(messages.command("show"), { effects: LOCAL_READ })
     .description("one stored email whole, with its attachments' text and nearby thread emails")
     .argument("<message>", "the email's msg:email/… reference, as search answers give it")
     .option("--before-n <n>", "also this many earlier emails of its thread", whole, 0)

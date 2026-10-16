@@ -1,6 +1,6 @@
 import type { ModelAdapter } from "@wirecat/cli-core/models"
 import { describe, expect, it } from "vitest"
-import type { EvidenceItem } from "../search/command.js"
+import type { EvidenceItem } from "../search/search.js"
 import { answerEvidence } from "./command.js"
 
 const evidence: EvidenceItem[] = [

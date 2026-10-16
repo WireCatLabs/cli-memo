@@ -1,6 +1,7 @@
 import { CliError, createRenderer, processStreams, type Streams } from "@wirecat/cli-base"
+import { annotate } from "@wirecat/cli-base/commands"
 import { skillCommand } from "@wirecat/cli-base/skill"
-import { entityFields } from "@wirecat/cli-core/cli"
+import { entityFields, NO_EFFECTS } from "@wirecat/cli-core/cli"
 import { Command } from "commander"
 import { actionsCommand } from "./actions/command.js"
 import { agentsCommand } from "./agents/command.js"
@@ -10,7 +11,6 @@ import { APP } from "./app.js"
 import { contextCommand } from "./context/command.js"
 import { commandsCommand } from "./discovery/command.js"
 import { doctorCommand } from "./doctor/command.js"
-import { addEffects } from "./effects.js"
 import { addExamples } from "./examples.js"
 import { factsCommand } from "./facts/command.js"
 import { jsonFields } from "./json-fields.js"
@@ -110,15 +110,16 @@ export const createProgram = ({
   doctorCommand(program, streams, env)
   program.addCommand(upgradeCommand(streams))
   commandsCommand(program, streams)
-  program.addCommand(
-    skillCommand(APP, new URL("../skills/cli-memo/SKILL.md", import.meta.url), () => ({
-      renderer: createRenderer({ format: "pretty", color: false, streams }),
-      streams,
-      env,
-    })),
-  )
+  const skill = skillCommand(APP, new URL("../skills/cli-memo/SKILL.md", import.meta.url), () => ({
+    renderer: createRenderer({ format: "pretty", color: false, streams }),
+    streams,
+    env,
+  }))
+  const show = skill.commands.find((command) => command.name() === "show")
+  // cli-base declares a local read; the text memo prints ships inside the package.
+  if (show) annotate(show, { effects: NO_EFFECTS })
+  program.addCommand(skill)
   addExamples(program)
-  addEffects(program)
   fields.install(program)
   trackAnswers(program)
 
