@@ -4,6 +4,14 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## 0.52.1 — 16.10.2026
+
+### Changed
+
+- **memo starts about a fifth faster after its first run.** It keeps Node's compiled code in a cache, in the
+  system's temporary folder (`NODE_COMPILE_CACHE` moves it): `memo --help` went from about 0.70 to 0.54 seconds.
+- cli-core 0.299.0.
+
 ## 0.52.0 — 16.10.2026
 
 ### Added
