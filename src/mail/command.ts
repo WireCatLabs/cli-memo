@@ -19,6 +19,15 @@ import { conditionKeys, describeMatch, type MailAction, type MailRule, type Mail
 import { FREE_MAIL, SCORE_RULE } from "./score.js"
 import type { Listed } from "./source.js"
 import { mailStatus, statusText } from "./status.js"
+import {
+  DEFAULT_LIMIT,
+  RESTORE_DAYS,
+  type RestoreResult,
+  restoreRun,
+  type TrashResult,
+  trashMail,
+  trashRuns,
+} from "./trash.js"
 
 interface MatchOptions {
   sender?: string
@@ -139,6 +148,54 @@ const applyText = (result: ApplyResult): string =>
       (result.applied || result.envelopes === 0 ? "" : `; memo mail rules apply ${result.account} --yes cuts them`),
   ].join("\n")
 
+const KEPT_WORDS: Record<string, string> = {
+  no_rule: "no rule matches any more",
+  protected: "protected or kept by a rule",
+  rule_changed: "the rule no longer records it",
+  replied: "you replied to the sender",
+  starred: "starred or important",
+  sent: "sent or a draft",
+  labelled: "carries a label of yours",
+  too_new: "under 30 days old",
+}
+
+const trashText = (result: TrashResult): string => {
+  const kept = Object.entries(result.kept).map(([reason, n]) => `  ${n}  ${KEPT_WORDS[reason] ?? reason}`)
+  const rows = result.rules
+    .filter(({ candidates }) => candidates > 0)
+    .slice(0, 30)
+    .map(
+      ({ rule, candidates, bytes }) =>
+        `  ${String(candidates).padStart(7)}  ${megabytes(bytes).padStart(8)} MB  ${rule}`,
+    )
+  const { backup, takeout } = result.archive
+  return [
+    `${result.envelopes} envelopes stored; ${result.candidates} may go to Gmail's Trash (${megabytes(result.bytes)} MB in Gmail), ` +
+      `${result.gone} are no longer in All Mail`,
+    ...(rows.length ? ["by rule (largest first):", ...rows] : []),
+    ...(kept.length ? ["kept in Gmail:", ...kept] : []),
+    `store backup: ${backup.at === null ? `none recorded (${backup.marker})` : `${backup.at}${backup.fresh ? "" : ", too old"}`}`,
+    `takeout: ${takeout.advised}`,
+    result.applied
+      ? `run ${result.run}: moved ${result.trashed} to Trash, ${result.not_moved} not moved; ` +
+        `memo mail restore ${result.account} --run ${result.run} --yes brings them back within ${RESTORE_DAYS} days`
+      : result.candidates === 0
+        ? "nothing to move"
+        : `memo mail trash ${result.account} --yes moves the oldest ${Math.min(result.limit, result.candidates)}` +
+          (result.first_run ? " (a first run moves at most 100, to check by hand in Gmail)" : "") +
+          (result.archive.ok ? "" : "; it refuses until a store backup under 8 days old is recorded"),
+  ].join("\n")
+}
+
+const restoreText = (result: RestoreResult): string =>
+  [
+    `run ${result.run}: ${result.logged} moved to Trash, ${result.missing} no longer there` +
+      (result.expired ? ` (over ${RESTORE_DAYS} days: Gmail has deleted them for good)` : ""),
+    result.applied
+      ? `restored ${result.restored}`
+      : `memo mail restore ${result.account} --run ${result.run} --yes moves ${result.restored} back`,
+  ].join("\n")
+
 const megabytes = (bytes: number) => (bytes / 1024 / 1024).toFixed(1)
 const percent = (value: number | null) => (value === null ? "?" : `${Math.round(value * 100)}%`)
 
@@ -244,6 +301,91 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       const account = accountOf(loadConfig(env), name)
       const status = await withStore(env, (store) => mailStatus(store, account))
       print(options.json, itemAnswer(status, { meta: { accounts: [account.name] } }), statusText(status))
+    })
+
+  mail
+    .command("trash")
+    .description("move envelope mail to Gmail's Trash, decided again; dry run unless --yes")
+    .argument("<account>", "the account's name in mail.accounts, or its address")
+    .option(
+      "--limit <n>",
+      `most emails to move this run (default ${DEFAULT_LIMIT}; a first run moves at most 100)`,
+      positive,
+    )
+    .option("--yes", "move the mail; without it, only say what would move")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .addHelpText(
+      "after",
+      "\nOnly mail stored as an envelope moves, and each email is decided again with today's rules and Gmail labels. " +
+        "It stays when a protected or keep rule matches, you ever replied to the sender, it is starred, important, " +
+        "sent or a draft, it carries a label of yours, or it is under 30 days old. Reads the account's headers " +
+        "from the mailbox first, as memo sync does.\n\n" +
+        "--yes refuses until the store backup is under 8 days old (the backup script records it), writes each " +
+        "email's labels to a restore log before moving it, and moves the oldest first. Gmail deletes Trash for " +
+        `good after ${RESTORE_DAYS} days; until then memo mail restore brings a run back. A Google Takeout mbox of the ` +
+        "mailbox is advised, not required. Never run from the timer.",
+    )
+    .action(async (name: string, options: { limit?: number; yes?: boolean; json?: boolean }) => {
+      const config = loadConfig(env)
+      const account = accountOf(config, name)
+      const work = () =>
+        withStore(env, async (store) =>
+          trashMail({
+            store,
+            source: mailSource(account, env),
+            account: { ...account, rules: await rulesOf(store, account, env, streams.diagnostic) },
+            accounts: config.mail?.accounts ?? [],
+            env,
+            apply: options.yes === true,
+            ...(options.limit === undefined ? {} : { limit: options.limit }),
+          }),
+        )
+      const result = options.yes ? await withImportLock(env, work) : await work()
+      print(options.json, itemAnswer(result, { meta: { accounts: [account.name] } }), trashText(result))
+    })
+
+  mail
+    .command("restore")
+    .description("move a cleanup run's mail back from Gmail's Trash; dry run unless --yes")
+    .argument("<account>", "the account's name in mail.accounts, or its address")
+    .requiredOption("--run <id>", "the run, as memo mail runs lists it")
+    .option("--yes", "move the mail back; without it, only say what would move")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .addHelpText(
+      "after",
+      `\nWorks for ${RESTORE_DAYS} days after the run: Gmail then deletes its Trash for good. Mail that had the Inbox ` +
+        "label goes back to the inbox, the rest to All Mail, and its labels are put back. The next sync stores it " +
+        "again under today's rules.",
+    )
+    .action(async (name: string, options: { run: string; yes?: boolean; json?: boolean }) => {
+      const account = accountOf(loadConfig(env), name)
+      const work = () =>
+        restoreRun({ source: mailSource(account, env), env, account, run: options.run, apply: options.yes === true })
+      const result = options.yes ? await withImportLock(env, work) : await work()
+      print(options.json, itemAnswer(result, { meta: { accounts: [account.name] } }), restoreText(result))
+    })
+
+  mail
+    .command("runs")
+    .description("an account's cleanup runs, how much moved, and until when restorable")
+    .argument("<account>", "the account's name in mail.accounts, or its address")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .action((name: string, options: { json?: boolean }) => {
+      const account = accountOf(loadConfig(env), name)
+      const runs = trashRuns(env, account.name)
+      print(
+        options.json,
+        wholeList("mail runs", runs),
+        runs.length === 0
+          ? "no cleanup runs"
+          : runs
+              .map(
+                ({ id, trashed, restored, ended_at, restorable_until }) =>
+                  `${id}  moved ${trashed}, restored ${restored}${ended_at === null ? ", stopped before the end" : ""}; ` +
+                  `restorable until ${restorable_until}`,
+              )
+              .join("\n"),
+      )
     })
 
   const rules = mail

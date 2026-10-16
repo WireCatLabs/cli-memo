@@ -22,6 +22,9 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "messages show": ["memo messages show 'msg:email/me%40example.com/thread/42' --before-n 2 --after-n 2"],
   "mail inspect": ["memo mail inspect personal --limit 30", "memo mail inspect work --since-time 365d --json"],
   "mail status": ["memo mail status personal", "memo mail status personal --json"],
+  "mail trash": ["memo mail trash personal", "memo mail trash personal --yes --limit 100"],
+  "mail restore": ["memo mail restore personal --run 2026-10-16T09-00-00-000Z-ab12 --yes"],
+  "mail runs": ["memo mail runs personal", "memo mail runs personal --json"],
   "mail rules list": ["memo mail rules list personal --json", "memo mail rules list personal --filter is:protected"],
   "mail rules add": [
     "memo mail rules add personal --domain news.example --do envelope,tag:newsletter --reason 'newsletters'",

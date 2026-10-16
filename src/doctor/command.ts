@@ -10,6 +10,7 @@ import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { APP } from "../app.js"
 import { type Config, configPath, loadConfig } from "../config.js"
+import { archiveCheck, RESTORE_DAYS, trashRuns } from "../mail/trash.js"
 import { noteFolders } from "../notes/folders.js"
 import { autoState, lastAutoRun } from "../run/auto.js"
 import { installer } from "../update.js"
@@ -85,6 +86,34 @@ export const diagnose = async (env: NodeJS.ProcessEnv) => {
     if ("exists" in account && !account.exists)
       problems.push({ what: `the mbox file of mail account ${account.name} is missing`, fix: "check mail.accounts" })
 
+  const now = Date.now()
+  const cleanup = (config.mail?.accounts ?? [])
+    .filter(({ mode }) => mode === undefined || mode === "gmail")
+    .map((account) => {
+      const archive = archiveCheck(env, account, config.mail?.accounts ?? [], now)
+      const runs = trashRuns(env, account.name)
+      for (const run of runs) {
+        if (run.ended_at === null)
+          problems.push({
+            what: `cleanup run ${run.id} of ${account.name} stopped before the end`,
+            fix: `memo mail trash ${account.name} --yes continues; memo mail restore ${account.name} --run ${run.id} undoes`,
+          })
+        const left = Date.parse(run.restorable_until) - now
+        if (run.trashed > run.restored && left > 0 && left < 5 * 86_400_000)
+          problems.push({
+            what: `cleanup run ${run.id} of ${account.name} can be restored only until ${run.restorable_until}`,
+            fix: `memo mail restore ${account.name} --run ${run.id} --yes, if anything should come back`,
+          })
+      }
+      return {
+        account: account.name,
+        backup: archive.backup,
+        takeout_imported: archive.takeout.imported,
+        runs: runs.length,
+        restorable: runs.filter(({ restorable_until }) => Date.parse(restorable_until) > now).length,
+      }
+    })
+
   const modelDir = join(sharedModelsDirectory("text", env), TEXT_MODEL)
   const model = existsSync(modelDir) && readdirSync(modelDir).length > 0
 
@@ -125,7 +154,7 @@ export const diagnose = async (env: NodeJS.ProcessEnv) => {
     cache: paths.cache,
     store,
     notes: folders,
-    mail: { accounts, himalaya },
+    mail: { accounts, himalaya, cleanup },
     search_model: { name: TEXT_MODEL, path: modelDir, present: model },
     timer: { enabled: state.enabled, every: state.every, unit: unit ? unitFile : null, runs, failing },
     skills,
@@ -159,6 +188,12 @@ export const doctorText = (d: Diagnosis): string =>
           : ""),
     ),
     ...(d.mail.accounts.some(({ mode }) => mode !== "mbox") ? [`himalaya   ${d.mail.himalaya ?? "not found"}`] : []),
+    ...d.mail.cleanup.map(
+      (c) =>
+        `cleanup    ${c.account}: store backup ${c.backup.at ?? "none recorded"}${c.backup.at && !c.backup.fresh ? " (over 8 days)" : ""}, ` +
+        `${c.takeout_imported ? "Takeout mbox imported" : "no Takeout mbox (advised before trashing)"}, ` +
+        `${c.runs} runs, ${c.restorable} restorable within ${RESTORE_DAYS} days`,
+    ),
     `search     ${d.search_model.name} ${d.search_model.present ? "present" : "not downloaded — search is by words"}`,
     `timer      ${d.timer.enabled ? `on, every ${d.timer.every}` : "off"}`,
     ...d.skills.map((s) => `skill      ${s.path} ${s.version === null ? "(not installed)" : `(${s.version})`}`),

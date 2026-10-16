@@ -1,5 +1,14 @@
 import { CliError } from "@wirecat/cli-base"
-import { type Listed, listAllMail, listImapMail, type Searched, searchMail, uidsOfMessages } from "./gmail.js"
+import {
+  addLabels,
+  type Listed,
+  listAllMail,
+  listImapMail,
+  moveMessages,
+  type Searched,
+  searchMail,
+  uidsOfMessages,
+} from "./gmail.js"
 import type { Himalaya } from "./himalaya.js"
 import type { FileStamp } from "./resume.js"
 
@@ -24,6 +33,10 @@ export interface MailSource {
    * out. Absent where messages have no Gmail id: a file, or plain IMAP.
    */
   find?(messageIds: readonly string[], folder: string): Promise<Listed[]>
+  /** Moves messages by Gmail id between folders on the server; ids `from` does not hold come back as missing. */
+  move?(messageIds: readonly string[], from: string, to: string): Promise<{ moved: string[]; missing: string[] }>
+  /** Puts labels back on messages in `folder`, by Gmail id. */
+  label?(messageIds: readonly string[], folder: string, labels: readonly string[]): Promise<void>
   /** Each item's raw RFC 5322 bytes, in order; one that could not be read is an Error, not a failed call. */
   fetchRaw(items: Listed[]): Promise<(Uint8Array | Error)[]>
 }
@@ -114,6 +127,10 @@ export const himalayaSource = (
             const listed = await listAllMail(run, account.name, new Date(0), folder, false, { uids })
             return listed.map((item) => ({ ...item, folder }))
           },
+          move: (messageIds: readonly string[], from: string, to: string) =>
+            moveMessages(run, account.name, messageIds, from, to),
+          label: (messageIds: readonly string[], folder: string, labels: readonly string[]) =>
+            addLabels(run, account.name, messageIds, folder, labels),
         }
       : {}),
 

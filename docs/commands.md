@@ -273,6 +273,62 @@ memo mail status <account> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+### `memo mail trash`
+
+move envelope mail to Gmail's Trash, decided again; dry run unless --yes
+
+This command can send data to the configured AI provider.
+
+```sh
+memo mail trash <account> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `account` | required | the account's name in mail.accounts, or its address. |
+
+| Option | What it does |
+|---|---|
+| `--limit <n>` | most emails to move this run (default 5000; a first run moves at most 100). |
+| `--yes` | move the mail; without it, only say what would move. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+### `memo mail restore`
+
+move a cleanup run's mail back from Gmail's Trash; dry run unless --yes
+
+This command can send data to the configured AI provider.
+
+```sh
+memo mail restore <account> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `account` | required | the account's name in mail.accounts, or its address. |
+
+| Option | What it does |
+|---|---|
+| `--run <id>` | the run, as memo mail runs lists it. |
+| `--yes` | move the mail back; without it, only say what would move. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+### `memo mail runs`
+
+an account's cleanup runs, how much moved, and until when restorable
+
+```sh
+memo mail runs <account> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `account` | required | the account's name in mail.accounts, or its address. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
 ### `memo mail rules`
 
 the owner's decisions on which mail to keep, record, skip, tag or protect

@@ -12,7 +12,11 @@ describe("command effects", () => {
     expect(Object.keys(EFFECTS).filter((path) => !commands.some(([at]) => at === path))).toEqual([])
   })
 
-  it("never claim a remote write: memo only reads the mail server and the model", () => {
-    expect(Object.entries(EFFECTS).filter(([, effects]) => effects.remote === "write")).toEqual([])
+  it("write to the mail server only to move mail to Gmail's Trash and back", () => {
+    expect(
+      Object.entries(EFFECTS)
+        .filter(([, effects]) => effects.remote === "write")
+        .map(([name]) => name),
+    ).toEqual(["mail trash", "mail restore"])
   })
 })
