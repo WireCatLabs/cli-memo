@@ -8,10 +8,12 @@ the API.
 
 ### Changed — may break scripts
 
-- **`memo search notes` takes the note type in the query: `'budget type:internal'`, not `--type internal`.**
-  `type:file` keeps the notes from folders. `--type` is gone, with no alias. The field works under OR and NOT and
-  in `--filter` too. 0.53.0 on npm still has `--type`: it was published before this change.
-- cli-core 0.302.0.
+- **`memo search notes` takes the note's source in the query: `'budget source:internal'`, not `--type internal`.**
+  `source:file` keeps the notes from folders. `--type` is gone, with no alias. The field is named `source:` as in
+  `memo notes list` and the note's `source` in `--json`. It works under OR and NOT and in `--filter` too. The
+  `--source notes:<folder id>` option still chooses which folders are read. 0.53.0 on npm still has `--type`: it was
+  published before this change.
+- cli-core 0.303.0.
 
 ### Fixed
 

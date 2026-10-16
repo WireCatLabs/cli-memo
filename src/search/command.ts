@@ -507,7 +507,8 @@ Mail sent to many is in the mailbox bulk; NOT mailbox:bulk leaves it out, and bi
   queryOptions(group.command("notes").description("native notes by words and, with the local model, meaning"))
     .addHelpText(
       "after",
-      "\ntype:internal keeps the notes written in memo, type:file the notes from a folder — 'budget type:internal'." +
+      "\nsource:internal keeps the notes written in memo, source:file the notes from a folder — 'budget source:internal'." +
+        "\n--source notes:<folder id> is different: it chooses which notes accounts are read." +
         "\ntag: in --filter keeps the notes with that tag and leaves the search by meaning as it is — --filter 'tag:work'." +
         "\n--json: each note's reference is ref (note: or document:).",
     )
