@@ -4,6 +4,14 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- **Release scripts report observed lock holders separately from stale release labels.** Shared
+  diagnostics no longer attribute a live lock to a previous run; wait for the holders to finish, then
+  retry.
+
 ## 0.47.0 — 16.10.2026
 
 ### Added
