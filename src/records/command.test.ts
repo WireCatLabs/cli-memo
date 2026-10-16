@@ -28,7 +28,7 @@ beforeEach(async () => {
   }
   const store = await openStore({ env })
   try {
-    await store.saveAccount(account, { name: "Alice Example" })
+    await store.accounts.saveAccount(account, { name: "Alice Example" })
   } finally {
     await store.close()
   }

@@ -45,10 +45,10 @@ beforeEach(async () => {
   const store = await openStore({ env })
   const tg = { provider: "telegram", account: "1" }
   const mail = { provider: "email", account: "owner@example.test" }
-  await store.saveMessages(tg, "chat-101", [message("1", "101", "Rin Example")], { via: "test" })
-  await store.saveMessages(tg, "chat-102", [message("2", "102", "Kai Sample")], { via: "test" })
-  await store.saveMessages(tg, "chat-103", [message("3", "103", "Kai Sample")], { via: "test" })
-  await store.saveMessages(mail, "t1", [message("m1", "rin@example.test", "Rin Example")], { via: "test" })
+  await store.messages.saveMessages(tg, "chat-101", [message("1", "101", "Rin Example")], { via: "test" })
+  await store.messages.saveMessages(tg, "chat-102", [message("2", "102", "Kai Sample")], { via: "test" })
+  await store.messages.saveMessages(tg, "chat-103", [message("3", "103", "Kai Sample")], { via: "test" })
+  await store.messages.saveMessages(mail, "t1", [message("m1", "rin@example.test", "Rin Example")], { via: "test" })
   await store.close()
 })
 
@@ -63,7 +63,7 @@ describe("memo note", () => {
 
   it("keeps the note for the person, whichever of their identities names them", async () => {
     const store = await openStore({ env })
-    await store.linkIdentities(
+    await store.people.linkIdentities(
       { provider: "telegram", id: "101" },
       { provider: "email", id: "rin@example.test" },
       { method: "manual", by: "owner" },
@@ -82,7 +82,7 @@ describe("memo note", () => {
 
   it("moves the old people-notes.json into the store once the note is imported", async () => {
     const store = await openStore({ env })
-    const uid = (await store.personOf({ provider: "telegram", id: "101" }))?.uid as string
+    const uid = (await store.people.personOf({ provider: "telegram", id: "101" }))?.uid as string
     await store.close()
     mkdirSync(env.MEMO_CONFIG_DIR as string, { recursive: true })
     writeFileSync(

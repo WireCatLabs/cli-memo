@@ -57,7 +57,7 @@ describe("read-only email attachment sources", () => {
       const locator = formatLocator({ ...key, chat: "7001", message: "9001" })
       const note = await store.knowledge.addAnnotation(key, { type: "message", locator }, "Own analysis")
       expect((await importMail(input)).deleted).toBe(0)
-      const { id } = await store.storedAccount(key)
+      const { id } = await store.accounts.storedAccount(key)
       expect((await store.mail.email(id, "9001"))?.attachments[0]).toMatchObject({
         name: "budget.csv",
         providerRef: { message: "9001", part: 0 },

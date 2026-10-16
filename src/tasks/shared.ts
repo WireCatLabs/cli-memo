@@ -49,7 +49,7 @@ const requireAccount = (env: NodeJS.ProcessEnv) => async (_: Command, command: C
     return
   const store = await openStore({ env })
   try {
-    const listed = (await store.accounts())
+    const listed = (await store.accounts.accounts())
       .filter((key) => !NOT_MESSENGERS.has(key.provider))
       .map((key) => `--provider ${key.provider} --account ${key.account}`)
       .join("; ")

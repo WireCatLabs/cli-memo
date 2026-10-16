@@ -13,10 +13,10 @@ it("creates native note tasks through the CLI and connects context, search, assi
   const env = { ...process.env, MESSAGING_STORE: join(root, "store.db") }
   const key = { provider: "telegram", account: "1" }
   const store = await openStore({ env })
-  await store.saveAccount(key, { name: null })
-  await store.saveAccount({ ...key, account: "2" }, { name: null })
-  await store.savePeople(key, [{ id: "101", name: "Synthetic Person" }])
-  const person = await store.personOf({ provider: key.provider, id: "101" })
+  await store.accounts.saveAccount(key, { name: null })
+  await store.accounts.saveAccount({ ...key, account: "2" }, { name: null })
+  await store.people.savePeople(key, [{ id: "101", name: "Synthetic Person" }])
+  const person = await store.people.personOf({ provider: key.provider, id: "101" })
   await store.close()
   const run = async (...args: string[]) => {
     const streams = captureStreams()
@@ -96,9 +96,9 @@ it("adds a bug to a project with its fields and assignee, updates, lists and clo
   const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-work-tasks-")), "store.db") }
   const key = { provider: "telegram", account: "1" }
   const store = await openStore({ env })
-  await store.saveAccount(key, { name: null })
-  await store.savePeople(key, [{ id: "101", name: "Bob Sample" }])
-  const person = await store.personOf({ provider: key.provider, id: "101" })
+  await store.accounts.saveAccount(key, { name: null })
+  await store.people.savePeople(key, [{ id: "101", name: "Bob Sample" }])
+  const person = await store.people.personOf({ provider: key.provider, id: "101" })
   await store.close()
   const run = async (...args: string[]) => {
     const streams = captureStreams()

@@ -20,7 +20,7 @@ export const noteCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       await withStore(env, async (store) => {
         const folders = await boundFolders(store, env, { strict: false })
         await importNotesMap(store, env, folders)
-        const person = await store.personOf(await identityOf(store, identity))
+        const person = await store.people.personOf(await identityOf(store, identity))
         if (person === undefined)
           throw new CliError("not_found", `the store has no person for "${identity}"`, {
             reason: "person.not-found",

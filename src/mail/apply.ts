@@ -70,7 +70,7 @@ export const applyRules = async ({
     rules: effects,
   }
   if (effects.length === 0 && !rules.some(({ tags, protected: kept }) => tags?.length || kept)) return result
-  const stored = await store.storedAccount(key).catch(() => null)
+  const stored = await store.accounts.storedAccount(key).catch(() => null)
   if (stored === null) return result
 
   const listed = new Map<string, Listed>()

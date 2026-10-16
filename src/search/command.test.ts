@@ -26,8 +26,8 @@ it("searches three typed resources together, separates mail and messages, and fi
     forwardedFrom: null,
     reactions: null,
   }
-  await store.saveMessages({ provider: "telegram", account: "1" }, "7", [message], { via: "test" })
-  await store.saveMessages({ provider: "email", account: "mailbox" }, "7", [message], { via: "test" })
+  await store.messages.saveMessages({ provider: "telegram", account: "1" }, "7", [message], { via: "test" })
+  await store.messages.saveMessages({ provider: "email", account: "mailbox" }, "7", [message], { via: "test" })
   const internal = await store.notes.addNote({ text: "Sharedsignal internal" })
   const folder = await store.notes.addFolder({ name: "Unbound synthetic folder" })
   const file = await store.notes.saveFileNote({
@@ -36,7 +36,7 @@ it("searches three typed resources together, separates mail and messages, and fi
     title: "Plan",
     text: "Sharedsignal file",
   })
-  await store.saveAccount({ provider: "notes", account: "synthetic-legacy" }, { name: null })
+  await store.accounts.saveAccount({ provider: "notes", account: "synthetic-legacy" }, { name: null })
   await store.tasks.insert({
     id: "legacy-note-task",
     source: file.note.ref,
@@ -115,7 +115,7 @@ it("searches every mail account, or with --account only that address", async () 
     reactions: null,
   }
   for (const account of ["alice@example.com", "bob@example.com"])
-    await store.saveMessages({ provider: "email", account }, "7", [message], { via: "test" })
+    await store.messages.saveMessages({ provider: "email", account }, "7", [message], { via: "test" })
   await store.close()
   const run = async (...args: string[]) => {
     const streams = captureStreams()
@@ -149,7 +149,10 @@ it("shows each email reference first, with its people, labels, subject and an ex
   const root = mkdtempSync(join(tmpdir(), "memo-mail-detail-"))
   const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
   const store = await openStore({ env })
-  const accountId = await store.saveAccount({ provider: "email", account: "owner@example.com" }, { name: null })
+  const accountId = await store.accounts.saveAccount(
+    { provider: "email", account: "owner@example.com" },
+    { name: null },
+  )
   const body = `${"Notes from the planning call. ".repeat(12)}The offsite budget is approved.`
   await store.mail.saveThread({
     accountId,
@@ -215,7 +218,7 @@ it("narrows a search to the text of files with content:, in search messages and 
   const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
   const key = { provider: "telegram", account: "1" }
   const store = await openStore({ env })
-  await store.saveMessages(
+  await store.messages.saveMessages(
     key,
     "7",
     [
@@ -236,8 +239,8 @@ it("narrows a search to the text of files with content:, in search messages and 
     ],
     { via: "test" },
   )
-  const [file] = await store.fileAttachments(key, { limit: 10 })
-  await store.keepAttachmentText(file?.pk as number, {
+  const [file] = await store.attachments.fileAttachments(key, { limit: 10 })
+  await store.attachments.keepAttachmentText(file?.pk as number, {
     text: "Synthetic invoice 42",
     origin: "agent",
     extractor: "agent",
@@ -277,7 +280,7 @@ it("search all runs as no stored account and names every account it read", async
     { provider: "max", account: "2" },
     { provider: "telegram", account: "1" },
   ])
-    await store.saveMessages(key, "7", [message], { via: "test" })
+    await store.messages.saveMessages(key, "7", [message], { via: "test" })
   const folder = await store.notes.addFolder({ name: "Synthetic folder" })
   await store.close()
   const streams = captureStreams()

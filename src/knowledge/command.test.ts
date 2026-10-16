@@ -36,7 +36,7 @@ describe("combined evidence, relationships and local reminders", () => {
       forwardedFrom: null,
       reactions: null,
     })
-    await store.applyDelta(key, {
+    await store.sync.applyDelta(key, {
       chats: [chat("101", "dialog"), chat("77", "group")],
       people: [
         { id: "101", name: "Rin Synthetic" },
@@ -47,8 +47,8 @@ describe("combined evidence, relationships and local reminders", () => {
         ["77", ["1", "101", "202"]],
       ]),
     })
-    await store.saveMessages(key, "101", [message("1", "101", "101", "Synthetic budget")], { via: "test" })
-    await store.saveMessages(
+    await store.messages.saveMessages(key, "101", [message("1", "101", "101", "Synthetic budget")], { via: "test" })
+    await store.messages.saveMessages(
       key,
       "77",
       [
@@ -58,8 +58,8 @@ describe("combined evidence, relationships and local reminders", () => {
       ],
       { via: "test" },
     )
-    const person = await store.personOf({ provider: key.provider, id: "101" })
-    const legacy = await store.addContactNote(key, "101", "Existing private assessment")
+    const person = await store.people.personOf({ provider: key.provider, id: "101" })
+    const legacy = await store.people.addContactNote(key, "101", "Existing private assessment")
     await store.close()
     const run = async (...args: string[]) => {
       const streams = captureStreams()
@@ -128,7 +128,7 @@ describe("combined evidence, relationships and local reminders", () => {
     await run("reminders", "ack", reminder.id, delivery.receipt, ...scope)
     expect((await run("reminders", "poll", ...scope)).items).toEqual([])
     const second = await openStore({ env })
-    await second.saveAccount({ ...key, account: "2" }, { name: null })
+    await second.accounts.saveAccount({ ...key, account: "2" }, { name: null })
     await second.close()
     await expect(run("context", "telegram:101")).rejects.toMatchObject({ code: "validation_error" })
     expect((await run("context", "telegram:101", "--account", "1")).tasks.items).toHaveLength(3)

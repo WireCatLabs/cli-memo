@@ -10,7 +10,7 @@ import { createProgram } from "./program.js"
 const setUp = async (agent: Record<string, string>) => {
   const env = { ...process.env, ...agent, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-author-")), "s.db") }
   const store = await openStore({ env })
-  await store.saveAccount({ provider: "telegram", account: "1" }, { name: null })
+  await store.accounts.saveAccount({ provider: "telegram", account: "1" }, { name: null })
   await store.close()
   const run = async (...args: string[]) => {
     const streams = captureStreams()

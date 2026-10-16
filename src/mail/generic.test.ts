@@ -43,7 +43,7 @@ describe("generic IMAP identities", () => {
       const selected = { name: "synthetic", address: "owner@example.test", folders: ["INBOX"] }
       expect((await importMail({ ...options, account: selected })).deleted).toBe(0)
       expect((await importMail({ ...options, account: selected })).deleted).toBe(0)
-      const { id } = await store.storedAccount({ provider: "email", account: selected.address })
+      const { id } = await store.accounts.storedAccount({ provider: "email", account: selected.address })
       expect(await store.mail.email(id, "9001")).toMatchObject({ deletedAt: null, bodyText: "Synthetic source" })
     } finally {
       await store.close()

@@ -85,7 +85,7 @@ beforeEach(async () => {
       forwardedFrom: null,
       reactions: null,
     }
-    await store.saveMessages(tg, "7", [message], { via: "test" })
+    await store.messages.saveMessages(tg, "7", [message], { via: "test" })
   } finally {
     await store.close()
   }
@@ -112,8 +112,8 @@ describe("memo source tags", () => {
     await json("tags", "add", "follow-up", "--message", mailLocator())
     const store = await openStore({ env })
     try {
-      expect(await store.tags(otherMail)).toEqual([])
-      expect(await store.tags(tg)).toEqual([])
+      expect(await store.tags.tags(otherMail)).toEqual([])
+      expect(await store.tags.tags(tg)).toEqual([])
       const answer = await messagesService(storeOnlyDeps(store, mail, { app: APP, env })).search({
         text: "tag:follow-up",
         limit: 10,
@@ -205,7 +205,7 @@ describe("memo source tags", () => {
     let meetingId: number
     let accountId: number
     try {
-      accountId = await store.saveAccount(zoom, { name: "Alice Example" })
+      accountId = await store.accounts.saveAccount(zoom, { name: "Alice Example" })
       const saved = await store.meetings.saveMeeting({
         now: 3000,
         meeting: {
