@@ -1,10 +1,13 @@
 #!/usr/bin/env node
+import { enableCompileCache } from "node:module"
 import { catchCrashes, processStreams } from "@wirecat/cli-base"
 import { ensureSqlite } from "@wirecat/cli-core/sqlite-runtime"
 import { type Command, CommanderError } from "commander"
 import { APP } from "../app.js"
 import { interactiveOf } from "../terminal.js"
 
+// Compiling the program's module files is most of a start; later runs reuse what this one compiled.
+enableCompileCache()
 const args = process.argv.slice(2)
 const tty = process.stdout.isTTY === true
 const release = catchCrashes({ cli: APP.command, interactive: interactiveOf(args, tty), reasons: APP.errors.reasons })
