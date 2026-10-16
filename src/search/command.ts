@@ -199,11 +199,6 @@ const onlyOf = (value: string): SearchedResource[] => {
   return [...new Set(selected)] as SearchedResource[]
 }
 
-const noteType = (value: string): Note["source"] => {
-  if (value !== "file" && value !== "internal") throw new InvalidArgumentError("choose file or internal")
-  return value
-}
-
 const hasSource = (node: QueryNode): boolean =>
   node.kind === "predicate"
     ? node.field === "in"
@@ -512,10 +507,10 @@ Mail sent to many is in the mailbox bulk; NOT mailbox:bulk leaves it out, and bi
   queryOptions(group.command("notes").description("native notes by words and, with the local model, meaning"))
     .addHelpText(
       "after",
-      "\ntag: in --filter keeps the notes with that tag and leaves the search by meaning as it is — --filter 'tag:work'." +
+      "\ntype:internal keeps the notes written in memo, type:file the notes from a folder — 'budget type:internal'." +
+        "\ntag: in --filter keeps the notes with that tag and leaves the search by meaning as it is — --filter 'tag:work'." +
         "\n--json: each note's reference is ref (note: or document:).",
     )
-    .option("--type <type>", "file or internal", noteType)
     .option("--filter <query>", "another query every note must match")
     .option(
       "--source <accounts>",
@@ -530,7 +525,6 @@ Mail sent to many is in the mailbox bulk; NOT mailbox:bulk leaves it out, and bi
         options: {
           limit: number
           page: number
-          type?: Note["source"]
           filter?: string
           source?: string
           project?: string
@@ -545,7 +539,6 @@ Mail sent to many is in the mailbox bulk; NOT mailbox:bulk leaves it out, and bi
             offset: (options.page - 1) * options.limit,
             env,
             app: APP,
-            ...(options.type === undefined ? {} : { source: options.type }),
             ...(options.filter === undefined ? {} : { filter: options.filter }),
             ...(options.source === undefined ? {} : { accounts: options.source }),
             ...(options.exact ? { exact: true } : {}),
