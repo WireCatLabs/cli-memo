@@ -4,7 +4,7 @@ import { momentOf } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { type Config, loadConfig } from "../config.js"
-import { dayOf, oneOf, positive } from "../options.js"
+import { oneOf, positive } from "../options.js"
 import { withImportLock } from "../run/lock.js"
 import { type MailAccountConfig, mailAccounts, mailFolders, mailSource } from "./accounts.js"
 import { type ApplyResult, applyRules } from "./apply.js"
@@ -312,7 +312,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       `most emails to move this run (default ${DEFAULT_LIMIT}; a first run moves at most 100)`,
       positive,
     )
-    .option("--since <date>", "only mail received on or after this day (YYYY-MM-DD); older mail stays", dayOf)
+    .option("--since-time <time>", "only mail received from this time, ISO 8601 or 30d ago; older mail stays")
     .option("--yes", "move the mail; without it, only say what would move")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText(
@@ -326,7 +326,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         `good after ${RESTORE_DAYS} days; until then memo mail restore brings a run back. A Google Takeout mbox of the ` +
         "mailbox is advised, not required. Never run from the timer.",
     )
-    .action(async (name: string, options: { limit?: number; since?: Date; yes?: boolean; json?: boolean }) => {
+    .action(async (name: string, options: { limit?: number; sinceTime?: string; yes?: boolean; json?: boolean }) => {
       const config = loadConfig(env)
       const account = accountOf(config, name)
       const work = () =>
@@ -339,7 +339,9 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
             env,
             apply: options.yes === true,
             ...(options.limit === undefined ? {} : { limit: options.limit }),
-            ...(options.since === undefined ? {} : { since: options.since }),
+            ...(options.sinceTime === undefined
+              ? {}
+              : { since: new Date(momentOf(options.sinceTime, "--since-time")) }),
           }),
         )
       const result = options.yes ? await withImportLock(env, work) : await work()
