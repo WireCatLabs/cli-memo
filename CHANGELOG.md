@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.57.0 — 17.10.2026
+
 ### Fixed
 
 - **The sender score counts a failed DMARC check only on mail from 2022 on.** Before that, senders often published a
