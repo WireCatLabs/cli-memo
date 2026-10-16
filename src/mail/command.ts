@@ -358,13 +358,22 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .addHelpText(
       "after",
       `\nWorks for ${RESTORE_DAYS} days after the run: Gmail then deletes its Trash for good. Mail that had the Inbox ` +
-        "label goes back to the inbox, the rest to All Mail, and its labels are put back. The next sync stores it " +
-        "again under today's rules.",
+        "label goes back to the inbox, the rest to All Mail, and its labels are put back; the store counts it again, " +
+        "so a later cleanup decides it under today's rules.",
     )
     .action(async (name: string, options: { run: string; yes?: boolean; json?: boolean }) => {
       const account = accountOf(loadConfig(env), name)
       const work = () =>
-        restoreRun({ source: mailSource(account, env), env, account, run: options.run, apply: options.yes === true })
+        withStore(env, (store) =>
+          restoreRun({
+            store,
+            source: mailSource(account, env),
+            env,
+            account,
+            run: options.run,
+            apply: options.yes === true,
+          }),
+        )
       const result = options.yes ? await withImportLock(env, work) : await work()
       print(options.json, itemAnswer(result, { meta: { accounts: [account.name] } }), restoreText(result))
     })

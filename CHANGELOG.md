@@ -4,6 +4,16 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- **`memo mail restore` counts the mail it brings back in the store again.** It left the mail marked deleted, so the
+  next `memo mail trash` could not see it and picked other mail, and a new protect rule did not apply to it. Restore
+  now also counts again a run's mail found back in All Mail, so a run restored by an older memo or by hand in Gmail
+  is set right by running restore once more.
+- cli-core 0.301.0.
+
 ## 0.52.1 — 16.10.2026
 
 ### Changed
