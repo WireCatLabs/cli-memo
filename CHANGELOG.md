@@ -6,6 +6,10 @@ the API.
 
 ## Unreleased
 
+### Documentation
+
+- Distinguish read-only imports from explicit Gmail cleanup and restore throughout the guides and README.
+
 ## 0.55.0 — 17.10.2026
 
 ### Fixed

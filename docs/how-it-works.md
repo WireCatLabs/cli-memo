@@ -18,8 +18,9 @@ notes together.
 | Files in your note folders | `memo sync --only notes` or `memo sync` |
 | Your own notes, tags, tasks, memories and facts | Memo, when you or your agent add them |
 
-Memo never changes the original: your files stay as they are, and your mailbox is opened read-only.
-The local store holds a copy of their text.
+Imports leave the originals unchanged: your files stay as they are, and your mailbox is opened read-only.
+The local store holds a copy of their text. Separate [Gmail cleanup commands](mail.md#clean-up-gmail)
+move selected mail to Trash or restore it only with `--yes`; the sync timer never runs cleanup.
 
 ## What an import does
 
