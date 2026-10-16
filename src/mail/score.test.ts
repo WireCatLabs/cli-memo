@@ -81,8 +81,26 @@ describe("scoreGroup", () => {
   it("does not call a brand's own domain a spoof, and takes 5 off for a sender the owner replied to", () => {
     expect(spoofedBrand("PayPal", "service@mail.paypal.com")).toBeUndefined()
     expect(spoofedBrand("Apple Support", "help@gmail.com")).toBe("apple")
+    expect(spoofedBrand("Google via LinkedIn", "updates@linkedin.example")).toBeUndefined()
+    expect(spoofedBrand("Google via LinkedIn", "updates@link-alerts.example")).toBe("google")
+    expect(spoofedBrand("PayPal via Secure Desk", "desk@pay-secure.example")).toBe("paypal")
+    expect(spoofedBrand("Google Cloud", "no-reply@m.mail.coursera.org")).toBeUndefined()
+    expect(spoofedBrand("Dropbox Sign", "noreply@mail.hellosign.com")).toBeUndefined()
     const friend = [email(1, ["From: Bob Sample <bob@shop.example>"])]
     expect(scoreGroup(friend, { replied: true, bulk: 0, ages: none })).toEqual({ score: -5, signals: ["replied"] })
+  })
+
+  it("does not count a failed DMARC for a sender that passes it on other mail", () => {
+    const forwarded = [
+      email(1, ["From: news@shop.example", "Authentication-Results: mx.google.com; dkim=fail; dmarc=fail"]),
+      email(2, ["From: news@shop.example", "Authentication-Results: mx.google.com; dkim=fail; dmarc=fail"]),
+      email(3, ["From: news@shop.example", "Authentication-Results: mx.google.com; dkim=pass; dmarc=pass"]),
+    ]
+    expect(scoreGroup(forwarded, { replied: false, bulk: 0, ages: none }).signals).not.toContain("dmarc_fail")
+    const signedElsewhere = [1, 2].map((n) =>
+      email(n, ["From: news@shop.example", "Authentication-Results: mx.google.com; dkim=pass; dmarc=fail"]),
+    )
+    expect(scoreGroup(signedElsewhere, { replied: false, bulk: 0, ages: none }).signals).toEqual([])
   })
 
   it("counts a domain young only when it was young at the first email, and a throwaway domain", () => {
@@ -120,7 +138,7 @@ describe("scoreGroup", () => {
   it("puts the score on each probe group and asks ages only for never-replied, non-provider domains", () => {
     const probe = probeMail(
       [
-        email(1, ["From: deals@shop.example", "Authentication-Results: mx.google.com; dkim=pass; dmarc=fail"]),
+        email(1, ["From: deals@shop.example", "Authentication-Results: mx.google.com; dkim=fail; dmarc=fail"]),
         email(2, ["From: carol@gmail.com"]),
         email(3, ["From: owner@example.test", "To: dave@friend.example"], { labels: ["Sent"] }),
         email(4, ["From: dave@friend.example"]),
@@ -128,7 +146,7 @@ describe("scoreGroup", () => {
       10,
     )
     expect(probe.items.map(({ from, score }) => ({ from, score }))).toEqual([
-      { from: "deals@shop.example", score: 3 },
+      { from: "deals@shop.example", score: 5 },
       { from: "carol@gmail.com", score: 0 },
       { from: "dave@friend.example", score: -5 },
     ])
