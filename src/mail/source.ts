@@ -7,6 +7,7 @@ import {
   moveMessages,
   type Searched,
   searchMail,
+  specialFolders,
   uidsOfMessages,
   uidsPresent,
 } from "./gmail.js"
@@ -44,6 +45,8 @@ export interface MailSource {
     to: string,
     known?: ReadonlyMap<string, string>,
   ): Promise<{ moved: string[]; missing: string[] }>
+  /** All Mail and Trash under the names this account's language gives them. */
+  folders?(): Promise<{ all: string; trash: string }>
   /** Which of these UIDs `folder` still holds. */
   present?(uids: readonly string[], folder: string): Promise<string[]>
   /** Puts labels back on messages in `folder`, by Gmail id. */
@@ -140,6 +143,7 @@ export const himalayaSource = (
           },
           move: (messageIds: readonly string[], from: string, to: string, known?: ReadonlyMap<string, string>) =>
             moveMessages(run, account.name, messageIds, from, to, known),
+          folders: () => specialFolders(run, account.name),
           present: (uids: readonly string[], folder: string) => uidsPresent(run, account.name, uids, folder),
           label: (messageIds: readonly string[], folder: string, labels: readonly string[]) =>
             addLabels(run, account.name, messageIds, folder, labels),

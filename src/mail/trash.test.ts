@@ -7,12 +7,13 @@ import { himalaya } from "./himalaya.js"
 import { importMail } from "./import.js"
 import type { MailRule } from "./rules.js"
 import { himalayaSource } from "./source.js"
-import { backupMarker, restoreRun, TRASH, trashMail, trashRuns } from "./trash.js"
+import { backupMarker, restoreRun, trashMail, trashRuns } from "./trash.js"
 
 const ME = "owner@example.test"
 const NOW = Date.parse("2026-10-04T12:00:00Z")
 const DECIDED = "2026-10-01T00:00:00.000Z"
 const INBOX = '"\\\\Inbox"'
+const TRASH = "[Gmail]/Bin"
 
 interface Fixture {
   uid: string
@@ -204,6 +205,14 @@ describe("memo mail trash", () => {
 
     expect(done).toMatchObject({ logged: 1, restored: 1 })
     expect(read()[0]?.folder).toBeUndefined()
+  })
+
+  it("finds Trash by its role, and says a folder is missing rather than throttled", async () => {
+    const { env } = setup([mail(1)])
+    const source = himalayaSource(himalaya(env), { name: "test" })
+
+    expect(await source.folders?.()).toEqual({ all: "[Gmail]/All Mail", trash: TRASH })
+    await expect(source.present?.(["101"], "[Gmail]/Trash")).rejects.toThrow(/no such mailbox/)
   })
 
   it("restores a run: back to the inbox with its labels, and only once", async () => {
