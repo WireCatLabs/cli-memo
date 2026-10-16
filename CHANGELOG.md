@@ -6,11 +6,18 @@ the API.
 
 ## Unreleased
 
+## 0.57.0 — 17.10.2026
+
 ### Fixed
 
 - **The sender score counts a failed DMARC check only on mail from 2022 on.** Before that, senders often published a
   policy their own mail did not meet yet; on the owner's mailbox every failure was from 2018 to March 2021, all from
   real senders. Senders at 3 or more on the strong signals: 20 → 2, both look-alike domains.
+- **A broken config file is reported in one line** (cli-core 0.304.0, 0.307.0): the first bad key, a fixed reason
+  and a count of the rest, never a value — `config.json: updateCheck is an unknown setting; rename it to
+  update_check (and 1 more problem)`. An old camelCase key is named with its new name first.
+- **`memo mail status` finishes on a large mailbox** (cli-core 0.307.0): the per-folder count read every email
+  again for each one, minutes on a few hundred thousand emails; now seconds.
 
 ### Changed — may break scripts
 
@@ -20,14 +27,6 @@ the API.
   only `1`. `--json`, `--jsonl` and `--quiet` silence it anywhere in the command, also after `--`. `--jsonl` is new
   among them.
 - cli-core 0.307.0.
-
-### Fixed
-
-- **A broken config file is reported in one line** (cli-core 0.304.0, 0.307.0): the first bad key, a fixed reason
-  and a count of the rest, never a value — `config.json: updateCheck is an unknown setting; rename it to
-  update_check (and 1 more problem)`. An old camelCase key is named with its new name first.
-- **`memo mail status` finishes on a large mailbox** (cli-core 0.307.0): the per-folder count read every email
-  again for each one, minutes on a few hundred thousand emails; now seconds.
 
 ## 0.56.0 — 17.10.2026
 
