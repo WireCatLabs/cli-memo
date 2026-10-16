@@ -27,6 +27,12 @@ export const SCORE_RULE =
   "domain +2, none of its mail ever opened +2, Gmail's DKIM check not passed +2, a throwaway-mail domain +2, bulk mail " +
   "never replied to +1, replied to by the owner -5"
 
+/**
+ * DMARC failures before this date are not counted: senders then often published a policy their own mail did not yet
+ * meet. On the owner's mailbox every failure was from 2018 to March 2021, none later, all from real senders.
+ */
+export const DMARC_SINCE = "2022-01-01T00:00:00.000Z"
+
 /** A domain registered too recently to trust: under this many days old when the mail arrived. */
 export const YOUNG_DAYS = 180
 
@@ -149,7 +155,7 @@ export const scoreGroup = (
   context: { replied: boolean; bulk: number; ages: ReadonlyMap<string, DomainAge> },
 ): Scored => {
   const signals: Signal[] = []
-  const judged = items.filter((item) => item.headers?.auth?.dmarc !== undefined)
+  const judged = items.filter((item) => item.headers?.auth?.dmarc !== undefined && item.receivedAt >= DMARC_SINCE)
   if (most(items, (item) => item.labels?.includes("Spam"))) signals.push("spam_folder")
   // A failure with a valid DKIM signature is a sender signing for another domain, common before 2021, not a forgery;
   // one that passes DMARC on any of its mail is real, and its failures came by a path that breaks it.
