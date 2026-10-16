@@ -8,6 +8,7 @@ import {
   type Searched,
   searchMail,
   uidsOfMessages,
+  uidsPresent,
 } from "./gmail.js"
 import type { Himalaya } from "./himalaya.js"
 import type { FileStamp } from "./resume.js"
@@ -33,8 +34,18 @@ export interface MailSource {
    * out. Absent where messages have no Gmail id: a file, or plain IMAP.
    */
   find?(messageIds: readonly string[], folder: string): Promise<Listed[]>
-  /** Moves messages by Gmail id between folders on the server; ids `from` does not hold come back as missing. */
-  move?(messageIds: readonly string[], from: string, to: string): Promise<{ moved: string[]; missing: string[] }>
+  /**
+   * Moves messages by Gmail id between folders on the server; ids `from` does not hold come back as missing.
+   * `known` gives each id's UID in `from`, already read, so none is looked up again.
+   */
+  move?(
+    messageIds: readonly string[],
+    from: string,
+    to: string,
+    known?: ReadonlyMap<string, string>,
+  ): Promise<{ moved: string[]; missing: string[] }>
+  /** Which of these UIDs `folder` still holds. */
+  present?(uids: readonly string[], folder: string): Promise<string[]>
   /** Puts labels back on messages in `folder`, by Gmail id. */
   label?(messageIds: readonly string[], folder: string, labels: readonly string[]): Promise<void>
   /** Each item's raw RFC 5322 bytes, in order; one that could not be read is an Error, not a failed call. */
@@ -127,8 +138,9 @@ export const himalayaSource = (
             const listed = await listAllMail(run, account.name, new Date(0), folder, false, { uids })
             return listed.map((item) => ({ ...item, folder }))
           },
-          move: (messageIds: readonly string[], from: string, to: string) =>
-            moveMessages(run, account.name, messageIds, from, to),
+          move: (messageIds: readonly string[], from: string, to: string, known?: ReadonlyMap<string, string>) =>
+            moveMessages(run, account.name, messageIds, from, to, known),
+          present: (uids: readonly string[], folder: string) => uidsPresent(run, account.name, uids, folder),
           label: (messageIds: readonly string[], folder: string, labels: readonly string[]) =>
             addLabels(run, account.name, messageIds, folder, labels),
         }

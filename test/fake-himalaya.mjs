@@ -95,6 +95,12 @@ if (args[0] === "imap" && args[1] === "raw") {
         `* SEARCH ${uids.join(" ")}`.trimEnd(),
         `${tag} ${mailbox.searchFails ? "NO failed" : "OK SEARCH completed (Success)"}`,
       )
+    } else if (command.startsWith("UID SEARCH UID ")) {
+      const set = command.slice("UID SEARCH UID ".length).split(",")
+      const uids = here()
+        .filter((m) => set.includes(m.uid))
+        .map((m) => m.uid)
+      out.push(`* SEARCH ${uids.join(" ")}`.trimEnd(), `${tag} OK SEARCH completed (Success)`)
     } else if (command.startsWith("UID SEARCH X-GM-MSGID")) {
       const id = command.slice("UID SEARCH X-GM-MSGID ".length)
       // Which Gmail ids a retry looked up, so a test can see that nothing else was asked for.

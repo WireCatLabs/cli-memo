@@ -242,7 +242,8 @@ memo mail runs work                   # each run: how much moved, and until when
 memo mail restore work --run <id> --yes   # moves a run back, to the inbox if it was there, with its labels
 ```
 
-Each email is decided again with today's rules and Gmail labels. It stays in Gmail when a protected or keep rule
+Each email is decided again with today's rules, from what the last sync stored; only the emails about to move are
+read from Gmail again, for their labels and stars now, so a run costs Gmail little however big the mailbox is. It stays in Gmail when a protected or keep rule
 matches it, you ever replied to its sender, it is starred, important, sent or a draft, it carries a label of yours
 that its rule does not add, or it is under 30 days old. `--yes` refuses until a store backup under 8 days old is
 recorded: the backup script writes `backups/last.json` next to the store when a copy passes its check. A Google
@@ -252,7 +253,8 @@ Takeout `mbox` file of the mailbox is advised, not required, so the full text of
 Before each batch, every email's Gmail id, labels and flags go to a restore log in memo's state folder
 (`mail-trash/<account>/<run>.jsonl`). Moving to Trash takes a message out of All Mail and drops its Inbox label;
 Gmail keeps its other labels, and moving it back returns it as it was. A moved email is marked deleted in the store;
-the next sync after a restore stores it again under today's rules. Cleanup never runs from the timer.
+the next sync after a restore stores it again under today's rules. A restore brings back every email the log lists
+that Trash holds, also from a batch Gmail moved without confirming it. Cleanup never runs from the timer.
 
 ## Old mail from Google Takeout
 

@@ -60,7 +60,12 @@ const setup = (messages: Fixture[]) => {
     MEMO_STATE_DIR: join(dir, "state"),
   }
   const read = () => (JSON.parse(readFileSync(mailbox, "utf8")) as { messages: Fixture[] }).messages
-  return { env, read }
+  const change = (patch: Record<string, unknown>, edit: (messages: Fixture[]) => void = () => {}) => {
+    const messages = read()
+    edit(messages)
+    writeFileSync(mailbox, JSON.stringify({ messages, ...patch }))
+  }
+  return { env, read, change, dir }
 }
 
 const store = async (env: NodeJS.ProcessEnv) => {
@@ -164,6 +169,41 @@ describe("memo mail trash", () => {
 
     const again = await trash(env, false)
     expect(again).toMatchObject({ first_run: false, limit: 5000, candidates: 1 })
+  })
+
+  it("asks Gmail only about the emails it moves, and keeps one starred since the import", async () => {
+    const { env, read, change, dir } = setup([mail(1), mail(2), mail(3)])
+    await imported(env)
+    backedUp(env, "2026-10-03T00:00:00Z")
+    const log = join(dir, "imap.log")
+    change({ log }, (messages) => {
+      const first = messages.find(({ uid }) => uid === "101")
+      if (first) first.flags = ["\\Flagged"]
+    })
+
+    const run = await trash(env, true, [envelope], 2)
+
+    expect(run).toMatchObject({ candidates: 3, trashed: 1, kept: { starred: 1 } })
+    expect(read().find(({ folder }) => folder === TRASH)?.uid).toBe("102")
+    expect(readFileSync(log, "utf8").trim().split("\n").sort()).toEqual(["101,102", "msgid:9001", "msgid:9002"])
+  })
+
+  it("can restore a move Gmail made but answered with a throttle", async () => {
+    const { env, read, change } = setup([mail(1)])
+    await imported(env)
+    backedUp(env, "2026-10-03T00:00:00Z")
+    change({ moveFails: true })
+
+    await expect(trash(env, true)).rejects.toThrow(/limiting this account/)
+    expect(read()[0]?.folder).toBe(TRASH)
+    change({ moveFails: false })
+    const id = trashRuns(env, "test")[0]?.id as string
+    const source = himalayaSource(himalaya(env), { name: "test" })
+
+    const done = await restoreRun({ source, env, account: account([]), run: id, apply: true, now: () => NOW })
+
+    expect(done).toMatchObject({ logged: 1, restored: 1 })
+    expect(read()[0]?.folder).toBeUndefined()
   })
 
   it("restores a run: back to the inbox with its labels, and only once", async () => {
