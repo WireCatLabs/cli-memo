@@ -58,11 +58,11 @@ Put the search in single quotes so the terminal passes it to Memo as it is:
 ```sh
 memo search notes 'budget' --filter 'tag:work'          # only notes with a tag
 memo search notes 'budget' --source notes:2              # only one folder, by the id a hit shows
-memo search notes 'budget' --type internal               # only notes you wrote in Memo
+memo search notes 'budget type:internal'                 # only notes you wrote in Memo
 memo search notes 'budget' --filter 'date:2026-10-08'    # and a second condition
 ```
 
-`--type file` shows only notes from files. Results come 20 at a time; when there are more, `--page 2`
+`type:file` shows only notes from files. Results come 20 at a time; when there are more, `--page 2`
 shows the next page, and the answer's `page.next_page` says which page that is.
 
 ## Search mail
