@@ -4,7 +4,7 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
-## Unreleased
+## 0.53.0 — 16.10.2026
 
 ### Changed — may break scripts
 
@@ -12,8 +12,6 @@ the API.
   `type:file` keeps the notes from folders. `--type` is gone, with no alias. The field works under OR and NOT and
   in `--filter` too.
 - cli-core 0.302.0.
-
-## 0.53.0 — 16.10.2026
 
 ### Fixed
 
