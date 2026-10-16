@@ -1,16 +1,19 @@
 # Security
 
 This page says what Memo reads, what it writes and what can leave your computer, so you can decide
-what to point it at. In short: Memo reads your sources and never changes them, everything it adds
-stays in a file on your computer, and your text goes to an AI provider only when you set one up and
-allow it.
+what to point it at. Imports leave your sources unchanged; separate Gmail cleanup commands can
+move mail when you run them with `--yes`. Memo keeps its records on your computer and sends text
+to an AI provider only when you configure one and allow it.
 
-## Your sources are only read
+## Imports leave your sources unchanged
 
 - **Note folders** are only read. Hidden folders such as `.obsidian` are skipped. Memo writes files
   only when you export notes, into the folder you name, and never overwrites a file you edited.
-- **Your mailbox** is opened read-only. Memo never sends, moves, deletes or flags mail, and does not
-  mark it as read.
+- **Mail imports** open your mailbox read-only and do not mark mail as read. Memo never sends mail.
+- **Gmail cleanup** is separate: `memo mail trash` and `memo mail restore` show a preview unless you
+  pass `--yes`. Trash moves selected mail into Gmail's Trash; Gmail deletes it permanently after
+  30 days. Restore returns a logged run's mail while it remains in Trash. Cleanup requires a recent
+  store backup and never runs from the sync timer. See [Gmail cleanup](mail.md#clean-up-gmail).
 - **Tags** leave your files, Gmail labels and mailbox flags as they are.
 
 ## What Memo adds stays on your computer

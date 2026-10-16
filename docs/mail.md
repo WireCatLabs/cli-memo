@@ -2,8 +2,9 @@
 
 This page helps you bring your email into Memo, so mail sits beside your notes and messages in
 search, in a person's context and in the sources your agent reads. Memo reads mail through
-[Himalaya](https://github.com/pimalaya/himalaya), a mail program you set up first. Your mailbox is
-opened read-only: Memo never sends, moves or deletes mail, and does not mark it as read.
+[Himalaya](https://github.com/pimalaya/himalaya), a mail program you set up first. Imports read your mailbox without changing it or marking mail as read.
+[Clean up Gmail](#clean-up-gmail) separately moves selected mail to Trash, or restores it, only with `--yes`.
+Memo never sends mail.
 
 ## Before you start
 
