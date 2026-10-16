@@ -80,7 +80,7 @@ it("searches three typed resources together, separates mail and messages, and fi
   expect((await run("search", "messages", "Sharedsignal NOT has:attachment")).items).toHaveLength(1)
   expect((await run("search", "messages", "Sharedsignal has:file")).items).toEqual([])
   expect(
-    (await run("search", "notes", "Sharedsignal type:internal")).items.map((hit: { ref: string }) => hit.ref),
+    (await run("search", "notes", "Sharedsignal source:internal")).items.map((hit: { ref: string }) => hit.ref),
   ).toEqual([internal.ref])
   expect(
     (await run("search", "notes", "Sharedsignal", "--source", `notes:${folder.id}`)).items.map(
