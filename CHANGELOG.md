@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.48.0 — 16.10.2026
+
 ### Added
 
 - **`memo mail trash <account>` moves envelope mail to Gmail's Trash**, after deciding each email again with today's
