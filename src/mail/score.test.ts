@@ -90,6 +90,15 @@ describe("scoreGroup", () => {
     expect(scoreGroup(friend, { replied: true, bulk: 0, ages: none })).toEqual({ score: -5, signals: ["replied"] })
   })
 
+  it("does not count a failed DMARC on mail from before 2022", () => {
+    const old = [1, 2].map((n) =>
+      email(n, ["From: news@shop.example", "Authentication-Results: mx.google.com; dkim=fail; dmarc=fail"], {
+        receivedAt: "2021-03-05T00:00:00Z",
+      }),
+    )
+    expect(scoreGroup(old, { replied: false, bulk: 0, ages: none }).signals).not.toContain("dmarc_fail")
+  })
+
   it("does not count a failed DMARC for a sender that passes it on other mail", () => {
     const forwarded = [
       email(1, ["From: news@shop.example", "Authentication-Results: mx.google.com; dkim=fail; dmarc=fail"]),

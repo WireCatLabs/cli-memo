@@ -6,6 +6,12 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **The sender score counts a failed DMARC check only on mail from 2022 on.** Before that, senders often published a
+  policy their own mail did not meet yet; on the owner's mailbox every failure was from 2018 to March 2021, all from
+  real senders. Senders at 3 or more on the strong signals: 20 → 2, both look-alike domains.
+
 ### Changed — may break scripts
 
 - **The daily "a newer memo exists" line now comes from cli-core, shared with tg and max, and is quieter.** It
