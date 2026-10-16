@@ -136,6 +136,24 @@ describe("memo mail trash", () => {
     expect(dry.archive).toMatchObject({ ok: false, backup: { at: null }, takeout: { imported: false } })
   })
 
+  it("keeps mail received before --since, whatever its rule", async () => {
+    const { env } = setup([mail(1), mail(2), mail(3)])
+    await imported(env)
+
+    const dry = await trashMail({
+      store: await store(env),
+      source: himalayaSource(himalaya(env), { name: "test" }),
+      account: account([envelope]),
+      accounts: [account([envelope])],
+      env,
+      apply: false,
+      since: new Date("2026-08-12T00:00:00Z"),
+      now: () => NOW,
+    })
+
+    expect(dry).toMatchObject({ candidates: 2, kept: { before_since: 1 }, since: "2026-08-12T00:00:00.000Z" })
+  })
+
   it("refuses to move mail until a fresh store backup is recorded", async () => {
     const { env } = setup([mail(1)])
     await imported(env)
