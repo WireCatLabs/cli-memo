@@ -10,7 +10,7 @@ export const identityOf = async (store: MessageStore, reference: string): Promis
       reason: "identity.no-messenger",
     })
   const [, provider = "", who = ""] = match
-  const people = await store.people(provider)
+  const people = await store.people.people(provider)
   const exact = people.get(provider === "email" ? who.toLowerCase() : who)
   return { provider, id: exact?.id ?? pickPerson(who, people).id }
 }

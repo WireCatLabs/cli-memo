@@ -176,7 +176,7 @@ export const importMail = async ({
     })
   const startedAt = now()
   const key: AccountKey = { provider: "email", account: account.address.toLowerCase() }
-  const accountId = await store.saveAccount(key, { name: account.address })
+  const accountId = await store.accounts.saveAccount(key, { name: account.address })
 
   const folders = await mailFolders(account, source)
   if (folders.length < 1 || folders.length > 50) throw new Error("select 1–50 mail folders")
@@ -197,7 +197,7 @@ export const importMail = async ({
   const fresh = rescan
   if (snapshot && source.stamp !== undefined) {
     mboxStamp = await source.stamp()
-    const point = fresh ? undefined : parsePoint<MboxPoint>((await store.syncState(key, MBOX_RESUME))?.value)
+    const point = fresh ? undefined : parsePoint<MboxPoint>((await store.sync.syncState(key, MBOX_RESUME))?.value)
     if (point?.complete && point.size === mboxStamp.size && point.mtimeMs === mboxStamp.mtimeMs) mboxPoint = point
   }
   for (const folder of folders) {
@@ -206,7 +206,7 @@ export const importMail = async ({
     let wanted = searched
     if (searched !== undefined) {
       searches.set(folder, searched)
-      const kept = parsePoint<ResumePoint>((await store.syncState(key, resumeKey(folder)))?.value)
+      const kept = parsePoint<ResumePoint>((await store.sync.syncState(key, resumeKey(folder)))?.value)
       if (kept !== undefined) storedPoints.set(folder, kept)
       const point = fresh ? undefined : kept
       if (point !== undefined && point.validity === searched.validity && point.rules === ruleSet) {
@@ -253,7 +253,7 @@ export const importMail = async ({
 
   // Deletions are proved against the mailboxes as stored before this scan moves anything.
   const scope = JSON.stringify({ mode: account.mode ?? "gmail", folders: [...folders].sort() })
-  const previousScope = snapshot ? undefined : await store.syncState(key, "mail_folder_scope")
+  const previousScope = snapshot ? undefined : await store.sync.syncState(key, "mail_folder_scope")
   const windowStart = new Date(since.getTime() + EDGE)
   let deleted = 0
   let skipped: string | undefined
@@ -281,7 +281,7 @@ export const importMail = async ({
       { has: (id) => present.has(id.replace(/:attachment:\d+$/, "")) },
       windowStart.toISOString(),
       async ({ id }) => {
-        const membership = await store.syncState(key, `mail_message_folders:${id.replace(/:attachment:\d+$/, "")}`)
+        const membership = await store.sync.syncState(key, `mail_message_folders:${id.replace(/:attachment:\d+$/, "")}`)
         if (membership === undefined) return allMailOnly
         return (JSON.parse(membership.value) as string[]).every((folder) => folders.includes(folder))
       },
@@ -422,7 +422,7 @@ export const importMail = async ({
         last: { ...thisRun, done: searched.uids.filter((uid) => within(merged, Number(uid))).length },
         updatedAt: new Date(now()).toISOString(),
       }
-      await store.setSyncState(key, resumeKey(folder), JSON.stringify(point))
+      await store.sync.setSyncState(key, resumeKey(folder), JSON.stringify(point))
     }
   }
   let savedAt = now()
@@ -533,7 +533,7 @@ export const importMail = async ({
       complete: !full && unreadable.length === 0,
       updatedAt: new Date(now()).toISOString(),
     }
-    await store.setSyncState(key, MBOX_RESUME, JSON.stringify(point))
+    await store.sync.setSyncState(key, MBOX_RESUME, JSON.stringify(point))
   }
 
   // Read and starred change at the source after import; mail saved in this run already holds them.
@@ -555,7 +555,7 @@ export const importMail = async ({
     listed.filter((item) => item.headers?.bulk).map((item) => [item.messageId, [bulkBox.externalId]]),
   )
   if (bulk.size) await store.mail.setMailboxes(accountId, [bulkBox], bulk, startedAt)
-  if (!snapshot) await store.setSyncState(key, "mail_folder_scope", scope)
+  if (!snapshot) await store.sync.setSyncState(key, "mail_folder_scope", scope)
   const embedding = { embed: embed && account.embed !== false, ...(env === undefined ? {} : { env }) }
   // Chats an earlier import saved as messages may still wait for vectors; the mail tables have their own.
   const older = await indexThreads(store, key, [], embedding)
@@ -573,7 +573,7 @@ export const importMail = async ({
     state: complete ? ("window" as const) : ("partial" as const),
     identity: account.mode === "imap" ? "message-id-or-uidvalidity-folder-uid" : "gmail-message-id",
   }
-  if (!snapshot) await store.setSyncState(key, "mail_coverage", JSON.stringify(coverage))
+  if (!snapshot) await store.sync.setSyncState(key, "mail_coverage", JSON.stringify(coverage))
   const tagging = tagger.outcome()
   await settleRuleTags(store, accountId, rules, tagging)
   return {
@@ -640,7 +640,7 @@ const retryUnread = async ({
       "validation_error",
       "--retry-attachments reads mail again by its Gmail id; an mbox file or a plain IMAP account has none",
     )
-  const accountId = await store.saveAccount(key, { name: account.address })
+  const accountId = await store.accounts.saveAccount(key, { name: account.address })
   const wanted = (await store.mail.emailRefs({ accountId, attachmentErrors: RETRYABLE_ATTACHMENTS })).map(
     ({ externalId }) => externalId,
   )

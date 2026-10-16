@@ -38,7 +38,7 @@ export const ruleTagger = (store: MessageStore, key: AccountKey) => {
     }
     const name = known ?? tag
     try {
-      await store.addTags(key, ref, [name])
+      await store.tags.addTags(key, ref, [name])
       if (known === undefined) resolved.set(tag, name)
     } catch (error) {
       const reuse = known === undefined ? reuseOf(error) : undefined

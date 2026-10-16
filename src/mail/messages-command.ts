@@ -64,7 +64,7 @@ export const messagesCommand = (program: Command, streams: Streams, env: NodeJS.
         throw new CliError("validation_error", `${reference} is not an email; tg and max show messenger messages`)
       const emails = await withStore(env, async (store) => {
         const shown = await readMail(store, reference, { before: options.beforeN, after: options.afterN })
-        const account = await store.storedAccount({ provider: "email", account: locator.account })
+        const account = await store.accounts.storedAccount({ provider: "email", account: locator.account })
         if (!account) return shown
         return Promise.all(
           shown.map(async (hit) => {

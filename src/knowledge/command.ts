@@ -264,7 +264,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       execute(options, async (store, key) => {
         if (key.provider !== "email" || options.limit > 100)
           throw new CliError("validation_error", "suggestions require an email account and limit 1–100")
-        const contacts = await store.contacts(key, { order: "name", limit: 500, offset: 0 })
+        const contacts = await store.people.contacts(key, { order: "name", limit: 500, offset: 0 })
         const domains = new Map<string, string[]>()
         const free = new Set([
           "gmail.com",
@@ -278,7 +278,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         for (const contact of contacts.items) {
           const domain = contact.id.split("@")[1]?.toLowerCase()
           if (!domain || free.has(domain)) continue
-          const person = await store.personOf({ provider: key.provider, id: contact.id })
+          const person = await store.people.personOf({ provider: key.provider, id: contact.id })
           if (person) domains.set(domain, [...new Set([...(domains.get(domain) ?? []), person.uid])])
         }
         const suggestions = []

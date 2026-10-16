@@ -130,11 +130,11 @@ export const unifiedSearch = async (
         })
     }
     if (key.provider === "email")
-      coverage.push({ ...key, mail: (await store.syncState(key, "mail_coverage"))?.value ?? null })
+      coverage.push({ ...key, mail: (await store.sync.syncState(key, "mail_coverage"))?.value ?? null })
     else {
       // Counts, not one row per chat: an account of hundreds of chats made the rows most of an answer.
-      const chats = await store.chats(key, { limit: CHATS_CHECKED })
-      const archives = await store.chatCompleteness(
+      const chats = await store.chats.chats(key, { limit: CHATS_CHECKED })
+      const archives = await store.chats.chatCompleteness(
         key,
         chats.items.map((chat) => chat.id),
       )
@@ -178,7 +178,7 @@ export const searchAccounts = async (
   if (options.all && (options.provider !== undefined || options.account !== undefined))
     throw new CliError("validation_error", "use --all alone or select one provider/account")
   if (options.provider === "notes") return { keys: [], notes: true }
-  const messengers = (await store.accounts()).filter(({ provider }) => provider !== "notes")
+  const messengers = (await store.accounts.accounts()).filter(({ provider }) => provider !== "notes")
   return options.all ? { keys: messengers, notes: true } : { keys: [await selectAccount(store, options)], notes: false }
 }
 
@@ -212,7 +212,7 @@ export const searchEverywhere = async (
   env: NodeJS.ProcessEnv,
   { text, limit, only, exact, timezone }: QueryInput & { only?: SearchedResource[] },
 ): Promise<SearchAllFound & EverywhereExtras> => {
-  const accounts = await store.accounts()
+  const accounts = await store.accounts.accounts()
   // The shared search names this command only in the model hint, and the model comes from tg.
   const messenger = { app: { ...APP, command: "tg" } }
   let messageAccounts: AccountKey[] = []
@@ -272,7 +272,7 @@ export const searchKind = async (
   kind: "messages" | "mail",
   { text, limit, account, exact, timezone }: QueryInput & { account?: string },
 ) => {
-  const held = (await store.accounts()).some(
+  const held = (await store.accounts.accounts()).some(
     ({ provider }) => provider !== "notes" && (kind === "mail" ? provider === "email" : provider !== "email"),
   )
   if (!held)

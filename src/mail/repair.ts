@@ -15,8 +15,8 @@ export const repairHtmlText = async (
   now = Date.now(),
 ): Promise<number | undefined> => {
   const key: AccountKey = { provider: "email", account: address.toLowerCase() }
-  if ((await store.syncState(key, REPAIRED))?.value === VERSION) return undefined
-  const stored = await store.storedAccount(key).catch(() => null)
+  if ((await store.sync.syncState(key, REPAIRED))?.value === VERSION) return undefined
+  const stored = await store.accounts.storedAccount(key).catch(() => null)
   if (stored === null) return undefined
   let repaired = 0
   for (const { externalId, deleted, mailboxes } of await store.mail.emailRefs({ accountId: stored.id })) {
@@ -41,6 +41,6 @@ export const repairHtmlText = async (
     })
     repaired++
   }
-  await store.setSyncState(key, REPAIRED, VERSION)
+  await store.sync.setSyncState(key, REPAIRED, VERSION)
   return repaired
 }

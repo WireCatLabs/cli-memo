@@ -80,8 +80,8 @@ it("selects project meetings through aliases and refuses a foreign account link"
   }
   const store = await openStore({ env })
   const account = { provider: "example", account: "AliceExample" }
-  const accountId = await store.saveAccount(account, { name: "Alice Example" })
-  await store.saveAccount({ provider: "example", account: "BobSample" }, { name: "Bob Sample" })
+  const accountId = await store.accounts.saveAccount(account, { name: "Alice Example" })
+  await store.accounts.saveAccount({ provider: "example", account: "BobSample" }, { name: "Bob Sample" })
   const project = await store.knowledge.addProject({ name: "Research Example", key: "RES" })
   await store.knowledge.addVocabularyAlias({ kind: "project", id: project.id }, "Lab Example")
   await store.close()

@@ -66,8 +66,8 @@ beforeEach(async () => {
   }
 
   const store = await openStore({ env })
-  await store.applyDelta(tg, { chats: [chat("101", "Rin Example")], people: [{ id: "101", name: "Rin Example" }] })
-  await store.saveMessages(
+  await store.sync.applyDelta(tg, { chats: [chat("101", "Rin Example")], people: [{ id: "101", name: "Rin Example" }] })
+  await store.messages.saveMessages(
     tg,
     "101",
     [
@@ -76,9 +76,9 @@ beforeEach(async () => {
     ],
     { via: "test" },
   )
-  await store.saveMembers(tg, "101", ["101", "999"])
-  await store.applyDelta(mail, { chats: [chat("t1", "Budget")] })
-  await store.saveMessages(
+  await store.roster.saveMembers(tg, "101", ["101", "999"])
+  await store.sync.applyDelta(mail, { chats: [chat("t1", "Budget")] })
+  await store.messages.saveMessages(
     mail,
     "t1",
     [message("m1", "t1", "rin@example.test", false, "Budget attached.", "2026-09-11T08:00:00Z")],
@@ -90,7 +90,7 @@ beforeEach(async () => {
 describe("memo context", () => {
   it("finds direct messages in a private dialog without recorded members", async () => {
     const store = await openStore({ env })
-    await store.saveMembers(tg, "101", [])
+    await store.roster.saveMembers(tg, "101", [])
     await store.close()
 
     const answer = answerOf(await run("context", "telegram:101", "--json"))
@@ -102,12 +102,12 @@ describe("memo context", () => {
 
   it("joins messages, linked mail and notes about one person", async () => {
     const store = await openStore({ env })
-    await store.linkIdentities(
+    await store.people.linkIdentities(
       { provider: "telegram", id: "101" },
       { provider: "email", id: "rin@example.test" },
       { method: "manual", by: "owner" },
     )
-    const uid = (await store.personOf({ provider: "telegram", id: "101" }))?.uid as string
+    const uid = (await store.people.personOf({ provider: "telegram", id: "101" }))?.uid as string
     await store.close()
     writeFileSync(join(vault, "Call.md"), `Called [[person:${uid}]] about Friday.\nRin Example sounded busy.\n`)
     await run("folders", "add", vault)

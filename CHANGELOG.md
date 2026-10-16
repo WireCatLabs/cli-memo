@@ -6,6 +6,10 @@ the API.
 
 ## Unreleased
 
+### Changed
+
+- Use the shared Core store areas for accounts, mail sync, people, tags and message context. Command behavior and JSON output stay the same.
+
 ## 0.56.0 — 17.10.2026
 
 ### Fixed

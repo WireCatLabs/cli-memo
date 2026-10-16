@@ -16,13 +16,15 @@ const fakeStore = (labels: string[], refuse: Record<string, CliError>) => {
   const tagged: [string, string][] = []
   const upserts: unknown[] = []
   const store = {
-    addTags: async (_key: unknown, target: { messageId: string }, tags: string[]) => {
-      for (const tag of tags) {
-        if (refuse[tag]) throw refuse[tag]
-        if (!labels.includes(tag)) labels.push(tag)
-        tagged.push([target.messageId, tag])
-      }
-      return tags
+    tags: {
+      addTags: async (_key: unknown, target: { messageId: string }, tags: string[]) => {
+        for (const tag of tags) {
+          if (refuse[tag]) throw refuse[tag]
+          if (!labels.includes(tag)) labels.push(tag)
+          tagged.push([target.messageId, tag])
+        }
+        return tags
+      },
     },
     mail: { rules: { upsert: async (_id: number, rule: unknown) => upserts.push(rule) } },
   } as unknown as MessageStore

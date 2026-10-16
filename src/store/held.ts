@@ -18,7 +18,7 @@ export const heldMessage = async (
   chatId: string,
 ): Promise<HeldMessage | undefined> => {
   if (key.provider === "email") {
-    const account = await store.storedAccount(key).catch(() => undefined)
+    const account = await store.accounts.storedAccount(key).catch(() => undefined)
     const email = account ? await store.mail.email(account.id, id) : null
     if (email)
       return email.deletedAt === null
@@ -30,5 +30,5 @@ export const heldMessage = async (
           }
         : undefined
   }
-  return store.message(key, id, { chatId })
+  return store.messages.message(key, id, { chatId })
 }

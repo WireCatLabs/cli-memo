@@ -37,8 +37,10 @@ const setUp = async () => {
     MEMO_STATE_DIR: join(root, "state"),
   }
   const store = await openStore({ env })
-  await store.saveAccount(key, { name: null })
-  await store.saveMessages(key, "7", [said("1", 60, "morning"), said("2", 50, "who has the keys?")], { via: "test" })
+  await store.accounts.saveAccount(key, { name: null })
+  await store.messages.saveMessages(key, "7", [said("1", 60, "morning"), said("2", 50, "who has the keys?")], {
+    via: "test",
+  })
   // tg opens this task when it syncs; memo reads the same store.
   await applyTaskRulesToStored(store, key)
   await store.close()

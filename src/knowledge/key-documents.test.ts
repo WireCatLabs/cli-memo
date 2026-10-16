@@ -26,7 +26,7 @@ const message = (id: string, text: string) => ({
 const setUp = async (agent: Record<string, string> = {}) => {
   const env = { ...process.env, ...agent, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-key-")), "s.db") }
   const store = await openStore({ env })
-  await store.saveMessages(telegram, "7", [message("5", "Harbour budget agreed")], { via: "test" })
+  await store.messages.saveMessages(telegram, "7", [message("5", "Harbour budget agreed")], { via: "test" })
   await store.close()
   const run = async (...args: string[]) => {
     const streams = captureStreams()
@@ -65,7 +65,7 @@ it("keeps a key document whose source is gone, marked unavailable", async () => 
   const { env, run } = await setUp()
   await run("projects", "key-documents", "add", "SYH", "msg:telegram/1/7/5", "--reason", "the agreed budget")
   const store = await openStore({ env })
-  await store.markDeleted(telegram, ["5"], { chatId: "7" })
+  await store.messages.markDeleted(telegram, ["5"], { chatId: "7" })
   await store.close()
 
   expect((await run("projects", "context", "SYH")).key_documents).toMatchObject([

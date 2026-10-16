@@ -81,7 +81,7 @@ const importInto = async (env: NodeJS.ProcessEnv, max?: number) =>
 
 const emails = async (env: NodeJS.ProcessEnv) => {
   const opening = await store(env)
-  return opening.mail.emails({ accountId: (await opening.storedAccount(KEY)).id })
+  return opening.mail.emails({ accountId: (await opening.accounts.storedAccount(KEY)).id })
 }
 
 afterEach(async () => {
@@ -111,7 +111,7 @@ describe("importMail", () => {
     expect(saved[1]).toMatchObject({ bodyText: "Synthetic body 1", fromAddress: "rin@example.test" })
     expect(saved[1]?.mailboxes.map(({ externalId }) => externalId)).toEqual(["[Gmail]/All Mail"])
     const opening = await store(env)
-    const [thread] = await opening.mail.threads({ accountId: (await opening.storedAccount(KEY)).id })
+    const [thread] = await opening.mail.threads({ accountId: (await opening.accounts.storedAccount(KEY)).id })
     expect(thread).toMatchObject({ externalId: "9001", subject: "Synthetic subject 1", emailsCount: 2 })
   })
 
@@ -429,7 +429,7 @@ describe("importMail with the owner's rules", () => {
     expect(await opening.mail.search("Unrepeatable")).toEqual([])
     expect(
       await opening.mail.emailRefs({
-        accountId: (await opening.storedAccount(KEY)).id,
+        accountId: (await opening.accounts.storedAccount(KEY)).id,
         mailbox: "memo:envelope:list-id:deals.shop.example",
       }),
     ).toHaveLength(1)
@@ -764,7 +764,7 @@ describe("memo sync --only mail", () => {
       code: "not_found",
       message: expect.stringContaining("it holds test, second"),
     })
-    expect(await (await store(env)).accounts()).toEqual([])
+    expect(await (await store(env)).accounts.accounts()).toEqual([])
   })
 
   it("takes an account by its address as well as its name", async () => {
@@ -808,7 +808,7 @@ describe("memo sync --only mail", () => {
 
     expect(result.notes).toEqual([])
     expect(result.mail).toMatchObject([{ account: OTHER, saved: 1, since: expect.stringMatching(/^2026-09-01/) }])
-    expect((await (await store(env)).accounts()).filter(({ provider }) => provider === "email")).toEqual([
+    expect((await (await store(env)).accounts.accounts()).filter(({ provider }) => provider === "email")).toEqual([
       { provider: "email", account: OTHER },
     ])
   })
@@ -886,10 +886,10 @@ describe("memo sync --only mail", () => {
     await run(["sync", "--account", "test", "--since-time", "2026-09-01", "--no-embed", "--json"], withConfig)
 
     const opened = await store(env)
-    const saved = await opened.mail.email(await opened.saveAccount(KEY, { name: ME }), "9001")
+    const saved = await opened.mail.email(await opened.accounts.saveAccount(KEY, { name: ME }), "9001")
     expect(saved?.bodyText).toContain("tax notice")
     expect(await opened.mail.search("coupon")).toEqual([])
-    const tagged = (await opened.tags(KEY)).filter(({ tag }) => tag === "promo")
+    const tagged = (await opened.tags.tags(KEY)).filter(({ tag }) => tag === "promo")
     expect(tagged).toHaveLength(2)
     expect(await run(["mail", "rules", "list", "test", "--filter", "is:protected"], withConfig)).toMatch(
       /^PROTECTED\s+domain gov\.example\s/,

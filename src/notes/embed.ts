@@ -111,10 +111,10 @@ export const embedChanged = async (
   changed: string[],
   options: { maxChunks?: number; maxChats?: number; embed?: boolean; env?: NodeJS.ProcessEnv } = {},
 ): Promise<NotesEmbedded> => {
-  const saved = await store.syncState(key, PENDING)
+  const saved = await store.sync.syncState(key, PENDING)
   const waiting =
     saved === undefined
-      ? (await store.chats(key, { limit: 10_000 })).items.map(({ id }) => id)
+      ? (await store.chats.chats(key, { limit: 10_000 })).items.map(({ id }) => id)
       : JSON.parse(saved.value)
   // A build under older rules, or one a change made stale, is rebuilt even when no note changed since.
   const deps = storeOnlyDeps(store, key, { app: APP, ...(options.env === undefined ? {} : { env: options.env }) })
@@ -128,7 +128,7 @@ export const embedChanged = async (
   const pending = [...chats.slice(selected.length), ...(result.pendingChats ?? (result.left ? selected : []))]
   result.left ||= pending.length > 0
   // Embedding off leaves every chat waiting, so turning it on later embeds them.
-  await store.setSyncState(key, PENDING, JSON.stringify(pending))
+  await store.sync.setSyncState(key, PENDING, JSON.stringify(pending))
   return result
 }
 
