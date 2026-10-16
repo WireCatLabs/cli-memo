@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.54.0 — 16.10.2026
+
 ### Changed — may break scripts
 
 - **`memo search notes` takes the note's source in the query: `'budget source:internal'`, not `--type internal`.**
