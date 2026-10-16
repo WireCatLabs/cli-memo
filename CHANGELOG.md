@@ -9,7 +9,7 @@ the API.
 ### Changed
 
 - **memo starts about a fifth faster after its first run.** It keeps Node's compiled code in a cache, in the
-  system's temporary folder (`NODE_COMPILE_CACHE` moves it): `memo --help` went from about 0.60 to 0.47 seconds.
+  system's temporary folder (`NODE_COMPILE_CACHE` moves it): `memo --help` went from about 0.70 to 0.54 seconds.
 - cli-core 0.299.0.
 
 ## 0.52.0 — 16.10.2026
