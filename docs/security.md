@@ -5,6 +5,8 @@ what to point it at. Imports leave your sources unchanged; separate Gmail cleanu
 move mail when you run them with `--yes`. Memo keeps its records on your computer and sends text
 to an AI provider only when you configure one and allow it.
 
+<a id="your-sources-are-only-read"></a>
+
 ## Imports leave your sources unchanged
 
 - **Note folders** are only read. Hidden folders such as `.obsidian` are skipped. Memo writes files
