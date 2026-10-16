@@ -74,7 +74,7 @@ export const applyRules = async ({
   if (stored === null) return result
 
   const listed = new Map<string, Listed>()
-  for (const folder of mailFolders(account))
+  for (const folder of await mailFolders(account, source))
     for (const item of await source.list(since, folder, { headers: true })) listed.set(item.messageId, item)
   result.listed = listed.size
 

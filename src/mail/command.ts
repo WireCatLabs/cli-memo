@@ -269,7 +269,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         const started = Date.now()
         const source = mailSource(account, env)
         const listed = new Map<string, Listed>()
-        for (const folder of mailFolders(account))
+        for (const folder of await mailFolders(account, source))
           for (const item of await source.list(since, folder, { headers: true })) listed.set(item.messageId, item)
         const items = [...listed.values()]
         let probe = probeMail(items, options.limit, knownAges(env))

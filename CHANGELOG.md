@@ -26,6 +26,14 @@ the API.
   `bin/release` was started from another folder by a relative path. Only the repository's own release is affected;
   the published package does not change.
 
+## Unreleased
+
+### Fixed
+
+- **Import, `memo mail inspect` and `memo mail rules apply` find Gmail's All Mail by its role**, as cleanup already
+  did: Gmail names it in the account's language (`[Gmail]/Todos` in Spanish), so an account not in English failed
+  with a missing folder. A `folders` list in the config still wins.
+
 ## 0.53.0 — 16.10.2026
 
 ### Changed — may break scripts
