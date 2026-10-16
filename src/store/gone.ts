@@ -31,11 +31,11 @@ export const dropMissing = async (
 ): Promise<Gone> => {
   const stored: { chatId: string; id: string }[] = []
   for (let offset = 0; ; offset += PAGE) {
-    const chats = await store.chats(key, { limit: PAGE, offset })
+    const chats = await store.chats.chats(key, { limit: PAGE, offset })
     for (const chat of chats.items) {
       if (since !== undefined && chat.lastMessageAt !== null && chat.lastMessageAt < since) continue
       for (let before: string | undefined; ; ) {
-        const page = await store.messages(key, chat.id, {
+        const page = await store.messages.messages(key, chat.id, {
           limit: PAGE,
           ...(since === undefined ? {} : { since }),
           ...(before === undefined ? {} : { before }),
@@ -56,6 +56,6 @@ export const dropMissing = async (
   const byChat = new Map<string, string[]>()
   for (const { chatId, id } of gone) byChat.set(chatId, [...(byChat.get(chatId) ?? []), id])
   let deleted = 0
-  for (const [chatId, ids] of byChat) deleted += await store.markDeleted(key, ids, { chatId })
+  for (const [chatId, ids] of byChat) deleted += await store.messages.markDeleted(key, ids, { chatId })
   return { deleted }
 }

@@ -91,18 +91,20 @@ describe("the update notice", () => {
       },
     }
 
-    const line = await updateNotice(["search", "budget"], { env, environment: counting })
-    await updateNotice(["search", "budget"], { env, environment: counting })
+    const line = await updateNotice(["search", "budget"], { tty: true, env, environment: counting })
+    await updateNotice(["search", "budget"], { tty: true, env, environment: counting })
 
     expect(line).toMatch(/99\.0\.0/)
     expect(line).toContain("memo upgrade")
     expect(asked).toBe(1)
   })
 
-  it("stays silent for JSON, the timer's own run, and when turned off", async () => {
-    expect(await updateNotice(["search", "budget", "--json"], { env, environment })).toBeUndefined()
-    expect(await updateNotice(["sync"], { env: { ...env, MEMO_AUTO: "1" }, environment })).toBeUndefined()
+  it("stays silent for JSON, a stdout that is not a terminal, the timer's own run, and when turned off", async () => {
+    expect(await updateNotice(["search", "budget", "--json"], { tty: true, env, environment })).toBeUndefined()
+    expect(await updateNotice(["search", "budget", "--json=ref"], { tty: true, env, environment })).toBeUndefined()
+    expect(await updateNotice(["search", "budget"], { tty: false, env, environment })).toBeUndefined()
+    expect(await updateNotice(["sync"], { tty: true, env: { ...env, MEMO_AUTO: "1" }, environment })).toBeUndefined()
     updateConfig(() => ({ update_check: false }), env)
-    expect(await updateNotice(["search", "budget"], { env, environment })).toBeUndefined()
+    expect(await updateNotice(["search", "budget"], { tty: true, env, environment })).toBeUndefined()
   })
 })

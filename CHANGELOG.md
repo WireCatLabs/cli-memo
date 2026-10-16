@@ -6,6 +6,23 @@ the API.
 
 ## Unreleased
 
+### Changed — may break scripts
+
+- **The daily "a newer memo exists" line now comes from cli-core, shared with tg and max, and is quieter.** It
+  needs stdout to be a terminal as well as stderr: `memo … | less` no longer shows it. Any quiet option written
+  with `=` silences it (`--help=…`, `--quiet=…`), not only `--json=…`. `MEMO_AUTO` with any value silences it, not
+  only `1`. `--json`, `--jsonl` and `--quiet` silence it anywhere in the command, also after `--`. `--jsonl` is new
+  among them.
+- cli-core 0.307.0.
+
+### Fixed
+
+- **A broken config file is reported in one line** (cli-core 0.304.0, 0.307.0): the first bad key, a fixed reason
+  and a count of the rest, never a value — `config.json: updateCheck is an unknown setting; rename it to
+  update_check (and 1 more problem)`. An old camelCase key is named with its new name first.
+- **`memo mail status` finishes on a large mailbox** (cli-core 0.307.0): the per-folder count read every email
+  again for each one, minutes on a few hundred thousand emails; now seconds.
+
 ## 0.56.0 — 17.10.2026
 
 ### Fixed

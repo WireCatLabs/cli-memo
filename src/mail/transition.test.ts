@@ -30,8 +30,8 @@ const listed = (n: number) => ({
 /** What `memo mail import` 0.7.0 wrote: a chat per thread, a message per mail, an attachment as its own message. */
 const importedAsMessages = async (store: MessageStore, n: number, child = false) => {
   const id = String(9000 + n)
-  await store.saveAccount(KEY, { name: ME })
-  await store.applyDelta(KEY, {
+  await store.accounts.saveAccount(KEY, { name: ME })
+  await store.sync.applyDelta(KEY, {
     chats: [
       {
         id,
@@ -60,9 +60,9 @@ const importedAsMessages = async (store: MessageStore, n: number, child = false)
     reactions: null,
   }
   const children = child ? [{ ...message, id: `${id}:attachment:2`, text: "budget.csv\n\nSynthetic,123" }] : []
-  await store.saveMessages(KEY, id, [message, ...children], { via: "himalaya" })
-  await store.setSyncState(KEY, `mail_message_folders:${id}`, JSON.stringify(["[Gmail]/All Mail"]))
-  await store.setSyncState(KEY, `mail_attachments:${id}`, JSON.stringify(children.map(({ id }) => id)))
+  await store.messages.saveMessages(KEY, id, [message, ...children], { via: "himalaya" })
+  await store.sync.setSyncState(KEY, `mail_message_folders:${id}`, JSON.stringify(["[Gmail]/All Mail"]))
+  await store.sync.setSyncState(KEY, `mail_attachments:${id}`, JSON.stringify(children.map(({ id }) => id)))
 }
 
 describe("moving mail from messages into the mail tables", () => {
@@ -75,7 +75,7 @@ describe("moving mail from messages into the mail tables", () => {
     opened.push(store)
     await importedAsMessages(store, 1)
     await importedAsMessages(store, 2, true)
-    await store.addTags(KEY, { type: "message", chatId: "9001", messageId: "9001" }, ["finance"])
+    await store.tags.addTags(KEY, { type: "message", chatId: "9001", messageId: "9001" }, ["finance"])
     const run = () =>
       importMail({
         store,
@@ -89,7 +89,7 @@ describe("moving mail from messages into the mail tables", () => {
 
     write([1, 2])
     expect(await run()).toMatchObject({ saved: 2, alreadyStored: 0, deleted: 0 })
-    expect(await store.message(KEY, "9001", { chatId: "9001" })).toBeDefined()
+    expect(await store.messages.message(KEY, "9001", { chatId: "9001" })).toBeDefined()
     // The older attachment entry has its own locator, so it stays listed until the older rows are removed.
     expect((await found("synthetic")).sort()).toEqual([
       formatLocator({ ...KEY, chat: "9001", message: "9001" }),
@@ -102,9 +102,9 @@ describe("moving mail from messages into the mail tables", () => {
     write([1])
     // Rows: the email, its older message and the older attachment entry.
     expect((await run()).deleted).toBe(3)
-    const { id } = await store.storedAccount(KEY)
+    const { id } = await store.accounts.storedAccount(KEY)
     expect(await store.mail.email(id, "9002")).toMatchObject({ bodyText: null })
-    expect(await store.message(KEY, "9002", { chatId: "9002" })).toBeUndefined()
+    expect(await store.messages.message(KEY, "9002", { chatId: "9002" })).toBeUndefined()
     expect(await found("synthetic")).toEqual([formatLocator({ ...KEY, chat: "9001", message: "9001" })])
   })
 })

@@ -83,7 +83,8 @@ const fromStored = (stored: StoredRule): MailRule | undefined => {
 
 export const accountKey = (address: string): AccountKey => ({ provider: "email", account: address.toLowerCase() })
 
-const accountIdOf = (store: MessageStore, address: string) => store.saveAccount(accountKey(address), { name: address })
+const accountIdOf = (store: MessageStore, address: string) =>
+  store.accounts.saveAccount(accountKey(address), { name: address })
 
 const PROTECTED_REASON = /never remove/i
 

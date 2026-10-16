@@ -12,7 +12,7 @@ it("attaches the source to a task or opens a new one when told to, as cli-core's
   const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-duplicates-")), "store.db") }
   const key = { provider: "telegram", account: "1" }
   const store = await openStore({ env })
-  await store.applyDelta(key, {
+  await store.sync.applyDelta(key, {
     chats: [
       { id: "101", kind: "dialog", title: "Synthetic", unreadCount: 0, lastMessageAt: null, participantsCount: null },
     ],
@@ -33,7 +33,7 @@ it("attaches the source to a task or opens a new one when told to, as cli-core's
     forwardedFrom: null,
     reactions: null,
   })
-  await store.saveMessages(key, "101", ["1", "2", "3"].map(message), { via: "test" })
+  await store.messages.saveMessages(key, "101", ["1", "2", "3"].map(message), { via: "test" })
   await store.close()
   const run = async (...args: string[]) => {
     const streams = captureStreams()

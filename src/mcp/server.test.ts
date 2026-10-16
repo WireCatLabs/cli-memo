@@ -18,7 +18,7 @@ beforeEach(async () => {
   env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-mcp-")), "messages.db") }
   const store = await openStore({ env })
   try {
-    await store.saveAccount(account, { name: "Alice Example" })
+    await store.accounts.saveAccount(account, { name: "Alice Example" })
     await store.notes.addNote({ text: "Bob Sample prefers Fridays" })
   } finally {
     await store.close()

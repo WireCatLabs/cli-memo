@@ -52,7 +52,7 @@ export const personTasks = async (
     }
     if (!identities.length) continue
     const ids = new Set(identities.map((identity) => identity.id))
-    const chats = (await store.chats(key, { limit: 500 })).items
+    const chats = (await store.chats.chats(key, { limit: 500 })).items
     for (const task of page.items) {
       let source: ReturnType<typeof parseLocator>
       try {
@@ -65,7 +65,7 @@ export const personTasks = async (
       const chat = chats.find((item) => item.id === source.chat)
       const direct =
         chat?.kind === "dialog" &&
-        (ids.has(source.chat) || (await store.members(key, source.chat)).some((member) => ids.has(member.id)))
+        (ids.has(source.chat) || (await store.roster.members(key, source.chat)).some((member) => ids.has(member.id)))
       if (!direct && (!message?.senderId || !ids.has(message.senderId))) continue
       items.push({
         ...task,

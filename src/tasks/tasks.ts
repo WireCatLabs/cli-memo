@@ -1,6 +1,12 @@
 import { CliError } from "@wirecat/cli-base"
 import { parseLocator } from "@wirecat/cli-core"
-import { type closedStateOf, storeOnlyDeps, tasksService } from "@wirecat/cli-core/services"
+import {
+  type ClosedTask,
+  type closedStateOf,
+  storeOnlyDeps,
+  type TasksService,
+  tasksService,
+} from "@wirecat/cli-core/services"
 import {
   type MessageStore,
   type TaskFields,
@@ -31,11 +37,9 @@ export type AddOptions = AccountScope &
     new?: boolean
   }
 
-// cli-core's services entry does not export TaskCard or ClosedTask, so the answers are named through the service.
-type Service = ReturnType<typeof tasksService>
 type Details = Awaited<ReturnType<MessageStore["tasks"]["details"]>>
-type Added = Awaited<ReturnType<Service["add"]>>
-type Closed = Awaited<ReturnType<Service["close"]>> | Awaited<ReturnType<MessageStore["tasks"]["edit"]>>
+type Added = Awaited<ReturnType<TasksService["add"]>>
+type Closed = ClosedTask | Awaited<ReturnType<MessageStore["tasks"]["edit"]>>
 
 const personRef = (person: string) => (person.startsWith("person:") ? person : `person:${person}`)
 

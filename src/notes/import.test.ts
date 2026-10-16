@@ -44,7 +44,7 @@ const message = (id: string, senderId: string, senderName: string): Message => (
 const telegramPeople = async (...people: [string, string][]) => {
   const store = await openStore({ env })
   for (const [id, name] of people)
-    await store.saveMessages({ provider: "telegram", account: "1" }, `chat-${id}`, [message(id, id, name)], {
+    await store.messages.saveMessages({ provider: "telegram", account: "1" }, `chat-${id}`, [message(id, id, name)], {
       via: "test",
     })
   await store.close()

@@ -35,7 +35,7 @@ export const memoContext = async (
     throw new CliError("validation_error", `"${reference}" names no messenger — write it as <messenger>:<name or id>`, {
       reason: "identity.no-messenger",
     })
-  const accounts = await store.accounts()
+  const accounts = await store.accounts.accounts()
   const asked = await selectAccount(store, { provider, ...(account === undefined ? {} : { account }) })
 
   const messages = await personContext(store, asked, who, { messages: limit })

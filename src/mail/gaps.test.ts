@@ -42,8 +42,8 @@ describe("an HTML page sent as text/plain", () => {
   it("stored before the fix, is read as text once, in place", async () => {
     const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "repair-")), "store.db") }
     const store = await openAt(env)
-    await store.saveAccount(KEY, { name: ME })
-    const account = await store.storedAccount(KEY)
+    await store.accounts.saveAccount(KEY, { name: ME })
+    const account = await store.accounts.storedAccount(KEY)
     await store.mail.saveThread({
       accountId: account.id,
       externalId: "t1",
@@ -125,7 +125,7 @@ describe("bulk mail", () => {
       indexThreads: async () => ({ chats: 0, chunks: 0, left: false }),
     })
     const store = await openAt(env)
-    const accountId = (await store.storedAccount(KEY)).id
+    const accountId = (await store.accounts.storedAccount(KEY)).id
     const boxes = async (id: string) =>
       ((await store.mail.email(accountId, id))?.mailboxes ?? []).map(({ externalId }) => externalId)
     expect(await boxes("9002")).toContain("memo:bulk")

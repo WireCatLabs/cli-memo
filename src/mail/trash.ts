@@ -260,7 +260,7 @@ export const trashMail = async ({
     throw new CliError("validation_error", `mail account ${account.name} is not a Gmail account`, {
       reason: "mail.not-gmail",
     })
-  const stored = await store.storedAccount(key).catch(() => null)
+  const stored = await store.accounts.storedAccount(key).catch(() => null)
   if (stored === null) return result
   // Decided from the store, as the last import left it; only the emails about to move are read from Gmail again.
   const facts = (await store.mail.emailFacts({ accountId: stored.id })).map(listedOf)
@@ -480,7 +480,7 @@ export const restoreRun = async ({
   // Only envelopes are trashed, so there is no text to bring back. Without this the mail stays deleted in the store,
   // unseen by the next cleanup and by protect rules, until a listing reaches back to its date. Mail found back in All
   // Mail counts too: an older memo or Gmail's own "move to inbox" restored it without telling the store.
-  const stored = await store.storedAccount({ provider: "email", account: result.account }).catch(() => null)
+  const stored = await store.accounts.storedAccount({ provider: "email", account: result.account }).catch(() => null)
   if (stored !== null) {
     const live = ((await source.find?.([...movedIds], all)) ?? []).map(({ messageId }) => messageId as string)
     await store.mail.markRestored(stored.id, live, now())

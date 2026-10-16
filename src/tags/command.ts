@@ -58,7 +58,7 @@ const targetOptions = (command: Command) =>
 const listTags = async (store: MessageStore, options: ListOptions) => {
   if (options.account !== undefined && options.provider === undefined)
     throw new CliError("validation_error", "--account requires --provider")
-  const keys = (await store.accounts()).filter(
+  const keys = (await store.accounts.accounts()).filter(
     (key) =>
       (options.provider === undefined || key.provider === options.provider) &&
       (options.account === undefined || key.account === options.account),
@@ -74,7 +74,7 @@ const listTags = async (store: MessageStore, options: ListOptions) => {
           ? [options.type]
           : []
     for (const type of types) {
-      const found = await store.tags(key, { type, ...(options.tag === undefined ? {} : { tag: options.tag }) })
+      const found = await store.tags.tags(key, { type, ...(options.tag === undefined ? {} : { tag: options.tag }) })
       for (const row of found) {
         if (
           row.type === "contact" &&
@@ -161,7 +161,7 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     const selected: SourceTarget = sourceTarget(options)
     const labels = [...new Set(given.map(normalizeTag))]
     await withStore(env, async (store) => {
-      const changed = await (operation === "add" ? store.addTags : store.removeTags)(
+      const changed = await (operation === "add" ? store.tags.addTags : store.tags.removeTags)(
         selected.key,
         selected.target,
         labels,
