@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.56.0 — 17.10.2026
+
 ### Fixed
 
 - **The sender score in `memo mail inspect` no longer flags LinkedIn, Coursera, Quora or Dropbox Sign as brand
