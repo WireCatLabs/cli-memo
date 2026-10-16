@@ -291,6 +291,7 @@ memo mail trash <account> [options]
 | Option | What it does |
 |---|---|
 | `--limit <n>` | most emails to move this run (default 5000; a first run moves at most 100). |
+| `--since-time <time>` | only mail received from this time, ISO 8601 or 30d ago; older mail stays. |
 | `--yes` | move the mail; without it, only say what would move. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
