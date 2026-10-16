@@ -4,6 +4,18 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- **`memo mail trash` decides from the store and asks Gmail only about the emails it moves.** It re-read every
+  header in All Mail first (about 260k emails), which took minutes and twice ran the account into Gmail's IMAP
+  throttle before one email moved. Rules and replied-to senders now come from the store (cli-core
+  `mail.emailFacts`); the picked emails' labels and stars are read again just before the move, and a batch is
+  checked with one `UID SEARCH` instead of one lookup per email.
+- **`memo mail restore` brings back a batch Gmail moved without confirming it.** It restored only batches whose
+  move was answered OK; a move Gmail made but answered with a throttle could not be undone by memo.
+
 ## 0.49.0 — 16.10.2026
 
 ### Added

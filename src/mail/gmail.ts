@@ -236,8 +236,9 @@ export const moveMessages = async (
   messageIds: readonly string[],
   from: string,
   to: string,
+  known?: ReadonlyMap<string, string>,
 ): Promise<{ moved: string[]; missing: string[] }> => {
-  const uids = await uidsById(run, account, messageIds, from)
+  const uids = known ?? (await uidsById(run, account, messageIds, from))
   const missing = messageIds.filter((id) => !uids.has(id))
   if (uids.size === 0) return { moved: [], missing }
   const moved = await run(
@@ -246,6 +247,24 @@ export const moveMessages = async (
   )
   assertCompleted(moved, ["a", "m"])
   return { moved: [...uids.keys()], missing }
+}
+
+/** Which of these UIDs `folder` still holds: one `UID SEARCH`, where looking each message up by Gmail id is one per. */
+export const uidsPresent = async (
+  run: Himalaya,
+  account: string,
+  uids: readonly string[],
+  folder: string,
+): Promise<string[]> => {
+  if (uids.length === 0) return []
+  if (!uids.every((uid) => /^\d+$/.test(uid)))
+    throw new CliError("validation_error", "a UID is a number", { reason: "mail.invalid-imap" })
+  const searched = await run(
+    ["imap", "raw", "-a", account],
+    `a EXAMINE ${mailboxOf(folder)}\r\nb UID SEARCH UID ${uids.join(",")}\r\n`,
+  )
+  assertCompleted(searched, ["a", "b"])
+  return (/^\* SEARCH(.*)$/m.exec(searched)?.[1] ?? "").trim().split(/\s+/).filter(Boolean)
 }
 
 /** Puts Gmail labels back on messages in `folder`; a label a message already has is left as it is. */
