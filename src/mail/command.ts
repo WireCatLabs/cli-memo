@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs"
 import { CliError, type Streams } from "@wirecat/cli-base"
-import { momentOf } from "@wirecat/cli-core/cli"
+import { annotate } from "@wirecat/cli-base/commands"
+import { LOCAL_READ, LOCAL_WRITE, momentOf, REMOTE_READ, REMOTE_WRITE } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { type Config, loadConfig } from "../config.js"
@@ -240,8 +241,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
   const { print } = answers(program, streams, env)
   const mail = program.command("mail").description("look at a mail account before importing it, and the owner's rules")
 
-  mail
-    .command("inspect")
+  annotate(mail.command("inspect"), { effects: REMOTE_READ })
     .description("group an account's mail by sender and list, to decide what to keep or skip")
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .option("--since-time <time>", "only mail from this time, ISO 8601 or 30d ago (default: all mail)")
@@ -287,8 +287,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       },
     )
 
-  mail
-    .command("status")
+  annotate(mail.command("status"), { effects: LOCAL_READ })
     .description("how far an account's import is: mail stored, recorded, and left to read")
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
@@ -303,8 +302,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       print(options.json, itemAnswer(status, { meta: { accounts: [account.name] } }), statusText(status))
     })
 
-  mail
-    .command("trash")
+  annotate(mail.command("trash"), { effects: REMOTE_WRITE })
     .description("move envelope mail to Gmail's Trash, decided again; dry run unless --yes")
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .option(
@@ -348,8 +346,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       print(options.json, itemAnswer(result, { meta: { accounts: [account.name] } }), trashText(result))
     })
 
-  mail
-    .command("restore")
+  annotate(mail.command("restore"), { effects: REMOTE_WRITE })
     .description("move a cleanup run's mail back from Gmail's Trash; dry run unless --yes")
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .requiredOption("--run <id>", "the run, as memo mail runs lists it")
@@ -378,8 +375,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       print(options.json, itemAnswer(result, { meta: { accounts: [account.name] } }), restoreText(result))
     })
 
-  mail
-    .command("runs")
+  annotate(mail.command("runs"), { effects: LOCAL_READ })
     .description("an account's cleanup runs, how much moved, and until when restorable")
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
@@ -405,8 +401,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .command("rules")
     .description("the owner's decisions on which mail to keep, record, skip, tag or protect")
 
-  rules
-    .command("list")
+  annotate(rules.command("list"), { effects: LOCAL_READ })
     .description("one account's rules, protected ones first")
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .option("--filter <query>", "is:protected lists only the rules no cleanup may override")
@@ -436,8 +431,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     })
 
   MATCH_OPTIONS(
-    rules
-      .command("add")
+    annotate(rules.command("add"), { effects: LOCAL_WRITE })
       .description("decide mail by sender, list, subject, age, size, label or kind; repeats replace")
       .argument("<account>", "the account's name in mail.accounts, or its address"),
   )
@@ -479,8 +473,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     )
 
   MATCH_OPTIONS(
-    rules
-      .command("remove")
+    annotate(rules.command("remove"), { effects: LOCAL_WRITE })
       .description("drop the rule with exactly these conditions")
       .argument("<account>", "the account's name in mail.accounts, or its address"),
   )
@@ -499,8 +492,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       print(options.json, itemAnswer({ removed: match }), `removed the rule for ${describe(match)}`)
     })
 
-  rules
-    .command("import-filters")
+  annotate(rules.command("import-filters"), { effects: LOCAL_WRITE })
     .description("propose rules from a Takeout export's Gmail filters; --yes adds them")
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .argument("<file>", "Takeout's Mail/User settings/Filters.json")
@@ -539,8 +531,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       )
     })
 
-  rules
-    .command("apply")
+  annotate(rules.command("apply"), { effects: LOCAL_WRITE })
     .description("cut stored mail an envelope rule matches to its envelope; dry run unless --yes")
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .option("--since-time <time>", "only mail from this time, ISO 8601 or 30d ago (default: all mail)")
@@ -570,8 +561,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       print(options.json, itemAnswer(result, { meta: { accounts: [account.name] } }), applyText(result))
     })
 
-  rules
-    .command("export")
+  annotate(rules.command("export"), { effects: LOCAL_READ })
     .description("print one account's rules as JSON, to review, keep or move elsewhere")
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .addHelpText("after", "\nmemo mail rules export personal > rules.json; memo mail rules import reads it back.")
@@ -586,8 +576,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       streams.data(`${JSON.stringify(file, null, 2)}\n`)
     })
 
-  rules
-    .command("import")
+  annotate(rules.command("import"), { effects: LOCAL_WRITE })
     .description("add the rules of a file from memo mail rules export; same match replaces")
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .argument("<file>", "the file memo mail rules export wrote")

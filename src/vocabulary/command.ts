@@ -1,5 +1,6 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
-import { withQuery } from "@wirecat/cli-core/cli"
+import { annotate } from "@wirecat/cli-base/commands"
+import { LOCAL_READ, LOCAL_WRITE, withQuery } from "@wirecat/cli-core/cli"
 import type { MessageStore, VocabularyKind, VocabularyOptions, VocabularyTarget } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
@@ -40,7 +41,9 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
   })
   budgetOptions(
     withQuery(
-      vocabulary.command("list").description("list canonical IDs, aliases, usage counts and a preview fingerprint"),
+      annotate(vocabulary.command("list"), { effects: LOCAL_READ, output: { entity: "vocabulary" } }).description(
+        "list canonical IDs, aliases, usage counts and a preview fingerprint",
+      ),
       VOCABULARY_QUERY,
     ),
   ).action((words: string[], options: Options) =>
@@ -49,16 +52,14 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
     ),
   )
   readOptions(
-    vocabulary
-      .command("show")
+    annotate(vocabulary.command("show"), { effects: LOCAL_READ })
       .argument("<name>", "the name or alias to look up, exactly")
       .description("the project, tag or topic an exact name or alias names; ambiguity is reported"),
   ).action((name: string, options: Options) =>
     execute(options, (store) => store.knowledge.resolveVocabulary(name, catalogOptions(options))),
   )
   readOptions(
-    vocabulary
-      .command("check")
+    annotate(vocabulary.command("check"), { effects: LOCAL_READ })
       .argument("[name]", "a tag or topic you mean to create; without it, the whole vocabulary")
       .summary("check a new name for existing labels, or the vocabulary for likely synonyms")
       .description(
@@ -103,8 +104,7 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
           })
         }),
     )
-  vocabulary
-    .command("create")
+  annotate(vocabulary.command("create"), { effects: LOCAL_WRITE })
     .argument("<name>", "the new tag or topic")
     .description("owner: create a distinct tag or topic after vocabulary check <name>")
     .option("--kind <kind>", "tag or topic", oneOf(["tag", "topic"] as const))
@@ -120,8 +120,7 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
       ),
     )
   const aliases = vocabulary.command("aliases").description("owner-reviewed aliases on stable canonical IDs")
-  aliases
-    .command("add")
+  annotate(aliases.command("add"), { effects: LOCAL_WRITE })
     .description("owner: add another name for a project, tag or topic")
     .argument("<reference>", "project:<id>, tag:<id> or topic:<id>, from vocabulary list")
     .argument("<name>", "the other name")
@@ -133,8 +132,7 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
         store.knowledge.addVocabularyAlias(target, name, { by: "owner", expectedFingerprint: options.fingerprint }),
       )
     })
-  aliases
-    .command("remove")
+  annotate(aliases.command("remove"), { effects: LOCAL_WRITE })
     .description("owner: remove another name from a project, tag or topic")
     .argument("<reference>", "project:<id>, tag:<id> or topic:<id>, from vocabulary list")
     .argument("<alias-id>", "the alias's id, from vocabulary list")

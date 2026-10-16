@@ -1,5 +1,7 @@
 import { join } from "node:path"
 import { CliError, type Streams } from "@wirecat/cli-base"
+import { annotate } from "@wirecat/cli-base/commands"
+import { LOCAL_WRITE } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { withStore } from "../answer.js"
 import { boundFolders, folderOfFile } from "../notes/bound.js"
@@ -9,8 +11,7 @@ import { importNotesMap } from "./notes-map.js"
 
 /** Who is who is linked in messaging (`tg contacts link`); the note about a person is an `about` link. */
 export const noteCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
-  program
-    .command("note")
+  annotate(program.command("note"), { effects: LOCAL_WRITE })
     .description("name the note that is about a person, or show it")
     .argument("<identity>", "<messenger>:<name or id> of any identity of the person")
     .argument("[path]", "the note about them, a file in a configured folder")

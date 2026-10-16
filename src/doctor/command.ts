@@ -3,8 +3,9 @@ import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { join } from "node:path"
 import { resolvePaths, type Streams } from "@wirecat/cli-base"
+import { annotate } from "@wirecat/cli-base/commands"
 import { SKILL_TARGETS, skillPath, skillVersion } from "@wirecat/cli-base/skill"
-import { storeSummary } from "@wirecat/cli-core/cli"
+import { LOCAL_READ, storeSummary } from "@wirecat/cli-core/cli"
 import { sharedModelsDirectory } from "@wirecat/cli-core/speech"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
@@ -205,8 +206,7 @@ export const doctorText = (d: Diagnosis): string =>
 
 export const doctorCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
-  program
-    .command("doctor")
+  annotate(program.command("doctor"), { effects: LOCAL_READ })
     .description("where memo keeps its files and what needs attention; connects to nothing")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText(

@@ -1,6 +1,7 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
+import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
-import { type Body, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
+import { type Body, LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
 import {
   type KnowledgeRelation,
   type MessageStore,
@@ -61,8 +62,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   const organizations = program
     .command("organizations")
     .description("companies, teams, families and communities of yours")
-  organizations
-    .command("add")
+  annotate(organizations.command("add"), { effects: LOCAL_WRITE })
     .description("add an organization of yours: a company, team, family or community")
     .argument("<name>", "the organization's name")
     .requiredOption("--kind <kind>", ORGANIZATION_KINDS.join(", "), oneOf(ORGANIZATION_KINDS))
@@ -77,15 +77,13 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         }),
       ),
     )
-  organizations
-    .command("list")
+  annotate(organizations.command("list"), { effects: LOCAL_READ })
     .description("your organizations")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((options: { json?: boolean }) =>
       ownedList("organizations list", options, (store) => store.knowledge.organizations()),
     )
-  organizations
-    .command("context")
+  annotate(organizations.command("context"), { effects: LOCAL_READ })
     .description(
       "one organization by its id or organization:<id>: its relationships, the notes about or linking it, and its tags",
     )
@@ -105,8 +103,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     )
   const projects = program.command("projects").description("projects of yours, each with a short key")
   meetingProjectsCommand(projects, streams, env)
-  projects
-    .command("add")
+  annotate(projects.command("add"), { effects: LOCAL_WRITE })
     .description("add a project of yours, with a short key its tasks use")
     .argument("<name>", "the project's name")
     .option("--key <key>", "3–4 letters and digits; made from the name when left out")
@@ -137,13 +134,11 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
           }),
         ),
     )
-  projects
-    .command("list")
+  annotate(projects.command("list"), { effects: LOCAL_READ })
     .description("your projects")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((options: { json?: boolean }) => ownedList("projects list", options, (store) => store.knowledge.projects()))
-  projects
-    .command("context")
+  annotate(projects.command("context"), { effects: LOCAL_READ })
     .description(
       "one project by its id, key or project:<id>: its key documents first, then its relationships, the notes " +
         "about or linking it, and its tags. Start work on a project here",
@@ -164,8 +159,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .command("key-documents")
     .description("the notes, files and messages to read first about a project, each with why")
   byOption(
-    keys
-      .command("add")
+    annotate(keys.command("add"), { effects: LOCAL_WRITE })
       .description("mark a note:, document: or msg: reference as a key document of the project")
       .argument("<project>", "id, key or project:<id>")
       .argument("<reference>", "note:, document: or msg: reference")
@@ -176,8 +170,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       markKey(store, await projectOf(store, project), reference, options.reason, authorOf(env, options.asOwner)),
     ),
   )
-  keys
-    .command("remove")
+  annotate(keys.command("remove"), { effects: LOCAL_WRITE })
     .description("unmark a key document; the note, file or message stays")
     .argument("<project>", "id, key or project:<id>")
     .argument("<reference>", "the key document's note:, document: or msg: reference")
@@ -185,8 +178,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .action((project: string, reference: string, options: { json?: boolean }) =>
       owned(options, async (store) => unmarkKey(store, await projectOf(store, project), reference)),
     )
-  keys
-    .command("list")
+  annotate(keys.command("list"), { effects: LOCAL_READ })
     .description("a project's key documents: why, who marked each and whether it is still there")
     .argument("<project>", "id, key or project:<id>")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
@@ -199,8 +191,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .command("relationships")
     .description("relations between people, organizations and projects; never between identities")
   byOption(
-    relations
-      .command("add")
+    annotate(relations.command("add"), { effects: LOCAL_WRITE })
       .description(
         "state that a person, organization or project belongs to or relates to another; an agent's waits for you to confirm it",
       )
@@ -237,23 +228,26 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         )
       },
     )
-  withQuery(relations.command("list").description("relationships, all or those of one reference"), RELATIONSHIP_QUERY)
+  withQuery(
+    annotate(relations.command("list"), { effects: LOCAL_READ }).description(
+      "relationships, all or those of one reference",
+    ),
+    RELATIONSHIP_QUERY,
+  )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((words: string[], options: { json?: boolean }) =>
       ownedList("relationships list", options, (store) =>
         store.knowledge.relations(null, queryTerms(words, RELATIONSHIP_QUERY, "relationships list").get("about")),
       ),
     )
-  relations
-    .command("remove")
+  annotate(relations.command("remove"), { effects: LOCAL_WRITE })
     .description("remove a relationship")
     .argument("<id>", "the relationship's id, as relationships list gives it")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((id: string, options: { json?: boolean }) =>
       owned(options, (store) => store.knowledge.removeRelation(null, id)),
     )
-  relations
-    .command("confirm")
+  annotate(relations.command("confirm"), { effects: LOCAL_WRITE })
     .description("confirm a suggested relationship")
     .argument("<id>", "the relationship's id, as relationships list gives it")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
@@ -261,9 +255,9 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       owned(options, (store) => store.knowledge.confirmRelation(null, id)),
     )
   accountOptions(
-    relations
-      .command("suggest")
-      .description("suggest relationships between email contacts of one domain; you confirm each"),
+    annotate(relations.command("suggest"), { effects: LOCAL_READ }).description(
+      "suggest relationships between email contacts of one domain; you confirm each",
+    ),
   )
     .option("--limit <n>", "most suggestions, at most 100", positive, 20)
     .action((options: AccountScope & { limit: number; json?: boolean }) =>
@@ -315,7 +309,9 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .command("reminders")
     .description("durable local reminders; poll hands one out and ack confirms it was shown")
   accountOptions(
-    reminders.command("add").description("add a reminder for an open task").argument("<task>", "the task's id"),
+    annotate(reminders.command("add"), { effects: LOCAL_WRITE })
+      .description("add a reminder for an open task")
+      .argument("<task>", "the task's id"),
   )
     .requiredOption("--at-time <time>", "when to remind: an ISO 8601 time with its UTC offset")
     .option("--timezone <zone>", "IANA timezone", "UTC")
@@ -324,11 +320,16 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         itemAnswer(await store.knowledge.schedule(key, task, options.atTime, options.timezone)),
       ),
     )
-  accountOptions(reminders.command("list").description("pending reminders of one account")).action(
-    (options: AccountScope & { json?: boolean }) =>
-      execute(options, async (store, key) => wholeList("reminders list", await store.knowledge.reminders(key))),
+  accountOptions(
+    annotate(reminders.command("list"), { effects: LOCAL_READ }).description("pending reminders of one account"),
+  ).action((options: AccountScope & { json?: boolean }) =>
+    execute(options, async (store, key) => wholeList("reminders list", await store.knowledge.reminders(key))),
   )
-  accountOptions(reminders.command("poll").description("hand out due reminders, each with a receipt to acknowledge"))
+  accountOptions(
+    annotate(reminders.command("poll"), { effects: LOCAL_WRITE }).description(
+      "hand out due reminders, each with a receipt to acknowledge",
+    ),
+  )
     .option("--limit <n>", "most due reminders, at most 500", positive, 100)
     .action((options: AccountScope & { limit: number; json?: boolean }) =>
       execute(options, async (store, key) => {
@@ -345,8 +346,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       }),
     )
   accountOptions(
-    reminders
-      .command("ack")
+    annotate(reminders.command("ack"), { effects: LOCAL_WRITE })
       .description("confirm that a handed-out reminder was shown")
       .argument("<id>", "the reminder's id")
       .argument("<receipt>", "the receipt reminders poll handed out with it"),
@@ -354,12 +354,16 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     execute(options, async (store, key) => itemAnswer(await store.knowledge.acknowledgeReminder(key, id, receipt))),
   )
   accountOptions(
-    reminders.command("cancel").description("cancel a reminder").argument("<id>", "the reminder's id"),
+    annotate(reminders.command("cancel"), { effects: LOCAL_WRITE })
+      .description("cancel a reminder")
+      .argument("<id>", "the reminder's id"),
   ).action((id: string, options: AccountScope & { json?: boolean }) =>
     execute(options, async (store, key) => itemAnswer(await store.knowledge.cancelReminder(key, id))),
   )
   accountOptions(
-    reminders.command("update").description("move a reminder to another time").argument("<id>", "the reminder's id"),
+    annotate(reminders.command("update"), { effects: LOCAL_WRITE })
+      .description("move a reminder to another time")
+      .argument("<id>", "the reminder's id"),
   )
     .requiredOption("--at-time <time>", "the new time: an ISO 8601 time with its UTC offset")
     .requiredOption("--revision <n>", "the reminder's current revision, as reminders list gives it", positive)

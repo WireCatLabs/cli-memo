@@ -1,5 +1,6 @@
 import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
-import { commandsDocument, flatten } from "@wirecat/cli-base/commands"
+import { annotate, commandsDocument, flatten } from "@wirecat/cli-base/commands"
+import { NO_EFFECTS } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { VERSION } from "../version.js"
 
@@ -7,8 +8,7 @@ import { VERSION } from "../version.js"
 export const CONTRACT = 4
 
 export const commandsCommand = (program: Command, streams: Streams): void => {
-  program
-    .command("commands")
+  annotate(program.command("commands"), { effects: NO_EFFECTS })
     .argument("[path...]", "one command, such as tags add")
     .description("discover the command tree and options as shared registry data")
     .option("--json", "print JSON; --json=id,title keeps only those fields")

@@ -1,7 +1,8 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
+import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { formatReference, normalizeTag } from "@wirecat/cli-core"
-import { queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
+import { LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
 import type { MessageStore, StoredTag } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
@@ -182,9 +183,9 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
   }
   for (const operation of ["add", "remove"] as const)
     targetOptions(
-      tags
-        .command(operation)
-        .description(operation === "add" ? "put labels on one source" : "remove labels from one source"),
+      annotate(tags.command(operation), { effects: LOCAL_WRITE }).description(
+        operation === "add" ? "put labels on one source" : "remove labels from one source",
+      ),
     ).action(
       (
         given: string[],
@@ -193,7 +194,12 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       ) => mutate(operation, given, options),
     )
 
-  withQuery(tags.command("list").description("list source labels, optionally in one provider or account"), TAG_QUERY)
+  withQuery(
+    annotate(tags.command("list"), { effects: LOCAL_READ, output: { entity: "source_tag" } }).description(
+      "list source labels, optionally in one provider or account",
+    ),
+    TAG_QUERY,
+  )
     .option("--provider <provider>", "only this provider")
     .option("--account <account>", "only this account; requires --provider")
     .option("--limit <n>", "most labels to show", positive, 100)

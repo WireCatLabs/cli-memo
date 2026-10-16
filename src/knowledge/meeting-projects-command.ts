@@ -1,6 +1,7 @@
 import type { Streams } from "@wirecat/cli-base"
+import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
-import { type Body, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
+import { type Body, LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer } from "../answer.js"
@@ -38,8 +39,7 @@ export const meetingProjectsCommand = (projects: Command, streams: Streams, env:
   ) => run(options.json, async (store) => work(store, (await canonicalProject(store, project)).slice(8)))
   withQuery(
     options(
-      group
-        .command("list")
+      annotate(group.command("list"), { effects: LOCAL_READ, output: { entity: "meeting_project" } })
         .description("meetings linked to a project in one account, or with confirmed:false proposed")
         .argument("<project>", "project reference, key or explicit alias"),
     ),
@@ -70,8 +70,7 @@ export const meetingProjectsCommand = (projects: Command, streams: Streams, env:
       }),
     )
   options(
-    group
-      .command("link")
+    annotate(group.command("link"), { effects: LOCAL_WRITE })
       .description("link a stored meeting to a project, or confirm a proposed link")
       .argument("<project>", "project reference, key or explicit alias")
       .argument("<meeting-id>", "positive stored meeting id"),

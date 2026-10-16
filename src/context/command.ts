@@ -1,4 +1,6 @@
 import type { Streams } from "@wirecat/cli-base"
+import { annotate } from "@wirecat/cli-base/commands"
+import { LOCAL_READ } from "@wirecat/cli-core/cli"
 import type { ContextMessage } from "@wirecat/cli-core/services"
 import type { Command } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
@@ -64,8 +66,7 @@ export const contextText = ({ messages, notes, notRead, tasks, yourNotes }: Memo
 
 export const contextCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
-  program
-    .command("context")
+  annotate(program.command("context"), { effects: LOCAL_READ })
     .description("messages, mail and notes about a person, each with a link to its source")
     .argument("<person>", "<messenger>:<name or id>, e.g. telegram:Ana or email:ana@example.com")
     .option("--limit <n>", "most messages and notes of each kind", positive, 20)

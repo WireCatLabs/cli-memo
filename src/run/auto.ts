@@ -4,8 +4,10 @@ import { homedir } from "node:os"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { CliError, resolvePaths, type Streams } from "@wirecat/cli-base"
+import { annotate } from "@wirecat/cli-base/commands"
 import { installerOf } from "@wirecat/cli-base/update"
 import { failingNotice, type LastRun, recordRun } from "@wirecat/cli-core/background"
+import { LOCAL_READ, LOCAL_WRITE } from "@wirecat/cli-core/cli"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { type Config, loadConfig, updateConfig } from "../config.js"
@@ -208,8 +210,7 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
   const { print } = answers(program, streams, env)
   const auto = program.command("auto").description("run memo sync on a systemd user timer, set in the config")
 
-  auto
-    .command("start")
+  annotate(auto.command("start"), { effects: LOCAL_WRITE })
     .description("sync every --every (default auto.every, else 5m), starting a minute from now")
     .option("--every <duration>", "how often: 5m, 90s, 1h — a minute or more", interval)
     .action(async (options: { every?: string }) => {
@@ -224,8 +225,7 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       streams.data(`memo sync runs every ${autoState(config).every}.\n`)
     })
 
-  auto
-    .command("stop")
+  annotate(auto.command("stop"), { effects: LOCAL_WRITE })
     .description("stop syncing on a timer and remove the timer")
     .action(async () => {
       const config = updateConfig((current) => ({ ...current, auto: { ...current.auto, enabled: false } }), env)
@@ -233,8 +233,7 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       streams.data("memo sync no longer runs on a timer.\n")
     })
 
-  auto
-    .command("status")
+  annotate(auto.command("status"), { effects: LOCAL_READ })
     .description("whether the timer is on, its interval, its next run and how the last one ended")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (options: { json?: boolean }) => {

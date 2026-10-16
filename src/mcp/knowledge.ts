@@ -3,7 +3,7 @@ import * as v from "valibot"
 import { itemAnswer } from "../answer.js"
 import { memoContext } from "../context/context.js"
 import { allAnswer, kindAnswer, notesAnswer } from "../search/answers.js"
-import { searchEverywhere, searchKind } from "../search/command.js"
+import { searchEverywhere, searchKind } from "../search/search.js"
 import { define } from "./tool.js"
 
 const query = {

@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs"
 import { CliError, type Streams } from "@wirecat/cli-base"
+import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
-import { queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
+import { LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
 import type { MessageStore, Note } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
@@ -70,8 +71,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     })
   const notes = program.command("notes").description("notes from your folders, and notes you write here")
 
-  notes
-    .command("show")
+  annotate(notes.command("show"), { effects: LOCAL_READ, output: { entity: "note" } })
     .description("one note: its text, tags, what it links and what links it")
     .addHelpText("after", SAVE_HELP)
     .argument("<note>", "note:<id>, document:<id>, or a file in a configured folder")
@@ -112,7 +112,10 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       )
     })
 
-  withQuery(notes.command("list").description("notes, newest first"), NOTES_LIST_QUERY)
+  withQuery(
+    annotate(notes.command("list"), { effects: LOCAL_READ }).description("notes, newest first"),
+    NOTES_LIST_QUERY,
+  )
     .option("--limit <n>", "most notes, at most 500", positive, 20)
     .option("--page <n>", "which page, from 1", positive, 1)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
@@ -151,8 +154,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       )
     })
 
-  notes
-    .command("add")
+  annotate(notes.command("add"), { effects: LOCAL_WRITE, output: { entity: "note" } })
     .description("write a note of your own about messages, people, projects or other notes")
     .argument("[text]", "the note; or --text, or --text-file")
     .option("--text <text>", "the note")
@@ -206,8 +208,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       },
     )
 
-  notes
-    .command("edit")
+  annotate(notes.command("edit"), { effects: LOCAL_WRITE, output: { entity: "note" } })
     .description("change a note you wrote here; a file's note is edited in its file")
     .argument("<id>", "note:<id> or its id")
     .requiredOption("--revision <n>", "its current revision, so an edit made meanwhile is not lost", positive)
@@ -239,8 +240,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       },
     )
 
-  notes
-    .command("remove")
+  annotate(notes.command("remove"), { effects: LOCAL_WRITE })
     .description("delete a note you wrote here; a file it was exported to stays")
     .argument("<id>", "note:<id> or its id")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
@@ -249,8 +249,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       print(options.json, itemAnswer(answer), `${answer.id} removed`)
     })
 
-  notes
-    .command("export")
+  annotate(notes.command("export"), { effects: LOCAL_WRITE })
     .description("write the notes you wrote here as files, never overwriting one you edited")
     .option("--output-dir <dir>", "the folder to write to (default: notes.export.dir)")
     .option("--format <format>", `the files' format: ${DIALECTS.join(", ")}`, formatOf)

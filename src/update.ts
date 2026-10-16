@@ -2,6 +2,7 @@ import { realpathSync } from "node:fs"
 import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { createRenderer, resolvePaths, type Streams } from "@wirecat/cli-base"
+import { annotate } from "@wirecat/cli-base/commands"
 import type { FetchLike } from "@wirecat/cli-base/http"
 import {
   type Installer,
@@ -10,7 +11,7 @@ import {
   runUpdate as runPackageManager,
   updateNotice as sharedNotice,
 } from "@wirecat/cli-base/update"
-import { upgradeCommand as sharedUpgradeCommand } from "@wirecat/cli-core/cli"
+import { FETCH, upgradeCommand as sharedUpgradeCommand } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { APP } from "./app.js"
 import { loadConfig } from "./config.js"
@@ -84,14 +85,17 @@ export const updateNotice = (
 
 /** cli-core's `upgrade`: the package manager that installed memo, or only a look with `--check`. */
 export const upgradeCommand = (streams: Streams, environment: UpdateEnvironment = {}): Command =>
-  sharedUpgradeCommand(APP, PACKAGE, (command) => {
-    const format = command.opts().json ? "json" : "pretty"
-    return {
-      renderer: createRenderer({ format, color: false, streams }),
-      format,
-      streams,
-      installer: () => installer(environment),
-      latest: () => latest(environment),
-      install: (argv) => (environment.spawn ? environment.spawn(argv) : runPackageManager(argv)),
-    }
-  }).option("--json", "print JSON")
+  annotate(
+    sharedUpgradeCommand(APP, PACKAGE, (command) => {
+      const format = command.opts().json ? "json" : "pretty"
+      return {
+        renderer: createRenderer({ format, color: false, streams }),
+        format,
+        streams,
+        installer: () => installer(environment),
+        latest: () => latest(environment),
+        install: (argv) => (environment.spawn ? environment.spawn(argv) : runPackageManager(argv)),
+      }
+    }),
+    { effects: FETCH },
+  ).option("--json", "print JSON")
