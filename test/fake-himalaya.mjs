@@ -45,7 +45,9 @@ if (mailbox.fail) {
   process.exit(1)
 }
 
-const TRASH = "[Gmail]/Trash"
+// UK English names Trash "Bin"; a client that assumes "[Gmail]/Trash" gets what Gmail answers it.
+const TRASH = "[Gmail]/Bin"
+const MISSING = (tag, name) => `${tag} NO [NONEXISTENT] Unknown Mailbox: ${name} (Failure) [THROTTLED]`
 // Messages live in All Mail unless a move put them in Trash; INBOX is All Mail with the \\Inbox label, as on Gmail.
 let current = "[Gmail]/All Mail"
 const here = () => mailbox.messages.filter((m) => (current === TRASH ? m.folder === TRASH : m.folder !== TRASH))
@@ -60,7 +62,16 @@ if (args[0] === "imap" && args[1] === "raw") {
   for (const line of input.split("\r\n").filter(Boolean)) {
     const [tag, ...rest] = line.split(" ")
     const command = rest.join(" ")
-    if (command.startsWith("EXAMINE") || command.startsWith("SELECT")) {
+    if (command.startsWith("LIST")) {
+      out.push(
+        '* LIST (\\All \\HasNoChildren) "/" "[Gmail]/All Mail"',
+        `* LIST (\\HasNoChildren \\Trash) "/" ${JSON.stringify(TRASH)}`,
+        '* LIST (\\HasNoChildren \\Sent) "/" "[Gmail]/Sent Mail"',
+        `${tag} OK Success [THROTTLED]`,
+      )
+    } else if ((command.startsWith("EXAMINE") || command.startsWith("SELECT")) && command.endsWith('"[Gmail]/Trash"')) {
+      out.push(MISSING(tag, "[Gmail]/Trash"))
+    } else if (command.startsWith("EXAMINE") || command.startsWith("SELECT")) {
       current = JSON.parse(command.slice(command.indexOf(" ") + 1))
       out.push(`* OK [UIDVALIDITY ${mailbox.validity ?? 12}] UIDs valid.`, `${tag} OK selected. (Success)`)
     } else if (command.startsWith("UID MOVE")) {

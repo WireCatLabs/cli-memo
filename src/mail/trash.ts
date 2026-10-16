@@ -10,8 +10,6 @@ import type { MailAccount } from "./import.js"
 import { decide, describeMatch, ENVELOPE, type MailRule } from "./rules.js"
 import type { Listed, MailSource } from "./source.js"
 
-export const ALL_MAIL = "[Gmail]/All Mail"
-export const TRASH = "[Gmail]/Trash"
 const DAY = 86_400_000
 /** Gmail deletes Trash for good after 30 days (support.google.com/mail/answer/7401). */
 export const RESTORE_DAYS = 30
@@ -303,6 +301,7 @@ export const trashMail = async ({
       { reason: "mail.archive-unverified" },
     )
 
+  const { all, trash } = await gmailFolders(source)
   const id = `${new Date(started).toISOString().replace(/[:.]/g, "-")}-${randomBytes(2).toString("hex")}`
   const dir = logDir(env, account.name)
   mkdirSync(dir, { recursive: true })
@@ -319,7 +318,7 @@ export const trashMail = async ({
       (
         (await source.find?.(
           part.map(({ item }) => item.messageId),
-          ALL_MAIL,
+          all,
         )) ?? []
       ).map((item) => [item.messageId, item]),
     )
@@ -353,12 +352,12 @@ export const trashMail = async ({
       })
     const uids = new Map(ready.map(({ item }) => [item.messageId, item.uid]))
     const ids = [...uids.keys()]
-    await source.move(ids, ALL_MAIL, TRASH, uids)
+    await source.move(ids, all, trash, uids)
     // Gmail answered OK; a message still in All Mail was not moved, and gets one more try.
-    let left = await stillThere(source, uids)
+    let left = await stillThere(source, uids, all)
     if (left.length) {
-      await source.move(left, ALL_MAIL, TRASH, new Map(left.map((id) => [id, uids.get(id) as string])))
-      left = await stillThere(source, new Map(left.map((id) => [id, uids.get(id) as string])))
+      await source.move(left, all, trash, new Map(left.map((id) => [id, uids.get(id) as string])))
+      left = await stillThere(source, new Map(left.map((id) => [id, uids.get(id) as string])), all)
     }
     const moved = ids.filter((id) => !left.includes(id))
     write({ type: "batch", batch, moved, not_moved: left })
@@ -370,8 +369,14 @@ export const trashMail = async ({
   return result
 }
 
-const stillThere = async (source: MailSource, uids: ReadonlyMap<string, string>): Promise<string[]> => {
-  const present = new Set(await source.present?.([...uids.values()], ALL_MAIL))
+const gmailFolders = async (source: MailSource) => {
+  if (source.folders === undefined)
+    throw new CliError("validation_error", "not a Gmail account", { reason: "mail.not-gmail" })
+  return source.folders()
+}
+
+const stillThere = async (source: MailSource, uids: ReadonlyMap<string, string>, all: string): Promise<string[]> => {
+  const present = new Set(await source.present?.([...uids.values()], all))
   return [...uids].filter(([, uid]) => present.has(uid)).map(([id]) => id)
 }
 
@@ -430,8 +435,9 @@ export const restoreRun = async ({
     missing: 0,
     expired: now() - started > RESTORE_DAYS * DAY,
   }
+  const { all, trash } = await gmailFolders(source)
   const inTrash = new Set(
-    ((await source.find?.([...movedIds], TRASH)) ?? []).map(({ messageId }) => messageId as string),
+    ((await source.find?.([...movedIds], trash)) ?? []).map(({ messageId }) => messageId as string),
   )
   result.missing = emails.length - inTrash.size
   if (!apply || inTrash.size === 0) {
@@ -445,10 +451,10 @@ export const restoreRun = async ({
   const restored: string[] = []
   for (const [ids, to] of [
     [toInbox, "INBOX"],
-    [toAll, ALL_MAIL],
+    [toAll, all],
   ] as const)
     for (let from = 0; from < ids.length; from += BATCH)
-      for (const id of (await source.move(ids.slice(from, from + BATCH), TRASH, to)).moved) restored.push(id)
+      for (const id of (await source.move(ids.slice(from, from + BATCH), trash, to)).moved) restored.push(id)
   // Gmail kept the owner's labels through the move on the test account; they are put back anyway, grouped by set.
   const bySet = new Map<string, string[]>()
   for (const line of back) {
@@ -457,7 +463,7 @@ export const restoreRun = async ({
     const setKey = JSON.stringify(labels.map(imapLabel).sort())
     bySet.set(setKey, [...(bySet.get(setKey) ?? []), String(line.message_id)])
   }
-  for (const [setKey, ids] of bySet) await source.label(ids, ALL_MAIL, JSON.parse(setKey) as string[])
+  for (const [setKey, ids] of bySet) await source.label(ids, all, JSON.parse(setKey) as string[])
   appendFileSync(log, `${JSON.stringify({ type: "restore", at: new Date(now()).toISOString(), restored })}\n`)
   result.restored = restored.length
   return result

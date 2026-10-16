@@ -120,6 +120,11 @@ const assertCompleted = (output: string, tags: string[]): void => {
   for (const tag of tags) {
     if (!new RegExp(`^${tag} OK`, "m").test(output)) {
       const line = output.split(/\r?\n/).find((text) => text.startsWith(`${tag} `)) ?? "no answer"
+      // Gmail tags answers with [THROTTLED] even when another code says what failed, so that code goes first.
+      if (/\[NONEXISTENT\]/.test(line))
+        throw new CliError("provider_error", `IMAP command ${tag}: Gmail has no such mailbox: ${line}`, {
+          reason: "mail.source-failed",
+        })
       if (isThrottled(line)) throw throttledError(`IMAP command ${tag}`)
       throw new CliError("provider_error", `IMAP command ${tag} did not complete: ${line}`, {
         reason: "mail.source-failed",
@@ -139,6 +144,28 @@ const mailboxOf = (folder: string): string => {
   if (!folder || /[\r\n]/.test(folder) || folder.includes(String.fromCharCode(0)))
     throw new CliError("validation_error", "invalid mailbox name")
   return JSON.stringify(folder)
+}
+
+/**
+ * All Mail and Trash found by their roles (RFC 6154 `\\All`, `\\Trash`): Gmail names them in the account's
+ * language, so Trash is `[Gmail]/Bin` in UK English.
+ */
+export const specialFolders = async (run: Himalaya, account: string): Promise<{ all: string; trash: string }> => {
+  const listed = await run(["imap", "raw", "-a", account], `a LIST "" "*"\r\n`)
+  assertCompleted(listed, ["a"])
+  let all: string | undefined
+  let trash: string | undefined
+  for (const line of listed.split(/\r?\n/)) {
+    const hit = /^\* LIST \(([^)]*)\) (?:"[^"]*"|NIL) (.+)$/.exec(line)
+    if (!hit) continue
+    const [, flags = "", raw = ""] = hit
+    const name = raw.startsWith('"') ? (JSON.parse(raw) as string) : raw
+    if (/\\All\b/.test(flags)) all = name
+    if (/\\Trash\b/.test(flags)) trash = name
+  }
+  if (all === undefined || trash === undefined)
+    throw new CliError("provider_error", "Gmail listed no All Mail or Trash folder", { reason: "mail.source-failed" })
+  return { all, trash }
 }
 
 /** One cheap call: the UIDs a listing would fetch, so a rerun can fetch only those not done before. */
