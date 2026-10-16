@@ -238,7 +238,7 @@ keeps it 30 days before deleting it for good:
 memo mail trash work                  # says what would move, per rule, and what stays and why
 memo mail trash work --yes            # a first run moves at most 100, to check by hand in Gmail's Trash
 memo mail trash work --yes            # later runs move up to 5,000, oldest first (--limit changes it)
-memo mail trash work --yes --since 2012-01-01   # only mail from 2012 on; older mail stays for now
+memo mail trash work --yes --since-time 2012-01-01   # only mail from 2012 on; older mail stays for now
 memo mail runs work                   # each run: how much moved, and until when it can be restored
 memo mail restore work --run <id> --yes   # moves a run back, to the inbox if it was there, with its labels
 ```

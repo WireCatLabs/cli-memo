@@ -8,7 +8,7 @@ the API.
 
 ### Added
 
-- **`memo mail trash --since <YYYY-MM-DD>` leaves older mail in Gmail, whatever its rule says.** For keeping old
+- **`memo mail trash --since-time <time>` leaves older mail in Gmail, whatever its rule says.** For keeping old
   years while newer junk is cleaned up; such mail is counted as kept `before_since`, and JSON adds `since`.
 
 ## 0.51.0 — 16.10.2026
