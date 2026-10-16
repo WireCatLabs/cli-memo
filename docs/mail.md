@@ -229,6 +229,31 @@ store, checks they all arrived, and only then drops them from the config. The ol
 `config.json.<time>.before-rules-in-store`, readable only by you, and memo says so on stderr once. A keep rule
 whose reason says "never remove" becomes protected: no cleanup may cut or delete what it matches.
 
+## Clean up Gmail
+
+Envelope mail is junk you chose not to keep the text of. `memo mail trash` moves it to Gmail's Trash, where Gmail
+keeps it 30 days before deleting it for good:
+
+```sh
+memo mail trash work                  # says what would move, per rule, and what stays and why
+memo mail trash work --yes            # a first run moves at most 100, to check by hand in Gmail's Trash
+memo mail trash work --yes            # later runs move up to 5,000, oldest first (--limit changes it)
+memo mail runs work                   # each run: how much moved, and until when it can be restored
+memo mail restore work --run <id> --yes   # moves a run back, to the inbox if it was there, with its labels
+```
+
+Each email is decided again with today's rules and Gmail labels. It stays in Gmail when a protected or keep rule
+matches it, you ever replied to its sender, it is starred, important, sent or a draft, it carries a label of yours
+that its rule does not add, or it is under 30 days old. `--yes` refuses until a store backup under 8 days old is
+recorded: the backup script writes `backups/last.json` next to the store when a copy passes its check. A Google
+Takeout `mbox` file of the mailbox is advised, not required, so the full text of what is trashed is kept; the preview and
+`memo doctor` say whether one is imported.
+
+Before each batch, every email's Gmail id, labels and flags go to a restore log in memo's state folder
+(`mail-trash/<account>/<run>.jsonl`). Moving to Trash takes a message out of All Mail and drops its Inbox label;
+Gmail keeps its other labels, and moving it back returns it as it was. A moved email is marked deleted in the store;
+the next sync after a restore stores it again under today's rules. Cleanup never runs from the timer.
+
 ## Old mail from Google Takeout
 
 Gmail limits how much IMAP can download a day, so years of old mail are faster from a

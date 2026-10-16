@@ -6,6 +6,16 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo mail trash <account>` moves envelope mail to Gmail's Trash**, after deciding each email again with today's
+  rules and labels. It keeps mail a protected or keep rule matches, mail from senders you replied to, starred,
+  important, sent and labelled mail, and mail under 30 days old. A preview unless `--yes`; a first run moves at most
+  100, later runs 5,000; `--yes` needs a store backup under 8 days old (`backups/last.json` beside the store). Every
+  moved email's labels go to a restore log first. **`memo mail restore <account> --run <id>`** moves a run back
+  within Gmail's 30 days, and **`memo mail runs <account>`** lists runs. `memo doctor` shows the backup, whether a
+  Takeout mbox is imported, and runs that stopped or are close to their 30 days.
+
 ### Fixed
 
 - **Release scripts report observed lock holders separately from stale release labels.** Shared

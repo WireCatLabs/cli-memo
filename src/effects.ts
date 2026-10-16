@@ -1,10 +1,10 @@
 import { annotate, type CommandOutput } from "@wirecat/cli-base/commands"
 import type { Effects } from "@wirecat/cli-base/standards"
-import { FETCH, LOCAL_READ, LOCAL_WRITE, NO_EFFECTS, REMOTE_READ } from "@wirecat/cli-core/cli"
+import { FETCH, LOCAL_READ, LOCAL_WRITE, NO_EFFECTS, REMOTE_READ, REMOTE_WRITE } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { leaves } from "./examples.js"
 
-// memo's remote side is the mail server and a configured model; it only ever reads there. Notes folders and the
+// memo's remote side is the mail server and a configured model; it reads there, except mail trash and restore. Notes folders and the
 // store are this machine. A command missing here counts as a write: never retried, never run as an unasked step.
 export const EFFECTS: Readonly<Record<string, Effects>> = {
   context: LOCAL_READ,
@@ -20,6 +20,9 @@ export const EFFECTS: Readonly<Record<string, Effects>> = {
   "messages show": LOCAL_READ,
   "mail inspect": REMOTE_READ,
   "mail status": LOCAL_READ,
+  "mail trash": REMOTE_WRITE,
+  "mail restore": REMOTE_WRITE,
+  "mail runs": LOCAL_READ,
   "mail rules list": LOCAL_READ,
   "mail rules add": LOCAL_WRITE,
   "mail rules remove": LOCAL_WRITE,

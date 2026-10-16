@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Stands in for himalaya in tests: answers `imap raw` and `imap fetch` from the mailbox JSON at
 // MEMO_FAKE_MAILBOX, in the shapes Himalaya 2.2.1 printed against a real Gmail account.
-import { appendFileSync, readFileSync } from "node:fs"
+import { appendFileSync, readFileSync, writeFileSync } from "node:fs"
 
 const mailbox = JSON.parse(readFileSync(process.env.MEMO_FAKE_MAILBOX, "utf8"))
 const args = process.argv.slice(2)
@@ -45,18 +45,52 @@ if (mailbox.fail) {
   process.exit(1)
 }
 
+const TRASH = "[Gmail]/Trash"
+// Messages live in All Mail unless a move put them in Trash; INBOX is All Mail with the \\Inbox label, as on Gmail.
+let current = "[Gmail]/All Mail"
+const here = () => mailbox.messages.filter((m) => (current === TRASH ? m.folder === TRASH : m.folder !== TRASH))
+const isInbox = (label) => label.includes("Inbox")
+// One spelling per label, so a label put back is not counted twice: a quoted plain name is the bare atom.
+const plain = (label) => (/^"[\w -]*"$/.test(label) && !label.includes(" ") ? label.slice(1, -1) : label)
+
 if (args[0] === "imap" && args[1] === "raw") {
   const input = readFileSync(0, "utf8")
   const out = []
+  let changed = false
   for (const line of input.split("\r\n").filter(Boolean)) {
     const [tag, ...rest] = line.split(" ")
     const command = rest.join(" ")
-    if (command.startsWith("EXAMINE"))
-      out.push(`* OK [UIDVALIDITY ${mailbox.validity ?? 12}] UIDs valid.`, `${tag} OK [READ-ONLY] selected. (Success)`)
-    else if (command.startsWith("UID SEARCH SINCE")) {
+    if (command.startsWith("EXAMINE") || command.startsWith("SELECT")) {
+      current = JSON.parse(command.slice(command.indexOf(" ") + 1))
+      out.push(`* OK [UIDVALIDITY ${mailbox.validity ?? 12}] UIDs valid.`, `${tag} OK selected. (Success)`)
+    } else if (command.startsWith("UID MOVE")) {
+      const [, , set, ...target] = command.split(" ")
+      const to = JSON.parse(target.join(" "))
+      for (const m of here().filter((m) => set.split(",").includes(m.uid))) {
+        if (to === TRASH) {
+          m.folder = TRASH
+          m.labels = (m.labels ?? []).filter((label) => !isInbox(label))
+        } else {
+          delete m.folder
+          if (to === "INBOX" && !(m.labels ?? []).some(isInbox)) m.labels = ['"\\\\Inbox"', ...(m.labels ?? [])]
+        }
+      }
+      changed = true
+      out.push(`${tag} ${mailbox.moveFails ? "NO [THROTTLED]" : "OK [COPYUID 2 1 1] (Success)"}`)
+    } else if (command.startsWith("UID STORE") && command.includes("+X-GM-LABELS")) {
+      const set = command.split(" ")[2].split(",")
+      const added =
+        command.slice(command.indexOf("(") + 1, command.lastIndexOf(")")).match(/"(?:[^"\\]|\\.)*"|\S+/g) ?? []
+      for (const m of here().filter((m) => set.includes(m.uid)))
+        m.labels = [...new Set([...(m.labels ?? []), ...added].map(plain))]
+      changed = true
+      out.push(`${tag} OK Success`)
+    } else if (command.startsWith("UID SEARCH SINCE")) {
       const [day, month, year] = command.slice("UID SEARCH SINCE ".length).split("-")
       const since = Date.UTC(Number(year), months.indexOf(month), Number(day))
-      const uids = mailbox.messages.filter((m) => Date.parse(m.receivedAt) >= since).map((m) => m.uid)
+      const uids = here()
+        .filter((m) => Date.parse(m.receivedAt) >= since)
+        .map((m) => m.uid)
       out.push(
         `* SEARCH ${uids.join(" ")}`.trimEnd(),
         `${tag} ${mailbox.searchFails ? "NO failed" : "OK SEARCH completed (Success)"}`,
@@ -65,7 +99,9 @@ if (args[0] === "imap" && args[1] === "raw") {
       const id = command.slice("UID SEARCH X-GM-MSGID ".length)
       // Which Gmail ids a retry looked up, so a test can see that nothing else was asked for.
       if (mailbox.log) appendFileSync(mailbox.log, `msgid:${id}\n`)
-      const uids = mailbox.messages.filter((m) => m.messageId === id).map((m) => m.uid)
+      const uids = here()
+        .filter((m) => m.messageId === id)
+        .map((m) => m.uid)
       out.push(`* SEARCH ${uids.join(" ")}`.trimEnd(), `${tag} OK SEARCH completed (Success)`)
     } else if (
       command.startsWith("UID FETCH") &&
@@ -103,6 +139,7 @@ if (args[0] === "imap" && args[1] === "raw") {
       out.push(`${tag} OK Success`)
     }
   }
+  if (changed) writeFileSync(process.env.MEMO_FAKE_MAILBOX, JSON.stringify(mailbox))
   process.stdout.write(`${out.join("\r\n")}\r\n`)
 } else if (args.includes("imap") && args.includes("fetch")) {
   const set = args[args.indexOf("fetch") + 1].split(",")

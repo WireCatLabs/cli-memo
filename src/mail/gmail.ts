@@ -188,6 +188,85 @@ export const uidsOfMessages = async (
   return [...uids]
 }
 
+/** Each Gmail id's UID in `folder`; an id the folder does not hold is absent from the map. */
+const uidsById = async (
+  run: Himalaya,
+  account: string,
+  messageIds: readonly string[],
+  folder: string,
+): Promise<Map<string, string>> => {
+  if (!messageIds.every((id) => /^\d+$/.test(id)))
+    throw new CliError("validation_error", "a Gmail message id is a number", { reason: "mail.invalid-imap" })
+  const found = new Map<string, string>()
+  for (let from = 0; from < messageIds.length; from += IDS_PER_CALL) {
+    const ids = messageIds.slice(from, from + IDS_PER_CALL)
+    const tags = ids.map((_, index) => `s${index}`)
+    const searched = await run(
+      ["imap", "raw", "-a", account],
+      `a EXAMINE ${mailboxOf(folder)}\r\n${ids.map((id, index) => `${tags[index]} UID SEARCH X-GM-MSGID ${id}\r\n`).join("")}`,
+    )
+    assertCompleted(searched, ["a", ...tags])
+    // Each untagged SEARCH answers the next tagged command, so answers pair with ids in order.
+    let pending: string | undefined
+    for (const line of searched.split(/\r?\n/)) {
+      const hit = /^\* SEARCH(.*)$/.exec(line)
+      if (hit) pending = hit[1]?.trim().split(/\s+/).filter(Boolean)[0]
+      const done = /^s(\d+) OK/.exec(line)
+      if (done) {
+        const id = ids[Number(done[1])]
+        if (id !== undefined && pending !== undefined && /^\d+$/.test(pending)) found.set(id, pending)
+        pending = undefined
+      }
+    }
+  }
+  return found
+}
+
+/** An IMAP quoted string escapes `\` and `"` as JSON does. */
+const quoted = (name: string): string => JSON.stringify(name)
+
+/**
+ * Moves the messages with these Gmail ids from `from` to `to` with `UID MOVE` (RFC 6851, which Gmail lists in its
+ * CAPABILITY). On Gmail a move to `[Gmail]/Trash` takes a message out of All Mail and drops `\Inbox`, keeping its
+ * other labels; a move back to `INBOX` or `[Gmail]/All Mail` returns it (checked on a test account, 2026-10-16).
+ */
+export const moveMessages = async (
+  run: Himalaya,
+  account: string,
+  messageIds: readonly string[],
+  from: string,
+  to: string,
+): Promise<{ moved: string[]; missing: string[] }> => {
+  const uids = await uidsById(run, account, messageIds, from)
+  const missing = messageIds.filter((id) => !uids.has(id))
+  if (uids.size === 0) return { moved: [], missing }
+  const moved = await run(
+    ["imap", "raw", "-a", account],
+    `a SELECT ${mailboxOf(from)}\r\nm UID MOVE ${[...uids.values()].join(",")} ${mailboxOf(to)}\r\n`,
+  )
+  assertCompleted(moved, ["a", "m"])
+  return { moved: [...uids.keys()], missing }
+}
+
+/** Puts Gmail labels back on messages in `folder`; a label a message already has is left as it is. */
+export const addLabels = async (
+  run: Himalaya,
+  account: string,
+  messageIds: readonly string[],
+  folder: string,
+  labels: readonly string[],
+): Promise<void> => {
+  if (labels.length === 0) return
+  const uids = await uidsById(run, account, messageIds, folder)
+  if (uids.size === 0) return
+  const names = labels.map(quoted).join(" ")
+  const stored = await run(
+    ["imap", "raw", "-a", account],
+    `a SELECT ${mailboxOf(folder)}\r\nl UID STORE ${[...uids.values()].join(",")} +X-GM-LABELS (${names})\r\n`,
+  )
+  assertCompleted(stored, ["a", "l"])
+}
+
 /**
  * Every message in All Mail received since `since`, read with EXAMINE so nothing can change a flag.
  * All Mail rather than INBOX: an archived message leaves INBOX but is not deleted.
