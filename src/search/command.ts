@@ -9,6 +9,7 @@ import { modelHint } from "../notes/embed.js"
 import { searchText } from "../notes/search.js"
 import { positive } from "../options.js"
 import { SAVE_HELP } from "../save-help.js"
+import { MAIL_SOURCES, mailboxesOf } from "../store/source-list.js"
 import { allAnswer, kindAnswer, notesAnswer } from "./answers.js"
 import { keyDocumentsFirst, mailAddressOf, searchEverywhere, searchKind, searchNotes } from "./search.js"
 
@@ -149,10 +150,9 @@ content: narrows a search to the text of files, transcript: to voice transcripts
       ),
     )
     if (kind === "mail")
-      leaf.option(
-        "--account <account>",
-        "only this mail account, by its name in mail.accounts or its address (default: every mail account)",
-      )
+      leaf
+        .option("--source <accounts>", `the mailboxes to search (default: every one): ${MAIL_SOURCES}`)
+        .option("--account <account>", "deprecated: --source email:<account>")
     leaf.addHelpText(
       "after",
       kind === "messages"
@@ -174,23 +174,30 @@ Mail sent to many is in the mailbox bulk; NOT mailbox:bulk leaves it out, and bi
           exact?: boolean
           timezone?: string
           account?: string
+          source?: string
           json?: boolean
           brief?: boolean
           full?: boolean
         },
       ) => {
         const level = levelOf(options)
+        if (options.account !== undefined && options.source !== undefined)
+          throw new CliError("validation_error", "--account is the old --source email:<account>; give one of them")
+        if (options.account !== undefined)
+          streams.diagnostic(`--account is deprecated: use --source email:${options.account}\n`)
         const account = options.account === undefined ? undefined : mailAddressOf(env, options.account)
         const text = words.join(" ")
-        const answer = await withStore(env, (store) =>
-          searchKind(store, kind, {
+        const answer = await withStore(env, async (store) => {
+          const mailboxes = options.source === undefined ? undefined : await mailboxesOf(store, env, options.source)
+          return searchKind(store, kind, {
             text,
             limit: options.limit,
             ...(account === undefined ? {} : { account }),
+            ...(mailboxes === undefined ? {} : { accounts: mailboxes }),
             ...(options.exact ? { exact: true } : {}),
             ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
-          }),
-        )
+          })
+        })
         print(
           options.json,
           kindAnswer(kind, answer, options.limit, level, words.join(" ")),

@@ -27,12 +27,6 @@ export const REASONS: ErrorReason[] = defineReasons([
     message: "no mail account by that name in mail.accounts",
     details: ["account"],
   },
-  {
-    reason: "mail.account-required",
-    code: "validation_error",
-    message: "mail is read only from the accounts named; pass --account",
-    details: [],
-  },
   { reason: "mail.rule-not-found", code: "not_found", message: "the account has no such mail rule", details: [] },
   {
     reason: "mail.rules-file-invalid",

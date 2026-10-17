@@ -270,7 +270,7 @@ export const searchEverywhere = async (
 export const searchKind = async (
   store: MessageStore,
   kind: "messages" | "mail",
-  { text, limit, account, exact, timezone }: QueryInput & { account?: string },
+  { text, limit, account, accounts, exact, timezone }: QueryInput & { account?: string; accounts?: AccountKey[] },
 ) => {
   const held = (await store.accounts.accounts()).some(
     ({ provider }) => provider !== "notes" && (kind === "mail" ? provider === "email" : provider !== "email"),
@@ -289,6 +289,7 @@ export const searchKind = async (
       ...(kind === "messages" && !hasSource(parseLucene(text).root) ? { source: "all" as const } : {}),
       limit,
       ...(account === undefined ? {} : { mailAccount: account }),
+      ...(accounts === undefined ? {} : { accounts }),
       ...(exact ? { exact: true } : {}),
       ...(timezone === undefined ? {} : { timezone }),
     },

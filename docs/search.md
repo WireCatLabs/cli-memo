@@ -71,11 +71,11 @@ shows the next page, and the answer's `page.next_page` says which page that is.
 ```sh
 memo search mail 'from:kai subject:invoice'
 memo search mail 'mailbox:important budget'
-memo search mail 'budget' --account you@example.com
+memo search mail 'budget' --source email:you@example.com
 ```
 
 `mailbox:` finds a mail folder or a Gmail label, such as `inbox`, `important` or `starred`. Without
-`--account`, Memo searches every mail account. Text inside attachments is searched too
+`--source`, Memo searches every mail account; `--source email:work,email:personal` searches those two. Text inside attachments is searched too
 (`filename:` and `content:`).
 
 ## Search by meaning

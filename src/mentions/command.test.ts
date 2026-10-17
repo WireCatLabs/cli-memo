@@ -76,32 +76,46 @@ beforeAll(async () => {
   await store.close()
 })
 
-it("lists the mentions of notes and documents, and mail only of the accounts named", async () => {
-  expect(await values("note", "kind:phone")).toEqual(["+34600000001"])
-  expect(await values("document")).toEqual(expect.arrayContaining(["https://example.org/plan"]))
-  expect(await values("email", "kind:phone", "--account", "personal")).toEqual(["+34600000002"])
-  expect(await values("email", "kind:phone", "--account", "personal", "--account", OTHER)).toHaveLength(2)
-  await expect(run("mentions", "list", "email")).rejects.toMatchObject({
-    code: "validation_error",
-    message: expect.stringContaining("personal, work"),
-  })
+it("lists the mentions of the texts --source names, mail only of the mailboxes named", async () => {
+  expect(await values("kind:phone", "--source", "notes")).toEqual(["+34600000001"])
+  expect(await values("--source", "documents")).toEqual(expect.arrayContaining(["https://example.org/plan"]))
+  expect(await values("kind:phone", "--source", "email:personal")).toEqual(["+34600000002"])
+  expect(await values("kind:phone", "--source", `email:personal,email:${OTHER}`)).toHaveLength(2)
+  expect(await values("kind:phone", "--source", "email:work,notes")).toHaveLength(2)
+  await expect(run("mentions", "list", "--source", "email:nobody")).rejects.toMatchObject({ code: "not_found" })
+  await expect(run("mentions", "list", "--source", "telegram")).rejects.toMatchObject({ code: "validation_error" })
+})
+
+it("says which mailboxes a read across all of them covered", async () => {
+  const listed = await run("mentions", "list", "kind:phone", "--source", "mail")
+  expect(listed.items).toHaveLength(2)
+  expect([...listed.meta.accounts].sort()).toEqual([`email:${OTHER}`, `email:${ME}`])
+})
+
+it("reads a saved account group", async () => {
+  const store = await openStore({ env })
+  await store.accounts.saveAccountGroup("home", ["email:personal", "notes"])
+  await store.close()
+  expect(await values("kind:phone", "--source", "group:home")).toEqual(
+    expect.arrayContaining(["+34600000001", "+34600000002"]),
+  )
 })
 
 it("shows a mail mention with its sender as a candidate, then rejects it", async () => {
-  const [found] = (await run("mentions", "list", "email", "kind:phone", "--account", "personal")).items
-  const shown = await run("mentions", "show", String(found.id), "--account", "personal")
+  const [found] = (await run("mentions", "list", "kind:phone", "--source", "email:personal")).items
+  const shown = await run("mentions", "show", String(found.id), "--source", "email:personal")
   expect(shown).toMatchObject({
     written: "+34 600 000 002",
     candidates: expect.any(Array),
     source: { from: expect.any(String) },
   })
   await expect(run("mentions", "show", String(found.id))).rejects.toMatchObject({ code: "not_found" })
-  await expect(run("mentions", "show", String(found.id), "--account", "work")).rejects.toMatchObject({
+  await expect(run("mentions", "show", String(found.id), "--source", "email:work")).rejects.toMatchObject({
     code: "not_found",
   })
 
-  await run("mentions", "reject", String(found.id), "--account", "personal", "--as-owner")
-  expect(await values("email", "status:dismissed", "--account", "personal")).toEqual(["+34600000002"])
+  await run("mentions", "reject", String(found.id), "--source", "email:personal", "--as-owner")
+  expect(await values("status:dismissed", "--source", "email:personal")).toEqual(["+34600000002"])
 })
 
 it("confirms a note's phone as a person's", async () => {
@@ -111,7 +125,7 @@ it("confirms a note's phone as a person's", async () => {
   await store.people.savePeople(key, [{ id: "101", name: "Kai Sample" }])
   const person = await store.people.personOf({ provider: "telegram", id: "101" })
   await store.close()
-  const [found] = (await run("mentions", "list", "note", "kind:phone")).items
+  const [found] = (await run("mentions", "list", "kind:phone", "--source", "notes")).items
   const decided = await run("mentions", "confirm", String(found.id), `person:${person?.uid}`, "--as-owner")
   expect(decided).toMatchObject({ status: "linked" })
 })
