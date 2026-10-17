@@ -10,6 +10,7 @@ import { mailAccounts, mailSource } from "../mail/accounts.js"
 import { type ImportResult, importMail } from "../mail/import.js"
 import { repairHtmlText } from "../mail/repair.js"
 import { rulesOf } from "../mail/rule-store.js"
+import { scoreSenders } from "../mail/sender-scores.js"
 import { boundFolders, unboundReason } from "../notes/bound.js"
 import { embedNoteChunks, type NoteChunksEmbedded } from "../notes/embed.js"
 import { noteFolders } from "../notes/folders.js"
@@ -271,6 +272,8 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
                   rescan: options.rescan ?? false,
                 }),
               )
+              const scored = await scoreSenders(store, account.address, env)
+              if (scored) streams.diagnostic(`mail ${account.name}: ${scored} senders scored`)
             })
         } finally {
           await store.close()
