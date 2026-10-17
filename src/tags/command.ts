@@ -14,11 +14,14 @@ import {
   ACCOUNTS_HELP,
   accountName,
   accountsOf,
-  ONE_ACCOUNT_HELP,
   oneAccountOf,
   type SourceOptions,
   sourceOf,
   sourceOptions,
+  WRITE_HELP,
+  type WriteOptions,
+  writeAccountOf,
+  writeOptions,
 } from "../store/source-list.js"
 import { type SourceScope, type SourceTarget, type SourceTargetInput, sourceTarget } from "../store/source-target.js"
 import { canonicalProject } from "../vocabulary/project.js"
@@ -52,24 +55,24 @@ const reference = ({ provider, account }: SourceScope, chat: string) =>
   provider && account ? formatReference({ type: "chat", provider, account, chat }) : chat
 
 const targetOptions = (command: Command) =>
-  sourceOptions(
+  writeOptions(
     command
       .argument("<tag...>", "one or more tags: 1–32 letters a–z, digits or hyphens; case is ignored")
       .option("--message <message>", "a stored email or message's full msg: locator")
       .option("--note <reference>", "a note: note:<id>, a file in a notes folder: document:<id>; a bare id is a note")
-      .option("--chat <chat>", "a stored mail thread or chat's exact id; requires --source")
+      .option("--chat <chat>", "a stored mail thread or chat's exact id; requires --account")
       .option("--task <id>", "label a task")
-      .option("--contact <person>", "label a contact identity, with --source")
+      .option("--contact <person>", "label a contact identity, with --account")
       .option("--person <uid>", "label a unified person")
       .option("--organization <organization>", "label an organization: its id or organization:<id>")
       .option("--project <project>", "label a project: its key or project:<id>")
-      .option("--meeting <id>", "label a meeting by its store id, with --source")
+      .option("--meeting <id>", "label a meeting by its store id, with --account")
       .option(
         "--folder <folder>",
         "label a notes folder by its id or path, or with --subfolder one subfolder: every note under it",
       )
       .option("--subfolder <path>", "the subfolder inside --folder"),
-    `the account of --chat, --contact or --meeting: ${ONE_ACCOUNT_HELP}`,
+    `the account of --chat, --contact or --meeting: ${WRITE_HELP}`,
   ).option("--json", "print JSON; --json=id,title keeps only those fields")
 
 const listTags = async (store: MessageStore, options: ListOptions) => {
@@ -109,10 +112,11 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
   const mutate = async (
     operation: "add" | "remove",
     given: string[],
-    { provider, account, source, ...options }: Picked & SourceOptions,
+    { provider, account, ...options }: Picked & WriteOptions,
   ) => {
-    const value = sourceOf({ provider, account, source }, warn)
-    const scoped = async (store: MessageStore) => (value === undefined ? {} : oneAccountOf(store, env, value))
+    const value = writeAccountOf({ provider, account }, warn)
+    const scoped = async (store: MessageStore) =>
+      value === undefined ? {} : oneAccountOf(store, env, value, "--account")
     const target =
       options.note !== undefined
         ? options.note.startsWith("document:")
@@ -199,7 +203,7 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       annotate(tags.command(operation), { effects: LOCAL_WRITE }).description(
         operation === "add" ? "put labels on one source" : "remove labels from one source",
       ),
-    ).action((given: string[], options: Picked & SourceOptions) => mutate(operation, given, options))
+    ).action((given: string[], options: Picked & WriteOptions) => mutate(operation, given, options))
 
   const tagsList = withQuery(
     annotate(tags.command("list"), { effects: LOCAL_READ, output: { entity: "source_tag" } }).description(

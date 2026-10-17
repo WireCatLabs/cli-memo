@@ -282,7 +282,7 @@ a caller you choose polls for them, and nothing is delivered to a messenger or m
 ```sh
 memo tags add follow-up --note note:NOTE_ID
 memo tasks add 'msg:telegram/1/77/42' --type request
-memo reminders add TASK_ID --at-time 2026-10-09T09:00:00+02:00 --source telegram:1
+memo reminders add TASK_ID --at-time 2026-10-09T09:00:00+02:00 --account telegram:1
 ```
 
 More: [tags](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tags.md) ·

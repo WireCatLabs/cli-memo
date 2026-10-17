@@ -26,24 +26,25 @@ it("creates native note tasks through the CLI and connects context, search, assi
     return answerOf(streams.stdout.join(""))
   }
   const scope = ["--source", `${key.provider}:${key.account}`]
+  const acts = ["--account", `${key.provider}:${key.account}`]
   const added = await run("notes", "add", "Synthetic budget request", "--subject", `person:${person?.uid}`)
   const source = `note:${added.id}`
   await expect(run("tasks", "add", source)).rejects.toMatchObject({ code: "validation_error" })
-  await expect(run("tasks", "add", source, "--source", "telegram")).rejects.toMatchObject({
+  await expect(run("tasks", "add", source, "--account", "telegram")).rejects.toMatchObject({
     code: "validation_error",
   })
-  const task = await run("tasks", "add", source, ...scope)
+  const task = await run("tasks", "add", source, ...acts)
   expect(task).toMatchObject({
     created: true,
     task: { source, source_kind: "note", note: { text: "Synthetic budget request" } },
   })
-  expect(await run("tasks", "add", source, ...scope)).toMatchObject({ created: false, task: { id: task.task.id } })
+  expect(await run("tasks", "add", source, ...acts)).toMatchObject({ created: false, task: { id: task.task.id } })
   expect((await run("tasks", "list", "--source", "telegram:2")).items).toEqual([])
-  await expect(run("tasks", "close", task.task.id, "--source", "telegram:2")).rejects.toMatchObject({
+  await expect(run("tasks", "close", task.task.id, "--account", "telegram:2")).rejects.toMatchObject({
     code: "not_found",
   })
   const unrelated = await run("notes", "add", "Unrelated budget")
-  const other = await run("tasks", "add", `note:${unrelated.id}`, ...scope)
+  const other = await run("tasks", "add", `note:${unrelated.id}`, ...acts)
   expect(
     (await run("context", "telegram:101", "--source", "telegram:1")).tasks.items.map((item: { id: string }) => item.id),
   ).toEqual([task.task.id])
@@ -64,17 +65,17 @@ it("creates native note tasks through the CLI and connects context, search, assi
       (item: { id: string }) => item.id,
     ),
   ).toEqual([task.task.id])
-  await run("tags", "add", "budget", "--task", task.task.id, ...scope)
+  await run("tags", "add", "budget", "--task", task.task.id, ...acts)
   expect(
     (await run("tags", "list", "tag:budget", ...scope)).items.find(({ type }: { type: string }) => type === "task"),
   ).toMatchObject({
     type: "task",
     id: task.task.id,
   })
-  const reminder = await run("reminders", "add", task.task.id, "--at-time", "2026-01-01T00:00:00Z", ...scope)
-  const [delivery] = (await run("reminders", "poll", ...scope)).items
-  await run("reminders", "ack", reminder.id, delivery.receipt, ...scope)
-  expect((await run("reminders", "poll", ...scope)).items).toEqual([])
+  const reminder = await run("reminders", "add", task.task.id, "--at-time", "2026-01-01T00:00:00Z", ...acts)
+  const [delivery] = (await run("reminders", "poll", ...acts)).items
+  await run("reminders", "ack", reminder.id, delivery.receipt, ...acts)
+  expect((await run("reminders", "poll", ...acts)).items).toEqual([])
   await run("notes", "edit", source, "--text", "Updated budget", "--revision", "1")
   const listed = (await run("tasks", "list", ...scope)).items.find((item: { id: string }) => item.id === task.task.id)
   expect(listed).toMatchObject({ source_message: source, chat: null, state: "open", account: "telegram:1" })
@@ -82,14 +83,14 @@ it("creates native note tasks through the CLI and connects context, search, assi
     .commands.find((command) => command.name() === "tasks")
     ?.commands.find((command) => command.name() === "list")
   expect(answerFields(list)).toEqual(expect.arrayContaining(Object.keys(listed)))
-  await run("tasks", "close", task.task.id, ...scope)
-  expect(await run("tasks", "add", source, ...scope)).toMatchObject({ created: false, task: { state: "done" } })
+  await run("tasks", "close", task.task.id, ...acts)
+  expect(await run("tasks", "add", source, ...acts)).toMatchObject({ created: false, task: { state: "done" } })
   await run("notes", "remove", source)
   expect((await run("tasks", "list", "state:done", ...scope)).items[0]).toMatchObject({
     id: task.task.id,
     state: "done",
   })
-  await expect(run("tasks", "add", source, ...scope)).rejects.toMatchObject({ code: "not_found" })
+  await expect(run("tasks", "add", source, ...acts)).rejects.toMatchObject({ code: "not_found" })
 })
 
 it("adds a bug to a project with its fields and assignee, updates, lists and closes it", async () => {

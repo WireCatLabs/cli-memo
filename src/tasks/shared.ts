@@ -3,9 +3,19 @@ import { type Messenger, provide, settingsFor, tasksCommand, tasksStatsCommand }
 import { type AccountKey, openStore } from "@wirecat/cli-core/store"
 import { Command } from "commander"
 import { APP } from "../app.js"
-import { oneAccountOf, type SourceOptions, sourceOf, sourceOptions } from "../store/source-list.js"
+import {
+  oneAccountOf,
+  type SourceOptions,
+  sourceOf,
+  sourceOptions,
+  type WriteOptions,
+  writeAccountOf,
+  writeOptions,
+} from "../store/source-list.js"
 
 const SHARED = ["agenda", "plan", "show", "link"] as const
+/** These change a task and name the account they act as with `--account`; the rest read with `--source`. */
+const WRITES: ReadonlySet<string> = new Set(["plan", "link"])
 /** `task:15`, a bare id or a project key: a `tasks link` target that needs no messenger account. */
 const TASKISH = /^(task:.+|\d+|[A-Z][A-Z0-9]*-\d+)$/
 
@@ -37,13 +47,17 @@ const messenger: Messenger = {
  */
 const requireAccount =
   (env: NodeJS.ProcessEnv, warn: (text: string) => void) => async (_: Command, command: Command) => {
-    const value = sourceOf(command.opts<SourceOptions>(), warn)
+    const writes = WRITES.has(command.name())
+    const option = writes ? "--account" : "--source"
+    const value = writes
+      ? writeAccountOf(command.opts<WriteOptions>(), warn)
+      : sourceOf(command.opts<SourceOptions>(), warn)
     const [first, ...targets] = command.args
     const chats = command.opts<{ chat?: string[] }>().chat ?? []
     const store = await openStore({ env })
     try {
       if (value !== undefined) {
-        resolved.set(command, await oneAccountOf(store, env, value))
+        resolved.set(command, await oneAccountOf(store, env, value, option))
         return
       }
       if (
@@ -56,22 +70,25 @@ const requireAccount =
       if (command.name() === "show" && first !== undefined && (await store.tasks.projectTask(first))) return
       const listed = (await store.accounts.accounts())
         .filter((key) => !NOT_MESSENGERS.has(key.provider))
-        .map((key) => `--source ${key.provider}:${key.account}`)
+        .map((key) => `${option} ${key.provider}:${key.account}`)
         .join("; ")
-      throw new CliError("validation_error", `give --source — the stored messenger accounts: ${listed || "none yet"}`)
+      throw new CliError("validation_error", `give ${option} — the stored messenger accounts: ${listed || "none yet"}`)
     } finally {
       await store.close()
     }
   }
 
 const scoped = (command: Command, env: NodeJS.ProcessEnv, warn: (text: string) => void): Command =>
-  sourceOptions(command, "the messenger account: telegram:<account>, max:<account>, or group:<name> of one")
+  (WRITES.has(command.name())
+    ? writeOptions(command, "the messenger account it acts as: telegram:<account> or max:<account>")
+    : sourceOptions(command, "the messenger account: telegram:<account>, max:<account>, or group:<name> of one")
+  )
     .option("--json", "print JSON")
     .hook("preAction", requireAccount(env, warn))
 
 /**
  * `tasks agenda|plan|show|link` and `stats tasks show` are cli-core's builders, the ones tg and max have, mounted
- * with memo's own `--source`, resolved to one account (`Messenger.accountOf`).
+ * with memo's own `--source`, or `--account` for plan and link, resolved to one account (`Messenger.accountOf`).
  */
 export const sharedTaskCommands = (program: Command, tasks: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   provide(program, { streams, env })

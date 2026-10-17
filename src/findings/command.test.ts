@@ -52,6 +52,7 @@ const fixture = async () => {
   const path = join(dir, "findings.json")
   writeFileSync(path, JSON.stringify(input))
   const flags = ["--source", `${account.provider}:${account.account}`]
+  const acts = ["--account", `${account.provider}:${account.account}`]
   const run = async (args: string[], agent = false) => {
     const streams = captureStreams()
     await createProgram({ streams, env: { ...env, AI_AGENT: agent ? "codex_synthetic" : "" } })
@@ -59,13 +60,13 @@ const fixture = async () => {
       .parseAsync([...args, ...(args.some((x) => x.startsWith("--json")) ? [] : ["--json"])], { from: "user" })
     return envelopeOf(streams.stdout.join(""))
   }
-  return { env, path, input, flags, run }
+  return { env, path, input, flags, acts, run }
 }
 it("stages cited findings, keeps nested selection and lets only the owner confirm selected records", async () => {
   const f = await fixture()
-  const staged = (await f.run(["meetings", "actions", "add", f.path, ...f.flags], true)).item
+  const staged = (await f.run(["meetings", "actions", "add", f.path, ...f.acts], true)).item
   expect(staged).toMatchObject({ status: "proposed", author: { name: "codex" }, receipt: null })
-  expect((await f.run(["meetings", "actions", "add", f.path, ...f.flags], true)).item.id).toBe(staged.id)
+  expect((await f.run(["meetings", "actions", "add", f.path, ...f.acts], true)).item.id).toBe(staged.id)
   const selected = await f.run([
     "meetings",
     "actions",
@@ -79,16 +80,7 @@ it("stages cited findings, keeps nested selection and lets only the owner confir
     input: { findings: f.input.findings.map((item) => ({ evidence: item.evidence })) },
   })
   expect(selected.meta).toBeDefined()
-  const args = [
-    "meetings",
-    "actions",
-    "confirm",
-    staged.id,
-    ...f.flags,
-    "--fingerprint",
-    staged.fingerprint,
-    "decision",
-  ]
+  const args = ["meetings", "actions", "confirm", staged.id, ...f.acts, "--fingerprint", staged.fingerprint, "decision"]
   await expect(f.run(args, true)).rejects.toThrow("belong to the owner")
   const confirmed = (await f.run(args)).item
   expect(confirmed.receipt.items.map((item: { status: string }) => item.status)).toEqual(["accepted", "rejected"])
@@ -97,19 +89,19 @@ it("stages cited findings, keeps nested selection and lets only the owner confir
 })
 it("paginates with scope intact and rejects stale owner decisions", async () => {
   const f = await fixture()
-  const first = (await f.run(["meetings", "actions", "add", f.path, ...f.flags], true)).item
+  const first = (await f.run(["meetings", "actions", "add", f.path, ...f.acts], true)).item
   writeFileSync(f.path, JSON.stringify({ ...f.input, key: "batch-2" }))
-  await f.run(["meetings", "actions", "add", f.path, ...f.flags], true)
+  await f.run(["meetings", "actions", "add", f.path, ...f.acts], true)
   const page = await f.run(["meetings", "actions", "list", ...f.flags, "--limit", "1"])
   expect(page.page).toMatchObject({ has_more: true, next_page: 2 })
   const next = await f.run(["meetings", "actions", "list", ...f.flags, "--limit", "1", "--page", "2"])
   expect(next.items).toHaveLength(1)
   await expect(
-    f.run(["meetings", "actions", "reject", first.id, ...f.flags, "--fingerprint", "outdated"]),
+    f.run(["meetings", "actions", "reject", first.id, ...f.acts, "--fingerprint", "outdated"]),
   ).rejects.toThrow("changed since")
   expect(
     (
-      await f.run(["meetings", "actions", "reject", first.id, ...f.flags, "--fingerprint", first.fingerprint])
+      await f.run(["meetings", "actions", "reject", first.id, ...f.acts, "--fingerprint", first.fingerprint])
     ).item.receipt.items.every((item: { status: string }) => item.status === "rejected"),
   ).toBe(true)
 })

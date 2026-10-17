@@ -125,7 +125,7 @@ Common free mail domains, such as Gmail, are never used for suggestions.
 If your meetings are saved in the local store, you can link a meeting to a project:
 
 ```sh
-memo projects meetings link HRB 5 --source zoom:ACCOUNT
+memo projects meetings link HRB 5 --account zoom:ACCOUNT
 memo projects meetings list HRB --source zoom:ACCOUNT
 ```
 

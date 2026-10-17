@@ -74,6 +74,7 @@ describe("combined evidence, relationships and local reminders", () => {
     const participating = await run("tasks", "add", source(key, "77", "3"))
     const document = await run("tasks", "add", source(key, "77", "4"))
     const scope = ["--source", `${key.provider}:${key.account}`]
+    const acts = ["--account", `${key.provider}:${key.account}`]
     await run("tasks", "assign", document.task.id, person?.uid as string)
     const context = await run("context", "telegram:101")
     expect(context.tasks.items.map((task: { id: string }) => task.id).sort()).toEqual(
@@ -93,7 +94,7 @@ describe("combined evidence, relationships and local reminders", () => {
     expect((await run("relationships", "list")).items).toHaveLength(2)
     expect((await run("projects", "list")).items.map(({ id }: { id: string }) => id)).toContain(harbour.id)
     const analysis = await run("notes", "add", "Owner budget analysis", "--subject", source(key, "77", "4"))
-    await run("tags", "add", "project", "--task", document.task.id, ...scope)
+    await run("tags", "add", "project", "--task", document.task.id, ...acts)
     expect(
       (await run("tags", "list", "tag:project", ...scope)).items.find(({ type }: { type: string }) => type === "task"),
     ).toMatchObject({
@@ -121,12 +122,12 @@ describe("combined evidence, relationships and local reminders", () => {
         with_gaps: expect.any(Number),
       },
     })
-    const reminder = await run("reminders", "add", document.task.id, "--at-time", "2026-01-01T00:00:00Z", ...scope)
-    const [delivery] = (await run("reminders", "poll", ...scope)).items
+    const reminder = await run("reminders", "add", document.task.id, "--at-time", "2026-01-01T00:00:00Z", ...acts)
+    const [delivery] = (await run("reminders", "poll", ...acts)).items
     expect(delivery.delivery_id).toBe(`${reminder.id}:1`)
-    expect((await run("reminders", "poll", ...scope)).items).toEqual([])
-    await run("reminders", "ack", reminder.id, delivery.receipt, ...scope)
-    expect((await run("reminders", "poll", ...scope)).items).toEqual([])
+    expect((await run("reminders", "poll", ...acts)).items).toEqual([])
+    await run("reminders", "ack", reminder.id, delivery.receipt, ...acts)
+    expect((await run("reminders", "poll", ...acts)).items).toEqual([])
     const second = await openStore({ env })
     await second.accounts.saveAccount({ ...key, account: "2" }, { name: null })
     await second.close()

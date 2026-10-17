@@ -28,7 +28,7 @@ it("creates keyed project tasks, links them as before or with task:, and discove
   expect(await run("tasks", "link", second.id, first.id, "--kind", "blocked-by")).toMatchObject(blocked)
   expect(await run("tasks", "link", second.id, `task:${first.id}`, "--kind", "blocked-by")).toMatchObject(blocked)
   await expect(run("tasks", "link", second.id, "999", "--kind", "related-to")).rejects.toThrow("write task:999")
-  await expect(run("tasks", "link", second.id, "https://example.com/plan")).rejects.toThrow("give --source")
+  await expect(run("tasks", "link", second.id, "https://example.com/plan")).rejects.toThrow("give --account")
   expect(await run("tasks", "list", "ready:true", 'project:"Lab Example"')).toMatchObject({
     items: [{ key: first.key }],
     page: { has_more: false },

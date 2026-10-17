@@ -82,7 +82,7 @@ After reading meeting evidence, ask your agent to propose the decisions and foll
 The agent stages a JSON batch through `memo meetings actions add`. Each finding names an ID, a project and exact cue references with the fingerprints returned by `zm meetings evidence`. Facts retain their kind, such as `decision` or `promise`; tasks say whether a commitment was explicit or an inferred follow-up. Unknown dates and assignees stay absent; supplied values need their own supporting cues.
 
 ```sh
-memo meetings actions add findings.json --source zoom:me@example.com
+memo meetings actions add findings.json --account zoom:me@example.com
 memo meetings actions list status:proposed --source zoom:me@example.com
 memo meetings actions show 5 --source zoom:me@example.com
 ```
@@ -92,8 +92,8 @@ The file uses `schema_version: 1`, a stable `key`, `extractor` and `findings`. E
 Staging creates no fact or task. Your preview shows previous decisions on unchanged candidates. Open the sources, then personally confirm the candidate IDs you want to keep, or reject the batch. Replace the hash below with the preview's exact fingerprint:
 
 ```sh
-memo meetings actions confirm 5 decision followup --fingerprint <hash> --source zoom:me@example.com
-memo meetings actions reject 5 --fingerprint <hash> --source zoom:me@example.com
+memo meetings actions confirm 5 decision followup --fingerprint <hash> --account zoom:me@example.com
+memo meetings actions reject 5 --fingerprint <hash> --account zoom:me@example.com
 ```
 
 Confirmation creates selected facts and project tasks together and rejects the other new candidates. It sends nothing. A terminal identified as an agent cannot confirm or reject these batches; the owner runs those commands directly. The generic `memo actions confirm` path refuses meeting findings.
@@ -119,7 +119,7 @@ closes it, and nothing is done.
 An agent proposes an action like this:
 
 ```sh
-memo actions add reply --reason 'Kai asked twice' --source telegram:1 --target 'msg:telegram/1/77/42' --payload '{"text":"Friday works"}'
+memo actions add reply --reason 'Kai asked twice' --account telegram:1 --target 'msg:telegram/1/77/42' --payload '{"text":"Friday works"}'
 ```
 
 ## What agents did

@@ -10,6 +10,7 @@ import { createProgram } from "../program.js"
 
 const key = { provider: "telegram", account: "500" }
 const scope = ["--source", "telegram:500"]
+const acts = ["--account", "telegram:500"]
 const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString()
 
 const said = (id: string, minutes: number, text: string, extra: Partial<Message> = {}): Message => ({
@@ -62,7 +63,7 @@ it("**mounts tg's tasks agenda, plan, show and stats tasks show** with the accou
   expect(agenda.item.tasks).toHaveLength(1)
   const task = agenda.item.tasks[0].key
   expect(
-    (await run("tasks", "plan", task, "--title", "Hand over the keys", "--due", "2d", ...scope, "--json")).json(),
+    (await run("tasks", "plan", task, "--title", "Hand over the keys", "--due", "2d", ...acts, "--json")).json(),
   ).toMatchObject({ item: { title: "Hand over the keys" } })
   expect((await run("tasks", "show", task, ...scope, "--json")).json()).toMatchObject({
     item: { key: task, title: "Hand over the keys" },

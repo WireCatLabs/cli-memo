@@ -18,9 +18,13 @@ import { positive } from "../options.js"
 import {
   accountName,
   MEETING_ACCOUNT_HELP,
+  MEETING_WRITE_HELP,
   type SourceOptions,
   sourceOptions,
   theAccount,
+  type WriteOptions,
+  writeAccount,
+  writeOptions,
 } from "../store/source-list.js"
 
 type Options = SourceOptions & {
@@ -43,12 +47,15 @@ export const findingsCommand = (program: Command, streams: Streams, env: NodeJS.
   const { run } = answers(program, streams, env)
   const warn = (text: string) => streams.diagnostic(text)
   const scope = (store: MessageStore, given: Options) => theAccount(store, env, given, warn)
+  const acting = (store: MessageStore, given: WriteOptions) => writeAccount(store, env, given, warn)
   const options = (command: Command) =>
     sourceOptions(command, MEETING_ACCOUNT_HELP).option(
       "--json",
       "print JSON; --json=id,status keeps only those fields",
     )
-  options(annotate(group.command("add"), { effects: LOCAL_WRITE, output: { entity: "meeting_findings" } }))
+  const writes = (command: Command) =>
+    writeOptions(command, MEETING_WRITE_HELP).option("--json", "print JSON; --json=id,status keeps only those fields")
+  writes(annotate(group.command("add"), { effects: LOCAL_WRITE, output: { entity: "meeting_findings" } }))
     .description("stage cited findings; facts and tasks wait for owner confirmation")
     .argument("<file>", "JSON proposal file, or - for stdin; at most 65536 UTF-8 bytes")
     .addHelpText(
@@ -61,7 +68,7 @@ export const findingsCommand = (program: Command, streams: Streams, env: NodeJS.
       const author = authorOf(env)
       const agent = author === "owner" ? { bot: "memo-findings" } : author
       await run(given.json, async (store) =>
-        itemAnswer(await store.meetingFindings.stage(await scope(store, given), input, agent)),
+        itemAnswer(await store.meetingFindings.stage(await acting(store, given), input, agent)),
       )
     })
   options(annotate(group.command("show"), { effects: LOCAL_READ, output: { entity: "meeting_findings" } }))
@@ -99,7 +106,7 @@ export const findingsCommand = (program: Command, streams: Streams, env: NodeJS.
       }),
     )
   for (const name of ["confirm", "reject"] as const) {
-    const command = options(
+    const command = writes(
       annotate(group.command(name), { effects: LOCAL_WRITE, output: { entity: "meeting_findings" } }),
     )
       .description(
@@ -117,7 +124,10 @@ export const findingsCommand = (program: Command, streams: Streams, env: NodeJS.
         )
       return run(given.json, async (store) =>
         itemAnswer(
-          await store.meetingFindings.review(await scope(store, given), id, { fingerprint: given.fingerprint, accept }),
+          await store.meetingFindings.review(await acting(store, given), id, {
+            fingerprint: given.fingerprint,
+            accept,
+          }),
         ),
       )
     }

@@ -25,8 +25,8 @@ const setUp = async () => {
 
 it("lists the tasks of every account --source names, oldest first, and names those accounts", async () => {
   const { run, note } = await setUp()
-  const first = (await run("tasks", "add", await note("Synthetic first"), "--source", "telegram:1")).answer
-  const second = (await run("tasks", "add", await note("Synthetic second"), "--source", "telegram:2")).answer
+  const first = (await run("tasks", "add", await note("Synthetic first"), "--account", "telegram:1")).answer
+  const second = (await run("tasks", "add", await note("Synthetic second"), "--account", "telegram:2")).answer
 
   const listed = (await run("tasks", "list", "--source", "telegram")).answer
 
@@ -34,11 +34,19 @@ it("lists the tasks of every account --source names, oldest first, and names tho
   expect(listed.meta.accounts).toEqual(["telegram:1", "telegram:2"])
 })
 
-it("refuses a write that --source does not narrow to one account, and lists the choices", async () => {
+it("refuses a write that names no single provider:account, and lists the choices", async () => {
   const { run, note } = await setUp()
+  const source = await note("Synthetic")
 
-  await expect(run("tasks", "add", await note("Synthetic"), "--source", "telegram")).rejects.toMatchObject({
+  await expect(run("tasks", "add", source, "--account", "telegram")).rejects.toMatchObject({
     code: "validation_error",
+    message: expect.stringContaining("--account takes provider:account"),
+  })
+  await expect(run("reminders", "add", "1", "--at-time", "2026-01-01T00:00:00Z")).rejects.toMatchObject({
+    code: "validation_error",
+    message: expect.stringContaining("give --account <provider>:<account> — the store holds telegram:1, telegram:2"),
+  })
+  await expect(run("tasks", "add", source, "--provider", "telegram")).rejects.toMatchObject({
     message: expect.stringContaining("give one: telegram:1, telegram:2"),
   })
   await expect(run("reminders", "list")).rejects.toMatchObject({
@@ -56,6 +64,26 @@ it("takes the old --provider --account for one release, and prints the new spell
   expect(stderr).toContain("use --source telegram:1")
   await expect(
     run("reminders", "list", "--provider", "telegram", "--account", "1", "--source", "telegram:1"),
+  ).rejects.toMatchObject({ code: "validation_error" })
+})
+
+it("takes the old --provider --account on a write for one release, as --account provider:account", async () => {
+  const { run, note } = await setUp()
+
+  const { answer, stderr } = await run(
+    "tasks",
+    "add",
+    await note("Synthetic"),
+    "--provider",
+    "telegram",
+    "--account",
+    "2",
+  )
+
+  expect(answer.task.account).toBe("telegram:2")
+  expect(stderr).toContain("use --account telegram:2")
+  await expect(
+    run("tasks", "add", await note("Synthetic"), "--provider", "telegram", "--account", "telegram:2"),
   ).rejects.toMatchObject({ code: "validation_error" })
 })
 

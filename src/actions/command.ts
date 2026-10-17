@@ -6,7 +6,7 @@ import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { authorOf, byOption } from "../author.js"
 import { positive } from "../options.js"
-import { ONE_ACCOUNT_HELP, type SourceOptions, sourceOptions, theAccount } from "../store/source-list.js"
+import { type WriteOptions, writeAccount, writeOptions } from "../store/source-list.js"
 import { ACTION_QUERY, listActions, type NewProposal, propose } from "./actions.js"
 
 export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
@@ -15,7 +15,7 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     .command("actions")
     .description("what an agent proposes to do; confirming one makes it your task, nothing is sent")
 
-  sourceOptions(
+  writeOptions(
     byOption(
       annotate(actions.command("add"), { effects: LOCAL_WRITE }).description(
         "propose an action, such as a reply or a ban, in the account that would act",
@@ -23,7 +23,7 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     )
       .argument("<kind>", "a lower-case word: reply, send, ban, mute, pin, invite, create_task, …")
       .requiredOption("--reason <text>", "why it should be done"),
-    `the account that would act: ${ONE_ACCOUNT_HELP}`,
+    "the account that would act: provider:account, such as telegram:1",
   )
     .option("--target <ref>", "what it acts on: msg:, chat:, contact:, person:, task:, …")
     .option("--payload <json>", "what to do, as JSON, such as the reply's text")
@@ -33,14 +33,13 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
         kind: string,
         {
           asOwner,
-          source,
           provider,
           account,
           ...options
-        }: Omit<NewProposal, "kind"> & SourceOptions & { asOwner?: boolean; json?: boolean },
+        }: Omit<NewProposal, "kind" | "provider" | "account"> & WriteOptions & { asOwner?: boolean; json?: boolean },
       ) =>
         run(options.json, async (store) => {
-          const key = await theAccount(store, env, { source, provider, account }, (text) => streams.diagnostic(text))
+          const key = await writeAccount(store, env, { provider, account }, (text) => streams.diagnostic(text))
           return itemAnswer(await propose(store, { ...options, ...key, kind }, authorOf(env, asOwner)))
         }),
     )

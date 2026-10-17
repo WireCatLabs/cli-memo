@@ -124,6 +124,8 @@ export const ACCOUNTS_HELP = `which accounts, separated by commas: ${SHAPES}`
 export const MEETING_ACCOUNT_HELP =
   "the meeting account: provider:account (zoom:me@example.com), or a provider that has one"
 
+export const MEETING_WRITE_HELP = "the meeting account it acts as: provider:account, such as zoom:me@example.com"
+
 export const ONE_ACCOUNT_HELP =
   "the one account: provider:account (telegram:500, email:personal), or a provider or group:<name> that holds only one"
 
@@ -138,19 +140,20 @@ export const accountsOf = async (store: MessageStore, env: NodeJS.ProcessEnv, va
 
 const named = (keys: readonly AccountKey[]) => keys.map((key) => accountName(key)).join(", ")
 
-const unnamed = async (store: MessageStore) =>
+const unnamed = async (store: MessageStore, option = "--source") =>
   new CliError(
     "validation_error",
-    `give --source <provider>:<account> — the store holds ${named(await store.accounts.accounts()) || "no account yet"}`,
+    `give ${option} <provider>:<account> — the store holds ${named(await store.accounts.accounts()) || "no account yet"}`,
   )
 
-/** A write acts as exactly one account, and the owner names it: none or several is an error listing the choices. */
+/** One account, and the owner names it: none or several is an error listing the choices. */
 export const oneAccountOf = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
   value: string | undefined,
+  option = "--source",
 ): Promise<AccountKey> => {
-  if (value === undefined) throw await unnamed(store)
+  if (value === undefined) throw await unnamed(store, option)
   const keys = await accountsOf(store, env, value)
   if (keys.length === 1) return keys[0] as AccountKey
   if (keys.length === 0) throw new CliError("not_found", `${value} names no stored account`)
@@ -208,3 +211,38 @@ export const theAccounts = async (
 }
 
 export const accountName = ({ provider, account }: AccountKey) => `${provider}:${account}`
+
+export const WRITE_HELP = "the account it acts as: provider:account, such as telegram:1 or email:personal"
+
+export interface WriteOptions {
+  account?: string
+  provider?: string
+}
+
+/** A write's `--account provider:account`, and for one release the `--provider` that came before it. */
+export const writeOptions = (command: Command, help = WRITE_HELP): Command =>
+  command
+    .option("--account <account>", help)
+    .option("--provider <provider>", "deprecated: --account <provider>:<account>")
+
+/** The `provider:account` a write names; an old `--provider --account` pair is joined, its new spelling on stderr. */
+export const writeAccountOf = (options: WriteOptions, warn: (text: string) => void): string | undefined => {
+  const { provider, account } = options
+  if (provider === undefined) {
+    if (account !== undefined && (!account.includes(":") || account.startsWith("group:")))
+      throw new CliError("validation_error", `--account takes provider:account, such as telegram:${account}`)
+    return account
+  }
+  if (account?.includes(":"))
+    throw new CliError("validation_error", "--account provider:account names the provider; leave out --provider")
+  warn(`--provider is deprecated: use --account ${provider}:${account ?? "<account>"}\n`)
+  return account === undefined ? provider : `${provider}:${account}`
+}
+
+/** The one account a write acts as. */
+export const writeAccount = (
+  store: MessageStore,
+  env: NodeJS.ProcessEnv,
+  options: WriteOptions,
+  warn: (text: string) => void,
+): Promise<AccountKey> => oneAccountOf(store, env, writeAccountOf(options, warn), "--account")
