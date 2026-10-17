@@ -25,6 +25,8 @@ memo actions list status:proposed
 Open each source, then confirm what is right and leave or reject the rest. The rest of this page
 shows how.
 
+For a batch of cited meeting facts and tasks, use the [meeting findings review](#meeting-findings) below.
+
 **What waits for you.** A proposed action always waits until you approve or reject it. A memory or
 fact waits when an agent adds it: through [the MCP server](mcp.md), or with the `memo` command in an
 agent's terminal (`AI_AGENT` or `CLAUDECODE` set), where the agent is recorded as its author. One you
