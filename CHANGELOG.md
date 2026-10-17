@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.60.0 — 17.10.2026
+
 ### Fixed
 
 - **The sync timer no longer stops when a sync takes longer than its interval.** The interval counted from when a
