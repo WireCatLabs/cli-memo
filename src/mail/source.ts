@@ -34,7 +34,7 @@ export interface MailSource {
    * The messages of `folder` with these Gmail ids, listed as `list` lists them; a message no longer there is left
    * out. Absent where messages have no Gmail id: a file, or plain IMAP.
    */
-  find?(messageIds: readonly string[], folder: string): Promise<Listed[]>
+  find?(messageIds: readonly string[], folder: string, options?: { headers?: boolean }): Promise<Listed[]>
   /**
    * Moves messages by Gmail id between folders on the server; ids `from` does not hold come back as missing.
    * `known` gives each id's UID in `from`, already read, so none is looked up again.
@@ -134,11 +134,11 @@ export const himalayaSource = (
 
     ...(account.mode === undefined || account.mode === "gmail"
       ? {
-          find: async (messageIds: readonly string[], folder: string) => {
+          find: async (messageIds: readonly string[], folder: string, options: { headers?: boolean } = {}) => {
             const uids = await uidsOfMessages(run, account.name, messageIds, folder)
             if (uids.length === 0) return []
             // The window is unused: `searched` names the UIDs, so nothing is listed by date.
-            const listed = await listAllMail(run, account.name, new Date(0), folder, false, { uids })
+            const listed = await listAllMail(run, account.name, new Date(0), folder, options.headers ?? false, { uids })
             return listed.map((item) => ({ ...item, folder }))
           },
           move: (messageIds: readonly string[], from: string, to: string, known?: ReadonlyMap<string, string>) =>
