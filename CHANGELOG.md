@@ -6,10 +6,6 @@ the API.
 
 ## Unreleased
 
-### Added
-
-- `memo meetings actions` stages cited meeting facts and project tasks for owner review. Confirmation creates selected records atomically, keeps review receipts and prevents exact retries from duplicating accepted work. Missing dates and assignees stay unknown; stale evidence is refused.
-
 ## 0.58.0 — 17.10.2026
 
 ### Added
@@ -18,6 +14,7 @@ the API.
   from the stored mail, at most once a day, as `memo mail inspect` scores a group; a hit from a scored sender
   carries `sender_score` (score and signals) in `--json`. Results are not reordered by it. On the owner's mailbox:
   5,789 senders in 15 seconds. cli-core 0.311.0 (store version 19).
+- `memo meetings actions` stages cited meeting facts and project tasks for owner review. Confirmation creates selected records atomically, keeps review receipts and prevents exact retries from duplicating accepted work. Missing dates and assignees stay unknown; stale evidence is refused.
 
 ## 0.57.0 — 17.10.2026
 
