@@ -1,7 +1,7 @@
 import { CliError } from "@wirecat/cli-base"
 import { parseLocator } from "@wirecat/cli-core"
 import type { AccountKey, KnowledgeTarget, MessageStore } from "@wirecat/cli-core/store"
-import { oneAccountOf, type SourceOptions, sourceOf } from "./source-list.js"
+import { oneAccountOf, type WriteOptions, writeAccountOf } from "./source-list.js"
 
 export interface AccountScope {
   provider?: string
@@ -23,7 +23,7 @@ const choices = (keys: AccountKey[]) =>
 
 export const selectAccount = async (store: MessageStore, scope: AccountScope): Promise<AccountKey> => {
   const held = await store.accounts.accounts()
-  if (!scope.provider) throw new CliError("validation_error", `give --source <provider>:<account>${choices(held)}`)
+  if (!scope.provider) throw new CliError("validation_error", `give --account <provider>:<account>${choices(held)}`)
   const matches = held.filter(
     (key) => key.provider === scope.provider && (scope.account === undefined || key.account === scope.account),
   )
@@ -74,13 +74,13 @@ export const selectTarget = async (
   return { key: await selectAccount(store, input), target: { type, id: input[type] as string } }
 }
 
-/** `--source` as the scope the helpers above take, resolved only when given: a locator may name the account. */
+/** A write's `--account` as the scope the helpers above take, resolved only when given: a locator may name it. */
 export const scopeOf = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
-  options: SourceOptions,
+  options: WriteOptions,
   warn: (text: string) => void,
 ): Promise<AccountScope> => {
-  const value = sourceOf(options, warn)
-  return value === undefined ? {} : oneAccountOf(store, env, value)
+  const value = writeAccountOf(options, warn)
+  return value === undefined ? {} : oneAccountOf(store, env, value, "--account")
 }

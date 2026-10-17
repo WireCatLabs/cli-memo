@@ -16,8 +16,16 @@ import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, wholeList } from "../answer.js"
 import { authorOf, byOption } from "../author.js"
 import { notesAbout } from "../notes/about.js"
-import { accountOptions, oneOf, positive } from "../options.js"
-import { ACCOUNTS_HELP, accountName, type SourceOptions, theAccount, theAccounts } from "../store/source-list.js"
+import { oneOf, positive, readScope, writeScope } from "../options.js"
+import {
+  ACCOUNTS_HELP,
+  accountName,
+  type SourceOptions,
+  theAccount,
+  theAccounts,
+  type WriteOptions,
+  writeAccount,
+} from "../store/source-list.js"
 import { keyDocuments, markKey, projectOf, unmarkKey } from "./key-documents.js"
 import { meetingProjectsCommand } from "./meeting-projects-command.js"
 
@@ -38,6 +46,10 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     options: SourceOptions & { json?: boolean },
     work: (store: MessageStore, key: AccountKey) => Promise<Body>,
   ) => run(options.json, async (store) => work(store, await theAccount(store, env, options, warn)))
+  const act = (
+    options: WriteOptions & { json?: boolean },
+    work: (store: MessageStore, key: AccountKey) => Promise<Body>,
+  ) => run(options.json, async (store) => work(store, await writeAccount(store, env, options, warn)))
   /** Organisations and relations are the owner's, not an account's. */
   const owned = (options: { json?: boolean }, work: (store: MessageStore) => Promise<unknown>) =>
     run(options.json, async (store) => itemAnswer(await work(store)))
@@ -256,7 +268,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .action((id: string, options: { json?: boolean }) =>
       owned(options, (store) => store.knowledge.confirmRelation(null, id)),
     )
-  accountOptions(
+  readScope(
     annotate(relations.command("suggest"), { effects: LOCAL_READ }).description(
       "suggest relationships between email contacts of one domain; you confirm each",
     ),
@@ -310,19 +322,19 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   const reminders = program
     .command("reminders")
     .description("durable local reminders; poll hands one out and ack confirms it was shown")
-  accountOptions(
+  writeScope(
     annotate(reminders.command("add"), { effects: LOCAL_WRITE })
       .description("add a reminder for an open task")
       .argument("<task>", "the task's id"),
   )
     .requiredOption("--at-time <time>", "when to remind: an ISO 8601 time with its UTC offset")
     .option("--timezone <zone>", "IANA timezone", "UTC")
-    .action((task: string, options: SourceOptions & { atTime: string; timezone: string; json?: boolean }) =>
-      execute(options, async (store, key) =>
+    .action((task: string, options: WriteOptions & { atTime: string; timezone: string; json?: boolean }) =>
+      act(options, async (store, key) =>
         itemAnswer(await store.knowledge.schedule(key, task, options.atTime, options.timezone)),
       ),
     )
-  accountOptions(
+  readScope(
     annotate(reminders.command("list"), { effects: LOCAL_READ }).description(
       "pending reminders of the accounts --source names, soonest first",
     ),
@@ -347,14 +359,14 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       })
     }),
   )
-  accountOptions(
+  writeScope(
     annotate(reminders.command("poll"), { effects: LOCAL_WRITE }).description(
       "hand out due reminders, each with a receipt to acknowledge",
     ),
   )
     .option("--limit <n>", "most due reminders, at most 500", positive, 100)
-    .action((options: SourceOptions & { limit: number; json?: boolean }) =>
-      execute(options, async (store, key) => {
+    .action((options: WriteOptions & { limit: number; json?: boolean }) =>
+      act(options, async (store, key) => {
         const claimed = await store.knowledge.claimReminders(key, { limit: options.limit })
         return listAnswer("reminders poll", {
           items: claimed.map((reminder) => ({
@@ -367,30 +379,30 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         })
       }),
     )
-  accountOptions(
+  writeScope(
     annotate(reminders.command("ack"), { effects: LOCAL_WRITE })
       .description("confirm that a handed-out reminder was shown")
       .argument("<id>", "the reminder's id")
       .argument("<receipt>", "the receipt reminders poll handed out with it"),
-  ).action((id: string, receipt: string, options: SourceOptions & { json?: boolean }) =>
-    execute(options, async (store, key) => itemAnswer(await store.knowledge.acknowledgeReminder(key, id, receipt))),
+  ).action((id: string, receipt: string, options: WriteOptions & { json?: boolean }) =>
+    act(options, async (store, key) => itemAnswer(await store.knowledge.acknowledgeReminder(key, id, receipt))),
   )
-  accountOptions(
+  writeScope(
     annotate(reminders.command("cancel"), { effects: LOCAL_WRITE })
       .description("cancel a reminder")
       .argument("<id>", "the reminder's id"),
-  ).action((id: string, options: SourceOptions & { json?: boolean }) =>
-    execute(options, async (store, key) => itemAnswer(await store.knowledge.cancelReminder(key, id))),
+  ).action((id: string, options: WriteOptions & { json?: boolean }) =>
+    act(options, async (store, key) => itemAnswer(await store.knowledge.cancelReminder(key, id))),
   )
-  accountOptions(
+  writeScope(
     annotate(reminders.command("update"), { effects: LOCAL_WRITE })
       .description("move a reminder to another time")
       .argument("<id>", "the reminder's id"),
   )
     .requiredOption("--at-time <time>", "the new time: an ISO 8601 time with its UTC offset")
     .requiredOption("--revision <n>", "the reminder's current revision, as reminders list gives it", positive)
-    .action((id: string, options: SourceOptions & { atTime: string; revision: number; json?: boolean }) =>
-      execute(options, async (store, key) =>
+    .action((id: string, options: WriteOptions & { atTime: string; revision: number; json?: boolean }) =>
+      act(options, async (store, key) =>
         itemAnswer(await store.knowledge.snoozeReminder(key, id, options.atTime, options.revision)),
       ),
     )

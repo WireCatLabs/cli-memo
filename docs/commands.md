@@ -90,10 +90,9 @@ memo notes add [text] [options]
 | `--text-file <path>` | read the note from a file; - reads stdin. |
 | `--title <title>` | a title. |
 | `--subject <ref>` | what it is about: <messenger>:<name or id>, msg:, chat:, person:, organization:, project:, task:, note:, document:, meeting:; repeat for more. |
-| `--meeting <id>` | also about this meeting, by its store id, with --source. |
-| `--source <accounts>` | the account of --meeting: the meeting account: provider:account (zoom:me@example.com), or a provider that has one. |
-| `--provider <provider>` | deprecated: --source <provider>. |
-| `--account <account>` | deprecated: --source <provider>:<account>. |
+| `--meeting <id>` | also about this meeting, by its store id, with --account. |
+| `--account <account>` | the account of --meeting: the meeting account it acts as: provider:account, such as zoom:me@example.com. |
+| `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--export [dir]` | also write it as a file — to this folder, or notes.export.dir. |
 | `--format <format>` | the file's format: obsidian, markdown. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
@@ -514,18 +513,17 @@ memo tags add <tag> [options]
 |---|---|
 | `--message <message>` | a stored email or message's full msg: locator. |
 | `--note <reference>` | a note: note:<id>, a file in a notes folder: document:<id>; a bare id is a note. |
-| `--chat <chat>` | a stored mail thread or chat's exact id; requires --source. |
+| `--chat <chat>` | a stored mail thread or chat's exact id; requires --account. |
 | `--task <id>` | label a task. |
-| `--contact <person>` | label a contact identity, with --source. |
+| `--contact <person>` | label a contact identity, with --account. |
 | `--person <uid>` | label a unified person. |
 | `--organization <organization>` | label an organization: its id or organization:<id>. |
 | `--project <project>` | label a project: its key or project:<id>. |
-| `--meeting <id>` | label a meeting by its store id, with --source. |
+| `--meeting <id>` | label a meeting by its store id, with --account. |
 | `--folder <folder>` | label a notes folder by its id or path, or with --subfolder one subfolder: every note under it. |
 | `--subfolder <path>` | the subfolder inside --folder. |
-| `--source <accounts>` | the account of --chat, --contact or --meeting: the one account: provider:account (telegram:500, email:personal), or a provider or group:<name> that holds only one. |
-| `--provider <provider>` | deprecated: --source <provider>. |
-| `--account <account>` | deprecated: --source <provider>:<account>. |
+| `--account <account>` | the account of --chat, --contact or --meeting: the account it acts as: provider:account, such as telegram:1 or email:personal. |
+| `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 ### `memo tags remove`
@@ -546,18 +544,17 @@ memo tags remove <tag> [options]
 |---|---|
 | `--message <message>` | a stored email or message's full msg: locator. |
 | `--note <reference>` | a note: note:<id>, a file in a notes folder: document:<id>; a bare id is a note. |
-| `--chat <chat>` | a stored mail thread or chat's exact id; requires --source. |
+| `--chat <chat>` | a stored mail thread or chat's exact id; requires --account. |
 | `--task <id>` | label a task. |
-| `--contact <person>` | label a contact identity, with --source. |
+| `--contact <person>` | label a contact identity, with --account. |
 | `--person <uid>` | label a unified person. |
 | `--organization <organization>` | label an organization: its id or organization:<id>. |
 | `--project <project>` | label a project: its key or project:<id>. |
-| `--meeting <id>` | label a meeting by its store id, with --source. |
+| `--meeting <id>` | label a meeting by its store id, with --account. |
 | `--folder <folder>` | label a notes folder by its id or path, or with --subfolder one subfolder: every note under it. |
 | `--subfolder <path>` | the subfolder inside --folder. |
-| `--source <accounts>` | the account of --chat, --contact or --meeting: the one account: provider:account (telegram:500, email:personal), or a provider or group:<name> that holds only one. |
-| `--provider <provider>` | deprecated: --source <provider>. |
-| `--account <account>` | deprecated: --source <provider>:<account>. |
+| `--account <account>` | the account of --chat, --contact or --meeting: the account it acts as: provider:account, such as telegram:1 or email:personal. |
+| `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 ### `memo tags list`
@@ -652,9 +649,8 @@ memo tasks add [source] [options]
 
 | Option | What it does |
 |---|---|
-| `--source <accounts>` | the one account: provider:account (telegram:500, email:personal), or a provider or group:<name> that holds only one. |
-| `--provider <provider>` | deprecated: --source <provider>. |
-| `--account <account>` | deprecated: --source <provider>:<account>. |
+| `--account <account>` | the account it acts as: provider:account, such as telegram:1 or email:personal. |
+| `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--title <title>` | one line saying what is to be done. |
 | `--priority <n>` | 0 urgent … 4 low. |
@@ -702,9 +698,8 @@ memo tasks close <id> [options]
 
 | Option | What it does |
 |---|---|
-| `--source <accounts>` | the one account: provider:account (telegram:500, email:personal), or a provider or group:<name> that holds only one. |
-| `--provider <provider>` | deprecated: --source <provider>. |
-| `--account <account>` | deprecated: --source <provider>:<account>. |
+| `--account <account>` | the account it acts as: provider:account, such as telegram:1 or email:personal. |
+| `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as <state>` | done or dismissed. Default: `done`. |
 | `--reason <text>` | why it is closed. |
@@ -797,9 +792,8 @@ memo tasks plan <task> [options]
 | `--due <time>` | when it must be done: an ISO 8601 time or 2h, 3d from now; none clears it. |
 | `--remind-time <time>` | when to look at it again: an ISO 8601 time or 2h, 3d from now; none clears it. |
 | `--assignee <person...>` | who does it: sender (whoever sent the task's message) or person:<id>; none clears it. Leave it out when unsure: a task with no assignee is better than none. |
-| `--source <accounts>` | the messenger account: telegram:<account>, max:<account>, or group:<name> of one. |
-| `--provider <provider>` | deprecated: --source <provider>. |
-| `--account <account>` | deprecated: --source <provider>:<account>. |
+| `--account <account>` | the messenger account it acts as: telegram:<account> or max:<account>. |
+| `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON. |
 
 ### `memo tasks show`
@@ -840,9 +834,8 @@ memo tasks link <task> [targets] [options]
 |---|---|
 | `--chat <chat>` | a chat it concerns, repeatable; a stored chat, by its id or title. |
 | `--kind <kind>` | related-to (default), evidence — it shows the task is real — or created-from; for task:<id>, related-to, blocked-by, follow-up-of, duplicate-of or discovered-from. |
-| `--source <accounts>` | the messenger account: telegram:<account>, max:<account>, or group:<name> of one. |
-| `--provider <provider>` | deprecated: --source <provider>. |
-| `--account <account>` | deprecated: --source <provider>:<account>. |
+| `--account <account>` | the messenger account it acts as: telegram:<account> or max:<account>. |
+| `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON. |
 
 ## `memo stats`
@@ -969,9 +962,8 @@ memo projects meetings link <project> <meeting-id> [options]
 
 | Option | What it does |
 |---|---|
-| `--source <accounts>` | the meeting account: provider:account (zoom:me@example.com), or a provider that has one. |
-| `--provider <provider>` | deprecated: --source <provider>. |
-| `--account <account>` | deprecated: --source <provider>:<account>. |
+| `--account <account>` | the meeting account it acts as: provider:account, such as zoom:me@example.com. |
+| `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--fingerprint <hash>` | required when confirming an existing proposal. |
 | `--reason <text>` | why the reviewed meeting belongs to this project. |
@@ -1201,9 +1193,8 @@ memo reminders add <task> [options]
 
 | Option | What it does |
 |---|---|
-| `--source <accounts>` | the one account: provider:account (telegram:500, email:personal), or a provider or group:<name> that holds only one. |
-| `--provider <provider>` | deprecated: --source <provider>. |
-| `--account <account>` | deprecated: --source <provider>:<account>. |
+| `--account <account>` | the account it acts as: provider:account, such as telegram:1 or email:personal. |
+| `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--at-time <time>` | when to remind: an ISO 8601 time with its UTC offset. |
 | `--timezone <zone>` | IANA timezone. Default: `UTC`. |
@@ -1235,9 +1226,8 @@ memo reminders poll [options]
 
 | Option | What it does |
 |---|---|
-| `--source <accounts>` | the one account: provider:account (telegram:500, email:personal), or a provider or group:<name> that holds only one. |
-| `--provider <provider>` | deprecated: --source <provider>. |
-| `--account <account>` | deprecated: --source <provider>:<account>. |
+| `--account <account>` | the account it acts as: provider:account, such as telegram:1 or email:personal. |
+| `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--limit <n>` | most due reminders, at most 500. Default: `100`. |
 
@@ -1258,9 +1248,8 @@ memo reminders ack <id> <receipt> [options]
 
 | Option | What it does |
 |---|---|
-| `--source <accounts>` | the one account: provider:account (telegram:500, email:personal), or a provider or group:<name> that holds only one. |
-| `--provider <provider>` | deprecated: --source <provider>. |
-| `--account <account>` | deprecated: --source <provider>:<account>. |
+| `--account <account>` | the account it acts as: provider:account, such as telegram:1 or email:personal. |
+| `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 ### `memo reminders cancel`
@@ -1279,9 +1268,8 @@ memo reminders cancel <id> [options]
 
 | Option | What it does |
 |---|---|
-| `--source <accounts>` | the one account: provider:account (telegram:500, email:personal), or a provider or group:<name> that holds only one. |
-| `--provider <provider>` | deprecated: --source <provider>. |
-| `--account <account>` | deprecated: --source <provider>:<account>. |
+| `--account <account>` | the account it acts as: provider:account, such as telegram:1 or email:personal. |
+| `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 ### `memo reminders update`
@@ -1300,9 +1288,8 @@ memo reminders update <id> [options]
 
 | Option | What it does |
 |---|---|
-| `--source <accounts>` | the one account: provider:account (telegram:500, email:personal), or a provider or group:<name> that holds only one. |
-| `--provider <provider>` | deprecated: --source <provider>. |
-| `--account <account>` | deprecated: --source <provider>:<account>. |
+| `--account <account>` | the account it acts as: provider:account, such as telegram:1 or email:personal. |
+| `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--at-time <time>` | the new time: an ISO 8601 time with its UTC offset. |
 | `--revision <n>` | the reminder's current revision, as reminders list gives it. |
@@ -1735,9 +1722,8 @@ memo meetings actions add <file> [options]
 
 | Option | What it does |
 |---|---|
-| `--source <accounts>` | the meeting account: provider:account (zoom:me@example.com), or a provider that has one. |
-| `--provider <provider>` | deprecated: --source <provider>. |
-| `--account <account>` | deprecated: --source <provider>:<account>. |
+| `--account <account>` | the meeting account it acts as: provider:account, such as zoom:me@example.com. |
+| `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,status keeps only those fields. |
 
 #### `memo meetings actions show`
@@ -1797,9 +1783,8 @@ memo meetings actions confirm <id> <ids> [options]
 
 | Option | What it does |
 |---|---|
-| `--source <accounts>` | the meeting account: provider:account (zoom:me@example.com), or a provider that has one. |
-| `--provider <provider>` | deprecated: --source <provider>. |
-| `--account <account>` | deprecated: --source <provider>:<account>. |
+| `--account <account>` | the meeting account it acts as: provider:account, such as zoom:me@example.com. |
+| `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,status keeps only those fields. |
 | `--fingerprint <hash>` | the exact fingerprint shown in the preview. |
 
@@ -1819,9 +1804,8 @@ memo meetings actions reject <id> [options]
 
 | Option | What it does |
 |---|---|
-| `--source <accounts>` | the meeting account: provider:account (zoom:me@example.com), or a provider that has one. |
-| `--provider <provider>` | deprecated: --source <provider>. |
-| `--account <account>` | deprecated: --source <provider>:<account>. |
+| `--account <account>` | the meeting account it acts as: provider:account, such as zoom:me@example.com. |
+| `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,status keeps only those fields. |
 | `--fingerprint <hash>` | the exact fingerprint shown in the preview. |
 
@@ -1847,9 +1831,8 @@ memo actions add <kind> [options]
 |---|---|
 | `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 | `--reason <text>` | why it should be done. |
-| `--source <accounts>` | the account that would act: the one account: provider:account (telegram:500, email:personal), or a provider or group:<name> that holds only one. |
-| `--provider <provider>` | deprecated: --source <provider>. |
-| `--account <account>` | deprecated: --source <provider>:<account>. |
+| `--account <account>` | the account that would act: provider:account, such as telegram:1. |
+| `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--target <ref>` | what it acts on: msg:, chat:, contact:, person:, task:, …. |
 | `--payload <json>` | what to do, as JSON, such as the reply's text. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |

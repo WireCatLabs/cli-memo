@@ -8,20 +8,23 @@ the API.
 
 ### Changed
 
-- **Every memo command names its accounts with `--source`**, as `memo mentions` and `memo search mail` already do:
-  `provider:account` (`telegram:1`, `email:personal`), a provider, a kind or `group:<name>`. A read lists across
-  every account it names and says which in `meta.accounts`: `memo tasks list`, `memo reminders list`,
-  `memo tags list` and `memo ask`. A write, and a read bound to one account (`tasks agenda|plan|show|link`,
-  `stats tasks show`, `reminders`, `relationships suggest`, `context`, `meetings actions`, `projects meetings`,
-  `notes add --meeting`, `tags add|remove`, `actions add`), takes a `--source` that names exactly one account; a
-  list of several, or none, is an error listing the choices. `memo sync --source email:work,email:personal` names
-  mailboxes.
+- **A read names its accounts with `--source`**, as `memo mentions` and `memo search mail` already do:
+  `provider:account` (`telegram:1`, `email:personal`), a provider, a kind or `group:<name>`. `memo tasks list`,
+  `memo reminders list`, `memo tags list` and `memo ask` read every account named and say which in
+  `meta.accounts`. A read bound to one account (`tasks agenda|show`, `stats tasks show`, `relationships suggest`,
+  `context`, `meetings actions list|show`, `projects meetings list`) takes a `--source` that names exactly one.
+  `memo sync --source email:work,email:personal` names mailboxes.
+- **A write names the one account it acts as with `--account provider:account`**: `memo tasks add|close|plan|link`,
+  `memo reminders add|poll|ack|cancel|update`, `memo tags add|remove`, `memo notes add --meeting`,
+  `memo actions add`, `memo meetings actions add|confirm|reject`, `memo projects meetings link`. A bare
+  `--account 1` without `--provider` is refused. No account, or one that names several, is an error listing the
+  choices.
 
 ### Deprecated
 
-- `--provider` and `--account` keep working for one release and print the `--source` spelling on stderr; giving
-  both spellings is an error. `memo context --account 1` is `--source telegram:1`; `memo sync --account work` is
-  `--source email:work`.
+- `--provider` with a bare `--account` keeps working for one release and prints the new spelling on stderr:
+  `--source telegram:1` on a read, `--account telegram:1` on a write. Giving both spellings is an error.
+  `memo context --account 1` is `--source telegram:1`; `memo sync --account work` is `--source email:work`.
 
 ### Changed — may break scripts
 

@@ -66,10 +66,11 @@ The revision you gave is not the current one: the note changed after you read it
 - With several accounts in one messenger, add `--source`, such as `--source telegram:1`.
 - A note that only mentions the name in its text is not included; link it instead.
 
-## "give --source" or "names 2 accounts; give one"
+## "give --account", "give --source" or "names 2 accounts; give one"
 
-The command works in one account and Memo does not choose one for you. Add `--source` with the provider
-and the account's ID, such as `--source telegram:1`; the error lists the accounts the store holds.
+The command works in one account and Memo does not choose one for you. A command that changes something
+takes `--account` with the provider and the account's ID, such as `--account telegram:1`; one that reads
+takes `--source` in the same form. The error lists the accounts the store holds.
 
 ## Data from an older version is missing
 

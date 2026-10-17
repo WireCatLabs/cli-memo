@@ -136,7 +136,7 @@ describe("memo source tags", () => {
   })
 
   it("labels an email thread and removes tags idempotently", async () => {
-    const args = ["--chat", "7", "--source", `email:${mail.account}`]
+    const args = ["--chat", "7", "--account", `email:${mail.account}`]
     expect(await json("tags", "add", "work", ...args)).toMatchObject({
       target: { type: "chat", chat_id: "7" },
       added: ["work"],
@@ -150,7 +150,7 @@ describe("memo source tags", () => {
   })
 
   it("keeps the label fields --json names, and refuses one a label row lacks", async () => {
-    await json("tags", "add", "work", "--chat", "7", "--source", `email:${mail.account}`)
+    await json("tags", "add", "work", "--chat", "7", "--account", `email:${mail.account}`)
     const kept = JSON.parse(await run("tags", "list", "type:chat", "--json=tag,type,chat_id"))
     expect(kept.items).toEqual([{ tag: "work", type: "chat", chat_id: "7" }])
     await expect(run("tags", "list", "--json=subject")).rejects.toMatchObject({
@@ -192,7 +192,7 @@ describe("memo source tags", () => {
 
   it("refuses unknown exact chat ids instead of guessing a title", async () => {
     await expect(
-      json("tags", "add", "work", "--chat", "Lighthouse", "--source", `email:${mail.account}`),
+      json("tags", "add", "work", "--chat", "Lighthouse", "--account", `email:${mail.account}`),
     ).rejects.toMatchObject({ code: "not_found" })
     await expect(
       json("tags", "add", "work", "--message", formatLocator({ ...mail, chat: "7", message: "999" })),
@@ -232,9 +232,9 @@ describe("memo source tags", () => {
     } finally {
       await store.close()
     }
-    const scope = ["--source", `${zoom.provider}:${zoom.account}`]
+    const acts = ["--account", `${zoom.provider}:${zoom.account}`]
 
-    const added = await json("tags", "add", "planning", "--meeting", String(meetingId), ...scope)
+    const added = await json("tags", "add", "planning", "--meeting", String(meetingId), ...acts)
     expect(added).toMatchObject({ target: { type: "meeting", id: String(meetingId) }, added: ["planning"] })
     expect((await json("tags", "list", "type:meeting")).items).toMatchObject([
       { type: "meeting", id: String(meetingId), tag: "planning", origin: expect.any(String) },
@@ -256,19 +256,19 @@ describe("memo source tags", () => {
       "Send the agenda",
       "--subject",
       note.ref,
-      ...scope,
+      ...acts,
       "--meeting",
       String(meetingId),
     )
     for (const subject of [note.ref, `meeting:${accountId}/${meetingId}`])
       expect(JSON.stringify(await json("notes", "list", `about:"${subject}"`))).toContain(byId.ref)
-    await expect(json("notes", "add", "x", "--meeting", String(meetingId + 1), ...scope)).rejects.toMatchObject({
+    await expect(json("notes", "add", "x", "--meeting", String(meetingId + 1), ...acts)).rejects.toMatchObject({
       code: "not_found",
     })
     await expect(json("notes", "add", "x", "--meeting", String(meetingId))).rejects.toMatchObject({
       code: "validation_error",
     })
-    await expect(json("notes", "add", "x", ...scope)).rejects.toMatchObject({ code: "validation_error" })
+    await expect(json("notes", "add", "x", ...acts)).rejects.toMatchObject({ code: "validation_error" })
   })
 
   it("bounds tag listing and prints readable source references", async () => {

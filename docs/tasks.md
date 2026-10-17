@@ -18,13 +18,13 @@ Show them to me first. Make a task only for the ones I choose.
 
 ```sh
 memo tasks add 'msg:telegram/1/77/42' --type request
-memo tasks add note:12 --source telegram:1 --type promise
+memo tasks add note:12 --account telegram:1 --type promise
 memo tasks list --source telegram:1
 ```
 
 A task from a source has a type: `request` (the default), `question`, `mention` or `promise`. It
 belongs to one messenger account. A message reference already names its account; for a note or a
-file, add `--source`, such as `--source telegram:1`. Adding the same task twice gives you the existing one.
+file, add `--account`, such as `--account telegram:1`. Adding the same task twice gives you the existing one.
 
 ## What needs a look today
 
@@ -32,12 +32,12 @@ The agenda, the plan and the card are the same commands tg and max have; name th
 
 ```sh
 memo tasks agenda --source telegram:1           # overdue, due, owed and waiting chats
-memo tasks plan 1a2b3c4d --due 2d --remind-time 1d --title 'Send the revised budget' --source telegram:1
+memo tasks plan 1a2b3c4d --due 2d --remind-time 1d --title 'Send the revised budget' --account telegram:1
 memo tasks show 1a2b3c4d --source telegram:1
 memo stats tasks show --source telegram:1       # open tasks per chat
 ```
 
-A command without `--source` lists the accounts the store holds. tg and max open these tasks
+A command without `--source` or `--account` lists the accounts the store holds. tg and max open these tasks
 when they sync; memo reads the same store.
 
 ## Tasks in a project
@@ -77,7 +77,7 @@ context (`memo context … --json`). Tasks assigned to someone appear in
 
 ```sh
 memo tasks close HRB-1 --reason booked
-memo tasks close 7 --source telegram:1 --as dismissed
+memo tasks close 7 --account telegram:1 --as dismissed
 ```
 
 Close a task with `--as done` (the default) or `--as dismissed`. `memo tasks list state:done` shows
@@ -98,10 +98,10 @@ memo tasks unlink HRB-2 HRB-1 --kind blocked-by
 ```
 
 `tasks link` takes the other task as `task:HRB-1` too. A target that is not a task — a message, a chat, a person,
-a URL — links a messenger account's task to what it concerns, and needs `--source`:
+a URL — links a messenger account's task to what it concerns, and needs `--account`:
 
 ```sh
-memo tasks link 12 msg:telegram/500/7/101 --source telegram:500
+memo tasks link 12 msg:telegram/500/7/101 --account telegram:500
 ```
 
 A task becomes ready only when every task it waits for is done. If a task it waits for was
@@ -114,20 +114,20 @@ another program you choose, such as your agent or a script, asks Memo for remind
 shows them to you.
 
 ```sh
-memo reminders add 7 --at-time 2026-10-20T09:00:00+02:00 --timezone Europe/Madrid --source telegram:1
+memo reminders add 7 --at-time 2026-10-20T09:00:00+02:00 --timezone Europe/Madrid --account telegram:1
 memo reminders list --source telegram:1
-memo reminders update 3 --revision 1 --at-time 2026-10-21T09:00:00+02:00 --source telegram:1
-memo reminders cancel 3 --source telegram:1
+memo reminders update 3 --revision 1 --at-time 2026-10-21T09:00:00+02:00 --account telegram:1
+memo reminders cancel 3 --account telegram:1
 ```
 
 Write the time with its offset from UTC, such as `+02:00` for Madrid in summer. A reminder belongs to
-an account, so it needs `--source`. Closing a task cancels its reminders.
+an account, so adding or changing one needs `--account`. Closing a task cancels its reminders.
 
 For the program that shows reminders:
 
 ```sh
-memo reminders poll --source telegram:1 --json
-memo reminders ack REMINDER_ID RECEIPT --source telegram:1
+memo reminders poll --account telegram:1 --json
+memo reminders ack REMINDER_ID RECEIPT --account telegram:1
 ```
 
 `poll` hands out the reminders that are due, each with a receipt. `ack` with that receipt confirms

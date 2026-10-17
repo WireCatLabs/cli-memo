@@ -9,9 +9,12 @@ import { positive } from "../options.js"
 import {
   accountName,
   MEETING_ACCOUNT_HELP,
+  MEETING_WRITE_HELP,
   type SourceOptions,
   sourceOptions,
   theAccount,
+  writeAccount,
+  writeOptions,
 } from "../store/source-list.js"
 import { canonicalProject } from "../vocabulary/project.js"
 
@@ -39,9 +42,10 @@ export const meetingProjectsCommand = (projects: Command, streams: Streams, env:
     project: string,
     options: Options,
     work: (store: MessageStore, projectId: string, key: AccountKey) => Promise<Body>,
+    writes = false,
   ) =>
     run(options.json, async (store) => {
-      const key = await theAccount(store, env, options, warn)
+      const key = await (writes ? writeAccount : theAccount)(store, env, options, warn)
       return work(store, (await canonicalProject(store, project)).slice(8), key)
     })
   withQuery(
@@ -77,23 +81,29 @@ export const meetingProjectsCommand = (projects: Command, streams: Streams, env:
         })
       }),
     )
-  options(
+  writeOptions(
     annotate(group.command("link"), { effects: LOCAL_WRITE })
       .description("link a stored meeting to a project, or confirm a proposed link")
       .argument("<project>", "project reference, key or explicit alias")
       .argument("<meeting-id>", "positive stored meeting id"),
+    MEETING_WRITE_HELP,
   )
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .option("--fingerprint <hash>", "required when confirming an existing proposal")
     .option("--reason <text>", "why the reviewed meeting belongs to this project")
     .action((project: string, meeting: string, given: Options) =>
-      execute(project, given, async (store, projectId, key) =>
-        itemAnswer(
-          await store.knowledge.linkMeetingProject(key, meeting, projectId, {
-            by: "owner",
-            ...(given.fingerprint === undefined ? {} : { expectedFingerprint: given.fingerprint }),
-            ...(given.reason === undefined ? {} : { provenance: given.reason }),
-          }),
-        ),
+      execute(
+        project,
+        given,
+        async (store, projectId, key) =>
+          itemAnswer(
+            await store.knowledge.linkMeetingProject(key, meeting, projectId, {
+              by: "owner",
+              ...(given.fingerprint === undefined ? {} : { expectedFingerprint: given.fingerprint }),
+              ...(given.reason === undefined ? {} : { provenance: given.reason }),
+            }),
+          ),
+        true,
       ),
     )
 }

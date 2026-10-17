@@ -66,17 +66,18 @@ it("adds a memory of the owner's as confirmed, finds it, and marks it stale", as
 
 it("confirms a proposed action as a task in the account that would act, and rejects another", async () => {
   const scope = ["--source", `${account.provider}:${account.account}`]
+  const acts = ["--account", `${account.provider}:${account.account}`]
   const reply = await json(
     "actions",
     "add",
     "reply",
     "--reason",
     "Bob Sample asked twice",
-    ...scope,
+    ...acts,
     "--payload",
     '{"text":"Friday works"}',
   )
-  const ban = await json("actions", "add", "ban", "--reason", "spam", ...scope)
+  const ban = await json("actions", "add", "ban", "--reason", "spam", ...acts)
   expect(reply).toMatchObject({ status: "proposed", account, payload: { text: "Friday works" } })
 
   const approved = await json("actions", "confirm", reply.id)

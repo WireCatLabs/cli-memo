@@ -79,7 +79,7 @@ describe("mail imported into the mail tables reads back through memo", () => {
     const listed = await run(["tags", "list"], env)
     expect(listed.items.map(({ locator }: { locator?: string }) => locator)).toContain(LOCATOR)
 
-    const task = await run(["tasks", "add", LOCATOR, "--source", `email:${ME}`], env)
+    const task = await run(["tasks", "add", LOCATOR, "--account", `email:${ME}`], env)
     expect(task.task.source).toBe(LOCATOR)
     expect((await run(["search", "mail", "tag:follow-up"], env)).items.map(({ ref }: { ref: string }) => ref)).toEqual([
       LOCATOR,
