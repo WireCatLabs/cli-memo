@@ -4,6 +4,16 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Changed
+
+- **cli-core 0.323.0.** An address keeps its city in its value, so the same street in two cities is two places; a
+  word of a contact's name counts alone only as a first name or a surname, so a contact named like a company no
+  longer turns ordinary words into names; the owner's own accounts belong to the owner. After the upgrade,
+  `tg <profile> mentions rebuild person-name place` reads the old texts again.
+- memo reads `--source` lists and mention queries through cli-core instead of its own copies.
+
 ## 0.60.0 — 17.10.2026
 
 ### Fixed

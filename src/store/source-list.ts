@@ -1,4 +1,5 @@
 import { CliError } from "@wirecat/cli-base"
+import { entriesOfList } from "@wirecat/cli-core/services"
 import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
 import { loadConfig } from "../config.js"
 
@@ -10,9 +11,7 @@ export interface SourceList {
 }
 
 const MAIL = new Set(["mail", "email"])
-const NOTES = new Set(["notes"])
-const DOCUMENTS = new Set(["documents", "drive"])
-const MESSENGERS = new Set(["messages", "telegram", "tg", "max", "whatsapp", "wa"])
+const MESSENGERS = new Set(["messages", "telegram", "tg", "max", "whatsapp", "wa", "personal", "bots"])
 const SHAPES = "provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>"
 
 const mailboxOf = async (store: MessageStore, env: NodeJS.ProcessEnv, name: string): Promise<AccountKey> => {
@@ -32,49 +31,47 @@ const mailboxOf = async (store: MessageStore, env: NodeJS.ProcessEnv, name: stri
   })
 }
 
+const messengers = (entry: string) =>
+  new CliError("validation_error", `${entry}: mentions in chats are the messenger's — tg <profile> mentions list`)
+
 /**
- * cli-core's four `--source` shapes, read here because cli-core keeps its list reader to itself: memo also knows
- * a mailbox by its name in mail.accounts, which the store does not hold.
+ * cli-core's four `--source` shapes through its own reader. memo also knows a mailbox by its name in mail.accounts,
+ * which the store does not hold, so `email:<name>` becomes `email:<address>` first; notes and documents are memo's
+ * own texts and count even before the store holds an account of them.
  */
 export const sourceListOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: string): Promise<SourceList> => {
-  const groups = await store.accounts.accountGroups()
-  const held = await store.accounts.accounts()
-  const list: SourceList = { mail: [], notes: false, documents: false }
-  const addMail = (key: AccountKey) => {
-    if (!list.mail.some(({ account }) => account === key.account)) list.mail.push(key)
-  }
-  const read = async (entry: string, depth: number): Promise<void> => {
-    const word = entry.trim()
-    if (!word) return
-    const group = word.startsWith("group:") ? word.slice("group:".length) : word === "all" ? "all" : undefined
-    if (group === "all" && groups.all === undefined) {
-      for (const key of held) if (key.provider === "email") addMail(key)
-      list.notes = true
-      list.documents = true
-      return
-    }
-    if (group !== undefined) {
-      const members = groups[group]
-      if (members === undefined || depth > 3)
-        throw new CliError("not_found", `no account group "${group}"; config set account_groups.${group} <entries>`)
-      for (const member of members) await read(member, depth + 1)
-      return
-    }
-    const [provider = "", ...rest] = word.split(":")
+  const named = async (entry: string) => {
+    const [provider = "", ...rest] = entry.trim().split(":")
     const account = rest.join(":")
-    if (MAIL.has(provider)) {
-      if (account) addMail(await mailboxOf(store, env, account))
-      else for (const key of held) if (key.provider === "email") addMail(key)
-    } else if (NOTES.has(provider) && (!account || account === "internal")) list.notes = true
-    else if (DOCUMENTS.has(provider) && !account) list.documents = true
-    else if (MESSENGERS.has(provider))
-      throw new CliError(
-        "validation_error",
-        `${word}: mentions in chats are the messenger's — tg <profile> mentions list`,
-      )
-    else throw new CliError("validation_error", `${word} is not a source memo reads here: ${SHAPES}`)
+    if (!MAIL.has(provider) || !account) return entry.trim()
+    return `email:${(await mailboxOf(store, env, account)).account}`
   }
-  for (const entry of value.split(",")) await read(entry, 0)
+  const each = (entries: readonly string[]) => Promise.all(entries.filter((one) => one.trim()).map(named))
+  const groups = Object.fromEntries(
+    await Promise.all(
+      Object.entries(await store.accounts.accountGroups()).map(async ([name, members]) => [name, await each(members)]),
+    ),
+  )
+  const listed = entriesOfList((await each(value.split(","))).join(","), {
+    held: await store.accounts.storedAccounts(),
+    groups,
+    profiles: await store.accounts.profiles(),
+    running: { provider: "email", command: "memo" },
+  })
+  const list: SourceList = { mail: [], notes: false, documents: false }
+  for (const { entry, accounts } of listed) {
+    const word = entry.split(":")[0] ?? ""
+    if (MESSENGERS.has(word)) throw messengers(entry)
+    if (word === "notes" || word === "all") list.notes = true
+    if (word === "documents" || word === "drive" || word === "all") list.documents = true
+    for (const { provider, account, kind } of accounts) {
+      if (kind === "mail") {
+        if (!list.mail.some((one) => one.account === account)) list.mail.push({ provider, account })
+      } else if (kind === "notes") list.notes = true
+      else if (kind === "documents") list.documents = true
+      else if (word !== "all") throw messengers(entry)
+    }
+  }
   return list
 }
 
