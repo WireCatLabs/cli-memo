@@ -77,8 +77,8 @@ rule covers yet:
 | Signal | Adds | From |
 |---|---:|---|
 | `spam_folder` | 4 | Most of the group's mail is in Gmail's Spam |
-| `dmarc_fail` | 3 | Gmail's own DMARC check failed when the mail arrived (`Authentication-Results: mx.google.com`), on mail from 2022 on, without a valid DKIM signature, from a sender that never passes it |
-| `brand_spoof` | 3 | A brand in the display name, such as PayPal or Apple, sent from another domain; not "Google via LinkedIn" from LinkedIn's own domain, nor Coursera courses or Quora spaces named after a company |
+| `dmarc_fail` | 3 | Gmail's DMARC check failed (`Authentication-Results: mx.google.com`), with no valid DKIM signature, from a sender that never passes it; mail from 2022 on |
+| `brand_spoof` | 3 | A brand in the display name, such as PayPal or Apple, sent from another domain |
 | `young_domain` | 3 | The sender's domain was under 180 days old when the first email came |
 | `reply_to_elsewhere` | 2 | Replies go to another domain than the sender's |
 | `never_opened` | 2 | You opened none of the group's mail |
@@ -86,6 +86,13 @@ rule covers yet:
 | `disposable_domain` | 2 | A throwaway-mail domain |
 | `bulk_never_replied` | 1 | At least 80% bulk mail, and you never wrote to the sender |
 | `replied` | −5 | You wrote to the sender |
+
+`dmarc_fail`, `brand_spoof`, `young_domain`, `reply_to_elsewhere` and `disposable_domain` point at a forged or
+fraudulent sender. `never_opened`, `dkim_not_passed` and `bulk_never_replied` are common on real bulk mail too,
+bills and bookings included: a score of 3 from `never_opened` and `bulk_never_replied` alone is a newsletter you
+ignore, not a scam. A platform that passes on other names is not a spoof: "Google via LinkedIn" from LinkedIn, a
+Coursera course or a Quora space named after a company. DMARC failures before 2022 are left out: many real
+senders failed the check then.
 
 `young_domain` needs each domain's registration date. memo asks for it only when you add `--domain-age`:
 
