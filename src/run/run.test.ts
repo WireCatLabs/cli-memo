@@ -40,7 +40,7 @@ describe("memo auto", () => {
   it("installs a timer with the interval asked for, and remembers it in the config", async () => {
     await run("auto", "start", "--every", "2m")
 
-    expect(readFileSync(join(units(), "memo-import.timer"), "utf8")).toContain("OnUnitActiveSec=2min")
+    expect(readFileSync(join(units(), "memo-import.timer"), "utf8")).toContain("OnUnitInactiveSec=2min")
     expect(readFileSync(join(units(), "memo-import.service"), "utf8")).toMatch(/ExecStart=".*" ".*memo\.js" "sync"/)
     expect(calls()).toContain("--user enable --now memo-import.timer")
     expect(loadConfig(env).auto).toMatchObject({ enabled: true, every: "2m" })
@@ -74,11 +74,11 @@ describe("memo auto", () => {
     updateConfig((config) => ({ ...config, auto: { enabled: true, every: "15m" } }), env)
 
     await run("sync")
-    expect(readFileSync(join(units(), "memo-import.timer"), "utf8")).toContain("OnUnitActiveSec=5min")
+    expect(readFileSync(join(units(), "memo-import.timer"), "utf8")).toContain("OnUnitInactiveSec=5min")
 
     env = { ...env, MEMO_AUTO: "1" }
     await run("sync")
-    expect(readFileSync(join(units(), "memo-import.timer"), "utf8")).toContain("OnUnitActiveSec=15min")
+    expect(readFileSync(join(units(), "memo-import.timer"), "utf8")).toContain("OnUnitInactiveSec=15min")
 
     updateConfig((config) => ({ ...config, auto: { enabled: false } }), env)
     expect(await run("sync")).toBe("")

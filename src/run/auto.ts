@@ -94,7 +94,8 @@ export const timerUnit = (every: string): string =>
     "",
     "[Timer]",
     "OnActiveSec=1min",
-    `OnUnitActiveSec=${systemdSpan(every)}`,
+    // From when a sync ends: counted from its start, a sync longer than the interval left no next run.
+    `OnUnitInactiveSec=${systemdSpan(every)}`,
     "AccuracySec=30s",
     "",
     "[Install]",

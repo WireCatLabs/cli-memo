@@ -6,6 +6,12 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **The sync timer no longer stops when a sync takes longer than its interval.** The interval counted from when a
+  sync started, so a 6-minute sync on a 5-minute timer left no next run. It now counts from when a sync ends.
+  The first sync after updating rewrites the timer.
+
 ### Documentation
 
 - **How to read a sender score** in the mail guide: which signals point at a forged sender and which bills share
