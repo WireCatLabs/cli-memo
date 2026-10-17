@@ -6,7 +6,7 @@ import type { Command } from "commander"
 import { createMemoServer } from "./server.js"
 
 export const mcpCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
-  annotate(program.command("mcp"), { effects: LOCAL_WRITE })
+  annotate(program.command("mcp"), { effects: LOCAL_WRITE, lifetime: "persistent" })
     .description("serve memories, proposed actions and the agent log over MCP on stdin and stdout")
     .action(async () => {
       serveStdio(() => createMemoServer(env), { onerror: (error) => streams.diagnostic(`mcp: ${error.message}`) })

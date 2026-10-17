@@ -6,6 +6,7 @@ import { InMemoryTransport } from "@modelcontextprotocol/server"
 import { captureStreams } from "@wirecat/cli-base"
 import { UNTRUSTED, UNTRUSTED_INSTRUCTION } from "@wirecat/cli-core/cli"
 import { openStore } from "@wirecat/cli-core/store"
+import * as v from "valibot"
 import { beforeEach, expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
@@ -263,4 +264,19 @@ it("shows hidden characters in what other people wrote, keeps ordinary text, and
     .exitOverride()
     .parseAsync(["search", "notes", "Carol", "--exact", "--json"], { from: "user" })
   expect(streams.stdout.join("")).toContain(JSON.stringify(HOSTILE).slice(1, -1))
+})
+
+it("refuses an argument a tool does not take, on every tool", async () => {
+  for (const tool of Object.values(MEMO_TOOLS))
+    expect(v.safeParse(tool.input, { unexpected_argument: 1 }).issues).toContainEqual(
+      expect.objectContaining({ path: [expect.objectContaining({ key: "unexpected_argument" })] }),
+    )
+  const { client, call } = await connected()
+  try {
+    expect((await call("memories_list", { unexpected_argument: 1 })).structuredContent).toMatchObject({
+      error: { code: "validation_error", reason: "input.invalid", param: "unexpected_argument" },
+    })
+  } finally {
+    await client.close()
+  }
 })
