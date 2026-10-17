@@ -6,6 +6,14 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **A sync step that fails unexpectedly says why.** The timer's log showed only "the command failed; this is a bug";
+  it now adds the error's first line, such as `TypeError: fetch failed`, so a dropped network can be told from a
+  real fault. `--debug` still shows the whole message.
+- **`memo search mail` fills a page past mail it moves down.** It reads 20 more results than asked, so mail from
+  senders with signs of fraud gives its place to the next best result instead of only moving to the end.
+
 ## 0.64.0 — 18.10.2026
 
 ### Changed — may change search results
