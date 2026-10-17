@@ -40,13 +40,13 @@ export const findingsCommand = (program: Command, streams: Streams, env: NodeJS.
     command
       .requiredOption("--provider <provider>", "meeting provider")
       .requiredOption("--account <account>", "exact stored meeting account")
-      .option("--json", "print JSON; --json=id,title keeps only those fields")
+      .option("--json", "print JSON; --json=id,status keeps only those fields")
   options(annotate(group.command("add"), { effects: LOCAL_WRITE, output: { entity: "meeting_findings" } }))
     .description("stage cited findings; facts and tasks wait for owner confirmation")
     .argument("<file>", "JSON proposal file, or - for stdin; at most 65536 UTF-8 bytes")
     .addHelpText(
       "after",
-      "\nInput: schema_version 1, key, extractor, findings. Every finding names id, kind, project and evidence (reference and fingerprint). Facts name type and statement; tasks name type, title, reason and commitment (explicit or inferred). Use the exact cue fingerprints from Zoom evidence.\n",
+      "\nInput: schema_version 1, key, extractor, findings. Every finding names id, kind, project and evidence (reference and fingerprint). Facts name type and statement; tasks name type, title, reason and commitment (explicit or inferred). At most 16 findings, each with 1–8 exact cues from Zoom evidence. Optional due_at is a real ISO timestamp with timezone and requires due_evidence; optional assignee is a person reference and requires assignee_evidence. Both support lists cite this finding's cue references.\n",
     )
     .action(async (file: string, given: Options) => {
       const text = await readBatchInput(file === "-" ? process.stdin : createReadStream(file))

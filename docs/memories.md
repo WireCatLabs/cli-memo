@@ -85,7 +85,7 @@ memo meetings actions list status:proposed --provider zoom --account me@example.
 memo meetings actions show 5 --provider zoom --account me@example.com
 ```
 
-The file uses `schema_version: 1`, a stable `key`, `extractor` and `findings`. Each finding has `id`, `kind`, `project` and `evidence` (objects with `reference` and `fingerprint`). A fact adds `type` and `statement`. A task adds `type` (`bug`, `chore` or `feature`), `title`, `reason` and `commitment` (`explicit` or `inferred`). Optional `due_at` needs `due_evidence`; optional `assignee` needs `assignee_evidence`, both listing supporting cue references. `-` reads JSON from stdin. The batch accepts up to 16 findings and 65,536 UTF-8 bytes.
+The file uses `schema_version: 1`, a stable `key`, `extractor` and `findings`. Each finding has `id`, `kind`, `project` and `evidence` (objects with `reference` and `fingerprint`). A fact adds `type` and `statement`. A task adds `type` (`bug`, `chore` or `feature`), `title`, `reason` and `commitment` (`explicit` or `inferred`). Optional `due_at` is an ISO timestamp with a timezone and needs `due_evidence`; optional `assignee` is a `person:<id>` reference and needs `assignee_evidence`, both listing supporting cue references. `-` reads JSON from stdin. The batch accepts up to 16 findings and 65,536 UTF-8 bytes.
 
 Staging creates no fact or task. Your preview shows previous decisions on unchanged candidates. Open the sources, then personally confirm the candidate IDs you want to keep, or reject the batch. Replace the hash below with the preview's exact fingerprint:
 
