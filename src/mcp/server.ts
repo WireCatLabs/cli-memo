@@ -20,6 +20,7 @@ import { FACT_QUERY, factItem, listFacts } from "../facts/fact.js"
 import { mcpFailure } from "../failure.js"
 import { addMemory } from "../memories/memories.js"
 import { listMemories, MEMORY_QUERY, memoryItem, searchMemories } from "../memories/memory.js"
+import { writeAccount } from "../store/source-list.js"
 import { VERSION } from "../version.js"
 import { knowledgeTools } from "./knowledge.js"
 import { taskRelationTools } from "./task-relations.js"
@@ -135,24 +136,25 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
   actions_add: define({
     title: "Propose an action",
     description:
-      "Propose what should be done in one account — a reply, a ban, an invitation — and why. Nothing is sent: the owner confirms it as a task or rejects it.",
+      "Propose what should be done in one account — a reply, a ban, an invitation — and why. account is the one that would act, as provider:account (telegram:1). Nothing is sent: the owner confirms it as a task or rejects it.",
     writes: true,
     input: v.object({
       kind: v.pipe(v.string(), v.regex(/^[a-z][a-z_]{0,39}$/)),
       reason: v.pipe(v.string(), v.minLength(1)),
-      provider: v.string(),
-      account: v.optional(v.string()),
+      account: v.pipe(v.string(), v.minLength(1)),
       target: v.optional(v.string()),
       payload: v.optional(v.unknown()),
     }),
-    run: async (store, { payload, ...proposal }) =>
-      itemAnswer(
+    run: async (store, { payload, account, ...proposal }, env) => {
+      const key = await writeAccount(store, env, { account }, () => {})
+      return itemAnswer(
         await propose(
           store,
-          { ...proposal, ...(payload === undefined ? {} : { payload: JSON.stringify(payload) }) },
+          { ...proposal, ...key, ...(payload === undefined ? {} : { payload: JSON.stringify(payload) }) },
           by,
         ),
-      ),
+      )
+    },
   }),
   actions_list: define({
     title: "List proposed actions",

@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Changed — may break scripts
+
+- **memo's MCP tools name accounts as the CLI does.** `actions_add` takes `account` as `provider:account`
+  (`telegram:1`) in place of `provider` and a bare `account`; `search_mail` takes `source` (`email:work`, several
+  separated by commas) in place of `account`; `person_context` takes `source` (`telegram:1`) in place of `account`.
+  An old argument is refused, as any argument a tool does not take.
+
 ## 0.65.1 — 18.10.2026
 
 ### Documentation

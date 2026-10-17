@@ -7,8 +7,7 @@ import { answers, itemAnswer, withStore } from "../answer.js"
 import { boundFolders } from "../notes/bound.js"
 import { positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
-import { oneAccountOf } from "../store/source-list.js"
-import { type MemoContext, memoContext } from "./context.js"
+import { contextAccountOf, type MemoContext, memoContext } from "./context.js"
 
 const MAX_TEXT = 160
 
@@ -84,13 +83,8 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
         streams.diagnostic(`--account is deprecated: use --source ${person.split(":")[0]}:${options.account}\n`)
       const answer = await withStore(env, async (store) => {
         await importNotesMap(store, env, await boundFolders(store, env, { strict: false }))
-        const key = options.source === undefined ? undefined : await oneAccountOf(store, env, options.source)
-        if (key !== undefined && key.provider !== person.split(":")[0])
-          throw new CliError(
-            "validation_error",
-            `--source ${options.source} is not an account of ${person}'s messenger`,
-          )
-        const account = key === undefined ? options.account : key.account
+        const account =
+          options.source === undefined ? options.account : await contextAccountOf(store, env, person, options.source)
         return memoContext(store, person, { limit: options.limit, ...(account === undefined ? {} : { account }) })
       })
       print(options.json, itemAnswer(answer), contextText(answer))
