@@ -1634,7 +1634,7 @@ memo meetings actions add <file> [options]
 |---|---|
 | `--provider <provider>` | meeting provider. |
 | `--account <account>` | exact stored meeting account. |
-| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--json` | print JSON; --json=id,status keeps only those fields. |
 
 #### `memo meetings actions show`
 
@@ -1652,7 +1652,7 @@ memo meetings actions show <id> [options]
 |---|---|
 | `--provider <provider>` | meeting provider. |
 | `--account <account>` | exact stored meeting account. |
-| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--json` | print JSON; --json=id,status keeps only those fields. |
 
 #### `memo meetings actions list`
 
@@ -1670,7 +1670,7 @@ memo meetings actions list [query] [options]
 |---|---|
 | `--provider <provider>` | meeting provider. |
 | `--account <account>` | exact stored meeting account. |
-| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--json` | print JSON; --json=id,status keeps only those fields. |
 | `--limit <n>` | batches per page, at most 50. Default: `20`. |
 | `--page <n>` | which page, from 1. Default: `1`. |
 
@@ -1693,7 +1693,7 @@ memo meetings actions confirm <id> <ids> [options]
 |---|---|
 | `--provider <provider>` | meeting provider. |
 | `--account <account>` | exact stored meeting account. |
-| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--json` | print JSON; --json=id,status keeps only those fields. |
 | `--fingerprint <hash>` | the exact fingerprint shown in the preview. |
 
 #### `memo meetings actions reject`
@@ -1714,7 +1714,7 @@ memo meetings actions reject <id> [options]
 |---|---|
 | `--provider <provider>` | meeting provider. |
 | `--account <account>` | exact stored meeting account. |
-| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--json` | print JSON; --json=id,status keeps only those fields. |
 | `--fingerprint <hash>` | the exact fingerprint shown in the preview. |
 
 ## `memo actions`
