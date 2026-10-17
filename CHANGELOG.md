@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.62.0 — 17.10.2026
+
 ### Changed
 
 - **cli-core 0.323.0.** An address keeps its city in its value, so the same street in two cities is two places; a
