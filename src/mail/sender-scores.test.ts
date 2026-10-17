@@ -3,7 +3,8 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { type MessageStore, openStore } from "@wirecat/cli-core/store"
 import { afterEach, expect, it } from "vitest"
-import { SCORE_VERSION, scoreSenders } from "./sender-scores.js"
+import type { MailRule } from "./rules.js"
+import { demotedSenders, SCORE_VERSION, scoreSenders } from "./sender-scores.js"
 
 const opened: MessageStore[] = []
 afterEach(async () => {
@@ -50,7 +51,11 @@ it("scores each sender from the stored mail at most once a day", async () => {
   expect(await scoreSenders(store, ME, env, now + DAY / 2, none)).toBeUndefined()
 
   const state = await store.sync.syncState({ provider: "email", account: ME }, "mail_sender_scores")
-  expect(JSON.parse(state?.value ?? "{}")).toEqual({ version: SCORE_VERSION, at: now })
+  expect(JSON.parse(state?.value ?? "{}")).toEqual({
+    version: SCORE_VERSION,
+    at: now,
+    demoted: ["alerts@pay-secure.example"],
+  })
   expect(await scoreSenders(store, ME, env, now + DAY, none)).toMatchObject({ scored: 2 })
 })
 
@@ -79,4 +84,30 @@ it("looks up the domains of senders heard from in the last two years only, never
 
   expect(await scoreSenders(store, ME, env, now, lookUp)).toMatchObject({ scored: 3, looked: 1 })
   expect(asked).toEqual(["fresh-shop.example"])
+})
+
+it("ranks a forged sender lower, unless the owner wrote to its domain or a protect rule keeps it", async () => {
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "scores-")), "wirecat.db") }
+  const store = await openStore({ env })
+  opened.push(store)
+  const accountId = await store.accounts.saveAccount({ provider: "email", account: ME }, { name: ME })
+  const none = async () => ({ looked: 0, failed: 0 })
+  const save = (emails: ReturnType<typeof mail>[]) =>
+    store.mail.saveThread({ accountId, externalId: "t1", now: 1, emails })
+  await save([
+    mail(1, "alerts@pay-secure.example", "PayPal Support"),
+    mail(2, "help@desk-secure.example", "PayPal Desk"),
+  ])
+  const keep: MailRule = {
+    match: { from: "help@desk-secure.example" },
+    action: "keep",
+    protected: true,
+    decided_at: "2026-10-17",
+  }
+
+  expect(await scoreSenders(store, ME, env, 1_000, none, [keep])).toMatchObject({ demoted: 1 })
+  expect(await demotedSenders(store)).toEqual(new Set(["alerts@pay-secure.example"]))
+
+  await save([mail(3, ME, "Owner", { outgoing: true, to: [{ address: "billing@pay-secure.example", name: null }] })])
+  expect(await scoreSenders(store, ME, env, 2 * DAY, none, [keep])).toMatchObject({ demoted: 0 })
 })

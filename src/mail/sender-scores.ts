@@ -1,12 +1,15 @@
 import type { AccountKey, MessageStore, SenderScore } from "@wirecat/cli-core/store"
 import { knownAges, type LookupResult, lookUpAges } from "./domain-age.js"
 import { domainsToAge, groupKey, probeMail } from "./probe.js"
-import { FREE_MAIL } from "./score.js"
+import { decide, type MailRule } from "./rules.js"
+import { FRAUD_SIGNALS, FREE_MAIL, registrableOf, WEIGHTS } from "./score.js"
 import { listedOf } from "./trash.js"
 
 const SCORED = "mail_sender_scores"
 /** Raised when the weights or the signals change, so every sender is scored again on the next sync. */
-export const SCORE_VERSION = 3
+export const SCORE_VERSION = 4
+/** Signs of fraud adding up to this rank a sender's mail lower in search. */
+export const DEMOTE_AT = 3
 const DAY = 86_400_000
 /** Only senders heard from this recently are looked up: an older sender's domain may have lapsed or changed hands. */
 const RECENT = 2 * 365 * DAY
@@ -23,7 +26,8 @@ export const scoreSenders = async (
   env: NodeJS.ProcessEnv,
   now = Date.now(),
   lookUp: (env: NodeJS.ProcessEnv, domains: readonly string[]) => Promise<LookupResult> = lookUpAges,
-): Promise<{ scored: number; looked: number; failed: number } | undefined> => {
+  rules: readonly MailRule[] = [],
+): Promise<{ scored: number; looked: number; failed: number; demoted: number } | undefined> => {
   const key: AccountKey = { provider: "email", account: address.toLowerCase() }
   const last = (await store.sync.syncState(key, SCORED))?.value
   const done = last === undefined ? undefined : (JSON.parse(last) as { version: number; at: number })
@@ -63,6 +67,20 @@ export const scoreSenders = async (
       group,
     ]),
   )
+  // The owner's own: a domain they wrote to anyone at, their own mailbox's domain, or a sender a protect rule keeps.
+  const trusted = new Set(
+    [address, ...items.filter((item) => item.labels?.includes("Sent")).flatMap((item) => item.headers?.to ?? [])]
+      .map((to) => registrableOf(to))
+      .filter((domain) => !FREE_MAIL.has(domain)),
+  )
+  const protectedSenders = new Set(
+    items.filter((item) => decide(rules, item)?.protected).flatMap((item) => item.headers?.from?.toLowerCase() ?? []),
+  )
+  const fraud = (signals: readonly string[]) =>
+    signals.reduce(
+      (sum, signal) => sum + (FRAUD_SIGNALS.includes(signal as never) ? WEIGHTS[signal as keyof typeof WEIGHTS] : 0),
+      0,
+    )
   const scores = new Map<string, SenderScore>()
   for (const item of items) {
     const from = item.headers?.from?.toLowerCase()
@@ -70,9 +88,31 @@ export const scoreSenders = async (
     if (from === undefined || group === undefined) continue
     const held = scores.get(from)
     if (held === undefined || group.score > held.score)
-      scores.set(from, { address: from, score: group.score, signals: group.signals })
+      scores.set(from, {
+        address: from,
+        score: group.score,
+        signals: group.signals,
+        demoted:
+          fraud(group.signals) >= DEMOTE_AT &&
+          !group.signals.includes("replied") &&
+          !trusted.has(registrableOf(from)) &&
+          !protectedSenders.has(from),
+      })
   }
+  const demoted = [...scores.values()].filter((score) => score.demoted).map(({ address }) => address)
   const written = await store.mail.setSenderScores(stored.id, [...scores.values()], now)
-  await store.sync.setSyncState(key, SCORED, JSON.stringify({ version: SCORE_VERSION, at: now }))
-  return { scored: written, ...lookups }
+  await store.sync.setSyncState(key, SCORED, JSON.stringify({ version: SCORE_VERSION, at: now, demoted }))
+  return { scored: written, ...lookups, demoted: demoted.length }
+}
+
+/** Every mail account's senders whose mail search ranks lower, as the last scoring left them. */
+export const demotedSenders = async (store: MessageStore): Promise<Set<string>> => {
+  const senders = new Set<string>()
+  for (const account of await store.accounts.accounts()) {
+    if (account.provider !== "email") continue
+    const value = (await store.sync.syncState(account, SCORED))?.value
+    for (const sender of value === undefined ? [] : ((JSON.parse(value) as { demoted?: string[] }).demoted ?? []))
+      senders.add(sender)
+  }
+  return senders
 }

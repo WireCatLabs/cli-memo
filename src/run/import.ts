@@ -8,6 +8,7 @@ import { loadConfig } from "../config.js"
 import { errorObject } from "../failure.js"
 import { mailAccounts, mailSource } from "../mail/accounts.js"
 import { backfillHeaders } from "../mail/backfill-headers.js"
+import { lookUpAges } from "../mail/domain-age.js"
 import { type ImportResult, importMail } from "../mail/import.js"
 import { repairHtmlText } from "../mail/repair.js"
 import { rulesOf } from "../mail/rule-store.js"
@@ -263,13 +264,14 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           }
           for (const account of accounts)
             await attempt(`mail ${account.name}`, async () => {
+              const rules = await rulesOf(store, account, env, streams.diagnostic)
               const repaired = await repairHtmlText(store, account.address)
               if (repaired) streams.diagnostic(`mail ${account.name}: ${repaired} emails' HTML text read again as text`)
               run.mail.push(
                 await importMail({
                   store,
                   source: mailSource(account, env),
-                  account: { ...account, rules: await rulesOf(store, account, env, streams.diagnostic) },
+                  account: { ...account, rules },
                   since,
                   env,
                   embed: options.embed,
@@ -284,10 +286,11 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
               )
               const filled = await backfillHeaders(store, mailSource(account, env), account.address)
               if (filled) streams.diagnostic(`mail ${account.name}: ${filled} older emails' headers read`)
-              const scored = await scoreSenders(store, account.address, env)
+              const scored = await scoreSenders(store, account.address, env, Date.now(), lookUpAges, rules)
               if (scored)
                 streams.diagnostic(
-                  `mail ${account.name}: ${scored.scored} senders scored, ${scored.looked} domain ages looked up` +
+                  `mail ${account.name}: ${scored.scored} senders scored, ${scored.demoted} ranked lower, ` +
+                    `${scored.looked} domain ages looked up` +
                     (scored.failed ? `, ${scored.failed} failed` : ""),
                 )
             })
