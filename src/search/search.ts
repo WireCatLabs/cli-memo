@@ -14,6 +14,7 @@ import { APP } from "../app.js"
 import { loadConfig } from "../config.js"
 import { keyDocuments, keyFirst, projectOf } from "../knowledge/key-documents.js"
 import { mailAccounts } from "../mail/accounts.js"
+import { demotedSenders } from "../mail/sender-scores.js"
 import { accountsOf } from "../store/source-list.js"
 import { taskPage } from "../tasks/context.js"
 
@@ -200,7 +201,15 @@ export interface QueryInput {
   limit: number
   exact?: boolean
   timezone?: string
+  /** Leave mail from senders with signs of fraud where the words put it, instead of after the rest. */
+  plainOrder?: boolean
 }
+
+/** Mail from senders with signs of fraud after the rest of the page, each part in the order it had. */
+export const lowerSuspicious = <T>(items: readonly T[], suspicious: (item: T) => boolean): T[] => [
+  ...items.filter((item) => !suspicious(item)),
+  ...items.filter(suspicious),
+]
 
 export interface SearchedAccount {
   resource: SearchedResource
@@ -218,7 +227,7 @@ interface EverywhereExtras {
 export const searchEverywhere = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
-  { text, limit, only, exact, timezone }: QueryInput & { only?: SearchedResource[] },
+  { text, limit, only, exact, timezone, plainOrder }: QueryInput & { only?: SearchedResource[] },
 ): Promise<SearchAllFound & EverywhereExtras> => {
   const accounts = await store.accounts.accounts()
   // The shared search names this command only in the model hint, and the model comes from tg.
@@ -266,19 +275,47 @@ export const searchEverywhere = async (
     tasks.push(...page.items.map((task) => ({ ...task, heldBy: account })))
     tasksIncomplete ||= page.hasMore
   }
+  const suspicious = plainOrder ? new Set<string>() : await suspiciousRefs(store, found.items)
   return {
     ...found,
+    items: lowerSuspicious(found.items, (item) => suspicious.has(item.ref)),
     accounts: searched,
     tasks: tasks.slice(0, limit),
     tasksIncomplete: tasksIncomplete || tasks.length > limit,
   }
 }
 
+/** The mail on a page whose sender's mail search ranks lower; the page's items carry no sender address. */
+const suspiciousRefs = async (store: MessageStore, items: readonly { kind: string; ref: string }[]) => {
+  const demoted = await demotedSenders(store)
+  const refs = new Set<string>()
+  if (demoted.size === 0) return refs
+  for (const { kind, ref } of items) {
+    if (kind !== "mail") continue
+    const { provider, account, message } = parseLocator(ref)
+    const stored = await store.accounts.storedAccount({ provider, account }).catch(() => null)
+    const email = stored === null || message === undefined ? null : await store.mail.email(stored.id, message)
+    if (email?.fromAddress && demoted.has(email.fromAddress.toLowerCase())) refs.add(ref)
+  }
+  return refs
+}
+
 /** One kind with all its fields: messenger messages from every messenger, or imported mail. */
 export const searchKind = async (
   store: MessageStore,
   kind: "messages" | "mail",
-  { text, limit, account, accounts, exact, timezone }: QueryInput & { account?: string; accounts?: AccountKey[] },
+  {
+    text,
+    limit,
+    account,
+    accounts,
+    exact,
+    timezone,
+    plainOrder,
+  }: QueryInput & {
+    account?: string
+    accounts?: AccountKey[]
+  },
 ) => {
   const held = (await store.accounts.accounts()).some(
     ({ provider }) => provider !== "notes" && (kind === "mail" ? provider === "email" : provider !== "email"),
@@ -288,7 +325,7 @@ export const searchKind = async (
       "not_found",
       kind === "mail" ? "no imported mail; run memo sync --only mail" : "no stored messenger messages",
     )
-  return searchStore(
+  const found = await searchStore(
     store,
     MEMO,
     {
@@ -303,6 +340,8 @@ export const searchKind = async (
     },
     { app: APP },
   )
+  if (kind !== "mail" || plainOrder) return found
+  return { ...found, items: lowerSuspicious(found.items, (item) => item.email?.senderScore?.demoted === true) }
 }
 
 /** The rules and `memo mail status` take an account's name; search takes it too, or the address. */

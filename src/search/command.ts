@@ -94,6 +94,7 @@ export const searchCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       .summary("messages, mail and notes ranked together"),
   )
     .option("--only <resources>", "messages,mail,notes, separated by commas", onlyOf)
+    .option("--plain-order", "best first by the words alone, without moving mail from suspicious senders down")
     .option("--project <project>", PROJECT_ORDER_HELP)
     .addHelpText(
       "after",
@@ -111,6 +112,7 @@ content: narrows a search to the text of files, transcript: to voice transcripts
           timezone?: string
           project?: string
           json?: boolean
+          plainOrder?: boolean
         },
       ) => {
         const answer = await withStore(env, async (store) => {
@@ -119,6 +121,7 @@ content: narrows a search to the text of files, transcript: to voice transcripts
             limit: options.limit,
             ...(options.only === undefined ? {} : { only: options.only }),
             ...(options.exact ? { exact: true } : {}),
+            ...(options.plainOrder ? { plainOrder: true } : {}),
             ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
           })
           return { ...found, items: await keyDocumentsFirst(store, found.items, options.project) }
@@ -152,6 +155,7 @@ content: narrows a search to the text of files, transcript: to voice transcripts
     if (kind === "mail")
       leaf
         .option("--source <accounts>", `the mailboxes to search (default: every one): ${MAIL_SOURCES}`)
+        .option("--plain-order", "best first by the words alone, without moving mail from suspicious senders down")
         .option("--account <account>", "deprecated: --source email:<account>")
     leaf.addHelpText(
       "after",
@@ -164,6 +168,7 @@ has:voice, has:file or NOT has:attachment keeps voice messages, files or plain t
         : `
 content: narrows a search to the text of attachments, filename: to their names — memo search mail 'content:invoice'.
 Mail sent to many is in the mailbox bulk; NOT mailbox:bulk leaves it out, and bills and bookings with it.
+Mail from senders with signs of fraud (memo mail inspect) comes after the rest of the page; --plain-order keeps it in place.
 --json: the list is items, each a hit as in tg search mail: ref (msg:email/…), timestamp, email, excerpt.`,
     )
     leaf.action(
@@ -178,6 +183,7 @@ Mail sent to many is in the mailbox bulk; NOT mailbox:bulk leaves it out, and bi
           json?: boolean
           brief?: boolean
           full?: boolean
+          plainOrder?: boolean
         },
       ) => {
         const level = levelOf(options)
@@ -195,6 +201,7 @@ Mail sent to many is in the mailbox bulk; NOT mailbox:bulk leaves it out, and bi
             ...(account === undefined ? {} : { account }),
             ...(mailboxes === undefined ? {} : { accounts: mailboxes }),
             ...(options.exact ? { exact: true } : {}),
+            ...(options.plainOrder ? { plainOrder: true } : {}),
             ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
           })
         })

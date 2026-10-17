@@ -6,6 +6,14 @@ the API.
 
 ## Unreleased
 
+### Changed — may change search results
+
+- **Mail from senders with signs of fraud comes after the rest of the page** in `memo search mail` and
+  `memo search all`: a sender whose fraud signals add up to 3 or more, such as a brand name from another domain or a
+  domain under 180 days old. Your own are never moved: a domain you wrote to anyone at, your mailbox's domain, a
+  sender a protect rule keeps. `--plain-order` keeps the plain order, to find such mail. The sync log says how many
+  senders are ranked lower.
+
 ### Changed
 
 - **A read names its accounts with `--source`**, as `memo mentions` and `memo search mail` already do:

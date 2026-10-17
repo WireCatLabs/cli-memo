@@ -302,8 +302,14 @@ address; `--source email:work,email:personal` searches both.
 
 Each sync also scores every sender from the mail already stored, at most once a day, the same way
 `memo mail inspect` scores a group. A hit from a scored sender carries `sender_score` in `--json`, with the score
-and its signals. It does not change the order of results yet: it is there to check before anything is ranked by
-it.
+and its signals. Mail from a sender whose signs of fraud add up to 3 or more comes after the rest of the page in
+`memo search mail` and `memo search all`, and its `sender_score` says `demoted: true`; nothing is left out. Your own
+are never moved: a domain you wrote to anyone at, your mailbox's domain, and a sender a protect rule keeps.
+`--plain-order` keeps such mail where the words put it, to find it:
+
+```sh
+memo search mail 'invoice' --plain-order
+```
 
 Gmail labels such as Inbox, Important, Starred and your own labels become mail folders, so
 `mailbox:important` finds them. See [Search](search.md#search-mail).
