@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.58.0 — 17.10.2026
+
 ### Added
 
 - **Every sender gets its spam score in the store, and search shows it.** Each sync scores the account's senders
