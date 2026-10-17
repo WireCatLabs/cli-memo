@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.64.0 — 18.10.2026
+
 ### Changed — may change search results
 
 - **Mail from senders with signs of fraud comes after the rest of the page** in `memo search mail` and
