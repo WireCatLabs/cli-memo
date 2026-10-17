@@ -133,6 +133,16 @@ const syncedOf = (options: SyncOptions): Set<Synced> => {
 const failedReason = ([first, ...rest]: ImportRun["failed"]): string | undefined =>
   first === undefined ? undefined : `${first.source}: ${first.reason}${rest.length ? ` (and ${rest.length} more)` : ""}`
 
+/**
+ * What a failed part of a sync reports. An unexpected error says only "this is a bug", so its first line is kept too:
+ * the timer's log has to tell a dropped network from a real fault.
+ */
+export const failureReason = (error: unknown, failure: { reason: string; message: string }, debug: boolean): string => {
+  if (debug) return String(error instanceof Error ? error.message : error)
+  if (failure.reason !== "command.crashed" || !(error instanceof Error)) return failure.message
+  return `${failure.message} (${error.name}: ${error.message.split("\n")[0]?.slice(0, 160)})`
+}
+
 export const syncCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
   annotate(program.command("sync"), { effects: FETCH })
@@ -228,7 +238,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
             await work()
           } catch (error) {
             const { error: failure } = await errorObject(error)
-            const reason = debug ? String(error instanceof Error ? error.message : error) : failure.message
+            const reason = failureReason(error, failure, debug)
             run.failed.push({ source, code: failure.code, reason })
           }
         }

@@ -205,6 +205,8 @@ export interface QueryInput {
   plainOrder?: boolean
 }
 
+const LOWERED_SPARE = 20
+
 /** Mail from senders with signs of fraud after the rest of the page, each part in the order it had. */
 export const lowerSuspicious = <T>(items: readonly T[], suspicious: (item: T) => boolean): T[] => [
   ...items.filter((item) => !suspicious(item)),
@@ -325,6 +327,7 @@ export const searchKind = async (
       "not_found",
       kind === "mail" ? "no imported mail; run memo sync --only mail" : "no stored messenger messages",
     )
+  const lower = kind === "mail" && !plainOrder
   const found = await searchStore(
     store,
     MEMO,
@@ -332,7 +335,8 @@ export const searchKind = async (
       text,
       kind,
       ...(kind === "messages" && !hasSource(parseLucene(text).root) ? { source: "all" as const } : {}),
-      limit,
+      // A few more than asked, so mail moved down makes room for the next best rather than an empty slot.
+      limit: lower ? limit + LOWERED_SPARE : limit,
       ...(account === undefined ? {} : { mailAccount: account }),
       ...(accounts === undefined ? {} : { accounts }),
       ...(exact ? { exact: true } : {}),
@@ -340,8 +344,9 @@ export const searchKind = async (
     },
     { app: APP },
   )
-  if (kind !== "mail" || plainOrder) return found
-  return { ...found, items: lowerSuspicious(found.items, (item) => item.email?.senderScore?.demoted === true) }
+  if (!lower) return found
+  const items = lowerSuspicious(found.items, (item) => item.email?.senderScore?.demoted === true)
+  return { ...found, items: items.slice(0, limit), hasMore: found.hasMore || items.length > limit }
 }
 
 /** The rules and `memo mail status` take an account's name; search takes it too, or the address. */
