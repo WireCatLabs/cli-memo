@@ -13,6 +13,9 @@ the API.
 
 ### Changed — may break scripts
 
+- **cli-core 0.320.0, the version tg and max pin.** `tasks plan --assignee` names who does a task. Tasks open
+  only for questions asked of the owner: every unanswered one in a one-to-one chat, in a group only a reply to the
+  owner or a mention.
 - **`memo mentions` names what it reads with `--source`, as every WireCat tool does.** `memo mentions list kind:phone
   --source email:personal,email:work`; `--source mail` reads every mailbox and the answer lists them in
   `meta.accounts`; `notes`, `documents` and `group:<name>` work too. The kind argument (`email`, `note`, `document`)
@@ -26,6 +29,9 @@ the API.
 
 ### Fixed
 
+- **`memo tasks show HRB-12` shows a project's task without `--provider` and `--account`** (cli-core 0.320.0),
+  with its evidence links — a task made from reviewed meeting findings, for example. A task of a messenger account
+  still needs its account; a bare number is never taken for a project task.
 - **memo's MCP tools refuse an argument they do not take**, as every other CLI's tools do: all 22 answer
   `validation_error` (reason `input.invalid`, `param` naming the argument) instead of dropping it, so a misspelled
   filter no longer runs unfiltered. Their advertised input schemas now say `additionalProperties: false`.

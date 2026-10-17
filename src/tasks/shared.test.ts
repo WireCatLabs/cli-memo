@@ -38,6 +38,9 @@ const setUp = async () => {
   }
   const store = await openStore({ env })
   await store.accounts.saveAccount(key, { name: null })
+  await store.chats.saveChats(key, [
+    { id: "7", title: null, kind: "dialog", unreadCount: 0, lastMessageAt: null, participantsCount: null },
+  ])
   await store.messages.saveMessages(key, "7", [said("1", 60, "morning"), said("2", 50, "who has the keys?")], {
     via: "test",
   })
@@ -74,4 +77,19 @@ it("refuses a shared task command that names no account, and lists the ones the 
     code: "validation_error",
     message: expect.stringContaining("--provider telegram --account 500"),
   })
+})
+
+it("shows a project task with no account, and still asks for one for a messenger account's task", async () => {
+  const { run } = await setUp()
+  const project = (await run("projects", "add", "Harbour Example", "--key", "HRB", "--json")).json()
+  const made = (await run("tasks", "add", "--project", "HRB", "--title", "Send the survey", "--json")).json()
+  const shown = { item: { key: "HRB-1", title: "Send the survey", project: project.item.ref } }
+  expect((await run("tasks", "show", made.item.key, "--json")).json()).toMatchObject(shown)
+  expect((await run("tasks", "show", "task:HRB-1", "--json")).json()).toMatchObject(shown)
+
+  const inbox = (await run("tasks", "agenda", ...scope, "--json")).json().item.tasks[0]
+  for (const id of [inbox.key, inbox.id, "HRB-2"])
+    await expect(run("tasks", "show", id, "--json")).rejects.toMatchObject({
+      message: expect.stringContaining("--provider telegram --account 500"),
+    })
 })
