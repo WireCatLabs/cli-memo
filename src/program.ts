@@ -20,6 +20,7 @@ import { mailCommand } from "./mail/command.js"
 import { messagesCommand } from "./mail/messages-command.js"
 import { mcpCommand } from "./mcp/command.js"
 import { memoriesCommand } from "./memories/command.js"
+import { mentionsCommand } from "./mentions/command.js"
 import { notesCommand } from "./notes/command.js"
 import { foldersCommand } from "./notes/folders-command.js"
 import { noteCommand } from "./people/command.js"
@@ -100,6 +101,7 @@ export const createProgram = ({
   knowledgeCommands(program, streams, env)
   vocabularyCommand(program, streams, env)
   memoriesCommand(program, streams, env)
+  mentionsCommand(program, streams, env)
   factsCommand(program, streams, env)
   findingsCommand(program, streams, env)
   actionsCommand(program, streams, env)

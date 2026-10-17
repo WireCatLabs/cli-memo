@@ -4,6 +4,15 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- **`memo mentions list|show|confirm|reject`: phones, e-mail addresses, links, documents, names and street addresses in
+  documents, notes and mail.** `memo mentions list note kind:phone`; mail is read only from the accounts named by
+  `--account` (repeatable), never every mailbox by default. `show` names the senders of received mail that may own a
+  phone or an address (`candidates`), offered and never linked.
+
 ## 0.58.0 — 17.10.2026
 
 ### Added
