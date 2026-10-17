@@ -10,14 +10,20 @@ import {
   termField,
   withQuery,
 } from "@wirecat/cli-core/cli"
+import type { MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer } from "../answer.js"
 import { authorOf } from "../author.js"
 import { positive } from "../options.js"
+import {
+  accountName,
+  MEETING_ACCOUNT_HELP,
+  type SourceOptions,
+  sourceOptions,
+  theAccount,
+} from "../store/source-list.js"
 
-type Options = {
-  provider: string
-  account: string
+type Options = SourceOptions & {
   json?: boolean
   limit: number
   page: number
@@ -28,7 +34,6 @@ const FINDINGS_QUERY = {
   backend: "native",
   fields: [termField("status", "enum", "status:proposed", { values: ["proposed", "reviewed"] })],
 } as const satisfies QueryRegistry
-const scope = (options: Options) => ({ provider: options.provider, account: options.account })
 export const findingsCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const group = program
     .command("meetings")
@@ -36,11 +41,13 @@ export const findingsCommand = (program: Command, streams: Streams, env: NodeJS.
     .command("actions")
     .description("cited meeting facts and project tasks waiting for owner review")
   const { run } = answers(program, streams, env)
+  const warn = (text: string) => streams.diagnostic(text)
+  const scope = (store: MessageStore, given: Options) => theAccount(store, env, given, warn)
   const options = (command: Command) =>
-    command
-      .requiredOption("--provider <provider>", "meeting provider")
-      .requiredOption("--account <account>", "exact stored meeting account")
-      .option("--json", "print JSON; --json=id,status keeps only those fields")
+    sourceOptions(command, MEETING_ACCOUNT_HELP).option(
+      "--json",
+      "print JSON; --json=id,status keeps only those fields",
+    )
   options(annotate(group.command("add"), { effects: LOCAL_WRITE, output: { entity: "meeting_findings" } }))
     .description("stage cited findings; facts and tasks wait for owner confirmation")
     .argument("<file>", "JSON proposal file, or - for stdin; at most 65536 UTF-8 bytes")
@@ -53,13 +60,15 @@ export const findingsCommand = (program: Command, streams: Streams, env: NodeJS.
       const input = parseMeetingFindingsJson(text)
       const author = authorOf(env)
       const agent = author === "owner" ? { bot: "memo-findings" } : author
-      await run(given.json, async (store) => itemAnswer(await store.meetingFindings.stage(scope(given), input, agent)))
+      await run(given.json, async (store) =>
+        itemAnswer(await store.meetingFindings.stage(await scope(store, given), input, agent)),
+      )
     })
   options(annotate(group.command("show"), { effects: LOCAL_READ, output: { entity: "meeting_findings" } }))
     .description("one findings preview, prior decisions and its review receipt")
     .argument("<id>", "stored findings batch ID")
     .action((id: string, given: Options) =>
-      run(given.json, async (store) => itemAnswer(await store.meetingFindings.get(scope(given), id))),
+      run(given.json, async (store) => itemAnswer(await store.meetingFindings.get(await scope(store, given), id))),
     )
   withQuery(
     options(annotate(group.command("list"), { effects: LOCAL_READ, output: { entity: "meeting_findings" } })),
@@ -74,7 +83,8 @@ export const findingsCommand = (program: Command, streams: Streams, env: NodeJS.
           | "proposed"
           | "reviewed"
           | undefined
-        const found = await store.meetingFindings.list(scope(given), {
+        const key = await scope(store, given)
+        const found = await store.meetingFindings.list(key, {
           limit: given.limit,
           offset: (given.page - 1) * given.limit,
           ...(status === undefined ? {} : { status }),
@@ -84,7 +94,7 @@ export const findingsCommand = (program: Command, streams: Streams, env: NodeJS.
           limit: given.limit,
           page: given.page,
           has_more: found.hasMore,
-          args: { query: words.join(" "), provider: given.provider, account: given.account, limit: given.limit },
+          args: { query: words.join(" "), source: accountName(key), limit: given.limit },
         })
       }),
     )
@@ -106,7 +116,9 @@ export const findingsCommand = (program: Command, streams: Streams, env: NodeJS.
           "findings confirmation and rejection belong to the owner; agents must leave proposals for review",
         )
       return run(given.json, async (store) =>
-        itemAnswer(await store.meetingFindings.review(scope(given), id, { fingerprint: given.fingerprint, accept })),
+        itemAnswer(
+          await store.meetingFindings.review(await scope(store, given), id, { fingerprint: given.fingerprint, accept }),
+        ),
       )
     }
     if (name === "confirm")

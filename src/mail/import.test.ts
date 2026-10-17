@@ -770,7 +770,9 @@ describe("memo sync --only mail", () => {
   it("takes an account by its address as well as its name", async () => {
     const { dir, env } = setup([mail(1)])
 
-    const answer = envelopeOf(await run(["sync", "--account", OTHER, "--no-embed", "--json"], configured(dir, env)))
+    const answer = envelopeOf(
+      await run(["sync", "--source", `email:${OTHER}`, "--no-embed", "--json"], configured(dir, env)),
+    )
 
     expect(answer.item.mail).toMatchObject([{ account: OTHER, already_stored: 0 }])
     expect(answer.meta).toMatchObject({
@@ -783,7 +785,10 @@ describe("memo sync --only mail", () => {
   it("says how far an account's import is, from the store, in text and in JSON", async () => {
     const { dir, env } = setup([mail(1), mail(2), mail(3)])
     const withConfig = configured(dir, env)
-    await run(["sync", "--account", "test", "--since-time", "2026-09-01", "--limit", "2", "--no-embed"], withConfig)
+    await run(
+      ["sync", "--source", "email:test", "--since-time", "2026-09-01", "--limit", "2", "--no-embed"],
+      withConfig,
+    )
 
     expect(await run(["mail", "status", "test"], withConfig)).toContain("2 stored in full, 0 recorded as envelopes")
     const answer = envelopeOf(await run(["mail", "status", "test", "--json"], withConfig))
@@ -801,7 +806,7 @@ describe("memo sync --only mail", () => {
 
     const result = answerOf(
       await run(
-        ["sync", "--account", "second", "--since-time", "2026-09-01", "--no-embed", "--json"],
+        ["sync", "--source", "email:second", "--since-time", "2026-09-01", "--no-embed", "--json"],
         configured(dir, env),
       ),
     )
@@ -818,7 +823,7 @@ describe("memo sync --only mail", () => {
     const withConfig = configured(dir, env)
     await run(["mail", "rules", "add", "test", "--domain", "shop.example", "--do", "envelope"], withConfig)
 
-    await run(["sync", "--account", "test", "--since-time", "2026-09-01", "--no-embed", "--json"], withConfig)
+    await run(["sync", "--source", "email:test", "--since-time", "2026-09-01", "--no-embed", "--json"], withConfig)
     const listed = answerOf(await run(["mail", "rules", "list", "test", "--json"], withConfig))
 
     expect(listed.items).toMatchObject([
@@ -842,13 +847,13 @@ describe("memo sync --only mail", () => {
       JSON.stringify({ pid: process.ppid, startedAt: new Date().toISOString() }),
     )
 
-    await expect(run(["sync", "--account", "test"], withConfig)).rejects.toThrow("is running")
+    await expect(run(["sync", "--source", "email:test"], withConfig)).rejects.toThrow("is running")
   })
 
   it("says what memo mail rules apply would cut, cuts it with --yes, and counts it under the rule", async () => {
     const { dir, env } = setup([mail(1), mail(2, { from: [null, "deals@shop.example"], text: "Synthetic coupon" })])
     const withConfig = configured(dir, env)
-    await run(["sync", "--account", "test", "--since-time", "2026-09-01", "--no-embed", "--json"], withConfig)
+    await run(["sync", "--source", "email:test", "--since-time", "2026-09-01", "--no-embed", "--json"], withConfig)
     await run(["mail", "rules", "add", "test", "--domain", "shop.example", "--do", "envelope"], withConfig)
 
     const dry = envelopeOf(await run(["mail", "rules", "apply", "test", "--json"], withConfig))
@@ -883,7 +888,7 @@ describe("memo sync --only mail", () => {
       run(["mail", "rules", "add", "test", "--domain", "gov.example", "--do", "protect,skip"], withConfig),
     ).rejects.toThrow("choose skip, envelope, keep, protect")
 
-    await run(["sync", "--account", "test", "--since-time", "2026-09-01", "--no-embed", "--json"], withConfig)
+    await run(["sync", "--source", "email:test", "--since-time", "2026-09-01", "--no-embed", "--json"], withConfig)
 
     const opened = await store(env)
     const saved = await opened.mail.email(await opened.accounts.saveAccount(KEY, { name: ME }), "9001")

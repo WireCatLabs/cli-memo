@@ -38,7 +38,7 @@ const setUp = async (agent: Record<string, string>) => {
         ...by,
       ),
       run("relationships", "add", project.ref, organization.ref, "--kind", "related-to", ...by),
-      run("actions", "add", "reply", "--reason", "asked", "--provider", "telegram", ...by),
+      run("actions", "add", "reply", "--reason", "asked", "--source", "telegram", ...by),
     ])
   return { run, writes }
 }

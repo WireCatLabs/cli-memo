@@ -35,10 +35,10 @@ Gmail is the default. For another provider, add `"mode": "imap"` and the folders
 ## Sync mail
 
 ```sh
-memo sync --account work --since-time 2026-09-01
+memo sync --source email:work --since-time 2026-09-01
 ```
 
-`work` is the account's `name` from the config, or use its address. Without `--account`, Memo reads every account in the
+`work` is the account's `name` from the config, or use its address; separate several with commas. Without `--source`, Memo reads every account in the
 config and names each one in its report; it lists the accounts it knows when a name is wrong.
 
 - Without `--since-time`, Memo reads the last 30 days. It takes a date, an ISO 8601 time or `30d` ago.
@@ -275,7 +275,7 @@ same address, so its emails and the Gmail account's are one set:
 ```
 
 ```sh
-memo sync --account archive --since-time 2000-01-01 --limit 5000
+memo sync --source email:archive --since-time 2000-01-01 --limit 5000
 ```
 
 The file is only read when you name the account. An incomplete import scans it again; a completed
@@ -318,7 +318,7 @@ for example `needs-agent` for a scanned page.
 - Whether an email is read or starred, as your mailbox shows it.
 - The text of readable attachments, searched with the email. PDF and Word attachments need the
   [optional readers](notes.md#files-memo-can-read). After you install them, run
-  `memo sync --account work --retry-attachments` to read attachments that were skipped. It reads again, by
+  `memo sync --source email:work --retry-attachments` to read attachments that were skipped. It reads again, by
   their Gmail id, only the emails whose attachment a missing reader left unread, up to `--limit` of them; it lists
   nothing, so it is quick, and run again it continues with the rest.
 - Up to 1,000,000 characters of each email and 200,000 of each attachment

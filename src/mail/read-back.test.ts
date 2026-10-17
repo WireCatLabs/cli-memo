@@ -69,17 +69,17 @@ describe("mail imported into the mail tables reads back through memo", () => {
     const all = await run(["search", "all", "roadmap"], env)
     expect(all.items.find(({ kind }: { kind: string }) => kind === "mail")?.ref).toBe(LOCATOR)
 
-    const asked = await run(["ask", "roadmap", "--provider", "email", "--account", ME], env)
+    const asked = await run(["ask", "roadmap", "--source", `email:${ME}`], env)
     expect(JSON.stringify(asked)).toContain(LOCATOR)
 
-    const context = await run(["context", "email:rin@example.test", "--account", ME], env)
+    const context = await run(["context", "email:rin@example.test", "--source", `email:${ME}`], env)
     expect(JSON.stringify(context)).toContain("The roadmap review moves to Friday.")
 
     await run(["tags", "add", "follow-up", "--message", LOCATOR], env)
     const listed = await run(["tags", "list"], env)
     expect(listed.items.map(({ locator }: { locator?: string }) => locator)).toContain(LOCATOR)
 
-    const task = await run(["tasks", "add", LOCATOR, "--provider", "email", "--account", ME], env)
+    const task = await run(["tasks", "add", LOCATOR, "--source", `email:${ME}`], env)
     expect(task.task.source).toBe(LOCATOR)
     expect((await run(["search", "mail", "tag:follow-up"], env)).items.map(({ ref }: { ref: string }) => ref)).toEqual([
       LOCATOR,

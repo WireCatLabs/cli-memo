@@ -65,7 +65,7 @@ it("adds a memory of the owner's as confirmed, finds it, and marks it stale", as
 })
 
 it("confirms a proposed action as a task in the account that would act, and rejects another", async () => {
-  const scope = ["--provider", account.provider, "--account", account.account]
+  const scope = ["--source", `${account.provider}:${account.account}`]
   const reply = await json(
     "actions",
     "add",

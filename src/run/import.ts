@@ -1,9 +1,9 @@
-import { type ErrorCode, errorCodes, isCliError, type Streams } from "@wirecat/cli-base"
+import { CliError, type ErrorCode, errorCodes, isCliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { FETCH, momentOf } from "@wirecat/cli-core/cli"
 import { openStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError, Option } from "commander"
-import { answers, itemAnswer } from "../answer.js"
+import { answers, itemAnswer, withStore } from "../answer.js"
 import { loadConfig } from "../config.js"
 import { errorObject } from "../failure.js"
 import { mailAccounts, mailSource } from "../mail/accounts.js"
@@ -18,6 +18,7 @@ import { noteFolders } from "../notes/folders.js"
 import { importNotes, type NotesImport } from "../notes/import.js"
 import { collect, positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
+import { MAIL_SOURCES, syncedMailboxesOf } from "../store/source-list.js"
 import { applyAuto, autoState, recordAutoRun } from "./auto.js"
 import { withImportLock } from "./lock.js"
 
@@ -33,7 +34,7 @@ const LARGE_IMPORT_HELP =
   "day, after any change to the rules, and with --rescan.\n\n" +
   "Rules: an email a skip rule of `memo mail rules` matches is never read or stored, and is counted as " +
   "skipped; mail stored before the rule stays.\n\n" +
-  "An mbox account (a Google Takeout file, mode mbox) syncs only when named with --account: each run reads " +
+  "An mbox account (a Google Takeout file, mode mbox) syncs only when named with --source: each run reads " +
   "the whole file, its mail is old so it needs a --since-time far back, and a large --limit. It only adds " +
   "mail; nothing missing from the file is marked deleted."
 
@@ -95,6 +96,7 @@ interface SyncOptions {
   only?: Synced[]
   folder?: string[]
   ignore?: string[]
+  source?: string
   account?: string[]
   sinceTime?: string
   limit?: number
@@ -116,6 +118,7 @@ const syncedOf = (options: SyncOptions): Set<Synced> => {
   const synced = new Set(options.only)
   if (options.folder || options.ignore) synced.add("notes")
   if (
+    options.source !== undefined ||
     options.account ||
     options.sinceTime !== undefined ||
     options.limit !== undefined ||
@@ -150,12 +153,8 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         "notes: also skip this file or folder, a path or a glob; repeat for more",
       ).argParser(collect),
     )
-    .addOption(
-      new Option(
-        "--account <account>",
-        "mail: only this account, by its name in mail.accounts or its address; repeat for more",
-      ).argParser(collect),
-    )
+    .option("--source <accounts>", `mail: only these mailboxes: ${MAIL_SOURCES}`)
+    .addOption(new Option("--account <account>", "deprecated: --source email:<account>").argParser(collect))
     .addOption(
       new Option(
         "--since-time <time>",
@@ -186,6 +185,16 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       const debug = command.optsWithGlobals().debug === true
       const synced = syncedOf(options)
       const config = loadConfig(env)
+      if (options.account !== undefined && options.source !== undefined)
+        throw new CliError("validation_error", "--account is the old --source email:<account>; give one of them")
+      if (options.account !== undefined)
+        streams.diagnostic(
+          `--account is deprecated: use --source ${options.account.map((one) => `email:${one}`).join(",")}\n`,
+        )
+      const named =
+        options.source === undefined
+          ? options.account
+          : await withStore(env, (store) => syncedMailboxesOf(store, options.source as string))
       if (env.MEMO_AUTO === "1") {
         await applyAuto(env, autoState(config))
         if (!autoState(config).enabled) return
@@ -197,8 +206,8 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       )
       // An archive file is read whole each run, so only a sync that names it reads it.
       const accounts = synced.has("mail")
-        ? mailAccounts(config.mail?.accounts ?? [], options.account).filter(
-            (account) => account.mode !== "mbox" || options.account !== undefined,
+        ? mailAccounts(config.mail?.accounts ?? [], named).filter(
+            (account) => account.mode !== "mbox" || named !== undefined,
           )
         : []
       const run: ImportRun = { notes: [], mail: [], failed: [] }

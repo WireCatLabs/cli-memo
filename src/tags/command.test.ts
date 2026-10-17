@@ -123,7 +123,7 @@ describe("memo source tags", () => {
       await store.close()
     }
     expect(readFileSync(mailbox)).toEqual(before)
-    expect((await json("tags", "list", "--provider", "email", "--account", otherMail.account)).items).toEqual([])
+    expect((await json("tags", "list", "--source", `email:${otherMail.account}`)).items).toEqual([])
   })
 
   it("finds only the tagged note when notes search asks for a tag", async () => {
@@ -136,7 +136,7 @@ describe("memo source tags", () => {
   })
 
   it("labels an email thread and removes tags idempotently", async () => {
-    const args = ["--chat", "7", "--provider", "email", "--account", mail.account]
+    const args = ["--chat", "7", "--source", `email:${mail.account}`]
     expect(await json("tags", "add", "work", ...args)).toMatchObject({
       target: { type: "chat", chat_id: "7" },
       added: ["work"],
@@ -150,7 +150,7 @@ describe("memo source tags", () => {
   })
 
   it("keeps the label fields --json names, and refuses one a label row lacks", async () => {
-    await json("tags", "add", "work", "--chat", "7", "--provider", "email", "--account", mail.account)
+    await json("tags", "add", "work", "--chat", "7", "--source", `email:${mail.account}`)
     const kept = JSON.parse(await run("tags", "list", "type:chat", "--json=tag,type,chat_id"))
     expect(kept.items).toEqual([{ tag: "work", type: "chat", chat_id: "7" }])
     await expect(run("tags", "list", "--json=subject")).rejects.toMatchObject({
@@ -185,14 +185,14 @@ describe("memo source tags", () => {
       await expect(json("tags", "add", ...args)).rejects.toMatchObject({ code: "validation_error" })
     expect((await json("tags", "list")).items).toEqual([])
     await expect(json("tags", "list", "--account", mail.account)).rejects.toMatchObject({ code: "validation_error" })
-    await expect(json("tags", "list", "--provider", "email", "--account", "missing")).rejects.toMatchObject({
+    await expect(json("tags", "list", "--source", "email:missing")).rejects.toMatchObject({
       code: "not_found",
     })
   })
 
   it("refuses unknown exact chat ids instead of guessing a title", async () => {
     await expect(
-      json("tags", "add", "work", "--chat", "Lighthouse", "--provider", "email", "--account", mail.account),
+      json("tags", "add", "work", "--chat", "Lighthouse", "--source", `email:${mail.account}`),
     ).rejects.toMatchObject({ code: "not_found" })
     await expect(
       json("tags", "add", "work", "--message", formatLocator({ ...mail, chat: "7", message: "999" })),
@@ -232,7 +232,7 @@ describe("memo source tags", () => {
     } finally {
       await store.close()
     }
-    const scope = ["--provider", zoom.provider, "--account", zoom.account]
+    const scope = ["--source", `${zoom.provider}:${zoom.account}`]
 
     const added = await json("tags", "add", "planning", "--meeting", String(meetingId), ...scope)
     expect(added).toMatchObject({ target: { type: "meeting", id: String(meetingId) }, added: ["planning"] })

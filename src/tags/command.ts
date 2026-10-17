@@ -3,13 +3,23 @@ import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { formatReference, normalizeTag } from "@wirecat/cli-core"
 import { LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
-import type { MessageStore, StoredTag } from "@wirecat/cli-core/store"
+import type { AccountKey, MessageStore, StoredTag } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
 import { folderIds } from "../notes/bound.js"
 import { positive } from "../options.js"
 import { heldMessage } from "../store/held.js"
 import { selectTarget, type TargetInput } from "../store/scope.js"
+import {
+  ACCOUNTS_HELP,
+  accountName,
+  accountsOf,
+  ONE_ACCOUNT_HELP,
+  oneAccountOf,
+  type SourceOptions,
+  sourceOf,
+  sourceOptions,
+} from "../store/source-list.js"
 import { type SourceScope, type SourceTarget, type SourceTargetInput, sourceTarget } from "../store/source-target.js"
 import { canonicalProject } from "../vocabulary/project.js"
 
@@ -17,7 +27,14 @@ const OWNED = ["note", "document", "person", "organization", "project", "task", 
 const TYPES = ["chat", "message", "contact", ...OWNED] as const
 type SourceTagType = (typeof TYPES)[number]
 type SourceTag = StoredTag & { provider: string; account: string }
-interface ListOptions extends SourceScope {
+type Picked = Omit<SourceTargetInput & TargetInput, "provider" | "account"> & {
+  note?: string
+  folder?: string
+  subfolder?: string
+  json?: boolean
+}
+interface ListOptions {
+  keys: AccountKey[]
   tag?: string
   type?: SourceTagType
   limit: number
@@ -35,38 +52,29 @@ const reference = ({ provider, account }: SourceScope, chat: string) =>
   provider && account ? formatReference({ type: "chat", provider, account, chat }) : chat
 
 const targetOptions = (command: Command) =>
-  command
-    .argument("<tag...>", "one or more tags: 1–32 letters a–z, digits or hyphens; case is ignored")
-    .option("--message <message>", "a stored email or message's full msg: locator")
-    .option("--note <reference>", "a note: note:<id>, a file in a notes folder: document:<id>; a bare id is a note")
-    .option("--chat <chat>", "a stored mail thread or chat's exact id; requires --provider and --account")
-    .option("--provider <provider>", "the chat's provider, such as email")
-    .option("--account <account>", "the chat's account, such as a mailbox address")
-    .option("--task <id>", "label a task")
-    .option("--contact <person>", "label a contact identity, with provider/account")
-    .option("--person <uid>", "label a unified person")
-    .option("--organization <organization>", "label an organization: its id or organization:<id>")
-    .option("--project <project>", "label a project: its key or project:<id>")
-    .option("--meeting <id>", "label a meeting by its store id, with --provider and --account")
-    .option(
-      "--folder <folder>",
-      "label a notes folder by its id or path, or with --subfolder one subfolder: every note under it",
-    )
-    .option("--subfolder <path>", "the subfolder inside --folder")
-    .option("--json", "print JSON; --json=id,title keeps only those fields")
+  sourceOptions(
+    command
+      .argument("<tag...>", "one or more tags: 1–32 letters a–z, digits or hyphens; case is ignored")
+      .option("--message <message>", "a stored email or message's full msg: locator")
+      .option("--note <reference>", "a note: note:<id>, a file in a notes folder: document:<id>; a bare id is a note")
+      .option("--chat <chat>", "a stored mail thread or chat's exact id; requires --source")
+      .option("--task <id>", "label a task")
+      .option("--contact <person>", "label a contact identity, with --source")
+      .option("--person <uid>", "label a unified person")
+      .option("--organization <organization>", "label an organization: its id or organization:<id>")
+      .option("--project <project>", "label a project: its key or project:<id>")
+      .option("--meeting <id>", "label a meeting by its store id, with --source")
+      .option(
+        "--folder <folder>",
+        "label a notes folder by its id or path, or with --subfolder one subfolder: every note under it",
+      )
+      .option("--subfolder <path>", "the subfolder inside --folder"),
+    `the account of --chat, --contact or --meeting: ${ONE_ACCOUNT_HELP}`,
+  ).option("--json", "print JSON; --json=id,title keeps only those fields")
 
 const listTags = async (store: MessageStore, options: ListOptions) => {
-  if (options.account !== undefined && options.provider === undefined)
-    throw new CliError("validation_error", "--account requires --provider")
-  const keys = (await store.accounts.accounts()).filter(
-    (key) =>
-      (options.provider === undefined || key.provider === options.provider) &&
-      (options.account === undefined || key.account === options.account),
-  )
-  if (keys.length === 0 && (options.provider !== undefined || options.account !== undefined))
-    throw new CliError("not_found", "the store holds no matching account")
   const items: SourceTag[] = []
-  for (const key of keys) {
+  for (const key of options.keys) {
     const types =
       options.type === undefined
         ? (["chat", "message", "contact"] as const)
@@ -97,11 +105,14 @@ const listTags = async (store: MessageStore, options: ListOptions) => {
 export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const tags = program.command("tags").description("your labels on stored sources and folders or threads")
   const { print } = answers(program, streams, env)
+  const warn = (text: string) => streams.diagnostic(text)
   const mutate = async (
     operation: "add" | "remove",
     given: string[],
-    options: SourceTargetInput & TargetInput & { note?: string; folder?: string; subfolder?: string; json?: boolean },
+    { provider, account, source, ...options }: Picked & SourceOptions,
   ) => {
+    const value = sourceOf({ provider, account, source }, warn)
+    const scoped = async (store: MessageStore) => (value === undefined ? {} : oneAccountOf(store, env, value))
     const target =
       options.note !== undefined
         ? options.note.startsWith("document:")
@@ -144,7 +155,7 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     }
     if (options.contact !== undefined || options.meeting !== undefined) {
       await withStore(env, async (store) => {
-        const { key, target } = await selectTarget(store, options)
+        const { key, target } = await selectTarget(store, { ...options, ...(await scoped(store)) })
         const changed = await (operation === "add" ? store.knowledge.addTags : store.knowledge.removeTags)(
           key,
           target,
@@ -158,9 +169,11 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       })
       return
     }
-    const selected: SourceTarget = sourceTarget(options)
+    if (options.message !== undefined && value !== undefined)
+      throw new CliError("validation_error", "a message locator names its account and chat — use --message alone")
     const labels = [...new Set(given.map(normalizeTag))]
     await withStore(env, async (store) => {
+      const selected: SourceTarget = sourceTarget({ ...options, ...(await scoped(store)) })
       const changed = await (operation === "add" ? store.tags.addTags : store.tags.removeTags)(
         selected.key,
         selected.target,
@@ -186,34 +199,30 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       annotate(tags.command(operation), { effects: LOCAL_WRITE }).description(
         operation === "add" ? "put labels on one source" : "remove labels from one source",
       ),
-    ).action(
-      (
-        given: string[],
-        options: SourceTargetInput &
-          TargetInput & { note?: string; folder?: string; subfolder?: string; json?: boolean },
-      ) => mutate(operation, given, options),
-    )
+    ).action((given: string[], options: Picked & SourceOptions) => mutate(operation, given, options))
 
-  withQuery(
+  const tagsList = withQuery(
     annotate(tags.command("list"), { effects: LOCAL_READ, output: { entity: "source_tag" } }).description(
-      "list source labels, optionally in one provider or account",
+      "list source labels, of every account or of the ones --source names",
     ),
     TAG_QUERY,
   )
-    .option("--provider <provider>", "only this provider")
-    .option("--account <account>", "only this account; requires --provider")
+  sourceOptions(tagsList, `only these accounts (default: every one): ${ACCOUNTS_HELP}`)
     .option("--limit <n>", "most labels to show", positive, 100)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action(async (words: string[], scope: Omit<ListOptions, "tag" | "type">) => {
+    .action(async (words: string[], given: SourceOptions & { limit: number; json?: boolean }) => {
       const terms = queryTerms(words, TAG_QUERY, "tags list")
       const tag = terms.get("tag")
-      const options: ListOptions = {
-        ...scope,
+      const value = sourceOf(given, warn)
+      const options: Omit<ListOptions, "keys"> = {
+        limit: given.limit,
+        ...(given.json === undefined ? {} : { json: given.json }),
         ...(tag === undefined ? {} : { tag: normalizeTag(tag) }),
         ...(terms.has("type") ? { type: terms.get("type") as SourceTagType } : {}),
       }
       await withStore(env, async (store) => {
-        const answer = await listTags(store, options)
+        const keys = value === undefined ? await store.accounts.accounts() : await accountsOf(store, env, value)
+        const answer = await listTags(store, { ...options, keys })
         const owned =
           options.type === undefined || (OWNED as readonly string[]).includes(options.type)
             ? await store.knowledge.labelled(null, {
@@ -244,6 +253,7 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
             ],
             limit: options.limit,
             has_more: answer.hasMore,
+            meta: { accounts: keys.map(accountName) },
           }),
           [
             ...lines,

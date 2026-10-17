@@ -35,8 +35,8 @@ A note that only mentions the name in its text is not included; only links count
 ([why](how-it-works.md#links-between-notes-and-people)). If a part gave nothing, the answer says
 why. `--limit` shows more than 20 items of each kind, and `--json` gives the answer to an agent.
 
-If you have several accounts in the same messenger, add `--account`, for example
-`memo context telegram:101 --account 1`.
+If you have several accounts in the same messenger, add `--source`, for example
+`memo context telegram:101 --source telegram:1`.
 
 ## Link a person's accounts
 
@@ -113,7 +113,7 @@ you `memo relationships confirm` it; `--as-owner` makes it yours at once.
 Memo can suggest relationships from email: people who write to you from the same company domain.
 
 ```sh
-memo relationships suggest --provider email --account you@example.com
+memo relationships suggest --source email:you@example.com
 memo relationships confirm 4
 ```
 
@@ -125,8 +125,8 @@ Common free mail domains, such as Gmail, are never used for suggestions.
 If your meetings are saved in the local store, you can link a meeting to a project:
 
 ```sh
-memo projects meetings link HRB 5 --provider zoom --account ACCOUNT
-memo projects meetings list HRB --provider zoom --account ACCOUNT
+memo projects meetings link HRB 5 --source zoom:ACCOUNT
+memo projects meetings list HRB --source zoom:ACCOUNT
 ```
 
 Name the meeting's account exactly. `confirmed:false` lists the links an agent suggested; to confirm one,

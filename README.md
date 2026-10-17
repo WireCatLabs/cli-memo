@@ -215,7 +215,7 @@ memo search mail 'from:alice@example.com subject:budget'
 memo notes show note:NOTE_ID --json
 ```
 
-`memo ask` needs a scope (`--all`, or `--provider` with `--account`) and returns evidence by default. To
+`memo ask` needs a scope (`--all`, or `--source`, such as `--source telegram:1,notes`) and returns evidence by default. To
 call a model instead, set `MEMO_MODELS_ANALYSIS_PROVIDER` and `MEMO_MODELS_ANALYSIS_MODEL` and pass
 `--analyze`; a remote model also needs `--allow-remote`.
 
@@ -260,10 +260,10 @@ set up first. Gmail is the default; another IMAP provider uses `mode: "imap"` wi
 mailbox is opened read-only, `--limit` (default 200) bounds the new mail per run and the next run continues.
 Gmail labels become mailboxes, attachments' text is searched with its email, and mail deleted at the
 source loses its text in the store. Each account is named in `mail.accounts`; `memo sync` and the timer read
-every account and name each in the report, and `--account <name>` narrows it to one.
+every account and name each in the report, and `--source email:<name>` narrows it.
 
 ```sh
-memo sync --account work --since-time 2026-09-01   # work: the account's name in mail.accounts
+memo sync --source email:work --since-time 2026-09-01   # work: the account's name in mail.accounts
 memo search mail 'mailbox:important budget'
 ```
 
@@ -282,7 +282,7 @@ a caller you choose polls for them, and nothing is delivered to a messenger or m
 ```sh
 memo tags add follow-up --note note:NOTE_ID
 memo tasks add 'msg:telegram/1/77/42' --type request
-memo reminders add TASK_ID --at-time 2026-10-09T09:00:00+02:00 --provider telegram --account 1
+memo reminders add TASK_ID --at-time 2026-10-09T09:00:00+02:00 --source telegram:1
 ```
 
 More: [tags](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tags.md) ·
@@ -361,7 +361,7 @@ More: [files memo can read](https://github.com/WireCatLabs/cli-memo/blob/main/do
 - **Searched by words only:** the meaning model is not downloaded — `tg models text download e5-small`.
 - **A folder is refused by import:** it has no id yet — `memo folders add <path>`.
 - **A name is refused:** two people share it; use one of the ids it lists.
-- **`memo ask` asks for a scope:** add `--all`, or `--provider` with `--account`.
+- **`memo ask` asks for a scope:** add `--all`, or `--source`.
 - **An empty search:** the store holds nothing that matches — not proof that it never happened. Try the
   kind's own search, looser words, or import that source first.
 

@@ -51,8 +51,8 @@ data. Check that the folder or disk is there and that the mail account works, th
 `no mail account` means the config file has no mail accounts yet. Add one under `mail.accounts`
 ([mail](mail.md#add-the-account-to-memo)).
 
-`memo sync --account work` takes the account's name: the `name` in `mail.accounts` of the config file. Memo
-lists the names it knows when the name is wrong. Without `--account`, it reads every account.
+`memo sync --source email:work` takes the account's name: the `name` in `mail.accounts` of the config file. Memo
+lists the names it knows when the name is wrong. Without `--source`, it reads every account.
 
 ## A note edit is refused
 
@@ -63,13 +63,13 @@ The revision you gave is not the current one: the note changed after you read it
 
 - The person's chats are not downloaded yet. Download them with tg or max.
 - The accounts are not linked. Link them with `tg contacts link` ([details](people.md#link-a-persons-accounts)).
-- With several accounts in one messenger, add `--account`.
+- With several accounts in one messenger, add `--source`, such as `--source telegram:1`.
 - A note that only mentions the name in its text is not included; link it instead.
 
-## "select --provider and, when several accounts exist, --account"
+## "give --source" or "names 2 accounts; give one"
 
-The command works in one account and Memo does not choose one for you. Add `--provider`, such as
-`telegram`, and `--account` with the account's ID.
+The command works in one account and Memo does not choose one for you. Add `--source` with the provider
+and the account's ID, such as `--source telegram:1`; the error lists the accounts the store holds.
 
 ## Data from an older version is missing
 

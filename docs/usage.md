@@ -104,6 +104,11 @@ names. Compare like with like: `memo search messages 'content:invoice'` with
 
 ## Choosing an account
 
-When you have several Telegram, MAX or mail accounts, Memo does not choose one for you. Commands
-that work in one account ask for it with `--provider` and `--account`, and tell you which accounts
-exist when it is missing. A search with no account searches all of them and says so.
+When you have several Telegram, MAX or mail accounts, Memo does not choose one for you. Name accounts
+with `--source`: one account as `telegram:1` or `email:work`, every account of a messenger as `telegram`,
+every account of a kind as `mail`, or a saved group as `group:work`; separate several with commas. A list
+reads every account it names and says which. A command that works in one account, such as adding a task,
+takes a `--source` that names exactly one, and tells you which accounts exist when it names none or
+several. A search with no account searches all of them and says so.
+
+`--provider` and `--account` still work for one release and print the `--source` spelling.

@@ -1,4 +1,4 @@
-import type { Streams } from "@wirecat/cli-base"
+import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { LOCAL_READ } from "@wirecat/cli-core/cli"
 import type { ContextMessage } from "@wirecat/cli-core/services"
@@ -7,6 +7,7 @@ import { answers, itemAnswer, withStore } from "../answer.js"
 import { boundFolders } from "../notes/bound.js"
 import { positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
+import { oneAccountOf } from "../store/source-list.js"
 import { type MemoContext, memoContext } from "./context.js"
 
 const MAX_TEXT = 160
@@ -72,16 +73,25 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
     .option("--limit <n>", "most messages and notes of each kind", positive, 20)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .option(
-      "--account <account>",
-      "the stored account to read; required when the store holds several of that messenger",
+      "--source <accounts>",
+      "the account to read, as provider:account; required when the store holds several of that messenger",
     )
-    .action(async (person: string, options: { limit: number; json?: boolean; account?: string }) => {
+    .option("--account <account>", "deprecated: --source <messenger>:<account>")
+    .action(async (person: string, options: { limit: number; json?: boolean; source?: string; account?: string }) => {
+      if (options.account !== undefined && options.source !== undefined)
+        throw new CliError("validation_error", "--account is the old --source <messenger>:<account>; give one of them")
+      if (options.account !== undefined)
+        streams.diagnostic(`--account is deprecated: use --source ${person.split(":")[0]}:${options.account}\n`)
       const answer = await withStore(env, async (store) => {
         await importNotesMap(store, env, await boundFolders(store, env, { strict: false }))
-        return memoContext(store, person, {
-          limit: options.limit,
-          ...(options.account === undefined ? {} : { account: options.account }),
-        })
+        const key = options.source === undefined ? undefined : await oneAccountOf(store, env, options.source)
+        if (key !== undefined && key.provider !== person.split(":")[0])
+          throw new CliError(
+            "validation_error",
+            `--source ${options.source} is not an account of ${person}'s messenger`,
+          )
+        const account = key === undefined ? options.account : key.account
+        return memoContext(store, person, { limit: options.limit, ...(account === undefined ? {} : { account }) })
       })
       print(options.json, itemAnswer(answer), contextText(answer))
     })

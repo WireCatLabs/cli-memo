@@ -10,6 +10,7 @@ import {
   type TaskType,
 } from "@wirecat/cli-core/store"
 import { listAnswer } from "../answer.js"
+import { accountName } from "../store/source-list.js"
 import { canonicalProject } from "../vocabulary/project.js"
 
 /** The store filters by state, and a project's tasks by kind too. */
@@ -75,29 +76,36 @@ const taskItem = (task: TaskDetails, held?: HeldTask) => ({
 const tasksPage = (items: ReturnType<typeof taskItem>[], hasMore: boolean, limit: number) =>
   listAnswer("tasks list", { items, limit, has_more: hasMore })
 
+/** Each account's first page in the store's order, oldest first, so the first `limit` of them all are among them. */
 const accountTasks = async (
   store: MessageStore,
-  key: AccountKey,
+  keys: readonly AccountKey[],
   options: { state: "open" | "done" | "dismissed"; limit: number; sources?: string[] },
 ) => {
-  const page = await store.knowledge.taskIds(key, options)
+  const pages = await Promise.all(keys.map((key) => store.knowledge.taskIds(key, options)))
   const items: ReturnType<typeof taskItem>[] = []
-  for (const id of page.items) {
+  for (const id of pages.flatMap((page) => page.items)) {
     const held = await store.tasks.get(id)
     if (held) items.push(taskItem(await store.tasks.details(id), held))
   }
-  return tasksPage(items, page.hasMore, options.limit)
+  items.sort((a, b) => a.created_at.localeCompare(b.created_at))
+  return listAnswer("tasks list", {
+    items: items.slice(0, options.limit),
+    limit: options.limit,
+    has_more: items.length > options.limit || pages.some((page) => page.hasMore),
+    meta: { accounts: keys.map(accountName) },
+  })
 }
 
 /**
- * A project's tasks when the query names project:, otherwise the tasks of the account `account` picks; CLI and MCP
+ * A project's tasks when the query names project:, otherwise the tasks of the accounts `accounts` picks; CLI and MCP
  * list through it.
  */
 export const listTasks = async (
   store: MessageStore,
   query: readonly string[] | string | undefined,
   limit: number,
-  account: () => Promise<AccountKey>,
+  accounts: () => Promise<AccountKey[]>,
 ) => {
   const terms = queryTerms(query, TASKS_LIST_QUERY, "tasks list")
   const state = terms.get("state") as "open" | "done" | "dismissed"
@@ -133,7 +141,7 @@ export const listTasks = async (
       limit,
     )
   }
-  return accountTasks(store, await account(), {
+  return accountTasks(store, await accounts(), {
     state,
     limit,
     ...(source === undefined ? {} : { sources: [source] }),

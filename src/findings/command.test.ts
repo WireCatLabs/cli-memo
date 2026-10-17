@@ -51,7 +51,7 @@ const fixture = async () => {
   await store.close()
   const path = join(dir, "findings.json")
   writeFileSync(path, JSON.stringify(input))
-  const flags = ["--provider", account.provider, "--account", account.account]
+  const flags = ["--source", `${account.provider}:${account.account}`]
   const run = async (args: string[], agent = false) => {
     const streams = captureStreams()
     await createProgram({ streams, env: { ...env, AI_AGENT: agent ? "codex_synthetic" : "" } })
