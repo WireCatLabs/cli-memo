@@ -4,10 +4,10 @@ import { describe, expect, it } from "vitest"
 import { configPath } from "../src/config.js"
 
 describe("test sandbox", () => {
-  const sandbox = process.env.MEMO_TEST_SANDBOX ?? ""
+  const sandbox = process.env.TMPDIR ?? ""
 
   it("keeps the shared message store inside the sandbox", () => {
-    expect(sandbox).not.toBe("")
+    expect(sandbox).toContain("wirecat-test-")
     expect(storePath().startsWith(sandbox)).toBe(true)
   })
 
