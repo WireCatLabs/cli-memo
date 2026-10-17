@@ -58,3 +58,13 @@ it("takes the old --provider --account for one release, and prints the new spell
     run("reminders", "list", "--provider", "telegram", "--account", "1", "--source", "telegram:1"),
   ).rejects.toMatchObject({ code: "validation_error" })
 })
+
+it("asks memo's own notes when --source names notes", async () => {
+  const { run, note } = await setUp()
+  const ref = await note("Synthetic lighthouse budget")
+
+  for (const source of ["notes", "telegram:1,notes"]) {
+    const { answer } = await run("ask", "what about the lighthouse?", "lighthouse", "--source", source)
+    expect(answer.evidence.map(({ locator }: { locator: string }) => locator)).toContain(ref)
+  }
+})
