@@ -19,6 +19,13 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "folders add": ["memo folders add ~/notes"],
   "folders attach": ["memo folders attach 1 ~/notes"],
   "folders list": ["memo folders list --json"],
+  "mentions list": [
+    "memo mentions list note kind:phone",
+    "memo mentions list email domain:example.com --account personal --json",
+  ],
+  "mentions show": ["memo mentions show 12", "memo mentions show 40 --account personal --json"],
+  "mentions confirm": ["memo mentions confirm 12 person:7", "memo mentions confirm 40 --account personal"],
+  "mentions reject": ["memo mentions reject 12", "memo mentions reject 40 --account personal"],
   "messages show": ["memo messages show 'msg:email/me%40example.com/thread/42' --before-n 2 --after-n 2"],
   "mail inspect": ["memo mail inspect personal --limit 30", "memo mail inspect work --since-time 365d --json"],
   "mail status": ["memo mail status personal", "memo mail status personal --json"],
@@ -136,7 +143,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "search all": ["memo search all 'budget harbour'", "memo search all 'content:invoice' --only mail,notes --json"],
   "search messages": ["memo search messages 'friday meeting has:voice'"],
   "search mail": ["memo search mail 'mailbox:important budget' --account me@example.com"],
-  "search notes": ["memo search notes budget --source notes:2", "memo search notes kickoff --project HRB --json"],
+  "search notes": ["memo search notes budget notes:2", "memo search notes kickoff --project HRB --json"],
   "search memories": ["memo search memories friday meetings scope:work"],
   ask: [
     "memo ask 'what did Kai say about the budget?' --all",

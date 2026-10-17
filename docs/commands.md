@@ -1509,6 +1509,87 @@ memo memories stale <ref> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+## `memo mentions`
+
+phones, e-mail, links, names and addresses in documents, notes and mail
+
+### `memo mentions list`
+
+the mentions in one kind of text matching the query, newest text first
+
+```sh
+memo mentions list <source> [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `source` | required | the kind of text. One of: `document`, `note`, `email`. |
+| `query` | optional | fields below; a bare word is a value. |
+
+| Option | What it does |
+|---|---|
+| `--account <account>` | mail only: an account to read, by name in mail.accounts or address; repeatable. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--limit <n>` | most mentions. Default: `100`. |
+
+### `memo mentions show`
+
+one mention, the text around it, how many other places hold its value, and who it may be
+
+```sh
+memo mentions show <id> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `id` | required | the mention's id, from memo mentions list. |
+
+| Option | What it does |
+|---|---|
+| `--account <account>` | mail only: an account to read, by name in mail.accounts or address; repeatable. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+### `memo mentions confirm`
+
+say what a mention is: a phone's owner everywhere it is written, the stored document, who a name means
+
+This command changes the local store or your files.
+
+```sh
+memo mentions confirm <id> [person] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `id` | required | the mention's id, from memo mentions list. |
+| `person` | optional | person:<uid> or organization:<id> that owns the phone or address, or a name means. |
+
+| Option | What it does |
+|---|---|
+| `--account <account>` | mail only: an account to read, by name in mail.accounts or address; repeatable. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+
+### `memo mentions reject`
+
+not a real mention: dismiss its value everywhere and on later imports; a name only where it is
+
+This command changes the local store or your files.
+
+```sh
+memo mentions reject <id> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `id` | required | the mention's id, from memo mentions list. |
+
+| Option | What it does |
+|---|---|
+| `--account <account>` | mail only: an account to read, by name in mail.accounts or address; repeatable. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+
 ## `memo facts`
 
 what happened — said, asked, decided, promised — with evidence

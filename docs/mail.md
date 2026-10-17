@@ -333,4 +333,20 @@ moved to Spam counts as deleted. To protect you from mistakes:
 To include a person's email in [their context](people.md#everything-about-a-person), link the
 address to them in tg or max: `tg contacts link 'Kai Sample' email:kai@example.com`.
 
+## Phones and links in mail
+
+Memo finds phones, e-mail addresses, links, names and street addresses in every stored email, note and document. List them and say
+what they are:
+
+```sh
+memo mentions list email kind:phone --account personal
+memo mentions show 40 --account personal
+memo mentions confirm 40 person:7 --account personal
+memo mentions reject 41 --account personal
+```
+
+Mail is read only from the accounts you name with `--account`. `show` lists the senders who may own a phone, but
+links nothing until you confirm it. `memo mentions list note` and `memo mentions list document` work the same way
+without `--account`.
+
 Next: [keep mail and notes up to date on a timer](archive.md).
