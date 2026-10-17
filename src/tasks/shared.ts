@@ -33,12 +33,13 @@ const messenger: Messenger = {
 
 /**
  * Never one picked for the owner: a command that names no account fails, listing the ones the store holds.
- * `tasks link` between two project tasks needs none: project tasks belong to no messenger account.
+ * `tasks link` between two project tasks and `tasks show` of one need none: project tasks belong to no messenger
+ * account.
  */
 const requireAccount = (env: NodeJS.ProcessEnv) => async (_: Command, command: Command) => {
   const { provider, account } = flagged(command)
   if (provider && account) return
-  const [, ...targets] = command.args
+  const [first, ...targets] = command.args
   const chats = command.opts<{ chat?: string[] }>().chat ?? []
   if (
     command.name() === "link" &&
@@ -49,6 +50,7 @@ const requireAccount = (env: NodeJS.ProcessEnv) => async (_: Command, command: C
     return
   const store = await openStore({ env })
   try {
+    if (command.name() === "show" && first !== undefined && (await store.tasks.projectTask(first))) return
     const listed = (await store.accounts.accounts())
       .filter((key) => !NOT_MESSENGERS.has(key.provider))
       .map((key) => `--provider ${key.provider} --account ${key.account}`)

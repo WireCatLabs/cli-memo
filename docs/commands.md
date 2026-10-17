@@ -768,7 +768,7 @@ memo tasks agenda [query] [options]
 
 ### `memo tasks plan`
 
-set a task's title, description, due date, next check and category; nothing reaches the messenger
+set a task's title, description, due date, next check, category and assignee; nothing reaches the messenger
 
 This command changes the local store or your files.
 
@@ -787,6 +787,7 @@ memo tasks plan <task> [options]
 | `--description <text>` | the detail, in Markdown: who owes whom, done when, next step, keywords. |
 | `--due <time>` | when it must be done: an ISO 8601 time or 2h, 3d from now; none clears it. |
 | `--remind-time <time>` | when to look at it again: an ISO 8601 time or 2h, 3d from now; none clears it. |
+| `--assignee <person...>` | who does it: sender (whoever sent the task's message) or person:<id>; none clears it. Leave it out when unsure: a task with no assignee is better than none. |
 | `--provider <provider>` | the messenger account's provider: telegram, max. |
 | `--account <account>` | the messenger account, as the store holds it. |
 | `--json` | print JSON. |
