@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.65.2 — 18.10.2026
+
 ### Changed — may break scripts
 
 - **memo's MCP tools name accounts as the CLI does.** `actions_add` takes `account` as `provider:account`
