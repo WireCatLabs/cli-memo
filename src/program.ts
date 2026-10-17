@@ -13,6 +13,7 @@ import { commandsCommand } from "./discovery/command.js"
 import { doctorCommand } from "./doctor/command.js"
 import { addExamples } from "./examples.js"
 import { factsCommand } from "./facts/command.js"
+import { findingsCommand } from "./findings/command.js"
 import { jsonFields } from "./json-fields.js"
 import { knowledgeCommands } from "./knowledge/command.js"
 import { mailCommand } from "./mail/command.js"
@@ -100,6 +101,7 @@ export const createProgram = ({
   vocabularyCommand(program, streams, env)
   memoriesCommand(program, streams, env)
   factsCommand(program, streams, env)
+  findingsCommand(program, streams, env)
   actionsCommand(program, streams, env)
   agentsCommand(program, streams, env)
   mcpCommand(program, streams, env)

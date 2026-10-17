@@ -6,6 +6,10 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- `memo meetings actions` stages cited meeting facts and project tasks for owner review. Confirmation creates selected records atomically, keeps review receipts and prevents exact retries from duplicating accepted work. Missing dates and assignees stay unknown; stale evidence is refused.
+
 ## 0.58.0 — 17.10.2026
 
 ### Added
