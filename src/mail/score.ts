@@ -10,8 +10,8 @@ export const WEIGHTS = {
   spam_folder: 4,
   dmarc_fail: 3,
   brand_spoof: 3,
-  young_domain: 3,
-  reply_to_elsewhere: 2,
+  young_domain: 5,
+  reply_to_elsewhere: 1,
   never_opened: 2,
   dkim_not_passed: 2,
   disposable_domain: 2,
@@ -21,10 +21,16 @@ export const WEIGHTS = {
 
 export type Signal = keyof typeof WEIGHTS
 
+/**
+ * The signs of a forged or fraudulent sender, as opposed to how the owner treats ordinary bulk mail. A failed DMARC
+ * check is one only beside another: alone it marks real senders with a broken setup or a forwarding path.
+ */
+export const FRAUD_SIGNALS: readonly Signal[] = ["dmarc_fail", "brand_spoof", "young_domain", "disposable_domain"]
+
 export const SCORE_RULE =
-  "score adds: in Gmail's Spam +4, Gmail's DMARC check failed +3, a brand in the display name sent from another " +
-  "domain +3, the domain under 180 days old when the mail came +3 (only with looked-up ages), Reply-To on another " +
-  "domain +2, none of its mail ever opened +2, Gmail's DKIM check not passed +2, a throwaway-mail domain +2, bulk mail " +
+  "score adds: in Gmail's Spam +4, Gmail's DMARC check failed +3 (only beside another sign of fraud), a brand in the display name sent from another " +
+  "domain +3, the domain under 180 days old when the mail came +5 (only with looked-up ages), Reply-To on another " +
+  "domain +1, none of its mail ever opened +2, Gmail's DKIM check not passed +2, a throwaway-mail domain +2, bulk mail " +
   "never replied to +1, replied to by the owner -5"
 
 /**
@@ -134,9 +140,15 @@ export const spoofedBrand = (name: string | undefined, address: string | undefin
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
-/** Under YOUNG_DAYS old at `at`; false when the age is not known. */
-export const youngAt = (age: DomainAge | undefined, at: string): boolean =>
-  age?.created !== undefined && Date.parse(at) - Date.parse(age.created) < YOUNG_DAYS * DAY_MS
+/**
+ * Under YOUNG_DAYS old at `at`; false when the age is not known, and when the registration came after `at`: the
+ * domain lapsed and someone registered it again later, which says nothing about the mail that came before.
+ */
+export const youngAt = (age: DomainAge | undefined, at: string): boolean => {
+  if (age?.created === undefined) return false
+  const old = Date.parse(at) - Date.parse(age.created)
+  return old >= 0 && old < YOUNG_DAYS * DAY_MS
+}
 
 export interface Scored {
   score: number
@@ -183,5 +195,10 @@ export const scoreGroup = (
   if (domain !== undefined && isDisposableEmailDomain(domain)) signals.push("disposable_domain")
   if (context.bulk >= 0.8 && !context.replied) signals.push("bulk_never_replied")
   if (context.replied) signals.push("replied")
-  return { score: signals.reduce((sum, signal) => sum + WEIGHTS[signal], 0), signals }
+  const kept =
+    signals.includes("dmarc_fail") &&
+    !signals.some((signal) => signal !== "dmarc_fail" && FRAUD_SIGNALS.includes(signal))
+      ? signals.filter((signal) => signal !== "dmarc_fail")
+      : signals
+  return { score: kept.reduce((sum, signal) => sum + WEIGHTS[signal], 0), signals: kept }
 }

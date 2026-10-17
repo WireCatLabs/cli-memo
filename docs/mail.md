@@ -77,34 +77,33 @@ rule covers yet:
 | Signal | Adds | From |
 |---|---:|---|
 | `spam_folder` | 4 | Most of the group's mail is in Gmail's Spam |
-| `dmarc_fail` | 3 | Gmail's DMARC check failed (`Authentication-Results: mx.google.com`), with no valid DKIM signature, from a sender that never passes it; mail from 2022 on |
+| `dmarc_fail` | 3 | Gmail's DMARC check failed (`Authentication-Results: mx.google.com`), with no valid DKIM signature, from a sender that never passes it, on mail from 2022 on; counts only beside another sign of fraud |
 | `brand_spoof` | 3 | A brand in the display name, such as PayPal or Apple, sent from another domain |
-| `young_domain` | 3 | The sender's domain was under 180 days old when the first email came |
-| `reply_to_elsewhere` | 2 | Replies go to another domain than the sender's |
+| `young_domain` | 5 | The sender's domain was under 180 days old when the first email came |
+| `reply_to_elsewhere` | 1 | Replies go to another domain than the sender's |
 | `never_opened` | 2 | You opened none of the group's mail |
 | `dkim_not_passed` | 2 | Gmail's DKIM check did not pass on most of the group's mail |
 | `disposable_domain` | 2 | A throwaway-mail domain |
 | `bulk_never_replied` | 1 | At least 80% bulk mail, and you never wrote to the sender |
 | `replied` | −5 | You wrote to the sender |
 
-`dmarc_fail`, `brand_spoof`, `young_domain`, `reply_to_elsewhere` and `disposable_domain` point at a forged or
-fraudulent sender. `never_opened`, `dkim_not_passed` and `bulk_never_replied` are common on real bulk mail too,
-bills and bookings included: a score of 3 from `never_opened` and `bulk_never_replied` alone is a newsletter you
-ignore, not a scam. A platform that passes on other names is not a spoof: "Google via LinkedIn" from LinkedIn, a
-Coursera course or a Quora space named after a company. DMARC failures before 2022 are left out: many real
-senders failed the check then.
+`brand_spoof`, `young_domain`, `disposable_domain` and `dmarc_fail` point at a forged or fraudulent sender; a
+failed DMARC check alone more often means a real sender with a broken setup or mail that came through a forward
+or a list. The rest are common on real bulk mail, bills and bookings included: a score of 3 from `never_opened`
+and `bulk_never_replied` alone is a newsletter you ignore, not a scam, and many companies answer from a help-desk
+domain. A platform that passes on other names is not a spoof: "Google via LinkedIn" from LinkedIn, a Coursera
+course or a Quora space named after a company. DMARC failures before 2022 are left out: many real senders failed
+the check then.
 
-`young_domain` needs each domain's registration date. memo asks for it only when you add `--domain-age`:
+`young_domain` needs each domain's registration date. Each sync that scores senders, at most once a day, asks for
+the dates it does not have yet, for senders you never wrote to and heard from in the last two years: an older
+sender's domain may have lapsed or changed hands. `memo mail inspect work --domain-age` asks for the groups it
+shows. A domain registered again after an email came is not young for that email.
 
-```sh
-memo mail inspect work --domain-age
-```
-
-It asks the registry of each shown group's sender domain through RDAP, using IANA's list of registries, one
-domain a second, and keeps the answer on this computer for good. **Each question tells that registry the
-domain's name**, so it learns that someone looks at mail from it. Big mailbox providers such as gmail.com and
-senders you wrote to are never asked. Most country domains, such as .ru, .de, .es and .io, have no RDAP:
-they stay unknown and add nothing. Without `--domain-age`, only dates already kept are used.
+memo asks each domain's own registry through RDAP, using IANA's list of registries, one domain a second, and keeps
+the answer on this computer for good. **Each question tells that registry the domain's name**, so it learns that
+someone looks at mail from it. Big mailbox providers such as gmail.com are never asked. Most country domains, such
+as .ru, .de, .es and .io, have no RDAP: they stay unknown and add nothing.
 
 You decide:
 

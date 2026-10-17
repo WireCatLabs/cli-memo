@@ -73,7 +73,7 @@ describe("scoreGroup", () => {
       ]),
     )
     expect(scoreGroup(scam, { replied: false, bulk: 0, ages: none })).toEqual({
-      score: 10,
+      score: 9,
       signals: ["dmarc_fail", "brand_spoof", "reply_to_elsewhere", "dkim_not_passed"],
     })
   })
@@ -88,6 +88,18 @@ describe("scoreGroup", () => {
     expect(spoofedBrand("Dropbox Sign", "noreply@mail.hellosign.com")).toBeUndefined()
     const friend = [email(1, ["From: Bob Sample <bob@shop.example>"])]
     expect(scoreGroup(friend, { replied: true, bulk: 0, ages: none })).toEqual({ score: -5, signals: ["replied"] })
+  })
+
+  it("counts a failed DMARC only beside another sign of fraud", () => {
+    const misconfigured = [1, 2].map((n) =>
+      email(n, ["From: news@airline.example", "Authentication-Results: mx.google.com; dkim=fail; dmarc=fail"]),
+    )
+    expect(scoreGroup(misconfigured, { replied: false, bulk: 0, ages: none }).signals).toEqual(["dkim_not_passed"])
+  })
+
+  it("does not call a domain young for mail that came before it was registered again", () => {
+    const age = { created: "2026-03-01T00:00:00Z", checkedAt: "2026-10-01T00:00:00Z" }
+    expect(youngAt(age, "2019-06-01T00:00:00Z")).toBe(false)
   })
 
   it("does not count a failed DMARC on mail from before 2022", () => {
@@ -155,7 +167,7 @@ describe("scoreGroup", () => {
       10,
     )
     expect(probe.items.map(({ from, score }) => ({ from, score }))).toEqual([
-      { from: "deals@shop.example", score: 5 },
+      { from: "deals@shop.example", score: 2 },
       { from: "carol@gmail.com", score: 0 },
       { from: "dave@friend.example", score: -5 },
     ])

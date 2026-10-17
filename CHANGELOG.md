@@ -6,6 +6,22 @@ the API.
 
 ## Unreleased
 
+### Changed — may change scores and rules
+
+- **A new domain counts most, and a failed DMARC check only beside another sign of fraud.** `young_domain` adds 5
+  (was 3); `dmarc_fail` counts only with `brand_spoof`, `young_domain` or `disposable_domain`, since alone it
+  more often marks a real sender's broken setup or a forwarded mail; `reply_to_elsewhere` adds 1 (was 2), as many
+  companies answer from a help-desk domain. A `score:` rule can match other senders than before. Every sender is
+  scored again on the next sync.
+- **Each sync's sender scoring looks up the domain ages it lacks**, for senders you never wrote to and heard from in
+  the last two years, so `young_domain` works without running `memo mail inspect --domain-age`. Each lookup tells
+  that domain's registry its name.
+
+### Fixed
+
+- **A domain registered again after an email came no longer makes that email's sender young.** The registry gives
+  the newest registration, so an old sender whose domain lapsed and was taken by someone else looked new.
+
 ## 0.62.0 — 17.10.2026
 
 ### Changed
