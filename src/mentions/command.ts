@@ -1,8 +1,8 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { parseLucene, type QueryRegistry, validateQuery } from "@wirecat/cli-base/query"
-import { LOCAL_READ, LOCAL_WRITE, queryHelp, termField } from "@wirecat/cli-core/cli"
-import type { MessageStore } from "@wirecat/cli-core/store"
+import { parseLucene, validateQuery } from "@wirecat/cli-base/query"
+import { LOCAL_READ, LOCAL_WRITE, queryHelp } from "@wirecat/cli-core/cli"
+import { MENTION_QUERY, type MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
 import { authorOf, byOption } from "../author.js"
@@ -10,22 +10,6 @@ import { positive } from "../options.js"
 import { SOURCE_HELP, type SourceList, sourceListOf } from "../store/source-list.js"
 
 type Found = Awaited<ReturnType<MessageStore["sourceMentions"]["list"]>>["items"][number]
-
-// cli-core's registry is not exported from `./store`; the store reads these same four fields.
-export const MENTION_QUERY = {
-  entity: "mention",
-  backend: "sql",
-  fields: [
-    termField("kind", "kw", "kind:phone"),
-    termField("status", "kw", "status:found"),
-    termField("domain", "kw", "domain:google.com", {
-      relation: "the site of a link or an address; docs.google.com means google.com",
-    }),
-    termField("value", "kw", 'value:"+79000000001"', {
-      relation: "the value as it is stored: a phone as +7…, a lower-case address, a link without tracking",
-    }),
-  ],
-} as const satisfies QueryRegistry
 
 type Mail = SourceList["mail"]
 
