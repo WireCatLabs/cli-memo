@@ -4,8 +4,6 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
-## Unreleased
-
 ## 0.60.0 — 17.10.2026
 
 ### Fixed
@@ -13,6 +11,14 @@ the API.
 - **The sync timer no longer stops when a sync takes longer than its interval.** The interval counted from when a
   sync started, so a 6-minute sync on a 5-minute timer left no next run. It now counts from when a sync ends.
   The first sync after updating rewrites the timer.
+- **`memo tasks show HRB-12` shows a project's task without `--provider` and `--account`** (cli-core 0.320.0),
+  with its evidence links — a task made from reviewed meeting findings, for example. A task of a messenger account
+  still needs its account; a bare number is never taken for a project task.
+- **memo's MCP tools refuse an argument they do not take**, as every other CLI's tools do: all 22 answer
+  `validation_error` (reason `input.invalid`, `param` naming the argument) instead of dropping it, so a misspelled
+  filter no longer runs unfiltered. Their advertised input schemas now say `additionalProperties: false`.
+- **`memo mcp` is listed as `lifetime: "persistent"`** in `memo commands --json`, like `tg mcp` and `max mcp`: it
+  serves until stdin closes. No other command's entry changes.
 
 ### Documentation
 
@@ -34,17 +40,6 @@ the API.
 
 - **`memo search mail --account <account>` is now `--source email:<account>`**, which also takes several mailboxes
   and groups. `--account` still works in this version and prints the new spelling.
-
-### Fixed
-
-- **`memo tasks show HRB-12` shows a project's task without `--provider` and `--account`** (cli-core 0.320.0),
-  with its evidence links — a task made from reviewed meeting findings, for example. A task of a messenger account
-  still needs its account; a bare number is never taken for a project task.
-- **memo's MCP tools refuse an argument they do not take**, as every other CLI's tools do: all 22 answer
-  `validation_error` (reason `input.invalid`, `param` naming the argument) instead of dropping it, so a misspelled
-  filter no longer runs unfiltered. Their advertised input schemas now say `additionalProperties: false`.
-- **`memo mcp` is listed as `lifetime: "persistent"`** in `memo commands --json`, like `tg mcp` and `max mcp`: it
-  serves until stdin closes. No other command's entry changes.
 
 ## 0.59.0 — 17.10.2026
 
