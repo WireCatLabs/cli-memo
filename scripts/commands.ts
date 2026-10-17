@@ -14,7 +14,7 @@ const content = commandsPage({
     banner: "<!-- Generated from the command tree by pnpm generate. Do not edit. -->",
     title: "All commands",
     intro:
-      "Look up every Memo command and option here. Commands that work in one messenger or mail account take `--provider` and `--account`; Memo never chooses an account for you. Add `--json` for an answer a script or agent can read. See [recipes](recipes.md) for whole tasks and [using Memo](usage.md) for a normal day.",
+      "Look up every Memo command and option here. A command that reads names its accounts with `--source`: one as `telegram:1` or `email:work`, every account of a provider, a kind, or `group:<name>`. A command that writes names the one account it acts as with `--account telegram:1`. Memo never chooses an account for you. Add `--json` for an answer a script or agent can read. See [recipes](recipes.md) for whole tasks and [using Memo](usage.md) for a normal day.",
     globalHeading: "Global options",
     globalIntro: "These options work with the `memo` command itself.",
     mutates: "This command can send data to the configured AI provider.",
