@@ -77,8 +77,8 @@ rule covers yet:
 | Signal | Adds | From |
 |---|---:|---|
 | `spam_folder` | 4 | Most of the group's mail is in Gmail's Spam |
-| `dmarc_fail` | 3 | Gmail's own DMARC check failed when the mail arrived (`Authentication-Results: mx.google.com`) |
-| `brand_spoof` | 3 | A brand in the display name, such as PayPal or Apple, sent from another domain |
+| `dmarc_fail` | 3 | Gmail's own DMARC check failed when the mail arrived (`Authentication-Results: mx.google.com`), on mail from 2022 on, without a valid DKIM signature, from a sender that never passes it |
+| `brand_spoof` | 3 | A brand in the display name, such as PayPal or Apple, sent from another domain; not "Google via LinkedIn" from LinkedIn's own domain, nor Coursera courses or Quora spaces named after a company |
 | `young_domain` | 3 | The sender's domain was under 180 days old when the first email came |
 | `reply_to_elsewhere` | 2 | Replies go to another domain than the sender's |
 | `never_opened` | 2 | You opened none of the group's mail |
@@ -292,6 +292,11 @@ Mail sent to many — newsletters, notices, mailing lists, anything with a List-
 crowds a search. It is not left out by default: bills, bookings and other notices from companies carry the same
 headers. memo marks such mail when it reads its headers, which it does for an account that has rules; a full
 listing, at least daily, marks mail stored earlier. `--account` takes the account's name or its address.
+
+Each sync also scores every sender from the mail already stored, at most once a day, the same way
+`memo mail inspect` scores a group. A hit from a scored sender carries `sender_score` in `--json`, with the score
+and its signals. It does not change the order of results yet: it is there to check before anything is ranked by
+it.
 
 Gmail labels such as Inbox, Important, Starred and your own labels become mail folders, so
 `mailbox:important` finds them. See [Search](search.md#search-mail).

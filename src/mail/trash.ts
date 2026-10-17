@@ -161,7 +161,7 @@ const userLabels = (item: Listed) => (item.labels ?? []).filter((label) => !SYST
 type StoredMail = Listed & { envelope: boolean }
 
 /** A stored email in the shape a Gmail listing has; it has no UID until Gmail is asked. */
-const listedOf = (email: EmailFacts): StoredMail => {
+export const listedOf = (email: EmailFacts): StoredMail => {
   const labels = email.mailboxes.filter(({ kind }) => kind === "label").map(({ name }) => name)
   if (email.flagged && !labels.includes("Starred")) labels.push("Starred")
   return {
@@ -180,6 +180,15 @@ const listedOf = (email: EmailFacts): StoredMail => {
       ...(email.listId === null ? {} : { listId: email.listId }),
       to: email.recipients,
       bulk: email.mailboxes.some(({ kind }) => kind === BULK),
+      ...(email.replyTo === null ? {} : { replyTo: email.replyTo }),
+      ...(email.dkim === null && email.dmarc === null
+        ? {}
+        : {
+            auth: {
+              ...(email.dkim === null ? {} : { dkim: email.dkim }),
+              ...(email.dmarc === null ? {} : { dmarc: email.dmarc }),
+            },
+          }),
     },
     envelope: email.mailboxes.some(({ kind }) => kind === ENVELOPE),
   }

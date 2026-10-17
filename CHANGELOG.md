@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **Every sender gets its spam score in the store, and search shows it.** Each sync scores the account's senders
+  from the stored mail, at most once a day, as `memo mail inspect` scores a group; a hit from a scored sender
+  carries `sender_score` (score and signals) in `--json`. Results are not reordered by it. On the owner's mailbox:
+  5,789 senders in 15 seconds. cli-core 0.311.0 (store version 19).
+
 ## 0.57.0 — 17.10.2026
 
 ### Fixed
