@@ -68,7 +68,7 @@ it("offers the memo tools, saves an agent's memory and proposal as its own, and 
     const proposal = await call("actions_add", {
       kind: "reply",
       reason: "Bob Sample asked twice",
-      provider: account.provider,
+      account: `${account.provider}:${account.account}`,
       payload: { text: "Friday works" },
     })
     expect(answerOf(JSON.stringify(proposal.structuredContent))).toMatchObject({
@@ -205,6 +205,12 @@ it("searches every source the store holds, where tg and max read only their own"
     expect((await call("person_context", { person: "Bob Sample" })).structuredContent).toMatchObject({
       error: { code: "validation_error" },
     })
+    expect(
+      (await call("person_context", { person: "telegram:Bob", source: "example:alice-example" })).structuredContent,
+    ).toMatchObject({ error: { code: "validation_error", message: expect.stringContaining("is not an account of") } })
+    expect(
+      (await call("actions_add", { kind: "reply", reason: "asked", provider: "example" })).structuredContent,
+    ).toMatchObject({ error: { code: "validation_error" } })
   } finally {
     await client.close()
   }

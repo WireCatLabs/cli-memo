@@ -1,9 +1,10 @@
 import { RESOURCES_SEARCHED, searchNotes } from "@wirecat/cli-core/services"
 import * as v from "valibot"
 import { itemAnswer } from "../answer.js"
-import { memoContext } from "../context/context.js"
+import { contextAccountOf, memoContext } from "../context/context.js"
 import { allAnswer, kindAnswer, notesAnswer } from "../search/answers.js"
 import { searchEverywhere, searchKind } from "../search/search.js"
+import { MAIL_SOURCES, mailboxesOf } from "../store/source-list.js"
 import { define } from "./tool.js"
 
 const query = {
@@ -32,11 +33,19 @@ export const knowledgeTools = {
   }),
   search_mail: define({
     title: "Search mail",
-    description: `Imported mail, every mail account unless account names one by its address.`,
+    description: `Imported mail, every mailbox unless source names some: ${MAIL_SOURCES}, separated by commas.`,
     writes: false,
-    input: v.object({ ...query, account: v.optional(v.pipe(v.string(), v.minLength(1))) }),
-    run: async (store, args) =>
-      kindAnswer("mail", await searchKind(store, "mail", args), args.limit, undefined, args.text),
+    input: v.object({ ...query, source: v.optional(v.pipe(v.string(), v.minLength(1))) }),
+    run: async (store, { source, ...args }, env) => {
+      const accounts = source === undefined ? undefined : await mailboxesOf(store, env, source)
+      return kindAnswer(
+        "mail",
+        await searchKind(store, "mail", { ...args, ...(accounts === undefined ? {} : { accounts }) }),
+        args.limit,
+        undefined,
+        args.text,
+      )
+    },
   }),
   search_notes: define({
     title: "Search notes",
@@ -63,13 +72,21 @@ export const knowledgeTools = {
   }),
   person_context: define({
     title: "What the store holds about a person",
-    description: `One person across messengers and mail, with the notes, tasks and confirmed relationships linked to them. person is <messenger>:<name or id>, as tg:Alice; account picks one when that messenger has several. notRead says which sources gave nothing, and why.`,
+    description: `One person across messengers and mail, with the notes, tasks and confirmed relationships linked to them. person is <messenger>:<name or id>, as tg:Alice; source picks the account, as telegram:1, when that messenger has several. notRead says which sources gave nothing, and why.`,
     writes: false,
     input: v.object({
       person: v.pipe(v.string(), v.minLength(1)),
-      account: v.optional(v.pipe(v.string(), v.minLength(1))),
+      source: v.optional(v.pipe(v.string(), v.minLength(1))),
       limit: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(100))),
     }),
-    run: async (store, { person, ...options }) => itemAnswer(await memoContext(store, person, options)),
+    run: async (store, { person, source, limit }, env) => {
+      const account = source === undefined ? undefined : await contextAccountOf(store, env, person, source)
+      return itemAnswer(
+        await memoContext(store, person, {
+          ...(limit === undefined ? {} : { limit }),
+          ...(account === undefined ? {} : { account }),
+        }),
+      )
+    },
   }),
 }

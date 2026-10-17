@@ -3,6 +3,7 @@ import { type PersonContext, personContext } from "@wirecat/cli-core/services"
 import type { Link, MessageStore, Note } from "@wirecat/cli-core/store"
 import { type NotesAbout, notesAbout } from "../notes/about.js"
 import { selectAccount } from "../store/scope.js"
+import { oneAccountOf } from "../store/source-list.js"
 import { personTasks } from "../tasks/context.js"
 
 export interface MemoContext {
@@ -25,6 +26,19 @@ const RELATIONS = new Set(["member-of", "related-to"])
  * One answer about a person: what the store holds of them across messengers and mail (cli-core's
  * person context), and every note linked to them. A name in a note's plain text is not a link.
  */
+/** The stored account of the person's messenger that `source` (`telegram:1`) names, as memoContext takes it. */
+export const contextAccountOf = async (
+  store: MessageStore,
+  env: NodeJS.ProcessEnv,
+  person: string,
+  source: string,
+): Promise<string> => {
+  const key = await oneAccountOf(store, env, source)
+  if (key.provider !== person.split(":")[0])
+    throw new CliError("validation_error", `${source} is not an account of ${person}'s messenger`)
+  return key.account
+}
+
 export const memoContext = async (
   store: MessageStore,
   reference: string,
