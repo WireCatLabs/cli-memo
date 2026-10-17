@@ -6,8 +6,12 @@ the API.
 
 ## Unreleased
 
+## 0.65.1 — 18.10.2026
+
 ### Documentation
 
+- The command reference lists `--plain-order` on `memo search mail` and `memo search all`; 0.65.0 shipped it
+  without, as the reference had not been generated again.
 - The command reference's opening says reads take `--source` and writes take `--account provider:account`; it
   still named `--provider` and `--account`.
 
