@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.61.0 — 17.10.2026
+
 ### Changed — may change scores and rules
 
 - **A new domain counts most, and a failed DMARC check only beside another sign of fraud.** `young_domain` adds 5
