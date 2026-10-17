@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **Mail stored before memo kept Reply-To and Gmail's SPF, DKIM and DMARC verdicts gets them.** Each sync reads
+  the header lines of up to 2,000 such emails from Gmail, newest first, until none is left; the text is not read
+  again. The sender score then sees these signals on all mail: on the owner's mailbox 57,000 of 92,000 emails
+  stored in full had none.
+
 ## 0.58.0 — 17.10.2026
 
 ### Added

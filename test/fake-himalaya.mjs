@@ -24,6 +24,7 @@ const raw = (m) => {
     `Message-ID: <${m.messageId}@example.test>`,
     `Date: ${new Date(m.receivedAt).toUTCString()}`,
     "MIME-Version: 1.0",
+    ...(m.extraHeaders ?? []),
   ]
   const body = Buffer.from(m.html ?? m.text ?? "").toString("base64")
   if (!m.attachment)

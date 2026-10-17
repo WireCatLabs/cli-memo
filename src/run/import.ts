@@ -7,6 +7,7 @@ import { answers, itemAnswer } from "../answer.js"
 import { loadConfig } from "../config.js"
 import { errorObject } from "../failure.js"
 import { mailAccounts, mailSource } from "../mail/accounts.js"
+import { backfillHeaders } from "../mail/backfill-headers.js"
 import { type ImportResult, importMail } from "../mail/import.js"
 import { repairHtmlText } from "../mail/repair.js"
 import { rulesOf } from "../mail/rule-store.js"
@@ -272,6 +273,8 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
                   rescan: options.rescan ?? false,
                 }),
               )
+              const filled = await backfillHeaders(store, mailSource(account, env), account.address)
+              if (filled) streams.diagnostic(`mail ${account.name}: ${filled} older emails' headers read`)
               const scored = await scoreSenders(store, account.address, env)
               if (scored) streams.diagnostic(`mail ${account.name}: ${scored} senders scored`)
             })
