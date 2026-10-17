@@ -1,5 +1,6 @@
+import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
-import { describe, expect, it } from "vitest"
+import { beforeAll, describe, expect, it } from "vitest"
 import { EXAMPLES } from "./examples.js"
 import { createProgram } from "./program.js"
 
@@ -25,6 +26,14 @@ const parse = async (args: string[]) => {
 }
 
 describe("examples", () => {
+  // The task commands cli-core builds resolve --source in a hook, before the replaced action.
+  beforeAll(async () => {
+    const store = await openStore({ env: {} })
+    for (const provider of ["telegram", "max"])
+      await store.accounts.saveAccount({ provider, account: "1" }, { name: null })
+    await store.close()
+  })
+
   it("gives every leaf one to three examples, and names no command memo lacks", () => {
     const all = leaves(createProgram({ env: {} }))
     expect(all.filter((path) => !EXAMPLES[path] || EXAMPLES[path].length > 3)).toEqual([])

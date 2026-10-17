@@ -3,6 +3,7 @@ import { type Messenger, provide, settingsFor, tasksCommand, tasksStatsCommand }
 import { type AccountKey, openStore } from "@wirecat/cli-core/store"
 import { Command } from "commander"
 import { APP } from "../app.js"
+import { oneAccountOf, type SourceOptions, sourceOf, sourceOptions } from "../store/source-list.js"
 
 const SHARED = ["agenda", "plan", "show", "link"] as const
 /** `task:15`, a bare id or a project key: a `tasks link` target that needs no messenger account. */
@@ -15,7 +16,8 @@ const NOT_MESSENGERS: ReadonlySet<string> = new Set(["email", "notes"])
 // the defaults, from a config folder of a name nothing writes.
 const settings = settingsFor({ ...APP, appName: "cli-memo-tasks", envPrefix: "MEMO_TASKS" })
 
-const flagged = (command: Command): Partial<AccountKey> => command.opts<{ provider?: string; account?: string }>()
+/** The account the preAction hook resolved from `--source`; cli-core asks for it synchronously. */
+const resolved = new WeakMap<Command, AccountKey>()
 
 const messenger: Messenger = {
   app: APP,
@@ -25,10 +27,7 @@ const messenger: Messenger = {
   connect: async () => {
     throw new CliError("validation_error", "memo reads no messenger: these commands answer from the store")
   },
-  accountOf: (command) => {
-    const { provider, account } = flagged(command)
-    return provider && account ? { provider, account } : undefined
-  },
+  accountOf: (command) => resolved.get(command),
 }
 
 /**
@@ -36,57 +35,57 @@ const messenger: Messenger = {
  * `tasks link` between two project tasks and `tasks show` of one need none: project tasks belong to no messenger
  * account.
  */
-const requireAccount = (env: NodeJS.ProcessEnv) => async (_: Command, command: Command) => {
-  const { provider, account } = flagged(command)
-  if (provider && account) return
-  const [first, ...targets] = command.args
-  const chats = command.opts<{ chat?: string[] }>().chat ?? []
-  if (
-    command.name() === "link" &&
-    targets.length > 0 &&
-    chats.length === 0 &&
-    targets.every((one) => TASKISH.test(one))
-  )
-    return
-  const store = await openStore({ env })
-  try {
-    if (command.name() === "show" && first !== undefined && (await store.tasks.projectTask(first))) return
-    const listed = (await store.accounts.accounts())
-      .filter((key) => !NOT_MESSENGERS.has(key.provider))
-      .map((key) => `--provider ${key.provider} --account ${key.account}`)
-      .join("; ")
-    throw new CliError(
-      "validation_error",
-      `give --provider and --account — the stored messenger accounts: ${listed || "none yet"}`,
-    )
-  } finally {
-    await store.close()
+const requireAccount =
+  (env: NodeJS.ProcessEnv, warn: (text: string) => void) => async (_: Command, command: Command) => {
+    const value = sourceOf(command.opts<SourceOptions>(), warn)
+    const [first, ...targets] = command.args
+    const chats = command.opts<{ chat?: string[] }>().chat ?? []
+    const store = await openStore({ env })
+    try {
+      if (value !== undefined) {
+        resolved.set(command, await oneAccountOf(store, env, value))
+        return
+      }
+      if (
+        command.name() === "link" &&
+        targets.length > 0 &&
+        chats.length === 0 &&
+        targets.every((one) => TASKISH.test(one))
+      )
+        return
+      if (command.name() === "show" && first !== undefined && (await store.tasks.projectTask(first))) return
+      const listed = (await store.accounts.accounts())
+        .filter((key) => !NOT_MESSENGERS.has(key.provider))
+        .map((key) => `--source ${key.provider}:${key.account}`)
+        .join("; ")
+      throw new CliError("validation_error", `give --source — the stored messenger accounts: ${listed || "none yet"}`)
+    } finally {
+      await store.close()
+    }
   }
-}
 
-const scoped = (command: Command, env: NodeJS.ProcessEnv): Command =>
-  command
-    .option("--provider <provider>", "the messenger account's provider: telegram, max")
-    .option("--account <account>", "the messenger account, as the store holds it")
+const scoped = (command: Command, env: NodeJS.ProcessEnv, warn: (text: string) => void): Command =>
+  sourceOptions(command, "the messenger account: telegram:<account>, max:<account>, or group:<name> of one")
     .option("--json", "print JSON")
-    .hook("preAction", requireAccount(env))
+    .hook("preAction", requireAccount(env, warn))
 
 /**
  * `tasks agenda|plan|show|link` and `stats tasks show` are cli-core's builders, the ones tg and max have, mounted
- * with memo's own `--provider --account` (`Messenger.accountOf`).
+ * with memo's own `--source`, resolved to one account (`Messenger.accountOf`).
  */
 export const sharedTaskCommands = (program: Command, tasks: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   provide(program, { streams, env })
+  const warn = (text: string) => streams.diagnostic(text)
   const built = tasksCommand(messenger)
   for (const name of SHARED) {
     const command = built.commands.find((one) => one.name() === name)
     if (!command) throw new Error(`cli-core's tasks builder has no ${name}`)
-    tasks.addCommand(scoped(command, env))
+    tasks.addCommand(scoped(command, env, warn))
   }
   program
     .command("stats")
     .description("statistics about what the store holds")
     .addCommand(
-      new Command("tasks").description("task statistics").addCommand(scoped(tasksStatsCommand(messenger), env)),
+      new Command("tasks").description("task statistics").addCommand(scoped(tasksStatsCommand(messenger), env, warn)),
     )
 }

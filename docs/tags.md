@@ -32,16 +32,16 @@ A tag has 1 to 32 characters: letters a–z, digits and hyphens. Capital letters
 | A file from a note folder | `--note document:3` |
 | Every note in a folder, or in one folder inside it | `--folder 1` or `--folder 1 --subfolder Projects` |
 | A message or an email | `--message 'msg:telegram/1/77/42'` (the full reference) |
-| A chat or an email thread | `--chat 77 --provider telegram --account 1` |
-| A contact in one account | `--contact 101 --provider telegram --account 1` |
+| A chat or an email thread | `--chat 77 --source telegram:1` |
+| A contact in one account | `--contact 101 --source telegram:1` |
 | A person whose accounts you linked | `--person PERSON_UID` |
 | An organization, a project or a task | `--organization 2`, `--project 1`, `--task HRB-1` |
-| A meeting | `--meeting 5 --provider zoom --account ACCOUNT` |
+| A meeting | `--meeting 5 --source zoom:ACCOUNT` |
 
 The folder ID comes from `memo folders list`. A tag on a folder applies to every note in it, at any
 depth, including notes you add later.
 
-A chat, a contact and a meeting belong to one account, so they need `--provider` and `--account`. A
+A chat, a contact and a meeting belong to one account, so they need `--source`. A
 person, organization, project or task belongs to you, so it needs no account.
 
 ## Tags in your files

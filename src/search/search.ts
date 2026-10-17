@@ -14,7 +14,7 @@ import { APP } from "../app.js"
 import { loadConfig } from "../config.js"
 import { keyDocuments, keyFirst, projectOf } from "../knowledge/key-documents.js"
 import { mailAccounts } from "../mail/accounts.js"
-import { type AccountScope, selectAccount } from "../store/scope.js"
+import { accountsOf } from "../store/source-list.js"
 import { taskPage } from "../tasks/context.js"
 
 export interface EvidenceItem {
@@ -171,15 +171,23 @@ export const unifiedSearch = async (
 }
 
 /** Notes are no account's: `--all` takes them with every account, `--provider notes` alone. */
+/** `--all`, or the accounts a `--source` list names; notes count as one source, whichever folder is named. */
 export const searchAccounts = async (
   store: MessageStore,
-  options: AccountScope & { all?: boolean },
+  env: NodeJS.ProcessEnv,
+  options: { all?: boolean; source?: string },
 ): Promise<{ keys: AccountKey[]; notes: boolean }> => {
-  if (options.all && (options.provider !== undefined || options.account !== undefined))
-    throw new CliError("validation_error", "use --all alone or select one provider/account")
-  if (options.provider === "notes") return { keys: [], notes: true }
-  const messengers = (await store.accounts.accounts()).filter(({ provider }) => provider !== "notes")
-  return options.all ? { keys: messengers, notes: true } : { keys: [await selectAccount(store, options)], notes: false }
+  if (options.all && options.source !== undefined)
+    throw new CliError("validation_error", "use --all alone, or name the accounts with --source")
+  if (options.all)
+    return { keys: (await store.accounts.accounts()).filter(({ provider }) => provider !== "notes"), notes: true }
+  if (options.source === undefined)
+    throw new CliError("validation_error", "give --all, or name the accounts with --source: telegram:1,email,notes")
+  const keys = await accountsOf(store, env, options.source)
+  return {
+    keys: keys.filter(({ provider }) => provider !== "notes"),
+    notes: keys.some(({ provider }) => provider === "notes"),
+  }
 }
 
 const hasSource = (node: QueryNode): boolean =>

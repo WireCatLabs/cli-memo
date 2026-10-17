@@ -2,15 +2,20 @@ import type { Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { type Body, LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
-import type { MessageStore } from "@wirecat/cli-core/store"
+import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer } from "../answer.js"
 import { positive } from "../options.js"
+import {
+  accountName,
+  MEETING_ACCOUNT_HELP,
+  type SourceOptions,
+  sourceOptions,
+  theAccount,
+} from "../store/source-list.js"
 import { canonicalProject } from "../vocabulary/project.js"
 
-type Options = {
-  provider: string
-  account: string
+type Options = SourceOptions & {
   json?: boolean
   limit: number
   page?: number
@@ -27,16 +32,18 @@ const MEETING_PROJECTS_QUERY = {
 export const meetingProjectsCommand = (projects: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const group = projects.command("meetings").description("explicit account-scoped project membership")
   const options = (command: Command) =>
-    command
-      .requiredOption("--provider <provider>", "meeting provider")
-      .requiredOption("--account <account>", "exact stored meeting account")
-      .option("--json", "print JSON; --json=id,title keeps only those fields")
+    sourceOptions(command, MEETING_ACCOUNT_HELP).option("--json", "print JSON; --json=id,title keeps only those fields")
   const { run } = answers(projects, streams, env)
+  const warn = (text: string) => streams.diagnostic(text)
   const execute = (
     project: string,
     options: Options,
-    work: (store: MessageStore, projectId: string) => Promise<Body>,
-  ) => run(options.json, async (store) => work(store, (await canonicalProject(store, project)).slice(8)))
+    work: (store: MessageStore, projectId: string, key: AccountKey) => Promise<Body>,
+  ) =>
+    run(options.json, async (store) => {
+      const key = await theAccount(store, env, options, warn)
+      return work(store, (await canonicalProject(store, project)).slice(8), key)
+    })
   withQuery(
     options(
       annotate(group.command("list"), { effects: LOCAL_READ, output: { entity: "meeting_project" } })
@@ -48,13 +55,15 @@ export const meetingProjectsCommand = (projects: Command, streams: Streams, env:
     .option("--limit <n>", "meetings per page, at most 500", positive, 50)
     .option("--page <n>", "which page, from 1", positive)
     .action((project: string, words: string[], given: Options) =>
-      execute(project, given, async (store, projectId) => {
+      execute(project, given, async (store, projectId, key) => {
         const confirmed = queryTerms(words, MEETING_PROJECTS_QUERY, "projects meetings list").get("confirmed")
         const page = given.page ?? 1
-        const found = await store.knowledge.meetingProjects(
-          { provider: given.provider, account: given.account },
-          { projectId, confirmed: confirmed === "true", limit: given.limit, offset: (page - 1) * given.limit },
-        )
+        const found = await store.knowledge.meetingProjects(key, {
+          projectId,
+          confirmed: confirmed === "true",
+          limit: given.limit,
+          offset: (page - 1) * given.limit,
+        })
         return listAnswer("projects meetings list", {
           items: found.items,
           limit: given.limit,
@@ -62,8 +71,7 @@ export const meetingProjectsCommand = (projects: Command, streams: Streams, env:
           page,
           args: {
             project,
-            provider: given.provider,
-            account: given.account,
+            source: accountName(key),
             ...(words.length === 0 ? {} : { query: words.join(" ") }),
           },
         })
@@ -78,18 +86,13 @@ export const meetingProjectsCommand = (projects: Command, streams: Streams, env:
     .option("--fingerprint <hash>", "required when confirming an existing proposal")
     .option("--reason <text>", "why the reviewed meeting belongs to this project")
     .action((project: string, meeting: string, given: Options) =>
-      execute(project, given, async (store, projectId) =>
+      execute(project, given, async (store, projectId, key) =>
         itemAnswer(
-          await store.knowledge.linkMeetingProject(
-            { provider: given.provider, account: given.account },
-            meeting,
-            projectId,
-            {
-              by: "owner",
-              ...(given.fingerprint === undefined ? {} : { expectedFingerprint: given.fingerprint }),
-              ...(given.reason === undefined ? {} : { provenance: given.reason }),
-            },
-          ),
+          await store.knowledge.linkMeetingProject(key, meeting, projectId, {
+            by: "owner",
+            ...(given.fingerprint === undefined ? {} : { expectedFingerprint: given.fingerprint }),
+            ...(given.reason === undefined ? {} : { provenance: given.reason }),
+          }),
         ),
       ),
     )

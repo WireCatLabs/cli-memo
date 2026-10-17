@@ -9,7 +9,7 @@ import { expect, it } from "vitest"
 import { createProgram } from "../program.js"
 
 const key = { provider: "telegram", account: "500" }
-const scope = ["--provider", "telegram", "--account", "500"]
+const scope = ["--source", "telegram:500"]
 const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString()
 
 const said = (id: string, minutes: number, text: string, extra: Partial<Message> = {}): Message => ({
@@ -75,7 +75,7 @@ it("refuses a shared task command that names no account, and lists the ones the 
 
   await expect(run("tasks", "agenda", "--json")).rejects.toMatchObject({
     code: "validation_error",
-    message: expect.stringContaining("--provider telegram --account 500"),
+    message: expect.stringContaining("--source telegram:500"),
   })
 })
 
@@ -90,6 +90,6 @@ it("shows a project task with no account, and still asks for one for a messenger
   const inbox = (await run("tasks", "agenda", ...scope, "--json")).json().item.tasks[0]
   for (const id of [inbox.key, inbox.id, "HRB-2"])
     await expect(run("tasks", "show", id, "--json")).rejects.toMatchObject({
-      message: expect.stringContaining("--provider telegram --account 500"),
+      message: expect.stringContaining("--source telegram:500"),
     })
 })

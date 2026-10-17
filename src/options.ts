@@ -1,4 +1,5 @@
 import { type Command, InvalidArgumentError } from "commander"
+import { ONE_ACCOUNT_HELP, sourceOptions } from "./store/source-list.js"
 
 export const positive = (value: string): number => {
   const number = Number(value)
@@ -23,8 +24,6 @@ export const oneOf =
 /** A repeatable option: `--subject a --subject b`. */
 export const collect = (value: string, previous: string[] = []): string[] => [...previous, value]
 
-export const accountOptions = (command: Command) =>
-  command
-    .option("--provider <provider>", "source provider")
-    .option("--account <account>", "exact stored account")
-    .option("--json", "print JSON; --json=id,title keeps only those fields")
+/** `--source` naming one account, or several where `help` says so. */
+export const accountOptions = (command: Command, help = ONE_ACCOUNT_HELP) =>
+  sourceOptions(command, help).option("--json", "print JSON; --json=id,title keeps only those fields")

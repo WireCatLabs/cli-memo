@@ -6,6 +6,29 @@ the API.
 
 ## Unreleased
 
+### Changed
+
+- **Every memo command names its accounts with `--source`**, as `memo mentions` and `memo search mail` already do:
+  `provider:account` (`telegram:1`, `email:personal`), a provider, a kind or `group:<name>`. A read lists across
+  every account it names and says which in `meta.accounts`: `memo tasks list`, `memo reminders list`,
+  `memo tags list` and `memo ask`. A write, and a read bound to one account (`tasks agenda|plan|show|link`,
+  `stats tasks show`, `reminders`, `relationships suggest`, `context`, `meetings actions`, `projects meetings`,
+  `notes add --meeting`, `tags add|remove`, `actions add`), takes a `--source` that names exactly one account; a
+  list of several, or none, is an error listing the choices. `memo sync --source email:work,email:personal` names
+  mailboxes.
+
+### Deprecated
+
+- `--provider` and `--account` keep working for one release and print the `--source` spelling on stderr; giving
+  both spellings is an error. `memo context --account 1` is `--source telegram:1`; `memo sync --account work` is
+  `--source email:work`.
+
+### Changed — may break scripts
+
+- The `search all` step that lists a hit's tasks carries `args.source` (`telegram:1`) instead of `args.provider`
+  and `args.account`; `meetings actions list` and `projects meetings list` name `source` in their page args too.
+- `memo ask` takes `--source notes` where it took `--provider notes`.
+
 ## 0.63.0 — 17.10.2026
 
 ### Changed — may change scores and rules

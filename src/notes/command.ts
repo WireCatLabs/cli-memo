@@ -12,6 +12,7 @@ import { importNotesMap } from "../people/notes-map.js"
 import { subjectOf } from "../people/subject.js"
 import { SAVE_HELP } from "../save-help.js"
 import { meetingReference } from "../store/scope.js"
+import { MEETING_ACCOUNT_HELP, oneAccountOf, sourceOf, sourceOptions } from "../store/source-list.js"
 import { isNoteReference } from "./about.js"
 import { boundFolders, folderOfFile } from "./bound.js"
 import { DIALECTS, type DialectName } from "./dialects/index.js"
@@ -154,7 +155,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       )
     })
 
-  annotate(notes.command("add"), { effects: LOCAL_WRITE, output: { entity: "note" } })
+  const noteAdd = annotate(notes.command("add"), { effects: LOCAL_WRITE, output: { entity: "note" } })
     .description("write a note of your own about messages, people, projects or other notes")
     .argument("[text]", "the note; or --text, or --text-file")
     .option("--text <text>", "the note")
@@ -165,9 +166,8 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       "what it is about: <messenger>:<name or id>, msg:, chat:, person:, organization:, project:, task:, note:, document:, meeting:; repeat for more",
       collect,
     )
-    .option("--meeting <id>", "also about this meeting, by its store id, with --provider and --account")
-    .option("--provider <provider>", "the meeting's provider")
-    .option("--account <account>", "the meeting's account")
+    .option("--meeting <id>", "also about this meeting, by its store id, with --source")
+  sourceOptions(noteAdd, `the account of --meeting: ${MEETING_ACCOUNT_HELP}`)
     .option("--export [dir]", "also write it as a file — to this folder, or notes.export.dir")
     .option("--format <format>", `the file's format: ${DIALECTS.join(", ")}`, formatOf)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
@@ -180,6 +180,7 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
           title?: string
           subject?: string[]
           meeting?: string
+          source?: string
           provider?: string
           account?: string
           export?: string | true
@@ -188,13 +189,21 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         },
       ) => {
         const body = textOf(options, given)
-        if (options.meeting === undefined && (options.provider !== undefined || options.account !== undefined))
-          throw new CliError("validation_error", "--provider and --account select the account of --meeting")
+        const value = sourceOf(options, (text) => streams.diagnostic(text))
+        if (options.meeting === undefined && value !== undefined)
+          throw new CliError("validation_error", "--source selects the account of --meeting")
         const answer = await withNotes(async (store) => {
           const about = await Promise.all(
             (options.subject ?? []).map(async (subject) => (await subjectOf(store, subject)).ref),
           )
-          if (options.meeting !== undefined) about.push(await meetingReference(store, options.meeting, options))
+          if (options.meeting !== undefined)
+            about.push(
+              await meetingReference(
+                store,
+                options.meeting,
+                value === undefined ? {} : await oneAccountOf(store, env, value),
+              ),
+            )
           const note = await store.notes.addNote({
             text: body,
             about,

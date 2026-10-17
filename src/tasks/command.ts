@@ -6,7 +6,8 @@ import { TASK_ROLES, TASK_TYPES, type TaskRole } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
 import { accountOptions, oneOf, positive } from "../options.js"
-import { type AccountScope, selectAccount } from "../store/scope.js"
+import { scopeOf } from "../store/scope.js"
+import { ACCOUNTS_HELP, type SourceOptions, theAccounts } from "../store/source-list.js"
 import { listTasks, TASKS_LIST_QUERY } from "./list.js"
 import { taskRelationsCommand } from "./relations-command.js"
 import { sharedTaskCommands } from "./shared.js"
@@ -29,6 +30,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   const group = program.command("tasks").description("open work linked to stored messages, documents and emails")
   taskRelationsCommand(group, streams, env)
   const { print } = answers(program, streams, env)
+  const warn = (text: string) => streams.diagnostic(text)
   fieldOptions(accountOptions(annotate(group.command("add"), { effects: LOCAL_WRITE })))
     .description("add a task from a message, note or document, or one of your own in a project")
     .argument("[source]", "msg: source locator, note:<id> or document:<id>; leave out for a task in a project")
@@ -41,23 +43,25 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .option("--assignee <person...>", "who does it: a person's UID")
     .option("--into <id>", "link the source to this task instead of opening one that may be the same job")
     .option("--new", "open the task even when one like it is open or was closed in the last 14 days")
-    .action(async (source: string | undefined, options: AddOptions & { json?: boolean }) => {
+    .action(async (source: string | undefined, options: AddOptions & SourceOptions & { json?: boolean }) => {
       await withStore(env, async (store) => {
-        print(options.json, itemAnswer(await addTask(store, env, source, options)))
+        const scope = await scopeOf(store, env, options, warn)
+        print(options.json, itemAnswer(await addTask(store, env, source, { ...options, ...scope })))
       })
     })
   withQuery(
     accountOptions(
       annotate(group.command("list"), { effects: LOCAL_READ }).description(
-        "tasks of one account or one project, open by default",
+        "tasks of the accounts --source names, or of one project, open by default",
       ),
+      ACCOUNTS_HELP,
     ),
     TASKS_LIST_QUERY,
   )
     .option("--limit <n>", "most tasks", positive, 100)
-    .action(async (words: string[], options: AccountScope & { limit: number; json?: boolean }) => {
+    .action(async (words: string[], options: SourceOptions & { limit: number; json?: boolean }) => {
       await withStore(env, async (store) => {
-        print(options.json, await listTasks(store, words, options.limit, () => selectAccount(store, options)))
+        print(options.json, await listTasks(store, words, options.limit, () => theAccounts(store, env, options, warn)))
       })
     })
   accountOptions(
@@ -70,10 +74,11 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .action(
       async (
         id: string,
-        options: AccountScope & { as: ReturnType<typeof closedStateOf>; reason?: string; json?: boolean },
+        options: SourceOptions & { as: ReturnType<typeof closedStateOf>; reason?: string; json?: boolean },
       ) => {
         await withStore(env, async (store) => {
-          print(options.json, itemAnswer(await closeTask(store, env, id, options)))
+          const scope = await scopeOf(store, env, options, warn)
+          print(options.json, itemAnswer(await closeTask(store, env, id, { ...options, ...scope })))
         })
       },
     )

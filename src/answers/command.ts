@@ -6,7 +6,7 @@ import type { Command } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
 import { positive } from "../options.js"
 import { type EvidenceItem, searchAccounts, unifiedSearch } from "../search/search.js"
-import type { AccountScope } from "../store/scope.js"
+import { ACCOUNTS_HELP, type SourceOptions, sourceOf, sourceOptions } from "../store/source-list.js"
 
 interface Claim {
   text: string
@@ -88,7 +88,7 @@ export const answerEvidence = async (
 
 export const askCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const { print } = answers(program, streams, env)
-  annotate(program.command("ask"), { effects: REMOTE_READ })
+  const ask = annotate(program.command("ask"), { effects: REMOTE_READ })
     .description("prepare cited evidence for your agent, or explicitly call a configured model")
     .argument("<question>", "the question, in your own words")
     .argument(
@@ -96,8 +96,7 @@ export const askCommand = (program: Command, streams: Streams, env: NodeJS.Proce
       "what to search for: words, phrases, Boolean operators and field queries; default the question",
     )
     .option("--all", "look in every stored account and the notes")
-    .option("--provider <provider>", "look in this provider's accounts only, such as telegram or email")
-    .option("--account <account>", "look in this stored account only, with --provider")
+  sourceOptions(ask, `look in these only: ${ACCOUNTS_HELP}`)
     .option("--limit <n>", "most evidence items, at most 100", positive, 20)
     .option("--analyze", "call MEMO_MODELS_ANALYSIS_PROVIDER/MODEL instead of returning an evidence bundle")
     .option("--allow-remote", "explicitly consent to sending this evidence to the configured model")
@@ -106,7 +105,7 @@ export const askCommand = (program: Command, streams: Streams, env: NodeJS.Proce
       async (
         question: string,
         words: string[],
-        options: AccountScope & {
+        options: SourceOptions & {
           all?: boolean
           limit: number
           analyze?: boolean
@@ -114,9 +113,13 @@ export const askCommand = (program: Command, streams: Streams, env: NodeJS.Proce
           json?: boolean
         },
       ) => {
+        const source = sourceOf(options, (text) => streams.diagnostic(text))
         await withStore(env, async (store) => {
           const found = await unifiedSearch(store, words.length ? words.join(" ") : question, {
-            ...(await searchAccounts(store, options)),
+            ...(await searchAccounts(store, env, {
+              ...(options.all === undefined ? {} : { all: options.all }),
+              ...(source === undefined ? {} : { source }),
+            })),
             limit: options.limit,
           })
           const bundle = {

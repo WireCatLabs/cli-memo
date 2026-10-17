@@ -105,7 +105,7 @@ it("selects project meetings through aliases and refuses a foreign account link"
       .parseAsync([...args, "--json"], { from: "user" })
     return answerOf(streams.stdout.join(""))
   }
-  const flags = ["--provider", account.provider, "--account", account.account]
+  const flags = ["--source", `${account.provider}:${account.account}`]
   expect(await run("projects", "meetings", "link", "Lab Example", meeting, ...flags)).toMatchObject({
     changed: true,
     link: { project: project.ref, confirmed: true },
@@ -116,7 +116,7 @@ it("selects project meetings through aliases and refuses a foreign account link"
   })
   expect((await run("projects", "meetings", "list", "Lab Example", "confirmed:false", ...flags)).items).toEqual([])
   await expect(
-    run("projects", "meetings", "link", "Lab Example", meeting, "--provider", "example", "--account", "BobSample"),
+    run("projects", "meetings", "link", "Lab Example", meeting, "--source", "example:BobSample"),
   ).rejects.toMatchObject({ code: "not_found" })
 })
 

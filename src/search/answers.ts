@@ -35,8 +35,7 @@ const TASKS_OF_HIT: StepDefinition = {
   command: "tasks list",
   args: [
     { name: "query", required: true },
-    { name: "provider", required: true },
-    { name: "account", required: true },
+    { name: "source", required: true },
   ],
   why: "{count} open tasks point at this result",
 }
@@ -56,7 +55,7 @@ export const allAnswer = (
     if (held === undefined) return []
     return [
       stepOf(TASKS_OF_HIT, {
-        args: { query: `source:"${item.ref}"`, provider: held.provider, account: held.account },
+        args: { query: `source:"${item.ref}"`, source: `${held.provider}:${held.account}` },
         values: { count: tasks.length },
       }),
     ]

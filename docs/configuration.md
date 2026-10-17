@@ -43,7 +43,7 @@ The folder `id` is the same on every computer; the `path` is different on each. 
 
 | Key | Meaning |
 |---|---|
-| `name` | The account's name in Himalaya, and the name `memo sync --account` takes. |
+| `name` | The account's name in Himalaya, and the name `memo sync --source email:<name>` takes. |
 | `address` | The email address. |
 | `mode` | `gmail` (the default), `imap`, or `mbox` for a Google Takeout file. |
 | `path` | For `mbox`: the Takeout file, such as `~/Takeout/Mail/All mail Including Spam and Trash.mbox`. |

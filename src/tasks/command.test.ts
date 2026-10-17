@@ -25,11 +25,11 @@ it("creates native note tasks through the CLI and connects context, search, assi
       .parseAsync([...args, "--json"], { from: "user" })
     return answerOf(streams.stdout.join(""))
   }
-  const scope = ["--provider", key.provider, "--account", key.account]
+  const scope = ["--source", `${key.provider}:${key.account}`]
   const added = await run("notes", "add", "Synthetic budget request", "--subject", `person:${person?.uid}`)
   const source = `note:${added.id}`
   await expect(run("tasks", "add", source)).rejects.toMatchObject({ code: "validation_error" })
-  await expect(run("tasks", "add", source, "--provider", "telegram")).rejects.toMatchObject({
+  await expect(run("tasks", "add", source, "--source", "telegram")).rejects.toMatchObject({
     code: "validation_error",
   })
   const task = await run("tasks", "add", source, ...scope)
@@ -38,19 +38,19 @@ it("creates native note tasks through the CLI and connects context, search, assi
     task: { source, source_kind: "note", note: { text: "Synthetic budget request" } },
   })
   expect(await run("tasks", "add", source, ...scope)).toMatchObject({ created: false, task: { id: task.task.id } })
-  expect((await run("tasks", "list", "--provider", "telegram", "--account", "2")).items).toEqual([])
-  await expect(run("tasks", "close", task.task.id, "--provider", "telegram", "--account", "2")).rejects.toMatchObject({
+  expect((await run("tasks", "list", "--source", "telegram:2")).items).toEqual([])
+  await expect(run("tasks", "close", task.task.id, "--source", "telegram:2")).rejects.toMatchObject({
     code: "not_found",
   })
   const unrelated = await run("notes", "add", "Unrelated budget")
   const other = await run("tasks", "add", `note:${unrelated.id}`, ...scope)
   expect(
-    (await run("context", "telegram:101", "--account", "1")).tasks.items.map((item: { id: string }) => item.id),
+    (await run("context", "telegram:101", "--source", "telegram:1")).tasks.items.map((item: { id: string }) => item.id),
   ).toEqual([task.task.id])
   await run("tasks", "assign", other.task.id, person?.uid as string)
-  expect((await run("context", "telegram:101", "--account", "1")).tasks.items).toHaveLength(2)
+  expect((await run("context", "telegram:101", "--source", "telegram:1")).tasks.items).toHaveLength(2)
   const search = await run("search", "all", "budget")
-  type Step = { command: string; args: { query: string; provider: string; account: string } }
+  type Step = { command: string; args: { query: string; source: string } }
   const steps: Step[] = search.next ?? []
   expect(steps.map(({ command, args }) => [command, args.query]).sort()).toEqual(
     [
@@ -60,9 +60,9 @@ it("creates native note tasks through the CLI and connects context, search, assi
   )
   const step = steps.find(({ args }) => args.query === `source:"${source}"`) as Step
   expect(
-    (
-      await run("tasks", "list", step.args.query, "--provider", step.args.provider, "--account", step.args.account)
-    ).items.map((item: { id: string }) => item.id),
+    (await run("tasks", "list", step.args.query, "--source", step.args.source)).items.map(
+      (item: { id: string }) => item.id,
+    ),
   ).toEqual([task.task.id])
   await run("tags", "add", "budget", "--task", task.task.id, ...scope)
   expect(

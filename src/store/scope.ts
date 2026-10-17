@@ -1,6 +1,7 @@
 import { CliError } from "@wirecat/cli-base"
 import { parseLocator } from "@wirecat/cli-core"
 import type { AccountKey, KnowledgeTarget, MessageStore } from "@wirecat/cli-core/store"
+import { oneAccountOf, type SourceOptions, sourceOf } from "./source-list.js"
 
 export interface AccountScope {
   provider?: string
@@ -22,11 +23,7 @@ const choices = (keys: AccountKey[]) =>
 
 export const selectAccount = async (store: MessageStore, scope: AccountScope): Promise<AccountKey> => {
   const held = await store.accounts.accounts()
-  if (!scope.provider)
-    throw new CliError(
-      "validation_error",
-      `select --provider and, when several accounts exist, --account${choices(held)}`,
-    )
+  if (!scope.provider) throw new CliError("validation_error", `give --source <provider>:<account>${choices(held)}`)
   const matches = held.filter(
     (key) => key.provider === scope.provider && (scope.account === undefined || key.account === scope.account),
   )
@@ -34,7 +31,7 @@ export const selectAccount = async (store: MessageStore, scope: AccountScope): P
     throw new CliError(
       matches.length ? "validation_error" : "not_found",
       matches.length
-        ? `several accounts match; select --account explicitly${choices(matches)}`
+        ? `several accounts match; give one${choices(matches)}`
         : `the store holds no ${scope.provider} account matching this selection${choices(held)}`,
     )
   return matches[0] as AccountKey
@@ -75,4 +72,15 @@ export const selectTarget = async (
     return { key: { provider: parsed.provider, account: parsed.account }, target: { type, locator } }
   }
   return { key: await selectAccount(store, input), target: { type, id: input[type] as string } }
+}
+
+/** `--source` as the scope the helpers above take, resolved only when given: a locator may name the account. */
+export const scopeOf = async (
+  store: MessageStore,
+  env: NodeJS.ProcessEnv,
+  options: SourceOptions,
+  warn: (text: string) => void,
+): Promise<AccountScope> => {
+  const value = sourceOf(options, warn)
+  return value === undefined ? {} : oneAccountOf(store, env, value)
 }

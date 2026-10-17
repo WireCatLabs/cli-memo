@@ -116,7 +116,7 @@ memo ask 'What is the Harbour budget?' 'Harbour budget' --all
 ```
 
 The words after the question are what Memo searches for; without them, Memo searches for the whole
-question, and every word must match. `--all` searches every account; use `--provider telegram --account 1` for one
+question, and every word must match. `--all` searches every account; use `--source telegram:1` for one
 account. The answer lists each source with its reference and text, what was searched and whether
 anything was left out. Memo does not answer the question itself and does not save the answer.
 
