@@ -5,3 +5,7 @@ allowBuilds:
 # Our own packages are used the day they are published.
 minimumReleaseAgeExclude:
   - "@wirecat/*"
+
+overrides:
+  markdownlint-cli2>smol-toml: 1.9.0
+  micromark-extension-math>katex: 0.18.2
