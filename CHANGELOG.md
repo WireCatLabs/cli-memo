@@ -4,16 +4,11 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
-## Unreleased
-
-### Added
-
-- `memo meetings actions` stages cited meeting facts and project tasks for owner review. Confirmation creates selected records atomically, keeps review receipts and prevents exact retries from duplicating accepted work. Missing dates and assignees stay unknown; stale evidence is refused.
-
 ## 0.58.0 — 17.10.2026
 
 ### Added
 
+- `memo meetings actions` stages cited meeting facts and project tasks for owner review. Confirmation creates selected records atomically, keeps review receipts and prevents exact retries from duplicating accepted work. Missing dates and assignees stay unknown; stale evidence is refused.
 - **Every sender gets its spam score in the store, and search shows it.** Each sync scores the account's senders
   from the stored mail, at most once a day, as `memo mail inspect` scores a group; a hit from a scored sender
   carries `sender_score` (score and signals) in `--json`. Results are not reordered by it. On the owner's mailbox:
