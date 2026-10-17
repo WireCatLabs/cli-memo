@@ -143,6 +143,20 @@ it("searches every mail account, or with --account only that address", async () 
     code: "not_found",
     message: expect.stringContaining("alice@example.com, bob@example.com"),
   })
+  expect(await run("search", "mail", "Lighthouse", "--source", "email:bob@example.com")).toEqual([
+    "msg:email/bob%40example.com/7/1",
+  ])
+  expect(await run("search", "mail", "Lighthouse", "--source", "email")).toHaveLength(2)
+  await expect(run("search", "mail", "Lighthouse", "--source", "notes")).rejects.toMatchObject({
+    code: "validation_error",
+  })
+
+  const streams = captureStreams()
+  await createProgram({ streams, env }).parseAsync(
+    ["search", "mail", "Lighthouse", "--account", "bob@example.com", "--json"],
+    { from: "user" },
+  )
+  expect(streams.stderr.join("")).toContain("--source email:bob@example.com")
 })
 
 it("shows each email reference first, with its people, labels, subject and an excerpt, at the detail asked", async () => {

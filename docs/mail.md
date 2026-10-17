@@ -282,7 +282,7 @@ missing from the file is deleted from the store, and Spam and Trash are left out
 ```sh
 memo search mail 'invoice'
 memo search mail 'from:kai subject:budget'
-memo search mail 'mailbox:starred' --account work
+memo search mail 'mailbox:starred' --source email:work
 memo search mail 'trip NOT mailbox:bulk'
 memo search all 'budget'
 ```
@@ -291,7 +291,8 @@ Mail sent to many — newsletters, notices, mailing lists, anything with a List-
 `Precedence: bulk` header — is in the mailbox `bulk` (`memo:bulk`), so `NOT mailbox:bulk` leaves it out when it
 crowds a search. It is not left out by default: bills, bookings and other notices from companies carry the same
 headers. memo marks such mail when it reads its headers, which it does for an account that has rules; a full
-listing, at least daily, marks mail stored earlier. `--account` takes the account's name or its address.
+listing, at least daily, marks mail stored earlier. `--source email:<account>` takes the account's name or its
+address; `--source email:work,email:personal` searches both.
 
 Each sync also scores every sender from the mail already stored, at most once a day, the same way
 `memo mail inspect` scores a group. A hit from a scored sender carries `sender_score` in `--json`, with the score
@@ -339,14 +340,14 @@ Memo finds phones, e-mail addresses, links, names and street addresses in every 
 what they are:
 
 ```sh
-memo mentions list email kind:phone --account personal
-memo mentions show 40 --account personal
-memo mentions confirm 40 person:7 --account personal
-memo mentions reject 41 --account personal
+memo mentions list kind:phone --source email:personal
+memo mentions show 40 --source email:personal
+memo mentions confirm 40 person:7 --source email:personal
+memo mentions reject 41 --source email:personal
 ```
 
-Mail is read only from the accounts you name with `--account`. `show` lists the senders who may own a phone, but
-links nothing until you confirm it. `memo mentions list note` and `memo mentions list document` work the same way
-without `--account`.
+`--source` names what to read, the same way in every WireCat tool: `email:personal` one mailbox, `email:personal,email:work`
+several, `mail` every mailbox (the answer lists which), `notes` memo's notes, `documents` imported documents, and
+`group:<name>` a saved group. `show` lists the senders who may own a phone, but links nothing until you confirm it.
 
 Next: [keep mail and notes up to date on a timer](archive.md).

@@ -1515,22 +1515,21 @@ phones, e-mail, links, names and addresses in documents, notes and mail
 
 ### `memo mentions list`
 
-the mentions in one kind of text matching the query, newest text first
+the mentions in the texts --source names matching the query, newest text first
 
 ```sh
-memo mentions list <source> [query] [options]
+memo mentions list [query] [options]
 ```
 
 | Argument | | What it is |
 |---|---|---|
-| `source` | required | the kind of text. One of: `document`, `note`, `email`. |
 | `query` | optional | fields below; a bare word is a value. |
 
 | Option | What it does |
 |---|---|
-| `--account <account>` | mail only: an account to read, by name in mail.accounts or address; repeatable. |
-| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--source <accounts>` | which texts, separated by commas: provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>. |
 | `--limit <n>` | most mentions. Default: `100`. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
 
 ### `memo mentions show`
 
@@ -1546,7 +1545,7 @@ memo mentions show <id> [options]
 
 | Option | What it does |
 |---|---|
-| `--account <account>` | mail only: an account to read, by name in mail.accounts or address; repeatable. |
+| `--source <accounts>` | the mailboxes a mail mention may be in: email:<account>, email or group:<name>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 ### `memo mentions confirm`
@@ -1566,7 +1565,7 @@ memo mentions confirm <id> [person] [options]
 
 | Option | What it does |
 |---|---|
-| `--account <account>` | mail only: an account to read, by name in mail.accounts or address; repeatable. |
+| `--source <accounts>` | the mailboxes a mail mention may be in: email:<account>, email or group:<name>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 
@@ -1586,7 +1585,7 @@ memo mentions reject <id> [options]
 
 | Option | What it does |
 |---|---|
-| `--account <account>` | mail only: an account to read, by name in mail.accounts or address; repeatable. |
+| `--source <accounts>` | the mailboxes a mail mention may be in: email:<account>, email or group:<name>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 
@@ -1994,7 +1993,8 @@ memo search mail <query> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--brief` | each message or email as reference, time, sender and excerpt only. |
 | `--full` | each message or email with its whole text; --json keeps the excerpt, messages show the text. |
-| `--account <account>` | only this mail account, by its name in mail.accounts or its address (default: every mail account). |
+| `--source <accounts>` | the mailboxes to search (default: every one): email:<account> (its name in mail.accounts or its address), email or group:<name>. |
+| `--account <account>` | deprecated: --source email:<account>. |
 
 ### `memo search notes`
 

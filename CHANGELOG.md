@@ -6,6 +6,19 @@ the API.
 
 ## Unreleased
 
+### Changed — may break scripts
+
+- **`memo mentions` names what it reads with `--source`, as every WireCat tool does.** `memo mentions list kind:phone
+  --source email:personal,email:work`; `--source mail` reads every mailbox and the answer lists them in
+  `meta.accounts`; `notes`, `documents` and `group:<name>` work too. The kind argument (`email`, `note`, `document`)
+  and `--account` are gone: `memo mentions list email --account personal` is now `--source email:personal`.
+  `show`, `confirm` and `reject` take `--source email:<account>` for a mail mention.
+
+### Deprecated
+
+- **`memo search mail --account <account>` is now `--source email:<account>`**, which also takes several mailboxes
+  and groups. `--account` still works in this version and prints the new spelling.
+
 ## 0.59.0 — 17.10.2026
 
 ### Added

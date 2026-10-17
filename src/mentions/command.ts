@@ -3,16 +3,12 @@ import { annotate } from "@wirecat/cli-base/commands"
 import { parseLucene, type QueryRegistry, validateQuery } from "@wirecat/cli-base/query"
 import { LOCAL_READ, LOCAL_WRITE, queryHelp, termField } from "@wirecat/cli-core/cli"
 import type { MessageStore } from "@wirecat/cli-core/store"
-import { Argument, type Command } from "commander"
+import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
 import { authorOf, byOption } from "../author.js"
-import { loadConfig } from "../config.js"
-import { mailAccounts } from "../mail/accounts.js"
-import { collect, positive } from "../options.js"
+import { positive } from "../options.js"
+import { SOURCE_HELP, type SourceList, sourceListOf } from "../store/source-list.js"
 
-const SOURCES = ["document", "note", "email"] as const
-type Source = (typeof SOURCES)[number]
-type Mail = { provider: string; account: string }[]
 type Found = Awaited<ReturnType<MessageStore["sourceMentions"]["list"]>>["items"][number]
 
 // cli-core's registry is not exported from `./store`; the store reads these same four fields.
@@ -31,42 +27,25 @@ export const MENTION_QUERY = {
   ],
 } as const satisfies QueryRegistry
 
-const configured = (env: NodeJS.ProcessEnv) => loadConfig(env).mail?.accounts ?? []
+type Mail = SourceList["mail"]
 
-const mailOf = (env: NodeJS.ProcessEnv, names: string[] | undefined): Mail =>
-  names === undefined
-    ? []
-    : mailAccounts(configured(env), names).map(({ address }) => ({ provider: "email", account: address.toLowerCase() }))
-
-/** Mail is read only from the accounts named, never every mailbox by default. */
-const namedMail = (env: NodeJS.ProcessEnv, names: string[] | undefined): Mail => {
-  if (names !== undefined) return mailOf(env, names)
-  const choices = configured(env)
-    .map(({ name }) => name)
-    .join(", ")
-  throw new CliError("validation_error", `mail mentions need --account: one of ${choices || "none in mail.accounts"}`, {
-    reason: "mail.account-required",
-  })
-}
+const mailOf = async (store: MessageStore, env: NodeJS.ProcessEnv, source: string | undefined): Promise<Mail> =>
+  source === undefined ? [] : (await sourceListOf(store, env, source)).mail
 
 const line = ({ id, kind, value, status, source }: Found) =>
   `${id}  ${source.at ?? "-"}  ${kind}  ${value}  ${status}  ${source.type}:${source.id}` +
   (source.title ? `  ${source.title}` : "") +
   (source.from ? `  from ${source.from}` : "")
 
-const withAccount = (command: Command) =>
-  command
-    .option(
-      "--account <account>",
-      "mail only: an account to read, by name in mail.accounts or address; repeatable",
-      collect,
-    )
-    .option("--json", "print JSON; --json=id,title keeps only those fields")
+const withSource = (command: Command, what: string) =>
+  command.option("--source <accounts>", what).option("--json", "print JSON; --json=id,title keeps only those fields")
+
+const SCOPE = "the mailboxes a mail mention may be in: email:<account>, email or group:<name>"
 
 const idArgument = (command: Command) => command.argument("<id>", "the mention's id, from memo mentions list", positive)
 
 interface Options {
-  account?: string[]
+  source?: string
   json?: boolean
   asOwner?: boolean
 }
@@ -81,46 +60,69 @@ export const mentionsCommand = (program: Command, streams: Streams, env: NodeJS.
     .command("mentions")
     .description("phones, e-mail, links, names and addresses in documents, notes and mail")
 
-  withAccount(
-    annotate(mentions.command("list"), { effects: LOCAL_READ, query: MENTION_QUERY }).description(
-      "the mentions in one kind of text matching the query, newest text first",
-    ),
-  )
-    .addArgument(new Argument("<source>", "the kind of text").choices(SOURCES))
+  annotate(mentions.command("list"), { effects: LOCAL_READ, query: MENTION_QUERY })
+    .description("the mentions in the texts --source names matching the query, newest text first")
     .argument("[query...]", "fields below; a bare word is a value")
+    .requiredOption("--source <accounts>", SOURCE_HELP)
     .option("--limit <n>", "most mentions", positive, 100)
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText("after", queryHelp(MENTION_QUERY))
-    .action(async (source: Source, words: string[], options: Options & { limit: number }) => {
-      const mail = source === "email" ? namedMail(env, options.account) : []
+    .action(async (words: string[], options: { source: string; limit: number; json?: boolean }) => {
       const text = words.join(" ").trim()
       const query = text
         ? validateQuery(parseLucene(text, { ...MENTION_QUERY, defaultField: "value" }), MENTION_QUERY)
         : undefined
-      const page = await withStore(env, (store) =>
-        store.sourceMentions.list(source, query, { limit: options.limit, offset: 0 }, mail),
-      )
+      const { found, read } = await withStore(env, async (store) => {
+        const list = await sourceListOf(store, env, options.source)
+        const kinds = [
+          ...(list.mail.length > 0 ? (["email"] as const) : []),
+          ...(list.notes ? (["note"] as const) : []),
+          ...(list.documents ? (["document"] as const) : []),
+        ]
+        const window = { limit: options.limit, offset: 0 }
+        const pages = await Promise.all(
+          kinds.map((kind) => store.sourceMentions.list(kind, query, window, kind === "email" ? list.mail : [])),
+        )
+        const read = [
+          ...list.mail.map(({ provider, account }) => `${provider}:${account}`),
+          ...(list.notes ? ["notes:internal"] : []),
+          ...(list.documents ? ["documents"] : []),
+        ]
+        return { found: pages, read }
+      })
+      const all = found
+        .flatMap((page) => page.items)
+        .sort((a, b) => (b.source.at ?? "").localeCompare(a.source.at ?? ""))
+      const items = all.slice(0, options.limit)
       print(
         options.json,
         listAnswer("mentions list", {
-          items: page.items,
+          items,
           limit: options.limit,
-          has_more: page.hasMore,
-          args: { query: text },
+          has_more: all.length > options.limit || found.some((page) => page.hasMore),
+          args: { query: text, source: options.source },
+          meta: { accounts: read },
         }),
-        page.items.map(line).join("\n"),
+        [...items.map(line), `read: ${read.join(", ") || "nothing"}`].join("\n"),
       )
     })
 
   idArgument(
-    withAccount(
+    withSource(
       annotate(mentions.command("show"), { effects: LOCAL_READ })
         .summary("one mention, the text around it, and who it may be")
         .description("one mention, the text around it, how many other places hold its value, and who it may be"),
+      SCOPE,
     ),
   ).action(async (id: number, options: Options) => {
-    const found = await withStore(env, (store) => store.sourceMentions.show(id, mailOf(env, options.account)))
+    const found = await withStore(env, async (store) =>
+      store.sourceMentions.show(id, await mailOf(store, env, options.source)),
+    )
     if (!found)
-      throw new CliError("not_found", `no mention ${id} in a document, a note or the mail named; mail needs --account`)
+      throw new CliError(
+        "not_found",
+        `no mention ${id} in a document, a note or the mail named; a mail one needs --source email:<account>`,
+      )
     print(
       options.json,
       itemAnswer(found),
@@ -132,35 +134,39 @@ export const mentionsCommand = (program: Command, streams: Streams, env: NodeJS.
 
   byOption(
     idArgument(
-      withAccount(
+      withSource(
         annotate(mentions.command("confirm"), { effects: LOCAL_WRITE })
           .summary("say what a mention is, everywhere its value is written")
           .description(
             "say what a mention is: a phone's owner everywhere it is written, the stored document, who a name means",
           ),
+        SCOPE,
       ),
     ),
   )
     .argument("[person]", "person:<uid> or organization:<id> that owns the phone or address, or a name means")
     .action((id: number, person: string | undefined, options: Options) =>
       run(options.json, async (store) =>
-        itemAnswer(await store.sourceMentions.confirm(id, person, decider(options), mailOf(env, options.account))),
+        itemAnswer(
+          await store.sourceMentions.confirm(id, person, decider(options), await mailOf(store, env, options.source)),
+        ),
       ),
     )
 
   byOption(
     idArgument(
-      withAccount(
+      withSource(
         annotate(mentions.command("reject"), { effects: LOCAL_WRITE })
           .summary("dismiss a mention's value everywhere, and on later imports")
           .description(
             "not a real mention: dismiss its value everywhere and on later imports; a name only where it is",
           ),
+        SCOPE,
       ),
     ),
   ).action((id: number, options: Options) =>
     run(options.json, async (store) =>
-      itemAnswer(await store.sourceMentions.reject(id, decider(options), mailOf(env, options.account))),
+      itemAnswer(await store.sourceMentions.reject(id, decider(options), await mailOf(store, env, options.source))),
     ),
   )
 }
