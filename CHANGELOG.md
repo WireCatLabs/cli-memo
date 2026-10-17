@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.65.0 — 18.10.2026
+
 ## 0.64.0 — 18.10.2026
 
 ### Changed — may change search results
