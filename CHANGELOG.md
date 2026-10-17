@@ -6,6 +6,11 @@ the API.
 
 ## Unreleased
 
+### Documentation
+
+- The command reference's opening says reads take `--source` and writes take `--account provider:account`; it
+  still named `--provider` and `--account`.
+
 ## 0.65.0 — 18.10.2026
 
 ### Fixed

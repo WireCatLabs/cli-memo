@@ -2,7 +2,7 @@
 
 # All commands
 
-Look up every Memo command and option here. Commands that work in one messenger or mail account take `--provider` and `--account`; Memo never chooses an account for you. Add `--json` for an answer a script or agent can read. See [recipes](recipes.md) for whole tasks and [using Memo](usage.md) for a normal day.
+Look up every Memo command and option here. A command that reads names its accounts with `--source`: one as `telegram:1` or `email:work`, every account of a provider, a kind, or `group:<name>`. A command that writes names the one account it acts as with `--account telegram:1`. Memo never chooses an account for you. Add `--json` for an answer a script or agent can read. See [recipes](recipes.md) for whole tasks and [using Memo](usage.md) for a normal day.
 
 ## Global options
 
@@ -748,7 +748,7 @@ memo tasks assign <id> <person> [options]
 
 ### `memo tasks agenda`
 
-what needs a look today, from the local store and without message text: tasks overdue, due or to check, chats where you owe an answer, chats where you wait for one
+what needs a look today, from the local store and without message text: tasks overdue, due or to check, chats where you owe an answer, chats where you wait for one, open tasks someone else does
 
 ```sh
 memo tasks agenda [query] [options]
@@ -1962,6 +1962,7 @@ memo search all <query> [options]
 | `--brief` | each message or email as reference, time, sender and excerpt only. |
 | `--full` | each message or email with its whole text; --json keeps the excerpt, messages show the text. |
 | `--only <resources>` | messages,mail,notes, separated by commas. |
+| `--plain-order` | best first by the words alone, without moving mail from suspicious senders down. |
 | `--project <project>` | rank the key documents of this project (id, key or project:<id>) first; nothing is left out. |
 
 ### `memo search messages`
@@ -2006,6 +2007,7 @@ memo search mail <query> [options]
 | `--brief` | each message or email as reference, time, sender and excerpt only. |
 | `--full` | each message or email with its whole text; --json keeps the excerpt, messages show the text. |
 | `--source <accounts>` | the mailboxes to search (default: every one): email:<account> (its name in mail.accounts or its address), email or group:<name>. |
+| `--plain-order` | best first by the words alone, without moving mail from suspicious senders down. |
 | `--account <account>` | deprecated: --source email:<account>. |
 
 ### `memo search notes`
