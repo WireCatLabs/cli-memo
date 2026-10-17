@@ -4,6 +4,9 @@
 shared store of [`@wirecat/cli-core`](https://github.com/WireCatLabs/cli-core); this repository
 reads notes, imports mail into that store, and answers.
 
+The [WireCat CLI standards](https://github.com/WireCatLabs/cli-base/blob/main/docs/standards/README.md)
+apply here and win over this file; it keeps only memo's own rules.
+
 Security audits of this repository follow the shared
 [security method](https://github.com/WireCatLabs/cli-testing/tree/main/docs/security) in cli-testing;
 vulnerabilities are reported as the
@@ -36,13 +39,15 @@ Sparse, and only *why*. The global rule in `~/.claude/CLAUDE.md` applies.
 
 Conventional commits, a branch off `main`, a pull request. The pre-commit hook checks staged lint and secrets; no other local checks are required by default.
 
-A change a caller can see gets a `CHANGELOG.md` entry under `## Unreleased`. Releasing is `bin/release`
-on `main`, once the first release is agreed.
+A change a caller can see gets a `CHANGELOG.md` entry under `## Unreleased`, under one of the five headings of
+[WC-DOC-15](https://github.com/WireCatLabs/cli-base/blob/main/docs/standards/docs.md#wc-doc-15--changelog-entries-go-under-five-fixed-headings-each-at-most-once-per-section).
+Older released sections keep the headings they shipped with. Releasing is `bin/release` on `main`.
 
 ## Documents
 
-They state the current facts only: a changed fact is rewritten with no mark, and git keeps the old
-text. `CHANGELOG.md` is the one place for history.
+They state the current facts only
+([WC-DOC-3](https://github.com/WireCatLabs/cli-base/blob/main/docs/standards/docs.md#wc-doc-3--every-document-states-current-facts-rewrite-a-wrong-sentence-in-place)).
+`CHANGELOG.md` is the one place for history.
 
 ## Before a release that changes how mail is indexed
 
@@ -56,10 +61,6 @@ which held the lock for hours after 44,000 emails were cut to envelopes.
 
 ## Development check budget
 
-Local commits check only staged lint and secrets. There is no pre-push check.
-Config integrity, repository lint, Markdown, and secret detection run in PR CI.
-The bounded `ci:quick` step adds typechecking, a build and the command lint for CLI packages or synthetic unit tests for the docs site.
-Full tests, coverage and builds also run once on each merge to `main` (Linux only, no publishing).
-Browser and platform suites run for releases, explicit manual validation, and monthly nonpublishing
-validation. See the
-[shared policy](https://github.com/WireCatLabs/community/blob/main/standards/README.md#ci-and-hooks).
+Hooks, pull request CI and full validation follow the handbook's
+[CI rules](https://github.com/WireCatLabs/cli-base/blob/main/docs/standards/ci.md). Here `ci:quick` is
+`pnpm typecheck && pnpm build && pnpm lint:commands`.
