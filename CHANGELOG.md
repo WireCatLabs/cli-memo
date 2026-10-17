@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.65.0 — 18.10.2026
+
 ### Fixed
 
 - **A sync step that fails unexpectedly says why.** The timer's log showed only "the command failed; this is a bug";
