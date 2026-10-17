@@ -73,6 +73,31 @@ A decision can replace an earlier one: add `--supersedes fact:2`. When you accep
 the old one stops holding. When a decision no longer holds and nothing replaced it, run
 `memo facts reverse fact:4`.
 
+## Meeting findings
+
+After reading meeting evidence, ask your agent to propose the decisions and follow-up work you want to keep. Review the cited cues before creating records. A project-name match alone does not establish membership: the meeting must already have a confirmed link to the project.
+
+The agent stages a JSON batch through `memo meetings actions add`. Each finding names an ID, a project and exact cue references with the fingerprints returned by `zm meetings evidence`. Facts retain their kind, such as `decision` or `promise`; tasks say whether a commitment was explicit or an inferred follow-up. Unknown dates and assignees stay absent; supplied values need their own supporting cues.
+
+```sh
+memo meetings actions add findings.json --provider zoom --account me@example.com
+memo meetings actions list status:proposed --provider zoom --account me@example.com
+memo meetings actions show 5 --provider zoom --account me@example.com
+```
+
+The file uses `schema_version: 1`, a stable `key`, `extractor` and `findings`. Each finding has `id`, `kind`, `project` and `evidence` (objects with `reference` and `fingerprint`). A fact adds `type` and `statement`. A task adds `type` (`bug`, `chore` or `feature`), `title`, `reason` and `commitment` (`explicit` or `inferred`). Optional `due_at` needs `due_evidence`; optional `assignee` needs `assignee_evidence`, both listing supporting cue references. `-` reads JSON from stdin. The batch accepts up to 16 findings and 65,536 UTF-8 bytes.
+
+Staging creates no fact or task. Your preview shows previous decisions on unchanged candidates. Open the sources, then personally confirm the candidate IDs you want to keep, or reject the batch. Replace the hash below with the preview's exact fingerprint:
+
+```sh
+memo meetings actions confirm 5 decision followup --fingerprint <hash> --provider zoom --account me@example.com
+memo meetings actions reject 5 --fingerprint <hash> --provider zoom --account me@example.com
+```
+
+Confirmation creates selected facts and project tasks together and rejects the other new candidates. It sends nothing. A terminal identified as an agent cannot confirm or reject these batches; the owner runs those commands directly. The generic `memo actions confirm` path refuses meeting findings.
+
+Repeating the same batch key and content returns the existing batch. Repeating a review returns its receipt. A later batch reuses accepted references and keeps unchanged rejected candidates rejected; leaving out an existing accepted candidate does not revoke it. This prevents exact retries from duplicating work, not differently worded proposals or records you added elsewhere. Changed sources or project membership make pending review stale: ask for a new preview. Reviewed receipts keep their original citations after later transcript revisions.
+
 ## Proposed actions
 
 A proposed action is something an agent wants done in one of your accounts: a reply, an invitation, a

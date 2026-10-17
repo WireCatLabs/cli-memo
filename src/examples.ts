@@ -118,6 +118,15 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "actions add": [
     "memo actions add reply --reason 'Kai asked twice' --provider telegram --target 'msg:telegram/1/77/42' --payload '{\"text\":\"Friday works\"}'",
   ],
+  "meetings actions add": ["memo meetings actions add findings.json --provider example --account synthetic"],
+  "meetings actions list": ["memo meetings actions list status:proposed --provider example --account synthetic"],
+  "meetings actions show": ["memo meetings actions show 5 --provider example --account synthetic"],
+  "meetings actions confirm": [
+    "memo meetings actions confirm 5 decision --fingerprint aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --provider example --account synthetic",
+  ],
+  "meetings actions reject": [
+    "memo meetings actions reject 5 --fingerprint aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --provider example --account synthetic",
+  ],
   "actions list": ["memo actions list status:proposed"],
   "actions show": ["memo actions show 5"],
   "actions confirm": ["memo actions confirm 5"],
