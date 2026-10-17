@@ -45,10 +45,38 @@ it("scores each sender from the stored mail at most once a day", async () => {
   })
   const now = Date.parse("2026-10-17T00:00:00Z")
 
-  expect(await scoreSenders(store, ME, env, now)).toBe(2)
-  expect(await scoreSenders(store, ME, env, now + DAY / 2)).toBeUndefined()
+  const none = async () => ({ looked: 0, failed: 0 })
+  expect(await scoreSenders(store, ME, env, now, none)).toMatchObject({ scored: 2 })
+  expect(await scoreSenders(store, ME, env, now + DAY / 2, none)).toBeUndefined()
 
   const state = await store.sync.syncState({ provider: "email", account: ME }, "mail_sender_scores")
   expect(JSON.parse(state?.value ?? "{}")).toEqual({ version: SCORE_VERSION, at: now })
-  expect(await scoreSenders(store, ME, env, now + DAY)).toBe(2)
+  expect(await scoreSenders(store, ME, env, now + DAY, none)).toMatchObject({ scored: 2 })
+})
+
+it("looks up the domains of senders heard from in the last two years only, never a big mailbox provider", async () => {
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "scores-")), "wirecat.db") }
+  const store = await openStore({ env })
+  opened.push(store)
+  const accountId = await store.accounts.saveAccount({ provider: "email", account: ME }, { name: ME })
+  const now = Date.parse("2026-10-17T00:00:00Z")
+  const at = (iso: string) => ({ sentAt: Date.parse(iso), receivedAt: Date.parse(iso) })
+  await store.mail.saveThread({
+    accountId,
+    externalId: "t1",
+    now: 1,
+    emails: [
+      mail(1, "deals@fresh-shop.example", "Fresh Shop", at("2026-09-01T00:00:00Z")),
+      mail(2, "news@old-shop.example", "Old Shop", at("2019-01-01T00:00:00Z")),
+      mail(3, "friend@gmail.com", "Friend", at("2026-09-02T00:00:00Z")),
+    ],
+  })
+  const asked: string[] = []
+  const lookUp = async (_: NodeJS.ProcessEnv, domains: readonly string[]) => {
+    asked.push(...domains)
+    return { looked: domains.length, failed: 0 }
+  }
+
+  expect(await scoreSenders(store, ME, env, now, lookUp)).toMatchObject({ scored: 3, looked: 1 })
+  expect(asked).toEqual(["fresh-shop.example"])
 })

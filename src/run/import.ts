@@ -276,7 +276,11 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
               const filled = await backfillHeaders(store, mailSource(account, env), account.address)
               if (filled) streams.diagnostic(`mail ${account.name}: ${filled} older emails' headers read`)
               const scored = await scoreSenders(store, account.address, env)
-              if (scored) streams.diagnostic(`mail ${account.name}: ${scored} senders scored`)
+              if (scored)
+                streams.diagnostic(
+                  `mail ${account.name}: ${scored.scored} senders scored, ${scored.looked} domain ages looked up` +
+                    (scored.failed ? `, ${scored.failed} failed` : ""),
+                )
             })
         } finally {
           await store.close()
