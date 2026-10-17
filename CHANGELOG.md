@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.59.0 — 17.10.2026
+
 ### Added
 
 - **Mail stored before memo kept Reply-To and Gmail's SPF, DKIM and DMARC verdicts gets them.** Each sync reads
