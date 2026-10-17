@@ -6,6 +6,11 @@ the API.
 
 ## Unreleased
 
+### Documentation
+
+- **How to read a sender score** in the mail guide: which signals point at a forged sender and which bills share
+  with newsletters, and why a platform passing on other names is not a spoof.
+
 ### Changed — may break scripts
 
 - **`memo mentions` names what it reads with `--source`, as every WireCat tool does.** `memo mentions list kind:phone
