@@ -32,6 +32,12 @@ describe("memo", () => {
     expect(parseCommandsDocument(JSON.parse(streams.stdout.join(""))).problems).toBeUndefined()
   })
 
+  it("lists mcp as persistent, since it serves until stdin closes", async () => {
+    const streams = captureStreams()
+    await createProgram({ streams }).parseAsync(["commands", "mcp", "--json"], { from: "user" })
+    expect(JSON.parse(streams.stdout.join("")).commands).toMatchObject([{ name: "mcp", lifetime: "persistent" }])
+  })
+
   it("refuses an unknown command path", async () => {
     await expect(
       createProgram({ streams: captureStreams() }).parseAsync(["commands", "nope"], { from: "user" }),

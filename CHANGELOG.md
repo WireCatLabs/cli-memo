@@ -19,6 +19,14 @@ the API.
 - **`memo search mail --account <account>` is now `--source email:<account>`**, which also takes several mailboxes
   and groups. `--account` still works in this version and prints the new spelling.
 
+### Fixed
+
+- **memo's MCP tools refuse an argument they do not take**, as every other CLI's tools do: all 22 answer
+  `validation_error` (reason `input.invalid`, `param` naming the argument) instead of dropping it, so a misspelled
+  filter no longer runs unfiltered. Their advertised input schemas now say `additionalProperties: false`.
+- **`memo mcp` is listed as `lifetime: "persistent"`** in `memo commands --json`, like `tg mcp` and `max mcp`: it
+  serves until stdin closes. No other command's entry changes.
+
 ## 0.59.0 — 17.10.2026
 
 ### Added
