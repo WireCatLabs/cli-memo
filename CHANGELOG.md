@@ -6,13 +6,6 @@ the API.
 
 ## Unreleased
 
-### Added
-
-- **`memo mentions list|show|confirm|reject`: phones, e-mail addresses, links, documents, names and street addresses in
-  documents, notes and mail.** `memo mentions list note kind:phone`; mail is read only from the accounts named by
-  `--account` (repeatable), never every mailbox by default. `show` names the senders of received mail that may own a
-  phone or an address (`candidates`), offered and never linked.
-
 ## 0.58.0 — 17.10.2026
 
 ### Added
@@ -22,6 +15,10 @@ the API.
   from the stored mail, at most once a day, as `memo mail inspect` scores a group; a hit from a scored sender
   carries `sender_score` (score and signals) in `--json`. Results are not reordered by it. On the owner's mailbox:
   5,789 senders in 15 seconds. cli-core 0.311.0 (store version 19).
+- **`memo mentions list|show|confirm|reject`: phones, e-mail addresses, links, documents, names and street addresses in
+  documents, notes and mail.** `memo mentions list note kind:phone`; mail is read only from the accounts named by
+  `--account` (repeatable), never every mailbox by default. `show` names the senders of received mail that may own a
+  phone or an address (`candidates`), offered and never linked.
 
 ## 0.57.0 — 17.10.2026
 
