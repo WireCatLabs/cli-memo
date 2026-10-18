@@ -2,6 +2,7 @@ import { CliError } from "@wirecat/cli-base"
 import { parseLocator } from "@wirecat/cli-core"
 import type { Author, Link, MessageStore, Project } from "@wirecat/cli-core/store"
 import { heldMessage } from "../store/held.js"
+import { canonicalProject } from "../vocabulary/project.js"
 
 export interface KeyDocument {
   ref: string
@@ -18,17 +19,17 @@ export interface KeyDocument {
 
 const KEYABLE = /^(note|document|msg):/
 
-/** A project by its id, `project:<id>` or key; one the store does not hold is an error, not an empty answer. */
 export const projectOf = async (store: MessageStore, reference: string): Promise<Project> => {
-  const wanted = reference.replace(/^project:/, "")
-  const project = (await store.knowledge.projects()).find(
-    (candidate) => candidate.id === wanted || candidate.key?.toLowerCase() === wanted.toLowerCase(),
-  )
-  if (!project)
-    throw new CliError("not_found", `no project ${reference}; memo projects list shows them`, {
-      reason: "project.not-found",
-    })
-  return project
+  try {
+    const wanted = await canonicalProject(store, /^[1-9]\d*$/.test(reference) ? `project:${reference}` : reference)
+    const project = (await store.knowledge.projects()).find((candidate) => candidate.ref === wanted)
+    if (project) return project
+  } catch (error) {
+    if (!(error instanceof CliError) || error.code !== "not_found") throw error
+  }
+  throw new CliError("not_found", `no project ${reference}; memo projects list shows them`, {
+    reason: "project.not-found",
+  })
 }
 
 /** A key mark is a `related-to` link from the source to the project, with the role `key` and the reason. */

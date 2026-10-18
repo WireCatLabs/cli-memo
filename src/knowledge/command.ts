@@ -154,11 +154,11 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .action((options: { json?: boolean }) => ownedList("projects list", options, (store) => store.knowledge.projects()))
   annotate(projects.command("context"), { effects: LOCAL_READ })
     .description(
-      "one project by its id, key or project:<id>: its key documents first, then its relationships, the notes " +
-        "about or linking it, and its tags. Start work on a project here",
+      "one project by its id, project:<id>, key, exact name or alias: its key documents first, then its " +
+        "relationships, the notes about or linking it, and its tags. Start work on a project here",
     )
     .summary("one project: key documents, relationships, notes and tags; start work here")
-    .argument("<project>", "its id, key or project:<id>")
+    .argument("<project>", "its id, project:<id>, key, exact name or alias")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((reference: string, options: { json?: boolean }) =>
       owned(options, async (store) => {
@@ -175,7 +175,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   byOption(
     annotate(keys.command("add"), { effects: LOCAL_WRITE })
       .description("mark a note:, document: or msg: reference as a key document of the project")
-      .argument("<project>", "id, key or project:<id>")
+      .argument("<project>", "id, project:<id>, key, exact name or alias")
       .argument("<reference>", "note:, document: or msg: reference")
       .requiredOption("--reason <text>", "why it is key, in a few words")
       .option("--json", "print JSON; --json=id,title keeps only those fields"),
@@ -186,7 +186,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   )
   annotate(keys.command("remove"), { effects: LOCAL_WRITE })
     .description("unmark a key document; the note, file or message stays")
-    .argument("<project>", "id, key or project:<id>")
+    .argument("<project>", "id, project:<id>, key, exact name or alias")
     .argument("<reference>", "the key document's note:, document: or msg: reference")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((project: string, reference: string, options: { json?: boolean }) =>
@@ -194,7 +194,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     )
   annotate(keys.command("list"), { effects: LOCAL_READ })
     .description("a project's key documents: why, who marked each and whether it is still there")
-    .argument("<project>", "id, key or project:<id>")
+    .argument("<project>", "id, project:<id>, key, exact name or alias")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((project: string, options: { json?: boolean }) =>
       ownedList("projects key-documents list", options, async (store) =>
