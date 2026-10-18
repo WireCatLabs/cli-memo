@@ -1,5 +1,5 @@
 import { CliError } from "@wirecat/cli-base"
-import { entriesOfList } from "@wirecat/cli-core/services"
+import { type ContextSource, entriesOfList } from "@wirecat/cli-core/services"
 import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { loadConfig } from "../config.js"
@@ -190,6 +190,47 @@ export const oneAccountOf = async (
   if (keys.length === 1) return keys[0] as AccountKey
   if (keys.length === 0) throw noStoredAccount(value)
   throw new CliError("validation_error", `${value} names ${keys.length} accounts; give one: ${named(keys)}`)
+}
+
+/**
+ * The stored accounts a project gather reads, as context sources: messenger accounts, mailboxes and imported notes
+ * folders. Your own notes and meeting or Drive accounts have no context reader yet; `all` reports them as left out,
+ * an entry that names only them is refused.
+ */
+export const contextSourcesOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: string) => {
+  const held = await store.accounts.storedAccounts()
+  const sources: ContextSource[] = []
+  const unread: { source: string; kind: string }[] = []
+  for (const { entry, accounts } of await listedOf(store, env, value)) {
+    let read = 0
+    for (const { provider, account, kind } of accounts) {
+      const stored =
+        kind === "notes"
+          ? held.find((one) => one.provider === FOLDER && String(one.id) === account)
+          : kind === "messages" || kind === "mail"
+            ? held.find((one) => one.provider === provider && one.account === account)
+            : undefined
+      if (stored === undefined) {
+        unread.push({ source: `${provider}:${account}`, kind })
+        continue
+      }
+      read++
+      const source: ContextSource = {
+        kind: kind === "notes" ? "document" : kind === "mail" ? "mail" : "message",
+        accountId: stored.id,
+        provider: stored.provider,
+        account: stored.account,
+      }
+      if (!sources.some((one) => one.accountId === source.accountId && one.kind === source.kind)) sources.push(source)
+    }
+    if (read === 0 && entry.trim() !== "all")
+      throw new CliError(
+        "validation_error",
+        `${entry}: a gather reads messenger accounts, mailboxes and imported notes folders (notes:<id>)`,
+        { param: "source" },
+      )
+  }
+  return { sources, unread, scope: value.trim() === "all" ? ("all-connected" as const) : ("explicit" as const) }
 }
 
 export interface SourceOptions {

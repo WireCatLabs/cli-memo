@@ -29,6 +29,7 @@ import {
 import { keyDocuments, markKey, projectOf, unmarkKey } from "./key-documents.js"
 import { meetingProjectsCommand } from "./meeting-projects-command.js"
 import { projectContext, projectContextText } from "./project-context.js"
+import { projectGatherCommand } from "./project-gather-command.js"
 
 const RELATIONSHIP_QUERY = {
   entity: "relationship",
@@ -165,6 +166,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       const context = await withStore(env, (store) => projectContext(store, reference))
       print(options.json, itemAnswer(context), projectContextText(context))
     })
+  projectGatherCommand(projects, print, env)
   const keys = projects
     .command("key-documents")
     .description("the notes, files and messages to read first about a project, each with why")
