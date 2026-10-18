@@ -4,7 +4,7 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
-## Unreleased
+## 0.67.0 — 18.10.2026
 
 ### Fixed
 
@@ -20,8 +20,6 @@ the API.
 - The README names `vocabulary show` and `vocabulary check`, and the MCP tool `vocabulary_check`; it named
   `resolve` and `preflight`, which do not exist. It links memo's own pages on wirecat.dev, says that search by
   meaning needs tg-cli or max-cli to download the model, and that macOS and Windows are not tested yet.
-
-## 0.67.0 — 18.10.2026
 
 ### Added
 
