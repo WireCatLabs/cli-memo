@@ -1830,6 +1830,31 @@ memo meetings actions reject <id> [options]
 | `--json` | print JSON; --json=id,status keeps only those fields. |
 | `--fingerprint <hash>` | the exact fingerprint shown in the preview. |
 
+### `memo meetings passage`
+
+read a cited cue with bounded context before and after it
+
+```sh
+memo meetings passage <reference> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `reference` | required | retained transcript cue reference from a search hit. |
+
+| Option | What it does |
+|---|---|
+| `--before-n <n>` | preceding cues (default 3). |
+| `--after-n <n>` | following cues (default 3); at most 999 surrounding cues in total. |
+| `--bytes <bytes>` | cue JSON byte budget (default 65536); the anchor must fit. |
+| `--max-read-bytes <bytes>` | stored text byte budget (default 4194304); boundary probes read metadata only. |
+| `--expected-fingerprint <hash>` | reject a changed anchor using its previously read cue fingerprint. |
+| `--format <format>` | compact text, Markdown or structured JSON. One of: `text`, `markdown`, `json`. Default: `text`. |
+| `--source <accounts>` | the meeting account: provider:account (zoom:me@example.com), or a provider that has one. |
+| `--provider <provider>` | deprecated: --source <provider>. |
+| `--account <account>` | deprecated: --source <provider>:<account>. |
+| `--json` | print the standard JSON answer. |
+
 ## `memo actions`
 
 what an agent proposes to do; confirming one makes it your task, nothing is sent
@@ -2072,6 +2097,31 @@ memo search memories <query> [options]
 |---|---|
 | `--limit <n>` | most memories, up to 500. Default: `20`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+### `memo search meetings`
+
+find words in stored meetings, indexing new ones first
+
+```sh
+memo search meetings <query> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | required | words to find; each also matches its other word forms. |
+
+| Option | What it does |
+|---|---|
+| `--project <project>` | meetings confirmed in this project, by name, key or alias. |
+| `--since-time <time>` | meetings starting at or after this ISO 8601 date or time. |
+| `--until-time <time>` | meetings starting at or before this ISO 8601 date or time. |
+| `--limit <n>` | how many hits, 1 through 1000 (default 100). |
+| `--cursor <cursor>` | continue from the previous page's page.next_cursor, with the same query and filters. |
+| `--max-read-bytes <bytes>` | most stored bytes to read, 1 through 67108864 (default 4194304). |
+| `--source <accounts>` | the meeting account: provider:account (zoom:me@example.com), or a provider that has one. |
+| `--provider <provider>` | deprecated: --source <provider>. |
+| `--account <account>` | deprecated: --source <provider>:<account>. |
+| `--json` | print the standard JSON answer. |
 
 ## `memo ask`
 

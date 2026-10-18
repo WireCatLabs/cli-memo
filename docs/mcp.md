@@ -2,7 +2,7 @@
 
 This page helps you connect Memo to an AI app that has no terminal, such as Claude Desktop or Cursor.
 MCP (Model Context Protocol) is the way these apps use a program on your computer. Once connected,
-the app can read your messages, mail and notes, and what Memo knows about a person. It can also save
+the app can read your messages, mail, notes and archived meetings, and what Memo knows about a person. It can also save
 memories, record facts and propose actions. What it saves waits for your review.
 
 ## What the app can do through MCP
@@ -18,7 +18,7 @@ memories, record facts and propose actions. What it saves waits for your review.
 | Look up projects, tags and topics by name, and see which tasks are ready | Create or link tasks |
 
 Only three tools write: `memories_add`, `facts_add` and `actions_add`. What they add waits as proposed
-until you confirm it, and an action is never sent. Every other tool only reads. Connect Memo only to an app
+until you confirm it, and an action is never sent. Other tools do not change source records; meeting search may update its local text index. Connect Memo only to an app
 you trust to read your messages, mail and notes.
 
 ## Connect an app
@@ -53,6 +53,7 @@ Use the memo tools to list the memories waiting for my review.
 |---|---|
 | `search_all` | Search messages from every messenger, mail and notes together, read only |
 | `search_messages`, `search_mail`, `search_notes` | Search one kind with all its fields, read only |
+| `search_meetings`, `meeting_passage` | Search stored meetings in one explicit source account and read cited transcript passages |
 | `person_context` | One person across messengers and mail, with linked notes and tasks, read only |
 | `memories_add`, `memories_list`, `memories_show`, `search_memories` | Save and read memories |
 | `facts_add`, `facts_list`, `facts_show` | Record and read facts |
@@ -74,5 +75,8 @@ memo agents log agent:memo-mcp --limit 20
 ```
 
 The log shows the tool, the result and the time, never what the app sent.
+
+For meeting evidence, see [meeting search](search.md#search-stored-meetings). Meeting findings batches
+currently use the command line (`memo meetings actions add`), not an MCP batch tool.
 
 Next: [review what the app saved](memories.md).

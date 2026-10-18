@@ -4,6 +4,17 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- `search meetings` and `meetings passage`, with MCP `search_meetings` and `meeting_passage`, read
+  archived meeting evidence through shared Core readers. Explicit source selection, project/label
+  aliases, dates and scoped cursors keep searches bounded; MCP also has label, participant, event and
+  series selectors. Passages
+  include fingerprints for reviewed findings; unknown speakers and archive coverage stay explicit.
+  `search all` continues to combine messages, mail and notes.
+
 ## 0.66.0 — 18.10.2026
 
 ### Added

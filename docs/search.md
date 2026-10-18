@@ -23,8 +23,9 @@ one with `memo notes show` or in the original app.
 | Your notes and files | `memo search notes 'budget'` |
 | Your email | `memo search mail 'budget'` |
 | Telegram or MAX messages | `memo search messages 'budget'` |
+| Stored meeting transcripts and summaries | `memo search meetings 'budget' --source zoom:work` |
 
-`search all` looks in messages, mail and notes together. It does not search people, memories,
+`search all` looks in messages, mail and notes together. It does not search meetings, people, memories,
 projects or tasks; use `memo context`, `memo search memories` and `memo tasks list` for those.
 When you know where something is, its own search is better, because it understands more search
 words.
@@ -77,6 +78,41 @@ memo search mail 'budget' --source email:you@example.com
 `mailbox:` finds a mail folder or a Gmail label, such as `inbox`, `important` or `starred`. Without
 `--source`, Memo searches every mail account; `--source email:work,email:personal` searches those two. Text inside attachments is searched too
 (`filename:` and `content:`).
+
+## Search stored meetings
+
+Once Zoom has archived your meetings into the shared store, Memo can find matching transcript passages,
+meeting titles, summaries and chat text locally. It does not contact Zoom or send text to a model.
+Use your stored account name in place of `zoom:work`. `--source zoom` also works when the store has
+exactly one Zoom account; an ambiguous selection lists the accounts to choose from:
+
+```sh
+memo search meetings 'budget' --source zoom:work --project HRB --since-time 2026-10-01 --limit 10 --json
+memo meetings passage 'meeting:1/42/3/0' --source zoom:work --before-n 2 --after-n 2 --json
+```
+
+Copy a hit's `ref` into the passage command. A transcript hit has a cue reference such as
+`meeting:1/42/3/0`, its parent meeting reference and `offset_ms`. A title, summary or chat hit points
+to the meeting; passage reading requires a transcript cue. The passage includes nearby cues, speaker
+labels, revision and fingerprints so an agent can cite exactly what it read. Preserve a null speaker
+as unknown; a label alone does not establish a person's identity.
+
+`--project` accepts a project key, name or recorded alias and selects confirmed meeting links.
+The MCP `search_meetings` tool also accepts `tag` and `topic` with existing labels and their aliases.
+A project word in a transcript does
+not link the meeting to that project. To discover unlinked meetings, search the project's different
+names separately without `--project`, then review the matches. MCP `identity_id` and `person_id`
+select meetings with observed participants; they do not restrict results to that person's speech.
+
+Meeting search uses its own word query and flags; the mail/message query fields above do not apply.
+Use `memo search meetings --help` for date and project options; MCP also has event and series selectors.
+JSON answers have the standard
+`items`, `page`, `next` and `meta.accounts`; use the returned cursor with the same account and filters.
+The `missing` field reports unknown archive completeness. Even when indexing is ready, an empty search
+cannot prove that no meeting discussed the subject. If passages changed during indexing, rerun the
+search as its next step suggests. An unarchived or missing transcript must first be obtained with Zoom.
+
+Next, [turn cited meeting passages into findings for review](recipes.md#review-a-meetings-decisions-and-follow-ups).
 
 ## Search by meaning
 

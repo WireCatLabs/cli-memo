@@ -198,6 +198,56 @@
     "annotations": {
       "destructiveHint": false,
       "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "after": {
+          "maximum": 999,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "before": {
+          "maximum": 999,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "bytes": {
+          "maximum": 4194304,
+          "minimum": 2,
+          "type": "integer"
+        },
+        "expected_fingerprint": {
+          "pattern": "^[a-f0-9]{64}$",
+          "type": "string"
+        },
+        "max_read_bytes": {
+          "maximum": 67108864,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "reference": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "source": {
+          "description": "one stored meeting account, provider:account",
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": ["source", "reference"],
+      "type": "object"
+    },
+    "name": "meeting_passage"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
       "readOnlyHint": false
     },
     "inputSchema": {
@@ -384,6 +434,94 @@
       "type": "object"
     },
     "name": "search_mail"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "event_id": {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "identity_id": {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "limit": {
+          "maximum": 1000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "max_read_bytes": {
+          "maximum": 67108864,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "meeting_id": {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "person_id": {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "project": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "query": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "series_id": {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "since_time": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "source": {
+          "description": "one stored meeting account, provider:account",
+          "minLength": 1,
+          "type": "string"
+        },
+        "tag": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "topic": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "until_time": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": ["source", "query"],
+      "type": "object"
+    },
+    "name": "search_meetings"
   },
   {
     "annotations": {
