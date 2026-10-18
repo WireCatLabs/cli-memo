@@ -96,6 +96,14 @@ currently combines messages, mail and notes, not meetings. Keep returned `meetin
 recording supported knowledge from a meeting. A mentioned person is not automatically a participant,
 and a project-name match does not establish membership. Unknown coverage does not prove absence.
 
+Use `memo meetings prepare <provider-series-id> --source <provider>:<account>` or MCP `meeting_prepare`
+for cited stored series history and linked context. It makes no provider call: the next meeting time
+is unverified. Optional communications IDs are stored `app.profile` or `email.mailbox` labels, such as
+`tg.personal`; `--context-query` matches every literal word, not OR. No account is searched implicitly.
+Keep a fixed zoned window when continuing with `--context-source id=cursor`. Preserve per-source index
+coverage, `restart_required` and unknown archive completeness. File documents are read separately.
+Preparation neither confirms decisions nor assigns tasks. A series ID is not a local meeting ID.
+
 For reviewed meeting findings, use `memo meetings actions add <file>` (`-` for stdin), then
 `show` or `list status:proposed`. This stages a batch without creating facts or tasks. Cite exact cue
 references and fingerprints from `memo meetings passage` or `zm meetings evidence`; confirmed project membership is required.

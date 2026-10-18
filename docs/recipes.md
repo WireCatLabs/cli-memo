@@ -17,6 +17,37 @@ Your agent runs `memo context` for the person and reads the sources. Check the p
 sources it shows. If a part is empty, the chats may not be downloaded or the accounts not linked
 ([people](people.md)).
 
+If you have archived meetings from the same recurring series, ask your agent to include them:
+
+```text prompt
+Prepare for my next Harbour meeting. Find the exact meeting series in my selected Zoom account,
+then gather its archived discussions, linked people and projects, notes and open tasks.
+Also search the stored messages in my personal Telegram profile for Harbour over the last month.
+Suggest an agenda with sources. Separate proposals from agreed actions and say what history is missing.
+Do not claim that a future time is verified from the local archive.
+```
+
+The agent uses `memo meetings prepare <series-id> --source <provider>:<account>` with the provider's
+exact series ID, which Zoom's meeting list can show. The ID is not a local meeting number. This reads
+stored history only: it needs no new Zoom permission and does not check the calendar. Use the provider's
+calendar to verify a future occurrence. An unarchived series can still have selected message context,
+but Memo cannot invent its missing transcripts.
+
+Messages and mail are included only when selected. `--context-source tg.personal` means the stored
+`personal` profile of `tg`; `max.personal` works the same way. `email.work` means a mailbox called `work`
+in Memo's mail settings. The profile or mailbox must already be stored. Repeat the flag for up to eight
+accounts and give `--context-query Harbour`. Every literal word must match; `OR` is not an alias operator.
+Use separate queries for alternative names. This selection does not include file notes or documents;
+read those separately with [project context](people.md#organizations-and-projects) and [search](search.md).
+
+For a fixed period, give zoned timestamps with `--context-since-time` and the exclusive
+`--context-before-time`. Defaults cover fourteen days before the preparation start; a communications
+window cannot exceed ninety days. `--history-since-time` separately controls earlier meetings.
+Add `--json` for cited evidence, linked context and coverage. Each communications source reports its
+index state and, when possible, `next_cursor`; continue with `--context-source tg.personal=<cursor>`
+and the same query and explicit window. If `restart_required` is true, increase `--bytes` and restart;
+do not assume the displayed excerpts cover every match. Nothing is accepted or assigned by preparation.
+
 ## Review a meeting's decisions and follow-ups
 
 Use this after your meeting transcripts are archived. Your agent can read evidence in Memo, suggest
@@ -47,8 +78,8 @@ without duplicating the proposal; changing the contents requires a new key.
 
 For preparation, ask the agent to combine the earlier meeting passages with the project's accepted
 facts and open tasks (`memo projects context`) and the participants' messages, mail and notes
-(`memo context`). Zoom's meeting preparation reader can also gather stored series history. Memo's
-new passage reader does not itself locate an upcoming calendar event or infer project membership.
+(`memo context`). `memo meetings prepare` gathers bounded stored series history and linked context;
+it does not locate an upcoming calendar event or infer project membership.
 The answer should show its sources and missing history before it suggests an agenda.
 
 If no passages appear, check the selected account and archive coverage, then try project aliases

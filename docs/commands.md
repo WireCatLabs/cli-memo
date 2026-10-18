@@ -1855,6 +1855,38 @@ memo meetings passage <reference> [options]
 | `--account <account>` | deprecated: --source <provider>:<account>. |
 | `--json` | print the standard JSON answer. |
 
+### `memo meetings prepare`
+
+prepare cited stored context for a series; does not verify its next meeting time
+
+```sh
+memo meetings prepare <series-id> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `series-id` | required | exact provider series ID. |
+
+| Option | What it does |
+|---|---|
+| `--context-source <id=cursor>` | one stored app.profile or email.mailbox, optionally =cursor; repeat (tg.personal). Default: ``. |
+| `--context-query <words>` | literal words to find within the selected communications. |
+| `--context-since-time <time>` | communications window start as zoned ISO timestamp (default fourteen days before end). |
+| `--context-before-time <time>` | exclusive communications end as zoned ISO timestamp (default preparation start). |
+| `--project <project>` | include unconfirmed word evidence for one existing project name, key or alias. |
+| `--since-time <time>` | window start as ISO timestamp with zone (default now). |
+| `--before-time <time>` | exclusive window end as ISO timestamp (default seven days after start). |
+| `--history-since-time <time>` | history start as ISO timestamp (default thirty days before start). |
+| `--meetings <n>` | prior occurrences and separate related-meeting limit, 1–20 (default 5). |
+| `--cues <n>` | cues per occurrence, 1–100 (default 10). |
+| `--context-limit <n>` | entries per context category, 1–100 (default 20). |
+| `--max-read-bytes <bytes>` | stored/normalized bytes per read, at most 4194304 (default 262144). |
+| `--bytes <bytes>` | preparation item JSON bytes, 4096–4194304 (default 65536). |
+| `--source <accounts>` | the meeting account: provider:account (zoom:me@example.com), or a provider that has one. |
+| `--provider <provider>` | deprecated: --source <provider>. |
+| `--account <account>` | deprecated: --source <provider>:<account>. |
+| `--json` | print the standard JSON answer. |
+
 ## `memo actions`
 
 what an agent proposes to do; confirming one makes it your task, nothing is sent

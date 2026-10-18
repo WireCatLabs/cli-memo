@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**393 ✅ · 0 ⛔ · 139 ❌** — 112 commands, 420 options.
+**409 ✅ · 0 ⛔ · 141 ❌** — 113 commands, 437 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -432,6 +432,24 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `meetings passage` | `--provider` | ✅ |  |
 | `meetings passage` | `--account` | ✅ |  |
 | `meetings passage` | `--json` | ✅ |  |
+| `meetings prepare` |  | ✅ |  |
+| `meetings prepare` | `--context-source` | ✅ |  |
+| `meetings prepare` | `--context-query` | ✅ |  |
+| `meetings prepare` | `--context-since-time` | ✅ |  |
+| `meetings prepare` | `--context-before-time` | ✅ |  |
+| `meetings prepare` | `--project` | ✅ |  |
+| `meetings prepare` | `--since-time` | ✅ |  |
+| `meetings prepare` | `--before-time` | ✅ |  |
+| `meetings prepare` | `--history-since-time` | ✅ |  |
+| `meetings prepare` | `--meetings` | ✅ |  |
+| `meetings prepare` | `--cues` | ✅ |  |
+| `meetings prepare` | `--context-limit` | ✅ |  |
+| `meetings prepare` | `--max-read-bytes` | ✅ |  |
+| `meetings prepare` | `--bytes` | ✅ |  |
+| `meetings prepare` | `--source` | ✅ |  |
+| `meetings prepare` | `--provider` | ❌ |  |
+| `meetings prepare` | `--account` | ❌ |  |
+| `meetings prepare` | `--json` | ✅ |  |
 | `actions add` |  | ✅ |  |
 | `actions add` | `--as-owner` | ✅ |  |
 | `actions add` | `--reason` | ✅ |  |
