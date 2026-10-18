@@ -13,6 +13,8 @@ the API.
 
 ### Fixed
 
+- Project context, key-document commands and search key-document ordering accept an exact project name or alias,
+  as meeting searches do. Ambiguous names list candidates; numeric IDs, `project:<id>` and keys still work.
 - **`memo sync` reports the files it could not read on every run, also in the text report.** Each folder line counts
   them (`1 not read`) and a line names each file and why, such as a file over 50 MiB or an `.xls`. Before, only the
   first run's `--json` listed them, and the count of notes included them.

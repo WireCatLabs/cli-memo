@@ -57,8 +57,10 @@ export const found = (item: SearchFound["items"][number], level: Level | undefin
 }
 
 const PROJECT_HELP =
-  "rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out"
-const PROJECT_ORDER_HELP = "rank the key documents of this project (id, key or project:<id>) first; nothing is left out"
+  "rank the key documents of this project (id, project:<id>, key, exact name or alias) first, labelled key; " +
+  "nothing is left out"
+const PROJECT_ORDER_HELP =
+  "rank the key documents of this project (id, project:<id>, key, exact name or alias) first; nothing is left out"
 
 export const searchCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const group = program

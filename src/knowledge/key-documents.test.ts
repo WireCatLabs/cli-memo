@@ -73,6 +73,29 @@ it("keeps a key document whose source is gone, marked unavailable", async () => 
   ])
 })
 
+it("adds, lists and removes key documents through exact project names and aliases", async () => {
+  const { run, plan } = await setUp()
+  const vocabulary = await run("vocabulary", "list", "kind:project")
+  await run("vocabulary", "aliases", "add", "project:1", "Harbour Launch", "--fingerprint", vocabulary.fingerprint)
+
+  await run("projects", "key-documents", "add", "harbour launch", plan, "--reason", "read first")
+  expect((await run("projects", "key-documents", "list", "Synthetic Harbour")).items).toMatchObject([
+    { ref: plan, reason: "read first" },
+  ])
+  expect((await run("projects", "context", "Harbour Launch")).key_documents).toMatchObject([{ ref: plan }])
+  await run("projects", "key-documents", "remove", "Harbour Launch", plan)
+  expect((await run("projects", "key-documents", "list", "1")).items).toEqual([])
+})
+
+it("refuses an ambiguous project before adding a key document", async () => {
+  const { run, plan } = await setUp()
+  await run("projects", "add", "Synthetic Harbour", "--key", "HBR")
+  await expect(
+    run("projects", "key-documents", "add", "Synthetic Harbour", plan, "--reason", "read first"),
+  ).rejects.toMatchObject({ code: "validation_error" })
+  for (const key of ["SYH", "HBR"]) expect((await run("projects", "key-documents", "list", key)).items).toEqual([])
+})
+
 it("records an agent's mark as unconfirmed, by that agent", async () => {
   const { run, plan } = await setUp({ AI_AGENT: "claude-code_2-1-296_agent" })
   expect(await run("projects", "key-documents", "add", "SYH", plan, "--reason", "read first")).toMatchObject({
@@ -94,13 +117,15 @@ it("refuses a project or a source the store does not hold", async () => {
 
 it("ranks a project's key documents first in a search, labelled, without dropping the rest", async () => {
   const { run, plan, draft } = await setUp()
+  const vocabulary = await run("vocabulary", "list", "kind:project")
+  await run("vocabulary", "aliases", "add", "project:1", "Harbour Launch", "--fingerprint", vocabulary.fingerprint)
   await run("projects", "key-documents", "add", "SYH", draft, "--reason", "the latest draft")
 
-  const all = await run("search", "all", "Harbour", "--only", "notes", "--project", "SYH")
+  const all = await run("search", "all", "Harbour", "--only", "notes", "--project", "Harbour Launch")
   expect(all.items[0]).toMatchObject({ ref: draft })
   expect(all.items.map((item: { ref: string }) => item.ref)).toContain(plan)
 
-  const notes = await run("search", "notes", "Harbour", "--project", "SYH")
+  const notes = await run("search", "notes", "Harbour", "--project", "Synthetic Harbour")
   expect(notes.items[0]).toMatchObject({ ref: draft, key: true })
   expect(notes.items.map((hit: { ref: string }) => hit.ref)).toContain(plan)
 })

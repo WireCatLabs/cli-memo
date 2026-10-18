@@ -137,7 +137,7 @@ describe("combined evidence, relationships and local reminders", () => {
 })
 
 describe("project context", () => {
-  it("finds a project by its key as well as its id", async () => {
+  it("finds a project by its exact name or alias as well as its key and id", async () => {
     const root = mkdtempSync(join(tmpdir(), "memo-project-key-")),
       env = { ...process.env, MESSAGING_STORE: join(root, "store.db") }
     const run = async (...args: string[]) => {
@@ -146,9 +146,46 @@ describe("project context", () => {
       return answerOf(streams.stdout.join(""))
     }
     await run("projects", "add", "Synthetic Harbour", "--key", "SYH", "--json")
-    for (const reference of ["SYH", "syh", "project:1", "1"])
+    const vocabulary = await run("vocabulary", "list", "kind:project", "--json")
+    await run(
+      "vocabulary",
+      "aliases",
+      "add",
+      "project:1",
+      "Harbour Launch",
+      "--fingerprint",
+      vocabulary.fingerprint,
+      "--json",
+    )
+    await run("projects", "add", "1", "--key", "ONE", "--json")
+    for (const reference of ["SYH", "syh", "project:1", "1", "Synthetic Harbour", "harbour launch"])
       expect((await run("projects", "context", reference, "--json")).project).toMatchObject({ id: "1", key: "SYH" })
     expect((await run("projects", "context", "project:1", "--json")).notes.subject).toBe("project:1")
+  })
+
+  it("refuses an ambiguous project name and keeps explicit keys available", async () => {
+    const root = mkdtempSync(join(tmpdir(), "memo-ambiguous-project-")),
+      env = { ...process.env, MESSAGING_STORE: join(root, "store.db") }
+    const run = async (...args: string[]) => {
+      const streams = captureStreams()
+      await createProgram({ streams, env })
+        .exitOverride()
+        .parseAsync([...args, "--json"], { from: "user" })
+      return answerOf(streams.stdout.join(""))
+    }
+    await run("projects", "add", "Synthetic Harbour", "--key", "SYH")
+    await run("projects", "add", "Synthetic Harbour", "--key", "HBR", "--scope", "work")
+    await expect(run("projects", "context", "Synthetic Harbour")).rejects.toMatchObject({
+      code: "validation_error",
+      details: {
+        candidates: [
+          { id: "1", key: "SYH" },
+          { id: "2", key: "HBR" },
+        ],
+      },
+    })
+    expect((await run("projects", "context", "HBR")).project).toMatchObject({ id: "2", key: "HBR" })
+    await expect(run("projects", "context", "Synthetic")).rejects.toMatchObject({ code: "not_found" })
   })
 
   it("finds an organization by organization:<id> as well as its id", async () => {
@@ -171,7 +208,10 @@ describe("project context", () => {
       createProgram({ streams: captureStreams(), env }).parseAsync(args, { from: "user" })
     await run("projects", "add", "Synthetic Harbour", "--key", "SYH", "--json")
     for (const reference of ["NOPE", "project:9", "9"])
-      await expect(run("projects", "context", reference, "--json")).rejects.toMatchObject({ code: "not_found" })
+      await expect(run("projects", "context", reference, "--json")).rejects.toMatchObject({
+        code: "not_found",
+        details: { reason: "project.not-found" },
+      })
     await expect(run("organizations", "context", "organization:9", "--json")).rejects.toMatchObject({
       code: "not_found",
     })

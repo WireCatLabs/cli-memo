@@ -1004,7 +1004,7 @@ memo projects list [options]
 
 ### `memo projects context`
 
-one project by its id, key or project:<id>: its key documents first, then its relationships, the notes about or linking it, and its tags. Start work on a project here
+one project by its id, project:<id>, key, exact name or alias: its key documents first, then its relationships, the notes about or linking it, and its tags. Start work on a project here
 
 ```sh
 memo projects context <project> [options]
@@ -1012,7 +1012,7 @@ memo projects context <project> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `project` | required | its id, key or project:<id>. |
+| `project` | required | its id, project:<id>, key, exact name or alias. |
 
 | Option | What it does |
 |---|---|
@@ -1034,7 +1034,7 @@ memo projects key-documents add <project> <reference> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `project` | required | id, key or project:<id>. |
+| `project` | required | id, project:<id>, key, exact name or alias. |
 | `reference` | required | note:, document: or msg: reference. |
 
 | Option | What it does |
@@ -1055,7 +1055,7 @@ memo projects key-documents remove <project> <reference> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `project` | required | id, key or project:<id>. |
+| `project` | required | id, project:<id>, key, exact name or alias. |
 | `reference` | required | the key document's note:, document: or msg: reference. |
 
 | Option | What it does |
@@ -1072,7 +1072,7 @@ memo projects key-documents list <project> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `project` | required | id, key or project:<id>. |
+| `project` | required | id, project:<id>, key, exact name or alias. |
 
 | Option | What it does |
 |---|---|
@@ -2041,7 +2041,7 @@ memo search all <query> [options]
 | `--full` | each message or email with its whole text; --json keeps the excerpt, messages show the text. |
 | `--only <resources>` | messages,mail,notes, separated by commas. |
 | `--plain-order` | best first by the words alone, without moving mail from suspicious senders down. |
-| `--project <project>` | rank the key documents of this project (id, key or project:<id>) first; nothing is left out. |
+| `--project <project>` | rank the key documents of this project (id, project:<id>, key, exact name or alias) first; nothing is left out. |
 
 ### `memo search messages`
 
@@ -2111,7 +2111,7 @@ memo search notes <query> [options]
 | `--filter <query>` | another query every note must match. |
 | `--source <accounts>` | only these notes accounts, separated by commas: notes:internal for notes written in memo, notes:<folder id> as a hit shows it, notes or group:<name>. |
 | `--page <n>` | which page, from 1. Default: `1`. |
-| `--project <project>` | rank the key documents of this project (id, key or project:<id>) first, labelled key; nothing is left out. |
+| `--project <project>` | rank the key documents of this project (id, project:<id>, key, exact name or alias) first, labelled key; nothing is left out. |
 
 ### `memo search memories`
 
