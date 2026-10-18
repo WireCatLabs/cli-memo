@@ -23,6 +23,7 @@ import { listMemories, MEMORY_QUERY, memoryItem, searchMemories } from "../memor
 import { writeAccount } from "../store/source-list.js"
 import { VERSION } from "../version.js"
 import { knowledgeTools } from "./knowledge.js"
+import { meetingTools } from "./meetings.js"
 import { taskRelationTools } from "./task-relations.js"
 import { define, type MemoTool } from "./tool.js"
 import { vocabularyTools } from "./vocabulary.js"
@@ -34,9 +35,10 @@ const by = { bot: AGENT }
 /** What a client keeps when it defers the tools; Claude Code cuts it at 2048 characters. */
 export const INSTRUCTIONS = [
   "The owner's own records: facts, memories and proposed actions, kept beside their messages, mail, notes and meetings.",
-  "Search here across every source: search_all when you do not know where something was written; search_messages,",
-  "search_mail, search_notes for one kind; person_context for one person across messengers and mail. tg, max and zm",
-  "search only their own messages. Then keep what a conversation showed:",
+  "search_all combines messages, mail and notes; search_messages, search_mail, search_notes select one kind.",
+  "search_meetings reads stored meetings in one explicit source account; meeting_passage reads cited cues.",
+  "Project aliases select confirmed links, not mentions. Preserve unknown speakers and archive coverage.",
+  "person_context gathers one person across messengers and mail. Then keep what a conversation showed:",
   "",
   "- What happened — said, asked, decided, promised — is a fact: facts_add with its kind.",
   "- What you concluded — a summary, a digest, a preference — is a memory: memories_add.",
@@ -51,6 +53,7 @@ const limit = (most: number) => v.optional(v.pipe(v.number(), v.integer(), v.min
 
 export const MEMO_TOOLS: Record<string, MemoTool> = {
   ...knowledgeTools,
+  ...meetingTools,
   ...vocabularyTools,
   ...taskRelationTools,
   memories_add: define({

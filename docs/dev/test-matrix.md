@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**371 ✅ · 0 ⛔ · 139 ❌** — 110 commands, 400 options.
+**393 ✅ · 0 ⛔ · 139 ❌** — 112 commands, 420 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -421,6 +421,17 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `meetings actions reject` | `--provider` | ❌ |  |
 | `meetings actions reject` | `--json` | ✅ |  |
 | `meetings actions reject` | `--fingerprint` | ✅ |  |
+| `meetings passage` |  | ✅ |  |
+| `meetings passage` | `--before-n` | ✅ |  |
+| `meetings passage` | `--after-n` | ✅ |  |
+| `meetings passage` | `--bytes` | ✅ |  |
+| `meetings passage` | `--max-read-bytes` | ✅ |  |
+| `meetings passage` | `--expected-fingerprint` | ✅ |  |
+| `meetings passage` | `--format` | ✅ |  |
+| `meetings passage` | `--source` | ✅ |  |
+| `meetings passage` | `--provider` | ✅ |  |
+| `meetings passage` | `--account` | ✅ |  |
+| `meetings passage` | `--json` | ✅ |  |
 | `actions add` |  | ✅ |  |
 | `actions add` | `--as-owner` | ✅ |  |
 | `actions add` | `--reason` | ✅ |  |
@@ -483,6 +494,17 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `search memories` |  | ✅ |  |
 | `search memories` | `--limit` | ❌ |  |
 | `search memories` | `--json` | ✅ |  |
+| `search meetings` |  | ✅ |  |
+| `search meetings` | `--project` | ✅ |  |
+| `search meetings` | `--since-time` | ✅ |  |
+| `search meetings` | `--until-time` | ✅ |  |
+| `search meetings` | `--limit` | ✅ |  |
+| `search meetings` | `--cursor` | ✅ |  |
+| `search meetings` | `--max-read-bytes` | ✅ |  |
+| `search meetings` | `--source` | ✅ |  |
+| `search meetings` | `--provider` | ✅ |  |
+| `search meetings` | `--account` | ✅ |  |
+| `search meetings` | `--json` | ✅ |  |
 | `ask` |  | ✅ |  |
 | `ask` | `--all` | ✅ |  |
 | `ask` | `--source` | ✅ |  |

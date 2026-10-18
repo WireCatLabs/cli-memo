@@ -19,6 +19,7 @@ import { knowledgeCommands } from "./knowledge/command.js"
 import { mailCommand } from "./mail/command.js"
 import { messagesCommand } from "./mail/messages-command.js"
 import { mcpCommand } from "./mcp/command.js"
+import { meetingReadCommands } from "./meetings/command.js"
 import { memoriesCommand } from "./memories/command.js"
 import { mentionsCommand } from "./mentions/command.js"
 import { notesCommand } from "./notes/command.js"
@@ -54,6 +55,19 @@ const OWN_ENTITIES = entityFields({
     "origin",
   ],
   vocabulary: ["entries", "fingerprint", "coverage"],
+  meeting_context: [
+    "schema_version",
+    "kind",
+    "source",
+    "target_ref",
+    "target_fingerprint",
+    "fingerprint",
+    "revision",
+    "limits",
+    "content_bytes",
+    "coverage",
+    "items",
+  ],
   vocabulary_inspection: [
     "source",
     "survivor",
@@ -119,6 +133,7 @@ export const createProgram = ({
   agentsCommand(program, streams, env)
   mcpCommand(program, streams, env)
   searchCommand(program, streams, env)
+  meetingReadCommands(program, streams, env)
   askCommand(program, streams, env)
   syncCommand(program, streams, env)
   autoCommand(program, streams, env)

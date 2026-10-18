@@ -90,14 +90,15 @@ memo commands search messages --json             # one relevant command
 
 Cite each result by its reference (`msg:…`, `note:…`, `document:…`) so the owner can open it.
 
-Zoom transcripts are read with `zm search meetings` and `zm meetings passage`; memo's `search all`
+Stored meeting transcripts are read with `memo search meetings` and `memo meetings passage` using
+one explicit `--source provider:account`; `zm` also exposes these shared readers. Memo's `search all`
 currently combines messages, mail and notes, not meetings. Keep returned `meeting:` references when
 recording supported knowledge from a meeting. A mentioned person is not automatically a participant,
 and a project-name match does not establish membership. Unknown coverage does not prove absence.
 
 For reviewed meeting findings, use `memo meetings actions add <file>` (`-` for stdin), then
 `show` or `list status:proposed`. This stages a batch without creating facts or tasks. Cite exact cue
-references and fingerprints from `zm meetings evidence`; confirmed project membership is required.
+references and fingerprints from `memo meetings passage` or `zm meetings evidence`; confirmed project membership is required.
 Keep unknown dates/assignees absent and distinguish explicit commitments from inferred follow-ups.
 Read `memo meetings actions add --help` for the bounded JSON fields. Reuse a batch key only for an
 exact retry. Show the preview and sources to the owner; leave `confirm`/`reject` to them.

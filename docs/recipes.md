@@ -17,6 +17,43 @@ Your agent runs `memo context` for the person and reads the sources. Check the p
 sources it shows. If a part is empty, the chats may not be downloaded or the accounts not linked
 ([people](people.md)).
 
+## Review a meeting's decisions and follow-ups
+
+Use this after your meeting transcripts are archived. Your agent can read evidence in Memo, suggest
+what matters and leave the result for your decision:
+
+```text prompt
+Review the recent Harbour meetings in my selected Zoom account. Look up the project's existing
+aliases and tags first. Search the stored transcripts and read the surrounding passages.
+Show observed attendees separately from people merely mentioned. Propose decisions, key statements
+and follow-up tasks, citing each exact passage. Leave unknown dates and assignees blank, distinguish
+explicit commitments from inferred tasks, and leave everything proposed for my review.
+```
+
+For attendee lists, the agent reads archived meeting metadata with `zm meetings show`; transcript
+speaker labels alone are not an attendance roster. The agent uses `memo search meetings` and
+`memo meetings passage`, then stages a batch with
+`memo meetings actions add` using the cue references and fingerprints. This creates a review proposal;
+it does not immediately create accepted facts or tasks. Confirmed meeting-to-project links must already
+exist for project findings. If they are missing, the agent should show candidate links for review.
+Use existing tags rather than creating synonyms; `memo vocabulary check` can suggest similar names,
+but similarity does not establish that two tags mean the same thing.
+
+Review the batch with `memo meetings actions list status:proposed` and `memo meetings actions show`.
+Check each claim against its source before confirming selected finding IDs with the batch's current
+fingerprint. Only you can confirm or reject a meeting findings batch; an agent cannot approve its own
+work. Accepted tasks use the project's numbered keys. Repeating an identical batch key retries it
+without duplicating the proposal; changing the contents requires a new key.
+
+For preparation, ask the agent to combine the earlier meeting passages with the project's accepted
+facts and open tasks (`memo projects context`) and the participants' messages, mail and notes
+(`memo context`). Zoom's meeting preparation reader can also gather stored series history. Memo's
+new passage reader does not itself locate an upcoming calendar event or infer project membership.
+The answer should show its sources and missing history before it suggests an agenda.
+
+If no passages appear, check the selected account and archive coverage, then try project aliases
+without a project filter. [Meeting search](search.md#search-stored-meetings) explains these boundaries.
+
 ## Find where something was decided
 
 ```text prompt
