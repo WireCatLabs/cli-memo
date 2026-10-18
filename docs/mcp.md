@@ -2,22 +2,24 @@
 
 This page helps you connect Memo to an AI app that has no terminal, such as Claude Desktop or Cursor.
 MCP (Model Context Protocol) is the way these apps use a program on your computer. Once connected,
-the app can save memories, record facts, propose actions and read the agent log. What it saves waits
-for your review.
+the app can read your messages, mail and notes, and what Memo knows about a person. It can also save
+memories, record facts and propose actions. What it saves waits for your review.
 
 ## What the app can do through MCP
 
 | The app can | The app cannot |
 |---|---|
+| Search and read your stored messages, mail and notes | Send a message or a mail |
+| Read one person's context across messengers and mail | Change your notes, mail or messages |
 | Add, list, show and search memories | Confirm a memory |
 | Add, list and show facts | Accept a fact |
 | Propose actions and list them | Approve or reject an action |
-| Read the agent log | Change your notes, mail or messages |
+| Read the agent log | Delete anything |
 | Look up projects, tags and topics by name, and see which tasks are ready | Create or link tasks |
 
-Search, a person's context and notes are not part of Memo's MCP server. An app reaches them through
-tg's or max's MCP server (see [the tg MCP server](https://wirecat.dev/en/docs/tg/mcp)), or an agent
-with a terminal runs `memo` with `--json`.
+Only three tools write: `memories_add`, `facts_add` and `actions_add`. What they add waits as proposed
+until you confirm it, and an action is never sent. Every other tool only reads. Connect Memo only to an app
+you trust to read your messages, mail and notes.
 
 ## Connect an app
 

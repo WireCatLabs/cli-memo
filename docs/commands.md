@@ -1929,7 +1929,7 @@ memo agents log [query] [options]
 
 ## `memo mcp`
 
-serve memories, proposed actions and the agent log over MCP on stdin and stdout
+serve search, person context, memories, facts and actions over MCP on stdio
 
 This command changes the local store or your files.
 
