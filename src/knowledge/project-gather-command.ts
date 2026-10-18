@@ -1,11 +1,10 @@
-import { CliError } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { type Body, LOCAL_READ } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { itemAnswer, withStore } from "../answer.js"
 import { collect, positive } from "../options.js"
 import { ACCOUNTS_HELP } from "../store/source-list.js"
-import { gatherStoredProject, projectGatherText } from "./project-gathering.js"
+import { daysOf, gatherStoredProject, projectGatherText } from "./project-gathering.js"
 
 interface Options {
   source: string
@@ -16,16 +15,6 @@ interface Options {
   maxPages?: number
   cursor?: string
   json?: boolean
-}
-
-/** Days only: a window counted back from the run's own frozen time is what a continued search can keep. */
-const daysOf = (value: string) => {
-  const days = /^([1-9]\d{0,2})d$/.exec(value)?.[1]
-  if (days === undefined || Number(days) > 730)
-    throw new CliError("validation_error", `--since-time takes days back, 1d to 730d, such as 90d — not ${value}`, {
-      param: "since_time",
-    })
-  return Number(days)
 }
 
 export const projectGatherCommand = (

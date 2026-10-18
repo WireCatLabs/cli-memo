@@ -90,11 +90,12 @@ are labelled as such. Exact retries reuse the key; changed input needs a new key
 `meeting_actions_show` and `meeting_actions_list` take an explicit `source`. Only the owner reviews
 batches through `memo meetings actions confirm` or `reject`. Staging creates no facts or numbered tasks.
 
-`project_evidence` needs `source`: account entries, a kind, `group:<name>` or `all`. It searches the project's
-name, each alias, each of `keywords` and each of `people` separately and joins the hits; `days` defaults to 60.
-An item found only through a person's name has `context: "person-only"`. Failed or unread sources are
-listed, and `completeness` stays `unknown`. When it returns a `checkpoint`, call again with the same arguments
-and that `checkpoint` to continue. It writes nothing.
+`project_evidence` takes the options of `memo projects evidence` in snake_case and needs `source`: account
+entries, a kind, `group:<name>` or `all`. It searches the project's name, each alias, each `context_query` and
+each `contact` separately and joins the hits; `since_time` defaults to `60d`. An item found only through a
+contact's name has `context: "person-only"`. Failed or unread sources are listed, and `completeness` stays
+`unknown`. When it returns a `checkpoint`, call again with the same arguments and `cursor` set to it. It writes
+nothing.
 
 Use `project_context` with a project key, exact name or alias to review pending findings together.
 Meeting previews read at most five batches from each of eight linked meeting accounts; coverage and

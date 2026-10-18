@@ -83,6 +83,50 @@ it("gathers a project's references by its aliases, keywords and people within 60
   expect(text).toContain("a finished search does not prove there is nothing more")
 })
 
+it("resolves a project by id and reads a mailbox and an imported notes folder as their own source kinds", async () => {
+  const { env, json } = await setUp()
+  const store = await openStore({ env })
+  const mailId = await store.accounts.saveAccount({ provider: "email", account: "me@example.com" }, { name: "Me" })
+  await store.mail.saveThread({
+    accountId: mailId,
+    externalId: "t1",
+    now: 1,
+    emails: [
+      {
+        externalId: "m1",
+        subject: "Harbour offer",
+        from: { address: "port@example.com", name: null },
+        to: [{ address: "me@example.com", name: null }],
+        cc: [],
+        sentAt: Date.parse(daysAgo(4)),
+        receivedAt: Date.parse(daysAgo(4)),
+        references: [],
+        bodyText: "Harbour offer attached",
+        outgoing: false,
+        read: true,
+        mailboxes: [{ externalId: "INBOX", name: "INBOX", kind: null }],
+      },
+    ],
+  })
+  const folder = await store.notes.addFolder({ name: "Synthetic folder" })
+  await store.notes.saveFileNote({ folderId: folder.id, path: "port.md", title: "Harbour", text: "Harbour notes" })
+  await store.close()
+
+  for (const reference of ["project:1", "1"]) {
+    const found = await json("projects", "evidence", reference, "--source", `email:me@example.com,notes:${folder.id}`)
+    expect(found.project_ref).toBe("project:1")
+    expect(found.lanes.map((lane: { query: string }) => lane.query)).toEqual(["Synthetic Port", "Harbour"])
+    expect(found.scope.sources).toEqual([
+      { kind: "mail", account_id: mailId, provider: "email", account: "me@example.com" },
+      expect.objectContaining({ kind: "document", account_id: Number(folder.id), provider: "folder" }),
+    ])
+    expect(found.units.every((unit: { state: string }) => unit.state === "done")).toBe(true)
+  }
+  await expect(json("projects", "evidence", "project:9", "--source", "telegram:1")).rejects.toMatchObject({
+    code: "not_found",
+  })
+})
+
 it("stops at the read budget and continues from the checkpoint without repeating references", async () => {
   const { json } = await setUp()
   const args = ["projects", "evidence", "Harbour", "--source", "telegram:1", "--context-query", "crane tender"]
@@ -111,13 +155,28 @@ it("over MCP needs a source, refuses unknown arguments and reports what all leav
   expect(missing.isError).toBe(true)
   const unknown = await client.callTool({
     name: "project_evidence",
-    arguments: { project: "SYP", source: "all", lookback: 9 },
+    arguments: { project: "SYP", source: "all", keywords: ["crane"] },
   })
   expect(unknown.isError).toBe(true)
-  const all = await client.callTool({ name: "project_evidence", arguments: { project: "SYP", source: "all" } })
+  const all = await client.callTool({
+    name: "project_evidence",
+    arguments: {
+      project: "SYP",
+      source: "all",
+      context_query: ["crane tender"],
+      contact: ["Alice Example"],
+      since_time: "30d",
+    },
+  })
   expect(all.isError).toBeFalsy()
   const item = (all.structuredContent as { item: Record<string, unknown> }).item
-  expect(item).toMatchObject({ scope: { origin: "all-connected" } })
+  expect(item).toMatchObject({ scope: { origin: "all-connected" }, window: { lookback_days: 30 } })
+  expect((item.lanes as { query: string }[]).map((lane) => lane.query)).toEqual([
+    "Synthetic Port",
+    "Harbour",
+    "crane tender",
+    "Alice Example",
+  ])
   expect(item.unread_sources).toEqual(expect.arrayContaining([expect.objectContaining({ kind: "notes" })]))
   await client.close()
 })

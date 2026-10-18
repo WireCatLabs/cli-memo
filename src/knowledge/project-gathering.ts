@@ -2,11 +2,11 @@ import { CliError } from "@wirecat/cli-base"
 import { gatherProjectEvidence, type ProjectGathering } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import { contextSourcesOf } from "../store/source-list.js"
+import { canonicalProject } from "../vocabulary/project.js"
 
 export interface ProjectGatherInput {
   project: string
   source: string
-  aliases?: string[]
   keywords?: string[]
   people?: string[]
   days?: number
@@ -16,21 +16,32 @@ export interface ProjectGatherInput {
 }
 
 /**
- * An existing project brings its name and aliases; any other name is gathered as given. A name that matches several
- * projects is refused rather than picked.
+ * An existing project brings its name and aliases; any other name is gathered as given. An id that names no
+ * project, or a name that matches several, is refused rather than guessed.
  */
 const projectOf = async (store: MessageStore, reference: string) => {
-  const found = await store.knowledge.resolveVocabulary(reference, { kind: "project" })
-  if (found.matches.length > 1)
-    throw new CliError(
-      "validation_error",
-      `${reference} names ${found.matches.length} projects; give one by its key, as memo vocabulary show ${reference} lists them`,
-      { candidates: found.matches.map((entry) => ({ id: entry.id, key: entry.key, name: entry.name })) },
-    )
-  const entry = found.matches[0]
-  return entry
-    ? { ref: `project:${entry.id}`, name: entry.name, aliases: entry.aliases.map((alias) => alias.name) }
-    : { ref: null, name: reference, aliases: [] }
+  const id = /^(project:)?[1-9]\d*$/.test(reference)
+  let ref: string
+  try {
+    ref = await canonicalProject(store, id && !reference.startsWith("project:") ? `project:${reference}` : reference)
+  } catch (error) {
+    if (!id && error instanceof CliError && error.code === "not_found")
+      return { ref: null, name: reference, aliases: [] }
+    throw error
+  }
+  const entry = (await store.knowledge.vocabulary({ kind: "project" })).entries.find((one) => one.id === ref.slice(8))
+  if (!entry) throw new CliError("not_found", "the owner project is unavailable")
+  return { ref, name: entry.name, aliases: entry.aliases.map((alias) => alias.name) }
+}
+
+/** Days only: a window counted back from the run's own frozen time is what a continued search can keep. */
+export const daysOf = (value: string) => {
+  const days = /^([1-9]\d{0,2})d$/.exec(value)?.[1]
+  if (days === undefined || Number(days) > 730)
+    throw new CliError("validation_error", `--since-time takes days back, 1d to 730d, such as 90d — not ${value}`, {
+      param: "since_time",
+    })
+  return Number(days)
 }
 
 export type StoredProjectGathering = ProjectGathering & {
@@ -51,7 +62,7 @@ export const gatherStoredProject = async (
     throw new CliError("not_found", `${input.source} holds no messenger account, mailbox or notes folder to read`, {
       param: "source",
     })
-  const aliases = [...new Set([...project.aliases, ...(input.aliases ?? [])])].filter((a) => a !== project.name)
+  const aliases = project.aliases.filter((alias) => alias !== project.name)
   const gathered: ProjectGathering = await gatherProjectEvidence(
     { evidence: store.contextEvidence },
     {
@@ -93,10 +104,11 @@ export const projectGatherText = (found: StoredProjectGathering) => {
   if (failed.length) lines.push(`${failed.length} reads failed or had no source: see --json units`)
   if (found.unreadSources.length)
     lines.push(`not read: ${found.unreadSources.map((one) => `${one.source} (${one.kind})`).join(", ")}`)
-  lines.push(
-    found.checkpoint
-      ? `stopped${found.stopped ? ` at the ${found.stopped} budget` : ""}; continue with --cursor <checkpoint from --json> and the same options`
-      : "every read finished; a finished search does not prove there is nothing more",
-  )
+  if (found.checkpoint)
+    lines.push(
+      `stopped${found.stopped ? ` at the ${found.stopped} budget` : ""}; continue with the same options and`,
+      `--cursor ${found.checkpoint}`,
+    )
+  else lines.push("every read finished; a finished search does not prove there is nothing more")
   return lines.join("\n")
 }
