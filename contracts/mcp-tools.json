@@ -198,6 +198,238 @@
     "annotations": {
       "destructiveHint": false,
       "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "one stored meeting account, provider:account",
+          "minLength": 1,
+          "type": "string"
+        },
+        "input": {
+          "additionalProperties": false,
+          "properties": {
+            "extractor": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "findings": {
+              "items": {
+                "oneOf": [
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "evidence": {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "fingerprint": {
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "reference": {
+                              "minLength": 1,
+                              "type": "string"
+                            }
+                          },
+                          "required": ["reference", "fingerprint"],
+                          "type": "object"
+                        },
+                        "maxItems": 8,
+                        "minItems": 1,
+                        "type": "array"
+                      },
+                      "id": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "kind": {
+                        "const": "fact"
+                      },
+                      "project": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "statement": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "type": {
+                        "enum": ["fact", "statement", "question", "decision", "promise"],
+                        "type": "string"
+                      }
+                    },
+                    "required": ["id", "project", "evidence", "kind", "type", "statement"],
+                    "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "assignee": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "assignee_evidence": {
+                        "items": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "commitment": {
+                        "enum": ["explicit", "inferred"],
+                        "type": "string"
+                      },
+                      "due_at": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "due_evidence": {
+                        "items": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "evidence": {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "fingerprint": {
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "reference": {
+                              "minLength": 1,
+                              "type": "string"
+                            }
+                          },
+                          "required": ["reference", "fingerprint"],
+                          "type": "object"
+                        },
+                        "maxItems": 8,
+                        "minItems": 1,
+                        "type": "array"
+                      },
+                      "id": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "kind": {
+                        "const": "task"
+                      },
+                      "project": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "reason": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "title": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "type": {
+                        "enum": ["bug", "feature", "chore"],
+                        "type": "string"
+                      }
+                    },
+                    "required": ["id", "project", "evidence", "kind", "type", "title", "reason", "commitment"],
+                    "type": "object"
+                  }
+                ]
+              },
+              "maxItems": 16,
+              "minItems": 1,
+              "type": "array"
+            },
+            "key": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "schema_version": {
+              "const": 1
+            }
+          },
+          "required": ["schema_version", "key", "extractor", "findings"],
+          "type": "object"
+        }
+      },
+      "required": ["account", "input"],
+      "type": "object"
+    },
+    "name": "meeting_actions_add"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "default": 20,
+          "maximum": 50,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "page": {
+          "default": 1,
+          "maximum": 1000000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "source": {
+          "description": "one stored meeting account, provider:account",
+          "minLength": 1,
+          "type": "string"
+        },
+        "status": {
+          "enum": ["proposed", "reviewed"],
+          "type": "string"
+        }
+      },
+      "required": ["source"],
+      "type": "object"
+    },
+    "name": "meeting_actions_list"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "source": {
+          "description": "one stored meeting account, provider:account",
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": ["source", "id"],
+      "type": "object"
+    },
+    "name": "meeting_actions_show"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
       "readOnlyHint": true
     },
     "inputSchema": {
@@ -464,6 +696,26 @@
       "type": "object"
     },
     "name": "person_context"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "project": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": ["project"],
+      "type": "object"
+    },
+    "name": "project_context"
   },
   {
     "annotations": {

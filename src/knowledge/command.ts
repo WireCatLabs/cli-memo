@@ -13,7 +13,7 @@ import {
   SCOPES,
 } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
-import { answers, itemAnswer, listAnswer, wholeList } from "../answer.js"
+import { answers, itemAnswer, listAnswer, wholeList, withStore } from "../answer.js"
 import { authorOf, byOption } from "../author.js"
 import { notesAbout } from "../notes/about.js"
 import { oneOf, positive, readScope, writeScope } from "../options.js"
@@ -28,6 +28,7 @@ import {
 } from "../store/source-list.js"
 import { keyDocuments, markKey, projectOf, unmarkKey } from "./key-documents.js"
 import { meetingProjectsCommand } from "./meeting-projects-command.js"
+import { projectContext, projectContextText } from "./project-context.js"
 
 const RELATIONSHIP_QUERY = {
   entity: "relationship",
@@ -40,7 +41,7 @@ const RELATIONSHIP_QUERY = {
 } as const satisfies QueryRegistry
 
 export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
-  const { run } = answers(program, streams, env)
+  const { run, print } = answers(program, streams, env)
   const warn = (text: string) => streams.diagnostic(text)
   const execute = (
     options: SourceOptions & { json?: boolean },
@@ -155,20 +156,15 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   annotate(projects.command("context"), { effects: LOCAL_READ })
     .description(
       "one project by its id, project:<id>, key, exact name or alias: its key documents first, then its " +
-        "relationships, the notes about or linking it, and its tags. Start work on a project here",
+        "relationships, notes, tags, pending findings and open tasks. Review proposals together; nothing is confirmed",
     )
-    .summary("one project: key documents, relationships, notes and tags; start work here")
+    .summary("one project: key documents, pending findings and open tasks; start work here")
     .argument("<project>", "its id, project:<id>, key, exact name or alias")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((reference: string, options: { json?: boolean }) =>
-      owned(options, async (store) => {
-        const project = await projectOf(store, reference)
-        return {
-          keyDocuments: await keyDocuments(store, project),
-          ...(await contextOf(store, project, "project", reference)),
-        }
-      }),
-    )
+    .action(async (reference: string, options: { json?: boolean }) => {
+      const context = await withStore(env, (store) => projectContext(store, reference))
+      print(options.json, itemAnswer(context), projectContextText(context))
+    })
   const keys = projects
     .command("key-documents")
     .description("the notes, files and messages to read first about a project, each with why")

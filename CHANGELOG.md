@@ -4,6 +4,15 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- MCP tools `meeting_actions_add`, `meeting_actions_show` and `meeting_actions_list` stage and inspect
+  cited meeting follow-ups for owner review. Exact retries reuse their batch; no confirmation tool is exposed.
+- `memo projects context` and MCP `project_context` bring pending key documents, relationships, facts and
+  meeting findings together, alongside open numbered tasks. Bounded previews report continuation and source scope.
+
 ## 0.70.0 — 18.10.2026
 
 ### Changed — may break callers

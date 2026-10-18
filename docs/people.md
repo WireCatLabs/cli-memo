@@ -67,9 +67,15 @@ memo projects list
 memo projects context HRB
 ```
 
-`--scope` is `personal` or `work`. `projects context` takes the project's key or its number.
+`--scope` is `personal` or `work`. `projects context` takes a key, number, `project:<id>`, exact name or alias.
 `projects context` and `organizations context` show the people linked to the project or
-organization, the notes about it or linking to it, and its tags. A project's key is also used for its
+organization, the notes about it or linking to it, and its tags. For a project, the view also groups pending key documents, relationships, facts and meeting follow-ups
+under `review`, separate from existing open numbered tasks. It confirms nothing. The text view shows
+proposal references; `--json` includes evidence, source scope and continuation commands. Fact/task
+previews hold 20 records each. Meeting previews read at most five proposed batches per linked meeting
+account, across eight accounts. Read a full batch before review because it can span projects.
+
+A project's key is also used for its
 tasks, such as `HRB-1` ([tasks](tasks.md#tasks-in-a-project)).
 
 ## Key documents of a project

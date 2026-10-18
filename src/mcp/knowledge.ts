@@ -2,6 +2,7 @@ import { RESOURCES_SEARCHED, searchNotes } from "@wirecat/cli-core/services"
 import * as v from "valibot"
 import { itemAnswer } from "../answer.js"
 import { contextAccountOf, memoContext } from "../context/context.js"
+import { projectContext } from "../knowledge/project-context.js"
 import { allAnswer, kindAnswer, notesAnswer } from "../search/answers.js"
 import { searchEverywhere, searchKind } from "../search/search.js"
 import { MAIL_SOURCES, mailboxesOf } from "../store/source-list.js"
@@ -16,6 +17,14 @@ const query = {
 
 /** Reads across every source the store holds: tg, max and zm read only their own. */
 export const knowledgeTools = {
+  project_context: define({
+    title: "Review a project's context",
+    description:
+      "Read key documents first, then relationships, notes, tags, pending facts and meeting findings, and open numbered tasks. Accepts a project ID, key, exact name or alias. Bounded findings cover linked meeting accounts only; preserve coverage and read full batches before owner review. Confirms or assigns nothing.",
+    writes: false,
+    input: v.object({ project: v.pipe(v.string(), v.minLength(1)) }),
+    run: async (store, { project }) => itemAnswer(await projectContext(store, project)),
+  }),
   search_all: define({
     title: "Search everything",
     description: `Messages from every messenger, mail and notes ranked together, with the open tasks that point at a hit. Use it when you do not know where something was written; search_messages, search_mail or search_notes read one kind with all its fields. content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names, as content:invoice. Each result's reference is ref.`,
