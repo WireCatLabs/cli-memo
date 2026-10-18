@@ -32,6 +32,22 @@ describe("a failing himalaya", () => {
     )
   })
 
+  it("is not asked again after a failed login, nor when it is not installed", async () => {
+    const env = {
+      ...fake('echo "Error: cannot authenticate to IMAP server: authentication failed" >&2; exit 1'),
+      MEMO_HIMALAYA_RETRY_MS: "60000",
+    }
+
+    const started = Date.now()
+    await expect(himalaya(env)(["imap", "raw"])).rejects.toThrow("cannot authenticate")
+    await expect(
+      himalaya({ ...env, MEMO_HIMALAYA: join(tmpdir(), "no-such-himalaya") })(["imap", "raw"]),
+    ).rejects.toMatchObject({
+      message: "himalaya imap raw: himalaya is not installed or not on PATH",
+    })
+    expect(Date.now() - started).toBeLessThan(5_000)
+  })
+
   it("is a throttled account when Gmail says so", async () => {
     const env = fake('echo "b NO [THROTTLED] Account exceeded command or bandwidth limits" >&2; exit 1')
 

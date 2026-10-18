@@ -63,8 +63,9 @@ That is all notes need. Then add more context:
 
 - **Messages:** install [tg-cli](https://github.com/WireCatLabs/tg-cli) or
   [max-cli](https://github.com/WireCatLabs/max-cli); memo reads the same local store.
-- **Search by meaning:** needs a local model, which [tg-cli](https://github.com/WireCatLabs/tg-cli) or max-cli
-  downloads once: install one of them, then run `tg models text download e5-small`. Without it, memo searches by words.
+- **Search by meaning:** needs a local model of about 135 MB, which [tg-cli](https://github.com/WireCatLabs/tg-cli) or
+  max-cli downloads once: install one of them, then run `tg models text download e5-small`. Without it, memo searches
+  by words.
 - **Mail:** set up [Himalaya](https://github.com/pimalaya/himalaya), then `memo sync --only mail`.
 - **Stay current:** `memo auto start` runs `memo sync` every five minutes (Linux, systemd).
 - **Your agent:** the install puts memo's skill where Claude Code, Codex and Gemini CLI read it;

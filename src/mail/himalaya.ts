@@ -24,6 +24,16 @@ export const stderrTail = (stderr: string): string[] =>
 
 export const isThrottled = (text: string): boolean => THROTTLED.test(text)
 
+// RFC 5530's AUTHENTICATIONFAILED, and himalaya's own words for a login or a keyring that fails: asking again
+// in 15 s gets the same answer, so such a failure is not retried.
+const LOGIN_FAILED = /AUTHENTICATIONFAILED|authentication failed|cannot authenticate|invalid credentials|keyring/i
+
+const lasting = new WeakSet<Error>()
+const lastingly = (error: CliError): CliError => {
+  lasting.add(error)
+  return error
+}
+
 /**
  * himalaya 2.2 prints its own failure on stdout, not stderr ("Error: …" then "Suggestions:"), so a failure whose
  * stderr is empty reads it from there; an IMAP answer above it is left out.
@@ -65,20 +75,27 @@ const once =
           const what = `himalaya ${args[0] ?? ""} ${args[1] ?? ""}`.trim()
           if (isThrottled(stderr) || isThrottled(String(stdout).slice(-4096))) return reject(throttledError(what))
           const failure = error as ExecFailure
+          if (failure.code === "ENOENT")
+            return reject(
+              lastingly(
+                new CliError("provider_error", `${what}: himalaya is not installed or not on PATH`, {
+                  reason: "mail.source-failed",
+                }),
+              ),
+            )
           const printed = stderrTail(stderr)
           const tail = printed.length ? printed : errorReport(String(stdout))
           if (isThrottled(tail.join("\n"))) return reject(throttledError(what))
           const ended = howItEnded(failure)
           const said =
             tail.at(-1) ?? (/maxBuffer/i.test(failure.message) ? "its answer was too large" : "no error text")
-          reject(
-            new CliError("provider_error", `${what} failed (${ended}): ${said}`, {
-              reason: "mail.source-failed",
-              ...(typeof failure.code === "number" ? { exit_code: failure.code } : {}),
-              ...(failure.signal ? { signal: failure.signal } : {}),
-              stderr_tail: tail,
-            }),
-          )
+          const failed = new CliError("provider_error", `${what} failed (${ended}): ${said}`, {
+            reason: "mail.source-failed",
+            ...(typeof failure.code === "number" ? { exit_code: failure.code } : {}),
+            ...(failure.signal ? { signal: failure.signal } : {}),
+            stderr_tail: tail,
+          })
+          reject(LOGIN_FAILED.test(`${stderr}\n${String(stdout).slice(-4096)}`) ? lastingly(failed) : failed)
         },
       )
       // A himalaya that exits before reading its input breaks the pipe (EPIPE); how it ended is reported above.
@@ -91,6 +108,7 @@ const pause = (ms: number) => new Promise((done) => setTimeout(done, ms))
 /**
  * `MEMO_HIMALAYA` names the program, so the test sandbox can point it at a fake. A read that fails is tried once
  * more after `MEMO_HIMALAYA_RETRY_MS` (15 s): six failed runs in two days (2026-10-14/15) each passed on the next run.
+ * A failed login is not: with two accounts it held sync for a minute.
  */
 export const himalaya =
   (env: NodeJS.ProcessEnv = process.env): Himalaya =>
@@ -102,6 +120,7 @@ export const himalaya =
       const again =
         error instanceof CliError &&
         error.code === "provider_error" &&
+        !lasting.has(error) &&
         !error.message.includes("too large") &&
         !WRITES.test(input ?? "")
       if (!again) throw error

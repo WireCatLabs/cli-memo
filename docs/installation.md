@@ -24,6 +24,8 @@ turn on with `memo auto start`.
 - **Node.js 22.16+ (the 22.x line) or 24+**, with npm. If you do not have it, ask your agent to help, or get it from
   [nodejs.org](https://nodejs.org).
 - Linux. macOS and Windows are not tested yet: memo's tests run on Linux only.
+- About 250 MB of disk for the install (246 MB for 0.66.0 on Linux). Most of it is shared WireCat code that memo
+  does not use yet: charts, speech recognition and audio decoders.
 
 Each source needs one more thing, and only when you use it:
 
@@ -31,7 +33,7 @@ Each source needs one more thing, and only when you use it:
 |---|---|
 | Notes and documents | Nothing. PDF and Word (`.docx`) files need two optional readers: [files Memo can read](notes.md#files-memo-can-read) |
 | Telegram or MAX messages | [tg](https://github.com/WireCatLabs/tg-cli) or [max](https://github.com/WireCatLabs/max-cli). They save your chats in the local store; Memo does not log in to a messenger |
-| Search by meaning | A small search model on your computer. tg or max downloads it once: `tg models text download e5-small`. Without it, Memo searches by words |
+| Search by meaning | A search model on your computer, about 135 MB. tg or max downloads it once: `tg models text download e5-small`. Without it, Memo searches by words |
 | Mail | [Himalaya](https://github.com/pimalaya/himalaya), the mail program Memo uses to read a mailbox ([mail](mail.md)) |
 | Syncing on a timer (`memo auto`) | Linux with systemd. On macOS and Windows, run `memo sync` yourself or from your own scheduler ([keeping Memo up to date](archive.md)) |
 
@@ -99,7 +101,7 @@ run `memo skill install --for all` yourself (`--for claude` or `--for agents` fo
 
 ## Windows
 
-Open PowerShell and use `npm.cmd`, because PowerShell can block the `npm` script:
+Windows is not tested yet; these steps are what should work. Open PowerShell and use `npm.cmd`, because PowerShell can block the `npm` script:
 
 ```powershell
 npm.cmd install -g @wirecat/cli-memo
