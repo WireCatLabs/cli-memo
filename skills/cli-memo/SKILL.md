@@ -110,3 +110,10 @@ references and fingerprints from `memo meetings passage` or `zm meetings evidenc
 Keep unknown dates/assignees absent and distinguish explicit commitments from inferred follow-ups.
 Read `memo meetings actions add --help` for the bounded JSON fields. Reuse a batch key only for an
 exact retry. Show the preview and sources to the owner; leave `confirm`/`reject` to them.
+
+MCP `meeting_actions_add` stages the same findings with explicit `account` and a structured `input`;
+`meeting_actions_show`/`meeting_actions_list` inspect batches with explicit `source`. There is no MCP
+confirmation or rejection tool. `project_context` and CLI `projects context` show pending key documents,
+relationships, facts and meeting findings separately from open numbered tasks. Preserve bounded coverage;
+meeting previews cover linked accounts only. Read the full batch before owner review, including findings
+for other projects. Never confirm or reject your own suggestions.

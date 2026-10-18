@@ -1004,7 +1004,7 @@ memo projects list [options]
 
 ### `memo projects context`
 
-one project by its id, project:<id>, key, exact name or alias: its key documents first, then its relationships, the notes about or linking it, and its tags. Start work on a project here
+one project by its id, project:<id>, key, exact name or alias: its key documents first, then its relationships, notes, tags, pending findings and open tasks. Review proposals together; nothing is confirmed
 
 ```sh
 memo projects context <project> [options]

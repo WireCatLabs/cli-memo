@@ -10,14 +10,14 @@ memories, record facts and propose actions. What it saves waits for your review.
 | The app can | The app cannot |
 |---|---|
 | Search and read your stored messages, mail and notes | Send a message or a mail |
-| Read one person's context across messengers and mail | Change your notes, mail or messages |
+| Read a person's context or review a project's pending findings | Change your notes, mail or messages |
 | Add, list, show and search memories | Confirm a memory |
 | Add, list and show facts | Accept a fact |
 | Propose actions and list them | Approve or reject an action |
 | Read the agent log | Delete anything |
 | Look up projects, tags and topics by name, and see which tasks are ready | Create or link tasks |
 
-Only three tools write: `memories_add`, `facts_add` and `actions_add`. What they add waits as proposed
+Four tools write: `memories_add`, `facts_add`, `actions_add` and `meeting_actions_add`. What they add waits as proposed
 until you confirm it, and an action is never sent. Other tools do not change source records; meeting search may update its local text index. Connect Memo only to an app
 you trust to read your messages, mail and notes.
 
@@ -55,6 +55,8 @@ Use the memo tools to list the memories waiting for my review.
 | `search_messages`, `search_mail`, `search_notes` | Search one kind with all its fields, read only |
 | `search_meetings`, `meeting_passage` | Search stored meetings in one explicit source account and read cited transcript passages |
 | `meeting_prepare` | Gather stored series history and linked context, optionally with explicitly selected message/mail accounts; does not verify the next meeting time |
+| `project_context` | Key documents, pending relationships, facts and meeting findings, plus open numbered tasks |
+| `meeting_actions_add`, `meeting_actions_show`, `meeting_actions_list` | Propose and inspect cited meeting facts and follow-ups; never confirm them |
 | `person_context` | One person across messengers and mail, with linked notes and tasks, read only |
 | `memories_add`, `memories_list`, `memories_show`, `search_memories` | Save and read memories |
 | `facts_add`, `facts_list`, `facts_show` | Record and read facts |
@@ -77,7 +79,19 @@ memo agents log agent:memo-mcp --limit 20
 
 The log shows the tool, the result and the time, never what the app sent.
 
-For meeting evidence, see [meeting search](search.md#search-stored-meetings). Meeting findings batches
-currently use the command line (`memo meetings actions add`), not an MCP batch tool.
+For meeting evidence, see [meeting search](search.md#search-stored-meetings). Ask your agent to read
+passages with `meeting_passage`, then stage a batch with `meeting_actions_add`. Give one `account` as
+`example:work` and an `input` object with `schema_version: 1`, `key`, `extractor` and `findings`, using
+the same fields as `memo meetings actions add --help`. Every finding needs exact cue references and
+fingerprints and a confirmed project link. Unknown dates and assignees stay absent; inferred follow-ups
+are labelled as such. Exact retries reuse the key; changed input needs a new key.
+
+`meeting_actions_show` and `meeting_actions_list` take an explicit `source`. Only the owner reviews
+batches through `memo meetings actions confirm` or `reject`. Staging creates no facts or numbered tasks.
+
+Use `project_context` with a project key, exact name or alias to review pending findings together.
+Meeting previews read at most five batches from each of eight linked meeting accounts; coverage and
+continuation commands identify more or missing records. A preview includes only this project's
+undecided findings. Read the full batch before review: it can also hold findings for another project.
 
 Next: [review what the app saved](memories.md).
