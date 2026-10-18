@@ -1,7 +1,8 @@
+import { fileURLToPath } from "node:url"
 import { CliError, createRenderer, processStreams, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { skillCommand } from "@wirecat/cli-base/skill"
-import { entityFields, NO_EFFECTS } from "@wirecat/cli-core/cli"
+import { entityFields, guideCommand, installHelp, NO_EFFECTS } from "@wirecat/cli-core/cli"
 import { Command } from "commander"
 import { actionsCommand } from "./actions/command.js"
 import { agentsCommand } from "./agents/command.js"
@@ -26,6 +27,7 @@ import { mentionsCommand } from "./mentions/command.js"
 import { notesCommand } from "./notes/command.js"
 import { foldersCommand } from "./notes/folders-command.js"
 import { noteCommand } from "./people/command.js"
+import { refuseWritesUnderLock } from "./read-only.js"
 import { autoCommand } from "./run/auto.js"
 import { syncCommand } from "./run/import.js"
 import { searchCommand } from "./search/command.js"
@@ -102,6 +104,22 @@ const OWN_ENTITIES = entityFields({
   notes_folder: ["id", "name", "path", "format", "kept_by"],
 })
 
+const FIRST_SCREEN = {
+  pitch: "your notes, mail and messages in one local store, linked to people; every answer cites its source.",
+  can: [
+    { command: "context <person>", does: "one person's messages, mail, notes and tasks" },
+    { command: 'search all "budget"', does: "messages, mail and notes ranked together" },
+    { command: 'ask "…" --all', does: "evidence with sources, ready for your agent" },
+    { command: "tasks agenda", does: "overdue tasks, replies you owe and wait for" },
+    { command: "meetings prepare <series-id>", does: "a briefing with sources for a meeting" },
+    { command: "auto start", does: "sync notes and mail every 5 minutes" },
+    { command: "agents log", does: "every agent tool call, without its arguments" },
+    { command: "mcp", does: "search, people, memories and facts for any MCP agent" },
+  ],
+  profile: false,
+  start: "memo folders add <path>",
+}
+
 export const createProgram = ({
   streams: raw = processStreams,
   env = process.env,
@@ -115,6 +133,7 @@ export const createProgram = ({
     .description("context about people across messengers, notes and mail")
     .version(VERSION)
     .option("--debug", "on failure, show the full error record: cause and stack")
+  refuseWritesUnderLock(program, env)
 
   contextCommand(program, streams, env)
   notesCommand(program, streams, env)
@@ -151,9 +170,17 @@ export const createProgram = ({
   // cli-base declares a local read; the text memo prints ships inside the package.
   if (show) annotate(show, { effects: NO_EFFECTS })
   program.addCommand(skill)
+  // tg and max have a global --json; memo's is per command, so guide gets its own.
+  program.addCommand(
+    guideCommand(APP, { directory: fileURLToPath(new URL("../scenarios", import.meta.url)), profile: false }).option(
+      "--json",
+      "print JSON",
+    ),
+  )
   addExamples(program)
   fields.install(program)
   trackAnswers(program)
+  installHelp(program, FIRST_SCREEN)
 
   return program
 }

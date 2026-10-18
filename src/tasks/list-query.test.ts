@@ -3,6 +3,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { expect, it } from "vitest"
+import { throwParseFailures } from "../failure.js"
 import { createProgram } from "../program.js"
 
 const setUp = async () => {
@@ -26,15 +27,13 @@ const setUp = async () => {
   return { env, run }
 }
 
-const refused = (text: string) => ({
-  code: "validation_error",
-  message: expect.stringContaining(text),
-})
+it("refuses tasks list --project as an unknown option, before anything is read", async () => {
+  const { env } = await setUp()
+  const program = createProgram({ streams: captureStreams(), env })
+  throwParseFailures(program)
 
-it("points tasks list --project to the project: query word", async () => {
-  const { run } = await setUp()
-
-  await expect(run("tasks", "list", "--project", "SYNT", "--json")).rejects.toMatchObject(
-    refused("memo tasks list project:SYNT"),
-  )
+  await expect(program.parseAsync(["tasks", "list", "--project", "SYNT"], { from: "user" })).rejects.toMatchObject({
+    code: "commander.unknownOption",
+    message: expect.stringContaining("--project"),
+  })
 })

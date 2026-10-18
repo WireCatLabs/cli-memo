@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**410 ✅ · 0 ⛔ · 140 ❌** — 113 commands, 437 options.
+**413 ✅ · 0 ⛔ · 141 ❌** — 115 commands, 439 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -559,5 +559,9 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `skill show` |  | ✅ |  |
 | `skill install` |  | ✅ |  |
 | `skill install` | `--for` | ✅ |  |
+| `guide` |  | ✅ |  |
+| `guide` | `--json` | ✅ |  |
+| `help` |  | ✅ |  |
 | *global* | `--version` | ❌ |  |
 | *global* | `--debug` | ❌ |  |
+| *global* | `--help-all` | ❌ |  |

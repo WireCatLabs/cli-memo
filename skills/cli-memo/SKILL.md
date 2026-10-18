@@ -8,6 +8,7 @@ description: >-
 
 memo reads the local store tg and max write, plus the owner's notes and imported mail. It never sends
 anything. Discover only the relevant command with `memo commands search notes --json` or help.
+`memo guide` lists scenarios, command sequences for common tasks (`memo guide person-brief --json`).
 `memo skill show` prints the installed binary's instructions; `memo skill install` refreshes copies.
 Use `--json=ref,excerpt` for compact search hits. Dotted paths select nested objects and arrays;
 pagination, coverage, next steps, missing data and execution metadata remain. Start with a bounded
