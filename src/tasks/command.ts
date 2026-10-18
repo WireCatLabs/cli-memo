@@ -7,7 +7,7 @@ import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
 import { oneOf, positive, readScope, writeScope } from "../options.js"
 import { scopeOf } from "../store/scope.js"
-import { ACCOUNTS_HELP, type SourceOptions, theAccounts, type WriteOptions } from "../store/source-list.js"
+import { ACCOUNTS_HELP, type SourceOptions, taskAccounts, type WriteOptions } from "../store/source-list.js"
 import { listTasks, TASKS_LIST_QUERY } from "./list.js"
 import { taskRelationsCommand } from "./relations-command.js"
 import { sharedTaskCommands } from "./shared.js"
@@ -61,7 +61,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .option("--limit <n>", "most tasks", positive, 100)
     .action(async (words: string[], options: SourceOptions & { limit: number; json?: boolean }) => {
       await withStore(env, async (store) => {
-        print(options.json, await listTasks(store, words, options.limit, () => theAccounts(store, env, options, warn)))
+        print(options.json, await listTasks(store, words, options.limit, () => taskAccounts(store, env, options, warn)))
       })
     })
   writeScope(

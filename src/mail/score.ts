@@ -35,7 +35,7 @@ export const SCORE_RULE =
 
 /**
  * DMARC failures before this date are not counted: senders then often published a policy their own mail did not yet
- * meet. On the owner's mailbox every failure was from 2018 to March 2021, none later, all from real senders.
+ * meet.
  */
 export const DMARC_SINCE = "2022-01-01T00:00:00.000Z"
 

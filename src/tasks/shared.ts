@@ -19,8 +19,8 @@ const WRITES: ReadonlySet<string> = new Set(["plan", "link"])
 /** `task:15`, a bare id or a project key: a `tasks link` target that needs no messenger account. */
 const TASKISH = /^(task:.+|\d+|[A-Z][A-Z0-9]*-\d+)$/
 
-/** memo's own sources in the store: every other provider is a messenger a source tool syncs. */
-const NOT_MESSENGERS: ReadonlySet<string> = new Set(["email", "notes"])
+/** memo's own sources in the store, notes folders kept as `folder` rows: every other provider is a messenger. */
+const NOT_MESSENGERS: ReadonlySet<string> = new Set(["email", "notes", "folder"])
 
 // memo's config file is not a messenger profile's, and cli-core's schema refuses its keys: the builders get
 // the defaults, from a config folder of a name nothing writes.
@@ -72,7 +72,13 @@ const requireAccount =
         .filter((key) => !NOT_MESSENGERS.has(key.provider))
         .map((key) => `${option} ${key.provider}:${key.account}`)
         .join("; ")
-      throw new CliError("validation_error", `give ${option} — the stored messenger accounts: ${listed || "none yet"}`)
+      throw new CliError(
+        "validation_error",
+        listed
+          ? `give ${option} — the stored messenger accounts: ${listed}`
+          : `give ${option} — this needs a tg or max account, and the store holds none. A project's tasks need none: ` +
+              "memo tasks list project:<KEY>",
+      )
     } finally {
       await store.close()
     }

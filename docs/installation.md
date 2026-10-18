@@ -23,7 +23,7 @@ turn on with `memo auto start`.
 
 - **Node.js 22.16+ (the 22.x line) or 24+**, with npm. If you do not have it, ask your agent to help, or get it from
   [nodejs.org](https://nodejs.org).
-- Linux, macOS or Windows.
+- Linux. macOS and Windows are not tested yet: memo's tests run on Linux only.
 
 Each source needs one more thing, and only when you use it:
 

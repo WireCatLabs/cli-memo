@@ -92,7 +92,7 @@ const fetchedHeaders = (output: string): [string, string][] =>
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 const FETCH_BATCH = 500
-/** One himalaya call reads its whole answer into memory, so a mailbox of 300,000+ emails is listed in parts. */
+/** One himalaya call reads its whole answer into memory, so a large mailbox is listed in parts. */
 const CALL_UIDS = 10_000
 
 const imapDate = (day: Date): string => `${day.getUTCDate()}-${MONTHS[day.getUTCMonth()]}-${day.getUTCFullYear()}`

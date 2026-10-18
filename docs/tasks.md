@@ -23,8 +23,11 @@ memo tasks list --source telegram:1
 ```
 
 A task from a source has a type: `request` (the default), `question`, `mention` or `promise`. It
-belongs to one messenger account. A message reference already names its account; for a note or a
+belongs to one messenger or mail account. A message reference already names its account; for a note or a
 file, add `--account`, such as `--account telegram:1`. Adding the same task twice gives you the existing one.
+
+Notes have no account of their own. With notes only and no tg, max or mail account in the store, keep your
+tasks in a project ([below](#tasks-in-a-project)); reminders need an account.
 
 ## What needs a look today
 
@@ -121,7 +124,7 @@ memo reminders cancel 3 --account telegram:1
 ```
 
 Write the time with its offset from UTC, such as `+02:00` for Madrid in summer. A reminder belongs to
-an account, so adding or changing one needs `--account`. Closing a task cancels its reminders.
+a tg, max or mail account and needs an open task of it, so adding or changing one needs `--account`. Closing a task cancels its reminders.
 
 For the program that shows reminders:
 

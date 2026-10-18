@@ -4,6 +4,23 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- **A store with notes only gets a plain answer from `tasks` and `reminders`.** `tasks list`, `tasks agenda`,
+  `reminders list` and `reminders poll` offered a `folder:<id>` value that then failed, and `notes:1` failed with
+  "the account is not in the local store". They now list only the accounts that can hold tasks, and with none say
+  that a task from a message, email or note, and a reminder, need a tg, max or mail account, and that a project's
+  tasks need none.
+- `memo search notes` labels a note found by its title as a plain hit, not "(by meaning)".
+- `memo tasks list --project SYNT` says to write `memo tasks list project:SYNT`; it failed with a bare syntax error.
+- `memo tasks add --project` with an unknown project names `memo projects add`; it pointed to a `vocabulary
+  resolve` command that does not exist.
+- The README names `vocabulary show` and `vocabulary check`, and the MCP tool `vocabulary_check`; it named
+  `resolve` and `preflight`, which do not exist. It links memo's own pages on wirecat.dev, says that search by
+  meaning needs tg-cli or max-cli to download the model, and that macOS and Windows are not tested yet.
+
 ## 0.67.0 — 18.10.2026
 
 ### Added
@@ -171,8 +188,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
 
 - **Mail stored before memo kept Reply-To and Gmail's SPF, DKIM and DMARC verdicts gets them.** Each sync reads
   the header lines of up to 2,000 such emails from Gmail, newest first, until none is left; the text is not read
-  again. The sender score then sees these signals on all mail: on the owner's mailbox 57,000 of 92,000 emails
-  stored in full had none.
+  again. The sender score then sees these signals on all mail, not only on mail stored since memo began keeping them.
 
 ## 0.58.0 — 17.10.2026
 
@@ -181,8 +197,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
 - `memo meetings actions` stages cited meeting facts and project tasks for owner review. Confirmation creates selected records atomically, keeps review receipts and prevents exact retries from duplicating accepted work. Missing dates and assignees stay unknown; stale evidence is refused.
 - **Every sender gets its spam score in the store, and search shows it.** Each sync scores the account's senders
   from the stored mail, at most once a day, as `memo mail inspect` scores a group; a hit from a scored sender
-  carries `sender_score` (score and signals) in `--json`. Results are not reordered by it. On the owner's mailbox:
-  5,789 senders in 15 seconds. cli-core 0.311.0 (store version 19).
+  carries `sender_score` (score and signals) in `--json`. Results are not reordered by it. cli-core 0.311.0 (store version 19).
 - **`memo mentions list|show|confirm|reject`: phones, e-mail addresses, links, documents, names and street addresses in
   documents, notes and mail.** `memo mentions list note kind:phone`; mail is read only from the accounts named by
   `--account` (repeatable), never every mailbox by default. `show` names the senders of received mail that may own a
@@ -193,8 +208,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
 ### Fixed
 
 - **The sender score counts a failed DMARC check only on mail from 2022 on.** Before that, senders often published a
-  policy their own mail did not meet yet; on the owner's mailbox every failure was from 2018 to March 2021, all from
-  real senders. Senders at 3 or more on the strong signals: 20 → 2, both look-alike domains.
+  policy their own mail did not meet yet, so an early failure is no sign of fraud.
 - **A broken config file is reported in one line** (cli-core 0.304.0, 0.307.0): the first bad key, a fixed reason
   and a count of the rest, never a value — `config.json: updateCheck is an unknown setting; rename it to
   update_check (and 1 more problem)`. An old camelCase key is named with its new name first.
@@ -218,8 +232,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
   spoofs, nor senders whose DMARC failed only because they signed for another domain.** "Google via LinkedIn" from
   LinkedIn's own domain is LinkedIn passing a page on; Coursera and Quora name courses and spaces after companies;
   hellosign, dropboxmail, onedrive and microsoftadvertising are the brands' own domains. A DMARC failure counts only
-  without a valid DKIM signature, and not for a sender that passes DMARC on other mail. On the owner's mailbox the
-  senders at 3 or more on these signals went from 71 to 20.
+  without a valid DKIM signature, and not for a sender that passes DMARC on other mail.
 
 ### Documentation
 
@@ -423,8 +436,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
 - **`--filter` takes `from:<address|domain|word>` and `to:<address>`**: `from:sample` matches a sender whose
   address or display name contains the word.
 - **Two more spam signals in the sender score:** `never_opened` (+2, you opened none of a sender's mail) and
-  `dkim_not_passed` (+2, Gmail's DKIM check did not pass on most of it). On the owner's mailbox they raised the
-  share of Gmail Spam reaching score 3 from 22.9% to 84.2%, with the same 1 of 63 replied-to senders flagged
+  `dkim_not_passed` (+2, Gmail's DKIM check did not pass on most of it)
   ([cli-testing](https://github.com/WireCatLabs/cli-testing/tree/main/performance/mail/spam-scoring)).
 
 ### Changed — may break scripts
@@ -700,8 +712,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
 
 - **A mail sync goes on where the last one stopped, without listing the mailbox again.** Each run keeps, in the
   store, the mailbox's UIDVALIDITY and the UIDs whose outcome is final (stored, recorded or skipped by a rule), so a
-  rerun reads metadata only for mail not done: a 305,000-email mailbox no longer costs 15–25 minutes of listing
-  per run. A whole listing — the only kind that marks deleted mail and refreshes labels and read state — still runs
+  rerun reads metadata only for mail not done: a large mailbox is no longer listed whole on every run. A whole listing — the only kind that marks deleted mail and refreshes labels and read state — still runs
   at least daily, whenever the rules change, when UIDVALIDITY changes, and with the new `memo sync --rescan`. A
   window under 5,000 emails, like the timer's 30 days, is listed whole every run. An mbox file read to the end is
   not read again until its size or time changes. `memo sync --json` adds `pass` (`full` or `resumed`) to each
@@ -964,8 +975,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
 ### Fixed
 
 - **`memo ask` gives coverage as counts per account, and its 64 KiB limit covers the whole answer.** Each
-  messenger account had one row per chat, up to 500, which made 95% of an answer (64 KB of 68 KB on one real
-  store); now `chats` counts `checked`, `complete`, `partial`, `neverFetched`, `behind` and `withGaps`, and `more`
+  messenger account had one row per chat, up to 500, which could fill most of an answer; now `chats` counts `checked`, `complete`, `partial`, `neverFetched`, `behind` and `withGaps`, and `more`
   says the 500-chat check was cut short. The size check measured the evidence only; it now measures what is printed.
 
 ## 0.21.0 — 11.10.2026

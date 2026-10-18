@@ -10,7 +10,7 @@ export const searchText = (result: NotesSearch): string =>
       : []),
     ...result.hits.map(
       (hit) =>
-        `${"key" in hit ? "key  " : ""}${hit.path ?? hit.ref}${hit.found_by.includes("words") ? "" : "  (by meaning)"}\n  ${hit.excerpt}`,
+        `${"key" in hit ? "key  " : ""}${hit.path ?? hit.ref}${hit.found_by.length === 1 && hit.found_by[0] === "meaning" ? "  (by meaning)" : ""}\n  ${hit.excerpt}`,
     ),
     ...(result.has_more ? ["More notes match; raise --limit or ask for --page with the next number."] : []),
     ...(result.linked.length === 0
