@@ -1,7 +1,8 @@
 # Testing
 
 `pnpm test` runs the suite against a sandboxed home, config, state and store (`test/sandbox.ts` and cli-base's
-shared test setup): no real keyring, no network.
+shared test setup): no real keyring, no network. Full validation runs it on Linux; on Windows the mail sync
+tests still fail, so the Windows and macOS job is off.
 
 ## Test matrix
 
