@@ -7,7 +7,7 @@ import { createMemoServer } from "./server.js"
 
 export const mcpCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   annotate(program.command("mcp"), { effects: LOCAL_WRITE, lifetime: "persistent" })
-    .description("serve memories, proposed actions and the agent log over MCP on stdin and stdout")
+    .description("serve search, person context, memories, facts and actions over MCP on stdio")
     .action(async () => {
       serveStdio(() => createMemoServer(env), { onerror: (error) => streams.diagnostic(`mcp: ${error.message}`) })
       await new Promise<void>((resolve) => {

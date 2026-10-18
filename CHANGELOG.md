@@ -6,6 +6,14 @@ the API.
 
 ## Unreleased
 
+### Documentation
+
+- The README, the MCP page and `memo mcp --help` say what an MCP app can read: your stored messages, mail and notes,
+  and a person's context. They said search and context were not served over MCP. Only `memories_add`, `facts_add`
+  and `actions_add` write, and what they add waits for you.
+- The security page says mail sync looks up sender domain ages by itself, at most once a day, and that Memo asks npm
+  once a day for a newer version. It said only `memo mail inspect --domain-age` asked domain registries.
+
 ## 0.65.2 — 18.10.2026
 
 ### Changed — may break scripts

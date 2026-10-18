@@ -52,6 +52,10 @@ nothing and tells you.
   provider's answer is generated text: check it against the sources.
 - What your agent does with the text it reads is up to that agent and its provider. Memo cannot
   control it. Point your agent only at the sources you are willing to share with it.
-- `memo mail inspect --domain-age` asks domain registries when a sender's domain was registered. Each question
-  tells one registry one domain name; it is asked once and the answer is kept on your computer. Without the
-  flag, inspect asks no one.
+- Mail sync asks domain registries when a sender's domain was registered. It does this by itself, at most once a
+  day, for senders you never wrote to and heard from in the last two years. `memo mail inspect --domain-age` asks
+  for the groups it shows. Each question tells one registry one domain name; it is asked once and the answer is
+  kept on your computer. Big mailbox providers such as gmail.com are never asked. There is no setting to turn
+  this off; see [how sender domains are checked](mail.md#choose-what-to-import).
+- Once a day Memo asks npm whether a newer version exists. Turn it off with `"update_check": false` in the
+  settings, or `MEMO_NO_UPDATE_CHECK=1`. Memo never updates itself.
