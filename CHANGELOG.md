@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.68.0 — 18.10.2026
+
 ### Fixed
 
 - **Tasks and reminders work in a store that holds only notes.** A notes folder is an account: `--account` and
