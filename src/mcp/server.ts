@@ -23,6 +23,7 @@ import { listMemories, MEMORY_QUERY, memoryItem, searchMemories } from "../memor
 import { writeAccount } from "../store/source-list.js"
 import { VERSION } from "../version.js"
 import { knowledgeTools } from "./knowledge.js"
+import { meetingPreparationTools } from "./meeting-preparation.js"
 import { meetingTools } from "./meetings.js"
 import { taskRelationTools } from "./task-relations.js"
 import { define, type MemoTool } from "./tool.js"
@@ -37,6 +38,7 @@ export const INSTRUCTIONS = [
   "The owner's own records: facts, memories and proposed actions, kept beside their messages, mail, notes and meetings.",
   "search_all combines messages, mail and notes; search_messages, search_mail, search_notes select one kind.",
   "search_meetings reads stored meetings in one explicit source account; meeting_passage reads cited cues.",
+  "meeting_prepare gathers stored series context; select communications explicitly. Future times stay unverified.",
   "Project aliases select confirmed links, not mentions. Preserve unknown speakers and archive coverage.",
   "person_context gathers one person across messengers and mail. Then keep what a conversation showed:",
   "",
@@ -54,6 +56,7 @@ const limit = (most: number) => v.optional(v.pipe(v.number(), v.integer(), v.min
 export const MEMO_TOOLS: Record<string, MemoTool> = {
   ...knowledgeTools,
   ...meetingTools,
+  ...meetingPreparationTools,
   ...vocabularyTools,
   ...taskRelationTools,
   memories_add: define({

@@ -20,6 +20,7 @@ import { mailCommand } from "./mail/command.js"
 import { messagesCommand } from "./mail/messages-command.js"
 import { mcpCommand } from "./mcp/command.js"
 import { meetingReadCommands } from "./meetings/command.js"
+import { meetingPreparationCommand } from "./meetings/preparation-command.js"
 import { memoriesCommand } from "./memories/command.js"
 import { mentionsCommand } from "./mentions/command.js"
 import { notesCommand } from "./notes/command.js"
@@ -134,6 +135,7 @@ export const createProgram = ({
   mcpCommand(program, streams, env)
   searchCommand(program, streams, env)
   meetingReadCommands(program, streams, env)
+  meetingPreparationCommand(program, streams, env)
   askCommand(program, streams, env)
   syncCommand(program, streams, env)
   autoCommand(program, streams, env)

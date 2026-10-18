@@ -128,6 +128,10 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "meetings passage": [
     "memo meetings passage meeting:1/1/1/0 --source example:synthetic --before-n 1 --after-n 1 --json",
   ],
+  "meetings prepare": [
+    "memo meetings prepare example-series --source example:synthetic --json",
+    "memo meetings prepare example-series --source example:synthetic --context-source tg.personal --context-query Harbour --json",
+  ],
   "search meetings": [
     "memo search meetings budget --source example:synthetic --project Harbour --since-time 2026-10-01 --limit 10 --json",
   ],

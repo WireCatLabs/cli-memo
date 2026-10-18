@@ -165,6 +165,7 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 | Search | `memo search all` · `search notes` · `search mail` · `search messages` |
 | Hand evidence to an agent | `memo ask` |
 | Know a person | `memo context` |
+| Prepare and review archived meetings | `memo meetings prepare` · `search meetings` · `meetings passage` · `meetings actions add` |
 | Organizations and projects | `memo organizations add` / `list` / `context` · `projects add` / `list` / `context` · `projects key-documents add` / `remove` / `list` · `projects meetings list` / `link` |
 | Project and topic aliases | `memo vocabulary list` / `show` / `check` / `inspect` · `vocabulary aliases add` / `remove` · `vocabulary create` |
 | Relationships | `memo relationships add` / `list` / `remove` / `confirm` / `suggest` |

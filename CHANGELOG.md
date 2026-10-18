@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- Prepare a cited packet of stored series history with `memo meetings prepare` or the MCP tool `meeting_prepare`.
+  It includes linked people and projects, accepted facts, owner notes and source tasks. You can explicitly add
+  a stored messenger profile or mailbox and a literal word query. Memo reports missing history, bounded output
+  and continuation cursors; it does not contact a provider or verify the next meeting time.
+
 ### Changed — may break callers
 
 - **Commands with no text view of their own print plain lines in place of JSON when `--json` is not given:** one line

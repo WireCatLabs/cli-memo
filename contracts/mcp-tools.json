@@ -248,6 +248,115 @@
     "annotations": {
       "destructiveHint": false,
       "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "after": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "bytes": {
+          "maximum": 4194304,
+          "minimum": 4096,
+          "type": "integer"
+        },
+        "communications": {
+          "additionalProperties": false,
+          "properties": {
+            "after": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "before": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "query": {
+              "maxLength": 2048,
+              "minLength": 1,
+              "type": "string"
+            },
+            "sources": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "cursor": {
+                    "maxLength": 4096,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "id": {
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+                    "type": "string"
+                  }
+                },
+                "required": ["id"],
+                "type": "object"
+              },
+              "maxItems": 8,
+              "minItems": 1,
+              "type": "array"
+            }
+          },
+          "required": ["sources", "query"],
+          "type": "object"
+        },
+        "context_limit": {
+          "maximum": 100,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "cues": {
+          "maximum": 100,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "history_after": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "max_read_bytes": {
+          "maximum": 4194304,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "meetings": {
+          "maximum": 20,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "project": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "series_id": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "source": {
+          "description": "one stored meeting account, provider:account",
+          "minLength": 1,
+          "type": "string"
+        },
+        "until": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": ["series_id", "source"],
+      "type": "object"
+    },
+    "name": "meeting_prepare"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
       "readOnlyHint": false
     },
     "inputSchema": {
