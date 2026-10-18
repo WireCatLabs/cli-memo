@@ -107,7 +107,9 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
           `  updated ${new Date(answer.updatedAt).toISOString().slice(0, 16).replace("T", " ")}${answer.tags.length ? `  tags: ${answer.tags.join(", ")}` : ""}`,
           "",
           answer.text,
-          ...(answer.links.length ? ["", `links: ${answer.links.map(({ to }) => to).join(", ")}`] : []),
+          ...(answer.links.length
+            ? ["", `links: ${answer.links.map(({ to, targetText }) => to ?? `${targetText} (not found)`).join(", ")}`]
+            : []),
           ...(answer.backlinks.length ? [`linked from: ${answer.backlinks.map(({ from }) => from).join(", ")}`] : []),
         ].join("\n"),
       )

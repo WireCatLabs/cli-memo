@@ -16,8 +16,8 @@ new one and run `memo --help`. If it still fails, install Memo again:
    `notes.ignore` in the [config file](configuration.md#notes).
 3. Search for one word you know is in the file. A search finds results that contain **every** word,
    so a long sentence often finds nothing; use two or three key words.
-4. PDF and Word files need the optional readers: `npm install -g unpdf mammoth`, then import again.
-   Scanned PDFs have no text to read.
+4. Scanned PDFs have no text to read, and old `.xls` files cannot be read: the report lists them
+   under "not read".
 
 ## "Searched by words only"
 
@@ -25,7 +25,7 @@ The search model for search by meaning is not on your computer. Memo still finds
 contains your words. To also search by meaning, download the model with tg or max, then import:
 
 ```sh
-tg models text download e5-small    # or: max models text download e5-small
+npx -y @wirecat/tg-cli local models text download e5-small
 memo sync
 ```
 
@@ -62,7 +62,7 @@ The revision you gave is not the current one: the note changed after you read it
 ## A person's context is empty or missing something
 
 - The person's chats are not downloaded yet. Download them with tg or max.
-- The accounts are not linked. Link them with `tg contacts link` ([details](people.md#link-a-persons-accounts)).
+- The accounts are not linked. Link them with `tg personal contacts link` ([details](people.md#link-a-persons-accounts)).
 - With several accounts in one messenger, add `--source`, such as `--source telegram:1`.
 - A note that only mentions the name in its text is not included; link it instead.
 

@@ -1,4 +1,13 @@
-import { mkdirSync, mkdtempSync, renameSync, rmSync, utimesSync, writeFileSync } from "node:fs"
+import {
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  utimesSync,
+  writeFileSync,
+} from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
@@ -105,12 +114,67 @@ describe("memo sync --only notes", () => {
     expect(text).toContain("  Kai Sample  (nobody by that name yet)  (1)")
   })
 
-  it("never stores an ignored note, and drops one ignored after it was stored", async () => {
+  it("never stores a note the config ignores, and drops one ignored after it was stored", async () => {
+    await run("sync", "--only", "notes")
+    const config = JSON.parse(readFileSync(configPath(env), "utf8"))
+    config.notes.ignore = ["Psychology/Private Notes.md"]
+    writeFileSync(configPath(env), JSON.stringify(config))
+
     await run("sync", "--only", "notes")
 
-    await run("sync", "--only", "notes", "--ignore", "Psychology/Private Notes.md")
-
     expect((await json("search", "notes", "dreams")).items).toEqual([])
+  })
+
+  it("reports a missing folder as not found, not as a bug", async () => {
+    rmSync(vault, { recursive: true })
+
+    const answer = envelopeOf(await run("sync", "--only", "notes", "--json"))
+    process.exitCode = 0
+
+    expect(answer.item.failed).toEqual([
+      {
+        source: `notes ${vault}`,
+        code: "not_found",
+        reason: `the notes folder ${vault} is missing — connect its disk; if it moved, memo folders attach <id> <new path>`,
+      },
+    ])
+  })
+
+  it("leaves a stored note alone for a run that --ignore skips it", async () => {
+    await run("sync", "--only", "notes")
+
+    const skipped = await json("sync", "--only", "notes", "--ignore", "Psychology")
+    const next = await json("sync", "--only", "notes")
+
+    expect(skipped.notes[0]).toMatchObject({ notes: 4, deleted: 0 })
+    expect(next.notes[0]).toMatchObject({ notes: 4, changed: 0, deleted: 0 })
+    expect(paths((await json("search", "notes", "dreams")).items)).toEqual(["Psychology/Private Notes.md"])
+  })
+
+  it("reports a file an older state file left unmarked as not read", async () => {
+    write("Old/legacy.doc", "synthetic")
+    await run("sync", "--only", "notes")
+    const [stateFile] = readdirSync(join(root, "state", "folders"))
+    const state = join(root, "state", "folders", stateFile as string)
+    const { notRead: _, ...older } = JSON.parse(readFileSync(state, "utf8"))
+    writeFileSync(state, JSON.stringify(older))
+
+    const answer = await json("sync", "--only", "notes")
+
+    expect(answer.notes[0]).toMatchObject({ notes: 4, not_read: [{ path: "Old/legacy.doc", status: "unsupported" }] })
+  })
+
+  it("reports a file it cannot read on every run, not only the first", async () => {
+    write("Old/legacy.doc", "synthetic")
+
+    const first = await json("sync", "--only", "notes")
+    const second = await json("sync", "--only", "notes")
+    const text = await run("sync", "--only", "notes")
+
+    for (const answer of [first, second])
+      expect(answer.notes[0]).toMatchObject({ notes: 4, not_read: [{ path: "Old/legacy.doc", status: "unsupported" }] })
+    expect(text).toContain("4 notes, 0 changed, 0 moved, 0 gone, 1 not read")
+    expect(text).toContain("  not read: Old/legacy.doc — this file type cannot be read")
   })
 
   it("keeps an edited note's new text searchable, and drops a deleted one", async () => {
@@ -142,6 +206,14 @@ describe("memo sync --only notes", () => {
     expect(refused.notes[0].deletions_skipped).toMatch(/too many to trust/)
     expect(paths((await json("search", "notes", "bulk")).items)).toHaveLength(6)
     expect((await json("sync", "--only", "notes")).notes[0].deletions_skipped).toMatch(/too many to trust/)
+  })
+
+  it("names a link that leads nowhere by its text in notes show", async () => {
+    await run("sync", "--only", "notes")
+
+    const text = await run("notes", "show", join(vault, "Projects/Harbour.md"))
+
+    expect(text).toContain("links: Kai Sample (not found)\n")
   })
 
   it("keeps a moved note's id, its links and its tags", async () => {

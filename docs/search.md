@@ -49,7 +49,7 @@ A search finds results that contain **every** word you type, including other for
 
 `content:` narrows a search to the text of files and `filename:` to their names:
 `memo search messages 'content:invoice'`. A file's text is there once tg or max has read it
-(`tg attachments extract`) or an agent has written it.
+(`tg personal attachments extract`) or an agent has written it.
 
 Put the search in single quotes so the terminal passes it to Memo as it is:
 `memo search notes '"budget review" NOT cancelled'`. `--exact` matches words only as written.
@@ -120,7 +120,7 @@ With the search model on your computer, Memo also searches by meaning, so `holid
 about a vacation. tg or max downloads the model once:
 
 ```sh
-tg models text download e5-small    # or: max models text download e5-small
+npx -y @wirecat/tg-cli local models text download e5-small
 ```
 
 The model runs on your computer. After the download, run `memo sync` so your notes are prepared

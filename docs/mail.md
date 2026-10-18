@@ -10,7 +10,20 @@ Memo never sends mail.
 
 Set up your mail account in Himalaya. For Gmail, use an IMAP account with a Gmail
 [app password](https://myaccount.google.com/apppasswords) (a separate password for one program,
-which you can revoke at any time). Check that Himalaya lists your mail before you continue.
+which you can revoke at any time). Memo works with Himalaya 2.x (`himalaya --version`).
+
+Himalaya reads its accounts from `~/.config/himalaya/config.toml` (`HIMALAYA_CONFIG` or `-c` points it
+elsewhere). A Gmail account named `work` looks like this; the password comes from a command, here the Linux
+keyring, so it is never written in the file:
+
+```toml
+[accounts.work]
+imap.server = "imaps://imap.gmail.com:993"
+imap.sasl.plain.username = "you@example.com"
+imap.sasl.plain.password.command = "secret-tool lookup service himalaya account work"
+```
+
+`himalaya account list` shows the accounts it read. Check that Himalaya lists your mail before you continue.
 
 ```text prompt
 Help me set up Himalaya for my Gmail account with an app password, and check that it lists my inbox.
@@ -322,11 +335,10 @@ for example `needs-agent` for a scanned page.
 
 - The sender, the recipients (To, CC and BCC), the subject, the date and the text of each email.
 - Whether an email is read or starred, as your mailbox shows it.
-- The text of readable attachments, searched with the email. PDF and Word attachments need the
-  [optional readers](notes.md#files-memo-can-read). After you install them, run
-  `memo sync --source email:work --retry-attachments` to read attachments that were skipped. It reads again, by
-  their Gmail id, only the emails whose attachment a missing reader left unread, up to `--limit` of them; it lists
-  nothing, so it is quick, and run again it continues with the rest.
+- The text of readable attachments, searched with the email ([files Memo can read](notes.md#files-memo-can-read)).
+  `memo sync --source email:work --retry-attachments` reads again, by their Gmail id, only the emails whose
+  attachment a missing reader left unread, up to `--limit` of them; it lists nothing, so it is quick, and run again
+  it continues with the rest.
 - Up to 1,000,000 characters of each email and 200,000 of each attachment
   ([change the limits](configuration.md#mail)).
 
@@ -344,7 +356,7 @@ moved to Spam counts as deleted. To protect you from mistakes:
 ## Mail and people
 
 To include a person's email in [their context](people.md#everything-about-a-person), link the
-address to them in tg or max: `tg contacts link 'Kai Sample' email:kai@example.com`.
+address to them in tg or max: `tg personal contacts link 'Kai Sample' email:kai@example.com`.
 
 ## Phones and links in mail
 

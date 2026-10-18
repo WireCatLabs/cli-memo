@@ -2193,7 +2193,7 @@ memo sync [options]
 |---|---|
 | `--only <resources>` | notes,mail, separated by commas. |
 | `--folder <folder>` | notes: only this configured folder, by its id or path; repeat for more. |
-| `--ignore <path>` | notes: also skip this file or folder, a path or a glob; repeat for more. |
+| `--ignore <path>` | notes: leave this file or folder alone this run, a path or a glob; repeat for more. |
 | `--source <accounts>` | mail: only these mailboxes: email:<account> (its name in mail.accounts or its address), email or group:<name>. |
 | `--account <account>` | deprecated: --source email:<account>. |
 | `--since-time <time>` | mail: read from this time, ISO 8601 or 30d ago (default: 30d). |

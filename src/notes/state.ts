@@ -11,6 +11,8 @@ export interface FolderState {
   files: Record<string, string>
   /** Where the text of a PDF, sheet or document came from inside it. */
   documents: Record<string, unknown>
+  /** Files that could not be read, so an untouched one is still reported on the next run. */
+  notRead?: Record<string, { status: string; engine?: string }>
 }
 
 const empty = (): FolderState => ({ files: {}, documents: {} })

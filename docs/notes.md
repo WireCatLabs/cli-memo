@@ -81,18 +81,20 @@ hidden folders such as `.obsidian`.
 | Text and Markdown | `.txt`, `.md`, `.markdown` | The text, links and tags |
 | Tables | `.csv`, `.tsv`, `.xlsx`, `.ods` | Cell values, with the sheet, row and column |
 | Documents, slides and e-books | `.odt`, `.pptx`, `.epub` | The text, without the layout |
-| PDF and Word | `.pdf`, `.docx` | The text, with PDF page numbers. Needs the optional readers below |
+| PDF and Word | `.pdf`, `.docx`, `.doc` | The text, with PDF page numbers |
 
-To read PDF and Word files, install the two optional readers next to Memo:
+Some files cannot be read: scanned PDFs (pictures of pages, with no text in them), old `.xls` files,
+and files larger than 50 MiB. Memo keeps up to 200,000 characters of each file. The import report
+lists every file it could not read, and why, on every run until the file changes:
 
-```sh
-npm install -g unpdf mammoth
+```text
+notes /home/you/Notes: 41 notes, 2 changed, 0 moved, 0 gone, 1 not read
+  not read: Archive/2009 budget.xls — this file type cannot be read
 ```
 
-Some files cannot be read: scanned PDFs (pictures of pages, with no text in them), old `.doc` and
-`.xls` files, and files larger than 50 MB. Memo keeps up to 200,000 characters of each file. The
-import report lists every file it could not read, and why, so a missing file is never silently
-left out of search.
+The text report names the first 10; with `--json`, the whole list is `not_read` in each folder's report, with the reason as `status`:
+`too-large`, `unsupported`, `needs-agent` (no text, such as a scan), `unreadable` (damaged or locked) or
+`engine-missing`. The count of notes leaves out the files that were not read.
 
 ### Skip some files
 
@@ -104,7 +106,9 @@ it is skipped) or a pattern:
 { "notes": { "ignore": ["Journal/Private.md", "Archive", "**/Private*"] } }
 ```
 
-`memo sync --only notes --ignore Drafts` skips a folder for one run only.
+`memo sync --only notes --ignore Drafts` leaves a folder alone for one run: its notes are not read
+again, and the ones already imported stay in Memo. `notes.ignore` is different: it removes notes
+already imported from that place.
 
 ## Find your notes
 

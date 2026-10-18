@@ -1,12 +1,13 @@
 import { createHash } from "node:crypto"
-import { readFileSync, statSync } from "node:fs"
+import { existsSync, readFileSync, statSync } from "node:fs"
 import { basename, extname, relative, sep } from "node:path"
+import { CliError } from "@wirecat/cli-base"
 import { normalizeTag } from "@wirecat/cli-core"
 import { extractText, importEngine, type LoadEngine, MAX_FILE_BYTES } from "@wirecat/cli-core/documents"
 import type { MessageStore, Note } from "@wirecat/cli-core/store"
 import type { BoundFolder } from "./bound.js"
 import { dialectOf, type ParsedNote } from "./dialects/index.js"
-import { NOTE_EXTENSIONS, noteFiles, readMemoId } from "./files.js"
+import { matcher, NOTE_EXTENSIONS, noteFiles, readMemoId } from "./files.js"
 import { documentOf, fileLinks } from "./links.js"
 import { detectRenames } from "./renames.js"
 import { type FolderState, loadFolderState, saveFolderState } from "./state.js"
@@ -14,6 +15,7 @@ import { type FolderState, loadFolderState, saveFolderState } from "./state.js"
 export interface NotesImport {
   folder: string
   folderId: string
+  /** Notes stored from the folder: the files found, less those not read. */
   notes: number
   /** Saved because they are new or their text changed. */
   changed: number
@@ -31,6 +33,9 @@ const MIN_DELETIONS_CAPPED = 5
 const PAGE = 500
 const TEXT_NOTE = /\.(md|markdown|txt)$/i
 const MEMO = "memo:"
+
+export const missingFolder = (path: string): string =>
+  `the notes folder ${path} is missing — connect its disk; if it moved, memo folders attach <id> <new path>`
 
 const inside = (folder: string, path: string): string => relative(folder, path).split(sep).join("/")
 
@@ -62,39 +67,66 @@ const storable = (tags: string[]): string[] =>
  * each file is kept beside the config (`state.ts`), so an untouched file is not even opened; the store's own
  * content hash keeps an unchanged file from being saved again on a computer importing it for the first time.
  * A file gone from one path whose content appears at a new one is a move. A file memo exported is not a note.
+ * `ignore` keeps files out of the store, so a note stored before is dropped; `skip` only leaves them alone this run.
  */
 export const importNotes = async (
   store: MessageStore,
   folder: BoundFolder,
   {
     ignore = [],
+    skip = [],
     env = process.env,
     loadEngine = importEngine,
-  }: { ignore?: string[]; env?: NodeJS.ProcessEnv; loadEngine?: LoadEngine } = {},
+  }: { ignore?: string[]; skip?: string[]; env?: NodeJS.ProcessEnv; loadEngine?: LoadEngine } = {},
 ): Promise<NotesImport> => {
+  if (!existsSync(folder.path))
+    throw new CliError("not_found", missingFolder(folder.path), {
+      reason: "notes.folder-missing",
+      path: folder.path,
+    })
   const before = loadFolderState(env, folder.id)
-  const after: FolderState = { files: {}, documents: { ...before?.documents } }
+  const after: FolderState = { files: {}, documents: { ...before?.documents }, notRead: {} }
+  const notReadNow = after.notRead as NonNullable<FolderState["notRead"]>
+  const skipped = matcher(skip)
+  const held = new Set<string>()
   const dialect = dialectOf(folder.format)
   const stored = new Map((await folderNotes(store, folder.id)).map((note) => [note.path as string, note]))
   const notRead: NonNullable<NotesImport["notRead"]> = []
   const truncated: string[] = []
   const unreadable: string[] = []
   const read: { id: string; path: string; bytes: Buffer; hash: string }[] = []
+  const notReadAs = (path: string, status: string, engine?: string) => {
+    const entry = { status, ...(engine === undefined ? {} : { engine }) }
+    notRead.push({ path, ...entry })
+    notReadNow[path] = entry
+    unreadable.push(path)
+  }
 
   const files = noteFiles(folder.path, ignore, NOTE_EXTENSIONS, { skipExported: false })
   for (const path of files) {
     const id = inside(folder.path, path)
+    const previous = before?.files[id]
+    const wasNotRead = before?.notRead?.[id]
+    if (skipped(id)) {
+      held.add(id)
+      if (previous !== undefined) after.files[id] = previous
+      if (wasNotRead) notReadNow[id] = wasNotRead
+      continue
+    }
     const stat = statSync(path)
     const stamp = `${stat.mtimeMs}:${stat.size}:`
-    const previous = before?.files[id]
-    if (previous?.startsWith(stamp) || previous?.startsWith(`${MEMO}${stamp}`)) {
-      after.files[id] = previous
+    const exported = previous?.startsWith(`${MEMO}${stamp}`)
+    // A missing reader may have been installed since, so that file is read again; so is an unstored file an older
+    // state file did not mark as not read.
+    const settled = stored.has(id) || (wasNotRead !== undefined && wasNotRead.status !== "engine-missing")
+    if (exported || (previous?.startsWith(stamp) && settled)) {
+      after.files[id] = previous as string
+      if (wasNotRead) notReadAs(id, wasNotRead.status, wasNotRead.engine)
       continue
     }
     if (stat.size > MAX_FILE_BYTES) {
       after.files[id] = stamp
-      notRead.push({ path: id, status: "too-large" })
-      unreadable.push(id)
+      notReadAs(id, "too-large")
       continue
     }
     // Only a file that changed is opened, so this check costs nothing on an untouched folder.
@@ -108,7 +140,10 @@ export const importNotes = async (
     read.push({ id, path, bytes, hash })
   }
 
-  const listed = new Set(Object.keys(after.files).filter((id) => !after.files[id]?.startsWith(MEMO)))
+  const listed = new Set([
+    ...Object.keys(after.files).filter((id) => !after.files[id]?.startsWith(MEMO)),
+    ...[...held].filter((id) => stored.has(id)),
+  ])
   const goneHashes = Object.fromEntries(
     [...stored.values()]
       .filter((note) => !listed.has(note.path as string) && note.contentHash !== null)
@@ -132,12 +167,7 @@ export const importNotes = async (
     if (stored.get(id)?.contentHash === hash) continue
     const extraction = await extractText(bytes, { kind: "file", name: basename(path), mime: null, path }, loadEngine)
     if (extraction.status !== "extracted") {
-      notRead.push({
-        path: id,
-        status: extraction.status,
-        ...("engine" in extraction ? { engine: extraction.engine } : {}),
-      })
-      unreadable.push(id)
+      notReadAs(id, extraction.status, "engine" in extraction ? extraction.engine : undefined)
       continue
     }
     const text = extraction.text.replace(/\r\n?/g, "\n")
@@ -206,7 +236,7 @@ export const importNotes = async (
   return {
     folder: folder.path,
     folderId: folder.id,
-    notes: listed.size,
+    notes: listed.size - Object.keys(notReadNow).filter((id) => listed.has(id)).length,
     changed,
     renamed,
     deleted,

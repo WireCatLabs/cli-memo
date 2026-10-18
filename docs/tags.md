@@ -116,8 +116,8 @@ permission to merge. Existing owner-reviewed alias commands remain separate.
 
 ## Tags and tg or max
 
-tg and max read the same tags: `tg search messages 'tag:follow-up'` finds tagged Telegram messages, and
-`memo search mail 'tag:follow-up'` finds tagged mail. Tags on a contact are also available through `tg tags` and
-`max tags`.
+tg and max read the same tags: `tg personal search messages 'tag:follow-up'` finds tagged Telegram messages, and
+`memo search mail 'tag:follow-up'` finds tagged mail. Tags on a contact are also available through `tg personal tags` and
+`max personal tags`.
 
 Next: [search by tag and by words](search.md).

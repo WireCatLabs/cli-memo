@@ -34,45 +34,51 @@ about this person, where did we discuss this, what did I promise. Every answer p
 
 ```text
 $ memo search notes budget Friday
+Searched by words only: the e5-small model is not downloaded — tg or max downloads it: npx -y @wirecat/tg-cli local models text download e5-small
+
 Projects/Harbour budget.md
   # Harbour budget
 people/Alice Example.md
   Asked for the revised budget by Friday. See [[Harbour budget]].
 
 Linked from these notes
-  Alice Example  document:2  (1)
   Bob Sample  (nobody by that name yet)  (1)
   Harbour budget  document:1  (1)
 ```
 
 Each hit names its file, and `[[links]]` become links to notes and people. `Bob Sample` becomes a link to
-a person once someone by that name is in the store.
+a person once someone by that name is in the store. The first line says the search used words only: the model
+for search by meaning is not downloaded yet.
 
 ## Quick start
 
-You need Node.js 22.16 or newer. memo is tested on Linux; macOS and Windows are not tested yet.
+You need Node.js 22.16+ or 24+ (not 23). memo is tested on Linux; macOS and Windows are not tested yet.
 
 ```sh
 npm install -g @wirecat/cli-memo
+memo skill install --for all      # puts memo's skill where your agents read it
 memo folders add /path/to/notes   # your notes folder; Obsidian format by default
 memo sync --only notes                # reads the notes, their links and tags; run again after edits
 memo search notes "budget"
 ```
+
+npm 12 prints "install scripts blocked": that is harmless, `memo skill install` does what the script would. On
+Windows, open a new terminal if `memo` is not found.
 
 That is all notes need. Then add more context:
 
 - **Messages:** install [tg-cli](https://github.com/WireCatLabs/tg-cli) or
   [max-cli](https://github.com/WireCatLabs/max-cli); memo reads the same local store.
 - **Search by meaning:** needs a local model of about 135 MB, which [tg-cli](https://github.com/WireCatLabs/tg-cli) or
-  max-cli downloads once: install one of them, then run `tg models text download e5-small`. Without it, memo searches
+  max-cli downloads once: `npx -y @wirecat/tg-cli local models text download e5-small`. Without it, memo searches
   by words.
 - **Mail:** set up [Himalaya](https://github.com/pimalaya/himalaya), then `memo sync --only mail`.
 - **Stay current:** `memo auto start` runs `memo sync` every five minutes (Linux, systemd).
-- **Your agent:** the install puts memo's skill where Claude Code, Codex and Gemini CLI read it;
-  `memo skill show` prints it, `memo skill install --for all` installs it again.
+- **Your agent:** `memo skill install --for all` puts memo's skill where Claude Code, Codex and Gemini CLI read
+  it; `memo skill show` prints it.
 
-Or ask your agent: "Help me install memo with `npm install -g @wirecat/cli-memo`, read `memo --help`, then
-help me connect a notes folder I choose."
+Or ask your agent: "Help me install memo with `npm install -g @wirecat/cli-memo` and
+`memo skill install --for all`, read `memo --help`, then help me connect a notes folder I choose."
 
 More: [installation](https://github.com/WireCatLabs/cli-memo/blob/main/docs/installation.md) ·
 [install memo on wirecat.dev](https://wirecat.dev/en/docs/memo/installation)
@@ -208,8 +214,7 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 ## Search and evidence
 
 Notes are searched by words and word stems in the query language messages use — phrases, `AND`/`OR`/`NOT`,
-`tag:`, `date:` — and by meaning once the local model is downloaded (`tg models text download e5-small`, with
-tg-cli or max-cli installed); both are ranked together. `search all`
+`tag:`, `date:` — and by meaning once the local model is downloaded (`npx -y @wirecat/tg-cli local models text download e5-small`); both are ranked together. `search all`
 reads messages, imported mail and notes together, and nothing else. When you know the kind, its own search
 reads every field: `search mail` takes `from:`, `to:`, `cc:`, `bcc:`, `subject:` and `mailbox:`.
 
@@ -230,7 +235,7 @@ More: [search](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md)
 
 `memo context` answers from the shared store: every identity linked to the person, the last message each
 way, recent messages, chats in common, linked mail, the notes about them and the open tasks. Who is who is
-decided in messaging — `tg contacts link <person> email:<address>` — and a same name is never enough.
+decided in messaging — `tg personal contacts link <person> email:<address>` — and a same name is never enough.
 `memo note telegram:"Alice Example" /path/to/notes/people/Alice.md` names the note that is about her.
 
 Organizations and projects are yours, not one account's. Relationships (`member-of`, `related-to`) are
@@ -351,8 +356,8 @@ More: [security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security
 
 ## Limits
 
-- Files up to 50 MiB; stored text up to 200,000 characters a file. Scanned PDFs and legacy DOC/XLS are
-  reported, not read.
+- Files up to 50 MiB; stored text up to 200,000 characters a file. Scanned PDFs, legacy `.xls` and larger
+  files are reported, not read.
 - Search by meaning embeds at most 600 chunks a run; the next run continues.
 - `memo sync --only mail` reads 200 new messages per account a run by default (`--limit`) and keeps up to 1,000,000
   characters of a body and 200,000 of an attachment's text (`mail.max_body_chars`, `mail.max_attachment_chars`).
@@ -364,7 +369,8 @@ More: [files memo can read](https://github.com/WireCatLabs/cli-memo/blob/main/do
 
 ## When something is missing
 
-- **Searched by words only:** the meaning model is not downloaded — `tg models text download e5-small`.
+- **Searched by words only:** the meaning model is not downloaded —
+  `npx -y @wirecat/tg-cli local models text download e5-small`.
 - **A folder is refused by import:** it has no id yet — `memo folders add <path>`.
 - **A name is refused:** two people share it; use one of the ids it lists.
 - **`memo ask` asks for a scope:** add `--all`, or `--source`.

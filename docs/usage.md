@@ -94,13 +94,13 @@ Where a search answer keeps its references:
 
 | Command | Reference of each result |
 |---|---|
-| `memo search messages`, `memo search mail` | `items[].ref`, as in `tg search messages` |
+| `memo search messages`, `memo search mail` | `items[].ref`, as in `tg personal search messages` |
 | `memo search all` | `items[].ref`, with `kind`; `next` lists the open tasks that point at a result (`tasks list source:"<ref>"`) |
 | `memo search notes` | `items[].ref` |
 
 `content:` narrows a search to the text of files, `transcript:` to voice transcripts and `filename:` to file
 names. Compare like with like: `memo search messages 'content:invoice'` with
-`tg search messages 'content:invoice'`, a plain word with a plain word.
+`tg personal search messages 'content:invoice'`, a plain word with a plain word.
 
 ## Choosing an account
 
@@ -108,11 +108,12 @@ When you have several Telegram, MAX or mail accounts, Memo does not choose one f
 with `--source`: one account as `telegram:1` or `email:work`, every account of a messenger as `telegram`,
 every account of a kind as `mail`, or a saved group as `group:work`; separate several with commas. A list
 reads every account it names and says which. A search with no account searches all of them and says so;
-so do `memo tasks list` and `memo reminders list`. A notes folder is an account too: `notes:<number>`, with the
+so do `memo tasks list` and `memo reminders list` (a project's tasks need `project:<key>`). A notes folder is an account too: `notes:<number>`, with the
 number search results give as `folder_id`.
 
 A command that changes something, such as adding a task or a reminder, acts as one account. Name it with
 `--account` as provider and account together: `--account telegram:1`, `--account email:work`. Without it,
 Memo tells you which accounts exist.
 
-The old `--provider` with a bare `--account 1` still works for one release and prints the new spelling.
+The old `--provider` with a bare `--account 1` still works and prints the new spelling on stderr: use `--source`
+and `--account provider:account` instead.

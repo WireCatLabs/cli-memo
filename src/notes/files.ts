@@ -56,6 +56,12 @@ const pattern = (rule: string): RegExp => {
   return new RegExp(`^${body}(/.*)?$`, "i")
 }
 
+/** Whether a path inside the folder, `/`-separated, matches one of the ignore rules. */
+export const matcher = (rules: string[]): ((inside: string) => boolean) => {
+  const patterns = rules.map(pattern)
+  return (inside) => patterns.some((rule) => rule.test(inside))
+}
+
 /**
  * Note files under `folder`, as absolute paths. Hidden entries (`.obsidian`, `.trash`) are skipped, and
  * so is whatever an `ignore` rule names — a path inside the folder (`Psychology/Personal Notes.md`,
@@ -68,11 +74,8 @@ export const noteFiles = (
   extensions = NOTE_EXTENSIONS,
   { skipExported = true }: { skipExported?: boolean } = {},
 ): string[] => {
-  const rules = ignore.map(pattern)
-  const ignored = (path: string) => {
-    const inside = relative(folder, path).split(sep).join("/")
-    return rules.some((rule) => rule.test(inside))
-  }
+  const matches = matcher(ignore)
+  const ignored = (path: string) => matches(relative(folder, path).split(sep).join("/"))
   const walk = (dir: string): string[] =>
     readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
       if (entry.name.startsWith(".")) return []
