@@ -727,6 +727,67 @@
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
       "properties": {
+        "contact": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 16,
+          "type": "array"
+        },
+        "context_query": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 16,
+          "type": "array"
+        },
+        "cursor": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "limit": {
+          "maximum": 500,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "max_pages": {
+          "maximum": 512,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "project": {
+          "description": "an existing project's id, key, name or alias, or a new name",
+          "minLength": 1,
+          "type": "string"
+        },
+        "since_time": {
+          "default": "60d",
+          "description": "days back, 1d to 730d",
+          "type": "string"
+        },
+        "source": {
+          "description": "where to look: provider:account list, a kind, group:<name> or all",
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": ["project", "source"],
+      "type": "object"
+    },
+    "name": "project_evidence"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
         "exact": {
           "type": "boolean"
         },

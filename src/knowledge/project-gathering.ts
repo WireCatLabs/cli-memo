@@ -1,0 +1,114 @@
+import { CliError } from "@wirecat/cli-base"
+import { gatherProjectEvidence, type ProjectGathering } from "@wirecat/cli-core/services"
+import type { MessageStore } from "@wirecat/cli-core/store"
+import { contextSourcesOf } from "../store/source-list.js"
+import { canonicalProject } from "../vocabulary/project.js"
+
+export interface ProjectGatherInput {
+  project: string
+  source: string
+  keywords?: string[]
+  people?: string[]
+  days?: number
+  checkpoint?: string
+  maxReads?: number
+  limit?: number
+}
+
+/**
+ * An existing project brings its name and aliases; any other name is gathered as given. An id that names no
+ * project, or a name that matches several, is refused rather than guessed.
+ */
+const projectOf = async (store: MessageStore, reference: string) => {
+  const id = /^(project:)?[1-9]\d*$/.test(reference)
+  let ref: string
+  try {
+    ref = await canonicalProject(store, id && !reference.startsWith("project:") ? `project:${reference}` : reference)
+  } catch (error) {
+    if (!id && error instanceof CliError && error.code === "not_found")
+      return { ref: null, name: reference, aliases: [] }
+    throw error
+  }
+  const entry = (await store.knowledge.vocabulary({ kind: "project" })).entries.find((one) => one.id === ref.slice(8))
+  if (!entry) throw new CliError("not_found", "the owner project is unavailable")
+  return { ref, name: entry.name, aliases: entry.aliases.map((alias) => alias.name) }
+}
+
+/** Days only: a window counted back from the run's own frozen time is what a continued search can keep. */
+export const daysOf = (value: string) => {
+  const days = /^([1-9]\d{0,2})d$/.exec(value)?.[1]
+  if (days === undefined || Number(days) > 730)
+    throw new CliError("validation_error", `--since-time takes days back, 1d to 730d, such as 90d — not ${value}`, {
+      param: "since_time",
+    })
+  return Number(days)
+}
+
+export type StoredProjectGathering = ProjectGathering & {
+  projectRef: string | null
+  unreadSources: { source: string; kind: string }[]
+}
+
+export const gatherStoredProject = async (
+  store: MessageStore,
+  env: NodeJS.ProcessEnv,
+  input: ProjectGatherInput,
+): Promise<StoredProjectGathering> => {
+  if (!store.contextEvidence)
+    throw new CliError("configuration_error", "Stored context reads are unavailable in this store")
+  const project = await projectOf(store, input.project)
+  const { sources, unread, scope } = await contextSourcesOf(store, env, input.source)
+  if (sources.length === 0)
+    throw new CliError("not_found", `${input.source} holds no messenger account, mailbox or notes folder to read`, {
+      param: "source",
+    })
+  const aliases = project.aliases.filter((alias) => alias !== project.name)
+  const gathered: ProjectGathering = await gatherProjectEvidence(
+    { evidence: store.contextEvidence },
+    {
+      project: { name: project.name, ...(aliases.length ? { aliases } : {}) },
+      ...(input.keywords?.length ? { keywords: input.keywords } : {}),
+      ...(input.people?.length ? { people: input.people.map((name) => ({ name })) } : {}),
+      sources,
+      scope,
+      ...(input.days === undefined ? {} : { lookbackDays: input.days }),
+      ...(input.checkpoint === undefined ? {} : { checkpoint: input.checkpoint }),
+      ...(input.maxReads === undefined && input.limit === undefined
+        ? {}
+        : {
+            budgets: {
+              ...(input.maxReads === undefined ? {} : { maxReads: input.maxReads }),
+              ...(input.limit === undefined ? {} : { maxItems: input.limit }),
+            },
+          }),
+    },
+  )
+  return { projectRef: project.ref, unreadSources: unread, ...gathered }
+}
+
+const day = (at: number) => new Date(at).toISOString().slice(0, 10)
+
+export const projectGatherText = (found: StoredProjectGathering) => {
+  const lanes = new Map(found.lanes.map((lane) => [lane.id, `${lane.query} (${lane.kinds.join(", ")})`]))
+  const failed = found.units.filter((unit) => unit.state === "failed" || unit.state === "unavailable")
+  const lines = [
+    `${found.project.name}${found.projectRef ? ` — ${found.projectRef}` : ""}: ${found.items.length} new references, ` +
+      `${day(found.window.after)} to ${day(found.window.before)}, ${found.scope.sources.length} sources`,
+    `searched: ${[...lanes.values()].join("; ")}`,
+    ...found.items.map(
+      (item) =>
+        `${day(item.at)}  ${item.ref}${item.context === "person-only" ? "  [person only]" : ""}\n    ${item.text}`,
+    ),
+  ]
+  if (found.matchedAgain.length) lines.push(`${found.matchedAgain.length} earlier references found again`)
+  if (failed.length) lines.push(`${failed.length} reads failed or had no source: see --json units`)
+  if (found.unreadSources.length)
+    lines.push(`not read: ${found.unreadSources.map((one) => `${one.source} (${one.kind})`).join(", ")}`)
+  if (found.checkpoint)
+    lines.push(
+      `stopped${found.stopped ? ` at the ${found.stopped} budget` : ""}; continue with the same options and`,
+      `--cursor ${found.checkpoint}`,
+    )
+  else lines.push("every read finished; a finished search does not prove there is nothing more")
+  return lines.join("\n")
+}

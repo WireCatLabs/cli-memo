@@ -1218,6 +1218,33 @@ memo projects context <project> [options]
 
 **Example:** `memo projects context HRB`, `memo projects context project:2 --json`
 
+### `memo projects evidence`
+
+cited references about a project in stored messages, mail and imported notes folders. The project's name, each of its aliases, each --context-query and each --contact name is its own literal search, and their hits are joined. Reads only what the store holds; proposes and confirms nothing
+
+```sh
+memo projects evidence <project> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `project` | required | an existing project's id, key, exact name or alias, or a new project's name. |
+
+| Option | What it does |
+|---|---|
+| `--source <accounts>` | where to look, or all: which accounts, separated by commas: provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>. |
+| `--context-query <words>` | more words that all appear in one text; repeat for another search. |
+| `--contact <person>` | a person's name; what only names them is context, not the project. |
+| `--since-time <time>` | how many days back, at most 730d. Default: `60d`. |
+| `--limit <n>` | new references at most, up to 500. Default: `100`. |
+| `--max-pages <pages>` | store pages read at most this run, up to 512. |
+| `--cursor <cursor>` | continue a stopped search from its checkpoint, with the same options. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** find what the store holds about a project, by its names, more words and people
+
+**Example:** `memo projects evidence SYH --source telegram:1,email:personal --contact 'Alice Example'`, `memo projects evidence SYH --source all --context-query 'crane tender' --since-time 180d --json`
+
 ### `memo projects key-documents`
 
 the notes, files and messages to read first about a project, each with why

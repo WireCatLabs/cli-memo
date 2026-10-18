@@ -13,6 +13,16 @@ the API.
   `MEMO_INSTALL_AGENT=all` (or an agent's name) installs it at install time; otherwise run
   `memo skill install --for all`.
 
+### Added
+
+- **`memo projects evidence <project> --source <accounts|all>` and MCP `project_evidence`: cited references about a
+  project** from stored messages, mail and imported notes folders. An existing project brings its name and aliases;
+  each name, `--context-query` and `--contact` is its own literal search, and the hits are joined, each with the
+  searches that found it. `--since-time` takes days back (default `60d`). An item found only through a person's
+  name is marked `person-only`. A source that failed or has no reader yet (your own notes, meetings) is listed,
+  never read as empty. `--limit` and `--max-pages` bound a run, and `--cursor` continues a stopped one with the
+  same window. Nothing is written.
+
 ## 0.72.0 — 18.10.2026
 
 ### Changed — may break callers

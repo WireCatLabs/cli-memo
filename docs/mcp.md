@@ -56,6 +56,7 @@ Use the memo tools to list the memories waiting for my review.
 | `search_meetings`, `meeting_passage` | Search stored meetings in one explicit source account and read cited transcript passages |
 | `meeting_prepare` | Gather stored series history and linked context, optionally with explicitly selected message/mail accounts; does not verify the next meeting time |
 | `project_context` | Key documents, pending relationships, facts and meeting findings, plus open numbered tasks |
+| `project_evidence` | Cited references about a project from stored messages, mail and notes folders, searched by its names, more words and people; read only |
 | `meeting_actions_add`, `meeting_actions_show`, `meeting_actions_list` | Propose and inspect cited meeting facts and follow-ups; never confirm them |
 | `person_context` | One person across messengers and mail, with linked notes and tasks, read only |
 | `memories_add`, `memories_list`, `memories_show`, `search_memories` | Save and read memories |
@@ -88,6 +89,13 @@ are labelled as such. Exact retries reuse the key; changed input needs a new key
 
 `meeting_actions_show` and `meeting_actions_list` take an explicit `source`. Only the owner reviews
 batches through `memo meetings actions confirm` or `reject`. Staging creates no facts or numbered tasks.
+
+`project_evidence` takes the options of `memo projects evidence` in snake_case and needs `source`: account
+entries, a kind, `group:<name>` or `all`. It searches the project's name, each alias, each `context_query` and
+each `contact` separately and joins the hits; `since_time` defaults to `60d`. An item found only through a
+contact's name has `context: "person-only"`. Failed or unread sources are listed, and `completeness` stays
+`unknown`. When it returns a `checkpoint`, call again with the same arguments and `cursor` set to it. It writes
+nothing.
 
 Use `project_context` with a project key, exact name or alias to review pending findings together.
 Meeting previews read at most five batches from each of eight linked meeting accounts; coverage and

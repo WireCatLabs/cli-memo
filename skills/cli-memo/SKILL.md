@@ -118,3 +118,9 @@ confirmation or rejection tool. `project_context` and CLI `projects context` sho
 relationships, facts and meeting findings separately from open numbered tasks. Preserve bounded coverage;
 meeting previews cover linked accounts only. Read the full batch before owner review, including findings
 for other projects. Never confirm or reject your own suggestions.
+
+To collect what the store holds about a project, use `memo projects evidence <project> --source <accounts|all>`
+(MCP `project_evidence`). Each name, alias, `--context-query` and `--contact` is its own literal search; hits
+are joined. A `person-only` item mentions a person, not the project. Unread or failed sources are coverage, not
+absence. Continue a stopped run with `--cursor <checkpoint>` and the same options. Nothing is proposed or
+confirmed: cite the references, then stage findings through the review flow above.
