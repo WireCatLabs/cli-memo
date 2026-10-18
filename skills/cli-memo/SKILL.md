@@ -28,7 +28,7 @@ authorize alias changes or merging. Re-read and reselect after a stale-fingerpri
    which one. Cross-account reads state their coverage in `meta.accounts`.
 2. **`content:` narrows a search to the text of files, `filename:` to their names.** Whether a plain word
    also reads file text and voice transcripts depends on the version. Compare like with like:
-   `memo search messages 'content:invoice'` with `tg search messages 'content:invoice'`, a plain word
+   `memo search messages 'content:invoice'` with `tg personal search messages 'content:invoice'`, a plain word
    with a plain word.
 3. **Every answer is `item` (one thing) or `items` with `page` (a list), plus `meta`.** References:
    every search's `items[].ref`. Pass a reference back unchanged. A search names its fields, so

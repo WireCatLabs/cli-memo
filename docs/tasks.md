@@ -60,6 +60,9 @@ memo tasks list project:HRB
 memo tasks update HRB-1 --priority 0 --description 'Call before Friday'
 ```
 
+A plain `memo tasks list` shows the tasks of your accounts only; a project's tasks are listed with
+`project:` and the project's key.
+
 | Option | Meaning |
 |---|---|
 | `--type` | `chore` (the default), `bug` or `feature` |
@@ -89,7 +92,7 @@ memo tasks close 7 --account telegram:1 --as dismissed
 ```
 
 Close a task with `--as done` (the default) or `--as dismissed`. `memo tasks list state:done` shows
-closed tasks; with `--project`, `kind:bug` narrows by kind. `source:"note:12"` keeps an account's tasks
+closed tasks; with `project:`, `kind:bug` narrows by kind. `source:"note:12"` keeps an account's tasks
 from one message, note or document — the step `memo search all` suggests for a result tasks point at.
 Every change of status, priority or assignee is recorded with the task.
 

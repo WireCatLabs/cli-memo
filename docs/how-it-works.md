@@ -64,7 +64,7 @@ it.
 ## One person, several accounts
 
 The same person can have a Telegram account, a MAX account and an email address. Memo treats them as
-one person only after you link them, with `tg contacts link` or `max contacts link`. A matching name
+one person only after you link them, with `tg personal contacts link` or `max personal contacts link`. A matching name
 or email domain is never enough. This keeps one person's messages from being mixed with someone
 else's.
 

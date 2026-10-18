@@ -66,7 +66,9 @@ describe("memo doctor", () => {
 
     const text = await doctor()
 
-    expect(text).toContain(`! the notes folder ${join(dir, "gone")} is missing — memo folders`)
+    expect(text).toContain(
+      `! the notes folder ${join(dir, "gone")} is missing — connect its disk; if it moved, memo folders attach <id> <new path>`,
+    )
     expect(text).toContain("! himalaya is not on PATH, so mail cannot be read")
     expect(text).toContain("! the timer is on in the config but not installed — memo auto start")
     expect(process.exitCode).toBe(1)

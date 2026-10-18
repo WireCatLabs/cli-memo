@@ -69,7 +69,7 @@ export const memoContext = async (
   if (!messages.person.identities.some((identity) => identity.provider === "email"))
     notRead.push({
       source: "mail",
-      reason: "no mail address linked to them — tg contacts link <person> email:<address>",
+      reason: "no mail address linked to them — tg <profile> contacts link <person> email:<address>",
     })
 
   const tasks = await personTasks(store, messages.person, accounts, limit)

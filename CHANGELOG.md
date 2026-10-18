@@ -4,6 +4,28 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Changed — may break callers
+
+- **`memo sync --ignore` leaves a file or folder alone for that run.** Notes already imported from it stay in Memo;
+  before, the run removed them and the next run imported them again. `notes.ignore` in the config still removes them.
+
+### Fixed
+
+- **`memo sync` reports the files it could not read on every run, also in the text report.** Each folder line counts
+  them (`1 not read`) and a line names each file and why, such as a file over 50 MiB or an `.xls`. Before, only the
+  first run's `--json` listed them, and the count of notes included them.
+- **A notes folder that is gone is a normal error**, `not_found` with the way to fix it, not "this is a bug (ENOENT)".
+  `memo doctor` names the same fix in place of a bare `memo folders`.
+- `memo notes show` names a link that leads nowhere by its text, in place of an empty entry after a comma.
+- The hint for search by meaning gives a command that works without installing tg:
+  `npx -y @wirecat/tg-cli local models text download e5-small`.
+- The docs: `.doc` files are read and need nothing extra (PDF and Word readers come with Memo); install leads with
+  `memo skill install --for all` and explains npm 12's "install scripts blocked"; Himalaya 2.x and its config file;
+  the cache folder and `MEMO_AUTO`; plain `memo tasks list` leaves out project tasks; tg and max commands show a
+  profile; the README example is real output.
+
 ## 0.69.0 — 18.10.2026
 
 ### Added

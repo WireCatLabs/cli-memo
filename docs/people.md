@@ -44,7 +44,7 @@ One person can have a Telegram account, a MAX account and an email address. Link
 so Memo treats them as one person:
 
 ```sh
-tg contacts link 'Kai Sample' email:kai@example.com
+tg personal contacts link 'Kai Sample' email:kai@example.com
 ```
 
 After this, `memo context` for any of the accounts shows everything from all of them. A matching

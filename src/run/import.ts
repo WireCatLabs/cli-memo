@@ -58,11 +58,17 @@ export interface ImportRun {
 
 const text = (run: ImportRun): string =>
   [
-    ...run.notes.map(
-      (n) =>
-        `notes ${n.folder}: ${n.notes} notes, ${n.changed} changed, ${n.renamed} moved, ${n.deleted} gone` +
+    ...run.notes.flatMap((n) => [
+      `notes ${n.folder}: ${n.notes} notes, ${n.changed} changed, ${n.renamed} moved, ${n.deleted} gone` +
+        (n.notRead ? `, ${n.notRead.length} not read` : "") +
         (n.deletionsSkipped === undefined ? "" : ` — deletions skipped: ${n.deletionsSkipped}`),
-    ),
+      ...(n.notRead ?? [])
+        .slice(0, NOT_READ_SHOWN)
+        .map(({ path, status, engine }) => `  not read: ${path} — ${notReadReason(status, engine)}`),
+      ...((n.notRead?.length ?? 0) > NOT_READ_SHOWN
+        ? [`  and ${(n.notRead?.length ?? 0) - NOT_READ_SHOWN} more not read — --json lists them all`]
+        : []),
+    ]),
     ...(run.notesEmbedded === undefined
       ? []
       : [
@@ -90,6 +96,18 @@ const text = (run: ImportRun): string =>
     ),
     ...run.failed.map(({ source, reason }) => `failed ${source}: ${reason}`),
   ].join("\n") || "Nothing to sync: set notes.folders or mail.accounts in the config."
+
+const NOT_READ_SHOWN = 10
+
+const NOT_READ: Record<string, string> = {
+  "too-large": "larger than 50 MiB",
+  unsupported: "this file type cannot be read",
+  "needs-agent": "no text in it, such as a scanned PDF",
+  unreadable: "the file is damaged or locked",
+}
+
+const notReadReason = (status: string, engine?: string): string =>
+  status === "engine-missing" ? `needs the ${engine ?? "missing"} reader` : (NOT_READ[status] ?? status)
 
 type Synced = "notes" | "mail"
 
@@ -161,7 +179,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .addOption(
       new Option(
         "--ignore <path>",
-        "notes: also skip this file or folder, a path or a glob; repeat for more",
+        "notes: leave this file or folder alone this run, a path or a glob; repeat for more",
       ).argParser(collect),
     )
     .option("--source <accounts>", `mail: only these mailboxes: ${MAIL_SOURCES}`)
@@ -256,10 +274,11 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
                     code: "configuration_error",
                     reason: unboundReason(folder.path),
                   })
-            const ignore = [...(config.notes?.ignore ?? []), ...(options.ignore ?? [])]
+            const ignore = config.notes?.ignore ?? []
+            const skip = options.ignore ?? []
             for (const folder of folders)
               await attempt(`notes ${folder.path}`, async () => {
-                run.notes.push(await importNotes(store, folder, { ignore, env }))
+                run.notes.push(await importNotes(store, folder, { ignore, skip, env }))
               })
             if (folders.length > 0)
               await attempt("notes by meaning", async () => {

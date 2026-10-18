@@ -63,7 +63,11 @@ export const diagnose = async (env: NodeJS.ProcessEnv) => {
     bound: id !== null,
   }))
   for (const folder of folders) {
-    if (!folder.exists) problems.push({ what: `the notes folder ${folder.path} is missing`, fix: "memo folders" })
+    if (!folder.exists)
+      problems.push({
+        what: `the notes folder ${folder.path} is missing`,
+        fix: "connect its disk; if it moved, memo folders attach <id> <new path>",
+      })
     else if (!folder.bound)
       problems.push({
         what: `the notes folder ${folder.path} has no folder id`,
