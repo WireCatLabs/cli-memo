@@ -50,7 +50,8 @@ const fixture = async () => {
       confirmed: false,
       provenance: "agent:synthetic",
     })
-    return { env, account, project }
+    await store.knowledge.linkMeetingProject(account, String(saved.meeting.id), foreign.id, { by: "owner" })
+    return { env, account, project, foreign }
   } finally {
     await store.close()
   }
@@ -187,6 +188,29 @@ it("reports capped project facts and preserves their pending status", async () =
     expect(continued.error).toBeUndefined()
     expect(continued.items).toHaveLength(21)
     expect(context.review.facts.items.every((fact: { status: string }) => fact.status === "proposed")).toBe(true)
+  } finally {
+    await client.close()
+  }
+})
+
+it("filters mixed-project batches in context while preserving the full preview for review", async () => {
+  const f = await fixture(),
+    { client, call } = await connected(f.env)
+  try {
+    const input = await inputFor(call, f.project.ref)
+    const staged = await call("meeting_actions_add", {
+      account: "example:synthetic",
+      input: {
+        ...input,
+        findings: [...input.findings, { ...input.findings[0], id: "other-project", project: f.foreign.ref }],
+      },
+    })
+    expect(staged.failed).not.toBe(true)
+    const context = (await call("project_context", { project: "SHR" })).item
+    expect(context.review.meeting_actions.items[0].findings).toHaveLength(1)
+    expect(context.review.meeting_actions.items[0].findings[0].project).toBe(f.project.ref)
+    const full = await call("meeting_actions_show", { source: "example:synthetic", id: staged.item.id })
+    expect(full.item.input.findings).toHaveLength(2)
   } finally {
     await client.close()
   }
