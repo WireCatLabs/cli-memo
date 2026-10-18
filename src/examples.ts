@@ -103,6 +103,9 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "vocabulary list": ["memo vocabulary list kind:tag"],
   "vocabulary show": ["memo vocabulary show Harbour --kind project"],
   "vocabulary check": ["memo vocabulary check on-boarding --kind tag", "memo vocabulary check --limit 20 --json"],
+  "vocabulary inspect": [
+    "memo vocabulary inspect tag:1 tag:2 --fingerprint v1:all:all:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --limit 5 --json",
+  ],
   "vocabulary create": ["memo vocabulary create onboarding --kind tag --fingerprint 3f9a"],
   "vocabulary aliases add": ["memo vocabulary aliases add project:2 Harbor --fingerprint 3f9a"],
   "vocabulary aliases remove": ["memo vocabulary aliases remove project:2 5 --fingerprint 3f9a"],

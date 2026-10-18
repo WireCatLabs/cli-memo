@@ -1298,6 +1298,27 @@ memo reminders update <id> [options]
 
 canonical projects, tags and topics with explicit aliases
 
+### `memo vocabulary inspect`
+
+preview two tags' assignments, aliases, automatic claims and links before consolidation; writes and merges nothing
+
+```sh
+memo vocabulary inspect <source> <survivor> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `source` | required | the duplicate tag:<id> to inspect, from vocabulary list. |
+| `survivor` | required | the canonical tag:<id> you would keep; nothing is merged. |
+
+| Option | What it does |
+|---|---|
+| `--fingerprint <hash>` | the current fingerprint from unfiltered vocabulary list. |
+| `--max-rows <n>` | dependency row budget, 1–20000 (default 5000). |
+| `--max-read-bytes <bytes>` | dependency byte budget, 1–16777216 (default 1048576). |
+| `--limit <n>` | samples per table, 1–100 (default 10); counts remain complete. |
+| `--json` | print the standard JSON answer. |
+
 ### `memo vocabulary list`
 
 list canonical IDs, aliases, usage counts and a preview fingerprint

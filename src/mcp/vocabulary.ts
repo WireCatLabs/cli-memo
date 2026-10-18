@@ -4,6 +4,7 @@ import * as v from "valibot"
 import { itemAnswer } from "../answer.js"
 import { VOCABULARY_QUERY, vocabularyFilter } from "../vocabulary/list.js"
 import { define } from "./tool.js"
+import { vocabularyInspection } from "./vocabulary-inspect.js"
 
 const bounded = (maximum: number) => v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(maximum)))
 const budget = { maxEntries: bounded(20000), maxReadBytes: bounded(16777216) }
@@ -13,6 +14,7 @@ const options = {
   ...budget,
 }
 export const vocabularyTools = {
+  vocabulary_inspect: vocabularyInspection,
   vocabulary_list: define({
     title: "List canonical vocabulary",
     description:

@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- `vocabulary inspect <source> <survivor>` and MCP `vocabulary_inspect` preview two explicit tag IDs
+  before consolidation. They report assignments, overlaps, aliases, automatic claims and links,
+  with bounded samples and a fingerprint of the inspected state. A current unfiltered vocabulary
+  fingerprint is required. They merge nothing; coverage names the four inspected dependency tables.
+
 ### Fixed
 
 - The README, the MCP page and `memo mcp --help` say what an MCP app can read: your stored messages, mail and notes,

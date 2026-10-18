@@ -54,6 +54,17 @@ const OWN_ENTITIES = entityFields({
     "origin",
   ],
   vocabulary: ["entries", "fingerprint", "coverage"],
+  vocabulary_inspection: [
+    "source",
+    "survivor",
+    "vocabulary_fingerprint",
+    "preview_fingerprint",
+    "assignments",
+    "aliases",
+    "automatic_claims",
+    "links",
+    "coverage",
+  ],
   proposed_action: [
     "id",
     "kind",
