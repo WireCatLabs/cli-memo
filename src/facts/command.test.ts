@@ -6,6 +6,7 @@ import { answerFields } from "@wirecat/cli-core/cli"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
+import { throwParseFailures } from "../failure.js"
 import { createProgram } from "../program.js"
 
 it("records the owner's facts as accepted and lets the owner accept, supersede and reverse an agent's decision", async () => {
@@ -66,7 +67,11 @@ it("filters facts by a query in the store, and refuses the old flags and a quest
     .commands.find((command) => command.name() === "facts")
     ?.commands.find((command) => command.name() === "list")
   expect(answerFields(list)).toEqual(expect.arrayContaining(Object.keys(items[0])))
-  await expect(run("facts", "list", "--type", "decision")).rejects.toMatchObject({ code: "validation_error" })
+  const strict = createProgram({ streams: captureStreams(), env })
+  throwParseFailures(strict)
+  await expect(strict.parseAsync(["facts", "list", "--type", "decision"], { from: "user" })).rejects.toMatchObject({
+    code: "commander.unknownOption",
+  })
   await expect(run("facts", "list", "kind:decision OR kind:question")).rejects.toMatchObject({
     code: "validation_error",
   })

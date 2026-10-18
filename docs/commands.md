@@ -32,6 +32,10 @@ memo context <person> [options]
 | `--source <accounts>` | the account to read, as provider:account; required when the store holds several of that messenger. |
 | `--account <account>` | deprecated: --source <messenger>:<account>. |
 
+**Returns:** messages, mail and notes about a person, each with a link to its source
+
+**Example:** `memo context telegram:'Kai Sample'`, `memo context email:kai@example.com --limit 5 --json`
+
 ## `memo notes`
 
 notes from your folders, and notes you write here
@@ -52,6 +56,10 @@ memo notes show <note> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** note — ref, id, source, folder_id, path, title, text, revision, and 15 more
+
+**Example:** `memo notes show note:12`, `memo notes show ~/notes/People/Kai.md --json`
+
 ### `memo notes list`
 
 notes, newest first
@@ -69,6 +77,12 @@ memo notes list [query] [options]
 | `--limit <n>` | most notes, at most 500. Default: `20`. |
 | `--page <n>` | which page, from 1. Default: `1`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** note — ref, id, source, folder_id, path, title, text, revision, and 15 more
+
+**Next usually:** `memo notes show <note>`
+
+**Example:** `memo notes list 'about:"telegram:Kai Sample"'`, `memo notes list source:internal text:budget --json`, `memo notes list source:internal --limit 50`
 
 ### `memo notes add`
 
@@ -97,6 +111,12 @@ memo notes add [text] [options]
 | `--format <format>` | the file's format: obsidian, markdown. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** note — ref, id, source, folder_id, path, title, text, revision, and 15 more
+
+**Next usually:** `memo notes show <note>`
+
+**Example:** `memo notes add 'Prefers calls in the morning' --subject telegram:'Kai Sample'`, `memo notes add --text-file draft.md --title 'Harbour kickoff' --subject project:2 --subject organization:1`
+
 ### `memo notes edit`
 
 change a note you wrote here; a file's note is edited in its file
@@ -120,6 +140,12 @@ memo notes edit <id> [options]
 | `--format <format>` | the file's format: obsidian, markdown. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** note — ref, id, source, folder_id, path, title, text, revision, and 15 more
+
+**Next usually:** `memo notes show <note>`
+
+**Example:** `memo notes edit note:12 --revision 2 --text 'Prefers calls after ten'`
+
 ### `memo notes remove`
 
 delete a note you wrote here; a file it was exported to stays
@@ -138,6 +164,10 @@ memo notes remove <id> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** delete a note you wrote here; a file it was exported to stays
+
+**Example:** `memo notes remove note:12`
+
 ### `memo notes export`
 
 write the notes you wrote here as files, never overwriting one you edited
@@ -153,6 +183,10 @@ memo notes export [options]
 | `--output-dir <dir>` | the folder to write to (default: notes.export.dir). |
 | `--format <format>` | the files' format: obsidian, markdown. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** write the notes you wrote here as files, never overwriting one you edited
+
+**Example:** `memo notes export --output-dir ~/notes/memo --format obsidian`
 
 ## `memo folders`
 
@@ -177,6 +211,10 @@ memo folders add <path> [options]
 | `--format <format>` | how its notes are written: obsidian, markdown (default: obsidian). |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** give a folder of notes an id, or show the one it has
+
+**Example:** `memo folders add ~/notes`
+
 ### `memo folders attach`
 
 bind a folder id from another computer to the folder's path on this one
@@ -197,6 +235,10 @@ memo folders attach <id> <path> [options]
 | `--format <format>` | how its notes are written: obsidian, markdown. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** bind a folder id from another computer to the folder's path on this one
+
+**Example:** `memo folders attach 1 ~/notes`
+
 ### `memo folders list`
 
 folders of notes on this computer, and those the store knows from another
@@ -212,6 +254,10 @@ memo folders list [query] [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** folders of notes on this computer, and those the store knows from another
+
+**Example:** `memo folders list --json`
 
 ## `memo messages`
 
@@ -236,6 +282,10 @@ memo messages show <message> [options]
 | `--full` | whole attachment text, not the first 4000 characters of each. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** one stored email whole, with its attachments' text and nearby thread emails
+
+**Example:** `memo messages show 'msg:email/me%40example.com/thread/42' --before-n 2 --after-n 2`
+
 ## `memo mail`
 
 look at a mail account before importing it, and the owner's rules
@@ -259,6 +309,10 @@ memo mail inspect <account> [options]
 | `--domain-age` | ask each shown sender domain's registry when it was registered (RDAP); tells each registry its domain. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** group an account's mail by sender and list, to decide what to keep or skip
+
+**Example:** `memo mail inspect personal --limit 30`, `memo mail inspect work --since-time 365d --json`
+
 ### `memo mail status`
 
 how far an account's import is: mail stored, recorded, and left to read
@@ -274,6 +328,10 @@ memo mail status <account> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** how far an account's import is: mail stored, recorded, and left to read
+
+**Example:** `memo mail status personal`, `memo mail status personal --json`
 
 ### `memo mail trash`
 
@@ -296,6 +354,10 @@ memo mail trash <account> [options]
 | `--yes` | move the mail; without it, only say what would move. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** move envelope mail to Gmail's Trash, decided again; dry run unless --yes
+
+**Example:** `memo mail trash personal`, `memo mail trash personal --yes --limit 100`
+
 ### `memo mail restore`
 
 move a cleanup run's mail back from Gmail's Trash; dry run unless --yes
@@ -316,6 +378,10 @@ memo mail restore <account> [options]
 | `--yes` | move the mail back; without it, only say what would move. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** move a cleanup run's mail back from Gmail's Trash; dry run unless --yes
+
+**Example:** `memo mail restore personal --run 2026-10-16T09-00-00-000Z-ab12 --yes`
+
 ### `memo mail runs`
 
 an account's cleanup runs, how much moved, and until when restorable
@@ -331,6 +397,10 @@ memo mail runs <account> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** an account's cleanup runs, how much moved, and until when restorable
+
+**Example:** `memo mail runs personal`, `memo mail runs personal --json`
 
 ### `memo mail rules`
 
@@ -352,6 +422,10 @@ memo mail rules list <account> [options]
 |---|---|
 | `--filter <query>` | is:protected lists only the rules no cleanup may override. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** one account's rules, protected ones first
+
+**Example:** `memo mail rules list personal --json`, `memo mail rules list personal --filter is:protected`
 
 #### `memo mail rules add`
 
@@ -378,6 +452,10 @@ memo mail rules add <account> [options]
 | `--reason <text>` | why, for the owner later. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** decide mail by sender, list, subject, age, size, label or kind; repeats replace
+
+**Example:** `memo mail rules add personal --domain news.example --do envelope,tag:newsletter --reason 'newsletters'`, `memo mail rules add personal --domain tax.gov.example --do protect`, `memo mail rules add personal --filter 'label:Promotions older:365d' --do envelope`
+
 #### `memo mail rules remove`
 
 drop the rule with exactly these conditions
@@ -401,6 +479,10 @@ memo mail rules remove <account> [options]
 | `--kind <kind>` | a built-in kind of mail: social, newsletters, developer, shopping, alerts. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** drop the rule with exactly these conditions
+
+**Example:** `memo mail rules remove personal --domain news.example`
+
 #### `memo mail rules import-filters`
 
 propose rules from a Takeout export's Gmail filters; --yes adds them
@@ -420,6 +502,10 @@ memo mail rules import-filters <account> <file> [options]
 |---|---|
 | `--yes` | add the proposed rules; without it, only show them. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** propose rules from a Takeout export's Gmail filters; --yes adds them
+
+**Example:** `memo mail rules import-filters personal Filters.json`, `memo mail rules import-filters personal Filters.json --yes`
 
 #### `memo mail rules apply`
 
@@ -441,6 +527,10 @@ memo mail rules apply <account> [options]
 | `--yes` | change the store; without it, only say what would change. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** cut stored mail an envelope rule matches to its envelope; dry run unless --yes
+
+**Example:** `memo mail rules apply personal`, `memo mail rules apply personal --yes --json`
+
 #### `memo mail rules export`
 
 print one account's rules as JSON, to review, keep or move elsewhere
@@ -452,6 +542,10 @@ memo mail rules export <account>
 | Argument | | What it is |
 |---|---|---|
 | `account` | required | the account's name in mail.accounts, or its address. |
+
+**Returns:** print one account's rules as JSON, to review, keep or move elsewhere
+
+**Example:** `memo mail rules export personal`
 
 #### `memo mail rules import`
 
@@ -472,6 +566,10 @@ memo mail rules import <account> <file> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** add the rules of a file from memo mail rules export; same match replaces
+
+**Example:** `memo mail rules import personal rules.json`
+
 ## `memo note`
 
 name the note that is about a person, or show it
@@ -490,6 +588,10 @@ memo note <identity> [path] [options]
 | Option | What it does |
 |---|---|
 | `--clear` | forget which file note is about them. |
+
+**Returns:** name the note that is about a person, or show it
+
+**Example:** `memo note telegram:'Kai Sample' People/Kai.md`, `memo note telegram:'Kai Sample' --clear`
 
 ## `memo tags`
 
@@ -526,6 +628,10 @@ memo tags add <tag> [options]
 | `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** put labels on one source
+
+**Example:** `memo tags add follow-up --note note:12`, `memo tags add harbour --project HRB`
+
 ### `memo tags remove`
 
 remove labels from one source
@@ -557,6 +663,10 @@ memo tags remove <tag> [options]
 | `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** remove labels from one source
+
+**Example:** `memo tags remove follow-up --note note:12`
+
 ### `memo tags list`
 
 list source labels, of every account or of the ones --source names
@@ -576,6 +686,10 @@ memo tags list [query] [options]
 | `--account <account>` | deprecated: --source <provider>:<account>. |
 | `--limit <n>` | most labels to show. Default: `100`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** list source labels, of every account or of the ones --source names
+
+**Example:** `memo tags list tag:follow-up`, `memo tags list --source email:me@example.com --json`
 
 ## `memo tasks`
 
@@ -601,6 +715,10 @@ memo tasks unlink <task> <other-task> [options]
 | `--kind <kind>` | blocked-by, follow-up-of, related-to, duplicate-of, discovered-from. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** unlink reviewed project task relationships
+
+**Example:** `memo tasks unlink HRB-2 HRB-1 --kind blocked-by`
+
 ### `memo tasks relations`
 
 a task's links to other tasks
@@ -617,6 +735,10 @@ memo tasks relations <task> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** a task's links to other tasks
+
+**Example:** `memo tasks relations HRB-2 --json`
+
 ### `memo tasks status`
 
 whether a task can start, and what it still waits for
@@ -632,6 +754,10 @@ memo tasks status <task> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** whether a task can start, and what it still waits for
+
+**Example:** `memo tasks status HRB-2`
 
 ### `memo tasks add`
 
@@ -662,6 +788,10 @@ memo tasks add [source] [options]
 | `--into <id>` | link the source to this task instead of opening one that may be the same job. |
 | `--new` | open the task even when one like it is open or was closed in the last 14 days. |
 
+**Returns:** add a task from a message, note or document, or one of your own in a project
+
+**Example:** `memo tasks add 'msg:telegram/1/77/42' --account telegram:1 --type request`, `memo tasks add --project HRB --title 'Draft the budget' --type feature`
+
 ### `memo tasks list`
 
 tasks of the --source accounts (default all) or of a project, open by default
@@ -681,6 +811,12 @@ memo tasks list [query] [options]
 | `--account <account>` | deprecated: --source <provider>:<account>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--limit <n>` | most tasks. Default: `100`. |
+
+**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 15 more
+
+**Next usually:** `memo tasks relations <task>`, `memo tasks status <task>`, `memo tasks show <task>`
+
+**Example:** `memo tasks list state:done --source telegram:1`, `memo tasks list project:HRB ready:true --json`
 
 ### `memo tasks close`
 
@@ -704,6 +840,10 @@ memo tasks close <id> [options]
 | `--as <state>` | done or dismissed. Default: `done`. |
 | `--reason <text>` | why it is closed. |
 
+**Returns:** close a task as done or dismissed
+
+**Example:** `memo tasks close 7 --account telegram:1 --as dismissed --reason 'answered by phone'`
+
 ### `memo tasks update`
 
 change a task's title, priority, parent or description
@@ -726,6 +866,10 @@ memo tasks update <id> [options]
 | `--description <text>` | the detail, in Markdown. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** change a task's title, priority, parent or description
+
+**Example:** `memo tasks update 7 --title 'Send the budget' --priority 1`
+
 ### `memo tasks assign`
 
 name who works on a task
@@ -745,6 +889,10 @@ memo tasks assign <id> <person> [options]
 |---|---|
 | `--role <role>` | assignee, reviewer, watcher. Default: `assignee`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** name who works on a task
+
+**Example:** `memo tasks assign 7 person:3`
 
 ### `memo tasks agenda`
 
@@ -769,6 +917,10 @@ memo tasks agenda [query] [options]
 | `--provider <provider>` | deprecated: --source <provider>. |
 | `--account <account>` | deprecated: --source <provider>:<account>. |
 | `--json` | print JSON. |
+
+**Returns:** agenda — at, account, stored_at, stale, tasks, owed, waiting, unsynced, and 2 more
+
+**Example:** `memo tasks agenda --source telegram:1`, `memo tasks agenda --source max:1 --waiting 3d --within 90d --json`
 
 ### `memo tasks plan`
 
@@ -796,6 +948,10 @@ memo tasks plan <task> [options]
 | `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON. |
 
+**Returns:** set a task's title, description, due date, next check, category and assignee
+
+**Example:** `memo tasks plan 1a2b3c4d --due 2d --title 'Send the revised budget' --account telegram:1`
+
 ### `memo tasks show`
 
 one task: its plan and everything linked to it
@@ -814,6 +970,10 @@ memo tasks show <task> [options]
 | `--provider <provider>` | deprecated: --source <provider>. |
 | `--account <account>` | deprecated: --source <provider>:<account>. |
 | `--json` | print JSON. |
+
+**Returns:** one task: its plan and everything linked to it
+
+**Example:** `memo tasks show 1a2b3c4d --source telegram:1 --json`
 
 ### `memo tasks link`
 
@@ -837,6 +997,10 @@ memo tasks link <task> [targets] [options]
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account> or a notes folder, notes:<id>. |
 | `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON. |
+
+**Returns:** link a task to messages, chats, people or URLs — or to another task: task:<id>
+
+**Example:** `memo tasks link HRB-2 HRB-1 --kind blocked-by`
 
 ## `memo stats`
 
@@ -863,6 +1027,10 @@ memo stats tasks show [options]
 | `--account <account>` | deprecated: --source <provider>:<account>. |
 | `--json` | print JSON. |
 
+**Returns:** task stats — open, rows
+
+**Example:** `memo stats tasks show --source telegram:1`, `memo stats tasks show --type question --source telegram:1 --json`
+
 ## `memo organizations`
 
 companies, teams, families and communities of yours
@@ -887,6 +1055,10 @@ memo organizations add <name> [options]
 | `--scope <scope>` | personal, work. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** add an organization of yours: a company, team, family or community
+
+**Example:** `memo organizations add 'Harbour Studio' --kind company --scope work`
+
 ### `memo organizations list`
 
 your organizations
@@ -898,6 +1070,10 @@ memo organizations list [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** your organizations
+
+**Example:** `memo organizations list --json`
 
 ### `memo organizations context`
 
@@ -914,6 +1090,10 @@ memo organizations context <organization> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** one organization: its relationships, notes and tags
+
+**Example:** `memo organizations context organization:1`
 
 ## `memo projects`
 
@@ -945,6 +1125,10 @@ memo projects meetings list <project> [query] [options]
 | `--limit <n>` | meetings per page, at most 500. Default: `50`. |
 | `--page <n>` | which page, from 1. |
 
+**Returns:** meetings linked to a project in one account, or with confirmed:false proposed
+
+**Example:** `memo projects meetings list HRB --source zoom:me@example.com`
+
 #### `memo projects meetings link`
 
 link a stored meeting to a project, or confirm a proposed link
@@ -968,6 +1152,10 @@ memo projects meetings link <project> <meeting-id> [options]
 | `--fingerprint <hash>` | required when confirming an existing proposal. |
 | `--reason <text>` | why the reviewed meeting belongs to this project. |
 
+**Returns:** link a stored meeting to a project, or confirm a proposed link
+
+**Example:** `memo projects meetings link HRB 31 --account zoom:me@example.com`
+
 ### `memo projects add`
 
 add a project of yours, with a short key its tasks use
@@ -990,6 +1178,10 @@ memo projects add <name> [options]
 | `--scope <scope>` | personal, work. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** add a project of yours, with a short key its tasks use
+
+**Example:** `memo projects add 'Harbour' --key HRB --type client --organization 1`
+
 ### `memo projects list`
 
 your projects
@@ -1001,6 +1193,10 @@ memo projects list [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** your projects
+
+**Example:** `memo projects list`
 
 ### `memo projects context`
 
@@ -1017,6 +1213,10 @@ memo projects context <project> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** one project: key documents, pending findings and open tasks; start work here
+
+**Example:** `memo projects context HRB`, `memo projects context project:2 --json`
 
 ### `memo projects key-documents`
 
@@ -1043,6 +1243,10 @@ memo projects key-documents add <project> <reference> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 
+**Returns:** mark a note:, document: or msg: reference as a key document of the project
+
+**Example:** `memo projects key-documents add HRB note:12 --reason 'the brief'`
+
 #### `memo projects key-documents remove`
 
 unmark a key document; the note, file or message stays
@@ -1062,6 +1266,10 @@ memo projects key-documents remove <project> <reference> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** unmark a key document; the note, file or message stays
+
+**Example:** `memo projects key-documents remove HRB note:12`
+
 #### `memo projects key-documents list`
 
 a project's key documents: why, who marked each and whether it is still there
@@ -1077,6 +1285,10 @@ memo projects key-documents list <project> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** a project's key documents: why, who marked each and whether it is still there
+
+**Example:** `memo projects key-documents list HRB`
 
 ## `memo relationships`
 
@@ -1105,6 +1317,10 @@ memo relationships add <from> <to> [options]
 | `--role <role>` | the role it has there, in a few words, such as cto. |
 | `--reason <text>` | why you think so, in a sentence. |
 
+**Returns:** state that a person, organization or project belongs or relates to another
+
+**Example:** `memo relationships add person:3 organization:1 --role cto`, `memo relationships add project:2 organization:1 --kind related-to --reason 'same client'`
+
 ### `memo relationships list`
 
 relationships, all or those of one reference
@@ -1120,6 +1336,10 @@ memo relationships list [query] [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** relationship — id, from, to, kind, role, evidence, confirmed, provenance, and 2 more
+
+**Example:** `memo relationships list about:"person:3"`
 
 ### `memo relationships remove`
 
@@ -1139,6 +1359,10 @@ memo relationships remove <id> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** remove a relationship
+
+**Example:** `memo relationships remove 4`
+
 ### `memo relationships confirm`
 
 confirm a suggested relationship
@@ -1157,6 +1381,10 @@ memo relationships confirm <id> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** confirm a suggested relationship
+
+**Example:** `memo relationships confirm 4`
+
 ### `memo relationships suggest`
 
 suggest relationships between email contacts of one domain; you confirm each
@@ -1172,6 +1400,10 @@ memo relationships suggest [options]
 | `--account <account>` | deprecated: --source <provider>:<account>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--limit <n>` | most suggestions, at most 100. Default: `20`. |
+
+**Returns:** suggest relationships between email contacts of one domain; you confirm each
+
+**Example:** `memo relationships suggest --source email:me@example.com --limit 10`
 
 ## `memo reminders`
 
@@ -1199,6 +1431,10 @@ memo reminders add <task> [options]
 | `--at-time <time>` | when to remind: an ISO 8601 time with its UTC offset. |
 | `--timezone <zone>` | IANA timezone. Default: `UTC`. |
 
+**Returns:** add a reminder for an open task
+
+**Example:** `memo reminders add 7 --at-time 2026-10-20T09:00:00+02:00 --timezone Europe/Madrid --account telegram:1`
+
 ### `memo reminders list`
 
 pending reminders of the accounts --source names (default all), soonest first
@@ -1213,6 +1449,10 @@ memo reminders list [options]
 | `--provider <provider>` | deprecated: --source <provider>. |
 | `--account <account>` | deprecated: --source <provider>:<account>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** pending reminders of the accounts --source names (default all), soonest first
+
+**Example:** `memo reminders list --source telegram:1`
 
 ### `memo reminders poll`
 
@@ -1230,6 +1470,10 @@ memo reminders poll [options]
 | `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--limit <n>` | most due reminders, at most 500. Default: `100`. |
+
+**Returns:** hand out due reminders, each with a receipt to acknowledge
+
+**Example:** `memo reminders poll --account telegram:1 --json`
 
 ### `memo reminders ack`
 
@@ -1252,6 +1496,10 @@ memo reminders ack <id> <receipt> [options]
 | `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** confirm that a handed-out reminder was shown
+
+**Example:** `memo reminders ack 3 3:1 --account telegram:1`
+
 ### `memo reminders cancel`
 
 cancel a reminder
@@ -1271,6 +1519,10 @@ memo reminders cancel <id> [options]
 | `--account <account>` | the account it acts as: provider:account, such as telegram:1 or email:personal. |
 | `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** cancel a reminder
+
+**Example:** `memo reminders cancel 3 --account telegram:1`
 
 ### `memo reminders update`
 
@@ -1293,6 +1545,10 @@ memo reminders update <id> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--at-time <time>` | the new time: an ISO 8601 time with its UTC offset. |
 | `--revision <n>` | the reminder's current revision, as reminders list gives it. |
+
+**Returns:** move a reminder to another time
+
+**Example:** `memo reminders update 3 --revision 1 --at-time 2026-10-21T09:00:00+02:00 --account telegram:1`
 
 ## `memo vocabulary`
 
@@ -1319,6 +1575,10 @@ memo vocabulary inspect <source> <survivor> [options]
 | `--limit <n>` | samples per table, 1–100 (default 10); counts remain complete. |
 | `--json` | print the standard JSON answer. |
 
+**Returns:** inspect two tags before consolidation, without merging them
+
+**Example:** `memo vocabulary inspect tag:1 tag:2 --fingerprint v1:all:all:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --limit 5 --json`
+
 ### `memo vocabulary list`
 
 list canonical IDs, aliases, usage counts and a preview fingerprint
@@ -1336,6 +1596,10 @@ memo vocabulary list [query] [options]
 | `--max-entries <n>` | catalog input budget, not a page size. |
 | `--max-read-bytes <bytes>` | catalog input byte budget. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** list canonical IDs, aliases, usage counts and a preview fingerprint
+
+**Example:** `memo vocabulary list kind:tag`
 
 ### `memo vocabulary show`
 
@@ -1356,6 +1620,10 @@ memo vocabulary show <name> [options]
 | `--max-entries <n>` | catalog input budget, not a page size. |
 | `--max-read-bytes <bytes>` | catalog input byte budget. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** the project, tag or topic an exact name or alias names; ambiguity is reported
+
+**Example:** `memo vocabulary show Harbour --kind project`
 
 ### `memo vocabulary check`
 
@@ -1380,6 +1648,10 @@ memo vocabulary check [name] [options]
 | `--max-comparisons <n>` | without a name: most name comparisons. |
 | `--limit <n>` | without a name: most candidate pairs. |
 
+**Returns:** check a new name for existing labels, or the vocabulary for likely synonyms
+
+**Example:** `memo vocabulary check on-boarding --kind tag`, `memo vocabulary check --limit 20 --json`
+
 ### `memo vocabulary create`
 
 owner: create a distinct tag or topic after vocabulary check <name>
@@ -1399,6 +1671,10 @@ memo vocabulary create <name> [options]
 | `--kind <kind>` | tag or topic. |
 | `--fingerprint <hash>` | the creation_fingerprint vocabulary check <name> gave. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** owner: create a distinct tag or topic after vocabulary check <name>
+
+**Example:** `memo vocabulary create onboarding --kind tag --fingerprint 3f9a`
 
 ### `memo vocabulary aliases`
 
@@ -1424,6 +1700,10 @@ memo vocabulary aliases add <reference> <name> [options]
 | `--fingerprint <hash>` | the current vocabulary preview fingerprint. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** owner: add another name for a project, tag or topic
+
+**Example:** `memo vocabulary aliases add project:2 Harbor --fingerprint 3f9a`
+
 #### `memo vocabulary aliases remove`
 
 owner: remove another name from a project, tag or topic
@@ -1443,6 +1723,10 @@ memo vocabulary aliases remove <reference> <alias-id> [options]
 |---|---|
 | `--fingerprint <hash>` | the current vocabulary preview fingerprint. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** owner: remove another name from a project, tag or topic
+
+**Example:** `memo vocabulary aliases remove project:2 5 --fingerprint 3f9a`
 
 ## `memo memories`
 
@@ -1471,6 +1755,10 @@ memo memories add <text> [options]
 | `--subject <ref>` | what it is about, as a reference. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 7 more
+
+**Example:** `memo memories add 'Kai prefers Friday meetings' --kind preference --scope work --evidence note:12`
+
 ### `memo memories list`
 
 memories, newest first
@@ -1488,6 +1776,10 @@ memo memories list [query] [options]
 | `--limit <n>` | most memories, up to 500. Default: `100`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 7 more
+
+**Example:** `memo memories list status:proposed kind:preference`
+
 ### `memo memories show`
 
 one memory with its evidence
@@ -1503,6 +1795,10 @@ memo memories show <ref> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 7 more
+
+**Example:** `memo memories show memory:4`
 
 ### `memo memories confirm`
 
@@ -1522,6 +1818,10 @@ memo memories confirm <ref> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 7 more
+
+**Example:** `memo memories confirm memory:4`
+
 ### `memo memories stale`
 
 mark a memory whose evidence no longer holds
@@ -1539,6 +1839,10 @@ memo memories stale <ref> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 7 more
+
+**Example:** `memo memories stale memory:4`
 
 ## `memo mentions`
 
@@ -1562,6 +1866,10 @@ memo mentions list [query] [options]
 | `--limit <n>` | most mentions. Default: `100`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** the mentions in the texts --source names matching the query, newest text first
+
+**Example:** `memo mentions list kind:phone --source notes`, `memo mentions list domain:example.com --source email:personal,email:work --json`, `memo mentions list kind:place --source mail`
+
 ### `memo mentions show`
 
 one mention, the text around it, how many other places hold its value, and who it may be
@@ -1578,6 +1886,10 @@ memo mentions show <id> [options]
 |---|---|
 | `--source <accounts>` | the mailboxes a mail mention may be in: email:<account>, email or group:<name>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** one mention, the text around it, and who it may be
+
+**Example:** `memo mentions show 12`, `memo mentions show 40 --source email:personal --json`
 
 ### `memo mentions confirm`
 
@@ -1600,6 +1912,10 @@ memo mentions confirm <id> [person] [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
 
+**Returns:** say what a mention is, everywhere its value is written
+
+**Example:** `memo mentions confirm 12 person:7`, `memo mentions confirm 40 --source email:personal`
+
 ### `memo mentions reject`
 
 not a real mention: dismiss its value everywhere and on later imports; a name only where it is
@@ -1619,6 +1935,10 @@ memo mentions reject <id> [options]
 | `--source <accounts>` | the mailboxes a mail mention may be in: email:<account>, email or group:<name>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+
+**Returns:** dismiss a mention's value everywhere, and on later imports
+
+**Example:** `memo mentions reject 12`, `memo mentions reject 40 --source email:personal`
 
 ## `memo facts`
 
@@ -1650,6 +1970,10 @@ memo facts add <statement> [options]
 | `--supersedes <ref>` | a decision only: the decision this one replaces. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 9 more
+
+**Example:** `memo facts add 'We moved the launch to spring' --kind decision --evidence 'msg:telegram/1/77/42' --project HRB`
+
 ### `memo facts list`
 
 facts, latest first
@@ -1667,6 +1991,10 @@ memo facts list [query] [options]
 | `--limit <n>` | most facts, up to 500. Default: `100`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 9 more
+
+**Example:** `memo facts list kind:decision project:HRB`
+
 ### `memo facts show`
 
 one fact with its evidence
@@ -1682,6 +2010,10 @@ memo facts show <ref> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 9 more
+
+**Example:** `memo facts show fact:4`
 
 ### `memo facts confirm`
 
@@ -1701,6 +2033,10 @@ memo facts confirm <ref> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 9 more
+
+**Example:** `memo facts confirm fact:4`
+
 ### `memo facts reverse`
 
 an accepted decision no longer holds, and nothing replaced it
@@ -1718,6 +2054,10 @@ memo facts reverse <ref> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 9 more
+
+**Example:** `memo facts reverse fact:4`
 
 ## `memo meetings`
 
@@ -1747,6 +2087,10 @@ memo meetings actions add <file> [options]
 | `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,status keeps only those fields. |
 
+**Returns:** meeting findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more
+
+**Example:** `memo meetings actions add findings.json --account example:synthetic`
+
 #### `memo meetings actions show`
 
 one findings preview, prior decisions and its review receipt
@@ -1765,6 +2109,10 @@ memo meetings actions show <id> [options]
 | `--provider <provider>` | deprecated: --source <provider>. |
 | `--account <account>` | deprecated: --source <provider>:<account>. |
 | `--json` | print JSON; --json=id,status keeps only those fields. |
+
+**Returns:** meeting findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more
+
+**Example:** `memo meetings actions show 5 --source example:synthetic`
 
 #### `memo meetings actions list`
 
@@ -1786,6 +2134,10 @@ memo meetings actions list [query] [options]
 | `--json` | print JSON; --json=id,status keeps only those fields. |
 | `--limit <n>` | batches per page, at most 50. Default: `20`. |
 | `--page <n>` | which page, from 1. Default: `1`. |
+
+**Returns:** meeting findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more
+
+**Example:** `memo meetings actions list status:proposed --source example:synthetic`
 
 #### `memo meetings actions confirm`
 
@@ -1809,6 +2161,10 @@ memo meetings actions confirm <id> <ids> [options]
 | `--json` | print JSON; --json=id,status keeps only those fields. |
 | `--fingerprint <hash>` | the exact fingerprint shown in the preview. |
 
+**Returns:** meeting findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more
+
+**Example:** `memo meetings actions confirm 5 decision --fingerprint aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --account example:synthetic`
+
 #### `memo meetings actions reject`
 
 owner only: reject every new candidate in this batch
@@ -1829,6 +2185,10 @@ memo meetings actions reject <id> [options]
 | `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,status keeps only those fields. |
 | `--fingerprint <hash>` | the exact fingerprint shown in the preview. |
+
+**Returns:** meeting findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more
+
+**Example:** `memo meetings actions reject 5 --fingerprint aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --account example:synthetic`
 
 ### `memo meetings passage`
 
@@ -1854,6 +2214,10 @@ memo meetings passage <reference> [options]
 | `--provider <provider>` | deprecated: --source <provider>. |
 | `--account <account>` | deprecated: --source <provider>:<account>. |
 | `--json` | print the standard JSON answer. |
+
+**Returns:** read a cited cue with bounded context before and after it
+
+**Example:** `memo meetings passage meeting:1/1/1/0 --source example:synthetic --before-n 1 --after-n 1 --json`
 
 ### `memo meetings prepare`
 
@@ -1887,6 +2251,10 @@ memo meetings prepare <series-id> [options]
 | `--account <account>` | deprecated: --source <provider>:<account>. |
 | `--json` | print the standard JSON answer. |
 
+**Returns:** meeting preparation — schema_version, kind, account_id, upcoming, series, history_window, meetings, related, and 6 more
+
+**Example:** `memo meetings prepare example-series --source example:synthetic --json`, `memo meetings prepare example-series --source example:synthetic --context-source tg.personal --context-query Harbour --json`
+
 ## `memo actions`
 
 what an agent proposes to do; confirming one makes it your task, nothing is sent
@@ -1915,6 +2283,10 @@ memo actions add <kind> [options]
 | `--payload <json>` | what to do, as JSON, such as the reply's text. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** propose an action, such as a reply or a ban, in the account that would act
+
+**Example:** `memo actions add reply --reason 'Kai asked twice' --account telegram:1 --target 'msg:telegram/1/77/42' --payload '{"text":"Friday works"}'`
+
 ### `memo actions list`
 
 proposed actions, newest first
@@ -1932,6 +2304,10 @@ memo actions list [query] [options]
 | `--limit <n>` | most actions, up to 500. Default: `100`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** proposed actions, newest first
+
+**Example:** `memo actions list status:proposed`
+
 ### `memo actions show`
 
 one proposed action, with its payload
@@ -1947,6 +2323,10 @@ memo actions show <id> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** one proposed action, with its payload
+
+**Example:** `memo actions show 5`
 
 ### `memo actions confirm`
 
@@ -1966,6 +2346,10 @@ memo actions confirm <id> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** confirm it: it becomes a task in the account that would act; nothing is sent
+
+**Example:** `memo actions confirm 5`
+
 ### `memo actions reject`
 
 reject it; nothing is done
@@ -1983,6 +2367,10 @@ memo actions reject <id> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** reject it; nothing is done
+
+**Example:** `memo actions reject 5`
 
 ## `memo agents`
 
@@ -2005,6 +2393,10 @@ memo agents log [query] [options]
 | `--limit <n>` | most rows, up to 500. Default: `100`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** one row per tool call, newest first: agent, tool, outcome and times
+
+**Example:** `memo agents log agent:claude-code --limit 20`
+
 ## `memo mcp`
 
 serve search, person context, memories, facts and actions over MCP on stdio
@@ -2014,6 +2406,10 @@ This command changes the local store or your files.
 ```sh
 memo mcp
 ```
+
+**Returns:** serve search, person context, memories, facts and actions over MCP on stdio
+
+**Example:** `memo mcp`
 
 ## `memo search`
 
@@ -2043,6 +2439,10 @@ memo search all <query> [options]
 | `--plain-order` | best first by the words alone, without moving mail from suspicious senders down. |
 | `--project <project>` | rank the key documents of this project (id, project:<id>, key, exact name or alias) first; nothing is left out. |
 
+**Returns:** hit — kind, ref, provider, account, title, timestamp, excerpt, url, and 4 more
+
+**Example:** `memo search all 'budget harbour'`, `memo search all 'content:invoice' --only mail,notes --json`
+
 ### `memo search messages`
 
 stored messenger messages only
@@ -2063,6 +2463,12 @@ memo search messages <query> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--brief` | each message or email as reference, time, sender and excerpt only. |
 | `--full` | each message or email with its whole text; --json keeps the excerpt, messages show the text. |
+
+**Returns:** message hit — ref, timestamp, sender_name, chat_title, excerpt, matched_in, score, found_in, and 3 more
+
+**Next usually:** `memo messages show <message>`
+
+**Example:** `memo search messages 'friday meeting has:voice'`
 
 ### `memo search mail`
 
@@ -2087,6 +2493,12 @@ memo search mail <query> [options]
 | `--source <accounts>` | the mailboxes to search (default: every one): email:<account> (its name in mail.accounts or its address), email or group:<name>. |
 | `--plain-order` | best first by the words alone, without moving mail from suspicious senders down. |
 | `--account <account>` | deprecated: --source email:<account>. |
+
+**Returns:** message hit — ref, timestamp, sender_name, chat_title, excerpt, matched_in, score, found_in, and 3 more
+
+**Next usually:** `memo messages show <message>`
+
+**Example:** `memo search mail 'mailbox:important budget' --source email:me@example.com`
 
 ### `memo search notes`
 
@@ -2113,6 +2525,12 @@ memo search notes <query> [options]
 | `--page <n>` | which page, from 1. Default: `1`. |
 | `--project <project>` | rank the key documents of this project (id, project:<id>, key, exact name or alias) first, labelled key; nothing is left out. |
 
+**Returns:** note hit — ref, source, folder_id, path, title, updated_at, kind, provider, and 5 more
+
+**Next usually:** `memo notes show <note>`
+
+**Example:** `memo search notes budget notes:2`, `memo search notes kickoff --project HRB --json`
+
 ### `memo search memories`
 
 memories holding every word, best first
@@ -2129,6 +2547,10 @@ memo search memories <query> [options]
 |---|---|
 | `--limit <n>` | most memories, up to 500. Default: `20`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 7 more
+
+**Example:** `memo search memories friday meetings scope:work`
 
 ### `memo search meetings`
 
@@ -2155,6 +2577,10 @@ memo search meetings <query> [options]
 | `--account <account>` | deprecated: --source <provider>:<account>. |
 | `--json` | print the standard JSON answer. |
 
+**Returns:** meeting hit — ref, meeting, scope, id, excerpt, offset_ms, source
+
+**Example:** `memo search meetings budget --source example:synthetic --project Harbour --since-time 2026-10-01 --limit 10 --json`
+
 ## `memo ask`
 
 prepare cited evidence for your agent, or explicitly call a configured model
@@ -2178,6 +2604,10 @@ memo ask <question> [query] [options]
 | `--analyze` | call MEMO_MODELS_ANALYSIS_PROVIDER/MODEL instead of returning an evidence bundle. |
 | `--allow-remote` | explicitly consent to sending this evidence to the configured model. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** prepare cited evidence for your agent, or explicitly call a configured model
+
+**Example:** `memo ask 'what did Kai say about the budget?' --all`, `memo ask 'when is the launch?' --source telegram:1`
 
 ## `memo sync`
 
@@ -2203,6 +2633,10 @@ memo sync [options]
 | `--no-embed` | skip embedding notes and mail for search by meaning this run. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** bring notes and mail up to date in the store, only what changed
+
+**Example:** `memo sync`, `memo sync --source email:work --since-time 2026-09-01`, `memo sync --only notes --folder ~/notes --no-embed`
+
 ## `memo auto`
 
 run memo sync on a systemd user timer, set in the config
@@ -2221,6 +2655,10 @@ memo auto start [options]
 |---|---|
 | `--every <duration>` | how often: 5m, 90s, 1h — a minute or more. |
 
+**Returns:** sync every --every (default auto.every, else 5m), starting a minute from now
+
+**Example:** `memo auto start --every 10m`
+
 ### `memo auto stop`
 
 stop syncing on a timer and remove the timer
@@ -2230,6 +2668,10 @@ This command changes the local store or your files.
 ```sh
 memo auto stop
 ```
+
+**Returns:** stop syncing on a timer and remove the timer
+
+**Example:** `memo auto stop`
 
 ### `memo auto status`
 
@@ -2243,6 +2685,10 @@ memo auto status [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** whether the timer is on, its interval, its next run and how the last one ended
+
+**Example:** `memo auto status --json`
+
 ## `memo doctor`
 
 where memo keeps its files and what needs attention; connects to nothing
@@ -2254,6 +2700,10 @@ memo doctor [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** where memo keeps its files and what needs attention; connects to nothing
+
+**Example:** `memo doctor`, `memo doctor --json`
 
 ## `memo upgrade`
 
@@ -2269,6 +2719,10 @@ memo upgrade [options]
 |---|---|
 | `--check` | say whether a newer version exists, and install nothing. |
 | `--json` | print JSON. |
+
+**Returns:** upgrade memo with the package manager that installed it; --check only looks
+
+**Example:** `memo upgrade --check`, `memo upgrade`
 
 ## `memo commands`
 
@@ -2286,6 +2740,10 @@ memo commands [path] [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Returns:** discover the command tree and options as shared registry data
+
+**Example:** `memo commands --json`, `memo commands tags add --json`
+
 ## `memo skill`
 
 the instructions an agent is given for this tool
@@ -2297,6 +2755,10 @@ print SKILL.md — `memo skill install` puts it where Claude Code, Codex and Gem
 ```sh
 memo skill show
 ```
+
+**Returns:** print SKILL.md — `memo skill install` puts it where Claude Code, Codex and Gemini CLI…
+
+**Example:** `memo skill show`
 
 ### `memo skill install`
 
@@ -2311,6 +2773,30 @@ memo skill install [options]
 | Option | What it does |
 |---|---|
 | `--for <agents>` | which agents to install for. One of: `claude`, `agents`, `all`. Default: `all`. |
+
+**Returns:** write SKILL.md to ~/.claude/skills/cli-memo/ (Claude Code) and ~/.agents/skills/cli-memo/…
+
+**Example:** `memo skill install --for all`
+
+## `memo guide`
+
+scenarios: the commands for a common task, in order, and why each
+
+```sh
+memo guide [name] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | optional | one scenario; without it, the list. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** scenarios: the commands for a common task, in order, and why each
+
+**Example:** `memo guide`, `memo guide person-brief --json`
 
 ## Exit codes
 

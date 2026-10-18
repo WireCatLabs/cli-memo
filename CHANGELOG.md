@@ -4,6 +4,33 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Changed — may break callers
+
+- **`memo --help` and a bare `memo` show a short first screen instead of every command**: what memo is for, eight
+  things it does, the other WireCat tools, and where to go next (`memo commands`, `memo guide`, `memo help options`,
+  `memo skill show`). A script that read a command or an option from the root help reads `memo --help-all`, which
+  prints the old help, or `memo help options`.
+- **A command's `--help` ends with Returns, Next usually and Example** in place of its Examples block, worked out
+  from the command's definition. `docs/commands.md` shows the same lines.
+- **A list command refuses an unknown `--option` before it reads anything**, with commander's message
+  (`unknown option '--project'`). `memo tasks list --project HRB` used to answer with a pointer to `project:HRB`.
+
+### Added
+
+- **`memo guide [name]`: scenarios, the commands for a common task in order and why each**, with `--json` for agents.
+  `person-brief` gathers one person across tg, MAX, mail, notes, meetings and Drive before a call;
+  `decision-trail` finds what was decided about a topic across every source; `start-the-day`, `prepare-meeting` and
+  `set-up` stay within memo. Every memo step is checked against the command tree in CI.
+
+### Security
+
+- **`MEMO_READ_ONLY=1` refuses every change with `permission_error` (exit 5)** before the command runs: writes to
+  the store and your files, mail trash and restore, the timer, the skill files, `upgrade` and `ask --allow-remote`.
+  Reads and `memo sync` still run, and so do `tasks plan` and `tasks link`, which cli-core marks as safe for a
+  scheduled agent. `memo mcp` leaves its writing tools out under the lock.
+
 ## 0.71.0 — 18.10.2026
 
 ### Added

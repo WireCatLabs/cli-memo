@@ -20,6 +20,7 @@ import { FACT_QUERY, factItem, listFacts } from "../facts/fact.js"
 import { mcpFailure } from "../failure.js"
 import { addMemory } from "../memories/memories.js"
 import { listMemories, MEMORY_QUERY, memoryItem, searchMemories } from "../memories/memory.js"
+import { readOnly } from "../read-only.js"
 import { writeAccount } from "../store/source-list.js"
 import { VERSION } from "../version.js"
 import { knowledgeTools } from "./knowledge.js"
@@ -218,7 +219,9 @@ const advertised = (input: MemoTool["input"]) => {
 /** One store per call: memo serves rarely and briefly, and a held store would keep its file open between calls. */
 export const createMemoServer = (env: NodeJS.ProcessEnv): McpServer => {
   const server = new McpServer({ name: "memo", version: VERSION }, { instructions: INSTRUCTIONS })
+  const locked = readOnly(env)
   for (const [name, tool] of Object.entries(MEMO_TOOLS)) {
+    if (locked && tool.writes) continue
     server.registerTool(
       name,
       {

@@ -168,6 +168,8 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   commands: ["memo commands --json", "memo commands tags add --json"],
   "skill show": ["memo skill show"],
   "skill install": ["memo skill install --for all"],
+  guide: ["memo guide", "memo guide person-brief --json"],
+  help: ["memo help options", "memo help tasks agenda"],
 }
 
 export const leaves = (command: Command, path: string[] = []): [string, Command][] =>
@@ -176,12 +178,11 @@ export const leaves = (command: Command, path: string[] = []): [string, Command]
     return child.commands.length ? leaves(child, at) : [[at.join(" "), child] as [string, Command]]
   })
 
-/** Puts each leaf's examples in `commands --json` and at the end of its `--help`. */
+/** Puts each leaf's examples in `commands --json`; cli-core's help prints them as its Example lines. */
 export const addExamples = (program: Command): void => {
   for (const [path, command] of leaves(program)) {
     const examples = EXAMPLES[path]
     if (!examples) continue
     annotate(command, { examples })
-    command.addHelpText("after", `\nExamples:\n${examples.map((example) => `  ${example}`).join("\n")}`)
   }
 }

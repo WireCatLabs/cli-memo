@@ -1,6 +1,7 @@
 import { resolve } from "node:path"
 import { writeArtifacts } from "@wirecat/cli-base/codegen"
 import { COMMANDS_PAGE_LABELS, commandsPage, describeOptions, describeProgram } from "@wirecat/cli-base/commands"
+import { commandHelpMarkdown } from "@wirecat/cli-core/cli"
 import { createProgram } from "../dist/program.js"
 
 const root = resolve(import.meta.dirname, "..")
@@ -10,6 +11,7 @@ const content = commandsPage({
   commands: describeProgram(program),
   options: describeOptions(program),
   labels: COMMANDS_PAGE_LABELS.en,
+  details: (command) => commandHelpMarkdown(program, command.path),
   text: {
     banner: "<!-- Generated from the command tree by pnpm generate. Do not edit. -->",
     title: "All commands",

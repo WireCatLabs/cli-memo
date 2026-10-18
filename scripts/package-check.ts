@@ -2,8 +2,9 @@ import { fileURLToPath } from "node:url"
 import { packageVersion, packContents, releaseCheck } from "@wirecat/cli-base/release"
 
 const root = fileURLToPath(new URL("..", import.meta.url))
-const PACKED = ["dist/", "package.json", "README.md", "LICENSE", "skills/", "install/"]
-const PACKED_SAID = "dist/, package.json, README.md, LICENSE, the agent skill and the installation scripts"
+const PACKED = ["dist/", "package.json", "README.md", "LICENSE", "scenarios/", "skills/", "install/"]
+const PACKED_SAID =
+  "dist/, package.json, README.md, LICENSE, the scenarios, the agent skill and the installation scripts"
 
 const failed = releaseCheck([{ name: "package contents", run: packContents(root, PACKED, PACKED_SAID) }], {
   version: packageVersion(root),

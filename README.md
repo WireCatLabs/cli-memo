@@ -181,7 +181,8 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 | Reminders | `memo reminders add` / `list` / `poll` / `ack` / `update` / `cancel` |
 | Agents | `memo memories …` · `facts …` · `actions …` · `agents log` · `memo mcp` |
 
-Every command takes `--help`; most take `--json`.
+Every command takes `--help`; most take `--json`. `memo guide` lists scenarios — the commands for a common task, in
+order — and `memo guide person-brief` gathers one person across every WireCat tool.
 
 More: [technical docs](#technical-docs) · [memo on wirecat.dev](https://wirecat.dev/en/docs/memo)
 

@@ -42,6 +42,9 @@ nothing and tells you.
   too, so tell your agent never to.
 - Approving an action makes it a task for you. Memo never sends a message or an email.
 - The agent log records the agent, the tool, the result and the time, never what the agent sent.
+- An agent that should only read runs with `MEMO_READ_ONLY=1`. Every command that changes something then
+  stops with `permission_error` (exit 5), and `memo mcp` offers only its reading tools. Reads and `memo sync`
+  still run, and so do the task writes a scheduled agent makes with `tasks plan` and `tasks link`, as in tg and max.
 - Two accounts are treated as one person only after you link them. A matching name or email domain
   is never enough.
 

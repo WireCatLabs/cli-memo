@@ -1,68 +1,27 @@
-Usage: memo [options] [command]
+memo — your notes, mail and messages in one local store, linked to people; every answer cites its
+source.
 
-context about people across messengers, notes and mail
+Usage: memo <command> [options]
 
-Options:
-  -V, --version                        output the version number
-  --debug                              on failure, show the full error record:
-                                       cause and stack
-  -h, --help                           display help for command
+What you can do:
+  context <person>              one person's messages, mail, notes and tasks
+  search all "budget"           messages, mail and notes ranked together
+  ask "…" --all                 evidence with sources, ready for your agent
+  tasks agenda                  overdue tasks, replies you owe and wait for
+  meetings prepare <series-id>  a briefing with sources for a meeting
+  auto start                    sync notes and mail every 5 minutes
+  agents log                    every agent tool call, without its arguments
+  mcp                           search, people, memories and facts for any MCP agent
 
-Commands:
-  context [options] <person>           messages, mail and notes about a person,
-                                       each with a link to its source
-  notes                                notes from your folders, and notes you
-                                       write here
-  folders                              folders of notes: the id links and the
-                                       store use, and the path on this computer
-  messages                             stored emails; tg and max read messenger
-                                       messages
-  mail                                 look at a mail account before importing
-                                       it, and the owner's rules
-  note [options] <identity> [path]     name the note that is about a person, or
-                                       show it
-  tags                                 your labels on stored sources and folders
-                                       or threads
-  tasks                                open work linked to stored messages,
-                                       documents and emails
-  stats                                statistics about what the store holds
-  organizations                        companies, teams, families and
-                                       communities of yours
-  projects                             projects of yours, each with a short key
-  relationships                        relations between people, organizations
-                                       and projects; never between identities
-  reminders                            durable local reminders; poll hands one
-                                       out and ack confirms it was shown
-  vocabulary                           canonical projects, tags and topics with
-                                       explicit aliases
-  memories                             what agents and you concluded, with
-                                       evidence; you confirm an agent's
-  mentions                             phones, e-mail, links, names and
-                                       addresses in documents, notes and mail
-  facts                                what happened — said, asked, decided,
-                                       promised — with evidence
-  meetings                             stored meeting evidence and reviewed
-                                       findings
-  actions                              what an agent proposes to do; confirming
-                                       one makes it your task, nothing is sent
-  agents                               what agents did through the MCP servers
-                                       that share the store
-  mcp                                  serve search, person context, memories,
-                                       facts and actions over MCP on stdio
-  search                               search stored messages, mail, notes and
-                                       memories; search all when unsure where
-  ask [options] <question> [query...]  prepare cited evidence for your agent, or
-                                       explicitly call a configured model
-  sync [options]                       bring notes and mail up to date in the
-                                       store, only what changed
-  auto                                 run memo sync on a systemd user timer,
-                                       set in the config
-  doctor [options]                     where memo keeps its files and what needs
-                                       attention; connects to nothing
-  upgrade [options]                    upgrade memo with the package manager
-                                       that installed it; --check only looks
-  commands [options] [path...]         discover the command tree and options as
-                                       shared registry data
-  skill                                the instructions an agent is given for
-                                       this tool
-  help [command]                       display help for command
+Works with:
+  tg                            Telegram in the same local store: search, review and tasks offline
+  max                           MAX in the same local store: search, review and tasks offline
+  wa                            WhatsApp in the same local store: search, review and tasks offline
+  zm                            Zoom meetings: transcripts and summaries, searchable with your messages
+  drive                         Google Drive and Docs as local text, searchable with your messages
+
+Start here:   memo folders add <path>
+Next:         memo commands            every command, by section
+              memo guide               scenarios: command sequences for common tasks
+              memo help options        output, offline, timeouts, dry run
+For agents:   memo skill show          rules and the discovery loop
