@@ -6,7 +6,7 @@ the API.
 
 ## Unreleased
 
-### Documentation
+### Fixed
 
 - The README, the MCP page and `memo mcp --help` say what an MCP app can read: your stored messages, mail and notes,
   and a person's context. They said search and context were not served over MCP. Only `memories_add`, `facts_add`

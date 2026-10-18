@@ -47,8 +47,8 @@ Commands:
                                        one makes it your task, nothing is sent
   agents                               what agents did through the MCP servers
                                        that share the store
-  mcp                                  serve memories, proposed actions and the
-                                       agent log over MCP on stdin and stdout
+  mcp                                  serve search, person context, memories,
+                                       facts and actions over MCP on stdio
   search                               search stored messages, mail, notes and
                                        memories; search all when unsure where
   ask [options] <question> [query...]  prepare cited evidence for your agent, or
