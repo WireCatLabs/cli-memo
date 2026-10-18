@@ -99,8 +99,8 @@ Then [add more folders](notes.md#add-a-folder) or [connect a mail account](mail.
 
 **Your agent's skill.** `memo skill install --for all` puts Memo's skill where Claude Code
 (`~/.claude/skills/cli-memo/`) and Codex or Gemini CLI (`~/.agents/skills/cli-memo/`) read it; `--for claude` or
-`--for agents` installs it for one. `memo skill show` prints it. When npm runs the install script, it does the same,
-and `MEMO_INSTALL_AGENT` chooses where: `all` (the default), `claude`, `codex`, `cursor`, `gemini`, or `none`.
+`--for agents` installs it for one. `memo skill show` prints it. A global npm install does the same only when
+`MEMO_INSTALL_AGENT` names where: `all`, `claude`, `codex`, `cursor` or `gemini`; unset or `none`, it installs no skill.
 
 ## Windows
 

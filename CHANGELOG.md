@@ -4,6 +4,15 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Changed — may break callers
+
+- **`npm install -g` installs the agent skill only when asked.** It wrote the skill into `~/.claude/skills` and
+  `~/.agents/skills` by default, and npm hides a lifecycle script's output, so nobody was told. Now
+  `MEMO_INSTALL_AGENT=all` (or an agent's name) installs it at install time; otherwise run
+  `memo skill install --for all`.
+
 ## 0.72.0 — 18.10.2026
 
 ### Changed — may break callers
