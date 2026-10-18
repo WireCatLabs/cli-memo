@@ -617,6 +617,51 @@
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
       "properties": {
+        "fingerprint": {
+          "pattern": "^v1:all:all:[a-f0-9]{64}$",
+          "type": "string"
+        },
+        "limit": {
+          "maximum": 100,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "max_read_bytes": {
+          "maximum": 16777216,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "max_rows": {
+          "maximum": 20000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "source": {
+          "maxLength": 20,
+          "pattern": "^tag:[1-9]\\d*$",
+          "type": "string"
+        },
+        "survivor": {
+          "maxLength": 20,
+          "pattern": "^tag:[1-9]\\d*$",
+          "type": "string"
+        }
+      },
+      "required": ["source", "survivor", "fingerprint"],
+      "type": "object"
+    },
+    "name": "vocabulary_inspect"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
         "maxEntries": {
           "maximum": 20000,
           "minimum": 1,

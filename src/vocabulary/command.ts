@@ -5,6 +5,7 @@ import type { MessageStore, VocabularyKind, VocabularyOptions, VocabularyTarget 
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { oneOf, positive } from "../options.js"
+import { addVocabularyInspection } from "./inspect.js"
 import { VOCABULARY_QUERY, vocabularyFilter } from "./list.js"
 
 const kinds = ["project", "tag", "topic"] as const
@@ -20,6 +21,7 @@ export const vocabularyCommand = (program: Command, streams: Streams, env: NodeJ
     .command("vocabulary")
     .description("canonical projects, tags and topics with explicit aliases")
   const { run } = answers(program, streams, env)
+  addVocabularyInspection(vocabulary, program, streams, env)
   const execute = (options: Options, work: (store: MessageStore) => Promise<unknown>) =>
     run(options.json, async (store) => itemAnswer(await work(store)))
   const budgetOptions = (command: Command) =>

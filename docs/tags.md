@@ -75,6 +75,45 @@ memo tags remove follow-up --note document:3
 Removing a tag leaves the note, message or person as it is. Removing a tag that is not there changes
 nothing. A tag that came from a file is removed by editing the file.
 
+## Review duplicate tags
+
+Ask your agent to find likely duplicate tags and show the evidence before changing any labels:
+
+```text prompt
+Review our tags for likely synonyms. Show the canonical names and aliases first. For each pair
+I select, inspect their assignments and overlaps. Do not create aliases or merge anything.
+```
+
+`memo vocabulary check --limit 20 --json` suggests lexical matches. Similar names are candidates
+to review; they are not proof that two concepts are the same. Existing aliases are alternate names
+for one canonical record, so reuse them before creating another tag.
+
+Run `memo vocabulary list --json` to read the canonical IDs and current fingerprint. Then select
+two **tag** entries explicitly. Replace `FINGERPRINT` below with the fingerprint from that unfiltered
+list, `tag:1` with the duplicate you are reviewing, and `tag:2` with the name you would keep:
+
+```sh
+memo vocabulary inspect tag:1 tag:2 --fingerprint FINGERPRINT --limit 5 --json
+```
+
+This reports each tag's assignments by target type, overlapping targets, aliases, automatic claims
+and shared chats, plus links in either direction. It includes source and author IDs in assignment
+samples. It does not read transcript bodies or call a model. It changes no labels or aliases.
+`--limit` bounds samples per table, not the complete counts. `coverage.samples_complete` says
+whether samples were cut; `preview_fingerprint` covers all inspected rows even then.
+
+The read defaults to 5,000 dependency rows and 1 MiB of input. `--max-rows` accepts up to 20,000;
+`--max-read-bytes` accepts up to 16 MiB; `--limit` accepts up to 100 samples per table. The catalog
+has a separate budget. Oversized dependencies fail the whole preview rather than returning a
+partial count. A conservative byte estimate can refuse before the actual JSON limit is reached.
+If the vocabulary changed, list it again and reselect the pair; do not reuse the stale fingerprint.
+
+`coverage.inspected_tables` names the four covered tables: assignments, aliases, automatic claims
+and links. Saved search text, proposal history and arbitrary serialized references are outside this
+preview. `coverage.apply_supported` is false: this is a review aid, not an executable merge plan.
+Topics and projects are refused. There is no apply command, and a preview fingerprint grants no
+permission to merge. Existing owner-reviewed alias commands remain separate.
+
 ## Tags and tg or max
 
 tg and max read the same tags: `tg search messages 'tag:follow-up'` finds tagged Telegram messages, and

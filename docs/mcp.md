@@ -59,6 +59,7 @@ Use the memo tools to list the memories waiting for my review.
 | `actions_add`, `actions_list`, `actions_show` | Propose actions and read them |
 | `agents_log` | Read the agent log |
 | `vocabulary_list`, `vocabulary_show`, `vocabulary_check` | Look up projects, tags and topics, read only |
+| `vocabulary_inspect` | Inspect two selected tags before consolidation; counts, overlaps and bounded samples; merges nothing |
 | `tasks_relations`, `tasks_status`, `tasks_list` | See how tasks depend on each other, read only |
 
 Everything the app adds is saved under the agent name `memo-mcp` and waits as proposed. You review it with

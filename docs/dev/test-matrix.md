@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**365 ✅ · 0 ⛔ · 139 ❌** — 109 commands, 395 options.
+**371 ✅ · 0 ⛔ · 139 ❌** — 110 commands, 400 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -310,6 +310,12 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `reminders update` | `--json` | ❌ |  |
 | `reminders update` | `--at-time` | ✅ |  |
 | `reminders update` | `--revision` | ✅ |  |
+| `vocabulary inspect` |  | ✅ |  |
+| `vocabulary inspect` | `--fingerprint` | ✅ |  |
+| `vocabulary inspect` | `--max-rows` | ✅ |  |
+| `vocabulary inspect` | `--max-read-bytes` | ✅ |  |
+| `vocabulary inspect` | `--limit` | ✅ |  |
+| `vocabulary inspect` | `--json` | ✅ |  |
 | `vocabulary list` |  | ✅ |  |
 | `vocabulary list` | `--max-entries` | ❌ |  |
 | `vocabulary list` | `--max-read-bytes` | ❌ |  |
