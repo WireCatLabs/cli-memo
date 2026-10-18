@@ -1,0 +1,53 @@
+{
+  "command": "node",
+  "args": ["../dist/bin/memo.js"],
+  "previous": {
+    "entry": "./previous/node_modules/@wirecat/previous-cli/dist/bin/memo.js",
+    "version": "0.65.2"
+  },
+  "canaries": ["wirecat-synthetic-note-canary"],
+  "cases": [
+    {
+      "id": "previous-writes-a-note",
+      "args": ["notes", "add", "wirecat-synthetic-note-canary", "--json"],
+      "exit": 0,
+      "stream": "stdout",
+      "kind": "json",
+      "previous": true,
+      "allowSensitiveOutput": true,
+      "json": {
+        "item": {
+          "ref": "note:1"
+        }
+      }
+    },
+    {
+      "id": "candidate-reads-the-note",
+      "args": ["notes", "list", "--json"],
+      "exit": 0,
+      "stream": "stdout",
+      "kind": "json",
+      "allowSensitiveOutput": true,
+      "json": {
+        "items": [
+          {
+            "ref": "note:1",
+            "text": "wirecat-synthetic-note-canary"
+          }
+        ]
+      }
+    },
+    {
+      "id": "candidate-writes-after-upgrade",
+      "args": ["notes", "add", "second synthetic note", "--json"],
+      "exit": 0,
+      "stream": "stdout",
+      "kind": "json",
+      "json": {
+        "item": {
+          "ref": "note:2"
+        }
+      }
+    }
+  ]
+}

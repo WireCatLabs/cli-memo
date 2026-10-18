@@ -1,0 +1,68 @@
+Usage: memo [options] [command]
+
+context about people across messengers, notes and mail
+
+Options:
+  -V, --version                        output the version number
+  --debug                              on failure, show the full error record:
+                                       cause and stack
+  -h, --help                           display help for command
+
+Commands:
+  context [options] <person>           messages, mail and notes about a person,
+                                       each with a link to its source
+  notes                                notes from your folders, and notes you
+                                       write here
+  folders                              folders of notes: the id links and the
+                                       store use, and the path on this computer
+  messages                             stored emails; tg and max read messenger
+                                       messages
+  mail                                 look at a mail account before importing
+                                       it, and the owner's rules
+  note [options] <identity> [path]     name the note that is about a person, or
+                                       show it
+  tags                                 your labels on stored sources and folders
+                                       or threads
+  tasks                                open work linked to stored messages,
+                                       documents and emails
+  stats                                statistics about what the store holds
+  organizations                        companies, teams, families and
+                                       communities of yours
+  projects                             projects of yours, each with a short key
+  relationships                        relations between people, organizations
+                                       and projects; never between identities
+  reminders                            durable local reminders; poll hands one
+                                       out and ack confirms it was shown
+  vocabulary                           canonical projects, tags and topics with
+                                       explicit aliases
+  memories                             what agents and you concluded, with
+                                       evidence; you confirm an agent's
+  mentions                             phones, e-mail, links, names and
+                                       addresses in documents, notes and mail
+  facts                                what happened — said, asked, decided,
+                                       promised — with evidence
+  meetings                             stored meeting evidence and reviewed
+                                       findings
+  actions                              what an agent proposes to do; confirming
+                                       one makes it your task, nothing is sent
+  agents                               what agents did through the MCP servers
+                                       that share the store
+  mcp                                  serve memories, proposed actions and the
+                                       agent log over MCP on stdin and stdout
+  search                               search stored messages, mail, notes and
+                                       memories; search all when unsure where
+  ask [options] <question> [query...]  prepare cited evidence for your agent, or
+                                       explicitly call a configured model
+  sync [options]                       bring notes and mail up to date in the
+                                       store, only what changed
+  auto                                 run memo sync on a systemd user timer,
+                                       set in the config
+  doctor [options]                     where memo keeps its files and what needs
+                                       attention; connects to nothing
+  upgrade [options]                    upgrade memo with the package manager
+                                       that installed it; --check only looks
+  commands [options] [path...]         discover the command tree and options as
+                                       shared registry data
+  skill                                the instructions an agent is given for
+                                       this tool
+  help [command]                       display help for command
