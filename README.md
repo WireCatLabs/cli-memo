@@ -62,7 +62,8 @@ memo sync --only notes                # reads the notes, their links and tags; r
 memo search notes "budget"
 ```
 
-npm 12 prints "install scripts blocked": that is harmless, `memo skill install` does what the script would. On
+A global install does not install the agent skill; `memo skill install --for all` above does. npm 12 prints
+"install scripts blocked": that is harmless. On
 Windows, open a new terminal if `memo` is not found.
 
 That is all notes need. Then add more context:

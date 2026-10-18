@@ -12,7 +12,10 @@ const TARGETS: Record<string, readonly SkillTarget[]> = {
   gemini: ["agents"],
 }
 
-/** As tg does: a global npm install puts the skill where agents look; MEMO_INSTALL_AGENT picks or skips. */
+/**
+ * A global npm install puts the skill where agents look only when MEMO_INSTALL_AGENT names one: npm hides a
+ * lifecycle script's output, so writing into the owner's agent folders must be asked for.
+ */
 export const completeGlobalInstall = ({
   env = process.env,
   packageRoot = root,
@@ -23,9 +26,9 @@ export const completeGlobalInstall = ({
   note?: (message: string) => void
 } = {}): void => {
   if (env.npm_config_global !== "true") return
-  const agent = env.MEMO_INSTALL_AGENT ?? "all"
-  if (agent === "none") {
-    note("memo: agent skill skipped by MEMO_INSTALL_AGENT=none; install with memo skill install --for all.")
+  const agent = env.MEMO_INSTALL_AGENT
+  if (agent === undefined || agent === "none") {
+    note("memo: agent skill not installed; run memo skill install --for all.")
     return
   }
   const targets = TARGETS[agent]

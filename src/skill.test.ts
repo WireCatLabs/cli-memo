@@ -29,7 +29,7 @@ it("prints the skill and installs it, stamped with this version, where agents lo
   )
 })
 
-it("installs the skill on a global npm install unless told not to", () => {
+it("installs the skill on a global npm install only when asked", () => {
   const install = (env: Record<string, string>) => {
     const home = mkdtempSync(join(tmpdir(), "memo-postinstall-"))
     const notes: string[] = []
@@ -43,7 +43,13 @@ it("installs the skill on a global npm install unless told not to", () => {
     }
     return { claude: written(".claude"), agents: written(".agents"), notes }
   }
-  expect(install({ npm_config_global: "true" })).toMatchObject({ claude: true, agents: true })
+  const unasked = install({ npm_config_global: "true" })
+  expect(unasked).toMatchObject({ claude: false, agents: false })
+  expect(unasked.notes.join("\n")).toContain("memo skill install --for all")
+  expect(install({ npm_config_global: "true", MEMO_INSTALL_AGENT: "all" })).toMatchObject({
+    claude: true,
+    agents: true,
+  })
   expect(install({ npm_config_global: "true", MEMO_INSTALL_AGENT: "codex" })).toMatchObject({
     claude: false,
     agents: true,
