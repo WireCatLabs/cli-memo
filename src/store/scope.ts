@@ -22,15 +22,8 @@ const choices = (keys: AccountKey[]) =>
   keys.length ? `; choose one of ${keys.map(({ provider, account }) => `${provider}:${account}`).join(", ")}` : ""
 
 export const selectAccount = async (store: MessageStore, scope: AccountScope): Promise<AccountKey> => {
-  // A notes folder is stored as a `folder` account, which no --account takes.
-  const held = (await store.accounts.accounts()).filter(({ provider }) => provider !== "folder")
-  if (!scope.provider)
-    throw new CliError(
-      "validation_error",
-      held.length
-        ? `give --account <provider>:<account>${choices(held)}`
-        : "give --account <provider>:<account> — the store holds no tg, max or mail account yet",
-    )
+  const held = await store.accounts.accounts()
+  if (!scope.provider) throw new CliError("validation_error", `give --account <provider>:<account>${choices(held)}`)
   const matches = held.filter(
     (key) => key.provider === scope.provider && (scope.account === undefined || key.account === scope.account),
   )
