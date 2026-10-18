@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.66.0 — 18.10.2026
+
 ### Added
 
 - `vocabulary inspect <source> <survivor>` and MCP `vocabulary_inspect` preview two explicit tag IDs
