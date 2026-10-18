@@ -50,7 +50,7 @@ a person once someone by that name is in the store.
 
 ## Quick start
 
-You need Node.js 22.16 or newer.
+You need Node.js 22.16 or newer. memo is tested on Linux; macOS and Windows are not tested yet.
 
 ```sh
 npm install -g @wirecat/cli-memo
@@ -63,7 +63,8 @@ That is all notes need. Then add more context:
 
 - **Messages:** install [tg-cli](https://github.com/WireCatLabs/tg-cli) or
   [max-cli](https://github.com/WireCatLabs/max-cli); memo reads the same local store.
-- **Search by meaning:** `tg models text download e5-small` downloads the local model once.
+- **Search by meaning:** needs a local model, which [tg-cli](https://github.com/WireCatLabs/tg-cli) or max-cli
+  downloads once: install one of them, then run `tg models text download e5-small`. Without it, memo searches by words.
 - **Mail:** set up [Himalaya](https://github.com/pimalaya/himalaya), then `memo sync --only mail`.
 - **Stay current:** `memo auto start` runs `memo sync` every five minutes (Linux, systemd).
 - **Your agent:** the install puts memo's skill where Claude Code, Codex and Gemini CLI read it;
@@ -132,11 +133,12 @@ More: [connect your AI agent](https://wirecat.dev/en/docs/agents) ·
 5. **Agents propose, you decide.** Memories and actions an agent suggests wait for your confirmation;
    nothing is ever sent.
 
-**Status:** early. Context, notes and their links, document import, Gmail and IMAP imports, tasks,
-manual relationships, evidence bundles and local reminders work.
+**Status:** early. Context, notes and their links, document import, Gmail and IMAP imports, project tasks,
+manual relationships and evidence bundles work. Tasks from messages, mail or notes, and local reminders, also
+need a tg, max or mail account in the store.
 
 More: [security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security.md) ·
-[security on wirecat.dev](https://wirecat.dev/en/docs/security)
+[security on wirecat.dev](https://wirecat.dev/en/docs/memo/security)
 
 ## What it reads
 
@@ -164,7 +166,7 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 | Hand evidence to an agent | `memo ask` |
 | Know a person | `memo context` |
 | Organizations and projects | `memo organizations add` / `list` / `context` · `projects add` / `list` / `context` · `projects key-documents add` / `remove` / `list` · `projects meetings list` / `link` |
-| Project and topic aliases | `memo vocabulary list` / `resolve` / `preflight` · `vocabulary aliases add` / `remove` · `vocabulary create` |
+| Project and topic aliases | `memo vocabulary list` / `show` / `check` / `inspect` · `vocabulary aliases add` / `remove` · `vocabulary create` |
 | Relationships | `memo relationships add` / `list` / `remove` / `confirm` / `suggest` |
 | Labels | `memo tags add` · `tags remove` · `tags list` |
 | Open work | `memo tasks add` · `tasks list` · `tasks agenda` · `tasks plan` · `tasks show` · `tasks update` · `tasks assign` · `tasks close` · `stats tasks show` |
@@ -205,7 +207,8 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 ## Search and evidence
 
 Notes are searched by words and word stems in the query language messages use — phrases, `AND`/`OR`/`NOT`,
-`tag:`, `date:` — and by meaning once the local model is downloaded; both are ranked together. `search all`
+`tag:`, `date:` — and by meaning once the local model is downloaded (`tg models text download e5-small`, with
+tg-cli or max-cli installed); both are ranked together. `search all`
 reads messages, imported mail and notes together, and nothing else. When you know the kind, its own search
 reads every field: `search mail` takes `from:`, `to:`, `cc:`, `bcc:`, `subject:` and `mailbox:`.
 
@@ -220,7 +223,7 @@ call a model instead, set `MEMO_MODELS_ANALYSIS_PROVIDER` and `MEMO_MODELS_ANALY
 `--analyze`; a remote model also needs `--allow-remote`.
 
 More: [search](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md) ·
-[searching on wirecat.dev](https://wirecat.dev/en/docs/search)
+[searching on wirecat.dev](https://wirecat.dev/en/docs/memo/search)
 
 ## People, organizations and projects
 
@@ -237,8 +240,8 @@ aliases, so one name always means one project.
 Before adding a new tag or topic, run `memo vocabulary check <name> --json`. Reuse a
 canonical label or add an alias if it means the same thing. For a deliberately distinct label,
 run `memo vocabulary create <name> --fingerprint <creation_fingerprint> --json`; select `--kind topic`
-on both commands when creating a topic. The owner accepts this review; MCP exposes preflight
-but no label-creation tool. An intervening label or alias change requires a fresh review.
+on both commands when creating a topic. The owner accepts this review; MCP has `vocabulary_check`
+but no tool that creates a label. An intervening label or alias change requires a fresh review.
 `memo vocabulary check --json` finds likely synonyms already in the catalog. Its `complete`
 flag reports whether the bounded comparison finished; candidates require review and are never
 merged automatically. Use `--kind tag`, `--kind topic` or `--kind project` to narrow the review.
@@ -251,7 +254,7 @@ memo projects context PROJECT_ID --json   # start project work here: key documen
 ```
 
 More: [people and projects](https://github.com/WireCatLabs/cli-memo/blob/main/docs/people.md) ·
-[people on wirecat.dev](https://wirecat.dev/en/docs/people)
+[people on wirecat.dev](https://wirecat.dev/en/docs/memo/people)
 
 ## Mail
 
@@ -268,7 +271,7 @@ memo search mail 'mailbox:important budget'
 ```
 
 More: [mail](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mail.md) ·
-[email on wirecat.dev](https://wirecat.dev/en/docs/email)
+[mail on wirecat.dev](https://wirecat.dev/en/docs/memo/mail)
 
 ## Tags, tasks and reminders
 
@@ -276,7 +279,8 @@ Tags are your labels on a note, an email, a message, a chat, a person, an organi
 a meeting, or every note under a folder. They live in the store; files, Gmail labels and mailbox flags are
 never changed. A task points at the message or note it came from, or is your own in a
 project (`--project RES --title …`), and can be blocked by another until it is done. `memo tasks agenda`
-says what needs a look today, across every messenger account the store holds. Reminders are local:
+says what needs a look today in a messenger account. A task from a message, email or note, and every reminder,
+belong to a tg, max or mail account; with notes only, keep tasks in a project. Reminders are local:
 a caller you choose polls for them, and nothing is delivered to a messenger or mailbox.
 
 ```sh
@@ -305,7 +309,7 @@ the outcome and the times, never the arguments. Only `memories_add`, `facts_add`
 they add waits for you.
 
 More: [memories and facts](https://github.com/WireCatLabs/cli-memo/blob/main/docs/memories.md) · [the MCP server](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md) ·
-[MCP on wirecat.dev](https://wirecat.dev/en/docs/mcp)
+[MCP on wirecat.dev](https://wirecat.dev/en/docs/memo/mcp)
 
 ## Keeping it current
 
@@ -330,7 +334,7 @@ to skip, mail accounts and where exported notes go:
 ```
 
 More: [configuration](https://github.com/WireCatLabs/cli-memo/blob/main/docs/configuration.md) ·
-[configuration on wirecat.dev](https://wirecat.dev/en/docs/configuration)
+[configuration on wirecat.dev](https://wirecat.dev/en/docs/memo/configuration)
 
 ## Security
 
@@ -343,7 +347,7 @@ More: [configuration](https://github.com/WireCatLabs/cli-memo/blob/main/docs/con
 - Agents propose; only you confirm memories and approve actions.
 
 More: [security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security.md) ·
-[security on wirecat.dev](https://wirecat.dev/en/docs/security)
+[security on wirecat.dev](https://wirecat.dev/en/docs/memo/security)
 
 ## Limits
 

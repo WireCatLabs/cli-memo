@@ -12,7 +12,9 @@ export const canonicalProject = async (store: MessageStore, reference: string): 
   if (found.matches.length !== 1)
     throw new CliError(
       found.matches.length ? "validation_error" : "not_found",
-      "choose one canonical project reference from vocabulary resolve",
+      found.matches.length
+        ? `${reference} names ${found.matches.length} projects; give one by its key, as memo vocabulary show ${reference} lists them`
+        : `no project ${reference}; memo projects list shows yours, memo projects add creates one`,
       { candidates: found.matches.map((entry) => ({ id: entry.id, key: entry.key, name: entry.name })) },
     )
   const entry = found.matches[0]

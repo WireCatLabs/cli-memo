@@ -44,14 +44,16 @@ it("refuses a write that names no single provider:account, and lists the choices
   })
   await expect(run("reminders", "add", "1", "--at-time", "2026-01-01T00:00:00Z")).rejects.toMatchObject({
     code: "validation_error",
-    message: expect.stringContaining("give --account <provider>:<account> — the store holds telegram:1, telegram:2"),
+    message: expect.stringContaining(
+      "give --account — tasks and reminders belong to a messenger or mail account: --account telegram:1; --account telegram:2",
+    ),
   })
   await expect(run("tasks", "add", source, "--provider", "telegram")).rejects.toMatchObject({
     message: expect.stringContaining("give one: telegram:1, telegram:2"),
   })
   await expect(run("reminders", "list")).rejects.toMatchObject({
     code: "validation_error",
-    message: expect.stringContaining("the store holds telegram:1, telegram:2"),
+    message: expect.stringContaining("--source telegram:1; --source telegram:2"),
   })
 })
 

@@ -5,6 +5,7 @@ import { captureStreams } from "@wirecat/cli-base"
 import { beforeEach, describe, expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
+import { type NoteHit, searchText } from "./search.js"
 
 let vault: string, env: NodeJS.ProcessEnv
 const run = async (...args: string[]) => {
@@ -74,4 +75,18 @@ describe("structured note retrieval and saved links", () => {
     expect(shown).not.toHaveProperty("labels")
     expect(shown).not.toHaveProperty("provenance")
   })
+})
+
+it("labels a note found by meaning, and no other", () => {
+  const hit = (path: string, found_by: NoteHit["found_by"]) =>
+    ({ ref: "document:1", path, excerpt: "", found_by }) as NoteHit
+  const text = searchText({
+    query: "budget",
+    hits: [hit("title.md", ["title"]), hit("words.md", ["words"]), hit("meaning.md", ["meaning"])],
+    has_more: false,
+    linked: [],
+  } as unknown as Parameters<typeof searchText>[0])
+  expect(text).toContain("title.md\n")
+  expect(text).toContain("words.md\n")
+  expect(text).toContain("meaning.md  (by meaning)")
 })

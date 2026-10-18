@@ -107,6 +107,18 @@ export const listTasks = async (
   limit: number,
   accounts: () => Promise<AccountKey[]>,
 ) => {
+  const flag = Array.isArray(query) ? query.findIndex((word) => /^--[a-z]+$/.test(word)) : -1
+  if (flag >= 0) {
+    const field = (query as readonly string[])[flag]?.slice(2) ?? ""
+    const value = (query as readonly string[])[flag + 1] ?? "<value>"
+    const fields: readonly string[] = TASKS_LIST_QUERY.fields.map(({ name }) => name)
+    throw new CliError(
+      "validation_error",
+      fields.includes(field)
+        ? `tasks list takes ${field} as a query word: memo tasks list ${field}:${value}`
+        : `tasks list has no --${field}; its query words are ${fields.map((name) => `${name}:`).join(", ")}`,
+    )
+  }
   const terms = queryTerms(query, TASKS_LIST_QUERY, "tasks list")
   const state = terms.get("state") as "open" | "done" | "dismissed"
   const kind = terms.get("kind") as TaskType | undefined

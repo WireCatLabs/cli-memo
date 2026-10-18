@@ -4,6 +4,23 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- **A store with notes only gets a plain answer from `tasks` and `reminders`.** `tasks list`, `tasks agenda`,
+  `reminders list` and `reminders poll` offered a `folder:<id>` value that then failed, and `notes:1` failed with
+  "the account is not in the local store". They now list only the accounts that can hold tasks, and with none say
+  that a task from a message, email or note, and a reminder, need a tg, max or mail account, and that a project's
+  tasks need none.
+- `memo search notes` labels a note found by its title as a plain hit, not "(by meaning)".
+- `memo tasks list --project SYNT` says to write `memo tasks list project:SYNT`; it failed with a bare syntax error.
+- `memo tasks add --project` with an unknown project names `memo projects add`; it pointed to a `vocabulary
+  resolve` command that does not exist.
+- The README names `vocabulary show` and `vocabulary check`, and the MCP tool `vocabulary_check`; it named
+  `resolve` and `preflight`, which do not exist. It links memo's own pages on wirecat.dev, says that search by
+  meaning needs tg-cli or max-cli to download the model, and that macOS and Windows are not tested yet.
+
 ## 0.67.0 — 18.10.2026
 
 ### Added
