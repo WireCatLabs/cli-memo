@@ -84,7 +84,7 @@ it("gathers a project's references by its aliases, keywords and people within 60
 })
 
 it("resolves a project by id and reads a mailbox and an imported notes folder as their own source kinds", async () => {
-  const { env, json } = await setUp()
+  const { env, json, run } = await setUp()
   const store = await openStore({ env })
   const mailId = await store.accounts.saveAccount({ provider: "email", account: "me@example.com" }, { name: "Me" })
   await store.mail.saveThread({
@@ -112,6 +112,8 @@ it("resolves a project by id and reads a mailbox and an imported notes folder as
   await store.notes.saveFileNote({ folderId: folder.id, path: "port.md", title: "Harbour", text: "Harbour notes" })
   await store.close()
 
+  const text = await run("projects", "evidence", "SYP", "--source", `email:me@example.com,notes:${folder.id}`)
+  expect(text).toContain("not yet searchable: new text in email:me@example.com")
   for (const reference of ["project:1", "1"]) {
     const found = await json("projects", "evidence", reference, "--source", `email:me@example.com,notes:${folder.id}`)
     expect(found.project_ref).toBe("project:1")

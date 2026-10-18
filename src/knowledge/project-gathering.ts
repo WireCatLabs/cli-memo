@@ -102,6 +102,16 @@ export const projectGatherText = (found: StoredProjectGathering) => {
   ]
   if (found.matchedAgain.length) lines.push(`${found.matchedAgain.length} earlier references found again`)
   if (failed.length) lines.push(`${failed.length} reads failed or had no source: see --json units`)
+  const pending = [
+    ...new Set(
+      found.units.filter((unit) => unit.issue?.startsWith("index-")).map((unit) => found.scope.sources[unit.source]),
+    ),
+  ]
+  if (pending.length)
+    lines.push(
+      `not yet searchable: new text in ${pending.map((one) => `${one?.provider}:${one?.account}`).join(", ")} ` +
+        "is still waiting for the search index, so it was not found",
+    )
   if (found.unreadSources.length)
     lines.push(`not read: ${found.unreadSources.map((one) => `${one.source} (${one.kind})`).join(", ")}`)
   if (found.checkpoint)

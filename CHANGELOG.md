@@ -20,8 +20,8 @@ the API.
   each name, `--context-query` and `--contact` is its own literal search, and the hits are joined, each with the
   searches that found it. `--since-time` takes days back (default `60d`). An item found only through a person's
   name is marked `person-only`. A source that failed or has no reader yet (your own notes, meetings) is listed,
-  never read as empty. `--limit` and `--max-pages` bound a run, and `--cursor` continues a stopped one with the
-  same window. Nothing is written.
+  never read as empty, and so is one whose new text still waits for the search index. `--limit` and `--max-pages`
+  bound a run, and `--cursor` continues a stopped one with the same window. Nothing is written.
 
 ## 0.72.0 — 18.10.2026
 
