@@ -8,6 +8,7 @@ import {
   tasksService,
 } from "@wirecat/cli-core/services"
 import {
+  type AccountKey,
   type MessageStore,
   type TaskFields,
   type TaskRole,
@@ -75,6 +76,14 @@ const addToProject = async (store: MessageStore, options: AddOptions) => {
   return store.tasks.details(task.id)
 }
 
+/** A file from a notes folder names its account, the folder; a note written with `notes add` names none. */
+const folderOf = async (store: MessageStore, source: string): Promise<AccountKey | undefined> => {
+  const folderId = (await store.notes.resolveNote(source.trim()))?.folderId
+  if (folderId == null) return undefined
+  const folder = (await store.accounts.storedAccounts()).find(({ id }) => String(id) === folderId)
+  return folder && { provider: folder.provider, account: folder.account }
+}
+
 const addFromSource = async (store: MessageStore, env: NodeJS.ProcessEnv, source: string, options: AddOptions) => {
   if (options.project !== undefined)
     throw new CliError("validation_error", "a task from a source goes in its account; --project is for one without")
@@ -89,7 +98,10 @@ const addFromSource = async (store: MessageStore, env: NodeJS.ProcessEnv, source
       (options.account && options.account !== parsed.account))
   )
     throw new CliError("validation_error", "locator and selected account disagree")
-  const key = parsed ? { provider: parsed.provider, account: parsed.account } : await selectAccount(store, options)
+  const key = parsed
+    ? { provider: parsed.provider, account: parsed.account }
+    : ((options.provider === undefined ? await folderOf(store, source) : undefined) ??
+      (await selectAccount(store, options)))
   if (
     parsed &&
     parsed.provider !== "notes" &&

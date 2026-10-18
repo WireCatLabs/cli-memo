@@ -12,6 +12,7 @@ export interface SourceList {
 }
 
 const MAIL = new Set(["mail", "email"])
+const FOLDER = "folder"
 const MESSENGERS = new Set(["messages", "telegram", "tg", "max", "whatsapp", "wa", "personal", "bots"])
 const SHAPES = "provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>"
 
@@ -41,9 +42,16 @@ const messengers = (entry: string) =>
  * own texts and count even before the store holds an account of them.
  */
 const listedOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: string) => {
+  const held = await store.accounts.storedAccounts()
   const named = async (entry: string) => {
     const [provider = "", ...rest] = entry.trim().split(":")
     const account = rest.join(":")
+    // The store names a notes folder folder:<id>, and memo's own errors show that; the list reader knows notes:<row>.
+    if (provider === FOLDER && account) {
+      const folder = held.find((one) => one.provider === FOLDER && one.account === account)
+      if (folder === undefined) throw new CliError("not_found", `no notes folder ${account} in the store`)
+      return `notes:${folder.id}`
+    }
     if (!MAIL.has(provider) || !account) return entry.trim()
     return `email:${(await mailboxOf(store, env, account)).account}`
   }
@@ -54,7 +62,7 @@ const listedOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: stri
     ),
   )
   return entriesOfList((await each(value.split(","))).join(","), {
-    held: await store.accounts.storedAccounts(),
+    held,
     groups,
     profiles: await store.accounts.profiles(),
     running: { provider: "email", command: "memo" },
@@ -140,43 +148,35 @@ export const accountsOf = async (store: MessageStore, env: NodeJS.ProcessEnv, va
 
 const named = (keys: readonly AccountKey[]) => keys.map((key) => accountName(key)).join(", ")
 
-/** The store keeps each notes folder as a `folder` row, a name no option takes; people call them all `notes`. */
-const FOLDER = "folder"
-const NOTES: ReadonlySet<string> = new Set([FOLDER, "notes"])
-
-const heldNames = async (store: MessageStore) => {
-  const held = await store.accounts.accounts()
-  const names = held.filter((key) => key.provider !== FOLDER).map(accountName)
-  return held.some((key) => key.provider === FOLDER) ? [...names, "notes"] : names
-}
-
 const unnamed = async (store: MessageStore, option = "--source") =>
   new CliError(
     "validation_error",
-    `give ${option} <provider>:<account> — the store holds ${(await heldNames(store)).join(", ") || "no account yet"}`,
+    `give ${option} <provider>:<account> — the store holds ${named(await store.accounts.accounts()) || "no account yet"}`,
   )
 
 /**
- * A task from a message, email or note is filed in a messenger or mail account, and a reminder needs such a task;
- * notes have no account to file one in. The error names only accounts that work, or what to do without one.
+ * The store's own key of each account the list reader named: a notes folder is `notes:<row>` to it but `folder:<id>`
+ * in the store. Notes written with `notes add` belong to no stored account, so nothing can act as them.
  */
-const noTaskAccount = async (store: MessageStore, option: string, lead = `give ${option}`) => {
-  const held = (await store.accounts.accounts()).filter((key) => !NOTES.has(key.provider))
-  return new CliError(
-    "validation_error",
-    held.length
-      ? `${lead} — tasks and reminders belong to a messenger or mail account: ${held.map((key) => `${option} ${accountName(key)}`).join("; ")}`
-      : `${lead} — a task from a message, email or note, and a reminder, need a tg, max or mail account, and the ` +
-          "store holds none. A project's tasks need no account: memo projects add <name> --key <KEY>, then " +
-          "memo tasks add --project <KEY> --title <title>",
-  )
-}
-
-const taskAccountsOnly = async (store: MessageStore, option: string, keys: AccountKey[]) => {
-  const notes = keys.find((key) => NOTES.has(key.provider))
-  if (notes) throw await noTaskAccount(store, option, `${accountName(notes)} holds no tasks or reminders`)
+const storedKeysOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: string): Promise<AccountKey[]> => {
+  const held = await store.accounts.storedAccounts()
+  const keys: AccountKey[] = []
+  for (const key of await accountsOf(store, env, value)) {
+    const folder =
+      key.provider === "notes" ? held.find((one) => one.provider === FOLDER && String(one.id) === key.account) : null
+    if (folder === undefined) continue
+    const stored = folder ? { provider: folder.provider, account: folder.account } : key
+    if (!keys.some((one) => one.provider === stored.provider && one.account === stored.account)) keys.push(stored)
+  }
   return keys
 }
+
+const noStoredAccount = (value: string) =>
+  new CliError(
+    "not_found",
+    `${value} names no stored account; notes written with memo notes add belong to none — name a notes folder ` +
+      "(notes:<id>), a mailbox or a messenger account",
+  )
 
 /** One account, and the owner names it: none or several is an error listing the choices. */
 export const oneAccountOf = async (
@@ -186,9 +186,9 @@ export const oneAccountOf = async (
   option = "--source",
 ): Promise<AccountKey> => {
   if (value === undefined) throw await unnamed(store, option)
-  const keys = await accountsOf(store, env, value)
+  const keys = await storedKeysOf(store, env, value)
   if (keys.length === 1) return keys[0] as AccountKey
-  if (keys.length === 0) throw new CliError("not_found", `${value} names no stored account`)
+  if (keys.length === 0) throw noStoredAccount(value)
   throw new CliError("validation_error", `${value} names ${keys.length} accounts; give one: ${named(keys)}`)
 }
 
@@ -214,7 +214,10 @@ export const sourceOf = (options: SourceOptions, warn: (text: string) => void): 
       "--provider and --account are the old --source <provider>:<account>; give one of them",
     )
   if (options.provider === undefined)
-    throw new CliError("validation_error", "--account needs its provider: --source <provider>:<account>")
+    throw new CliError(
+      "validation_error",
+      `this command reads with --source: --source ${options.account?.includes(":") ? options.account : "<provider>:<account>"}`,
+    )
   const value = options.account === undefined ? options.provider : `${options.provider}:${options.account}`
   warn(`--provider and --account are deprecated: use --source ${value}\n`)
   return value
@@ -228,7 +231,7 @@ export const theAccount = (
   warn: (text: string) => void,
 ): Promise<AccountKey> => oneAccountOf(store, env, sourceOf(options, warn))
 
-/** Every account `--source` or the old `--provider --account` names; none named is an error, never all of them. */
+/** Every account `--source` or the old `--provider --account` names; none named is every stored account. */
 export const theAccounts = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
@@ -236,37 +239,13 @@ export const theAccounts = async (
   warn: (text: string) => void,
 ): Promise<AccountKey[]> => {
   const value = sourceOf(options, warn)
-  if (value === undefined) throw await unnamed(store)
-  const keys = await accountsOf(store, env, value)
-  if (keys.length === 0) throw new CliError("not_found", `${value} names no stored account`)
+  if (value === undefined) return store.accounts.accounts()
+  const keys = await storedKeysOf(store, env, value)
+  if (keys.length === 0) throw noStoredAccount(value)
   return keys
 }
 
 export const accountName = ({ provider, account }: AccountKey) => `${provider}:${account}`
-
-/** The accounts `--source` names for tasks and reminders, which notes cannot hold. */
-export const taskAccounts = async (
-  store: MessageStore,
-  env: NodeJS.ProcessEnv,
-  options: SourceOptions,
-  warn: (text: string) => void,
-): Promise<AccountKey[]> => {
-  if (sourceOf(options, warn) === undefined) throw await noTaskAccount(store, "--source")
-  return taskAccountsOnly(store, "--source", await theAccounts(store, env, options, () => {}))
-}
-
-/** The one account `--account` names for a reminder, which notes cannot hold. */
-export const taskWriteAccount = async (
-  store: MessageStore,
-  env: NodeJS.ProcessEnv,
-  options: WriteOptions,
-  warn: (text: string) => void,
-): Promise<AccountKey> => {
-  const value = writeAccountOf(options, warn)
-  if (value === undefined) throw await noTaskAccount(store, "--account")
-  const [key] = await taskAccountsOnly(store, "--account", [await oneAccountOf(store, env, value, "--account")])
-  return key as AccountKey
-}
 
 export const WRITE_HELP = "the account it acts as: provider:account, such as telegram:1 or email:personal"
 

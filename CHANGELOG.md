@@ -4,6 +4,21 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- **Tasks and reminders work in a store that holds only notes.** A notes folder is an account: `--account` and
+  `--source` take it as `notes:<number>` (the `folder_id` search gives) or as the `folder:<id>` Memo's own errors
+  show, and `--source notes` names your folder when you have one. Every spelling was refused before, so a task
+  could not be made from a note and a reminder needed a mail account. `memo tasks add document:<id>` takes the
+  file's folder as its account without `--account`.
+- `memo tasks list` and `memo reminders list` without `--source` read every stored account and name them in
+  `meta.accounts`, as a search does; they refused before. `memo tasks agenda` still reads one account; the README
+  said it covered every account.
+- A reminder for a task in a project is refused with the reason: such a task belongs to no account. The message
+  said the task was not open. A read given `--account provider:account` is told to use `--source` with that value.
+
 ## 0.67.0 — 18.10.2026
 
 ### Fixed

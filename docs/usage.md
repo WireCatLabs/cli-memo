@@ -107,7 +107,9 @@ names. Compare like with like: `memo search messages 'content:invoice'` with
 When you have several Telegram, MAX or mail accounts, Memo does not choose one for you. Name accounts
 with `--source`: one account as `telegram:1` or `email:work`, every account of a messenger as `telegram`,
 every account of a kind as `mail`, or a saved group as `group:work`; separate several with commas. A list
-reads every account it names and says which. A search with no account searches all of them and says so.
+reads every account it names and says which. A search with no account searches all of them and says so;
+so do `memo tasks list` and `memo reminders list`. A notes folder is an account too: `notes:<number>`, with the
+number search results give as `folder_id`.
 
 A command that changes something, such as adding a task or a reminder, acts as one account. Name it with
 `--account` as provider and account together: `--account telegram:1`, `--account email:work`. Without it,

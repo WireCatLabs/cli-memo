@@ -1,4 +1,4 @@
-import { mkdtempSync } from "node:fs"
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
@@ -44,17 +44,17 @@ it("refuses a write that names no single provider:account, and lists the choices
   })
   await expect(run("reminders", "add", "1", "--at-time", "2026-01-01T00:00:00Z")).rejects.toMatchObject({
     code: "validation_error",
-    message: expect.stringContaining(
-      "give --account — tasks and reminders belong to a messenger or mail account: --account telegram:1; --account telegram:2",
-    ),
+    message: expect.stringContaining("give --account <provider>:<account> — the store holds telegram:1, telegram:2"),
   })
   await expect(run("tasks", "add", source, "--provider", "telegram")).rejects.toMatchObject({
     message: expect.stringContaining("give one: telegram:1, telegram:2"),
   })
-  await expect(run("reminders", "list")).rejects.toMatchObject({
-    code: "validation_error",
-    message: expect.stringContaining("--source telegram:1; --source telegram:2"),
-  })
+})
+
+it("lists the reminders of every stored account when --source names none, and says which", async () => {
+  const { run } = await setUp()
+
+  expect((await run("reminders", "list")).answer.meta.accounts).toEqual(["telegram:1", "telegram:2"])
 })
 
 it("takes the old --provider --account for one release, and prints the new spelling on stderr", async () => {
@@ -97,4 +97,53 @@ it("asks memo's own notes when --source names notes", async () => {
     const { answer } = await run("ask", "what about the lighthouse?", "lighthouse", "--source", source)
     expect(answer.evidence.map(({ locator }: { locator: string }) => locator)).toContain(ref)
   }
+})
+
+it("makes a task from a folder's file and reminds about it in a store that holds only notes", async () => {
+  const root = mkdtempSync(join(tmpdir(), "memo-notes-only-"))
+  const env = {
+    ...process.env,
+    MESSAGING_STORE: join(root, "store.db"),
+    MEMO_CONFIG_DIR: join(root, "config"),
+    MEMO_STATE_DIR: join(root, "state"),
+  }
+  const run = async (...args: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env })
+      .exitOverride()
+      .parseAsync([...args, "--json"], { from: "user" })
+    return answerOf(streams.stdout.join(""))
+  }
+  mkdirSync(join(root, "vault"))
+  writeFileSync(join(root, "vault", "plan.md"), "Send the synthetic budget.")
+  await run("folders", "add", join(root, "vault"))
+  await run("sync", "--only", "notes")
+  const document = (await run("search", "notes", "budget")).items[0]
+  const store = await openStore({ env })
+  const folder = (await store.accounts.accounts())[0]
+  await store.close()
+  const stored = `${folder?.provider}:${folder?.account}`
+
+  const added = await run("tasks", "add", document.ref)
+  expect(added.task.account).toBe(stored)
+  for (const account of [stored, `notes:${document.folder_id}`])
+    expect((await run("tasks", "add", document.ref, "--account", account)).task.id).toBe(added.task.id)
+  expect((await run("tasks", "list")).items.map(({ id }: { id: string }) => id)).toEqual([added.task.id])
+  expect((await run("tasks", "agenda", "--source", "notes")).tasks).toHaveLength(1)
+
+  await run(
+    "reminders",
+    "add",
+    added.task.key,
+    "--at-time",
+    "2030-01-01T09:00:00Z",
+    "--account",
+    `notes:${document.folder_id}`,
+  )
+  expect((await run("reminders", "list")).items).toMatchObject([{ task: added.task.id, account: stored }])
+  await run("projects", "add", "Synthetic", "--key", "SYN")
+  await run("tasks", "add", "--project", "SYN", "--title", "Book the room")
+  await expect(
+    run("reminders", "add", "SYN-1", "--at-time", "2030-01-01T09:00:00Z", "--account", stored),
+  ).rejects.toMatchObject({ message: expect.stringContaining("SYN-1 is a task in a project") })
 })

@@ -133,9 +133,8 @@ More: [connect your AI agent](https://wirecat.dev/en/docs/agents) ·
 5. **Agents propose, you decide.** Memories and actions an agent suggests wait for your confirmation;
    nothing is ever sent.
 
-**Status:** early. Context, notes and their links, document import, Gmail and IMAP imports, project tasks,
-manual relationships and evidence bundles work. Tasks from messages, mail or notes, and local reminders, also
-need a tg, max or mail account in the store.
+**Status:** early. Context, notes and their links, document import, Gmail and IMAP imports, tasks,
+manual relationships, evidence bundles and local reminders work. A task in a project cannot have a reminder yet.
 
 More: [security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security.md) ·
 [security on wirecat.dev](https://wirecat.dev/en/docs/memo/security)
@@ -279,8 +278,7 @@ Tags are your labels on a note, an email, a message, a chat, a person, an organi
 a meeting, or every note under a folder. They live in the store; files, Gmail labels and mailbox flags are
 never changed. A task points at the message or note it came from, or is your own in a
 project (`--project RES --title …`), and can be blocked by another until it is done. `memo tasks agenda`
-says what needs a look today in a messenger account. A task from a message, email or note, and every reminder,
-belong to a tg, max or mail account; with notes only, keep tasks in a project. Reminders are local:
+says what needs a look today in the account you name; a notes folder is one (`--source notes`). Reminders are local:
 a caller you choose polls for them, and nothing is delivered to a messenger or mailbox.
 
 ```sh

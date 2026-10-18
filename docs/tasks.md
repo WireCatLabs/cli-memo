@@ -23,21 +23,26 @@ memo tasks list --source telegram:1
 ```
 
 A task from a source has a type: `request` (the default), `question`, `mention` or `promise`. It
-belongs to one messenger or mail account. A message reference already names its account; for a note or a
-file, add `--account`, such as `--account telegram:1`. Adding the same task twice gives you the existing one.
+belongs to one account. A message reference already names its account, and a file from a notes folder
+(`document:<id>`) belongs to that folder. For a note you wrote with `memo notes add`, add `--account`, such
+as `--account telegram:1` or a notes folder, `--account notes:1`. Adding the same task twice gives you the
+existing one.
 
-Notes have no account of their own. With notes only and no tg, max or mail account in the store, keep your
-tasks in a project ([below](#tasks-in-a-project)); reminders need an account.
+A notes folder is an account too: search results give its number as `folder_id`, and Memo accepts it as
+`notes:<number>` or as the `folder:<id>` its messages show. `--source notes` names your folder when you have
+one. `memo tasks list` and `memo reminders list` without `--source` read every account and name them in
+`meta.accounts`.
 
 ## What needs a look today
 
-The agenda, the plan and the card are the same commands tg and max have; name the messenger account:
+The agenda, the plan and the card are the same commands tg and max have. Each reads one account; name it:
 
 ```sh
 memo tasks agenda --source telegram:1           # overdue, due, owed and waiting chats
 memo tasks plan 1a2b3c4d --due 2d --remind-time 1d --title 'Send the revised budget' --account telegram:1
 memo tasks show 1a2b3c4d --source telegram:1
 memo stats tasks show --source telegram:1       # open tasks per chat
+memo tasks agenda --source notes                # tasks from your notes folder
 ```
 
 A command without `--source` or `--account` lists the accounts the store holds. tg and max open these tasks
@@ -124,7 +129,11 @@ memo reminders cancel 3 --account telegram:1
 ```
 
 Write the time with its offset from UTC, such as `+02:00` for Madrid in summer. A reminder belongs to
-a tg, max or mail account and needs an open task of it, so adding or changing one needs `--account`. Closing a task cancels its reminders.
+an account, so adding or changing one needs `--account`; for a task from a notes folder, that is the folder,
+such as `--account notes:1`. Closing a task cancels its reminders.
+
+A task in a project, such as `HRB-1`, belongs to no account, so it cannot have a reminder yet. Neither can a
+task from a note you wrote with `memo notes add` when the store holds no account at all.
 
 For the program that shows reminders:
 

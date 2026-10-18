@@ -664,7 +664,7 @@ memo tasks add [source] [options]
 
 ### `memo tasks list`
 
-tasks of the accounts --source names, or of one project, open by default
+tasks of the --source accounts (default all) or of a project, open by default
 
 ```sh
 memo tasks list [query] [options]
@@ -765,7 +765,7 @@ memo tasks agenda [query] [options]
 | `--waiting <duration>` | list chats where you wrote last this long ago (default 7d). |
 | `--within <duration>` | leave out chats silent longer than this: they ended (default 30d). |
 | `--holder <name>` | who you are for claims: a session id or a chat id; default WIRECAT_HOLDER, else Claude Code's session, else the agent's name. |
-| `--source <accounts>` | the messenger account: telegram:<account>, max:<account>, or group:<name> of one. |
+| `--source <accounts>` | the account: telegram:<account>, email:<account>, notes:<id>, or group:<name> of one. |
 | `--provider <provider>` | deprecated: --source <provider>. |
 | `--account <account>` | deprecated: --source <provider>:<account>. |
 | `--json` | print JSON. |
@@ -792,7 +792,7 @@ memo tasks plan <task> [options]
 | `--due <time>` | when it must be done: an ISO 8601 time or 2h, 3d from now; none clears it. |
 | `--remind-time <time>` | when to look at it again: an ISO 8601 time or 2h, 3d from now; none clears it. |
 | `--assignee <person...>` | who does it: sender (whoever sent the task's message) or person:<id>; none clears it. Leave it out when unsure: a task with no assignee is better than none. |
-| `--account <account>` | the messenger account it acts as: telegram:<account> or max:<account>. |
+| `--account <account>` | the account it acts as: telegram:<account>, email:<account> or a notes folder, notes:<id>. |
 | `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON. |
 
@@ -810,7 +810,7 @@ memo tasks show <task> [options]
 
 | Option | What it does |
 |---|---|
-| `--source <accounts>` | the messenger account: telegram:<account>, max:<account>, or group:<name> of one. |
+| `--source <accounts>` | the account: telegram:<account>, email:<account>, notes:<id>, or group:<name> of one. |
 | `--provider <provider>` | deprecated: --source <provider>. |
 | `--account <account>` | deprecated: --source <provider>:<account>. |
 | `--json` | print JSON. |
@@ -834,7 +834,7 @@ memo tasks link <task> [targets] [options]
 |---|---|
 | `--chat <chat>` | a chat it concerns, repeatable; a stored chat, by its id or title. |
 | `--kind <kind>` | related-to (default), evidence — it shows the task is real — or created-from; for task:<id>, related-to, blocked-by, follow-up-of, duplicate-of or discovered-from. |
-| `--account <account>` | the messenger account it acts as: telegram:<account> or max:<account>. |
+| `--account <account>` | the account it acts as: telegram:<account>, email:<account> or a notes folder, notes:<id>. |
 | `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON. |
 
@@ -858,7 +858,7 @@ memo stats tasks show [options]
 |---|---|
 | `--chat <chat>` | only this chat; a stored chat, by its id or title. |
 | `--type <type>` | only this type: question, request, mention or promise. |
-| `--source <accounts>` | the messenger account: telegram:<account>, max:<account>, or group:<name> of one. |
+| `--source <accounts>` | the account: telegram:<account>, email:<account>, notes:<id>, or group:<name> of one. |
 | `--provider <provider>` | deprecated: --source <provider>. |
 | `--account <account>` | deprecated: --source <provider>:<account>. |
 | `--json` | print JSON. |
@@ -1201,7 +1201,7 @@ memo reminders add <task> [options]
 
 ### `memo reminders list`
 
-pending reminders of the accounts --source names, soonest first
+pending reminders of the accounts --source names (default all), soonest first
 
 ```sh
 memo reminders list [options]
