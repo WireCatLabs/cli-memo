@@ -6,6 +6,21 @@ the API.
 
 ## Unreleased
 
+### Changed — may break callers
+
+- **Commands with no text view of their own print plain lines in place of JSON when `--json` is not given:** one line
+  per record for a list (`organizations list`, `projects list`, `reminders list`, `tasks list`…) and `field: value`
+  lines for one record (`projects add`, `tasks add`…). A script that read that JSON gets the same data, in the shared
+  envelope, with `--json`.
+
+### Fixed
+
+- **A failed mail login no longer holds `memo sync` for a minute.** A read that fails is tried again after 15 s, and
+  a refused login or keyring was too, twice per account; with two accounts that took 60 s. It now fails at once.
+  A missing himalaya says it is not installed or not on PATH, not `failed (ENOENT): no error text`.
+- The README and the installation page give the sizes: the search model is about 135 MB and the install about
+  250 MB. The Windows steps say Windows is not tested yet.
+
 ## 0.68.0 — 18.10.2026
 
 ### Fixed
