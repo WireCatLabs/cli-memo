@@ -1,0 +1,9 @@
+{
+  "name": "memo-contract-baselines",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.20.0",
+  "dependencies": {
+    "@wirecat/previous-cli": "npm:@wirecat/cli-memo@0.65.2"
+  }
+}

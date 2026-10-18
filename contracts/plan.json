@@ -1,0 +1,52 @@
+{
+  "command": "node",
+  "args": ["../dist/bin/memo.js"],
+  "cases": [
+    {
+      "id": "help",
+      "args": ["--help"],
+      "exit": 0,
+      "stream": "stdout",
+      "kind": "text",
+      "snapshot": "help.snap"
+    },
+    {
+      "id": "discovery",
+      "args": ["commands", "--json"],
+      "exit": 0,
+      "stream": "stdout",
+      "kind": "json",
+      "contains": "\"cli\":\"memo\""
+    },
+    {
+      "id": "invalid-option",
+      "args": ["--unknown-option"],
+      "exit": 2,
+      "stream": "stderr",
+      "kind": "json",
+      "errorCode": "validation_error"
+    },
+    {
+      "id": "invalid-command",
+      "args": ["notes", "unknown-subcommand"],
+      "exit": 2,
+      "stream": "stderr",
+      "kind": "json",
+      "errorCode": "validation_error"
+    },
+    {
+      "id": "empty-store-lists-nothing",
+      "args": ["notes", "list", "--json"],
+      "exit": 0,
+      "stream": "stdout",
+      "kind": "json",
+      "json": {
+        "items": []
+      }
+    }
+  ],
+  "mcp": {
+    "args": ["mcp"],
+    "snapshot": "mcp-tools.json"
+  }
+}

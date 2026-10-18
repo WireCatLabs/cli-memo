@@ -1,0 +1,5 @@
+packages:
+  - .
+# Our own packages are used the day they are published.
+minimumReleaseAgeExclude:
+  - "@wirecat/*"

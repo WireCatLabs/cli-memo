@@ -42,7 +42,17 @@
     "generate:check": "pnpm build && node --experimental-strip-types scripts/commands.ts --check",
     "docs:lint": "markdownlint-cli2",
     "docs:spell": "cspell lint --config cspell.json --no-progress README.md \"docs/*.md\"",
-    "ci:quick": "pnpm typecheck && pnpm build && pnpm lint:commands"
+    "ci:quick": "pnpm typecheck && pnpm build && pnpm lint:commands",
+    "contracts:check": "cli-contract contracts/plan.json",
+    "contracts:upgrade": "pnpm --dir contracts/previous install --frozen-lockfile --ignore-scripts && cli-contract contracts/upgrade.json",
+    "security:no-leak": "cli-testing security no-leak . contracts/no-leak.json",
+    "version:check": "cli-dev version",
+    "version:sync": "cli-dev version --sync",
+    "package:check": "node --experimental-strip-types scripts/package-check.ts",
+    "docs:check": "cli-dev docs-check --rules scripts/docs-rules.ts --pages && cspell --no-progress --no-summary README.md 'docs/*.md' && pnpm docs:lint",
+    "test:matrix:check": "cli-dev test-matrix --program scripts/command-program.ts --untested scripts/test-matrix-untested.ts --name memo && git diff --exit-code -- docs/dev/test-matrix.md",
+    "test:matrix": "vitest run >/dev/null && pnpm build >/dev/null && pnpm test:matrix:check",
+    "smoke:bun": "bun scripts/smoke.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "2.1.0",
@@ -64,6 +74,7 @@
     "@modelcontextprotocol/client": "2.2.0",
     "@types/node": "^22.20.4",
     "@vitest/coverage-v8": "5.0.3",
+    "@wirecat/cli-testing": "0.5.2",
     "cspell": "10.3.6",
     "lefthook": "2.1.16",
     "markdownlint-cli2": "0.23.3",
