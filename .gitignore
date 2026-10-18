@@ -6,3 +6,8 @@ coverage/
 .DS_Store
 .claude/settings.local.json
 /.worktrees/
+
+# The working trail, kept on the machine doing the work; archived in the private repository.
+/CLEANUP.md
+/HANDOFF.md
+/plans/
