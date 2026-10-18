@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.69.0 — 18.10.2026
+
 ### Added
 
 - Prepare a cited packet of stored series history with `memo meetings prepare` or the MCP tool `meeting_prepare`.
