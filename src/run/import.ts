@@ -13,7 +13,7 @@ import { type ImportResult, importMail } from "../mail/import.js"
 import { repairHtmlText } from "../mail/repair.js"
 import { rulesOf } from "../mail/rule-store.js"
 import { scoreSenders } from "../mail/sender-scores.js"
-import { boundFolders, unboundReason } from "../notes/bound.js"
+import { boundFolders, UNBOUND, unboundReason } from "../notes/bound.js"
 import { embedNoteChunks, type NoteChunksEmbedded } from "../notes/embed.js"
 import { noteFolders } from "../notes/folders.js"
 import { importNotes, type NotesImport } from "../notes/import.js"
@@ -50,8 +50,8 @@ export interface ImportRun {
   /** The notes' chunks embedded for search by meaning this run. */
   notesEmbedded?: NoteChunksEmbedded
   mail: ImportResult[]
-  /** A source that failed; the others still ran. */
-  failed: { source: string; code: ErrorCode | "internal_error"; reason: string }[]
+  /** A source that failed; the others still ran. `reasonId` names the failure from a fixed list, `reason` says it. */
+  failed: { source: string; code: ErrorCode | "internal_error"; reasonId: string; reason: string }[]
   /** Why a timer run did nothing: another sync held the lock. */
   skipped?: string
 }
@@ -155,7 +155,7 @@ const syncedOf = (options: SyncOptions): Set<Synced> => {
 const failedReason = ([first, ...rest]: ImportRun["failed"]): string | undefined =>
   first === undefined
     ? undefined
-    : `${first.source.split(" ")[0]}: ${first.code}${rest.length ? ` (and ${rest.length} more)` : ""}`
+    : `${first.source.split(" ")[0]}: ${first.code} (${first.reasonId})${rest.length ? ` (and ${rest.length} more)` : ""}`
 
 const crashReason = (error: unknown): string => {
   const { error: failure } = errorObject(error)
@@ -268,7 +268,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           } catch (error) {
             const { error: failure } = await errorObject(error)
             const reason = failureReason(error, failure, debug)
-            run.failed.push({ source, code: failure.code, reason })
+            run.failed.push({ source, code: failure.code, reasonId: failure.reason, reason })
           }
         }
         try {
@@ -283,6 +283,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
                   run.failed.push({
                     source: `notes ${folder.path}`,
                     code: "configuration_error",
+                    reasonId: UNBOUND,
                     reason: unboundReason(folder.path),
                   })
             const ignore = config.notes?.ignore ?? []

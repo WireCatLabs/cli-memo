@@ -160,11 +160,11 @@ describe("a failing timer run", () => {
 
     expect(autoNotice(timer)).toBeUndefined()
     expect(autoNotice(env)).toMatch(
-      /^memo: scheduled sync failing since .* \(2 runs\): notes: configuration_error — memo auto status$/,
+      /^memo: scheduled sync failing since .* \(2 runs\): notes: configuration_error \(folder\.unbound\) — memo auto status$/,
     )
     expect(answerOf(await run("auto", "status", "--json")).failing).toMatchObject({
       runs: 2,
-      reason: "notes: configuration_error",
+      reason: "notes: configuration_error (folder.unbound)",
       log: "journalctl --user -u memo-import.service",
     })
 
@@ -197,6 +197,30 @@ describe("a failing timer run", () => {
     expect(kept).not.toContain("Synthetic")
     expect(status).toContain("configuration_error (folder.unbound)")
     expect(status).toContain("the full message: journalctl --user -u memo-import.service")
+  })
+
+  it("keeps a failing source's reason id, not the title its error names", async () => {
+    const titled = join(dir, "Synthetic Chat Title")
+    mkdirSync(titled)
+    const streams = captureStreams()
+    updateConfig(
+      () => ({ notes: { folders: [join(dir, "vault"), titled] }, auto: { enabled: true, every: "5m" } }),
+      env,
+    )
+    await run("folders", "add", join(dir, "vault"))
+
+    await createProgram({ streams, env: { ...env, MEMO_AUTO: "1" } })
+      .exitOverride()
+      .parseAsync(["sync"], { from: "user" })
+    process.exitCode = 0
+
+    expect(streams.stdout.join("")).toContain("Synthetic Chat Title")
+    const last = readFileSync(join(dir, "state", "auto", "last.json"), "utf8")
+    const kept = [last, await run("auto", "status"), await run("auto", "status", "--json"), autoNotice(env)]
+    for (const text of kept) {
+      expect(text).toContain("notes: configuration_error (folder.unbound)")
+      expect(text).not.toContain("Synthetic")
+    }
   })
 
   it("is not recorded for a sync started by hand", async () => {
