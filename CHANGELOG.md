@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.77.0 — 19.10.2026
+
 ### Added
 
 - **Repeat a project-evidence time window** with `--before-time` (MCP `before_time`), an ISO timestamp with a UTC
