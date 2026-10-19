@@ -57,6 +57,7 @@ Use the memo tools to list the memories waiting for my review.
 | `meeting_prepare` | Gather stored series history and linked context, optionally with explicitly selected message/mail accounts; does not verify the next meeting time |
 | `project_context` | Key documents, pending relationships, facts and meeting findings, plus open numbered tasks |
 | `project_evidence` | Cited references about a project from stored messages, mail, meeting transcripts and notes folders, searched by its names, more words and people; read only |
+| `project_actions_add`, `project_actions_list`, `project_actions_confirm`, `project_actions_reject` | Stage cited facts and follow-ups about a project, review them with the evidence and its context, and decide the ones you are confident about with a reason |
 | `meeting_actions_add`, `meeting_actions_show`, `meeting_actions_list` | Propose and inspect cited meeting facts and follow-ups; never confirm them |
 | `person_context` | One person across messengers and mail, with linked notes and tasks, read only |
 | `memories_add`, `memories_list`, `memories_show`, `search_memories` | Save and read memories |
@@ -89,6 +90,15 @@ are labelled as such. Exact retries reuse the key; changed input needs a new key
 
 `meeting_actions_show` and `meeting_actions_list` take an explicit `source`. Only the owner reviews
 batches through `memo meetings actions confirm` or `reject`. Staging creates no facts or numbered tasks.
+
+`project_actions_add` stages cited facts and follow-ups about one project: each reference is a `msg:` or
+`document:` reference with the `fingerprint` `project_evidence` gave, and a text changed since then refuses as
+stale. `project_actions_list` pages through a project's proposals — suggested key documents (`key:<n>`) and
+findings batches — each with its evidence: whether the text changed (`state`), the text and the messages around
+it unless `brief`. Decide the ones you are confident about with `project_actions_confirm` (the finding IDs to
+create) or `project_actions_reject`, always with a `reason`, which is kept with the decision; ask the owner about
+the rest. A batch needs its `fingerprint`. When the owner sets `agent_decisions: false`, decisions are refused and
+only the owner decides, through `memo projects actions confirm` or `reject`.
 
 `project_evidence` takes the options of `memo projects evidence` in snake_case and needs `source`: account
 entries, a kind, `group:<name>` or `all`. It searches the project's name, its key, each of its aliases and each

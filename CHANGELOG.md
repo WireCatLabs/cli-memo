@@ -6,6 +6,17 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo projects actions` — an agent's proposals for a project, with the evidence to decide them.** `add` stages
+  cited facts and follow-ups (references and fingerprints from `projects evidence`; a changed text refuses as
+  stale). `list` pages through suggested key documents and findings batches, each cited text shown with whether it
+  changed, the text and the messages around it (`--brief` drops them, `--before-n`/`--after-n`). `confirm` creates
+  the named findings or confirms a key document, `reject` turns them down. An agent in your terminal, or over MCP
+  (`project_actions_*`), decides for you only with `--reason`, kept with the decision; set `agent_decisions: false`
+  in the config to keep every decision yours. `projects key-documents list` items carry their `id`. Needs
+  `@wirecat/cli-core` 0.363.0.
+
 ## 0.77.0 — 19.10.2026
 
 ### Added

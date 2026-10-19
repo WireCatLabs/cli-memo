@@ -36,6 +36,8 @@ const ConfigSchema = v.strictObject({
   ),
   /** `false` stops the once-a-day check for a newer memo. */
   update_check: v.optional(v.boolean()),
+  /** `false` stops an agent deciding proposals for you: `projects actions confirm` and `reject` then need you. */
+  agent_decisions: v.optional(v.boolean()),
   mail: v.optional(
     v.strictObject({
       accounts: v.array(

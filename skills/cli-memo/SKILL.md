@@ -124,7 +124,12 @@ To collect what the store holds about a project, use `memo projects evidence <pr
 (MCP `project_evidence`). The name, the key, each alias, `--alias`, `--context-query` and `--contact` is its own
 literal search; hits are joined. New mail and documents are indexed first unless `--no-catch-up`. A `person-only` item mentions a person, not the project. Unread or failed sources are coverage, not
 absence. Continue a stopped run with `--cursor <checkpoint>` and the same options. Nothing is proposed or
-confirmed: cite the references, then stage findings through the review flow above.
+confirmed: cite the references, then stage findings with `memo projects actions add` (MCP
+`project_actions_add`), each reference with the `fingerprint` from the evidence. Review with `memo projects actions
+list <project>`: it shows each cited text, whether it changed, and the messages around it. Decide what you are
+confident about with `confirm` or `reject` and `--reason` — the reason is kept with the decision — and ask the
+owner about anything uncertain: who did what, dates, commitments versus suggestions. If the owner set
+`agent_decisions: false`, every decision is theirs.
 Use `--before-time <ISO timestamp with UTC offset>` (MCP `before_time`) to repeat an exact exclusive end time;
 days back count from it. Keep it on continuation. The window is fixed, but archive contents, aliases
 and account scope may change: retain actual references, source fingerprints and coverage separately.

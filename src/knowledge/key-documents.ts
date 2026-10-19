@@ -5,6 +5,8 @@ import { heldMessage } from "../store/held.js"
 import { canonicalProject } from "../vocabulary/project.js"
 
 export interface KeyDocument {
+  /** The relationship that marks it, as relationships list gives it. */
+  id: string
   ref: string
   title: string | null
   path: string | null
@@ -55,6 +57,7 @@ const sourceOf = async (store: MessageStore, ref: string) => {
 const describe = async (store: MessageStore, link: Link): Promise<KeyDocument> => {
   const source = await sourceOf(store, link.from)
   return {
+    id: link.id,
     ref: link.from,
     title: source?.title ?? null,
     path: source?.path ?? null,

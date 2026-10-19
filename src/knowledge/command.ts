@@ -28,6 +28,7 @@ import {
 } from "../store/source-list.js"
 import { keyDocuments, markKey, projectOf, unmarkKey } from "./key-documents.js"
 import { meetingProjectsCommand } from "./meeting-projects-command.js"
+import { projectActionsCommand } from "./project-actions-command.js"
 import { projectContext, projectContextText } from "./project-context.js"
 import { projectGatherCommand } from "./project-gather-command.js"
 
@@ -167,6 +168,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       print(options.json, itemAnswer(context), projectContextText(context))
     })
   projectGatherCommand(projects, print, env)
+  projectActionsCommand(projects, streams, env)
   const keys = projects
     .command("key-documents")
     .description("the notes, files and messages to read first about a project, each with why")
