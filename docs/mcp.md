@@ -103,8 +103,8 @@ hit carries `around`: `before_n` and `after_n` messages next to it in its chat (
 more hits. `mentions` lists the other projects, tags and topics the texts name, cited; a name is not
 membership. An item found only through a
 contact's name has `context: "person-only"`. Failed or unread sources are listed, and `completeness` stays
-`unknown`. When it returns a `checkpoint`, call again with the same arguments and `cursor` set to it. It writes
-nothing.
+`unknown`. When it returns a `checkpoint`, call again with the same arguments and `cursor` set to it.
+It creates no facts, tasks or project links; the index catch-up above can update local search indexes.
 
 Use `project_context` with a project key, exact name or alias to review pending findings together.
 Meeting previews read at most five batches from each of eight linked meeting accounts; coverage and
