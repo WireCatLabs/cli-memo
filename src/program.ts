@@ -10,7 +10,7 @@ import { trackAnswers } from "./answer.js"
 import { askCommand } from "./answers/command.js"
 import { APP } from "./app.js"
 import { contextCommand } from "./context/command.js"
-import { commandsCommand } from "./discovery/command.js"
+import { commandsCommand, placeInSections } from "./discovery/command.js"
 import { doctorCommand } from "./doctor/command.js"
 import { addExamples } from "./examples.js"
 import { factsCommand } from "./facts/command.js"
@@ -180,6 +180,7 @@ export const createProgram = ({
   addExamples(program)
   fields.install(program)
   trackAnswers(program)
+  placeInSections(program)
   installHelp(program, FIRST_SCREEN)
 
   return program

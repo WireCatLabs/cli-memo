@@ -1,7 +1,10 @@
 import { readFileSync } from "node:fs"
 import { captureStreams } from "@wirecat/cli-base"
-import { parseCommandsDocument } from "@wirecat/cli-base/commands"
+import { describeProgram, flatten, parseCommandsDocument } from "@wirecat/cli-base/commands"
+import type { Command } from "commander"
 import { describe, expect, it } from "vitest"
+import { CONTRACT } from "./discovery/command.js"
+import { throwParseFailures } from "./failure.js"
 import { createProgram, refuseJoinedPath } from "./program.js"
 
 const packaged = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version
@@ -36,6 +39,46 @@ describe("memo", () => {
     const streams = captureStreams()
     await createProgram({ streams }).parseAsync(["commands", "mcp", "--json"], { from: "user" })
     expect(JSON.parse(streams.stdout.join("")).commands).toMatchObject([{ name: "mcp", lifetime: "persistent" }])
+  })
+
+  it("lists commands as text by section without --json, one group with a path", async () => {
+    const streams = captureStreams()
+    await createProgram({ streams }).parseAsync(["commands"], { from: "user" })
+    const text = streams.stdout.join("")
+    expect(text).toMatch(/^memo commands, by section\./)
+    expect(text).toMatch(/\nWrite\n {2}memo notes add /)
+    expect(text).toMatch(/\nAutomate\n(?: {2}.*\n)* {2}memo sync /)
+    expect(text).not.toContain("\nOther\n")
+    const scoped = captureStreams()
+    await createProgram({ streams: scoped }).parseAsync(["commands", "mail", "rules"], { from: "user" })
+    expect(scoped.stdout.join("")).toMatch(
+      /^memo mail rules commands, by section\.[\s\S]*\nOrganise\n {2}memo mail rules list /,
+    )
+  })
+
+  it("keeps its own JSON contract", async () => {
+    const streams = captureStreams()
+    await createProgram({ streams }).parseAsync(["commands", "--json"], { from: "user" })
+    expect(JSON.parse(streams.stdout.join("")).contract).toBe(CONTRACT)
+    expect(CONTRACT).toBe(4)
+  })
+
+  it("prints help for every command, lists with a query included", async () => {
+    const silence = (command: Command): void => {
+      command.configureOutput({ writeOut: () => undefined, writeErr: () => undefined })
+      for (const child of command.commands) silence(child)
+    }
+    const leaves = flatten(describeProgram(createProgram())).filter((command) => command.commands.length === 0)
+    const failed: string[] = []
+    for (const { path } of leaves) {
+      const program = createProgram({ streams: captureStreams() })
+      throwParseFailures(program)
+      silence(program)
+      const help = await program.parseAsync([...path, "--help"], { from: "user" }).catch((error: unknown) => error)
+      if ((help as { code?: string }).code !== "commander.helpDisplayed") failed.push(path.join(" "))
+    }
+    expect(leaves.length).toBeGreaterThan(100)
+    expect(failed).toEqual([])
   })
 
   it("refuses an unknown command path", async () => {

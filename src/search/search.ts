@@ -232,8 +232,8 @@ export const searchEverywhere = async (
   { text, limit, only, exact, timezone, plainOrder }: QueryInput & { only?: SearchedResource[] },
 ): Promise<SearchAllFound & EverywhereExtras> => {
   const accounts = await store.accounts.accounts()
-  // The shared search names this command only in the model hint, and the model comes from tg.
-  const messenger = { app: { ...APP, command: "tg" } }
+  // tg's identity reads `group:` lists; memo has no `models` command, so the hint names the tools that do.
+  const messenger = { app: { ...APP, command: "tg" }, hintCommand: null }
   let messageAccounts: AccountKey[] = []
   const found = await searchAll(
     store,

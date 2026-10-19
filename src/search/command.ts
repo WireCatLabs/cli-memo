@@ -5,7 +5,6 @@ import type { SearchedResource, SearchFound } from "@wirecat/cli-core/services"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, withStore } from "../answer.js"
 import { searchMemoriesCommand } from "../memories/command.js"
-import { modelHint } from "../notes/embed.js"
 import { searchText } from "../notes/search.js"
 import { positive } from "../options.js"
 import { SAVE_HELP } from "../save-help.js"
@@ -134,8 +133,7 @@ content: narrows a search to the text of files, transcript: to voice transcripts
           )
           for (const skipped of answer.skipped)
             streams.diagnostic(`${skipped.resource} not searched: ${skipped.reason}\n`)
-          if (answer.notes?.meaningSkipped)
-            streams.diagnostic(`Notes by words only: ${modelHint(answer.notes.meaningSkipped)}\n`)
+          if (answer.notes?.meaningSkipped) streams.diagnostic(`Notes by words only: ${answer.notes.meaningSkipped}\n`)
         }
         print(
           options.json,
@@ -252,7 +250,7 @@ Mail from senders with signs of fraud (memo mail inspect) comes after the rest o
       ) => {
         const answer = await withStore(env, (store) => searchNotes(store, env, words.join(" "), options))
         if (answer.meaning_skipped && !options.json)
-          streams.diagnostic(`Searched by words only: ${modelHint(answer.meaning_skipped)}\n`)
+          streams.diagnostic(`Searched by words only: ${answer.meaning_skipped}\n`)
         for (const { source, reason } of answer.skipped) streams.diagnostic(`${source} not searched: ${reason}\n`)
         const { limit, page, json, ...rest } = options
         print(json, notesAnswer(answer, limit, page, { query: words.join(" "), ...rest }), searchText(answer))
