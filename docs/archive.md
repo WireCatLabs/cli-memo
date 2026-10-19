@@ -34,7 +34,9 @@ memo auto stop               # stop and remove the timer
 ```
 
 While the timer's runs fail, every memo command writes one line to stderr saying since when, how many runs and
-why, and `memo auto status` shows the same under `failing`. The line goes once a timer run passes.
+why, and `memo auto status` shows the same under `failing`. The line goes once a timer run passes. The reason is an
+error code and the kind of source that failed, never the error's text, which can name a folder or a subject; the
+full message is in the timer's journal, `journalctl --user -u memo-import.service`, which `memo auto status` names.
 
 `--every` takes `90s`, `5m`, `1h` and so on; the shortest is one minute. The timer uses systemd, the
 service manager of most Linux systems. On macOS and Windows, run `memo sync` yourself or from your

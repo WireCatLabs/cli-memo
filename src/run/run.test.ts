@@ -160,11 +160,12 @@ describe("a failing timer run", () => {
 
     expect(autoNotice(timer)).toBeUndefined()
     expect(autoNotice(env)).toMatch(
-      /^memo: scheduled sync failing since .* \(2 runs\): notes .*vault.*has no folder id.* — memo auto status$/,
+      /^memo: scheduled sync failing since .* \(2 runs\): notes: configuration_error — memo auto status$/,
     )
     expect(answerOf(await run("auto", "status", "--json")).failing).toMatchObject({
       runs: 2,
-      reason: expect.stringContaining("has no folder id"),
+      reason: "notes: configuration_error",
+      log: "journalctl --user -u memo-import.service",
     })
 
     await run("folders", "add", join(dir, "vault"))
@@ -172,6 +173,30 @@ describe("a failing timer run", () => {
 
     expect(autoNotice(env)).toBeUndefined()
     expect(answerOf(await run("auto", "status", "--json")).failing).toBeNull()
+  })
+
+  it("keeps a title the error names out of last.json and memo auto status", async () => {
+    const titled = join(dir, "Synthetic Chat Title")
+    mkdirSync(titled)
+    const timer = { ...env, MEMO_AUTO: "1" }
+    const streams = captureStreams()
+    updateConfig(
+      () => ({ notes: { folders: [join(dir, "vault"), titled] }, auto: { enabled: true, every: "5m" } }),
+      env,
+    )
+
+    await createProgram({ streams, env: timer }).exitOverride().parseAsync(["sync"], { from: "user" })
+    await expect(
+      createProgram({ streams, env: timer }).exitOverride().parseAsync(["sync", "--folder", titled], { from: "user" }),
+    ).rejects.toThrow(/Synthetic Chat Title/)
+    process.exitCode = 0
+
+    expect(streams.stdout.join("")).toContain("Synthetic Chat Title")
+    const status = (await run("auto", "status")) + (await run("auto", "status", "--json"))
+    const kept = readFileSync(join(dir, "state", "auto", "last.json"), "utf8") + status + autoNotice(env)
+    expect(kept).not.toContain("Synthetic")
+    expect(status).toContain("configuration_error (folder.unbound)")
+    expect(status).toContain("the full message: journalctl --user -u memo-import.service")
   })
 
   it("is not recorded for a sync started by hand", async () => {

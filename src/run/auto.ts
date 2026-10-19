@@ -203,7 +203,7 @@ export const followInstall = async (
 
 const failingOf = (last: LastRun | undefined) =>
   last && last.exitCode !== 0
-    ? { since: last.failingSince ?? last.at, runs: last.failures ?? 1, reason: last.reason ?? null }
+    ? { since: last.failingSince ?? last.at, runs: last.failures ?? 1, reason: last.reason ?? null, log: last.output }
     : null
 
 export const autoCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
@@ -270,7 +270,8 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           (status.last ? `, last ${status.last} (${status.lastResult ?? "?"})` : "") +
           (status.failing
             ? `\nfailing since ${status.failing.since} (${status.failing.runs} runs)` +
-              (status.failing.reason ? `: ${status.failing.reason}` : "")
+              (status.failing.reason ? `: ${status.failing.reason}` : "") +
+              `\nthe full message: ${status.failing.log}`
             : ""),
       )
     })
