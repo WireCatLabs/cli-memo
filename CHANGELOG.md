@@ -6,6 +6,11 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **Project evidence documentation** distinguishes local search-index catch-up from creating facts,
+  tasks or project links; it no longer claims that every evidence call writes nothing.
+
 ## 0.76.0 — 19.10.2026
 
 ### Added
