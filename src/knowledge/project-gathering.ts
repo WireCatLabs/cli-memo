@@ -1,4 +1,5 @@
 import { CliError } from "@wirecat/cli-base"
+import { isoTime } from "@wirecat/cli-base/standards"
 import {
   type EvidenceMentions,
   findEvidenceMentions,
@@ -7,6 +8,7 @@ import {
   storedNeighbours,
 } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
+import * as v from "valibot"
 import { contextSourcesOf } from "../store/source-list.js"
 import { canonicalProject } from "../vocabulary/project.js"
 
@@ -18,6 +20,7 @@ export interface ProjectGatherInput {
   people?: string[]
   days?: number
   after?: number
+  asOf?: number
   checkpoint?: string
   maxReads?: number
   limit?: number
@@ -60,6 +63,24 @@ export const windowOf = (value: string): { days: number } | { after: number } =>
   )
 }
 
+export const cutoffTime = (value: string): number => {
+  const parsed = v.safeParse(isoTime, value)
+  const at = parsed.success ? Date.parse(parsed.output) : Number.NaN
+  const date = parsed.success ? Date.parse(`${parsed.output.slice(0, 10)}T00:00:00.000Z`) : Number.NaN
+  if (
+    !parsed.success ||
+    !/(Z|[+-]\d{2}:\d{2})$/.test(parsed.output) ||
+    !Number.isFinite(at) ||
+    at < 1 ||
+    !Number.isFinite(date) ||
+    new Date(date).toISOString().slice(0, 10) !== parsed.output.slice(0, 10)
+  )
+    throw new CliError("validation_error", "--before-time needs a real ISO 8601 timestamp with a UTC offset", {
+      param: "before_time",
+    })
+  return at
+}
+
 export type StoredProjectGathering = ProjectGathering & {
   projectRef: string | null
   unreadSources: { source: string; kind: string }[]
@@ -71,6 +92,8 @@ export const gatherStoredProject = async (
   env: NodeJS.ProcessEnv,
   input: ProjectGatherInput,
 ): Promise<StoredProjectGathering> => {
+  if (input.asOf !== undefined && input.after !== undefined && input.asOf <= input.after)
+    throw new CliError("validation_error", "--before-time must be later than --since-time", { param: "before_time" })
   if (!store.contextEvidence)
     throw new CliError("configuration_error", "Stored context reads are unavailable in this store")
   const project = await projectOf(store, input.project)
@@ -104,6 +127,7 @@ export const gatherStoredProject = async (
       scope,
       ...(input.days === undefined ? {} : { lookbackDays: input.days }),
       ...(input.after === undefined ? {} : { after: input.after }),
+      ...(input.asOf === undefined ? {} : { asOf: input.asOf }),
       ...(input.checkpoint === undefined ? {} : { checkpoint: input.checkpoint }),
       ...(input.maxReads === undefined && input.limit === undefined
         ? {}
@@ -127,6 +151,7 @@ export const projectGatherText = (found: StoredProjectGathering) => {
   const lines = [
     `${found.project.name}${found.projectRef ? ` — ${found.projectRef}` : ""}: ${found.items.length} new references, ` +
       `${day(found.window.after)} to ${day(found.window.before)}, ${found.scope.sources.length} sources`,
+    `as of: ${new Date(found.window.asOf).toISOString()} (exclusive end; reuse --before-time to repeat this window)`,
     `searched: ${[...lanes.values()].join("; ")}`,
     ...found.items.map(
       (item) =>

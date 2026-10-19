@@ -132,6 +132,18 @@ For direct command use, replace the project key and account names with yours:
 memo projects evidence HRB --source zoom:work,telegram:1 --since-time 60d --json
 ```
 
+To compare runs over the same time window, set an exact exclusive end with `--before-time`:
+
+```sh
+memo projects evidence HRB --source zoom:work,telegram:1 --since-time 60d --before-time 2026-10-01T12:00:00Z --json
+```
+
+Days back are counted from that timestamp. An explicit `--since-time` start date also keeps this end;
+the start is included and the end is excluded. Use a real timestamp with `Z` or a UTC offset, not a date
+alone. Text output prints the exact cutoff. Keep `--before-time` and the other options unchanged when using
+`--cursor`. A fixed window does not freeze source contents, registered aliases or account selection:
+later imports, edits or deletions can still change the evidence.
+
 Each name or alias is a separate literal-word search; hits are joined. A meeting hit retains its
 exact cue reference and uses the meeting start date, so an old meeting imported today stays old.
 Read a relevant cue and its neighbours with `memo meetings passage` before drawing conclusions.

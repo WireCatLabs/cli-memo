@@ -125,6 +125,9 @@ To collect what the store holds about a project, use `memo projects evidence <pr
 literal search; hits are joined. New mail and documents are indexed first unless `--no-catch-up`. A `person-only` item mentions a person, not the project. Unread or failed sources are coverage, not
 absence. Continue a stopped run with `--cursor <checkpoint>` and the same options. Nothing is proposed or
 confirmed: cite the references, then stage findings through the review flow above.
+Use `--before-time <ISO timestamp with UTC offset>` (MCP `before_time`) to repeat an exact exclusive end time;
+days back count from it. Keep it on continuation. The window is fixed, but archive contents, aliases
+and account scope may change: retain actual references, source fingerprints and coverage separately.
 Meeting sources (including a recorded `zm:<profile>`) search current stored transcript cues and retain
 exact `meeting:` references, dated by the meeting start. The normal meeting indexing workflow must have
 indexed those cues; Memo's mail/document catch-up does not index transcripts. Read pending/missing index

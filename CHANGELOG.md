@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **Repeat a project-evidence time window** with `--before-time` (MCP `before_time`), an ISO timestamp with a UTC
+  offset used as the exclusive end. Days back are counted from that instant; explicit start dates also
+  keep that end. Text output prints the exact cutoff. Reusing a cutoff does not freeze archive contents,
+  registered aliases or account scope.
+
 ### Fixed
 
 - **Project evidence documentation** distinguishes local search-index catch-up from creating facts,
