@@ -4,6 +4,16 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- **`memo projects evidence` indexes new mail and imported documents for search before it reads**, so a store
+  just synced no longer misses them; `--no-catch-up` (MCP `catch_up: false`) reads the index as it is. The
+  project's key is searched too, and `--alias` (MCP `alias`) adds more names. The text output says when the index
+  could not be brought up to date. `--since-time` also takes a start date (`2026-09-01`); a continued run keeps its end. Each message hit shows the messages next to it in its
+  chat as context (`--before-n`, `--after-n`, default 2, MCP `before_n`/`after_n`), never as more hits.
+
 ## 0.73.0 — 19.10.2026
 
 ### Changed — may break callers

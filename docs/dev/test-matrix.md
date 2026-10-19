@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**422 ✅ · 0 ⛔ · 141 ❌** — 116 commands, 447 options.
+**426 ✅ · 0 ⛔ · 141 ❌** — 116 commands, 451 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -256,12 +256,16 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `projects context` | `--json` | ✅ |  |
 | `projects evidence` |  | ✅ |  |
 | `projects evidence` | `--source` | ✅ |  |
+| `projects evidence` | `--alias` | ✅ |  |
 | `projects evidence` | `--context-query` | ✅ |  |
 | `projects evidence` | `--contact` | ✅ |  |
 | `projects evidence` | `--since-time` | ✅ |  |
 | `projects evidence` | `--limit` | ✅ |  |
 | `projects evidence` | `--max-pages` | ✅ |  |
 | `projects evidence` | `--cursor` | ✅ |  |
+| `projects evidence` | `--before-n` | ✅ |  |
+| `projects evidence` | `--after-n` | ✅ |  |
+| `projects evidence` | `--no-catch-up` | ✅ |  |
 | `projects evidence` | `--json` | ✅ |  |
 | `projects key-documents add` |  | ✅ |  |
 | `projects key-documents add` | `--reason` | ✅ |  |

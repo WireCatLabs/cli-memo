@@ -68,19 +68,45 @@ it("gathers a project's references by its aliases, keywords and people within 60
   expect(found).toMatchObject({ project_ref: "project:1", scope: { origin: "explicit" }, completeness: "unknown" })
   expect(found.lanes.map((lane: { query: string }) => lane.query)).toEqual([
     "Synthetic Port",
+    "SYP",
     "Harbour",
     "crane tender",
     "Alice Example",
   ])
   const byRef = Object.fromEntries(found.items.map((item: { ref: string }) => [item.ref, item]))
   expect(Object.keys(byRef).sort()).toEqual(["msg:telegram/1/7/1", "msg:telegram/1/7/2", "msg:telegram/1/7/3"])
-  expect(byRef["msg:telegram/1/7/2"]).toMatchObject({ lanes: ["l2", "l3"], context: "project", time_kind: "sent" })
+  expect(byRef["msg:telegram/1/7/2"]).toMatchObject({ lanes: ["l3", "l4"], context: "project", time_kind: "sent" })
   expect(byRef["msg:telegram/1/7/3"]).toMatchObject({ context: "person-only" })
   expect(found.checkpoint).toBeNull()
 
+  expect(
+    byRef["msg:telegram/1/7/1"].around.map((one: { ref: string; found: boolean }) => [one.ref, one.found]),
+  ).toEqual([
+    ["msg:telegram/1/7/4", false],
+    ["msg:telegram/1/7/2", true],
+    ["msg:telegram/1/7/3", true],
+  ])
+  const quiet = await json("projects", "evidence", "SYP", "--source", "telegram:1", "--before-n", "0", "--after-n", "0")
+  expect(quiet.items.every((item: { around?: unknown }) => item.around === undefined)).toBe(true)
   const text = await run("projects", "evidence", "SYP", "--source", "telegram:1", "--since-time", "365d")
   expect(text).toContain("msg:telegram/1/7/4")
   expect(text).toContain("a finished search does not prove there is nothing more")
+  const since = await json(
+    "projects",
+    "evidence",
+    "SYP",
+    "--source",
+    "telegram:1",
+    "--since-time",
+    daysAgo(250).slice(0, 10),
+  )
+  expect(since.window).toMatchObject({ basis: "explicit", lookback_days: null })
+  expect(since.items.map((item: { ref: string }) => item.ref)).toContain("msg:telegram/1/7/4")
+  await expect(
+    json("projects", "evidence", "SYP", "--source", "telegram:1", "--since-time", "soon"),
+  ).rejects.toMatchObject({
+    code: "validation_error",
+  })
 })
 
 it("resolves a project by id and reads a mailbox and an imported notes folder as their own source kinds", async () => {
@@ -112,12 +138,22 @@ it("resolves a project by id and reads a mailbox and an imported notes folder as
   await store.notes.saveFileNote({ folderId: folder.id, path: "port.md", title: "Harbour", text: "Harbour notes" })
   await store.close()
 
-  const text = await run("projects", "evidence", "SYP", "--source", `email:me@example.com,notes:${folder.id}`)
-  expect(text).toContain("not yet searchable: new text in email:me@example.com")
+  const asIs = await run("projects", "evidence", "SYP", "--source", `email:me@example.com`, "--no-catch-up")
+  expect(asIs).toContain("not yet searchable: new text in email:me@example.com")
+  expect(asIs).toContain("leave out --no-catch-up")
+  const indexed = await json("projects", "evidence", "SYP", "--source", `email:me@example.com`, "--alias", "offer")
+  expect(indexed.index).toMatchObject({ state: "updated" })
+  expect(indexed.lanes.map((lane: { query: string; kinds: string[] }) => `${lane.query}:${lane.kinds}`)).toEqual([
+    "Synthetic Port:project",
+    "SYP:key",
+    "Harbour:alias",
+    "offer:alias",
+  ])
+  expect(indexed.items.map((item: { ref: string }) => item.ref)).toEqual(["msg:email/me%40example.com/t1/m1"])
   for (const reference of ["project:1", "1"]) {
     const found = await json("projects", "evidence", reference, "--source", `email:me@example.com,notes:${folder.id}`)
     expect(found.project_ref).toBe("project:1")
-    expect(found.lanes.map((lane: { query: string }) => lane.query)).toEqual(["Synthetic Port", "Harbour"])
+    expect(found.lanes.map((lane: { query: string }) => lane.query)).toEqual(["Synthetic Port", "SYP", "Harbour"])
     expect(found.scope.sources).toEqual([
       { kind: "mail", account_id: mailId, provider: "email", account: "me@example.com" },
       expect.objectContaining({ kind: "document", account_id: Number(folder.id), provider: "folder" }),
@@ -168,13 +204,21 @@ it("over MCP needs a source, refuses unknown arguments and reports what all leav
       context_query: ["crane tender"],
       contact: ["Alice Example"],
       since_time: "30d",
+      catch_up: false,
+      before_n: 1,
+      after_n: 0,
     },
   })
   expect(all.isError).toBeFalsy()
   const item = (all.structuredContent as { item: Record<string, unknown> }).item
-  expect(item).toMatchObject({ scope: { origin: "all-connected" }, window: { lookback_days: 30 } })
+  expect(item).toMatchObject({
+    scope: { origin: "all-connected" },
+    window: { lookback_days: 30 },
+    index: { state: "as-is" },
+  })
   expect((item.lanes as { query: string }[]).map((lane) => lane.query)).toEqual([
     "Synthetic Port",
+    "SYP",
     "Harbour",
     "crane tender",
     "Alice Example",

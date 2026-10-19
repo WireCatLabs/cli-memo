@@ -2,18 +2,22 @@ import { annotate } from "@wirecat/cli-base/commands"
 import { type Body, LOCAL_READ } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { itemAnswer, withStore } from "../answer.js"
-import { collect, positive } from "../options.js"
+import { collect, positive, whole } from "../options.js"
 import { ACCOUNTS_HELP } from "../store/source-list.js"
-import { daysOf, gatherStoredProject, projectGatherText } from "./project-gathering.js"
+import { gatherStoredProject, projectGatherText, windowOf } from "./project-gathering.js"
 
 interface Options {
   source: string
+  alias?: string[]
   contextQuery?: string[]
   contact?: string[]
   sinceTime: string
   limit: number
   maxPages?: number
   cursor?: string
+  catchUp: boolean
+  beforeN: number
+  afterN: number
   json?: boolean
 }
 
@@ -25,26 +29,35 @@ export const projectGatherCommand = (
   annotate(projects.command("evidence"), { effects: LOCAL_READ })
     .description(
       "cited references about a project in stored messages, mail and imported notes folders. The project's name, " +
-        "each of its aliases, each --context-query and each --contact name is its own literal search, and their " +
-        "hits are joined. Reads only what the store holds; proposes and confirms nothing",
+        "its key, each of its aliases and each --alias, each --context-query and each --contact name is its own literal search, and their " +
+        "hits are joined. New mail and documents are indexed for search first, unless --no-catch-up. Reads only " +
+        "what the store holds; proposes and confirms nothing",
     )
     .summary("find what the store holds about a project, by its names, more words and people")
     .argument("<project>", "an existing project's id, key, exact name or alias, or a new project's name")
     .requiredOption("--source <accounts>", `where to look, or all: ${ACCOUNTS_HELP}`)
+    .option("--alias <name>", "another name of the project, searched on its own; repeat for more", collect)
     .option("--context-query <words>", "more words that all appear in one text; repeat for another search", collect)
     .option("--contact <person>", "a person's name; what only names them is context, not the project", collect)
-    .option("--since-time <time>", "how many days back, at most 730d", "60d")
+    .option("--since-time <time>", "how far back: days (90d, at most 730d) or a start date (2026-09-01)", "60d")
     .option("--limit <n>", "new references at most, up to 500", positive, 100)
     .option("--max-pages <pages>", "store pages read at most this run, up to 512", positive)
     .option("--cursor <cursor>", "continue a stopped search from its checkpoint, with the same options")
+    .option("--before-n <n>", "messages before each message hit, shown as its context, at most 5", whole, 2)
+    .option("--after-n <n>", "messages after each message hit, shown as its context, at most 5", whole, 2)
+    .option("--no-catch-up", "read the search index as it is, without indexing new mail and documents first")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (project: string, options: Options) => {
       const found = await withStore(env, (store) =>
         gatherStoredProject(store, env, {
           project,
           source: options.source,
-          days: daysOf(options.sinceTime),
+          ...windowOf(options.sinceTime),
           limit: options.limit,
+          catchUp: options.catchUp,
+          beforeN: options.beforeN,
+          afterN: options.afterN,
+          ...(options.alias ? { aliases: options.alias } : {}),
           ...(options.contextQuery ? { keywords: options.contextQuery } : {}),
           ...(options.contact ? { people: options.contact } : {}),
           ...(options.maxPages === undefined ? {} : { maxReads: options.maxPages }),

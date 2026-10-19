@@ -1,5 +1,5 @@
 import { CliError } from "@wirecat/cli-base"
-import { gatherProjectEvidence, type ProjectGathering } from "@wirecat/cli-core/services"
+import { gatherProjectEvidence, type ProjectGathering, storedMessageNeighbours } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import { contextSourcesOf } from "../store/source-list.js"
 import { canonicalProject } from "../vocabulary/project.js"
@@ -7,12 +7,17 @@ import { canonicalProject } from "../vocabulary/project.js"
 export interface ProjectGatherInput {
   project: string
   source: string
+  aliases?: string[]
   keywords?: string[]
   people?: string[]
   days?: number
+  after?: number
   checkpoint?: string
   maxReads?: number
   limit?: number
+  catchUp?: boolean
+  beforeN?: number
+  afterN?: number
 }
 
 /**
@@ -26,22 +31,27 @@ const projectOf = async (store: MessageStore, reference: string) => {
     ref = await canonicalProject(store, id && !reference.startsWith("project:") ? `project:${reference}` : reference)
   } catch (error) {
     if (!id && error instanceof CliError && error.code === "not_found")
-      return { ref: null, name: reference, aliases: [] }
+      return { ref: null, name: reference, key: null, aliases: [] }
     throw error
   }
   const entry = (await store.knowledge.vocabulary({ kind: "project" })).entries.find((one) => one.id === ref.slice(8))
   if (!entry) throw new CliError("not_found", "the owner project is unavailable")
-  return { ref, name: entry.name, aliases: entry.aliases.map((alias) => alias.name) }
+  return { ref, name: entry.name, key: entry.key, aliases: entry.aliases.map((alias) => alias.name) }
 }
 
-/** Days only: a window counted back from the run's own frozen time is what a continued search can keep. */
-export const daysOf = (value: string) => {
+/** Days back (`90d`) or a start date (`2026-09-01`); either way the run freezes its end, so a resume keeps it. */
+export const windowOf = (value: string): { days: number } | { after: number } => {
   const days = /^([1-9]\d{0,2})d$/.exec(value)?.[1]
-  if (days === undefined || Number(days) > 730)
-    throw new CliError("validation_error", `--since-time takes days back, 1d to 730d, such as 90d — not ${value}`, {
+  if (days !== undefined && Number(days) <= 730) return { days: Number(days) }
+  const after = /^\d{4}-\d{2}-\d{2}(T[\d:.]+(Z|[+-]\d{2}:\d{2})?)?$/.test(value) ? Date.parse(value) : Number.NaN
+  if (Number.isFinite(after)) return { after }
+  throw new CliError(
+    "validation_error",
+    `--since-time takes 1d to 730d or a date, such as 90d or 2026-09-01 — not ${value}`,
+    {
       param: "since_time",
-    })
-  return Number(days)
+    },
+  )
 }
 
 export type StoredProjectGathering = ProjectGathering & {
@@ -62,16 +72,27 @@ export const gatherStoredProject = async (
     throw new CliError("not_found", `${input.source} holds no messenger account, mailbox or notes folder to read`, {
       param: "source",
     })
-  const aliases = project.aliases.filter((alias) => alias !== project.name)
+  const aliases = [...new Set([...project.aliases, ...(input.aliases ?? [])])].filter((alias) => alias !== project.name)
   const gathered: ProjectGathering = await gatherProjectEvidence(
-    { evidence: store.contextEvidence },
     {
-      project: { name: project.name, ...(aliases.length ? { aliases } : {}) },
+      evidence: store.contextEvidence,
+      neighbours: storedMessageNeighbours(store.messages),
+      ...(store.contextIndex ? { index: store.contextIndex } : {}),
+    },
+    {
+      project: {
+        name: project.name,
+        ...(project.key ? { key: project.key } : {}),
+        ...(aliases.length ? { aliases } : {}),
+      },
+      index: input.catchUp === false ? "as-is" : "update",
+      around: { before: input.beforeN ?? 2, after: input.afterN ?? 2 },
       ...(input.keywords?.length ? { keywords: input.keywords } : {}),
       ...(input.people?.length ? { people: input.people.map((name) => ({ name })) } : {}),
       sources,
       scope,
       ...(input.days === undefined ? {} : { lookbackDays: input.days }),
+      ...(input.after === undefined ? {} : { after: input.after }),
       ...(input.checkpoint === undefined ? {} : { checkpoint: input.checkpoint }),
       ...(input.maxReads === undefined && input.limit === undefined
         ? {}
@@ -97,11 +118,16 @@ export const projectGatherText = (found: StoredProjectGathering) => {
     `searched: ${[...lanes.values()].join("; ")}`,
     ...found.items.map(
       (item) =>
-        `${day(item.at)}  ${item.ref}${item.context === "person-only" ? "  [person only]" : ""}\n    ${item.text}`,
+        `${day(item.at)}  ${item.ref}${item.context === "person-only" ? "  [person only]" : ""}\n    ${item.text}` +
+        (item.around ?? [])
+          .map((one) => `\n      ${one.found ? "(hit) " : ""}${one.sender ? `${one.sender}: ` : ""}${one.text}`)
+          .join(""),
     ),
   ]
   if (found.matchedAgain.length) lines.push(`${found.matchedAgain.length} earlier references found again`)
   if (failed.length) lines.push(`${failed.length} reads failed or had no source: see --json units`)
+  if (found.index.state === "failed" || found.index.state === "unavailable")
+    lines.push(`the search index could not be brought up to date first (${found.index.code ?? found.index.state})`)
   const pending = [
     ...new Set(
       found.units.filter((unit) => unit.issue?.startsWith("index-")).map((unit) => found.scope.sources[unit.source]),
@@ -110,7 +136,7 @@ export const projectGatherText = (found: StoredProjectGathering) => {
   if (pending.length)
     lines.push(
       `not yet searchable: new text in ${pending.map((one) => `${one?.provider}:${one?.account}`).join(", ")} ` +
-        "is still waiting for the search index, so it was not found",
+        `is still waiting for the search index, so it was not found${found.index.state === "as-is" ? "; leave out --no-catch-up to index it first" : ""}`,
     )
   if (found.unreadSources.length)
     lines.push(`not read: ${found.unreadSources.map((one) => `${one.source} (${one.kind})`).join(", ")}`)
