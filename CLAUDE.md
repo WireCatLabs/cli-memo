@@ -23,8 +23,10 @@ vulnerabilities are reported as the
 3. **Imports are read-only.** Mail is never sent or marked read; source notes are never changed.
    Explicit `mail trash` and `mail restore` commands can move Gmail mail only with `--yes`;
    no test may use the owner's mailbox, and the sync timer never runs cleanup.
-4. **`@wirecat/cli-core` is pinned to the exact version tg and max pin.** Opening the store runs
-   its migrations, so a newer version here would move the owner's file ahead of the messengers.
+4. **Pin `@wirecat/cli-core` to an exact published version compatible with the other store consumers.**
+   Compatible SDK updates may be adopted independently after reviewing intervening changelog entries
+   and store compatibility. Changes that raise `minCompatible` or break shared consumer contracts
+   require coordinated rollout under the shared standards.
 5. **Shared chunking and embedding live in `cli-core` and are changed there**, through its own
    worktree, pull request and release rules. Mail transport and Google sign-in stay out of it; only
    its public `./store` export is used for storage.
