@@ -28,7 +28,7 @@ export const projectGatherCommand = (
 ) =>
   annotate(projects.command("evidence"), { effects: LOCAL_READ })
     .description(
-      "cited references about a project in stored messages, mail and imported notes folders. The project's name, " +
+      "cited references about a project in stored messages, mail, meeting transcripts and imported notes folders. The project's name, " +
         "its key, each of its aliases and each --alias, each --context-query and each --contact name is its own literal search, and their " +
         "hits are joined. New mail and documents are indexed for search first, unless --no-catch-up. Reads only " +
         "what the store holds; proposes and confirms nothing",

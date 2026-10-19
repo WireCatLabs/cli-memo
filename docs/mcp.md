@@ -56,7 +56,7 @@ Use the memo tools to list the memories waiting for my review.
 | `search_meetings`, `meeting_passage` | Search stored meetings in one explicit source account and read cited transcript passages |
 | `meeting_prepare` | Gather stored series history and linked context, optionally with explicitly selected message/mail accounts; does not verify the next meeting time |
 | `project_context` | Key documents, pending relationships, facts and meeting findings, plus open numbered tasks |
-| `project_evidence` | Cited references about a project from stored messages, mail and notes folders, searched by its names, more words and people; read only |
+| `project_evidence` | Cited references about a project from stored messages, mail, meeting transcripts and notes folders, searched by its names, more words and people; read only |
 | `meeting_actions_add`, `meeting_actions_show`, `meeting_actions_list` | Propose and inspect cited meeting facts and follow-ups; never confirm them |
 | `person_context` | One person across messengers and mail, with linked notes and tasks, read only |
 | `memories_add`, `memories_list`, `memories_show`, `search_memories` | Save and read memories |
@@ -93,6 +93,11 @@ batches through `memo meetings actions confirm` or `reject`. Staging creates no 
 `project_evidence` takes the options of `memo projects evidence` in snake_case and needs `source`: account
 entries, a kind, `group:<name>` or `all`. It searches the project's name, its key, each of its aliases and each
 `alias`, each `context_query` and each `contact` separately and joins the hits; `since_time` defaults to `60d`.
+Meeting accounts are supported: a recorded profile such as `zm:work` selects that account's stored,
+indexed transcript cues. Hits retain exact `meeting:` cue references and use the meeting start date
+(`time_kind: "meeting-start"`). Superseded/deleted transcripts are excluded. Missing transcripts and
+incomplete archives remain unknown; Memo does not fetch recordings. Transcript indexing uses the meeting
+provider's existing indexing workflow; the mail/document catch-up below does not build transcript indexes.
 New mail and documents are indexed for search first; `catch_up: false` reads the index as it is. Each message
 hit carries `around`: `before_n` and `after_n` messages next to it in its chat (default 2), as context, never as
 more hits. `mentions` lists the other projects, tags and topics the texts name, cited; a name is not

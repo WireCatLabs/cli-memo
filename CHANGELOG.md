@@ -6,6 +6,16 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **Project evidence includes stored meeting transcripts** when `--source` selects a meeting account,
+  its recorded profile or `all`. CLI and MCP return cited transcript cue references dated by the meeting
+  start. Superseded/deleted transcripts stay out; missing or pending indexes remain visible. This reads
+  existing indexed text and does not fetch recordings or confirm project membership.
+- **Shared SDK update:** pins Core 0.358.0 for transcript context reads, retaining Base 0.47.1.
+  The store schema and compatibility boundary are unchanged. Intervening messenger chat-membership
+  contract changes require no Memo adapter changes; shared consumer compatibility remains checked.
+
 ### Fixed
 
 - **A failed timer run no longer keeps its error text in `last.json`** (privacy). That text can name a folder, a

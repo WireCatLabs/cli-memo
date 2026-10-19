@@ -194,7 +194,7 @@ export const oneAccountOf = async (
 
 /**
  * The stored accounts a project gather reads, as context sources: messenger accounts, mailboxes and imported notes
- * folders. Your own notes and meeting or Drive accounts have no context reader yet; `all` reports them as left out,
+ * folders and meeting accounts. Your own internal notes have no context reader yet; `all` reports them as left out,
  * an entry that names only them is refused.
  */
 export const contextSourcesOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: string) => {
@@ -207,7 +207,7 @@ export const contextSourcesOf = async (store: MessageStore, env: NodeJS.ProcessE
       const stored =
         kind === "notes"
           ? held.find((one) => one.provider === FOLDER && String(one.id) === account)
-          : kind === "messages" || kind === "mail"
+          : kind === "messages" || kind === "mail" || kind === "meetings"
             ? held.find((one) => one.provider === provider && one.account === account)
             : undefined
       if (stored === undefined) {
@@ -216,7 +216,7 @@ export const contextSourcesOf = async (store: MessageStore, env: NodeJS.ProcessE
       }
       read++
       const source: ContextSource = {
-        kind: kind === "notes" ? "document" : kind === "mail" ? "mail" : "message",
+        kind: kind === "notes" ? "document" : kind === "mail" ? "mail" : kind === "meetings" ? "meeting" : "message",
         accountId: stored.id,
         provider: stored.provider,
         account: stored.account,
@@ -226,7 +226,7 @@ export const contextSourcesOf = async (store: MessageStore, env: NodeJS.ProcessE
     if (read === 0 && entry.trim() !== "all")
       throw new CliError(
         "validation_error",
-        `${entry}: a gather reads messenger accounts, mailboxes and imported notes folders (notes:<id>)`,
+        `${entry}: a gather reads messenger accounts, mailboxes, meeting transcripts and imported notes folders (notes:<id>)`,
         { param: "source" },
       )
   }
