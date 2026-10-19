@@ -23,5 +23,5 @@ Works with:
 Start here:   memo folders add <path>
 Next:         memo commands            every command, by section
               memo guide               scenarios: command sequences for common tasks
-              memo help options        output, offline, timeouts, dry run
+              memo help options        the options every command takes
 For agents:   memo skill show          rules and the discovery loop

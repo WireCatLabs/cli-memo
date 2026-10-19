@@ -28,14 +28,6 @@ const download = (model: string) =>
 
 const MISSING_MODEL = download("e5-small")
 
-const DOWNLOAD_HINT = /^(\S+) is not downloaded — `\S+ models text download \S+`$/
-
-/** cli-core's search names a `models` command of its own CLI; memo has none, so it names the CLIs that do. */
-export const modelHint = (why: string): string => {
-  const model = DOWNLOAD_HINT.exec(why)?.[1]
-  return model === undefined ? why : download(model)
-}
-
 const isMissingModel = (error: unknown): boolean => isCliError(error) && error.details.reason === "model.not-downloaded"
 
 /**

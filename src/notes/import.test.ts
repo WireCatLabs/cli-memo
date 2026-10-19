@@ -273,6 +273,13 @@ describe("memo sync --only notes", () => {
     expect(found.missing).toEqual([{ field: "found_by", why: expect.stringMatching(/not downloaded/) }])
   })
 
+  it("names the tools that download the model when search all skips meaning", async () => {
+    await run("sync", "--only", "notes")
+    const found = await json("search", "all", "budget", "--only", "notes")
+    expect(found.missing).toEqual([{ field: "found_by", why: expect.stringContaining("(tg, max or wa)") }])
+    expect(JSON.stringify(found.missing)).not.toMatch(/tg models/)
+  })
+
   it("names the person a found note links", async () => {
     await run("sync", "--only", "notes")
     await telegramPeople(["102", "Kai Sample"])

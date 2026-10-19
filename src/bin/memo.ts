@@ -8,6 +8,11 @@ import { interactiveOf } from "../terminal.js"
 
 // Compiling the program's module files is most of a start; later runs reuse what this one compiled.
 enableCompileCache()
+// A reader that stops early (`memo commands | head`) closes the pipe; the rest of the output has nowhere to go.
+for (const stream of [process.stdout, process.stderr])
+  stream.on("error", (error: NodeJS.ErrnoException) => {
+    if (error.code !== "EPIPE") throw error
+  })
 const args = process.argv.slice(2)
 const tty = process.stdout.isTTY === true
 const release = catchCrashes({ cli: APP.command, interactive: interactiveOf(args, tty), reasons: APP.errors.reasons })
@@ -34,9 +39,10 @@ try {
   const line = await notice
   if (line && !process.exitCode) processStreams.diagnostic(line)
 } catch (error) {
-  // Help and the version were printed already; only their exit code is left to give.
+  // Help and the version were printed already; only their exit code is left to give. A bare `memo` or group printed
+  // help for a missing command: a usage mistake, exit 2, as in the tools built on cli-core's program.
   if (error instanceof CommanderError && (error.exitCode === 0 || error.code.startsWith("commander.help")))
-    process.exitCode = error.exitCode
+    process.exitCode = error.code === "commander.help" && error.exitCode !== 0 ? 2 : error.exitCode
   else
     process.exitCode = (await import("../failure.js")).reportFailure(error, {
       args,

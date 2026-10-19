@@ -12,6 +12,14 @@ the API.
   `~/.agents/skills` by default, and npm hides a lifecycle script's output, so nobody was told. Now
   `MEMO_INSTALL_AGENT=all` (or an agent's name) installs it at install time; otherwise run
   `memo skill install --for all`.
+- **`memo commands` without `--json` prints the commands as text, by section** (Read, Write, Organise, Automate,
+  Set up), one line each with `(writes)` on a command that changes something, instead of the JSON document. A
+  path lists one group: `memo commands mail rules`. `memo commands --json` is unchanged, contract 4.
+- **A bare `memo`, or a group without its command (`memo tags`), exits 2 instead of 1**, as the other WireCat tools
+  do: it prints the first screen or the group's help, and a missing command is a usage mistake.
+- **Adopt Core 0.348.0 and Base 0.47.0**, which move together: a next step in `--json` output may carry `line`, the
+  whole command to type. Core 0.348.0 changes no store schema from the 0.347.0 tg and max pin. An SDK consumer that
+  pins Core or Base beside memo moves with them.
 
 ### Added
 
@@ -22,6 +30,17 @@ the API.
   name is marked `person-only`. A source that failed or has no reader yet (your own notes, meetings) is listed,
   never read as empty, and so is one whose new text still waits for the search index. `--limit` and `--max-pages`
   bound a run, and `--cursor` continues a stopped one with the same window. Nothing is written.
+
+### Fixed
+
+- **`--help` works on the 13 commands that take a query**: `notes list`, `folders list`, `tags list`, `tasks list`,
+  `tasks agenda`, `projects meetings list`, `relationships list`, `vocabulary list`, `memories list`, `facts list`,
+  `meetings actions list`, `actions list` and `agents log` exited 2 on `--help` as an unknown option (Core 0.347.0). A test now runs `--help`
+  on every command.
+- **A search that skips meaning for a missing model names the tools that download it** (tg, max or wa), from Core
+  itself; memo no longer rewrites a `tg models text download` hint it was handed.
+- **`memo commands | head` no longer crashes** with an unhandled `EPIPE` when the reader stops early; memo ignores
+  the closed pipe, as the tools built on Core do.
 
 ## 0.72.0 — 18.10.2026
 

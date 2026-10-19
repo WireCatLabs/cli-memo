@@ -4,7 +4,6 @@ import { allHitItem, messageHitItem, noteHitItem } from "@wirecat/cli-core/cli"
 import type { NotesFound, SearchAllFound, SearchFound } from "@wirecat/cli-core/services"
 import type { AccountKey } from "@wirecat/cli-core/store"
 import { listAnswer } from "../answer.js"
-import { modelHint } from "../notes/embed.js"
 import { briefHit } from "./hits.js"
 
 interface Account {
@@ -27,7 +26,7 @@ const metaOf = (
 
 /** Meaning not searched because the model is missing is a gap; `--exact` leaving it out is not. */
 const meaningMissed = (why: string | undefined, exact = false): Missing[] =>
-  why === undefined || exact ? [] : [{ field: "found_by", why: modelHint(why) }]
+  why === undefined || exact ? [] : [{ field: "found_by", why }]
 
 const TASKS_OF_HIT: StepDefinition = {
   id: "hit.tasks",
