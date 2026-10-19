@@ -148,8 +148,19 @@ const syncedOf = (options: SyncOptions): Set<Synced> => {
   return synced.size ? synced : new Set(["notes", "mail"])
 }
 
+/**
+ * What the timer's `last.json` keeps of a failed run. A failure's message can name a folder, a sender or a subject,
+ * and that file outlives the run, so it keeps the code and the kind of source; the message stays in the journal.
+ */
 const failedReason = ([first, ...rest]: ImportRun["failed"]): string | undefined =>
-  first === undefined ? undefined : `${first.source}: ${first.reason}${rest.length ? ` (and ${rest.length} more)` : ""}`
+  first === undefined
+    ? undefined
+    : `${first.source.split(" ")[0]}: ${first.code}${rest.length ? ` (and ${rest.length} more)` : ""}`
+
+const crashReason = (error: unknown): string => {
+  const { error: failure } = errorObject(error)
+  return `${failure.code} (${failure.reason})`
+}
 
 /**
  * What a failed part of a sync reports. An unexpected error says only "this is a bug", so its first line is kept too:
@@ -333,7 +344,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         (error: unknown) => {
           if (env.MEMO_AUTO === "1" && isCliError(error) && error.details.reason === "sync.running")
             return `another memo sync is running (process ${String(error.details.pid)})`
-          recordAutoRun(env, startedAt, error instanceof Error ? error.message : String(error))
+          recordAutoRun(env, startedAt, crashReason(error))
           throw error
         },
       )

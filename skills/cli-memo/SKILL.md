@@ -73,7 +73,8 @@ authorize alias changes or merging. Re-read and reselect after a stale-fingerpri
     forces another scan:
     `memo sync --source email:<name> --since-time 2000-01-01 --limit 5000`.
 13. **A stderr line `memo: scheduled sync failing since …` means the owner's timer is broken** and their
-    notes or mail are going stale. Tell the owner, quote its reason; `memo auto status` has the rest.
+    notes or mail are going stale. Tell the owner, quote its reason (an error code); the full message is in
+    the journal `memo auto status` names.
 14. **When something seems missing or broken, run `memo doctor --json` first.** It reads this computer only and
     lists each problem with the command that fixes it. A sync failure with reason `mail.throttled` means Gmail is
     limiting the account: wait an hour or more, do not retry in a loop.

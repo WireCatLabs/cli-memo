@@ -4,6 +4,15 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- **A failed timer run no longer keeps its error text in `last.json`** (privacy). That text can name a folder, a
+  sender or a subject, and it reached the file, the "scheduled sync failing" line and `memo auto status`. They now
+  keep the error code and the kind of source (`notes: configuration_error`, or `code (reason id)` for a run that
+  stopped); the full message stays on stderr and in the timer's journal, which `memo auto status` names (`log`).
+
 ## 0.75.0 — 19.10.2026
 
 ### Added
