@@ -1237,6 +1237,7 @@ memo projects evidence <project> [options]
 | `--context-query <words>` | more words that all appear in one text; repeat for another search. |
 | `--contact <person>` | a person's name; what only names them is context, not the project. |
 | `--since-time <time>` | how far back: days (90d, at most 730d) or a start date (2026-09-01). Default: `60d`. |
+| `--before-time <time>` | fixed exclusive end: ISO 8601 timestamp with UTC offset; days back count from it. |
 | `--limit <n>` | new references at most, up to 500. Default: `100`. |
 | `--max-pages <pages>` | store pages read at most this run, up to 512. |
 | `--cursor <cursor>` | continue a stopped search from its checkpoint, with the same options. |

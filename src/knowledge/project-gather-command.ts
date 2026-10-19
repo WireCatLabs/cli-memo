@@ -4,7 +4,7 @@ import type { Command } from "commander"
 import { itemAnswer, withStore } from "../answer.js"
 import { collect, positive, whole } from "../options.js"
 import { ACCOUNTS_HELP } from "../store/source-list.js"
-import { gatherStoredProject, projectGatherText, windowOf } from "./project-gathering.js"
+import { cutoffTime, gatherStoredProject, projectGatherText, windowOf } from "./project-gathering.js"
 
 interface Options {
   source: string
@@ -12,6 +12,7 @@ interface Options {
   contextQuery?: string[]
   contact?: string[]
   sinceTime: string
+  beforeTime?: string
   limit: number
   maxPages?: number
   cursor?: string
@@ -40,6 +41,7 @@ export const projectGatherCommand = (
     .option("--context-query <words>", "more words that all appear in one text; repeat for another search", collect)
     .option("--contact <person>", "a person's name; what only names them is context, not the project", collect)
     .option("--since-time <time>", "how far back: days (90d, at most 730d) or a start date (2026-09-01)", "60d")
+    .option("--before-time <time>", "fixed exclusive end: ISO 8601 timestamp with UTC offset; days back count from it")
     .option("--limit <n>", "new references at most, up to 500", positive, 100)
     .option("--max-pages <pages>", "store pages read at most this run, up to 512", positive)
     .option("--cursor <cursor>", "continue a stopped search from its checkpoint, with the same options")
@@ -53,6 +55,7 @@ export const projectGatherCommand = (
           project,
           source: options.source,
           ...windowOf(options.sinceTime),
+          ...(options.beforeTime === undefined ? {} : { asOf: cutoffTime(options.beforeTime) }),
           limit: options.limit,
           catchUp: options.catchUp,
           beforeN: options.beforeN,

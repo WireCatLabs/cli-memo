@@ -747,6 +747,10 @@
           "minimum": 0,
           "type": "integer"
         },
+        "before_time": {
+          "description": "fixed exclusive end: ISO 8601 timestamp with UTC offset; days back count from it",
+          "type": "string"
+        },
         "catch_up": {
           "default": true,
           "type": "boolean"

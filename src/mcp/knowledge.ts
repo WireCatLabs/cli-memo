@@ -3,7 +3,7 @@ import * as v from "valibot"
 import { itemAnswer } from "../answer.js"
 import { contextAccountOf, memoContext } from "../context/context.js"
 import { projectContext } from "../knowledge/project-context.js"
-import { gatherStoredProject, windowOf } from "../knowledge/project-gathering.js"
+import { cutoffTime, gatherStoredProject, windowOf } from "../knowledge/project-gathering.js"
 import { allAnswer, kindAnswer, notesAnswer } from "../search/answers.js"
 import { searchEverywhere, searchKind } from "../search/search.js"
 import { MAIL_SOURCES, mailboxesOf } from "../store/source-list.js"
@@ -29,7 +29,7 @@ export const knowledgeTools = {
   project_evidence: define({
     title: "Gather cited project evidence",
     description:
-      "memo projects evidence: what the store holds about a project in stored messages, mail, meeting transcripts and imported notes folders. The project's name (an existing project brings its key and aliases), each alias, each context_query and each contact name is a separate literal search (all words of one must match); their hits are joined. New mail and documents are indexed for search first unless catch_up is false; transcript indexing is separate. Meeting hits retain exact cue references and use the meeting start date. source is required: provider:account entries, a kind or group:<name>, separated by commas, or all. since_time is days back, as 60d (default), or a start date. Each message hit carries around: before_n and after_n messages next to it in its chat (default 2), as context, never as more hits. An item found only through a contact's name has context person-only: not membership. Failed or unread sources are coverage, never absence; completeness is unknown. When checkpoint is returned, call again with the same arguments and cursor set to it. Reads only; proposes and confirms nothing.",
+      "memo projects evidence: what the store holds about a project in stored messages, mail, meeting transcripts and imported notes folders. The project's name (an existing project brings its key and aliases), each alias, each context_query and each contact name is a separate literal search (all words of one must match); their hits are joined. New mail and documents are indexed for search first unless catch_up is false; transcript indexing is separate. Meeting hits retain exact cue references and use the meeting start date. source is required: provider:account entries, a kind or group:<name>, separated by commas, or all. since_time is days back, as 60d (default), or a start date. before_time fixes the exclusive end to an ISO timestamp with UTC offset; keep it on continuation. It does not freeze source contents. Each message hit carries around: before_n and after_n messages next to it in its chat (default 2), as context, never as more hits. An item found only through a contact's name has context person-only: not membership. Failed or unread sources are coverage, never absence; completeness is unknown. When checkpoint is returned, call again with the same arguments and cursor set to it. Reads only; proposes and confirms nothing.",
     writes: false,
     input: v.object({
       project: v.pipe(
@@ -52,6 +52,12 @@ export const knowledgeTools = {
         v.pipe(v.string(), v.description("how far back: 1d to 730d, or a start date such as 2026-09-01")),
         "60d",
       ),
+      before_time: v.optional(
+        v.pipe(
+          v.string(),
+          v.description("fixed exclusive end: ISO 8601 timestamp with UTC offset; days back count from it"),
+        ),
+      ),
       limit: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(500))),
       max_pages: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(512))),
       cursor: v.optional(v.pipe(v.string(), v.minLength(1))),
@@ -62,6 +68,7 @@ export const knowledgeTools = {
           project: args.project,
           source: args.source,
           ...windowOf(args.since_time),
+          ...(args.before_time === undefined ? {} : { asOf: cutoffTime(args.before_time) }),
           catchUp: args.catch_up,
           beforeN: args.before_n,
           afterN: args.after_n,

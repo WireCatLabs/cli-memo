@@ -93,6 +93,9 @@ batches through `memo meetings actions confirm` or `reject`. Staging creates no 
 `project_evidence` takes the options of `memo projects evidence` in snake_case and needs `source`: account
 entries, a kind, `group:<name>` or `all`. It searches the project's name, its key, each of its aliases and each
 `alias`, each `context_query` and each `contact` separately and joins the hits; `since_time` defaults to `60d`.
+Optional `before_time` fixes the exclusive end to an ISO 8601 timestamp with `Z` or a UTC offset. Days back
+are counted from that instant; an explicit start date also uses it as the end. Keep the same value on
+continuation. It fixes the window, not the source data or the registered aliases/accounts.
 Meeting accounts are supported: a recorded profile such as `zm:work` selects that account's stored,
 indexed transcript cues. Hits retain exact `meeting:` cue references and use the meeting start date
 (`time_kind: "meeting-start"`). Superseded/deleted transcripts are excluded. Missing transcripts and
