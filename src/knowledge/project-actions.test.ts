@@ -241,3 +241,26 @@ it("lets the owner reject a whole batch without a reason", async () => {
     receipt: { accepted: [], decision: { by: "owner" } },
   })
 })
+
+it("rejects a batch whose cited text changed, which can no longer be confirmed", async () => {
+  const { owner, agent, run, file } = await setUp()
+  const staged = await run(agent, "projects", "actions", "add", file)
+  const store = await openStore({ env: owner })
+  await store.messages.saveMessages(
+    telegram,
+    "7",
+    [{ ...message("1", "Harbour budget postponed", 3), editedAt: daysAgo(0) }],
+    {
+      via: "history",
+    },
+  )
+  await store.close()
+  const listed = await run(owner, "projects", "actions", "list", "SYP", "--brief")
+  expect(listed.items[0].findings[0].evidence[0].state).toBe("changed")
+  await expect(
+    run(owner, "projects", "actions", "confirm", "SYP", staged.id, "budget", "--fingerprint", staged.fingerprint),
+  ).rejects.toMatchObject({ details: { reason: "evidence-findings.stale" } })
+  expect(
+    await run(owner, "projects", "actions", "reject", "SYP", staged.id, "--fingerprint", staged.fingerprint),
+  ).toMatchObject({ status: "reviewed", receipt: { accepted: [] } })
+})
