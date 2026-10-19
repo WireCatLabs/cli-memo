@@ -1,5 +1,11 @@
 import { CliError } from "@wirecat/cli-base"
-import { gatherProjectEvidence, type ProjectGathering, storedMessageNeighbours } from "@wirecat/cli-core/services"
+import {
+  type EvidenceMentions,
+  findEvidenceMentions,
+  gatherProjectEvidence,
+  type ProjectGathering,
+  storedNeighbours,
+} from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import { contextSourcesOf } from "../store/source-list.js"
 import { canonicalProject } from "../vocabulary/project.js"
@@ -57,6 +63,7 @@ export const windowOf = (value: string): { days: number } | { after: number } =>
 export type StoredProjectGathering = ProjectGathering & {
   projectRef: string | null
   unreadSources: { source: string; kind: string }[]
+  mentions: EvidenceMentions
 }
 
 export const gatherStoredProject = async (
@@ -76,7 +83,7 @@ export const gatherStoredProject = async (
   const gathered: ProjectGathering = await gatherProjectEvidence(
     {
       evidence: store.contextEvidence,
-      neighbours: storedMessageNeighbours(store.messages),
+      neighbours: storedNeighbours(store),
       ...(store.contextIndex ? { index: store.contextIndex } : {}),
     },
     {
@@ -104,7 +111,8 @@ export const gatherStoredProject = async (
           }),
     },
   )
-  return { projectRef: project.ref, unreadSources: unread, ...gathered }
+  const mentions = await findEvidenceMentions(store.knowledge, gathered, { exclude: project.ref })
+  return { projectRef: project.ref, unreadSources: unread, ...gathered, mentions }
 }
 
 const day = (at: number) => new Date(at).toISOString().slice(0, 10)
@@ -124,6 +132,13 @@ export const projectGatherText = (found: StoredProjectGathering) => {
           .join(""),
     ),
   ]
+  if (found.mentions.items.length)
+    lines.push(
+      `also names: ${found.mentions.items
+        .slice(0, 8)
+        .map((one) => `${one.target.kind} ${one.target.name} (${one.matches.length})`)
+        .join(", ")} — words found, not membership`,
+    )
   if (found.matchedAgain.length) lines.push(`${found.matchedAgain.length} earlier references found again`)
   if (failed.length) lines.push(`${failed.length} reads failed or had no source: see --json units`)
   if (found.index.state === "failed" || found.index.state === "unavailable")

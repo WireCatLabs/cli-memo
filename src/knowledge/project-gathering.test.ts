@@ -43,6 +43,7 @@ const setUp = async () => {
   )
   const project = await store.knowledge.addProject({ name: "Synthetic Port", key: "SYP" })
   await store.knowledge.addVocabularyAlias({ kind: "project", id: project.id }, "Harbour")
+  await store.knowledge.addProject({ name: "Crane" })
   await store.close()
   const run = async (...args: string[]) => {
     const streams = captureStreams()
@@ -78,6 +79,9 @@ it("gathers a project's references by its aliases, keywords and people within 60
   expect(byRef["msg:telegram/1/7/2"]).toMatchObject({ lanes: ["l3", "l4"], context: "project", time_kind: "sent" })
   expect(byRef["msg:telegram/1/7/3"]).toMatchObject({ context: "person-only" })
   expect(found.checkpoint).toBeNull()
+  expect(found.mentions).toMatchObject({ association: "unconfirmed-literal-evidence" })
+  expect(found.mentions.items.map((one: { target: { name: string } }) => one.target.name)).toEqual(["Crane"])
+  expect(found.mentions.items[0].matches[0]).toMatchObject({ reference: "msg:telegram/1/7/2", in: "hit" })
 
   expect(
     byRef["msg:telegram/1/7/1"].around.map((one: { ref: string; found: boolean }) => [one.ref, one.found]),
@@ -91,6 +95,7 @@ it("gathers a project's references by its aliases, keywords and people within 60
   const text = await run("projects", "evidence", "SYP", "--source", "telegram:1", "--since-time", "365d")
   expect(text).toContain("msg:telegram/1/7/4")
   expect(text).toContain("a finished search does not prove there is nothing more")
+  expect(text).toContain("also names: project Crane (3) — words found, not membership")
   const since = await json(
     "projects",
     "evidence",
