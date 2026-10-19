@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.76.0 — 19.10.2026
+
 ### Added
 
 - **Project evidence includes stored meeting transcripts** when `--source` selects a meeting account,
