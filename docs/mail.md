@@ -336,9 +336,10 @@ for example `needs-agent` for a scanned page.
 - The sender, the recipients (To, CC and BCC), the subject, the date and the text of each email.
 - Whether an email is read or starred, as your mailbox shows it.
 - The text of readable attachments, searched with the email ([files Memo can read](notes.md#files-memo-can-read)).
-  `memo sync --source email:work --retry-attachments` reads again, by their Gmail id, only the emails whose
-  attachment a missing reader left unread, up to `--limit` of them; it lists nothing, so it is quick, and run again
-  it continues with the rest.
+  The PDF and Word readers come with Memo. If an attachment was left unread because its reader was not installed
+  (`engine-missing`, from an older Memo or a broken install), `memo sync --source email:work --retry-attachments`
+  reads again, by their Gmail id, only those emails, up to `--limit` of them; it lists nothing, so it is quick, and
+  run again it continues with the rest.
 - Up to 1,000,000 characters of each email and 200,000 of each attachment
   ([change the limits](configuration.md#mail)).
 
