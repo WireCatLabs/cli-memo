@@ -114,6 +114,37 @@ search as its next step suggests. An unarchived or missing transcript must first
 
 Next, [turn cited meeting passages into findings for review](recipes.md#review-a-meetings-decisions-and-follow-ups).
 
+## Gather a project's meeting context
+
+When preparing for a project discussion, gather its different names across your selected accounts.
+This finds transcript cues even before a meeting has been linked to the project. Ask your agent:
+
+```text prompt
+Use memo CLI to gather Harbour project evidence from my work meeting account and Telegram.
+Search the last 60 days using the project's recorded aliases. Show cited passages, separate
+reported facts from suggested follow-ups, and tell me which sources or transcripts are missing.
+Do not confirm findings or create tasks.
+```
+
+For direct command use, replace the project key and account names with yours:
+
+```sh
+memo projects evidence HRB --source zoom:work,telegram:1 --since-time 60d --json
+```
+
+Each name or alias is a separate literal-word search; hits are joined. A meeting hit retains its
+exact cue reference and uses the meeting start date, so an old meeting imported today stays old.
+Read a relevant cue and its neighbours with `memo meetings passage` before drawing conclusions.
+Gathering does not create project links, establish attendees or save extracted facts and tasks.
+
+If `units` reports a pending meeting index, run `memo search meetings` for the same account through
+the [meeting search workflow](#search-stored-meetings), then gather again. Mail/document catch-up
+does not index transcript cues. Missing transcripts must first be archived by their meeting tool;
+finished pagination still leaves archive completeness unknown.
+
+Use a returned checkpoint with the same options and `--cursor` to finish a bounded run, then
+[review proposed decisions and follow-ups](recipes.md#review-a-meetings-decisions-and-follow-ups).
+
 ## Search by meaning
 
 With the search model on your computer, Memo also searches by meaning, so `holiday` can find a note

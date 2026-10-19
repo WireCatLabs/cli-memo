@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **Project evidence includes stored meeting transcripts** when `--source` selects a meeting account,
+  its recorded profile or `all`. CLI and MCP return cited transcript cue references dated by the meeting
+  start. Superseded/deleted transcripts stay out; missing or pending indexes remain visible. This reads
+  existing indexed text and does not fetch recordings or confirm project membership.
+
 ### Fixed
 
 - **A failed timer run no longer keeps its error text in `last.json`** (privacy). That text can name a folder, a

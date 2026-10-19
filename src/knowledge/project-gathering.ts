@@ -76,9 +76,13 @@ export const gatherStoredProject = async (
   const project = await projectOf(store, input.project)
   const { sources, unread, scope } = await contextSourcesOf(store, env, input.source)
   if (sources.length === 0)
-    throw new CliError("not_found", `${input.source} holds no messenger account, mailbox or notes folder to read`, {
-      param: "source",
-    })
+    throw new CliError(
+      "not_found",
+      `${input.source} holds no messenger account, mailbox, meeting account or notes folder to read`,
+      {
+        param: "source",
+      },
+    )
   const aliases = [...new Set([...project.aliases, ...(input.aliases ?? [])])].filter((alias) => alias !== project.name)
   const gathered: ProjectGathering = await gatherProjectEvidence(
     {
@@ -151,7 +155,13 @@ export const projectGatherText = (found: StoredProjectGathering) => {
   if (pending.length)
     lines.push(
       `not yet searchable: new text in ${pending.map((one) => `${one?.provider}:${one?.account}`).join(", ")} ` +
-        `is still waiting for the search index, so it was not found${found.index.state === "as-is" ? "; leave out --no-catch-up to index it first" : ""}`,
+        "is still waiting for the search index, so it was not found",
+    )
+  if (pending.some((one) => one?.kind === "mail" || one?.kind === "document") && found.index.state === "as-is")
+    lines.push("leave out --no-catch-up to index new mail and documents first")
+  if (pending.some((one) => one?.kind === "meeting"))
+    lines.push(
+      "index stored transcript cues through the meeting provider's indexing workflow; mail/document catch-up does not index them",
     )
   if (found.unreadSources.length)
     lines.push(`not read: ${found.unreadSources.map((one) => `${one.source} (${one.kind})`).join(", ")}`)
