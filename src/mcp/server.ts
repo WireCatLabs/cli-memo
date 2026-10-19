@@ -27,6 +27,7 @@ import { knowledgeTools } from "./knowledge.js"
 import { meetingActionTools } from "./meeting-actions.js"
 import { meetingPreparationTools } from "./meeting-preparation.js"
 import { meetingTools } from "./meetings.js"
+import { projectActionTools } from "./project-actions.js"
 import { taskRelationTools } from "./task-relations.js"
 import { define, type MemoTool } from "./tool.js"
 import { vocabularyTools } from "./vocabulary.js"
@@ -60,6 +61,7 @@ export const MEMO_TOOLS: Record<string, MemoTool> = {
   ...knowledgeTools,
   ...meetingTools,
   ...meetingActionTools,
+  ...projectActionTools,
   ...meetingPreparationTools,
   ...vocabularyTools,
   ...taskRelationTools,

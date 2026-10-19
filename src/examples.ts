@@ -28,6 +28,18 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "mentions confirm": ["memo mentions confirm 12 person:7", "memo mentions confirm 40 --source email:personal"],
   "mentions reject": ["memo mentions reject 12", "memo mentions reject 40 --source email:personal"],
   "messages show": ["memo messages show 'msg:email/me%40example.com/thread/42' --before-n 2 --after-n 2"],
+  "projects actions add": ["memo projects actions add findings.json"],
+  "projects actions list": [
+    "memo projects actions list SYH",
+    "memo projects actions list SYH status:reviewed --brief --json",
+  ],
+  "projects actions confirm": [
+    "memo projects actions confirm SYH 12 budget accountant --fingerprint 3f9a0c --reason 'both are stated plainly'",
+    "memo projects actions confirm SYH key:4",
+  ],
+  "projects actions reject": [
+    "memo projects actions reject SYH 12 --fingerprint 3f9a0c --reason 'not about this project'",
+  ],
   "projects evidence": [
     "memo projects evidence SYH --source telegram:1,email:personal --contact 'Alice Example'",
     "memo projects evidence SYH --source all --context-query 'crane tender' --since-time 180d --json",

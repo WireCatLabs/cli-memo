@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**427 ✅ · 0 ⛔ · 141 ❌** — 116 commands, 452 options.
+**446 ✅ · 0 ⛔ · 141 ❌** — 120 commands, 467 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -268,6 +268,25 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `projects evidence` | `--after-n` | ✅ |  |
 | `projects evidence` | `--no-catch-up` | ✅ |  |
 | `projects evidence` | `--json` | ✅ |  |
+| `projects actions add` |  | ✅ |  |
+| `projects actions add` | `--json` | ✅ |  |
+| `projects actions list` |  | ✅ |  |
+| `projects actions list` | `--json` | ✅ |  |
+| `projects actions list` | `--limit` | ✅ |  |
+| `projects actions list` | `--page` | ✅ |  |
+| `projects actions list` | `--brief` | ✅ |  |
+| `projects actions list` | `--before-n` | ✅ |  |
+| `projects actions list` | `--after-n` | ✅ |  |
+| `projects actions confirm` |  | ✅ |  |
+| `projects actions confirm` | `--json` | ✅ |  |
+| `projects actions confirm` | `--as-owner` | ✅ |  |
+| `projects actions confirm` | `--fingerprint` | ✅ |  |
+| `projects actions confirm` | `--reason` | ✅ |  |
+| `projects actions reject` |  | ✅ |  |
+| `projects actions reject` | `--json` | ✅ |  |
+| `projects actions reject` | `--as-owner` | ✅ |  |
+| `projects actions reject` | `--fingerprint` | ✅ |  |
+| `projects actions reject` | `--reason` | ✅ |  |
 | `projects key-documents add` |  | ✅ |  |
 | `projects key-documents add` | `--reason` | ✅ |  |
 | `projects key-documents add` | `--json` | ✅ |  |
