@@ -6,6 +6,11 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **A proposed findings batch whose cited text changed can be rejected** with `memo projects actions reject`; before,
+  it could be neither confirmed nor rejected and stayed in the list. Needs `@wirecat/cli-core` 0.365.0.
+
 ### Added
 
 - **`memo projects actions` — an agent's proposals for a project, with the evidence to decide them.** `add` stages
