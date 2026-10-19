@@ -4,6 +4,14 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- **`memo projects evidence` names the other projects, tags and topics its texts mention** (`mentions`, and an
+  "also names" line in the text): words found in the excerpts and their context, each cited, never membership. A
+  mail hit now shows the emails before and after it in its thread as context.
+
 ## 0.74.0 — 19.10.2026
 
 ### Added
