@@ -727,6 +727,30 @@
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
       "properties": {
+        "after_n": {
+          "default": 2,
+          "maximum": 5,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "alias": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 16,
+          "type": "array"
+        },
+        "before_n": {
+          "default": 2,
+          "maximum": 5,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "catch_up": {
+          "default": true,
+          "type": "boolean"
+        },
         "contact": {
           "items": {
             "minLength": 1,
@@ -764,7 +788,7 @@
         },
         "since_time": {
           "default": "60d",
-          "description": "days back, 1d to 730d",
+          "description": "how far back: 1d to 730d, or a start date such as 2026-09-01",
           "type": "string"
         },
         "source": {

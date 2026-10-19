@@ -120,7 +120,7 @@ meeting previews cover linked accounts only. Read the full batch before owner re
 for other projects. Never confirm or reject your own suggestions.
 
 To collect what the store holds about a project, use `memo projects evidence <project> --source <accounts|all>`
-(MCP `project_evidence`). Each name, alias, `--context-query` and `--contact` is its own literal search; hits
-are joined. A `person-only` item mentions a person, not the project. Unread or failed sources are coverage, not
+(MCP `project_evidence`). The name, the key, each alias, `--alias`, `--context-query` and `--contact` is its own
+literal search; hits are joined. New mail and documents are indexed first unless `--no-catch-up`. A `person-only` item mentions a person, not the project. Unread or failed sources are coverage, not
 absence. Continue a stopped run with `--cursor <checkpoint>` and the same options. Nothing is proposed or
 confirmed: cite the references, then stage findings through the review flow above.

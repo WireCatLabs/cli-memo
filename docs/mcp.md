@@ -91,8 +91,11 @@ are labelled as such. Exact retries reuse the key; changed input needs a new key
 batches through `memo meetings actions confirm` or `reject`. Staging creates no facts or numbered tasks.
 
 `project_evidence` takes the options of `memo projects evidence` in snake_case and needs `source`: account
-entries, a kind, `group:<name>` or `all`. It searches the project's name, each alias, each `context_query` and
-each `contact` separately and joins the hits; `since_time` defaults to `60d`. An item found only through a
+entries, a kind, `group:<name>` or `all`. It searches the project's name, its key, each of its aliases and each
+`alias`, each `context_query` and each `contact` separately and joins the hits; `since_time` defaults to `60d`.
+New mail and documents are indexed for search first; `catch_up: false` reads the index as it is. Each message
+hit carries `around`: `before_n` and `after_n` messages next to it in its chat (default 2), as context, never as
+more hits. An item found only through a
 contact's name has `context: "person-only"`. Failed or unread sources are listed, and `completeness` stays
 `unknown`. When it returns a `checkpoint`, call again with the same arguments and `cursor` set to it. It writes
 nothing.
