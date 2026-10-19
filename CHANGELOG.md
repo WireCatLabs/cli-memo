@@ -10,8 +10,10 @@ the API.
 
 - **A failed timer run no longer keeps its error text in `last.json`** (privacy). That text can name a folder, a
   sender or a subject, and it reached the file, the "scheduled sync failing" line and `memo auto status`. They now
-  keep the error code and the kind of source (`notes: configuration_error`, or `code (reason id)` for a run that
-  stopped); the full message stays on stderr and in the timer's journal, which `memo auto status` names (`log`).
+  keep the error code, its reason id and the kind of source (`notes: configuration_error (folder.unbound)`); the
+  full message stays on stderr and in the timer's journal, which `memo auto status` names (`log`).
+- **A failing source in `memo sync --json` names its reason id** (`failed[].reason_id`, additive), the fixed id
+  that `last.json` and `memo auto status` now show beside the error code, as a run that stopped already did.
 
 ## 0.75.0 — 19.10.2026
 

@@ -93,6 +93,7 @@ describe("memo sync --only notes", () => {
       {
         source: `notes ${join(root, "elsewhere")}`,
         code: "configuration_error",
+        reason_id: "folder.unbound",
         reason: expect.stringMatching(/memo folders add .*memo folders attach/),
       },
     ])
@@ -135,6 +136,7 @@ describe("memo sync --only notes", () => {
       {
         source: `notes ${vault}`,
         code: "not_found",
+        reason_id: "notes.folder-missing",
         reason: `the notes folder ${vault} is missing — connect its disk; if it moved, memo folders attach <id> <new path>`,
       },
     ])

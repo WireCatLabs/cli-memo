@@ -6,11 +6,12 @@ import { type NoteFolder, noteFolders } from "./folders.js"
 
 export type BoundFolder = NoteFolder & { id: string }
 
+export const UNBOUND = "folder.unbound"
+
 export const unboundReason = (path: string) =>
   `${path} has no folder id — memo folders add ${path}, or memo folders attach <id> ${path} if another computer made one`
 
-const unbound = (path: string) =>
-  new CliError("configuration_error", unboundReason(path), { reason: "folder.unbound", path })
+const unbound = (path: string) => new CliError("configuration_error", unboundReason(path), { reason: UNBOUND, path })
 
 /**
  * The configured folders the store knows; `only` narrows them by path or id.
