@@ -2765,7 +2765,7 @@ memo sync [options]
 | `--account <account>` | deprecated: --source email:<account>. |
 | `--since-time <time>` | mail: read from this time, ISO 8601 or 30d ago (default: 30d). |
 | `--limit <n>` | mail: most new emails to read per account this run (default: 200). |
-| `--retry-attachments` | mail: reread stored emails' attachments after installing an extraction engine. |
+| `--retry-attachments` | mail: reread stored emails' attachments that an older memo or a broken install left unread. |
 | `--rescan` | mail: list every message again, not only mail an earlier run left; also checks deletions. |
 | `--no-embed` | skip embedding notes and mail for search by meaning this run. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
