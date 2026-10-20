@@ -71,7 +71,7 @@ Do not confirm or approve anything; I will decide.
 [Memories and facts](memories.md) explains how to confirm or reject them. Approving an action makes
 it a task for you; Memo never sends anything. A memory or fact your agent adds with the `memo` command
 waits for you too: memo records the agent as its author when `AI_AGENT` or `CLAUDECODE` is set. One you
-add yourself is confirmed at once.
+add yourself is confirmed (memory) or accepted (fact) at once.
 
 Project proposals use a separate [review flow](recipes.md#review-project-facts-and-follow-ups).
 By default an agent can decide them with a recorded reason and create accepted facts and numbered

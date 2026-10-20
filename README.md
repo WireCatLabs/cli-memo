@@ -310,7 +310,7 @@ the agent log:
 { "mcpServers": { "memo": { "command": "memo", "args": ["mcp"] } } }
 ```
 
-New memories, directly recorded facts and outbound action proposals start as `proposed`. MCP does not
+An agent's new memories, directly recorded facts and outbound action proposals start as `proposed`. MCP does not
 confirm memories, directly accept existing proposed facts or approve outbound actions. Project proposals
 have a separate flow: by default an agent may decide them with a recorded reason, creating accepted
 facts and numbered tasks or confirming a key document. Set `agent_decisions: false` to require owner

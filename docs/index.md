@@ -38,7 +38,7 @@ Three words appear on every page:
    move selected mail to Trash or restore it only with `--yes`.
 3. **You or your agent ask.** Memo answers with the matching text and a reference to each source,
    so you can open the original and check it.
-4. **You control project decisions.** New memories, directly recorded facts and outbound action
+4. **You control project decisions.** An agent's new memories, directly recorded facts and outbound action
    proposals wait for review. By default an agent may decide project proposals with a recorded
    reason; [require owner decisions](./configuration.md#agent_decisions) if you want to review each one.
    Meeting findings still need the owner. Memo never sends a message or an email.

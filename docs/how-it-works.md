@@ -118,9 +118,10 @@ creating accepted facts and numbered tasks or confirming a key document. Set
 proposals; reading and proposing still work. Meeting findings still require the owner.
 
 The `memo` command tells an agent's terminal by `AI_AGENT` or `CLAUDECODE`, the variables agents such
-as Claude Code set. There, a fact, memory, relationship or proposed action is recorded as the agent's
-and starts as proposed. Without them, or with `--as-owner`, it is yours and confirmed at
-once. The variables and `--as-owner` are labels, not a lock: an agent that sets or passes them can
+as Claude Code set. There, a directly recorded fact, memory or relationship is recorded as the agent's
+and starts as proposed. Without them, or with `--as-owner`, it is yours: memories and relationships
+are confirmed and facts accepted at once. Proposed actions still wait for approval. The variables
+and `--as-owner` are labels, not a lock: an agent that sets or passes them can
 still write as you.
 
 ## What can leave your computer

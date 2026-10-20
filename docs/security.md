@@ -35,15 +35,16 @@ nothing and tells you.
 
 ## Control agent decisions
 
-- Memories, directly recorded facts and outbound action proposals start as proposed. MCP does not
+- An agent's memories, directly recorded facts and outbound action proposals start as proposed. MCP does not
   confirm memories, directly accept existing proposed facts or approve outbound actions.
 - Project proposals have a separate review flow. By default an agent can confirm or reject them with
   a recorded reason; confirmation can create accepted facts and numbered tasks or confirm a key
   document. Set [`agent_decisions: false`](configuration.md#agent_decisions) to require owner decisions
   for project proposals. Reading and proposing still work. Meeting findings still require the owner.
-- A fact, memory, relationship or proposed action added with the `memo` command records who wrote it.
+- A fact, memory or relationship added with the `memo` command records who wrote it.
   When an agent's terminal runs it (`AI_AGENT` or `CLAUDECODE` is set), the agent is the author and the
-  directly recorded fact, memory or new relationship waits for review. Yours is confirmed at once;
+  directly recorded fact, memory or new relationship waits for review. An owner's memory or relationship
+  is confirmed and a fact accepted at once;
   in an agent's terminal, add `--as-owner`. `--as-owner` is a label, not a lock: an agent can pass it
   too, so tell your agent never to.
 - Approving an action makes it a task for you. Memo never sends a message or an email.
