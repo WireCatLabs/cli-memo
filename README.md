@@ -123,7 +123,8 @@ More: [search](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md)
 - **Evidence, not guesses** — `memo ask` hands over sources with references, and says what it could not
   search.
 - **MCP** — `memo mcp` lets MCP apps such as Claude Desktop or Cursor read your messages, mail and notes, and
-  propose memories, facts and actions; what they propose waits for you to confirm.
+  propose memories, directly recorded facts and outbound actions. Project proposals can also be decided
+  by the agent when allowed; you can require owner decisions instead.
 
 More: [connect your AI agent](https://wirecat.dev/en/docs/agents) ·
 [memories and facts](https://github.com/WireCatLabs/cli-memo/blob/main/docs/memories.md) · [the MCP server](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md)
@@ -138,8 +139,8 @@ More: [connect your AI agent](https://wirecat.dev/en/docs/agents) ·
 4. **Imports leave your sources untouched.** Separate [Gmail cleanup commands](docs/mail.md#clean-up-gmail)
    move selected mail to Trash or restore it only with `--yes`. Tags and your own notes live in
    the store.
-5. **Agents propose, you decide.** Memories and actions an agent suggests wait for your confirmation;
-   nothing is ever sent.
+5. **Review and delegation are recorded.** Memories and outbound actions an agent suggests wait for
+   your confirmation. Project decisions can be delegated or left to the owner. Memo never sends anything.
 
 **Status:** early. Context, notes and their links, document import, Gmail and IMAP imports, tasks,
 manual relationships, evidence bundles and local reminders work. A task in a project cannot have a reminder yet.

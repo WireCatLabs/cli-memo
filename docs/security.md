@@ -44,8 +44,8 @@ nothing and tells you.
 - A fact, memory or relationship added with the `memo` command records who wrote it.
   When an agent's terminal runs it (`AI_AGENT` or `CLAUDECODE` is set), the agent is the author and the
   directly recorded fact, memory or new relationship waits for review. An owner's memory or relationship
-  is confirmed and a fact accepted at once;
-  in an agent's terminal, add `--as-owner`. `--as-owner` is a label, not a lock: an agent can pass it
+  is confirmed and a fact accepted at once; in an agent's terminal, add `--as-owner`.
+  `--as-owner` is a label, not a lock: an agent can pass it
   too, so tell your agent never to.
 - Approving an action makes it a task for you. Memo never sends a message or an email.
 - The agent log records the agent, the tool, the result and the time, never what the agent sent.
