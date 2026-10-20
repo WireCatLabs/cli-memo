@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.85.0 — 21.10.2026
+
 ### Fixed
 
 - **`memo projects evidence` no longer fails on a project with a confirmed meeting link.** Reading linked chats
