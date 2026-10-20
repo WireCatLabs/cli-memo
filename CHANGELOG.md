@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.82.0 — 20.10.2026
+
 ### Fixed
 
 - The MCP guide describes project-decision permissions and the accepted facts and numbered tasks that
