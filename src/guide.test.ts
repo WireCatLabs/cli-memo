@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url"
 import { captureStreams } from "@wirecat/cli-base"
-import { checkGuide, loadScenarios, WIRECAT_TOOLS } from "@wirecat/cli-core/cli"
+import { checkGuide, loadScenarios, MEMO_SCENARIOS, WIRECAT_TOOLS } from "@wirecat/cli-core/cli"
 import { expect, it } from "vitest"
 import { createProgram } from "./program.js"
 
@@ -14,9 +14,8 @@ it("checks every memo step of every scenario, and ships the folder", async () =>
   expect(problems.filter((problem) => !foreign.test(problem))).toEqual([])
 })
 
-it("holds person-brief, the scenario the other tools list under Works with", async () => {
+it("holds the scenarios the other tools list under Works with, under the same titles", async () => {
   const { scenarios } = await loadScenarios(fileURLToPath(new URL("../scenarios", import.meta.url)))
-  expect(scenarios.find(({ name }) => name === "person-brief")).toMatchObject({
-    title: "one person across every tool",
-  })
+  for (const { name, title } of Object.values(MEMO_SCENARIOS))
+    expect(scenarios.find((scenario) => scenario.name === name)?.title).toBe(title)
 })

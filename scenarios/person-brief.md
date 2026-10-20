@@ -1,5 +1,5 @@
 ---
-title: one person across every tool
+title: One person across every tool
 goal: Know everything about one person before a call — messages in tg and MAX, mail, notes, meetings and Drive documents — with a source for each line.
 steps:
   - run: memo context telegram:Kai
