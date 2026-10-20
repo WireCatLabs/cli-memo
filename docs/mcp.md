@@ -3,7 +3,8 @@
 This page helps you connect Memo to an AI app that has no terminal, such as Claude Desktop or Cursor.
 MCP (Model Context Protocol) is the way these apps use a program on your computer. Once connected,
 the app can read your messages, mail, notes and archived meetings, and what Memo knows about a person. It can also save
-memories, record facts and propose actions. What it saves waits for your review.
+memories, record facts and propose actions. New suggestions wait for review; project proposals have
+separate decision permissions described below.
 
 ## What the app can do through MCP
 
@@ -12,14 +13,21 @@ memories, record facts and propose actions. What it saves waits for your review.
 | Search and read your stored messages, mail and notes | Send a message or a mail |
 | Read a person's context or review a project's pending findings | Change your notes, mail or messages |
 | Add, list, show and search memories | Confirm a memory |
-| Add, list and show facts | Accept a fact |
+| Add, list and show facts | Accept an existing proposed fact directly |
 | Propose actions and list them | Approve or reject an action |
-| Read the agent log | Delete anything |
-| Look up projects, tags and topics by name, and see which tasks are ready | Create or link tasks |
+| Review project proposals and, when allowed, decide cited facts and follow-ups with a reason | Confirm a meeting findings batch |
+| Read the agent log | Delete source messages, mail or notes |
+| Look up projects, tags and topics by name, and see which tasks are ready | Create or edit arbitrary tasks |
 
-Four tools write: `memories_add`, `facts_add`, `actions_add` and `meeting_actions_add`. What they add waits as proposed
-until you confirm it, and an action is never sent. Other tools do not change source records; meeting search may update its local text index. Connect Memo only to an app
-you trust to read your messages, mail and notes.
+`memories_add`, `facts_add`, `actions_add`, `meeting_actions_add` and `project_actions_add` save proposals.
+By default, `project_actions_confirm` and `project_actions_reject` may decide project proposals for you
+with a recorded reason. Confirmation can create accepted facts and numbered tasks or confirm a key
+document. Set [`agent_decisions: false`](configuration.md#agent_decisions) to require owner decisions
+for project proposals; reading and proposing still work. Meeting findings still require the owner.
+An action proposed with `actions_add` is never sent by Memo.
+
+Other tools do not change source records; meeting search and project gathering may update local text
+indexes. Connect Memo only to an app you trust to read your messages, mail and notes.
 
 ## Connect an app
 
@@ -68,7 +76,7 @@ Use the memo tools to list the memories waiting for my review.
 | `vocabulary_inspect` | Inspect two selected tags before consolidation; counts, overlaps and bounded samples; merges nothing |
 | `tasks_relations`, `tasks_status`, `tasks_list` | See how tasks depend on each other, read only |
 
-Everything the app adds is saved under the agent name `memo-mcp` and waits as proposed. You review it with
+Suggestions are saved under the agent name `memo-mcp`. Review proposed memories and facts with
 `memo memories list status:proposed` and the commands in [Memories and facts](memories.md).
 
 ## The agent log
@@ -95,10 +103,14 @@ batches through `memo meetings actions confirm` or `reject`. Staging creates no 
 `document:` reference with the `fingerprint` `project_evidence` gave, and a text changed since then refuses as
 stale. `project_actions_list` pages through a project's proposals — suggested key documents (`key:<n>`) and
 findings batches — each with its evidence: whether the text changed (`state`), the text and the messages around
-it unless `brief`. A text changed since staging refuses only the findings that cite it. Decide the ones you are confident about with `project_actions_confirm` (the finding IDs to
+it unless `brief`; cited documents include nearby paragraphs. A text changed since staging refuses only the
+findings that cite it. Decide the ones you are confident about with `project_actions_confirm` (the finding IDs to
 create) or `project_actions_reject`, always with a `reason`, which is kept with the decision; ask the owner about
 the rest. A batch needs its `fingerprint`. When the owner sets `agent_decisions: false`, decisions are refused and
 only the owner decides, through `memo projects actions confirm` or `reject`.
+
+Key-document suggestions have no saved text fingerprint and return `state: "untracked"`; reread them
+before deciding. Findings retain their own cited fingerprints for detecting source changes.
 
 `project_evidence` takes the options of `memo projects evidence` in snake_case and needs `source`: account
 entries, a kind, `group:<name>` or `all`. It searches the project's name, its key, each of its aliases and each

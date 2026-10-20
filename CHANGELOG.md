@@ -4,6 +4,19 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- The MCP guide describes project-decision permissions and the accepted facts and numbered tasks that
+  confirming a proposal can create, alongside the owner-only review of meeting findings.
+- Key-document suggestions report `state: "untracked"` because no source fingerprint was saved with
+  the suggestion. They no longer incorrectly report unchanged text; reread the document before deciding.
+- **Project proposal review includes document paragraphs**, using the shared Core passage helper around
+  the finding's words. `projects actions list`, its MCP counterpart and key-document review now show this
+  context; `--brief` or zero before/after counts still omit it. The guides also explain oversized evidence
+  and accepting unchanged findings from a partly stale batch.
+
 ## 0.81.0 — 20.10.2026
 
 ### Fixed
