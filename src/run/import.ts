@@ -209,7 +209,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .addOption(
       new Option(
         "--retry-attachments",
-        "mail: reread stored emails' attachments after installing an extraction engine",
+        "mail: reread stored emails' attachments that an older memo or a broken install left unread",
       ),
     )
     .addOption(

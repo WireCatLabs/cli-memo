@@ -6,6 +6,11 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **`sync --retry-attachments` help no longer says to install an extraction engine.** The PDF and Word
+  readers ship with memo; the option is for attachments an older memo or a broken install left unread.
+
 ## 0.82.0 — 20.10.2026
 
 ### Fixed
