@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.79.0 — 20.10.2026
+
 ### Added
 
 - **`memo projects evidence` gives a document hit the paragraphs around it** and lists a document too large to
