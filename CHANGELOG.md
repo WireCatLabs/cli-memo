@@ -6,6 +6,12 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **The `person-brief` and `decision-trail` scenario titles start with a capital**, like every other scenario:
+  "One person across every tool", "What did we decide about X, across every source". tg, max, zm and drive list
+  them under "Works with" from the same text in cli-core 0.370.0, and memo's tests hold its files to it.
+
 ## 0.80.0 — 20.10.2026
 
 ### Fixed

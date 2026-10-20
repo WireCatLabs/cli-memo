@@ -1,5 +1,5 @@
 ---
-title: what did we decide about X, across every source
+title: What did we decide about X, across every source
 goal: Find the decision on one topic and the evidence for it in notes, mail, messages, meetings and documents, then record it once.
 steps:
   - run: memo facts list kind:decision project:HRB
