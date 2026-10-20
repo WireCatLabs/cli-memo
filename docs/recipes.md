@@ -85,6 +85,70 @@ The answer should show its sources and missing history before it suggests an age
 If no passages appear, check the selected account and archive coverage, then try project aliases
 without a project filter. [Meeting search](search.md#search-stored-meetings) explains these boundaries.
 
+## Review project facts and follow-ups
+
+Use this when a project's evidence is spread across stored messages, imported mail and files.
+Memo keeps the agent's suggestions with their sources so you can review key documents, facts and
+follow-ups together. The project must already exist; [project names and aliases](people.md#organizations-and-projects)
+help the agent reuse it. Source accounts must already be imported or synced.
+
+```text prompt
+Use memo CLI to gather Harbour project evidence from my personal Telegram profile and work mail.
+Read the project's key documents first and reuse its recorded aliases. Search the last 60 days,
+show the selected accounts and dates, and say which history is missing or incomplete.
+Read the cited sources before suggesting facts or follow-ups. Leave unknown dates and assignees
+blank, and distinguish explicit commitments from inferred follow-ups.
+Propose the key documents and findings for my review. Show the proposals with their source context.
+Do not confirm or reject anything.
+```
+
+The agent starts with `memo projects context`, then gathers cited sources with
+[`memo projects evidence`](search.md#gather-a-projects-meeting-context). Each project name, alias or
+extra query is searched separately. A name match does not establish membership, identity or an agreement.
+The agent stages selected message/document findings with `memo projects actions add`, using the exact
+references and source fingerprints returned by gathering. This creates a proposal, not accepted facts or tasks.
+An exact retry reuses its batch key and input; changed findings need a new key.
+
+For transcript findings, use the [meeting review flow](#review-a-meetings-decisions-and-follow-ups),
+which accepts meeting cue references and checks confirmed meeting-to-project links. Project findings
+accept `msg:` and `document:` references; a `meeting:` or `note:` reference is not interchangeable.
+
+Inspect the proposals in your terminal, replacing `HRB` with your project's key, name or alias:
+
+```sh
+memo projects actions list HRB --limit 5 --page 1 --json
+memo projects actions list HRB --brief
+```
+
+The normal view includes cited excerpts and nearby messages. Read the full source when an excerpt is
+not enough to judge the claim. `--brief` keeps references and source state without that context.
+`--limit` counts findings batches; proposed key documents are added on the first page. Use `--page 2`
+and later pages while the result reports more. Gathering uses checkpoints; this review list uses page numbers.
+
+Check each finding's meaning, project, date and assignee against its evidence. An exact quote or
+unchanged source fingerprint does not establish that a conclusion follows from the text. If a cited
+source changed or disappeared, reread it and prepare a fresh proposal; an obsolete batch can be rejected.
+
+An owner can confirm a key document such as `key:12`, or accept selected finding IDs from a batch.
+For example, replace `7`, both finding IDs and `BATCH_FINGERPRINT` with values from the review list:
+
+```sh
+memo projects actions confirm HRB 7 launch-status draft-check --fingerprint BATCH_FINGERPRINT
+```
+
+Confirming creates the selected findings and rejects the batch's other new findings. Choose the whole
+set you want to accept before confirming; leave an undecided batch open. `projects actions reject`
+rejects every new finding in a batch. After a decision, `memo projects context HRB` shows accepted facts,
+key documents and open numbered tasks; `projects actions list HRB status:reviewed` shows past batch decisions.
+
+By default an agent may decide project proposals with a recorded reason. The request above explicitly
+leaves that decision to you. To require owner decisions in this flow, set
+[`agent_decisions` to `false`](configuration.md#agent_decisions); this refuses agent confirmations and
+rejections through both CLI and MCP. It does not prevent reading or staging proposals. The separate
+meeting review flow still leaves confirmation to the owner.
+
+Next, [prepare an agenda using the project's accepted context](#prepare-for-a-meeting-with-someone).
+
 ## Find where something was decided
 
 ```text prompt
@@ -124,8 +188,9 @@ Show me the memory you would save and the message it is based on.
 Save it with the message as evidence only after I agree.
 ```
 
-A memory added with the `memo` command is confirmed at once, so the request asks your agent to
-show it first. Later, `memo memories stale` marks it when it no longer holds ([memories](memories.md)).
+A memory you record directly is confirmed; one added by an agent stays proposed for your review.
+Check the claim and its source before confirming it. Later, `memo memories stale` marks memories
+that no longer hold ([memories](memories.md)).
 
 ## Record a decision from a chat
 
@@ -135,8 +200,9 @@ Show me the decision and the message first. After I agree, record it as a decisi
 with the message as evidence, in the Harbour project.
 ```
 
-A fact added with the `memo` command is accepted at once, so the request asks your agent to show it
-first. If it replaces an earlier decision, ask your agent to mark that with `--supersedes`.
+A fact you record directly is accepted; one added by an agent stays proposed. The
+[project review flow](#review-project-facts-and-follow-ups) keeps cited findings together before a
+decision. If a fact replaces an earlier decision, ask your agent to mark that with `--supersedes`.
 
 ## Weekly review
 

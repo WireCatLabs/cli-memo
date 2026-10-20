@@ -77,6 +77,24 @@ next run. See [importing on a timer](archive.md#import-on-a-timer-linux).
 
 `false` stops the once-a-day check for a newer memo. `MEMO_NO_UPDATE_CHECK=1` does the same for one shell.
 
+## `agent_decisions`
+
+By default an agent may confirm or reject [project proposals](recipes.md#review-project-facts-and-follow-ups)
+for you, with a reason recorded in the decision. Set the top-level `agent_decisions` key to `false`
+to require owner decisions in this flow:
+
+```json
+{
+  "agent_decisions": false
+}
+```
+
+Add the key to your existing config rather than replacing your notes, mail and timer settings with
+this small example. Both CLI and MCP then refuse an agent's `projects actions confirm` and `reject`;
+reading and proposing still work. Owner decisions remain available. This setting applies to project
+proposals; it does not change the separate owner-only confirmation of meeting findings or replace
+the tool's other permission checks.
+
 ## Environment variables
 
 | Variable | Meaning |
