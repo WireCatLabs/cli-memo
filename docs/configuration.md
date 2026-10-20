@@ -91,9 +91,11 @@ to require owner decisions in this flow:
 
 Add the key to your existing config rather than replacing your notes, mail and timer settings with
 this small example. Both CLI and MCP then refuse an agent's `projects actions confirm` and `reject`;
-reading and proposing still work. Owner decisions remain available. This setting applies to project
-proposals; it does not change the separate owner-only confirmation of meeting findings or replace
-the tool's other permission checks.
+reading and proposing still work. Owner decisions remain available in the terminal. The setting
+controls Memo's agent mode; terminal access retains the permissions of the terminal user.
+`--as-owner` labels a command as the owner's and must not be used by an agent to bypass this setting.
+This setting applies to project proposals; it does not change the separate owner-only confirmation
+of meeting findings or replace the tool's other permission checks.
 
 ## Environment variables
 
