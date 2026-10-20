@@ -257,6 +257,21 @@ it("lists a document too large to read by reference and gives a read one the par
   expect(found.oversized).toEqual([{ ref: `document:${huge.id}`, lanes: ["l3"], source: 0, bytes: expect.any(Number) }])
 })
 
+it("refuses --contact person:<id> when the person has no stored name, even if an identity has one", async () => {
+  const { env, run } = await setUp()
+  const store = await openStore({ env })
+  await store.people.savePeople(telegram, [{ id: "102", name: null }])
+  await store.people.savePeople(telegram, [{ id: "102", name: "Bob Example" }])
+  const person = await store.people.personOf({ provider: "telegram", id: "102" })
+  const stored = await store.people.personByUid(person?.uid as string)
+  await store.close()
+  expect(stored?.name).toBeNull()
+  expect(stored?.identities.some((identity) => identity.name)).toBe(true)
+  await expect(
+    run("projects", "evidence", "SYP", "--source", "telegram:1", "--contact", `person:${person?.uid}`),
+  ).rejects.toMatchObject({ code: "validation_error", details: { param: "contact" } })
+})
+
 it("resolves --contact person:<id> to the person's name and keeps the reference, and refuses an unknown id", async () => {
   const { env, json, run } = await setUp()
   const store = await openStore({ env })

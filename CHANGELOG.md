@@ -9,7 +9,8 @@ the API.
 ### Added
 
 - `memo projects evidence --contact person:<id>` (MCP `project_evidence` `contact`) searches the person's stored name and
-  keeps the `person:<id>` reference on the lane; an unknown id is refused with `not_found` instead of searched as text.
+  keeps the `person:<id>` reference on the lane; an unknown id is refused with `not_found` instead of searched as text,
+  and a person with no stored name is refused with `validation_error` rather than searched under an identity's name.
 
 ### Fixed
 
