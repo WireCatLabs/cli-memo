@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**460 ✅ · 0 ⛔ · 144 ❌** — 123 commands, 481 options.
+**463 ✅ · 0 ⛔ · 141 ❌** — 123 commands, 481 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -289,19 +289,19 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `projects actions reject` | `--reason` | ✅ |  |
 | `projects annotations export` |  | ✅ |  |
 | `projects annotations export` | `--output` | ✅ |  |
-| `projects annotations export` | `--max-read-bytes` | ❌ |  |
+| `projects annotations export` | `--max-read-bytes` | ✅ |  |
 | `projects annotations export` | `--json` | ✅ |  |
 | `projects annotations check` |  | ✅ |  |
 | `projects annotations check` | `--target-store` | ✅ |  |
 | `projects annotations check` | `--project` | ✅ |  |
 | `projects annotations check` | `--bindings` | ✅ |  |
-| `projects annotations check` | `--max-read-bytes` | ❌ |  |
+| `projects annotations check` | `--max-read-bytes` | ✅ |  |
 | `projects annotations check` | `--json` | ✅ |  |
 | `projects annotations restore` |  | ✅ |  |
 | `projects annotations restore` | `--target-store` | ✅ |  |
 | `projects annotations restore` | `--project` | ✅ |  |
 | `projects annotations restore` | `--bindings` | ✅ |  |
-| `projects annotations restore` | `--max-read-bytes` | ❌ |  |
+| `projects annotations restore` | `--max-read-bytes` | ✅ |  |
 | `projects annotations restore` | `--json` | ✅ |  |
 | `projects annotations restore` | `--fingerprint` | ✅ |  |
 | `projects key-documents add` |  | ✅ |  |
