@@ -310,10 +310,12 @@ the agent log:
 { "mcpServers": { "memo": { "command": "memo", "args": ["mcp"] } } }
 ```
 
-An agent's memories, facts and proposals wait as `proposed`; it cannot confirm, accept, approve or reject. Approving an
-action makes it your task; nothing is ever sent. `memo agents log` lists every call — the agent, the tool,
-the outcome and the times, never the arguments. Only `memories_add`, `facts_add` and `actions_add` write, and what
-they add waits for you.
+New memories, directly recorded facts and outbound action proposals start as `proposed`. MCP does not
+confirm memories, directly accept existing proposed facts or approve outbound actions. Project proposals
+have a separate flow: by default an agent may decide them with a recorded reason, creating accepted
+facts and numbered tasks or confirming a key document. Set `agent_decisions: false` to require owner
+decisions on project proposals; meeting findings still require the owner. Memo never sends a message
+or email. `memo agents log` lists each call, its result and time, without its arguments.
 
 More: [memories and facts](https://github.com/WireCatLabs/cli-memo/blob/main/docs/memories.md) · [the MCP server](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md) ·
 [MCP on wirecat.dev](https://wirecat.dev/en/docs/memo/mcp)

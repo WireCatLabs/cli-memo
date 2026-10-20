@@ -73,6 +73,11 @@ it a task for you; Memo never sends anything. A memory or fact your agent adds w
 waits for you too: memo records the agent as its author when `AI_AGENT` or `CLAUDECODE` is set. One you
 add yourself is confirmed at once.
 
+Project proposals use a separate [review flow](recipes.md#review-project-facts-and-follow-ups).
+By default an agent can decide them with a recorded reason and create accepted facts and numbered
+tasks. Set [`agent_decisions: false`](configuration.md#agent_decisions) to require owner decisions
+for project proposals. Meeting findings still require the owner.
+
 ## Answers for scripts and agents
 
 Add `--json` to most commands to get an answer a program can read. The text answer is for people;

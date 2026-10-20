@@ -38,7 +38,7 @@ An import reads your folders and mail accounts and brings the local store up to 
 - **Search by meaning is prepared.** If the search model is on your computer, the import also
   prepares the new text for search by meaning. `--no-embed` skips this step.
 
-Two imports never run at the same time, and one source that fails does not stop the others.
+Two Memo imports never run at the same time, and one source that fails does not stop the others.
 
 ## Folders on more than one computer
 
@@ -97,7 +97,9 @@ is not sent anywhere for this. Each result says how it was found.
 An empty result means only that the local store has nothing that matches. It does not prove that
 something never happened: the chat may not be downloaded, or the folder may not be imported.
 
-## Agents suggest, you decide
+<a id="agents-suggest-you-decide"></a>
+
+## Agent authorship and review
 
 Your agent can add three kinds of records:
 
@@ -106,19 +108,25 @@ Your agent can add three kinds of records:
 - a **proposed action**: something to do, such as a reply. It always waits until you approve or
   reject it. Approving it makes it a task for you. Memo never sends a message or an email.
 
-What an app adds through the [MCP server](mcp.md) waits as **proposed** until you confirm the memory
-or accept the fact. Through MCP, an agent cannot confirm, accept, approve or reject, and every call it
-makes is written to the agent log (`memo agents log`), without the details it sent.
+Memories and directly recorded facts added through the [MCP server](mcp.md) start as **proposed**.
+MCP does not confirm a memory, directly accept an existing proposed fact or approve an outbound
+action. Every call is written to the agent log (`memo agents log`), without the details it sent.
+
+Project proposals have a separate flow. By default an agent can decide them with a recorded reason,
+creating accepted facts and numbered tasks or confirming a key document. Set
+[`agent_decisions: false`](configuration.md#agent_decisions) to require owner decisions on project
+proposals; reading and proposing still work. Meeting findings still require the owner.
 
 The `memo` command tells an agent's terminal by `AI_AGENT` or `CLAUDECODE`, the variables agents such
 as Claude Code set. There, a fact, memory, relationship or proposed action is recorded as the agent's
-and waits for you, as through MCP. Without them, or with `--as-owner`, it is yours and confirmed at
+and starts as proposed. Without them, or with `--as-owner`, it is yours and confirmed at
 once. The variables and `--as-owner` are labels, not a lock: an agent that sets or passes them can
 still write as you.
 
 ## What can leave your computer
 
-Nothing, unless you ask for it. `memo ask` prepares sources for your own agent by default. It sends
+Sending sources to an AI provider is opt-in. `memo ask` prepares sources for your own agent by default. It sends
 text to an AI provider only when you set one up and add `--analyze`, and to a remote provider only
 with `--allow-remote` as well. What your agent does with the text it reads is up to that agent.
-See [Security](security.md).
+Automatic update and sender-domain checks can also make network requests; [Security](security.md)
+explains what they send and which settings apply.
