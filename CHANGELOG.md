@@ -6,6 +6,14 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **`memo projects evidence --contact person:<id>` found nothing for a person with a messenger display name.** It
+  searched the stored name as words, and a name such as «Степа Stefan Grachev AVITO M A» is spelled out in no
+  message. It now reads every message and mail the person's stored identities wrote in `--source`, labelled
+  `sender` (`[sent by contact]` in text), and searches only the aliases you gave them; a person with neither is
+  refused. A literal `--contact "<name>"` is searched as before.
+
 ## 0.85.0 — 21.10.2026
 
 ### Fixed

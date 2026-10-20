@@ -49,19 +49,42 @@ const projectOf = async (store: MessageStore, reference: string) => {
   return { ref, name: entry.name, key: entry.key, aliases: entry.aliases.map((alias) => alias.name) }
 }
 
-/** A `person:<id>` is looked up and searched by that person's name, keeping the reference; any other text is a name. */
-const contactOf = async (store: MessageStore, contact: string): Promise<{ name: string; reference?: string }> => {
-  if (!contact.startsWith("person:")) return { name: contact }
+interface Contact {
+  name?: string
+  reference?: string
+  senders?: { provider: string; id: string }[]
+}
+
+/**
+ * A `person:<id>` is read by what their stored identities wrote, and searched only by the short names the owner gave
+ * them: their stored name is a messenger display name («Степа Stefan Grachev AVITO M A») that no message spells out.
+ * Any other text is a name.
+ */
+const contactOf = async (store: MessageStore, contact: string): Promise<Contact[]> => {
+  if (!contact.startsWith("person:")) return [{ name: contact }]
   const person = await store.people.personByUid(contact.slice("person:".length))
   if (!person) throw new CliError("not_found", `no person ${contact}`, { param: "contact" })
-  if (!person.name) {
+  const senders = person.identities.map((identity) => ({ provider: identity.provider, id: String(identity.id) }))
+  const aliases = new Set<string>()
+  for (const identity of person.identities)
+    for (const account of identity.accounts) {
+      const alias = await store.people
+        .privateContact({ provider: identity.provider, account }, identity.id)
+        .then((one) => one.alias)
+        .catch((error) => {
+          if (error instanceof CliError && error.code === "not_found") return null
+          throw error
+        })
+      if (alias) aliases.add(alias)
+    }
+  if (!senders.length && !aliases.size)
     throw new CliError(
       "validation_error",
-      `${contact} has no stored name; give the person a name, or pass a literal name to --contact`,
+      `${contact} has no stored identity or alias to search by; pass a name the texts use to --contact`,
       { param: "contact" },
     )
-  }
-  return { name: person.name, reference: contact }
+  const names = [...aliases].map((name) => ({ name, reference: contact }))
+  return senders.length ? [{ reference: contact, senders }, ...names] : names
 }
 
 const LINKED_CHATS = 16
@@ -137,7 +160,9 @@ export const gatherStoredProject = async (
         param: "source",
       },
     )
-  const people = await Promise.all((input.people ?? []).map((contact) => contactOf(store, contact)))
+  const people = (
+    await Promise.all([...new Set(input.people ?? [])].map((contact) => contactOf(store, contact)))
+  ).flat()
   const aliases = [...new Set([...project.aliases, ...(input.aliases ?? [])])].filter((alias) => alias !== project.name)
   const linked = await linkedChatsOf(store, project.ref)
   const linkedChats = linked.slice(0, LINKED_CHATS)
@@ -188,13 +213,26 @@ export const gatherStoredProject = async (
   return { projectRef: project.ref, unreadSources: [...unread, ...unreadChats], ...gathered, mentions }
 }
 
-const LABELS: Record<string, string> = { "person-only": "  [person only]", "linked-chat": "  [linked chat]" }
+const LABELS: Record<string, string> = {
+  "person-only": "  [person only]",
+  sender: "  [sent by contact]",
+  "linked-chat": "  [linked chat]",
+}
 
 const day = (at: number) => new Date(at).toISOString().slice(0, 10)
 
 export const projectGatherText = (found: StoredProjectGathering) => {
-  const lanes = new Map(found.lanes.map((lane) => [lane.id, `${lane.query ?? lane.chat} (${lane.kinds.join(", ")})`]))
+  const lanes = new Map(
+    found.lanes.map((lane) => [
+      lane.id,
+      `${lane.query ?? lane.chat ?? `what ${lane.people.join(", ")} wrote`} (${lane.kinds.join(", ")})`,
+    ]),
+  )
   const linked = found.items.filter((item) => item.context === "linked-chat").length
+  const sent = found.items.filter((item) => item.context === "sender").length
+  const unreadSenders = found.lanes.filter(
+    (lane) => lane.kinds.includes("sender") && !found.units.some((unit) => unit.lane === lane.id),
+  )
   const failed = found.units.filter((unit) => unit.state === "failed" || unit.state === "unavailable")
   const lines = [
     `${found.project.name}${found.projectRef ? ` — ${found.projectRef}` : ""}: ${found.items.length} new references, ` +
@@ -211,6 +249,9 @@ export const projectGatherText = (found: StoredProjectGathering) => {
   ]
   if (linked)
     lines.push(`${linked} of these come from the project's linked chats and name nothing: membership, not a word match`)
+  if (sent) lines.push(`${sent} of these were written by a contact and may name nothing: matched by sender, not words`)
+  for (const lane of unreadSenders)
+    lines.push(`${lane.people.join(", ")}: no stored identity in the selected sources, so nothing they wrote was read`)
   if (found.mentions.items.length)
     lines.push(
       `also names: ${found.mentions.items

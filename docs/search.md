@@ -147,7 +147,10 @@ later imports, edits or deletions can still change the evidence.
 Each name or alias is a separate search: every word of it must appear in one text, in any order, as whole
 words; hits are joined. Every message of a chat confirmed as the project's is read too when `--source` holds
 its account. Those items are labelled `linked-chat`: they name nothing, they belong to the chat. A linked chat
-outside `--source` is listed as not read. A meeting hit retains its
+outside `--source` is listed as not read. `--contact person:<id>` reads every message and mail that person's
+stored identities wrote in `--source`, labelled `sender` (matched by who wrote it, not by words), and searches
+the aliases you gave them; their messenger display name is not searched, since texts rarely spell it out. A
+literal `--contact "<name>"` is searched as words. A meeting hit retains its
 exact cue reference and uses the meeting start date, so an old meeting imported today stays old.
 Read a relevant cue and its neighbours with `memo meetings passage` before drawing conclusions.
 Gathering does not create project links, establish attendees or save extracted facts and tasks.

@@ -1235,7 +1235,7 @@ memo projects evidence <project> [options]
 | `--source <accounts>` | where to look, or all: which accounts, separated by commas: provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>. |
 | `--alias <name>` | another name of the project, searched on its own; repeat for more. |
 | `--context-query <words>` | more words that all appear in one text; repeat for another search. |
-| `--contact <person>` | a person's name, or person:<id> to search by that person's name; what only names them is context, not the project. |
+| `--contact <person>` | a name to search, or person:<id> to read what that person's stored identities wrote and search the aliases you gave them; what only names them or comes from them is context, not the project. |
 | `--since-time <time>` | how far back: days (90d, at most 730d) or a start date (2026-09-01). Default: `60d`. |
 | `--before-time <time>` | fixed exclusive end: ISO 8601 timestamp with UTC offset; days back count from it. |
 | `--limit <n>` | new references at most, up to 500. Default: `100`. |
