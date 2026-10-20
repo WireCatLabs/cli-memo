@@ -106,7 +106,8 @@ The agent starts with `memo projects context`, then gathers cited sources with
 [`memo projects evidence`](search.md#gather-a-projects-meeting-context). Each project name, alias or
 extra query is searched separately. A name match does not establish membership, identity or an agreement.
 The agent stages selected message/document findings with `memo projects actions add`, using the exact
-references and source fingerprints returned by gathering. This creates a proposal, not accepted facts or tasks.
+references and source fingerprints returned by gathering. Fingerprints are check values used to notice
+later source changes. This creates a proposal, not accepted facts or tasks.
 An exact retry reuses its batch key and input; changed findings need a new key.
 
 For transcript findings, use the [meeting review flow](#review-a-meetings-decisions-and-follow-ups),
