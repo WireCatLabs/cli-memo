@@ -8,6 +8,8 @@ the API.
 
 ### Fixed
 
+- Guides describe incomplete search results and local record/file export effects without promising
+  complete retrieval or unchanged files.
 - Guides explain gathering project evidence, reviewing proposed facts and follow-ups, and the
   `agent_decisions` setting, with the separate review path for meeting transcript findings.
 

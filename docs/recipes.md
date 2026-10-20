@@ -2,8 +2,9 @@
 
 This page gives you whole tasks to hand to your AI agent once Memo has your notes, mail or messages.
 Copy a request into your agent and change the names and topics to yours. Each one ends with
-something you can check: sources you can open, or a list waiting for your decision. None of them
-sends a message or changes your files.
+something you can check: sources you can open, or a list waiting for your decision. Saving a record
+changes Memo's local store; exporting a note creates a file. These requests do not ask your agent
+to send a message.
 
 ## Prepare for a meeting with someone
 
@@ -159,7 +160,8 @@ If you find nothing, tell me what you searched.
 ```
 
 Your agent uses `memo search all`, then the search for one kind of source if needed. An empty answer
-means only that the local store has no match ([search](search.md)).
+means this search returned no match; check its source coverage before concluding that nothing was
+decided ([search](search.md)).
 
 ## Turn requests into tasks
 

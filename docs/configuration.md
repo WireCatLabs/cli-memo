@@ -1,7 +1,7 @@
 # Configuration
 
-This page lists every setting in Memo's config file and every environment variable Memo reads. Use
-it to look up a setting; you rarely need to edit the file by hand. `memo folders add` adds a folder
+Use this reference to look up Memo's own configuration settings and environment variables. You
+rarely need to edit the file by hand. `memo folders add` adds a folder
 and `memo auto start` turns the timer on for you. Edit the file yourself for files to skip, mail
 accounts and where exported notes go.
 
