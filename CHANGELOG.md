@@ -6,8 +6,17 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo projects evidence` gives a document hit the paragraphs around it** and lists a document too large to
+  read under `oversized` (text: "too large to read here"), with its reference to open by `memo notes show`.
+
 ### Fixed
 
+- **`memo projects evidence` no longer stalls on large documents.** A large document no longer leaves its search
+  read-limited, with every `--cursor` continuation retrying the same page and charging the read budget again. Needs `@wirecat/cli-core` 0.367.0.
+- **`memo projects actions confirm` accepts the findings whose own cited text is unchanged**, even when another
+  finding in the batch cites a changed text; before, the whole batch had to be staged again.
 - Guides describe incomplete search results and local record/file export effects without promising
   complete retrieval or unchanged files.
 - Guides explain gathering project evidence, reviewing proposed facts and follow-ups, and the
