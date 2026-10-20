@@ -1,4 +1,4 @@
-import { mkdtempSync, writeFileSync } from "node:fs"
+import { copyFileSync, mkdtempSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { openStore } from "@wirecat/cli-core/store"
@@ -86,5 +86,24 @@ export const projectAnnotationFixture = async () => {
   } finally {
     await sourceStore.close()
     await targetStore.close()
+  }
+}
+
+export const copyProjectAnnotationFixture = (baseline: Awaited<ReturnType<typeof projectAnnotationFixture>>) => {
+  const directory = mkdtempSync(join(tmpdir(), "memo-project-annotation-copy-"))
+  const source = join(directory, "source.db"),
+    target = join(directory, "target.db"),
+    bindingsFile = join(directory, "bindings.json")
+  copyFileSync(baseline.source, source)
+  copyFileSync(baseline.target, target)
+  copyFileSync(baseline.bindingsFile, bindingsFile)
+  return {
+    ...baseline,
+    directory,
+    source,
+    target,
+    bindingsFile,
+    snapshotFile: join(directory, "snapshot.json"),
+    env: { ...baseline.env, MESSAGING_STORE: source, XDG_CONFIG_HOME: join(directory, "config") },
   }
 }

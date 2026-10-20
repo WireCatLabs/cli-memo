@@ -2,10 +2,15 @@ import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
-import { expect, it } from "vitest"
+import { beforeAll, expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
-import { projectAnnotationFixture } from "../../test/project-annotations.js"
+import { copyProjectAnnotationFixture, projectAnnotationFixture } from "../../test/project-annotations.js"
 import { createProgram } from "../program.js"
+
+let baseline: Awaited<ReturnType<typeof projectAnnotationFixture>>
+beforeAll(async () => {
+  baseline = await projectAnnotationFixture()
+})
 
 const run = async (env: NodeJS.ProcessEnv, ...args: string[]) => {
   const streams = captureStreams()
@@ -28,7 +33,7 @@ const targetArgs = (f: Awaited<ReturnType<typeof projectAnnotationFixture>>) => 
 ]
 
 it("exports a new private file read-only without overwriting an existing snapshot", async () => {
-  const f = await projectAnnotationFixture(),
+  const f = copyProjectAnnotationFixture(baseline),
     sourceBefore = readFileSync(f.source)
   const exported = await run(
     f.env,
@@ -46,7 +51,7 @@ it("exports a new private file read-only without overwriting an existing snapsho
     counts: { aliases: 1, facts: 1, links: 1 },
     coverage: { notes: "omitted", tasks: "omitted" },
   })
-  expect(readFileSync(f.source)).toEqual(sourceBefore)
+  expect(readFileSync(f.source).equals(sourceBefore)).toBe(true)
   expect(readFileSync(f.snapshotFile, "utf8")).not.toContain("INVENTED_SOURCE_BODY_SENTINEL")
   if (process.platform !== "win32") expect(statSync(f.snapshotFile).mode & 0o777).toBe(0o600)
   await expect(
@@ -67,12 +72,12 @@ it("exports a new private file read-only without overwriting an existing snapsho
 })
 
 it("previews and owner-restores through standard envelopes without duplicating a repeat", async () => {
-  const f = await projectAnnotationFixture()
+  const f = copyProjectAnnotationFixture(baseline)
   await run(f.env, "projects", "annotations", "export", "RES", "--output", f.snapshotFile)
   const targetBefore = readFileSync(f.target)
   const preview = await run(f.env, "projects", "annotations", "check", f.snapshotFile, ...targetArgs(f))
   expect(preview).toMatchObject({ ready: true, namespace_conflicts: [], descriptor_conflicts: [] })
-  expect(readFileSync(f.target)).toEqual(targetBefore)
+  expect(readFileSync(f.target).equals(targetBefore)).toBe(true)
   const restored = await run(
     f.env,
     "projects",
@@ -107,7 +112,7 @@ it("previews and owner-restores through standard envelopes without duplicating a
 })
 
 it("refuses agent or read-only restoration and stale previews without touching the selected records", async () => {
-  const f = await projectAnnotationFixture()
+  const f = copyProjectAnnotationFixture(baseline)
   await run(f.env, "projects", "annotations", "export", "RES", "--output", f.snapshotFile)
   const preview = await run(f.env, "projects", "annotations", "check", f.snapshotFile, ...targetArgs(f))
   const args = [
@@ -124,7 +129,7 @@ it("refuses agent or read-only restoration and stale previews without touching t
     code: "permission_error",
   })
   await expect(run({ ...f.env, MEMO_READ_ONLY: "1" }, ...args)).rejects.toMatchObject({ code: "permission_error" })
-  expect(readFileSync(f.target)).toEqual(before)
+  expect(readFileSync(f.target).equals(before)).toBe(true)
   const changed = await openStore({ path: f.target, env: f.env })
   try {
     await changed.knowledge.addVocabularyAlias({ kind: "project", id: f.unrelated.id }, "Example study")
@@ -135,7 +140,7 @@ it("refuses agent or read-only restoration and stale previews without touching t
 })
 
 it("refuses malformed and oversized ordinary input files before creating a missing destination", async () => {
-  const f = await projectAnnotationFixture(),
+  const f = copyProjectAnnotationFixture(baseline),
     missing = join(f.directory, "missing.db")
   await run(f.env, "projects", "annotations", "export", "RES", "--output", f.snapshotFile)
   await expect(
