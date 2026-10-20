@@ -4,6 +4,31 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- **`memo projects evidence` reads the project's linked chats** (MCP `project_evidence` too, on by default). Every
+  message of a chat confirmed as the project's is read, at most 16 chats, oldest link first, when `--source` holds
+  the chat's account. Those items have `context: "linked-chat"` (text output `[linked chat]`): they name nothing.
+  A suggested link is not read. A linked chat outside `--source`, or past the 16th, is listed in `unread_sources`
+  with `kind: "linked-chat"` and `reason` `out-of-scope` or `linked-chat-limit`. The result also carries
+  `linked_chats` with each chat's state.
+- **`memo relationships add chat:<provider>/<account>/<chat> project:<id>`** makes a chat a project's
+  (`member-of` only). The reference names the chat's account, so no account is chosen for you. An agent's link
+  waits for the owner's `memo relationships confirm`.
+
+### Changed — may break callers
+
+- Needs `@wirecat/cli-core` 0.376.0. A project evidence lane's `query` is `null` for a linked chat; its `chat`
+  holds the chat reference.
+
+### Fixed
+
+- **`projects evidence` help no longer says "literal search".** Each name, alias, `--context-query` and
+  `--contact` is a search where every word must appear in one text, in any order, as whole words; it is not a
+  phrase search.
+
 ## 0.83.0 — 20.10.2026
 
 ### Added

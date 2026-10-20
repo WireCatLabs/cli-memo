@@ -287,3 +287,45 @@ it("resolves --contact person:<id> to the person's name and keeps the reference,
     run("projects", "evidence", "SYP", "--source", "telegram:1", "--contact", "person:NOSUCHPERSON"),
   ).rejects.toMatchObject({ code: "not_found", details: { param: "contact" } })
 })
+
+it("reads a project's confirmed linked chats whole, never a suggested one or one outside --source", async () => {
+  const { env, json, run } = await setUp()
+  const store = await openStore({ env })
+  const inChat = (chatId: string, id: string, text: string) => ({ ...message(id, text, daysAgo(4)), chatId })
+  await store.messages.saveMessages(telegram, "8", [inChat("8", "1", "Weather is fine today")], { via: "test" })
+  await store.messages.saveMessages(telegram, "6", [inChat("6", "1", "Nothing to see")], { via: "test" })
+  const other = { provider: "telegram", account: "2" }
+  await store.messages.saveMessages(other, "5", [inChat("5", "1", "Quiet room")], { via: "test" })
+  await store.knowledge.relate(null, {
+    from: "chat:telegram/1/6",
+    to: "project:1",
+    kind: "member-of",
+    confirmed: false,
+    provenance: "agent:test",
+  })
+  await store.close()
+
+  const added = await json("relationships", "add", "chat:telegram/1/8", "project:1", "--as-owner")
+  expect(added).toMatchObject({ from: "chat:telegram/1/8", to: "project:1", kind: "member-of", confirmed: true })
+  await json("relationships", "add", "chat:telegram/2/5", "project:1", "--as-owner")
+  await expect(
+    run("relationships", "add", "chat:telegram/1/8", "project:1", "--kind", "related-to", "--as-owner"),
+  ).rejects.toMatchObject({ code: "validation_error" })
+
+  const found = await json("projects", "evidence", "SYP", "--source", "telegram:1")
+  const lane = found.lanes.find((one: { kinds: string[] }) => one.kinds.includes("linked-chat"))
+  expect(lane).toMatchObject({ query: null, chat: "chat:telegram/1/8" })
+  expect(found.items.find((item: { ref: string }) => item.ref === "msg:telegram/1/8/1")).toMatchObject({
+    context: "linked-chat",
+    lanes: [lane.id],
+  })
+  expect(found.items.some((item: { ref: string }) => item.ref.startsWith("msg:telegram/1/6/"))).toBe(false)
+  expect(found.linked_chats).toEqual([
+    expect.objectContaining({ ref: "chat:telegram/1/8", state: "in-scope" }),
+    expect.objectContaining({ ref: "chat:telegram/2/5", state: "out-of-scope", lane: null }),
+  ])
+  expect(found.unread_sources).toEqual([{ source: "chat:telegram/2/5", kind: "linked-chat", reason: "out-of-scope" }])
+  const text = await run("projects", "evidence", "SYP", "--source", "telegram:1")
+  expect(text).toContain("msg:telegram/1/8/1  [linked chat]")
+  expect(text).toContain("not read: chat:telegram/2/5 (linked-chat, out-of-scope)")
+})

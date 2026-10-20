@@ -30,11 +30,13 @@ export const projectGatherCommand = (
   annotate(projects.command("evidence"), { effects: LOCAL_READ })
     .description(
       "cited references about a project in stored messages, mail, meeting transcripts and imported notes folders. The project's name, " +
-        "its key, each of its aliases and each --alias, each --context-query and each --contact name is its own literal search, and their " +
-        "hits are joined. New mail and documents are indexed for search first, unless --no-catch-up. Reads only " +
+        "its key, each of its aliases and each --alias, each --context-query and each --contact name is its own search: every word of " +
+        "it must appear in one text, in any order, as whole words; their hits are joined. Every message of a chat confirmed as the " +
+        "project's (memo relationships add chat:<provider>/<account>/<chat> project:<id>) is read too, when --source holds its " +
+        "account. New mail and documents are indexed for search first, unless --no-catch-up. Reads only " +
         "what the store holds; proposes and confirms nothing",
     )
-    .summary("find what the store holds about a project, by its names, more words and people")
+    .summary("find what the store holds about a project: names, words, people, linked chats")
     .argument("<project>", "an existing project's id, key, exact name or alias, or a new project's name")
     .requiredOption("--source <accounts>", `where to look, or all: ${ACCOUNTS_HELP}`)
     .option("--alias <name>", "another name of the project, searched on its own; repeat for more", collect)

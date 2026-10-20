@@ -209,11 +209,15 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   byOption(
     annotate(relations.command("add"), { effects: LOCAL_WRITE })
       .description(
-        "state that a person, organization or project belongs to or relates to another; an agent's waits for you to confirm it",
+        "state that a person, organization or project belongs to or relates to another, or that a chat is a project's " +
+          "(member-of only); an agent's waits for you to confirm it",
       )
-      .summary("state that a person, organization or project belongs or relates to another"),
+      .summary("state that a person, organization, project or chat belongs or relates to another"),
   )
-    .argument("<from>", "the person:, organization: or project: that belongs or relates")
+    .argument(
+      "<from>",
+      "the person:, organization: or project: that belongs or relates, or chat:<provider>/<account>/<chat> of a project",
+    )
     .argument("<to>", "the person:, organization: or project: it belongs or relates to")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .option("--kind <kind>", "member-of or related-to", "member-of")
