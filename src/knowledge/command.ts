@@ -31,6 +31,7 @@ import { meetingProjectsCommand } from "./meeting-projects-command.js"
 import { projectActionsCommand } from "./project-actions-command.js"
 import { projectContext, projectContextText } from "./project-context.js"
 import { projectGatherCommand } from "./project-gather-command.js"
+import { projectTransferCommand } from "./project-transfer-command.js"
 
 const RELATIONSHIP_QUERY = {
   entity: "relationship",
@@ -169,6 +170,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     })
   projectGatherCommand(projects, print, env)
   projectActionsCommand(projects, streams, env)
+  projectTransferCommand(projects, streams, env)
   const keys = projects
     .command("key-documents")
     .description("the notes, files and messages to read first about a project, each with why")

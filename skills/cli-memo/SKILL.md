@@ -23,6 +23,14 @@ that `--fingerprint`; `--limit` bounds samples, not counts. Its coverage names f
 tables, not historical text. `apply_supported` is false. Similarity and preview fingerprints never
 authorize alias changes or merging. Re-read and reselect after a stale-fingerprint refusal.
 
+For an explicitly requested isolated reconstruction, `projects annotations export` writes a new private
+file of selected aliases, facts and generic links. `projects annotations check` needs an existing
+destination project/store and explicit reference bindings; show its coverage and conflicts. Notes,
+meeting memberships, tasks, memories, labels and findings are omitted: never treat this as a full
+project backup or use it to justify clearing live data. MCP offers `project_annotations_snapshot` and
+`project_annotations_preview`; neither restores records. Leave CLI `restore` to the owner and never
+clear agent environment markers to bypass that boundary. Historical proposals stay proposed.
+
 1. **Honor account scope.** A read names accounts with `--source`: `telegram:1`, `email:work`, a provider,
    a kind or `group:<name>`. A write names the one account it acts as with `--account telegram:1`.
    Reuse the owner's selected account; if memo refuses an ambiguous selection and lists candidates, ask
