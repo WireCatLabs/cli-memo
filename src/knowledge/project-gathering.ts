@@ -72,6 +72,7 @@ const linkedChatsOf = async (store: MessageStore, project: string | null) => {
   const chats = []
   for (const relation of await store.knowledge.relations(null, project)) {
     if (!relation.confirmed || relation.kind !== "member-of" || relation.to !== project) continue
+    if (!relation.from.startsWith("chat:")) continue
     const reference = parseReference(relation.from)
     if (reference.type === "chat") chats.push(reference)
   }
