@@ -2,8 +2,8 @@
 
 This page helps you find something you wrote or received, in your notes, your mail or your Telegram
 and MAX messages, and give your agent the sources behind an answer. Every result names its source,
-so you can open the original and check it. An empty result means only that the local store has
-nothing that matches; the chat may not be downloaded or the folder not imported yet.
+so you can open the original and check it. An empty result means this search returned no match.
+The selected sources, imported history or search index may still be incomplete.
 
 ## Ask your agent
 
@@ -175,7 +175,7 @@ npx -y @wirecat/tg-cli local models text download e5-small
 
 The model runs on your computer. After the download, run `memo sync` so your notes are prepared
 for it. Each result says whether it was found by words, by meaning or both. Without the model,
-Memo says "Searched by words only" and still finds every note that contains the words.
+Memo says "Searched by words only" and searches stored notes by words.
 
 ## What a result shows
 
