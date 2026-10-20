@@ -4,6 +4,13 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- Guides explain gathering project evidence, reviewing proposed facts and follow-ups, and the
+  `agent_decisions` setting, with the separate review path for meeting transcript findings.
+
 ## 0.78.0 — 19.10.2026
 
 ### Fixed

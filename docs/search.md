@@ -154,8 +154,15 @@ the [meeting search workflow](#search-stored-meetings), then gather again. Mail/
 does not index transcript cues. Missing transcripts must first be archived by their meeting tool;
 finished pagination still leaves archive completeness unknown.
 
-Use a returned checkpoint with the same options and `--cursor` to finish a bounded run, then
-[review proposed decisions and follow-ups](recipes.md#review-a-meetings-decisions-and-follow-ups).
+Use a returned checkpoint with the same options and `--cursor` to continue a bounded run. Check
+whether sources actually made progress: repeated empty pages with the same failed source state do
+not establish complete coverage. Keep the unresolved sources in the answer rather than retrying forever.
+
+For facts and follow-ups supported by stored messages, imported mail or files,
+[review project proposals with their evidence](recipes.md#review-project-facts-and-follow-ups).
+Transcript cue references use the separate
+[meeting findings review](recipes.md#review-a-meetings-decisions-and-follow-ups), which requires confirmed
+meeting-to-project links. Gathering itself creates neither kind of proposal.
 
 ## Search by meaning
 
