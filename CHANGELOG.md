@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+## 0.80.0 — 20.10.2026
+
+### Fixed
+
+- **`memo projects evidence` reads a large document once**, not once per search that matches it: a 95 KB document
+  matched by five searches charged about 476 KB of the read budget. Needs `@wirecat/cli-core` 0.369.0.
+
 ## 0.79.0 — 20.10.2026
 
 ### Added
