@@ -256,3 +256,19 @@ it("lists a document too large to read by reference and gives a read one the par
   const found = await json("projects", "evidence", "SYP", "--source", `notes:${folder.id}`)
   expect(found.oversized).toEqual([{ ref: `document:${huge.id}`, lanes: ["l3"], source: 0, bytes: expect.any(Number) }])
 })
+
+it("resolves --contact person:<id> to the person's name and keeps the reference, and refuses an unknown id", async () => {
+  const { env, json, run } = await setUp()
+  const store = await openStore({ env })
+  await store.people.savePeople(telegram, [{ id: "101", name: "Alice Example" }])
+  const uid = (await store.people.personOf({ provider: "telegram", id: "101" }))?.uid as string
+  await store.close()
+  const found = await json("projects", "evidence", "SYP", "--source", "telegram:1", "--contact", `person:${uid}`)
+  expect(found.lanes.at(-1)).toMatchObject({ query: "Alice Example", people: [`person:${uid}`] })
+  expect(found.items.find((item: { ref: string }) => item.ref === "msg:telegram/1/7/3")).toMatchObject({
+    context: "person-only",
+  })
+  await expect(
+    run("projects", "evidence", "SYP", "--source", "telegram:1", "--contact", "person:NOSUCHPERSON"),
+  ).rejects.toMatchObject({ code: "not_found", details: { param: "contact" } })
+})

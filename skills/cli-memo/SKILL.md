@@ -122,7 +122,7 @@ for other projects. Never confirm or reject your own suggestions.
 
 To collect what the store holds about a project, use `memo projects evidence <project> --source <accounts|all>`
 (MCP `project_evidence`). The name, the key, each alias, `--alias`, `--context-query` and `--contact` is its own
-literal search; hits are joined. New mail and documents are indexed first unless `--no-catch-up`. A `person-only` item mentions a person, not the project. Unread or failed sources are coverage, not
+literal search; hits are joined. `--contact person:<id>` searches that person's stored name and keeps the reference; an unknown id is `not_found`. New mail and documents are indexed first unless `--no-catch-up`. A `person-only` item mentions a person, not the project. Unread or failed sources are coverage, not
 absence. A document too large to read is listed under `oversized`: open it with `memo notes show <ref>`. Continue a stopped run with `--cursor <checkpoint>` and the same options. Nothing is proposed or
 confirmed: cite the references, then stage findings with `memo projects actions add` (MCP
 `project_actions_add`), each reference with the `fingerprint` from the evidence. Review with `memo projects actions

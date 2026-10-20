@@ -48,6 +48,16 @@ const projectOf = async (store: MessageStore, reference: string) => {
   return { ref, name: entry.name, key: entry.key, aliases: entry.aliases.map((alias) => alias.name) }
 }
 
+/** A `person:<id>` is looked up and searched by that person's name, keeping the reference; any other text is a name. */
+const contactOf = async (store: MessageStore, contact: string): Promise<{ name: string; reference?: string }> => {
+  if (!contact.startsWith("person:")) return { name: contact }
+  const person = await store.people.personByUid(contact.slice("person:".length))
+  const name = person?.name ?? person?.identities.find((identity) => identity.name)?.name
+  if (!person) throw new CliError("not_found", `no person ${contact}`, { param: "contact" })
+  if (!name) throw new CliError("validation_error", `${contact} has no name to search`, { param: "contact" })
+  return { name, reference: contact }
+}
+
 /** Days back (`90d`) or a start date (`2026-09-01`); either way the run freezes its end, so a resume keeps it. */
 export const windowOf = (value: string): { days: number } | { after: number } => {
   const days = /^([1-9]\d{0,2})d$/.exec(value)?.[1]
@@ -106,6 +116,7 @@ export const gatherStoredProject = async (
         param: "source",
       },
     )
+  const people = await Promise.all((input.people ?? []).map((contact) => contactOf(store, contact)))
   const aliases = [...new Set([...project.aliases, ...(input.aliases ?? [])])].filter((alias) => alias !== project.name)
   const gathered: ProjectGathering = await gatherProjectEvidence(
     {
@@ -122,7 +133,7 @@ export const gatherStoredProject = async (
       index: input.catchUp === false ? "as-is" : "update",
       around: { before: input.beforeN ?? 2, after: input.afterN ?? 2 },
       ...(input.keywords?.length ? { keywords: input.keywords } : {}),
-      ...(input.people?.length ? { people: input.people.map((name) => ({ name })) } : {}),
+      ...(people.length ? { people } : {}),
       sources,
       scope,
       ...(input.days === undefined ? {} : { lookbackDays: input.days }),

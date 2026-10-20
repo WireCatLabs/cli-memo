@@ -39,7 +39,11 @@ export const projectGatherCommand = (
     .requiredOption("--source <accounts>", `where to look, or all: ${ACCOUNTS_HELP}`)
     .option("--alias <name>", "another name of the project, searched on its own; repeat for more", collect)
     .option("--context-query <words>", "more words that all appear in one text; repeat for another search", collect)
-    .option("--contact <person>", "a person's name; what only names them is context, not the project", collect)
+    .option(
+      "--contact <person>",
+      "a person's name, or person:<id> to search by that person's name; what only names them is context, not the project",
+      collect,
+    )
     .option("--since-time <time>", "how far back: days (90d, at most 730d) or a start date (2026-09-01)", "60d")
     .option("--before-time <time>", "fixed exclusive end: ISO 8601 timestamp with UTC offset; days back count from it")
     .option("--limit <n>", "new references at most, up to 500", positive, 100)
