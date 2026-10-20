@@ -169,6 +169,11 @@ export const projectGatherText = (found: StoredProjectGathering) => {
         .join(", ")} — words found, not membership`,
     )
   if (found.matchedAgain.length) lines.push(`${found.matchedAgain.length} earlier references found again`)
+  if (found.oversized.length)
+    lines.push(
+      `too large to read here: ${found.oversized.map((one) => `${one.ref} (${Math.ceil(one.bytes / 1024)} KiB)`).join(", ")}` +
+        " — open each with memo notes show",
+    )
   if (failed.length) lines.push(`${failed.length} reads failed or had no source: see --json units`)
   if (found.index.state === "failed" || found.index.state === "unavailable")
     lines.push(`the search index could not be brought up to date first (${found.index.code ?? found.index.state})`)

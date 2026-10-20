@@ -231,3 +231,28 @@ it("over MCP needs a source, refuses unknown arguments and reports what all leav
   expect(item.unread_sources).toEqual(expect.arrayContaining([expect.objectContaining({ kind: "notes" })]))
   await client.close()
 })
+
+it("lists a document too large to read by reference and gives a read one the paragraphs around its hit", async () => {
+  const { env, json, run } = await setUp()
+  const store = await openStore({ env })
+  const folder = await store.notes.addFolder({ name: "Synthetic folder" })
+  const { note: huge } = await store.notes.saveFileNote({
+    folderId: folder.id,
+    path: "huge.md",
+    title: "Huge",
+    text: `Harbour archive ${"x".repeat(300000)}`,
+  })
+  await store.notes.saveFileNote({
+    folderId: folder.id,
+    path: "plan.md",
+    title: "Plan",
+    text: "Scope.\n\nThe harbour crane arrives in May.\n\nOwners: Alice Example.",
+  })
+  await store.close()
+  const text = await run("projects", "evidence", "SYP", "--source", `notes:${folder.id}`)
+  expect(text).toContain(`too large to read here: document:${huge.id} (`)
+  expect(text).toContain("(hit) The harbour crane arrives in May.")
+  expect(text).toContain("Owners: Alice Example.")
+  const found = await json("projects", "evidence", "SYP", "--source", `notes:${folder.id}`)
+  expect(found.oversized).toEqual([{ ref: `document:${huge.id}`, lanes: ["l3"], source: 0, bytes: expect.any(Number) }])
+})

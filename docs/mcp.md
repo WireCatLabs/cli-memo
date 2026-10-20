@@ -95,7 +95,7 @@ batches through `memo meetings actions confirm` or `reject`. Staging creates no 
 `document:` reference with the `fingerprint` `project_evidence` gave, and a text changed since then refuses as
 stale. `project_actions_list` pages through a project's proposals — suggested key documents (`key:<n>`) and
 findings batches — each with its evidence: whether the text changed (`state`), the text and the messages around
-it unless `brief`. Decide the ones you are confident about with `project_actions_confirm` (the finding IDs to
+it unless `brief`. A text changed since staging refuses only the findings that cite it. Decide the ones you are confident about with `project_actions_confirm` (the finding IDs to
 create) or `project_actions_reject`, always with a `reason`, which is kept with the decision; ask the owner about
 the rest. A batch needs its `fingerprint`. When the owner sets `agent_decisions: false`, decisions are refused and
 only the owner decides, through `memo projects actions confirm` or `reject`.
