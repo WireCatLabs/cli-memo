@@ -1,5 +1,6 @@
 import { CliError } from "@wirecat/cli-base"
 import { isoTime } from "@wirecat/cli-base/standards"
+import { formatReference, parseReference } from "@wirecat/cli-core"
 import {
   type EvidenceMentions,
   findEvidenceMentions,
@@ -63,6 +64,20 @@ const contactOf = async (store: MessageStore, contact: string): Promise<{ name: 
   return { name: person.name, reference: contact }
 }
 
+const LINKED_CHATS = 16
+
+/** Only links the owner confirmed: a suggested one would put a whole chat into the evidence on a guess. */
+const linkedChatsOf = async (store: MessageStore, project: string | null) => {
+  if (!project) return []
+  const chats = []
+  for (const relation of await store.knowledge.relations(null, project)) {
+    if (!relation.confirmed || relation.kind !== "member-of" || relation.to !== project) continue
+    const reference = parseReference(relation.from)
+    if (reference.type === "chat") chats.push(reference)
+  }
+  return chats.map(({ provider, account, chat }) => ({ provider, account, chat }))
+}
+
 /** Days back (`90d`) or a start date (`2026-09-01`); either way the run freezes its end, so a resume keeps it. */
 export const windowOf = (value: string): { days: number } | { after: number } => {
   const days = /^([1-9]\d{0,2})d$/.exec(value)?.[1]
@@ -98,7 +113,7 @@ export const cutoffTime = (value: string): number => {
 
 export type StoredProjectGathering = ProjectGathering & {
   projectRef: string | null
-  unreadSources: { source: string; kind: string }[]
+  unreadSources: { source: string; kind: string; reason?: "out-of-scope" | "linked-chat-limit" }[]
   mentions: EvidenceMentions
 }
 
@@ -123,6 +138,8 @@ export const gatherStoredProject = async (
     )
   const people = await Promise.all((input.people ?? []).map((contact) => contactOf(store, contact)))
   const aliases = [...new Set([...project.aliases, ...(input.aliases ?? [])])].filter((alias) => alias !== project.name)
+  const linked = await linkedChatsOf(store, project.ref)
+  const linkedChats = linked.slice(0, LINKED_CHATS)
   const gathered: ProjectGathering = await gatherProjectEvidence(
     {
       evidence: store.contextEvidence,
@@ -139,6 +156,7 @@ export const gatherStoredProject = async (
       around: { before: input.beforeN ?? 2, after: input.afterN ?? 2 },
       ...(input.keywords?.length ? { keywords: input.keywords } : {}),
       ...(people.length ? { people } : {}),
+      ...(linkedChats.length ? { linkedChats } : {}),
       sources,
       scope,
       ...(input.days === undefined ? {} : { lookbackDays: input.days }),
@@ -156,13 +174,26 @@ export const gatherStoredProject = async (
     },
   )
   const mentions = await findEvidenceMentions(store.knowledge, gathered, { exclude: project.ref })
-  return { projectRef: project.ref, unreadSources: unread, ...gathered, mentions }
+  const unreadChats = [
+    ...gathered.linkedChats
+      .filter((one) => one.state === "out-of-scope")
+      .map((one) => ({ source: one.ref, kind: "linked-chat", reason: "out-of-scope" as const })),
+    ...linked.slice(LINKED_CHATS).map((one) => ({
+      source: formatReference({ type: "chat", ...one }),
+      kind: "linked-chat",
+      reason: "linked-chat-limit" as const,
+    })),
+  ]
+  return { projectRef: project.ref, unreadSources: [...unread, ...unreadChats], ...gathered, mentions }
 }
+
+const LABELS: Record<string, string> = { "person-only": "  [person only]", "linked-chat": "  [linked chat]" }
 
 const day = (at: number) => new Date(at).toISOString().slice(0, 10)
 
 export const projectGatherText = (found: StoredProjectGathering) => {
-  const lanes = new Map(found.lanes.map((lane) => [lane.id, `${lane.query} (${lane.kinds.join(", ")})`]))
+  const lanes = new Map(found.lanes.map((lane) => [lane.id, `${lane.query ?? lane.chat} (${lane.kinds.join(", ")})`]))
+  const linked = found.items.filter((item) => item.context === "linked-chat").length
   const failed = found.units.filter((unit) => unit.state === "failed" || unit.state === "unavailable")
   const lines = [
     `${found.project.name}${found.projectRef ? ` — ${found.projectRef}` : ""}: ${found.items.length} new references, ` +
@@ -171,12 +202,14 @@ export const projectGatherText = (found: StoredProjectGathering) => {
     `searched: ${[...lanes.values()].join("; ")}`,
     ...found.items.map(
       (item) =>
-        `${day(item.at)}  ${item.ref}${item.context === "person-only" ? "  [person only]" : ""}\n    ${item.text}` +
+        `${day(item.at)}  ${item.ref}${LABELS[item.context] ?? ""}\n    ${item.text}` +
         (item.around ?? [])
           .map((one) => `\n      ${one.found ? "(hit) " : ""}${one.sender ? `${one.sender}: ` : ""}${one.text}`)
           .join(""),
     ),
   ]
+  if (linked)
+    lines.push(`${linked} of these come from the project's linked chats and name nothing: membership, not a word match`)
   if (found.mentions.items.length)
     lines.push(
       `also names: ${found.mentions.items
@@ -210,7 +243,11 @@ export const projectGatherText = (found: StoredProjectGathering) => {
       "index stored transcript cues through the meeting provider's indexing workflow; mail/document catch-up does not index them",
     )
   if (found.unreadSources.length)
-    lines.push(`not read: ${found.unreadSources.map((one) => `${one.source} (${one.kind})`).join(", ")}`)
+    lines.push(
+      `not read: ${found.unreadSources
+        .map((one) => `${one.source} (${one.kind}${one.reason ? `, ${one.reason}` : ""})`)
+        .join(", ")}`,
+    )
   if (found.checkpoint)
     lines.push(
       `stopped${found.stopped ? ` at the ${found.stopped} budget` : ""}; continue with the same options and`,

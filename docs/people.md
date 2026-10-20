@@ -112,6 +112,15 @@ memo relationships list 'about:"project:1"'
 memo relationships remove 4
 ```
 
+A chat can be a project's too, so `memo projects evidence` reads all of it, not only messages that name the
+project. The reference names the chat's account, so no account is guessed:
+
+```sh
+memo relationships add chat:telegram/1/123 project:1
+```
+
+Only `member-of` a project is allowed for a chat.
+
 Relationships are statements you make. They never link two accounts into one person. One an agent
 adds in its terminal waits unconfirmed, with `provenance` naming the agent (`agent:claude-code`), until
 you `memo relationships confirm` it; `--as-owner` makes it yours at once.

@@ -144,7 +144,10 @@ alone. Text output prints the exact cutoff. Keep `--before-time` and the other o
 `--cursor`. A fixed window does not freeze source contents, registered aliases or account selection:
 later imports, edits or deletions can still change the evidence.
 
-Each name or alias is a separate literal-word search; hits are joined. A meeting hit retains its
+Each name or alias is a separate search: every word of it must appear in one text, in any order, as whole
+words; hits are joined. Every message of a chat confirmed as the project's is read too when `--source` holds
+its account. Those items are labelled `linked-chat`: they name nothing, they belong to the chat. A linked chat
+outside `--source` is listed as not read. A meeting hit retains its
 exact cue reference and uses the meeting start date, so an old meeting imported today stays old.
 Read a relevant cue and its neighbours with `memo meetings passage` before drawing conclusions.
 Gathering does not create project links, establish attendees or save extracted facts and tasks.

@@ -126,7 +126,10 @@ incomplete archives remain unknown; Memo does not fetch recordings. Transcript i
 provider's existing indexing workflow; the mail/document catch-up below does not build transcript indexes.
 New mail and documents are indexed for search first; `catch_up: false` reads the index as it is. Each message
 hit carries `around`: `before_n` and `after_n` messages next to it in its chat (default 2), as context, never as
-more hits. `mentions` lists the other projects, tags and topics the texts name, cited; a name is not
+more hits. Every message of a chat confirmed as the project's (`memo relationships add
+chat:<provider>/<account>/<chat> project:<id>`) is read too when `source` holds its account: those items have
+`context: "linked-chat"` and name nothing, their lane has `query: null` and `chat` set, and a linked chat outside
+`source` is listed in `unread_sources`, never read. `mentions` lists the other projects, tags and topics the texts name, cited; a name is not
 membership. An item found only through a
 contact's name has `context: "person-only"`. Failed or unread sources are listed, and `completeness` stays
 `unknown`. When it returns a `checkpoint`, call again with the same arguments and `cursor` set to it.

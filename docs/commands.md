@@ -1220,7 +1220,7 @@ memo projects context <project> [options]
 
 ### `memo projects evidence`
 
-cited references about a project in stored messages, mail, meeting transcripts and imported notes folders. The project's name, its key, each of its aliases and each --alias, each --context-query and each --contact name is its own literal search, and their hits are joined. New mail and documents are indexed for search first, unless --no-catch-up. Reads only what the store holds; proposes and confirms nothing
+cited references about a project in stored messages, mail, meeting transcripts and imported notes folders. The project's name, its key, each of its aliases and each --alias, each --context-query and each --contact name is its own search: every word of it must appear in one text, in any order, as whole words; their hits are joined. Every message of a chat confirmed as the project's (memo relationships add chat:<provider>/<account>/<chat> project:<id>) is read too, when --source holds its account. New mail and documents are indexed for search first, unless --no-catch-up. Reads only what the store holds; proposes and confirms nothing
 
 ```sh
 memo projects evidence <project> [options]
@@ -1246,7 +1246,7 @@ memo projects evidence <project> [options]
 | `--no-catch-up` | read the search index as it is, without indexing new mail and documents first. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** find what the store holds about a project, by its names, more words and people
+**Returns:** find what the store holds about a project: names, words, people, linked chats
 
 **Example:** `memo projects evidence SYH --source telegram:1,email:personal --contact 'Alice Example'`, `memo projects evidence SYH --source all --context-query 'crane tender' --since-time 180d --json`
 
@@ -1512,7 +1512,7 @@ relations between people, organizations and projects; never between identities
 
 ### `memo relationships add`
 
-state that a person, organization or project belongs to or relates to another; an agent's waits for you to confirm it
+state that a person, organization or project belongs to or relates to another, or that a chat is a project's (member-of only); an agent's waits for you to confirm it
 
 This command changes the local store or your files.
 
@@ -1522,7 +1522,7 @@ memo relationships add <from> <to> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `from` | required | the person:, organization: or project: that belongs or relates. |
+| `from` | required | the person:, organization: or project: that belongs or relates, or chat:<provider>/<account>/<chat> of a project. |
 | `to` | required | the person:, organization: or project: it belongs or relates to. |
 
 | Option | What it does |
@@ -1533,7 +1533,7 @@ memo relationships add <from> <to> [options]
 | `--role <role>` | the role it has there, in a few words, such as cto. |
 | `--reason <text>` | why you think so, in a sentence. |
 
-**Returns:** state that a person, organization or project belongs or relates to another
+**Returns:** state that a person, organization, project or chat belongs or relates to another
 
 **Example:** `memo relationships add person:3 organization:1 --role cto`, `memo relationships add project:2 organization:1 --kind related-to --reason 'same client'`
 
