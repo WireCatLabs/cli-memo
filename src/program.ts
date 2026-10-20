@@ -39,6 +39,27 @@ import { vocabularyCommand } from "./vocabulary/command.js"
 
 /** memo's own answers, beyond cli-core's entities, so `--json=<field>` is checked against what each row holds. */
 const OWN_ENTITIES = entityFields({
+  project_annotation_export: [
+    "output_file",
+    "project",
+    "manifest_fingerprint",
+    "coverage",
+    "counts",
+    "read_bytes",
+    "records",
+  ],
+  project_annotation_transfer: [
+    "plan",
+    "descriptor_conflicts",
+    "namespace_conflicts",
+    "ready",
+    "fingerprint",
+    "read_bytes",
+    "records",
+    "project",
+    "mappings",
+    "counts",
+  ],
   source_tag: [
     "provider",
     "account",

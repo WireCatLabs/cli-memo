@@ -9,8 +9,9 @@ to an AI provider only when you configure one and allow it.
 
 ## Imports leave your sources unchanged
 
-- **Note folders** are only read. Hidden folders such as `.obsidian` are skipped. Memo writes files
-  only when you export notes, into the folder you name, and never overwrites a file you edited.
+- **Note folders** are only read. Hidden folders such as `.obsidian` are skipped. Note exports write
+  into the folder you name and never overwrite a file you edited. Selected annotation exports create
+  a new private file at the path you choose, as described below.
 - **Mail imports** open your mailbox read-only and do not mark mail as read. Memo never sends mail.
 - **Gmail cleanup** is separate: `memo mail trash` and `memo mail restore` show a preview unless you
   pass `--yes`. Trash moves selected mail into Gmail's Trash; Gmail deletes it permanently after
@@ -48,6 +49,12 @@ nothing and tells you.
   `--as-owner` is a label, not a lock: an agent can pass it
   too, so tell your agent never to.
 - Approving an action makes it a task for you. Memo never sends a message or an email.
+- Selected [project annotation export and preview](recipes.md#keep-selected-project-annotations) read
+  sources and targets without restoring them. Export writes a new private file and refuses existing
+  paths. Restore belongs to the owner, requires a successful preview fingerprint and is not an MCP
+  tool. It preserves historical accepted/proposed state; it is not a new confirmation of a proposal.
+  MCP reads still produce their normal audit entry. The format omits several project facets and
+  cannot replace a full archive backup.
 - The agent log records the agent, the tool, the result and the time, never what the agent sent.
 - An agent that should only read runs with `MEMO_READ_ONLY=1`. Every command that changes something then
   stops with `permission_error` (exit 5), and `memo mcp` offers only its reading tools. Reads and `memo sync`

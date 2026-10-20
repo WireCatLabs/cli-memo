@@ -156,6 +156,64 @@ meeting review flow still leaves confirmation to the owner.
 
 Next, [prepare an agenda using the project's accepted context](#prepare-for-a-meeting-with-someone).
 
+## Keep selected project annotations
+
+Use a selected annotation snapshot when you want to inspect or reconstruct a project's aliases,
+facts and generic links in a separate prepared store. You get a private JSON file and a preview of
+destination conflicts. Notes, meeting memberships, tasks, memories, labels and findings are omitted;
+keep your normal archive backup for those. External documents, messages and people are referenced,
+not copied or recreated.
+
+```text prompt
+Use memo CLI to export the Harbour project's selected annotations to a new file I choose.
+Show the coverage and counts. Help me prepare explicit bindings to an existing separate test store,
+then preview the transfer and explain any missing sources or conflicts. Leave restoration for me.
+```
+
+```sh
+memo projects annotations export HRB --output harbour-annotations.json --json
+memo projects annotations check harbour-annotations.json --target-store ./trial/wirecat.db --project project:2 --bindings bindings.json --json
+```
+
+The output's parent folder must exist; export refuses an existing file and writes with private file
+permissions. It preserves proposed state and stores hashes of external source text. The snapshot's
+`coverage` lists every omitted facet. It never deletes or resets the project.
+
+Prepare the target separately, with its project key and name matching the snapshot. The sources and
+actors you bind must already exist there; text-source hashes must match. `project:2` above is an
+invented destination reference: use the actual reference from `MESSAGING_STORE=./trial/wirecat.db memo projects list --json`.
+`bindings.json` maps the snapshot's project reference and every `external[].ref` to an explicit
+destination reference. For example:
+
+```json
+{"project:1":"project:2","bot:3":"bot:7","document:4":"document:9"}
+```
+
+These are illustrative IDs. Reading a reference does not establish identity: choose bindings from
+the records you checked. Names never merge people automatically. The preview must report `ready: true`
+with no missing binding, changed text, descriptor or project-name/alias conflict. Existing
+selected annotations are a conflict, even if they look similar. An over-budget read refuses instead
+of checking only part of the target. The read counters cover the selected SDK read, not physical
+disk I/O. Source key/name/alias resolution reads a separately bounded project catalog; pass a
+`project:<id>` reference to read the selected graph directly.
+
+After checking the preview, the owner can run:
+
+```sh
+memo projects annotations restore harbour-annotations.json --target-store ./trial/wirecat.db --project project:2 --bindings bindings.json --fingerprint PREVIEW_FINGERPRINT --json
+```
+
+Replace `PREVIEW_FINGERPRINT` with the exact successful preview fingerprint. Restore checks again,
+applies the selected changes together and rolls them all back on failure. A changed source or target
+requires a new preview. Repeating a completed restore into the populated target refuses; it does not
+add duplicates. Historical accepted facts stay accepted and proposed facts stay proposed. Memo
+refuses restoration when its environment identifies the caller as an agent; this is a CLI policy,
+not an operating-system access boundary. MCP offers only snapshot and preview reads. MCP calls
+still record their normal audit entry.
+
+Once the preview and selected counts agree, return to [project review](#review-project-facts-and-follow-ups)
+for current proposals; the snapshot does not decide them.
+
 ## Find where something was decided
 
 ```text prompt

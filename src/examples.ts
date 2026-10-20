@@ -97,6 +97,13 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "projects add": ["memo projects add 'Harbour' --key HRB --type client --organization 1"],
   "projects list": ["memo projects list"],
   "projects context": ["memo projects context HRB", "memo projects context project:2 --json"],
+  "projects annotations export": ["memo projects annotations export HRB --output harbour-annotations.json --json"],
+  "projects annotations check": [
+    "memo projects annotations check harbour-annotations.json --target-store ./trial/wirecat.db --project project:2 --bindings bindings.json --json",
+  ],
+  "projects annotations restore": [
+    "memo projects annotations restore harbour-annotations.json --target-store ./trial/wirecat.db --project project:2 --bindings bindings.json --fingerprint aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --json",
+  ],
   "projects key-documents add": ["memo projects key-documents add HRB note:12 --reason 'the brief'"],
   "projects key-documents remove": ["memo projects key-documents remove HRB note:12"],
   "projects key-documents list": ["memo projects key-documents list HRB"],

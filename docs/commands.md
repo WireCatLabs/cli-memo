@@ -1355,6 +1355,85 @@ memo projects actions reject <project> <id> [options]
 
 **Example:** `memo projects actions reject SYH 12 --fingerprint 3f9a0c --reason 'not about this project'`
 
+### `memo projects annotations`
+
+selected project aliases, facts and generic links; not a full backup
+
+#### `memo projects annotations export`
+
+write selected annotations to a new private file, omitting source bodies
+
+This command changes the local store or your files.
+
+```sh
+memo projects annotations export <project> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `project` | required | the project's id, key, exact name or alias. |
+
+| Option | What it does |
+|---|---|
+| `--output <file>` | new snapshot file; parent folder must exist and existing paths are refused. |
+| `--max-read-bytes <bytes>` | source input byte budget, at most 4194304. |
+| `--json` | print JSON; --json=project,counts keeps only those fields. |
+
+**Returns:** write selected annotations to a new private file, omitting source bodies
+
+**Example:** `memo projects annotations export HRB --output harbour-annotations.json --json`
+
+#### `memo projects annotations check`
+
+check bindings and conflicts in an existing target without restoring
+
+```sh
+memo projects annotations check <file> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `file` | required | version2 snapshot JSON file, at most 4194304 UTF-8 bytes. |
+
+| Option | What it does |
+|---|---|
+| `--target-store <file>` | explicit existing destination store; never created by preview. |
+| `--project <project>` | explicit destination project:<id>; its key and name must match the snapshot. |
+| `--bindings <file>` | JSON object mapping every external source reference and the project to explicit target references. |
+| `--max-read-bytes <bytes>` | destination input byte budget, at most 4194304. |
+| `--json` | print JSON; --json=ready,fingerprint keeps only those fields. |
+
+**Returns:** check bindings and conflicts in an existing target without restoring
+
+**Example:** `memo projects annotations check harbour-annotations.json --target-store ./trial/wirecat.db --project project:2 --bindings bindings.json --json`
+
+#### `memo projects annotations restore`
+
+owner: restore selected annotations with the exact successful check fingerprint
+
+This command changes the local store or your files.
+
+```sh
+memo projects annotations restore <file> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `file` | required | version2 snapshot JSON file, at most 4194304 UTF-8 bytes. |
+
+| Option | What it does |
+|---|---|
+| `--target-store <file>` | explicit existing destination store; never created by preview. |
+| `--project <project>` | explicit destination project:<id>; its key and name must match the snapshot. |
+| `--bindings <file>` | JSON object mapping every external source reference and the project to explicit target references. |
+| `--max-read-bytes <bytes>` | destination input byte budget, at most 4194304. |
+| `--json` | print JSON; --json=project,counts keeps only those fields. |
+| `--fingerprint <hash>` | exact fingerprint returned by the successful target preview. |
+
+**Returns:** owner: restore selected annotations with the exact successful check fingerprint
+
+**Example:** `memo projects annotations restore harbour-annotations.json --target-store ./trial/wirecat.db --project project:2 --bindings bindings.json --fingerprint aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --json`
+
 ### `memo projects key-documents`
 
 the notes, files and messages to read first about a project, each with why

@@ -66,6 +66,7 @@ Use the memo tools to list the memories waiting for my review.
 | `project_context` | Key documents, pending relationships, facts and meeting findings, plus open numbered tasks |
 | `project_evidence` | Cited references about a project from stored messages, mail, meeting transcripts and notes folders, searched by its names, more words and people; read only |
 | `project_actions_add`, `project_actions_list`, `project_actions_confirm`, `project_actions_reject` | Stage cited facts and follow-ups about a project, review them with the evidence and its context, and decide the ones you are confident about with a reason |
+| `project_annotations_snapshot`, `project_annotations_preview` | Read selected aliases, facts and generic links, or check explicit bindings against a prepared target; restore is owner-only through CLI |
 | `meeting_actions_add`, `meeting_actions_show`, `meeting_actions_list` | Propose and inspect cited meeting facts and follow-ups; never confirm them |
 | `person_context` | One person across messengers and mail, with linked notes and tasks, read only |
 | `memories_add`, `memories_list`, `memories_show`, `search_memories` | Save and read memories |
@@ -135,5 +136,18 @@ Use `project_context` with a project key, exact name or alias to review pending 
 Meeting previews read at most five batches from each of eight linked meeting accounts; coverage and
 continuation commands identify more or missing records. A preview includes only this project's
 undecided findings. Read the full batch before review: it can also hold findings for another project.
+
+`project_annotations_snapshot` returns a version-2 `snapshot`, its `fingerprint`, coverage and bounded
+read counters for an existing project. It omits source bodies and preserves proposed state. Pass that
+snapshot to `project_annotations_preview` with an explicit `target_store`, destination `project:<id>`
+and `bindings` mapping every external reference and the project. `max_read_bytes` can lower the
+4 MiB read budget. The target must already exist and have matching sources and project key/name;
+the tool reports conflicts and a fingerprint without restoring annotations. Both tools refuse
+unknown arguments. Schema validation is followed by the shared graph and content checks.
+
+Notes, meeting memberships, tasks, memories, labels and findings are omitted, so this is a selected
+annotation format rather than a full project backup. There is no MCP restore tool; the owner uses
+the [selected annotation workflow](recipes.md#keep-selected-project-annotations). These reading
+tools remain available with `MEMO_READ_ONLY=1`; calls still produce the normal agent audit entry.
 
 Next: [review what the app saved](memories.md).

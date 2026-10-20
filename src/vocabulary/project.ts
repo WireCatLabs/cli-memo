@@ -1,14 +1,18 @@
 import { CliError } from "@wirecat/cli-base"
 import type { MessageStore } from "@wirecat/cli-core/store"
 
-export const canonicalProject = async (store: MessageStore, reference: string): Promise<string> => {
+export const canonicalProject = async (
+  store: MessageStore,
+  reference: string,
+  limits: { maxEntries?: number; maxReadBytes?: number } = {},
+): Promise<string> => {
   if (/^project:[1-9]\d*$/.test(reference)) {
-    const catalog = await store.knowledge.vocabulary({ kind: "project" })
+    const catalog = await store.knowledge.vocabulary({ kind: "project", ...limits })
     if (!catalog.entries.some((entry) => entry.id === reference.slice(8)))
       throw new CliError("not_found", "the owner project is unavailable")
     return reference
   }
-  const found = await store.knowledge.resolveVocabulary(reference, { kind: "project" })
+  const found = await store.knowledge.resolveVocabulary(reference, { kind: "project", ...limits })
   if (found.matches.length !== 1)
     throw new CliError(
       found.matches.length ? "validation_error" : "not_found",
