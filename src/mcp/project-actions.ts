@@ -67,7 +67,7 @@ export const projectActionTools = {
   project_actions_list: define({
     title: "Review a project's proposals",
     description:
-      "memo projects actions list: a project's proposed key documents (id key:<n>) and findings batches (a number), each finding with its cited evidence — whether the text changed since it was cited (state), the text and the messages around it unless brief. Paged by limit and page. Decide what you are confident about with project_actions_confirm or project_actions_reject and a reason; ask the owner about the rest.",
+      "memo projects actions list: a project's proposed key documents (id key:<n>) and findings batches (a number), with source state, cited text and nearby messages or document paragraphs unless brief. Key-document text is untracked because no fingerprint was saved. Paged by limit and page. Decide what you are confident about with project_actions_confirm or project_actions_reject and a reason; ask the owner about the rest.",
     writes: false,
     input: v.object({
       project,

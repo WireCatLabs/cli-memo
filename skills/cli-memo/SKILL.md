@@ -126,7 +126,8 @@ literal search; hits are joined. New mail and documents are indexed first unless
 absence. A document too large to read is listed under `oversized`: open it with `memo notes show <ref>`. Continue a stopped run with `--cursor <checkpoint>` and the same options. Nothing is proposed or
 confirmed: cite the references, then stage findings with `memo projects actions add` (MCP
 `project_actions_add`), each reference with the `fingerprint` from the evidence. Review with `memo projects actions
-list <project>`: it shows each cited text, whether it changed, and the messages or paragraphs around it. A changed
+list <project>`: it shows each cited text, whether it changed, and the messages or paragraphs around it.
+Suggested key documents have `state: "untracked"` because no source fingerprint was saved; reread them before deciding. A changed
 text refuses only the findings that cite it; confirm the others and stage a new batch for those. Decide what you are
 confident about with `confirm` or `reject` and `--reason` — the reason is kept with the decision — and ask the
 owner about anything uncertain: who did what, dates, commitments versus suggestions. If the owner set

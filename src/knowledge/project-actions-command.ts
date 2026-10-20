@@ -62,14 +62,14 @@ export const projectActionsCommand = (projects: Command, streams: Streams, env: 
   )
     .summary("a project's proposals with the evidence to decide them")
     .description(
-      "a project's proposed key documents and findings, newest first, each with its cited evidence: whether the " +
-        "text changed since it was cited, the text itself and the messages around it",
+      "a project's proposed key documents and findings, newest first, with source state, cited text and nearby " +
+        "messages or document paragraphs; key-document text is untracked because no fingerprint was saved",
     )
     .option("--limit <n>", "findings batches per page, at most 50", positive, 10)
     .option("--page <n>", "which page, from 1; key documents come on the first", positive, 1)
-    .option("--brief", "only the references and whether their text changed, without the text around them")
-    .option("--before-n <n>", "messages before each cited message, at most 5", whole, 2)
-    .option("--after-n <n>", "messages after each cited message, at most 5", whole, 2)
+    .option("--brief", "only references and source state, without excerpts or nearby text")
+    .option("--before-n <n>", "messages or document paragraphs before the citation, at most 5", whole, 2)
+    .option("--after-n <n>", "messages or document paragraphs after the citation, at most 5", whole, 2)
     .action(
       (
         reference: string,

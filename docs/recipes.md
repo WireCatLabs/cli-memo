@@ -122,14 +122,19 @@ memo projects actions list HRB --limit 5 --page 1 --json
 memo projects actions list HRB --brief
 ```
 
-The normal view includes cited excerpts and nearby messages. Read the full source when an excerpt is
+The normal view includes cited excerpts and nearby messages or document paragraphs. Read the full source when an excerpt is
 not enough to judge the claim. `--brief` keeps references and source state without that context.
+Key-document suggestions have no saved text fingerprint: their state is `untracked`, so reread them
+before deciding. This differs from a finding whose cited text can be checked against its saved fingerprint.
 `--limit` counts findings batches; proposed key documents are added on the first page. Use `--page 2`
 and later pages while the result reports more. Gathering uses checkpoints; this review list uses page numbers.
 
 Check each finding's meaning, project, date and assignee against its evidence. An exact quote or
 unchanged source fingerprint does not establish that a conclusion follows from the text. If a cited
-source changed or disappeared, reread it and prepare a fresh proposal; an obsolete batch can be rejected.
+source changed or disappeared, reread it and prepare a fresh proposal for the affected findings. You
+can still accept findings whose own project, assignee and cited text are unchanged. Some older batches
+require every citation to be unchanged; if those refuse, stage the findings you still want in a new
+batch. An obsolete batch can be rejected.
 
 An owner can confirm a key document such as `key:12`, or accept selected finding IDs from a batch.
 For example, replace `7`, both finding IDs and `BATCH_FINGERPRINT` with values from the review list:

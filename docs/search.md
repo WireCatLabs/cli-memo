@@ -149,6 +149,11 @@ exact cue reference and uses the meeting start date, so an old meeting imported 
 Read a relevant cue and its neighbours with `memo meetings passage` before drawing conclusions.
 Gathering does not create project links, establish attendees or save extracted facts and tasks.
 
+A document hit includes short paragraphs around the first paragraph naming a searched word. They
+help locate the passage; they do not establish that a conclusion is supported. If `oversized` lists
+a document, gathering did not read its text: open its returned reference with `memo notes show` when
+needed. Keep the unread source in the result rather than calling that evidence absent.
+
 If `units` reports a pending meeting index, run `memo search meetings` for the same account through
 the [meeting search workflow](#search-stored-meetings), then gather again. Mail/document catch-up
 does not index transcript cues. Missing transcripts must first be archived by their meeting tool;

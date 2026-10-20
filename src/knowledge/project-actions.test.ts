@@ -184,7 +184,7 @@ it("lets the owner turn agent decisions off, and decides suggested key documents
   const listed = await run(owner, "projects", "actions", "list", "SYP")
   const suggestion = listed.items.find((one: { kind: string }) => one.kind === "key_document")
   expect(suggestion).toMatchObject({ id: `key:${key.id}`, reason: "the tracker" })
-  expect(suggestion.evidence[0]).toMatchObject({ state: "unchanged", text: "Ok, I will send the bank tracker" })
+  expect(suggestion.evidence[0]).toMatchObject({ state: "untracked", text: "Ok, I will send the bank tracker" })
   await expect(
     run(agent, "projects", "actions", "confirm", "SYP", suggestion.id, "--reason", "it is the tracker"),
   ).rejects.toMatchObject({ details: { reason: "projects.agent-decisions-off" } })

@@ -1,6 +1,6 @@
 import { CliError } from "@wirecat/cli-base"
 import type { FindingsInput } from "@wirecat/cli-core/meetings"
-import { contextEvidenceFingerprint, excerpt, storedNeighbours } from "@wirecat/cli-core/services"
+import { contextEvidenceFingerprint, documentPassage, excerpt, storedNeighbours } from "@wirecat/cli-core/services"
 import type { Author, EvidenceFindingsBatch, MessageStore, Project } from "@wirecat/cli-core/store"
 import { loadConfig } from "../config.js"
 import { keyDocuments } from "./key-documents.js"
@@ -23,22 +23,28 @@ const evidenceContext = async (
   const state =
     record === null || record === undefined
       ? "missing"
-      : fingerprint === null || contextEvidenceFingerprint(record) === fingerprint
-        ? "unchanged"
-        : "changed"
+      : fingerprint === null
+        ? "untracked"
+        : contextEvidenceFingerprint(record) === fingerprint
+          ? "unchanged"
+          : "changed"
   if (window.brief || !record) return { reference: ref, state }
   const around =
     window.before + window.after === 0
       ? []
-      : await storedNeighbours(store)
-          .around(ref, window)
-          .catch(() => [])
+      : ref.startsWith("document:")
+        ? documentPassage(record.text, words, window).map((one) => ({ ref, ...one }))
+        : (
+            await storedNeighbours(store)
+              .around(ref, window)
+              .catch(() => [])
+          ).map((one) => ({ ...one, text: excerpt(one.text, words, 200) }))
   return {
     reference: ref,
     state,
     title: record.title,
     text: excerpt(record.text, words, 400),
-    around: around.map((one) => ({ ...one, text: excerpt(one.text, words, 200) })),
+    around,
   }
 }
 
