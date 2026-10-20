@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { Client } from "@modelcontextprotocol/client"
 import { InMemoryTransport } from "@modelcontextprotocol/server"
 import { captureStreams } from "@wirecat/cli-base"
+import { sampleMeeting } from "@wirecat/cli-core/meetings/testing"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
@@ -328,4 +329,21 @@ it("reads a project's confirmed linked chats whole, never a suggested one or one
   const text = await run("projects", "evidence", "SYP", "--source", "telegram:1")
   expect(text).toContain("msg:telegram/1/8/1  [linked chat]")
   expect(text).toContain("not read: chat:telegram/2/5 (linked-chat, out-of-scope)")
+})
+
+it("reads linked chats when the project also has a confirmed meeting link", async () => {
+  const { env, json } = await setUp()
+  const store = await openStore({ env })
+  const inChat = { ...message("1", "Weather is fine today", daysAgo(4)), chatId: "8" }
+  await store.messages.saveMessages(telegram, "8", [inChat], { via: "test" })
+  const key = { provider: "zoom", account: "ExampleCalendar" }
+  const input = sampleMeeting()
+  input.meeting.accountId = await store.accounts.saveAccount(key, { name: "ExampleCalendar" })
+  const saved = await store.meetings.saveMeeting(input)
+  await store.knowledge.linkMeetingProject(key, String(saved.meeting.id), "1", { by: "owner" })
+  await store.close()
+  await json("relationships", "add", "chat:telegram/1/8", "project:1", "--as-owner")
+
+  const found = await json("projects", "evidence", "SYP", "--source", "telegram:1")
+  expect(found.linked_chats).toEqual([expect.objectContaining({ ref: "chat:telegram/1/8", state: "in-scope" })])
 })

@@ -6,6 +6,12 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **`memo projects evidence` no longer fails on a project with a confirmed meeting link.** Reading linked chats
+  parsed every confirmed member-of link as a reference and stopped at `meeting:…` with `input.invalid`; it now skips
+  links that are not chats. Broken in 0.84.0.
+
 ## 0.84.0 — 20.10.2026
 
 ### Added
