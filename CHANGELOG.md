@@ -8,6 +8,8 @@ the API.
 
 ### Fixed
 
+- Guides consistently distinguish proposed memories and direct facts from project proposals that an
+  agent can decide with a recorded reason, and explain the owner decision setting and meeting boundary.
 - **`sync --retry-attachments` help no longer says to install an extraction engine.** The PDF and Word
   readers ship with memo; the option is for attachments an older memo or a broken install left unread.
 

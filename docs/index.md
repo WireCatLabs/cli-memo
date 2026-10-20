@@ -38,10 +38,12 @@ Three words appear on every page:
    move selected mail to Trash or restore it only with `--yes`.
 3. **You or your agent ask.** Memo answers with the matching text and a reference to each source,
    so you can open the original and check it.
-4. **Your agent can suggest, but you decide.** What an app adds through MCP, and every proposed
-   action, waits for your review. Memo never sends a message or an email.
+4. **You control project decisions.** An agent's new memories, directly recorded facts and outbound action
+   proposals wait for review. By default an agent may decide project proposals with a recorded
+   reason; [require owner decisions](./configuration.md#agent_decisions) if you want to review each one.
+   Meeting findings still need the owner. Memo never sends a message or an email.
 
-Everything stays on your computer. Memo sends your text to an AI provider only when you set one up
+Memo keeps the store on your computer. Memo sends your text to an AI provider only when you set one up
 and allow it for that request. [How Memo works](./how-it-works.md) explains this in more detail.
 
 ## Get started

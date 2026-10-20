@@ -31,14 +31,21 @@ When you delete a note file or an email, its text leaves the local store on the 
 import finds that an unusually large part of a folder or mailbox is missing at once, it deletes
 nothing and tells you.
 
-## Agents suggest, you decide
+<a id="agents-suggest-you-decide"></a>
 
-- Proposed actions, and memories and facts added through the MCP server, wait for your review.
-  Through the MCP server, an agent cannot confirm, accept, approve or reject.
-- A fact, memory, relationship or proposed action added with the `memo` command records who wrote it.
+## Control agent decisions
+
+- An agent's memories, directly recorded facts and outbound action proposals start as proposed. MCP does not
+  confirm memories, directly accept existing proposed facts or approve outbound actions.
+- Project proposals have a separate review flow. By default an agent can confirm or reject them with
+  a recorded reason; confirmation can create accepted facts and numbered tasks or confirm a key
+  document. Set [`agent_decisions: false`](configuration.md#agent_decisions) to require owner decisions
+  for project proposals. Reading and proposing still work. Meeting findings still require the owner.
+- A fact, memory or relationship added with the `memo` command records who wrote it.
   When an agent's terminal runs it (`AI_AGENT` or `CLAUDECODE` is set), the agent is the author and the
-  fact, memory or relationship waits for you like one added through MCP. Yours is confirmed at once;
-  in an agent's terminal, add `--as-owner`. `--as-owner` is a label, not a lock: an agent can pass it
+  directly recorded fact, memory or new relationship waits for review. An owner's memory or relationship
+  is confirmed and a fact accepted at once; in an agent's terminal, add `--as-owner`.
+  `--as-owner` is a label, not a lock: an agent can pass it
   too, so tell your agent never to.
 - Approving an action makes it a task for you. Memo never sends a message or an email.
 - The agent log records the agent, the tool, the result and the time, never what the agent sent.

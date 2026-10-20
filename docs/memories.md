@@ -27,10 +27,15 @@ shows how.
 
 For a batch of cited meeting facts and tasks, use the [meeting findings review](#meeting-findings) below.
 
+For sources gathered across a project, use the [project proposal review](recipes.md#review-project-facts-and-follow-ups).
+By default an agent may decide those proposals with a recorded reason, creating accepted facts and
+numbered tasks. Set [`agent_decisions: false`](configuration.md#agent_decisions) to require owner
+decisions for project proposals. Meeting findings still require the owner.
+
 **What waits for you.** A proposed action always waits until you approve or reject it. A memory or
-fact waits when an agent adds it: through [the MCP server](mcp.md), or with the `memo` command in an
+directly recorded fact waits when an agent adds it: through [the MCP server](mcp.md), or with the `memo` command in an
 agent's terminal (`AI_AGENT` or `CLAUDECODE` set), where the agent is recorded as its author. One you
-add yourself is confirmed at once; in an agent's terminal, add `--as-owner` to make it yours. An agent
+add yourself is confirmed (memory) or accepted (fact) at once; in an agent's terminal, add `--as-owner` to make it yours. An agent
 can pass `--as-owner` too, so tell it not to.
 
 ## Memories
@@ -68,7 +73,7 @@ memo facts confirm fact:4
 ```
 
 A fact you add with the `memo` command is accepted at once. One an agent adds waits as `proposed`
-until you `accept` it; `author` and `origin` say who wrote it. `facts list` narrows by `kind`,
+until you run `memo facts confirm`; `author` and `source` say who wrote it. `facts list` narrows by `kind`,
 `status`, `project` and `subject` in its query. `--project project:1` puts the fact in a project, and `--occurred-time` gives the date it happened.
 
 A decision can replace an earlier one: add `--supersedes fact:2`. When you accept the new decision,
@@ -135,7 +140,8 @@ first: which agent, which tool, the result and the time. It never stores what th
 ## Through the MCP server
 
 An app without a terminal, such as Claude Desktop, can add memories, facts and proposed actions
-through [the MCP server](mcp.md). What it adds always waits for you: through MCP an agent cannot
-confirm, accept, approve or reject.
+through [the MCP server](mcp.md). These tools create proposed records; MCP cannot confirm memories,
+directly accept existing proposed facts or approve outbound actions. The separate project proposal
+flow can create accepted facts and numbered tasks when agent decisions are allowed, as described above.
 
 Next: [connect an app through MCP](mcp.md).
