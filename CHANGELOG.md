@@ -20,11 +20,14 @@ the API.
 
 ### Changed — may break callers
 
-- Needs `@wirecat/cli-core` 0.376.0. A project evidence lane's `query` is `null` for a linked chat; its `chat`
+- Needs `@wirecat/cli-core` 0.377.0. A project evidence lane's `query` is `null` for a linked chat; its `chat`
   holds the chat reference.
 
 ### Fixed
 
+- **A document hit's `around` is centred on the first paragraph that names a searched word**, in document order,
+  not on the paragraph the first lane found. A document item also carries `moreMatches`: how many later paragraphs
+  name a searched word too (`@wirecat/cli-core` 0.377.0).
 - **`projects evidence` help no longer says "literal search".** Each name, alias, `--context-query` and
   `--contact` is a search where every word must appear in one text, in any order, as whole words; it is not a
   phrase search.
