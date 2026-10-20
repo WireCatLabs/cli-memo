@@ -52,10 +52,15 @@ const projectOf = async (store: MessageStore, reference: string) => {
 const contactOf = async (store: MessageStore, contact: string): Promise<{ name: string; reference?: string }> => {
   if (!contact.startsWith("person:")) return { name: contact }
   const person = await store.people.personByUid(contact.slice("person:".length))
-  const name = person?.name ?? person?.identities.find((identity) => identity.name)?.name
   if (!person) throw new CliError("not_found", `no person ${contact}`, { param: "contact" })
-  if (!name) throw new CliError("validation_error", `${contact} has no name to search`, { param: "contact" })
-  return { name, reference: contact }
+  if (!person.name) {
+    throw new CliError(
+      "validation_error",
+      `${contact} has no stored name; give the person a name, or pass a literal name to --contact`,
+      { param: "contact" },
+    )
+  }
+  return { name: person.name, reference: contact }
 }
 
 /** Days back (`90d`) or a start date (`2026-09-01`); either way the run freezes its end, so a resume keeps it. */
