@@ -9,8 +9,9 @@ to an AI provider only when you configure one and allow it.
 
 ## Imports leave your sources unchanged
 
-- **Note folders** are only read. Hidden folders such as `.obsidian` are skipped. Memo writes files
-  only when you export notes, into the folder you name, and never overwrites a file you edited.
+- **Note folders** are only read. Hidden folders such as `.obsidian` are skipped. Note exports write
+  into the folder you name and never overwrite a file you edited. Selected annotation exports create
+  a new private file at the path you choose, as described below.
 - **Mail imports** open your mailbox read-only and do not mark mail as read. Memo never sends mail.
 - **Gmail cleanup** is separate: `memo mail trash` and `memo mail restore` show a preview unless you
   pass `--yes`. Trash moves selected mail into Gmail's Trash; Gmail deletes it permanently after
