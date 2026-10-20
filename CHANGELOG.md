@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.83.0 — 20.10.2026
+
 ### Added
 
 - `memo projects evidence --contact person:<id>` (MCP `project_evidence` `contact`) searches the person's stored name and
