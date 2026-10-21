@@ -1645,7 +1645,7 @@ memo reminders add <task> [options]
 | `--provider <provider>` | deprecated: --account <provider>:<account>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--at-time <time>` | when to remind: an ISO 8601 time with its UTC offset. |
-| `--timezone <zone>` | IANA timezone. Default: `UTC`. |
+| `--timezone <zone>` | IANA timezone; the computer's when not given. |
 
 **Returns:** add a reminder for an open task
 
@@ -2784,7 +2784,7 @@ memo search meetings <query> [options]
 |---|---|
 | `--project <project>` | meetings confirmed in this project, by name, key or alias. |
 | `--since-time <time>` | meetings starting at or after this ISO 8601 date or time. |
-| `--until-time <time>` | meetings starting at or before this ISO 8601 date or time. |
+| `--until-time <time>` | meetings starting at or before this ISO 8601 date or time; a date alone covers that whole local day. |
 | `--limit <n>` | how many hits, 1 through 1000 (default 100). |
 | `--cursor <cursor>` | continue from the previous page's page.next_cursor, with the same query and filters. |
 | `--max-read-bytes <bytes>` | most stored bytes to read, 1 through 67108864 (default 4194304). |
