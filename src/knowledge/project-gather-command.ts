@@ -43,7 +43,8 @@ export const projectGatherCommand = (
     .option("--context-query <words>", "more words that all appear in one text; repeat for another search", collect)
     .option(
       "--contact <person>",
-      "a person's name, or person:<id> to search by that person's name; what only names them is context, not the project",
+      "a name to search, or person:<id> to read what that person's stored identities wrote and search the aliases " +
+        "you gave them; what only names them or comes from them is context, not the project",
       collect,
     )
     .option("--since-time <time>", "how far back: days (90d, at most 730d) or a start date (2026-09-01)", "60d")

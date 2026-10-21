@@ -131,7 +131,9 @@ chat:<provider>/<account>/<chat> project:<id>`) is read too when `source` holds 
 `context: "linked-chat"` and name nothing, their lane has `query: null` and `chat` set, and a linked chat outside
 `source` is listed in `unread_sources`, never read. `mentions` lists the other projects, tags and topics the texts name, cited; a name is not
 membership. An item found only through a
-contact's name has `context: "person-only"`. Failed or unread sources are listed, and `completeness` stays
+contact's name has `context: "person-only"`. A `person:<id>` contact reads what that person's stored identities
+wrote in `source` (lane `kinds: ["sender"]`, `query: null`, `senders` set; items `context: "sender"`, which may name
+nothing) and searches only the aliases the owner gave them, not their messenger display name. Failed or unread sources are listed, and `completeness` stays
 `unknown`. When it returns a `checkpoint`, call again with the same arguments and `cursor` set to it.
 It creates no facts, tasks or project links; the index catch-up above can update local search indexes.
 

@@ -258,32 +258,39 @@ it("lists a document too large to read by reference and gives a read one the par
   expect(found.oversized).toEqual([{ ref: `document:${huge.id}`, lanes: ["l3"], source: 0, bytes: expect.any(Number) }])
 })
 
-it("refuses --contact person:<id> when the person has no stored name, even if an identity has one", async () => {
-  const { env, run } = await setUp()
-  const store = await openStore({ env })
-  await store.people.savePeople(telegram, [{ id: "102", name: null }])
-  await store.people.savePeople(telegram, [{ id: "102", name: "Bob Example" }])
-  const person = await store.people.personOf({ provider: "telegram", id: "102" })
-  const stored = await store.people.personByUid(person?.uid as string)
-  await store.close()
-  expect(stored?.name).toBeNull()
-  expect(stored?.identities.some((identity) => identity.name)).toBe(true)
-  await expect(
-    run("projects", "evidence", "SYP", "--source", "telegram:1", "--contact", `person:${person?.uid}`),
-  ).rejects.toMatchObject({ code: "validation_error", details: { param: "contact" } })
-})
-
-it("resolves --contact person:<id> to the person's name and keeps the reference, and refuses an unknown id", async () => {
+it("reads what --contact person:<id> wrote though no text spells their display name, and searches the owner's alias", async () => {
   const { env, json, run } = await setUp()
   const store = await openStore({ env })
-  await store.people.savePeople(telegram, [{ id: "101", name: "Alice Example" }])
-  const uid = (await store.people.personOf({ provider: "telegram", id: "101" }))?.uid as string
+  await store.people.savePeople(telegram, [{ id: "55", name: "Степа Stefan Grachev AVITO M A" }])
+  await store.messages.saveMessages(
+    telegram,
+    "8",
+    [{ ...message("1", "Booked it for Tuesday", daysAgo(1)), chatId: "8", senderId: "55" }],
+    { via: "test" },
+  )
+  await store.messages.saveMessages(telegram, "7", [message("5", "Ask Степа about the dates", daysAgo(1))], {
+    via: "test",
+  })
+  await store.people.setContactAlias(telegram, "55", "Степа")
+  const uid = (await store.people.personOf({ provider: "telegram", id: "55" }))?.uid as string
   await store.close()
   const found = await json("projects", "evidence", "SYP", "--source", "telegram:1", "--contact", `person:${uid}`)
-  expect(found.lanes.at(-1)).toMatchObject({ query: "Alice Example", people: [`person:${uid}`] })
-  expect(found.items.find((item: { ref: string }) => item.ref === "msg:telegram/1/7/3")).toMatchObject({
-    context: "person-only",
-  })
+  expect(found.lanes.slice(3)).toEqual([
+    { id: "l4", kinds: ["person"], query: "Степа", people: [`person:${uid}`] },
+    {
+      id: "l5",
+      kinds: ["sender"],
+      query: null,
+      people: [`person:${uid}`],
+      senders: [{ provider: "telegram", id: "55" }],
+    },
+  ])
+  const byRef = Object.fromEntries(found.items.map((item: { ref: string }) => [item.ref, item]))
+  expect(byRef["msg:telegram/1/8/1"]).toMatchObject({ context: "sender", lanes: ["l5"] })
+  expect(byRef["msg:telegram/1/7/5"]).toMatchObject({ context: "person-only", lanes: ["l4"] })
+  const text = await run("projects", "evidence", "SYP", "--source", "telegram:1", "--contact", `person:${uid}`)
+  expect(text).toContain("msg:telegram/1/8/1  [sent by contact]")
+  expect(text).toContain(`what person:${uid} wrote (sender)`)
   await expect(
     run("projects", "evidence", "SYP", "--source", "telegram:1", "--contact", "person:NOSUCHPERSON"),
   ).rejects.toMatchObject({ code: "not_found", details: { param: "contact" } })
