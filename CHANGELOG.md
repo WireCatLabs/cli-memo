@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.87.0 — 21.10.2026
+
 ### Changed — may break callers
 
 - **A date you type covers your whole local day, and a time without a zone is read in your computer's zone.**
