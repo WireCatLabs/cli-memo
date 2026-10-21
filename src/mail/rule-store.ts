@@ -1,4 +1,5 @@
 import { chmodSync, copyFileSync, existsSync } from "node:fs"
+import { momentOf } from "@wirecat/cli-core/cli"
 import type { AccountKey, MessageStore, MailRule as StoredRule } from "@wirecat/cli-core/store"
 import { configPath, loadConfig, updateConfig } from "../config.js"
 import type { MailAccountConfig } from "./accounts.js"
@@ -21,6 +22,15 @@ const conditionsOf = (match: MailRuleMatch): Record<string, string | number | bo
     }),
   )
 
+/** When the owner decided: a time without a zone is read in the computer's; an unreadable one is when it is saved. */
+const decidedAtOf = (value: string): number => {
+  try {
+    return momentOf(value, "decided_at")
+  } catch {
+    return Date.now()
+  }
+}
+
 export const ruleInput = (rule: MailRule, source = rule.source ?? "owner") => ({
   conditions: conditionsOf(rule.match),
   actions: {
@@ -31,7 +41,7 @@ export const ruleInput = (rule: MailRule, source = rule.source ?? "owner") => ({
   protected: rule.protected === true,
   source,
   reason: rule.reason ?? null,
-  decidedAt: Date.parse(rule.decided_at) || Date.now(),
+  decidedAt: decidedAtOf(rule.decided_at),
 })
 
 const KINDS: Record<keyof MailRuleMatch, "string" | "number" | "boolean"> = {

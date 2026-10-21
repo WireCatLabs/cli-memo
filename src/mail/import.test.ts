@@ -812,7 +812,7 @@ describe("memo sync --only mail", () => {
     )
 
     expect(result.notes).toEqual([])
-    expect(result.mail).toMatchObject([{ account: OTHER, saved: 1, since: expect.stringMatching(/^2026-09-01/) }])
+    expect(result.mail).toMatchObject([{ account: OTHER, saved: 1, since: new Date(2026, 8, 1).toISOString() }])
     expect((await (await store(env)).accounts.accounts()).filter(({ provider }) => provider === "email")).toEqual([
       { provider: "email", account: OTHER },
     ])

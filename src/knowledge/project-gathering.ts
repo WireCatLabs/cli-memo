@@ -1,6 +1,6 @@
 import { CliError } from "@wirecat/cli-base"
-import { isoTime } from "@wirecat/cli-base/standards"
 import { formatReference, parseReference } from "@wirecat/cli-core"
+import { momentOf } from "@wirecat/cli-core/cli"
 import {
   type EvidenceMentions,
   findEvidenceMentions,
@@ -106,8 +106,8 @@ const linkedChatsOf = async (store: MessageStore, project: string | null) => {
 export const windowOf = (value: string): { days: number } | { after: number } => {
   const days = /^([1-9]\d{0,2})d$/.exec(value)?.[1]
   if (days !== undefined && Number(days) <= 730) return { days: Number(days) }
-  const after = /^\d{4}-\d{2}-\d{2}(T[\d:.]+(Z|[+-]\d{2}:\d{2})?)?$/.test(value) ? Date.parse(value) : Number.NaN
-  if (Number.isFinite(after)) return { after }
+  if (/^\d{4}-\d{2}-\d{2}(T[\d:.]+(Z|[+-]\d{2}:\d{2})?)?$/.test(value))
+    return { after: momentOf(value, "--since-time") }
   throw new CliError(
     "validation_error",
     `--since-time takes 1d to 730d or a date, such as 90d or 2026-09-01 — not ${value}`,
@@ -118,7 +118,7 @@ export const windowOf = (value: string): { days: number } | { after: number } =>
 }
 
 export const cutoffTime = (value: string): number => {
-  const parsed = v.safeParse(isoTime, value)
+  const parsed = v.safeParse(v.pipe(v.string(), v.isoTimestamp()), value)
   const at = parsed.success ? Date.parse(parsed.output) : Number.NaN
   const date = parsed.success ? Date.parse(`${parsed.output.slice(0, 10)}T00:00:00.000Z`) : Number.NaN
   if (

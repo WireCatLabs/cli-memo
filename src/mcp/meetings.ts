@@ -1,10 +1,12 @@
-import { isoTime } from "@wirecat/cli-base/standards"
 import { validateMeetingChange } from "@wirecat/cli-core/meetings"
 import { meetingHitSearchRequest, meetingSearchArguments } from "@wirecat/cli-core/meetings/cli"
 import * as v from "valibot"
 import { itemAnswer } from "../answer.js"
 import { readStoredMeetingPassage, searchStoredMeetings } from "../meetings/read.js"
 import { define } from "./tool.js"
+
+/** A caller sends a time with any offset; answers carry UTC. */
+const zonedTime = v.pipe(v.string(), v.isoTimestamp("an ISO 8601 time with a zone"))
 
 const id = v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(Number.MAX_SAFE_INTEGER)))
 const name = v.optional(v.pipe(v.string(), v.minLength(1), v.maxLength(200)))
@@ -31,8 +33,8 @@ export const meetingTools = {
       project: name,
       tag: name,
       topic: name,
-      since_time: v.optional(isoTime),
-      until_time: v.optional(isoTime),
+      since_time: v.optional(zonedTime),
+      until_time: v.optional(zonedTime),
       limit: bound(1, 1000),
       cursor: v.optional(v.pipe(v.string(), v.minLength(1), v.maxLength(1000))),
       max_read_bytes: bound(1, 67108864),

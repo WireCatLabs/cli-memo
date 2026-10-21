@@ -1,6 +1,6 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import type { QueryRegistry } from "@wirecat/cli-base/query"
+import { type QueryRegistry, timezoneOf } from "@wirecat/cli-base/query"
 import { type Body, LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
 import {
   type AccountKey,
@@ -334,8 +334,8 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       .argument("<task>", "the task's id"),
   )
     .requiredOption("--at-time <time>", "when to remind: an ISO 8601 time with its UTC offset")
-    .option("--timezone <zone>", "IANA timezone", "UTC")
-    .action((task: string, options: WriteOptions & { atTime: string; timezone: string; json?: boolean }) =>
+    .option("--timezone <zone>", "IANA timezone; the computer's when not given")
+    .action((task: string, options: WriteOptions & { atTime: string; timezone?: string; json?: boolean }) =>
       act(options, async (store, key) => {
         if ((await store.tasks.get(task)) === undefined && (await store.tasks.projectTask(task)))
           throw new CliError(
@@ -343,7 +343,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
             `${task} is a task in a project; a reminder belongs to an account, so it needs a task from a message, ` +
               "a note or a file — memo tasks add <source>",
           )
-        return itemAnswer(await store.knowledge.schedule(key, task, options.atTime, options.timezone))
+        return itemAnswer(await store.knowledge.schedule(key, task, options.atTime, timezoneOf(options.timezone)))
       }),
     )
   readScope(

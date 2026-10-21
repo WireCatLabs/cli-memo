@@ -6,6 +6,19 @@ the API.
 
 ## Unreleased
 
+### Changed — may break callers
+
+- **A date you type covers your whole local day, and a time without a zone is read in your computer's zone.**
+  `mail inspect`, `mail trash`, `mail rules apply` and `sync` `--since-time`, and `projects gather --since-time`, read
+  `2026-09-01` as midnight UTC and `2026-09-01T10:00` in whatever zone the process ran in. They now start at local
+  midnight of the computer's zone (cli-core 0.379.0, cli-base `WC-TIME-3`/`WC-TIME-5`). What to watch for: a window
+  given as a date alone now starts a few hours earlier or later than before, by your offset from UTC.
+- **`reminders add --timezone` defaults to the computer's zone, not UTC.** The reminder's time is unchanged; only the
+  zone kept with it is.
+- **A mail rule's `decided_at` without a zone is read in the computer's zone** when rules are imported; a date alone
+  was UTC midnight.
+- **cli-core 0.379.0 and cli-base 0.48.0**; the shared CI runs the tests in `Asia/Vladivostok`.
+
 ## 0.86.0 — 21.10.2026
 
 ### Fixed
