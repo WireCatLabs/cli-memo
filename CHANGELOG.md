@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.86.0 — 21.10.2026
+
 ### Fixed
 
 - **`memo projects evidence --contact person:<id>` found nothing for a person with a messenger display name.** It
