@@ -1,6 +1,6 @@
 import { CliError } from "@wirecat/cli-base"
 import { formatReference, parseReference } from "@wirecat/cli-core"
-import { momentOf } from "@wirecat/cli-core/cli"
+import { dateWindow, momentOf } from "@wirecat/cli-core/cli"
 import {
   type EvidenceMentions,
   findEvidenceMentions,
@@ -115,6 +115,15 @@ export const windowOf = (value: string): { days: number } | { after: number } =>
       param: "since_time",
     },
   )
+}
+
+/** The zone a typed start date was read in, and the window the run used, in UTC. */
+export const gatherMeta = (sinceTime: string, { window }: ProjectGathering) => {
+  const { timezone } = dateWindow({ sinceTime }).meta
+  return {
+    ...(timezone === undefined ? {} : { timezone }),
+    window: { since: new Date(window.after).toISOString(), until: new Date(window.before).toISOString() },
+  }
 }
 
 export const cutoffTime = (value: string): number => {

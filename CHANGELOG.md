@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`sync`, `mail inspect`, `mail trash`, `mail rules apply` and `projects evidence` name the zone they read a
+  date in and give the window in UTC.** In `--json` (and over MCP for `project_evidence`), `meta.timezone` appears
+  when `--since-time` was a date without a zone, and `meta.window.since` is the start it used.
+  `projects evidence` also gives `meta.window.until`, its exclusive end.
+
 ### Fixed
 
 - **An mbox email whose only date is a `Date:` header without a zone is refused**, instead of being read in this

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { LOCAL_READ, LOCAL_WRITE, momentOf, REMOTE_READ, REMOTE_WRITE } from "@wirecat/cli-core/cli"
+import { dateWindow, LOCAL_READ, LOCAL_WRITE, REMOTE_READ, REMOTE_WRITE } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { type Config, loadConfig } from "../config.js"
@@ -265,7 +265,8 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .action(
       async (name: string, options: { sinceTime?: string; limit: number; domainAge?: boolean; json?: boolean }) => {
         const account = accountOf(loadConfig(env), name)
-        const since = new Date(options.sinceTime === undefined ? 0 : momentOf(options.sinceTime, "--since-time"))
+        const window = dateWindow({ sinceTime: options.sinceTime })
+        const since = new Date(window.since ?? 0)
         const started = Date.now()
         const source = mailSource(account, env)
         const listed = new Map<string, Listed>()
@@ -283,7 +284,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           ...(lookups === undefined ? {} : { domainLookups: lookups }),
           seconds: Math.round((Date.now() - started) / 100) / 10,
         }
-        print(options.json, itemAnswer(shown), probeText(shown))
+        print(options.json, itemAnswer(shown, { meta: window.meta }), probeText(shown))
       },
     )
 
@@ -327,6 +328,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .action(async (name: string, options: { limit?: number; sinceTime?: string; yes?: boolean; json?: boolean }) => {
       const config = loadConfig(env)
       const account = accountOf(config, name)
+      const window = dateWindow({ sinceTime: options.sinceTime })
       const work = () =>
         withStore(env, async (store) =>
           trashMail({
@@ -337,13 +339,11 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
             env,
             apply: options.yes === true,
             ...(options.limit === undefined ? {} : { limit: options.limit }),
-            ...(options.sinceTime === undefined
-              ? {}
-              : { since: new Date(momentOf(options.sinceTime, "--since-time")) }),
+            ...(window.since === undefined ? {} : { since: new Date(window.since) }),
           }),
         )
       const result = options.yes ? await withImportLock(env, work) : await work()
-      print(options.json, itemAnswer(result, { meta: { accounts: [account.name] } }), trashText(result))
+      print(options.json, itemAnswer(result, { meta: { accounts: [account.name], ...window.meta } }), trashText(result))
     })
 
   annotate(mail.command("restore"), { effects: REMOTE_WRITE })
@@ -546,7 +546,8 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     )
     .action(async (name: string, options: { sinceTime?: string; yes?: boolean; json?: boolean }) => {
       const account = accountOf(loadConfig(env), name)
-      const since = new Date(options.sinceTime === undefined ? 0 : momentOf(options.sinceTime, "--since-time"))
+      const window = dateWindow({ sinceTime: options.sinceTime })
+      const since = new Date(window.since ?? 0)
       const result = await withImportLock(env, () =>
         withStore(env, async (store) =>
           applyRules({
@@ -558,7 +559,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           }),
         ),
       )
-      print(options.json, itemAnswer(result, { meta: { accounts: [account.name] } }), applyText(result))
+      print(options.json, itemAnswer(result, { meta: { accounts: [account.name], ...window.meta } }), applyText(result))
     })
 
   annotate(rules.command("export"), { effects: LOCAL_READ })

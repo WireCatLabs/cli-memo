@@ -3,7 +3,7 @@ import * as v from "valibot"
 import { itemAnswer } from "../answer.js"
 import { contextAccountOf, memoContext } from "../context/context.js"
 import { projectContext } from "../knowledge/project-context.js"
-import { cutoffTime, gatherStoredProject, windowOf } from "../knowledge/project-gathering.js"
+import { cutoffTime, gatherMeta, gatherStoredProject, windowOf } from "../knowledge/project-gathering.js"
 import { allAnswer, kindAnswer, notesAnswer } from "../search/answers.js"
 import { searchEverywhere, searchKind } from "../search/search.js"
 import { MAIL_SOURCES, mailboxesOf } from "../store/source-list.js"
@@ -62,24 +62,24 @@ export const knowledgeTools = {
       max_pages: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(512))),
       cursor: v.optional(v.pipe(v.string(), v.minLength(1))),
     }),
-    run: async (store, args, env) =>
-      itemAnswer(
-        await gatherStoredProject(store, env, {
-          project: args.project,
-          source: args.source,
-          ...windowOf(args.since_time),
-          ...(args.before_time === undefined ? {} : { asOf: cutoffTime(args.before_time) }),
-          catchUp: args.catch_up,
-          beforeN: args.before_n,
-          afterN: args.after_n,
-          ...(args.alias ? { aliases: args.alias } : {}),
-          ...(args.limit === undefined ? {} : { limit: args.limit }),
-          ...(args.context_query ? { keywords: args.context_query } : {}),
-          ...(args.contact ? { people: args.contact } : {}),
-          ...(args.max_pages === undefined ? {} : { maxReads: args.max_pages }),
-          ...(args.cursor === undefined ? {} : { checkpoint: args.cursor }),
-        }),
-      ),
+    run: async (store, args, env) => {
+      const found = await gatherStoredProject(store, env, {
+        project: args.project,
+        source: args.source,
+        ...windowOf(args.since_time),
+        ...(args.before_time === undefined ? {} : { asOf: cutoffTime(args.before_time) }),
+        catchUp: args.catch_up,
+        beforeN: args.before_n,
+        afterN: args.after_n,
+        ...(args.alias ? { aliases: args.alias } : {}),
+        ...(args.limit === undefined ? {} : { limit: args.limit }),
+        ...(args.context_query ? { keywords: args.context_query } : {}),
+        ...(args.contact ? { people: args.contact } : {}),
+        ...(args.max_pages === undefined ? {} : { maxReads: args.max_pages }),
+        ...(args.cursor === undefined ? {} : { checkpoint: args.cursor }),
+      })
+      return itemAnswer(found, { meta: gatherMeta(args.since_time, found) })
+    },
   }),
   search_all: define({
     title: "Search everything",
