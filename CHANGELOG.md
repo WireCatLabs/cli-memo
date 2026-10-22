@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.88.0 — 22.10.2026
+
 ### Added
 
 - **`search meetings --json` names the zone it read a date in and gives the window in UTC.** `meta.timezone` appears
