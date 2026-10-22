@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`search meetings --json` names the zone it read a date in and gives the window in UTC.** `meta.timezone` appears
+  when `--since-time` or `--until-time` had no zone, and `meta.window` holds the `since`/`until` bounds it used. The
+  MCP tool `search_meetings` gives only `meta.window`, since its times always carry a zone. cli-core 0.384.0 and
+  cli-base 0.49.0.
+
 ## 0.87.0 — 21.10.2026
 
 ### Changed — may break callers

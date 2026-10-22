@@ -62,6 +62,7 @@ export const meetingTools = {
         args.query,
         meetingHitSearchRequest(args.query, flags),
         meetingSearchArguments(args.query, flags),
+        flags,
       )
     },
   }),
