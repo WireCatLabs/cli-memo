@@ -6,6 +6,11 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **An mbox email whose only date is a `Date:` header without a zone is refused**, instead of being read in this
+  computer's zone without a word. A `From ` line date without a zone is still UTC, as the mbox format defines it.
+
 ## 0.88.0 — 22.10.2026
 
 ### Added

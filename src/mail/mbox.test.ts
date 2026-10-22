@@ -99,6 +99,35 @@ describe("mboxSource", () => {
     expect(listed.map(({ messageId }) => messageId)).toEqual(["1700000000000000002"])
   })
 
+  it("reads a separator without a zone as UTC, whatever this computer's zone", async () => {
+    const zone = process.env.TZ
+    try {
+      const times = []
+      for (const tz of ["Asia/Vladivostok", "America/Los_Angeles"]) {
+        process.env.TZ = tz
+        const path = mbox(["From 1700000000000000001@xxx Mon Jul 24 10:00:00 2023"], [first])
+        times.push((await mboxSource(path).list(new Date(0), "[Gmail]/All Mail"))[0]?.receivedAt)
+      }
+      expect(times).toEqual(["2023-07-24T10:00:00.000Z", "2023-07-24T10:00:00.000Z"])
+    } finally {
+      if (zone === undefined) delete process.env.TZ
+      else process.env.TZ = zone
+    }
+  })
+
+  it("falls back to a Date header with a zone, and refuses one without", async () => {
+    const dated = (date: string) => mbox(["From 1700000000000000001@xxx"], [`Date: ${date}\n${first}`])
+
+    const listed = await mboxSource(dated("Mon, 24 Jul 2023 12:00:00 +0200 (CEST)")).list(
+      new Date(0),
+      "[Gmail]/All Mail",
+    )
+    expect(listed[0]?.receivedAt).toBe("2023-07-24T10:00:00.000Z")
+    await expect(mboxSource(dated("Mon, 24 Jul 2023 12:00:00")).list(new Date(0), "[Gmail]/All Mail")).rejects.toThrow(
+      /byte \d+ has no readable date/,
+    )
+  })
+
   it("refuses a separator without Gmail's message id instead of inventing one", async () => {
     const path = mbox([SEPARATORS[0] as string, "From MAILER-DAEMON Mon Jul 24 10:00:00 2023"], [first, second])
 
