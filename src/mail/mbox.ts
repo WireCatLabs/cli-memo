@@ -21,7 +21,10 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 /** Takeout's own marks, not labels the owner gave: read state and "not in Inbox". */
 const PSEUDO_LABELS = new Set(["Opened", "Unread", "Archived"])
 
-/** `Mon Jul 24 10:00:00 +0000 2023`: asctime, with the zone Takeout writes. */
+/**
+ * `Mon Jul 24 10:00:00 +0000 2023`: asctime, with the zone Takeout writes. Without one it is UTC, as the mbox format
+ * defines it: https://www.rfc-editor.org/rfc/rfc4155#appendix-A
+ */
 const separatorDate = (rest: string): number | undefined => {
   const match = /(\w{3}) +(\d{1,2}) (\d{2}):(\d{2}):(\d{2})(?: ([+-])(\d{2})(\d{2}))? (\d{4})/.exec(rest)
   if (match === null) return undefined
@@ -68,6 +71,11 @@ const splitLabels = (value: string): string[] => {
   return labels.map((label) => label.trim()).filter(Boolean)
 }
 
+/** RFC 5322 requires the zone; `Date.parse` would read a date without one in this computer's zone. */
+const ZONED = /(?:[+-]\d{4}|\b(?:UT|GMT|[ECMP][SD]T|[A-IK-Z]))\s*(?:\([^)]*\))?\s*$/i
+const headerDate = (value: string | undefined): number =>
+  value !== undefined && ZONED.test(value.trim()) ? Date.parse(value) : Number.NaN
+
 const entryOf = (separator: string, header: string, start: number, body: number): Entry => {
   const [, sender = "", rest = ""] = /^From (\S+) ?(.*)$/.exec(separator) ?? []
   const messageId = /^(\d+)@/.exec(sender)?.[1]
@@ -78,8 +86,12 @@ const entryOf = (separator: string, header: string, start: number, body: number)
       `the mbox email at byte ${start} has no Gmail message id: its "From " line should read "From <digits>@xxx <date>"`,
     )
   const unfolded = unfold(header)
-  const date = separatorDate(rest) ?? Date.parse(field(unfolded, "Date") ?? "")
-  if (Number.isNaN(date)) throw new CliError("invalid_response", `the mbox email at byte ${start} has no readable date`)
+  const date = separatorDate(rest) ?? headerDate(field(unfolded, "Date"))
+  if (Number.isNaN(date))
+    throw new CliError(
+      "invalid_response",
+      `the mbox email at byte ${start} has no readable date: neither its "From " line nor a Date header with a zone`,
+    )
   const written = field(unfolded, "X-Gmail-Labels")
   const raw = written === undefined ? undefined : splitLabels(decodeWords(written))
   const labels =
