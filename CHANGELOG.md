@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.89.0 — 22.10.2026
+
 ### Added
 
 - **`sync`, `mail inspect`, `mail trash`, `mail rules apply` and `projects evidence` name the zone they read a
