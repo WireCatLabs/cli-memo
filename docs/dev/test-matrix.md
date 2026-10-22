@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**463 ✅ · 0 ⛔ · 141 ❌** — 123 commands, 481 options.
+**466 ✅ · 0 ⛔ · 138 ❌** — 123 commands, 481 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -68,9 +68,9 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `mail status` | `--json` | ✅ |  |
 | `mail trash` |  | ✅ |  |
 | `mail trash` | `--limit` | ✅ |  |
-| `mail trash` | `--since-time` | ❌ |  |
+| `mail trash` | `--since-time` | ✅ |  |
 | `mail trash` | `--yes` | ✅ |  |
-| `mail trash` | `--json` | ❌ |  |
+| `mail trash` | `--json` | ✅ |  |
 | `mail restore` |  | ✅ |  |
 | `mail restore` | `--run` | ✅ |  |
 | `mail restore` | `--yes` | ✅ |  |
@@ -100,7 +100,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `mail rules import-filters` | `--yes` | ✅ |  |
 | `mail rules import-filters` | `--json` | ❌ |  |
 | `mail rules apply` |  | ✅ |  |
-| `mail rules apply` | `--since-time` | ❌ |  |
+| `mail rules apply` | `--since-time` | ✅ |  |
 | `mail rules apply` | `--yes` | ✅ |  |
 | `mail rules apply` | `--json` | ✅ |  |
 | `mail rules export` |  | ✅ |  |
