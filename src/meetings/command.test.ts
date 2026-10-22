@@ -82,6 +82,11 @@ it("searches project aliases, keeps scoped continuations and stages findings fro
   const hits = await cli(f.env, ["search", "meetings", "Ship", ...flags])
   expect(hits.items).toHaveLength(1)
   expect(hits.meta.accounts).toEqual([f.source])
+  expect(hits.meta.timezone).toBe(Intl.DateTimeFormat().resolvedOptions().timeZone)
+  expect(hits.meta.window).toEqual({
+    since: new Date(2026, 9, 1).toISOString(),
+    until: new Date(2026, 9, 31, 23, 59, 59, 999).toISOString(),
+  })
   expect(hits.missing).toContainEqual(expect.objectContaining({ field: "archive_completeness" }))
   expect(hits.next[0].args.source).toBe(f.source)
   const continued = await cli(f.env, ["search", "meetings", "Ship", ...flags, "--cursor", hits.page.next_cursor])

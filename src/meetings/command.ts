@@ -35,7 +35,10 @@ export const meetingReadCommands = (program: Command, streams: Streams, env: Nod
   output(search).action(async (query: string, given: MeetingSearchFlags & SourceOptions & { json?: boolean }) => {
     const input = meetingHitSearchRequest(query, given)
     const result = await withStore(env, (store) =>
-      searchStoredMeetings(store, env, source(given), query, input, meetingSearchArguments(query, given)),
+      searchStoredMeetings(store, env, source(given), query, input, meetingSearchArguments(query, given), {
+        ...given,
+        timesReadIn: grammar.getOptionValue("timesReadIn"),
+      }),
     )
     print(given.json, result)
   })

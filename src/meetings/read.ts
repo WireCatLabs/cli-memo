@@ -1,4 +1,5 @@
 import { type MeetingHitSearchRequest, type MeetingPassageRequest, meetingHitsList } from "@wirecat/cli-core/meetings"
+import { type MeetingSearchFlags, meetingSearchMeta } from "@wirecat/cli-core/meetings/cli"
 import { readMeetingPassage, searchMeetingHits } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import { accountName, oneAccountOf } from "../store/source-list.js"
@@ -15,6 +16,7 @@ export const searchStoredMeetings = async (
   query: string,
   request: Omit<MeetingHitSearchRequest, "accountId">,
   args: Record<string, unknown>,
+  flags: MeetingSearchFlags,
 ) => {
   const { key, held } = await account(store, env, source)
   const found = await searchMeetingHits(store, query, { ...request, accountId: held.id })
@@ -32,7 +34,7 @@ export const searchStoredMeetings = async (
         why: "Only stored, currently indexed meeting revisions were searched; archive and index completeness are unknown.",
       },
     ],
-    meta: { accounts: [accountName(key)] },
+    meta: { accounts: [accountName(key)], ...meetingSearchMeta(flags) },
   }
 }
 

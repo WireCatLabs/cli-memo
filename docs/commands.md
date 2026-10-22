@@ -2793,7 +2793,7 @@ memo search meetings <query> [options]
 | `--account <account>` | deprecated: --source <provider>:<account>. |
 | `--json` | print the standard JSON answer. |
 
-**Returns:** meeting hit — ref, meeting, scope, id, excerpt, offset_ms, source
+**Returns:** meeting hit — ref, meeting, scope, id, excerpt, offset_ms, match, corrections, and 1 more
 
 **Example:** `memo search meetings budget --source example:synthetic --project Harbour --since-time 2026-10-01 --limit 10 --json`
 
