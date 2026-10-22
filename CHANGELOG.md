@@ -13,6 +13,11 @@ the API.
   MCP tool `search_meetings` gives only `meta.window`, since its times always carry a zone. cli-core 0.384.0 and
   cli-base 0.49.0.
 
+### Fixed
+
+- **A store the pre-rename `cli-messaging` wrote is refused again, and left untouched** (cli-core 0.385.0). Since
+  cli-core 0.382.0 such a file was opened and failed with `internal_error`; it now fails with `configuration_error`.
+
 ## 0.87.0 — 21.10.2026
 
 ### Changed — may break callers
