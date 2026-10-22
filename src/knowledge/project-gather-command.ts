@@ -4,7 +4,7 @@ import type { Command } from "commander"
 import { itemAnswer, withStore } from "../answer.js"
 import { collect, positive, whole } from "../options.js"
 import { ACCOUNTS_HELP } from "../store/source-list.js"
-import { cutoffTime, gatherStoredProject, projectGatherText, windowOf } from "./project-gathering.js"
+import { cutoffTime, gatherMeta, gatherStoredProject, projectGatherText, windowOf } from "./project-gathering.js"
 
 interface Options {
   source: string
@@ -74,5 +74,5 @@ export const projectGatherCommand = (
           ...(options.cursor === undefined ? {} : { checkpoint: options.cursor }),
         }),
       )
-      print(options.json, itemAnswer(found), projectGatherText(found))
+      print(options.json, itemAnswer(found, { meta: gatherMeta(options.sinceTime, found) }), projectGatherText(found))
     })

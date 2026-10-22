@@ -966,6 +966,31 @@ describe("memo sync --only mail", () => {
     })
   })
 
+  describe("reading --since-time 2026-09-01 in Asia/Vladivostok", () => {
+    const zone = process.env.TZ
+    afterEach(() => {
+      if (zone === undefined) delete process.env.TZ
+      else process.env.TZ = zone
+    })
+
+    it.each([
+      ["sync", ["sync", "--source", "email:test", "--no-embed"]],
+      ["mail inspect", ["mail", "inspect", "test"]],
+      ["mail trash", ["mail", "trash", "test"]],
+      ["mail rules apply", ["mail", "rules", "apply", "test"]],
+    ])("%s names the zone and gives the window in UTC", async (_, args) => {
+      process.env.TZ = "Asia/Vladivostok"
+      const { dir, env } = setup([mail(1)])
+
+      const answer = envelopeOf(await run([...args, "--since-time", "2026-09-01", "--json"], configured(dir, env)))
+
+      expect(answer.meta).toMatchObject({
+        timezone: "Asia/Vladivostok",
+        window: { since: "2026-08-31T14:00:00.000Z" },
+      })
+    })
+  })
+
   it("refuses memo mail rules apply while a sync holds the lock", async () => {
     const { dir, env } = setup([mail(1)])
     const withConfig = configured(dir, env)

@@ -6,7 +6,7 @@ import { InMemoryTransport } from "@modelcontextprotocol/server"
 import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { afterEach, expect, it, vi } from "vitest"
-import { answerOf } from "../../test/answer.js"
+import { answerOf, envelopeOf } from "../../test/answer.js"
 import { createMemoServer } from "../mcp/server.js"
 import { createProgram } from "../program.js"
 
@@ -124,5 +124,37 @@ it("shares the zoned cutoff and field-specific validation across CLI and MCP", a
     })
   } finally {
     await client.close()
+  }
+})
+
+it("names the zone a start date was read in and gives the window in UTC, in the CLI and over MCP", async () => {
+  const zone = process.env.TZ
+  process.env.TZ = "Asia/Vladivostok"
+  try {
+    const { env, run } = await setup()
+    const window = { since: "2026-08-31T14:00:00.000Z", until: END }
+    const cli = envelopeOf(await run(...base, "--since-time", "2026-09-01", "--json"))
+    expect(cli.meta).toMatchObject({ timezone: "Asia/Vladivostok", window })
+    const days = envelopeOf(await run(...base, "--json"))
+    expect(days.meta.timezone).toBeUndefined()
+    expect(days.meta.window).toEqual({ since: new Date(start).toISOString(), until: END })
+
+    const [server, transport] = InMemoryTransport.createLinkedPair()
+    await createMemoServer(env).connect(server)
+    const client = new Client({ name: "synthetic-window", version: "1" })
+    await client.connect(transport)
+    try {
+      const args = { project: "HBX", source: "telegram:cutoff-fixture", before_time: END, since_time: "2026-09-01" }
+      const result = await client.callTool({ name: "project_evidence", arguments: args })
+      expect((result.structuredContent as { meta: object }).meta).toMatchObject({
+        timezone: "Asia/Vladivostok",
+        window,
+      })
+    } finally {
+      await client.close()
+    }
+  } finally {
+    if (zone === undefined) delete process.env.TZ
+    else process.env.TZ = zone
   }
 })

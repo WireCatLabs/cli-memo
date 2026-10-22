@@ -1,6 +1,6 @@
 import { CliError, type ErrorCode, errorCodes, isCliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { FETCH, momentOf } from "@wirecat/cli-core/cli"
+import { dateWindow, FETCH } from "@wirecat/cli-core/cli"
 import { openStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError, Option } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
@@ -239,11 +239,8 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         await applyAuto(env, autoState(config))
         if (!autoState(config).enabled) return
       }
-      const since = new Date(
-        options.sinceTime === undefined
-          ? Date.now() - MAIL_WINDOW_DAYS * DAY
-          : momentOf(options.sinceTime, "--since-time"),
-      )
+      const window = dateWindow({ sinceTime: options.sinceTime })
+      const since = new Date(window.since ?? Date.now() - MAIL_WINDOW_DAYS * DAY)
       // An archive file is read whole each run, so only a sync that names it reads it.
       const accounts = synced.has("mail")
         ? mailAccounts(config.mail?.accounts ?? [], named).filter(
@@ -256,6 +253,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         itemAnswer(run, {
           meta: {
             ...(accounts.length ? { accounts: accounts.map(({ name }) => name) } : {}),
+            ...window.meta,
             complete: run.failed.length === 0,
             ...(run.failed.length ? { issues: issuesOf(run.failed) } : {}),
           },
