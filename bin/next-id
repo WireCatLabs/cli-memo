@@ -1,0 +1,29 @@
+#!/usr/bin/env sh
+set -eu
+[ $# -eq 1 ] || { echo "usage: bin/next-id <PREFIX>   e.g. bin/next-id MEMO" >&2; exit 2; }
+prefix=$(printf '%s' "$1" | tr '[:lower:]' '[:upper:]')
+case "$prefix" in
+  MEMO) ;;
+  *) echo "unknown prefix $prefix — see the Rules in docs/dev/BACKLOG.md" >&2; exit 2 ;;
+esac
+
+root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+common=$(git -C "$root" rev-parse --path-format=absolute --git-common-dir)
+counters="$common/backlog-counters"
+
+timeout 10 git -C "$root" fetch --quiet origin 2>/dev/null || true
+
+allocate() {
+  used=$(git -C "$root" log --all -p 2>/dev/null | grep -ohE "\b${prefix}-[0-9]+" | sed "s/^${prefix}-//" | sort -n | tail -1)
+  stored=$(awk -v p="$prefix" '$1 == p { print $2 }' "$counters" 2>/dev/null | tail -1)
+  max=${used:-0}
+  [ "${stored:-0}" -gt "$max" ] && max=$stored
+  n=$((max + 1))
+  { grep -v "^${prefix} " "$counters" 2>/dev/null || true; echo "$prefix $n"; } > "$counters.$$"
+  mv "$counters.$$" "$counters"
+  printf '%s-%s\n' "$prefix" "$n"
+}
+
+exec 9>"$counters.lock"
+flock 9
+allocate
