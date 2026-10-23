@@ -30,6 +30,12 @@ Plans and owner rulings live in the private notes (`cli-private`, `plans/`); thi
 - **MEMO-3** · P1 · Install docs say only npm 12 warns about blocked install scripts; npm 11.17 prints an
   `allow-scripts` warning too and the postinstall does not run (`docs/installation.md:58`, `README.md:66`).
   Name both versions and keep "run `memo skill install`".
+- **MEMO-27** · P1 · MCP offers 37 of 122 commands and no writes; the owner ruled (2026-10-23) that every MCP
+  exposes every command, writes included, limited only by permissions. Build the tools from the command list as
+  tg and max do; drop the tests that assert writes are absent (`src/mcp/server.test.ts:183`,
+  `src/mcp/project-transfer.test.ts:17`) and the "The app cannot" table (`docs/mcp.md:14-23`).
+- **MEMO-28** · P1 · `docs/index.md:69` says "Memo only reads them"; `notes edit` changes the note's file and
+  `notes export` writes files.
 
 ## Next (P2)
 
@@ -66,3 +72,5 @@ Plans and owner rulings live in the private notes (`cli-private`, `plans/`); thi
   Work is in WireCatLabs/cli-docs `tools.json`.
 - **MEMO-15** · P2 · Open PRs to settle: five Dependabot bumps (#364, #360, #174, #172, #169) and the docs PR #118
   (skill: search again in other words), open since 2026-10-13.
+- **MEMO-29** · P2 · A memory-quality benchmark on synthetic data (known answers), so memo can be compared with
+  Hindsight, mem0 and Graphiti, who publish LongMemEval scores. In cli-testing `performance/agents/`.

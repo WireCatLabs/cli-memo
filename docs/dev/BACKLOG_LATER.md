@@ -28,3 +28,5 @@ becomes P2, move its line there. A finished item's line is deleted.
 - **MEMO-26** · P3 · What a visual UI over the store would need from memo: a link graph read
   (`store.notes.links` exists in cli-core, no command or MCP tool exposes it), a change feed for notes and mail,
   and cursor paging on lists. Research only; see the 2026-10-23 audit.
+- **MEMO-30** · P3 · Export part of the store into a knowledge-graph tool — only if the knowledge-graph test
+  (MEMO-29, Hindsight first) shows it answers better.
