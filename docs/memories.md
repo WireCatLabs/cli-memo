@@ -134,7 +134,7 @@ memo agents list --limit 20
 memo agents list agent:memo-mcp
 ```
 
-The agent log lists every call an agent made through the MCP servers of Memo, tg and max, newest
+The shared agent log lists commands that reach Memo’s executor and calls recorded by tg and max, newest
 first: which agent, which tool, the result and the time. It never stores what the agent sent.
 
 ## Through the MCP server

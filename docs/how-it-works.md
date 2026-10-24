@@ -110,7 +110,7 @@ Your agent can add three kinds of records:
 
 Memories and directly recorded facts added through the [MCP server](mcp.md) start as **proposed**.
 MCP command tools can confirm memories, accept facts or approve actions when their saved permissions allow it.
-Every call is written to the agent log (`memo agents list`), without the details it sent.
+Each command that reaches Memo’s executor is written to the agent log (`memo agents list`), without the details it sent.
 
 Project proposals have a separate flow. By default an agent can decide them with a recorded reason,
 creating accepted facts and numbered tasks or confirming a key document. Set
