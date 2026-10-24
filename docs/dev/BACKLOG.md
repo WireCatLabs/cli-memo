@@ -42,9 +42,6 @@ Plans and owner rulings live in the private notes (`cli-private`, `plans/`); thi
 - **MEMO-12** · P2 · `memo auto status` reads the user's systemd timer even when `HOME`/`MEMO_CONFIG_DIR` point
   elsewhere, so it reports a timer `active` while `memo doctor` says `timer off` for that config. Make the two
   agree on whose timer it is.
-- **MEMO-14** · P2 · The site lags: cli-docs pins memo `v0.83.0` (npm 0.89.0), memo has no entry in
-  `docs/release-notes-review.json`, and the new `docs/roadmap.md` needs adding to the site's memo pages.
-  Work is in WireCatLabs/cli-docs `tools.json`.
 - **MEMO-29** · P2 · 🟡 Synthetic corpus, 50-question scorer and API cost plan are prepared in
   [cli-testing](https://github.com/WireCatLabs/cli-testing/tree/main/performance/agents/knowledge-graph-memory).
   Implement engine adapters and a metered pilot before comparing Memo, Hindsight, Graphiti and Cognee;
