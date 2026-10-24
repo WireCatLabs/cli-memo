@@ -31,7 +31,7 @@ memo mcp --http --public-url https://device.example
 ```
 
 Memo listens only on `127.0.0.1:8767` and prints a one-time login code and connector address. Point
-the tunnel at `http://127.0.0.1:8767`. The public origin must have no path, query or fragment; Memo
+the tunnel at `http://127.0.0.1:8767`. The public origin must contain no login credentials, path, query or fragment; Memo
 adds `/mcp` for the connector. Remote public origins must use HTTPS.
 
 To use another local port, pass `--port` and change the tunnel target to match:
