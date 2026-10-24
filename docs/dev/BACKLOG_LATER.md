@@ -23,3 +23,8 @@ becomes P2, move its line there. A finished item's line is deleted.
   and cursor paging on lists. Research only; see the 2026-10-23 audit.
 - **MEMO-30** · P3 · Export part of the store into a knowledge-graph tool — only if the knowledge-graph test
   (MEMO-29, Hindsight first) shows it answers better.
+- **MEMO-32** · P3 · Read mail with memo's own IMAP client instead of Himalaya: no separate program to install
+  and configure, connection settings in memo's config, the existing keyring password reused. Starts at
+  `src/mail/himalaya.ts:4`: an in-process transport behind the same function type, so `src/mail/gmail.ts` stays.
+  App passwords only, no OAuth. Owner rulings 2026-10-25 (cli-private journal NEED-1765 A, NEED-1766 A). Plan:
+  cli-private `plans/2026-10-24-memo-own-mail-client.md`.

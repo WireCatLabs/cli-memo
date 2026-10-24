@@ -34,5 +34,7 @@ Nothing is being built right now. The first items under Next come first.
 - macOS and Windows support. Today Memo is tested on Linux only.
 - MCP over HTTP, for apps that do not start Memo themselves.
 - Finding images by the conversation around them and by photo data.
+- Reading mail without Himalaya: Memo connects to your mailbox itself, so there is no separate mail program to
+  install and set up.
 
 What changed in each released version is in the [changelog](../CHANGELOG.md).
