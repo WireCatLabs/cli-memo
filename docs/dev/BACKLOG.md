@@ -20,6 +20,24 @@ Plans and owner rulings live in the private notes (`cli-private`, `plans/`); thi
 
 ## Launch blockers (P1)
 
+- **MEMO-23** · P1 · Remote MCP before launch: `memo mcp --http`, so Claude and ChatGPT on the web and phone can read
+  and write memo through the owner's tunnel, as with tg and max. Owner ruling 2026-10-24 (cli-private journal
+  NEED-1716, answer A). Starts at `src/mcp/command.ts:14` (stdio only today). tg and max already serve this: `mcp
+  --http` logs in with a one-time access code (OAuth, token hashes per profile) and `--revoke` forgets every login;
+  the user guide to copy is tg-cli `docs/remote.md`. cli-core has the pieces: `serveOverHttp`, `MCP_PATH` and
+  `revokeAll` are exported from `@wirecat/cli-core/mcp` (`src/mcp/http/serve.ts`, `src/mcp/http/oauth.ts`;
+  `ownerLogin` is used inside `serveOverHttp`, so the login needs no separate export). The tg and max wiring
+  (`serveOverHttpUntilStopped`, the `--http`, `--port`, `--public-url`, `--revoke` flags) is in cli-core
+  `src/cli/messenger/mcp-command.ts` and `src/mcp/server.ts`; it is messenger-specific and not exported, so memo
+  copies the flag handling and the stop-on-Ctrl-C loop (about 60 lines) and passes its own `buildMcpServer`. **cli-core
+  change: not strictly required, one small one recommended.** `publicUrlOf` and `portOf` (`src/http/public-url
+ .ts`: https-only check, no path, port range) are not in any package export, so memo must copy them; exporting
+  them from `@wirecat/cli-core/mcp` or `/cli` avoids a third copy. Both CLIs pin cli-core 0.406.0; cli-core main is
+  0.407.0. Done when: `memo mcp --http --public-url https://<name>.ts.net` serves MCP behind the access-code login and
+  prints the code; `--permission` keys and saved permissions still apply to every tool call over HTTP; `--revoke`
+  works; a `docs/remote.md` page (copied from tg-cli `docs/remote.md`, memo wording) is linked from the README and the
+  comparison page row "MCP over HTTP" (`docs/compare.md:53`) turns ✅ for memo and the roadmap line
+  (`docs/roadmap.md:35`) is removed.
 
 ## Next (P2)
 
