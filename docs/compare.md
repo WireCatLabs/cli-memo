@@ -27,11 +27,17 @@ The tools:
 |---|:-:|:-:|:-:|:-:|:-:|:-:|
 | **Find what you already have** | | | | | | |
 | Reads your Telegram, MAX and WhatsApp chats itself | ✅ | ❌ [↗][hs-core] | ❌ [↗][m0] | ❌ [↗][gr] | ➖ | ❌ [↗][bm] |
-| Reads your Gmail and IMAP mail itself | ✅ | ❌ [↗][hs-core] | ❌ [↗][m0] | ❌ [↗][gr] | ✅ [↗][cg-news] | ❌ [↗][bm] |
 | Reads a folder of notes | ✅ | ✅ [↗][hs-int] | ➖ | ❌ [↗][gr] | 🟡 [↗][cg] | ✅ [↗][bm] |
 | Reads meeting transcripts | ✅ | ➖ | ➖ | ❌ [↗][gr] | ➖ | ❌ [↗][bm] |
 | Reads Google Drive documents | 🟡 | ➖ | ➖ | ❌ [↗][gr] | ✅ [↗][cg-news] | ❌ [↗][bm] |
 | Every hit names its source | ✅ | ✅ [↗][hs-core] | ➖ | 🟡 [↗][gr-mcp] | ➖ | ✅ [↗][bm] |
+| **Mail** | | | | | | |
+| Sync Gmail and IMAP into a local copy | ✅ | ❌ [↗][hs-core] | ❌ [↗][m0] | ❌ [↗][gr] | ✅ [↗][cg-news] | ❌ [↗][bm] |
+| Search mail offline, together with chats and notes | ✅ | ➖ | ➖ | ➖ | ➖ | ➖ |
+| Choose what to import by sender, kind of mail or your Gmail filters | ✅ | ➖ | ➖ | ➖ | ➖ | ➖ |
+| Find likely spam or fraud senders | ✅ | ➖ | ➖ | ➖ | ➖ | ➖ |
+| Move chosen mail to Gmail's Trash and restore it | ✅ | ➖ | ➖ | ➖ | ➖ | ➖ |
+| Import years of old mail from a Google Takeout file | ✅ | ➖ | ➖ | ➖ | ➖ | ➖ |
 | **Know a person or a project** | | | | | | |
 | People, organizations and projects with links between them | ✅ | ✅ [↗][hs-core] | 🟡 [↗][m0-price] | ✅ [↗][gr] | ✅ [↗][cg] | ✅ [↗][bm] |
 | Tasks, agenda and reminders built in | ✅ | ➖ | ➖ | ➖ | ➖ | ➖ |
@@ -60,7 +66,7 @@ Notes on `memo`:
 
 - **Sources.** Telegram, MAX, WhatsApp, Zoom meetings and Google Drive reach the store through the sister tools
   `tg`, `max`, `wa`, `zm` and `drive`. `memo` reads that store. It imports notes folders and mail itself; mail
-  goes through [Himalaya](https://github.com/pimalaya/himalaya). `search all` covers messages, mail and notes;
+  goes through [Himalaya](https://github.com/pimalaya/himalaya), and [mail](mail.md) is covered below. `search all` covers messages, mail and notes;
   meetings have their own `search meetings`.
 - **Search.** All six tools search by words and by meaning. This page does not rank them. In `memo`, search by
   meaning uses a local model that `memo models download` fetches; without it, word search still works.
@@ -78,6 +84,55 @@ Notes on `memo`:
 - **Platforms.** Tested on Linux only; macOS and Windows are not tested yet.
 - **Benchmark.** No memory benchmark result for `memo` is published. The scores the other tools publish come from
   their own tests on their own data and are not comparable with each other.
+
+## memo mail compared with email tools
+
+Mail is a tool of its own in `memo`. The memory tools above do not do this job, so this table puts `memo` next to
+tools people use for mail. `memo` reads mail through Himalaya, so Himalaya is the layer under it, not only a rival.
+The marks come from each project's documentation, checked on 24 October 2026.
+
+- **[Himalaya][hm]** — a mail command line for IMAP, SMTP, JMAP, Gmail and others. `memo` calls it to read mail.
+- **[gog][gg]** — one command line for Google services; its `gmail` commands read, send and manage Gmail.
+- **[Google Workspace MCP][ws]** — a maintained MCP server for Google services, with Gmail tools. The best known
+  Gmail MCP server is archived, so it is not compared.
+- **[notmuch][nm]** — fast search and tags over mail you already hold in a local folder.
+
+| Feature | memo | Himalaya | gog (Gmail) | Google Workspace MCP | notmuch |
+|---|:-:|:-:|:-:|:-:|:-:|
+| Read Gmail | ✅ | ✅ [↗][hm-gmail] | ✅ [↗][gg-mail] | ✅ [↗][ws] | ❌ [↗][nm] |
+| Read other IMAP mail, such as Fastmail | ✅ | ✅ [↗][hm-gmail] | ❌ [↗][gg] | ❌ [↗][ws] | ❌ [↗][nm] |
+| Keep a local copy and search it with no internet | ✅ | 🟡 [↗][hm] | ➖ | ➖ | ✅ [↗][nm] |
+| Search mail together with chats and notes | ✅ | ➖ | ➖ | ➖ | ➖ |
+| Read the text inside attachments such as PDFs | ✅ | ➖ | ➖ | ➖ | ➖ |
+| Find likely spam or fraud senders | ✅ | ➖ | ➖ | ➖ | ➖ |
+| Create Gmail filters | ❌ | ❌ [↗][hm] | ✅ [↗][gg-mail] | ✅ [↗][ws] | ➖ |
+| Label or archive mail in Gmail | ❌ | ➖ | ✅ [↗][gg-mail] | ✅ [↗][ws] | ➖ |
+| Write and send mail | ❌ | ✅ [↗][hm] | ✅ [↗][gg-mail] | ✅ [↗][ws] | ❌ [↗][nm] |
+| Read a Google Takeout mbox file | ✅ | 🟡 [↗][hm] | ➖ | ➖ | 🟡 [↗][nm] |
+| MCP server | ✅ | ➖ | ✅ [↗][gg-mcp] | ✅ [↗][ws] | ➖ |
+| An agent can read mail but not change it | ✅ | ➖ | ✅ [↗][gg] | ✅ [↗][ws] | ➖ |
+
+Notes on `memo`:
+
+- **Himalaya.** `memo` needs it installed and set up first. It reads mailboxes through it and changes nothing there,
+  except `memo mail trash` and `memo mail restore`, which move mail to and from Gmail's Trash only with `--yes`.
+- **Filters.** `memo` does not create filters in Gmail. It reads a Gmail filter export and turns each filter into
+  a rule for what to import.
+- **Sending.** `memo` never sends mail. It has no code for it.
+- **Himalaya marks.** The partial marks mean: a Maildir folder can be read and listed, but Himalaya builds no search
+  index; mbox is a supported format, but Takeout is not named. Himalaya also manages server-side Sieve filters,
+  which are not Gmail filters.
+- **notmuch marks.** It reads mail you already hold as Maildir, so it needs a sync tool such as `offlineimap`
+  beside it, and it converts an mbox file to Maildir first.
+
+### Where another tool fits better
+
+- **You want an agent to write, reply to or send mail.** Himalaya, gog and the Google Workspace MCP send mail;
+  `memo` only reads it.
+- **You manage Gmail itself: labels, archive, filters.** gog and the Google Workspace MCP change Gmail's own
+  settings; `memo` only trashes and restores mail.
+- **You live in a mail client and want fast tag-based search with no other tools.** notmuch is built for that,
+  and a text editor or terminal client sits on top of it.
 
 ## Install and licence
 
@@ -119,3 +174,10 @@ see [the MCP server](mcp.md).
 [cg-news]: https://github.com/topoteretes/cognee#latest-news
 [cg-mcp]: https://docs.cognee.ai/cognee-mcp/mcp-overview
 [bm]: https://github.com/basicmachines-co/basic-memory
+[hm]: https://github.com/pimalaya/himalaya
+[hm-gmail]: https://github.com/pimalaya/himalaya#gmail
+[gg]: https://github.com/openclaw/gogcli
+[gg-mail]: https://github.com/openclaw/gogcli/blob/main/docs/gmail-workflows.md
+[gg-mcp]: https://github.com/openclaw/gogcli/blob/main/docs/mcp.md
+[ws]: https://github.com/taylorwilsdon/google_workspace_mcp
+[nm]: https://notmuchmail.org/

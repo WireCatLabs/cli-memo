@@ -2,5 +2,20 @@
   "version": "0.2",
   "files": ["README.md", "docs/*.md"],
   "import": ["./config/wirecat/cspell.json"],
-  "words": ["CLAUDECODE", "Cognee", "DMARC", "Falkor", "Graphiti", "Quora", "RDAP", "Screenpipe", "UIDVALIDITY"]
+  "words": [
+    "CLAUDECODE",
+    "Cognee",
+    "DMARC",
+    "Falkor",
+    "Fastmail",
+    "Graphiti",
+    "JMAP",
+    "Maildir",
+    "Quora",
+    "RDAP",
+    "mbox",
+    "notmuch",
+    "Screenpipe",
+    "UIDVALIDITY"
+  ]
 }
