@@ -80,41 +80,42 @@ export const mcp: readonly SharedContractOverride[] = [
     ],
     after: [
       {
-        "flags": "--permission <key=level>",
-        "description": "tighten one saved permission for this server; repeat for more keys",
-        "takes_value": true,
-        "mandatory": false
+        flags: "--permission <key=level>",
+        description: "tighten one saved permission for this server; repeat for more keys",
+        takes_value: true,
+        mandatory: false,
       },
       {
-        "flags": "--json",
-        "description": "print the revocation receipt as JSON",
-        "takes_value": false,
-        "mandatory": false
+        flags: "--json",
+        description: "print the revocation receipt as JSON",
+        takes_value: false,
+        mandatory: false,
       },
       {
-        "flags": "--http",
-        "description": "serve on 127.0.0.1 behind an HTTPS tunnel with an owner access-code login",
-        "takes_value": false,
-        "mandatory": false
+        flags: "--http",
+        description: "serve on 127.0.0.1 behind an HTTPS tunnel with an owner access-code login",
+        takes_value: false,
+        mandatory: false,
       },
       {
-        "flags": "--port <port>",
-        "description": "local HTTP port (default 8767); requires --http",
-        "takes_value": true,
-        "mandatory": false
+        flags: "--port <port>",
+        description: "local HTTP port (default 8767); requires --http",
+        takes_value: true,
+        mandatory: false,
       },
       {
-        "flags": "--public-url <url>",
-        "description": "tunnel's HTTPS origin without /mcp; requires --http",
-        "takes_value": true,
-        "mandatory": false
+        flags: "--public-url <url>",
+        description: "tunnel's HTTPS origin without /mcp; requires --http",
+        takes_value: true,
+        mandatory: false,
       },
       {
-        "flags": "--revoke",
-        "description": "log every browser app out of Memo",
-        "takes_value": false,
-        "mandatory": false
-      }
+        flags: "--revoke",
+        description: "log every browser app out of Memo",
+        takes_value: false,
+        mandatory: false,
+        conflicts: ["http", "port", "publicUrl", "permission"],
+      },
     ],
     reason:
       "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",

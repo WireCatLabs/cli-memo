@@ -11,7 +11,7 @@ import type { ProgramFactory } from "./catalogue.js"
 const DEFAULT_PORT = 8767
 
 export const httpTokenFile = (env: NodeJS.ProcessEnv): string =>
-  join(resolvePaths({ appName: "cli-memo", prefix: "MEMO", env }).state, "mcp-http", "memo.json")
+  join(resolvePaths({ appName: APP.appName, prefix: APP.envPrefix, env }).state, "mcp-http", "memo.json")
 
 interface McpOptions {
   permission?: string[]
@@ -61,7 +61,7 @@ const mcpCommandDefinition = (
       const { createMemoServer } = await import("./server.js")
       const build = () => createMemoServer(env, createProgram, options.permission)
       if (options.http) {
-        const { portOf, publicUrlOf, serveOverHttp } = await import("@wirecat/cli-core/mcp")
+        const { MCP_PATH, portOf, publicUrlOf, serveOverHttp } = await import("@wirecat/cli-core/mcp")
         const publicUrl = publicUrlOf(options.publicUrl, { missing: "--http", reaches: "the browser apps reach memo" })
         const port = portOf(options.port, DEFAULT_PORT)
         // Fail closed before opening a socket, even when no client has asked for tools yet.
@@ -90,7 +90,7 @@ const mcpCommandDefinition = (
           })
           try {
             streams.diagnostic(
-              `serving on ${listening.url.href} — point your tunnel at it; connectors use ${new URL("/mcp", publicUrl).href}`,
+              `serving on ${listening.url.href} — point your tunnel at it; connectors use ${new URL(MCP_PATH, publicUrl).href}`,
             )
             await stopped
           } finally {
