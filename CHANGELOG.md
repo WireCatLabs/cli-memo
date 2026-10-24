@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.91.0 — 24.10.2026
+
 ### Added
 
 - **The agent skill asks for two or three searches in other words before reporting no answer**, covering
