@@ -2,7 +2,7 @@ import { fileURLToPath } from "node:url"
 import { CliError, createRenderer, processStreams, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { skillCommand } from "@wirecat/cli-base/skill"
-import { entityFields, guideCommand, installHelp, NO_EFFECTS, provide } from "@wirecat/cli-core/cli"
+import { entityFields, environmentOf, guideCommand, installHelp, NO_EFFECTS, provide } from "@wirecat/cli-core/cli"
 import { Command } from "commander"
 import { actionsCommand } from "./actions/command.js"
 import { agentsCommand } from "./agents/command.js"
@@ -206,6 +206,7 @@ export const createProgram = ({
   placeInSections(program)
   installHelp(program, FIRST_SCREEN)
   provide(program, {
+    ...environmentOf(program),
     discoveryAvailability: (info) => {
       let command: Command | undefined = program
       for (const word of info.path) command = command?.commands.find((child) => child.name() === word)
