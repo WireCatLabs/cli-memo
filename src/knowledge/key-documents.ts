@@ -1,6 +1,6 @@
 import { CliError } from "@wirecat/cli-base"
 import { parseLocator } from "@wirecat/cli-core"
-import type { Author, Link, MessageStore, Project } from "@wirecat/cli-core/store"
+import type { Author, Link, LinkListFilter, MessageStore, Project } from "@wirecat/cli-core/store"
 import { heldMessage } from "../store/held.js"
 import { canonicalProject } from "../vocabulary/project.js"
 
@@ -70,11 +70,14 @@ const describe = async (store: MessageStore, link: Link): Promise<KeyDocument> =
   }
 }
 
-const keyLinks = async (store: MessageStore, project: Project) =>
-  (await store.notes.links({ to: project.ref })).filter(isKey)
+const keyLinks = async (store: MessageStore, project: Project, filter: Pick<LinkListFilter, "id"> = {}) =>
+  store.notes.links({ ...filter, to: project.ref, kind: "related-to", role: "key" })
 
-export const keyDocuments = async (store: MessageStore, project: Project): Promise<KeyDocument[]> =>
-  Promise.all((await keyLinks(store, project)).map((link) => describe(store, link)))
+export const keyDocuments = async (
+  store: MessageStore,
+  project: Project,
+  filter?: Pick<LinkListFilter, "id">,
+): Promise<KeyDocument[]> => Promise.all((await keyLinks(store, project, filter)).map((link) => describe(store, link)))
 
 export const markKey = async (
   store: MessageStore,

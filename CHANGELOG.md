@@ -7,8 +7,13 @@ the API.
 
 ## Unreleased
 
+### Changed — may break callers
+
+- `mail rules list <account> protected:true` replaces `--filter is:protected`. The removed option has no alias.
+
 ### Added
 
+- Organization, project, reminder, key-document, mail-rule and cleanup-run lists declare schema-derived queries and select records at their native readers before list bounds.
 - **`memo search people <name>` finds a person across every account.** It matches the name, username or your
   alias, whatever the case or accents, Cyrillic included, and gives the `person:<id>` that
   `memo projects evidence --contact` takes, with each identity. `--source` narrows the accounts; the answer names

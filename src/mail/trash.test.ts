@@ -176,6 +176,8 @@ describe("memo mail delete", () => {
         .map(({ uid }) => uid),
     ).toEqual(["101", "102"])
     expect(trashRuns(env, "test")).toMatchObject([{ id: first.run, trashed: 2, restored: 0 }])
+    expect(trashRuns(env, "test", first.run as string)).toMatchObject([{ id: first.run }])
+    expect(trashRuns(env, "test", "missing")).toEqual([])
     const opened = await store(env)
     const { id } = await opened.accounts.storedAccount({ provider: "email", account: ME })
     const refs = await opened.mail.emailRefs({ accountId: id, includeDeleted: true })

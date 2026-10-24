@@ -88,7 +88,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `mail runs list` |  | ✅ |  |
 | `mail runs list` | `--json` | ✅ |  |
 | `mail rules list` |  | ✅ |  |
-| `mail rules list` | `--filter` | ✅ |  |
 | `mail rules list` | `--json` | ✅ |  |
 | `mail rules add` |  | ✅ |  |
 | `mail rules add` | `--sender` | ✅ |  |

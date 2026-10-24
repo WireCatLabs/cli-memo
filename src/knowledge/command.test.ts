@@ -217,3 +217,38 @@ describe("project context", () => {
     })
   })
 })
+
+it("queries organization, project and key-document fields through their native readers", async () => {
+  const root = mkdtempSync(join(tmpdir(), "memo-list-query-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "store.db") }
+  const store = await openStore({ env })
+  const org = await store.knowledge.addOrganization({ name: "Synthetic Studio", kind: "company", scope: "work" })
+  await store.knowledge.addOrganization({ name: "Synthetic Group", kind: "community" })
+  const project = await store.knowledge.addProject({
+    name: "Synthetic Project",
+    key: "SMP",
+    organization: org.ref,
+    type: "client",
+  })
+  const note = await store.notes.addNote({ text: "Synthetic source" })
+  const key = await store.notes.addLink({ from: note.ref, to: project.ref, kind: "related-to", role: "key" })
+  await store.close()
+  const run = async (...args: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env })
+      .exitOverride()
+      .parseAsync([...args, "--json"], { from: "user" })
+    return answerOf(streams.stdout.join(""))
+  }
+  expect(
+    (await run("organizations", "list", "kind:company AND scope:work")).items.map((row: { id: string }) => row.id),
+  ).toEqual([org.id])
+  expect((await run("projects", "list", "type:client")).items.map((row: { id: string }) => row.id)).toEqual([
+    project.id,
+  ])
+  expect((await run("projects", "key-documents", "list", project.ref, `id:${key.id}`)).items).toMatchObject([
+    { id: key.id, ref: note.ref },
+  ])
+  expect((await run("projects", "key-documents", "list", project.ref, "id:999999")).items).toEqual([])
+  await expect(run("organizations", "list", "name:Synthetic")).rejects.toThrow()
+})

@@ -507,18 +507,19 @@ an account’s cleanup runs
 an account's cleanup runs, how much moved, and until when restorable
 
 ```sh
-memo mail runs list <account> [options]
+memo mail runs list <account> [query] [options]
 ```
 
 | Argument | | What it is |
 |---|---|---|
 | `account` | required | the account's name in mail.accounts, or its address. |
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
 
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** an account's cleanup runs, how much moved, and until when restorable
+**Returns:** memo mail run — id, started_at, ended_at, trashed, restored, restorable_until; every field: memo commands info mail runs list
 
 **Example:** `memo mail runs list personal`, `memo mail runs list personal --json`
 
@@ -531,21 +532,21 @@ the owner's decisions on which mail to keep, record, skip, tag or protect
 one account's rules, protected ones first
 
 ```sh
-memo mail rules list <account> [options]
+memo mail rules list <account> [query] [options]
 ```
 
 | Argument | | What it is |
 |---|---|---|
 | `account` | required | the account's name in mail.accounts, or its address. |
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
 
 | Option | What it does |
 |---|---|
-| `--filter <query>` | is:protected lists only the rules no cleanup may override. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** one account's rules, protected ones first
+**Returns:** memo mail rule — match, action, decided_at, id, tags, reason, protected, source; every field: memo commands info mail rules list
 
-**Example:** `memo mail rules list personal --json`, `memo mail rules list personal --filter is:protected`
+**Example:** `memo mail rules list personal --json`, `memo mail rules list personal protected:true`
 
 #### `memo mail rules add`
 
@@ -1103,14 +1104,18 @@ memo organizations add <name> [options]
 your organizations
 
 ```sh
-memo organizations list [options]
+memo organizations list [query] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
 
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** your organizations
+**Returns:** organization — id, ref, kind, name, scope, created_at; every field: memo commands info organizations list
 
 **Example:** `memo organizations list --json`
 
@@ -1223,14 +1228,18 @@ memo projects add <name> [options]
 your projects
 
 ```sh
-memo projects list [options]
+memo projects list [query] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
 
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** your projects
+**Returns:** project — id, ref, key, name, type, organization_id, scope, created_at; every field: memo commands info projects list
 
 **Example:** `memo projects list`
 
@@ -1548,18 +1557,19 @@ memo projects key-documents remove <project> <reference> [options]
 a project's key documents: why, who marked each and whether it is still there
 
 ```sh
-memo projects key-documents list <project> [options]
+memo projects key-documents list <project> [query] [options]
 ```
 
 | Argument | | What it is |
 |---|---|---|
 | `project` | required | id, project:<id>, key, exact name or alias. |
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
 
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** a project's key documents: why, who marked each and whether it is still there
+**Returns:** memo key document — id, ref, title, path, reason, available, confirmed, origin, and 2 more; every field: memo commands info projects key-documents list
 
 **Example:** `memo projects key-documents list HRB`
 
@@ -1712,15 +1722,19 @@ memo reminders add <task> [options]
 pending reminders of the accounts --source names (default all), soonest first
 
 ```sh
-memo reminders list [options]
+memo reminders list [query] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
 
 | Option | What it does |
 |---|---|
 | `--source <accounts>` | which accounts, separated by commas: provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** pending reminders of the accounts --source names (default all), soonest first
+**Returns:** reminder — id, task, due_at, timezone, state, revision, receipt; every field: memo commands info reminders list
 
 **Example:** `memo reminders list --source telegram:1`
 
