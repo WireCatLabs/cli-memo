@@ -563,6 +563,28 @@
       "additionalProperties": false,
       "properties": {
         "account": {
+          "description": "one Memo account name; omission lists choices and changes nothing",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "name": "mail_check"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
           "description": "the account's name in mail.accounts, or its address",
           "minLength": 1,
           "pattern": "^(?!-$)[\\s\\S]+$",
@@ -1931,6 +1953,32 @@
       "type": "object"
     },
     "name": "messages_show"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "accept_terms": {
+          "description": "acknowledge the model's licence terms after reading them",
+          "type": "boolean"
+        },
+        "model": {
+          "description": "a shared text model id, such as e5-small",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["model"],
+      "type": "object"
+    },
+    "name": "models_text_download"
   },
   {
     "annotations": {

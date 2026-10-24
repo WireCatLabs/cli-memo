@@ -18,6 +18,7 @@ keyring, so it is never written in the file:
 
 ```toml
 [accounts.work]
+email = "you@example.com"
 imap.server = "imaps://imap.gmail.com:993"
 imap.sasl.plain.username = "you@example.com"
 imap.sasl.plain.password.command = "secret-tool lookup service himalaya account work"
@@ -32,18 +33,28 @@ Then add the account to Memo's config and import the last 30 days of mail.
 
 ## Add the account to Memo
 
-Name the account in Memo's [config file](configuration.md#mail), `~/.config/cli-memo/config.json`.
-`name` is the account's name in Himalaya; `address` is your email address:
+Give the Himalaya account's name and its configured email explicitly:
 
-```json
-{ "mail": { "accounts": [{ "name": "work", "address": "you@example.com" }] } }
+```sh
+memo mail add work you@example.com
+memo mail check work
 ```
 
-Gmail is the default. For another provider, add `"mode": "imap"` and the folders to read:
+`add` asks Himalaya to list its accounts, matches the selected account's `email` (or `from`) in its TOML file,
+then adds it to Memo's [configuration](configuration.md#mail). It never chooses Himalaya's default account.
+A missing name lists the available names and changes nothing. A mismatched address or an existing name/email
+is refused. Set `email` in the selected Himalaya account first if it has none. `check` repeats the local
+configuration checks without changing Memo or connecting to a mailbox; it is not a login test.
 
-```json
-{ "mail": { "accounts": [{ "name": "home", "address": "me@example.org", "mode": "imap", "folders": ["INBOX", "Archive"] }] } }
+For another IMAP provider, select its kind and folders:
+
+```sh
+memo mail add home me@example.org --kind imap --folder INBOX --folder Archive
 ```
+
+Gmail is the default kind. These commands support one Himalaya config file, selected by `HIMALAYA_CONFIG`
+or its normal location. Keep the same environment for imports. A merged list of config files needs manual
+configuration. A Google Takeout `mbox` still uses the `mode: "mbox"` configuration described below.
 
 ## Sync mail
 

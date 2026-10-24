@@ -88,6 +88,10 @@ markers to bypass that permission. Historical proposals stay proposed.
     lists each problem with the command that fixes it. A sync failure with reason `mail.throttled` means Gmail is
     limiting the account: wait an hour or more, do not retry in a loop.
 
+15. **Search again in other words before saying the answer is absent.** Try a document title, the sender's
+    term, one or two key words, a synonym or the other language. A paraphrase can miss even with search by
+    meaning. After two or three tries, say what you searched for.
+
 ## The usual path
 
 ```sh

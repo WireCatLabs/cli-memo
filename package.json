@@ -63,6 +63,7 @@
     "commander": "15.0.0",
     "disposable-email-domains-js": "1.26.0",
     "postal-mime": "4.0.0",
+    "smol-toml": "1.9.1",
     "tldts": "7.4.16",
     "valibot": "1.5.0",
     "yaml": "2.9.1"

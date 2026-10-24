@@ -34,7 +34,7 @@ Each source needs one more thing, and only when you use it:
 |---|---|
 | Notes and documents | Nothing: [files Memo can read](notes.md#files-memo-can-read) |
 | Telegram or MAX messages | [tg](https://github.com/WireCatLabs/tg-cli) or [max](https://github.com/WireCatLabs/max-cli). They save your chats in the local store; Memo does not log in to a messenger |
-| Search by meaning | A search model on your computer, about 135 MB. tg or max downloads it once: `npx -y @wirecat/tg-cli local models text download e5-small`. Without it, Memo searches by words |
+| Search by meaning | A search model on your computer, about 135 MB. Download it once: `memo models text download e5-small`. Without it, Memo searches by words |
 | Mail | [Himalaya](https://github.com/pimalaya/himalaya) 2.x, the mail program Memo uses to read a mailbox. It reads its accounts from `~/.config/himalaya/config.toml` ([mail](mail.md#before-you-start)) |
 | Syncing on a timer (`memo auto`) | Linux with systemd. On macOS and Windows, run `memo sync` yourself or from your own scheduler ([keeping Memo up to date](archive.md)) |
 
@@ -147,7 +147,7 @@ node dist/bin/memo.js --help
 | State | `~/.local/share/cli-memo/` | `%LOCALAPPDATA%\cli-memo\Data\` |
 | Cache, which `memo doctor` names; Memo keeps nothing there yet | `~/.cache/cli-memo/` | `%LOCALAPPDATA%\cli-memo\Cache\` |
 | The local store, shared with tg and max | `~/.local/share/WireCat/wirecat.db` | `%LOCALAPPDATA%\WireCat\Data\wirecat.db` |
-| Search models, downloaded by tg or max | `~/.local/share/WireCat/models/` | `%LOCALAPPDATA%\WireCat\Data\models\` |
+| Shared search models | `~/.local/share/WireCat/models/` | `%LOCALAPPDATA%\WireCat\Data\models\` |
 | The timer, after `memo auto start` | `~/.config/systemd/user/memo-import.timer` and `.service` | — |
 
 - **Settings**: `config.json` ([configuration](configuration.md)): your folders, mail accounts, mail rules and the

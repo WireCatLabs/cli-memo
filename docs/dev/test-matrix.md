@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**467 ✅ · 0 ⛔ · 138 ❌** — 123 commands, 482 options.
+**480 ✅ · 0 ⛔ · 141 ❌** — 126 commands, 495 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -59,6 +59,12 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `messages show` | `--after-n` | ✅ |  |
 | `messages show` | `--full` | ❌ |  |
 | `messages show` | `--json` | ✅ |  |
+| `mail add` |  | ✅ |  |
+| `mail add` | `--kind` | ✅ |  |
+| `mail add` | `--folder` | ✅ |  |
+| `mail add` | `--json` | ✅ |  |
+| `mail check` |  | ✅ |  |
+| `mail check` | `--json` | ✅ |  |
 | `mail inspect` |  | ✅ |  |
 | `mail inspect` | `--since-time` | ✅ |  |
 | `mail inspect` | `--limit` | ✅ |  |
@@ -522,6 +528,9 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `agents log` | `--json` | ✅ |  |
 | `mcp` |  | ✅ |  |
 | `mcp` | `--permission` | ❌ |  |
+| `models text download` |  | ✅ |  |
+| `models text download` | `--accept-terms` | ✅ |  |
+| `models text download` | `--json` | ✅ |  |
 | `search all` |  | ✅ |  |
 | `search all` | `--limit` | ✅ |  |
 | `search all` | `--exact` | ✅ |  |
@@ -564,7 +573,14 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `search memories` | `--limit` | ❌ |  |
 | `search memories` | `--json` | ✅ |  |
 | `search meetings` |  | ✅ |  |
+| `search meetings` | `--meeting-id` | ✅ |  |
+| `search meetings` | `--identity-id` | ❌ |  |
+| `search meetings` | `--person-id` | ❌ |  |
+| `search meetings` | `--event-id` | ❌ |  |
+| `search meetings` | `--series-id` | ✅ |  |
 | `search meetings` | `--project` | ✅ |  |
+| `search meetings` | `--tag` | ✅ |  |
+| `search meetings` | `--topic` | ✅ |  |
 | `search meetings` | `--since-time` | ✅ |  |
 | `search meetings` | `--until-time` | ✅ |  |
 | `search meetings` | `--limit` | ✅ |  |
