@@ -36,7 +36,8 @@ Plans and owner rulings live in the private notes (`cli-private`, `plans/`); thi
   0.407.0. Done when: `memo mcp --http --public-url https://<name>.ts.net` serves MCP behind the access-code login and
   prints the code; `--permission` keys and saved permissions still apply to every tool call over HTTP; `--revoke`
   works; a `docs/remote.md` page (copied from tg-cli `docs/remote.md`, memo wording) is linked from the README and the
-  comparison page row "MCP over HTTP" (`docs/compare.md:53`) turns ✅ for memo and the roadmap line
+  comparison page row "MCP over HTTP" (cli-docs `translations/pages/memo/compare.en.md:61`, and its MCP note at
+  `:76`) turns ✅ for memo and the roadmap line
   (`docs/roadmap.md:35`) is removed.
 
 ## Next (P2)
