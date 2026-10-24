@@ -94,7 +94,7 @@ it("keeps the cutoff on continuation and refuses a changed cutoff", async () => 
 it("shares the zoned cutoff and field-specific validation across CLI and MCP", async () => {
   const { env, json } = await setup()
   const [server, transport] = InMemoryTransport.createLinkedPair()
-  await createMemoServer(env).connect(server)
+  await createMemoServer(env, createProgram).connect(server)
   const client = new Client({ name: "synthetic-cutoff", version: "1" })
   await client.connect(transport)
   try {
@@ -140,7 +140,7 @@ it("names the zone a start date was read in and gives the window in UTC, in the 
     expect(days.meta.window).toEqual({ since: new Date(start).toISOString(), until: END })
 
     const [server, transport] = InMemoryTransport.createLinkedPair()
-    await createMemoServer(env).connect(server)
+    await createMemoServer(env, createProgram).connect(server)
     const client = new Client({ name: "synthetic-window", version: "1" })
     await client.connect(transport)
     try {

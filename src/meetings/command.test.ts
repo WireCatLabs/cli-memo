@@ -178,7 +178,7 @@ it("refuses missing/ambiguous source selection, foreign cues and foreign cursors
 it("exposes strict MCP meeting search/passage with evidence and unchanged review boundaries", async () => {
   const f = await fixture()
   const [serverSide, clientSide] = InMemoryTransport.createLinkedPair()
-  await createMemoServer(f.env).connect(serverSide)
+  await createMemoServer(f.env, createProgram).connect(serverSide)
   const client = new Client({ name: "synthetic", version: "1" })
   await client.connect(clientSide)
   try {

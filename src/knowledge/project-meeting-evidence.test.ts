@@ -62,7 +62,7 @@ it("reads only the selected meeting profile and preserves exact cue references o
   expect(found.completeness).toBe("unknown")
   expect(found.unread_sources).toEqual([])
   const [transport, peer] = InMemoryTransport.createLinkedPair()
-  await createMemoServer(f.env).connect(transport)
+  await createMemoServer(f.env, createProgram).connect(transport)
   const client = new Client({ name: "synthetic-meeting-evidence", version: "1" })
   await client.connect(peer)
   try {

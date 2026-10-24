@@ -2,7 +2,7 @@
 
 This page helps you bring your notes into Memo and keep your own notes there. You can add a folder of
 Markdown files or an Obsidian vault, search its documents, and write notes about people, messages and
-projects. Memo only reads your folders: it writes a file only when you export your notes.
+projects. Memo imports your folders without changing them. `notes edit` can change a source note; `notes export` writes files.
 
 There are two kinds of notes:
 

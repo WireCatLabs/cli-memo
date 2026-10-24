@@ -94,7 +94,7 @@ this small example. Both CLI and MCP then refuse an agent's `projects actions co
 reading and proposing still work. Owner decisions remain available in the terminal. The setting
 controls Memo's agent mode; terminal access retains the permissions of the terminal user.
 `--as-owner` labels a command as the owner's and must not be used by an agent to bypass this setting.
-This setting applies to project proposals; it does not change the separate owner-only confirmation
+This setting applies to project proposals; it does not change the separate permission for confirmation
 of meeting findings or replace the tool's other permission checks.
 
 ## Environment variables
@@ -110,3 +110,28 @@ of meeting findings or replace the tool's other permission checks.
 
 Memo calls a provider outside your computer only when `memo ask` has both `--analyze` and
 `--allow-remote`. See [give your agent the sources](search.md#give-your-agent-the-sources).
+
+## `permissions`
+
+Dotted command paths limit MCP tools. A key covers that command and its children; the most specific saved key
+wins. `deny` removes tools, `readonly` permits reads, and `ask` or `allow` permits writes. Over MCP `ask` runs
+without a terminal question, so the client app obtains approval. Writes without a saved level use `ask`.
+
+```json
+{
+  "permissions": {
+    "notes": "readonly",
+    "mail.trash": "deny",
+    "mcp.authority": "deny"
+  }
+}
+```
+
+`mcp.authority` defaults to `deny` for source-folder and mail-rule changes. `meetings.actions.confirm`,
+`meetings.actions.reject` and `projects.annotations.restore` default to `deny` too; explicitly set the relevant
+key to `ask` or `allow` to delegate one of these owner operations. `agent_decisions: false` continues to refuse
+project proposal decisions. The shared WireCat read ceiling and `MEMO_READ_ONLY` cap every permission.
+
+Restart the MCP connection after allowing a previously hidden tool. Changes that tighten a permission take
+effect on existing connections too. `memo mcp --permission notes.edit=deny` tightens one key for that server
+without changing the file; an override that loosens any saved key is refused.

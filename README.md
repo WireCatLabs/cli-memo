@@ -54,9 +54,10 @@ memo sync --only notes                # reads the notes, their links and tags; r
 memo search notes "budget"
 ```
 
-A global install does not install the agent skill; `memo skill install --for all` above does. npm 12 prints
-"install scripts blocked": that is harmless. On
-Windows, open a new terminal if `memo` is not found.
+A global install does not install the agent skill; run `memo skill install --for all` above.
+npm 11.17 and later warn about install scripts not covered by `allowScripts`; with npm 11 the scripts still run.
+npm 12 blocks them instead. Run the `npm install -g --allow-scripts=…` command npm prints under the warning;
+it allows only the packages it names, once. On Windows, open a new terminal if `memo` is not found.
 
 That is all notes need. Then add more context:
 
@@ -296,18 +297,19 @@ More: [tags](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tags.md) ·
 ## Agents and MCP
 
 An agent with a terminal runs `memo` with `--json`. An MCP app starts `memo mcp` on stdin and stdout. Through it
-the app can read your stored messages, mail and notes, a person's context, memories, facts, proposed actions and
-the agent log:
+the app can use Memo's commands, including writes, limited by the saved permissions and read lock.
+It can open search references with `notes_show` and `messages_show`. Existing tool names still work:
 
 ```json
 { "mcpServers": { "memo": { "command": "memo", "args": ["mcp"] } } }
 ```
 
-An agent's new memories, directly recorded facts and outbound action proposals start as `proposed`. MCP does not
-confirm memories, directly accept existing proposed facts or approve outbound actions. Project proposals
-have a separate flow: by default an agent may decide them with a recorded reason, creating accepted
+An agent's new memories, directly recorded facts and outbound action proposals start as `proposed`.
+Permission keys limit reading, editing and decisions; writes without a saved level use `ask`, which runs over MCP
+without a terminal question. Source-folder and mail-rule changes need `mcp.authority`, off by default.
+Project proposals have a separate flow: by default an agent may decide them with a recorded reason, creating accepted
 facts and numbered tasks or confirming a key document. Set `agent_decisions: false` to require owner
-decisions on project proposals; meeting findings still require the owner. Memo never sends a message
+decisions on project proposals. Meeting decisions and annotation restore require explicit permissions. Memo never sends a message
 or email. `memo agents log` lists each call, its result and time, without its arguments.
 
 More: [memories and facts](https://github.com/WireCatLabs/cli-memo/blob/main/docs/memories.md) · [the MCP server](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md) ·

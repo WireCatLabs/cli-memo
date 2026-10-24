@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**466 ✅ · 0 ⛔ · 138 ❌** — 123 commands, 481 options.
+**467 ✅ · 0 ⛔ · 138 ❌** — 123 commands, 482 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -408,7 +408,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `memories show` |  | ✅ |  |
 | `memories show` | `--json` | ✅ |  |
 | `memories confirm` |  | ✅ |  |
-| `memories confirm` | `--json` | ❌ |  |
+| `memories confirm` | `--json` | ✅ |  |
 | `memories stale` |  | ✅ |  |
 | `memories stale` | `--json` | ✅ |  |
 | `mentions list` |  | ✅ |  |
@@ -521,6 +521,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `agents log` | `--limit` | ✅ |  |
 | `agents log` | `--json` | ✅ |  |
 | `mcp` |  | ✅ |  |
+| `mcp` | `--permission` | ❌ |  |
 | `search all` |  | ✅ |  |
 | `search all` | `--limit` | ✅ |  |
 | `search all` | `--exact` | ✅ |  |

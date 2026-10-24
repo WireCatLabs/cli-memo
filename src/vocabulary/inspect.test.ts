@@ -86,7 +86,7 @@ it("refuses typed-reference mistakes, incomplete dependency reads and a changed 
 it("serves a read-only MCP preview and names unknown fields in the handler's validation envelope", async () => {
   const { env, source, survivor, fingerprint, catalog } = await fixture()
   const [serverSide, clientSide] = InMemoryTransport.createLinkedPair()
-  await createMemoServer(env).connect(serverSide)
+  await createMemoServer(env, createProgram).connect(serverSide)
   const client = new Client({ name: "fixture", version: "0" })
   await client.connect(clientSide)
   try {

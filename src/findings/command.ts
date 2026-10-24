@@ -14,6 +14,7 @@ import type { MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer } from "../answer.js"
 import { authorOf } from "../author.js"
+import { mcpOwnerAllowed } from "../mcp/permissions.js"
 import { positive } from "../options.js"
 import {
   accountName,
@@ -117,7 +118,7 @@ export const findingsCommand = (program: Command, streams: Streams, env: NodeJS.
       .argument("<id>", "stored findings batch ID")
       .requiredOption("--fingerprint <hash>", "the exact fingerprint shown in the preview")
     const review = (id: string, given: Options, accept: string[]) => {
-      if (authorOf(env) !== "owner")
+      if (authorOf(env) !== "owner" && !mcpOwnerAllowed(env, `meetings.actions.${name}`))
         throw new CliError(
           "validation_error",
           "findings confirmation and rejection belong to the owner; agents must leave proposals for review",

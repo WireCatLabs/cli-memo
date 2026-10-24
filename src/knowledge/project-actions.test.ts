@@ -200,7 +200,7 @@ it("offers the same over MCP, where every decision is the agent's and needs a re
   const { owner, agent, run, file } = await setUp()
   await run(agent, "projects", "actions", "add", file)
   const [server, transport] = InMemoryTransport.createLinkedPair()
-  await createMemoServer(owner).connect(server)
+  await createMemoServer(owner, createProgram).connect(server)
   const client = new Client({ name: "synthetic", version: "1" })
   await client.connect(transport)
   const listed = await client.callTool({ name: "project_actions_list", arguments: { project: "SYP", brief: true } })

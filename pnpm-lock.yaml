@@ -13,17 +13,17 @@ importers:
   .:
     dependencies:
       '@modelcontextprotocol/server':
-        specifier: 2.1.0
-        version: 2.1.0
+        specifier: 2.3.0
+        version: 2.3.0
       '@valibot/to-json-schema':
         specifier: 1.8.0
         version: 1.8.0(valibot@1.5.0(typescript@7.0.2))
       '@wirecat/cli-base':
-        specifier: 0.49.0
-        version: 0.49.0(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.3)
+        specifier: 0.50.3
+        version: 0.50.3(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.3)
       '@wirecat/cli-core':
         specifier: 0.404.0
-        version: 0.404.0(@wirecat/cli-base@0.49.0(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.3))(commander@15.0.0)(typescript@7.0.2)(zod@4.6.5)
+        version: 0.404.0(@wirecat/cli-base@0.50.3(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.3))(commander@15.0.0)(typescript@7.0.2)(zod@4.6.5)
       commander:
         specifier: 15.0.0
         version: 15.0.0
@@ -56,8 +56,8 @@ importers:
         specifier: 2.3.3
         version: 2.3.3
       '@modelcontextprotocol/client':
-        specifier: 2.2.0
-        version: 2.2.0
+        specifier: 2.3.0
+        version: 2.3.0
       '@types/node':
         specifier: ^22.20.4
         version: 22.20.5
@@ -463,16 +463,8 @@ packages:
   '@mixmark-io/domino@2.2.0':
     resolution: {integrity: sha512-Y28PR25bHXUg88kCV7nivXrP2Nj2RueZ3/l/jdx6J9f8J4nsEGcgX0Qe6lt7Pa+J79+kPiJU3LguR6O/6zrLOw==}
 
-  '@modelcontextprotocol/client@2.2.0':
-    resolution: {integrity: sha512-LxCou/CSYQ6dwEnjhLZY0KnEuc8V4UJ3IEQCl/uR2yHobSQIEdJKUlKLRYRF5i5FqRGHy1eK7une3aAWDHLtig==}
-    engines: {node: '>=20'}
-
-  '@modelcontextprotocol/core@2.1.0':
-    resolution: {integrity: sha512-YdFj5gMRHr0gYNAhTbQDgjLHiEJdIAUYxomhKseUNye7ZGlISQmUoLh2sveFFCiQ7j2YMffT1kgSND0FSfIFjQ==}
-    engines: {node: '>=20'}
-
-  '@modelcontextprotocol/core@2.2.0':
-    resolution: {integrity: sha512-iLhmprRmWI8EcosOA3wVvww22z02NkgqhV4fBH6f/odQBsi7xnJc0HGmi21yWO+/iKw2yzqVE127Zhna5/+JXw==}
+  '@modelcontextprotocol/client@2.3.0':
+    resolution: {integrity: sha512-pbHtGj6EeFCHngFE8gtNPaKrsj8Mb1IMw45BLcaPML/m2WTxI7pyYmeNQvaux88Lw8BSO5r7nyRbUyIkICmGrg==}
     engines: {node: '>=20'}
 
   '@modelcontextprotocol/core@2.3.0':
@@ -488,10 +480,6 @@ packages:
     peerDependenciesMeta:
       '@cfworker/json-schema':
         optional: true
-
-  '@modelcontextprotocol/server@2.1.0':
-    resolution: {integrity: sha512-FdvwZU5N03O77Suh35JqjAqq5R1ZTEPFtwu6N4BgBq28qrQtrCnpbLL5U2pwYCuE194jAw0xnlOVmIqhfoYuUQ==}
-    engines: {node: '>=20'}
 
   '@modelcontextprotocol/server@2.3.0':
     resolution: {integrity: sha512-+6b0LdsQLmHsvS7J6sQJ4weTpzUn61fU1JKS+321/+IyDYoHW5CR2Tgqcs6GgAAQvlesCo6yX3xttgmx+XGtJw==}
@@ -971,8 +959,8 @@ packages:
   '@wasm-audio-decoders/opus-ml@0.0.3':
     resolution: {integrity: sha512-SEeTmk0eb3q5etJA/NHCRWW6BivTx9tqvNTmG0kg2ynuATEQRUZnwQE6Ibvl1BBvqIGHqI57+qyJMWmJBwb5XQ==}
 
-  '@wirecat/cli-base@0.49.0':
-    resolution: {integrity: sha512-C52f6eX5BX4c5H9keMXK/dDk+zCNChnsRNqHl7AHw0LRxXo53VyO8G7y5yN184uEDu34vbyISaaTZtSjdMJVFA==}
+  '@wirecat/cli-base@0.50.3':
+    resolution: {integrity: sha512-pwlagOUtR5MqnTp84DZUSDY2GCuyDatNXxTuHkt9bXariz/v9/CCG+2eP4qrTjU0SbUPwKAIZzW3momRLPtGOg==}
     engines: {node: '>=22'}
     hasBin: true
     peerDependencies:
@@ -2811,22 +2799,14 @@ snapshots:
   '@mixmark-io/domino@2.2.0':
     optional: true
 
-  '@modelcontextprotocol/client@2.2.0':
+  '@modelcontextprotocol/client@2.3.0':
     dependencies:
-      '@modelcontextprotocol/core': 2.2.0
+      '@modelcontextprotocol/core': 2.3.0
       cross-spawn: 7.0.6
       eventsource: 3.0.7
       eventsource-parser: 3.1.1
       jose: 6.2.12
       pkce-challenge: 5.0.1
-      zod: 4.6.5
-
-  '@modelcontextprotocol/core@2.1.0':
-    dependencies:
-      zod: 4.6.5
-
-  '@modelcontextprotocol/core@2.2.0':
-    dependencies:
       zod: 4.6.5
 
   '@modelcontextprotocol/core@2.3.0':
@@ -2854,11 +2834,6 @@ snapshots:
       zod-to-json-schema: 3.25.2(zod@4.6.5)
     transitivePeerDependencies:
       - supports-color
-
-  '@modelcontextprotocol/server@2.1.0':
-    dependencies:
-      '@modelcontextprotocol/core': 2.1.0
-      zod: 4.6.5
 
   '@modelcontextprotocol/server@2.3.0':
     dependencies:
@@ -3164,7 +3139,7 @@ snapshots:
     dependencies:
       '@wasm-audio-decoders/common': 9.0.7
 
-  '@wirecat/cli-base@0.49.0(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.3)':
+  '@wirecat/cli-base@0.50.3(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.3)':
     dependencies:
       '@valibot/to-json-schema': 1.8.0(valibot@1.5.0(typescript@7.0.2))
       cli-table3: 0.6.5
@@ -3184,7 +3159,7 @@ snapshots:
 
   '@wirecat/cli-core-sqlite@1.0.1': {}
 
-  '@wirecat/cli-core@0.404.0(@wirecat/cli-base@0.49.0(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.3))(commander@15.0.0)(typescript@7.0.2)(zod@4.6.5)':
+  '@wirecat/cli-core@0.404.0(@wirecat/cli-base@0.50.3(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.3))(commander@15.0.0)(typescript@7.0.2)(zod@4.6.5)':
     dependencies:
       '@anthropic-ai/sdk': 0.131.0(zod@4.6.5)
       '@bomb.sh/tab': 0.0.22(commander@15.0.0)
@@ -3192,7 +3167,7 @@ snapshots:
       '@modelcontextprotocol/server': 2.3.0
       '@resvg/resvg-js': 2.6.2
       '@valibot/to-json-schema': 1.8.0(valibot@1.5.0(typescript@7.0.2))
-      '@wirecat/cli-base': 0.49.0(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.3)
+      '@wirecat/cli-base': 0.50.3(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.3)
       '@wirecat/cli-core-onnx': 1.0.1
       '@wirecat/cli-core-sqlite': 1.0.1
       '@xmldom/xmldom': 0.9.12

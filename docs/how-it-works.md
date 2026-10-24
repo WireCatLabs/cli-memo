@@ -109,13 +109,13 @@ Your agent can add three kinds of records:
   reject it. Approving it makes it a task for you. Memo never sends a message or an email.
 
 Memories and directly recorded facts added through the [MCP server](mcp.md) start as **proposed**.
-MCP does not confirm a memory, directly accept an existing proposed fact or approve an outbound
-action. Every call is written to the agent log (`memo agents log`), without the details it sent.
+MCP command tools can confirm memories, accept facts or approve actions when their saved permissions allow it.
+Every call is written to the agent log (`memo agents log`), without the details it sent.
 
 Project proposals have a separate flow. By default an agent can decide them with a recorded reason,
 creating accepted facts and numbered tasks or confirming a key document. Set
 [`agent_decisions: false`](configuration.md#agent_decisions) to require owner decisions on project
-proposals; reading and proposing still work. Meeting findings still require the owner.
+proposals; reading and proposing still work. Meeting findings decisions require explicit permissions.
 
 The `memo` command tells an agent's terminal by `AI_AGENT` or `CLAUDECODE`, the variables agents such
 as Claude Code set. There, a directly recorded fact, memory or relationship is recorded as the agent's

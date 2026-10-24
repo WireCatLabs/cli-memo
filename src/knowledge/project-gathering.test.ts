@@ -192,7 +192,7 @@ it("stops at the read budget and continues from the checkpoint without repeating
 it("over MCP needs a source, refuses unknown arguments and reports what all leaves unread", async () => {
   const { env } = await setUp()
   const [server, transport] = InMemoryTransport.createLinkedPair()
-  await createMemoServer(env).connect(server)
+  await createMemoServer(env, createProgram).connect(server)
   const client = new Client({ name: "synthetic", version: "1" })
   await client.connect(transport)
   const missing = await client.callTool({ name: "project_evidence", arguments: { project: "SYP" } })

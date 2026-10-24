@@ -207,9 +207,9 @@ Replace `PREVIEW_FINGERPRINT` with the exact successful preview fingerprint. Res
 applies the selected changes together and rolls them all back on failure. A changed source or target
 requires a new preview. Repeating a completed restore into the populated target refuses; it does not
 add duplicates. Historical accepted facts stay accepted and proposed facts stay proposed. Memo
-refuses restoration when its environment identifies the caller as an agent; this is a CLI policy,
-not an operating-system access boundary. MCP offers only snapshot and preview reads. MCP calls
-still record their normal audit entry.
+refuses restoration from an agent's terminal. The generated MCP restore tool requires the owner's explicit
+`projects.annotations.restore` permission; snapshot and preview remain reads. MCP calls still record their
+normal audit entry.
 
 Once the preview and selected counts agree, return to [project review](#review-project-facts-and-follow-ups)
 for current proposals; the snapshot does not decide them.

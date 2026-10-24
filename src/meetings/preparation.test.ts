@@ -157,7 +157,7 @@ it("reads only explicit communications grants, carries cursors and refuses malfo
 it("exposes strict MCP preparation and refuses unknown fields before invoking the reader", async () => {
   const env = await fixture()
   const [server, transport] = InMemoryTransport.createLinkedPair()
-  await createMemoServer(env).connect(server)
+  await createMemoServer(env, createProgram).connect(server)
   const client = new Client({ name: "synthetic", version: "1" })
   await client.connect(transport)
   try {

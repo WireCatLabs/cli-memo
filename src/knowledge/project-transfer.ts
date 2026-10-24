@@ -12,6 +12,7 @@ import {
 } from "@wirecat/cli-core/store"
 import * as v from "valibot"
 import { authorOf } from "../author.js"
+import { mcpOwnerAllowed } from "../mcp/permissions.js"
 import { canonicalProject } from "../vocabulary/project.js"
 
 export const snapshotAnnotations = async (env: NodeJS.ProcessEnv, project: string, maxReadBytes?: number) => {
@@ -92,7 +93,7 @@ export const previewAnnotations = (env: NodeJS.ProcessEnv, input: AnnotationPrev
   previewProjectAnnotationSnapshot({ ...input, env })
 
 export const assertAnnotationRestoreOwner = (env: NodeJS.ProcessEnv) => {
-  if (authorOf(env) !== "owner")
+  if (authorOf(env) !== "owner" && !mcpOwnerAllowed(env, "projects.annotations.restore"))
     throw new CliError(
       "permission_error",
       "project annotation restore belongs to the owner; agents may export and preview",
