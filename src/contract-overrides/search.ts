@@ -15,7 +15,7 @@ export const search: readonly SharedContractOverride[] = [
     field: "description",
     before:
       "find things by text: one resource when you know it (messages, notes), or search all across messages and notes; for mail, the separate memo CLI: memo search mail",
-    after: "search stored messages, mail, notes and memories; search all when unsure where",
+    after: "search messages, mail, notes, memories and people; search all when unsure where",
     reason:
       "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },

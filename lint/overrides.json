@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "rule": "unknown-verb",
+    "target": "search people",
+    "reason": "The owner chose memo search people (UX-89) as the one way to find a person by name; people is not yet a resource in the shared vocabulary, which would need a cli-base change.",
+    "owner": "@leemour",
+    "review_after": "2027-01-25"
+  }
+]

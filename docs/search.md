@@ -24,9 +24,10 @@ one with `memo notes show` or in the original app.
 | Your email | `memo search mail 'budget'` |
 | Telegram or MAX messages | `memo search messages 'budget'` |
 | Stored meeting transcripts and summaries | `memo search meetings 'budget' --source zoom:work` |
+| A person, by name, username or alias | `memo search people kai` |
 
 `search all` looks in messages, mail and notes together. It does not search meetings, people, memories,
-projects or tasks; use `memo context`, `memo search memories` and `memo tasks list` for those.
+projects or tasks; use `memo search people`, `memo context`, `memo search memories` and `memo tasks list` for those.
 When you know where something is, its own search is better, because it understands more search
 words.
 

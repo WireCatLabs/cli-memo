@@ -2729,7 +2729,7 @@ memo models download <model> [options]
 
 ## `memo search`
 
-search stored messages, mail, notes and memories; search all when unsure where
+search messages, mail, notes, memories and people; search all when unsure where
 
 ### `memo search all`
 
@@ -2866,6 +2866,30 @@ memo search memories <query> [options]
 **Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 7 more; every field: memo commands info search memories
 
 **Example:** `memo search memories friday meetings scope:work`
+
+### `memo search people`
+
+people whose name, username or alias holds every word, in every account unless --source narrows it; each with its person:<id> for --contact and its identities
+
+```sh
+memo search people <name> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | required | parts of the name, username or alias; case and accents do not matter. |
+
+| Option | What it does |
+|---|---|
+| `--source <accounts>` | which accounts, separated by commas: provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>. |
+| `--limit <n>` | most people, at most 100. Default: `20`. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** person — ref, name, identities; every field: memo commands info search people
+
+**Next usually:** `memo context <person>`, `memo tasks assign <id> <person>`, `memo mentions confirm <id> [person]`
+
+**Example:** `memo search people ana`, `memo search people Ana Example --source telegram --json`
 
 ### `memo search meetings`
 

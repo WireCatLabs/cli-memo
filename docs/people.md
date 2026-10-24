@@ -5,6 +5,18 @@ keep track of the companies, teams and projects they belong to. Memo gathers the
 mail and your notes into one answer, each item with its source. It never decides that two accounts
 are one person because the names match: you link them.
 
+## Find a person by name
+
+```sh
+memo search people kai
+memo search people 'Kai Sample' --source telegram --json
+```
+
+It reads every account in the store unless `--source` names some, and says which it read. A person
+matches when their name, username or the alias you gave them holds every word; case and accents do
+not matter. Each result shows the person's `person:<id>`, which `memo projects evidence --contact`
+takes, and the accounts behind it.
+
 ## Everything about a person
 
 **The easiest way: ask your agent.**
