@@ -21,7 +21,7 @@ vulnerabilities are reported as the
    `MESSAGING_STORE`, `HOME`, the XDG folders and `HIMALAYA_CONFIG` into a temp folder for every test
    file; do not weaken it.
 3. **Imports are read-only.** Mail is never sent or marked read; source notes are never changed.
-   Explicit `mail trash` and `mail restore` commands can move Gmail mail only with `--yes`;
+   Explicit `mail delete` and `mail restore` commands can move Gmail mail only with `--yes`;
    no test may use the owner's mailbox, and the sync timer never runs cleanup.
 4. **Pin `@wirecat/cli-core` to an exact published version compatible with the other store consumers.**
    Compatible SDK updates may be adopted independently after reviewing intervening changelog entries

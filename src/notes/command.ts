@@ -1,12 +1,14 @@
 import { readFileSync } from "node:fs"
 import { CliError, type Streams } from "@wirecat/cli-base"
-import { annotate } from "@wirecat/cli-base/commands"
+import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
-import { LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
+import { LOCAL_READ, LOCAL_WRITE, queryTerms, sharedCommandTemplate, termField, withQuery } from "@wirecat/cli-core/cli"
 import type { MessageStore, Note } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
+import { APP } from "../app.js"
 import { loadConfig } from "../config.js"
+import { SHELL_OVERRIDES } from "../contract-overrides.js"
 import { collect, positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { subjectOf } from "../people/subject.js"
@@ -58,7 +60,7 @@ const noteOf = async (store: MessageStore, env: NodeJS.ProcessEnv, reference: st
   return found
 }
 
-export const notesCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
+const notesCommandDefinition = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
   // The note's own export_path says where it was written; a file edited since is left as it is, and said so.
   const exportedPath = ({ written, unchanged, edited }: ExportResult): string | null => {
@@ -278,4 +280,18 @@ export const notesCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         ].join("\n"),
       )
     })
+}
+
+export const notesCommand = (...args: Parameters<typeof notesCommandDefinition>) => {
+  customizeSharedCommand(
+    sharedCommandTemplate(APP, "notes"),
+    "Memo supports native notes and imported files across stored subjects, with explicit subject, author and export options.",
+    () => {
+      notesCommandDefinition(...args)
+      const command = args[0].commands.find((command) => command.name() === "notes")
+      if (!command) throw new Error("notes builder did not install its command")
+      return command
+    },
+    SHELL_OVERRIDES.notes,
+  )
 }

@@ -1,6 +1,5 @@
 import type { Streams } from "@wirecat/cli-base"
-import { annotate } from "@wirecat/cli-base/commands"
-import { LOCAL_READ } from "@wirecat/cli-core/cli"
+import { overrideSharedContract } from "@wirecat/cli-core/cli"
 import {
   createMeetingPassageCommand,
   createMeetingSearchCommand,
@@ -10,7 +9,7 @@ import {
   meetingPassageRequest,
   meetingSearchArguments,
 } from "@wirecat/cli-core/meetings/cli"
-import { Command } from "commander"
+import type { Command } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
 import { MEETING_ACCOUNT_HELP, type SourceOptions, sourceOf, sourceOptions } from "../store/source-list.js"
 import { readStoredMeetingPassage, searchStoredMeetings } from "./read.js"
@@ -20,17 +19,20 @@ export const meetingReadCommands = (program: Command, streams: Streams, env: Nod
   const source = (given: SourceOptions) => sourceOf(given, (text) => streams.diagnostic(text))
   const output = (command: Command) =>
     sourceOptions(command, MEETING_ACCOUNT_HELP).option("--json", "print the standard JSON answer")
-  const grammar = createMeetingSearchCommand(new Command())
-  const group = program.commands.find((command) => command.name() === "search") ?? program.command("search")
-  const search = annotate(group.command("meetings"), { effects: LOCAL_READ, output: { entity: "meeting_hit" } })
-    .description(grammar.description())
-    .argument("<query>", "words to find; each also matches its other word forms")
-  for (const option of grammar.options) {
-    if (option.long === "--tag" || option.long === "--topic") continue
-    if (option.long === "--project") option.flags = "--project <project>"
-    search.addOption(option)
-  }
-  output(search).action(async (query: string, given: MeetingSearchFlags & SourceOptions & { json?: boolean }) => {
+  const grammar = createMeetingSearchCommand(program)
+  const search = overrideSharedContract(
+    grammar,
+    "Memo selects an explicit stored source and uses native tag: queries instead of a tag flag, with command-local JSON output.",
+    (command) => {
+      Reflect.set(
+        command,
+        "options",
+        command.options.filter((option) => option.long !== "--tag"),
+      )
+      output(command)
+    },
+  )
+  search.action(async (query: string, given: MeetingSearchFlags & SourceOptions & { json?: boolean }) => {
     const input = meetingHitSearchRequest(query, given)
     const result = await withStore(env, (store) =>
       searchStoredMeetings(store, env, source(given), query, input, meetingSearchArguments(query, given), {
@@ -40,14 +42,18 @@ export const meetingReadCommands = (program: Command, streams: Streams, env: Nod
     )
     print(given.json, result)
   })
-  output(annotate(createMeetingPassageCommand(program), { output: { entity: "meeting_context" } })).action(
-    async (reference: string, given: MeetingPassageFlags & SourceOptions & { json?: boolean }) => {
-      const format = given.json ? "json" : (given.format ?? "text")
-      const input = meetingPassageRequest(reference, { ...given, format })
-      const result = await withStore(env, (store) =>
-        readStoredMeetingPassage(store, env, source(given), reference, input),
-      )
-      print(given.json, itemAnswer(result.packet), result.content)
+  overrideSharedContract(
+    createMeetingPassageCommand(program),
+    "Memo passage reads an explicitly selected stored source and exposes command-local JSON output.",
+    (command) => {
+      output(command)
     },
-  )
+  ).action(async (reference: string, given: MeetingPassageFlags & SourceOptions & { json?: boolean }) => {
+    const format = given.json ? "json" : (given.format ?? "text")
+    const input = meetingPassageRequest(reference, { ...given, format })
+    const result = await withStore(env, (store) =>
+      readStoredMeetingPassage(store, env, source(given), reference, input),
+    )
+    print(given.json, itemAnswer(result.packet), result.content)
+  })
 }

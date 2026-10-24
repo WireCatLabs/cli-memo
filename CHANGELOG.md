@@ -4,6 +4,21 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+
+## Unreleased
+
+### Changed — may break callers
+
+- **Shared command contracts require explicit source overrides.** Discovery includes schemas, declared reasons and exact before/after differences. Stored meeting topic labels use `--topic-name` in the CLI and `topic_name` in MCP continuations.
+
+### Added
+
+- **`models list` and verified downloads use Core’s catalogue.** Model selection is a native query, and `models download --offline` refuses before network work. Project task updates retain priority and parent fields; source tasks retain their explicit account and assignee handling.
+
+### Security
+
+- **Dependency resolutions exclude vulnerable Zod, Vite and postal-mime versions.** Release checks reject high production findings in locked and fresh package resolutions.
+
 ## 0.93.0 — 24.10.2026
 
 ### Changed — may break callers

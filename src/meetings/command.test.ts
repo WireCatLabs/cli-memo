@@ -248,13 +248,15 @@ it("uses the shared meeting selectors with explicit source scope", async () => {
   const page = await cli(f.env, [
     "search",
     "meetings",
-    "Ship topic:finance",
+    "Ship",
     "--source",
     f.source,
     "--meeting-id",
     String(f.saved.meeting.id),
     "--series-id",
     String(f.saved.meeting.meetingSeriesId),
+    "--topic-name",
+    "finance",
   ])
   expect(page.items.length).toBeGreaterThan(0)
   expect(page.items.every((item: { ref: string }) => item.ref.includes(String(f.saved.meeting.id)))).toBe(true)

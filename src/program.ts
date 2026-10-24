@@ -1,8 +1,19 @@
 import { fileURLToPath } from "node:url"
 import { CliError, createRenderer, processStreams, type Streams } from "@wirecat/cli-base"
-import { annotate } from "@wirecat/cli-base/commands"
+import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
 import { skillCommand } from "@wirecat/cli-base/skill"
-import { entityFields, environmentOf, guideCommand, installHelp, NO_EFFECTS, provide } from "@wirecat/cli-core/cli"
+import {
+  addContractInfo,
+  assertSharedContracts,
+  entityFields,
+  environmentOf,
+  guideCommand,
+  installHelp,
+  NO_EFFECTS,
+  overrideSharedContract,
+  provide,
+  skillCommand as sharedSkillCommand,
+} from "@wirecat/cli-core/cli"
 import { Command } from "commander"
 import { actionsCommand } from "./actions/command.js"
 import { agentsCommand } from "./agents/command.js"
@@ -10,6 +21,7 @@ import { trackAnswers } from "./answer.js"
 import { askCommand } from "./answers/command.js"
 import { APP } from "./app.js"
 import { contextCommand } from "./context/command.js"
+import { SHELL_OVERRIDES } from "./contract-overrides.js"
 import { commandsCommand, placeInSections } from "./discovery/command.js"
 import { doctorCommand } from "./doctor/command.js"
 import { addExamples } from "./examples.js"
@@ -29,6 +41,7 @@ import { notesCommand } from "./notes/command.js"
 import { foldersCommand } from "./notes/folders-command.js"
 import { noteCommand } from "./people/command.js"
 import { readOnlyAvailability, refuseWritesUnderLock } from "./read-only.js"
+import { REASONS } from "./reasons.js"
 import { autoCommand } from "./run/auto.js"
 import { syncCommand } from "./run/import.js"
 import { searchCommand } from "./search/command.js"
@@ -186,20 +199,31 @@ export const createProgram = ({
   doctorCommand(program, streams, env)
   program.addCommand(upgradeCommand(streams))
   commandsCommand(program, streams)
-  const skill = skillCommand(APP, new URL("../skills/cli-memo/SKILL.md", import.meta.url), () => ({
-    renderer: createRenderer({ format: "pretty", color: false, streams }),
-    streams,
-    env,
-  }))
-  const show = skill.commands.find((command) => command.name() === "show")
-  // cli-base declares a local read; the text memo prints ships inside the package.
-  if (show) annotate(show, { effects: NO_EFFECTS })
+  const skill = customizeSharedCommand(
+    sharedSkillCommand(APP, new URL("../skills/cli-memo/SKILL.md", import.meta.url)),
+    "Memo installs its own stored-data instructions through its environment and prints the packaged primary skill without filesystem effects.",
+    () => {
+      const skill = skillCommand(APP, new URL("../skills/cli-memo/SKILL.md", import.meta.url), () => ({
+        renderer: createRenderer({ format: "pretty", color: false, streams }),
+        streams,
+        env,
+      }))
+      const show = skill.commands.find((command) => command.name() === "show")
+      // cli-base declares a local read; the text memo prints ships inside the package.
+      if (show) annotate(show, { effects: NO_EFFECTS })
+      return skill
+    },
+    SHELL_OVERRIDES.skill,
+  )
   program.addCommand(skill)
   // tg and max have a global --json; memo's is per command, so guide gets its own.
   program.addCommand(
-    guideCommand(APP, { directory: fileURLToPath(new URL("../scenarios", import.meta.url)), profile: false }).option(
-      "--json",
-      "print JSON",
+    overrideSharedContract(
+      guideCommand(APP, { directory: fileURLToPath(new URL("../scenarios", import.meta.url)), profile: false }),
+      "Memo's output flag is command-local because this provider does not use the messenger program shell.",
+      (command) => {
+        command.option("--json", "print JSON")
+      },
     ),
   )
   addExamples(program)
@@ -216,6 +240,11 @@ export const createProgram = ({
     },
   })
 
+  addContractInfo(program, (value) => createRenderer({ format: "json", color: false, streams }).result(value), {
+    fields: OWN_ENTITIES,
+    errors: { reasons: REASONS },
+  })
+  assertSharedContracts(program)
   return program
 }
 

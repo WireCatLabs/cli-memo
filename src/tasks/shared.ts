@@ -1,5 +1,12 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
-import { type Messenger, provide, settingsFor, tasksCommand, tasksStatsCommand } from "@wirecat/cli-core/cli"
+import {
+  type Messenger,
+  overrideSharedContract,
+  provide,
+  settingsFor,
+  tasksCommand,
+  tasksStatsCommand,
+} from "@wirecat/cli-core/cli"
 import { type AccountKey, openStore } from "@wirecat/cli-core/store"
 import { Command } from "commander"
 import { APP } from "../app.js"
@@ -13,9 +20,9 @@ import {
   writeOptions,
 } from "../store/source-list.js"
 
-const SHARED = ["agenda", "show", "link"] as const
-/** This changes a task and names the account it acts as with `--account`; the rest read with `--source`. */
-const WRITES: ReadonlySet<string> = new Set(["link"])
+const SHARED = ["agenda", "update", "show", "link"] as const
+/** These change a task and name the account they act as with `--account`; the rest read with `--source`. */
+const WRITES: ReadonlySet<string> = new Set(["update", "link"])
 /** `task:15`, a bare id or a project key: a `tasks link` target that needs no messenger account. */
 const TASKISH = /^(task:.+|\d+|[A-Z][A-Z0-9]*-\d+)$/
 
@@ -64,7 +71,8 @@ const requireAccount =
         targets.every((one) => TASKISH.test(one))
       )
         return
-      if (command.name() === "show" && first !== undefined && (await store.tasks.projectTask(first))) return
+      if (["show", "update"].includes(command.name()) && first !== undefined && (await store.tasks.projectTask(first)))
+        return
       const listed = (await store.accounts.accounts())
         .map((key) => `${option} ${key.provider}:${key.account}`)
         .join("; ")
@@ -75,16 +83,22 @@ const requireAccount =
   }
 
 const scoped = (command: Command, env: NodeJS.ProcessEnv, warn: (text: string) => void): Command =>
-  (WRITES.has(command.name())
-    ? writeOptions(command, "the account it acts as: telegram:<account>, email:<account> or a notes folder, notes:<id>")
-    : sourceOptions(command, "the account: telegram:<account>, email:<account>, notes:<id>, or group:<name> of one")
+  overrideSharedContract(
+    command,
+    "Memo names stored accounts with --source or --account and uses command-local JSON without messenger profiles.",
+    (one) => {
+      ;(WRITES.has(one.name())
+        ? writeOptions(one, "the account it acts as: telegram:<account>, email:<account>, notes:<id>")
+        : sourceOptions(one, "the account: telegram:<account>, email:<account>, notes:<id>, or group:<name> of one")
+      )
+        .option("--json", "print JSON")
+        .hook("preAction", requireAccount(env, warn))
+    },
   )
-    .option("--json", "print JSON")
-    .hook("preAction", requireAccount(env, warn))
 
 /**
- * `tasks agenda|show|link` and `stats tasks show` are cli-core's builders, the ones tg and max have, mounted
- * with memo's own `--source`, or `--account` for link, resolved to one account (`Messenger.accountOf`).
+ * `tasks agenda|update|show|link` and `stats tasks show` are cli-core's builders, the ones tg and max have, mounted
+ * with memo's own `--source`, or `--account` for update and link, resolved to one account (`Messenger.accountOf`).
  */
 export const sharedTaskCommands = (program: Command, tasks: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   provide(program, { streams, env })

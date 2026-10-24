@@ -3,6 +3,7 @@ import { CliError, readBatchInput, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import {
+  answerEntity,
   environmentOf,
   LOCAL_READ,
   LOCAL_WRITE,
@@ -12,6 +13,7 @@ import {
   withQuery,
 } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
+import * as v from "valibot"
 import { answers, itemAnswer, listAnswer } from "../answer.js"
 import { authorOf, byOption } from "../author.js"
 import { positive, whole } from "../options.js"
@@ -55,10 +57,34 @@ export const projectActionsCommand = (projects: Command, streams: Streams, env: 
     })
 
   withQuery(
-    json(annotate(group.command("list"), { effects: LOCAL_READ })).argument(
-      "<project>",
-      "the project's id, project:<id>, key, exact name or alias",
-    ),
+    json(
+      answerEntity(
+        annotate(group.command("list"), { effects: LOCAL_READ }),
+        "project_action",
+        v.union([
+          v.strictObject({
+            kind: v.literal("key_document"),
+            id: v.string(),
+            status: v.literal("proposed"),
+            reason: v.nullable(v.string()),
+            provenance: v.unknown(),
+            evidence: v.array(v.unknown()),
+          }),
+          v.strictObject({
+            kind: v.literal("findings"),
+            id: v.string(),
+            status: v.string(),
+            fingerprint: v.string(),
+            author: v.unknown(),
+            key: v.string(),
+            extractor: v.string(),
+            decided_by: v.unknown(),
+            decision: v.unknown(),
+            findings: v.array(v.unknown()),
+          }),
+        ]),
+      ),
+    ).argument("<project>", "the project's id, project:<id>, key, exact name or alias"),
     ACTIONS_QUERY,
   )
     .summary("a project's proposals with the evidence to decide them")
