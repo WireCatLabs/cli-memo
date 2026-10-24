@@ -1,6 +1,7 @@
 import { configFilePath, resolvePaths, saveConfigFile } from "@wirecat/cli-base"
 import { loadSnakeCaseConfig } from "@wirecat/cli-core/cli"
 import * as v from "valibot"
+import { assertMemoPermissionPaths } from "./command-moves.js"
 import { DIALECTS } from "./notes/dialects/index.js"
 
 const ConfigSchema = v.strictObject({
@@ -31,7 +32,7 @@ const ConfigSchema = v.strictObject({
     v.strictObject({
       enabled: v.optional(v.boolean()),
       every: v.optional(v.string()),
-      /** MEMO_CONFIG_DIR, MESSAGING_STORE… as they were at `memo auto start`, passed to every timer run. */
+      /** MEMO_CONFIG_DIR, MESSAGING_STORE… as they were at `memo jobs start`, passed to every timer run. */
       places: v.optional(v.record(v.string(), v.string())),
     }),
   ),
@@ -80,8 +81,11 @@ export type Config = v.InferOutput<typeof ConfigSchema>
 export const configPath = (env: NodeJS.ProcessEnv = process.env): string =>
   configFilePath(resolvePaths({ appName: "cli-memo", prefix: "MEMO", env }).config)
 
-export const loadConfig = (env: NodeJS.ProcessEnv = process.env): Config =>
-  loadSnakeCaseConfig(configPath(env), ConfigSchema, () => ({}))
+export const loadConfig = (env: NodeJS.ProcessEnv = process.env): Config => {
+  const config = loadSnakeCaseConfig(configPath(env), ConfigSchema, () => ({}))
+  assertMemoPermissionPaths(Object.keys(config.permissions ?? {}))
+  return config
+}
 
 /** Changes one part of the config and keeps the rest as written. */
 export const updateConfig = (change: (config: Config) => Config, env: NodeJS.ProcessEnv = process.env): Config => {

@@ -8,6 +8,7 @@ import { sampleMeeting } from "@wirecat/cli-core/meetings/testing"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
+import { callCommand } from "../../test/mcp.js"
 import { createMemoServer } from "../mcp/server.js"
 import { createProgram } from "../program.js"
 
@@ -195,27 +196,27 @@ it("over MCP needs a source, refuses unknown arguments and reports what all leav
   await createMemoServer(env, createProgram).connect(server)
   const client = new Client({ name: "synthetic", version: "1" })
   await client.connect(transport)
-  const missing = await client.callTool({ name: "project_evidence", arguments: { project: "SYP" } })
+  const missing = await callCommand(client, { name: "projects evidence", arguments: { project: "SYP" } })
   expect(missing.isError).toBe(true)
-  const unknown = await client.callTool({
-    name: "project_evidence",
+  const unknown = await callCommand(client, {
+    name: "projects evidence",
     arguments: { project: "SYP", source: "all", keywords: ["crane"] },
   })
   expect(unknown.isError).toBe(true)
-  const all = await client.callTool({
-    name: "project_evidence",
+  const all = await callCommand(client, {
+    name: "projects evidence",
     arguments: {
       project: "SYP",
       source: "all",
       context_query: ["crane tender"],
       contact: ["Alice Example"],
       since_time: "30d",
-      catch_up: false,
+      no_catch_up: true,
       before_n: 1,
       after_n: 0,
     },
   })
-  expect(all.isError).toBeFalsy()
+  expect(all.isError, JSON.stringify(all.structuredContent)).toBeFalsy()
   const item = (all.structuredContent as { item: Record<string, unknown> }).item
   expect(item).toMatchObject({
     scope: { origin: "all-connected" },

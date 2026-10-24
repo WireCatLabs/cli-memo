@@ -1,17 +1,26 @@
 import { resolve } from "node:path"
 import { writeArtifacts } from "@wirecat/cli-base/codegen"
 import { COMMANDS_PAGE_LABELS, commandsPage, describeOptions, describeProgram } from "@wirecat/cli-base/commands"
-import { commandHelpMarkdown } from "@wirecat/cli-core/cli"
+import { commandHelpMarkdown, environmentOf, provide } from "@wirecat/cli-core/cli"
+import { COMMAND_MOVES } from "../dist/command-moves.js"
 import { createProgram } from "../dist/program.js"
 
 const root = resolve(import.meta.dirname, "..")
 const program = createProgram({ env: {} })
+provide(program, { ...environmentOf(program), discoveryAvailability: () => ({ available: true }) })
 const content = commandsPage({
   cli: "memo",
   commands: describeProgram(program),
   options: describeOptions(program),
   labels: COMMANDS_PAGE_LABELS.en,
-  details: (command) => commandHelpMarkdown(program, command.path),
+  details: (command) => {
+    const key = command.path.join(".")
+    const anchors = Object.entries(COMMAND_MOVES).flatMap(([before, after]) => {
+      const suffix = before === "auto" && key.startsWith(`${after}.`) ? key.slice(after.length) : ""
+      return key === after || suffix ? [`<a id="memo-${(before + suffix).replaceAll(".", "-")}"></a>`] : []
+    })
+    return [...anchors, ...commandHelpMarkdown(program, command.path)]
+  },
   text: {
     banner: "<!-- Generated from the command tree by pnpm generate. Do not edit. -->",
     title: "All commands",

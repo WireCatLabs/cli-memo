@@ -14,8 +14,6 @@ becomes P2, move its line there. A finished item's line is deleted.
   false`); no command applies one. Plan: cli-private `plans/2026-10-18-label-consolidation-design.md`.
 - **MEMO-20** · P3 · Reminders on a project's own tasks: "A task in a project cannot have a reminder yet"
   (`README.md:146`).
-- **MEMO-21** · P3 · 🚧 `fix/memo-standards-debt-20261024` · Remove the deprecated `--account`/`--provider` from the 34 read commands that now take
-  `--source`, in a release marked "Changed — may break callers" (`memo commands --json`).
 - **MEMO-22** · P3 · macOS and Windows: tests run on Linux only (`docs/installation.md:27`), and the unit suite
   is known to fail on Windows. Add a platform job before claiming support.
 - **MEMO-25** · P3 · Image search by context, photo data and picture (core-led). Plan: cli-private

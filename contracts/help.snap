@@ -9,8 +9,8 @@ What you can do:
   ask "…" --all                 evidence with sources, ready for your agent
   tasks agenda                  overdue tasks, replies you owe and wait for
   meetings prepare <series-id>  a briefing with sources for a meeting
-  auto start                    sync notes and mail every 5 minutes
-  agents log                    every agent tool call, without its arguments
+  jobs start                    sync notes and mail every 5 minutes
+  agents list                   every agent tool call, without its arguments
   mcp                           search, people, memories and facts for any MCP agent
 
 Works with:

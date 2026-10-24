@@ -15,6 +15,6 @@ describe("command effects", () => {
       leaves(createProgram())
         .filter(([, command]) => metaOf(command).effects?.remote === "write")
         .map(([path]) => path),
-    ).toEqual(["mail trash", "mail restore"])
+    ).toEqual(["mail delete", "mail restore"])
   })
 })

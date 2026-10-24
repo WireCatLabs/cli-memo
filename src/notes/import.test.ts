@@ -94,7 +94,7 @@ describe("memo sync --only notes", () => {
         source: `notes ${join(root, "elsewhere")}`,
         code: "configuration_error",
         reason_id: "folder.unbound",
-        reason: expect.stringMatching(/memo folders add .*memo folders attach/),
+        reason: expect.stringMatching(/memo folders add .*memo folders update/),
       },
     ])
   })
@@ -137,7 +137,7 @@ describe("memo sync --only notes", () => {
         source: `notes ${vault}`,
         code: "not_found",
         reason_id: "notes.folder-missing",
-        reason: `the notes folder ${vault} is missing — connect its disk; if it moved, memo folders attach <id> <new path>`,
+        reason: `the notes folder ${vault} is missing — connect its disk; if it moved, memo folders update <id> <new path>`,
       },
     ])
   })
@@ -314,7 +314,7 @@ describe("memo sync --only notes", () => {
     await telegramPeople(["101", "Rin Example"])
     await run("sync", "--only", "notes")
 
-    await run("note", "telegram:101", join(vault, "People/Rin Example.md"))
+    await run("notes", "links", "add", "telegram:101", join(vault, "People/Rin Example.md"))
 
     const { items } = await json("notes", "list", `about:"telegram:Rin Example"`)
     expect(items.map(({ path, via }: { path: string; via: string }) => [path, via]).sort()).toEqual([

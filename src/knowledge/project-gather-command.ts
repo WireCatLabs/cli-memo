@@ -39,13 +39,14 @@ export const projectGatherCommand = (
     .summary("find what the store holds about a project: names, words, people, linked chats")
     .argument("<project>", "an existing project's id, key, exact name or alias, or a new project's name")
     .requiredOption("--source <accounts>", `where to look, or all: ${ACCOUNTS_HELP}`)
-    .option("--alias <name>", "another name of the project, searched on its own; repeat for more", collect)
-    .option("--context-query <words>", "more words that all appear in one text; repeat for another search", collect)
+    .option("--alias <name>", "another name of the project, searched on its own; repeat for more", collect, [])
+    .option("--context-query <words>", "more words that all appear in one text; repeat for another search", collect, [])
     .option(
       "--contact <person>",
       "a name to search, or person:<id> to read what that person's stored identities wrote and search the aliases " +
         "you gave them; what only names them or comes from them is context, not the project",
       collect,
+      [],
     )
     .option("--since-time <time>", "how far back: days (90d, at most 730d) or a start date (2026-09-01)", "60d")
     .option("--before-time <time>", "fixed exclusive end: ISO 8601 timestamp with UTC offset; days back count from it")

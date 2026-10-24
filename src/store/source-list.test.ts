@@ -5,6 +5,7 @@ import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
+import { throwParseFailures } from "../failure.js"
 import { createProgram } from "../program.js"
 
 const setUp = async () => {
@@ -14,9 +15,9 @@ const setUp = async () => {
   await store.close()
   const run = async (...args: string[]) => {
     const streams = captureStreams()
-    await createProgram({ streams, env })
-      .exitOverride()
-      .parseAsync([...args, "--json"], { from: "user" })
+    const program = createProgram({ streams, env })
+    throwParseFailures(program)
+    await program.parseAsync([...args, "--json"], { from: "user" })
     return { answer: answerOf(streams.stdout.join("")), stderr: streams.stderr.join("") }
   }
   const note = async (text: string) => `note:${(await run("notes", "add", text)).answer.id}`
@@ -47,7 +48,7 @@ it("refuses a write that names no single provider:account, and lists the choices
     message: expect.stringContaining("give --account <provider>:<account> — the store holds telegram:1, telegram:2"),
   })
   await expect(run("tasks", "add", source, "--provider", "telegram")).rejects.toMatchObject({
-    message: expect.stringContaining("give one: telegram:1, telegram:2"),
+    code: "commander.unknownOption",
   })
 })
 
@@ -57,36 +58,24 @@ it("lists the reminders of every stored account when --source names none, and sa
   expect((await run("reminders", "list")).answer.meta.accounts).toEqual(["telegram:1", "telegram:2"])
 })
 
-it("takes the old --provider --account for one release, and prints the new spelling on stderr", async () => {
+it("reads the canonical source and refuses retired read flags", async () => {
   const { run } = await setUp()
-
-  const { answer, stderr } = await run("reminders", "list", "--provider", "telegram", "--account", "1")
-
-  expect(answer.meta.accounts).toEqual(["telegram:1"])
-  expect(stderr).toContain("use --source telegram:1")
-  await expect(
-    run("reminders", "list", "--provider", "telegram", "--account", "1", "--source", "telegram:1"),
-  ).rejects.toMatchObject({ code: "validation_error" })
+  expect((await run("reminders", "list", "--source", "telegram:1")).answer.meta.accounts).toEqual(["telegram:1"])
+  for (const flag of ["--provider", "--account"])
+    await expect(run("reminders", "list", flag, "telegram:1")).rejects.toMatchObject({
+      code: "commander.unknownOption",
+    })
 })
 
-it("takes the old --provider --account on a write for one release, as --account provider:account", async () => {
+it("writes through one explicit account and refuses the retired provider flag", async () => {
   const { run, note } = await setUp()
-
-  const { answer, stderr } = await run(
-    "tasks",
-    "add",
-    await note("Synthetic"),
-    "--provider",
-    "telegram",
-    "--account",
-    "2",
-  )
-
+  const source = await note("Synthetic")
+  const { answer } = await run("tasks", "add", source, "--account", "telegram:2")
   expect(answer.task.account).toBe("telegram:2")
-  expect(stderr).toContain("use --account telegram:2")
-  await expect(
-    run("tasks", "add", await note("Synthetic"), "--provider", "telegram", "--account", "telegram:2"),
-  ).rejects.toMatchObject({ code: "validation_error" })
+  await expect(run("tasks", "add", source, "--account", "2")).rejects.toMatchObject({ code: "validation_error" })
+  await expect(run("tasks", "add", source, "--provider", "telegram", "--account", "2")).rejects.toMatchObject({
+    code: "commander.unknownOption",
+  })
 })
 
 it("asks memo's own notes when --source names notes", async () => {
@@ -94,7 +83,7 @@ it("asks memo's own notes when --source names notes", async () => {
   const ref = await note("Synthetic lighthouse budget")
 
   for (const source of ["notes", "telegram:1,notes"]) {
-    const { answer } = await run("ask", "what about the lighthouse?", "lighthouse", "--source", source)
+    const { answer } = await run("answers", "create", "what about the lighthouse?", "lighthouse", "--source", source)
     expect(answer.evidence.map(({ locator }: { locator: string }) => locator)).toContain(ref)
   }
 })
@@ -109,9 +98,9 @@ it("makes a task from a folder's file and reminds about it in a store that holds
   }
   const run = async (...args: string[]) => {
     const streams = captureStreams()
-    await createProgram({ streams, env })
-      .exitOverride()
-      .parseAsync([...args, "--json"], { from: "user" })
+    const program = createProgram({ streams, env })
+    throwParseFailures(program)
+    await program.parseAsync([...args, "--json"], { from: "user" })
     return answerOf(streams.stdout.join(""))
   }
   mkdirSync(join(root, "vault"))

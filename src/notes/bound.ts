@@ -9,7 +9,7 @@ export type BoundFolder = NoteFolder & { id: string }
 export const UNBOUND = "folder.unbound"
 
 export const unboundReason = (path: string) =>
-  `${path} has no folder id — memo folders add ${path}, or memo folders attach <id> ${path} if another computer made one`
+  `${path} has no folder id — memo folders add ${path}, or memo folders update <id> ${path} if another computer made one`
 
 const unbound = (path: string) => new CliError("configuration_error", unboundReason(path), { reason: UNBOUND, path })
 

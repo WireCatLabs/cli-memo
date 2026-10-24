@@ -43,7 +43,7 @@ Two Memo imports never run at the same time, and one source that fails does not 
 ## Folders on more than one computer
 
 When you add a folder, Memo gives it an ID (a short number) in the local store. Notes and links use
-that ID, not the folder's path. If you use the same notes on another computer, `memo folders attach`
+that ID, not the folder's path. If you use the same notes on another computer, `memo folders update`
 connects the ID to the folder's path there. Because the ID stays the same, the notes keep their
 links and tags.
 
@@ -110,7 +110,7 @@ Your agent can add three kinds of records:
 
 Memories and directly recorded facts added through the [MCP server](mcp.md) start as **proposed**.
 MCP command tools can confirm memories, accept facts or approve actions when their saved permissions allow it.
-Every call is written to the agent log (`memo agents log`), without the details it sent.
+Every call is written to the agent log (`memo agents list`), without the details it sent.
 
 Project proposals have a separate flow. By default an agent can decide them with a recorded reason,
 creating accepted facts and numbered tasks or confirming a key document. Set
@@ -126,7 +126,7 @@ still write as you.
 
 ## What can leave your computer
 
-Sending sources to an AI provider is opt-in. `memo ask` prepares sources for your own agent by default. It sends
+Sending sources to an AI provider is opt-in. `memo answers create` prepares sources for your own agent by default. It sends
 text to an AI provider only when you set one up and add `--analyze`, and to a remote provider only
 with `--allow-remote` as well. What your agent does with the text it reads is up to that agent.
 Automatic update and sender-domain checks can also make network requests; [Security](security.md)

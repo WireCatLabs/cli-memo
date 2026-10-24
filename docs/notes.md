@@ -188,9 +188,9 @@ You can tell Memo which file is the main note about a person, for example `Peopl
 vault:
 
 ```sh
-memo note telegram:'Kai Sample' /path/to/vault/People/Kai.md
-memo note telegram:'Kai Sample'           # shows which note it is
-memo note telegram:'Kai Sample' --clear   # forgets it
+memo notes links add telegram:'Kai Sample' /path/to/vault/People/Kai.md
+memo notes links show telegram:'Kai Sample'           # shows which note it is
+memo notes links clear telegram:'Kai Sample'   # forgets it
 ```
 
 The file must be imported first. After this, the note and the notes that link to it appear in
@@ -204,12 +204,12 @@ adding a new folder:
 
 ```sh
 memo folders list                                  # shows the folder IDs the local store has
-memo folders attach 1 /other/path/to/notes
+memo folders update 1 /other/path/to/notes
 ```
 
 With the same ID, the notes keep their links and tags on both computers.
 
 A folder named `google-drive:…` holds the Google Drive documents drive-cli saved. `memo folders list` marks it
-"kept by drive", and `memo folders attach` refuses it: memo search reads it already.
+"kept by drive", and `memo folders update` refuses it: memo search reads it already.
 
 Next: [label your notes with tags](tags.md), or [search them](search.md).

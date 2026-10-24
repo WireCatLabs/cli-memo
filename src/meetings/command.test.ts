@@ -8,6 +8,7 @@ import { sampleMeeting } from "@wirecat/cli-core/meetings/testing"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { envelopeOf } from "../../test/answer.js"
+import { callCommand, commandSchema } from "../../test/mcp.js"
 import { createMemoServer } from "../mcp/server.js"
 import { createProgram } from "../program.js"
 
@@ -156,19 +157,9 @@ it("refuses missing/ambiguous source selection, foreign cues and foreign cursors
   await expect(cli(f.env, ["search", "meetings", "Ship", "--source", "example"])).rejects.toMatchObject({
     code: "validation_error",
   })
-  const page = await cli(f.env, [
-    "search",
-    "meetings",
-    "Ship",
-    "--provider",
-    "example",
-    "--account",
-    "synthetic",
-    "--limit",
-    "1",
-  ])
+  const page = await cli(f.env, ["search", "meetings", "Ship", "--source", f.source, "--limit", "1"])
   await expect(
-    cli(f.env, ["meetings", "passage", page.items[0].ref, "--provider", "example", "--account", "foreign"]),
+    cli(f.env, ["meetings", "passage", page.items[0].ref, "--source", "example:foreign"]),
   ).rejects.toMatchObject({ code: "not_found" })
   await expect(
     cli(f.env, ["search", "meetings", "Ship", "--source", "example:foreign", "--cursor", page.page.next_cursor]),
@@ -182,20 +173,18 @@ it("exposes strict MCP meeting search/passage with evidence and unchanged review
   const client = new Client({ name: "synthetic", version: "1" })
   await client.connect(clientSide)
   try {
-    const tools = (await client.listTools()).tools
-    for (const name of ["search_meetings", "meeting_passage"])
-      expect(tools.find((t) => t.name === name)?.inputSchema).toMatchObject({ additionalProperties: false })
-    const result = await client.callTool({
-      name: "search_meetings",
+    for (const name of ["search meetings", "meetings passage"])
+      expect(await commandSchema(client, name)).toMatchObject({ additionalProperties: false })
+    const result = await callCommand(client, {
+      name: "search meetings",
       arguments: {
         source: f.source,
-        query: "Ship",
+        query: "Ship topic:finance",
         project: "Observatory",
-        meeting_id: f.saved.meeting.id,
-        series_id: f.saved.meeting.meetingSeriesId,
-        identity_id: f.saved.participants[0]?.identityId,
-        person_id: Number(f.person),
-        topic: "finance",
+        meeting_id: String(f.saved.meeting.id),
+        series_id: String(f.saved.meeting.meetingSeriesId),
+        identity_id: String(f.saved.participants[0]?.identityId),
+        person_id: String(f.person),
         since_time: "2026-10-01T00:00:00Z",
         until_time: "2026-10-31T23:59:59Z",
         limit: 1,
@@ -203,20 +192,20 @@ it("exposes strict MCP meeting search/passage with evidence and unchanged review
     })
     const body = envelopeOf(JSON.stringify(result.structuredContent))
     expect(body.items).toHaveLength(1)
-    const passage = await client.callTool({
-      name: "meeting_passage",
-      arguments: { source: f.source, reference: body.items[0].ref, before: 1, after: 1 },
+    const passage = await callCommand(client, {
+      name: "meetings passage",
+      arguments: { source: f.source, reference: body.items[0].ref, before_n: 1, after_n: 1 },
     })
     const packet = envelopeOf(JSON.stringify(passage.structuredContent)).item
     expect(packet.target_ref).toBe(body.items[0].ref)
     expect(packet.coverage.archive_completeness).toBe("unknown")
-    const filtered = await client.callTool({
-      name: "search_meetings",
-      arguments: { source: f.source, query: "Ship", event_id: 999999, tag: "review" },
+    const filtered = await callCommand(client, {
+      name: "search meetings",
+      arguments: { source: f.source, query: "Ship tag:review", event_id: "999999" },
     })
     expect(envelopeOf(JSON.stringify(filtered.structuredContent)).items).toEqual([])
-    const checked = await client.callTool({
-      name: "meeting_passage",
+    const checked = await callCommand(client, {
+      name: "meetings passage",
       arguments: {
         source: f.source,
         reference: body.items[0].ref,
@@ -226,27 +215,27 @@ it("exposes strict MCP meeting search/passage with evidence and unchanged review
       },
     })
     expect(checked.isError).not.toBe(true)
-    const stale = await client.callTool({
-      name: "meeting_passage",
+    const stale = await callCommand(client, {
+      name: "meetings passage",
       arguments: { source: f.source, reference: body.items[0].ref, expected_fingerprint: "0".repeat(64) },
     })
     expect(stale.isError).toBe(true)
     expect(JSON.stringify(stale.structuredContent)).toContain("changed")
-    const bounded = await client.callTool({
-      name: "meeting_passage",
+    const bounded = await callCommand(client, {
+      name: "meetings passage",
       arguments: { source: f.source, reference: body.items[0].ref, max_read_bytes: 1 },
     })
     expect(bounded.isError).toBe(true)
-    const next = await client.callTool({ name: "search_meetings", arguments: body.next[0].args })
-    expect(next.isError).not.toBe(true)
+    const next = await callCommand(client, { name: "search meetings", arguments: body.next[0].args })
+    expect(next.isError, JSON.stringify(next.structuredContent)).not.toBe(true)
     for (const [name, args] of [
-      ["search_meetings", { source: f.source, query: "Ship", project_name: "Observatory" }],
-      ["meeting_passage", { source: f.source, reference: body.items[0].ref, account_id: 999 }],
+      ["search meetings", { source: f.source, query: "Ship", project_name: "Observatory" }],
+      ["meetings passage", { source: f.source, reference: body.items[0].ref, account_id: 999 }],
     ] as const) {
-      const invalid = await client.callTool({ name, arguments: args })
+      const invalid = await callCommand(client, { name, arguments: args })
       expect(invalid.isError).toBe(true)
       expect(invalid.structuredContent).toMatchObject({
-        error: { code: "validation_error", param: name === "search_meetings" ? "project_name" : "account_id" },
+        error: { code: "validation_error", param: name === "search meetings" ? "project_name" : "account_id" },
       })
     }
   } finally {
@@ -259,18 +248,16 @@ it("uses the shared meeting selectors with explicit source scope", async () => {
   const page = await cli(f.env, [
     "search",
     "meetings",
-    "Ship",
+    "Ship topic:finance",
     "--source",
     f.source,
     "--meeting-id",
     String(f.saved.meeting.id),
     "--series-id",
     String(f.saved.meeting.meetingSeriesId),
-    "--topic",
-    "finance",
   ])
   expect(page.items.length).toBeGreaterThan(0)
   expect(page.items.every((item: { ref: string }) => item.ref.includes(String(f.saved.meeting.id)))).toBe(true)
-  const absent = await cli(f.env, ["search", "meetings", "Ship", "--source", f.source, "--tag", "review"])
+  const absent = await cli(f.env, ["search", "meetings", "Ship tag:review", "--source", f.source])
   expect(absent.items).toEqual([])
 })

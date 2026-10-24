@@ -41,7 +41,7 @@ Three words appear on every page:
 4. **You control project decisions.** An agent's new memories, directly recorded facts and outbound action
    proposals wait for review. By default an agent may decide project proposals with a recorded
    reason; [require owner decisions](./configuration.md#agent_decisions) if you want to review each one.
-   Meeting findings still need the owner. Memo never sends a message or an email.
+   Meeting findings decisions need explicit owner permissions. Memo never sends a message or an email.
 
 Memo keeps the store on your computer. Memo sends your text to an AI provider only when you set one up
 and allow it for that request. [How Memo works](./how-it-works.md) explains this in more detail.
@@ -67,7 +67,7 @@ memo search notes budget
 
 Memo needs Node.js 22.16+ or 24+ ([what to install first](./installation.md)). Your files stay
 where they are. Memo reads your files and imports mail without changing it. `notes edit` can change a note's
-source file; `notes export` writes notes to files. Explicit `mail trash` and `mail restore` move Gmail mail
+source file; `notes export` writes notes to files. Explicit `mail delete` and `mail restore` move Gmail mail
 only with `--yes`.
 
 ## Where to go next

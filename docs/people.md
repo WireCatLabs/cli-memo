@@ -128,7 +128,7 @@ you `memo relationships confirm` it; `--as-owner` makes it yours at once.
 Memo can suggest relationships from email: people who write to you from the same company domain.
 
 ```sh
-memo relationships suggest --source email:you@example.com
+memo relationships scan --source email:you@example.com
 memo relationships confirm 4
 ```
 

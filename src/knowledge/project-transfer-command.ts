@@ -10,6 +10,7 @@ import {
   exportAnnotations,
   previewAnnotations,
   restoreAnnotations,
+  snapshotAnnotations,
 } from "./project-transfer.js"
 
 interface Options {
@@ -26,6 +27,14 @@ export const projectTransferCommand = (projects: Command, streams: Streams, env:
     .command("annotations")
     .description("selected project aliases, facts and generic links; not a full backup")
   const { print } = answers(projects, streams, env)
+  annotate(group.command("show"), { effects: LOCAL_READ, output: { entity: "project_annotation_snapshot" } })
+    .description("read selected project annotations without creating a file; not a full backup")
+    .argument("<project>", "the project's id, key, exact name or alias")
+    .option("--max-read-bytes <bytes>", "source input byte budget, at most 4194304", positive)
+    .option("--json", "print the standard JSON answer")
+    .action(async (project: string, options: Options) =>
+      print(options.json, itemAnswer(await snapshotAnnotations(env, project, options.maxReadBytes))),
+    )
   annotate(group.command("export"), { effects: LOCAL_WRITE, output: { entity: "project_annotation_export" } })
     .description("write selected annotations to a new private file, omitting source bodies")
     .argument("<project>", "the project's id, key, exact name or alias")

@@ -275,7 +275,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       owned(options, (store) => store.knowledge.confirmRelation(null, id)),
     )
   readScope(
-    annotate(relations.command("suggest"), { effects: LOCAL_READ }).description(
+    annotate(relations.command("scan"), { effects: LOCAL_READ }).description(
       "suggest relationships between email contacts of one domain; you confirm each",
     ),
   )
@@ -306,7 +306,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
           for (let left = 0; left < people.length; left++)
             for (let right = left + 1; right < people.length; right++) {
               if (suggestions.length >= options.limit)
-                return listAnswer("relationships suggest", { items: suggestions, limit: options.limit, has_more: true })
+                return listAnswer("relationships scan", { items: suggestions, limit: options.limit, has_more: true })
               suggestions.push(
                 await store.knowledge.relate(key, {
                   from: `person:${people[left]}`,
@@ -318,7 +318,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
                 }),
               )
             }
-        return listAnswer("relationships suggest", {
+        return listAnswer("relationships scan", {
           items: suggestions,
           limit: options.limit,
           has_more: contacts.hasMore,
@@ -372,7 +372,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     }),
   )
   writeScope(
-    annotate(reminders.command("poll"), { effects: LOCAL_WRITE }).description(
+    annotate(reminders.command("claim"), { effects: LOCAL_WRITE }).description(
       "hand out due reminders, each with a receipt to acknowledge",
     ),
   )
@@ -380,7 +380,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .action((options: WriteOptions & { limit: number; json?: boolean }) =>
       act(options, async (store, key) => {
         const claimed = await store.knowledge.claimReminders(key, { limit: options.limit })
-        return listAnswer("reminders poll", {
+        return listAnswer("reminders claim", {
           items: claimed.map((reminder) => ({
             ...reminder,
             deliveryId: `${reminder.id}:${reminder.revision}`,
@@ -392,10 +392,10 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       }),
     )
   writeScope(
-    annotate(reminders.command("ack"), { effects: LOCAL_WRITE })
+    annotate(reminders.command("acknowledge"), { effects: LOCAL_WRITE })
       .description("confirm that a handed-out reminder was shown")
       .argument("<id>", "the reminder's id")
-      .argument("<receipt>", "the receipt reminders poll handed out with it"),
+      .argument("<receipt>", "the receipt reminders claim handed out with it"),
   ).action((id: string, receipt: string, options: WriteOptions & { json?: boolean }) =>
     act(options, async (store, key) => itemAnswer(await store.knowledge.acknowledgeReminder(key, id, receipt))),
   )

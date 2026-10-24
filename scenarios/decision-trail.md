@@ -10,7 +10,7 @@ steps:
     why: what was said about it in meetings, with the passage to cite
   - run: drive search venue
     why: Drive documents about it; drive commands start with your profile, as in drive personal search venue
-  - run: memo ask "what did we decide about the venue?" --all
+  - run: memo answers create "what did we decide about the venue?" --all
     why: the cited evidence in one bundle, for you or your agent to read
   - run: memo facts add "The team day is at the harbour venue" --kind decision --evidence msg:telegram/1/77/42 --project HRB
     why: keep the decision with its source, so the next search finds it first

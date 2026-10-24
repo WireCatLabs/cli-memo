@@ -6,9 +6,51 @@ the API.
 
 ## Unreleased
 
+### Changed — may break callers
+
+- **MCP uses cli-core's discovery/read/write tools.** Reconnect saved clients, find commands with
+  `memo_tools_search`, and run CLI paths with `memo_read` or `memo_write`. Individual tool names are removed.
+  Command input and execution come from the CLI, including snake_case options, permission rechecks and
+  read locks. Discovery retains denied commands with their current availability and reason. Search inputs use `query`; `facts add` uses `statement`. The MCP guide maps saved calls to
+  their replacements. Cited meeting/project proposals keep their inline JSON `input`; annotation checks
+  take the existing snapshot and bindings file paths used by the CLI.
+- **Account selection uses only canonical flags.** Reads use `--source`; account-scoped writes use explicit
+  `--account provider:account`. Retired `--provider` and read-side `--account` flags are refused before the command runs.
+
+- **Commands use the shared vocabulary without aliases.** Rename saved calls and permission keys:
+
+  | Previous command | Current command |
+  |---|---|
+  | `agents log` | `agents list` |
+  | `auto start/stop/status` | `jobs start/stop/status` |
+  | `ask` | `answers create` |
+  | `note <identity> [path]`, `note --clear` | `notes links show/add/clear` |
+  | `folders attach` | `folders update` |
+  | `mail trash` | `mail delete` |
+  | `mail runs` | `mail runs list` |
+  | `mail rules import-filters` | `mail rules import --format gmail` |
+  | `memories stale` | `memories invalidate` |
+  | `relationships suggest` | `relationships scan` |
+  | `reminders poll`, `reminders ack` | `reminders claim`, `reminders acknowledge` |
+  | `tasks relations` | `tasks links` |
+
+  Moved permission keys stop with `configuration_error` naming the replacement, so saved denials cannot
+  silently stop applying. Note links have separate read and write commands with standard JSON answers.
+  Meeting searches select tags/topics with native `tag:` and `topic:` query terms; the old `--tag` and
+  `--topic` flags are removed. Memo rules imports keep their existing default format and behavior.
+- **Agent facts require cited evidence through both CLI and MCP.** The owner may still record an uncited
+  fact; proposed agent facts cannot bypass the evidence requirement by using the command runner.
+
+### Added
+
+- **`projects annotations show` reads selected annotations without creating a file**, through the same
+  snapshot service as export. It remains available under the read lock.
+
 ### Fixed
 
-- Permission-denied MCP tools remain discoverable with current availability and a reason. Calls still enforce current permissions and the read lock. Shared Core is aligned at 0.408.0.
+- **Supported commands remain discoverable with current availability and a reason**, including under the
+  read lock. Calls enforce the current permissions. CLI help and discovery also show the read lock.
+  Uses published cli-core 0.410.0 and cli-base 0.50.4.
 
 ## 0.92.0 — 24.10.2026
 

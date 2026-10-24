@@ -69,7 +69,7 @@ describe("mail imported into the mail tables reads back through memo", () => {
     const all = await run(["search", "all", "roadmap"], env)
     expect(all.items.find(({ kind }: { kind: string }) => kind === "mail")?.ref).toBe(LOCATOR)
 
-    const asked = await run(["ask", "roadmap", "--source", `email:${ME}`], env)
+    const asked = await run(["answers", "create", "roadmap", "--source", `email:${ME}`], env)
     expect(JSON.stringify(asked)).toContain(LOCATOR)
 
     const context = await run(["context", "email:rin@example.test", "--source", `email:${ME}`], env)

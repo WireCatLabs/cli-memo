@@ -40,7 +40,7 @@ export const recordAutoRun = (env: NodeJS.ProcessEnv, at: number, reason: string
 export const autoNotice = (env: NodeJS.ProcessEnv): string | undefined =>
   env.MEMO_AUTO === "1"
     ? undefined
-    : failingNotice("memo", [{ job: "sync", last: lastAutoRun(env) }], "memo auto status")
+    : failingNotice("memo", [{ job: "sync", last: lastAutoRun(env) }], "memo jobs status")
 
 /** `5m`, `90s`, `1h` → systemd's `5min`, `90s`, `1h`; under a minute is refused. */
 export const interval = (value: string): string => {
@@ -59,7 +59,7 @@ const quote = (arg: string): string => `"${arg.replace(/(["\\])/g, "\\$1")}"`
 
 const memoBin = (): string => resolve(dirname(fileURLToPath(import.meta.url)), "../bin/memo.js")
 
-/** The variables that move memo's folders and the store; the timer runs with the ones set at `memo auto start`. */
+/** The variables that move memo's folders and the store; the timer runs with the ones set at `memo jobs start`. */
 export const PLACE_VARIABLES = [
   "MEMO_CONFIG_DIR",
   "MEMO_STATE_DIR",
@@ -209,7 +209,7 @@ const failingOf = (last: LastRun | undefined) =>
 export const autoCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const run = systemctl(env)
   const { print } = answers(program, streams, env)
-  const auto = program.command("auto").description("run memo sync on a systemd user timer, set in the config")
+  const auto = program.command("jobs").description("run memo sync on a systemd user timer, set in the config")
 
   annotate(auto.command("start"), { effects: LOCAL_WRITE })
     .description("sync every --every (default auto.every, else 5m), starting a minute from now")

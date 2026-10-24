@@ -152,7 +152,7 @@ By default an agent may decide project proposals with a recorded reason. The req
 leaves that decision to you. To require owner decisions in this flow, set
 [`agent_decisions` to `false`](configuration.md#agent_decisions); this refuses agent confirmations and
 rejections through both CLI and MCP. It does not prevent reading or staging proposals. The separate
-meeting review flow still leaves confirmation to the owner.
+meeting review flow needs explicit owner permissions for MCP decisions.
 
 Next, [prepare an agenda using the project's accepted context](#prepare-for-a-meeting-with-someone).
 
@@ -255,7 +255,7 @@ Save it with the message as evidence only after I agree.
 ```
 
 A memory you record directly is confirmed; one added by an agent stays proposed for your review.
-Check the claim and its source before confirming it. Later, `memo memories stale` marks memories
+Check the claim and its source before confirming it. Later, `memo memories invalidate` marks memories
 that no longer hold ([memories](memories.md)).
 
 ## Record a decision from a chat
@@ -294,14 +294,14 @@ edited.
 ## Ask with sources only
 
 ```text prompt
-Use memo CLI to collect the sources about the Harbour budget with memo ask, using the key words
+Use memo CLI to collect the sources about the Harbour budget with memo answers create, using the key words
 "Harbour budget". Answer only from those sources and cite each one.
 ```
 
-`memo ask` collects the sources; your agent answers. Memo sends nothing to an AI provider unless you
+`memo answers create` collects the sources; your agent answers. Memo sends nothing to an AI provider unless you
 set one up and allow it ([search](search.md#give-your-agent-the-sources)).
 
 ## Run it on a schedule
 
-On Linux, `memo auto start` keeps your notes and mail current. To run a recipe every morning, use your
+On Linux, `memo jobs start` keeps your notes and mail current. To run a recipe every morning, use your
 agent's own scheduling, or a scheduler on your computer that starts your agent with the request.

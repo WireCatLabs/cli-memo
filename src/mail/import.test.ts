@@ -976,7 +976,7 @@ describe("memo sync --only mail", () => {
     it.each([
       ["sync", ["sync", "--source", "email:test", "--no-embed"]],
       ["mail inspect", ["mail", "inspect", "test"]],
-      ["mail trash", ["mail", "trash", "test"]],
+      ["mail delete", ["mail", "delete", "test"]],
       ["mail rules apply", ["mail", "rules", "apply", "test"]],
     ])("%s names the zone and gives the window in UTC", async (_, args) => {
       process.env.TZ = "Asia/Vladivostok"

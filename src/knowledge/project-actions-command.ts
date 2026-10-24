@@ -3,6 +3,7 @@ import { CliError, readBatchInput, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import {
+  environmentOf,
   LOCAL_READ,
   LOCAL_WRITE,
   parseEvidenceFindingsJson,
@@ -45,7 +46,7 @@ export const projectActionsCommand = (projects: Command, streams: Streams, env: 
     )
     .action(async (file: string, given: { json?: boolean }) => {
       const input = parseEvidenceFindingsJson(
-        await readBatchInput(file === "-" ? process.stdin : createReadStream(file)),
+        await readBatchInput(file === "-" ? (environmentOf(projects).stdin ?? process.stdin) : createReadStream(file)),
       )
       const author = authorOf(env)
       if (author === "owner")

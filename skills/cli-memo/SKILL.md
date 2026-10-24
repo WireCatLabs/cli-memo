@@ -72,9 +72,9 @@ markers to bypass that permission. Historical proposals stay proposed.
     first and show the owner what it would cut. Rules live in the store, not in `config.json`: never edit
     them there; `memo mail rules export|import` moves them as a file. A protected rule (`--do protect`) is
     never cut and wins over every other rule; add one only when the owner names mail that must never be removed.
-    Kinds (`--kind social|newsletters|developer|shopping|alerts`) and `import-filters` are proposals: show
-    `memo mail inspect`'s kind counts or `import-filters` without `--yes`, and add rules only on the owner's yes.
-    `memo mail trash <account>` moves envelope mail to Gmail's Trash: show its preview first and run `--yes` only on
+    Kinds (`--kind social|newsletters|developer|shopping|alerts`) and `mail rules import --format gmail` are proposals: show
+    `memo mail inspect`'s kind counts or `mail rules import --format gmail` without `--yes`, and add rules only on the owner's yes.
+    `memo mail delete <account>` moves envelope mail to Gmail's Trash: show its preview first and run `--yes` only on
     the owner's yes, never from a timer; `memo mail restore <account> --run <id> --yes` undoes a run for 30 days.
 12. **Old years come from a Google Takeout mbox**, an account with `"mode": "mbox"` and the Gmail
     address; it syncs only when named. An incomplete import scans the file again, so use a generous
@@ -83,7 +83,7 @@ markers to bypass that permission. Historical proposals stay proposed.
     `memo sync --source email:<name> --since-time 2000-01-01 --limit 5000`.
 13. **A stderr line `memo: scheduled sync failing since …` means the owner's timer is broken** and their
     notes or mail are going stale. Tell the owner, quote its reason (an error code and reason id); the full
-    message is in the journal `memo auto status` names.
+    message is in the journal `memo jobs status` names.
 14. **When something seems missing or broken, run `memo doctor --json` first.** It reads this computer only and
     lists each problem with the command that fixes it. A sync failure with reason `mail.throttled` means Gmail is
     limiting the account: wait an hour or more, do not retry in a loop.
@@ -159,9 +159,10 @@ separate; a matched speaker label does not establish a person.
 
 ## MCP permissions
 
-MCP exposes command tools, writes included, subject to saved dotted `permissions` keys. `deny` hides a tool,
+MCP offers `memo_tools_search`, `memo_read` and `memo_write`, using CLI paths and advertised snake_case arguments.
+Saved dotted `permissions` keys apply to commands. `deny` keeps a command visible but unavailable,
 `readonly` allows reads, and `ask` or `allow` permits a write. `ask` runs without a terminal question over MCP:
-obtain the owner's approval before acting. `mcp.authority` defaults to `deny` for source-folder and mail-rule
-changes. `MEMO_READ_ONLY=1` removes writing tools. `--permission key=level` can only tighten saved levels.
-Existing names and answer shapes remain supported. Read a cited note with `notes_show` (`note: ref`) and a
-message or email with `messages_show` (`message: ref`, `full: true` for whole attachment text).
+respect the owner's existing authorization before acting. `mcp.authority` defaults to `deny` for source-folder and mail-rule
+changes. `MEMO_READ_ONLY=1` marks writing commands unavailable and refuses calls. `--permission key=level` can only tighten saved levels.
+Find command arguments before calling them. Through `memo_read`, open a cited note with `notes show`
+(`note: ref`) or a message/email with `messages show` (`message: ref`, `full: true` for whole attachment text).

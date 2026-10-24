@@ -42,6 +42,6 @@ it("creates keyed project tasks, links them as before or with task:, and discove
   })
   expect(await run("tasks", "unlink", second.id, first.id, "--kind", "blocked-by")).toEqual({ changed: true })
   await run("tasks", "link", second.id, first.id, "--kind", "follow-up-of")
-  expect((await run("tasks", "relations", second.id)).items).toMatchObject([{ kind: "follow-up-of" }])
+  expect((await run("tasks", "links", second.id)).items).toMatchObject([{ kind: "follow-up-of" }])
   expect((await run("tasks", "list", "ready:true", `project:"${project.ref}"`)).items).toHaveLength(2)
 })

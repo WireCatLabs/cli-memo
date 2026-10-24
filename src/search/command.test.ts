@@ -96,7 +96,7 @@ it("searches three typed resources together, separates mail and messages, and fi
     await expect(run(...args)).rejects.toHaveProperty("code")
 })
 
-it("searches every mail account, or with --account only that address", async () => {
+it("searches every mail account, or with --source only that address", async () => {
   const root = mkdtempSync(join(tmpdir(), "memo-mail-accounts-"))
   const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
   const store = await openStore({ env })
@@ -136,10 +136,10 @@ it("searches every mail account, or with --account only that address", async () 
     "msg:email/alice%40example.com/7/1",
     "msg:email/bob%40example.com/7/1",
   ])
-  expect(await run("search", "mail", "Lighthouse", "--account", "bob@example.com")).toEqual([
+  expect(await run("search", "mail", "Lighthouse", "--source", "email:bob@example.com")).toEqual([
     "msg:email/bob%40example.com/7/1",
   ])
-  await expect(run("search", "mail", "Lighthouse", "--account", "carol@example.com")).rejects.toMatchObject({
+  await expect(run("search", "mail", "Lighthouse", "--source", "email:carol@example.com")).rejects.toMatchObject({
     code: "not_found",
     message: expect.stringContaining("alice@example.com, bob@example.com"),
   })
@@ -153,10 +153,10 @@ it("searches every mail account, or with --account only that address", async () 
 
   const streams = captureStreams()
   await createProgram({ streams, env }).parseAsync(
-    ["search", "mail", "Lighthouse", "--account", "bob@example.com", "--json"],
+    ["search", "mail", "Lighthouse", "--source", "email:bob@example.com", "--json"],
     { from: "user" },
   )
-  expect(streams.stderr.join("")).toContain("--source email:bob@example.com")
+  expect(streams.stderr.join("")).toBe("")
 })
 
 it("shows each email reference first, with its people, labels, subject and an excerpt, at the detail asked", async () => {

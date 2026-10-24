@@ -22,12 +22,12 @@ const mailboxOf = async (store: MessageStore, env: NodeJS.ProcessEnv, name: stri
     (account) => account.name === name || account.address.toLowerCase() === name.toLowerCase(),
   )
   if (named) return { provider: "email", account: named.address.toLowerCase() }
-  const stored = (await store.accounts.accounts()).find(
-    (key) => key.provider === "email" && key.account === name.toLowerCase(),
-  )
+  const held = (await store.accounts.accounts()).filter((key) => key.provider === "email")
+  const stored = held.find((key) => key.account === name.toLowerCase())
   if (stored) return stored
-  const choices = configured.map((one) => one.name).join(", ") || "none in mail.accounts"
-  throw new CliError("not_found", `no mail account "${name}" — mail.accounts holds ${choices}`, {
+  const choices =
+    [...new Set([...configured.map((one) => one.name), ...held.map((one) => one.account)])].join(", ") || "none"
+  throw new CliError("not_found", `no mail account "${name}" — configured or stored mail accounts: ${choices}`, {
     reason: "mail.account-unknown",
     account: name,
   })
@@ -187,6 +187,11 @@ export const oneAccountOf = async (
 ): Promise<AccountKey> => {
   if (value === undefined) throw await unnamed(store, option)
   const keys = await storedKeysOf(store, env, value)
+  if (option === "--account" && !value.includes(":") && keys.length === 1)
+    throw new CliError(
+      "validation_error",
+      `give --account ${named(keys)}; a provider alone does not name an acting account`,
+    )
   if (keys.length === 1) return keys[0] as AccountKey
   if (keys.length === 0) throw noStoredAccount(value)
   throw new CliError("validation_error", `${value} names ${keys.length} accounts; give one: ${named(keys)}`)
@@ -235,36 +240,13 @@ export const contextSourcesOf = async (store: MessageStore, env: NodeJS.ProcessE
 
 export interface SourceOptions {
   source?: string
-  provider?: string
-  account?: string
 }
 
-/** `--source`, and for one release the `--provider --account` it replaces. */
-export const sourceOptions = (command: Command, help: string): Command =>
-  command
-    .option("--source <accounts>", help)
-    .option("--provider <provider>", "deprecated: --source <provider>")
-    .option("--account <account>", "deprecated: --source <provider>:<account>")
+export const sourceOptions = (command: Command, help: string): Command => command.option("--source <accounts>", help)
 
-/** The `--source` an old `--provider --account` stands for; the new spelling goes to stderr. */
-export const sourceOf = (options: SourceOptions, warn: (text: string) => void): string | undefined => {
-  if (options.provider === undefined && options.account === undefined) return options.source
-  if (options.source !== undefined)
-    throw new CliError(
-      "validation_error",
-      "--provider and --account are the old --source <provider>:<account>; give one of them",
-    )
-  if (options.provider === undefined)
-    throw new CliError(
-      "validation_error",
-      `this command reads with --source: --source ${options.account?.includes(":") ? options.account : "<provider>:<account>"}`,
-    )
-  const value = options.account === undefined ? options.provider : `${options.provider}:${options.account}`
-  warn(`--provider and --account are deprecated: use --source ${value}\n`)
-  return value
-}
+export const sourceOf = (options: SourceOptions, _warn: (text: string) => void): string | undefined => options.source
 
-/** The one account `--source` or the old `--provider --account` names. */
+/** The one account `--source` names. */
 export const theAccount = (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
@@ -272,7 +254,7 @@ export const theAccount = (
   warn: (text: string) => void,
 ): Promise<AccountKey> => oneAccountOf(store, env, sourceOf(options, warn))
 
-/** Every account `--source` or the old `--provider --account` names; none named is every stored account. */
+/** Every account `--source` names; none named is every stored account. */
 export const theAccounts = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
@@ -292,27 +274,16 @@ export const WRITE_HELP = "the account it acts as: provider:account, such as tel
 
 export interface WriteOptions {
   account?: string
-  provider?: string
 }
 
-/** A write's `--account provider:account`, and for one release the `--provider` that came before it. */
 export const writeOptions = (command: Command, help = WRITE_HELP): Command =>
-  command
-    .option("--account <account>", help)
-    .option("--provider <provider>", "deprecated: --account <provider>:<account>")
+  command.option("--account <account>", help)
 
-/** The `provider:account` a write names; an old `--provider --account` pair is joined, its new spelling on stderr. */
-export const writeAccountOf = (options: WriteOptions, warn: (text: string) => void): string | undefined => {
-  const { provider, account } = options
-  if (provider === undefined) {
-    if (account !== undefined && (!account.includes(":") || account.startsWith("group:")))
-      throw new CliError("validation_error", `--account takes provider:account, such as telegram:${account}`)
-    return account
-  }
-  if (account?.includes(":"))
-    throw new CliError("validation_error", "--account provider:account names the provider; leave out --provider")
-  warn(`--provider is deprecated: use --account ${provider}:${account ?? "<account>"}\n`)
-  return account === undefined ? provider : `${provider}:${account}`
+export const writeAccountOf = (options: WriteOptions, _warn: (text: string) => void): string | undefined => {
+  const { account } = options
+  if (account !== undefined && (!account.includes(":") || account.startsWith("group:")))
+    throw new CliError("validation_error", `--account takes provider:account, such as telegram:${account}`)
+  return account
 }
 
 /** The one account a write acts as. */

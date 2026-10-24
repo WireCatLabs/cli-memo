@@ -40,6 +40,8 @@ import { vocabularyCommand } from "./vocabulary/command.js"
 
 /** memo's own answers, beyond cli-core's entities, so `--json=<field>` is checked against what each row holds. */
 const OWN_ENTITIES = entityFields({
+  person_note_links: ["person", "name", "files"],
+  project_annotation_snapshot: ["snapshot", "fingerprint", "coverage", "read_bytes", "records"],
   project_annotation_export: [
     "output_file",
     "project",
@@ -134,8 +136,8 @@ const FIRST_SCREEN = {
     { command: 'ask "…" --all', does: "evidence with sources, ready for your agent" },
     { command: "tasks agenda", does: "overdue tasks, replies you owe and wait for" },
     { command: "meetings prepare <series-id>", does: "a briefing with sources for a meeting" },
-    { command: "auto start", does: "sync notes and mail every 5 minutes" },
-    { command: "agents log", does: "every agent tool call, without its arguments" },
+    { command: "jobs start", does: "sync notes and mail every 5 minutes" },
+    { command: "agents list", does: "every agent tool call, without its arguments" },
     { command: "mcp", does: "search, people, memories and facts for any MCP agent" },
   ],
   profile: false,

@@ -8,6 +8,7 @@ import { sampleMeeting } from "@wirecat/cli-core/meetings/testing"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { envelopeOf } from "../../test/answer.js"
+import { callCommand, commandSchema } from "../../test/mcp.js"
 import { createMemoServer } from "../mcp/server.js"
 import { createProgram } from "../program.js"
 
@@ -161,23 +162,21 @@ it("exposes strict MCP preparation and refuses unknown fields before invoking th
   const client = new Client({ name: "synthetic", version: "1" })
   await client.connect(transport)
   try {
-    expect((await client.listTools()).tools.find((tool) => tool.name === "meeting_prepare")?.inputSchema).toMatchObject(
-      { additionalProperties: false },
-    )
+    expect(await commandSchema(client, "meetings prepare")).toMatchObject({ additionalProperties: false })
     const args = {
       source: "example:synthetic",
       series_id: "example-series",
-      after: "2026-10-18T00:00:00Z",
-      history_after: "2026-10-01T00:00:00Z",
+      since_time: "2026-10-18T00:00:00Z",
+      history_since_time: "2026-10-01T00:00:00Z",
     }
-    const result = await client.callTool({ name: "meeting_prepare", arguments: args })
+    const result = await callCommand(client, { name: "meetings prepare", arguments: args })
     expect(result.isError).not.toBe(true)
     expect(envelopeOf(JSON.stringify(result.structuredContent)).item.meetings).toHaveLength(1)
     for (const unknown of [
       { ...args, account_id: 999 },
       { ...args, communications: { sources: [{ id: "tg.synthetic", extra: true }], query: "Harbour" } },
     ]) {
-      const invalid = await client.callTool({ name: "meeting_prepare", arguments: unknown })
+      const invalid = await callCommand(client, { name: "meetings prepare", arguments: unknown })
       expect(invalid.isError).toBe(true)
       expect(invalid.structuredContent).toMatchObject({ error: { code: "validation_error" } })
       expect(JSON.stringify(invalid.structuredContent)).toContain("param")

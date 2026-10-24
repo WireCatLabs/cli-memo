@@ -67,7 +67,7 @@ That is all notes need. Then add more context:
   by words.
 - **Mail:** set up [Himalaya](https://github.com/pimalaya/himalaya), run `memo mail add <account> <address>`,
   then `memo sync --only mail`.
-- **Stay current:** `memo auto start` runs `memo sync` every five minutes (Linux, systemd).
+- **Stay current:** `memo jobs start` runs `memo sync` every five minutes (Linux, systemd).
 - **Your agent:** `memo skill install --for all` puts memo's skill where Claude Code, Codex and Gemini CLI read
   it; `memo skill show` prints it.
 
@@ -100,7 +100,7 @@ Messages, imported mail and notes, ranked together. When you know the kind, `sea
 **"What did I promise people this week?"**
 
 ```sh
-memo ask 'What did I promise this week?' 'promised OR "by Friday"' --all --json
+memo answers create 'What did I promise this week?' 'promised OR "by Friday"' --all --json
 ```
 
 An evidence bundle for your agent: the matching sources with their references, what was searched, and
@@ -113,7 +113,7 @@ More: [search](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md)
 
 - **Any agent with a terminal** — Claude Code, Codex, Gemini CLI and others run `memo` commands; `--json`
   gives them structured output.
-- **Evidence, not guesses** — `memo ask` hands over sources with references, and says what it could not
+- **Evidence, not guesses** — `memo answers create` hands over sources with references, and says what it could not
   search.
 - **MCP** — `memo mcp` lets MCP apps such as Claude Desktop or Cursor read your messages, mail and notes, and
   propose memories, directly recorded facts and outbound actions. Project proposals can also be decided
@@ -159,12 +159,12 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 
 | Task | Commands |
 | --- | --- |
-| Connect notes folders | `memo folders add` · `folders attach` · `folders list` |
-| Sync what changed | `memo sync` · `sync --only notes` · `sync --only mail` · `auto start` / `stop` / `status` |
-| Read notes | `memo notes list` · `notes show` · `memo note` (the note about a person) |
+| Connect notes folders | `memo folders add` · `folders update` · `folders list` |
+| Sync what changed | `memo sync` · `sync --only notes` · `sync --only mail` · `jobs start` / `stop` / `status` |
+| Read notes | `memo notes list` · `notes show` · `notes links show` (the note files about a person) |
 | Write your own notes | `memo notes add` · `notes edit` · `notes remove` · `notes export` |
 | Search | `memo search all` · `search notes` · `search mail` · `search messages` |
-| Hand evidence to an agent | `memo ask` |
+| Hand evidence to an agent | `memo answers create` |
 | Know a person | `memo context` |
 | Prepare and review archived meetings | `memo meetings prepare` · `search meetings` · `meetings passage` · `meetings actions add` |
 | Organizations and projects | `memo organizations add` / `list` / `context` · `projects add` / `list` / `context` · `projects key-documents add` / `remove` / `list` · `projects meetings list` / `link` |
@@ -174,7 +174,7 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 | Open work | `memo tasks add` · `tasks list` · `tasks agenda` · `tasks show` · `tasks update` · `tasks assign` · `tasks close` · `stats tasks show` |
 | Task dependencies | `memo tasks link` / `unlink` / `relations` · `tasks status` · `tasks list project:HRB ready:true` |
 | Reminders | `memo reminders add` / `list` / `poll` / `ack` / `update` / `cancel` |
-| Agents | `memo memories …` · `facts …` · `actions …` · `agents log` · `memo mcp` |
+| Agents | `memo memories …` · `facts …` · `actions …` · `agents list` · `memo mcp` |
 
 Every command takes `--help`; most take `--json`. `memo guide` lists scenarios — the commands for a common task, in
 order — and `memo guide person-brief` gathers one person across every WireCat tool.
@@ -184,7 +184,7 @@ More: [technical docs](#technical-docs) · [memo on wirecat.dev](https://wirecat
 ## Notes from files, and notes you write
 
 **From a folder.** `memo folders add` gives a folder an id that the store uses; its path is only where it is
-on this computer, so the same folder on another computer is attached with `memo folders attach <id> <path>`.
+on this computer, so the same folder on another computer is attached with `memo folders update <id> <path>`.
 `memo sync --only notes` stores each file as a note named by its path. An edited file keeps its old text as a
 revision; a moved file keeps its id, links and tags; a deleted file loses its text on the next import. The
 `obsidian` format (the default) reads `[[Note|label]]` links, aliases, `tags:` and `#tags`; `markdown` reads
@@ -220,7 +220,7 @@ memo search mail 'from:alice@example.com subject:budget'
 memo notes show note:NOTE_ID --json
 ```
 
-`memo ask` needs a scope (`--all`, or `--source`, such as `--source telegram:1,notes`) and returns evidence by default. To
+`memo answers create` needs a scope (`--all`, or `--source`, such as `--source telegram:1,notes`) and returns evidence by default. To
 call a model instead, set `MEMO_MODELS_ANALYSIS_PROVIDER` and `MEMO_MODELS_ANALYSIS_MODEL` and pass
 `--analyze`; a remote model also needs `--allow-remote`.
 
@@ -232,10 +232,10 @@ More: [search](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md)
 `memo context` answers from the shared store: every identity linked to the person, the last message each
 way, recent messages, chats in common, linked mail, the notes about them and the open tasks. Who is who is
 decided in messaging — `tg personal contacts link <person> email:<address>` — and a same name is never enough.
-`memo note telegram:"Alice Example" /path/to/notes/people/Alice.md` names the note that is about her.
+`memo notes links add telegram:"Alice Example" /path/to/notes/people/Alice.md` names the note that is about her.
 
 Organizations and projects are yours, not one account's. Relationships (`member-of`, `related-to`) are
-manual statements; `relationships suggest` only proposes shared-domain links for you to confirm. A project
+manual statements; `relationships scan` only proposes shared-domain links for you to confirm. A project
 can hold meetings (`projects meetings link`), and `memo vocabulary` gives projects and topics reviewed
 aliases, so one name always means one project.
 
@@ -310,15 +310,15 @@ without a terminal question. Source-folder and mail-rule changes need `mcp.autho
 Project proposals have a separate flow: by default an agent may decide them with a recorded reason, creating accepted
 facts and numbered tasks or confirming a key document. Set `agent_decisions: false` to require owner
 decisions on project proposals. Meeting decisions and annotation restore require explicit permissions. Memo never sends a message
-or email. `memo agents log` lists each call, its result and time, without its arguments.
+or email. `memo agents list` lists each call, its result and time, without its arguments.
 
 More: [memories and facts](https://github.com/WireCatLabs/cli-memo/blob/main/docs/memories.md) · [the MCP server](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md) ·
 [MCP on wirecat.dev](https://wirecat.dev/en/docs/memo/mcp)
 
 ## Keeping it current
 
-`memo sync` brings notes and mail up to date and reads only what changed. `memo auto start --every 5m` runs
-it on a systemd user timer; `auto status` shows the next and last run, and while timer runs fail every memo
+`memo sync` brings notes and mail up to date and reads only what changed. `memo jobs start --every 5m` runs
+it on a systemd user timer; `jobs status` shows the next and last run, and while timer runs fail every memo
 command says so in one stderr line. A lock keeps two imports apart: a
 timer run that finds a sync still running skips and exits 0. One failing source does not stop the others.
 
@@ -327,7 +327,7 @@ More: [keeping memo up to date](https://github.com/WireCatLabs/cli-memo/blob/mai
 
 ## Configuration
 
-`memo folders add` and `memo auto start` write `~/.config/cli-memo/config.json` for you. By hand you set what
+`memo folders add` and `memo jobs start` write `~/.config/cli-memo/config.json` for you. By hand you set what
 to skip and where exported notes go; `memo mail add` adds an explicit Himalaya account:
 
 ```json
@@ -372,7 +372,7 @@ More: [files memo can read](https://github.com/WireCatLabs/cli-memo/blob/main/do
   they share the model folder. Without it, word search still works ([search by meaning](docs/search.md)).
 - **A folder is refused by import:** it has no id yet — `memo folders add <path>`.
 - **A name is refused:** two people share it; use one of the ids it lists.
-- **`memo ask` asks for a scope:** add `--all`, or `--source`.
+- **`memo answers create` asks for a scope:** add `--all`, or `--source`.
 - **An empty search:** the store holds nothing that matches — not proof that it never happened. Try the
   kind's own search, looser words, or import that source first.
 

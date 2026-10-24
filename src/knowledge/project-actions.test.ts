@@ -7,6 +7,7 @@ import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
+import { callCommand } from "../../test/mcp.js"
 import { configPath } from "../config.js"
 import { createMemoServer } from "../mcp/server.js"
 import { createProgram } from "../program.js"
@@ -203,16 +204,19 @@ it("offers the same over MCP, where every decision is the agent's and needs a re
   await createMemoServer(owner, createProgram).connect(server)
   const client = new Client({ name: "synthetic", version: "1" })
   await client.connect(transport)
-  const listed = await client.callTool({ name: "project_actions_list", arguments: { project: "SYP", brief: true } })
+  const listed = await callCommand(client, {
+    name: "projects actions list",
+    arguments: { project: "SYP", brief: true },
+  })
   const item = (listed.structuredContent as { items: { id: string; fingerprint: string }[] }).items[0]
   expect(item).toBeDefined()
-  const missing = await client.callTool({
-    name: "project_actions_reject",
+  const missing = await callCommand(client, {
+    name: "projects actions reject",
     arguments: { project: "SYP", id: item?.id, fingerprint: item?.fingerprint },
   })
   expect(missing.isError).toBe(true)
-  const rejected = await client.callTool({
-    name: "project_actions_reject",
+  const rejected = await callCommand(client, {
+    name: "projects actions reject",
     arguments: { project: "SYP", id: item?.id, fingerprint: item?.fingerprint, reason: "not about the project" },
   })
   expect(rejected.isError).toBeFalsy()

@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**478 ✅ · 0 ⛔ · 139 ❌** — 125 commands, 492 options.
+**482 ✅ · 0 ⛔ · 92 ❌** — 127 commands, 447 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -15,7 +15,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `context` | `--limit` | ✅ |  |
 | `context` | `--json` | ✅ |  |
 | `context` | `--source` | ✅ |  |
-| `context` | `--account` | ✅ |  |
 | `notes show` |  | ✅ |  |
 | `notes show` | `--json` | ✅ |  |
 | `notes list` |  | ✅ |  |
@@ -29,7 +28,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `notes add` | `--subject` | ✅ |  |
 | `notes add` | `--meeting` | ✅ |  |
 | `notes add` | `--account` | ✅ |  |
-| `notes add` | `--provider` | ❌ |  |
 | `notes add` | `--export` | ❌ |  |
 | `notes add` | `--format` | ❌ |  |
 | `notes add` | `--json` | ✅ |  |
@@ -46,12 +44,18 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `notes export` | `--output-dir` | ✅ |  |
 | `notes export` | `--format` | ✅ |  |
 | `notes export` | `--json` | ✅ |  |
+| `notes links show` |  | ✅ |  |
+| `notes links show` | `--json` | ✅ |  |
+| `notes links add` |  | ✅ |  |
+| `notes links add` | `--json` | ✅ |  |
+| `notes links clear` |  | ✅ |  |
+| `notes links clear` | `--json` | ✅ |  |
 | `folders add` |  | ✅ |  |
 | `folders add` | `--format` | ❌ |  |
 | `folders add` | `--json` | ✅ |  |
-| `folders attach` |  | ✅ |  |
-| `folders attach` | `--format` | ✅ |  |
-| `folders attach` | `--json` | ❌ |  |
+| `folders update` |  | ✅ |  |
+| `folders update` | `--format` | ✅ |  |
+| `folders update` | `--json` | ❌ |  |
 | `folders list` |  | ✅ |  |
 | `folders list` | `--json` | ✅ |  |
 | `messages show` |  | ✅ |  |
@@ -72,17 +76,17 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `mail inspect` | `--json` | ✅ |  |
 | `mail status` |  | ✅ |  |
 | `mail status` | `--json` | ✅ |  |
-| `mail trash` |  | ✅ |  |
-| `mail trash` | `--limit` | ✅ |  |
-| `mail trash` | `--since-time` | ✅ |  |
-| `mail trash` | `--yes` | ✅ |  |
-| `mail trash` | `--json` | ✅ |  |
+| `mail delete` |  | ✅ |  |
+| `mail delete` | `--limit` | ✅ |  |
+| `mail delete` | `--since-time` | ✅ |  |
+| `mail delete` | `--yes` | ✅ |  |
+| `mail delete` | `--json` | ✅ |  |
 | `mail restore` |  | ✅ |  |
 | `mail restore` | `--run` | ✅ |  |
 | `mail restore` | `--yes` | ✅ |  |
 | `mail restore` | `--json` | ❌ |  |
-| `mail runs` |  | ✅ |  |
-| `mail runs` | `--json` | ✅ |  |
+| `mail runs list` |  | ✅ |  |
+| `mail runs list` | `--json` | ✅ |  |
 | `mail rules list` |  | ✅ |  |
 | `mail rules list` | `--filter` | ✅ |  |
 | `mail rules list` | `--json` | ✅ |  |
@@ -102,18 +106,15 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `mail rules remove` | `--filter` | ❌ |  |
 | `mail rules remove` | `--kind` | ❌ |  |
 | `mail rules remove` | `--json` | ❌ |  |
-| `mail rules import-filters` |  | ✅ |  |
-| `mail rules import-filters` | `--yes` | ✅ |  |
-| `mail rules import-filters` | `--json` | ❌ |  |
 | `mail rules apply` |  | ✅ |  |
 | `mail rules apply` | `--since-time` | ✅ |  |
 | `mail rules apply` | `--yes` | ✅ |  |
 | `mail rules apply` | `--json` | ✅ |  |
 | `mail rules export` |  | ✅ |  |
 | `mail rules import` |  | ✅ |  |
-| `mail rules import` | `--json` | ❌ |  |
-| `note` |  | ✅ |  |
-| `note` | `--clear` | ✅ |  |
+| `mail rules import` | `--format` | ✅ |  |
+| `mail rules import` | `--yes` | ✅ |  |
+| `mail rules import` | `--json` | ✅ |  |
 | `tags add` |  | ✅ |  |
 | `tags add` | `--message` | ✅ |  |
 | `tags add` | `--note` | ✅ |  |
@@ -127,7 +128,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tags add` | `--folder` | ✅ |  |
 | `tags add` | `--subfolder` | ✅ |  |
 | `tags add` | `--account` | ✅ |  |
-| `tags add` | `--provider` | ❌ |  |
 | `tags add` | `--json` | ✅ |  |
 | `tags remove` |  | ✅ |  |
 | `tags remove` | `--message` | ❌ |  |
@@ -142,24 +142,20 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tags remove` | `--folder` | ❌ |  |
 | `tags remove` | `--subfolder` | ❌ |  |
 | `tags remove` | `--account` | ✅ |  |
-| `tags remove` | `--provider` | ❌ |  |
 | `tags remove` | `--json` | ✅ |  |
 | `tags list` |  | ✅ |  |
 | `tags list` | `--source` | ✅ |  |
-| `tags list` | `--provider` | ❌ |  |
-| `tags list` | `--account` | ✅ |  |
 | `tags list` | `--limit` | ✅ |  |
 | `tags list` | `--json` | ✅ |  |
 | `tasks unlink` |  | ✅ |  |
 | `tasks unlink` | `--kind` | ✅ |  |
 | `tasks unlink` | `--json` | ✅ |  |
-| `tasks relations` |  | ✅ |  |
-| `tasks relations` | `--json` | ✅ |  |
+| `tasks links` |  | ✅ |  |
+| `tasks links` | `--json` | ✅ |  |
 | `tasks status` |  | ✅ |  |
 | `tasks status` | `--json` | ✅ |  |
 | `tasks add` |  | ✅ |  |
 | `tasks add` | `--account` | ✅ |  |
-| `tasks add` | `--provider` | ✅ |  |
 | `tasks add` | `--json` | ✅ |  |
 | `tasks add` | `--title` | ✅ |  |
 | `tasks add` | `--priority` | ✅ |  |
@@ -172,19 +168,15 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tasks add` | `--new` | ✅ |  |
 | `tasks list` |  | ✅ |  |
 | `tasks list` | `--source` | ✅ |  |
-| `tasks list` | `--provider` | ❌ |  |
-| `tasks list` | `--account` | ❌ |  |
 | `tasks list` | `--json` | ✅ |  |
 | `tasks list` | `--limit` | ❌ |  |
 | `tasks close` |  | ✅ |  |
 | `tasks close` | `--account` | ✅ |  |
-| `tasks close` | `--provider` | ❌ |  |
 | `tasks close` | `--json` | ✅ |  |
 | `tasks close` | `--as` | ✅ |  |
 | `tasks close` | `--reason` | ✅ |  |
 | `tasks update` |  | ✅ |  |
 | `tasks update` | `--account` | ✅ |  |
-| `tasks update` | `--provider` | ❌ |  |
 | `tasks update` | `--json` | ✅ |  |
 | `tasks update` | `--title` | ✅ |  |
 | `tasks update` | `--priority` | ✅ |  |
@@ -204,26 +196,19 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tasks agenda` | `--within` | ✅ |  |
 | `tasks agenda` | `--holder` | ❌ |  |
 | `tasks agenda` | `--source` | ✅ |  |
-| `tasks agenda` | `--provider` | ❌ |  |
-| `tasks agenda` | `--account` | ❌ |  |
 | `tasks agenda` | `--json` | ✅ |  |
 | `tasks show` |  | ✅ |  |
 | `tasks show` | `--source` | ✅ |  |
-| `tasks show` | `--provider` | ❌ |  |
-| `tasks show` | `--account` | ❌ |  |
 | `tasks show` | `--json` | ✅ |  |
 | `tasks link` |  | ✅ |  |
 | `tasks link` | `--chat` | ❌ |  |
 | `tasks link` | `--kind` | ✅ |  |
 | `tasks link` | `--account` | ❌ |  |
-| `tasks link` | `--provider` | ❌ |  |
 | `tasks link` | `--json` | ✅ |  |
 | `stats tasks show` |  | ✅ |  |
 | `stats tasks show` | `--chat` | ❌ |  |
 | `stats tasks show` | `--type` | ✅ |  |
 | `stats tasks show` | `--source` | ✅ |  |
-| `stats tasks show` | `--provider` | ❌ |  |
-| `stats tasks show` | `--account` | ❌ |  |
 | `stats tasks show` | `--json` | ✅ |  |
 | `organizations add` |  | ✅ |  |
 | `organizations add` | `--kind` | ✅ |  |
@@ -235,14 +220,11 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `organizations context` | `--json` | ✅ |  |
 | `projects meetings list` |  | ✅ |  |
 | `projects meetings list` | `--source` | ✅ |  |
-| `projects meetings list` | `--provider` | ❌ |  |
-| `projects meetings list` | `--account` | ❌ |  |
 | `projects meetings list` | `--json` | ✅ |  |
 | `projects meetings list` | `--limit` | ❌ |  |
 | `projects meetings list` | `--page` | ❌ |  |
 | `projects meetings link` |  | ✅ |  |
 | `projects meetings link` | `--account` | ✅ |  |
-| `projects meetings link` | `--provider` | ❌ |  |
 | `projects meetings link` | `--json` | ✅ |  |
 | `projects meetings link` | `--fingerprint` | ❌ |  |
 | `projects meetings link` | `--reason` | ❌ |  |
@@ -289,6 +271,9 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `projects actions reject` | `--as-owner` | ✅ |  |
 | `projects actions reject` | `--fingerprint` | ✅ |  |
 | `projects actions reject` | `--reason` | ✅ |  |
+| `projects annotations show` |  | ✅ |  |
+| `projects annotations show` | `--max-read-bytes` | ✅ |  |
+| `projects annotations show` | `--json` | ✅ |  |
 | `projects annotations export` |  | ✅ |  |
 | `projects annotations export` | `--output` | ✅ |  |
 | `projects annotations export` | `--max-read-bytes` | ✅ |  |
@@ -326,39 +311,30 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `relationships remove` | `--json` | ❌ |  |
 | `relationships confirm` |  | ✅ |  |
 | `relationships confirm` | `--json` | ❌ |  |
-| `relationships suggest` |  | ✅ |  |
-| `relationships suggest` | `--source` | ✅ |  |
-| `relationships suggest` | `--provider` | ❌ |  |
-| `relationships suggest` | `--account` | ❌ |  |
-| `relationships suggest` | `--json` | ❌ |  |
-| `relationships suggest` | `--limit` | ✅ |  |
+| `relationships scan` |  | ✅ |  |
+| `relationships scan` | `--source` | ✅ |  |
+| `relationships scan` | `--json` | ❌ |  |
+| `relationships scan` | `--limit` | ✅ |  |
 | `reminders add` |  | ✅ |  |
 | `reminders add` | `--account` | ✅ |  |
-| `reminders add` | `--provider` | ❌ |  |
 | `reminders add` | `--json` | ✅ |  |
 | `reminders add` | `--at-time` | ✅ |  |
 | `reminders add` | `--timezone` | ✅ |  |
 | `reminders list` |  | ✅ |  |
 | `reminders list` | `--source` | ✅ |  |
-| `reminders list` | `--provider` | ✅ |  |
-| `reminders list` | `--account` | ✅ |  |
 | `reminders list` | `--json` | ✅ |  |
-| `reminders poll` |  | ✅ |  |
-| `reminders poll` | `--account` | ✅ |  |
-| `reminders poll` | `--provider` | ❌ |  |
-| `reminders poll` | `--json` | ✅ |  |
-| `reminders poll` | `--limit` | ❌ |  |
-| `reminders ack` |  | ✅ |  |
-| `reminders ack` | `--account` | ✅ |  |
-| `reminders ack` | `--provider` | ❌ |  |
-| `reminders ack` | `--json` | ✅ |  |
+| `reminders claim` |  | ✅ |  |
+| `reminders claim` | `--account` | ✅ |  |
+| `reminders claim` | `--json` | ✅ |  |
+| `reminders claim` | `--limit` | ❌ |  |
+| `reminders acknowledge` |  | ✅ |  |
+| `reminders acknowledge` | `--account` | ✅ |  |
+| `reminders acknowledge` | `--json` | ✅ |  |
 | `reminders cancel` |  | ✅ |  |
 | `reminders cancel` | `--account` | ✅ |  |
-| `reminders cancel` | `--provider` | ❌ |  |
 | `reminders cancel` | `--json` | ❌ |  |
 | `reminders update` |  | ✅ |  |
 | `reminders update` | `--account` | ✅ |  |
-| `reminders update` | `--provider` | ❌ |  |
 | `reminders update` | `--json` | ❌ |  |
 | `reminders update` | `--at-time` | ✅ |  |
 | `reminders update` | `--revision` | ✅ |  |
@@ -385,7 +361,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `vocabulary check` | `--max-read-bytes` | ❌ |  |
 | `vocabulary check` | `--json` | ✅ |  |
 | `vocabulary check` | `--min-similarity` | ❌ |  |
-| `vocabulary check` | `--max-comparisons` | ❌ |  |
+| `vocabulary check` | `--max-comparisons` | ✅ |  |
 | `vocabulary check` | `--limit` | ✅ |  |
 | `vocabulary create` |  | ✅ |  |
 | `vocabulary create` | `--kind` | ✅ |  |
@@ -405,14 +381,14 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `memories add` | `--subject` | ❌ |  |
 | `memories add` | `--json` | ✅ |  |
 | `memories list` |  | ✅ |  |
-| `memories list` | `--limit` | ❌ |  |
+| `memories list` | `--limit` | ✅ |  |
 | `memories list` | `--json` | ✅ |  |
 | `memories show` |  | ✅ |  |
 | `memories show` | `--json` | ✅ |  |
 | `memories confirm` |  | ✅ |  |
 | `memories confirm` | `--json` | ✅ |  |
-| `memories stale` |  | ✅ |  |
-| `memories stale` | `--json` | ✅ |  |
+| `memories invalidate` |  | ✅ |  |
+| `memories invalidate` | `--json` | ✅ |  |
 | `mentions list` |  | ✅ |  |
 | `mentions list` | `--source` | ✅ |  |
 | `mentions list` | `--limit` | ❌ |  |
@@ -434,12 +410,12 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `facts add` | `--evidence` | ✅ |  |
 | `facts add` | `--project` | ✅ |  |
 | `facts add` | `--subject` | ❌ |  |
-| `facts add` | `--occurred-time` | ❌ |  |
+| `facts add` | `--occurred-time` | ✅ |  |
 | `facts add` | `--scope` | ❌ |  |
 | `facts add` | `--supersedes` | ✅ |  |
 | `facts add` | `--json` | ✅ |  |
 | `facts list` |  | ✅ |  |
-| `facts list` | `--limit` | ❌ |  |
+| `facts list` | `--limit` | ✅ |  |
 | `facts list` | `--json` | ✅ |  |
 | `facts show` |  | ✅ |  |
 | `facts show` | `--json` | ✅ |  |
@@ -449,28 +425,21 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `facts reverse` | `--json` | ✅ |  |
 | `meetings actions add` |  | ✅ |  |
 | `meetings actions add` | `--account` | ✅ |  |
-| `meetings actions add` | `--provider` | ❌ |  |
 | `meetings actions add` | `--json` | ✅ |  |
 | `meetings actions show` |  | ✅ |  |
 | `meetings actions show` | `--source` | ✅ |  |
-| `meetings actions show` | `--provider` | ❌ |  |
-| `meetings actions show` | `--account` | ❌ |  |
 | `meetings actions show` | `--json` | ✅ |  |
 | `meetings actions list` |  | ✅ |  |
 | `meetings actions list` | `--source` | ✅ |  |
-| `meetings actions list` | `--provider` | ❌ |  |
-| `meetings actions list` | `--account` | ❌ |  |
 | `meetings actions list` | `--json` | ✅ |  |
 | `meetings actions list` | `--limit` | ✅ |  |
 | `meetings actions list` | `--page` | ✅ |  |
 | `meetings actions confirm` |  | ✅ |  |
 | `meetings actions confirm` | `--account` | ✅ |  |
-| `meetings actions confirm` | `--provider` | ❌ |  |
 | `meetings actions confirm` | `--json` | ✅ |  |
 | `meetings actions confirm` | `--fingerprint` | ✅ |  |
 | `meetings actions reject` |  | ✅ |  |
 | `meetings actions reject` | `--account` | ✅ |  |
-| `meetings actions reject` | `--provider` | ❌ |  |
 | `meetings actions reject` | `--json` | ✅ |  |
 | `meetings actions reject` | `--fingerprint` | ✅ |  |
 | `meetings passage` |  | ✅ |  |
@@ -481,8 +450,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `meetings passage` | `--expected-fingerprint` | ✅ |  |
 | `meetings passage` | `--format` | ✅ |  |
 | `meetings passage` | `--source` | ✅ |  |
-| `meetings passage` | `--provider` | ✅ |  |
-| `meetings passage` | `--account` | ✅ |  |
 | `meetings passage` | `--json` | ✅ |  |
 | `meetings prepare` |  | ✅ |  |
 | `meetings prepare` | `--context-source` | ✅ |  |
@@ -499,14 +466,11 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `meetings prepare` | `--max-read-bytes` | ✅ |  |
 | `meetings prepare` | `--bytes` | ✅ |  |
 | `meetings prepare` | `--source` | ✅ |  |
-| `meetings prepare` | `--provider` | ❌ |  |
-| `meetings prepare` | `--account` | ❌ |  |
 | `meetings prepare` | `--json` | ✅ |  |
 | `actions add` |  | ✅ |  |
 | `actions add` | `--as-owner` | ✅ |  |
 | `actions add` | `--reason` | ✅ |  |
 | `actions add` | `--account` | ✅ |  |
-| `actions add` | `--provider` | ❌ |  |
 | `actions add` | `--target` | ✅ |  |
 | `actions add` | `--payload` | ✅ |  |
 | `actions add` | `--json` | ✅ |  |
@@ -519,9 +483,9 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `actions confirm` | `--json` | ✅ |  |
 | `actions reject` |  | ✅ |  |
 | `actions reject` | `--json` | ✅ |  |
-| `agents log` |  | ✅ |  |
-| `agents log` | `--limit` | ✅ |  |
-| `agents log` | `--json` | ✅ |  |
+| `agents list` |  | ✅ |  |
+| `agents list` | `--limit` | ✅ |  |
+| `agents list` | `--json` | ✅ |  |
 | `mcp` |  | ✅ |  |
 | `mcp` | `--permission` | ❌ |  |
 | `models download` |  | ✅ |  |
@@ -539,7 +503,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `search all` | `--project` | ✅ |  |
 | `search messages` |  | ✅ |  |
 | `search messages` | `--limit` | ❌ |  |
-| `search messages` | `--exact` | ❌ |  |
+| `search messages` | `--exact` | ✅ |  |
 | `search messages` | `--timezone` | ❌ |  |
 | `search messages` | `--json` | ✅ |  |
 | `search messages` | `--brief` | ❌ |  |
@@ -553,7 +517,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `search mail` | `--full` | ✅ |  |
 | `search mail` | `--source` | ✅ |  |
 | `search mail` | `--plain-order` | ❌ |  |
-| `search mail` | `--account` | ✅ |  |
 | `search notes` |  | ✅ |  |
 | `search notes` | `--limit` | ✅ |  |
 | `search notes` | `--exact` | ✅ |  |
@@ -570,31 +533,25 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `search memories` | `--json` | ✅ |  |
 | `search meetings` |  | ✅ |  |
 | `search meetings` | `--meeting-id` | ✅ |  |
-| `search meetings` | `--identity-id` | ❌ |  |
-| `search meetings` | `--person-id` | ❌ |  |
-| `search meetings` | `--event-id` | ❌ |  |
+| `search meetings` | `--identity-id` | ✅ |  |
+| `search meetings` | `--person-id` | ✅ |  |
+| `search meetings` | `--event-id` | ✅ |  |
 | `search meetings` | `--series-id` | ✅ |  |
 | `search meetings` | `--project` | ✅ |  |
-| `search meetings` | `--tag` | ✅ |  |
-| `search meetings` | `--topic` | ✅ |  |
 | `search meetings` | `--since-time` | ✅ |  |
 | `search meetings` | `--until-time` | ✅ |  |
 | `search meetings` | `--limit` | ✅ |  |
 | `search meetings` | `--cursor` | ✅ |  |
 | `search meetings` | `--max-read-bytes` | ✅ |  |
 | `search meetings` | `--source` | ✅ |  |
-| `search meetings` | `--provider` | ✅ |  |
-| `search meetings` | `--account` | ✅ |  |
 | `search meetings` | `--json` | ✅ |  |
-| `ask` |  | ✅ |  |
-| `ask` | `--all` | ✅ |  |
-| `ask` | `--source` | ✅ |  |
-| `ask` | `--provider` | ❌ |  |
-| `ask` | `--account` | ❌ |  |
-| `ask` | `--limit` | ❌ |  |
-| `ask` | `--analyze` | ❌ |  |
-| `ask` | `--allow-remote` | ❌ |  |
-| `ask` | `--json` | ✅ |  |
+| `answers create` |  | ✅ |  |
+| `answers create` | `--all` | ✅ |  |
+| `answers create` | `--source` | ✅ |  |
+| `answers create` | `--limit` | ❌ |  |
+| `answers create` | `--analyze` | ❌ |  |
+| `answers create` | `--allow-remote` | ❌ |  |
+| `answers create` | `--json` | ✅ |  |
 | `sync` |  | ✅ |  |
 | `sync` | `--only` | ✅ |  |
 | `sync` | `--folder` | ✅ |  |
@@ -607,11 +564,11 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `sync` | `--rescan` | ❌ |  |
 | `sync` | `--no-embed` | ✅ |  |
 | `sync` | `--json` | ✅ |  |
-| `auto start` |  | ✅ |  |
-| `auto start` | `--every` | ✅ |  |
-| `auto stop` |  | ✅ |  |
-| `auto status` |  | ✅ |  |
-| `auto status` | `--json` | ✅ |  |
+| `jobs start` |  | ✅ |  |
+| `jobs start` | `--every` | ✅ |  |
+| `jobs stop` |  | ✅ |  |
+| `jobs status` |  | ✅ |  |
+| `jobs status` | `--json` | ✅ |  |
 | `doctor` |  | ✅ |  |
 | `doctor` | `--json` | ✅ |  |
 | `upgrade` |  | ✅ |  |

@@ -3,7 +3,7 @@ import { basename, resolve } from "node:path"
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
-import { LOCAL_READ, LOCAL_WRITE, queryTerms, withQuery } from "@wirecat/cli-core/cli"
+import { grantsAuthority, LOCAL_READ, LOCAL_WRITE, queryTerms, withQuery } from "@wirecat/cli-core/cli"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { loadConfig, updateConfig } from "../config.js"
@@ -48,7 +48,7 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
     .command("folders")
     .description("folders of notes: the id links and the store use, and the path on this computer")
 
-  annotate(folders.command("add"), { effects: LOCAL_WRITE })
+  grantsAuthority(annotate(folders.command("add"), { effects: LOCAL_WRITE }))
     .description("give a folder of notes an id, or show the one it has")
     .argument("<path>", "the folder on this computer")
     .option("--format <format>", `how its notes are written: ${DIALECTS.join(", ")} (default: obsidian)`, formatOf)
@@ -72,7 +72,7 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
       print(options.json, itemAnswer(answer), answer.id)
     })
 
-  annotate(folders.command("attach"), { effects: LOCAL_WRITE })
+  grantsAuthority(annotate(folders.command("update"), { effects: LOCAL_WRITE }))
     .description("bind a folder id from another computer to the folder's path on this one")
     .argument("<id>", "the folder's id, as memo folders add printed it")
     .argument("<path>", "the same folder on this computer")
@@ -131,7 +131,7 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
           ...elsewhere.map(({ id, name, keptBy }) =>
             keptBy
               ? `${id}  kept by drive (${name})`
-              : `${id}  not on this computer (${name}) — memo folders attach ${id} <path>`,
+              : `${id}  not on this computer (${name}) — memo folders update ${id} <path>`,
           ),
         ].join("\n") || "no folders: memo folders add <path>",
       )

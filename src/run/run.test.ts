@@ -38,7 +38,7 @@ beforeEach(() => {
 
 describe("memo auto", () => {
   it("installs a timer with the interval asked for, and remembers it in the config", async () => {
-    await run("auto", "start", "--every", "2m")
+    await run("jobs", "start", "--every", "2m")
 
     expect(readFileSync(join(units(), "memo-import.timer"), "utf8")).toContain("OnUnitInactiveSec=2min")
     expect(readFileSync(join(units(), "memo-import.service"), "utf8")).toMatch(/ExecStart=".*" ".*memo\.js" "sync"/)
@@ -47,22 +47,22 @@ describe("memo auto", () => {
   })
 
   it("leaves a timer that already matches the config alone", async () => {
-    await run("auto", "start")
+    await run("jobs", "start")
     writeFileSync(join(dir, "systemctl.log"), "")
 
-    await run("auto", "start")
+    await run("jobs", "start")
 
     expect(calls()).toBe("")
   })
 
   it("refuses an interval under a minute", async () => {
-    await expect(run("auto", "start", "--every", "30s")).rejects.toThrow()
+    await expect(run("jobs", "start", "--every", "30s")).rejects.toThrow()
   })
 
   it("removes the timer when turned off", async () => {
-    await run("auto", "start")
+    await run("jobs", "start")
 
-    await run("auto", "stop")
+    await run("jobs", "stop")
 
     expect(existsSync(join(units(), "memo-import.timer"))).toBe(false)
     expect(calls()).toContain("--user disable --now memo-import.timer")
@@ -70,7 +70,7 @@ describe("memo auto", () => {
   })
 
   it("follows a hand edit of the config at the next timer run", async () => {
-    await run("auto", "start", "--every", "5m")
+    await run("jobs", "start", "--every", "5m")
     updateConfig((config) => ({ ...config, auto: { enabled: true, every: "15m" } }), env)
 
     await run("sync")
@@ -86,7 +86,7 @@ describe("memo auto", () => {
   })
 
   it("passes the folders and store memo was started with to every timer run", async () => {
-    await run("auto", "start")
+    await run("jobs", "start")
 
     const unit = readFileSync(join(units(), "memo-import.service"), "utf8")
     expect(unit).toContain(`"MESSAGING_STORE=${join(dir, "messages.db")}"`)
@@ -95,7 +95,7 @@ describe("memo auto", () => {
   })
 
   it("points the timer at the installed memo that ran last, and never at a checkout", async () => {
-    await run("auto", "start")
+    await run("jobs", "start")
     const service = join(units(), "memo-import.service")
     writeFileSync(
       service,
@@ -113,7 +113,7 @@ describe("memo auto", () => {
   })
 
   it("never points the timer at another tool's private install of memo", async () => {
-    await run("auto", "start")
+    await run("jobs", "start")
     const service = join(units(), "memo-import.service")
     writeFileSync(
       service,
@@ -133,9 +133,9 @@ describe("memo auto", () => {
   })
 
   it("shows whether the timer is on and when it runs next", async () => {
-    await run("auto", "start")
+    await run("jobs", "start")
 
-    const status = answerOf(await run("auto", "status", "--json"))
+    const status = answerOf(await run("jobs", "status", "--json"))
 
     expect(status).toMatchObject({
       enabled: true,
@@ -148,7 +148,7 @@ describe("memo auto", () => {
 })
 
 describe("a failing timer run", () => {
-  it("is said on every command until a timer run passes, and memo auto status shows the streak", async () => {
+  it("is said on every command until a timer run passes, and memo jobs status shows the streak", async () => {
     updateConfig((config) => ({ ...config, auto: { enabled: true, every: "5m" } }), env)
     const timer = { ...env, MEMO_AUTO: "1" }
     const timerSync = () =>
@@ -160,9 +160,9 @@ describe("a failing timer run", () => {
 
     expect(autoNotice(timer)).toBeUndefined()
     expect(autoNotice(env)).toMatch(
-      /^memo: scheduled sync failing since .* \(2 runs\): notes: configuration_error \(folder\.unbound\) — memo auto status$/,
+      /^memo: scheduled sync failing since .* \(2 runs\): notes: configuration_error \(folder\.unbound\) — memo jobs status$/,
     )
-    expect(answerOf(await run("auto", "status", "--json")).failing).toMatchObject({
+    expect(answerOf(await run("jobs", "status", "--json")).failing).toMatchObject({
       runs: 2,
       reason: "notes: configuration_error (folder.unbound)",
       log: "journalctl --user -u memo-import.service",
@@ -172,10 +172,10 @@ describe("a failing timer run", () => {
     await timerSync()
 
     expect(autoNotice(env)).toBeUndefined()
-    expect(answerOf(await run("auto", "status", "--json")).failing).toBeNull()
+    expect(answerOf(await run("jobs", "status", "--json")).failing).toBeNull()
   })
 
-  it("keeps a title the error names out of last.json and memo auto status", async () => {
+  it("keeps a title the error names out of last.json and memo jobs status", async () => {
     const titled = join(dir, "Synthetic Chat Title")
     mkdirSync(titled)
     const timer = { ...env, MEMO_AUTO: "1" }
@@ -192,7 +192,7 @@ describe("a failing timer run", () => {
     process.exitCode = 0
 
     expect(streams.stdout.join("")).toContain("Synthetic Chat Title")
-    const status = (await run("auto", "status")) + (await run("auto", "status", "--json"))
+    const status = (await run("jobs", "status")) + (await run("jobs", "status", "--json"))
     const kept = readFileSync(join(dir, "state", "auto", "last.json"), "utf8") + status + autoNotice(env)
     expect(kept).not.toContain("Synthetic")
     expect(status).toContain("configuration_error (folder.unbound)")
@@ -216,7 +216,7 @@ describe("a failing timer run", () => {
 
     expect(streams.stdout.join("")).toContain("Synthetic Chat Title")
     const last = readFileSync(join(dir, "state", "auto", "last.json"), "utf8")
-    const kept = [last, await run("auto", "status"), await run("auto", "status", "--json"), autoNotice(env)]
+    const kept = [last, await run("jobs", "status"), await run("jobs", "status", "--json"), autoNotice(env)]
     for (const text of kept) {
       expect(text).toContain("notes: configuration_error (folder.unbound)")
       expect(text).not.toContain("Synthetic")

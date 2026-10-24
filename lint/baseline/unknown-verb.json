@@ -1,17 +1,1 @@
-[
-  "agents log",
-  "ask",
-  "facts reverse",
-  "folders attach",
-  "mail rules import-filters",
-  "mail runs",
-  "mail trash",
-  "memories stale",
-  "note",
-  "relationships suggest",
-  "reminders ack",
-  "reminders poll",
-  "search mail",
-  "tasks assign",
-  "tasks relations"
-]
+[]

@@ -105,7 +105,7 @@ One task can wait for another. Link them, then ask Memo which tasks can start:
 memo tasks link HRB-2 HRB-1 --kind blocked-by     # HRB-2 waits for HRB-1
 memo tasks list project:HRB ready:true          # tasks with nothing left to wait for
 memo tasks status HRB-2                           # why HRB-2 can or cannot start
-memo tasks relations HRB-2
+memo tasks links HRB-2
 memo tasks unlink HRB-2 HRB-1 --kind blocked-by
 ```
 
@@ -142,8 +142,8 @@ task from a note you wrote with `memo notes add` when the store holds no account
 For the program that shows reminders:
 
 ```sh
-memo reminders poll --account telegram:1 --json
-memo reminders ack REMINDER_ID RECEIPT --account telegram:1
+memo reminders claim --account telegram:1 --json
+memo reminders acknowledge REMINDER_ID RECEIPT --account telegram:1
 ```
 
 `poll` hands out the reminders that are due, each with a receipt. `ack` with that receipt confirms

@@ -8,6 +8,7 @@ import { authorOf, byOption } from "../author.js"
 import { oneOf, positive } from "../options.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { FACT_QUERY, factItem, listFacts } from "./fact.js"
+import { addFact } from "./facts.js"
 
 interface AddOptions {
   kind: Fact["type"]
@@ -43,7 +44,7 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       run(options.json, async (store) =>
         itemAnswer(
           factItem(
-            await store.facts.add({
+            await addFact(store, {
               type: options.kind,
               statement: words.join(" "),
               by: authorOf(env, options.asOwner),

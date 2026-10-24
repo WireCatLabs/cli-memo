@@ -21,12 +21,12 @@ export const taskRelationsCommand = (tasks: Command, streams: Streams, env: Node
         execute(options, (store) => store.tasks.unlinkTask(task, other, options.kind, "owner")),
       )
   }
-  annotate(tasks.command("relations"), { effects: LOCAL_READ })
+  annotate(tasks.command("links"), { effects: LOCAL_READ })
     .description("a task's links to other tasks")
     .argument("<task>", "the task: task:<id> or its id")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((task: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => wholeList("tasks relations", await store.tasks.taskRelations(task))),
+      run(options.json, async (store) => wholeList("tasks links", await store.tasks.taskRelations(task))),
     )
   annotate(tasks.command("status"), { effects: LOCAL_READ })
     .description("whether a task can start, and what it still waits for")

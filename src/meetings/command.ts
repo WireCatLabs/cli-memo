@@ -26,6 +26,7 @@ export const meetingReadCommands = (program: Command, streams: Streams, env: Nod
     .description(grammar.description())
     .argument("<query>", "words to find; each also matches its other word forms")
   for (const option of grammar.options) {
+    if (option.long === "--tag" || option.long === "--topic") continue
     if (option.long === "--project") option.flags = "--project <project>"
     search.addOption(option)
   }

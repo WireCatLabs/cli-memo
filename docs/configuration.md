@@ -2,7 +2,7 @@
 
 Use this reference to look up Memo's own configuration settings and environment variables. You
 rarely need to edit the file by hand. `memo folders add` adds a folder
-and `memo auto start` turns the timer on for you. `memo mail add` adds an explicit Himalaya account. Edit the file yourself for files to skip and where
+and `memo jobs start` turns the timer on for you. `memo mail add` adds an explicit Himalaya account. Edit the file yourself for files to skip and where
 exported notes go.
 
 The file is `~/.config/cli-memo/config.json`. It is a JSON file: keep the quotes, commas and braces
@@ -68,9 +68,9 @@ See [Mail](mail.md).
 |---|---|
 | `enabled` | `true` when the import timer is on. |
 | `every` | How often it runs: `90s`, `5m`, `1h`; one minute or more. |
-| `places` | The variables that move memo's folders and the store (`MEMO_CONFIG_DIR`, `MESSAGING_STORE`…), as they were at `memo auto start`; every timer run gets them. |
+| `places` | The variables that move memo's folders and the store (`MEMO_CONFIG_DIR`, `MESSAGING_STORE`…), as they were at `memo jobs start`; every timer run gets them. |
 
-`memo auto start` and `memo auto stop` write these. If you edit them by hand, the timer follows at its
+`memo jobs start` and `memo jobs stop` write these. If you edit them by hand, the timer follows at its
 next run. See [importing on a timer](archive.md#import-on-a-timer-linux).
 
 ## `update_check`
@@ -103,25 +103,25 @@ of meeting findings or replace the tool's other permission checks.
 |---|---|
 | `MEMO_CONFIG_DIR` | The folder that holds `config.json`. |
 | `MEMO_STATE_DIR` | Memo's state folder: what each folder looked like at the last import. |
-| `MEMO_MODELS_ANALYSIS_PROVIDER`, `MEMO_MODELS_ANALYSIS_MODEL` | The AI provider and the model identifier (the name the provider uses for it) that `memo ask --analyze` calls. |
+| `MEMO_MODELS_ANALYSIS_PROVIDER`, `MEMO_MODELS_ANALYSIS_MODEL` | The AI provider and the model identifier (the name the provider uses for it) that `memo answers create --analyze` calls. |
 | `MEMO_MODELS_ANALYSIS_BASE_URL` | Optional: the provider's address. |
 | `MEMO_MODEL_API_KEY` | The provider's key. |
-| `MEMO_READ_ONLY` | Any value but `0` refuses every change with `permission_error` (exit 5): writes to the store, your files, mail at the provider, the timer, the skill files, `upgrade` and `ask --allow-remote`. Reads, `memo sync` and `tasks link` still run (a link is only suggested, and linking two tasks is refused); `reminders poll` is refused; `memo mcp` keeps writing tools listed as unavailable. |
+| `MEMO_READ_ONLY` | Any value but `0` refuses every change with `permission_error` (exit 5): writes to the store, your files, mail at the provider, the timer, the skill files, `upgrade` and `answers create --allow-remote`. Reads, `memo sync` and `tasks link` still run (a link is only suggested, and linking two tasks is refused); `reminders claim` is refused; `memo mcp` marks writing commands unavailable. |
 
-Memo calls a provider outside your computer only when `memo ask` has both `--analyze` and
+Memo calls a provider outside your computer only when `memo answers create` has both `--analyze` and
 `--allow-remote`. See [give your agent the sources](search.md#give-your-agent-the-sources).
 
 ## `permissions`
 
 Dotted command paths limit MCP tools. A key covers that command and its children; the most specific saved key
-wins. `deny` refuses calls, `readonly` permits reads, and `ask` or `allow` permits writes. Over MCP `ask` runs
-without a terminal question, so the client app obtains approval. Writes without a saved level use `ask`.
+wins. `deny` marks commands unavailable in discovery, `readonly` permits reads, and `ask` or `allow` permits writes. Over MCP `ask` runs
+without a terminal question; approval prompts depend on the client app. Writes without a saved level use `ask`.
 
 ```json
 {
   "permissions": {
     "notes": "readonly",
-    "mail.trash": "deny",
+    "mail.delete": "deny",
     "mcp.authority": "deny"
   }
 }
@@ -132,6 +132,6 @@ without a terminal question, so the client app obtains approval. Writes without 
 key to `ask` or `allow` to delegate one of these owner operations. `agent_decisions: false` continues to refuse
 project proposal decisions. The shared WireCat read ceiling and `MEMO_READ_ONLY` cap every permission.
 
-Tools remain discoverable with current availability, reasons and arguments. Permission changes take
-effect on existing connections, in tool listings and calls. `memo mcp --permission notes.edit=deny` tightens one key for that server
+Supported commands stay visible with their current availability. Saved permission changes take effect
+on existing connections too. `memo mcp --permission notes.edit=deny` tightens one key for that server
 without changing the file; an override that loosens any saved key is refused.

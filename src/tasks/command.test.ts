@@ -73,9 +73,9 @@ it("creates native note tasks through the CLI and connects context, search, assi
     id: task.task.id,
   })
   const reminder = await run("reminders", "add", task.task.id, "--at-time", "2026-01-01T00:00:00Z", ...acts)
-  const [delivery] = (await run("reminders", "poll", ...acts)).items
-  await run("reminders", "ack", reminder.id, delivery.receipt, ...acts)
-  expect((await run("reminders", "poll", ...acts)).items).toEqual([])
+  const [delivery] = (await run("reminders", "claim", ...acts)).items
+  await run("reminders", "acknowledge", reminder.id, delivery.receipt, ...acts)
+  expect((await run("reminders", "claim", ...acts)).items).toEqual([])
   await run("notes", "edit", source, "--text", "Updated budget", "--revision", "1")
   const listed = (await run("tasks", "list", ...scope)).items.find((item: { id: string }) => item.id === task.task.id)
   expect(listed).toMatchObject({ source_message: source, chat: null, state: "open", account: "telegram:1" })

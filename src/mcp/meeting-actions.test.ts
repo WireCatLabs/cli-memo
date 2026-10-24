@@ -8,6 +8,7 @@ import { sampleMeeting } from "@wirecat/cli-core/meetings/testing"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { envelopeOf } from "../../test/answer.js"
+import { commandCaller } from "../../test/mcp.js"
 import { updateConfig } from "../config.js"
 import { markKey } from "../knowledge/key-documents.js"
 import { createProgram } from "../program.js"
@@ -65,8 +66,9 @@ const connected = async (env: NodeJS.ProcessEnv) => {
   await createMemoServer(env, createProgram).connect(server)
   const client = new Client({ name: "synthetic", version: "1" })
   await client.connect(transport)
+  const command = await commandCaller(client)
   const call = async (name: string, args: Record<string, unknown>) => {
-    const result = await client.callTool({ name, arguments: args })
+    const result = await command(name, args)
     return {
       ...(result.isError ? result.structuredContent : envelopeOf(JSON.stringify(result.structuredContent))),
       failed: result.isError,
@@ -76,8 +78,8 @@ const connected = async (env: NodeJS.ProcessEnv) => {
 }
 const inputFor = async (call: Awaited<ReturnType<typeof connected>>["call"], project: string) => {
   const source = "example:synthetic"
-  const hits = await call("search_meetings", { source, query: "Ship" })
-  const passage = await call("meeting_passage", { source, reference: hits.items[0].ref })
+  const hits = await call("search meetings", { source, query: "Ship" })
+  const passage = await call("meetings passage", { source, reference: hits.items[0].ref })
   return {
     schema_version: 1,
     key: "harbour-followups",
@@ -103,14 +105,16 @@ it("stages replay-safe attributed proposals, exposes previews and keeps project 
   try {
     const input = await inputFor(call, f.project.ref)
     const args = { account: "example:synthetic", input }
-    const first = await call("meeting_actions_add", args)
+    const first = await call("meetings actions add", args)
     expect(first.failed).not.toBe(true)
     expect(first.item).toMatchObject({ status: "proposed", receipt: null, author: { type: "bot", name: "memo-mcp" } })
-    expect((await call("meeting_actions_add", args)).item.id).toBe(first.item.id)
-    expect((await call("meeting_actions_show", { source: args.account, id: first.item.id })).item).toEqual(first.item)
-    expect((await call("meeting_actions_list", { source: args.account, status: "proposed" })).items).toHaveLength(1)
-    expect((await call("meeting_actions_show", { source: "example:other", id: first.item.id })).failed).toBe(true)
-    const context = (await call("project_context", { project: "Harbour Launch" })).item
+    expect((await call("meetings actions add", args)).item.id).toBe(first.item.id)
+    expect((await call("meetings actions show", { source: args.account, id: first.item.id })).item).toEqual(first.item)
+    expect(
+      (await call("meetings actions list", { source: args.account, query: "status:proposed" })).items,
+    ).toHaveLength(1)
+    expect((await call("meetings actions show", { source: "example:other", id: first.item.id })).failed).toBe(true)
+    const context = (await call("projects context", { project: "Harbour Launch" })).item
     expect(context.review.key_documents).toMatchObject([{ ref: "note:1", confirmed: false }])
     expect(context.review.relationships).toHaveLength(1)
     expect(context.review.facts.items).toMatchObject([{ text: "Review the draft", status: "proposed" }])
@@ -120,9 +124,12 @@ it("stages replay-safe attributed proposals, exposes previews and keeps project 
     const streams = captureStreams()
     await createProgram({ env: f.env, streams }).parseAsync(["projects", "context", "Harbour Launch"], { from: "user" })
     expect(streams.stdout.join("")).toContain(`batch ${first.item.id}/followup [task]: Check draft status`)
-    const names = (await client.listTools()).tools.map((tool) => tool.name)
-    expect(names).not.toContain("meeting_actions_confirm")
-    expect(names).not.toContain("meeting_actions_reject")
+    const catalogue = await client.callTool({ name: "memo_tools_search", arguments: {} })
+    const items = (
+      catalogue.structuredContent as { items: { command: string; availability: { available: boolean } }[] }
+    ).items
+    for (const name of ["meetings actions confirm", "meetings actions reject"])
+      expect(items.find((item) => item.command === name)?.availability.available).toBe(false)
   } finally {
     await client.close()
   }
@@ -134,22 +141,22 @@ it("rejects unknown nested fields, changed retry input and stale evidence withou
   try {
     const input = await inputFor(call, f.project.ref)
     const args = { account: "example:synthetic", input }
-    const unknown = await call("meeting_actions_add", { ...args, input: { ...input, confirm: true } })
-    expect(unknown.error).toMatchObject({ code: "validation_error", param: "input.confirm" })
-    const nested = await call("meeting_actions_add", {
+    const unknown = await call("meetings actions add", { ...args, input: { ...input, confirm: true } })
+    expect(unknown.error).toMatchObject({ code: "validation_error", message: "unknown meeting finding field" })
+    const nested = await call("meetings actions add", {
       ...args,
       input: { ...input, findings: [{ ...input.findings[0], owner: true }] },
     })
     expect(nested.error.code).toBe("validation_error")
-    expect(nested.error.param).toContain("owner")
-    await call("meeting_actions_add", args)
-    expect((await call("meeting_actions_add", { ...args, account: "example:other" })).failed).toBe(true)
-    expect((await call("meeting_actions_add", { ...args, input: { ...input, extractor: "changed" } })).failed).toBe(
+    expect(nested.error.message).toBe("unknown meeting finding field")
+    await call("meetings actions add", args)
+    expect((await call("meetings actions add", { ...args, account: "example:other" })).failed).toBe(true)
+    expect((await call("meetings actions add", { ...args, input: { ...input, extractor: "changed" } })).failed).toBe(
       true,
     )
     expect(
       (
-        await call("meeting_actions_add", {
+        await call("meetings actions add", {
           ...args,
           input: {
             ...input,
@@ -161,7 +168,7 @@ it("rejects unknown nested fields, changed retry input and stale evidence withou
         })
       ).failed,
     ).toBe(true)
-    expect((await call("meeting_actions_list", { source: args.account })).items).toHaveLength(1)
+    expect((await call("meetings actions list", { source: args.account })).items).toHaveLength(1)
   } finally {
     await client.close()
   }
@@ -184,11 +191,11 @@ it("reports capped project facts and preserves their pending status", async () =
   }
   const { client, call } = await connected(f.env)
   try {
-    const context = (await call("project_context", { project: "SHR" })).item
+    const context = (await call("projects context", { project: "SHR" })).item
     expect(context.review.facts.items).toHaveLength(20)
     expect(context.review.facts.has_more).toBe(true)
     expect(context.review.facts.next.command).toBe("facts list")
-    const continued = await call("facts_list", context.review.facts.next.args)
+    const continued = await call("facts list", context.review.facts.next.args)
     expect(continued.error).toBeUndefined()
     expect(continued.items).toHaveLength(21)
     expect(context.review.facts.items.every((fact: { status: string }) => fact.status === "proposed")).toBe(true)
@@ -202,7 +209,7 @@ it("filters mixed-project batches in context while preserving the full preview f
     { client, call } = await connected(f.env)
   try {
     const input = await inputFor(call, f.project.ref)
-    const staged = await call("meeting_actions_add", {
+    const staged = await call("meetings actions add", {
       account: "example:synthetic",
       input: {
         ...input,
@@ -210,10 +217,10 @@ it("filters mixed-project batches in context while preserving the full preview f
       },
     })
     expect(staged.failed).not.toBe(true)
-    const context = (await call("project_context", { project: "SHR" })).item
+    const context = (await call("projects context", { project: "SHR" })).item
     expect(context.review.meeting_actions.items[0].findings).toHaveLength(1)
     expect(context.review.meeting_actions.items[0].findings[0].project).toBe(f.project.ref)
-    const full = await call("meeting_actions_show", { source: "example:synthetic", id: staged.item.id })
+    const full = await call("meetings actions show", { source: "example:synthetic", id: staged.item.id })
     expect(full.item.input.findings).toHaveLength(2)
   } finally {
     await client.close()
@@ -227,21 +234,21 @@ it("allows an explicitly delegated meeting decision and refuses it after permiss
   const { client, call } = await connected(f.env)
   try {
     const input = await inputFor(call, f.project.ref)
-    const staged = await call("meeting_actions_add", { account: "example:synthetic", input })
-    const reviewed = await call("meetings_actions_confirm", {
+    const staged = await call("meetings actions add", { account: "example:synthetic", input })
+    const reviewed = await call("meetings actions confirm", {
       id: String(staged.item.id),
       ids: ["followup"],
       account: "example:synthetic",
       fingerprint: staged.item.fingerprint,
     })
     expect(reviewed.failed, JSON.stringify(reviewed)).not.toBe(true)
-    expect((await call("project_context", { project: f.project.ref })).item.open_tasks.items).toEqual(
+    expect((await call("projects context", { project: f.project.ref })).item.open_tasks.items).toEqual(
       expect.arrayContaining([expect.objectContaining({ title: "Check draft status" })]),
     )
     updateConfig((config) => ({ ...config, permissions: { "meetings.actions.confirm": "deny" } }), f.env)
     expect(
       (
-        await call("meetings_actions_confirm", {
+        await call("meetings actions confirm", {
           id: String(staged.item.id),
           ids: ["followup"],
           account: "example:synthetic",

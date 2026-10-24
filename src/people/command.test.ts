@@ -54,11 +54,13 @@ beforeEach(async () => {
 
 describe("memo note", () => {
   it("asks for the messenger when a reference has none", async () => {
-    await expect(run("note", "Rin Example")).rejects.toThrow("names no messenger")
+    await expect(run("notes", "links", "show", "Rin Example")).rejects.toThrow("names no messenger")
   })
 
   it("refuses a name two people share", async () => {
-    await expect(run("note", "telegram:Kai Sample", join(vault, "kai.md"))).rejects.toThrow("matches 2 people")
+    await expect(run("notes", "links", "add", "telegram:Kai Sample", join(vault, "kai.md"))).rejects.toThrow(
+      "matches 2 people",
+    )
   })
 
   it("keeps the note for the person, whichever of their identities names them", async () => {
@@ -72,12 +74,18 @@ describe("memo note", () => {
     await run("folders", "add", vault)
     await run("sync", "--only", "notes")
 
-    await run("note", "telegram:101", join(vault, "people", "Rin Example.md"))
+    await run("notes", "links", "add", "telegram:101", join(vault, "people", "Rin Example.md"), "--json")
 
-    expect(await run("note", "email:rin@example.test")).toBe(
+    expect(await run("notes", "links", "show", "email:rin@example.test")).toBe(
       `Rin Example: ${join(vault, "people", "Rin Example.md")}\n`,
     )
-    expect(await run("note", "email:rin@example.test", "--clear")).toBe("Rin Example: no note\n")
+    expect(JSON.parse(await run("notes", "links", "show", "email:rin@example.test", "--json=files"))).toMatchObject({
+      item: { files: [join(vault, "people", "Rin Example.md")] },
+    })
+    expect(await run("notes", "links", "clear", "email:rin@example.test")).toBe("Rin Example: no note\n")
+    expect(JSON.parse(await run("notes", "links", "clear", "email:rin@example.test", "--json"))).toMatchObject({
+      item: { files: [] },
+    })
   })
 
   it("moves the old people-notes.json into the store once the note is imported", async () => {
@@ -93,13 +101,15 @@ describe("memo note", () => {
       }),
     )
     await run("folders", "add", vault)
-    expect(await run("note", "telegram:101")).toBe("Rin Example: no note\n")
+    expect(await run("notes", "links", "show", "telegram:101")).toBe("Rin Example: no note\n")
 
     await run("sync", "--only", "notes")
 
-    expect(await run("note", "telegram:101")).toBe(`Rin Example: ${join(vault, "people", "Rin Example.md")}\n`)
-    await run("note", "telegram:101", "--clear")
+    expect(await run("notes", "links", "show", "telegram:101")).toBe(
+      `Rin Example: ${join(vault, "people", "Rin Example.md")}\n`,
+    )
+    await run("notes", "links", "clear", "telegram:101")
     await run("sync", "--only", "notes")
-    expect(await run("note", "telegram:101")).toBe("Rin Example: no note\n")
+    expect(await run("notes", "links", "show", "telegram:101")).toBe("Rin Example: no note\n")
   })
 })

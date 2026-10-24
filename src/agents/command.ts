@@ -10,7 +10,7 @@ export const agentsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
   const { run } = answers(program, streams, env)
   const agents = program.command("agents").description("what agents did through the MCP servers that share the store")
   withQuery(
-    annotate(agents.command("log"), { effects: LOCAL_READ, output: { entity: "agent_action" } })
+    annotate(agents.command("list"), { effects: LOCAL_READ, output: { entity: "agent_action" } })
       .summary("one row per tool call, newest first: agent, tool, outcome and times")
       .description("one row per tool call, newest first: agent, tool, tier, outcome and times, never its arguments"),
     AGENT_LOG_QUERY,

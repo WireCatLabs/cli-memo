@@ -434,7 +434,7 @@ export const restoreRun = async ({
   if (!/^[\w-]+$/.test(run)) throw new CliError("validation_error", "a run id is letters, digits and dashes")
   const log = join(logDir(env, account.name), `${run}.jsonl`)
   if (!existsSync(log))
-    throw new CliError("not_found", `no cleanup run ${run} for ${account.name}; memo mail runs ${account.name}`, {
+    throw new CliError("not_found", `no cleanup run ${run} for ${account.name}; memo mail runs list ${account.name}`, {
       reason: "mail.run-unknown",
     })
   if (source.move === undefined || source.label === undefined)

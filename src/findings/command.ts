@@ -3,6 +3,7 @@ import { CliError, readBatchInput, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import {
+  environmentOf,
   LOCAL_READ,
   LOCAL_WRITE,
   parseMeetingFindingsJson,
@@ -28,12 +29,13 @@ import {
   writeOptions,
 } from "../store/source-list.js"
 
-type Options = SourceOptions & {
-  json?: boolean
-  limit: number
-  page: number
-  fingerprint: string
-}
+type Options = SourceOptions &
+  WriteOptions & {
+    json?: boolean
+    limit: number
+    page: number
+    fingerprint: string
+  }
 const FINDINGS_QUERY = {
   entity: "meeting_findings",
   backend: "native",
@@ -64,7 +66,9 @@ export const findingsCommand = (program: Command, streams: Streams, env: NodeJS.
       "\nInput: schema_version 1, key, extractor, findings. Every finding names id, kind, project and evidence (reference and fingerprint). Facts name type and statement; tasks name type, title, reason and commitment (explicit or inferred). At most 16 findings, each with 1–8 exact cues from Zoom evidence. Optional due_at is a real ISO timestamp with timezone and requires due_evidence; optional assignee is a person reference and requires assignee_evidence. Both support lists cite this finding's cue references.\n",
     )
     .action(async (file: string, given: Options) => {
-      const text = await readBatchInput(file === "-" ? process.stdin : createReadStream(file))
+      const text = await readBatchInput(
+        file === "-" ? (environmentOf(program).stdin ?? process.stdin) : createReadStream(file),
+      )
       const input = parseMeetingFindingsJson(text)
       const author = authorOf(env)
       const agent = author === "owner" ? { bot: "memo-findings" } : author
