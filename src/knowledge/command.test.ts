@@ -224,6 +224,11 @@ it("queries organization, project and key-document fields through their native r
   const store = await openStore({ env })
   const org = await store.knowledge.addOrganization({ name: "Synthetic Studio", kind: "company", scope: "work" })
   await store.knowledge.addOrganization({ name: "Synthetic Group", kind: "community" })
+  for (let i = 0; i < 501; i++)
+    await store.knowledge.addProject({
+      name: `A synthetic ${i}`,
+      key: `P${i.toString(36).padStart(3, "0").toUpperCase()}`,
+    })
   const project = await store.knowledge.addProject({
     name: "Synthetic Project",
     key: "SMP",

@@ -1,6 +1,14 @@
 import { CliError } from "@wirecat/cli-base"
+import { parseLucene, validateQuery } from "@wirecat/cli-base/query"
 import { parseLocator } from "@wirecat/cli-core"
-import type { Author, Link, LinkListFilter, MessageStore, Project } from "@wirecat/cli-core/store"
+import {
+  type Author,
+  type Link,
+  type LinkListFilter,
+  type MessageStore,
+  PROJECTS_QUERY,
+  type Project,
+} from "@wirecat/cli-core/store"
 import { heldMessage } from "../store/held.js"
 import { canonicalProject } from "../vocabulary/project.js"
 
@@ -23,8 +31,10 @@ const KEYABLE = /^(note|document|msg):/
 
 export const projectOf = async (store: MessageStore, reference: string): Promise<Project> => {
   try {
-    const wanted = await canonicalProject(store, /^[1-9]\d*$/.test(reference) ? `project:${reference}` : reference)
-    const project = (await store.knowledge.projects()).find((candidate) => candidate.ref === wanted)
+    const ref = /^[1-9]\d*$/.test(reference) ? `project:${reference}` : reference
+    const wanted = /^project:[1-9]\d*$/.test(ref) ? ref : await canonicalProject(store, ref)
+    const query = validateQuery(parseLucene(`id:${wanted.slice(8)}`), PROJECTS_QUERY)
+    const project = (await store.knowledge.projects(query))[0]
     if (project) return project
   } catch (error) {
     if (!(error instanceof CliError) || error.code !== "not_found") throw error
