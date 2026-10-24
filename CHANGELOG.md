@@ -40,6 +40,10 @@ the API.
 
 - **Dependency resolutions exclude vulnerable Zod, Vite and postal-mime versions.** Release checks reject high production findings in locked and fresh package resolutions.
 
+### Fixed
+
+- MCP note creation supplies text once through Core’s generated runner, rather than passing both the positional argument and `--text`. The shared correction applies to stdio and HTTP.
+
 ## 0.93.0 — 24.10.2026
 
 ### Changed — may break callers
