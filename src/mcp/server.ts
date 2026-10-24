@@ -306,7 +306,7 @@ export const createMemoServer = (
       name,
       title: tool.title,
       description: tool.writes ? tool.description : `${tool.description} ${UNTRUSTED}`,
-      inputSchema: toJsonSchema(tool.input) as Tool["inputSchema"],
+      inputSchema: toJsonSchema(tool.input, { target: "draft-2020-12" }) as Tool["inputSchema"],
       annotations: {
         readOnlyHint: !tool.writes,
         destructiveHint: tool.writes,
