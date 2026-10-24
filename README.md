@@ -147,7 +147,7 @@ More: [security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security
 - **Documents in them:** TXT, CSV/TSV, text-layer PDF, DOCX, XLSX, ODT/ODS, PPTX and EPUB, with the page,
   row or cell each passage came from.
 - **Mail:** Gmail or another IMAP account, through Himalaya, attachments included.
-- **Messages:** the tg and max store, with the people linked across messengers and mail.
+- **Messages:** the tg, max and wa store, with the people linked across messengers and mail.
 
 You add your own notes about messages, people and projects, tags, tasks and reminders, organizations and
 projects.
