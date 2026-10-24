@@ -23,7 +23,7 @@ Plans and owner rulings live in the private notes (`cli-private`, `plans/`); thi
 - **MEMO-1** · P1 · `memo search all` with no mail tells the user to run `memo sync --mail --since-time <time>`,
   an option that does not exist (`unknown option '--mail'`); it should say `--only mail`. Starts in cli-core
   `src/services/search-kind.ts:85`, then a cli-core bump here.
-- **MEMO-2** · P1 · README shows old output as "the real output" and an incomplete tool list: the search example
+- **MEMO-2** · P1 · 🚧 `fix/readme-current-output-tools` · README shows old output as "the real output" and an incomplete tool list: the search example
   and the "Searched by words only" lines (`README.md:31-41`, `:378`) differ from what 0.89.0 prints, and "Part of
   WireCat" (`README.md:388`) names tg, max and memo while `memo --help` also lists wa, zm and drive. Re-capture
   from a real run.
