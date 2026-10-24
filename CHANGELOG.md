@@ -4,8 +4,6 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
-## Unreleased
-
 ## 0.91.0 — 24.10.2026
 
 ### Added
@@ -31,8 +29,6 @@ the API.
 - **Saved dotted `permissions` and `mcp --permission key=level` limit tools.** Server overrides can only tighten
   saved levels; locks and permissions are checked before every call. `MEMO_READ_ONLY` removes writing tools.
 
-### Changed — may break callers
-
 ### Fixed
 
 - **The shared mail-import hint names `--only mail`**, included with cli-core 0.404.0.
@@ -41,10 +37,6 @@ the API.
   package-specific approval command, and keep `memo skill install --for all` explicit.
 - **The introduction describes file writes accurately:** `notes edit` can change a source note, `notes export`
   writes files, and explicit Gmail Trash and restore commands need `--yes`.
-
-### Security
-
-### Removed
 
 ## 0.90.0 — 24.10.2026
 
