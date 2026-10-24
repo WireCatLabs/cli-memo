@@ -346,7 +346,11 @@ it("opens a search hit in full and runs generated writes through the CLI as the 
 it("checks changed permissions on existing connections and keeps both CLI aliases under the same key", async () => {
   const { client, call } = await connected()
   try {
+    const before = (await client.listTools()).tools.map(({ name }) => name)
     updateConfig((config) => ({ ...config, permissions: { notes: "deny", "projects.evidence": "deny" } }), env)
+    const denied = (await client.listTools()).tools.find(({ name }) => name === "notes_show")
+    expect((await client.listTools()).tools.map(({ name }) => name)).toEqual(before)
+    expect(denied?._meta).toMatchObject({ availability: { available: false, permission: "notes.show" } })
     for (const [name, args] of [
       ["notes_show", { note: "note:1" }],
       ["project_evidence", { project: "SYN", source: "all" }],
@@ -358,7 +362,7 @@ it("checks changed permissions on existing connections and keeps both CLI aliase
   }
 })
 
-it("hides writes under the read lock and rechecks the lock before a call", async () => {
+it("keeps writes discoverable under the read lock and rechecks the lock before a call", async () => {
   const { client, call } = await connected()
   try {
     env.MEMO_READ_ONLY = "1"
@@ -367,9 +371,11 @@ it("hides writes under the read lock and rechecks the lock before a call", async
     })
     const locked = await connected()
     try {
-      expect((await locked.client.listTools()).tools.every((tool) => tool.annotations?.readOnlyHint === true)).toBe(
-        true,
-      )
+      const tools = (await locked.client.listTools()).tools
+      expect(tools.map(({ name }) => name)).toContain("memories_confirm")
+      expect(tools.find(({ name }) => name === "memories_confirm")?._meta).toMatchObject({
+        availability: { available: false, reason: expect.stringContaining("locked to reads") },
+      })
       expect(await locked.answer("notes_show", { note: "note:1" })).toMatchObject({
         text: "Bob Sample prefers Fridays",
       })
@@ -384,7 +390,9 @@ it("hides writes under the read lock and rechecks the lock before a call", async
 it("uses authority deny by default and refuses server overrides that loosen saved levels", async () => {
   const { client } = await connected()
   try {
-    expect((await client.listTools()).tools.map(({ name }) => name)).not.toContain("folders_add")
+    expect((await client.listTools()).tools.find(({ name }) => name === "folders_add")).toMatchObject({
+      _meta: { availability: { available: false, permission: "mcp.authority" } },
+    })
   } finally {
     await client.close()
   }
@@ -443,14 +451,16 @@ it("keeps owner operation defaults denied under broader allow keys", async () =>
   updateConfig((config) => ({ ...config, permissions: { meetings: "allow", projects: "allow", mcp: "allow" } }), env)
   const { client } = await connected()
   try {
-    const names = (await client.listTools()).tools.map(({ name }) => name)
+    const tools = (await client.listTools()).tools
     for (const name of [
       "meetings_actions_confirm",
       "meetings_actions_reject",
       "projects_annotations_restore",
       "folders_add",
     ])
-      expect(names).not.toContain(name)
+      expect(tools.find((tool) => tool.name === name)).toMatchObject({
+        _meta: { availability: { available: false, reason: expect.any(String) } },
+      })
   } finally {
     await client.close()
   }

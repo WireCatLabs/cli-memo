@@ -14,19 +14,22 @@ as `person_context`, `project_evidence` and `meeting_passage` keep their argumen
 
 Set `permissions` in Memo's [configuration](configuration.md#permissions) to limit what an app can do.
 A dotted command path is a key, such as `notes.edit`; a parent key such as `notes` covers its commands.
-`deny` removes tools, `readonly` permits reads, and `ask` or `allow` permits writes. Over MCP, `ask` runs
+`deny` refuses calls, `readonly` permits reads, and `ask` or `allow` permits writes. Over MCP, `ask` runs
 without a terminal question; the app obtains the owner's approval. Writes without a saved level use `ask`.
 `mail_trash` and `mail_restore` also require `yes: true`, just as their CLI commands need `--yes`.
 
 Commands that change source folders or mail rules need `mcp.authority`, which defaults to `deny`.
 Meeting findings decisions (`meetings.actions.confirm` and `meetings.actions.reject`) and
 `projects.annotations.restore` also default to `deny`; the owner must explicitly permit each operation
-before an agent can use it. Set a permission in the configuration, then reconnect to discover newly allowed tools.
+before an agent can use it. Every tool remains listed with its arguments. Tool metadata includes current `_meta.availability`
+with `available`, and a reason and permission key when blocked; its description also explains unavailability.
 Permissions and the shared WireCat read ceiling are checked again on every call.
 
 `memo mcp --permission notes.edit=deny` makes a saved permission stricter for one server; repeat the option
 for more keys. It cannot loosen the saved permissions, including more specific keys.
-`MEMO_READ_ONLY=1` removes every writing tool and refuses writes on an existing connection.
+`MEMO_READ_ONLY=1` marks every writing tool unavailable and refuses writes on an existing connection.
+
+CLI help and command discovery also mark writes unavailable under the read lock.
 
 The named CLI-only exclusions are `mcp`, `upgrade`, `skill install`, `auto start` and `auto stop`: they start
 another server, replace the running program, install instructions in other apps, or manage a background timer.

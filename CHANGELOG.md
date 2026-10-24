@@ -6,6 +6,10 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- Permission-denied MCP tools remain discoverable with current availability and a reason. Calls still enforce current permissions and the read lock. Shared Core is aligned at 0.408.0.
+
 ## 0.92.0 — 24.10.2026
 
 ### Changed — may break callers

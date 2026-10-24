@@ -11,7 +11,7 @@ import { APP } from "./app.js"
 
 const refusalOf = (command: Command): string | undefined => {
   const { effects, lifetime } = metaOf(command)
-  // `mcp` keeps serving reads; the server leaves its writing tools out instead.
+  // `mcp` keeps serving reads; the server keeps writing tools discoverable and refuses their calls.
   if (lifetime === "persistent") return undefined
   if (changesAuthority(command) && command.opts().check !== true) return "install another version"
   if (command.opts().allowRemote === true) return "send evidence to a model off this machine"
@@ -39,3 +39,9 @@ export const refuseWritesUnderLock = (program: Command, env: NodeJS.ProcessEnv):
 }
 
 export const readOnly = (env: NodeJS.ProcessEnv): boolean => lockOf(env) !== undefined
+
+export const readOnlyAvailability = (command: Command, env: NodeJS.ProcessEnv) => {
+  const lock = lockOf(env)
+  const refusal = lock === undefined ? undefined : refusalOf(command)
+  return refusal === undefined ? { available: true } : { available: false, reason: `${lock}: cannot ${refusal}` }
+}
