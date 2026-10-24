@@ -91,3 +91,4 @@ only with `--yes`.
 | [Configuration](./configuration.md) | Every setting in the config file |
 | [Troubleshooting](./troubleshooting.md) | Something does not work: what the screen says, and what to do |
 | [Security](./security.md) | What does Memo read, write and send? |
+| [Compared with other tools](./compare.md) | How does Memo compare with other memory tools, and when does another tool fit better? |
