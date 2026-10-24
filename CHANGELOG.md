@@ -5,7 +5,7 @@ first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0
 the API.
 
 
-## Unreleased
+## 0.94.0 — 24.10.2026
 
 ### Changed — may break callers
 
