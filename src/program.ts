@@ -11,6 +11,7 @@ import {
   installHelp,
   NO_EFFECTS,
   overrideSharedContract,
+  provide,
   skillCommand as sharedSkillCommand,
 } from "@wirecat/cli-core/cli"
 import { Command } from "commander"
