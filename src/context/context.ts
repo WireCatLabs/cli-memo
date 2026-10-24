@@ -17,10 +17,47 @@ export interface MemoContext {
   notRead: { source: string; reason: string }[]
   tasks: Awaited<ReturnType<typeof personTasks>>
   relationships: Link[]
+  /** Files a source says they own or last edited, as the source reports it: not reviewed by you. */
+  files: ReportedFile[]
+}
+
+export interface ReportedFile {
+  ref: string
+  title: string | null
+  url: string | null
+  role: string | null
+  modifiedAt: string | null
+  provenance: string
+  confirmed: boolean
 }
 
 /** An assignment shows under tasks, not here. */
 const RELATIONS = new Set(["member-of", "related-to"])
+
+/** Drive copies these from Google's own file record, so they are facts as Google states them, not guesses. */
+const SOURCE_REPORTS = new Set(["google-drive:files.get"])
+
+const reportedFiles = async (store: MessageStore, links: Link[], limit: number): Promise<ReportedFile[]> => {
+  const files: ReportedFile[] = []
+  for (const link of links) {
+    if (files.length >= limit) break
+    if (link.kind !== "related-to" || !link.provenance || !SOURCE_REPORTS.has(link.provenance)) continue
+    const note = await store.notes.note(link.from).catch(() => null)
+    if (!note || note.deletedAt || note.folderId === null || note.path === null) continue
+    const entry = await store.catalog.get(note.folderId, note.path)
+    if (!entry) continue
+    files.push({
+      ref: note.ref,
+      title: entry.name ?? note.title,
+      url: entry.url ?? null,
+      role: link.role,
+      modifiedAt: entry.modifiedAt ?? null,
+      provenance: link.provenance,
+      confirmed: link.confirmed,
+    })
+  }
+  return files
+}
 
 /**
  * One answer about a person: what the store holds of them across messengers and mail (cli-core's
@@ -73,10 +110,11 @@ export const memoContext = async (
     })
 
   const tasks = await personTasks(store, messages.person, accounts, limit)
-  const relationships = [
-    ...(await store.notes.links({ from: person })),
-    ...(await store.notes.links({ to: person })),
-  ].filter((link) => RELATIONS.has(link.kind) && link.confirmed)
+  const incoming = await store.notes.links({ to: person })
+  const relationships = [...(await store.notes.links({ from: person })), ...incoming].filter(
+    (link) => RELATIONS.has(link.kind) && link.confirmed,
+  )
+  const files = await reportedFiles(store, incoming, limit)
   const { subject: _, name: __, ...notes } = linked
   return {
     messages,
@@ -85,5 +123,6 @@ export const memoContext = async (
     notRead,
     tasks,
     relationships,
+    files,
   }
 }

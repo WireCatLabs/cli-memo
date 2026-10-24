@@ -13,6 +13,7 @@ the API.
 
 ### Added
 
+- **`memo context` lists the person's Google Drive files.** Files they own or last edited show under "Files, as Google reports", with the Google link and Google's edit time. Links that a program guessed still wait for your review.
 - **`models list` and verified downloads use Core’s catalogue.** Model selection is a native query, and `models download --offline` refuses before network work. Project task updates retain priority and parent fields; source tasks retain their explicit account and assignee handling.
 
 ### Security

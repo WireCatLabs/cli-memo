@@ -21,7 +21,10 @@ const one = (message: ContextMessage | null): string =>
 const noteLine = (note: { ref: string; path: string | null; title?: string | null }) =>
   `  ${note.ref}${(note.path ?? note.title) ? `  ${note.path ?? note.title}` : ""}`
 
-export const contextText = ({ messages, notes, notRead, tasks, yourNotes }: MemoContext): string => {
+const fileLine = (file: MemoContext["files"][number]) =>
+  `  ${file.ref}  ${file.role ?? ""}  ${file.title ?? ""}  ${file.modifiedAt?.slice(0, 16).replace("T", " ") ?? ""}  ${file.url ?? ""}`
+
+export const contextText = ({ messages, notes, notRead, tasks, yourNotes, files }: MemoContext): string => {
   const { person, last, recent, shared } = messages
   return [
     `${person.name ?? person.uid}  person:${person.uid}`,
@@ -42,6 +45,7 @@ export const contextText = ({ messages, notes, notRead, tasks, yourNotes }: Memo
       ? []
       : ["Notes linking a note about them", ...notes.throughNotes.map(noteLine)]),
     ...(notes.hasMore ? ["  more — raise --limit"] : []),
+    ...(files.length === 0 ? [] : ["", "Files, as Google reports", ...files.map(fileLine)]),
     ...(messages.complete ? [] : ["", `Not read in full: ${messages.notRead.length} chats — messages sync <chat>`]),
     ...notRead.map(({ source, reason }) => `Not read: ${source} — ${reason}`),
     ...(tasks.items.length
