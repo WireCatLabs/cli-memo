@@ -31,6 +31,19 @@ try {
   const { updateNotice } = await import("../update.js")
   const notice = updateNotice(args)
   program = createProgram()
+  const { readOnlyLockOf, setupAtStart } = await import("@wirecat/cli-core/cli")
+  program.hook("preAction", (_root, command) => {
+    const path: string[] = []
+    for (let at: Command | null = command; at?.parent; at = at.parent) path.unshift(at.name())
+    const given = command.optsWithGlobals()
+    return setupAtStart({
+      command: APP.command,
+      env: process.env,
+      path,
+      headless: Boolean(given.json || given.jsonl || given.input === false || process.env.CI) || !tty,
+      readOnlyLock: readOnlyLockOf(APP, process.env),
+    })
+  })
   throwParseFailures(program)
   refuseJoinedPath(program, args)
   await program.parseAsync(process.argv)
