@@ -231,7 +231,7 @@ Next: [see everything about one person](people.md), or [turn what you found into
 
 Memo and zm share cli-core's meeting search selectors and parsers: meeting, identity, person, event and
 series ids; project, tag and topic; time bounds, cursor and read budget. Memo selects tags/topics in
-the native query (`tag:` and `topic:`), without separate selector flags. For example:
+the native query (`tag:` and `topic:`); stored topic labels can also use the shared `--topic-name` selector. For example:
 
 ```sh
 memo search meetings "draft topic:finance" --source zoom:work --meeting-id 12
