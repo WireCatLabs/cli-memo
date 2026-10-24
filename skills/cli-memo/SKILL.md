@@ -28,8 +28,9 @@ file of selected aliases, facts and generic links. `projects annotations check` 
 destination project/store and explicit reference bindings; show its coverage and conflicts. Notes,
 meeting memberships, tasks, memories, labels and findings are omitted: never treat this as a full
 project backup or use it to justify clearing live data. MCP offers `project_annotations_snapshot` and
-`project_annotations_preview`; neither restores records. Leave CLI `restore` to the owner and never
-clear agent environment markers to bypass that boundary. Historical proposals stay proposed.
+`project_annotations_preview`; neither restores records. The generated `projects_annotations_restore`
+requires the owner's explicit `projects.annotations.restore` permission. Never clear agent environment
+markers to bypass that permission. Historical proposals stay proposed.
 
 1. **Honor account scope.** A read names accounts with `--source`: `telegram:1`, `email:work`, a provider,
    a kind or `group:<name>`. A write names the one account it acts as with `--account telegram:1`.
@@ -122,8 +123,8 @@ Read `memo meetings actions add --help` for the bounded JSON fields. Reuse a bat
 exact retry. Show the preview and sources to the owner; leave `confirm`/`reject` to them.
 
 MCP `meeting_actions_add` stages the same findings with explicit `account` and a structured `input`;
-`meeting_actions_show`/`meeting_actions_list` inspect batches with explicit `source`. There is no MCP
-confirmation or rejection tool. `project_context` and CLI `projects context` show pending key documents,
+`meeting_actions_show`/`meeting_actions_list` inspect batches with explicit `source`. The generated
+`meetings_actions_confirm` and `meetings_actions_reject` require the owner's explicit permissions. `project_context` and CLI `projects context` show pending key documents,
 relationships, facts and meeting findings separately from open numbered tasks. Preserve bounded coverage;
 meeting previews cover linked accounts only. Read the full batch before owner review, including findings
 for other projects. Never confirm or reject your own suggestions.
@@ -151,3 +152,12 @@ exact `meeting:` references, dated by the meeting start. The normal meeting inde
 indexed those cues; Memo's mail/document catch-up does not index transcripts. Read pending/missing index
 coverage before interpreting an empty result. Recording retrieval and identity/attendance inference are
 separate; a matched speaker label does not establish a person.
+
+## MCP permissions
+
+MCP exposes command tools, writes included, subject to saved dotted `permissions` keys. `deny` hides a tool,
+`readonly` allows reads, and `ask` or `allow` permits a write. `ask` runs without a terminal question over MCP:
+obtain the owner's approval before acting. `mcp.authority` defaults to `deny` for source-folder and mail-rule
+changes. `MEMO_READ_ONLY=1` removes writing tools. `--permission key=level` can only tighten saved levels.
+Existing names and answer shapes remain supported. Read a cited note with `notes_show` (`note: ref`) and a
+message or email with `messages_show` (`message: ref`, `full: true` for whole attachment text).

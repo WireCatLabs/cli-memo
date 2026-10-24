@@ -261,11 +261,11 @@ memo folders list [query] [options]
 
 ## `memo messages`
 
-stored emails; tg and max read messenger messages
+stored messenger messages and emails
 
 ### `memo messages show`
 
-one stored email whole, with its attachments' text and nearby thread emails
+one stored message or email whole, with optional stored neighbours
 
 ```sh
 memo messages show <message> [options]
@@ -273,7 +273,7 @@ memo messages show <message> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `message` | required | the email's msg:email/… reference, as search answers give it. |
+| `message` | required | the msg:provider/account/chat/message reference a search gives. |
 
 | Option | What it does |
 |---|---|
@@ -282,7 +282,7 @@ memo messages show <message> [options]
 | `--full` | whole attachment text, not the first 4000 characters of each. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** one stored email whole, with its attachments' text and nearby thread emails
+**Returns:** one stored message or email whole, with optional stored neighbours
 
 **Example:** `memo messages show 'msg:email/me%40example.com/thread/42' --before-n 2 --after-n 2`
 
@@ -2615,15 +2615,19 @@ memo agents log [query] [options]
 
 ## `memo mcp`
 
-serve search, person context, memories, facts and actions over MCP on stdio
+serve memo commands over MCP on stdio, limited by saved permissions
 
 This command changes the local store or your files.
 
 ```sh
-memo mcp
+memo mcp [options]
 ```
 
-**Returns:** serve search, person context, memories, facts and actions over MCP on stdio
+| Option | What it does |
+|---|---|
+| `--permission <key=level>` | tighten one saved permission for this server; repeat for more keys. |
+
+**Returns:** serve memo commands over MCP on stdio, limited by saved permissions
 
 **Example:** `memo mcp`
 
@@ -2972,7 +2976,7 @@ print SKILL.md — `memo skill install` puts it where Claude Code, Codex and Gem
 memo skill show
 ```
 
-**Returns:** print SKILL.md — `memo skill install` puts it where Claude Code, Codex and Gemini CLI…
+**Returns:** print the tool's instructions for AI agents
 
 **Example:** `memo skill show`
 
@@ -2990,7 +2994,7 @@ memo skill install [options]
 |---|---|
 | `--for <agents>` | which agents to install for. One of: `claude`, `agents`, `all`. Default: `all`. |
 
-**Returns:** write SKILL.md to ~/.claude/skills/cli-memo/ (Claude Code) and ~/.agents/skills/cli-memo/…
+**Returns:** install the tool's instructions for AI agents
 
 **Example:** `memo skill install --for all`
 

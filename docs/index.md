@@ -66,7 +66,9 @@ memo search notes budget
 ```
 
 Memo needs Node.js 22.16+ or 24+ ([what to install first](./installation.md)). Your files stay
-where they are; Memo only reads them.
+where they are. Memo reads your files and imports mail without changing it. `notes edit` can change a note's
+source file; `notes export` writes notes to files. Explicit `mail trash` and `mail restore` move Gmail mail
+only with `--yes`.
 
 ## Where to go next
 

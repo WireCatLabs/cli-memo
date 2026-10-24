@@ -63,14 +63,16 @@ it("still reads, syncs and looks for a new version under MEMO_READ_ONLY", async 
 
 it("leaves the writing MCP tools out under MEMO_READ_ONLY", async () => {
   const [serverSide, clientSide] = InMemoryTransport.createLinkedPair()
-  await createMemoServer(lockedEnv()).connect(serverSide)
+  await createMemoServer(lockedEnv(), createProgram).connect(serverSide)
   const client = new Client({ name: "fixture", version: "0" })
   await client.connect(clientSide)
   try {
     const reads = Object.entries(MEMO_TOOLS)
       .filter(([, tool]) => !tool.writes)
       .map(([name]) => name)
-    expect((await client.listTools()).tools.map(({ name }) => name).sort()).toEqual(reads.sort())
+    const tools = (await client.listTools()).tools
+    expect(tools.map(({ name }) => name)).toEqual(expect.arrayContaining(reads))
+    expect(tools.every((tool) => tool.annotations?.readOnlyHint === true)).toBe(true)
   } finally {
     await client.close()
   }

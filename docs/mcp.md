@@ -6,28 +6,42 @@ the app can read your messages, mail, notes and archived meetings, and what Memo
 memories, record facts and propose actions. New suggestions wait for review; project proposals have
 separate decision permissions described below.
 
-## What the app can do through MCP
+## Commands and permissions
 
-| The app can | The app cannot |
-|---|---|
-| Search and read your stored messages, mail and notes | Send a message or a mail |
-| Read a person's context or review a project's pending findings | Change your notes, mail or messages |
-| Add, list, show and search memories | Confirm a memory |
-| Add, list and show facts | Accept an existing proposed fact directly |
-| Propose actions and list them | Approve or reject an action |
-| Review project proposals and, when allowed, decide cited facts and follow-ups with a reason | Confirm a meeting findings batch |
-| Read the agent log | Delete source messages, mail or notes |
-| Look up projects, tags and topics by name, and see which tasks are ready | Create or edit arbitrary tasks |
+MCP exposes Memo's commands, including writes. Tools named after a command use underscores between words:
+`notes_show`, `notes_edit`, `memories_confirm`, `tasks_add`, `mail_trash` and `mail_restore`. Existing names such
+as `person_context`, `project_evidence` and `meeting_passage` keep their arguments and answer shapes.
+
+Set `permissions` in Memo's [configuration](configuration.md#permissions) to limit what an app can do.
+A dotted command path is a key, such as `notes.edit`; a parent key such as `notes` covers its commands.
+`deny` removes tools, `readonly` permits reads, and `ask` or `allow` permits writes. Over MCP, `ask` runs
+without a terminal question; the app obtains the owner's approval. Writes without a saved level use `ask`.
+`mail_trash` and `mail_restore` also require `yes: true`, just as their CLI commands need `--yes`.
+
+Commands that change source folders or mail rules need `mcp.authority`, which defaults to `deny`.
+Meeting findings decisions (`meetings.actions.confirm` and `meetings.actions.reject`) and
+`projects.annotations.restore` also default to `deny`; the owner must explicitly permit each operation
+before an agent can use it. Set a permission in the configuration, then reconnect to discover newly allowed tools.
+Permissions and the shared WireCat read ceiling are checked again on every call.
+
+`memo mcp --permission notes.edit=deny` makes a saved permission stricter for one server; repeat the option
+for more keys. It cannot loosen the saved permissions, including more specific keys.
+`MEMO_READ_ONLY=1` removes every writing tool and refuses writes on an existing connection.
+
+The named CLI-only exclusions are `mcp`, `upgrade`, `skill install`, `auto start` and `auto stop`: they start
+another server, replace the running program, install instructions in other apps, or manage a background timer.
 
 `memories_add`, `facts_add`, `actions_add`, `meeting_actions_add` and `project_actions_add` save proposals.
-By default, `project_actions_confirm` and `project_actions_reject` may decide project proposals for you
-with a recorded reason. Confirmation can create accepted facts and numbered tasks or confirm a key
-document. Set [`agent_decisions: false`](configuration.md#agent_decisions) to require owner decisions
-for project proposals; reading and proposing still work. Meeting findings still require the owner.
-An action proposed with `actions_add` is never sent by Memo.
+By default, `project_actions_confirm` and `project_actions_reject` may decide project proposals with a recorded
+reason. Set [`agent_decisions: false`](configuration.md#agent_decisions) to require owner decisions for project
+proposals through both the existing aliases and the generated command tools. Memo never sends a message or mail.
 
-Other tools do not change source records; meeting search and project gathering may update local text
-indexes. Connect Memo only to an app you trust to read your messages, mail and notes.
+## Open a cited item
+
+Pass a search hit's `ref` to `notes_show` as `note`, or a message or email reference to `messages_show` as `message`.
+`notes_show` returns the whole note; `messages_show` returns the stored message or email and takes `full: true` for whole
+attachment text. `mail_inspect` reads mailbox headers for an explicit account. `tags_list` lists tags.
+Messenger reads use the explicit account and chat encoded in the reference; nothing is fetched from a provider.
 
 ## Connect an app
 
@@ -55,7 +69,9 @@ Then try it:
 Use the memo tools to list the memories waiting for my review.
 ```
 
-## The tools
+## Existing tool names
+
+These names remain available alongside the tools generated from [all commands](commands.md), subject to permissions.
 
 | Tool | What it does |
 |---|---|
@@ -66,8 +82,8 @@ Use the memo tools to list the memories waiting for my review.
 | `project_context` | Key documents, pending relationships, facts and meeting findings, plus open numbered tasks |
 | `project_evidence` | Cited references about a project from stored messages, mail, meeting transcripts and notes folders, searched by its names, more words and people; read only |
 | `project_actions_add`, `project_actions_list`, `project_actions_confirm`, `project_actions_reject` | Stage cited facts and follow-ups about a project, review them with the evidence and its context, and decide the ones you are confident about with a reason |
-| `project_annotations_snapshot`, `project_annotations_preview` | Read selected aliases, facts and generic links, or check explicit bindings against a prepared target; restore is owner-only through CLI |
-| `meeting_actions_add`, `meeting_actions_show`, `meeting_actions_list` | Propose and inspect cited meeting facts and follow-ups; never confirm them |
+| `project_annotations_snapshot`, `project_annotations_preview` | Read selected annotations or preview explicit bindings; `projects_annotations_restore` needs its own permission |
+| `meeting_actions_add`, `meeting_actions_show`, `meeting_actions_list` | Propose and inspect cited meeting findings; generated decision tools need explicit permissions |
 | `person_context` | One person across messengers and mail, with linked notes and tasks, read only |
 | `memories_add`, `memories_list`, `memories_show`, `search_memories` | Save and read memories |
 | `facts_add`, `facts_list`, `facts_show` | Record and read facts |
@@ -97,8 +113,8 @@ the same fields as `memo meetings actions add --help`. Every finding needs exact
 fingerprints and a confirmed project link. Unknown dates and assignees stay absent; inferred follow-ups
 are labelled as such. Exact retries reuse the key; changed input needs a new key.
 
-`meeting_actions_show` and `meeting_actions_list` take an explicit `source`. Only the owner reviews
-batches through `memo meetings actions confirm` or `reject`. Staging creates no facts or numbered tasks.
+`meeting_actions_show` and `meeting_actions_list` take an explicit `source`. The owner reviews
+batches through `memo meetings actions confirm` or `reject`, or explicitly permits the corresponding MCP decision tools. Staging creates no facts or numbered tasks.
 
 `project_actions_add` stages cited facts and follow-ups about one project: each reference is a `msg:` or
 `document:` reference with the `fingerprint` `project_evidence` gave, and a text changed since then refuses as
@@ -151,8 +167,9 @@ the tool reports conflicts and a fingerprint without restoring annotations. Both
 unknown arguments. Schema validation is followed by the shared graph and content checks.
 
 Notes, meeting memberships, tasks, memories, labels and findings are omitted, so this is a selected
-annotation format rather than a full project backup. There is no MCP restore tool; the owner uses
-the [selected annotation workflow](recipes.md#keep-selected-project-annotations). These reading
+annotation format rather than a full project backup. The owner uses
+the [selected annotation workflow](recipes.md#keep-selected-project-annotations), or explicitly permits
+`projects.annotations.restore` for the generated tool. These reading
 tools remain available with `MEMO_READ_ONLY=1`; calls still produce the normal agent audit entry.
 
 Next: [review what the app saved](memories.md).

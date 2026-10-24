@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto"
 import { type CallToolResult, McpServer } from "@modelcontextprotocol/server"
 import { toStandardJsonSchema } from "@valibot/to-json-schema"
-import { CliError } from "@wirecat/cli-base"
+import { CliError, mcpErrorResult } from "@wirecat/cli-base"
 import {
   agentResult,
   type Body,
@@ -11,6 +11,8 @@ import {
   UNTRUSTED,
   UNTRUSTED_INSTRUCTION,
 } from "@wirecat/cli-core/cli"
+import type { AgentTool } from "@wirecat/cli-core/mcp"
+import { type Level, levelFor } from "@wirecat/cli-core/sends"
 import { FACT_TYPES, MEMORY_KINDS, MEMORY_SCOPES, openStore } from "@wirecat/cli-core/store"
 import * as v from "valibot"
 import { ACTION_QUERY, listActions, propose } from "../actions/actions.js"
@@ -23,10 +25,12 @@ import { listMemories, MEMORY_QUERY, memoryItem, searchMemories } from "../memor
 import { readOnly } from "../read-only.js"
 import { writeAccount } from "../store/source-list.js"
 import { VERSION } from "../version.js"
+import { commandCatalogue, type ProgramFactory } from "./catalogue.js"
 import { knowledgeTools } from "./knowledge.js"
 import { meetingActionTools } from "./meeting-actions.js"
 import { meetingPreparationTools } from "./meeting-preparation.js"
 import { meetingTools } from "./meetings.js"
+import { memoLevels, OWNER_PERMISSIONS } from "./permissions.js"
 import { projectActionTools } from "./project-actions.js"
 import { projectTransferTools } from "./project-transfer.js"
 import { taskRelationTools } from "./task-relations.js"
@@ -222,50 +226,125 @@ const advertised = (input: MemoTool["input"]) => {
 }
 
 /** One store per call: memo serves rarely and briefly, and a held store would keep its file open between calls. */
-export const createMemoServer = (env: NodeJS.ProcessEnv): McpServer => {
+export const LEGACY_PATHS: Record<string, readonly string[]> = {
+  person_context: ["context"],
+  project_context: ["projects", "context"],
+  project_evidence: ["projects", "evidence"],
+  project_annotations_snapshot: ["projects", "annotations", "snapshot"],
+  project_annotations_preview: ["projects", "annotations", "check"],
+  meeting_passage: ["meetings", "passage"],
+  meeting_prepare: ["meetings", "prepare"],
+}
+
+export const pathOfTool = (name: string): readonly string[] =>
+  LEGACY_PATHS[name] ??
+  name
+    .replace(/^project_/, "projects_")
+    .replace(/^meeting_/, "meetings_")
+    .split("_")
+
+export const createMemoServer = (
+  env: NodeJS.ProcessEnv,
+  createProgram: ProgramFactory,
+  overrides: readonly string[] = [],
+): McpServer => {
   const server = new McpServer({ name: "memo", version: VERSION }, { instructions: INSTRUCTIONS })
-  const locked = readOnly(env)
-  for (const [name, tool] of Object.entries(MEMO_TOOLS)) {
-    if (locked && tool.writes) continue
+  const catalogue = commandCatalogue(env, createProgram)
+  const defaults: Record<string, Level> = Object.fromEntries(
+    catalogue.tools.filter((tool) => tool.writes).map((tool) => [catalogue.keyOf(tool.path), "ask" as const]),
+  )
+  defaults["mcp.authority"] = "deny"
+  for (const key of OWNER_PERMISSIONS) defaults[key] = "deny"
+  memoLevels(env, overrides, defaults)
+  const generated = new Map<string, AgentTool>()
+  const tools: Record<string, Omit<MemoTool, "run"> & { run?: MemoTool["run"] }> = { ...MEMO_TOOLS }
+  for (const tool of catalogue.tools) {
+    const name = tool.path.join("_").replaceAll("-", "_")
+    if (tools[name]) continue
+    generated.set(name, tool)
+    tools[name] = {
+      title: tool.title,
+      description: tool.description,
+      writes: tool.writes,
+      input: v.strictObject(tool.input.entries),
+    }
+  }
+  const allowed = (name: string, tool: Omit<MemoTool, "run">) => {
+    const path = generated.get(name)?.path ?? pathOfTool(name)
+    const levels = memoLevels(env, overrides, defaults)
+    if (readOnly(env) && tool.writes) throw new CliError("permission_error", "memo is locked to reads")
+    if (catalogue.authority(path)) {
+      const level = levelFor(levels, "mcp.authority").level
+      if (level !== "allow" && level !== "ask")
+        throw new CliError("permission_error", `${path.join(" ")}: mcp.authority is ${level}`)
+    }
+    const key = catalogue.keyOf(path)
+    const level = levelFor(levels, key, { [key]: tool.writes ? "ask" : "allow" }).level
+    if (level === "deny" || (level === "readonly" && tool.writes))
+      throw new CliError("permission_error", `${key} is ${level}`)
+    return levels
+  }
+  for (const [name, tool] of Object.entries(tools)) {
+    try {
+      allowed(name, tool)
+    } catch (error) {
+      if (error instanceof CliError && error.code === "permission_error") continue
+      throw error
+    }
+    const path = generated.get(name)?.path ?? pathOfTool(name)
     server.registerTool(
       name,
       {
         title: tool.title,
-        // Said on every read tool, not only in the instructions: a host may show a model the tool alone.
         description: tool.writes ? tool.description : `${tool.description} ${UNTRUSTED}`,
         inputSchema: advertised(tool.input),
-        annotations: { readOnlyHint: !tool.writes, destructiveHint: false, openWorldHint: false },
+        annotations: {
+          readOnlyHint: !tool.writes,
+          destructiveHint: tool.writes,
+          openWorldHint: path[0] === "mail" && ["trash", "restore"].includes(path[1] ?? ""),
+        },
       },
       async (args: Record<string, unknown>) => {
         const startedAt = Date.now()
-        let store: Awaited<ReturnType<typeof openStore>>
+        let result: CallToolResult
         try {
-          store = await openStore({ env })
-        } catch (error) {
-          return mcpFailure(error)
-        }
-        try {
-          let result: CallToolResult
-          try {
-            const body = await tool.run(store, v.parse(tool.input, args) as never, env)
-            result = inRun({ runId: randomUUID(), command: name, startedAt }, () => answer(body))
-          } catch (error) {
-            result = mcpFailure(error)
+          const levels = allowed(name, tool)
+          const parsed = v.parse(tool.input, args)
+          const command = generated.get(name)
+          if (command) {
+            const run = await catalogue.run(command.path, parsed, levels)
+            result = "error" in run ? agentResult(mcpErrorResult(run.error)) : answer(run.result as Body)
+          } else {
+            const store = await openStore({ env })
+            try {
+              const body = await tool.run?.(store, parsed as never, env)
+              if (body === undefined) throw new Error(`no handler for ${name}`)
+              result = inRun({ runId: randomUUID(), command: name, startedAt }, () => answer(body))
+            } finally {
+              await store.close()
+            }
           }
-          const code = (result.structuredContent as { error?: { code?: string } } | undefined)?.error?.code
-          await store.agentActions.record({
-            actor: by,
-            tool: name,
-            tier: tool.writes ? "write-private" : "read",
-            status: result.isError ? "failed" : "ok",
-            ...(code === undefined ? {} : { error: code }),
-            startedAt,
-            finishedAt: Date.now(),
-          })
-          return result
-        } finally {
-          await store.close()
+        } catch (error) {
+          result = mcpFailure(error)
         }
+        const store = await openStore({ env }).catch(() => undefined)
+        if (store) {
+          try {
+            const code = (result.structuredContent as { error?: { code?: string } } | undefined)?.error?.code
+            await store.agentActions.record({
+              actor: by,
+              tool: name,
+              tier: tool.writes ? "write-private" : "read",
+              status: result.isError ? "failed" : "ok",
+              ...(code === undefined ? {} : { error: code }),
+              startedAt,
+              finishedAt: Date.now(),
+            })
+          } finally {
+            await store.close()
+          }
+        }
+        return result
       },
     )
   }

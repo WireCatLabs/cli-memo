@@ -78,7 +78,7 @@ it("shows cited document paragraphs in CLI and MCP review, while brief and zero 
   expect(brief.items[0].findings[0].evidence[0]).toEqual({ reference, state: "unchanged" })
   const zero = await run(owner, "projects", "actions", "list", "SYP", "--before-n", "0", "--after-n", "0")
   expect(zero.items[0].findings[0].evidence[0].around).toEqual([])
-  const server = createMemoServer(owner)
+  const server = createMemoServer(owner, createProgram)
   const client = new Client({ name: "synthetic-document-review", version: "1" })
   const [left, right] = InMemoryTransport.createLinkedPair()
   try {

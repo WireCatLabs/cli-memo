@@ -55,8 +55,10 @@ npm install -g @wirecat/cli-memo
 memo skill install --for all     # puts Memo's skill where your agents read it
 ```
 
-npm 12 prints "install scripts blocked": that is harmless, `memo skill install` does what the script would. On
-Windows, open a new terminal if `memo` is not found. With pnpm or Bun, `pnpm add -g @wirecat/cli-memo` or
+npm 11.17 and later warn about install scripts not covered by `allowScripts`; with npm 11 the scripts still run.
+npm 12 blocks them instead. Run the `npm install -g --allow-scripts=…` command npm prints under the warning;
+it allows only the packages it names, once. Then run `memo skill install --for all` to install the agent skill.
+On Windows, open a new terminal if `memo` is not found. With pnpm or Bun, `pnpm add -g @wirecat/cli-memo` or
 `bun add -g @wirecat/cli-memo`, then the same `memo skill install --for all`.
 
 To try it without installing (Node.js still runs it):

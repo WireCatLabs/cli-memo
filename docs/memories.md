@@ -140,8 +140,8 @@ first: which agent, which tool, the result and the time. It never stores what th
 ## Through the MCP server
 
 An app without a terminal, such as Claude Desktop, can add memories, facts and proposed actions
-through [the MCP server](mcp.md). These tools create proposed records; MCP cannot confirm memories,
-directly accept existing proposed facts or approve outbound actions. The separate project proposal
-flow can create accepted facts and numbered tasks when agent decisions are allowed, as described above.
+through [the MCP server](mcp.md). New records start as proposed. The command tools can confirm memories,
+accept facts and decide actions when their saved permissions allow it. Project proposal decisions also
+respect `agent_decisions`, as described above.
 
 Next: [connect an app through MCP](mcp.md).

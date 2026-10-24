@@ -172,7 +172,7 @@ export const createProgram = ({
   findingsCommand(program, streams, env)
   actionsCommand(program, streams, env)
   agentsCommand(program, streams, env)
-  mcpCommand(program, streams, env)
+  mcpCommand(program, streams, env, createProgram)
   searchCommand(program, streams, env)
   meetingReadCommands(program, streams, env)
   meetingPreparationCommand(program, streams, env)

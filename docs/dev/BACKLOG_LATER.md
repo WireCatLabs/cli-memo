@@ -18,14 +18,14 @@ becomes P2, move its line there. A finished item's line is deleted.
   `--source`, in a release marked "Changed — may break callers" (`memo commands --json`).
 - **MEMO-22** · P3 · macOS and Windows: tests run on Linux only (`docs/installation.md:27`), and the unit suite
   is known to fail on Windows. Add a platform job before claiming support.
-- **MEMO-23** · P3 · `memo mcp --http` and `--permission`, as tg and max have, so a local app (such as a future
-  visual map of the store) can use memo without a terminal. Core has `serveOverHttp` (`@wirecat/cli-core/mcp`).
+- **MEMO-23** · P3 · `memo mcp --http`, as tg and max have (`--permission` is implemented), so a local app (such as a future
+  visual UI (visage)) can use memo without a terminal. Core has `serveOverHttp` (`@wirecat/cli-core/mcp`).
 - **MEMO-24** · P3 · Command names outside the shared vocabulary: 16 verbs and 7 resources in `lint/baseline/`
   (`mail trash`, `mail runs`, `reminders poll`, …). Rename, or add them to cli-base's vocabulary; cli-base's
   central `audit/baseline` also lacks memo's `mail trash`, `mail runs` and `mail rules import-filters`.
 - **MEMO-25** · P3 · Image search by context, photo data and picture (core-led). Plan: cli-private
   `plans/2026-10-13-image-search-plan.md`.
-- **MEMO-26** · P3 · What a visual UI over the store would need from memo: a link graph read
+- **MEMO-26** · P3 · What the visual UI (visage) would need from memo: a link graph read
   (`store.notes.links` exists in cli-core, no command or MCP tool exposes it), a change feed for notes and mail,
   and cursor paging on lists. Research only; see the 2026-10-23 audit.
 - **MEMO-30** · P3 · Export part of the store into a knowledge-graph tool — only if the knowledge-graph test

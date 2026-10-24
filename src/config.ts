@@ -4,6 +4,7 @@ import * as v from "valibot"
 import { DIALECTS } from "./notes/dialects/index.js"
 
 const ConfigSchema = v.strictObject({
+  permissions: v.optional(v.record(v.string(), v.picklist(["deny", "readonly", "ask", "allow"]))),
   notes: v.optional(
     v.strictObject({
       /** A bare path is the form before folder ids; `memo folders add` turns it into an entry. */

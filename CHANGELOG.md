@@ -6,6 +6,30 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **MCP exposes the command tree, including writes**, with generated command names alongside all 37 existing
+  tools. Open cited notes with `notes_show`, stored messages and emails with `messages_show`, and tags with `tags_list`.
+  Source-folder and mail-rule changes need `mcp.authority` (denied by default). Meeting findings decisions
+  and selected annotation restore each need their own explicit permission. `agent_decisions` still applies.
+- **Saved dotted `permissions` and `mcp --permission key=level` limit tools.** Server overrides can only tighten
+  saved levels; locks and permissions are checked before every call. `MEMO_READ_ONLY` removes writing tools.
+
+### Changed — may break callers
+
+### Fixed
+
+- **The shared mail-import hint names `--only mail`**, included with cli-core 0.404.0.
+- **cli-base is pinned at 0.50.3**, matching cli-core's required vocabulary. MCP server/client are pinned at 2.3.0.
+- **Install instructions name npm 11.17's `allowScripts` warning and npm 12's blocked scripts**, explain the
+  package-specific approval command, and keep `memo skill install --for all` explicit.
+- **The introduction describes file writes accurately:** `notes edit` can change a source note, `notes export`
+  writes files, and explicit Gmail Trash and restore commands need `--yes`.
+
+### Security
+
+### Removed
+
 ## 0.90.0 — 24.10.2026
 
 ### Added

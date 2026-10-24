@@ -89,7 +89,7 @@ describe("mail imported into the mail tables reads back through memo", () => {
     expect(shown).toMatchObject({ locator: LOCATOR, anchor: true, email: { from: { address: "rin@example.test" } } })
     expect(shown.text).toContain("The roadmap review moves to Friday.")
     await expect(run(["messages", "show", "msg:telegram/1/2/3"], env)).rejects.toMatchObject({
-      code: "validation_error",
+      code: "not_found",
     })
   })
 })

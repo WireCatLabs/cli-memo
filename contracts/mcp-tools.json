@@ -1,7 +1,7 @@
 [
   {
     "annotations": {
-      "destructiveHint": false,
+      "destructiveHint": true,
       "openWorldHint": false,
       "readOnlyHint": false
     },
@@ -33,6 +33,28 @@
   },
   {
     "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "the action's id, as actions list gives it",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["id"],
+      "type": "object"
+    },
+    "name": "actions_confirm"
+  },
+  {
+    "annotations": {
       "destructiveHint": false,
       "openWorldHint": false,
       "readOnlyHint": true
@@ -56,6 +78,28 @@
       "type": "object"
     },
     "name": "actions_list"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "the action's id, as actions list gives it",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["id"],
+      "type": "object"
+    },
+    "name": "actions_reject"
   },
   {
     "annotations": {
@@ -106,6 +150,218 @@
     "annotations": {
       "destructiveHint": false,
       "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "deprecated: --source <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "all": {
+          "description": "look in every stored account and the notes",
+          "type": "boolean"
+        },
+        "allow_remote": {
+          "description": "explicitly consent to sending this evidence to the configured model",
+          "type": "boolean"
+        },
+        "analyze": {
+          "description": "call MEMO_MODELS_ANALYSIS_PROVIDER/MODEL instead of returning an evidence bundle",
+          "type": "boolean"
+        },
+        "limit": {
+          "description": "most evidence items, at most 100",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "provider": {
+          "description": "deprecated: --source <provider>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "what to search for: words, phrases, Boolean operators and field queries; default the question",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 0,
+              "type": "array"
+            },
+            {
+              "description": "what to search for: words, phrases, Boolean operators and field queries; default the question",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ]
+        },
+        "question": {
+          "description": "the question, in your own words",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "look in these only: which accounts, separated by commas: provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "look in these only: which accounts, separated by commas: provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>"
+        }
+      },
+      "required": ["question"],
+      "type": "object"
+    },
+    "name": "ask"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {},
+      "required": [],
+      "type": "object"
+    },
+    "name": "auto_status"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one command, such as tags add",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 0,
+              "type": "array"
+            },
+            {
+              "description": "one command, such as tags add",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "name": "commands"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "deprecated: --source <messenger>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "limit": {
+          "description": "most messages and notes of each kind",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "person": {
+          "description": "<messenger>:<name or id>, e.g. telegram:Ana or email:ana@example.com",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "the account to read, as provider:account; required when the store holds several of that messenger",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "the account to read, as provider:account; required when the store holds several of that messenger"
+        }
+      },
+      "required": ["person"],
+      "type": "object"
+    },
+    "name": "context"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {},
+      "required": [],
+      "type": "object"
+    },
+    "name": "doctor"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
       "readOnlyHint": false
     },
     "inputSchema": {
@@ -151,6 +407,28 @@
   },
   {
     "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "description": "fact:<id>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["ref"],
+      "type": "object"
+    },
+    "name": "facts_confirm"
+  },
+  {
+    "annotations": {
       "destructiveHint": false,
       "openWorldHint": false,
       "readOnlyHint": true
@@ -177,6 +455,28 @@
   },
   {
     "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "description": "fact:<id>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["ref"],
+      "type": "object"
+    },
+    "name": "facts_reverse"
+  },
+  {
+    "annotations": {
       "destructiveHint": false,
       "openWorldHint": false,
       "readOnlyHint": true
@@ -197,6 +497,296 @@
   {
     "annotations": {
       "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "query": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "field:value terms; this list filters by none yet",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 0,
+              "type": "array"
+            },
+            {
+              "description": "field:value terms; this list filters by none yet",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "name": "folders_list"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "description": "one scenario; without it, the list",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "name": "guide"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account's name in mail.accounts, or its address",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "domain_age": {
+          "description": "ask each shown sender domain's registry when it was registered (RDAP); tells each registry its domain",
+          "type": "boolean"
+        },
+        "limit": {
+          "description": "show this many of the largest groups",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "since_time": {
+          "description": "only mail from this time, ISO 8601 or 30d ago (default: all mail)",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["account"],
+      "type": "object"
+    },
+    "name": "mail_inspect"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account's name in mail.accounts, or its address",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "run": {
+          "description": "the run, as memo mail runs lists it",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "yes": {
+          "description": "move the mail back; without it, only say what would move",
+          "type": "boolean"
+        }
+      },
+      "required": ["account", "run"],
+      "type": "object"
+    },
+    "name": "mail_restore"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account's name in mail.accounts, or its address",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "since_time": {
+          "description": "only mail from this time, ISO 8601 or 30d ago (default: all mail)",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "yes": {
+          "description": "change the store; without it, only say what would change",
+          "type": "boolean"
+        }
+      },
+      "required": ["account"],
+      "type": "object"
+    },
+    "name": "mail_rules_apply"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account's name in mail.accounts, or its address",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["account"],
+      "type": "object"
+    },
+    "name": "mail_rules_export"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account's name in mail.accounts, or its address",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "filter": {
+          "description": "is:protected lists only the rules no cleanup may override",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["account"],
+      "type": "object"
+    },
+    "name": "mail_rules_list"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account's name in mail.accounts, or its address",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["account"],
+      "type": "object"
+    },
+    "name": "mail_runs"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account's name in mail.accounts, or its address",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["account"],
+      "type": "object"
+    },
+    "name": "mail_status"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account's name in mail.accounts, or its address",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "limit": {
+          "description": "most emails to move this run (default 5000; a first run moves at most 100)",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "since_time": {
+          "description": "only mail received from this time, ISO 8601 or 30d ago; older mail stays",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "yes": {
+          "description": "move the mail; without it, only say what would move",
+          "type": "boolean"
+        }
+      },
+      "required": ["account"],
+      "type": "object"
+    },
+    "name": "mail_trash"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
       "openWorldHint": false,
       "readOnlyHint": false
     },
@@ -587,7 +1177,404 @@
   },
   {
     "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the meeting account it acts as: provider:account, such as zoom:me@example.com",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "file": {
+          "description": "JSON proposal file, or - for stdin; at most 65536 UTF-8 bytes",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --account <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["file"],
+      "type": "object"
+    },
+    "name": "meetings_actions_add"
+  },
+  {
+    "annotations": {
       "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "deprecated: --source <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "limit": {
+          "description": "batches per page, at most 50",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "page": {
+          "description": "which page, from 1",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "provider": {
+          "description": "deprecated: --source <provider>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "field:value terms that narrow the list — the fields are below",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 0,
+              "type": "array"
+            },
+            {
+              "description": "field:value terms that narrow the list — the fields are below",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ]
+        },
+        "source": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "the meeting account: provider:account (zoom:me@example.com), or a provider that has one",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "the meeting account: provider:account (zoom:me@example.com), or a provider that has one"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "name": "meetings_actions_list"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "deprecated: --source <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "id": {
+          "description": "stored findings batch ID",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --source <provider>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "the meeting account: provider:account (zoom:me@example.com), or a provider that has one",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "the meeting account: provider:account (zoom:me@example.com), or a provider that has one"
+        }
+      },
+      "required": ["id"],
+      "type": "object"
+    },
+    "name": "meetings_actions_show"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "deprecated: --source <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "after_n": {
+          "description": "following cues (default 3); at most 999 surrounding cues in total",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "before_n": {
+          "description": "preceding cues (default 3)",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "bytes": {
+          "description": "cue JSON byte budget (default 65536); the anchor must fit",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "expected_fingerprint": {
+          "description": "reject a changed anchor using its previously read cue fingerprint",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "format": {
+          "description": "compact text, Markdown or structured JSON",
+          "enum": ["text", "markdown", "json"],
+          "type": "string"
+        },
+        "max_read_bytes": {
+          "description": "stored text byte budget (default 4194304); boundary probes read metadata only",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "provider": {
+          "description": "deprecated: --source <provider>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "reference": {
+          "description": "retained transcript cue reference from a search hit",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "the meeting account: provider:account (zoom:me@example.com), or a provider that has one",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "the meeting account: provider:account (zoom:me@example.com), or a provider that has one"
+        }
+      },
+      "required": ["reference"],
+      "type": "object"
+    },
+    "name": "meetings_passage"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "deprecated: --source <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "before_time": {
+          "description": "exclusive window end as ISO timestamp (default seven days after start)",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "bytes": {
+          "description": "preparation item JSON bytes, 4096–4194304 (default 65536)",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "context_before_time": {
+          "description": "exclusive communications end as zoned ISO timestamp (default preparation start)",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "context_limit": {
+          "description": "entries per context category, 1–100 (default 20)",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "context_query": {
+          "description": "literal words to find within the selected communications",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "context_since_time": {
+          "description": "communications window start as zoned ISO timestamp (default fourteen days before end)",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "context_source": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "one stored app.profile or email.mailbox, optionally =cursor; repeat (tg.personal)",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "one stored app.profile or email.mailbox, optionally =cursor; repeat (tg.personal)"
+        },
+        "cues": {
+          "description": "cues per occurrence, 1–100 (default 10)",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "history_since_time": {
+          "description": "history start as ISO timestamp (default thirty days before start)",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "max_read_bytes": {
+          "description": "stored/normalized bytes per read, at most 4194304 (default 262144)",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "meetings": {
+          "description": "prior occurrences and separate related-meeting limit, 1–20 (default 5)",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "project": {
+          "description": "include unconfirmed word evidence for one existing project name, key or alias",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --source <provider>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "series_id": {
+          "description": "exact provider series ID",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "since_time": {
+          "description": "window start as ISO timestamp with zone (default now)",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "the meeting account: provider:account (zoom:me@example.com), or a provider that has one",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "the meeting account: provider:account (zoom:me@example.com), or a provider that has one"
+        }
+      },
+      "required": ["series_id"],
+      "type": "object"
+    },
+    "name": "meetings_prepare"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
       "openWorldHint": false,
       "readOnlyHint": false
     },
@@ -622,6 +1609,28 @@
       "type": "object"
     },
     "name": "memories_add"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "description": "memory:<id>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["ref"],
+      "type": "object"
+    },
+    "name": "memories_confirm"
   },
   {
     "annotations": {
@@ -670,6 +1679,603 @@
   },
   {
     "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "description": "memory:<id>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["ref"],
+      "type": "object"
+    },
+    "name": "memories_stale"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "the mention's id, from memo mentions list",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "person": {
+          "description": "person:<uid> or organization:<id> that owns the phone or address, or a name means",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "the mailboxes a mail mention may be in: email:<account>, email or group:<name>",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "the mailboxes a mail mention may be in: email:<account>, email or group:<name>"
+        }
+      },
+      "required": ["id"],
+      "type": "object"
+    },
+    "name": "mentions_confirm"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "description": "most mentions",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "fields below; a bare word is a value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 0,
+              "type": "array"
+            },
+            {
+              "description": "fields below; a bare word is a value",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ]
+        },
+        "source": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "which texts, separated by commas: provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "which texts, separated by commas: provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>"
+        }
+      },
+      "required": ["source"],
+      "type": "object"
+    },
+    "name": "mentions_list"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "the mention's id, from memo mentions list",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "the mailboxes a mail mention may be in: email:<account>, email or group:<name>",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "the mailboxes a mail mention may be in: email:<account>, email or group:<name>"
+        }
+      },
+      "required": ["id"],
+      "type": "object"
+    },
+    "name": "mentions_reject"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "the mention's id, from memo mentions list",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "the mailboxes a mail mention may be in: email:<account>, email or group:<name>",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "the mailboxes a mail mention may be in: email:<account>, email or group:<name>"
+        }
+      },
+      "required": ["id"],
+      "type": "object"
+    },
+    "name": "mentions_show"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "after_n": {
+          "description": "also this many later emails of its thread",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "before_n": {
+          "description": "also this many earlier emails of its thread",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "full": {
+          "description": "whole attachment text, not the first 4000 characters of each",
+          "type": "boolean"
+        },
+        "message": {
+          "description": "the msg:provider/account/chat/message reference a search gives",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["message"],
+      "type": "object"
+    },
+    "name": "messages_show"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "clear": {
+          "description": "forget which file note is about them",
+          "type": "boolean"
+        },
+        "identity": {
+          "description": "<messenger>:<name or id> of any identity of the person",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "path": {
+          "description": "the note about them, a file in a configured folder",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["identity"],
+      "type": "object"
+    },
+    "name": "note"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account of --meeting: the meeting account it acts as: provider:account, such as zoom:me@example.com",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "export": {
+          "description": "also write it as a file — to this folder, or notes.export.dir",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "format": {
+          "description": "the file's format: obsidian, markdown",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "meeting": {
+          "description": "also about this meeting, by its store id, with --account",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --account <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "subject": {
+          "description": "what it is about: <messenger>:<name or id>, msg:, chat:, person:, organization:, project:, task:, note:, document:, meeting:; repeat for more",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "text": {
+          "description": "the note",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "text_file": {
+          "description": "read the note from a file; - reads stdin",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "title": {
+          "description": "a title",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "name": "notes_add"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "export": {
+          "description": "also rewrite its file — in this folder, or notes.export.dir",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "format": {
+          "description": "the file's format: obsidian, markdown",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "id": {
+          "description": "note:<id> or its id",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "revision": {
+          "description": "its current revision, so an edit made meanwhile is not lost",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "text": {
+          "description": "the new text",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "text_file": {
+          "description": "read the new text from a file; - reads stdin",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["id", "revision"],
+      "type": "object"
+    },
+    "name": "notes_edit"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "description": "the files' format: obsidian, markdown",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "output_dir": {
+          "description": "the folder to write to (default: notes.export.dir)",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "name": "notes_export"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "description": "most notes, at most 500",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "page": {
+          "description": "which page, from 1",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "field:value terms that narrow the list — the fields are below",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 0,
+              "type": "array"
+            },
+            {
+              "description": "field:value terms that narrow the list — the fields are below",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "name": "notes_list"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "note:<id> or its id",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["id"],
+      "type": "object"
+    },
+    "name": "notes_remove"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "note": {
+          "description": "note:<id>, document:<id>, or a file in a configured folder",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["note"],
+      "type": "object"
+    },
+    "name": "notes_show"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "description": "company, team, family, community",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "name": {
+          "description": "the organization's name",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "scope": {
+          "description": "personal, work",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["name", "kind"],
+      "type": "object"
+    },
+    "name": "organizations_add"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "organization": {
+          "description": "its id or organization:<id>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["organization"],
+      "type": "object"
+    },
+    "name": "organizations_context"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {},
+      "required": [],
+      "type": "object"
+    },
+    "name": "organizations_list"
+  },
+  {
+    "annotations": {
       "destructiveHint": false,
       "openWorldHint": false,
       "readOnlyHint": true
@@ -699,7 +2305,7 @@
   },
   {
     "annotations": {
-      "destructiveHint": false,
+      "destructiveHint": true,
       "openWorldHint": false,
       "readOnlyHint": false
     },
@@ -864,7 +2470,7 @@
   },
   {
     "annotations": {
-      "destructiveHint": false,
+      "destructiveHint": true,
       "openWorldHint": false,
       "readOnlyHint": false
     },
@@ -958,7 +2564,7 @@
   },
   {
     "annotations": {
-      "destructiveHint": false,
+      "destructiveHint": true,
       "openWorldHint": false,
       "readOnlyHint": false
     },
@@ -1673,6 +3279,1106 @@
   },
   {
     "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "file": {
+          "description": "JSON findings file, or - for stdin; at most 65536 UTF-8 bytes",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["file"],
+      "type": "object"
+    },
+    "name": "projects_actions_add"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "findings": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "the finding IDs of a batch to create",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 0,
+              "type": "array"
+            },
+            {
+              "description": "the finding IDs of a batch to create",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ]
+        },
+        "fingerprint": {
+          "description": "a findings batch's fingerprint, as projects actions list gives it",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "id": {
+          "description": "key:<id> for a key document, or a findings batch number, as projects actions list gives them",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "project": {
+          "description": "the project's id, project:<id>, key, exact name or alias",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "reason": {
+          "description": "why, in a few words; required when an agent decides for you",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["project", "id"],
+      "type": "object"
+    },
+    "name": "projects_actions_confirm"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "after_n": {
+          "description": "messages or document paragraphs after the citation, at most 5",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "before_n": {
+          "description": "messages or document paragraphs before the citation, at most 5",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "brief": {
+          "description": "only references and source state, without excerpts or nearby text",
+          "type": "boolean"
+        },
+        "limit": {
+          "description": "findings batches per page, at most 50",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "page": {
+          "description": "which page, from 1; key documents come on the first",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "project": {
+          "description": "the project's id, project:<id>, key, exact name or alias",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "field:value terms that narrow the list — the fields are below",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 0,
+              "type": "array"
+            },
+            {
+              "description": "field:value terms that narrow the list — the fields are below",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "required": ["project"],
+      "type": "object"
+    },
+    "name": "projects_actions_list"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "fingerprint": {
+          "description": "a findings batch's fingerprint, as projects actions list gives it",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "id": {
+          "description": "key:<id> for a key document, or a findings batch number, as projects actions list gives them",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "project": {
+          "description": "the project's id, project:<id>, key, exact name or alias",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "reason": {
+          "description": "why, in a few words; required when an agent decides for you",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["project", "id"],
+      "type": "object"
+    },
+    "name": "projects_actions_reject"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "description": "3–4 letters and digits; made from the name when left out",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "name": {
+          "description": "the project's name",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "organization": {
+          "description": "the organization it belongs to: its id or organization:<id>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "scope": {
+          "description": "personal, work",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "type": {
+          "description": "work, client, personal, oss, other",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["name"],
+      "type": "object"
+    },
+    "name": "projects_add"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "bindings": {
+          "description": "JSON object mapping every external source reference and the project to explicit target references",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "file": {
+          "description": "version2 snapshot JSON file, at most 4194304 UTF-8 bytes",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "max_read_bytes": {
+          "description": "destination input byte budget, at most 4194304",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "project": {
+          "description": "explicit destination project:<id>; its key and name must match the snapshot",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "target_store": {
+          "description": "explicit existing destination store; never created by preview",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["file", "target_store", "project", "bindings"],
+      "type": "object"
+    },
+    "name": "projects_annotations_check"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "max_read_bytes": {
+          "description": "source input byte budget, at most 4194304",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "output": {
+          "description": "new snapshot file; parent folder must exist and existing paths are refused",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "project": {
+          "description": "the project's id, key, exact name or alias",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["project", "output"],
+      "type": "object"
+    },
+    "name": "projects_annotations_export"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "project": {
+          "description": "its id, project:<id>, key, exact name or alias",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["project"],
+      "type": "object"
+    },
+    "name": "projects_context"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "after_n": {
+          "description": "messages after each message hit, shown as its context, at most 5",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "alias": {
+          "description": "another name of the project, searched on its own; repeat for more",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "before_n": {
+          "description": "messages before each message hit, shown as its context, at most 5",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "before_time": {
+          "description": "fixed exclusive end: ISO 8601 timestamp with UTC offset; days back count from it",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "contact": {
+          "description": "a name to search, or person:<id> to read what that person's stored identities wrote and search the aliases you gave them; what only names them or comes from them is context, not the project",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "context_query": {
+          "description": "more words that all appear in one text; repeat for another search",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "cursor": {
+          "description": "continue a stopped search from its checkpoint, with the same options",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "limit": {
+          "description": "new references at most, up to 500",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "max_pages": {
+          "description": "store pages read at most this run, up to 512",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "no_catch_up": {
+          "description": "read the search index as it is, without indexing new mail and documents first",
+          "type": "boolean"
+        },
+        "project": {
+          "description": "an existing project's id, key, exact name or alias, or a new project's name",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "since_time": {
+          "description": "how far back: days (90d, at most 730d) or a start date (2026-09-01)",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "where to look, or all: which accounts, separated by commas: provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "where to look, or all: which accounts, separated by commas: provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>"
+        }
+      },
+      "required": ["project", "source"],
+      "type": "object"
+    },
+    "name": "projects_evidence"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "project": {
+          "description": "id, project:<id>, key, exact name or alias",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "reason": {
+          "description": "why it is key, in a few words",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "reference": {
+          "description": "note:, document: or msg: reference",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["project", "reference", "reason"],
+      "type": "object"
+    },
+    "name": "projects_key_documents_add"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "project": {
+          "description": "id, project:<id>, key, exact name or alias",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["project"],
+      "type": "object"
+    },
+    "name": "projects_key_documents_list"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "project": {
+          "description": "id, project:<id>, key, exact name or alias",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "reference": {
+          "description": "the key document's note:, document: or msg: reference",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["project", "reference"],
+      "type": "object"
+    },
+    "name": "projects_key_documents_remove"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {},
+      "required": [],
+      "type": "object"
+    },
+    "name": "projects_list"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the meeting account it acts as: provider:account, such as zoom:me@example.com",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "fingerprint": {
+          "description": "required when confirming an existing proposal",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "meeting_id": {
+          "description": "positive stored meeting id",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "project": {
+          "description": "project reference, key or explicit alias",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --account <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "reason": {
+          "description": "why the reviewed meeting belongs to this project",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["project", "meeting_id"],
+      "type": "object"
+    },
+    "name": "projects_meetings_link"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "deprecated: --source <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "limit": {
+          "description": "meetings per page, at most 500",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "page": {
+          "description": "which page, from 1",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "project": {
+          "description": "project reference, key or explicit alias",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --source <provider>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "field:value terms that narrow the list — the fields are below",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 0,
+              "type": "array"
+            },
+            {
+              "description": "field:value terms that narrow the list — the fields are below",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ]
+        },
+        "source": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "the meeting account: provider:account (zoom:me@example.com), or a provider that has one",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "the meeting account: provider:account (zoom:me@example.com), or a provider that has one"
+        }
+      },
+      "required": ["project"],
+      "type": "object"
+    },
+    "name": "projects_meetings_list"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "description": "the person:, organization: or project: that belongs or relates, or chat:<provider>/<account>/<chat> of a project",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "kind": {
+          "description": "member-of or related-to",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "reason": {
+          "description": "why you think so, in a sentence",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "role": {
+          "description": "the role it has there, in a few words, such as cto",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "to": {
+          "description": "the person:, organization: or project: it belongs or relates to",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["from", "to"],
+      "type": "object"
+    },
+    "name": "relationships_add"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "the relationship's id, as relationships list gives it",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["id"],
+      "type": "object"
+    },
+    "name": "relationships_confirm"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "query": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "field:value terms that narrow the list — the fields are below",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 0,
+              "type": "array"
+            },
+            {
+              "description": "field:value terms that narrow the list — the fields are below",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "name": "relationships_list"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "the relationship's id, as relationships list gives it",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["id"],
+      "type": "object"
+    },
+    "name": "relationships_remove"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "deprecated: --source <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "limit": {
+          "description": "most suggestions, at most 100",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "provider": {
+          "description": "deprecated: --source <provider>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "the one account: provider:account (telegram:500, email:personal), or a provider or group:<name> that holds only one",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "the one account: provider:account (telegram:500, email:personal), or a provider or group:<name> that holds only one"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "name": "relationships_suggest"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account it acts as: provider:account, such as telegram:1 or email:personal",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "id": {
+          "description": "the reminder's id",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --account <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "receipt": {
+          "description": "the receipt reminders poll handed out with it",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["id", "receipt"],
+      "type": "object"
+    },
+    "name": "reminders_ack"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account it acts as: provider:account, such as telegram:1 or email:personal",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "at_time": {
+          "description": "when to remind: an ISO 8601 time with its UTC offset",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --account <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "task": {
+          "description": "the task's id",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "timezone": {
+          "description": "IANA timezone; the computer's when not given",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["task", "at_time"],
+      "type": "object"
+    },
+    "name": "reminders_add"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account it acts as: provider:account, such as telegram:1 or email:personal",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "id": {
+          "description": "the reminder's id",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --account <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["id"],
+      "type": "object"
+    },
+    "name": "reminders_cancel"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "deprecated: --source <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --source <provider>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "which accounts, separated by commas: provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "which accounts, separated by commas: provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "name": "reminders_list"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account it acts as: provider:account, such as telegram:1 or email:personal",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "limit": {
+          "description": "most due reminders, at most 500",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "provider": {
+          "description": "deprecated: --account <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "name": "reminders_poll"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account it acts as: provider:account, such as telegram:1 or email:personal",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "at_time": {
+          "description": "the new time: an ISO 8601 time with its UTC offset",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "id": {
+          "description": "the reminder's id",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --account <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "revision": {
+          "description": "the reminder's current revision, as reminders list gives it",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": ["id", "at_time", "revision"],
+      "type": "object"
+    },
+    "name": "reminders_update"
+  },
+  {
+    "annotations": {
       "destructiveHint": false,
       "openWorldHint": false,
       "readOnlyHint": true
@@ -1950,6 +4656,828 @@
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
+      "properties": {},
+      "required": [],
+      "type": "object"
+    },
+    "name": "skill_show"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "deprecated: --source <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "chat": {
+          "description": "only this chat; a stored chat, by its id or title",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --source <provider>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "the account: telegram:<account>, email:<account>, notes:<id>, or group:<name> of one",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "the account: telegram:<account>, email:<account>, notes:<id>, or group:<name> of one"
+        },
+        "type": {
+          "description": "only this type: question, request, mention or promise",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "name": "stats_tasks_show"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "deprecated: --source email:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "folder": {
+          "description": "notes: only this configured folder, by its id or path; repeat for more",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "ignore": {
+          "description": "notes: leave this file or folder alone this run, a path or a glob; repeat for more",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "limit": {
+          "description": "mail: most new emails to read per account this run (default: 200)",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "no_embed": {
+          "description": "skip embedding notes and mail for search by meaning this run",
+          "type": "boolean"
+        },
+        "only": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "notes,mail, separated by commas",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "notes,mail, separated by commas"
+        },
+        "rescan": {
+          "description": "mail: list every message again, not only mail an earlier run left; also checks deletions",
+          "type": "boolean"
+        },
+        "retry_attachments": {
+          "description": "mail: reread stored emails' attachments that an older memo or a broken install left unread",
+          "type": "boolean"
+        },
+        "since_time": {
+          "description": "mail: read from this time, ISO 8601 or 30d ago (default: 30d)",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "mail: only these mailboxes: email:<account> (its name in mail.accounts or its address), email or group:<name>",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "mail: only these mailboxes: email:<account> (its name in mail.accounts or its address), email or group:<name>"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "name": "sync"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account of --chat, --contact or --meeting: the account it acts as: provider:account, such as telegram:1 or email:personal",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "chat": {
+          "description": "a stored mail thread or chat's exact id; requires --account",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "contact": {
+          "description": "label a contact identity, with --account",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "folder": {
+          "description": "label a notes folder by its id or path, or with --subfolder one subfolder: every note under it",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "meeting": {
+          "description": "label a meeting by its store id, with --account",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "message": {
+          "description": "a stored email or message's full msg: locator",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "note": {
+          "description": "a note: note:<id>, a file in a notes folder: document:<id>; a bare id is a note",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "organization": {
+          "description": "label an organization: its id or organization:<id>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "person": {
+          "description": "label a unified person",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "project": {
+          "description": "label a project: its key or project:<id>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --account <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "subfolder": {
+          "description": "the subfolder inside --folder",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "tag": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one or more tags: 1–32 letters a–z, digits or hyphens; case is ignored",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "one or more tags: 1–32 letters a–z, digits or hyphens; case is ignored",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ]
+        },
+        "task": {
+          "description": "label a task",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["tag"],
+      "type": "object"
+    },
+    "name": "tags_add"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "deprecated: --source <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "limit": {
+          "description": "most labels to show",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "provider": {
+          "description": "deprecated: --source <provider>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "field:value terms that narrow the list — the fields are below",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 0,
+              "type": "array"
+            },
+            {
+              "description": "field:value terms that narrow the list — the fields are below",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ]
+        },
+        "source": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "only these accounts (default: every one): which accounts, separated by commas: provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "only these accounts (default: every one): which accounts, separated by commas: provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "name": "tags_list"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account of --chat, --contact or --meeting: the account it acts as: provider:account, such as telegram:1 or email:personal",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "chat": {
+          "description": "a stored mail thread or chat's exact id; requires --account",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "contact": {
+          "description": "label a contact identity, with --account",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "folder": {
+          "description": "label a notes folder by its id or path, or with --subfolder one subfolder: every note under it",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "meeting": {
+          "description": "label a meeting by its store id, with --account",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "message": {
+          "description": "a stored email or message's full msg: locator",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "note": {
+          "description": "a note: note:<id>, a file in a notes folder: document:<id>; a bare id is a note",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "organization": {
+          "description": "label an organization: its id or organization:<id>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "person": {
+          "description": "label a unified person",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "project": {
+          "description": "label a project: its key or project:<id>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --account <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "subfolder": {
+          "description": "the subfolder inside --folder",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "tag": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one or more tags: 1–32 letters a–z, digits or hyphens; case is ignored",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "one or more tags: 1–32 letters a–z, digits or hyphens; case is ignored",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ]
+        },
+        "task": {
+          "description": "label a task",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["tag"],
+      "type": "object"
+    },
+    "name": "tags_remove"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account it acts as: provider:account, such as telegram:1 or email:personal",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "assignee": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "who does it: a person's UID",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "who does it: a person's UID"
+        },
+        "description": {
+          "description": "the detail, in Markdown",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "into": {
+          "description": "link the source to this task instead of opening one that may be the same job",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "new": {
+          "description": "open the task even when one like it is open or was closed in the last 14 days",
+          "type": "boolean"
+        },
+        "parent": {
+          "description": "the parent task, in the same project",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "priority": {
+          "description": "0 urgent … 4 low",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "project": {
+          "description": "a task without a source: the project's key or project:<id>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --account <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "source": {
+          "description": "msg: source locator, note:<id> or document:<id>; leave out for a task in a project",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "title": {
+          "description": "one line saying what is to be done",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "type": {
+          "description": "question, request (default), mention or promise from a source; bug, feature or chore (default) in a project",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "name": "tasks_add"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "deprecated: --source <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "due_within": {
+          "description": "list tasks due within this: 30m, 2h, 1d (default 1d)",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "holder": {
+          "description": "who you are for claims: a session id or a chat id; default WIRECAT_HOLDER, else Claude Code's session, else the agent's name",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --source <provider>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "field:value terms that narrow the list — the fields are below",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 0,
+              "type": "array"
+            },
+            {
+              "description": "field:value terms that narrow the list — the fields are below",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ]
+        },
+        "source": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "the account: telegram:<account>, email:<account>, notes:<id>, or group:<name> of one",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "the account: telegram:<account>, email:<account>, notes:<id>, or group:<name> of one"
+        },
+        "unanswered": {
+          "description": "list chats where someone else wrote last this long ago (default 1d)",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "waiting": {
+          "description": "list chats where you wrote last this long ago (default 7d)",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "within": {
+          "description": "leave out chats silent longer than this: they ended (default 30d)",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "name": "tasks_agenda"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "the task's id or key",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "person": {
+          "description": "explicit canonical person UID",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "role": {
+          "description": "assignee, reviewer, watcher",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["id", "person"],
+      "type": "object"
+    },
+    "name": "tasks_assign"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account it acts as: provider:account, such as telegram:1 or email:personal",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "as": {
+          "description": "done or dismissed",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "id": {
+          "description": "the task's id",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --account <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "reason": {
+          "description": "why it is closed",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["id"],
+      "type": "object"
+    },
+    "name": "tasks_close"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account it acts as: telegram:<account>, email:<account> or a notes folder, notes:<id>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "chat": {
+          "description": "a chat it concerns, repeatable; a stored chat, by its id or title",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "kind": {
+          "description": "related-to (default), evidence — it shows the task is real — or created-from; for task:<id>, related-to, blocked-by, follow-up-of, duplicate-of or discovered-from",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --account <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "targets": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "msg: locators, person:<id>, document:<id>, note:<id>, a URL; or task:<id>, which links two project tasks",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 0,
+              "type": "array"
+            },
+            {
+              "description": "msg: locators, person:<id>, document:<id>, note:<id>, a URL; or task:<id>, which links two project tasks",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ]
+        },
+        "task": {
+          "description": "the task's id or key, as tasks list shows it",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["task"],
+      "type": "object"
+    },
+    "name": "tasks_link"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
       "properties": {
         "limit": {
           "default": 100,
@@ -1967,6 +5495,91 @@
       "type": "object"
     },
     "name": "tasks_list"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account it acts as: telegram:<account>, email:<account> or a notes folder, notes:<id>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "assignee": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "who does it: sender (whoever sent the task's message) or person:<id>; none clears it. Leave it out when unsure: a task with no assignee is better than none",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "who does it: sender (whoever sent the task's message) or person:<id>; none clears it. Leave it out when unsure: a task with no assignee is better than none"
+        },
+        "category": {
+          "description": "what it is about, from the list tasks categories prints: money, documents, meeting, …; a change is kept in the task's history",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "description": {
+          "description": "the detail, in Markdown: who owes whom, done when, next step, keywords",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "due": {
+          "description": "when it must be done: an ISO 8601 time or 2h, 3d from now; none clears it",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --account <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "remind_time": {
+          "description": "when to look at it again: an ISO 8601 time or 2h, 3d from now; none clears it",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "task": {
+          "description": "the task's id or key, as tasks list shows it",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "title": {
+          "description": "one line: the action and its object — send Alex the API token",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["task"],
+      "type": "object"
+    },
+    "name": "tasks_plan"
   },
   {
     "annotations": {
@@ -1997,6 +5610,61 @@
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
       "properties": {
+        "account": {
+          "description": "deprecated: --source <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --source <provider>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "the account: telegram:<account>, email:<account>, notes:<id>, or group:<name> of one",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "the account: telegram:<account>, email:<account>, notes:<id>, or group:<name> of one"
+        },
+        "task": {
+          "description": "the task's id or key, as tasks list shows it",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["task"],
+      "type": "object"
+    },
+    "name": "tasks_show"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
         "task": {
           "type": "string"
         }
@@ -2005,6 +5673,153 @@
       "type": "object"
     },
     "name": "tasks_status"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "description": "blocked-by, follow-up-of, related-to, duplicate-of, discovered-from",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "other_task": {
+          "description": "the task it relates to: task:<id> or its id",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "task": {
+          "description": "the task: task:<id> or its id",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["task", "other_task", "kind"],
+      "type": "object"
+    },
+    "name": "tasks_unlink"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "description": "the detail, in Markdown",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "id": {
+          "description": "the task's id or key",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "parent": {
+          "description": "the parent task, in the same project",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "priority": {
+          "description": "0 urgent … 4 low",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "title": {
+          "description": "one line saying what is to be done",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["id"],
+      "type": "object"
+    },
+    "name": "tasks_update"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "fingerprint": {
+          "description": "the current vocabulary preview fingerprint",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "name": {
+          "description": "the other name",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "reference": {
+          "description": "project:<id>, tag:<id> or topic:<id>, from vocabulary list",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["reference", "name", "fingerprint"],
+      "type": "object"
+    },
+    "name": "vocabulary_aliases_add"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "alias_id": {
+          "description": "the alias's id, from vocabulary list",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "fingerprint": {
+          "description": "the current vocabulary preview fingerprint",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "reference": {
+          "description": "project:<id>, tag:<id> or topic:<id>, from vocabulary list",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["reference", "alias_id", "fingerprint"],
+      "type": "object"
+    },
+    "name": "vocabulary_aliases_remove"
   },
   {
     "annotations": {
@@ -2059,6 +5874,40 @@
       "type": "object"
     },
     "name": "vocabulary_check"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "fingerprint": {
+          "description": "the creation_fingerprint vocabulary check <name> gave",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "kind": {
+          "description": "tag or topic",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "name": {
+          "description": "the new tag or topic",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["name", "fingerprint"],
+      "type": "object"
+    },
+    "name": "vocabulary_create"
   },
   {
     "annotations": {

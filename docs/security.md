@@ -36,12 +36,12 @@ nothing and tells you.
 
 ## Control agent decisions
 
-- An agent's memories, directly recorded facts and outbound action proposals start as proposed. MCP does not
-  confirm memories, directly accept existing proposed facts or approve outbound actions.
+- An agent's memories, directly recorded facts and outbound action proposals start as proposed. MCP exposes
+  command tools for decisions too, limited by saved [permissions](configuration.md#permissions).
 - Project proposals have a separate review flow. By default an agent can confirm or reject them with
   a recorded reason; confirmation can create accepted facts and numbered tasks or confirm a key
   document. Set [`agent_decisions: false`](configuration.md#agent_decisions) to require owner decisions
-  for project proposals. Reading and proposing still work. Meeting findings still require the owner.
+  for project proposals. Reading and proposing still work. Meeting decisions require explicit permissions.
 - A fact, memory or relationship added with the `memo` command records who wrote it.
   When an agent's terminal runs it (`AI_AGENT` or `CLAUDECODE` is set), the agent is the author and the
   directly recorded fact, memory or new relationship waits for review. An owner's memory or relationship
@@ -51,8 +51,8 @@ nothing and tells you.
 - Approving an action makes it a task for you. Memo never sends a message or an email.
 - Selected [project annotation export and preview](recipes.md#keep-selected-project-annotations) read
   sources and targets without restoring them. Export writes a new private file and refuses existing
-  paths. Restore belongs to the owner, requires a successful preview fingerprint and is not an MCP
-  tool. It preserves historical accepted/proposed state; it is not a new confirmation of a proposal.
+  paths. Restore requires a successful preview fingerprint; an MCP agent also needs explicit
+  `projects.annotations.restore` permission. It preserves historical accepted/proposed state; it is not a new confirmation of a proposal.
   MCP reads still produce their normal audit entry. The format omits several project facets and
   cannot replace a full archive backup.
 - The agent log records the agent, the tool, the result and the time, never what the agent sent.

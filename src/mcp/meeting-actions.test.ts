@@ -8,12 +8,16 @@ import { sampleMeeting } from "@wirecat/cli-core/meetings/testing"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { envelopeOf } from "../../test/answer.js"
+import { updateConfig } from "../config.js"
 import { markKey } from "../knowledge/key-documents.js"
 import { createProgram } from "../program.js"
 import { createMemoServer } from "./server.js"
 
 const fixture = async () => {
-  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-followups-")), "store") }
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-followups-")), "store"),
+  }
   const account = { provider: "example", account: "synthetic" }
   const store = await openStore({ env })
   try {
@@ -58,7 +62,7 @@ const fixture = async () => {
 }
 const connected = async (env: NodeJS.ProcessEnv) => {
   const [server, transport] = InMemoryTransport.createLinkedPair()
-  await createMemoServer(env).connect(server)
+  await createMemoServer(env, createProgram).connect(server)
   const client = new Client({ name: "synthetic", version: "1" })
   await client.connect(transport)
   const call = async (name: string, args: Record<string, unknown>) => {
@@ -211,6 +215,40 @@ it("filters mixed-project batches in context while preserving the full preview f
     expect(context.review.meeting_actions.items[0].findings[0].project).toBe(f.project.ref)
     const full = await call("meeting_actions_show", { source: "example:synthetic", id: staged.item.id })
     expect(full.item.input.findings).toHaveLength(2)
+  } finally {
+    await client.close()
+  }
+})
+
+it("allows an explicitly delegated meeting decision and refuses it after permission revocation", async () => {
+  const f = await fixture()
+  f.env.MEMO_CONFIG_DIR = mkdtempSync(join(tmpdir(), "memo-decision-config-"))
+  updateConfig((config) => ({ ...config, permissions: { "meetings.actions.confirm": "allow" } }), f.env)
+  const { client, call } = await connected(f.env)
+  try {
+    const input = await inputFor(call, f.project.ref)
+    const staged = await call("meeting_actions_add", { account: "example:synthetic", input })
+    const reviewed = await call("meetings_actions_confirm", {
+      id: String(staged.item.id),
+      ids: ["followup"],
+      account: "example:synthetic",
+      fingerprint: staged.item.fingerprint,
+    })
+    expect(reviewed.failed, JSON.stringify(reviewed)).not.toBe(true)
+    expect((await call("project_context", { project: f.project.ref })).item.open_tasks.items).toEqual(
+      expect.arrayContaining([expect.objectContaining({ title: "Check draft status" })]),
+    )
+    updateConfig((config) => ({ ...config, permissions: { "meetings.actions.confirm": "deny" } }), f.env)
+    expect(
+      (
+        await call("meetings_actions_confirm", {
+          id: String(staged.item.id),
+          ids: ["followup"],
+          account: "example:synthetic",
+          fingerprint: staged.item.fingerprint,
+        })
+      ).error,
+    ).toMatchObject({ code: "permission_error" })
   } finally {
     await client.close()
   }
