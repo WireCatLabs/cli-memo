@@ -2675,7 +2675,7 @@ memo agents list [query] [options]
 
 ## `memo mcp`
 
-serve memo commands over MCP on stdio, limited by saved permissions
+serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions
 
 This command changes the local store or your files.
 
@@ -2686,8 +2686,13 @@ memo mcp [options]
 | Option | What it does |
 |---|---|
 | `--permission <key=level>` | tighten one saved permission for this server; repeat for more keys. |
+| `--json` | print the revocation receipt as JSON. |
+| `--http` | serve on 127.0.0.1 behind an HTTPS tunnel with an owner access-code login. |
+| `--port <port>` | local HTTP port (default 8767); requires --http. |
+| `--public-url <url>` | tunnel's HTTPS origin without /mcp; requires --http. |
+| `--revoke` | log every browser app out of Memo. |
 
-**Returns:** serve memo commands over MCP on stdio, limited by saved permissions
+**Returns:** serve commands over stdio or authenticated HTTP
 
 **Example:** `memo mcp`
 

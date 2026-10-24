@@ -6,6 +6,9 @@ the app can read your messages, mail, notes and archived meetings, and what Memo
 memories, record facts and propose actions. New suggestions wait for review; project proposals have
 separate decision permissions described below.
 
+For apps on the web or phone, use [the remote connection guide](remote.md). It serves the same
+three tools over authenticated HTTP through your HTTPS tunnel.
+
 ## Commands and permissions
 
 Memo uses cli-core's shared MCP surface. It lists three tools:

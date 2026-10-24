@@ -28,6 +28,7 @@ Three words appear on every page:
 | Keep track of what you owe people, and get reminded | [Tasks and reminders](./tasks.md) |
 | Let your agent remember what it learned, with you deciding what stays | [Memories and facts](./memories.md) |
 | Use Memo from an app with no terminal, such as Claude Desktop | [The MCP server](./mcp.md) |
+| Connect an app on the web or phone | [Remote connection](./remote.md) |
 
 ## How it works
 

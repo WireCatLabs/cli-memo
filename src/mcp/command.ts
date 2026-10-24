@@ -1,10 +1,26 @@
-import type { Streams } from "@wirecat/cli-base"
+import { join } from "node:path"
+import { CliError, resolvePaths, type Streams } from "@wirecat/cli-base"
 import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
 import { LOCAL_WRITE, sharedCommandTemplate } from "@wirecat/cli-core/cli"
-import type { Command } from "commander"
+import { type Command, Option } from "commander"
+import { answers, itemAnswer } from "../answer.js"
 import { APP } from "../app.js"
 import { SHELL_OVERRIDES } from "../contract-overrides.js"
 import type { ProgramFactory } from "./catalogue.js"
+
+const DEFAULT_PORT = 8767
+
+export const httpTokenFile = (env: NodeJS.ProcessEnv): string =>
+  join(resolvePaths({ appName: "cli-memo", prefix: "MEMO", env }).state, "mcp-http", "memo.json")
+
+interface McpOptions {
+  permission?: string[]
+  http?: boolean
+  port?: string
+  publicUrl?: string
+  revoke?: boolean
+  json?: boolean
+}
 
 const mcpCommandDefinition = (
   program: Command,
@@ -12,19 +28,82 @@ const mcpCommandDefinition = (
   env: NodeJS.ProcessEnv,
   createProgram: ProgramFactory,
 ): void => {
-  annotate(program.command("mcp"), { effects: LOCAL_WRITE, lifetime: "persistent" })
-    .description("serve memo commands over MCP on stdio, limited by saved permissions")
+  const out = answers(program, streams, env)
+  annotate(program.command("mcp"), { effects: LOCAL_WRITE, lifetime: "persistent", mcp: false })
+    .summary("serve commands over stdio or authenticated HTTP")
+    .description("serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions")
     .option(
       "--permission <key=level>",
       "tighten one saved permission for this server; repeat for more keys",
       (value: string, previous: string[] = []) => [...previous, value],
     )
-    .action(async (options: { permission?: string[] }) => {
-      const { serveStdio } = await import("@modelcontextprotocol/server/stdio")
+    .option("--json", "print the revocation receipt as JSON")
+    .option("--http", "serve on 127.0.0.1 behind an HTTPS tunnel with an owner access-code login")
+    .option("--port <port>", `local HTTP port (default ${DEFAULT_PORT}); requires --http`)
+    .option("--public-url <url>", "tunnel's HTTPS origin without /mcp; requires --http")
+    .addOption(
+      new Option("--revoke", "log every browser app out of Memo").conflicts([
+        "http",
+        "port",
+        "publicUrl",
+        "permission",
+      ]),
+    )
+    .action(async (options: McpOptions) => {
+      if (!options.http && (options.port !== undefined || options.publicUrl !== undefined))
+        throw new CliError("validation_error", "--port and --public-url require --http")
+      if (options.revoke) {
+        const { revokeAll } = await import("@wirecat/cli-core/mcp")
+        revokeAll(httpTokenFile(env))
+        out.print(options.json, itemAnswer({ revoked: true }))
+        return
+      }
       const { createMemoServer } = await import("./server.js")
-      serveStdio(() => createMemoServer(env, createProgram, options.permission), {
-        onerror: (error) => streams.diagnostic(`mcp: ${error.message}`),
-      })
+      const build = () => createMemoServer(env, createProgram, options.permission)
+      if (options.http) {
+        const { portOf, publicUrlOf, serveOverHttp } = await import("@wirecat/cli-core/mcp")
+        const publicUrl = publicUrlOf(options.publicUrl, { missing: "--http", reaches: "the browser apps reach memo" })
+        const port = portOf(options.port, DEFAULT_PORT)
+        // Fail closed before opening a socket, even when no client has asked for tools yet.
+        await build().close()
+        let stop!: () => void
+        const stopped = new Promise<void>((resolve) => {
+          stop = resolve
+        })
+        process.once("SIGINT", stop)
+        process.once("SIGTERM", stop)
+        try {
+          const listening = await serveOverHttp(build, {
+            publicUrl,
+            port,
+            tokenFile: httpTokenFile(env),
+            appName: "memo",
+            onCode: (code, expires) =>
+              streams.diagnostic(
+                `login code for a new browser app: ${code} (until ${expires.toTimeString().slice(0, 5)})`,
+              ),
+            onError: (error) => streams.diagnostic(`mcp: ${error.message}`),
+          }).catch((error: unknown) => {
+            if ((error as NodeJS.ErrnoException).code === "EADDRINUSE")
+              throw new CliError("configuration_error", `port ${port} is in use — pass another with --port`)
+            throw error
+          })
+          try {
+            streams.diagnostic(
+              `serving on ${listening.url.href} — point your tunnel at it; connectors use ${new URL("/mcp", publicUrl).href}`,
+            )
+            await stopped
+          } finally {
+            await listening.close()
+          }
+        } finally {
+          process.off("SIGINT", stop)
+          process.off("SIGTERM", stop)
+        }
+        return
+      }
+      const { serveStdio } = await import("@modelcontextprotocol/server/stdio")
+      serveStdio(build, { onerror: (error) => streams.diagnostic(`mcp: ${error.message}`) })
       await new Promise<void>((resolve) => {
         process.stdin.once("end", resolve)
         process.stdin.once("close", resolve)
@@ -37,7 +116,7 @@ const mcpCommandDefinition = (
 export const mcpCommand = (...args: Parameters<typeof mcpCommandDefinition>) =>
   customizeSharedCommand(
     sharedCommandTemplate(APP, "mcp"),
-    "Memo delegates MCP framing and command dispatch to Core over stdio while binding its local store, saved permissions and environment; it has no HTTP transport.",
+    "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
     () => {
       mcpCommandDefinition(...args)
       const command = args[0].commands.find((command) => command.name() === "mcp")
