@@ -17,6 +17,7 @@ import {
   type WorkTaskType,
 } from "@wirecat/cli-core/store"
 import { APP } from "../app.js"
+import { authorOf } from "../author.js"
 import { isNoteReference } from "../notes/about.js"
 import { heldMessage } from "../store/held.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
@@ -185,7 +186,7 @@ export const updateTask = async (store: MessageStore, env: NodeJS.ProcessEnv, id
         "validation_error",
         "--category and --assignee are for a task from a source; name a project task's people with tasks assign",
       )
-    return store.tasks.edit(id, { ...fields, ...times }, "owner")
+    return store.tasks.edit(id, { ...fields, ...times }, authorOf(env))
   }
   if (options.priority !== undefined || options.parent !== undefined)
     throw new CliError("validation_error", "--priority and --parent are for a task in a project")
@@ -202,7 +203,7 @@ export const updateTask = async (store: MessageStore, env: NodeJS.ProcessEnv, id
         ? {}
         : { assignees: assignees.length === 1 && assignees[0] === "none" ? null : assignees }),
     },
-    "owner",
+    authorOf(env) === "owner" ? "owner" : "agent",
   )
 }
 

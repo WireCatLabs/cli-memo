@@ -45,6 +45,7 @@ const setUp = async () => {
   await store.messages.saveMessages(key, "7", [said("1", 60, "morning"), said("2", 50, "who has the keys?")], {
     via: "test",
   })
+  await store.people.savePeople(key, [{ id: "9", name: "Alice Example" }])
   // tg opens this task when it syncs; memo reads the same store.
   await applyTaskRulesToStored(store, key)
   await store.close()
@@ -65,6 +66,13 @@ it("**mounts tg's tasks agenda, show and stats tasks show**, and plans a message
   expect(
     (await run("tasks", "update", task, "--title", "Hand over the keys", "--due", "2d", ...acts, "--json")).json(),
   ).toMatchObject({ item: { title: "Hand over the keys" } })
+  const assigned = (await run("tasks", "update", task, "--assignee", "sender", ...acts, "--json")).json()
+  const [assignee] = assigned.item.assignments
+  expect(assignee).toMatchObject({ to: expect.stringMatching(/^person:/), role: "assignee" })
+  const uid = assignee.to.slice("person:".length)
+  expect((await run("tasks", "update", task, "--assignee", uid, ...acts, "--json")).json().item.assignments).toEqual([
+    assignee,
+  ])
   await expect(run("tasks", "update", task, "--priority", "1", ...acts)).rejects.toMatchObject({
     code: "validation_error",
     message: expect.stringContaining("in a project"),

@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**477 ✅ · 0 ⛔ · 140 ❌** — 125 commands, 492 options.
+**478 ✅ · 0 ⛔ · 139 ❌** — 125 commands, 492 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -193,7 +193,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tasks update` | `--due` | ✅ |  |
 | `tasks update` | `--remind-time` | ❌ |  |
 | `tasks update` | `--category` | ❌ |  |
-| `tasks update` | `--assignee` | ❌ |  |
+| `tasks update` | `--assignee` | ✅ |  |
 | `tasks assign` |  | ✅ |  |
 | `tasks assign` | `--role` | ✅ |  |
 | `tasks assign` | `--json` | ✅ |  |
