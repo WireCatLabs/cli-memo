@@ -23,12 +23,12 @@ Plans and owner rulings live in the private notes (`cli-private`, `plans/`); thi
 
 ## Next (P2)
 
-- **MEMO-4** · P2 · Search by meaning needs a model memo cannot download itself: every hint sends a memo-only
+- **MEMO-4** 🚧 `fix/memo-setup-20261024` · P2 · Search by meaning needs a model memo cannot download itself: every hint sends a memo-only
   user to `npx -y @wirecat/tg-cli local models text download e5-small` (a tg command with `local` as a profile
   word; works, 135 MB), and `sync` and `search` print two different hints. Give memo the shared
   `models text download` from cli-core, or one hint everywhere (`docs/installation.md:37`, `docs/search.md:184`,
   `docs/troubleshooting.md:28`).
-- **MEMO-5** · P2 · Adding a mail account means hand-editing `config.json` after setting up Himalaya
+- **MEMO-5** 🚧 `fix/memo-setup-20261024` · P2 · Adding a mail account means hand-editing `config.json` after setting up Himalaya
   (`docs/mail.md:31`). A `memo mail` command that adds and checks an account (Himalaya lists it, the address
   matches) would remove the hardest first-run step.
 - **MEMO-7** · P2 · `search all` and `context` do not read meetings; meetings need `search meetings` with one
@@ -39,7 +39,7 @@ Plans and owner rulings live in the private notes (`cli-private`, `plans/`); thi
 - **MEMO-9** · P2 · Search is slow: `memo search notes` takes 2.7 s on a two-note store with the model, and
   `memo --version` 0.85 s (measured 2026-10-23, 0.89.0). Profile startup and model load; try Node's compile cache
   as tg did.
-- **MEMO-10** · P2 · Shared meeting readers differ from zm: `search meetings`, `meetings passage` and
+- **MEMO-10** 🚧 `fix/memo-setup-20261024` · P2 · Shared meeting readers differ from zm: `search meetings`, `meetings passage` and
   `meetings prepare` take other flags and summaries than `zm` (41 new `same-path-contract` findings in
   `cli-dev audit` against tg 0.81, max 0.69, drive 0.23, zm 0.36). Align in cli-core, or record why they differ.
 - **MEMO-11** · P2 · `memo context telegram:<unknown>` answers "choose one of folder:<id>": it offers a notes
