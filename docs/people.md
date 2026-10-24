@@ -30,6 +30,8 @@ address. The answer brings together:
 - their email, once the address is linked to them;
 - the note about them, the notes that link to them, and the notes you wrote about them in Memo;
 - open tasks that are about them or assigned to them.
+- the Google Drive files they own or last edited, as Google reports it. You have not reviewed these links;
+  they come from Google's own file record, not from a guess.
 
 A note that only mentions the name in its text is not included; only links count
 ([why](how-it-works.md#links-between-notes-and-people)). If a part gave nothing, the answer says

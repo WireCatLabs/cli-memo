@@ -154,6 +154,64 @@ describe("memo context", () => {
     expect(shown).toContain("Prefers mornings")
   })
 
+  it("lists files Google reports they own, and leaves out unreviewed links a program guessed", async () => {
+    const store = await openStore({ env })
+    const folder = await store.notes.addFolder({ name: "google-drive:u1" })
+    await store.catalog.upsert(folder.id, [
+      {
+        externalId: "f1.md",
+        kind: "file",
+        name: "Lighthouse budget",
+        parents: [],
+        url: "https://docs.google.com/document/d/f1/edit",
+        modifiedAt: "2026-10-01T10:00:00Z",
+      },
+      { externalId: "f2.md", kind: "file", name: "Guessed file", parents: [] },
+    ])
+    const drive = { provider: "google-drive", account: "u1" }
+    await store.accounts.saveAccount(drive, { name: "Google Drive" })
+    await store.people.savePeople(drive, [{ id: "g1", name: "Rin Example" }])
+    await store.people.linkIdentities(
+      { provider: "telegram", id: "101" },
+      { provider: "google-drive", id: "g1" },
+      { method: "manual", by: "owner" },
+    )
+    const uid = (await store.people.personOf({ provider: "telegram", id: "101" }))?.uid as string
+    const documentOf = async (id: string) => (await store.catalog.get(folder.id, id))?.ref.split(":")[1] as string
+    await store.notes.replaceFileLinks(await documentOf("f1.md"), [
+      {
+        kind: "related-to",
+        to: `person:${uid}`,
+        role: "owner",
+        provenance: "google-drive:files.get",
+        confirmed: false,
+      },
+    ])
+    await store.notes.replaceFileLinks(await documentOf("f2.md"), [
+      { kind: "related-to", to: `person:${uid}`, provenance: "scan", confirmed: false },
+    ])
+    await store.close()
+
+    const answer = answerOf(await run("context", "telegram:101", "--json"))
+    const text = await run("context", "telegram:101")
+
+    expect(answer.files).toEqual([
+      expect.objectContaining({
+        title: "Lighthouse budget",
+        role: "owner",
+        url: "https://docs.google.com/document/d/f1/edit",
+        modified_at: "2026-10-01T10:00:00Z",
+        confirmed: false,
+      }),
+    ])
+    expect(answer.relationships).toEqual([])
+    expect(text).toContain("Files, as Google reports")
+    expect(text).toMatch(
+      /owner {2}Lighthouse budget {2}2026-10-01 10:00 {2}https:\/\/docs\.google\.com\/document\/d\/f1\/edit/,
+    )
+    expect(text).not.toContain("Guessed file")
+  })
+
   it("asks for the messenger, and names a messenger the store does not hold", async () => {
     await expect(run("context", "Rin Example")).rejects.toThrow("names no messenger")
     await expect(run("context", "max:Rin")).rejects.toThrow("no max account")
