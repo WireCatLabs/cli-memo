@@ -4,6 +4,13 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- **The introduction shows the current notes-search output and names all six WireCat tools.** The example
+  uses fictional notes and explains the diagnostic when the local meaning model is missing.
+
 ## 0.89.0 — 22.10.2026
 
 ### Added
