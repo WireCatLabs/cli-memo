@@ -42,7 +42,7 @@ Plans and owner rulings live in the private notes (`cli-private`, `plans/`); thi
 
 ## Next (P2)
 
-- **MEMO-31** · P2 · Finish MCP alignment with the shared three-tool surface (WC-MCP-1): use cli-core
+- **MEMO-31** · P2 · 🚧 `fix/memo-standards-debt-20261024` · Finish MCP alignment with the shared three-tool surface (WC-MCP-1): use cli-core
   `registerCommands` for `memo_tools_search`, `memo_read` and `memo_write`. The command coverage is generated,
   but the server still lists individual tools and keeps 37 handwritten compatibility handlers
   (`src/mcp/server.ts`, `src/mcp/catalogue.ts`). Plan the saved-client migration and retire duplicate handlers;
