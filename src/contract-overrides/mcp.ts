@@ -8,7 +8,7 @@ export const mcp: readonly SharedContractOverride[] = [
     before: "serve this profile's commands to an AI agent",
     after: null,
     reason:
-      "Memo serves its typed stored-data tools over stdio with saved permissions and explicit numeric/string stored-selector compatibility; it has no HTTP transport.",
+      "Memo delegates MCP framing and command dispatch to Core over stdio while binding its local store, saved permissions and environment; it has no HTTP transport.",
   },
   {
     command: ["mcp"],
@@ -17,7 +17,7 @@ export const mcp: readonly SharedContractOverride[] = [
       "serve this profile to an agent over MCP, on stdin and stdout — `claude mcp add memo -- memo <profile> mcp`",
     after: "serve memo commands over MCP on stdio, limited by saved permissions",
     reason:
-      "Memo serves its typed stored-data tools over stdio with saved permissions and explicit numeric/string stored-selector compatibility; it has no HTTP transport.",
+      "Memo delegates MCP framing and command dispatch to Core over stdio while binding its local store, saved permissions and environment; it has no HTTP transport.",
   },
   {
     command: ["mcp"],
@@ -31,7 +31,7 @@ export const mcp: readonly SharedContractOverride[] = [
       local: "write",
     },
     reason:
-      "Memo serves its typed stored-data tools over stdio with saved permissions and explicit numeric/string stored-selector compatibility; it has no HTTP transport.",
+      "Memo delegates MCP framing and command dispatch to Core over stdio while binding its local store, saved permissions and environment; it has no HTTP transport.",
   },
   {
     command: ["mcp"],
@@ -39,7 +39,7 @@ export const mcp: readonly SharedContractOverride[] = [
     before: false,
     after: null,
     reason:
-      "Memo serves its typed stored-data tools over stdio with saved permissions and explicit numeric/string stored-selector compatibility; it has no HTTP transport.",
+      "Memo delegates MCP framing and command dispatch to Core over stdio while binding its local store, saved permissions and environment; it has no HTTP transport.",
   },
   {
     command: ["mcp"],
@@ -47,7 +47,7 @@ export const mcp: readonly SharedContractOverride[] = [
     before: true,
     after: null,
     reason:
-      "Memo serves its typed stored-data tools over stdio with saved permissions and explicit numeric/string stored-selector compatibility; it has no HTTP transport.",
+      "Memo delegates MCP framing and command dispatch to Core over stdio while binding its local store, saved permissions and environment; it has no HTTP transport.",
   },
   {
     command: ["mcp"],
@@ -95,7 +95,7 @@ export const mcp: readonly SharedContractOverride[] = [
       },
     ],
     reason:
-      "Memo serves its typed stored-data tools over stdio with saved permissions and explicit numeric/string stored-selector compatibility; it has no HTTP transport.",
+      "Memo delegates MCP framing and command dispatch to Core over stdio while binding its local store, saved permissions and environment; it has no HTTP transport.",
   },
   {
     command: ["mcp"],
@@ -103,6 +103,6 @@ export const mcp: readonly SharedContractOverride[] = [
     before: ["config", "add", "check"],
     after: [],
     reason:
-      "Memo serves its typed stored-data tools over stdio with saved permissions and explicit numeric/string stored-selector compatibility; it has no HTTP transport.",
+      "Memo delegates MCP framing and command dispatch to Core over stdio while binding its local store, saved permissions and environment; it has no HTTP transport.",
   },
 ]

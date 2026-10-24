@@ -22,8 +22,13 @@ export const meetingReadCommands = (program: Command, streams: Streams, env: Nod
   const grammar = createMeetingSearchCommand(program)
   const search = overrideSharedContract(
     grammar,
-    "Memo reads an explicitly selected stored source and exposes command-local JSON output.",
+    "Memo selects an explicit stored source and uses native tag: queries instead of a tag flag, with command-local JSON output.",
     (command) => {
+      Reflect.set(
+        command,
+        "options",
+        command.options.filter((option) => option.long !== "--tag"),
+      )
       output(command)
     },
   )

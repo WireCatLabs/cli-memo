@@ -37,7 +37,7 @@ const mcpCommandDefinition = (
 export const mcpCommand = (...args: Parameters<typeof mcpCommandDefinition>) =>
   customizeSharedCommand(
     sharedCommandTemplate(APP, "mcp"),
-    "Memo serves its typed stored-data tools over stdio with saved permissions and explicit numeric/string stored-selector compatibility; it has no HTTP transport.",
+    "Memo delegates MCP framing and command dispatch to Core over stdio while binding its local store, saved permissions and environment; it has no HTTP transport.",
     () => {
       mcpCommandDefinition(...args)
       const command = args[0].commands.find((command) => command.name() === "mcp")

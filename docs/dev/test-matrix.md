@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**482 ✅ · 0 ⛔ · 92 ❌** — 127 commands, 447 options.
+**488 ✅ · 0 ⛔ · 92 ❌** — 129 commands, 451 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -175,17 +175,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tasks close` | `--json` | ✅ |  |
 | `tasks close` | `--as` | ✅ |  |
 | `tasks close` | `--reason` | ✅ |  |
-| `tasks update` |  | ✅ |  |
-| `tasks update` | `--account` | ✅ |  |
-| `tasks update` | `--json` | ✅ |  |
-| `tasks update` | `--title` | ✅ |  |
-| `tasks update` | `--priority` | ✅ |  |
-| `tasks update` | `--parent` | ❌ |  |
-| `tasks update` | `--description` | ❌ |  |
-| `tasks update` | `--due` | ✅ |  |
-| `tasks update` | `--remind-time` | ❌ |  |
-| `tasks update` | `--category` | ❌ |  |
-| `tasks update` | `--assignee` | ✅ |  |
 | `tasks assign` |  | ✅ |  |
 | `tasks assign` | `--role` | ✅ |  |
 | `tasks assign` | `--json` | ✅ |  |
@@ -197,6 +186,17 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tasks agenda` | `--holder` | ❌ |  |
 | `tasks agenda` | `--source` | ✅ |  |
 | `tasks agenda` | `--json` | ✅ |  |
+| `tasks update` |  | ✅ |  |
+| `tasks update` | `--category` | ❌ |  |
+| `tasks update` | `--priority` | ✅ |  |
+| `tasks update` | `--parent` | ❌ |  |
+| `tasks update` | `--title` | ✅ |  |
+| `tasks update` | `--description` | ❌ |  |
+| `tasks update` | `--due` | ✅ |  |
+| `tasks update` | `--remind-time` | ❌ |  |
+| `tasks update` | `--assignee` | ✅ |  |
+| `tasks update` | `--account` | ✅ |  |
+| `tasks update` | `--json` | ✅ |  |
 | `tasks show` |  | ✅ |  |
 | `tasks show` | `--source` | ✅ |  |
 | `tasks show` | `--json` | ✅ |  |
@@ -488,7 +488,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `agents list` | `--json` | ✅ |  |
 | `mcp` |  | ✅ |  |
 | `mcp` | `--permission` | ❌ |  |
+| `models list` |  | ✅ |  |
+| `models list` | `--json` | ✅ |  |
 | `models download` |  | ✅ |  |
+| `models download` | `--offline` | ✅ |  |
 | `models download` | `--accept-terms` | ✅ |  |
 | `models download` | `--json` | ✅ |  |
 | `search all` |  | ✅ |  |
@@ -538,6 +541,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `search meetings` | `--event-id` | ✅ |  |
 | `search meetings` | `--series-id` | ✅ |  |
 | `search meetings` | `--project` | ✅ |  |
+| `search meetings` | `--topic-name` | ✅ |  |
 | `search meetings` | `--since-time` | ✅ |  |
 | `search meetings` | `--until-time` | ✅ |  |
 | `search meetings` | `--limit` | ✅ |  |
@@ -576,6 +580,8 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `upgrade` | `--json` | ❌ |  |
 | `commands` |  | ✅ |  |
 | `commands` | `--json` | ✅ |  |
+| `commands info` |  | ✅ |  |
+| `commands info` | `--json` | ✅ |  |
 | `skill show` |  | ✅ |  |
 | `skill install` |  | ✅ |  |
 | `skill install` | `--for` | ✅ |  |

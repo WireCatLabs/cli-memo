@@ -11,6 +11,9 @@ it("lists shared text models without an account and refuses offline downloads", 
     expect.objectContaining({ id: "e5-small", kind: "text", downloaded: false }),
   ])
   await expect(
-    createProgram({ env: {}, streams }).parseAsync(["models", "download", "e5-small", "--offline"], { from: "user" }),
+    createProgram({ env: {}, streams }).parseAsync(
+      ["models", "download", "e5-small", "--offline", "--accept-terms", "--json"],
+      { from: "user" },
+    ),
   ).rejects.toThrow("--offline")
 })

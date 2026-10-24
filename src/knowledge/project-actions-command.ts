@@ -3,8 +3,8 @@ import { CliError, readBatchInput, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import {
-  environmentOf,
   answerEntity,
+  environmentOf,
   LOCAL_READ,
   LOCAL_WRITE,
   parseEvidenceFindingsJson,

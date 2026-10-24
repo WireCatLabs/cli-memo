@@ -41,10 +41,14 @@ the API.
 - **Agent facts require cited evidence through both CLI and MCP.** The owner may still record an uncited
   fact; proposed agent facts cannot bypass the evidence requirement by using the command runner.
 
+- **Shared command contracts require explicit source overrides.** Discovery includes schemas, declared reasons and exact before/after differences. Stored meeting topic labels use `--topic-name` in the CLI and `topic_name` in MCP continuations.
+
 ### Added
 
 - **`projects annotations show` reads selected annotations without creating a file**, through the same
   snapshot service as export. It remains available under the read lock.
+
+- **`models list` and verified downloads use Core’s catalogue.** Model selection is a native query, and `models download --offline` refuses before network work. Project task updates retain priority and parent fields; source tasks retain their explicit account and assignee handling.
 
 ### Fixed
 
@@ -52,19 +56,9 @@ the API.
   read lock. Calls enforce the current permissions. CLI help and discovery also show the read lock.
   Uses published cli-core 0.410.0 and cli-base 0.50.4.
 
-### Changed — may break callers
-
-- **Shared command contracts require explicit source overrides.** Discovery includes schemas, declared reasons and exact before/after differences. Stored meeting topic labels use `--topic-name` in the CLI and `topic_name` in MCP continuations.
-
-- **Mail cleanup is `mail delete`, and rule imports share one command.** Use `mail rules import <account> <file> --format gmail` to preview Gmail filters and `--yes` to apply them; the default format still imports a Memo rule export.
-
-### Added
-
-- **`models list` and verified downloads use Core’s catalogue.** Model selection is a native query, and `models download --offline` refuses before network work. Project task updates retain priority and parent fields; source tasks retain their explicit account and assignee handling.
-
 ### Security
 
-- **Dependency resolutions exclude vulnerable Zod, Vite and postal-mime versions.** Production audits cover both locked and fresh resolutions.
+- **Dependency resolutions exclude vulnerable Zod, Vite and postal-mime versions.** Release checks reject high production findings in locked and fresh package resolutions.
 
 ## 0.92.0 — 24.10.2026
 

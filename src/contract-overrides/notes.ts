@@ -378,12 +378,6 @@ export const notes: readonly SharedContractOverride[] = [
         mandatory: false,
       },
       {
-        flags: "--provider <provider>",
-        description: "deprecated: --account <provider>:<account>",
-        takes_value: true,
-        mandatory: false,
-      },
-      {
         flags: "--export [dir]",
         description: "also write it as a file — to this folder, or notes.export.dir",
         takes_value: true,
