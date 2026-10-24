@@ -8,15 +8,11 @@ import { answers, itemAnswer } from "../answer.js"
 
 export const modelsCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
-  const text = program
-    .command("models")
-    .description("models that run on this machine")
-    .command("text")
-    .description("embedding models for searching by meaning")
-  annotate(text.command("download"), {
+  const models = program.command("models").description("models that run on this machine")
+  annotate(models.command("download"), {
     effects: FETCH,
     output: { entity: "model" },
-    examples: ["memo models text download e5-small"],
+    examples: ["memo models download e5-small"],
   })
     .description("download a shared search model, check its hash and load it once")
     .argument("<model>", "a shared text model id, such as e5-small")

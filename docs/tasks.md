@@ -35,11 +35,12 @@ one. `memo tasks list` and `memo reminders list` without `--source` read every a
 
 ## What needs a look today
 
-The agenda, the plan and the card are the same commands tg and max have. Each reads one account; name it:
+The agenda and the card are the same commands tg and max have; `tasks update` sets a task's due date and next
+check. Each reads or changes one account; name it:
 
 ```sh
 memo tasks agenda --source telegram:1           # overdue, due, owed and waiting chats
-memo tasks plan 1a2b3c4d --due 2d --remind-time 1d --title 'Send the revised budget' --account telegram:1
+memo tasks update 1a2b3c4d --due 2d --remind-time 1d --title 'Send the revised budget' --account telegram:1
 memo tasks show 1a2b3c4d --source telegram:1
 memo stats tasks show --source telegram:1       # open tasks per chat
 memo tasks agenda --source notes                # tasks from your notes folder

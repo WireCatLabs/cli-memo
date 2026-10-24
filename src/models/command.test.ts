@@ -28,10 +28,9 @@ it("downloads through the shared service and keeps its receipt without connectin
       onnx: "model.onnx",
     },
   })
-  await createProgram({ env, streams }).parseAsync(
-    ["models", "text", "download", "synthetic", "--accept-terms", "--json"],
-    { from: "user" },
-  )
+  await createProgram({ env, streams }).parseAsync(["models", "download", "synthetic", "--accept-terms", "--json"], {
+    from: "user",
+  })
   expect(downloadTextModel).toHaveBeenCalledWith("synthetic", expect.objectContaining({ env, acceptTerms: true }))
   expect(answerOf(streams.stdout.join(""))).toMatchObject({
     id: "synthetic",

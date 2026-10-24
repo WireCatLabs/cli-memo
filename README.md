@@ -31,7 +31,7 @@ about this person, where did we discuss this, what did I promise. Every answer p
 
 ```text
 $ memo search notes budget Friday
-Searched by words only: e5-small is not downloaded — install it with a WireCat CLI that has `models text download` (tg, max or wa); they share the model folder
+Searched by words only: e5-small is not downloaded — install it with a WireCat CLI that has `models download` (tg, max or wa); they share the model folder
 
 Projects/Harbour budget.md
   Review the Harbour budget by Friday.
@@ -63,7 +63,7 @@ That is all notes need. Then add more context:
 
 - **Messages:** install [tg-cli](https://github.com/WireCatLabs/tg-cli) or
   [max-cli](https://github.com/WireCatLabs/max-cli); memo reads the same local store.
-- **Search by meaning:** needs a local model of about 135 MB, downloaded once with: `memo models text download e5-small`. Without it, memo searches
+- **Search by meaning:** needs a local model of about 135 MB, downloaded once with: `memo models download e5-small`. Without it, memo searches
   by words.
 - **Mail:** set up [Himalaya](https://github.com/pimalaya/himalaya), run `memo mail add <account> <address>`,
   then `memo sync --only mail`.
@@ -171,7 +171,7 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 | Project and topic aliases | `memo vocabulary list` / `show` / `check` / `inspect` · `vocabulary aliases add` / `remove` · `vocabulary create` |
 | Relationships | `memo relationships add` / `list` / `remove` / `confirm` / `suggest` |
 | Labels | `memo tags add` · `tags remove` · `tags list` |
-| Open work | `memo tasks add` · `tasks list` · `tasks agenda` · `tasks plan` · `tasks show` · `tasks update` · `tasks assign` · `tasks close` · `stats tasks show` |
+| Open work | `memo tasks add` · `tasks list` · `tasks agenda` · `tasks show` · `tasks update` · `tasks assign` · `tasks close` · `stats tasks show` |
 | Task dependencies | `memo tasks link` / `unlink` / `relations` · `tasks status` · `tasks list project:HRB ready:true` |
 | Reminders | `memo reminders add` / `list` / `poll` / `ack` / `update` / `cancel` |
 | Agents | `memo memories …` · `facts …` · `actions …` · `agents log` · `memo mcp` |
@@ -210,7 +210,7 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 ## Search and evidence
 
 Notes are searched by words and word stems in the query language messages use — phrases, `AND`/`OR`/`NOT`,
-`tag:`, `date:` — and by meaning once the local model is downloaded (`memo models text download e5-small`); both are ranked together. `search all`
+`tag:`, `date:` — and by meaning once the local model is downloaded (`memo models download e5-small`); both are ranked together. `search all`
 reads messages, imported mail and notes together, and nothing else. When you know the kind, its own search
 reads every field: `search mail` takes `from:`, `to:`, `cc:`, `bcc:`, `subject:` and `mailbox:`.
 

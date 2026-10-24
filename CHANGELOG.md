@@ -4,6 +4,18 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Changed — may break callers
+
+- **Commands use cli-core 0.406.0's canonical names, with no aliases.** `tasks plan` is now part of
+  `tasks update`: one command sets the title and description of any task, `--due` and `--remind-time`, priority
+  and parent for a project task, and category and assignee for a task from a source, which names its `--account`.
+  `tasks update` is refused under `MEMO_READ_ONLY`, so a read-only agent no longer sets due dates or categories.
+  `models text download` is `models download`. The MCP tools follow: `tasks_plan` and `models_text_download` are
+  gone. Shared commands use cli-core's new names, and a saved permission key with an old path, such as
+  `tasks.plan`, stops with `configuration_error` naming its replacement.
+
 ## 0.91.0 — 24.10.2026
 
 ### Added

@@ -24,7 +24,7 @@ const words = (example: string) =>
 const run = (env: NodeJS.ProcessEnv, args: string[]) =>
   createProgram({ streams: captureStreams(), env }).exitOverride().parseAsync(args, { from: "user" })
 
-// cli-core marks the task writes a scheduled agent makes (`tasks plan`, `tasks link`) as harmless, as in tg and max.
+// cli-core marks the task links a scheduled agent makes (`tasks link`) as harmless, as in tg and max.
 const changes = leaves(createProgram({ streams: captureStreams(), env: {} }))
   .filter(([, command]) => metaOf(command).lifetime !== "persistent")
   .filter(([, command]) => isStoreChange(command) || metaOf(command).effects?.remote === "write")

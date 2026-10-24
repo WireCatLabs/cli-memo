@@ -11,7 +11,7 @@ the messages tg, max and wa keep in the local store. You can search all of it to
 one person or project, tag anything, keep tasks and local reminders, and let an agent record memories, facts
 and proposals for you to review, from the terminal or over MCP. MCP exposes command tools, including writes,
 limited by saved permissions, and can open cited records in full. Download the search model with
-`models text download` and add an explicit Himalaya account with `mail add`. Every command and option is in
+`models download` and add an explicit Himalaya account with `mail add`. Every command and option is in
 [all commands](commands.md); the guides start at [the overview](index.md).
 
 ## In progress

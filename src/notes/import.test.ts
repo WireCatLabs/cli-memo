@@ -279,7 +279,7 @@ describe("memo sync --only notes", () => {
     await run("sync", "--only", "notes")
     const found = await json("search", "all", "budget", "--only", "notes")
     expect(found.missing).toEqual([
-      { field: "found_by", why: expect.stringContaining("memo models text download e5-small") },
+      { field: "found_by", why: expect.stringContaining("memo models download e5-small") },
     ])
     expect(JSON.stringify(found.missing)).not.toMatch(/tg models/)
   })
