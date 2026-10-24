@@ -1,4 +1,4 @@
-import { mkdtempSync } from "node:fs"
+import { mkdtempSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { Client } from "@modelcontextprotocol/client"
@@ -37,6 +37,18 @@ it.each(changes)("refuses %s under MEMO_READ_ONLY with exit 5", async (_path, ex
   )
   expect(failure).toMatchObject({ code: "permission_error", message: expect.stringContaining("MEMO_READ_ONLY") })
   expect(exitCodeOfError(errorObject(failure))).toBe(5)
+})
+
+it('**refuses every change under the shared setup answer "read only"**, and still reads', async () => {
+  const folder = mkdtempSync(join(tmpdir(), "memo-setup-"))
+  writeFileSync(join(folder, "config.json"), JSON.stringify({ setup: { permissions: "readonly" } }))
+  const env = { ...process.env, MESSAGING_STORE: join(folder, "store.db"), MEMO_READ_ONLY: undefined }
+  const [, example] = changes[0] as (typeof changes)[number]
+  await expect(run(env, words(example))).rejects.toMatchObject({
+    code: "permission_error",
+    message: expect.stringContaining("WireCat setup answer"),
+  })
+  await expect(run(env, ["tags", "list", "--json"])).resolves.toBeDefined()
 })
 
 it("still reads, syncs and looks for a new version under MEMO_READ_ONLY", async () => {

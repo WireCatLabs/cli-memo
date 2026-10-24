@@ -1,5 +1,11 @@
 import { metaOf } from "@wirecat/cli-base/commands"
-import { changesAuthority, isStoreChange, readOnlyLockOf, readOnlyRefusal } from "@wirecat/cli-core/cli"
+import {
+  changesAuthority,
+  isStoreChange,
+  readOnlyLockOf,
+  readOnlyRefusal,
+  setupPermissionCeiling,
+} from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { APP } from "./app.js"
 
@@ -18,13 +24,18 @@ const refusalOf = (command: Command): string | undefined => {
  * WC-PERM-12: under MEMO_READ_ONLY every change is refused with permission_error (exit 5) before the action runs.
  * A sync still receives, and a local write fails closed: nothing here marks one as harmless.
  */
+/** MEMO_READ_ONLY, or the shared WireCat setup answer "read only", which another tool's `setup` changes. */
+const lockOf = (env: NodeJS.ProcessEnv): string | undefined =>
+  readOnlyLockOf(APP, env) ??
+  (setupPermissionCeiling(env) === "readonly" ? "the WireCat setup answer; `tg setup` changes it" : undefined)
+
 export const refuseWritesUnderLock = (program: Command, env: NodeJS.ProcessEnv): void => {
   program.hook("preAction", (_root, command) => {
-    const lock = readOnlyLockOf(APP, env)
+    const lock = lockOf(env)
     if (lock === undefined) return
     const refusal = refusalOf(command)
     if (refusal !== undefined) throw readOnlyRefusal(lock, refusal)
   })
 }
 
-export const readOnly = (env: NodeJS.ProcessEnv): boolean => readOnlyLockOf(APP, env) !== undefined
+export const readOnly = (env: NodeJS.ProcessEnv): boolean => lockOf(env) !== undefined

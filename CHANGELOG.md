@@ -6,6 +6,14 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **The first command at a terminal asks three questions once for every WireCat tool** (cli-core 0.404.0): which
+  languages you write and speak, which other WireCat tools to install, and whether commands and agents may only read.
+  Answered in any tool, they hold in all of them; "read only" stops every `memo` change, as `MEMO_READ_ONLY` does.
+  `tg setup`, `max setup` or `wa setup` asks again. Agents, `--json`, `--no-input`, `CI` and `MEMO_READ_ONLY` are
+  never asked.
+
 ### Fixed
 
 - **The introduction shows the current notes-search output and names all six WireCat tools.** The example

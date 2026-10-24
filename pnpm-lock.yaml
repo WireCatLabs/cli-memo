@@ -22,8 +22,8 @@ importers:
         specifier: 0.49.0
         version: 0.49.0(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.3)
       '@wirecat/cli-core':
-        specifier: 0.390.0
-        version: 0.390.0(@wirecat/cli-base@0.49.0(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.3))(commander@15.0.0)(typescript@7.0.2)(zod@4.6.5)
+        specifier: 0.404.0
+        version: 0.404.0(@wirecat/cli-base@0.49.0(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.3))(commander@15.0.0)(typescript@7.0.2)(zod@4.6.5)
       commander:
         specifier: 15.0.0
         version: 15.0.0
@@ -475,6 +475,10 @@ packages:
     resolution: {integrity: sha512-iLhmprRmWI8EcosOA3wVvww22z02NkgqhV4fBH6f/odQBsi7xnJc0HGmi21yWO+/iKw2yzqVE127Zhna5/+JXw==}
     engines: {node: '>=20'}
 
+  '@modelcontextprotocol/core@2.3.0':
+    resolution: {integrity: sha512-09BHFaNVBe5pB2AhzCfLj0cqmsKLERvZQ4FblzP90UMGLaXVqdZPByFjURwsUYCmxonUW2yAwgTTvle+8O2/8w==}
+    engines: {node: '>=20'}
+
   '@modelcontextprotocol/sdk@1.32.1':
     resolution: {integrity: sha512-2DdE+SJDtzLEEWzY1ZjY7Q+VcPhcV1KisD3zI4u0XZyktsjHum1mwbMI+JaulUBi2OZk+KJAi2uPXzxichPkdw==}
     engines: {node: '>=18'}
@@ -487,6 +491,10 @@ packages:
 
   '@modelcontextprotocol/server@2.1.0':
     resolution: {integrity: sha512-FdvwZU5N03O77Suh35JqjAqq5R1ZTEPFtwu6N4BgBq28qrQtrCnpbLL5U2pwYCuE194jAw0xnlOVmIqhfoYuUQ==}
+    engines: {node: '>=20'}
+
+  '@modelcontextprotocol/server@2.3.0':
+    resolution: {integrity: sha512-+6b0LdsQLmHsvS7J6sQJ4weTpzUn61fU1JKS+321/+IyDYoHW5CR2Tgqcs6GgAAQvlesCo6yX3xttgmx+XGtJw==}
     engines: {node: '>=20'}
 
   '@napi-rs/keyring-darwin-arm64@2.1.0':
@@ -982,13 +990,13 @@ packages:
   '@wirecat/cli-core-sqlite@1.0.1':
     resolution: {integrity: sha512-dFkTE3+XdvZwrt7bZZEd2fzdqR2vFgnnGPOhmBKGNa7uKQHjOdqJL8Q9O5cajIjy5o8Gl0LVn0OZbYajhLvQ1A==}
 
-  '@wirecat/cli-core@0.390.0':
-    resolution: {integrity: sha512-cRRXaX4OoIbvq6ra7lZ2GZNvzliMh6h/g5gmrOs+zC4csRHU7hnN9sCz3hW/ccuHWOqksBeFZ4uJtNL63p2mjA==}
+  '@wirecat/cli-core@0.404.0':
+    resolution: {integrity: sha512-ThOxfcsHS7PV0akA1kTlymBo7R5zam9njJezsFDd8xot+h0LKzsd+pUtGrYkdqNKqYtvoI6r6/iYdbUnOIxD9g==}
     engines: {node: ^22.16.0 || >=24}
     hasBin: true
     peerDependencies:
       '@napi-rs/canvas': '>=0.1.69 <2'
-      '@wirecat/cli-base': '>=0.49.0 <0.50.0'
+      '@wirecat/cli-base': '>=0.50.2 <0.51.0'
       commander: '>=15'
     peerDependenciesMeta:
       '@napi-rs/canvas':
@@ -1254,6 +1262,12 @@ packages:
 
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
+
+  dictionary-en@4.0.0:
+    resolution: {integrity: sha512-3NHnE1uq33ZE/CIwaZ6gqxa4BnglHnxeAcTM0GJ7cmtRGcvX9InMK/IqLtYcUMFCUpUNgybH+DzkqdgAo3F1zg==}
+
+  dictionary-es@4.0.0:
+    resolution: {integrity: sha512-8J3IYdaHYmkojxqhB+DneQpek6N/s3MwbVk3bPNGQSTBT5kxJtmbuiT0LSDP0Al6K9Vevo1sjspG8AGP9Yvxiw==}
 
   dictionary-ru@3.0.0:
     resolution: {integrity: sha512-tigem0CDnNpxEciW6ktwVH3wWB4FYpuvpwA6IR6UlF7bVu2kez6vOejVNyZgBX1TJIjuYTCTuLxzg/YOls2mRQ==}
@@ -2815,6 +2829,10 @@ snapshots:
     dependencies:
       zod: 4.6.5
 
+  '@modelcontextprotocol/core@2.3.0':
+    dependencies:
+      zod: 4.6.5
+
   '@modelcontextprotocol/sdk@1.32.1(zod@4.6.5)':
     dependencies:
       '@hono/node-server': 2.1.5(hono@4.13.13)
@@ -2840,6 +2858,11 @@ snapshots:
   '@modelcontextprotocol/server@2.1.0':
     dependencies:
       '@modelcontextprotocol/core': 2.1.0
+      zod: 4.6.5
+
+  '@modelcontextprotocol/server@2.3.0':
+    dependencies:
+      '@modelcontextprotocol/core': 2.3.0
       zod: 4.6.5
 
   '@napi-rs/keyring-darwin-arm64@2.1.0':
@@ -3161,12 +3184,12 @@ snapshots:
 
   '@wirecat/cli-core-sqlite@1.0.1': {}
 
-  '@wirecat/cli-core@0.390.0(@wirecat/cli-base@0.49.0(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.3))(commander@15.0.0)(typescript@7.0.2)(zod@4.6.5)':
+  '@wirecat/cli-core@0.404.0(@wirecat/cli-base@0.49.0(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.3))(commander@15.0.0)(typescript@7.0.2)(zod@4.6.5)':
     dependencies:
       '@anthropic-ai/sdk': 0.131.0(zod@4.6.5)
       '@bomb.sh/tab': 0.0.22(commander@15.0.0)
       '@huggingface/tokenizers': 0.2.0
-      '@modelcontextprotocol/server': 2.1.0
+      '@modelcontextprotocol/server': 2.3.0
       '@resvg/resvg-js': 2.6.2
       '@valibot/to-json-schema': 1.8.0(valibot@1.5.0(typescript@7.0.2))
       '@wirecat/cli-base': 0.49.0(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.3)
@@ -3176,6 +3199,8 @@ snapshots:
       chardet: 2.2.0
       commander: 15.0.0
       defuddle: 0.19.5
+      dictionary-en: 4.0.0
+      dictionary-es: 4.0.0
       dictionary-ru: 3.0.0
       echarts: 6.1.0
       fflate: 0.8.3
@@ -3487,6 +3512,10 @@ snapshots:
   devlop@1.1.0:
     dependencies:
       dequal: 2.0.3
+
+  dictionary-en@4.0.0: {}
+
+  dictionary-es@4.0.0: {}
 
   dictionary-ru@3.0.0: {}
 
