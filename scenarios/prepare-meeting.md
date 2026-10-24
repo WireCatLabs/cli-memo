@@ -8,7 +8,7 @@ steps:
     why: follow-ups staged from earlier meetings that nobody reviewed
   - run: memo projects context HRB
     why: the project's key documents first, then its notes, findings and open tasks
-  - run: memo ask "what is still open for the Harbour kickoff?" --all
+  - run: memo answers create "what is still open for the Harbour kickoff?" --all
     why: one cited bundle across every account and the notes, for your agent to draft an agenda from
 look:
   - promises from the last occurrence and whether they were kept

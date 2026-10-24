@@ -88,7 +88,10 @@ export const answerEvidence = async (
 
 export const askCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const { print } = answers(program, streams, env)
-  const ask = annotate(program.command("ask"), { effects: REMOTE_READ })
+  const ask = annotate(
+    program.command("answers").description("cited evidence and optional model answers").command("create"),
+    { effects: REMOTE_READ },
+  )
     .description("prepare cited evidence for your agent, or explicitly call a configured model")
     .argument("<question>", "the question, in your own words")
     .argument(

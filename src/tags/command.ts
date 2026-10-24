@@ -112,9 +112,9 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
   const mutate = async (
     operation: "add" | "remove",
     given: string[],
-    { provider, account, ...options }: Picked & WriteOptions,
+    { account, ...options }: Picked & WriteOptions,
   ) => {
-    const value = writeAccountOf({ provider, account }, warn)
+    const value = writeAccountOf({ account }, warn)
     const scoped = async (store: MessageStore) =>
       value === undefined ? {} : oneAccountOf(store, env, value, "--account")
     const target =

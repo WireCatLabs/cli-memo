@@ -1,9 +1,11 @@
+import { randomUUID } from "node:crypto"
 import { captureStreams, type Streams } from "@wirecat/cli-base"
 import { describeProgram, flatten } from "@wirecat/cli-base/commands"
-import { changesAuthorityAt, provide } from "@wirecat/cli-core/cli"
+import { changesAuthorityAt, environmentOf, inRun, provide } from "@wirecat/cli-core/cli"
 import { type AgentProgram, runCommandForAgent, toolsFromCommands } from "@wirecat/cli-core/mcp"
 import type { Level } from "@wirecat/cli-core/sends"
 import type { Command } from "commander"
+import * as v from "valibot"
 import { itemAnswer } from "../answer.js"
 import { errorObject, throwParseFailures } from "../failure.js"
 
@@ -13,31 +15,31 @@ export const MCP_EXCLUSIONS = [
   { path: ["mcp"], reason: "starts another persistent MCP server" },
   { path: ["upgrade"], reason: "replaces the running executable" },
   { path: ["skill", "install"], reason: "installs instructions into other applications" },
-  { path: ["auto", "start"], reason: "installs a background timer" },
-  { path: ["auto", "stop"], reason: "removes a background timer" },
+  { path: ["jobs", "start"], reason: "installs a background timer" },
+  { path: ["jobs", "stop"], reason: "removes a background timer" },
 ] as const
 
 export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramFactory) => {
   const program = createProgram({ env, streams: captureStreams() })
   const commands = describeProgram(program)
   const all = flatten(commands)
-  const markedAuthority = changesAuthorityAt(program)
-  const authority = (path: readonly string[]) =>
-    markedAuthority(path) ||
-    [
-      "folders.add",
-      "folders.attach",
-      "folders.remove",
-      "mail.rules.add",
-      "mail.rules.remove",
-      "mail.rules.import",
-      "mail.rules.import-filters",
-    ].includes(path.join("."))
+  const authority = changesAuthorityAt(program)
   const keyOf = (path: readonly string[]) => path.join(".")
+  const byPath = new Map(all.map((info) => [keyOf(info.path), info]))
+  const stdin = (path: readonly string[]) =>
+    ["meetings.actions.add", "projects.actions.add"].includes(keyOf(path))
+      ? { name: "input", description: "the cited findings proposal as JSON", json: true as const }
+      : undefined
   const tools = toolsFromCommands(commands, {
+    stdin,
     exclude: MCP_EXCLUSIONS.map(({ path }) => path),
     omit: ["as_owner", "debug", "json", "jsonl", "no_input"],
   })
+  for (const tool of tools)
+    if (stdin(tool.path)) {
+      const { file: _, ...entries } = tool.input.entries
+      tool.input = v.object(entries)
+    }
   const runner: AgentProgram = {
     commands,
     run: async (argv, environment) => {
@@ -45,6 +47,7 @@ export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramF
       const fresh = createProgram({ streams, env: environment.env ?? env })
       let rendered = false
       provide(fresh, {
+        ...environmentOf(fresh),
         ...environment,
         streams,
         exit: {},
@@ -92,14 +95,27 @@ export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramF
   }
   return {
     tools,
+    availability: (path: readonly string[], levels: Record<string, Level>) => {
+      const info = byPath.get(keyOf(path))
+      const tool =
+        info &&
+        toolsFromCommands([info], { levels, keyOf, authority, includeUnavailable: true }).find(
+          (one) => keyOf(one.path) === keyOf(path),
+        )
+      return tool?.availability?.() ?? { available: false, reason: "command is not available over MCP" }
+    },
     authority,
     keyOf,
     run: async (path: readonly string[], input: Record<string, unknown>, levels: Record<string, Level>) =>
-      runCommandForAgent(runner, path, input, {
-        profile: "",
-        env: { ...env, AI_AGENT: "memo-mcp" },
-        levels: () => levels,
-        keyOf,
-      }),
+      inRun({ runId: randomUUID(), command: path.join(" "), startedAt: Date.now() }, () =>
+        runCommandForAgent(runner, path, stdin(path) ? { ...input, file: "-" } : input, {
+          stdin,
+          authority,
+          profile: "",
+          env: { ...env, AI_AGENT: "memo-mcp" },
+          levels: () => levels,
+          keyOf,
+        }),
+      ),
   }
 }

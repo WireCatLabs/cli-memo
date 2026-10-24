@@ -10,7 +10,7 @@ import { positive } from "../options.js"
 import { SAVE_HELP } from "../save-help.js"
 import { MAIL_SOURCES, mailboxesOf } from "../store/source-list.js"
 import { allAnswer, kindAnswer, notesAnswer } from "./answers.js"
-import { keyDocumentsFirst, mailAddressOf, searchEverywhere, searchKind, searchNotes } from "./search.js"
+import { keyDocumentsFirst, searchEverywhere, searchKind, searchNotes } from "./search.js"
 
 const onlyOf = (value: string): SearchedResource[] => {
   const selected = value.split(",").map((part) => part.trim())
@@ -156,7 +156,6 @@ content: narrows a search to the text of files, transcript: to voice transcripts
       leaf
         .option("--source <accounts>", `the mailboxes to search (default: every one): ${MAIL_SOURCES}`)
         .option("--plain-order", "best first by the words alone, without moving mail from suspicious senders down")
-        .option("--account <account>", "deprecated: --source email:<account>")
     leaf.addHelpText(
       "after",
       kind === "messages"
@@ -178,7 +177,6 @@ Mail from senders with signs of fraud (memo mail inspect) comes after the rest o
           limit: number
           exact?: boolean
           timezone?: string
-          account?: string
           source?: string
           json?: boolean
           brief?: boolean
@@ -187,18 +185,12 @@ Mail from senders with signs of fraud (memo mail inspect) comes after the rest o
         },
       ) => {
         const level = levelOf(options)
-        if (options.account !== undefined && options.source !== undefined)
-          throw new CliError("validation_error", "--account is the old --source email:<account>; give one of them")
-        if (options.account !== undefined)
-          streams.diagnostic(`--account is deprecated: use --source email:${options.account}\n`)
-        const account = options.account === undefined ? undefined : mailAddressOf(env, options.account)
         const text = words.join(" ")
         const answer = await withStore(env, async (store) => {
           const mailboxes = options.source === undefined ? undefined : await mailboxesOf(store, env, options.source)
           return searchKind(store, kind, {
             text,
             limit: options.limit,
-            ...(account === undefined ? {} : { account }),
             ...(mailboxes === undefined ? {} : { accounts: mailboxes }),
             ...(options.exact ? { exact: true } : {}),
             ...(options.plainOrder ? { plainOrder: true } : {}),

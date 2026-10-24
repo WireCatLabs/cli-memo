@@ -11,9 +11,9 @@ import { APP } from "./app.js"
 
 const refusalOf = (command: Command): string | undefined => {
   const { effects, lifetime } = metaOf(command)
-  // `mcp` keeps serving reads; the server keeps writing tools discoverable and refuses their calls.
+  // `mcp` keeps serving reads; writes remain discoverable but are refused.
   if (lifetime === "persistent") return undefined
-  if (changesAuthority(command) && command.opts().check !== true) return "install another version"
+  if (changesAuthority(command) && command.opts().check !== true) return "change what later runs may access"
   if (command.opts().allowRemote === true) return "send evidence to a model off this machine"
   if (effects?.remote === "write") return "change mail at the provider"
   if (isStoreChange(command)) return "change memo's store or files"

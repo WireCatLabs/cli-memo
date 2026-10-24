@@ -35,7 +35,7 @@ const TEXT_NOTE = /\.(md|markdown|txt)$/i
 const MEMO = "memo:"
 
 export const missingFolder = (path: string): string =>
-  `the notes folder ${path} is missing — connect its disk; if it moved, memo folders attach <id> <new path>`
+  `the notes folder ${path} is missing — connect its disk; if it moved, memo folders update <id> <new path>`
 
 const inside = (folder: string, path: string): string => relative(folder, path).split(sep).join("/")
 

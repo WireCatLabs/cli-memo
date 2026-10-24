@@ -39,7 +39,7 @@ share the name, link the right one with a reference such as `[Kai](person:7)`.
 
 Every folder needs an ID from the local store. Add it with `memo folders add /path/to/folder`. If the
 folder was added on another computer, connect it instead: `memo folders list` shows its ID, and
-`memo folders attach ID /path/to/folder` connects it ([details](notes.md#use-the-same-notes-on-another-computer)).
+`memo folders update ID /path/to/folder` connects it ([details](notes.md#use-the-same-notes-on-another-computer)).
 
 ## An import deleted nothing and printed a warning
 
@@ -81,7 +81,7 @@ local store, `wirecat.db`, and does not read the old file. Add each folder again
 
 ## Help shows every command instead of one
 
-A command path in one argument, such as `memo "projects add" --help`, is refused with the words to
+A command path in one argument, such as `"projects add"`, is refused with the words to
 type. A shell loop passes it that way: in zsh, `for c in "projects add"; do memo $c --help; done`
 keeps `$c` whole. Write `memo ${=c} --help` in zsh, or loop over the words.
 

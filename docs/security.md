@@ -13,7 +13,7 @@ to an AI provider only when you configure one and allow it.
   into the folder you name and never overwrite a file you edited. Selected annotation exports create
   a new private file at the path you choose, as described below.
 - **Mail imports** open your mailbox read-only and do not mark mail as read. Memo never sends mail.
-- **Gmail cleanup** is separate: `memo mail trash` and `memo mail restore` show a preview unless you
+- **Gmail cleanup** is separate: `memo mail delete` and `memo mail restore` show a preview unless you
   pass `--yes`. Trash moves selected mail into Gmail's Trash; Gmail deletes it permanently after
   30 days. Restore returns a logged run's mail while it remains in Trash. Cleanup requires a recent
   store backup and never runs from the sync timer. See [Gmail cleanup](mail.md#clean-up-gmail).
@@ -57,15 +57,15 @@ nothing and tells you.
   cannot replace a full archive backup.
 - The agent log records the agent, the tool, the result and the time, never what the agent sent.
 - An agent that should only read runs with `MEMO_READ_ONLY=1`. Every command that changes something then
-  stops with `permission_error` (exit 5), and `memo mcp` keeps writing tools listed as unavailable. Reads and `memo sync`
+  stops with `permission_error` (exit 5), and `memo mcp` keeps writing commands discoverable but refuses them. Reads and `memo sync`
   still run, and so does `tasks link`, the task write a scheduled agent makes, as in tg and max:
-  a link is only suggested, and linking two tasks is refused. `reminders poll` is refused.
+  a link is only suggested, and linking two tasks is refused. `reminders claim` is refused.
 - Two accounts are treated as one person only after you link them. A matching name or email domain
   is never enough.
 
 ## What can leave your computer
 
-- `memo ask` gives the sources to your own agent by default. It sends them to an AI provider only
+- `memo answers create` gives the sources to your own agent by default. It sends them to an AI provider only
   with `--analyze`, and to a provider outside your computer only with `--allow-remote` as well. The
   provider's answer is generated text: check it against the sources.
 - What your agent does with the text it reads is up to that agent and its provider. Memo cannot

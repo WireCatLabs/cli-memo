@@ -1,6 +1,7 @@
 import { CliError } from "@wirecat/cli-base"
 import { setupPermissionCeiling } from "@wirecat/cli-core/cli"
 import { CEILING_KEY, type Level, layerPermissions, levelFor } from "@wirecat/cli-core/sends"
+import { assertMemoPermissionPaths } from "../command-moves.js"
 import { loadConfig } from "../config.js"
 import { readOnly } from "../read-only.js"
 
@@ -23,6 +24,7 @@ export const memoLevels = (
     const match = /^([a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)*)=(deny|readonly|ask|allow)$/.exec(entry)
     if (!match)
       throw new CliError("validation_error", "--permission takes a command path and level, e.g. notes.edit=deny")
+    assertMemoPermissionPaths([match[1] as string])
     changed[match[1] as string] = match[2] as Level
   }
   const levels = layerPermissions([

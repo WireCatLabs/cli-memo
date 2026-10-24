@@ -42,12 +42,6 @@ Plans and owner rulings live in the private notes (`cli-private`, `plans/`); thi
 
 ## Next (P2)
 
-- **MEMO-31** · P2 · Finish MCP alignment with the shared three-tool surface (WC-MCP-1): use cli-core
-  `registerCommands` for `memo_tools_search`, `memo_read` and `memo_write`. The command coverage is generated,
-  but the server still lists individual tools and keeps 37 handwritten compatibility handlers
-  (`src/mcp/server.ts`, `src/mcp/catalogue.ts`). Plan the saved-client migration and retire duplicate handlers;
-  retain richer evidence answers through the CLI service path.
-
 - **MEMO-7** · P2 · `search all` and `context` do not read meetings; meetings need `search meetings` with one
   explicit `--source` (`skills/cli-memo/SKILL.md:104`). Add stored meetings to `search all` with coverage.
 - **MEMO-8** · P2 · Project gathering, next slices: source readiness (slice 1), context expansion with the

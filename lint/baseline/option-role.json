@@ -1,7 +1,1 @@
-[
-  "search meetings --identity-id",
-  "search meetings --meeting-id",
-  "search meetings --person-id",
-  "search meetings --series-id",
-  "search meetings --tag"
-]
+[]

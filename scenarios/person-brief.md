@@ -18,7 +18,7 @@ steps:
     why: what stored Zoom meetings say about them, through the identities linked to that person
   - run: drive search Kai
     why: Drive documents that name them
-  - run: memo ask "what is open with Kai?" --all
+  - run: memo answers create "what is open with Kai?" --all
     why: one cited evidence bundle across every account and the notes, ready to hand to your agent
 look:
   - open tasks and promises, both ways

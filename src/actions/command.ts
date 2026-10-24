@@ -33,13 +33,12 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
         kind: string,
         {
           asOwner,
-          provider,
           account,
           ...options
         }: Omit<NewProposal, "kind" | "provider" | "account"> & WriteOptions & { asOwner?: boolean; json?: boolean },
       ) =>
         run(options.json, async (store) => {
-          const key = await writeAccount(store, env, { provider, account }, (text) => streams.diagnostic(text))
+          const key = await writeAccount(store, env, { account }, (text) => streams.diagnostic(text))
           return itemAnswer(await propose(store, { ...options, ...key, kind }, authorOf(env, asOwner)))
         }),
     )

@@ -30,7 +30,7 @@ For a batch of cited meeting facts and tasks, use the [meeting findings review](
 For sources gathered across a project, use the [project proposal review](recipes.md#review-project-facts-and-follow-ups).
 By default an agent may decide those proposals with a recorded reason, creating accepted facts and
 numbered tasks. Set [`agent_decisions: false`](configuration.md#agent_decisions) to require owner
-decisions for project proposals. Meeting findings still require the owner.
+decisions for project proposals. Meeting findings decisions require explicit permissions.
 
 **What waits for you.** A proposed action always waits until you approve or reject it. A memory or
 directly recorded fact waits when an agent adds it: through [the MCP server](mcp.md), or with the `memo` command in an
@@ -52,7 +52,7 @@ memo memories list kind:preference scope:work
 memo memories show memory:3
 memo search memories friday meetings scope:work
 memo memories confirm memory:3
-memo memories stale memory:3
+memo memories invalidate memory:3
 ```
 
 A memory you add with the `memo` command is confirmed at once. One an agent adds waits as
@@ -130,8 +130,8 @@ memo actions add reply --reason 'Kai asked twice' --account telegram:1 --target 
 ## What agents did
 
 ```sh
-memo agents log --limit 20
-memo agents log agent:memo-mcp
+memo agents list --limit 20
+memo agents list agent:memo-mcp
 ```
 
 The agent log lists every call an agent made through the MCP servers of Memo, tg and max, newest

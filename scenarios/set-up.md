@@ -6,7 +6,7 @@ steps:
     why: gives your notes folder an id; memo never changes the files
   - run: memo sync --only notes
     why: imports the notes now; mail accounts come from the mail.accounts setting
-  - run: memo auto start
+  - run: memo jobs start
     why: syncs notes and mail every 5 minutes from now on
   - run: memo doctor
     why: where memo keeps its files and what needs attention; it connects to nothing

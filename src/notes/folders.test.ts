@@ -60,7 +60,7 @@ describe("memo folders", () => {
     expect(answerOf(await run("folders", "list", "--json")).items).toEqual([
       { id, name: "vault", format: "obsidian", path: null },
     ])
-    await run("folders", "attach", id, join(root, "plain"), "--format", "markdown")
+    await run("folders", "update", id, join(root, "plain"), "--format", "markdown")
     expect(answerOf(await run("folders", "list", "--json")).items).toEqual([
       { id, path: join(root, "plain"), format: "markdown" },
     ])
@@ -72,7 +72,7 @@ describe("memo folders", () => {
   })
 
   it("refuses to attach an id the store does not have", async () => {
-    await expect(run("folders", "attach", "fld_unknown", join(root, "plain"))).rejects.toThrow(/has no folder/)
+    await expect(run("folders", "update", "fld_unknown", join(root, "plain"))).rejects.toThrow(/has no folder/)
   })
 
   it("lists drive's Google Drive folder as drive's and refuses to attach it", async () => {
@@ -83,8 +83,8 @@ describe("memo folders", () => {
     expect(answerOf(await run("folders", "list", "--json")).items).toEqual([
       { id: drive.id, name: "google-drive:someone@example.com", format: "markdown", path: null, kept_by: "drive" },
     ])
-    expect(await run("folders", "list")).not.toContain("memo folders attach")
-    await expect(run("folders", "attach", drive.id, join(root, "plain"))).rejects.toThrow(/drive keeps it/)
+    expect(await run("folders", "list")).not.toContain("memo folders update")
+    await expect(run("folders", "update", drive.id, join(root, "plain"))).rejects.toThrow(/drive keeps it/)
     expect(noteFolders(loadConfig(env).notes)).toEqual([])
   })
 

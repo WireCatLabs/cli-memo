@@ -107,7 +107,7 @@ describe("combined evidence, relationships and local reminders", () => {
     const messagesOnly = await run("search", "all", "budget AND chat:77")
     expect(messagesOnly.items.length).toBeGreaterThan(0)
     expect(messagesOnly.meta.issues).toContainEqual({ code: expect.any(String), source: "notes" })
-    const bundle = await run("ask", "What is pending?", "budget", "--all")
+    const bundle = await run("answers", "create", "What is pending?", "budget", "--all")
     expect(bundle.evidence.length).toBeGreaterThan(0)
     expect(bundle.coverage.find(({ provider }: { provider: string }) => provider === "telegram")).toEqual({
       provider: "telegram",
@@ -123,16 +123,16 @@ describe("combined evidence, relationships and local reminders", () => {
       },
     })
     const reminder = await run("reminders", "add", document.task.id, "--at-time", "2026-01-01T00:00:00Z", ...acts)
-    const [delivery] = (await run("reminders", "poll", ...acts)).items
+    const [delivery] = (await run("reminders", "claim", ...acts)).items
     expect(delivery.delivery_id).toBe(`${reminder.id}:1`)
-    expect((await run("reminders", "poll", ...acts)).items).toEqual([])
-    await run("reminders", "ack", reminder.id, delivery.receipt, ...acts)
-    expect((await run("reminders", "poll", ...acts)).items).toEqual([])
+    expect((await run("reminders", "claim", ...acts)).items).toEqual([])
+    await run("reminders", "acknowledge", reminder.id, delivery.receipt, ...acts)
+    expect((await run("reminders", "claim", ...acts)).items).toEqual([])
     const second = await openStore({ env })
     await second.accounts.saveAccount({ ...key, account: "2" }, { name: null })
     await second.close()
     await expect(run("context", "telegram:101")).rejects.toMatchObject({ code: "validation_error" })
-    expect((await run("context", "telegram:101", "--account", "1")).tasks.items).toHaveLength(3)
+    expect((await run("context", "telegram:101", "--source", "telegram:1")).tasks.items).toHaveLength(3)
   })
 })
 

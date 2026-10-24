@@ -7,6 +7,7 @@ import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { afterEach, expect, it, vi } from "vitest"
 import { answerOf, envelopeOf } from "../../test/answer.js"
+import { callCommand } from "../../test/mcp.js"
 import { createMemoServer } from "../mcp/server.js"
 import { createProgram } from "../program.js"
 
@@ -99,7 +100,7 @@ it("shares the zoned cutoff and field-specific validation across CLI and MCP", a
   await client.connect(transport)
   try {
     const args = { project: "HBX", source: "telegram:cutoff-fixture", before_time: "2026-10-01T14:00:00+02:00" }
-    const result = await client.callTool({ name: "project_evidence", arguments: args })
+    const result = await callCommand(client, { name: "projects evidence", arguments: args })
     expect(result.isError).toBeFalsy()
     expect(refs((result.structuredContent as { item: Parameters<typeof refs>[0] }).item)).toEqual(expected)
     for (const bad of ["2026-10-01", "2026-10-01T12:00:00", "2026-02-30T12:00:00Z"]) {
@@ -108,17 +109,19 @@ it("shares the zoned cutoff and field-specific validation across CLI and MCP", a
         details: { param: "before_time" },
       })
       expect(
-        await client.callTool({ name: "project_evidence", arguments: { ...args, before_time: bad } }),
+        await callCommand(client, { name: "projects evidence", arguments: { ...args, before_time: bad } }),
       ).toMatchObject({
         isError: true,
         structuredContent: { error: { code: "validation_error", param: "before_time" } },
       })
     }
-    expect(await client.callTool({ name: "project_evidence", arguments: { ...args, since_time: END } })).toMatchObject({
+    expect(
+      await callCommand(client, { name: "projects evidence", arguments: { ...args, since_time: END } }),
+    ).toMatchObject({
       isError: true,
       structuredContent: { error: { code: "validation_error", param: "before_time" } },
     })
-    expect(await client.callTool({ name: "project_evidence", arguments: { ...args, asOf: END } })).toMatchObject({
+    expect(await callCommand(client, { name: "projects evidence", arguments: { ...args, asOf: END } })).toMatchObject({
       isError: true,
       structuredContent: { error: { code: "validation_error", param: "asOf" } },
     })
@@ -145,7 +148,7 @@ it("names the zone a start date was read in and gives the window in UTC, in the 
     await client.connect(transport)
     try {
       const args = { project: "HBX", source: "telegram:cutoff-fixture", before_time: END, since_time: "2026-09-01" }
-      const result = await client.callTool({ name: "project_evidence", arguments: args })
+      const result = await callCommand(client, { name: "projects evidence", arguments: args })
       expect((result.structuredContent as { meta: object }).meta).toMatchObject({
         timezone: "Asia/Vladivostok",
         window,

@@ -8,6 +8,7 @@ import { openStore } from "@wirecat/cli-core/store"
 import { beforeEach, describe, expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
 import { APP } from "../app.js"
+import { throwParseFailures } from "../failure.js"
 import { himalaya } from "../mail/himalaya.js"
 import { importMail } from "../mail/import.js"
 import { himalayaSource } from "../mail/source.js"
@@ -25,7 +26,9 @@ const mailLocator = () => formatLocator({ ...mail, chat: "7", message: "42" })
 
 const run = async (...args: string[]) => {
   const streams = captureStreams()
-  await createProgram({ streams, env }).exitOverride().parseAsync(args, { from: "user" })
+  const program = createProgram({ streams, env })
+  throwParseFailures(program)
+  await program.parseAsync(args, { from: "user" })
   return streams.stdout.join("")
 }
 const json = async (...args: string[]) => answerOf(await run(...args, "--json"))
@@ -184,7 +187,9 @@ describe("memo source tags", () => {
     ])
       await expect(json("tags", "add", ...args)).rejects.toMatchObject({ code: "validation_error" })
     expect((await json("tags", "list")).items).toEqual([])
-    await expect(json("tags", "list", "--account", mail.account)).rejects.toMatchObject({ code: "validation_error" })
+    await expect(json("tags", "list", "--account", mail.account)).rejects.toMatchObject({
+      code: "commander.unknownOption",
+    })
     await expect(json("tags", "list", "--source", "email:missing")).rejects.toMatchObject({
       code: "not_found",
     })

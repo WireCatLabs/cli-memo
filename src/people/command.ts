@@ -1,9 +1,9 @@
 import { join } from "node:path"
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { LOCAL_WRITE } from "@wirecat/cli-core/cli"
+import { LOCAL_READ, LOCAL_WRITE } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
-import { withStore } from "../answer.js"
+import { answers, itemAnswer, withStore } from "../answer.js"
 import { boundFolders, folderOfFile } from "../notes/bound.js"
 import { folderNotes } from "../notes/import.js"
 import { identityOf } from "./identity.js"
@@ -11,20 +11,31 @@ import { importNotesMap } from "./notes-map.js"
 
 /** Who is who is linked in messaging (`tg contacts link`); the note about a person is an `about` link. */
 export const noteCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
-  annotate(program.command("note"), { effects: LOCAL_WRITE })
-    .description("name the note that is about a person, or show it")
-    .argument("<identity>", "<messenger>:<name or id> of any identity of the person")
-    .argument("[path]", "the note about them, a file in a configured folder")
-    .option("--clear", "forget which file note is about them")
-    .action(async (identity: string, path: string | undefined, options: { clear?: boolean }) => {
-      await withStore(env, async (store) => {
+  const notes = program.commands.find((command) => command.name() === "notes") ?? program.command("notes")
+  const links = notes.command("links").description("imported note files linked to the person behind an identity")
+  const { print } = answers(program, streams, env)
+  for (const operation of ["show", "add", "clear"] as const) {
+    const command = annotate(links.command(operation), {
+      effects: operation === "show" ? LOCAL_READ : LOCAL_WRITE,
+      output: { entity: "person_note_links" },
+    })
+      .description(
+        {
+          show: "show the note files about a person",
+          add: "link an imported note file to a person",
+          clear: "remove the owner's note-file links for a person",
+        }[operation],
+      )
+      .argument("<identity>", "<messenger>:<name or id> of an identity of the person")
+      .option("--json", "print the standard JSON answer")
+    if (operation === "add") command.argument("<path>", "the imported note file in a configured folder")
+    command.action(async (identity: string, value: unknown) => {
+      const result = await withStore(env, async (store) => {
         const folders = await boundFolders(store, env, { strict: false })
         await importNotesMap(store, env, folders)
         const person = await store.people.personOf(await identityOf(store, identity))
         if (person === undefined)
-          throw new CliError("not_found", `the store has no person for "${identity}"`, {
-            reason: "person.not-found",
-          })
+          throw new CliError("not_found", `the store has no person for "${identity}"`, { reason: "person.not-found" })
         const to = `person:${person.uid}`
         const files = async () => {
           const found = []
@@ -35,8 +46,9 @@ export const noteCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           }
           return found
         }
-        if (options.clear) for (const { link } of await files()) await store.notes.removeLink(link.id)
-        else if (path !== undefined) {
+        if (operation === "clear") for (const { link } of await files()) await store.notes.removeLink(link.id)
+        else if (operation === "add") {
+          const path = String(value)
           const { folder, path: inside } = folderOfFile(folders, path)
           const note = (await folderNotes(store, folder.id)).find((candidate) => candidate.path === inside)
           if (!note)
@@ -45,11 +57,13 @@ export const noteCommand = (program: Command, streams: Streams, env: NodeJS.Proc
             })
           await store.notes.addLink({ from: note.ref, to, kind: "about", origin: "owner" })
         }
-        const shown = (await files()).map(({ note }) => {
+        const paths = (await files()).map(({ note }) => {
           const folder = folders.find((candidate) => candidate.id === note.folderId)
           return folder ? join(folder.path, note.path as string) : note.ref
         })
-        streams.data(`${person.name ?? person.uid}: ${shown.join(", ") || "no note"}\n`)
+        return { person: to, name: person.name ?? person.uid, files: paths }
       })
+      print(command.opts().json, itemAnswer(result), `${result.name}: ${result.files.join(", ") || "no note"}`)
     })
+  }
 }

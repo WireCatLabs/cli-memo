@@ -83,7 +83,7 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
       run(options.json, async (store) => itemAnswer(memoryItem(await store.memories.confirm(ref)))),
     )
 
-  annotate(memories.command("stale"), { effects: LOCAL_WRITE, output: { entity: "memory" } })
+  annotate(memories.command("invalidate"), { effects: LOCAL_WRITE, output: { entity: "memory" } })
     .description("mark a memory whose evidence no longer holds")
     .argument("<ref>", "memory:<id>")
     .option("--json", "print JSON; --json=id,title keeps only those fields")

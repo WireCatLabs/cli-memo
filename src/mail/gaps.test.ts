@@ -133,7 +133,7 @@ describe("bulk mail", () => {
     await store.close()
     opened.splice(opened.indexOf(store), 1)
 
-    expect(await search(["trip", "--account", "test"], env)).toHaveLength(2)
-    expect(await search(["trip NOT mailbox:bulk", "--account", "test"], env)).toHaveLength(1)
+    expect(await search(["trip", "--source", "email:test"], env)).toHaveLength(2)
+    expect(await search(["trip NOT mailbox:bulk", "--source", "email:test"], env)).toHaveLength(1)
   })
 })

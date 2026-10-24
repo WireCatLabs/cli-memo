@@ -9,7 +9,7 @@ import { isStoreChange } from "@wirecat/cli-core/cli"
 import { expect, it } from "vitest"
 import { EXAMPLES, leaves } from "./examples.js"
 import { errorObject } from "./failure.js"
-import { createMemoServer, MEMO_TOOLS } from "./mcp/server.js"
+import { createMemoServer } from "./mcp/server.js"
 import { createProgram } from "./program.js"
 
 const lockedEnv = () => ({
@@ -56,27 +56,27 @@ it("still reads, syncs and looks for a new version under MEMO_READ_ONLY", async 
   await expect(run(env, ["tags", "list", "--json"])).resolves.toBeDefined()
   await expect(run(env, ["sync", "--only", "notes", "--no-embed", "--json"])).resolves.toBeDefined()
   await expect(run(env, ["upgrade"])).rejects.toMatchObject({ code: "permission_error" })
-  await expect(run(env, ["ask", "budget", "--all", "--analyze", "--allow-remote"])).rejects.toMatchObject({
-    code: "permission_error",
-  })
+  await expect(run(env, ["answers", "create", "budget", "--all", "--analyze", "--allow-remote"])).rejects.toMatchObject(
+    {
+      code: "permission_error",
+    },
+  )
 })
 
-it("keeps writing MCP tools discoverable but unavailable under MEMO_READ_ONLY", async () => {
+it("leaves the writing MCP tools out under MEMO_READ_ONLY", async () => {
   const [serverSide, clientSide] = InMemoryTransport.createLinkedPair()
   await createMemoServer(lockedEnv(), createProgram).connect(serverSide)
   const client = new Client({ name: "fixture", version: "0" })
   await client.connect(clientSide)
   try {
-    const reads = Object.entries(MEMO_TOOLS)
-      .filter(([, tool]) => !tool.writes)
-      .map(([name]) => name)
     const tools = (await client.listTools()).tools
-    expect(tools.map(({ name }) => name)).toEqual(expect.arrayContaining(reads))
-    for (const [name, tool] of Object.entries(MEMO_TOOLS)) {
-      const found = tools.find((entry) => entry.name === name)
-      expect(found).toBeDefined()
-      if (tool.writes) expect(found?._meta).toMatchObject({ availability: { available: false } })
-    }
+    expect(tools.map(({ name }) => name)).toEqual(["memo_tools_search", "memo_read", "memo_write"])
+    const discovery = await client.callTool({ name: "memo_tools_search", arguments: {} })
+    const writes = (
+      discovery.structuredContent as { items: { writes: boolean; availability: { available: boolean } }[] }
+    ).items.filter((item) => item.writes)
+    expect(writes.length).toBeGreaterThan(0)
+    expect(writes.every((item) => !item.availability.available)).toBe(true)
   } finally {
     await client.close()
   }
@@ -102,4 +102,29 @@ it("shows the read lock in CLI discovery and help while keeping write arguments"
   add?.outputHelp()
   expect(help).toContain("unavailable")
   expect(help).toContain("MEMO_READ_ONLY")
+})
+
+it("retains CLI availability metadata when commands run through the MCP runner", async () => {
+  const [serverSide, clientSide] = InMemoryTransport.createLinkedPair()
+  await createMemoServer(lockedEnv(), createProgram).connect(serverSide)
+  const client = new Client({ name: "fixture", version: "0" })
+  await client.connect(clientSide)
+  try {
+    const result = await client.callTool({
+      name: "memo_read",
+      arguments: { command: "commands", arguments: { path: ["notes", "add"] } },
+    })
+    expect(result.isError, JSON.stringify(result.structuredContent)).not.toBe(true)
+    expect(result.structuredContent).toMatchObject({
+      item: {
+        commands: [
+          expect.objectContaining({
+            availability: { available: false, reason: expect.stringContaining("MEMO_READ_ONLY") },
+          }),
+        ],
+      },
+    })
+  } finally {
+    await client.close()
+  }
 })

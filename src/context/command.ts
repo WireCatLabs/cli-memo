@@ -1,4 +1,4 @@
-import { CliError, type Streams } from "@wirecat/cli-base"
+import type { Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { LOCAL_READ } from "@wirecat/cli-core/cli"
 import type { ContextMessage } from "@wirecat/cli-core/services"
@@ -35,7 +35,7 @@ export const contextText = ({ messages, notes, notRead, tasks, yourNotes }: Memo
     "",
     "",
     ...(notes.about.length === 0
-      ? ["Note about them  none — memo note <identity> <path>"]
+      ? ["Note about them  none — memo notes links add <identity> <path>"]
       : ["Notes about them", ...notes.about.map(noteLine)]),
     ...(notes.linking.length === 0 ? [] : ["Notes linking them", ...notes.linking.map(noteLine)]),
     ...(notes.throughNotes.length === 0
@@ -75,16 +75,11 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
       "--source <accounts>",
       "the account to read, as provider:account; required when the store holds several of that messenger",
     )
-    .option("--account <account>", "deprecated: --source <messenger>:<account>")
-    .action(async (person: string, options: { limit: number; json?: boolean; source?: string; account?: string }) => {
-      if (options.account !== undefined && options.source !== undefined)
-        throw new CliError("validation_error", "--account is the old --source <messenger>:<account>; give one of them")
-      if (options.account !== undefined)
-        streams.diagnostic(`--account is deprecated: use --source ${person.split(":")[0]}:${options.account}\n`)
+    .action(async (person: string, options: { limit: number; json?: boolean; source?: string }) => {
       const answer = await withStore(env, async (store) => {
         await importNotesMap(store, env, await boundFolders(store, env, { strict: false }))
         const account =
-          options.source === undefined ? options.account : await contextAccountOf(store, env, person, options.source)
+          options.source === undefined ? undefined : await contextAccountOf(store, env, person, options.source)
         return memoContext(store, person, { limit: options.limit, ...(account === undefined ? {} : { account }) })
       })
       print(options.json, itemAnswer(answer), contextText(answer))

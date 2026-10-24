@@ -104,7 +104,7 @@ const trash = async (env: NodeJS.ProcessEnv, apply: boolean, rules: MailRule[] =
     ...(limit === undefined ? {} : { limit }),
   })
 
-describe("memo mail trash", () => {
+describe("memo mail delete", () => {
   it("decides each envelope again and keeps replied, starred, labelled, protected and new mail in Gmail", async () => {
     const { env } = setup([
       mail(1),

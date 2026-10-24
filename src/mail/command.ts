@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { dateWindow, LOCAL_READ, LOCAL_WRITE, REMOTE_READ, REMOTE_WRITE } from "@wirecat/cli-core/cli"
+import { dateWindow, grantsAuthority, LOCAL_READ, LOCAL_WRITE, REMOTE_READ, REMOTE_WRITE } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { type Config, loadConfig } from "../config.js"
@@ -183,7 +183,7 @@ const trashText = (result: TrashResult): string => {
         `memo mail restore ${result.account} --run ${result.run} --yes brings them back within ${RESTORE_DAYS} days`
       : result.candidates === 0
         ? "nothing to move"
-        : `memo mail trash ${result.account} --yes moves the oldest ${Math.min(result.limit, result.candidates)}` +
+        : `memo mail delete ${result.account} --yes moves the oldest ${Math.min(result.limit, result.candidates)}` +
           (result.first_run ? " (a first run moves at most 100, to check by hand in Gmail)" : "") +
           (result.archive.ok ? "" : "; it refuses until a store backup under 8 days old is recorded"),
   ].join("\n")
@@ -305,7 +305,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       print(options.json, itemAnswer(status, { meta: { accounts: [account.name] } }), statusText(status))
     })
 
-  annotate(mail.command("trash"), { effects: REMOTE_WRITE })
+  annotate(mail.command("delete"), { effects: REMOTE_WRITE })
     .description("move envelope mail to Gmail's Trash, decided again; dry run unless --yes")
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .option(
@@ -351,7 +351,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
   annotate(mail.command("restore"), { effects: REMOTE_WRITE })
     .description("move a cleanup run's mail back from Gmail's Trash; dry run unless --yes")
     .argument("<account>", "the account's name in mail.accounts, or its address")
-    .requiredOption("--run <id>", "the run, as memo mail runs lists it")
+    .requiredOption("--run <id>", "the run, as memo mail runs list lists it")
     .option("--yes", "move the mail back; without it, only say what would move")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText(
@@ -377,7 +377,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       print(options.json, itemAnswer(result, { meta: { accounts: [account.name] } }), restoreText(result))
     })
 
-  annotate(mail.command("runs"), { effects: LOCAL_READ })
+  annotate(mail.command("runs").description("an account’s cleanup runs").command("list"), { effects: LOCAL_READ })
     .description("an account's cleanup runs, how much moved, and until when restorable")
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
@@ -386,7 +386,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       const runs = trashRuns(env, account.name)
       print(
         options.json,
-        wholeList("mail runs", runs),
+        wholeList("mail runs list", runs),
         runs.length === 0
           ? "no cleanup runs"
           : runs
@@ -433,7 +433,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     })
 
   MATCH_OPTIONS(
-    annotate(rules.command("add"), { effects: LOCAL_WRITE })
+    grantsAuthority(annotate(rules.command("add"), { effects: LOCAL_WRITE }))
       .description("decide mail by sender, list, subject, age, size, label or kind; repeats replace")
       .argument("<account>", "the account's name in mail.accounts, or its address"),
   )
@@ -475,7 +475,7 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     )
 
   MATCH_OPTIONS(
-    annotate(rules.command("remove"), { effects: LOCAL_WRITE })
+    grantsAuthority(annotate(rules.command("remove"), { effects: LOCAL_WRITE }))
       .description("drop the rule with exactly these conditions")
       .argument("<account>", "the account's name in mail.accounts, or its address"),
   )
@@ -492,45 +492,6 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           reason: "mail.rule-not-found",
         })
       print(options.json, itemAnswer({ removed: match }), `removed the rule for ${describe(match)}`)
-    })
-
-  annotate(rules.command("import-filters"), { effects: LOCAL_WRITE })
-    .description("propose rules from a Takeout export's Gmail filters; --yes adds them")
-    .argument("<account>", "the account's name in mail.accounts, or its address")
-    .argument("<file>", "Takeout's Mail/User settings/Filters.json")
-    .option("--yes", "add the proposed rules; without it, only show them")
-    .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .addHelpText(
-      "after",
-      "\nA filter that skips the inbox, marks read or deletes becomes an envelope rule; one that only adds labels " +
-        "becomes a tag. A filter memo cannot express (a search query, a size, no sender) is listed as skipped.",
-    )
-    .action(async (name: string, path: string, options: { yes?: boolean; json?: boolean }) => {
-      const account = accountOf(loadConfig(env), name)
-      const parsed = importFilters(readFileSync(path, "utf8"), path)
-      const { proposal, mapping, added } = await withStore(env, async (store) => {
-        const { rules: mapped, mapping } = await mapProposedTags(store, parsed.rules)
-        const proposal = { ...parsed, rules: mapped }
-        if (!options.yes) return { proposal, mapping, added: 0 }
-        await rulesOf(store, account, env, streams.diagnostic)
-        const out: MailRule[] = []
-        for (const rule of proposal.rules) out.push(await saveRule(store, account.address, rule))
-        return { proposal, mapping, added: out.length }
-      })
-      print(
-        options.json,
-        itemAnswer({ ...proposal, tagMapping: mapping, added }),
-        [
-          ...proposal.rules.map(ruleLine),
-          ...mapping.map(
-            ({ tag, as, why }) => `label    ${tag} → ${as} (${why === "reuse" ? "same label" : "similar label"})`,
-          ),
-          ...proposal.skipped.map(({ filter, why }) => `skipped  ${filter}: ${why}`),
-          options.yes
-            ? `added ${added} rules to ${account.name}`
-            : `${proposal.rules.length} rules proposed; memo mail rules import-filters ${name} ${path} --yes adds them`,
-        ].join("\n"),
-      )
     })
 
   annotate(rules.command("apply"), { effects: LOCAL_WRITE })
@@ -579,20 +540,57 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       streams.data(`${JSON.stringify(file, null, 2)}\n`)
     })
 
-  annotate(rules.command("import"), { effects: LOCAL_WRITE })
-    .description("add the rules of a file from memo mail rules export; same match replaces")
+  grantsAuthority(annotate(rules.command("import"), { effects: LOCAL_WRITE }))
+    .summary("import saved rules, or preview Gmail filters")
+    .description("import saved Memo rules, or preview Gmail filters with --format gmail; same match replaces")
     .argument("<account>", "the account's name in mail.accounts, or its address")
-    .argument("<file>", "the file memo mail rules export wrote")
+    .argument("<file>", "a Memo rules JSON file, or Takeout Filters.json with --format gmail")
+    .option("--format <format>", "memo (default) or gmail", oneOf(["memo", "gmail"] as const), "memo")
+    .option("--yes", "with --format gmail: add the proposed rules instead of only previewing them")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action(async (name: string, path: string, options: { json?: boolean }) => {
-      const account = accountOf(loadConfig(env), name)
-      const rules = rulesFileOf(readFileSync(path, "utf8"), path)
-      const saved = await withStore(env, async (store) => {
-        await rulesOf(store, account, env, streams.diagnostic)
-        const out: MailRule[] = []
-        for (const rule of rules) out.push(await saveRule(store, account.address, rule))
-        return out
-      })
-      print(options.json, wholeList("mail rules import", saved), `imported ${saved.length} rules into ${account.name}`)
-    })
+    .action(
+      async (name: string, path: string, options: { json?: boolean; format: "memo" | "gmail"; yes?: boolean }) => {
+        if (options.format === "gmail") {
+          const account = accountOf(loadConfig(env), name)
+          const parsed = importFilters(readFileSync(path, "utf8"), path)
+          const { proposal, mapping, added } = await withStore(env, async (store) => {
+            const { rules: mapped, mapping } = await mapProposedTags(store, parsed.rules)
+            const proposal = { ...parsed, rules: mapped }
+            if (!options.yes) return { proposal, mapping, added: 0 }
+            await rulesOf(store, account, env, streams.diagnostic)
+            const out: MailRule[] = []
+            for (const rule of proposal.rules) out.push(await saveRule(store, account.address, rule))
+            return { proposal, mapping, added: out.length }
+          })
+          print(
+            options.json,
+            itemAnswer({ ...proposal, tagMapping: mapping, added }),
+            [
+              ...proposal.rules.map(ruleLine),
+              ...mapping.map(
+                ({ tag, as, why }) => `label    ${tag} → ${as} (${why === "reuse" ? "same label" : "similar label"})`,
+              ),
+              ...proposal.skipped.map(({ filter, why }) => `skipped  ${filter}: ${why}`),
+              options.yes
+                ? `added ${added} rules to ${account.name}`
+                : `${proposal.rules.length} rules proposed; memo mail rules import ${name} ${path} --yes adds them`,
+            ].join("\n"),
+          )
+          return
+        }
+        const account = accountOf(loadConfig(env), name)
+        const rules = rulesFileOf(readFileSync(path, "utf8"), path)
+        const saved = await withStore(env, async (store) => {
+          await rulesOf(store, account, env, streams.diagnostic)
+          const out: MailRule[] = []
+          for (const rule of rules) out.push(await saveRule(store, account.address, rule))
+          return out
+        })
+        print(
+          options.json,
+          wholeList("mail rules import", saved),
+          `imported ${saved.length} rules into ${account.name}`,
+        )
+      },
+    )
 }

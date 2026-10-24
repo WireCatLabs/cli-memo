@@ -8,6 +8,7 @@ import { contextEvidenceFingerprint } from "@wirecat/cli-core/services"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
+import { callCommand } from "../../test/mcp.js"
 import { createMemoServer } from "../mcp/server.js"
 import { createProgram } from "../program.js"
 
@@ -84,8 +85,8 @@ it("shows cited document paragraphs in CLI and MCP review, while brief and zero 
   try {
     await server.connect(right)
     await client.connect(left)
-    const answer = await client.callTool({
-      name: "project_actions_list",
+    const answer = await callCommand(client, {
+      name: "projects actions list",
       arguments: {
         project: "SYP",
         before_n: 1,

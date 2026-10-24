@@ -7,6 +7,7 @@ import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { envelopeOf } from "../../test/answer.js"
+import { callCommand, commandSchema } from "../../test/mcp.js"
 import { createMemoServer } from "../mcp/server.js"
 import { createProgram } from "../program.js"
 
@@ -90,11 +91,11 @@ it("serves a read-only MCP preview and names unknown fields in the handler's val
   const client = new Client({ name: "fixture", version: "0" })
   await client.connect(clientSide)
   try {
-    const tool = (await client.listTools()).tools.find((tool) => tool.name === "vocabulary_inspect")
-    expect(tool?.annotations).toMatchObject({ readOnlyHint: true, destructiveHint: false, openWorldHint: false })
-    expect(tool?.inputSchema).toMatchObject({ additionalProperties: false })
+    const tool = (await client.listTools()).tools.find((tool) => tool.name === "memo_read")
+    expect(tool?.annotations).toMatchObject({ readOnlyHint: true, destructiveHint: false, openWorldHint: true })
+    expect(await commandSchema(client, "vocabulary inspect")).toMatchObject({ additionalProperties: false })
     const call = (fields: Record<string, unknown>) =>
-      client.callTool({ name: "vocabulary_inspect", arguments: { source, survivor, fingerprint, ...fields } })
+      callCommand(client, { name: "vocabulary inspect", arguments: { source, survivor, fingerprint, ...fields } })
     const result = await call({ max_rows: 5000, max_read_bytes: 65536, limit: 1 })
     const body = envelopeOf(JSON.stringify(result.structuredContent))
     expect(body.item).toMatchObject({
@@ -105,7 +106,10 @@ it("serves a read-only MCP preview and names unknown fields in the handler's val
       const failed = await call(fields)
       expect(failed.isError).toBe(true)
       expect(failed.structuredContent).toMatchObject({
-        error: { code: "validation_error", param: Object.keys(fields)[0] },
+        error: {
+          code: "validation_error",
+          ...(fields.max_rows === 0 ? { message: expect.any(String) } : { param: Object.keys(fields)[0] }),
+        },
       })
     }
     const store = await openStore({ env })

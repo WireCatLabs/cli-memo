@@ -66,7 +66,7 @@ export const diagnose = async (env: NodeJS.ProcessEnv) => {
     if (!folder.exists)
       problems.push({
         what: `the notes folder ${folder.path} is missing`,
-        fix: "connect its disk; if it moved, memo folders attach <id> <new path>",
+        fix: "connect its disk; if it moved, memo folders update <id> <new path>",
       })
     else if (!folder.bound)
       problems.push({
@@ -101,7 +101,7 @@ export const diagnose = async (env: NodeJS.ProcessEnv) => {
         if (run.ended_at === null)
           problems.push({
             what: `cleanup run ${run.id} of ${account.name} stopped before the end`,
-            fix: `memo mail trash ${account.name} --yes continues; memo mail restore ${account.name} --run ${run.id} undoes`,
+            fix: `memo mail delete ${account.name} --yes continues; memo mail restore ${account.name} --run ${run.id} undoes`,
           })
         const left = Date.parse(run.restorable_until) - now
         if (run.trashed > run.restored && left > 0 && left < 5 * 86_400_000)
@@ -138,11 +138,11 @@ export const diagnose = async (env: NodeJS.ProcessEnv) => {
       ? { since: last.failingSince ?? last.at, runs: last.failures ?? 1, reason: last.reason ?? null }
       : null
   if (state.enabled && !unit)
-    problems.push({ what: "the timer is on in the config but not installed", fix: "memo auto start" })
+    problems.push({ what: "the timer is on in the config but not installed", fix: "memo jobs start" })
   if (missing.length > 0)
-    problems.push({ what: `the timer runs a program that is gone: ${missing.join(", ")}`, fix: "memo auto start" })
+    problems.push({ what: `the timer runs a program that is gone: ${missing.join(", ")}`, fix: "memo jobs start" })
   if (failing)
-    problems.push({ what: `the timer has failed ${failing.runs} runs since ${failing.since}`, fix: "memo auto status" })
+    problems.push({ what: `the timer has failed ${failing.runs} runs since ${failing.since}`, fix: "memo jobs status" })
 
   const skills = SKILL_TARGETS.map((target) => {
     const path = skillPath(target, APP.appName, env)

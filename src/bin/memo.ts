@@ -22,8 +22,8 @@ try {
   // A static import would load the store's SQLite before ensureSqlite could swap it.
   const { createProgram, refuseJoinedPath } = await import("../program.js")
   const { throwParseFailures } = await import("../failure.js")
-  // `memo auto status` says it in full; everywhere else one line, until a timer run passes again.
-  if (args[0] !== "auto") {
+  // `memo jobs status` says it in full; everywhere else one line, until a timer run passes again.
+  if (args[0] !== "jobs") {
     const notice = (await import("../run/auto.js")).autoNotice(process.env)
     if (notice) processStreams.diagnostic(notice)
   }

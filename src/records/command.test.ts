@@ -60,7 +60,7 @@ it("adds a memory of the owner's as confirmed, finds it, and marks it stale", as
   await expect(json("search", "memories", "Fridays", "OR", "Mondays")).rejects.toMatchObject({
     code: "validation_error",
   })
-  expect(await json("memories", "stale", memory.ref)).toMatchObject({ status: "stale" })
+  expect(await json("memories", "invalidate", memory.ref)).toMatchObject({ status: "stale" })
   expect(await json("memories", "show", memory.ref)).toMatchObject({ ref: memory.ref, status: "stale" })
 })
 
@@ -98,8 +98,8 @@ it("lists the agent log by agent, with each agent's name", async () => {
     await store.close()
   }
 
-  expect((await json("agents", "log", "agent:memo-mcp")).items).toMatchObject([
+  expect((await json("agents", "list", "agent:memo-mcp")).items).toMatchObject([
     { tool: "memories_add", actor: { name: "memo-mcp" } },
   ])
-  expect((await json("agents", "log")).items).toHaveLength(2)
+  expect((await json("agents", "list")).items).toHaveLength(2)
 })

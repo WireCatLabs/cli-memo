@@ -11,9 +11,7 @@ import {
 } from "@wirecat/cli-core/services"
 import type { AccountKey, MessageStore, Note } from "@wirecat/cli-core/store"
 import { APP } from "../app.js"
-import { loadConfig } from "../config.js"
 import { keyDocuments, keyFirst, projectOf } from "../knowledge/key-documents.js"
-import { mailAccounts } from "../mail/accounts.js"
 import { demotedSenders } from "../mail/sender-scores.js"
 import { accountsOf } from "../store/source-list.js"
 import { taskPage } from "../tasks/context.js"
@@ -348,12 +346,6 @@ export const searchKind = async (
   const items = lowerSuspicious(found.items, (item) => item.email?.senderScore?.demoted === true)
   return { ...found, items: items.slice(0, limit), hasMore: found.hasMore || items.length > limit }
 }
-
-/** The rules and `memo mail status` take an account's name; search takes it too, or the address. */
-export const mailAddressOf = (env: NodeJS.ProcessEnv, account: string): string =>
-  account.includes("@")
-    ? account
-    : (mailAccounts(loadConfig(env).mail?.accounts ?? [], [account])[0]?.address ?? account)
 
 const keyRefs = async (store: MessageStore, project: string) =>
   new Set((await keyDocuments(store, await projectOf(store, project))).map((item) => item.ref))

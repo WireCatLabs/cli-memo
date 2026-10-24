@@ -18,10 +18,10 @@ export const listAgentActions = (
   query: readonly string[] | string | undefined,
   limit?: number,
 ) => {
-  const terms = queryTerms(query, AGENT_LOG_QUERY, "agents log")
+  const terms = queryTerms(query, AGENT_LOG_QUERY, "agents list")
   const tool = terms.get("tool")
   const agent = terms.get("agent")
-  return pageOf("agents log", limit, (most) =>
+  return pageOf("agents list", limit, (most) =>
     store.agentActions.list({
       ...(tool === undefined ? {} : { tool }),
       ...(agent === undefined ? {} : { agent }),

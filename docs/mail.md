@@ -6,6 +6,8 @@ search, in a person's context and in the sources your agent reads. Memo reads ma
 [Clean up Gmail](#clean-up-gmail) separately moves selected mail to Trash, or restores it, only with `--yes`.
 Memo never sends mail.
 
+<a id="import-mail" />
+
 ## Before you start
 
 Set up your mail account in Himalaya. For Gmail, use an IMAP account with a Gmail
@@ -124,7 +126,7 @@ the dates it does not have yet, for senders you never wrote to and heard from in
 sender's domain may have lapsed or changed hands. `memo mail inspect work --domain-age` asks for the groups it
 shows. A domain registered again after an email came is not young for that email.
 
-memo asks each domain's own registry through RDAP, using IANA's list of registries, one domain a second, and keeps
+memo answers creates each domain's own registry through RDAP, using IANA's list of registries, one domain a second, and keeps
 the answer on this computer for good. **Each question tells that registry the domain's name**, so it learns that
 someone looks at mail from it. Big mailbox providers such as gmail.com are never asked. Most country domains, such
 as .ru, .de, .es and .io, have no RDAP: they stay unknown and add nothing.
@@ -218,8 +220,8 @@ A Google Takeout export of Mail holds your Gmail filters in `Mail/User settings/
 rule for each filter it can express:
 
 ```sh
-memo mail rules import-filters work Filters.json        # shows the proposed rules and the skipped filters
-memo mail rules import-filters work Filters.json --yes  # adds them
+memo mail rules import work Filters.json --format gmail        # shows the proposed rules and the skipped filters
+memo mail rules import work Filters.json --format gmail --yes  # adds them
 ```
 
 Each Gmail label a filter adds is matched to memo's labels first: the same label in other capitals is reused,
@@ -255,22 +257,22 @@ memo mail rules export work > rules.json
 memo mail rules import work rules.json   # a rule with the same sender, domain or list is replaced
 ```
 
-Before 0.32.0 rules were kept in `config.json`. The first memo command that reads rules moves them into the
+Older settings kept rules in `config.json`. The first memo command that reads rules moves them into the
 store, checks they all arrived, and only then drops them from the config. The old config stays beside it as
 `config.json.<time>.before-rules-in-store`, readable only by you, and memo says so on stderr once. A keep rule
 whose reason says "never remove" becomes protected: no cleanup may cut or delete what it matches.
 
 ## Clean up Gmail
 
-Envelope mail is junk you chose not to keep the text of. `memo mail trash` moves it to Gmail's Trash, where Gmail
+Envelope mail is junk you chose not to keep the text of. `memo mail delete` moves it to Gmail's Trash, where Gmail
 keeps it 30 days before deleting it for good:
 
 ```sh
-memo mail trash work                  # says what would move, per rule, and what stays and why
-memo mail trash work --yes            # a first run moves at most 100, to check by hand in Gmail's Trash
-memo mail trash work --yes            # later runs move up to 5,000, oldest first (--limit changes it)
-memo mail trash work --yes --since-time 2012-01-01   # only mail from 2012 on; older mail stays for now
-memo mail runs work                   # each run: how much moved, and until when it can be restored
+memo mail delete work                  # says what would move, per rule, and what stays and why
+memo mail delete work --yes            # a first run moves at most 100, to check by hand in Gmail's Trash
+memo mail delete work --yes            # later runs move up to 5,000, oldest first (--limit changes it)
+memo mail delete work --yes --since-time 2012-01-01   # only mail from 2012 on; older mail stays for now
+memo mail runs list work                   # each run: how much moved, and until when it can be restored
 memo mail restore work --run <id> --yes   # moves a run back, to the inbox if it was there, with its labels
 ```
 

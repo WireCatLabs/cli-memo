@@ -206,10 +206,10 @@ store yet. Add `--json` to get each result's reference, its links and how it was
 
 ## Give your agent the sources
 
-`memo ask` collects the sources for a question, so your agent can answer and cite them:
+`memo answers create` collects the sources for a question, so your agent can answer and cite them:
 
 ```sh
-memo ask 'What is the Harbour budget?' 'Harbour budget' --all
+memo answers create 'What is the Harbour budget?' 'Harbour budget' --all
 ```
 
 The words after the question are what Memo searches for; without them, Memo searches for the whole
@@ -227,10 +227,11 @@ Next: [see everything about one person](people.md), or [turn what you found into
 ## Meeting reader scope
 
 Memo and zm share cli-core's meeting search selectors and parsers: meeting, identity, person, event and
-series ids; project, tag and topic; time bounds, cursor and read budget. For example:
+series ids; project, tag and topic; time bounds, cursor and read budget. Memo selects tags/topics in
+the native query (`tag:` and `topic:`), without separate selector flags. For example:
 
 ```sh
-memo search meetings "draft" --source zoom:work --topic finance --meeting-id 12
+memo search meetings "draft topic:finance" --source zoom:work --meeting-id 12
 ```
 
 Their account selection differs: Memo needs one stored `--source provider:account`; zm selects its account

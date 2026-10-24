@@ -17,14 +17,14 @@ export const REASONS: ErrorReason[] = defineReasons([
   {
     reason: "folder.unbound",
     code: "configuration_error",
-    message: "the notes folder {path} has no folder id; memo folders add or memo folders attach gives it one",
+    message: "the notes folder {path} has no folder id; memo folders add or memo folders update gives it one",
     details: ["path"],
   },
   { reason: "folder.not-found", code: "not_found", message: "the store has no such folder of notes", details: [] },
   {
     reason: "notes.folder-missing",
     code: "not_found",
-    message: "the notes folder {path} is missing — connect its disk; if it moved, memo folders attach <id> <new path>",
+    message: "the notes folder {path} is missing — connect its disk; if it moved, memo folders update <id> <new path>",
     details: ["path"],
   },
   {

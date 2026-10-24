@@ -17,7 +17,9 @@ Words this page uses:
 
 Installing does not log in anywhere, does not start a background service and does not read your notes or mail. Memo
 reads a folder or a mailbox only when you add it and run `memo sync`. Syncing on a timer is a separate step that you
-turn on with `memo auto start`.
+turn on with `memo jobs start`.
+
+<a id="update-and-remove" />
 
 ## What it needs
 
@@ -36,7 +38,7 @@ Each source needs one more thing, and only when you use it:
 | Telegram or MAX messages | [tg](https://github.com/WireCatLabs/tg-cli) or [max](https://github.com/WireCatLabs/max-cli). They save your chats in the local store; Memo does not log in to a messenger |
 | Search by meaning | A search model on your computer, about 135 MB. Download it once: `memo models download e5-small`. Without it, Memo searches by words |
 | Mail | [Himalaya](https://github.com/pimalaya/himalaya) 2.x, the mail program Memo uses to read a mailbox. It reads its accounts from `~/.config/himalaya/config.toml` ([mail](mail.md#before-you-start)) |
-| Syncing on a timer (`memo auto`) | Linux with systemd. On macOS and Windows, run `memo sync` yourself or from your own scheduler ([keeping Memo up to date](archive.md)) |
+| Syncing on a timer (`memo jobs`) | Linux with systemd. On macOS and Windows, run `memo sync` yourself or from your own scheduler ([keeping Memo up to date](archive.md)) |
 
 ## Install
 
@@ -148,7 +150,7 @@ node dist/bin/memo.js --help
 | Cache, which `memo doctor` names; Memo keeps nothing there yet | `~/.cache/cli-memo/` | `%LOCALAPPDATA%\cli-memo\Cache\` |
 | The local store, shared with tg and max | `~/.local/share/WireCat/wirecat.db` | `%LOCALAPPDATA%\WireCat\Data\wirecat.db` |
 | Shared search models | `~/.local/share/WireCat/models/` | `%LOCALAPPDATA%\WireCat\Data\models\` |
-| The timer, after `memo auto start` | `~/.config/systemd/user/memo-import.timer` and `.service` | — |
+| The timer, after `memo jobs start` | `~/.config/systemd/user/memo-import.timer` and `.service` | — |
 
 - **Settings**: `config.json` ([configuration](configuration.md)): your folders, mail accounts, mail rules and the
   timer.
@@ -166,7 +168,7 @@ Memo never writes it, and you do not need it. The timer runs `memo sync` with `M
 it skips the update check and, when the timer is off in the settings, does nothing.
 
 > ⚠ **Set these variables everywhere, or nowhere.** A command run without them reads other settings and another
-> store, and says your folders or mail are not there. The timer keeps the ones set when you ran `memo auto start`;
+> store, and says your folders or mail are not there. The timer keeps the ones set when you ran `memo jobs start`;
 > run it again after you change them. tg and max read the same store only when they get the same `MESSAGING_STORE`
 > or `WIRECAT_STATE_DIR`. The variables are meant for tests and throwaway profiles.
 
@@ -195,7 +197,7 @@ From sources: `git pull && pnpm install && pnpm build`.
 Removing Memo takes away the command, not your data. Do it in this order:
 
 ```sh
-memo auto stop                       # if you turned on the timer: removes it while memo still exists
+memo jobs stop                       # if you turned on the timer: removes it while memo still exists
 npm uninstall -g @wirecat/cli-memo   # or pnpm remove -g, or bun remove -g
 rm -rf ~/.claude/skills/cli-memo ~/.agents/skills/cli-memo   # the agent skill
 rm -rf ~/.config/cli-memo ~/.local/share/cli-memo ~/.cache/cli-memo   # Memo's settings, state and cache

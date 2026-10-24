@@ -8,6 +8,7 @@ import { sampleMeeting } from "@wirecat/cli-core/meetings/testing"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
+import { callCommand } from "../../test/mcp.js"
 import { createMemoServer } from "../mcp/server.js"
 import { createProgram } from "../program.js"
 
@@ -66,8 +67,8 @@ it("reads only the selected meeting profile and preserves exact cue references o
   const client = new Client({ name: "synthetic-meeting-evidence", version: "1" })
   await client.connect(peer)
   try {
-    const result = await client.callTool({
-      name: "project_evidence",
+    const result = await callCommand(client, {
+      name: "projects evidence",
       arguments: { project: "SYP", source: "zm:ExampleCalendar" },
     })
     expect(result.isError).toBeFalsy()
