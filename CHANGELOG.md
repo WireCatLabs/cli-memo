@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.90.0 — 24.10.2026
+
 ### Added
 
 - **The first command at a terminal asks three questions once for every WireCat tool** (cli-core 0.404.0): which
