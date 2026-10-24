@@ -408,6 +408,7 @@ add the sources you need.
 | [Configuration](https://github.com/WireCatLabs/cli-memo/blob/main/docs/configuration.md) | Every setting and variable |
 | [Troubleshooting](https://github.com/WireCatLabs/cli-memo/blob/main/docs/troubleshooting.md) | What the screen says, and what to do |
 | [Security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security.md) | What is read, written and sent |
+| [Compared with other tools](https://github.com/WireCatLabs/cli-memo/blob/main/docs/compare.md) · [web](https://wirecat.dev/en/docs/memo/compare) | How does memo compare with Hindsight, mem0, Graphiti, Cognee, basic-memory, Obsidian and Screenpipe? |
 | [Changelog](https://github.com/WireCatLabs/cli-memo/blob/main/CHANGELOG.md) | Every release |
 
 The reader guides live on [wirecat.dev](https://wirecat.dev/en/docs/memo).
