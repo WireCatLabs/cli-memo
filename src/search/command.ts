@@ -1,9 +1,11 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
-import { annotate } from "@wirecat/cli-base/commands"
-import { LOCAL_READ } from "@wirecat/cli-core/cli"
+import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
+import { LOCAL_READ, sharedCommandTemplate } from "@wirecat/cli-core/cli"
 import type { SearchedResource, SearchFound } from "@wirecat/cli-core/services"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, withStore } from "../answer.js"
+import { APP } from "../app.js"
+import { SHELL_OVERRIDES } from "../contract-overrides.js"
 import { searchMemoriesCommand } from "../memories/command.js"
 import { searchText } from "../notes/search.js"
 import { positive } from "../options.js"
@@ -61,7 +63,7 @@ const PROJECT_HELP =
 const PROJECT_ORDER_HELP =
   "rank the key documents of this project (id, project:<id>, key, exact name or alias) first; nothing is left out"
 
-export const searchCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
+const searchCommandDefinition = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const group = program
     .command("search")
     .description("search stored messages, mail, notes and memories; search all when unsure where")
@@ -252,3 +254,16 @@ Mail from senders with signs of fraud (memo mail inspect) comes after the rest o
   // A source left unread is named in meta.issues; the rest is still the answer, so the search exits 0.
   for (const leaf of group.commands) annotate(leaf, { partial: true })
 }
+
+export const searchCommand = (...args: Parameters<typeof searchCommandDefinition>) =>
+  customizeSharedCommand(
+    sharedCommandTemplate(APP, "search"),
+    "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+    () => {
+      searchCommandDefinition(...args)
+      const command = args[0].commands.find((command) => command.name() === "search")
+      if (!command) throw new Error("search builder did not install its command")
+      return command
+    },
+    SHELL_OVERRIDES.search,
+  )

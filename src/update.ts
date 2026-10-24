@@ -1,7 +1,7 @@
 import { join } from "node:path"
 import { createRenderer, resolvePaths, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { FETCH, upgradeCommand as sharedUpgradeCommand } from "@wirecat/cli-core/cli"
+import { FETCH, overrideSharedContract, upgradeCommand as sharedUpgradeCommand } from "@wirecat/cli-core/cli"
 import { appUpdate, type UpdateEnvironment } from "@wirecat/cli-core/update"
 import type { Command } from "commander"
 import { APP } from "./app.js"
@@ -27,7 +27,7 @@ export const { installer, latest, runUpdate, updateNotice } = appUpdate({
 
 /** cli-core's `upgrade`: the package manager that installed memo, or only a look with `--check`. */
 export const upgradeCommand = (streams: Streams, environment: UpdateEnvironment = {}): Command =>
-  annotate(
+  overrideSharedContract(
     sharedUpgradeCommand(APP, PACKAGE, (command) => {
       const format = command.opts().json ? "json" : "pretty"
       return {
@@ -39,5 +39,9 @@ export const upgradeCommand = (streams: Streams, environment: UpdateEnvironment 
         install: (argv) => runUpdate(argv, environment),
       }
     }),
-    { effects: FETCH },
-  ).option("--json", "print JSON")
+    "Memo's package updater checks npm and uses command-local JSON because it has no messenger program shell.",
+    (command) => {
+      annotate(command, { effects: FETCH })
+      command.option("--json", "print JSON")
+    },
+  )

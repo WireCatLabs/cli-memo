@@ -6,7 +6,12 @@ import { createProgram } from "./program.js"
 
 const leaves = (command: Command, path: string[] = []): string[] =>
   command.commands.flatMap((child) =>
-    child.commands.length ? leaves(child, [...path, child.name()]) : [[...path, child.name()].join(" ")],
+    child.commands.length
+      ? [
+          ...(child.name() === "commands" ? [[...path, child.name()].join(" ")] : []),
+          ...leaves(child, [...path, child.name()]),
+        ]
+      : [[...path, child.name()].join(" ")],
   )
 
 /** Splits like a shell does for these examples: single quotes keep spaces, nothing else is special. */

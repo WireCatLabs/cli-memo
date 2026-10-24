@@ -185,6 +185,7 @@ it("exposes strict MCP meeting search/passage with evidence and unchanged review
         series_id: String(f.saved.meeting.meetingSeriesId),
         identity_id: String(f.saved.participants[0]?.identityId),
         person_id: String(f.person),
+        topic_name: "finance",
         since_time: "2026-10-01T00:00:00Z",
         until_time: "2026-10-31T23:59:59Z",
         limit: 1,
@@ -255,6 +256,8 @@ it("uses the shared meeting selectors with explicit source scope", async () => {
     String(f.saved.meeting.id),
     "--series-id",
     String(f.saved.meeting.meetingSeriesId),
+    "--topic-name",
+    "finance",
   ])
   expect(page.items.length).toBeGreaterThan(0)
   expect(page.items.every((item: { ref: string }) => item.ref.includes(String(f.saved.meeting.id)))).toBe(true)

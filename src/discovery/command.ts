@@ -1,23 +1,34 @@
 import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
-import { annotate, type CommandInfo, commandsDocument, flatten } from "@wirecat/cli-base/commands"
 import {
+  annotate,
+  type CommandInfo,
+  commandsDocument,
+  customizeSharedCommand,
+  flatten,
+} from "@wirecat/cli-base/commands"
+import {
+  addContractInfo,
   commandsText,
+  DISCOVERY_DESCRIPTIONS,
   type DiscoveredCommand,
   environmentOf,
   type HelpSection,
   inSection,
   NO_EFFECTS,
+  sharedCommandTemplate,
 } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
+import { APP } from "../app.js"
+import { SHELL_OVERRIDES } from "../contract-overrides.js"
 import { VERSION } from "../version.js"
 
 /** The major version of the JSON memo's commands print; raise it when a field is removed or renamed. */
 export const CONTRACT = 4
 
-export const commandsCommand = (program: Command, streams: Streams): void => {
+const commandsCommandDefinition = (program: Command, streams: Streams): void => {
   annotate(program.command("commands"), { effects: NO_EFFECTS })
     .argument("[path...]", "one command, such as tags add")
-    .description("discover the command tree and options as shared registry data")
+    .description(DISCOVERY_DESCRIPTIONS.commands)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((path: string[], options: { json?: boolean }) => {
       const annotateAvailability = (commands: readonly CommandInfo[]): DiscoveredCommand[] =>
@@ -86,4 +97,19 @@ export const placeInSections = (program: Command): void => {
     if (!command) throw new Error(`no command to place in a section: ${path}`)
     inSection(command, section)
   }
+}
+
+export const commandsCommand = (program: Command, streams: Streams): void => {
+  customizeSharedCommand(
+    sharedCommandTemplate(APP, "commands"),
+    "Memo binds discovery to its command-local JSON renderer and scoped stored-data document format.",
+    () => {
+      commandsCommandDefinition(program, streams)
+      addContractInfo(program, (value) => streams.data(JSON.stringify(value)))
+      const command = program.commands.find((command) => command.name() === "commands")
+      if (!command) throw new Error("discovery builder did not install its command")
+      return command
+    },
+    SHELL_OVERRIDES.commands,
+  )
 }

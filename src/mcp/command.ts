@@ -1,10 +1,12 @@
 import type { Streams } from "@wirecat/cli-base"
-import { annotate } from "@wirecat/cli-base/commands"
-import { LOCAL_WRITE } from "@wirecat/cli-core/cli"
+import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
+import { LOCAL_WRITE, sharedCommandTemplate } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
+import { APP } from "../app.js"
+import { SHELL_OVERRIDES } from "../contract-overrides.js"
 import type { ProgramFactory } from "./catalogue.js"
 
-export const mcpCommand = (
+const mcpCommandDefinition = (
   program: Command,
   streams: Streams,
   env: NodeJS.ProcessEnv,
@@ -31,3 +33,16 @@ export const mcpCommand = (
       })
     })
 }
+
+export const mcpCommand = (...args: Parameters<typeof mcpCommandDefinition>) =>
+  customizeSharedCommand(
+    sharedCommandTemplate(APP, "mcp"),
+    "Memo serves its typed stored-data tools over stdio with saved permissions and explicit numeric/string stored-selector compatibility; it has no HTTP transport.",
+    () => {
+      mcpCommandDefinition(...args)
+      const command = args[0].commands.find((command) => command.name() === "mcp")
+      if (!command) throw new Error("mcp builder did not install its command")
+      return command
+    },
+    SHELL_OVERRIDES.mcp,
+  )

@@ -3,14 +3,15 @@ import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { join } from "node:path"
 import { resolvePaths, type Streams } from "@wirecat/cli-base"
-import { annotate } from "@wirecat/cli-base/commands"
+import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
 import { SKILL_TARGETS, skillPath, skillVersion } from "@wirecat/cli-base/skill"
-import { LOCAL_READ, storeSummary } from "@wirecat/cli-core/cli"
+import { LOCAL_READ, sharedCommandTemplate, storeSummary } from "@wirecat/cli-core/cli"
 import { sharedModelsDirectory } from "@wirecat/cli-core/speech"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { APP } from "../app.js"
 import { type Config, configPath, loadConfig } from "../config.js"
+import { SHELL_OVERRIDES } from "../contract-overrides.js"
 import { archiveCheck, RESTORE_DAYS, trashRuns } from "../mail/trash.js"
 import { noteFolders } from "../notes/folders.js"
 import { autoState, lastAutoRun } from "../run/auto.js"
@@ -208,7 +209,7 @@ export const doctorText = (d: Diagnosis): string =>
       : d.problems.map(({ what, fix }) => `! ${what}${fix ? ` — ${fix}` : ""}`)),
   ].join("\n")
 
-export const doctorCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
+const doctorCommandDefinition = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
   annotate(program.command("doctor"), { effects: LOCAL_READ })
     .description("where memo keeps its files and what needs attention; connects to nothing")
@@ -223,4 +224,18 @@ export const doctorCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       print(options.json, itemAnswer(diagnosis), doctorText(diagnosis))
       if (diagnosis.problems.length > 0) process.exitCode = 1
     })
+}
+
+export const doctorCommand = (...args: Parameters<typeof doctorCommandDefinition>) => {
+  customizeSharedCommand(
+    sharedCommandTemplate(APP, "doctor"),
+    "Memo diagnoses imported-data paths and stored account configuration without connecting to a messenger or querying a keyring.",
+    () => {
+      doctorCommandDefinition(...args)
+      const command = args[0].commands.find((command) => command.name() === "doctor")
+      if (!command) throw new Error("doctor builder did not install its command")
+      return command
+    },
+    SHELL_OVERRIDES.doctor,
+  )
 }

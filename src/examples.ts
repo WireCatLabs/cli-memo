@@ -1,4 +1,5 @@
-import { annotate } from "@wirecat/cli-base/commands"
+import { annotate, metaOf } from "@wirecat/cli-base/commands"
+import { hasSharedContract, overrideSharedContract } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 
 export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
@@ -46,6 +47,8 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   ],
   "mail add": ["memo mail add work you@example.test --kind imap"],
   "mail check": ["memo mail check work"],
+  "models list": ["memo models list kind:text --json"],
+  "commands info": ["memo commands info --json"],
   "models download": ["memo models download e5-small"],
   "mail inspect": ["memo mail inspect personal --limit 30", "memo mail inspect work --since-time 365d --json"],
   "mail status": ["memo mail status personal", "memo mail status personal --json"],
@@ -92,7 +95,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   ],
   "tasks close": ["memo tasks close 7 --account telegram:1 --as dismissed --reason 'answered by phone'"],
   "tasks update": [
-    "memo tasks update 7 --title 'Send the budget' --priority 1",
+    "memo tasks update HRB-1 --title 'Send the budget' --priority 1 --account telegram:1",
     "memo tasks update 1a2b3c4d --due 2d --title 'Send the revised budget' --account telegram:1",
   ],
   "tasks assign": ["memo tasks assign 7 person:3"],
@@ -216,7 +219,15 @@ export const leaves = (command: Command, path: string[] = []): [string, Command]
 export const addExamples = (program: Command): void => {
   for (const [path, command] of leaves(program)) {
     const examples = EXAMPLES[path]
-    if (!examples) continue
-    annotate(command, { examples })
+    if (!examples || JSON.stringify(metaOf(command).examples) === JSON.stringify(examples)) continue
+    if (hasSharedContract(command))
+      overrideSharedContract(
+        command,
+        "Memo examples use explicit stored-account scope rather than messenger profile words.",
+        (one) => {
+          annotate(one, { examples })
+        },
+      )
+    else annotate(command, { examples })
   }
 }

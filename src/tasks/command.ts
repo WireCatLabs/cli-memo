@@ -1,6 +1,6 @@
 import type { Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { LOCAL_READ, LOCAL_WRITE, momentOf, withQuery } from "@wirecat/cli-core/cli"
+import { LOCAL_READ, LOCAL_WRITE, overrideSharedContract, withQuery } from "@wirecat/cli-core/cli"
 import { closedStateOf } from "@wirecat/cli-core/services"
 import { TASK_ROLES, TASK_TYPES, type TaskRole } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
@@ -12,17 +12,6 @@ import { listTasks, TASKS_LIST_QUERY } from "./list.js"
 import { taskRelationsCommand } from "./relations-command.js"
 import { sharedTaskCommands } from "./shared.js"
 import { type AddOptions, addTask, assignTask, closeTask, type UpdateOptions, updateTask } from "./tasks.js"
-
-const timeOf =
-  (flag: string) =>
-  (typed: string): Date | null => {
-    const wanted = typed.trim()
-    if (wanted.toLowerCase() === "none") return null
-    const [, amount, unit] = /^(\d+)(m|h|d)$/.exec(wanted) ?? []
-    if (amount && unit)
-      return new Date(Date.now() + Number(amount) * { m: 60_000, h: 3_600_000, d: 86_400_000 }[unit as "m"])
-    return new Date(momentOf(wanted, flag))
-  }
 
 const priorityOf = (value: string): number => {
   const number = Number(value)
@@ -93,35 +82,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         })
       },
     )
-  fieldOptions(
-    writeScope(
-      annotate(group.command("update"), { effects: LOCAL_WRITE })
-        .summary("set a task's title, description, times, priority, parent, category or assignee")
-        .description(
-          "change a task: title, description and times for any task, priority and parent in a project, category " +
-            "and assignee for a task from a source, which names its --account",
-        )
-        .argument("<id>", "the task's id or key"),
-    ),
-  )
-    .option(
-      "--due <time>",
-      "when it must be done: an ISO 8601 time or 2h, 3d from now; none clears it",
-      timeOf("--due"),
-    )
-    .option(
-      "--remind-time <time>",
-      "when to look at it again: an ISO 8601 time or 2h, 3d from now; none clears it",
-      timeOf("--remind-time"),
-    )
-    .option("--category <name>", "a name from the task category list")
-    .option("--assignee <person...>", "who does it, replacing the assignees: sender, a person's UID, or none")
-    .action(async (id: string, options: UpdateOptions & WriteOptions & { json?: boolean }) => {
-      await withStore(env, async (store) => {
-        const scope = await scopeOf(store, env, options, warn)
-        print(options.json, itemAnswer(await updateTask(store, env, id, { ...options, ...scope })))
-      })
-    })
+
   annotate(group.command("assign"), { effects: LOCAL_WRITE })
     .description("name who works on a task")
     .argument("<id>", "the task's id or key")
@@ -134,4 +95,29 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       })
     })
   sharedTaskCommands(program, group, streams, env)
+  const sharedUpdate = group.commands.find((command) => command.name() === "update")
+  if (!sharedUpdate) throw new Error("shared task update is missing")
+  overrideSharedContract(
+    sharedUpdate,
+    "Memo preserves source-account checks and bare person UIDs; priority and parent edits apply to project tasks only.",
+    (command) => {
+      command.description(
+        "update stored tasks: source edits name --account; priority and parent apply to project tasks",
+      )
+      command.action(async (id: string, given: UpdateOptions & WriteOptions & { json?: boolean }) => {
+        const raw = given as Omit<UpdateOptions, "parent" | "due" | "remindTime"> &
+          WriteOptions & { json?: boolean; parent?: string | null; due?: Date | "none"; remindTime?: Date | "none" }
+        const options = {
+          ...given,
+          parent: raw.parent === null ? "none" : raw.parent,
+          due: raw.due === "none" ? null : raw.due,
+          remindTime: raw.remindTime === "none" ? null : raw.remindTime,
+        }
+        await withStore(env, async (store) => {
+          const scope = await scopeOf(store, env, options, warn)
+          print(options.json, itemAnswer(await updateTask(store, env, id, { ...options, ...scope })))
+        })
+      })
+    },
+  )
 }
