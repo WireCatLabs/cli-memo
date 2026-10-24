@@ -2,7 +2,7 @@ import { fileURLToPath } from "node:url"
 import { CliError, createRenderer, processStreams, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { skillCommand } from "@wirecat/cli-base/skill"
-import { entityFields, guideCommand, installHelp, NO_EFFECTS } from "@wirecat/cli-core/cli"
+import { entityFields, environmentOf, guideCommand, installHelp, NO_EFFECTS, provide } from "@wirecat/cli-core/cli"
 import { Command } from "commander"
 import { actionsCommand } from "./actions/command.js"
 import { agentsCommand } from "./agents/command.js"
@@ -28,7 +28,7 @@ import { modelsCommand } from "./models/command.js"
 import { notesCommand } from "./notes/command.js"
 import { foldersCommand } from "./notes/folders-command.js"
 import { noteCommand } from "./people/command.js"
-import { refuseWritesUnderLock } from "./read-only.js"
+import { readOnlyAvailability, refuseWritesUnderLock } from "./read-only.js"
 import { autoCommand } from "./run/auto.js"
 import { syncCommand } from "./run/import.js"
 import { searchCommand } from "./search/command.js"
@@ -205,6 +205,14 @@ export const createProgram = ({
   trackAnswers(program)
   placeInSections(program)
   installHelp(program, FIRST_SCREEN)
+  provide(program, {
+    ...environmentOf(program),
+    discoveryAvailability: (info) => {
+      let command: Command | undefined = program
+      for (const word of info.path) command = command?.commands.find((child) => child.name() === word)
+      return command ? readOnlyAvailability(command, env) : undefined
+    },
+  })
 
   return program
 }

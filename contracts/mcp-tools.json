@@ -496,6 +496,68 @@
   },
   {
     "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "description": "how its notes are written: obsidian, markdown (default: obsidian)",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "path": {
+          "description": "the folder on this computer",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["path"],
+      "type": "object"
+    },
+    "name": "folders_add"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "description": "how its notes are written: obsidian, markdown",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "id": {
+          "description": "the folder's id, as memo folders add printed it",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "path": {
+          "description": "the same folder on this computer",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["id", "path"],
+      "type": "object"
+    },
+    "name": "folders_attach"
+  },
+  {
+    "annotations": {
       "destructiveHint": false,
       "openWorldHint": false,
       "readOnlyHint": true
@@ -551,6 +613,46 @@
       "type": "object"
     },
     "name": "guide"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "one Himalaya account name; omission lists choices and changes nothing",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "address": {
+          "description": "must match the email configured for this Himalaya account",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "folder": {
+          "description": "mail folder to import; repeat for several",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "kind": {
+          "description": "gmail or imap",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "name": "mail_add"
   },
   {
     "annotations": {
@@ -659,6 +761,85 @@
           "pattern": "^(?!-$)[\\s\\S]+$",
           "type": "string"
         },
+        "do": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "one of skip (never read or store), envelope (store only sender, date, size and labels: counted, out of search, cleanable later), keep (store in full even when a skip or envelope rule matches) or protect (keep, and no cleanup may ever cut, archive or trash it); add tag:<name> to also tag the mail, e.g. envelope,tag:promo",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "one of skip (never read or store), envelope (store only sender, date, size and labels: counted, out of search, cleanable later), keep (store in full even when a skip or envelope rule matches) or protect (keep, and no cleanup may ever cut, archive or trash it); add tag:<name> to also tag the mail, e.g. envelope,tag:promo"
+        },
+        "domain": {
+          "description": "a sender domain, and its subdomains",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "filter": {
+          "description": "from:<address, domain or word>, to:<address>, subject:<word> (or a bare word), older:<n>d, larger:<size> (5MB, 300KB), has:attachment, label:<name> (label:\"Two words\"), is:unread, is:bulk, score:<n> (at least); all must hold",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "kind": {
+          "description": "a built-in kind of mail: social, newsletters, developer, shopping, alerts",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "list_id": {
+          "description": "a mailing list, by its List-Id",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "reason": {
+          "description": "why, for the owner later",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "sender": {
+          "description": "one sender address",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["account", "do"],
+      "type": "object"
+    },
+    "name": "mail_rules_add"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account's name in mail.accounts, or its address",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
         "since_time": {
           "description": "only mail from this time, ISO 8601 or 30d ago (default: all mail)",
           "minLength": 1,
@@ -699,6 +880,66 @@
   },
   {
     "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account's name in mail.accounts, or its address",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "file": {
+          "description": "the file memo mail rules export wrote",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["account", "file"],
+      "type": "object"
+    },
+    "name": "mail_rules_import"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account's name in mail.accounts, or its address",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "file": {
+          "description": "Takeout's Mail/User settings/Filters.json",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "yes": {
+          "description": "add the proposed rules; without it, only show them",
+          "type": "boolean"
+        }
+      },
+      "required": ["account", "file"],
+      "type": "object"
+    },
+    "name": "mail_rules_import_filters"
+  },
+  {
+    "annotations": {
       "destructiveHint": false,
       "openWorldHint": false,
       "readOnlyHint": true
@@ -724,6 +965,58 @@
       "type": "object"
     },
     "name": "mail_rules_list"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the account's name in mail.accounts, or its address",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "domain": {
+          "description": "a sender domain, and its subdomains",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "filter": {
+          "description": "from:<address, domain or word>, to:<address>, subject:<word> (or a bare word), older:<n>d, larger:<size> (5MB, 300KB), has:attachment, label:<name> (label:\"Two words\"), is:unread, is:bulk, score:<n> (at least); all must hold",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "kind": {
+          "description": "a built-in kind of mail: social, newsletters, developer, shopping, alerts",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "list_id": {
+          "description": "a mailing list, by its List-Id",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "sender": {
+          "description": "one sender address",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["account"],
+      "type": "object"
+    },
+    "name": "mail_rules_remove"
   },
   {
     "annotations": {
@@ -1233,6 +1526,66 @@
   },
   {
     "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the meeting account it acts as: provider:account, such as zoom:me@example.com",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "fingerprint": {
+          "description": "the exact fingerprint shown in the preview",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "id": {
+          "description": "stored findings batch ID",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "ids": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "candidate IDs to accept; other new candidates are rejected",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "candidate IDs to accept; other new candidates are rejected",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ]
+        },
+        "provider": {
+          "description": "deprecated: --account <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["id", "ids", "fingerprint"],
+      "type": "object"
+    },
+    "name": "meetings_actions_confirm"
+  },
+  {
+    "annotations": {
       "destructiveHint": false,
       "openWorldHint": false,
       "readOnlyHint": true
@@ -1309,6 +1662,46 @@
       "type": "object"
     },
     "name": "meetings_actions_list"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "description": "the meeting account it acts as: provider:account, such as zoom:me@example.com",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "fingerprint": {
+          "description": "the exact fingerprint shown in the preview",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "id": {
+          "description": "stored findings batch ID",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "provider": {
+          "description": "deprecated: --account <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["id", "fingerprint"],
+      "type": "object"
+    },
+    "name": "meetings_actions_reject"
   },
   {
     "annotations": {
@@ -3636,6 +4029,57 @@
       "type": "object"
     },
     "name": "projects_annotations_export"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
+    },
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "bindings": {
+          "description": "JSON object mapping every external source reference and the project to explicit target references",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "file": {
+          "description": "version2 snapshot JSON file, at most 4194304 UTF-8 bytes",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "fingerprint": {
+          "description": "exact fingerprint returned by the successful target preview",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "max_read_bytes": {
+          "description": "destination input byte budget, at most 4194304",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "project": {
+          "description": "explicit destination project:<id>; its key and name must match the snapshot",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "target_store": {
+          "description": "explicit existing destination store; never created by preview",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        }
+      },
+      "required": ["file", "target_store", "project", "bindings", "fingerprint"],
+      "type": "object"
+    },
+    "name": "projects_annotations_restore"
   },
   {
     "annotations": {

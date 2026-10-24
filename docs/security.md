@@ -57,7 +57,7 @@ nothing and tells you.
   cannot replace a full archive backup.
 - The agent log records the agent, the tool, the result and the time, never what the agent sent.
 - An agent that should only read runs with `MEMO_READ_ONLY=1`. Every command that changes something then
-  stops with `permission_error` (exit 5), and `memo mcp` offers only its reading tools. Reads and `memo sync`
+  stops with `permission_error` (exit 5), and `memo mcp` keeps writing tools listed as unavailable. Reads and `memo sync`
   still run, and so does `tasks link`, the task write a scheduled agent makes, as in tg and max:
   a link is only suggested, and linking two tasks is refused. `reminders poll` is refused.
 - Two accounts are treated as one person only after you link them. A matching name or email domain

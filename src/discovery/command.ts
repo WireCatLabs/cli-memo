@@ -1,6 +1,13 @@
 import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
-import { annotate, commandsDocument, describeProgram, flatten } from "@wirecat/cli-base/commands"
-import { commandsText, type HelpSection, inSection, NO_EFFECTS } from "@wirecat/cli-core/cli"
+import { annotate, type CommandInfo, commandsDocument, flatten } from "@wirecat/cli-base/commands"
+import {
+  commandsText,
+  type DiscoveredCommand,
+  environmentOf,
+  type HelpSection,
+  inSection,
+  NO_EFFECTS,
+} from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { VERSION } from "../version.js"
 
@@ -13,14 +20,19 @@ export const commandsCommand = (program: Command, streams: Streams): void => {
     .description("discover the command tree and options as shared registry data")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((path: string[], options: { json?: boolean }) => {
-      const document = commandsDocument(program, { cli: "memo", version: VERSION, contract: CONTRACT })
+      const annotateAvailability = (commands: readonly CommandInfo[]): DiscoveredCommand[] =>
+        commands.map((info) => ({
+          ...info,
+          availability: environmentOf(program).discoveryAvailability?.(info),
+          commands: annotateAvailability(info.commands),
+        }))
+      const plain = commandsDocument(program, { cli: "memo", version: VERSION, contract: CONTRACT })
+      const document = { ...plain, commands: annotateAvailability(plain.commands) }
       const answer = path.length ? scoped(document, path) : document
       if (options.json) createRenderer({ format: "json", color: false, streams }).result(answer)
       else {
-        const found = path.length
-          ? flatten(describeProgram(program)).find((item) => same(item.path, answer.scope))
-          : undefined
-        streams.data(commandsText(program, found ? [found] : describeProgram(program), found?.path))
+        const found = path.length ? flatten(document.commands).find((item) => same(item.path, answer.scope)) : undefined
+        streams.data(commandsText(program, found ? [found] : document.commands, found?.path))
       }
     })
 }

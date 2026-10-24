@@ -106,7 +106,7 @@ of meeting findings or replace the tool's other permission checks.
 | `MEMO_MODELS_ANALYSIS_PROVIDER`, `MEMO_MODELS_ANALYSIS_MODEL` | The AI provider and the model identifier (the name the provider uses for it) that `memo ask --analyze` calls. |
 | `MEMO_MODELS_ANALYSIS_BASE_URL` | Optional: the provider's address. |
 | `MEMO_MODEL_API_KEY` | The provider's key. |
-| `MEMO_READ_ONLY` | Any value but `0` refuses every change with `permission_error` (exit 5): writes to the store, your files, mail at the provider, the timer, the skill files, `upgrade` and `ask --allow-remote`. Reads, `memo sync` and `tasks link` still run (a link is only suggested, and linking two tasks is refused); `reminders poll` is refused; `memo mcp` leaves its writing tools out. |
+| `MEMO_READ_ONLY` | Any value but `0` refuses every change with `permission_error` (exit 5): writes to the store, your files, mail at the provider, the timer, the skill files, `upgrade` and `ask --allow-remote`. Reads, `memo sync` and `tasks link` still run (a link is only suggested, and linking two tasks is refused); `reminders poll` is refused; `memo mcp` keeps writing tools listed as unavailable. |
 
 Memo calls a provider outside your computer only when `memo ask` has both `--analyze` and
 `--allow-remote`. See [give your agent the sources](search.md#give-your-agent-the-sources).
@@ -114,7 +114,7 @@ Memo calls a provider outside your computer only when `memo ask` has both `--ana
 ## `permissions`
 
 Dotted command paths limit MCP tools. A key covers that command and its children; the most specific saved key
-wins. `deny` removes tools, `readonly` permits reads, and `ask` or `allow` permits writes. Over MCP `ask` runs
+wins. `deny` refuses calls, `readonly` permits reads, and `ask` or `allow` permits writes. Over MCP `ask` runs
 without a terminal question, so the client app obtains approval. Writes without a saved level use `ask`.
 
 ```json
@@ -132,6 +132,6 @@ without a terminal question, so the client app obtains approval. Writes without 
 key to `ask` or `allow` to delegate one of these owner operations. `agent_decisions: false` continues to refuse
 project proposal decisions. The shared WireCat read ceiling and `MEMO_READ_ONLY` cap every permission.
 
-Restart the MCP connection after allowing a previously hidden tool. Changes that tighten a permission take
-effect on existing connections too. `memo mcp --permission notes.edit=deny` tightens one key for that server
+Tools remain discoverable with current availability, reasons and arguments. Permission changes take
+effect on existing connections, in tool listings and calls. `memo mcp --permission notes.edit=deny` tightens one key for that server
 without changing the file; an override that loosens any saved key is refused.

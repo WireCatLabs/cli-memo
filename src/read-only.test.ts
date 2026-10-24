@@ -61,7 +61,7 @@ it("still reads, syncs and looks for a new version under MEMO_READ_ONLY", async 
   })
 })
 
-it("leaves the writing MCP tools out under MEMO_READ_ONLY", async () => {
+it("keeps writing MCP tools discoverable but unavailable under MEMO_READ_ONLY", async () => {
   const [serverSide, clientSide] = InMemoryTransport.createLinkedPair()
   await createMemoServer(lockedEnv(), createProgram).connect(serverSide)
   const client = new Client({ name: "fixture", version: "0" })
@@ -72,8 +72,34 @@ it("leaves the writing MCP tools out under MEMO_READ_ONLY", async () => {
       .map(([name]) => name)
     const tools = (await client.listTools()).tools
     expect(tools.map(({ name }) => name)).toEqual(expect.arrayContaining(reads))
-    expect(tools.every((tool) => tool.annotations?.readOnlyHint === true)).toBe(true)
+    for (const [name, tool] of Object.entries(MEMO_TOOLS)) {
+      const found = tools.find((entry) => entry.name === name)
+      expect(found).toBeDefined()
+      if (tool.writes) expect(found?._meta).toMatchObject({ availability: { available: false } })
+    }
   } finally {
     await client.close()
   }
+})
+
+it("shows the read lock in CLI discovery and help while keeping write arguments", async () => {
+  const env = lockedEnv()
+  const streams = captureStreams()
+  await createProgram({ env, streams }).parseAsync(["commands", "notes", "add", "--json"], { from: "user" })
+  expect(JSON.parse(streams.stdout.join("")).commands[0]).toMatchObject({
+    path: ["notes", "add"],
+    availability: { available: false, reason: expect.stringContaining("MEMO_READ_ONLY") },
+  })
+  let help = ""
+  const program = createProgram({ env })
+  const notes = program.commands.find((command) => command.name() === "notes")
+  const add = notes?.commands.find((command) => command.name() === "add")
+  add?.configureOutput({
+    writeOut: (text) => {
+      help += text
+    },
+  })
+  add?.outputHelp()
+  expect(help).toContain("unavailable")
+  expect(help).toContain("MEMO_READ_ONLY")
 })

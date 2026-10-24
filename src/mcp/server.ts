@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto"
-import { type CallToolResult, McpServer } from "@modelcontextprotocol/server"
-import { toStandardJsonSchema } from "@valibot/to-json-schema"
+import { type CallToolResult, McpServer, type Tool } from "@modelcontextprotocol/server"
+import { toJsonSchema, toStandardJsonSchema } from "@valibot/to-json-schema"
 import { CliError, mcpErrorResult } from "@wirecat/cli-base"
 import {
   agentResult,
@@ -284,14 +284,35 @@ export const createMemoServer = (
       throw new CliError("permission_error", `${key} is ${level}`)
     return levels
   }
-  for (const [name, tool] of Object.entries(tools)) {
+  const availability = (name: string, tool: Omit<MemoTool, "run">) => {
     try {
       allowed(name, tool)
+      return { available: true }
     } catch (error) {
-      if (error instanceof CliError && error.code === "permission_error") continue
-      throw error
+      if (!(error instanceof CliError) || error.code !== "permission_error") throw error
+      const path = generated.get(name)?.path ?? pathOfTool(name)
+      return {
+        available: false,
+        reason: error.message,
+        permission:
+          catalogue.authority(path) && /mcp\.authority/.test(error.message) ? "mcp.authority" : catalogue.keyOf(path),
+      }
     }
+  }
+  const listed: Tool[] = []
+  for (const [name, tool] of Object.entries(tools)) {
     const path = generated.get(name)?.path ?? pathOfTool(name)
+    listed.push({
+      name,
+      title: tool.title,
+      description: tool.writes ? tool.description : `${tool.description} ${UNTRUSTED}`,
+      inputSchema: toJsonSchema(tool.input, { target: "draft-2020-12" }) as Tool["inputSchema"],
+      annotations: {
+        readOnlyHint: !tool.writes,
+        destructiveHint: tool.writes,
+        openWorldHint: path[0] === "mail" && ["trash", "restore"].includes(path[1] ?? ""),
+      },
+    })
     server.registerTool(
       name,
       {
@@ -348,5 +369,17 @@ export const createMemoServer = (
       },
     )
   }
+  server.server.setRequestHandler("tools/list", () => ({
+    tools: listed.map((definition) => {
+      const current = availability(definition.name, tools[definition.name] as MemoTool)
+      return {
+        ...definition,
+        description: current.available
+          ? definition.description
+          : `${definition.description} Unavailable: ${current.reason}.`,
+        _meta: { availability: current },
+      }
+    }),
+  }))
   return server
 }
