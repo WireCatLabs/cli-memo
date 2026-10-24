@@ -891,7 +891,7 @@ memo tasks close <id> [options]
 
 ### `memo tasks update`
 
-change a task's title, priority, parent or description
+change a task: title, description and times for any task, priority and parent in a project, category and assignee for a task from a source, which names its --account
 
 This command changes the local store or your files.
 
@@ -905,15 +905,21 @@ memo tasks update <id> [options]
 
 | Option | What it does |
 |---|---|
+| `--account <account>` | the account it acts as: provider:account, such as telegram:1 or email:personal. |
+| `--provider <provider>` | deprecated: --account <provider>:<account>. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--title <title>` | one line saying what is to be done. |
 | `--priority <n>` | 0 urgent … 4 low. |
 | `--parent <id>` | the parent task, in the same project. |
 | `--description <text>` | the detail, in Markdown. |
-| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--due <time>` | when it must be done: an ISO 8601 time or 2h, 3d from now; none clears it. |
+| `--remind-time <time>` | when to look at it again: an ISO 8601 time or 2h, 3d from now; none clears it. |
+| `--category <name>` | a name from the task category list. |
+| `--assignee <person...>` | who does it, replacing the assignees: sender, a person's UID, or none. |
 
-**Returns:** change a task's title, priority, parent or description
+**Returns:** set a task's title, description, times, priority, parent, category or assignee
 
-**Example:** `memo tasks update 7 --title 'Send the budget' --priority 1`
+**Example:** `memo tasks update 7 --title 'Send the budget' --priority 1`, `memo tasks update 1a2b3c4d --due 2d --title 'Send the revised budget' --account telegram:1`
 
 ### `memo tasks assign`
 
@@ -966,36 +972,6 @@ memo tasks agenda [query] [options]
 **Returns:** agenda — at, account, stored_at, stale, tasks, owed, waiting, unsynced, and 2 more
 
 **Example:** `memo tasks agenda --source telegram:1`, `memo tasks agenda --source max:1 --waiting 3d --within 90d --json`
-
-### `memo tasks plan`
-
-set a task's title, description, due date, next check, category and assignee; nothing reaches the messenger
-
-This command changes the local store or your files.
-
-```sh
-memo tasks plan <task> [options]
-```
-
-| Argument | | What it is |
-|---|---|---|
-| `task` | required | the task's id or key, as tasks list shows it. |
-
-| Option | What it does |
-|---|---|
-| `--category <name>` | what it is about, from the list tasks categories prints: money, documents, meeting, …; a change is kept in the task's history. |
-| `--title <title>` | one line: the action and its object — send Alex the API token. |
-| `--description <text>` | the detail, in Markdown: who owes whom, done when, next step, keywords. |
-| `--due <time>` | when it must be done: an ISO 8601 time or 2h, 3d from now; none clears it. |
-| `--remind-time <time>` | when to look at it again: an ISO 8601 time or 2h, 3d from now; none clears it. |
-| `--assignee <person...>` | who does it: sender (whoever sent the task's message) or person:<id>; none clears it. Leave it out when unsure: a task with no assignee is better than none. |
-| `--account <account>` | the account it acts as: telegram:<account>, email:<account> or a notes folder, notes:<id>. |
-| `--provider <provider>` | deprecated: --account <provider>:<account>. |
-| `--json` | print JSON. |
-
-**Returns:** task card — id, ref, key, project, title, description, type, status, and 18 more
-
-**Example:** `memo tasks plan 1a2b3c4d --due 2d --title 'Send the revised budget' --account telegram:1`
 
 ### `memo tasks show`
 
@@ -2680,18 +2656,14 @@ memo mcp [options]
 
 models that run on this machine
 
-### `memo models text`
-
-embedding models for searching by meaning
-
-#### `memo models text download`
+### `memo models download`
 
 download a shared search model, check its hash and load it once
 
 This command changes the local store or your files.
 
 ```sh
-memo models text download <model> [options]
+memo models download <model> [options]
 ```
 
 | Argument | | What it is |
@@ -2705,7 +2677,7 @@ memo models text download <model> [options]
 
 **Returns:** model — id, kind, title, languages, size_bytes, downloaded, default, path, and 1 more
 
-**Example:** `memo models text download e5-small`
+**Example:** `memo models download e5-small`
 
 ## `memo search`
 

@@ -56,15 +56,19 @@ const setUp = async () => {
   return { env, run }
 }
 
-it("**mounts tg's tasks agenda, plan, show and stats tasks show** with the account named on the command", async () => {
+it("**mounts tg's tasks agenda, show and stats tasks show**, and plans a message's task with tasks update", async () => {
   const { run } = await setUp()
 
   const agenda = (await run("tasks", "agenda", ...scope, "--json")).json()
   expect(agenda.item.tasks).toHaveLength(1)
   const task = agenda.item.tasks[0].key
   expect(
-    (await run("tasks", "plan", task, "--title", "Hand over the keys", "--due", "2d", ...acts, "--json")).json(),
+    (await run("tasks", "update", task, "--title", "Hand over the keys", "--due", "2d", ...acts, "--json")).json(),
   ).toMatchObject({ item: { title: "Hand over the keys" } })
+  await expect(run("tasks", "update", task, "--priority", "1", ...acts)).rejects.toMatchObject({
+    code: "validation_error",
+    message: expect.stringContaining("in a project"),
+  })
   expect((await run("tasks", "show", task, ...scope, "--json")).json()).toMatchObject({
     item: { key: task, title: "Hand over the keys" },
   })

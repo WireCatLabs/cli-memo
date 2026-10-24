@@ -71,7 +71,7 @@ Notes on `memo`:
   `tg`, `max`, `wa`, `zm` and `drive`. `memo` reads that store. Notes folders and mail it imports itself; mail
   goes through [Himalaya](https://github.com/pimalaya/himalaya). `search all` covers messages, mail and notes;
   meetings have their own `search meetings`.
-- **Search by meaning** uses a local model that `memo models text download` fetches. Without it, word search still works.
+- **Search by meaning** uses a local model that `memo models download` fetches. Without it, word search still works.
 - **No LLM key.** Sync and search never call a model. `ask --analyze` calls a model you configure, and only if you ask.
 - **MCP.** `memo mcp` offers the commands as tools, writes included, except `mcp`, `upgrade`, `skill install`,
   `auto start` and `auto stop`. Permissions in the configuration set each command to `deny`, `readonly`, `ask` or

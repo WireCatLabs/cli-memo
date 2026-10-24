@@ -22,7 +22,7 @@ export interface NotesEmbedded {
   pendingChats?: string[]
 }
 
-const download = (model: string) => `the ${model} model is not downloaded — memo models text download ${model}`
+const download = (model: string) => `the ${model} model is not downloaded — memo models download ${model}`
 
 const MISSING_MODEL = download("e5-small")
 

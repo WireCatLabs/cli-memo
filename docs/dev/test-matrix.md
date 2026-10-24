@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**480 ✅ · 0 ⛔ · 141 ❌** — 126 commands, 495 options.
+**477 ✅ · 0 ⛔ · 140 ❌** — 125 commands, 492 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -183,11 +183,17 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tasks close` | `--as` | ✅ |  |
 | `tasks close` | `--reason` | ✅ |  |
 | `tasks update` |  | ✅ |  |
+| `tasks update` | `--account` | ✅ |  |
+| `tasks update` | `--provider` | ❌ |  |
+| `tasks update` | `--json` | ✅ |  |
 | `tasks update` | `--title` | ✅ |  |
 | `tasks update` | `--priority` | ✅ |  |
 | `tasks update` | `--parent` | ❌ |  |
 | `tasks update` | `--description` | ❌ |  |
-| `tasks update` | `--json` | ✅ |  |
+| `tasks update` | `--due` | ✅ |  |
+| `tasks update` | `--remind-time` | ❌ |  |
+| `tasks update` | `--category` | ❌ |  |
+| `tasks update` | `--assignee` | ❌ |  |
 | `tasks assign` |  | ✅ |  |
 | `tasks assign` | `--role` | ✅ |  |
 | `tasks assign` | `--json` | ✅ |  |
@@ -201,16 +207,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tasks agenda` | `--provider` | ❌ |  |
 | `tasks agenda` | `--account` | ❌ |  |
 | `tasks agenda` | `--json` | ✅ |  |
-| `tasks plan` |  | ✅ |  |
-| `tasks plan` | `--category` | ❌ |  |
-| `tasks plan` | `--title` | ✅ |  |
-| `tasks plan` | `--description` | ❌ |  |
-| `tasks plan` | `--due` | ✅ |  |
-| `tasks plan` | `--remind-time` | ❌ |  |
-| `tasks plan` | `--assignee` | ❌ |  |
-| `tasks plan` | `--account` | ✅ |  |
-| `tasks plan` | `--provider` | ❌ |  |
-| `tasks plan` | `--json` | ✅ |  |
 | `tasks show` |  | ✅ |  |
 | `tasks show` | `--source` | ✅ |  |
 | `tasks show` | `--provider` | ❌ |  |
@@ -528,9 +524,9 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `agents log` | `--json` | ✅ |  |
 | `mcp` |  | ✅ |  |
 | `mcp` | `--permission` | ❌ |  |
-| `models text download` |  | ✅ |  |
-| `models text download` | `--accept-terms` | ✅ |  |
-| `models text download` | `--json` | ✅ |  |
+| `models download` |  | ✅ |  |
+| `models download` | `--accept-terms` | ✅ |  |
+| `models download` | `--json` | ✅ |  |
 | `search all` |  | ✅ |  |
 | `search all` | `--limit` | ✅ |  |
 | `search all` | `--exact` | ✅ |  |

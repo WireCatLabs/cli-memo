@@ -25,5 +25,4 @@ Memo mounts cli-core's complete meeting search grammar, as zm does. The shared v
 its `--meeting-id`, `--identity-id`, `--person-id`, `--series-id` or `--tag` roles, and reserves `--topic <id>`
 for messenger topics while meeting search uses named knowledge topics. The command lint baselines match zm's
 existing exceptions for these shared flags. Keep the parsers aligned; resolve their shared vocabulary in
-cli-core/cli-base rather than renaming the flags in one host. `models text` has the same shared resource
-exception as tg's model commands.
+cli-core/cli-base rather than renaming the flags in one host.

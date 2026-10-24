@@ -13,9 +13,9 @@ import {
   writeOptions,
 } from "../store/source-list.js"
 
-const SHARED = ["agenda", "plan", "show", "link"] as const
-/** These change a task and name the account they act as with `--account`; the rest read with `--source`. */
-const WRITES: ReadonlySet<string> = new Set(["plan", "link"])
+const SHARED = ["agenda", "show", "link"] as const
+/** This changes a task and names the account it acts as with `--account`; the rest read with `--source`. */
+const WRITES: ReadonlySet<string> = new Set(["link"])
 /** `task:15`, a bare id or a project key: a `tasks link` target that needs no messenger account. */
 const TASKISH = /^(task:.+|\d+|[A-Z][A-Z0-9]*-\d+)$/
 
@@ -83,8 +83,8 @@ const scoped = (command: Command, env: NodeJS.ProcessEnv, warn: (text: string) =
     .hook("preAction", requireAccount(env, warn))
 
 /**
- * `tasks agenda|plan|show|link` and `stats tasks show` are cli-core's builders, the ones tg and max have, mounted
- * with memo's own `--source`, or `--account` for plan and link, resolved to one account (`Messenger.accountOf`).
+ * `tasks agenda|show|link` and `stats tasks show` are cli-core's builders, the ones tg and max have, mounted
+ * with memo's own `--source`, or `--account` for link, resolved to one account (`Messenger.accountOf`).
  */
 export const sharedTaskCommands = (program: Command, tasks: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   provide(program, { streams, env })

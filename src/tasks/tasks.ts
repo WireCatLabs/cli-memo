@@ -152,7 +152,59 @@ export const closeTask = async (
   })
 }
 
-export const updateTask = (store: MessageStore, id: string, fields: TaskFields) => store.tasks.edit(id, fields, "owner")
+export type UpdateOptions = AccountScope &
+  FieldOptions & {
+    due?: Date | null
+    remindTime?: Date | null
+    category?: string
+    assignee?: string[]
+  }
+
+/**
+ * A project task is edited in the store; a task from a message goes through cli-core's plan, which checks the
+ * category, refuses a due date on a closed task and resolves `sender`.
+ */
+export const updateTask = async (store: MessageStore, env: NodeJS.ProcessEnv, id: string, options: UpdateOptions) => {
+  const fields = fieldsOf(options)
+  const times = {
+    ...(options.due === undefined ? {} : { dueAt: options.due }),
+    ...(options.remindTime === undefined ? {} : { nextCheckAt: options.remindTime }),
+  }
+  if (
+    Object.keys(fields).length + Object.keys(times).length === 0 &&
+    options.category === undefined &&
+    options.assignee === undefined
+  )
+    throw new CliError(
+      "validation_error",
+      "give --title, --description, --priority, --parent, --due, --remind-time, --category or --assignee",
+    )
+  if ((await store.tasks.get(id)) === undefined) {
+    if (options.category !== undefined || options.assignee !== undefined)
+      throw new CliError(
+        "validation_error",
+        "--category and --assignee are for a task from a source; name a project task's people with tasks assign",
+      )
+    return store.tasks.edit(id, { ...fields, ...times }, "owner")
+  }
+  if (options.priority !== undefined || options.parent !== undefined)
+    throw new CliError("validation_error", "--priority and --parent are for a task in a project")
+  const assignees = options.assignee?.map((one) => (one === "sender" || one === "none" ? one : personRef(one)))
+  const key = await selectAccount(store, options)
+  return tasksService(storeOnlyDeps(store, key, { app: APP, env })).plan(
+    id,
+    {
+      ...(options.title === undefined ? {} : { title: options.title }),
+      ...(options.description === undefined ? {} : { description: options.description }),
+      ...times,
+      ...(options.category === undefined ? {} : { category: options.category }),
+      ...(assignees === undefined
+        ? {}
+        : { assignees: assignees.length === 1 && assignees[0] === "none" ? null : assignees }),
+    },
+    "owner",
+  )
+}
 
 export const assignTask = (store: MessageStore, id: string, person: string, role: TaskRole) =>
   store.tasks.assign(id, { to: personRef(person), role }, "owner")

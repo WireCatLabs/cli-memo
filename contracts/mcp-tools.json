@@ -1978,7 +1978,7 @@
       "required": ["model"],
       "type": "object"
     },
-    "name": "models_text_download"
+    "name": "models_download"
   },
   {
     "annotations": {
@@ -5546,91 +5546,6 @@
   },
   {
     "annotations": {
-      "destructiveHint": true,
-      "openWorldHint": false,
-      "readOnlyHint": false
-    },
-    "inputSchema": {
-      "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "additionalProperties": false,
-      "properties": {
-        "account": {
-          "description": "the account it acts as: telegram:<account>, email:<account> or a notes folder, notes:<id>",
-          "minLength": 1,
-          "pattern": "^(?!-$)[\\s\\S]+$",
-          "type": "string"
-        },
-        "assignee": {
-          "anyOf": [
-            {
-              "items": {
-                "description": "one value",
-                "minLength": 1,
-                "pattern": "^(?!-$)[\\s\\S]+$",
-                "type": "string"
-              },
-              "minItems": 1,
-              "type": "array"
-            },
-            {
-              "description": "who does it: sender (whoever sent the task's message) or person:<id>; none clears it. Leave it out when unsure: a task with no assignee is better than none",
-              "minLength": 1,
-              "pattern": "^(?!-$)[\\s\\S]+$",
-              "type": "string"
-            }
-          ],
-          "description": "who does it: sender (whoever sent the task's message) or person:<id>; none clears it. Leave it out when unsure: a task with no assignee is better than none"
-        },
-        "category": {
-          "description": "what it is about, from the list tasks categories prints: money, documents, meeting, …; a change is kept in the task's history",
-          "minLength": 1,
-          "pattern": "^(?!-$)[\\s\\S]+$",
-          "type": "string"
-        },
-        "description": {
-          "description": "the detail, in Markdown: who owes whom, done when, next step, keywords",
-          "minLength": 1,
-          "pattern": "^(?!-$)[\\s\\S]+$",
-          "type": "string"
-        },
-        "due": {
-          "description": "when it must be done: an ISO 8601 time or 2h, 3d from now; none clears it",
-          "minLength": 1,
-          "pattern": "^(?!-$)[\\s\\S]+$",
-          "type": "string"
-        },
-        "provider": {
-          "description": "deprecated: --account <provider>:<account>",
-          "minLength": 1,
-          "pattern": "^(?!-$)[\\s\\S]+$",
-          "type": "string"
-        },
-        "remind_time": {
-          "description": "when to look at it again: an ISO 8601 time or 2h, 3d from now; none clears it",
-          "minLength": 1,
-          "pattern": "^(?!-$)[\\s\\S]+$",
-          "type": "string"
-        },
-        "task": {
-          "description": "the task's id or key, as tasks list shows it",
-          "minLength": 1,
-          "pattern": "^(?!-$)[\\s\\S]+$",
-          "type": "string"
-        },
-        "title": {
-          "description": "one line: the action and its object — send Alex the API token",
-          "minLength": 1,
-          "pattern": "^(?!-$)[\\s\\S]+$",
-          "type": "string"
-        }
-      },
-      "required": ["task"],
-      "type": "object"
-    },
-    "name": "tasks_plan"
-  },
-  {
-    "annotations": {
       "destructiveHint": false,
       "openWorldHint": false,
       "readOnlyHint": true
@@ -5766,8 +5681,47 @@
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
       "properties": {
+        "account": {
+          "description": "the account it acts as: provider:account, such as telegram:1 or email:personal",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "assignee": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "one value",
+                "minLength": 1,
+                "pattern": "^(?!-$)[\\s\\S]+$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "description": "who does it, replacing the assignees: sender, a person's UID, or none",
+              "minLength": 1,
+              "pattern": "^(?!-$)[\\s\\S]+$",
+              "type": "string"
+            }
+          ],
+          "description": "who does it, replacing the assignees: sender, a person's UID, or none"
+        },
+        "category": {
+          "description": "a name from the task category list",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
         "description": {
           "description": "the detail, in Markdown",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "due": {
+          "description": "when it must be done: an ISO 8601 time or 2h, 3d from now; none clears it",
           "minLength": 1,
           "pattern": "^(?!-$)[\\s\\S]+$",
           "type": "string"
@@ -5788,6 +5742,18 @@
           "description": "0 urgent … 4 low",
           "minimum": 0,
           "type": "integer"
+        },
+        "provider": {
+          "description": "deprecated: --account <provider>:<account>",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
+        },
+        "remind_time": {
+          "description": "when to look at it again: an ISO 8601 time or 2h, 3d from now; none clears it",
+          "minLength": 1,
+          "pattern": "^(?!-$)[\\s\\S]+$",
+          "type": "string"
         },
         "title": {
           "description": "one line saying what is to be done",

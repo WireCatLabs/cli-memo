@@ -181,7 +181,7 @@ With the search model on your computer, Memo also searches by meaning, so `holid
 about a vacation. tg or max downloads the model once:
 
 ```sh
-memo models text download e5-small
+memo models download e5-small
 ```
 
 The model runs on your computer. After the download, run `memo sync` so your notes are prepared
