@@ -1,7 +1,7 @@
 # Memo
 
 Memo keeps what you know about people and projects in one place on your computer: your notes, your
-email and your Telegram and MAX messages. Your AI agent (for example Claude Code, Codex, Cursor or
+email and your Telegram, MAX and WhatsApp messages. Your AI agent (for example Claude Code, Codex, Cursor or
 Gemini CLI) uses it to find what was said, gather the context for a reply and remember what matters.
 
 This page tells you what Memo can do, how it works in short, and how to get a first result in a few
@@ -31,7 +31,7 @@ Three words appear on every page:
 
 ## How it works
 
-1. **You choose your sources.** You add a folder of notes, connect a mail account, or use tg and max
+1. **You choose your sources.** You add a folder of notes, connect a mail account, or use tg, max and wa
    to save your chats. Nothing is read until you choose it.
 2. **Memo copies the text into the local store.** Imports leave your files and mail
    unchanged. On Linux, a timer can repeat the import. Separate [Gmail cleanup commands](./mail.md#clean-up-gmail)

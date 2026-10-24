@@ -15,8 +15,8 @@ memo sync
 ```
 
 Only changed files and new mail are read, so a second run is quick. On Linux, `memo jobs start` runs it
-for you every few minutes ([keeping Memo up to date](archive.md)). Telegram and MAX messages come in
-through tg and max, not through Memo.
+for you every few minutes ([keeping Memo up to date](archive.md)). Telegram, MAX and WhatsApp messages come in
+through tg, max and wa, not through Memo.
 
 ## Find something
 

@@ -7,13 +7,13 @@ something private.
 
 ## The local store
 
-Memo keeps everything in one file on your computer, the **local store** (`wirecat.db`). tg and max
-save your Telegram and MAX messages in the same file, so Memo can answer about messages, mail and
+Memo keeps everything in one file on your computer, the **local store** (`wirecat.db`). tg, max and wa
+save your Telegram, MAX and WhatsApp messages in the same file, so Memo can answer about messages, mail and
 notes together.
 
 | Where it comes from | Who puts it in the local store |
 |---|---|
-| Telegram and MAX messages | tg and max, when they download your chats |
+| Telegram, MAX and WhatsApp messages | tg, max and wa, when they download your chats |
 | Email | `memo sync --only mail` or `memo sync` |
 | Files in your note folders | `memo sync --only notes` or `memo sync` |
 | Your own notes, tags, tasks, memories and facts | Memo, when you or your agent add them |
