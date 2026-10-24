@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.92.0 — 24.10.2026
+
 ### Changed — may break callers
 
 - **Commands use cli-core 0.406.0's canonical names, with no aliases.** `tasks plan` is now part of
