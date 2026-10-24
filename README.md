@@ -27,28 +27,20 @@ it, and your mail; it reads the messages that [tg-cli](https://github.com/WireCa
 [max-cli](https://github.com/WireCatLabs/max-cli) keep. Then you, or your AI agent, ask: what do I know
 about this person, where did we discuss this, what did I promise. Every answer points back to its source.
 
-<!-- Demo slot: a 30–45 s recording of an agent answering "What did I promise Alice?" from memo, with
-     sources. Add it here once recorded; until then the example below shows the real output. -->
-
-**Example** — two invented notes in a vault, `people/Alice Example.md` and `Projects/Harbour budget.md`:
+**Example** — search two invented notes in a notes folder:
 
 ```text
 $ memo search notes budget Friday
-Searched by words only: the e5-small model is not downloaded — tg or max downloads it: npx -y @wirecat/tg-cli local models text download e5-small
+Searched by words only: e5-small is not downloaded — install it with a WireCat CLI that has `models text download` (tg, max or wa); they share the model folder
 
 Projects/Harbour budget.md
-  # Harbour budget
+  Review the Harbour budget by Friday.
 people/Alice Example.md
-  Asked for the revised budget by Friday. See [[Harbour budget]].
-
-Linked from these notes
-  Bob Sample  (nobody by that name yet)  (1)
-  Harbour budget  document:1  (1)
+  Asked for the revised budget by Friday.
 ```
 
-Each hit names its file, and `[[links]]` become links to notes and people. `Bob Sample` becomes a link to
-a person once someone by that name is in the store. The first line says the search used words only: the model
-for search by meaning is not downloaded yet.
+Each hit names its file and shows a matching excerpt. The diagnostic line goes to stderr: the local model
+is missing, so this search used words only. `--json` returns structured results for an agent or script.
 
 ## Quick start
 
@@ -374,8 +366,8 @@ More: [files memo can read](https://github.com/WireCatLabs/cli-memo/blob/main/do
 
 ## When something is missing
 
-- **Searched by words only:** the meaning model is not downloaded —
-  `npx -y @wirecat/tg-cli local models text download e5-small`.
+- **Searched by words only:** the local meaning model is not downloaded. Install it through tg, max or wa;
+  they share the model folder. Without it, word search still works ([search by meaning](docs/search.md)).
 - **A folder is refused by import:** it has no id yet — `memo folders add <path>`.
 - **A name is refused:** two people share it; use one of the ids it lists.
 - **`memo ask` asks for a scope:** add `--all`, or `--source`.
@@ -388,8 +380,9 @@ More: [if something is missing](https://wirecat.dev/en/docs/memo/troubleshooting
 ## Part of WireCat
 
 [WireCat](https://wirecat.dev) is an open-source, local-first context layer for AI agents: tg for
-Telegram, max for MAX, memo for your notes and mail, all in one local store. Start with your notes. Add
-more context when you need it. Your context. Any agent.
+Telegram, max for MAX, wa for WhatsApp, zm for archived Zoom recordings, drive for Google Drive and Docs,
+and memo for your notes and mail. Their imported context is searchable locally. Start with your notes and
+add the sources you need.
 
 ## Technical docs
 
