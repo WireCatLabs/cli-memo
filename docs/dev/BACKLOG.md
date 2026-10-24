@@ -20,7 +20,7 @@ Plans and owner rulings live in the private notes (`cli-private`, `plans/`); thi
 
 ## Launch blockers (P1)
 
-- **MEMO-23** · P1 · Remote MCP before launch: `memo mcp --http`, so Claude and ChatGPT on the web and phone can read
+- **MEMO-23** · P1 · 🚧 `feat/http-mcp-20261024` · Remote MCP before launch: `memo mcp --http`, so Claude and ChatGPT on the web and phone can read
   and write memo through the owner's tunnel, as with tg and max. Owner ruling 2026-10-24 (cli-private journal
   NEED-1716, answer A). Starts at `src/mcp/command.ts:14` (stdio only today). tg and max already serve this: `mcp
   --http` logs in with a one-time access code (OAuth, token hashes per profile) and `--revoke` forgets every login;
