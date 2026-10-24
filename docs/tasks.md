@@ -146,7 +146,7 @@ memo reminders claim --account telegram:1 --json
 memo reminders acknowledge REMINDER_ID RECEIPT --account telegram:1
 ```
 
-`poll` hands out the reminders that are due, each with a receipt. `ack` with that receipt confirms
+`claim` hands out the reminders that are due, each with a receipt. `acknowledge` with that receipt confirms
 that the reminder was shown. A reminder that is not confirmed in time is handed out again with a new
 receipt, so a crash does not lose it. Use the `deliveryId` in the answer to avoid showing the same
 reminder twice. The import timer does not deliver reminders.
