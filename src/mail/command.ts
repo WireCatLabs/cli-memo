@@ -18,6 +18,7 @@ import { removeRule, ruleCounts, rulesOf, saveRule } from "./rule-store.js"
 import { mapProposedTags } from "./rule-tags.js"
 import { conditionKeys, describeMatch, type MailAction, type MailRule, type MailRuleMatch } from "./rules.js"
 import { FREE_MAIL, SCORE_RULE } from "./score.js"
+import { mailSetupCommand } from "./setup-command.js"
 import type { Listed } from "./source.js"
 import { mailStatus, statusText } from "./status.js"
 import {
@@ -240,6 +241,7 @@ const probeText = (probe: Probe & { seconds: number }): string => {
 export const mailCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
   const mail = program.command("mail").description("look at a mail account before importing it, and the owner's rules")
+  mailSetupCommand(mail, streams, env)
 
   annotate(mail.command("inspect"), { effects: REMOTE_READ })
     .description("group an account's mail by sender and list, to decide what to keep or skip")

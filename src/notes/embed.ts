@@ -22,9 +22,7 @@ export interface NotesEmbedded {
   pendingChats?: string[]
 }
 
-// memo has no `models` command: the model folder is shared, and tg or max fills it.
-const download = (model: string) =>
-  `the ${model} model is not downloaded — tg or max downloads it: npx -y @wirecat/tg-cli local models text download ${model}`
+const download = (model: string) => `the ${model} model is not downloaded — memo models text download ${model}`
 
 const MISSING_MODEL = download("e5-small")
 
@@ -147,7 +145,7 @@ export const embedNoteChunks = async (
 ): Promise<NoteChunksEmbedded> => {
   if (!embed) return { chunks: 0, left: true, notEmbedded: "embedding is off" }
   try {
-    const done = await embedNoteChunksOf(store, { maxChunks, command: "tg", ...(env === undefined ? {} : { env }) })
+    const done = await embedNoteChunksOf(store, { maxChunks, command: "memo", ...(env === undefined ? {} : { env }) })
     return { chunks: done.embedded, left: done.left }
   } catch (error) {
     if (!isMissingModel(error)) throw error
@@ -170,7 +168,7 @@ export const embedMailChunks = async (
 ): Promise<NoteChunksEmbedded> => {
   if (!embed) return { chunks: 0, left: true, notEmbedded: "embedding is off" }
   try {
-    const done = await embedMailChunksOf(store, { maxChunks, command: "tg", ...(env === undefined ? {} : { env }) })
+    const done = await embedMailChunksOf(store, { maxChunks, command: "memo", ...(env === undefined ? {} : { env }) })
     return { chunks: done.embedded, left: done.left }
   } catch (error) {
     if (!isMissingModel(error)) throw error

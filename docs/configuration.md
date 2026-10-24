@@ -2,8 +2,8 @@
 
 Use this reference to look up Memo's own configuration settings and environment variables. You
 rarely need to edit the file by hand. `memo folders add` adds a folder
-and `memo auto start` turns the timer on for you. Edit the file yourself for files to skip, mail
-accounts and where exported notes go.
+and `memo auto start` turns the timer on for you. `memo mail add` adds an explicit Himalaya account. Edit the file yourself for files to skip and where
+exported notes go.
 
 The file is `~/.config/cli-memo/config.json`. It is a JSON file: keep the quotes, commas and braces
 as in the example.

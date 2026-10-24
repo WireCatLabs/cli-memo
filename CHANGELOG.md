@@ -8,6 +8,20 @@ the API.
 
 ### Added
 
+- **The agent skill asks for two or three searches in other words before reporting no answer**, covering
+  paraphrases and language changes without a separate query-expansion model.
+
+- **Meeting search exposes every shared selector**, including meeting/person/identity/event/series ids,
+  tags and topics. The guide explains Memo's explicit stored-account scope and why calendar verification
+  and zm's extra semantic-search flags differ.
+
+- **`memo mail add <account> <address>` checks the explicit Himalaya account and matching configured email**
+  before saving it. `mail check <account>` repeats the local checks; neither command chooses a default account
+  or opens the mailbox. Use `--kind imap` and repeated `--folder` for other IMAP providers.
+
+- **`memo models text download <model>` downloads and checks the shared search model**, through cli-core's
+  downloader. Sync, search and setup instructions now point to `memo models text download e5-small`.
+
 - **MCP exposes the command tree, including writes**, with generated command names alongside all 37 existing
   tools. Open cited notes with `notes_show`, stored messages and emails with `messages_show`, and tags with `tags_list`.
   Source-folder and mail-rule changes need `mcp.authority` (denied by default). Meeting findings decisions

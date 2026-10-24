@@ -33,6 +33,9 @@ importers:
       postal-mime:
         specifier: 4.0.0
         version: 4.0.0
+      smol-toml:
+        specifier: 1.9.1
+        version: 1.9.1
       tldts:
         specifier: 7.4.16
         version: 7.4.16

@@ -253,3 +253,24 @@ it("exposes strict MCP meeting search/passage with evidence and unchanged review
     await client.close()
   }
 })
+
+it("uses the shared meeting selectors with explicit source scope", async () => {
+  const f = await fixture()
+  const page = await cli(f.env, [
+    "search",
+    "meetings",
+    "Ship",
+    "--source",
+    f.source,
+    "--meeting-id",
+    String(f.saved.meeting.id),
+    "--series-id",
+    String(f.saved.meeting.meetingSeriesId),
+    "--topic",
+    "finance",
+  ])
+  expect(page.items.length).toBeGreaterThan(0)
+  expect(page.items.every((item: { ref: string }) => item.ref.includes(String(f.saved.meeting.id)))).toBe(true)
+  const absent = await cli(f.env, ["search", "meetings", "Ship", "--source", f.source, "--tag", "review"])
+  expect(absent.items).toEqual([])
+})

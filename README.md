@@ -63,10 +63,10 @@ That is all notes need. Then add more context:
 
 - **Messages:** install [tg-cli](https://github.com/WireCatLabs/tg-cli) or
   [max-cli](https://github.com/WireCatLabs/max-cli); memo reads the same local store.
-- **Search by meaning:** needs a local model of about 135 MB, which [tg-cli](https://github.com/WireCatLabs/tg-cli) or
-  max-cli downloads once: `npx -y @wirecat/tg-cli local models text download e5-small`. Without it, memo searches
+- **Search by meaning:** needs a local model of about 135 MB, downloaded once with: `memo models text download e5-small`. Without it, memo searches
   by words.
-- **Mail:** set up [Himalaya](https://github.com/pimalaya/himalaya), then `memo sync --only mail`.
+- **Mail:** set up [Himalaya](https://github.com/pimalaya/himalaya), run `memo mail add <account> <address>`,
+  then `memo sync --only mail`.
 - **Stay current:** `memo auto start` runs `memo sync` every five minutes (Linux, systemd).
 - **Your agent:** `memo skill install --for all` puts memo's skill where Claude Code, Codex and Gemini CLI read
   it; `memo skill show` prints it.
@@ -210,7 +210,7 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 ## Search and evidence
 
 Notes are searched by words and word stems in the query language messages use — phrases, `AND`/`OR`/`NOT`,
-`tag:`, `date:` — and by meaning once the local model is downloaded (`npx -y @wirecat/tg-cli local models text download e5-small`); both are ranked together. `search all`
+`tag:`, `date:` — and by meaning once the local model is downloaded (`memo models text download e5-small`); both are ranked together. `search all`
 reads messages, imported mail and notes together, and nothing else. When you know the kind, its own search
 reads every field: `search mail` takes `from:`, `to:`, `cc:`, `bcc:`, `subject:` and `mailbox:`.
 
@@ -328,7 +328,7 @@ More: [keeping memo up to date](https://github.com/WireCatLabs/cli-memo/blob/mai
 ## Configuration
 
 `memo folders add` and `memo auto start` write `~/.config/cli-memo/config.json` for you. By hand you set what
-to skip, mail accounts and where exported notes go:
+to skip and where exported notes go; `memo mail add` adds an explicit Himalaya account:
 
 ```json
 {

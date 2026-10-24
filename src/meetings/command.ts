@@ -25,10 +25,7 @@ export const meetingReadCommands = (program: Command, streams: Streams, env: Nod
   const search = annotate(group.command("meetings"), { effects: LOCAL_READ, output: { entity: "meeting_hit" } })
     .description(grammar.description())
     .argument("<query>", "words to find; each also matches its other word forms")
-  const supported = new Set(["project", "sinceTime", "untilTime", "limit", "cursor", "maxReadBytes"])
-  // Reuse SDK parsers for Memo's registered flags; MCP exposes the richer selectors.
   for (const option of grammar.options) {
-    if (!supported.has(option.attributeName())) continue
     if (option.long === "--project") option.flags = "--project <project>"
     search.addOption(option)
   }

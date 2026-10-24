@@ -18,3 +18,12 @@ tested in cli-core, and each still needs its test named here.
 `contracts/` holds the offline contracts that full validation runs: `pnpm contracts:check` (help, discovery, errors
 and the MCP tool list), `pnpm contracts:upgrade` (a note written by the last published memo is read by this build)
 and `pnpm security:no-leak`. Update a snapshot only on purpose: `pnpm exec cli-contract contracts/plan.json --update`.
+
+## Shared meeting grammar and lint
+
+Memo mounts cli-core's complete meeting search grammar, as zm does. The shared vocabulary does not yet name
+its `--meeting-id`, `--identity-id`, `--person-id`, `--series-id` or `--tag` roles, and reserves `--topic <id>`
+for messenger topics while meeting search uses named knowledge topics. The command lint baselines match zm's
+existing exceptions for these shared flags. Keep the parsers aligned; resolve their shared vocabulary in
+cli-core/cli-base rather than renaming the flags in one host. `models text` has the same shared resource
+exception as tg's model commands.

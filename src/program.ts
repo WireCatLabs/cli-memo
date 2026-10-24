@@ -24,6 +24,7 @@ import { meetingReadCommands } from "./meetings/command.js"
 import { meetingPreparationCommand } from "./meetings/preparation-command.js"
 import { memoriesCommand } from "./memories/command.js"
 import { mentionsCommand } from "./mentions/command.js"
+import { modelsCommand } from "./models/command.js"
 import { notesCommand } from "./notes/command.js"
 import { foldersCommand } from "./notes/folders-command.js"
 import { noteCommand } from "./people/command.js"
@@ -173,6 +174,7 @@ export const createProgram = ({
   actionsCommand(program, streams, env)
   agentsCommand(program, streams, env)
   mcpCommand(program, streams, env, createProgram)
+  modelsCommand(program, streams, env)
   searchCommand(program, streams, env)
   meetingReadCommands(program, streams, env)
   meetingPreparationCommand(program, streams, env)

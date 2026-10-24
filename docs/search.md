@@ -181,7 +181,7 @@ With the search model on your computer, Memo also searches by meaning, so `holid
 about a vacation. tg or max downloads the model once:
 
 ```sh
-npx -y @wirecat/tg-cli local models text download e5-small
+memo models text download e5-small
 ```
 
 The model runs on your computer. After the download, run `memo sync` so your notes are prepared
@@ -223,3 +223,24 @@ and `--allow-remote` for a provider outside your computer. See
 check it against the sources.
 
 Next: [see everything about one person](people.md), or [turn what you found into a task](tasks.md).
+
+## Meeting reader scope
+
+Memo and zm share cli-core's meeting search selectors and parsers: meeting, identity, person, event and
+series ids; project, tag and topic; time bounds, cursor and read budget. For example:
+
+```sh
+memo search meetings "draft" --source zoom:work --topic finance --meeting-id 12
+```
+
+Their account selection differs: Memo needs one stored `--source provider:account`; zm selects its account
+with its profile argument. Memo's `meetings passage` reuses the shared passage grammar, and `meetings prepare`
+reuses the shared preparation builder and answer schema. Their JSON evidence and coverage retain the shared
+shape; the text summaries describe each tool's actual reads.
+
+Memo reads stored archives. Its preparation summary leaves the next meeting time unverified because it does
+not read a provider calendar. zm can use its selected provider connection to check that schedule.
+zm also adds optional semantic search and remote embedding settings around the shared search grammar;
+Memo's meeting search is the stored word-search path. Those options require a separate embedding workflow
+and are not part of Memo's current meeting reader. Memo's `search notes` and `search all` still support the
+shared local meaning model for notes and mail.
