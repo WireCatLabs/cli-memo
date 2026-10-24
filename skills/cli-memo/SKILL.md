@@ -95,6 +95,7 @@ markers to bypass that permission. Historical proposals stay proposed.
 ## The usual path
 
 ```sh
+memo search people <name> --json                 # who: person:<id> for --contact, across every account
 memo context telegram:<id or name> --json        # one person: messages, mail, notes, tasks
 memo projects context <key> --json               # one project: key documents first
 memo search all '<words>' --project <key> --json # everything, the project's key documents first
@@ -138,7 +139,7 @@ To collect what the store holds about a project, use `memo projects evidence <pr
 search: every word of it must appear in one text, in any order, as whole words; hits are joined. Every message of a
 chat confirmed as the project's is read too when `--source` holds its account: a `linked-chat` item names nothing, it
 is there because the chat is the project's. A linked chat outside `--source` is listed as not read. Link a chat with
-`memo relationships add chat:<provider>/<account>/<chat> project:<id>`; yours waits for the owner to confirm it. `--contact person:<id>` reads every message and mail that person's stored identities wrote in `--source` (a `sender` item, matched by who wrote it, may name nothing) and searches the aliases the owner gave them, not their messenger display name; an unknown id is `not_found`. New mail and documents are indexed first unless `--no-catch-up`. A `person-only` item mentions a person, not the project. Unread or failed sources are coverage, not
+`memo relationships add chat:<provider>/<account>/<chat> project:<id>`; yours waits for the owner to confirm it. `--contact person:<id>` (find the id with `memo search people <name>`) reads every message and mail that person's stored identities wrote in `--source` (a `sender` item, matched by who wrote it, may name nothing) and searches the aliases the owner gave them, not their messenger display name; an unknown id is `not_found`. New mail and documents are indexed first unless `--no-catch-up`. A `person-only` item mentions a person, not the project. Unread or failed sources are coverage, not
 absence. A document too large to read is listed under `oversized`: open it with `memo notes show <ref>`. Continue a stopped run with `--cursor <checkpoint>` and the same options. Nothing is proposed or
 confirmed: cite the references, then stage findings with `memo projects actions add` (MCP
 `project_actions_add`), each reference with the `fingerprint` from the evidence. Review with `memo projects actions

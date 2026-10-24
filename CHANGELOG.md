@@ -5,6 +5,15 @@ first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0
 the API.
 
 
+## Unreleased
+
+### Added
+
+- **`memo search people <name>` finds a person across every account.** It matches the name, username or your
+  alias, whatever the case or accents, Cyrillic included, and gives the `person:<id>` that
+  `memo projects evidence --contact` takes, with each identity. `--source` narrows the accounts; the answer names
+  those it read.
+
 ## 0.94.0 — 24.10.2026
 
 ### Changed — may break callers

@@ -10,8 +10,9 @@ import { searchMemoriesCommand } from "../memories/command.js"
 import { searchText } from "../notes/search.js"
 import { positive } from "../options.js"
 import { SAVE_HELP } from "../save-help.js"
-import { MAIL_SOURCES, mailboxesOf } from "../store/source-list.js"
+import { ACCOUNTS_HELP, MAIL_SOURCES, mailboxesOf } from "../store/source-list.js"
 import { allAnswer, kindAnswer, notesAnswer } from "./answers.js"
+import { peopleAnswer, peopleText, searchPeople } from "./people.js"
 import { keyDocumentsFirst, searchEverywhere, searchKind, searchNotes } from "./search.js"
 
 const onlyOf = (value: string): SearchedResource[] => {
@@ -66,7 +67,7 @@ const PROJECT_ORDER_HELP =
 const searchCommandDefinition = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const group = program
     .command("search")
-    .description("search stored messages, mail, notes and memories; search all when unsure where")
+    .description("search messages, mail, notes, memories and people; search all when unsure where")
   const { print } = answers(group, streams, env)
   const queryOptions = (leaf: Command) =>
     leaf
@@ -251,6 +252,38 @@ Mail from senders with signs of fraud (memo mail inspect) comes after the rest o
       },
     )
   searchMemoriesCommand(group, streams, env)
+  annotate(group.command("people"), { effects: LOCAL_READ, output: { entity: "person" } })
+    .description(
+      "people whose name, username or alias holds every word, in every account unless --source narrows it; " +
+        "each with its person:<id> for --contact and its identities",
+    )
+    .summary("people by name across every account")
+    .argument("<name...>", "parts of the name, username or alias; case and accents do not matter")
+    .option("--source <accounts>", ACCOUNTS_HELP)
+    .option(
+      "--limit <n>",
+      "most people, at most 100",
+      (value: string) => {
+        const limit = positive(value)
+        if (limit > 100) throw new InvalidArgumentError("at most 100")
+        return limit
+      },
+      20,
+    )
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .addHelpText(
+      "after",
+      "\n--json: the list is items, each a person: ref (person:<id>, or contact:<provider>/<id> for one never linked)," +
+        " name, identities (provider, account, id, name, username, alias) and aliases; meta.accounts names what was read.",
+    )
+    .action(async (words: string[], options: { limit: number; source?: string; json?: boolean }) => {
+      const found = await withStore(env, (store) => searchPeople(store, env, words, options))
+      if (!options.json)
+        streams.diagnostic(
+          `searched: ${found.accounts.map(({ provider, account }) => `${provider}:${account}`).join(", ") || "nothing"}\n`,
+        )
+      print(options.json, peopleAnswer(found, options.limit), peopleText(found))
+    })
   // A source left unread is named in meta.issues; the rest is still the answer, so the search exits 0.
   for (const leaf of group.commands) annotate(leaf, { partial: true })
 }

@@ -188,6 +188,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "search mail": ["memo search mail 'mailbox:important budget' --source email:me@example.com"],
   "search notes": ["memo search notes budget notes:2", "memo search notes kickoff --project HRB --json"],
   "search memories": ["memo search memories friday meetings scope:work"],
+  "search people": ["memo search people ana", "memo search people Ana Example --source telegram --json"],
   "answers create": [
     "memo answers create 'what did Kai say about the budget?' --all",
     "memo answers create 'when is the launch?' --source telegram:1",
