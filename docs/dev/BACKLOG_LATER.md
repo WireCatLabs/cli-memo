@@ -14,13 +14,10 @@ becomes P2, move its line there. A finished item's line is deleted.
   false`); no command applies one. Plan: cli-private `plans/2026-10-18-label-consolidation-design.md`.
 - **MEMO-20** · P3 · Reminders on a project's own tasks: "A task in a project cannot have a reminder yet"
   (`README.md:146`).
-- **MEMO-21** · P3 · Remove the deprecated `--account`/`--provider` from the 34 read commands that now take
+- **MEMO-21** · P3 · 🚧 `fix/memo-standards-debt-20261024` · Remove the deprecated `--account`/`--provider` from the 34 read commands that now take
   `--source`, in a release marked "Changed — may break callers" (`memo commands --json`).
 - **MEMO-22** · P3 · macOS and Windows: tests run on Linux only (`docs/installation.md:27`), and the unit suite
   is known to fail on Windows. Add a platform job before claiming support.
-- **MEMO-24** · P3 · 🚧 `fix/memo-standards-debt-20261024` · Command names outside the shared vocabulary: 16 verbs and 7 resources in `lint/baseline/`
-  (`mail trash`, `mail runs`, `reminders poll`, …). Rename, or add them to cli-base's vocabulary; cli-base's
-  central `audit/baseline` also lacks memo's `mail trash`, `mail runs` and `mail rules import-filters`.
 - **MEMO-25** · P3 · Image search by context, photo data and picture (core-led). Plan: cli-private
   `plans/2026-10-13-image-search-plan.md`.
 - **MEMO-26** · P3 · What the visual UI (visage) would need from memo: a link graph read
