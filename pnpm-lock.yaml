@@ -31,8 +31,8 @@ importers:
         specifier: 1.26.0
         version: 1.26.0
       postal-mime:
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 4.0.8
+        version: 4.0.8
       smol-toml:
         specifier: 1.9.1
         version: 1.9.1
@@ -2051,8 +2051,8 @@ packages:
     resolution: {integrity: sha512-wQ0b/W4Fr01qtpHlqSqspcj3EhBvimsdh0KlHhH8HRZnMsEa0ea2fTULOXOS9ccQr3om+GcGRk4e+isrZWV8qQ==}
     engines: {node: '>=16.20.0'}
 
-  postal-mime@4.0.0:
-    resolution: {integrity: sha512-pmAD50GSuJ6Njf7oa4bleSsYrPy8UYxTRmxVFFwysOm2p8t4C3DFEmP+j7tkvQzPdFUT0X1PuzJvrnb2Sx40BA==}
+  postal-mime@4.0.8:
+    resolution: {integrity: sha512-nnAgc4a9hn7zYuQmX4C7LU+fN47kR5S8cE8zvB/vZ2NimNDbaj+ISZJ9qe3CKIfn2uOTwwz4nQeIyljvdFNgOA==}
     engines: {node: '>=20'}
 
   postcss@8.5.28:
@@ -4442,7 +4442,7 @@ snapshots:
 
   pkce-challenge@5.0.1: {}
 
-  postal-mime@4.0.0: {}
+  postal-mime@4.0.8: {}
 
   postcss@8.5.28:
     dependencies:
