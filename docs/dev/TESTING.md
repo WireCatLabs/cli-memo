@@ -26,3 +26,12 @@ its `--meeting-id`, `--identity-id`, `--person-id`, `--series-id` or `--tag` rol
 for messenger topics while meeting search uses named knowledge topics. The command lint baselines match zm's
 existing exceptions for these shared flags. Keep the parsers aligned; resolve their shared vocabulary in
 cli-core/cli-base rather than renaming the flags in one host.
+
+## A version pull request skips the full validation
+
+A pull request that changes only `CHANGELOG.md` and the version in `package.json` and `src/version.ts`, against a
+`main` whose pull request passed every required check on the same tree (bin/release's version pull requests), runs
+`pnpm version:check` and `pnpm docs:check` instead, and reports the other required `validation / …` checks as
+passed, saying why ([`scripts/ci-unchanged.sh`](../../scripts/ci-unchanged.sh),
+[`scripts/ci-fingerprint.sh`](../../scripts/ci-fingerprint.sh)). The push to `main` that follows runs the full
+validation.
