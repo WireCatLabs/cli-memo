@@ -5,6 +5,7 @@ import { type McpCommand, registerCommands } from "@wirecat/cli-core/mcp"
 import type { Level } from "@wirecat/cli-core/sends"
 import { openStore } from "@wirecat/cli-core/store"
 import * as v from "valibot"
+import { STORE_CLIENT } from "../app.js"
 import { mcpFailure } from "../failure.js"
 import { readOnly } from "../read-only.js"
 import { VERSION } from "../version.js"
@@ -97,7 +98,7 @@ export const createMemoServer = (
         } catch (error) {
           result = mcpFailure(error)
         }
-        const store = await openStore({ env }).catch(() => undefined)
+        const store = await openStore({ env, ...STORE_CLIENT }).catch(() => undefined)
         if (store) {
           try {
             const code = (result.structuredContent as { error?: { code?: string } } | undefined)?.error?.code
