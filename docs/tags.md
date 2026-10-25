@@ -110,9 +110,9 @@ If the vocabulary changed, list it again and reselect the pair; do not reuse the
 
 `coverage.inspected_tables` names the four covered tables: assignments, aliases, automatic claims
 and links. Saved search text, proposal history and arbitrary serialized references are outside this
-preview. `coverage.apply_supported` is false: this is a review aid, not an executable merge plan.
-Topics and projects are refused. There is no apply command, and a preview fingerprint grants no
-permission to merge. Existing owner-reviewed alias commands remain separate.
+preview. `coverage.apply_supported` is true: cli-core can apply such a preview, but memo has no
+command that does. Topics and projects are refused. A preview fingerprint grants no permission to
+merge. Existing owner-reviewed alias commands remain separate.
 
 ## Tags and tg or max
 

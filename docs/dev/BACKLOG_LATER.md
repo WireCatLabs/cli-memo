@@ -10,8 +10,8 @@ becomes P2, move its line there. A finished item's line is deleted.
   model gateway, with a structured change report. Same plan.
 - **MEMO-18** · P3 · Project gathering slices 4–5: order answer support (questions vs decisions) and a frozen
   evaluation pilot. Plan: cli-private `plans/projects/2026-10-21-project-semantic-gathering.md`.
-- **MEMO-19** · P3 · Merge duplicate tags: `vocabulary inspect` previews a consolidation (`apply_supported:
-  false`); no command applies one. Plan: cli-private `plans/2026-10-18-label-consolidation-design.md`.
+- **MEMO-19** · P3 · Merge duplicate tags: `vocabulary inspect` previews a consolidation; cli-core can apply
+  one (`knowledge.applyTagConsolidation`), no memo command does. Plan: cli-private `plans/2026-10-18-label-consolidation-design.md`.
 - **MEMO-20** · P3 · Reminders on a project's own tasks: "A task in a project cannot have a reminder yet"
   (`README.md:146`).
 - **MEMO-22** · P3 · macOS and Windows: tests run on Linux only (`docs/installation.md:27`), and the unit suite

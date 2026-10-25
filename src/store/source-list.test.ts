@@ -21,7 +21,7 @@ const setUp = async () => {
     return { answer: answerOf(streams.stdout.join("")), stderr: streams.stderr.join("") }
   }
   const note = async (text: string) => `note:${(await run("notes", "add", text)).answer.id}`
-  return { run, note }
+  return { run, note, env }
 }
 
 it("lists the tasks of every account --source names, oldest first, and names those accounts", async () => {
@@ -78,6 +78,16 @@ it("writes through one explicit account and refuses the retired provider flag", 
   })
 })
 
+it("acts as Drive's documents account by the notes:<id> the list reader gives it", async () => {
+  const { run, note, env } = await setUp()
+  const store = await openStore({ env })
+  const drive = await store.notes.documentsAccount({ provider: "google-drive", account: "u1" }, true)
+  await store.close()
+
+  const { answer } = await run("tasks", "add", await note("Synthetic"), "--account", `notes:${drive?.id}`)
+  expect(answer.task.account).toBe("google-drive:u1")
+})
+
 it("asks memo's own notes when --source names notes", async () => {
   const { run, note } = await setUp()
   const ref = await note("Synthetic lighthouse budget")
@@ -115,7 +125,7 @@ it("makes a task from a folder's file and reminds about it in a store that holds
 
   const added = await run("tasks", "add", document.ref)
   expect(added.task.account).toBe(stored)
-  for (const account of [stored, `notes:${document.folder_id}`])
+  for (const account of [stored, `folder:${folder?.account}`, `notes:${document.folder_id}`])
     expect((await run("tasks", "add", document.ref, "--account", account)).task.id).toBe(added.task.id)
   expect((await run("tasks", "list")).items.map(({ id }: { id: string }) => id)).toEqual([added.task.id])
   expect((await run("tasks", "agenda", "--source", "notes")).tasks).toHaveLength(1)

@@ -4,6 +4,7 @@ import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { grantsAuthority, LOCAL_READ, LOCAL_WRITE, queryTerms, withQuery } from "@wirecat/cli-core/cli"
+import type { MessageStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { loadConfig, updateConfig } from "../config.js"
@@ -28,8 +29,14 @@ const directory = (path: string): string => {
 /** memo's own entity: a notes folder, here or known to the store from another computer. */
 const FOLDERS_QUERY = { entity: "notes_folder", backend: "native", fields: [] } as const satisfies QueryRegistry
 
-// drive-cli owns these folders; bound to a disk folder, an import would delete the Drive documents missing there.
+// drive-cli owns these; bound to a disk folder, an import would delete the Drive documents missing there.
+// Store version 31 moved them from a folder named `google-drive:<principal>` to a documents account of that name.
 const keptByDrive = (name: string) => name.startsWith("google-drive:")
+
+const storedFolders = async (store: MessageStore) => [
+  ...(await store.notes.folders()),
+  ...(await store.notes.documentsAccounts()),
+]
 
 const line = (folder: NoteFolder) =>
   `${folder.id ?? "(no id — memo folders add <path>)"}  ${folder.format}  ${folder.path}`
@@ -81,7 +88,7 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
     .action(async (id: string, path: string, options: { format?: DialectName; json?: boolean }) => {
       const at = directory(path)
       const folder = await withStore(env, async (store) => {
-        const stored = (await store.notes.folders()).find((candidate) => candidate.id === id)
+        const stored = (await storedFolders(store)).find((candidate) => candidate.id === id)
         if (!stored)
           throw new CliError("not_found", `the store has no folder ${id} — memo folders list shows those it has`, {
             reason: "folder.not-found",
@@ -113,7 +120,7 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
       queryTerms(words, FOLDERS_QUERY, "folders list")
       const here = noteFolders(loadConfig(env).notes)
       const elsewhere: ElsewhereFolder[] = await withStore(env, async (store) =>
-        (await store.notes.folders())
+        (await storedFolders(store))
           .filter((folder) => !here.some((entry) => entry.id === folder.id))
           .map(({ id, name, format }) => ({
             id,

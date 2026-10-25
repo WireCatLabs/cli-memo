@@ -29,8 +29,8 @@ as `--account telegram:1` or a notes folder, `--account notes:1`. Adding the sam
 existing one.
 
 A notes folder is an account too: search results give its number as `folder_id`, and Memo accepts it as
-`notes:<number>` or as the `folder:<id>` its messages show. `--source notes` names your folder when you have
-one. `memo tasks list` and `memo reminders list` without `--source` read every account and name them in
+`notes:<number>` or as the `obsidian:<id>` or `local:<id>` its messages show; `folder:<id>` names it too.
+`--source notes` names your folder when you have one. `memo tasks list` and `memo reminders list` without `--source` read every account and name them in
 `meta.accounts`.
 
 ## What needs a look today

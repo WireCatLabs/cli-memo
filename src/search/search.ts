@@ -264,7 +264,11 @@ export const searchEverywhere = async (
     if (resource === "notes")
       searched.push(
         { resource, provider: "notes", account: "internal" },
-        ...(await store.notes.folders()).map(({ id }) => ({ resource, provider: "notes", account: id })),
+        ...[...(await store.notes.folders()), ...(await store.notes.documentsAccounts())].map(({ id }) => ({
+          resource,
+          provider: "notes",
+          account: id,
+        })),
       )
   }
   const tasks: EverywhereExtras["tasks"] = []

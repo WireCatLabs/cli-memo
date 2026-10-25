@@ -1,6 +1,7 @@
 import { CliError } from "@wirecat/cli-base"
+import { isFolderProvider } from "@wirecat/cli-core"
 import { type ContextSource, entriesOfList } from "@wirecat/cli-core/services"
-import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
+import type { AccountKey, MessageStore, StoredAccount } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { loadConfig } from "../config.js"
 
@@ -12,7 +13,6 @@ export interface SourceList {
 }
 
 const MAIL = new Set(["mail", "email"])
-const FOLDER = "folder"
 const MESSENGERS = new Set(["messages", "telegram", "tg", "max", "whatsapp", "wa", "personal", "bots"])
 const SHAPES = "provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>"
 
@@ -33,6 +33,14 @@ const mailboxOf = async (store: MessageStore, env: NodeJS.ProcessEnv, name: stri
   })
 }
 
+/** The list reader names a notes folder and a documents account (Drive's) alike: `notes:<row>`. */
+const filesAccounts = async (store: MessageStore) => {
+  const ids = new Set(
+    [...(await store.notes.folders()), ...(await store.notes.documentsAccounts())].map(({ id }) => id),
+  )
+  return (one: StoredAccount) => ids.has(String(one.id))
+}
+
 const messengers = (entry: string) =>
   new CliError("validation_error", `${entry}: mentions in chats are the messenger's — tg <profile> mentions list`)
 
@@ -43,12 +51,16 @@ const messengers = (entry: string) =>
  */
 const listedOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: string) => {
   const held = await store.accounts.storedAccounts()
+  const holdsFiles = await filesAccounts(store)
   const named = async (entry: string) => {
     const [provider = "", ...rest] = entry.trim().split(":")
     const account = rest.join(":")
-    // The store names a notes folder folder:<id>, and memo's own errors show that; the list reader knows notes:<row>.
-    if (provider === FOLDER && account) {
-      const folder = held.find((one) => one.provider === FOLDER && one.account === account)
+    // The store names a notes folder <provider>:<id>, and memo's own errors show that; the list reader knows notes:<row>.
+    // `folder`, every folder's provider before store version 32, is what saved commands still say.
+    if (isFolderProvider(provider) && account) {
+      const folder = held.find(
+        (one) => holdsFiles(one) && one.account === account && (provider === "folder" || one.provider === provider),
+      )
       if (folder === undefined) throw new CliError("not_found", `no notes folder ${account} in the store`)
       return `notes:${folder.id}`
     }
@@ -160,10 +172,11 @@ const unnamed = async (store: MessageStore, option = "--source") =>
  */
 const storedKeysOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: string): Promise<AccountKey[]> => {
   const held = await store.accounts.storedAccounts()
+  const holdsFiles = await filesAccounts(store)
   const keys: AccountKey[] = []
   for (const key of await accountsOf(store, env, value)) {
     const folder =
-      key.provider === "notes" ? held.find((one) => one.provider === FOLDER && String(one.id) === key.account) : null
+      key.provider === "notes" ? held.find((one) => holdsFiles(one) && String(one.id) === key.account) : null
     if (folder === undefined) continue
     const stored = folder ? { provider: folder.provider, account: folder.account } : key
     if (!keys.some((one) => one.provider === stored.provider && one.account === stored.account)) keys.push(stored)
@@ -204,6 +217,7 @@ export const oneAccountOf = async (
  */
 export const contextSourcesOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: string) => {
   const held = await store.accounts.storedAccounts()
+  const holdsFiles = await filesAccounts(store)
   const sources: ContextSource[] = []
   const unread: { source: string; kind: string; reason?: "unknown-provider" }[] = []
   for (const { entry, accounts } of await listedOf(store, env, value)) {
@@ -211,7 +225,7 @@ export const contextSourcesOf = async (store: MessageStore, env: NodeJS.ProcessE
     for (const { provider, account, kind } of accounts) {
       const stored =
         kind === "notes"
-          ? held.find((one) => one.provider === FOLDER && String(one.id) === account)
+          ? held.find((one) => holdsFiles(one) && String(one.id) === account)
           : kind === "messages" || kind === "mail" || kind === "meetings"
             ? held.find((one) => one.provider === provider && one.account === account)
             : undefined
