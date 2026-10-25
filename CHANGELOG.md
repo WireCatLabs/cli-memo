@@ -7,6 +7,10 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- Every time memo opens the shared store to write, it tells cli-core its name and version. When another WireCat CLI (tg, max) upgrades the store in a way that locks older CLIs out, it can now name memo and say to run `memo upgrade`, instead of a generic line.
+
 ## 0.98.0 — 25.10.2026
 
 ### Fixed

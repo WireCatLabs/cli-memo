@@ -10,3 +10,6 @@ export const APP = {
   version: VERSION,
   errors: { reasons: REASONS },
 }
+
+/** What Core records about each CLI that opens the shared store, so an upgrade can name memo. */
+export const STORE_CLIENT = { command: APP.command, version: APP.version }

@@ -4,6 +4,7 @@ import { dateWindow, FETCH } from "@wirecat/cli-core/cli"
 import { openStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError, Option } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
+import { STORE_CLIENT } from "../app.js"
 import { loadConfig } from "../config.js"
 import { errorObject } from "../failure.js"
 import { mailAccounts, mailSource } from "../mail/accounts.js"
@@ -259,7 +260,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           },
         })
       const work = withImportLock(env, async () => {
-        const store = await openStore({ env })
+        const store = await openStore({ env, ...STORE_CLIENT })
         const attempt = async (source: string, work: () => Promise<void>) => {
           try {
             await work()
