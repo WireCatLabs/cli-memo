@@ -7,6 +7,17 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **A failed run says what went wrong** (cli-core 0.425.0): `memo runs list` and `memo runs show` gain `error`, with its class, code, reason, masked message and a short stack.
+
+### Fixed
+
+- **The MCP tools describe memo's own commands, not a messenger's.** `memo_tools_search` offers "list", "show", "change a setting" in place of "unread", "send message", "chat members"; `memo_write` says "creates, edits, deletes" in place of "sends, edits, deletes, joins"; the example command of `memo_read` and `memo_write` is `notes list`, not `messages list`, which memo does not have; and the answer's text is "names, titles, what people wrote" (cli-core 0.426.0).
+- **Help no longer says "Availability: available for this profile"**, since memo has no profiles; a command that cannot run still says why. `memo --help` says zm and drive are "searchable with your other WireCat data".
+- MCP no longer offers a command group that only prints its help, such as `models`; its commands are still offered one by one.
+- The person-brief and decision-trail guide steps for tg, max, zm and drive name the profile, as those commands need: `tg personal contacts context Kai`.
+
 ## 0.104.0 — 25.10.2026
 
 ### Added
