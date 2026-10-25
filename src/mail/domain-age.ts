@@ -1,6 +1,7 @@
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { resolvePaths } from "@wirecat/cli-base"
+import { providerRequest } from "../run-recording.js"
 import { VERSION } from "../version.js"
 import type { DomainAge } from "./score.js"
 
@@ -51,11 +52,26 @@ const realDeps: LookupDeps = {
   now: () => new Date(),
 }
 
-const getJson = async (deps: LookupDeps, url: string): Promise<{ status: number; body: unknown }> => {
-  const response = await deps.fetch(url, {
-    headers: { accept: "application/rdap+json, application/json", "user-agent": USER_AGENT },
-    signal: AbortSignal.timeout(TIMEOUT_MS),
-  })
+const getJson = async (
+  deps: LookupDeps,
+  url: string,
+  operation: "rdap.bootstrap" | "rdap.domain",
+): Promise<{ status: number; body: unknown }> => {
+  const answered = providerRequest(operation)
+  let response: Response
+  try {
+    response = await deps.fetch(url, {
+      headers: { accept: "application/rdap+json, application/json", "user-agent": USER_AGENT },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    })
+  } catch (error) {
+    answered({ error })
+    throw error
+  }
+  // A domain the registry does not know is an answer, not a failure.
+  answered(
+    response.ok || response.status === 404 ? { status: response.status } : { status: response.status, error: true },
+  )
   return { status: response.status, body: response.ok ? await response.json() : undefined }
 }
 
@@ -86,7 +102,7 @@ export const lookUpAges = async (
   if (wanted.length === 0) return { looked: 0, failed: 0 }
   const fetchedAt = cache.bootstrap?.fetchedAt
   if (fetchedAt === undefined || deps.now().getTime() - Date.parse(fetchedAt) > BOOTSTRAP_MAX_AGE_MS) {
-    const { body } = await getJson(deps, BOOTSTRAP_URL)
+    const { body } = await getJson(deps, BOOTSTRAP_URL, "rdap.bootstrap")
     const services = (body as { services?: [string[], string[]][] })?.services
     if (!Array.isArray(services)) throw new Error("IANA's RDAP list did not answer")
     cache.bootstrap = { fetchedAt: deps.now().toISOString(), services }
@@ -108,7 +124,7 @@ export const lookUpAges = async (
     if (looked > 0) await deps.sleep(REQUEST_GAP_MS)
     looked++
     try {
-      const { status, body } = await getJson(deps, `${server}domain/${encodeURIComponent(domain)}`)
+      const { status, body } = await getJson(deps, `${server}domain/${encodeURIComponent(domain)}`, "rdap.domain")
       // Not found is an answer worth keeping; anything else may work another day, so it is not kept.
       if (status === 404) cache.domains[domain] = { checkedAt }
       else if (status >= 200 && status < 300) {

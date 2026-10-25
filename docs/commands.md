@@ -12,6 +12,8 @@ These options work with the `memo` command itself.
 |---|---|
 | `-V, --version` | output the version number. |
 | `--debug` | on failure, show the full error record: cause and stack. |
+| `--record` | keep this run — ids and timings, never note or mail content. |
+| `--no-record` | do not keep this run, even if it fails. |
 
 ## `memo context`
 
@@ -3180,6 +3182,73 @@ memo guide [name] [options]
 **Returns:** scenarios: the commands for a common task, in order, and why each
 
 **Example:** `memo guide`, `memo guide person-brief --json`
+
+## `memo runs`
+
+recorded runs — what this tool did, and when
+
+### `memo runs list`
+
+recorded runs, newest first
+
+```sh
+memo runs list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--limit <n>` | how many to show. Default: `20`. |
+| `--page <n>` | which page, starting at 1. Default: `1`. |
+| `--json` | print JSON. |
+
+**Returns:** run — run_id, command, profile, started_at, status, cli_version, completed_at, requests, and 15 more; every field: memo commands info runs list
+
+**Example:** `memo runs list status:failed --limit 10`, `memo runs list --page 2 --json`
+
+### `memo runs show`
+
+one run: what it was, how it ended, and every event it logged
+
+```sh
+memo runs show <run-id> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `run-id` | required | an id from `memo runs list`. |
+
+| Option | What it does |
+|---|---|
+| `--problems` | only failed responses, warnings and crashes. |
+| `--json` | print JSON. |
+
+**Returns:** run details — run_id, command, profile, started_at, status, cli_version, directory, event_count, and 14 more; every field: memo commands info runs show
+
+**Example:** `memo runs show 20261025T090000Z-mail-sync-a81f2c --json`
+
+### `memo runs path`
+
+the directory holding one run
+
+```sh
+memo runs path <run-id> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `run-id` | required | an id from `memo runs list`. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** run location — path; every field: memo commands info runs path
+
+**Example:** `memo runs path 20261025T090000Z-mail-sync-a81f2c`
 
 ## Exit codes
 

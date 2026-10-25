@@ -38,6 +38,9 @@ const ConfigSchema = v.strictObject({
       places: v.optional(v.record(v.string(), v.string())),
     }),
   ),
+  /** `true` keeps every run in `memo runs list`; `false` keeps not even failed ones. `--record` and `--no-record` win. */
+  record: v.optional(v.boolean()),
+  keep_runs_for_days: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
   /** `false` stops the once-a-day check for a newer memo. */
   update_check: v.optional(v.boolean()),
   /** `false` stops an agent deciding proposals for you: `projects actions confirm` and `reject` then need you. */

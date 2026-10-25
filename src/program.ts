@@ -12,6 +12,7 @@ import {
   NO_EFFECTS,
   overrideSharedContract,
   provide,
+  runsCommand,
   skillCommand as sharedSkillCommand,
 } from "@wirecat/cli-core/cli"
 import { Command } from "commander"
@@ -45,6 +46,7 @@ import { readOnlyAvailability, refuseWritesUnderLock } from "./read-only.js"
 import { REASONS } from "./reasons.js"
 import { autoCommand } from "./run/auto.js"
 import { syncCommand } from "./run/import.js"
+import { recordRuns } from "./run-recording.js"
 import { searchCommand } from "./search/command.js"
 import { tagsCommand } from "./tags/command.js"
 import { tasksCommand } from "./tasks/command.js"
@@ -228,13 +230,24 @@ export const createProgram = ({
       },
     ),
   )
+  const runs = program.addCommand(runsCommand(APP)).commands.at(-1)
+  for (const one of runs?.commands ?? [])
+    overrideSharedContract(
+      one,
+      "Memo's output flag is command-local because this provider does not use the messenger program shell.",
+      (command) => {
+        command.option("--json", "print JSON")
+      },
+    )
   addExamples(program)
   fields.install(program)
+  recordRuns(program, env, streams)
   trackAnswers(program)
   placeInSections(program)
   installHelp(program, FIRST_SCREEN)
   provide(program, {
     ...environmentOf(program),
+    env,
     discoveryAvailability: (info) => {
       let command: Command | undefined = program
       for (const word of info.path) command = command?.commands.find((child) => child.name() === word)

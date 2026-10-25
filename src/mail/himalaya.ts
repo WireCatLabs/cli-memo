@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process"
 import { CliError } from "@wirecat/cli-base"
+import { providerRequest } from "../run-recording.js"
 
 export type Himalaya = (args: string[], input?: string, options?: { maxBuffer?: number }) => Promise<string>
 
@@ -62,16 +63,28 @@ interface ExecFailure extends Error {
 const howItEnded = ({ code, signal }: ExecFailure): string =>
   signal ? `killed by ${signal}` : typeof code === "number" ? `exit ${code}` : String(code ?? "failed")
 
+const WORD = /^[a-z][a-z-]{0,23}$/
+
+/** `himalaya.envelope.list`: the subcommand words only; an account, folder or query never matches. */
+export const operationOf = (args: readonly string[]): string =>
+  ["himalaya", ...args.slice(0, 2).filter((word) => WORD.test(word))].join(".")
+
 const once =
   (env: NodeJS.ProcessEnv): Himalaya =>
   (args, input, options) =>
     new Promise((resolve, reject) => {
+      const answered = providerRequest(operationOf(args))
       const child = execFile(
         env.MEMO_HIMALAYA ?? "himalaya",
         args,
         { env, maxBuffer: options?.maxBuffer ?? 64 * 1024 * 1024 },
         (error, stdout, stderr) => {
-          if (error === null) return resolve(stdout)
+          if (error === null) {
+            answered({ status: 0 })
+            return resolve(stdout)
+          }
+          const exit = (error as ExecFailure).code
+          answered({ ...(typeof exit === "number" ? { status: exit } : {}), error })
           const what = `himalaya ${args[0] ?? ""} ${args[1] ?? ""}`.trim()
           if (isThrottled(stderr) || isThrottled(String(stdout).slice(-4096))) return reject(throttledError(what))
           const failure = error as ExecFailure
