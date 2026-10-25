@@ -6,7 +6,7 @@ Usage: memo <command> [options]
 What you can do:
   context <person>              one person's messages, mail, notes and tasks
   search all "budget"           messages, mail and notes ranked together
-  ask "…" --all                 evidence with sources, ready for your agent
+  answers create "…" --all      evidence with sources, ready for your agent
   tasks agenda                  overdue tasks, replies you owe and wait for
   meetings prepare <series-id>  a briefing with sources for a meeting
   jobs start                    sync notes and mail every 5 minutes

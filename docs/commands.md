@@ -472,7 +472,7 @@ memo mail delete <account> [options]
 
 **Returns:** move envelope mail to Gmail's Trash, decided again; dry run unless --yes
 
-**Example:** `memo mail delete personal`, `memo mail delete personal --yes --limit 100`
+**Example:** `memo mail delete personal`, `memo mail delete personal --limit 100 --json`
 
 ### `memo mail restore`
 
@@ -496,7 +496,7 @@ memo mail restore <account> [options]
 
 **Returns:** move a cleanup run's mail back from Gmail's Trash; dry run unless --yes
 
-**Example:** `memo mail restore personal --run 2026-10-16T09-00-00-000Z-ab12 --yes`
+**Example:** `memo mail restore personal --run 2026-10-16T09-00-00-000Z-ab12`
 
 ### `memo mail runs`
 
@@ -626,7 +626,7 @@ memo mail rules apply <account> [options]
 
 **Returns:** cut stored mail an envelope rule matches to its envelope; dry run unless --yes
 
-**Example:** `memo mail rules apply personal`, `memo mail rules apply personal --yes --json`
+**Example:** `memo mail rules apply personal`, `memo mail rules apply personal --json`
 
 #### `memo mail rules export`
 
@@ -2374,7 +2374,7 @@ memo meetings actions add <file> [options]
 
 **Returns:** meeting findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more; every field: memo commands info meetings actions add
 
-**Example:** `memo meetings actions add findings.json --account example:synthetic`
+**Example:** `memo meetings actions add findings.json --account zoom:me@example.com`
 
 #### `memo meetings actions show`
 
@@ -2395,7 +2395,7 @@ memo meetings actions show <id> [options]
 
 **Returns:** meeting findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more; every field: memo commands info meetings actions show
 
-**Example:** `memo meetings actions show 5 --source example:synthetic`
+**Example:** `memo meetings actions show 5 --source zoom:me@example.com`
 
 #### `memo meetings actions list`
 
@@ -2418,7 +2418,7 @@ memo meetings actions list [query] [options]
 
 **Returns:** meeting findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more; every field: memo commands info meetings actions list
 
-**Example:** `memo meetings actions list status:proposed --source example:synthetic`
+**Example:** `memo meetings actions list status:proposed --source zoom:me@example.com`
 
 #### `memo meetings actions confirm`
 
@@ -2443,7 +2443,7 @@ memo meetings actions confirm <id> <ids> [options]
 
 **Returns:** meeting findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more; every field: memo commands info meetings actions confirm
 
-**Example:** `memo meetings actions confirm 5 decision --fingerprint aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --account example:synthetic`
+**Example:** `memo meetings actions confirm 5 decision --fingerprint aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --account zoom:me@example.com`
 
 #### `memo meetings actions reject`
 
@@ -2467,7 +2467,7 @@ memo meetings actions reject <id> [options]
 
 **Returns:** meeting findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more; every field: memo commands info meetings actions reject
 
-**Example:** `memo meetings actions reject 5 --fingerprint aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --account example:synthetic`
+**Example:** `memo meetings actions reject 5 --fingerprint aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --account zoom:me@example.com`
 
 ### `memo meetings passage`
 
@@ -2494,7 +2494,7 @@ memo meetings passage <reference> [options]
 
 **Returns:** meeting passage — schema_version, kind, source, target_ref, target_fingerprint, fingerprint, revision, limits, and 3 more; every field: memo commands info meetings passage
 
-**Example:** `memo meetings passage meeting:1/1/1/0 --source example:synthetic --before-n 1 --after-n 1 --json`
+**Example:** `memo meetings passage meeting:1/1/1/0 --source zoom:me@example.com --before-n 1 --after-n 1 --json`
 
 ### `memo meetings prepare`
 
@@ -2528,7 +2528,7 @@ memo meetings prepare <series-id> [options]
 
 **Returns:** meeting preparation — schema_version, kind, account_id, upcoming, series, history_window, meetings, related, and 6 more; every field: memo commands info meetings prepare
 
-**Example:** `memo meetings prepare example-series --source example:synthetic --json`, `memo meetings prepare example-series --source example:synthetic --context-source tg.personal --context-query Harbour --json`
+**Example:** `memo meetings prepare example-series --source zoom:me@example.com --json`, `memo meetings prepare example-series --source zoom:me@example.com --context-source tg.personal --context-query Harbour --json`
 
 ## `memo actions`
 
@@ -2768,8 +2768,6 @@ memo search all <query> [options]
 | `--exact` | words as written; skip meaning search. |
 | `--timezone <zone>` | IANA timezone for calendar date boundaries. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--brief` | each message or email as reference, time, sender and excerpt only. |
-| `--full` | each message or email with its whole text; --json keeps the excerpt, messages show the text. |
 | `--only <resources>` | messages,mail,notes, separated by commas. |
 | `--plain-order` | best first by the words alone, without moving mail from suspicious senders down. |
 | `--project <project>` | rank the key documents of this project (id, project:<id>, key, exact name or alias) first; nothing is left out. |
@@ -2796,8 +2794,8 @@ memo search messages <query> [options]
 | `--exact` | words as written; skip meaning search. |
 | `--timezone <zone>` | IANA timezone for calendar date boundaries. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--brief` | each message or email as reference, time, sender and excerpt only. |
-| `--full` | each message or email with its whole text; --json keeps the excerpt, messages show the text. |
+| `--brief` | each message as reference, time, sender and excerpt only. |
+| `--full` | each message with its whole text; --json still gives the excerpt. |
 
 **Returns:** message hit — ref, timestamp, sender_name, chat_title, excerpt, matched_in, score, match, and 5 more; every field: memo commands info search messages
 
@@ -2823,8 +2821,8 @@ memo search mail <query> [options]
 | `--exact` | words as written; skip meaning search. |
 | `--timezone <zone>` | IANA timezone for calendar date boundaries. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--brief` | each message or email as reference, time, sender and excerpt only. |
-| `--full` | each message or email with its whole text; --json keeps the excerpt, messages show the text. |
+| `--brief` | each email as reference, time, sender and excerpt only. |
+| `--full` | each email with its whole text; --json still gives the excerpt. |
 | `--source <accounts>` | the mailboxes to search (default: every one): email:<account> (its name in mail.accounts or its address), email or group:<name>. |
 | `--plain-order` | best first by the words alone, without moving mail from suspicious senders down. |
 
@@ -2852,8 +2850,6 @@ memo search notes <query> [options]
 | `--exact` | words as written; skip meaning search. |
 | `--timezone <zone>` | IANA timezone for calendar date boundaries. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--brief` | each message or email as reference, time, sender and excerpt only. |
-| `--full` | each message or email with its whole text; --json keeps the excerpt, messages show the text. |
 | `--filter <query>` | another query every note must match. |
 | `--source <accounts>` | only these notes accounts, separated by commas: notes:internal for notes written in memo, notes:<folder id> as a hit shows it, notes or group:<name>. |
 | `--page <n>` | which page, from 1. Default: `1`. |
@@ -2941,7 +2937,7 @@ memo search meetings <query> [options]
 
 **Returns:** meeting hit — ref, meeting, scope, id, excerpt, offset_ms, match, corrections, and 1 more; every field: memo commands info search meetings
 
-**Example:** `memo search meetings budget --source example:synthetic --project Harbour --since-time 2026-10-01 --limit 10 --json`
+**Example:** `memo search meetings budget --source zoom:me@example.com --project Harbour --since-time 2026-10-01 --limit 10 --json`
 
 ## `memo answers`
 
@@ -3094,7 +3090,7 @@ memo upgrade [options]
 
 **Returns:** upgrade memo with the package manager that installed it; --check only looks
 
-**Example:** `memo upgrade --check`, `memo upgrade`
+**Example:** `memo upgrade --check`
 
 ## `memo commands`
 

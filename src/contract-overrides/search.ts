@@ -166,18 +166,6 @@ export const search: readonly SharedContractOverride[] = [
         mandatory: false,
       },
       {
-        flags: "--brief",
-        description: "each message or email as reference, time, sender and excerpt only",
-        takes_value: false,
-        mandatory: false,
-      },
-      {
-        flags: "--full",
-        description: "each message or email with its whole text; --json keeps the excerpt, messages show the text",
-        takes_value: false,
-        mandatory: false,
-      },
-      {
         flags: "--only <resources>",
         description: "messages,mail,notes, separated by commas",
         takes_value: true,
@@ -382,13 +370,13 @@ export const search: readonly SharedContractOverride[] = [
       },
       {
         flags: "--brief",
-        description: "each message or email as reference, time, sender and excerpt only",
+        description: "each message as reference, time, sender and excerpt only",
         takes_value: false,
         mandatory: false,
       },
       {
         flags: "--full",
-        description: "each message or email with its whole text; --json keeps the excerpt, messages show the text",
+        description: "each message with its whole text; --json still gives the excerpt",
         takes_value: false,
         mandatory: false,
       },
@@ -509,18 +497,6 @@ export const search: readonly SharedContractOverride[] = [
       {
         flags: "--json",
         description: "print JSON; --json=id,title keeps only those fields",
-        takes_value: false,
-        mandatory: false,
-      },
-      {
-        flags: "--brief",
-        description: "each message or email as reference, time, sender and excerpt only",
-        takes_value: false,
-        mandatory: false,
-      },
-      {
-        flags: "--full",
-        description: "each message or email with its whole text; --json keeps the excerpt, messages show the text",
         takes_value: false,
         mandatory: false,
       },

@@ -7,6 +7,7 @@ export const APP = {
   appName: "cli-memo",
   envPrefix: "MEMO",
   description: "Context about people across messengers, notes and mail",
+  messenger: false,
   version: VERSION,
   errors: { reasons: REASONS },
 }

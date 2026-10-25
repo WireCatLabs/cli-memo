@@ -7,6 +7,14 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **memo's help describes memo's own commands.** The first screen points to `answers create "…" --all` (there is no `ask` command). The MCP server's instructions open an email with `messages show`, not with a `mail show` memo does not have. `search messages` and `search mail` describe `--brief` and `--full` for a message or an email, and `--full` says JSON still gives the excerpt. Meeting examples name a real meeting account (`zoom:me@example.com`). The `mail delete`, `mail restore` and `mail rules apply` examples are dry runs, and `upgrade` shows only `--check`. memo uses cli-core 0.422.0 and tells it that memo is not a messenger (`AppIdentity.messenger: false`). The store's `minCompatible` does not change.
+
+### Removed
+
+- **`search all` and `search notes` no longer take `--brief` or `--full`.** Both flags were accepted and then ignored. A call that passes one now fails with an unknown option.
+
 ## 0.103.0 — 25.10.2026
 
 ### Changed — may break callers
