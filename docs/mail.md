@@ -179,7 +179,7 @@ given must hold:
 memo mail rules add work --filter 'label:Promotions older:365d' --do envelope
 memo mail rules add work --domain shop.example --do keep,tag:shopping
 memo mail rules add work --domain tax.gov.example --do protect
-memo mail rules list work --filter is:protected
+memo mail rules list work protected:true
 ```
 
 - **`tag:<name>`** puts a memo tag on every email the rule matches, whichever rule decides the action. A sync

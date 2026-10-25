@@ -146,7 +146,7 @@ export const cutoffTime = (value: string): number => {
 
 export type StoredProjectGathering = ProjectGathering & {
   projectRef: string | null
-  unreadSources: { source: string; kind: string; reason?: "out-of-scope" | "linked-chat-limit" }[]
+  unreadSources: { source: string; kind: string; reason?: "out-of-scope" | "linked-chat-limit" | "unknown-provider" }[]
   mentions: EvidenceMentions
 }
 

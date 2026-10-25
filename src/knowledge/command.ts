@@ -1,15 +1,28 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { type QueryRegistry, timezoneOf } from "@wirecat/cli-base/query"
-import { type Body, LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
+import {
+  answerEntity,
+  type Body,
+  LOCAL_READ,
+  LOCAL_WRITE,
+  listQuery,
+  queryTerms,
+  termField,
+  typedQuery,
+  withQuery,
+} from "@wirecat/cli-core/cli"
 import {
   type AccountKey,
   type KnowledgeRelation,
   type MessageStore,
   ORGANIZATION_KINDS,
+  ORGANIZATIONS_QUERY,
   type Organization,
   PROJECT_TYPES,
+  PROJECTS_QUERY,
   type Project,
+  REMINDERS_QUERY,
   SCOPES,
 } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
@@ -27,6 +40,7 @@ import {
   writeAccount,
 } from "../store/source-list.js"
 import { keyDocuments, markKey, projectOf, unmarkKey } from "./key-documents.js"
+import { KEY_DOCUMENTS_QUERY, keyDocument } from "./list-queries.js"
 import { meetingProjectsCommand } from "./meeting-projects-command.js"
 import { projectActionsCommand } from "./project-actions-command.js"
 import { projectContext, projectContextText } from "./project-context.js"
@@ -95,12 +109,13 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         }),
       ),
     )
-  annotate(organizations.command("list"), { effects: LOCAL_READ })
+  withQuery(annotate(organizations.command("list"), { effects: LOCAL_READ }), ORGANIZATIONS_QUERY)
     .description("your organizations")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((options: { json?: boolean }) =>
-      ownedList("organizations list", options, (store) => store.knowledge.organizations()),
-    )
+    .action((words: string[], options: { json?: boolean }) => {
+      const query = listQuery(typedQuery(words), ORGANIZATIONS_QUERY, "organizations list")
+      return ownedList("organizations list", options, (store) => store.knowledge.organizations(query))
+    })
   annotate(organizations.command("context"), { effects: LOCAL_READ })
     .description(
       "one organization by its id or organization:<id>: its relationships, the notes about or linking it, and its tags",
@@ -152,10 +167,13 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
           }),
         ),
     )
-  annotate(projects.command("list"), { effects: LOCAL_READ })
+  withQuery(annotate(projects.command("list"), { effects: LOCAL_READ }), PROJECTS_QUERY)
     .description("your projects")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((options: { json?: boolean }) => ownedList("projects list", options, (store) => store.knowledge.projects()))
+    .action((words: string[], options: { json?: boolean }) => {
+      const query = listQuery(typedQuery(words), PROJECTS_QUERY, "projects list")
+      return ownedList("projects list", options, (store) => store.knowledge.projects(query))
+    })
   annotate(projects.command("context"), { effects: LOCAL_READ })
     .description(
       "one project by its id, project:<id>, key, exact name or alias: its key documents first, then its " +
@@ -194,15 +212,23 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .action((project: string, reference: string, options: { json?: boolean }) =>
       owned(options, async (store) => unmarkKey(store, await projectOf(store, project), reference)),
     )
-  annotate(keys.command("list"), { effects: LOCAL_READ })
-    .description("a project's key documents: why, who marked each and whether it is still there")
-    .argument("<project>", "id, project:<id>, key, exact name or alias")
+  answerEntity(
+    withQuery(
+      annotate(keys.command("list"), { effects: LOCAL_READ })
+        .description("a project's key documents: why, who marked each and whether it is still there")
+        .argument("<project>", "id, project:<id>, key, exact name or alias"),
+      KEY_DOCUMENTS_QUERY,
+    ),
+    "memo_key_document",
+    keyDocument,
+  )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((project: string, options: { json?: boolean }) =>
-      ownedList("projects key-documents list", options, async (store) =>
-        keyDocuments(store, await projectOf(store, project)),
-      ),
-    )
+    .action((project: string, words: string[], options: { json?: boolean }) => {
+      const id = queryTerms(words, KEY_DOCUMENTS_QUERY, "projects key-documents list").get("id")
+      return ownedList("projects key-documents list", options, async (store) =>
+        keyDocuments(store, await projectOf(store, project), id === undefined ? {} : { id }),
+      )
+    })
   const relations = program
     .command("relationships")
     .description("relations between people, organizations and projects; never between identities")
@@ -347,17 +373,23 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       }),
     )
   readScope(
-    annotate(reminders.command("list"), { effects: LOCAL_READ }).description(
-      "pending reminders of the accounts --source names (default all), soonest first",
+    withQuery(
+      annotate(reminders.command("list"), { effects: LOCAL_READ }).description(
+        "pending reminders of the accounts --source names (default all), soonest first",
+      ),
+      REMINDERS_QUERY,
     ),
     ACCOUNTS_HELP,
-  ).action((options: SourceOptions & { json?: boolean }) =>
-    run(options.json, async (store) => {
+  ).action((words: string[], options: SourceOptions & { json?: boolean }) => {
+    const query = listQuery(typedQuery(words), REMINDERS_QUERY, "reminders list")
+    return run(options.json, async (store) => {
       const keys = await theAccounts(store, env, options, warn)
       const items = (
         await Promise.all(
           keys.map(async (key) =>
-            (await store.knowledge.reminders(key)).map((reminder) => ({ ...reminder, account: accountName(key) })),
+            (
+              await store.knowledge.reminders(key, query)
+            ).map((reminder) => ({ ...reminder, account: accountName(key) })),
           ),
         )
       )
@@ -369,8 +401,8 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         has_more: false,
         meta: { accounts: keys.map(accountName) },
       })
-    }),
-  )
+    })
+  })
   writeScope(
     annotate(reminders.command("claim"), { effects: LOCAL_WRITE }).description(
       "hand out due reminders, each with a receipt to acknowledge",

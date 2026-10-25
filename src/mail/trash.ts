@@ -100,11 +100,11 @@ export interface TrashRun {
 }
 
 /** The account's cleanup runs, newest first, from their restore logs. */
-export const trashRuns = (env: NodeJS.ProcessEnv, account: string): TrashRun[] => {
+export const trashRuns = (env: NodeJS.ProcessEnv, account: string, id?: string): TrashRun[] => {
   const dir = logDir(env, account)
   if (!existsSync(dir)) return []
   return readdirSync(dir)
-    .filter((name) => name.endsWith(".jsonl"))
+    .filter((name) => name.endsWith(".jsonl") && (id === undefined || name === `${id}.jsonl`))
     .map((name) => {
       const lines = readLog(join(dir, name))
       const start = lines.find(({ type }) => type === "run")

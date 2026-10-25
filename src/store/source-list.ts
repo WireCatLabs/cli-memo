@@ -205,7 +205,7 @@ export const oneAccountOf = async (
 export const contextSourcesOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: string) => {
   const held = await store.accounts.storedAccounts()
   const sources: ContextSource[] = []
-  const unread: { source: string; kind: string }[] = []
+  const unread: { source: string; kind: string; reason?: "unknown-provider" }[] = []
   for (const { entry, accounts } of await listedOf(store, env, value)) {
     let read = 0
     for (const { provider, account, kind } of accounts) {
@@ -216,7 +216,11 @@ export const contextSourcesOf = async (store: MessageStore, env: NodeJS.ProcessE
             ? held.find((one) => one.provider === provider && one.account === account)
             : undefined
       if (stored === undefined) {
-        unread.push({ source: `${provider}:${account}`, kind })
+        unread.push(
+          kind === undefined
+            ? { source: `${provider}:${account}`, kind: "unknown", reason: "unknown-provider" }
+            : { source: `${provider}:${account}`, kind },
+        )
         continue
       }
       read++

@@ -55,7 +55,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "mail delete": ["memo mail delete personal", "memo mail delete personal --yes --limit 100"],
   "mail restore": ["memo mail restore personal --run 2026-10-16T09-00-00-000Z-ab12 --yes"],
   "mail runs list": ["memo mail runs list personal", "memo mail runs list personal --json"],
-  "mail rules list": ["memo mail rules list personal --json", "memo mail rules list personal --filter is:protected"],
+  "mail rules list": ["memo mail rules list personal --json", "memo mail rules list personal protected:true"],
   "mail rules add": [
     "memo mail rules add personal --domain news.example --do envelope,tag:newsletter --reason 'newsletters'",
     "memo mail rules add personal --domain tax.gov.example --do protect",

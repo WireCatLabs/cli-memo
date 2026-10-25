@@ -1,7 +1,19 @@
 import { readFileSync } from "node:fs"
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { dateWindow, grantsAuthority, LOCAL_READ, LOCAL_WRITE, REMOTE_READ, REMOTE_WRITE } from "@wirecat/cli-core/cli"
+import {
+  answerEntity,
+  dateWindow,
+  grantsAuthority,
+  LOCAL_READ,
+  LOCAL_WRITE,
+  listQuery,
+  queryTerms,
+  REMOTE_READ,
+  REMOTE_WRITE,
+  typedQuery,
+  withQuery,
+} from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { type Config, loadConfig } from "../config.js"
@@ -11,6 +23,7 @@ import { type MailAccountConfig, mailAccounts, mailFolders, mailSource } from ".
 import { type ApplyResult, applyRules } from "./apply.js"
 import { knownAges, lookUpAges } from "./domain-age.js"
 import { importFilters } from "./filters.js"
+import { MAIL_RULES_QUERY, MAIL_RUNS_QUERY, mailRule, mailRun } from "./list-queries.js"
 import { PRESET_NAMES, type PresetName } from "./presets.js"
 import { domainsToAge, type Probe, probeMail, SUGGEST_RULE } from "./probe.js"
 import { ACTION_HELP, actionsOf, FILTER_HELP, filterMatch } from "./rule-query.js"
@@ -377,13 +390,21 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       print(options.json, itemAnswer(result, { meta: { accounts: [account.name] } }), restoreText(result))
     })
 
-  annotate(mail.command("runs").description("an account’s cleanup runs").command("list"), { effects: LOCAL_READ })
-    .description("an account's cleanup runs, how much moved, and until when restorable")
-    .argument("<account>", "the account's name in mail.accounts, or its address")
+  answerEntity(
+    withQuery(
+      annotate(mail.command("runs").description("an account’s cleanup runs").command("list"), { effects: LOCAL_READ })
+        .description("an account's cleanup runs, how much moved, and until when restorable")
+        .argument("<account>", "the account's name in mail.accounts, or its address"),
+      MAIL_RUNS_QUERY,
+    ),
+    "memo_mail_run",
+    mailRun,
+  )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((name: string, options: { json?: boolean }) => {
+    .action((name: string, words: string[], options: { json?: boolean }) => {
+      const id = queryTerms(words, MAIL_RUNS_QUERY, "mail runs list").get("id")
       const account = accountOf(loadConfig(env), name)
-      const runs = trashRuns(env, account.name)
+      const runs = trashRuns(env, account.name, id)
       print(
         options.json,
         wholeList("mail runs list", runs),
@@ -403,26 +424,29 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .command("rules")
     .description("the owner's decisions on which mail to keep, record, skip, tag or protect")
 
-  annotate(rules.command("list"), { effects: LOCAL_READ })
-    .description("one account's rules, protected ones first")
-    .argument("<account>", "the account's name in mail.accounts, or its address")
-    .option("--filter <query>", "is:protected lists only the rules no cleanup may override")
+  answerEntity(
+    withQuery(
+      annotate(rules.command("list"), { effects: LOCAL_READ })
+        .description("one account's rules, protected ones first")
+        .argument("<account>", "the account's name in mail.accounts, or its address"),
+      MAIL_RULES_QUERY,
+    ),
+    "memo_mail_rule",
+    mailRule,
+  )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText(
       "after",
       "\nProtected rules come first, as PROTECTED. An envelope rule shows how many emails it recorded and their " +
         "size at the source.",
     )
-    .action(async (name: string, options: { filter?: string; json?: boolean }) => {
-      if (options.filter !== undefined && options.filter.trim() !== "is:protected")
-        throw new CliError("validation_error", "--filter: rules list knows only is:protected")
-      const only = options.filter !== undefined
+    .action(async (name: string, words: string[], options: { json?: boolean }) => {
+      const query = listQuery(typedQuery(words), MAIL_RULES_QUERY, "mail rules list")
       const account = accountOf(loadConfig(env), name)
       const items = await withStore(env, async (store) => {
-        const rules = await rulesOf(store, account, env, streams.diagnostic)
+        const rules = await rulesOf(store, account, env, streams.diagnostic, query)
         const counts = await ruleCounts(store, account.address)
         return rules
-          .filter((rule) => !only || rule.protected)
           .sort((a, b) => Number(b.protected === true) - Number(a.protected === true))
           .map((rule) => {
             const recorded = rule.id === undefined ? undefined : counts.get(rule.id)

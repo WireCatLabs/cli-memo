@@ -1,4 +1,5 @@
 import { chmodSync, copyFileSync, existsSync } from "node:fs"
+import type { QueryAst } from "@wirecat/cli-base/query"
 import { momentOf } from "@wirecat/cli-core/cli"
 import type { AccountKey, MessageStore, MailRule as StoredRule } from "@wirecat/cli-core/store"
 import { configPath, loadConfig, updateConfig } from "../config.js"
@@ -173,16 +174,17 @@ export const rulesOf = async (
   account: Pick<MailAccountConfig, "address">,
   env: NodeJS.ProcessEnv,
   say: (line: string) => void,
+  query?: QueryAst,
 ): Promise<MailRule[]> => {
   const key = account.address.toLowerCase()
   const byAccount = loaded.get(store) ?? new Map<string, MailRule[]>()
   loaded.set(store, byAccount)
   const cached = byAccount.get(key)
-  if (cached !== undefined) return cached
+  if (cached !== undefined && query === undefined) return cached
   await moveConfigRules(store, env, say)
   const accountId = await accountIdOf(store, account.address)
-  const rules = (await store.mail.rules.list(accountId)).flatMap((stored) => fromStored(stored) ?? [])
-  byAccount.set(key, rules)
+  const rules = (await store.mail.rules.list(accountId, query)).flatMap((stored) => fromStored(stored) ?? [])
+  if (query === undefined) byAccount.set(key, rules)
   return rules
 }
 

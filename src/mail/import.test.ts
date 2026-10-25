@@ -896,7 +896,7 @@ describe("memo sync --only mail", () => {
     expect(await opened.mail.search("coupon")).toEqual([])
     const tagged = (await opened.tags.tags(KEY)).filter(({ tag }) => tag === "promo")
     expect(tagged).toHaveLength(2)
-    expect(await run(["mail", "rules", "list", "test", "--filter", "is:protected"], withConfig)).toMatch(
+    expect(await run(["mail", "rules", "list", "test", "protected:true"], withConfig)).toMatch(
       /^PROTECTED\s+domain gov\.example\s/,
     )
     const dry = envelopeOf(await run(["mail", "rules", "apply", "test", "--json"], withConfig))
