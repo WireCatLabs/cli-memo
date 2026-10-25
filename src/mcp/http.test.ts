@@ -77,11 +77,14 @@ const start = async (env = fixture(), extra: string[] = [], givenPort?: number) 
   return { base, env, streams, codes, close }
 }
 
+// A pooled socket can outlive a restarted server and fail the next request on a loaded machine.
+const fresh = { connection: "close" }
+
 const login = async (base: URL, code: string) => {
   const redirect = "https://app.example/callback"
   const registered = await fetch(new URL("/register", base), {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { ...fresh, "content-type": "application/json" },
     body: JSON.stringify({ client_name: "Synthetic app", redirect_uris: [redirect] }),
   })
   const { client_id } = (await registered.json()) as { client_id: string }
@@ -89,6 +92,7 @@ const login = async (base: URL, code: string) => {
   const consent = await fetch(new URL("/authorize", base), {
     method: "POST",
     redirect: "manual",
+    headers: fresh,
     body: new URLSearchParams({
       response_type: "code",
       client_id,
@@ -102,6 +106,7 @@ const login = async (base: URL, code: string) => {
   const authCode = new URL(consent.headers.get("location") ?? "").searchParams.get("code") ?? ""
   const response = await fetch(new URL("/token", base), {
     method: "POST",
+    headers: fresh,
     body: new URLSearchParams({
       grant_type: "authorization_code",
       client_id,
