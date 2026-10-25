@@ -76,8 +76,15 @@ land() {
 
 # A pull request checked before the last release and merged after it put its entry in that release's section;
 # restore moves it to Unreleased, so the fold below brings it into this version.
-restored=$(npx -y -p @wirecat/cli-base@0.55.0 cli-dev changelog restore --land)
-[ -z "$restored" ] || echo "$restored"
+git fetch -q --tags origin
+tag=$(git tag --list 'v*' --merged HEAD | grep -E '^v[0-9]+[.][0-9]+[.][0-9]+$' | sort -V | tail -n 1 || true)
+# BUG-2: the 0.102.0 raise found no Unreleased heading, so the tag carries no section and restore cannot compare it.
+if [ -n "$tag" ] && ! git show "$tag:CHANGELOG.md" | grep -q "^## ${tag#v} — "; then
+  echo "$tag's changelog has no section of its own; nothing to restore"
+else
+  restored=$(npx -y -p @wirecat/cli-base@0.55.0 cli-dev changelog restore --land)
+  [ -z "$restored" ] || echo "$restored"
+fi
 rerun_if_changed "$@"
 
 # A session that merges after the version was dated, but before it was published, adds Unreleased above it.
@@ -98,7 +105,11 @@ if [ "$next" != "$version" ]; then
   echo "$why — publishing $next instead"
   # A version npm already has keeps its changelog section; the unreleased one becomes the new version.
   node -e 'const fs = require("fs"); const [o, n, taken] = process.argv.slice(1)
-    const swap = (file, from, to) => fs.writeFileSync(file, fs.readFileSync(file, "utf8").replace(from, to))
+    const swap = (file, from, to) => {
+      const text = fs.readFileSync(file, "utf8")
+      if (!text.includes(from)) throw new Error(`${file} has no ${JSON.stringify(from.trim())} to raise ${o} to ${n}`)
+      fs.writeFileSync(file, text.replace(from, to))
+    }
     swap("package.json", `"version": "${o}"`, `"version": "${n}"`)
     swap("src/version.ts", `VERSION = "${o}"`, `VERSION = "${n}"`)
     const today = new Date().toLocaleDateString("en-GB").replaceAll("/", ".")
