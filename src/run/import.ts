@@ -1,4 +1,4 @@
-import { CliError, type ErrorCode, errorCodes, isCliError, type Streams } from "@wirecat/cli-base"
+import { type ErrorCode, errorCodes, isCliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { dateWindow, FETCH } from "@wirecat/cli-core/cli"
 import { openStore } from "@wirecat/cli-core/store"
@@ -117,7 +117,6 @@ interface SyncOptions {
   folder?: string[]
   ignore?: string[]
   source?: string
-  account?: string[]
   sinceTime?: string
   limit?: number
   retryAttachments?: boolean
@@ -139,7 +138,6 @@ const syncedOf = (options: SyncOptions): Set<Synced> => {
   if (options.folder || options.ignore) synced.add("notes")
   if (
     options.source !== undefined ||
-    options.account ||
     options.sinceTime !== undefined ||
     options.limit !== undefined ||
     options.retryAttachments ||
@@ -195,7 +193,6 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       ).argParser(collect),
     )
     .option("--source <accounts>", `mail: only these mailboxes: ${MAIL_SOURCES}`)
-    .addOption(new Option("--account <account>", "deprecated: --source email:<account>").argParser(collect))
     .addOption(
       new Option(
         "--since-time <time>",
@@ -226,15 +223,9 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       const debug = command.optsWithGlobals().debug === true
       const synced = syncedOf(options)
       const config = loadConfig(env)
-      if (options.account !== undefined && options.source !== undefined)
-        throw new CliError("validation_error", "--account is the old --source email:<account>; give one of them")
-      if (options.account !== undefined)
-        streams.diagnostic(
-          `--account is deprecated: use --source ${options.account.map((one) => `email:${one}`).join(",")}\n`,
-        )
       const named =
         options.source === undefined
-          ? options.account
+          ? undefined
           : await withStore(env, (store) => syncedMailboxesOf(store, options.source as string))
       if (env.MEMO_AUTO === "1") {
         await applyAuto(env, autoState(config))

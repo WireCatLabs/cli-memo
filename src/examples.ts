@@ -20,6 +20,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "folders add": ["memo folders add ~/notes"],
   "folders update": ["memo folders update 1 ~/notes"],
   "folders list": ["memo folders list --json"],
+  "config unset": ["memo config unset permissions.notes.edit"],
   "mentions list": [
     "memo mentions list kind:phone --source notes",
     "memo mentions list domain:example.com --source email:personal,email:work --json",

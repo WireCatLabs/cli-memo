@@ -8,6 +8,12 @@ exported notes go.
 The file is `~/.config/cli-memo/config.json`. It is a JSON file: keep the quotes, commas and braces
 as in the example.
 
+A file with a problem stops every command except `memo doctor` and `memo config unset`. The refusal names the first
+problem and the command that removes it; `memo doctor` lists them all, each with its line or its `memo config unset
+<key>`. `config unset` removes a setting by its dotted path, also one Memo does not know, such as
+`memo config unset mail.accounts.0.colour` or `memo config unset permissions.notes.edit`. A file that is not valid
+JSON is fixed by hand at the line and column `memo doctor` names.
+
 ```json
 {
   "notes": {

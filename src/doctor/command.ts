@@ -10,7 +10,7 @@ import { sharedModelsDirectory } from "@wirecat/cli-core/speech"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { APP } from "../app.js"
-import { type Config, configPath, loadConfig } from "../config.js"
+import { inspectConfig } from "../config.js"
 import { SHELL_OVERRIDES } from "../contract-overrides.js"
 import { archiveCheck, RESTORE_DAYS, trashRuns } from "../mail/trash.js"
 import { noteFolders } from "../notes/folders.js"
@@ -38,20 +38,12 @@ const unitPaths = (unit: string): string[] =>
     .map(([, path]) => path?.replace(/\\(["\\])/g, "$1") ?? "")
     .filter((path) => path.startsWith("/"))
 
-const readConfig = (env: NodeJS.ProcessEnv): { config: Config; error?: string } => {
-  try {
-    return { config: loadConfig(env) }
-  } catch (error) {
-    return { config: {}, error: error instanceof Error ? error.message : String(error) }
-  }
-}
-
 /** Everything memo needs, read from this computer only: no mail server, no messenger, no npm. */
-export const diagnose = async (env: NodeJS.ProcessEnv) => {
+export const diagnose = async (env: NodeJS.ProcessEnv, program: Command) => {
   const problems: Problem[] = []
   const paths = resolvePaths({ appName: APP.appName, prefix: APP.envPrefix, env })
-  const { config, error: configError } = readConfig(env)
-  if (configError) problems.push({ what: `the config cannot be read: ${configError}`, fix: `fix ${configPath(env)}` })
+  // Config problems go to `config.issues`, the shape every WireCat doctor shares, not to `problems`.
+  const { config, ...configReport } = inspectConfig(env, program)
 
   const store = await storeSummary(env)
   if ("error" in store && store.error) problems.push({ what: `the store cannot be read: ${store.error}`, fix: "" })
@@ -155,7 +147,7 @@ export const diagnose = async (env: NodeJS.ProcessEnv) => {
 
   return {
     memo: { version: VERSION, node: process.version, installed_by: installer() },
-    config: { path: configPath(env), exists: existsSync(configPath(env)) },
+    config: configReport,
     state: paths.state,
     cache: paths.cache,
     store,
@@ -175,7 +167,7 @@ const yes = (value: boolean) => (value ? "yes" : "no")
 export const doctorText = (d: Diagnosis): string =>
   [
     `memo ${d.memo.version} on Node ${d.memo.node}, installed by ${d.memo.installed_by}`,
-    `config     ${d.config.path}${d.config.exists ? "" : " (none yet)"}`,
+    `config     ${d.config.path}${d.config.found ? "" : " (none yet)"}`,
     `state      ${d.state}`,
     `cache      ${d.cache}`,
     `store      ${d.store.path}${
@@ -204,9 +196,9 @@ export const doctorText = (d: Diagnosis): string =>
     `timer      ${d.timer.enabled ? `on, every ${d.timer.every}` : "off"}`,
     ...d.skills.map((s) => `skill      ${s.path} ${s.version === null ? "(not installed)" : `(${s.version})`}`),
     "",
-    ...(d.problems.length === 0
+    ...(d.problems.length + d.config.issues.length === 0
       ? ["nothing needs attention"]
-      : d.problems.map(({ what, fix }) => `! ${what}${fix ? ` — ${fix}` : ""}`)),
+      : [...d.config.issues, ...d.problems].map(({ what, fix }) => `! ${what}${fix ? ` — ${fix}` : ""}`)),
   ].join("\n")
 
 const doctorCommandDefinition = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
@@ -217,10 +209,11 @@ const doctorCommandDefinition = (program: Command, streams: Streams, env: NodeJS
     .addHelpText(
       "after",
       "\nReads this computer only: the config, the store, the notes folders, Himalaya, the search model, the timer " +
-        "and the agent skill. Exits 1 when something needs attention, each with the command that fixes it.",
+        "and the agent skill, each problem with the command that fixes it. Exits 1 when something other than the config " +
+        "file needs attention; problems in the config file are listed in config.issues and leave the exit code alone.",
     )
     .action(async (options: { json?: boolean }) => {
-      const diagnosis = await diagnose(env)
+      const diagnosis = await diagnose(env, program)
       print(options.json, itemAnswer(diagnosis), doctorText(diagnosis))
       if (diagnosis.problems.length > 0) process.exitCode = 1
     })

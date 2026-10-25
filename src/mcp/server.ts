@@ -10,7 +10,7 @@ import { mcpFailure } from "../failure.js"
 import { readOnly } from "../read-only.js"
 import { VERSION } from "../version.js"
 import { commandCatalogue, type ProgramFactory } from "./catalogue.js"
-import { memoLevels, OWNER_PERMISSIONS } from "./permissions.js"
+import { memoLevels, OWNER_PERMISSIONS, refuseUnknownPermissions } from "./permissions.js"
 
 export const AGENT = "memo-mcp"
 export const INSTRUCTIONS = [
@@ -56,6 +56,7 @@ export const createMemoServer = (
   for (const key of OWNER_PERMISSIONS) defaults[key] = "deny"
   const levels = () => memoLevels(env, overrides, defaults)
   levels()
+  refuseUnknownPermissions(env, catalogue.program, overrides)
   const allowed = (path: readonly string[], writes: boolean) => {
     const current = levels()
     if (readOnly(env) && writes) throw new CliError("permission_error", "memo is locked to reads")

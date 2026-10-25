@@ -82,32 +82,6 @@ Then try it:
 Use the memo tools to list the memories waiting for my review.
 ```
 
-<a id="existing-tool-names"></a>
-
-## Update a saved client
-
-Reconnect after upgrading so the app refreshes its tool list. Replace per-command tools with
-`memo_read` or `memo_write`, passing the CLI path in `command`. For instance, `notes_show` becomes
-`memo_read {"command":"notes show","arguments":{"note":"note:12"}}`.
-The old tool names are no longer registered. Use discovery to get the current argument schema.
-
-| Previous call | Current command and arguments |
-|---|---|
-| `person_context` | `context`; keep `person` and explicit `source` |
-| `project_context`, `project_evidence` | `projects context`, `projects evidence`; evidence uses `no_catch_up: true` instead of `catch_up: false` |
-| `search_notes`, `search_messages`, `search_mail`, `search_all` | `search notes`, `search messages`, `search mail`, `search all`; use `query` instead of `text` |
-| `facts_add` | `facts add`; use `statement` instead of `text` |
-| `search_memories` | `search memories`; use `query` instead of `text` |
-| `meeting_passage`, `meeting_prepare` | `meetings passage`, `meetings prepare`; discover the CLI's arguments |
-| `meeting_actions_add`, `project_actions_add` | `meetings actions add`, `projects actions add`; `input` carries the JSON proposal without touching MCP stdin |
-| `meeting_actions_list` | `meetings actions list`; use `query: "status:proposed"` instead of a `status` field |
-| `project_annotations_snapshot` | `projects annotations show`; reads without creating a file |
-| `project_annotations_preview` | `projects annotations check`; `file` and `bindings` name existing local JSON files |
-| Other underscore names | Their CLI paths, such as `memories add`, `actions list`, `vocabulary check` and `tasks status` |
-
-Permission keys remain dotted CLI paths, such as `projects.evidence`, rather than old tool names.
-Vocabulary budget arguments now use snake_case, such as `max_comparisons`.
-
 Suggestions are saved under the agent name `memo-mcp`. Review proposed memories and facts with
 `memo memories list status:proposed` and the commands in [Memories and facts](memories.md).
 

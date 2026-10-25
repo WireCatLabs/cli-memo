@@ -87,6 +87,7 @@ const SECTIONS: [string, HelpSection][] = [
   ["sync", "automate"],
   ["jobs", "automate"],
   ["folders", "setup"],
+  ["config", "setup"],
 ]
 
 /** Where `memo commands` lists each group; run after every command is added. */

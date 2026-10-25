@@ -302,8 +302,6 @@ memo folders update <id> <path> [options]
 | `--format <format>` | how its notes are written: obsidian, markdown. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-<a id="memo-folders-attach"></a>
-
 **Returns:** bind a folder id from another computer to the folder's path on this one
 
 **Example:** `memo folders update 1 ~/notes`
@@ -467,8 +465,6 @@ memo mail delete <account> [options]
 | `--since-time <time>` | only mail received from this time, ISO 8601 or 30d ago; older mail stays. |
 | `--yes` | move the mail; without it, only say what would move. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-<a id="memo-mail-trash"></a>
 
 **Returns:** move envelope mail to Gmail's Trash, decided again; dry run unless --yes
 
@@ -665,8 +661,6 @@ memo mail rules import <account> <file> [options]
 | `--yes` | with --format gmail: add the proposed rules instead of only previewing them. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-<a id="memo-mail-rules-import-filters"></a>
-
 **Returns:** import saved rules, or preview Gmail filters
 
 **Example:** `memo mail rules import personal rules.json`, `memo mail rules import personal Filters.json --format gmail`, `memo mail rules import personal Filters.json --format gmail --yes`
@@ -808,8 +802,6 @@ memo tasks links <task> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-<a id="memo-tasks-relations"></a>
 
 **Returns:** a task's links to other tasks
 
@@ -1682,8 +1674,6 @@ memo relationships scan [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--limit <n>` | most suggestions, at most 100. Default: `20`. |
 
-<a id="memo-relationships-suggest"></a>
-
 **Returns:** suggest relationships between email contacts of one domain; you confirm each
 
 **Example:** `memo relationships scan --source email:me@example.com --limit 10`
@@ -1754,8 +1744,6 @@ memo reminders claim [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--limit <n>` | most due reminders, at most 500. Default: `100`. |
 
-<a id="memo-reminders-poll"></a>
-
 **Returns:** hand out due reminders, each with a receipt to acknowledge
 
 **Example:** `memo reminders claim --account telegram:1 --json`
@@ -1779,8 +1767,6 @@ memo reminders acknowledge <id> <receipt> [options]
 |---|---|
 | `--account <account>` | the account it acts as: provider:account, such as telegram:1 or email:personal. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-<a id="memo-reminders-ack"></a>
 
 **Returns:** confirm that a handed-out reminder was shown
 
@@ -2123,8 +2109,6 @@ memo memories invalidate <ref> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-<a id="memo-memories-stale"></a>
 
 **Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 7 more; every field: memo commands info memories invalidate
 
@@ -2667,8 +2651,6 @@ memo agents list [query] [options]
 | `--limit <n>` | most rows, up to 500. Default: `100`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-<a id="memo-agents-log"></a>
-
 **Returns:** one row per tool call, newest first: agent, tool, outcome and times
 
 **Example:** `memo agents list agent:claude-code --limit 20`
@@ -2965,8 +2947,6 @@ memo answers create <question> [query] [options]
 | `--allow-remote` | explicitly consent to sending this evidence to the configured model. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-<a id="memo-ask"></a>
-
 **Returns:** prepare cited evidence for your agent, or explicitly call a configured model
 
 **Example:** `memo answers create 'what did Kai say about the budget?' --all`, `memo answers create 'when is the launch?' --source telegram:1`
@@ -2987,7 +2967,6 @@ memo sync [options]
 | `--folder <folder>` | notes: only this configured folder, by its id or path; repeat for more. |
 | `--ignore <path>` | notes: leave this file or folder alone this run, a path or a glob; repeat for more. |
 | `--source <accounts>` | mail: only these mailboxes: email:<account> (its name in mail.accounts or its address), email or group:<name>. |
-| `--account <account>` | deprecated: --source email:<account>. |
 | `--since-time <time>` | mail: read from this time, ISO 8601 or 30d ago (default: 30d). |
 | `--limit <n>` | mail: most new emails to read per account this run (default: 200). |
 | `--retry-attachments` | mail: reread stored emails' attachments that an older memo or a broken install left unread. |
@@ -3017,8 +2996,6 @@ memo jobs start [options]
 |---|---|
 | `--every <duration>` | how often: 5m, 90s, 1h — a minute or more. |
 
-<a id="memo-auto-start"></a>
-
 **Returns:** sync every --every (default auto.every, else 5m), starting a minute from now
 
 **Example:** `memo jobs start --every 10m`
@@ -3032,8 +3009,6 @@ This command changes the local store or your files.
 ```sh
 memo jobs stop
 ```
-
-<a id="memo-auto-stop"></a>
 
 **Returns:** stop syncing on a timer and remove the timer
 
@@ -3051,11 +3026,35 @@ memo jobs status [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-<a id="memo-auto-status"></a>
-
 **Returns:** whether the timer is on, its interval, its next run and how the last one ended
 
 **Example:** `memo jobs status --json`
+
+## `memo config`
+
+memo's settings file
+
+### `memo config unset`
+
+remove one setting from the config file, even one memo does not know
+
+This command changes the local store or your files.
+
+```sh
+memo config unset <key> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `key` | required | the setting's dotted path, as memo doctor names it, e.g. permissions.notes.edit. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** remove one setting from the config file, even one memo does not know
+
+**Example:** `memo config unset permissions.notes.edit`
 
 ## `memo doctor`
 
