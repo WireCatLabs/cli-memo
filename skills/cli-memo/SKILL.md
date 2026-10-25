@@ -138,7 +138,8 @@ To collect what the store holds about a project, use `memo projects evidence <pr
 (MCP `project_evidence`). The name, the key, each alias, `--alias`, `--context-query` and `--contact` is its own
 search: every word of it must appear in one text, in any order, as whole words; hits are joined. Every message of a
 chat confirmed as the project's is read too when `--source` holds its account: a `linked-chat` item names nothing, it
-is there because the chat is the project's. A linked chat outside `--source` is listed as not read. Link a chat with
+is there because the chat is the project's. One run takes only a share from each linked chat; a capped one is
+named in the output, and `--cursor` reads the rest. A linked chat outside `--source` is listed as not read. Link a chat with
 `memo relationships add chat:<provider>/<account>/<chat> project:<id>`; yours waits for the owner to confirm it. `--contact person:<id>` (find the id with `memo search people <name>`) reads every message and mail that person's stored identities wrote in `--source` (a `sender` item, matched by who wrote it, may name nothing) and searches the aliases the owner gave them, not their messenger display name; an unknown id is `not_found`. New mail and documents are indexed first unless `--no-catch-up`. A `person-only` item mentions a person, not the project. Unread or failed sources are coverage, not
 absence. A document too large to read is listed under `oversized`: open it with `memo notes show <ref>`. Continue a stopped run with `--cursor <checkpoint>` and the same options. Nothing is proposed or
 confirmed: cite the references, then stage findings with `memo projects actions add` (MCP

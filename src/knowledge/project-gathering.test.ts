@@ -339,6 +339,23 @@ it("reads a project's confirmed linked chats whole, never a suggested one or one
   expect(text).toContain("not read: chat:telegram/2/5 (linked-chat, out-of-scope)")
 })
 
+it("leaves the rest of a busy linked chat to --cursor and says which chat it capped", async () => {
+  const { env, json, run } = await setUp()
+  const store = await openStore({ env })
+  const busy = Array.from({ length: 60 }, (_, n) => ({ ...message(`${n + 1}`, `Line ${n}`, daysAgo(4)), chatId: "8" }))
+  await store.messages.saveMessages(telegram, "8", busy, { via: "test" })
+  await store.close()
+  await json("relationships", "add", "chat:telegram/1/8", "project:1", "--as-owner")
+
+  const found = await json("projects", "evidence", "SYP", "--source", "telegram:1")
+  expect(found.linked_chats).toEqual([expect.objectContaining({ ref: "chat:telegram/1/8", items: 50, capped: true })])
+  expect(found.checkpoint).toEqual(expect.any(String))
+  const text = await run("projects", "evidence", "SYP", "--source", "telegram:1")
+  expect(text).toContain(
+    "linked chats with more to read, left for --cursor so one chat does not fill the run: chat:telegram/1/8 (50 this run)",
+  )
+})
+
 it("reads linked chats when the project also has a confirmed meeting link", async () => {
   const { env, json } = await setUp()
   const store = await openStore({ env })
