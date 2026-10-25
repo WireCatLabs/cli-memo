@@ -256,6 +256,13 @@ export const projectGatherText = (found: StoredProjectGathering) => {
           .join(""),
     ),
   ]
+  const people = found.people.slice(0, 8)
+  const morePeople = found.people.length - people.length + found.peopleOmitted
+  if (people.length)
+    lines.push(
+      `people who wrote these: ${people.map((one) => `${one.name} (${one.items})`).join(", ")}` +
+        `${morePeople ? ` and ${morePeople} more` : ""} — by stored contact, not by names in the text; yours left out`,
+    )
   if (linked)
     lines.push(`${linked} of these come from the project's linked chats and name nothing: membership, not a word match`)
   if (sent) lines.push(`${sent} of these were written by a contact and may name nothing: matched by sender, not words`)

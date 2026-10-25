@@ -372,3 +372,55 @@ it("reads linked chats when the project also has a confirmed meeting link", asyn
   const found = await json("projects", "evidence", "SYP", "--source", "telegram:1")
   expect(found.linked_chats).toEqual([expect.objectContaining({ ref: "chat:telegram/1/8", state: "in-scope" })])
 })
+
+it("counts who wrote the evidence by stored contact across messengers, leaving out the owner", async () => {
+  const { env, json, run } = await setUp()
+  const store = await openStore({ env })
+  const max = { provider: "max", account: "2" }
+  await store.people.savePeople(telegram, [
+    { id: "55", name: "Stefan" },
+    { id: "66", name: "Bob" },
+  ])
+  await store.people.savePeople(max, [{ id: "m55", name: "Степа" }])
+  await store.messages.saveMessages(
+    telegram,
+    "8",
+    [
+      { ...message("1", "Harbour crane booked", daysAgo(1)), chatId: "8", senderId: "55" },
+      { ...message("2", "Harbour lunch", daysAgo(1)), chatId: "8", senderId: "66" },
+      { ...message("3", "Harbour from me", daysAgo(1)), chatId: "8", senderId: "1", outgoing: true },
+    ],
+    { via: "test" },
+  )
+  await store.messages.saveMessages(
+    max,
+    "9",
+    [{ ...message("1", "Harbour dates moved", daysAgo(1)), chatId: "9", senderId: "m55" }],
+    { via: "test" },
+  )
+  const stepa = await store.people.linkIdentities(
+    { provider: "telegram", id: "55" },
+    { provider: "max", id: "m55" },
+    { method: "manual", by: "owner" },
+  )
+  await store.close()
+
+  const found = await json("projects", "evidence", "SYP", "--source", "telegram:1,max:2")
+  expect(found.people).toContainEqual({
+    person: `person:${stepa.uid}`,
+    name: stepa.name,
+    identities: [
+      { provider: "telegram", account: "1", id: "55" },
+      { provider: "max", account: "2", id: "m55" },
+    ],
+    items: 2,
+    contexts: { project: 2 },
+  })
+  expect(found.people).toContainEqual(expect.objectContaining({ name: "Bob", items: 1 }))
+  expect(found.people.some((one: { identities: { id: string }[] }) => one.identities.some((i) => i.id === "1"))).toBe(
+    false,
+  )
+  expect(found.people_omitted).toBe(0)
+  const text = await run("projects", "evidence", "SYP", "--source", "telegram:1,max:2")
+  expect(text).toMatch(/people who wrote these: .*Bob \(1\)/)
+})
