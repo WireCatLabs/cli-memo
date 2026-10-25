@@ -18,6 +18,10 @@ the API.
   alias, whatever the case or accents, Cyrillic included, and gives the `person:<id>` that
   `memo projects evidence --contact` takes, with each identity. `--source` narrows the accounts; the answer names
   those it read.
+- **`memo projects evidence` reads only a share of each linked chat per run.** One busy chat no longer fills the
+  run: each linked chat gives at most its share of the item limit (50 for one chat at the default 100, 20 from four
+  chats up), the output names the chats it capped, and `--cursor` reads the rest. JSON `linked_chats` entries gain
+  `items` and `capped`. Needs cli-core 0.413.0.
 
 ## 0.94.0 — 24.10.2026
 

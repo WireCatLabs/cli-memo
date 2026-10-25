@@ -299,6 +299,13 @@ export const projectGatherText = (found: StoredProjectGathering) => {
         .map((one) => `${one.source} (${one.kind}${one.reason ? `, ${one.reason}` : ""})`)
         .join(", ")}`,
     )
+  const capped = found.linkedChats.filter((one) => one.capped)
+  if (capped.length)
+    lines.push(
+      `linked chats with more to read, left for --cursor so one chat does not fill the run: ${capped
+        .map((one) => `${one.ref} (${one.items} this run)`)
+        .join(", ")}`,
+    )
   if (found.checkpoint)
     lines.push(
       `stopped${found.stopped ? ` at the ${found.stopped} budget` : ""}; continue with the same options and`,

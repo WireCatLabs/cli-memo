@@ -157,7 +157,9 @@ New mail and documents are indexed for search first; `no_catch_up: true` reads t
 hit carries `around`: `before_n` and `after_n` messages next to it in its chat (default 2), as context, never as
 more hits. Every message of a chat confirmed as the project's (`memo relationships add
 chat:<provider>/<account>/<chat> project:<id>`) is read too when `source` holds its account: those items have
-`context: "linked-chat"` and name nothing, their lane has `query: null` and `chat` set, and a linked chat outside
+`context: "linked-chat"` and name nothing, their lane has `query: null` and `chat` set. Each `linked_chats` entry has
+`items` (new items this run) and `capped`: one run takes at most a share of the item limit from each chat, and
+`cursor` reads the rest of a capped one. A linked chat outside
 `source` is listed in `unread_sources`, never read. `mentions` lists the other projects, tags and topics the texts name, cited; a name is not
 membership. An item found only through a
 contact's name has `context: "person-only"`. A `person:<id>` contact reads what that person's stored identities

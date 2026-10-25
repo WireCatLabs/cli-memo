@@ -147,7 +147,9 @@ later imports, edits or deletions can still change the evidence.
 
 Each name or alias is a separate search: every word of it must appear in one text, in any order, as whole
 words; hits are joined. Every message of a chat confirmed as the project's is read too when `--source` holds
-its account. Those items are labelled `linked-chat`: they name nothing, they belong to the chat. A linked chat
+its account. Those items are labelled `linked-chat`: they name nothing, they belong to the chat. One run takes at
+most a share of the item limit from each linked chat (50 for one chat at the default 100, 20 from four chats up);
+a chat with more is listed as capped and `--cursor` reads the rest. A linked chat
 outside `--source` is listed as not read. `--contact person:<id>` reads every message and mail that person's
 stored identities wrote in `--source`, labelled `sender` (matched by who wrote it, not by words), and searches
 the aliases you gave them; their messenger display name is not searched, since texts rarely spell it out. A
