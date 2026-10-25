@@ -24,6 +24,11 @@ the API.
   run: each linked chat gives at most its share of the item limit (50 for one chat at the default 100, 20 from four
   chats up), the output names the chats it capped, and `--cursor` reads the rest. JSON `linked_chats` entries gain
   `items` and `capped`. Needs cli-core 0.413.0.
+- `memo mcp --http --public-url <https-origin>` serves the same three MCP tools through cli-core’s authenticated HTTP transport, on loopback port 8767 by default. The shared access-code OAuth login, token hashing and `--revoke` work with the same per-call permissions and stricter server overrides as stdio. `--port` selects another local port; HTTP-only options without `--http` are refused. The remote connection guide covers tunnels, app login and revocation.
+
+### Fixed
+
+- MCP note creation supplies text once through Core’s generated runner, rather than passing both the positional argument and `--text`. The shared correction applies to stdio and HTTP.
 
 ## 0.94.0 — 24.10.2026
 
@@ -39,10 +44,6 @@ the API.
 ### Security
 
 - **Dependency resolutions exclude vulnerable Zod, Vite and postal-mime versions.** Release checks reject high production findings in locked and fresh package resolutions.
-
-### Fixed
-
-- MCP note creation supplies text once through Core’s generated runner, rather than passing both the positional argument and `--text`. The shared correction applies to stdio and HTTP.
 
 ## 0.93.0 — 24.10.2026
 
