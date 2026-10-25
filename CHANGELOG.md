@@ -5,6 +5,12 @@ first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0
 the API.
 
 
+## Unreleased
+
+### Changed — may break callers
+
+- **memo works on the shared store from cli-core 0.420.0, which carries store versions 30 to 33.** Notes folders are now accounts of provider `obsidian` or `local`: `--account obsidian:<id>` and `local:<id>` name one, and `folder:<id>` still does. Google Drive's documents live in drive's `google-drive` account instead of a stand-in folder; `memo folders list` still marks it "kept by drive", `memo folders update` still refuses it, `search all` names it among the accounts it read, and `notes:<id>` names it as a source. `vocabulary inspect` now answers `coverage.apply_supported: true`, cli-core's value: cli-core can apply the preview, memo has no command that does. Once this memo has migrated the store, an older memo, and any CLI on an older cli-core, refuses it and says to upgrade.
+
 ## 0.101.0 — 25.10.2026
 
 ### Added
@@ -16,10 +22,6 @@ the API.
 ### Added
 
 - **`memo projects evidence` says who is involved.** The result has `people`: who wrote the run's messages and emails, person by person from your stored contacts, with how many items each wrote. A person's linked accounts in several messengers and mail count as one; your own messages are left out; at most 20 people, `people_omitted` counts the rest. It never guesses from names in the text. Text output adds one "people who wrote these" line. MCP `project_evidence` returns the same. Uses cli-core 0.418.0, which also brings 0.417.0's fix: `--discover` treats a "?" ending a question as punctuation.
-
-### Changed — may break callers
-
-- **memo works on the shared store from cli-core's release with store versions 30 to 33.** Notes folders are now accounts of provider `obsidian` or `local`: `--account obsidian:<id>` and `local:<id>` name one, and `folder:<id>` still does. Google Drive's documents live in drive's `google-drive` account instead of a stand-in folder; `memo folders list` still marks it "kept by drive", `memo folders update` still refuses it, `search all` names it among the accounts it read, and `notes:<id>` names it as a source. `vocabulary inspect` now answers `coverage.apply_supported: true`, cli-core's value: cli-core can apply the preview, memo has no command that does. Once this memo has migrated the store, an older memo, and any CLI on an older cli-core, refuses it and says to upgrade.
 
 ## 0.99.0 — 25.10.2026
 
