@@ -5,7 +5,7 @@ import { Client } from "@modelcontextprotocol/client"
 import { InMemoryTransport } from "@modelcontextprotocol/server"
 import { captureStreams } from "@wirecat/cli-base"
 import { describeProgram, flatten } from "@wirecat/cli-base/commands"
-import { UNTRUSTED, UNTRUSTED_INSTRUCTION } from "@wirecat/cli-core/cli"
+import { UNTRUSTED_INSTRUCTION, UNTRUSTED_NEUTRAL } from "@wirecat/cli-core/cli"
 import { openStore } from "@wirecat/cli-core/store"
 import * as v from "valibot"
 import { beforeEach, expect, it } from "vitest"
@@ -258,7 +258,7 @@ it("shows hidden characters in what other people wrote, keeps ordinary text, and
   try {
     expect(client.getInstructions()).toContain(UNTRUSTED_INSTRUCTION)
     for (const tool of (await client.listTools()).tools)
-      if (tool.name === "memo_read") expect(tool.description).toContain(UNTRUSTED)
+      if (tool.name === "memo_read") expect(tool.description).toContain(UNTRUSTED_NEUTRAL)
 
     const found = await call("search notes", { query: "Carol", exact: true })
     const text = (found.content as { text: string }[])[0]?.text ?? ""
@@ -324,7 +324,7 @@ it("covers every runnable command with a tool or a named exclusion", async () =>
       (catalogue.structuredContent as { items: { command: string }[] }).items.map(({ command }) => command),
     )
     const runnable = flatten(describeProgram(createProgram({ env }))).filter(
-      (info) => info.commands.length === 0 || info.effects !== undefined,
+      (info) => info.commands.length === 0 || info.runnable === true,
     )
     expect(runnable.length).toBeGreaterThan(100)
     for (const info of runnable) {

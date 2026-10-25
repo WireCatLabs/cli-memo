@@ -5,7 +5,7 @@ import { type McpCommand, registerCommands } from "@wirecat/cli-core/mcp"
 import type { Level } from "@wirecat/cli-core/sends"
 import { openStore } from "@wirecat/cli-core/store"
 import * as v from "valibot"
-import { STORE_CLIENT } from "../app.js"
+import { APP, STORE_CLIENT } from "../app.js"
 import { mcpFailure } from "../failure.js"
 import { readOnly } from "../read-only.js"
 import { VERSION } from "../version.js"
@@ -120,9 +120,16 @@ export const createMemoServer = (
       },
     }
   }
-  registerCommands(server, "memo", commands, undefined, (asked) => {
-    const tool = catalogue.tools.find((one) => one.command === asked)
-    if (tool) allowed(tool.path, tool.writes)
-  })
+  registerCommands(
+    server,
+    "memo",
+    commands,
+    undefined,
+    (asked) => {
+      const tool = catalogue.tools.find((one) => one.command === asked)
+      if (tool) allowed(tool.path, tool.writes)
+    },
+    APP.messenger,
+  )
   return server
 }

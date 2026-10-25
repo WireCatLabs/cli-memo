@@ -3205,7 +3205,7 @@ memo runs list [query] [options]
 | `--page <n>` | which page, starting at 1. Default: `1`. |
 | `--json` | print JSON. |
 
-**Returns:** run — run_id, command, profile, started_at, status, cli_version, completed_at, requests, and 15 more; every field: memo commands info runs list
+**Returns:** run — run_id, command, started_at, status, cli_version, profile, completed_at, requests, and 20 more; every field: memo commands info runs list
 
 **Example:** `memo runs list status:failed --limit 10`, `memo runs list --page 2 --json`
 
@@ -3226,7 +3226,7 @@ memo runs show <run-id> [options]
 | `--problems` | only failed responses, warnings and crashes. |
 | `--json` | print JSON. |
 
-**Returns:** run details — run_id, command, profile, started_at, status, cli_version, directory, event_count, and 14 more; every field: memo commands info runs show
+**Returns:** run details — run_id, command, started_at, status, cli_version, directory, event_count, events, and 19 more; every field: memo commands info runs show
 
 **Example:** `memo runs show 20261025T090000Z-mail-sync-a81f2c --json`
 

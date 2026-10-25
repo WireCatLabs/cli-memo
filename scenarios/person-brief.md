@@ -10,13 +10,13 @@ steps:
     why: preferences and summaries kept about them
   - run: memo search meetings Kai
     why: meetings that mention them, with the passage to cite
-  - run: tg contacts context Kai
-    why: shared Telegram chats, the last messages each way and where others mentioned them; tg, max and drive commands start with your profile, as in tg personal contacts context Kai
-  - run: max contacts context Kai
+  - run: tg personal contacts context Kai
+    why: shared Telegram chats, the last messages each way and where others mentioned them
+  - run: max personal contacts context Kai
     why: the same for MAX
-  - run: zm meetings context person:42
+  - run: zm personal meetings context person:42
     why: what stored Zoom meetings say about them, through the identities linked to that person
-  - run: drive search Kai
+  - run: drive personal search Kai
     why: Drive documents that name them
   - run: memo answers create "what is open with Kai?" --all
     why: one cited evidence bundle across every account and the notes, ready to hand to your agent
