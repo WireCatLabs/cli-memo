@@ -7,6 +7,10 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- Mail is parsed with postal-mime 4.1.4, which fixes how a few malformed messages are read: a header block ends at the first line that is neither a field nor a fold, a base64 or quoted-printable attached message stays an attachment, and only real UTF-16 charset labels are honoured. Re-importing such a message can store slightly different text.
+
 ## 0.107.0 — 25.10.2026
 
 ### Security
