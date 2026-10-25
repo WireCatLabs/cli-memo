@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**507 ✅ · 0 ⛔ · 89 ❌** — 134 commands, 462 options.
+**513 ✅ · 0 ⛔ · 90 ❌** — 136 commands, 467 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -571,6 +571,8 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `sync` | `--rescan` | ❌ |  |
 | `sync` | `--no-embed` | ✅ |  |
 | `sync` | `--json` | ✅ |  |
+| `store info` |  | ✅ |  |
+| `store info` | `--json` | ✅ |  |
 | `jobs start` |  | ✅ |  |
 | `jobs start` | `--every` | ✅ |  |
 | `jobs stop` |  | ✅ |  |
@@ -588,8 +590,13 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `commands info` |  | ✅ |  |
 | `commands info` | `--json` | ✅ |  |
 | `skill show` |  | ✅ |  |
+| `skill show` | `--for` | ❌ |  |
+| `skill show` | `--json` | ✅ |  |
 | `skill install` |  | ✅ |  |
 | `skill install` | `--for` | ✅ |  |
+| `skill install` | `--json` | ✅ |  |
+| `skill status` |  | ✅ |  |
+| `skill status` | `--json` | ✅ |  |
 | `guide` |  | ✅ |  |
 | `guide` | `--json` | ✅ |  |
 | `runs list` |  | ✅ |  |
