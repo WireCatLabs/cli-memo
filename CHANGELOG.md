@@ -7,6 +7,8 @@ the API.
 
 ## Unreleased
 
+## 0.104.0 — 25.10.2026
+
 ### Added
 
 - **`memo doctor --json` lists every problem in the config file as `config.issues`**, in the shape every WireCat doctor uses: `{ kind, file, key?, line?, column?, what, fix? }`, with `kind` one of `invalid_json`, `unknown_setting`, `unknown_permission`, `missing_setting` or `invalid_value`. `what` says what a value has to be and never quotes the saved value; `fix` is a `memo config unset <key>` that runs as written, and is left out for invalid JSON, where `line` and `column` say where parsing stopped. Doctor still answers on a broken file, diagnoses the rest from what of the file still loads, and config problems alone leave its exit code at 0. Text output lists them with the other problems.
