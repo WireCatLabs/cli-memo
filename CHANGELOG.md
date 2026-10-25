@@ -7,6 +7,8 @@ the API.
 
 ## Unreleased
 
+## 0.105.0 — 25.10.2026
+
 ### Added
 
 - **A failed run says what went wrong** (cli-core 0.425.0): `memo runs list` and `memo runs show` gain `error`, with its class, code, reason, masked message and a short stack.
