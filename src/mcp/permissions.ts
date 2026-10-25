@@ -1,9 +1,9 @@
 import { CliError } from "@wirecat/cli-base"
-import { setupPermissionCeiling } from "@wirecat/cli-core/cli"
+import { issueMessage, setupPermissionCeiling } from "@wirecat/cli-core/cli"
 import { CEILING_KEY, type Level, layerPermissions, levelFor } from "@wirecat/cli-core/sends"
 import type { Command } from "commander"
-import { configPath, loadConfig } from "../config.js"
-import { issueMessage, memoPermissionKeys, permissionIssues } from "../config-issues.js"
+import { inspectConfig, loadConfig } from "../config.js"
+import { memoPermissionKeys } from "../config-issues.js"
 import { readOnly } from "../read-only.js"
 
 export const OWNER_PERMISSIONS = [
@@ -47,9 +47,11 @@ export const memoLevels = (
 
 /** A key no command checks would do nothing: the server refuses to start, saved or passed with --permission. */
 export const refuseUnknownPermissions = (env: NodeJS.ProcessEnv, program: Command, overrides: readonly string[]) => {
-  const saved = Object.keys(loadConfig(env).permissions ?? {})
-  const issues = permissionIssues(program, configPath(env), saved)
-  if (issues.length > 0) throw new CliError("configuration_error", issueMessage(issues), { permission: issues[0]?.key })
+  // Refuses a broken file with its own message first; then the only issues left are unknown permission keys.
+  loadConfig(env)
+  const { issues } = inspectConfig(env, program)
+  if (issues.length > 0)
+    throw new CliError("configuration_error", issueMessage(issues, "memo doctor"), { permission: issues[0]?.key })
   const known = memoPermissionKeys(program)
   const key = overrides.map((entry) => entry.split("=")[0] ?? "").find((one) => !known.has(one))
   if (key !== undefined)

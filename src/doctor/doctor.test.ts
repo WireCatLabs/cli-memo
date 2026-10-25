@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
@@ -164,6 +164,44 @@ describe("memo doctor on a config file with problems", () => {
       key: "default_profile",
       removed: false,
     })
+  })
+})
+
+describe.skipIf(process.platform === "win32")("memo doctor on files other users can read", () => {
+  it("names the config file and its folder with the chmod that fixes each, exits 0, and is clean after", async () => {
+    writeConfig(JSON.stringify({ update_check: false }))
+    chmodSync(configPath(env), 0o644)
+    chmodSync(join(dir, "config"), 0o775)
+    const streams = captureStreams()
+    await createProgram({ streams, env }).exitOverride().parseAsync(["doctor", "--json"], { from: "user" })
+
+    expect(JSON.parse(streams.stdout.join("")).item.files).toEqual({
+      checked: true,
+      ok: false,
+      problems: [
+        { path: configPath(env), mode: "0644", want: "0600" },
+        { path: join(dir, "config"), mode: "0775", want: "0700" },
+      ],
+    })
+    expect(streams.stderr.join("")).toContain(`to make it private: chmod 600 '${configPath(env)}'`)
+    expect(streams.stderr.join("")).toContain(`to make it private: chmod 700 '${join(dir, "config")}'`)
+    expect(process.exitCode ?? 0).toBe(0)
+    expect(await doctor()).toContain(
+      `! ${configPath(env)} is 0644, so others can read it; it should be 0600 — chmod 600 '${configPath(env)}'`,
+    )
+
+    chmodSync(configPath(env), 0o600)
+    chmodSync(join(dir, "config"), 0o700)
+    expect(JSON.parse(await doctor("--json")).item.files).toEqual({ checked: true, ok: true, problems: [] })
+  })
+
+  it("keeps the config file owner-only after config unset", async () => {
+    writeConfig(JSON.stringify({ update_check: false, record: true }))
+    chmodSync(configPath(env), 0o644)
+
+    await memo("config", "unset", "record")
+
+    expect(statSync(configPath(env)).mode & 0o777).toBe(0o600)
   })
 })
 
