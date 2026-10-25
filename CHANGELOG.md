@@ -7,6 +7,8 @@ the API.
 
 ## Unreleased
 
+## 0.107.0 — 25.10.2026
+
 ### Security
 
 - **`memo doctor` reports files and folders other users can read, with the `chmod` that fixes each.** `files` in `memo doctor --json` is `{ checked, ok, problems }`, each problem `{ path, mode, want }`, the shape every WireCat doctor uses: the config file and the store with its `-wal` and `-shm` files want `0600`; the config folder, the run log folder and the store's folder (unless `MESSAGING_STORE` names the store) want `0700`. With `--json` the fix goes to stderr as `to make it private: chmod 600 '<path>'`; the text output lists it with the other problems. Nothing is changed on disk, and these problems leave the exit code alone, as config problems do. Windows is not checked: `files` is `{ checked: false, reason }`.
