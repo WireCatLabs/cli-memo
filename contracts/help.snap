@@ -6,7 +6,7 @@ Usage: memo <command> [options]
 What you can do:
   context <person>              one person's messages, mail, notes and tasks
   search all "budget"           messages, mail and notes ranked together
-  ask "…" --all                 evidence with sources, ready for your agent
+  answers create "…" --all      evidence with sources, ready for your agent
   tasks agenda                  overdue tasks, replies you owe and wait for
   meetings prepare <series-id>  a briefing with sources for a meeting
   jobs start                    sync notes and mail every 5 minutes
@@ -17,8 +17,8 @@ Works with:
   tg                            Telegram in the same local store: search, review and tasks offline
   max                           MAX in the same local store: search, review and tasks offline
   wa                            WhatsApp in the same local store: search, review and tasks offline
-  zm                            Zoom meetings: transcripts and summaries, searchable with your messages
-  drive                         Google Drive and Docs as local text, searchable with your messages
+  zm                            Zoom meetings: transcripts and summaries, searchable with your other WireCat data
+  drive                         Google Drive and Docs as local text, searchable with your other WireCat data
 
 Start here:   memo folders add <path>
 Next:         memo commands            every command, by section

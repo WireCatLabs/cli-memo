@@ -1,16 +1,24 @@
 import { execFile } from "node:child_process"
 import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { homedir } from "node:os"
-import { join } from "node:path"
+import { dirname, join } from "node:path"
 import { resolvePaths, type Streams } from "@wirecat/cli-base"
 import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
 import { SKILL_TARGETS, skillPath, skillVersion } from "@wirecat/cli-base/skill"
-import { LOCAL_READ, sharedCommandTemplate, storeSummary } from "@wirecat/cli-core/cli"
+import {
+  LOCAL_READ,
+  privateFiles,
+  runsDirFor,
+  sharedCommandTemplate,
+  storeSummary,
+  withSqliteSidecars,
+} from "@wirecat/cli-core/cli"
 import { sharedModelsDirectory } from "@wirecat/cli-core/speech"
+import { storePath } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { APP } from "../app.js"
-import { type Config, configPath, loadConfig } from "../config.js"
+import { inspectConfig } from "../config.js"
 import { SHELL_OVERRIDES } from "../contract-overrides.js"
 import { archiveCheck, RESTORE_DAYS, trashRuns } from "../mail/trash.js"
 import { noteFolders } from "../notes/folders.js"
@@ -38,20 +46,18 @@ const unitPaths = (unit: string): string[] =>
     .map(([, path]) => path?.replace(/\\(["\\])/g, "$1") ?? "")
     .filter((path) => path.startsWith("/"))
 
-const readConfig = (env: NodeJS.ProcessEnv): { config: Config; error?: string } => {
-  try {
-    return { config: loadConfig(env) }
-  } catch (error) {
-    return { config: {}, error: error instanceof Error ? error.message : String(error) }
-  }
-}
-
 /** Everything memo needs, read from this computer only: no mail server, no messenger, no npm. */
-export const diagnose = async (env: NodeJS.ProcessEnv) => {
+export const diagnose = async (env: NodeJS.ProcessEnv, program: Command) => {
   const problems: Problem[] = []
   const paths = resolvePaths({ appName: APP.appName, prefix: APP.envPrefix, env })
-  const { config, error: configError } = readConfig(env)
-  if (configError) problems.push({ what: `the config cannot be read: ${configError}`, fix: `fix ${configPath(env)}` })
+  // Config problems go to `config.issues`, the shape every WireCat doctor shares, not to `problems`.
+  const { config, ...configReport } = inspectConfig(env, program)
+  // The same files and folders the shared doctor checks; mail lives in the store.
+  const files = privateFiles({
+    files: [configReport.path, ...withSqliteSidecars(storePath(env))],
+    // A folder the owner chose with MESSAGING_STORE may rightly be shared, like the home folder itself.
+    dirs: [dirname(configReport.path), ...(env.MESSAGING_STORE ? [] : [dirname(storePath(env))]), runsDirFor(APP, env)],
+  })
 
   const store = await storeSummary(env)
   if ("error" in store && store.error) problems.push({ what: `the store cannot be read: ${store.error}`, fix: "" })
@@ -155,7 +161,7 @@ export const diagnose = async (env: NodeJS.ProcessEnv) => {
 
   return {
     memo: { version: VERSION, node: process.version, installed_by: installer() },
-    config: { path: configPath(env), exists: existsSync(configPath(env)) },
+    config: configReport,
     state: paths.state,
     cache: paths.cache,
     store,
@@ -164,18 +170,30 @@ export const diagnose = async (env: NodeJS.ProcessEnv) => {
     search_model: { name: TEXT_MODEL, path: modelDir, present: model },
     timer: { enabled: state.enabled, every: state.every, unit: unit ? unitFile : null, runs, failing },
     skills,
+    files: files.checked
+      ? { ...files, problems: files.problems.map(({ path, mode, want }) => ({ path, mode, want })) }
+      : files,
     problems,
+    fixes: files.checked ? files.problems.map(({ fix }) => fix) : [],
   }
 }
 
-type Diagnosis = Awaited<ReturnType<typeof diagnose>>
+type Diagnosis = Omit<Awaited<ReturnType<typeof diagnose>>, "fixes">
 
 const yes = (value: boolean) => (value ? "yes" : "no")
 
-export const doctorText = (d: Diagnosis): string =>
+const fileLines = (d: Diagnosis, fixes: readonly string[]): string[] =>
+  d.files.checked
+    ? d.files.problems.map(
+        ({ path, mode, want }, at) =>
+          `! ${path} is ${mode}, so others can read it; it should be ${want} — ${fixes[at]}`,
+      )
+    : []
+
+export const doctorText = (d: Diagnosis, fixes: readonly string[] = []): string =>
   [
     `memo ${d.memo.version} on Node ${d.memo.node}, installed by ${d.memo.installed_by}`,
-    `config     ${d.config.path}${d.config.exists ? "" : " (none yet)"}`,
+    `config     ${d.config.path}${d.config.found ? "" : " (none yet)"}`,
     `state      ${d.state}`,
     `cache      ${d.cache}`,
     `store      ${d.store.path}${
@@ -204,9 +222,13 @@ export const doctorText = (d: Diagnosis): string =>
     `timer      ${d.timer.enabled ? `on, every ${d.timer.every}` : "off"}`,
     ...d.skills.map((s) => `skill      ${s.path} ${s.version === null ? "(not installed)" : `(${s.version})`}`),
     "",
-    ...(d.problems.length === 0
+    ...(d.problems.length + d.config.issues.length + fileLines(d, fixes).length === 0
       ? ["nothing needs attention"]
-      : d.problems.map(({ what, fix }) => `! ${what}${fix ? ` — ${fix}` : ""}`)),
+      : [
+          ...d.config.issues.map(({ what, fix }) => `! ${what}${fix ? ` — ${fix}` : ""}`),
+          ...fileLines(d, fixes),
+          ...d.problems.map(({ what, fix }) => `! ${what}${fix ? ` — ${fix}` : ""}`),
+        ]),
   ].join("\n")
 
 const doctorCommandDefinition = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
@@ -217,11 +239,14 @@ const doctorCommandDefinition = (program: Command, streams: Streams, env: NodeJS
     .addHelpText(
       "after",
       "\nReads this computer only: the config, the store, the notes folders, Himalaya, the search model, the timer " +
-        "and the agent skill. Exits 1 when something needs attention, each with the command that fixes it.",
+        "and the agent skill, each problem with the command that fixes it. Exits 1 when something other than the config " +
+        "file or a file mode needs attention; problems in the config file are listed in config.issues, and files or " +
+        "folders other users can read in files.problems, and neither changes the exit code.",
     )
     .action(async (options: { json?: boolean }) => {
-      const diagnosis = await diagnose(env)
-      print(options.json, itemAnswer(diagnosis), doctorText(diagnosis))
+      const { fixes, ...diagnosis } = await diagnose(env, program)
+      print(options.json, itemAnswer(diagnosis), doctorText(diagnosis, fixes))
+      if (options.json) for (const fix of fixes) streams.diagnostic(`to make it private: ${fix}`)
       if (diagnosis.problems.length > 0) process.exitCode = 1
     })
 }

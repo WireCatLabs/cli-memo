@@ -10,7 +10,7 @@ export const commands: readonly SharedContractOverride[] = [
         name: "path",
         required: false,
         variadic: true,
-        description: "one command path, for example: search messages; inspect other groups in separate calls",
+        description: "one command path, for example: commands info; inspect other groups in separate calls",
       },
     ],
     after: [
@@ -40,7 +40,7 @@ export const commands: readonly SharedContractOverride[] = [
   {
     command: ["commands", "info"],
     field: "examples",
-    before: ["memo commands info messages list"],
+    before: ["memo commands info commands"],
     after: ["memo commands info --json"],
     reason: "Memo binds discovery to its command-local JSON renderer and scoped stored-data document format.",
   },

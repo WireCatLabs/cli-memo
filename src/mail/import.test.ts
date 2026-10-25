@@ -757,10 +757,10 @@ describe("memo sync --only mail", () => {
     ).toContain("mail.accounts")
   })
 
-  it("names the configured accounts when --account names none of them", async () => {
+  it("names the configured accounts when --source names none of them", async () => {
     const { dir, env } = setup([mail(1)])
 
-    await expect(run(["sync", "--account", "nobody"], configured(dir, env))).rejects.toMatchObject({
+    await expect(run(["sync", "--source", "email:nobody"], configured(dir, env))).rejects.toMatchObject({
       code: "not_found",
       message: expect.stringContaining("it holds test, second"),
     })

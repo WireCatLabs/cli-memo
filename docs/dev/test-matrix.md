@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**497 ✅ · 0 ⛔ · 91 ❌** — 130 commands, 458 options.
+**513 ✅ · 0 ⛔ · 90 ❌** — 136 commands, 467 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -79,11 +79,11 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `mail delete` |  | ✅ |  |
 | `mail delete` | `--limit` | ✅ |  |
 | `mail delete` | `--since-time` | ✅ |  |
-| `mail delete` | `--yes` | ✅ |  |
+| `mail delete` | `--yes` | ❌ |  |
 | `mail delete` | `--json` | ✅ |  |
 | `mail restore` |  | ✅ |  |
 | `mail restore` | `--run` | ✅ |  |
-| `mail restore` | `--yes` | ✅ |  |
+| `mail restore` | `--yes` | ❌ |  |
 | `mail restore` | `--json` | ❌ |  |
 | `mail runs list` |  | ✅ |  |
 | `mail runs list` | `--json` | ✅ |  |
@@ -503,8 +503,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `search all` | `--exact` | ✅ |  |
 | `search all` | `--timezone` | ❌ |  |
 | `search all` | `--json` | ✅ |  |
-| `search all` | `--brief` | ❌ |  |
-| `search all` | `--full` | ❌ |  |
 | `search all` | `--only` | ✅ |  |
 | `search all` | `--plain-order` | ❌ |  |
 | `search all` | `--project` | ✅ |  |
@@ -529,8 +527,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `search notes` | `--exact` | ✅ |  |
 | `search notes` | `--timezone` | ❌ |  |
 | `search notes` | `--json` | ✅ |  |
-| `search notes` | `--brief` | ❌ |  |
-| `search notes` | `--full` | ❌ |  |
 | `search notes` | `--filter` | ✅ |  |
 | `search notes` | `--source` | ✅ |  |
 | `search notes` | `--page` | ✅ |  |
@@ -569,18 +565,21 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `sync` | `--folder` | ✅ |  |
 | `sync` | `--ignore` | ✅ |  |
 | `sync` | `--source` | ✅ |  |
-| `sync` | `--account` | ✅ |  |
 | `sync` | `--since-time` | ✅ |  |
 | `sync` | `--limit` | ✅ |  |
 | `sync` | `--retry-attachments` | ❌ |  |
 | `sync` | `--rescan` | ❌ |  |
 | `sync` | `--no-embed` | ✅ |  |
 | `sync` | `--json` | ✅ |  |
+| `store info` |  | ✅ |  |
+| `store info` | `--json` | ✅ |  |
 | `jobs start` |  | ✅ |  |
 | `jobs start` | `--every` | ✅ |  |
 | `jobs stop` |  | ✅ |  |
 | `jobs status` |  | ✅ |  |
 | `jobs status` | `--json` | ✅ |  |
+| `config unset` |  | ✅ |  |
+| `config unset` | `--json` | ✅ |  |
 | `doctor` |  | ✅ |  |
 | `doctor` | `--json` | ✅ |  |
 | `upgrade` |  | ✅ |  |
@@ -591,11 +590,27 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `commands info` |  | ✅ |  |
 | `commands info` | `--json` | ✅ |  |
 | `skill show` |  | ✅ |  |
+| `skill show` | `--for` | ❌ |  |
+| `skill show` | `--json` | ✅ |  |
 | `skill install` |  | ✅ |  |
 | `skill install` | `--for` | ✅ |  |
+| `skill install` | `--json` | ✅ |  |
+| `skill status` |  | ✅ |  |
+| `skill status` | `--json` | ✅ |  |
 | `guide` |  | ✅ |  |
 | `guide` | `--json` | ✅ |  |
+| `runs list` |  | ✅ |  |
+| `runs list` | `--limit` | ✅ |  |
+| `runs list` | `--page` | ✅ |  |
+| `runs list` | `--json` | ✅ |  |
+| `runs show` |  | ✅ |  |
+| `runs show` | `--problems` | ✅ |  |
+| `runs show` | `--json` | ✅ |  |
+| `runs path` |  | ✅ |  |
+| `runs path` | `--json` | ✅ |  |
 | `help` |  | ✅ |  |
 | *global* | `--version` | ❌ |  |
 | *global* | `--debug` | ❌ |  |
+| *global* | `--record` | ✅ |  |
+| *global* | `--no-record` | ✅ |  |
 | *global* | `--help-all` | ❌ |  |

@@ -1,5 +1,25 @@
 import type { SharedContractOverride } from "@wirecat/cli-base/commands"
 
+const REASON =
+  "Memo installs its own stored-data instructions through its environment, prints the packaged primary skill without filesystem effects, and takes --json on each skill command because it has no global one."
+
+const JSON_OPTION = { flags: "--json", description: "print JSON", takes_value: false, mandatory: false }
+const SHOW_FOR = {
+  flags: "--for <agents>",
+  description: "print the copy installed for these agents instead of this version's",
+  takes_value: true,
+  mandatory: false,
+  choices: ["claude", "agents"],
+}
+const INSTALL_FOR = {
+  flags: "--for <agents>",
+  description: "which agents to install for",
+  takes_value: true,
+  mandatory: false,
+  choices: ["claude", "agents", "all"],
+  default: "all",
+}
+
 // Reviewed differences from Core; update only after reviewing both definitions.
 export const skill: readonly SharedContractOverride[] = [
   {
@@ -13,16 +33,14 @@ export const skill: readonly SharedContractOverride[] = [
       remote: "none",
       local: "none",
     },
-    reason:
-      "Memo installs its own stored-data instructions through its environment and prints the packaged primary skill without filesystem effects.",
+    reason: REASON,
   },
   {
     command: ["skill", "show"],
     field: "examples",
     before: ["memo skill show", "memo skill show follow-ups"],
     after: null,
-    reason:
-      "Memo installs its own stored-data instructions through its environment and prints the packaged primary skill without filesystem effects.",
+    reason: REASON,
   },
   {
     command: ["skill", "show"],
@@ -36,15 +54,34 @@ export const skill: readonly SharedContractOverride[] = [
       },
     ],
     after: [],
-    reason:
-      "Memo installs its own stored-data instructions through its environment and prints the packaged primary skill without filesystem effects.",
+    reason: REASON,
   },
   {
     command: ["skill", "install"],
     field: "examples",
     before: ["memo skill install --for agents"],
     after: null,
-    reason:
-      "Memo installs its own stored-data instructions through its environment and prints the packaged primary skill without filesystem effects.",
+    reason: REASON,
+  },
+  {
+    command: ["skill", "show"],
+    field: "options",
+    before: [SHOW_FOR],
+    after: [SHOW_FOR, JSON_OPTION],
+    reason: REASON,
+  },
+  {
+    command: ["skill", "install"],
+    field: "options",
+    before: [INSTALL_FOR],
+    after: [INSTALL_FOR, JSON_OPTION],
+    reason: REASON,
+  },
+  {
+    command: ["skill", "status"],
+    field: "options",
+    before: [],
+    after: [JSON_OPTION],
+    reason: REASON,
   },
 ]

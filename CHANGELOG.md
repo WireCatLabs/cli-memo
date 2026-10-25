@@ -11,6 +11,59 @@ the API.
 
 - Mail is parsed with postal-mime 4.1.4, which fixes how a few malformed messages are read: a header block ends at the first line that is neither a field nor a fold, a base64 or quoted-printable attached message stays an attachment, and only real UTF-16 charset labels are honoured. Re-importing such a message can store slightly different text.
 
+## 0.107.0 — 25.10.2026
+
+### Security
+
+- **`memo doctor` reports files and folders other users can read, with the `chmod` that fixes each.** `files` in `memo doctor --json` is `{ checked, ok, problems }`, each problem `{ path, mode, want }`, the shape every WireCat doctor uses: the config file and the store with its `-wal` and `-shm` files want `0600`; the config folder, the run log folder and the store's folder (unless `MESSAGING_STORE` names the store) want `0700`. With `--json` the fix goes to stderr as `to make it private: chmod 600 '<path>'`; the text output lists it with the other problems. Nothing is changed on disk, and these problems leave the exit code alone, as config problems do. Windows is not checked: `files` is `{ checked: false, reason }`.
+- **Every change memo saves to `config.json` leaves it owner-only (`0600`)** (cli-base 0.57.0). A file other users could read, as `config set` in older versions left it, becomes private on the next save.
+
+## 0.106.0 — 25.10.2026
+
+### Changed — may break callers
+
+- **Run recording comes from cli-core 0.430.0** (`recordRuns`) in place of memo's own copy. Runs are kept as before — every failed command, a usage error before any command included, a successful one under `--record` or `record: true`, nothing under `--no-record` — and Himalaya and RDAP calls are logged as before. A run now leaves `profile` out of `runs list` and `runs show` instead of `""`, since memo has no profiles.
+
+## 0.105.0 — 25.10.2026
+
+### Added
+
+- **A failed run says what went wrong** (cli-core 0.425.0): `memo runs list` and `memo runs show` gain `error`, with its class, code, reason, masked message and a short stack.
+- `memo store info` describes the shared store: where it is, its schema against the one memo reads (`schema.reason`, and `schema.upgrade` — what memo's next run moves it to), and which tools used it. It opens the store read-only, so WireCat Desktop can tell whether memo can read the store.
+- **`memo skill status` says, for each agent, whether its installed SKILL.md matches this version**, and `memo skill show --for claude|agents` prints the copy installed there (cli-base 0.56). `memo skill show`, `skill install` and `skill status` take `--json`, as tg's do: memo has no global `--json`, so each skill command has its own.
+
+### Fixed
+
+- **The MCP tools describe memo's own commands, not a messenger's.** `memo_tools_search` offers "list", "show", "change a setting" in place of "unread", "send message", "chat members"; `memo_write` says "creates, edits, deletes" in place of "sends, edits, deletes, joins"; the example command of `memo_read` and `memo_write` is `notes list`, not `messages list`, which memo does not have; and the answer's text is "names, titles, what people wrote" (cli-core 0.426.0).
+- **Help no longer says "Availability: available for this profile"**, since memo has no profiles; a command that cannot run still says why. `memo --help` says zm and drive are "searchable with your other WireCat data".
+- MCP no longer offers a command group that only prints its help, such as `models`; its commands are still offered one by one.
+- The person-brief and decision-trail guide steps for tg, max, zm and drive name the profile, as those commands need: `tg personal contacts context Kai`.
+
+## 0.104.0 — 25.10.2026
+
+### Added
+
+- **`memo doctor --json` lists every problem in the config file as `config.issues`**, in the shape every WireCat doctor uses: `{ kind, file, key?, line?, column?, what, fix? }`, with `kind` one of `invalid_json`, `unknown_setting`, `unknown_permission`, `missing_setting` or `invalid_value`. `what` says what a value has to be and never quotes the saved value; `fix` is a `memo config unset <key>` that runs as written, and is left out for invalid JSON, where `line` and `column` say where parsing stopped. Doctor still answers on a broken file, diagnoses the rest from what of the file still loads, and config problems alone leave its exit code at 0. Text output lists them with the other problems.
+- **`memo config unset <key>` removes one setting by its dotted path** (`mail.accounts.0.colour`, `permissions.notes.edit`), even one memo does not know and on a file with other problems, so every fix doctor prints works. It is not offered over MCP, where it could remove a saved permission the server enforces.
+- **memo keeps run logs, as tg, max and wa do.** A command that fails is kept as a run: its words (never its arguments), how it ended, its error code, and each Himalaya call (`himalaya.envelope.list`, exit status, duration) and RDAP lookup (`rdap.domain`, HTTP status) it made — never a note, an address, a subject, a folder or a domain. `memo runs list [query] --limit --page --json`, `memo runs show <run-id> --json` and `memo runs path <run-id>` read them; WireCat Desktop's Logs page reads `memo runs list … --json`. `--record` keeps a run that worked, `--no-record` keeps none; the config file's `record` and `keep_runs_for_days` (default 30) set both for every command. A tool call from an agent is kept as `mcp <command>`.
+
+### Changed — may break callers
+
+- **`memo doctor --json`'s `config.exists` is now `config.found`**, next to the new `config.issues`.
+- **A config file with problems is refused with the first problem, its fix, and how many more `memo doctor` lists**: "<file>: setting default_profile is not a setting of memo — remove it with \`memo config unset default_profile\` (and 2 more problems — \`memo doctor\` lists them all)". Before, the refusal named only the first key and a fixed reason.
+- **Old command names are no longer recognised as permission keys.** A saved permission or `--permission` key from a retired command path (`auto.start`, `mail.trash`, `note` and the rest) gets the same answer as any key that names no command: `memo mcp` refuses to start, naming the `memo config unset` that removes a saved one, or `--permission <key> names no command`, with no pointer to a replacement. Any other unknown permission key is refused the same way; before, it was ignored.
+- **`memo sync --account` is removed.** Name mailboxes with `--source email:<account>`.
+- **Uses cli-core 0.423.0.** With it `--source obsidian:<id>` and `--source local:<id>` name one notes folder; before, they found no account.
+
+### Fixed
+
+- **memo's help describes memo's own commands.** The first screen points to `answers create "…" --all` (there is no `ask` command). The MCP server's instructions open an email with `messages show`, not with a `mail show` memo does not have. `search messages` and `search mail` describe `--brief` and `--full` for a message or an email, and `--full` says JSON still gives the excerpt. Meeting examples name a real meeting account (`zoom:me@example.com`). The `mail delete`, `mail restore` and `mail rules apply` examples are dry runs, and `upgrade` shows only `--check`. memo tells cli-core that it is not a messenger (`AppIdentity.messenger: false`). The store's `minCompatible` does not change.
+
+### Removed
+
+- **`search all` and `search notes` no longer take `--brief` or `--full`.** Both flags were accepted and then ignored. A call that passes one now fails with an unknown option.
+- The anchors for retired command names in `docs/commands.md` and the table of retired MCP tool names in `docs/mcp.md`.
+
 ## 0.103.0 — 25.10.2026
 
 ### Changed — may break callers

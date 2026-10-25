@@ -8,8 +8,8 @@ steps:
     why: messages, mail and notes that mention the topic, ranked together
   - run: memo search meetings venue
     why: what was said about it in meetings, with the passage to cite
-  - run: drive search venue
-    why: Drive documents about it; drive commands start with your profile, as in drive personal search venue
+  - run: drive personal search venue
+    why: Drive documents about it
   - run: memo answers create "what did we decide about the venue?" --all
     why: the cited evidence in one bundle, for you or your agent to read
   - run: memo facts add "The team day is at the harbour venue" --kind decision --evidence msg:telegram/1/77/42 --project HRB

@@ -1,8 +1,9 @@
 import { CliError } from "@wirecat/cli-base"
-import { setupPermissionCeiling } from "@wirecat/cli-core/cli"
+import { issueMessage, setupPermissionCeiling } from "@wirecat/cli-core/cli"
 import { CEILING_KEY, type Level, layerPermissions, levelFor } from "@wirecat/cli-core/sends"
-import { assertMemoPermissionPaths } from "../command-moves.js"
-import { loadConfig } from "../config.js"
+import type { Command } from "commander"
+import { inspectConfig, loadConfig } from "../config.js"
+import { memoPermissionKeys } from "../config-issues.js"
 import { readOnly } from "../read-only.js"
 
 export const OWNER_PERMISSIONS = [
@@ -24,7 +25,6 @@ export const memoLevels = (
     const match = /^([a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)*)=(deny|readonly|ask|allow)$/.exec(entry)
     if (!match)
       throw new CliError("validation_error", "--permission takes a command path and level, e.g. notes.edit=deny")
-    assertMemoPermissionPaths([match[1] as string])
     changed[match[1] as string] = match[2] as Level
   }
   const levels = layerPermissions([
@@ -43,6 +43,19 @@ export const memoLevels = (
   )
   const ceiling = setupPermissionCeiling(env)
   return ceiling === undefined ? effective : { ...effective, [CEILING_KEY]: ceiling }
+}
+
+/** A key no command checks would do nothing: the server refuses to start, saved or passed with --permission. */
+export const refuseUnknownPermissions = (env: NodeJS.ProcessEnv, program: Command, overrides: readonly string[]) => {
+  // Refuses a broken file with its own message first; then the only issues left are unknown permission keys.
+  loadConfig(env)
+  const { issues } = inspectConfig(env, program)
+  if (issues.length > 0)
+    throw new CliError("configuration_error", issueMessage(issues, "memo doctor"), { permission: issues[0]?.key })
+  const known = memoPermissionKeys(program)
+  const key = overrides.map((entry) => entry.split("=")[0] ?? "").find((one) => !known.has(one))
+  if (key !== undefined)
+    throw new CliError("validation_error", `--permission ${key} names no command`, { permission: key })
 }
 
 export const mcpOwnerAllowed = (env: NodeJS.ProcessEnv, key: string): boolean => {

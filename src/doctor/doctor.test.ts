@@ -1,21 +1,26 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs"
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
-import { updateConfig } from "../config.js"
+import { configPath, loadConfig, updateConfig } from "../config.js"
 import { createProgram } from "../program.js"
 import { updateNotice } from "../update.js"
 
 let env: NodeJS.ProcessEnv
 let dir: string
 
-const doctor = async (...args: string[]) => {
+const memo = async (...args: string[]) => {
   const streams = captureStreams()
-  await createProgram({ streams, env })
-    .exitOverride()
-    .parseAsync(["doctor", ...args], { from: "user" })
+  await createProgram({ streams, env }).exitOverride().parseAsync(args, { from: "user" })
   return streams.stdout.join("")
+}
+
+const doctor = (...args: string[]) => memo("doctor", ...args)
+
+const writeConfig = (text: string) => {
+  mkdirSync(join(dir, "config"), { recursive: true })
+  writeFileSync(configPath(env), text)
 }
 
 beforeEach(() => {
@@ -45,7 +50,7 @@ describe("memo doctor", () => {
     const report = JSON.parse(await doctor("--json"))
 
     expect(report.item).toMatchObject({
-      config: { path: join(dir, "config", "config.json"), exists: false },
+      config: { path: join(dir, "config", "config.json"), found: false, issues: [] },
       store: { path: join(dir, "messages.db") },
       search_model: { name: "e5-small", present: false },
       timer: { enabled: false, failing: null },
@@ -72,6 +77,131 @@ describe("memo doctor", () => {
     expect(text).toContain("! himalaya is not on PATH, so mail cannot be read")
     expect(text).toContain("! the timer is on in the config but not installed — memo jobs start")
     expect(process.exitCode).toBe(1)
+  })
+})
+
+describe("memo doctor on a config file with problems", () => {
+  it("says where the JSON stops parsing, and still answers with exit 0", async () => {
+    writeConfig('{\n  "update_check": false,\n  "notes": \n}\n')
+
+    const report = JSON.parse(await doctor("--json"))
+
+    expect(report.error).toBeUndefined()
+    expect(report.item.config).toEqual({
+      path: configPath(env),
+      found: true,
+      issues: [
+        {
+          kind: "invalid_json",
+          file: configPath(env),
+          line: 4,
+          column: 1,
+          what: "the file is not valid JSON at line 4, column 1",
+        },
+      ],
+    })
+    expect(process.exitCode ?? 0).toBe(0)
+  })
+
+  it("lists every problem with a fix that runs as written, and nothing once the fixes ran", async () => {
+    writeConfig(
+      JSON.stringify({
+        update_check: "sometimes-secret",
+        default_profile: "work",
+        mail: { accounts: [{ name: "home", address: "a@example.test", colour: "blue" }] },
+        permissions: { "auto.start": "deny", "notes.edit": "deny" },
+      }),
+    )
+
+    const { issues } = JSON.parse(await doctor("--json")).item.config
+
+    expect(issues).toEqual(
+      expect.arrayContaining([
+        {
+          kind: "invalid_value",
+          file: configPath(env),
+          key: "update_check",
+          what: "setting update_check has to be of type boolean",
+          fix: "memo config unset update_check",
+        },
+        {
+          kind: "unknown_setting",
+          file: configPath(env),
+          key: "default_profile",
+          what: "setting default_profile is not a setting of memo",
+          fix: "memo config unset default_profile",
+        },
+        {
+          kind: "unknown_setting",
+          file: configPath(env),
+          key: "mail.accounts.0.colour",
+          what: "setting mail.accounts.0.colour is not a setting of memo",
+          fix: "memo config unset mail.accounts.0.colour",
+        },
+        {
+          kind: "unknown_permission",
+          file: configPath(env),
+          key: "permissions.auto.start",
+          what: "permissions.auto.start names no command",
+          fix: "memo config unset permissions.auto.start",
+        },
+      ]),
+    )
+    expect(issues).toHaveLength(4)
+    expect(JSON.stringify(issues)).not.toContain("sometimes-secret")
+    expect(() => loadConfig(env)).toThrow(
+      "remove it with `memo config unset update_check` (and 2 more problems — `memo doctor` lists them all)",
+    )
+
+    for (const { fix } of issues) await memo(...fix.split(" ").slice(1))
+
+    expect(JSON.parse(await doctor("--json")).item.config.issues).toEqual([])
+    expect(JSON.parse(readFileSync(configPath(env), "utf8"))).toEqual({
+      mail: { accounts: [{ name: "home", address: "a@example.test" }] },
+      permissions: { "notes.edit": "deny" },
+    })
+    expect(JSON.parse(await memo("config", "unset", "default_profile", "--json")).item).toMatchObject({
+      key: "default_profile",
+      removed: false,
+    })
+  })
+})
+
+describe.skipIf(process.platform === "win32")("memo doctor on files other users can read", () => {
+  it("names the config file and its folder with the chmod that fixes each, exits 0, and is clean after", async () => {
+    writeConfig(JSON.stringify({ update_check: false }))
+    chmodSync(configPath(env), 0o644)
+    chmodSync(join(dir, "config"), 0o775)
+    const streams = captureStreams()
+    await createProgram({ streams, env }).exitOverride().parseAsync(["doctor", "--json"], { from: "user" })
+
+    expect(JSON.parse(streams.stdout.join("")).item.files).toEqual({
+      checked: true,
+      ok: false,
+      problems: [
+        { path: configPath(env), mode: "0644", want: "0600" },
+        { path: join(dir, "config"), mode: "0775", want: "0700" },
+      ],
+    })
+    expect(streams.stderr.join("")).toContain(`to make it private: chmod 600 '${configPath(env)}'`)
+    expect(streams.stderr.join("")).toContain(`to make it private: chmod 700 '${join(dir, "config")}'`)
+    expect(process.exitCode ?? 0).toBe(0)
+    expect(await doctor()).toContain(
+      `! ${configPath(env)} is 0644, so others can read it; it should be 0600 — chmod 600 '${configPath(env)}'`,
+    )
+
+    chmodSync(configPath(env), 0o600)
+    chmodSync(join(dir, "config"), 0o700)
+    expect(JSON.parse(await doctor("--json")).item.files).toEqual({ checked: true, ok: true, problems: [] })
+  })
+
+  it("keeps the config file owner-only after config unset", async () => {
+    writeConfig(JSON.stringify({ update_check: false, record: true }))
+    chmodSync(configPath(env), 0o644)
+
+    await memo("config", "unset", "record")
+
+    expect(statSync(configPath(env)).mode & 0o777).toBe(0o600)
   })
 })
 

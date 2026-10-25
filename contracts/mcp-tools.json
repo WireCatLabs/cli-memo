@@ -18,7 +18,7 @@
           "type": "object"
         },
         "command": {
-          "description": "a command memo_tools_search returned: \"messages list\"",
+          "description": "a command memo_tools_search returned: \"notes list\"",
           "minLength": 1,
           "type": "string"
         }
@@ -492,7 +492,7 @@
           "type": "object"
         },
         "command": {
-          "description": "a command memo_tools_search returned: \"messages list\"",
+          "description": "a command memo_tools_search returned: \"notes list\"",
           "minLength": 1,
           "type": "string"
         }

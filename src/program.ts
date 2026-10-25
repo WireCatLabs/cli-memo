@@ -12,6 +12,8 @@ import {
   NO_EFFECTS,
   overrideSharedContract,
   provide,
+  recordRuns,
+  runsCommand,
   skillCommand as sharedSkillCommand,
 } from "@wirecat/cli-core/cli"
 import { Command } from "commander"
@@ -20,12 +22,15 @@ import { agentsCommand } from "./agents/command.js"
 import { trackAnswers } from "./answer.js"
 import { askCommand } from "./answers/command.js"
 import { APP } from "./app.js"
+import { loadConfig } from "./config.js"
+import { configCommand } from "./config-command.js"
 import { contextCommand } from "./context/command.js"
 import { SHELL_OVERRIDES } from "./contract-overrides.js"
 import { commandsCommand, placeInSections } from "./discovery/command.js"
 import { doctorCommand } from "./doctor/command.js"
 import { addExamples } from "./examples.js"
 import { factsCommand } from "./facts/command.js"
+import { recognisable } from "./failure.js"
 import { findingsCommand } from "./findings/command.js"
 import { jsonFields } from "./json-fields.js"
 import { knowledgeCommands } from "./knowledge/command.js"
@@ -45,6 +50,7 @@ import { REASONS } from "./reasons.js"
 import { autoCommand } from "./run/auto.js"
 import { syncCommand } from "./run/import.js"
 import { searchCommand } from "./search/command.js"
+import { storeCommand } from "./store/info-command.js"
 import { tagsCommand } from "./tags/command.js"
 import { tasksCommand } from "./tasks/command.js"
 import { upgradeCommand } from "./update.js"
@@ -146,7 +152,7 @@ const FIRST_SCREEN = {
   can: [
     { command: "context <person>", does: "one person's messages, mail, notes and tasks" },
     { command: 'search all "budget"', does: "messages, mail and notes ranked together" },
-    { command: 'ask "…" --all', does: "evidence with sources, ready for your agent" },
+    { command: 'answers create "…" --all', does: "evidence with sources, ready for your agent" },
     { command: "tasks agenda", does: "overdue tasks, replies you owe and wait for" },
     { command: "meetings prepare <series-id>", does: "a briefing with sources for a meeting" },
     { command: "jobs start", does: "sync notes and mail every 5 minutes" },
@@ -195,19 +201,23 @@ export const createProgram = ({
   meetingPreparationCommand(program, streams, env)
   askCommand(program, streams, env)
   syncCommand(program, streams, env)
+  storeCommand(program, streams, env)
   autoCommand(program, streams, env)
+  configCommand(program, streams, env)
   doctorCommand(program, streams, env)
   program.addCommand(upgradeCommand(streams))
   commandsCommand(program, streams)
   const skill = customizeSharedCommand(
     sharedSkillCommand(APP, new URL("../skills/cli-memo/SKILL.md", import.meta.url)),
-    "Memo installs its own stored-data instructions through its environment and prints the packaged primary skill without filesystem effects.",
+    "Memo installs its own stored-data instructions through its environment, prints the packaged primary skill without filesystem effects, and takes --json on each skill command because it has no global one.",
     () => {
-      const skill = skillCommand(APP, new URL("../skills/cli-memo/SKILL.md", import.meta.url), () => ({
-        renderer: createRenderer({ format: "pretty", color: false, streams }),
+      const skill = skillCommand(APP, new URL("../skills/cli-memo/SKILL.md", import.meta.url), (command) => ({
+        renderer: createRenderer({ format: command.opts().json ? "json" : "pretty", color: false, streams }),
         streams,
         env,
       }))
+      // memo has no global --json, so each skill command takes its own, as guide does.
+      for (const command of skill.commands) command.option("--json", "print JSON")
       const show = skill.commands.find((command) => command.name() === "show")
       // cli-base declares a local read; the text memo prints ships inside the package.
       if (show) annotate(show, { effects: NO_EFFECTS })
@@ -226,13 +236,34 @@ export const createProgram = ({
       },
     ),
   )
+  const runs = program.addCommand(runsCommand(APP)).commands.at(-1)
+  for (const one of runs?.commands ?? [])
+    overrideSharedContract(
+      one,
+      "Memo's output flag is command-local because this provider does not use the messenger program shell.",
+      (command) => {
+        command.option("--json", "print JSON")
+      },
+    )
   addExamples(program)
   fields.install(program)
+  recordRuns(program, {
+    app: APP,
+    content: "note or mail content",
+    settings: () => {
+      const config = loadConfig(env)
+      return { record: config.record, keepRunsForDays: config.keep_runs_for_days }
+    },
+    recognise: recognisable,
+    env,
+    streams,
+  })
   trackAnswers(program)
   placeInSections(program)
   installHelp(program, FIRST_SCREEN)
   provide(program, {
     ...environmentOf(program),
+    env,
     discoveryAvailability: (info) => {
       let command: Command | undefined = program
       for (const word of info.path) command = command?.commands.find((child) => child.name() === word)

@@ -5,19 +5,19 @@ import { type McpCommand, registerCommands } from "@wirecat/cli-core/mcp"
 import type { Level } from "@wirecat/cli-core/sends"
 import { openStore } from "@wirecat/cli-core/store"
 import * as v from "valibot"
-import { STORE_CLIENT } from "../app.js"
+import { APP, STORE_CLIENT } from "../app.js"
 import { mcpFailure } from "../failure.js"
 import { readOnly } from "../read-only.js"
 import { VERSION } from "../version.js"
 import { commandCatalogue, type ProgramFactory } from "./catalogue.js"
-import { memoLevels, OWNER_PERMISSIONS } from "./permissions.js"
+import { memoLevels, OWNER_PERMISSIONS, refuseUnknownPermissions } from "./permissions.js"
 
 export const AGENT = "memo-mcp"
 export const INSTRUCTIONS = [
   "The owner's stored messages, mail, notes and meetings, with facts, memories and proposed actions.",
   "Find commands with memo_tools_search; call their CLI path with memo_read or memo_write and the advertised arguments.",
   "Search all combines messages, mail and notes. Search meetings needs one explicit source account.",
-  "Open search references with notes show, messages show, mail show or meetings passage before citing evidence.",
+  "Open search references with notes show, messages show (messages and emails) or meetings passage before citing evidence.",
   "What happened is a fact (facts add); a conclusion is a memory (memories add). Both stay proposed until confirmed.",
   "Propose outbound work with actions add; it sends nothing. Meeting/project actions stage cited findings before review.",
   "Look for existing facts and memories first. Save only what will matter later and cite the evidence you read.",
@@ -56,6 +56,7 @@ export const createMemoServer = (
   for (const key of OWNER_PERMISSIONS) defaults[key] = "deny"
   const levels = () => memoLevels(env, overrides, defaults)
   levels()
+  refuseUnknownPermissions(env, catalogue.program, overrides)
   const allowed = (path: readonly string[], writes: boolean) => {
     const current = levels()
     if (readOnly(env) && writes) throw new CliError("permission_error", "memo is locked to reads")
@@ -119,9 +120,16 @@ export const createMemoServer = (
       },
     }
   }
-  registerCommands(server, "memo", commands, undefined, (asked) => {
-    const tool = catalogue.tools.find((one) => one.command === asked)
-    if (tool) allowed(tool.path, tool.writes)
-  })
+  registerCommands(
+    server,
+    "memo",
+    commands,
+    undefined,
+    (asked) => {
+      const tool = catalogue.tools.find((one) => one.command === asked)
+      if (tool) allowed(tool.path, tool.writes)
+    },
+    APP.messenger,
+  )
   return server
 }

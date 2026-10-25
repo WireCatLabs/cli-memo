@@ -1,7 +1,16 @@
-import { configFilePath, resolvePaths, saveConfigFile } from "@wirecat/cli-base"
-import { loadSnakeCaseConfig } from "@wirecat/cli-core/cli"
+import { CliError, configFilePath, resolvePaths, saveConfigFile } from "@wirecat/cli-base"
+import {
+  type ConfigIssue,
+  checkConfigText,
+  issueMessage,
+  readConfigFile,
+  readConfigText,
+  settingPathOf,
+  withoutSetting,
+} from "@wirecat/cli-core/cli"
+import type { Command } from "commander"
 import * as v from "valibot"
-import { assertMemoPermissionPaths } from "./command-moves.js"
+import { memoPermissionKeys } from "./config-issues.js"
 import { DIALECTS } from "./notes/dialects/index.js"
 
 const ConfigSchema = v.strictObject({
@@ -36,6 +45,9 @@ const ConfigSchema = v.strictObject({
       places: v.optional(v.record(v.string(), v.string())),
     }),
   ),
+  /** `true` keeps every run in `memo runs list`; `false` keeps not even failed ones. `--record` and `--no-record` win. */
+  record: v.optional(v.boolean()),
+  keep_runs_for_days: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
   /** `false` stops the once-a-day check for a newer memo. */
   update_check: v.optional(v.boolean()),
   /** `false` stops an agent deciding proposals for you: `projects actions confirm` and `reject` then need you. */
@@ -82,9 +94,44 @@ export const configPath = (env: NodeJS.ProcessEnv = process.env): string =>
   configFilePath(resolvePaths({ appName: "cli-memo", prefix: "MEMO", env }).config)
 
 export const loadConfig = (env: NodeJS.ProcessEnv = process.env): Config => {
-  const config = loadSnakeCaseConfig(configPath(env), ConfigSchema, () => ({}))
-  assertMemoPermissionPaths(Object.keys(config.permissions ?? {}))
+  const path = configPath(env)
+  const read = readConfigText(path)
+  if ("issue" in read) throw new CliError("configuration_error", issueMessage([read.issue], "memo doctor"))
+  if (read.text === undefined) return {}
+  const { issues, config } = checkConfigText(read.text, { file: path, tool: "memo", schema: ConfigSchema })
+  if (issues.length > 0 || config === undefined)
+    throw new CliError("configuration_error", issueMessage(issues, "memo doctor"))
   return config
+}
+
+/** For `doctor`: every problem in the file, and what of it still loads, without refusing. */
+export const inspectConfig = (
+  env: NodeJS.ProcessEnv,
+  program: Command,
+): { path: string; found: boolean; issues: ConfigIssue[]; config: Config } => {
+  const path = configPath(env)
+  const read = readConfigText(path)
+  if ("issue" in read) return { path, found: true, issues: [read.issue], config: {} }
+  if (read.text === undefined) return { path, found: false, issues: [], config: {} }
+  const { issues, config } = checkConfigText(read.text, {
+    file: path,
+    tool: "memo",
+    schema: ConfigSchema,
+    knownPermissions: memoPermissionKeys(program),
+  })
+  return { path, found: true, issues, config: config ?? {} }
+}
+
+/** Removes one setting by its dotted path, whatever the schema thinks of it or of the rest of the file. */
+export const unsetConfigKey = (key: string, env: NodeJS.ProcessEnv = process.env): boolean => {
+  if (settingPathOf(key).some((part) => part === ""))
+    throw new CliError("validation_error", `${key} is not a setting path`)
+  const path = configPath(env)
+  const read = readConfigFile(path)
+  if ("issue" in read) throw new CliError("configuration_error", issueMessage([read.issue], "memo doctor"))
+  const { config, removed } = withoutSetting(read.raw, key)
+  if (removed) saveConfigFile(path, config)
+  return removed
 }
 
 /** Changes one part of the config and keeps the rest as written. */

@@ -82,7 +82,12 @@ memo commands --json   # every command and option, for agents and scripts
 
 `memo doctor` lists the settings file, the store, your notes folders, the mail accounts and Himalaya, the search
 model, the timer and the agent skill. Each problem comes with the command that fixes it, and the command exits 1
-while something needs attention. `memo doctor --json` gives the same for an agent.
+while something needs attention. Problems in the settings file are listed too, in `config.issues` of
+`memo doctor --json`, the same shape every WireCat tool's doctor uses. The settings file, its folder, the store and
+the run log folder are checked for other users being able to read them; any that can are listed in `files.problems`
+with the mode they have and the one they should have, and the `chmod` that fixes each is printed. Neither settings
+problems nor open files change the exit code from 0, so the report still reads as an answer. `memo doctor --json`
+gives the same for an agent.
 
 `memo --help` lists commands such as `notes`, `search`, `mail` and `sync`. If the install finished but the terminal
 says `memo` is not found, open a new terminal: a terminal that was already open does not see a new command. If it is
