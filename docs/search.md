@@ -150,7 +150,10 @@ words; hits are joined. Every message of a chat confirmed as the project's is re
 its account. Those items are labelled `linked-chat`: they name nothing, they belong to the chat. One run takes at
 most a share of the item limit from each linked chat (50 for one chat at the default 100, 20 from four chats up);
 a chat with more is listed as capped and `--cursor` reads the rest. A linked chat
-outside `--source` is listed as not read. `--contact person:<id>` reads every message and mail that person's
+outside `--source` is listed as not read. People confirmed as members of the project (`memo relationships add
+person:<id> project:<id>`) are read the same way as `--contact person:<id>` below, without being named, but without
+their aliases; a person you also pass with `--contact` is read once. At most 16 lanes run in all, so when members do
+not fit, the rest are listed as not read (`member-limit`), in a fixed order. `--contact person:<id>` reads every message and mail that person's
 stored identities wrote in `--source`, labelled `sender` (matched by who wrote it, not by words), and searches
 the aliases you gave them; their messenger display name is not searched, since texts rarely spell it out. A
 literal `--contact "<name>"` is searched as words. A meeting hit retains its

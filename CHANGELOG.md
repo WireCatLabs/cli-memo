@@ -7,6 +7,10 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo projects evidence` reads the project's confirmed members by default.** Every person confirmed as a member of the project (`memo relationships add person:<id> project:<id>`) now has what their stored identities wrote read, as `--contact person:<id>` does, without naming them; before, a member who never wrote the project's name was missing from the result and from `people`. Suggested members are not read, and a person also passed with `--contact` is read once. Members' aliases are not searched. At most 16 lanes run in all, so members that do not fit are listed as not read (`member`, `member-limit`) in a fixed order, never dropped silently. MCP `project_evidence` returns the same.
+
 ## 0.100.0 — 25.10.2026
 
 ### Added

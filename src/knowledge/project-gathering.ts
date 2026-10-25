@@ -55,6 +55,9 @@ interface Contact {
   senders?: { provider: string; id: string }[]
 }
 
+const sendersOf = (person: { identities: { provider: string; id: string | number }[] }) =>
+  person.identities.map((identity) => ({ provider: identity.provider, id: String(identity.id) }))
+
 /**
  * A `person:<id>` is read by what their stored identities wrote, and searched only by the short names the owner gave
  * them: their stored name is a messenger display name («Степа Stefan Grachev AVITO M A») that no message spells out.
@@ -64,7 +67,7 @@ const contactOf = async (store: MessageStore, contact: string): Promise<Contact[
   if (!contact.startsWith("person:")) return [{ name: contact }]
   const person = await store.people.personByUid(contact.slice("person:".length))
   if (!person) throw new CliError("not_found", `no person ${contact}`, { param: "contact" })
-  const senders = person.identities.map((identity) => ({ provider: identity.provider, id: String(identity.id) }))
+  const senders = sendersOf(person)
   const aliases = new Set<string>()
   for (const identity of person.identities)
     for (const account of identity.accounts) {
@@ -88,6 +91,39 @@ const contactOf = async (store: MessageStore, contact: string): Promise<Contact[
 }
 
 const LINKED_CHATS = 16
+const CORE_LIMIT = 16
+
+/** Confirmed `person` members, in a stable order, so a cut at the lane limit always drops the same ones. */
+const memberRefsOf = async (store: MessageStore, project: string | null) => {
+  if (!project) return []
+  const refs = []
+  for (const relation of await store.knowledge.relations(null, project))
+    if (
+      relation.confirmed &&
+      relation.kind === "member-of" &&
+      relation.to === project &&
+      /^person:.+/.test(relation.from)
+    )
+      refs.push(relation.from)
+  return [...new Set(refs)].sort()
+}
+
+/**
+ * Members are read by what their identities wrote, like `--contact person:<id>` but without the owner's aliases:
+ * a short alias would add a text lane that matches mentions, and membership is about who wrote, not who was named.
+ */
+const memberLanesOf = async (store: MessageStore, project: string | null, given: Set<string>, room: number) => {
+  const lanes: Contact[] = []
+  const left: { source: string; kind: string; reason: "member-limit" | "no-identity" }[] = []
+  for (const reference of (await memberRefsOf(store, project)).filter((one) => !given.has(one))) {
+    const person = await store.people.personByUid(reference.slice("person:".length))
+    const senders = person ? sendersOf(person) : []
+    if (!senders.length) left.push({ source: reference, kind: "member", reason: "no-identity" })
+    else if (lanes.length >= room) left.push({ source: reference, kind: "member", reason: "member-limit" })
+    else lanes.push({ reference, senders })
+  }
+  return { lanes, left }
+}
 
 /** Only links the owner confirmed: a suggested one would put a whole chat into the evidence on a guess. */
 const linkedChatsOf = async (store: MessageStore, project: string | null) => {
@@ -146,7 +182,11 @@ export const cutoffTime = (value: string): number => {
 
 export type StoredProjectGathering = ProjectGathering & {
   projectRef: string | null
-  unreadSources: { source: string; kind: string; reason?: "out-of-scope" | "linked-chat-limit" | "unknown-provider" }[]
+  unreadSources: {
+    source: string
+    kind: string
+    reason?: "out-of-scope" | "linked-chat-limit" | "member-limit" | "no-identity" | "unknown-provider"
+  }[]
   mentions: EvidenceMentions
 }
 
@@ -169,10 +209,23 @@ export const gatherStoredProject = async (
         param: "source",
       },
     )
-  const people = (
+  const contacts = (
     await Promise.all([...new Set(input.people ?? [])].map((contact) => contactOf(store, contact)))
   ).flat()
   const aliases = [...new Set([...project.aliases, ...(input.aliases ?? [])])].filter((alias) => alias !== project.name)
+  // Counted without merging look-alikes, so the room left for members is never more than Core will take.
+  const searchLanes =
+    1 +
+    (project.key ? 1 : 0) +
+    aliases.length +
+    (input.keywords?.length ?? 0) +
+    contacts.filter((one) => one.name).length
+  const room = Math.min(
+    CORE_LIMIT - contacts.length,
+    CORE_LIMIT - searchLanes - contacts.filter((one) => one.senders).length,
+  )
+  const members = await memberLanesOf(store, project.ref, new Set(contacts.flatMap((one) => one.reference ?? [])), room)
+  const people = [...contacts, ...members.lanes]
   const linked = await linkedChatsOf(store, project.ref)
   const linkedChats = linked.slice(0, LINKED_CHATS)
   const gathered: ProjectGathering = await gatherProjectEvidence(
@@ -219,7 +272,7 @@ export const gatherStoredProject = async (
       reason: "linked-chat-limit" as const,
     })),
   ]
-  return { projectRef: project.ref, unreadSources: [...unread, ...unreadChats], ...gathered, mentions }
+  return { projectRef: project.ref, unreadSources: [...unread, ...unreadChats, ...members.left], ...gathered, mentions }
 }
 
 const LABELS: Record<string, string> = {
