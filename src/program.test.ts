@@ -63,6 +63,7 @@ describe("memo", () => {
     expect(CONTRACT).toBe(4)
   })
 
+  // Builds a whole program per command; on a shared CI runner that passes the 5 s default.
   it("prints help for every command, lists with a query included", async () => {
     const silence = (command: Command): void => {
       command.configureOutput({ writeOut: () => undefined, writeErr: () => undefined })
@@ -79,7 +80,7 @@ describe("memo", () => {
     }
     expect(leaves.length).toBeGreaterThan(100)
     expect(failed).toEqual([])
-  })
+  }, 30_000)
 
   it("refuses an unknown command path", async () => {
     await expect(
