@@ -424,3 +424,75 @@ it("counts who wrote the evidence by stored contact across messengers, leaving o
   const text = await run("projects", "evidence", "SYP", "--source", "telegram:1,max:2")
   expect(text).toMatch(/people who wrote these: .*Bob \(1\)/)
 })
+
+it("reads a project's confirmed person members by sender, never a suggested one, and not twice with --contact", async () => {
+  const { env, json, run } = await setUp()
+  const store = await openStore({ env })
+  await store.people.savePeople(telegram, [
+    { id: "55", name: "Stefan" },
+    { id: "66", name: "Bob" },
+  ])
+  await store.messages.saveMessages(
+    telegram,
+    "8",
+    [
+      { ...message("1", "Booked it for Tuesday", daysAgo(1)), chatId: "8", senderId: "55" },
+      { ...message("2", "Nothing about work", daysAgo(1)), chatId: "8", senderId: "66" },
+    ],
+    { via: "test" },
+  )
+  const stefan = (await store.people.personOf({ provider: "telegram", id: "55" }))?.uid as string
+  const bob = (await store.people.personOf({ provider: "telegram", id: "66" }))?.uid as string
+  const member = (from: string, confirmed: boolean) =>
+    store.knowledge.relate(null, { from, to: "project:1", kind: "member-of", confirmed, provenance: "agent:test" })
+  await member(`person:${stefan}`, true)
+  await member(`person:${bob}`, false)
+  await store.close()
+
+  const found = await json("projects", "evidence", "SYP", "--source", "telegram:1")
+  expect(found.lanes.filter((lane: { kinds: string[] }) => lane.kinds.includes("sender"))).toEqual([
+    expect.objectContaining({ people: [`person:${stefan}`], senders: [{ provider: "telegram", id: "55" }] }),
+  ])
+  expect(found.items.find((item: { ref: string }) => item.ref === "msg:telegram/1/8/1")).toMatchObject({
+    context: "sender",
+  })
+  expect(found.items.some((item: { ref: string }) => item.ref === "msg:telegram/1/8/2")).toBe(false)
+  expect(found.people).toContainEqual(expect.objectContaining({ person: `person:${stefan}`, items: 1 }))
+  expect(found.people.some((one: { person: string }) => one.person === `person:${bob}`)).toBe(false)
+
+  const again = await json("projects", "evidence", "SYP", "--source", "telegram:1", "--contact", `person:${stefan}`)
+  expect(again.lanes.filter((lane: { kinds: string[] }) => lane.kinds.includes("sender"))).toHaveLength(1)
+  expect(again.items.filter((item: { ref: string }) => item.ref === "msg:telegram/1/8/1")).toHaveLength(1)
+  expect(await run("projects", "evidence", "SYP", "--source", "telegram:1")).toContain("[sent by contact]")
+})
+
+it("says which members it left out when the lane limit is reached", async () => {
+  const { env, json, run } = await setUp()
+  const store = await openStore({ env })
+  const uids: string[] = []
+  for (let n = 0; n < 16; n++) {
+    await store.people.savePeople(telegram, [{ id: `${100 + n}`, name: `Member ${n}` }])
+    uids.push((await store.people.personOf({ provider: "telegram", id: `${100 + n}` }))?.uid as string)
+  }
+  for (const uid of uids)
+    await store.knowledge.relate(null, {
+      from: `person:${uid}`,
+      to: "project:1",
+      kind: "member-of",
+      confirmed: true,
+      provenance: "agent:test",
+    })
+  await store.close()
+
+  const found = await json("projects", "evidence", "SYP", "--source", "telegram:1")
+  const read = found.lanes.filter((lane: { kinds: string[] }) => lane.kinds.includes("sender"))
+  const left = found.unread_sources.filter((one: { kind: string }) => one.kind === "member")
+  expect(read).toHaveLength(13)
+  expect(left.map((one: { reason: string }) => one.reason)).toEqual(["member-limit", "member-limit", "member-limit"])
+  const sorted = uids.map((uid) => `person:${uid}`).sort()
+  expect(read.map((lane: { people: string[] }) => lane.people[0])).toEqual(sorted.slice(0, 13))
+  expect(left.map((one: { source: string }) => one.source)).toEqual(sorted.slice(13))
+  expect(await run("projects", "evidence", "SYP", "--source", "telegram:1")).toContain(
+    `${sorted[13]} (member, member-limit)`,
+  )
+})

@@ -163,7 +163,11 @@ chat:<provider>/<account>/<chat> project:<id>`) is read too when `source` holds 
 `context: "linked-chat"` and name nothing, their lane has `query: null` and `chat` set. Each `linked_chats` entry has
 `items` (new items this run) and `capped`: one run takes at most a share of the item limit from each chat, and
 `cursor` reads the rest of a capped one. A linked chat outside
-`source` is listed in `unread_sources`, never read. `mentions` lists the other projects, tags and topics the texts name, cited; a name is not
+`source` is listed in `unread_sources`, never read. Every person confirmed as a member of the project
+(`person:<id>` `member-of` `project:<id>`) is read like a `person:<id>` contact below, without their aliases and
+without being passed: a sender lane and `context: "sender"` items. A person also passed as a contact is read once.
+Core takes at most 16 lanes, so members that do not fit, in a fixed order, are listed in `unread_sources` with
+`kind: "member"` and `reason: "member-limit"`; a member with no stored identity has `reason: "no-identity"`. `mentions` lists the other projects, tags and topics the texts name, cited; a name is not
 membership. An item found only through a
 contact's name has `context: "person-only"`. A `person:<id>` contact reads what that person's stored identities
 wrote in `source` (lane `kinds: ["sender"]`, `query: null`, `senders` set; items `context: "sender"`, which may name
