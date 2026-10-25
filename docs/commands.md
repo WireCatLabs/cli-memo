@@ -2980,6 +2980,26 @@ memo sync [options]
 
 **Example:** `memo sync`, `memo sync --source email:work --since-time 2026-09-01`, `memo sync --only notes --folder ~/notes --no-embed`
 
+## `memo store`
+
+the shared local store every WireCat tool reads
+
+### `memo store info`
+
+the store file: where it is, its size, its schema against the one memo speaks, which tools used it and how many rows it holds; changes nothing
+
+```sh
+memo store info [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** store info — path, exists, schema, opens, error, bytes, journal_mode, pages, and 12 more; every field: memo commands info store info
+
+**Example:** `memo store info`, `memo store info --json`
+
 ## `memo jobs`
 
 run memo sync on a systemd user timer, set in the config
@@ -3135,11 +3155,16 @@ the instructions an agent is given for this tool
 
 ### `memo skill show`
 
-print SKILL.md — `memo skill install` puts it where Claude Code, Codex and Gemini CLI look for it
+print SKILL.md — `memo skill install` puts it where Claude Code, Codex and Gemini CLI look for it; --for prints the copy already there
 
 ```sh
-memo skill show
+memo skill show [options]
 ```
+
+| Option | What it does |
+|---|---|
+| `--for <agents>` | print the copy installed for these agents instead of this version's. One of: `claude`, `agents`. |
+| `--json` | print JSON. |
 
 **Returns:** print the tool's instructions for AI agents
 
@@ -3158,10 +3183,27 @@ memo skill install [options]
 | Option | What it does |
 |---|---|
 | `--for <agents>` | which agents to install for. One of: `claude`, `agents`, `all`. Default: `all`. |
+| `--json` | print JSON. |
 
 **Returns:** install the tool's instructions for AI agents
 
 **Example:** `memo skill install --for all`
+
+### `memo skill status`
+
+for each place `memo skill install` writes to: the path, the version installed there, and whether it is current, stale, missing or unversioned
+
+```sh
+memo skill status [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** whether the installed instructions for AI agents match this version
+
+**Example:** `memo skill status`, `memo skill status --json`
 
 ## `memo guide`
 

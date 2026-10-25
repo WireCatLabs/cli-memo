@@ -206,10 +206,12 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "runs list": ["memo runs list status:failed --limit 10", "memo runs list --page 2 --json"],
   "runs show": ["memo runs show 20261025T090000Z-mail-sync-a81f2c --json"],
   "runs path": ["memo runs path 20261025T090000Z-mail-sync-a81f2c"],
+  "store info": ["memo store info", "memo store info --json"],
   upgrade: ["memo upgrade --check"],
   commands: ["memo commands --json", "memo commands tags add --json"],
   "skill show": ["memo skill show"],
   "skill install": ["memo skill install --for all"],
+  "skill status": ["memo skill status", "memo skill status --json"],
   guide: ["memo guide", "memo guide person-brief --json"],
   help: ["memo help options", "memo help tasks agenda"],
 }

@@ -48,6 +48,7 @@ import { autoCommand } from "./run/auto.js"
 import { syncCommand } from "./run/import.js"
 import { recordRuns } from "./run-recording.js"
 import { searchCommand } from "./search/command.js"
+import { storeCommand } from "./store/info-command.js"
 import { tagsCommand } from "./tags/command.js"
 import { tasksCommand } from "./tasks/command.js"
 import { upgradeCommand } from "./update.js"
@@ -198,6 +199,7 @@ export const createProgram = ({
   meetingPreparationCommand(program, streams, env)
   askCommand(program, streams, env)
   syncCommand(program, streams, env)
+  storeCommand(program, streams, env)
   autoCommand(program, streams, env)
   configCommand(program, streams, env)
   doctorCommand(program, streams, env)
@@ -205,13 +207,15 @@ export const createProgram = ({
   commandsCommand(program, streams)
   const skill = customizeSharedCommand(
     sharedSkillCommand(APP, new URL("../skills/cli-memo/SKILL.md", import.meta.url)),
-    "Memo installs its own stored-data instructions through its environment and prints the packaged primary skill without filesystem effects.",
+    "Memo installs its own stored-data instructions through its environment, prints the packaged primary skill without filesystem effects, and takes --json on each skill command because it has no global one.",
     () => {
-      const skill = skillCommand(APP, new URL("../skills/cli-memo/SKILL.md", import.meta.url), () => ({
-        renderer: createRenderer({ format: "pretty", color: false, streams }),
+      const skill = skillCommand(APP, new URL("../skills/cli-memo/SKILL.md", import.meta.url), (command) => ({
+        renderer: createRenderer({ format: command.opts().json ? "json" : "pretty", color: false, streams }),
         streams,
         env,
       }))
+      // memo has no global --json, so each skill command takes its own, as guide does.
+      for (const command of skill.commands) command.option("--json", "print JSON")
       const show = skill.commands.find((command) => command.name() === "show")
       // cli-base declares a local read; the text memo prints ships inside the package.
       if (show) annotate(show, { effects: NO_EFFECTS })

@@ -58,3 +58,22 @@ it("installs the skill on a global npm install only when asked", () => {
   expect(install({})).toMatchObject({ claude: false, agents: false })
   expect(() => install({ npm_config_global: "true", MEMO_INSTALL_AGENT: "vim" })).toThrow(/MEMO_INSTALL_AGENT/)
 })
+
+it("answers skill show, install and status in JSON with --json", async () => {
+  const home = mkdtempSync(join(tmpdir(), "memo-skill-json-"))
+  const env = { ...process.env, HOME: home }
+  const json = async (argv: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env }).parseAsync(argv, { from: "user" })
+    return JSON.parse(streams.stdout.join(""))
+  }
+
+  expect(await json(["skill", "show", "--json"])).toMatchObject({ name: "cli-memo" })
+  expect(await json(["skill", "install", "--for", "claude", "--json"])).toMatchObject({ version: VERSION })
+  expect(await json(["skill", "status", "--json"])).toMatchObject({
+    name: "cli-memo",
+    targets: expect.arrayContaining([
+      { target: "claude", path: expect.any(String), installed: VERSION, state: "current" },
+    ]),
+  })
+})

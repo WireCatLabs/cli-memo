@@ -10,6 +10,8 @@ the API.
 ### Added
 
 - **A failed run says what went wrong** (cli-core 0.425.0): `memo runs list` and `memo runs show` gain `error`, with its class, code, reason, masked message and a short stack.
+- `memo store info` describes the shared store: where it is, its schema against the one memo reads (`schema.reason`, and `schema.upgrade` — what memo's next run moves it to), and which tools used it. It opens the store read-only, so WireCat Desktop can tell whether memo can read the store.
+- **`memo skill status` says, for each agent, whether its installed SKILL.md matches this version**, and `memo skill show --for claude|agents` prints the copy installed there (cli-base 0.56). `memo skill show`, `skill install` and `skill status` take `--json`, as tg's do: memo has no global `--json`, so each skill command has its own.
 
 ### Fixed
 
