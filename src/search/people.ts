@@ -1,5 +1,5 @@
 import { CliError } from "@wirecat/cli-base"
-import { formatReference } from "@wirecat/cli-core"
+import { formatReference, isFolderProvider } from "@wirecat/cli-core"
 import type { AccountKey, MessageStore, PersonRecord } from "@wirecat/cli-core/store"
 import { listAnswer } from "../answer.js"
 import { accountsOf } from "../store/source-list.js"
@@ -27,14 +27,14 @@ export interface PeopleFound {
 }
 
 /** Notes folders hold no people; Drive's account does, its files' owners and editors. */
-const NO_PEOPLE = new Set(["folder", "local", "obsidian", "notes"])
+const holdsNoPeople = (provider: string) => provider === "notes" || isFolderProvider(provider)
 
 /** Case, accents, ё and emoji variation marks fold away; SQLite's lower() folds ASCII only, so this runs here. */
 export const fold = (text: string) => text.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase()
 
 const scopeOf = async (store: MessageStore, env: NodeJS.ProcessEnv, source: string | undefined) => {
   const keys = source === undefined ? await store.accounts.accounts() : await accountsOf(store, env, source)
-  const held = keys.filter((key) => !NO_PEOPLE.has(key.provider))
+  const held = keys.filter((key) => !holdsNoPeople(key.provider))
   if (source !== undefined && held.length === 0)
     throw new CliError("validation_error", `${source} names no messenger, mail or meeting account that holds people`, {
       param: "source",

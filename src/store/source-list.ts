@@ -1,4 +1,5 @@
 import { CliError } from "@wirecat/cli-base"
+import { isFolderProvider } from "@wirecat/cli-core"
 import { type ContextSource, entriesOfList } from "@wirecat/cli-core/services"
 import type { AccountKey, MessageStore, StoredAccount } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
@@ -12,8 +13,6 @@ export interface SourceList {
 }
 
 const MAIL = new Set(["mail", "email"])
-/** `folder` is what every notes folder was before store version 32, and what saved commands still say. */
-const FOLDER_PROVIDERS = new Set(["folder", "local", "obsidian"])
 const MESSENGERS = new Set(["messages", "telegram", "tg", "max", "whatsapp", "wa", "personal", "bots"])
 const SHAPES = "provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>"
 
@@ -57,7 +56,8 @@ const listedOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: stri
     const [provider = "", ...rest] = entry.trim().split(":")
     const account = rest.join(":")
     // The store names a notes folder <provider>:<id>, and memo's own errors show that; the list reader knows notes:<row>.
-    if (FOLDER_PROVIDERS.has(provider) && account) {
+    // `folder`, every folder's provider before store version 32, is what saved commands still say.
+    if (isFolderProvider(provider) && account) {
       const folder = held.find(
         (one) => holdsFiles(one) && one.account === account && (provider === "folder" || one.provider === provider),
       )
