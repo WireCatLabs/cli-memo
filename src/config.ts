@@ -1,9 +1,9 @@
 import { existsSync, readFileSync } from "node:fs"
 import { CliError, configFilePath, resolvePaths, saveConfigFile } from "@wirecat/cli-base"
-import type { ConfigIssue } from "@wirecat/cli-core/cli"
+import { type ConfigIssue, checkConfigText, issueMessage } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import * as v from "valibot"
-import { checkConfig, issueMessage, parseConfigText, withoutPaths } from "./config-issues.js"
+import { memoPermissionKeys } from "./config-issues.js"
 import { DIALECTS } from "./notes/dialects/index.js"
 
 const ConfigSchema = v.strictObject({
@@ -98,8 +98,9 @@ export const loadConfig = (env: NodeJS.ProcessEnv = process.env): Config => {
   const path = configPath(env)
   const text = readText(path)
   if (text === undefined) return {}
-  const { issues, config } = checkConfig(text, path, ConfigSchema)
-  if (issues.length > 0 || config === undefined) throw new CliError("configuration_error", issueMessage(issues))
+  const { issues, config } = checkConfigText(text, { file: path, tool: "memo", schema: ConfigSchema })
+  if (issues.length > 0 || config === undefined)
+    throw new CliError("configuration_error", issueMessage(issues, "memo doctor"))
   return config
 }
 
@@ -111,8 +112,23 @@ export const inspectConfig = (
   const path = configPath(env)
   const text = readText(path)
   if (text === undefined) return { path, found: existsSync(path), issues: [], config: {} }
-  const { issues, config } = checkConfig(text, path, ConfigSchema, program)
+  const { issues, config } = checkConfigText(text, {
+    file: path,
+    tool: "memo",
+    schema: ConfigSchema,
+    knownPermissions: memoPermissionKeys(program),
+  })
   return { path, found: true, issues, config: config ?? {} }
+}
+
+const without = (raw: unknown, at: readonly string[]): unknown => {
+  if (at.length === 0) return {}
+  const copy = structuredClone(raw)
+  const parent = at.slice(0, -1).reduce<unknown>((node, part) => (node as Record<string, unknown>)?.[part], copy)
+  const last = at.at(-1) as string
+  if (Array.isArray(parent) && /^\d+$/.test(last)) parent.splice(Number(last), 1)
+  else if (typeof parent === "object" && parent !== null) delete (parent as Record<string, unknown>)[last]
+  return copy
 }
 
 /** Removes one setting by its dotted path, whatever the schema thinks of it or of the rest of the file. */
@@ -120,18 +136,18 @@ export const unsetConfigKey = (key: string, env: NodeJS.ProcessEnv = process.env
   const path = configPath(env)
   const text = readText(path)
   if (text === undefined) return false
-  const parsed = parseConfigText(text, path)
-  if ("issue" in parsed) throw new CliError("configuration_error", issueMessage([parsed.issue]))
+  const { issues, config: raw } = checkConfigText(text, { file: path, tool: "memo", schema: v.unknown() })
+  if (issues.length > 0) throw new CliError("configuration_error", issueMessage(issues, "memo doctor"))
   const at = key.startsWith("permissions.") ? ["permissions", key.slice("permissions.".length)] : key.split(".")
   if (at.some((part) => part === "")) throw new CliError("validation_error", `${key} is not a setting path`)
-  let next = withoutPaths(parsed.raw, [at])
+  let next = without(raw, at)
   // An unset that empties a section removes the section too, as the shared `config unset` does.
   for (let parent = at.slice(0, -1); parent.length > 0; parent = parent.slice(0, -1)) {
     const node = parent.reduce<unknown>((value, part) => (value as Record<string, unknown>)?.[part], next)
     if (typeof node !== "object" || node === null || Object.keys(node).length > 0) break
-    next = withoutPaths(next, [parent])
+    next = without(next, parent)
   }
-  if (JSON.stringify(next) === JSON.stringify(parsed.raw)) return false
+  if (JSON.stringify(next) === JSON.stringify(raw)) return false
   saveConfigFile(path, next)
   return true
 }
