@@ -158,6 +158,12 @@ exact cue reference and uses the meeting start date, so an old meeting imported 
 Read a relevant cue and its neighbours with `memo meetings passage` before drawing conclusions.
 Gathering does not create project links, establish attendees or save extracted facts and tasks.
 
+To see who is involved, read `people` in the `--json` result (text output prints one "people who wrote these" line):
+who wrote this run's messages and emails, counted from the stored contacts, never by matching names in the text. A
+person's identities in several messengers and mail count as one entry when they are linked ([link a person's accounts](people.md#link-a-persons-accounts));
+an identity linked to no one is its own entry. Your own messages are left out. Each run counts only its own new items,
+so add the counts up across `--cursor` runs.
+
 A document hit includes short paragraphs around the first paragraph naming a searched word. They
 help locate the passage; they do not establish that a conclusion is supported. If `oversized` lists
 a document, gathering did not read its text: open its returned reference with `memo notes show` when

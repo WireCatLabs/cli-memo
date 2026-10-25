@@ -167,7 +167,12 @@ chat:<provider>/<account>/<chat> project:<id>`) is read too when `source` holds 
 membership. An item found only through a
 contact's name has `context: "person-only"`. A `person:<id>` contact reads what that person's stored identities
 wrote in `source` (lane `kinds: ["sender"]`, `query: null`, `senders` set; items `context: "sender"`, which may name
-nothing) and searches only the aliases the owner gave them, not their messenger display name. Failed or unread sources are listed, and `completeness` stays
+nothing) and searches only the aliases the owner gave them, not their messenger display name. `people` lists who
+wrote this run's message and mail items, from stored contacts, never from names in the text: one entry per stored
+person (`person: "person:<id>"`, `name`, every `identities` entry `{provider, account, id}` seen, so one person's
+Telegram and WhatsApp count together) or per identity linked to no person (`person: null`), with `items` and
+`contexts` (items per `context`). The owner's own messages are left out. Most items first, at most 20;
+`people_omitted` counts the rest. Counts cover this call only: add them up across `cursor` calls. Failed or unread sources are listed, and `completeness` stays
 `unknown`. When it returns a `checkpoint`, call again with the same arguments and `cursor` set to it.
 It creates no facts, tasks or project links; the index catch-up above can update local search indexes.
 
