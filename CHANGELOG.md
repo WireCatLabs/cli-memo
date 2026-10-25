@@ -7,6 +7,8 @@ the API.
 
 ## Unreleased
 
+## 0.96.0 — 25.10.2026
+
 ### Changed — may break callers
 
 - `mail rules list <account> protected:true` replaces `--filter is:protected`. The removed option has no alias.
