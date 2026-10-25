@@ -166,6 +166,71 @@ describe("memo doctor on a config file with problems", () => {
     })
   })
 
+  // cli-core 0.428.0's checkConfigText drops a bad setting from an object only, not from a list entry, so the rest of
+  // the file does not load and the unknown permission is missed. Turn this back into `it` when cli-core descends lists.
+  it.fails("lists a setting inside a mail account with the other problems, and nothing once the fixes ran", async () => {
+    writeConfig(
+      JSON.stringify({
+        update_check: "sometimes-secret",
+        default_profile: "work",
+        mail: { accounts: [{ name: "home", address: "a@example.test", colour: "blue" }] },
+        permissions: { "auto.start": "deny", "notes.edit": "deny" },
+      }),
+    )
+
+    const { issues } = JSON.parse(await doctor("--json")).item.config
+
+    expect(issues).toEqual(
+      expect.arrayContaining([
+        {
+          kind: "invalid_value",
+          file: configPath(env),
+          key: "update_check",
+          what: "setting update_check has to be of type boolean",
+          fix: "memo config unset update_check",
+        },
+        {
+          kind: "unknown_setting",
+          file: configPath(env),
+          key: "default_profile",
+          what: "setting default_profile is not a setting of memo",
+          fix: "memo config unset default_profile",
+        },
+        {
+          kind: "unknown_setting",
+          file: configPath(env),
+          key: "mail.accounts.0.colour",
+          what: "setting mail.accounts.0.colour is not a setting of memo",
+          fix: "memo config unset mail.accounts.0.colour",
+        },
+        {
+          kind: "unknown_permission",
+          file: configPath(env),
+          key: "permissions.auto.start",
+          what: "permissions.auto.start names no command",
+          fix: "memo config unset permissions.auto.start",
+        },
+      ]),
+    )
+    expect(issues).toHaveLength(4)
+    expect(JSON.stringify(issues)).not.toContain("sometimes-secret")
+    expect(() => loadConfig(env)).toThrow(
+      "remove it with `memo config unset update_check` (and 2 more problems — `memo doctor` lists them all)",
+    )
+
+    for (const { fix } of issues) await memo(...fix.split(" ").slice(1))
+
+    expect(JSON.parse(await doctor("--json")).item.config.issues).toEqual([])
+    expect(JSON.parse(readFileSync(configPath(env), "utf8"))).toEqual({
+      mail: { accounts: [{ name: "home", address: "a@example.test" }] },
+      permissions: { "notes.edit": "deny" },
+    })
+    expect(JSON.parse(await memo("config", "unset", "default_profile", "--json")).item).toMatchObject({
+      key: "default_profile",
+      removed: false,
+    })
+  })
+
   it("names a setting inside a mail account, and its fix removes only that setting", async () => {
     writeConfig(JSON.stringify({ mail: { accounts: [{ name: "home", address: "a@example.test", colour: "blue" }] } }))
 
