@@ -7,6 +7,8 @@ the API.
 
 ## Unreleased
 
+## 0.103.0 — 25.10.2026
+
 ### Changed — may break callers
 
 - **memo works on the shared store from cli-core 0.420.0, which carries store versions 30 to 33.** Notes folders are now accounts of provider `obsidian` or `local`: `--account obsidian:<id>` and `local:<id>` name one, and `folder:<id>` still does. Google Drive's documents live in drive's `google-drive` account instead of a stand-in folder; `memo folders list` still marks it "kept by drive", `memo folders update` still refuses it, `search all` names it among the accounts it read, and `notes:<id>` names it as a source. `vocabulary inspect` now answers `coverage.apply_supported: true`, cli-core's value: cli-core can apply the preview, memo has no command that does. Once this memo has migrated the store, an older memo, and any CLI on an older cli-core, refuses it and says to upgrade.
