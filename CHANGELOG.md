@@ -9,7 +9,7 @@ the API.
 
 ### Added
 
-- **`memo projects evidence` says who is involved.** The result has `people`: who wrote the run's messages and emails, person by person from your stored contacts, with how many items each wrote. A person's linked accounts in several messengers and mail count as one; your own messages are left out; at most 20 people, `people_omitted` counts the rest. It never guesses from names in the text. Text output adds one "people who wrote these" line. MCP `project_evidence` returns the same.
+- **`memo projects evidence` says who is involved.** The result has `people`: who wrote the run's messages and emails, person by person from your stored contacts, with how many items each wrote. A person's linked accounts in several messengers and mail count as one; your own messages are left out; at most 20 people, `people_omitted` counts the rest. It never guesses from names in the text. Text output adds one "people who wrote these" line. MCP `project_evidence` returns the same. Uses cli-core 0.418.0, which also brings 0.417.0's fix: `--discover` treats a "?" ending a question as punctuation.
 
 ## 0.99.0 — 25.10.2026
 
