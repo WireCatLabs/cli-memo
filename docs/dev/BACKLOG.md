@@ -41,7 +41,3 @@ None.
   [cli-testing](https://github.com/WireCatLabs/cli-testing/tree/main/performance/agents/knowledge-graph-memory).
   Implement engine adapters and a metered pilot before comparing Memo, Hindsight, Graphiti and Cognee;
   paid model use still needs an agreed budget.
-- **MEMO-33** · P2 · Switch `src/bin/memo.ts` to cli-core's `startCli` ([cli-core
-  #1924](https://github.com/WireCatLabs/cli-core/pull/1924)): `sqlite: true`, the `preAction` hook calls
-  `entry.atStart(command)`, and the closed pipe and commander exit codes come from it. The auto notice,
-  `followInstall` and the update notice stay inside `run`. Start: `src/bin/memo.ts`.
