@@ -10,6 +10,7 @@ the API.
 ### Added
 
 - **A failed run says what went wrong** (cli-core 0.425.0): `memo runs list` and `memo runs show` gain `error`, with its class, code, reason, masked message and a short stack.
+- `memo store info` describes the shared store: where it is, its schema against the one memo reads (`schema.reason`, and `schema.upgrade` — what memo's next run moves it to), and which tools used it. It opens the store read-only, so WireCat Desktop can tell whether memo can read the store.
 
 ### Fixed
 

@@ -48,6 +48,7 @@ import { autoCommand } from "./run/auto.js"
 import { syncCommand } from "./run/import.js"
 import { recordRuns } from "./run-recording.js"
 import { searchCommand } from "./search/command.js"
+import { storeCommand } from "./store/info-command.js"
 import { tagsCommand } from "./tags/command.js"
 import { tasksCommand } from "./tasks/command.js"
 import { upgradeCommand } from "./update.js"
@@ -198,6 +199,7 @@ export const createProgram = ({
   meetingPreparationCommand(program, streams, env)
   askCommand(program, streams, env)
   syncCommand(program, streams, env)
+  storeCommand(program, streams, env)
   autoCommand(program, streams, env)
   configCommand(program, streams, env)
   doctorCommand(program, streams, env)
