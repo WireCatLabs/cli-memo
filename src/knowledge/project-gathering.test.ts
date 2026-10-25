@@ -163,7 +163,7 @@ it("resolves a project by id and reads a mailbox and an imported notes folder as
     expect(found.lanes.map((lane: { query: string }) => lane.query)).toEqual(["Synthetic Port", "SYP", "Harbour"])
     expect(found.scope.sources).toEqual([
       { kind: "mail", account_id: mailId, provider: "email", account: "me@example.com" },
-      expect.objectContaining({ kind: "document", account_id: Number(folder.id), provider: "folder" }),
+      expect.objectContaining({ kind: "document", account_id: Number(folder.id), provider: "obsidian" }),
     ])
     expect(found.units.every((unit: { state: string }) => unit.state === "done")).toBe(true)
   }

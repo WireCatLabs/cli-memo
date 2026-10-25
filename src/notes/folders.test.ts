@@ -75,10 +75,11 @@ describe("memo folders", () => {
     await expect(run("folders", "update", "fld_unknown", join(root, "plain"))).rejects.toThrow(/has no folder/)
   })
 
-  it("lists drive's Google Drive folder as drive's and refuses to attach it", async () => {
+  it("lists drive's Google Drive documents as drive's and refuses to attach them", async () => {
     const store = await openStore({ env })
-    const drive = await store.notes.addFolder({ name: "google-drive:someone@example.com", format: "markdown" })
+    const drive = await store.notes.documentsAccount({ provider: "google-drive", account: "someone@example.com" }, true)
     await store.close()
+    if (drive === undefined) throw new Error("no documents account")
 
     expect(answerOf(await run("folders", "list", "--json")).items).toEqual([
       { id: drive.id, name: "google-drive:someone@example.com", format: "markdown", path: null, kept_by: "drive" },

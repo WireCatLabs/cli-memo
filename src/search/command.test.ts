@@ -296,6 +296,7 @@ it("search all runs as no stored account and names every account it read", async
   ])
     await store.messages.saveMessages(key, "7", [message], { via: "test" })
   const folder = await store.notes.addFolder({ name: "Synthetic folder" })
+  const drive = await store.notes.documentsAccount({ provider: "google-drive", account: "u1" }, true)
   await store.close()
   const streams = captureStreams()
   await createProgram({ streams, env }).parseAsync(["search", "all", "Beaconword", "--json"], { from: "user" })
@@ -306,7 +307,7 @@ it("search all runs as no stored account and names every account it read", async
     "msg:telegram/1/7/1",
   ])
   expect(answer.meta.accounts.sort()).toEqual(
-    ["max:2", "telegram:1", "email:a@example.com", "notes:internal", `notes:${folder.id}`].sort(),
+    ["max:2", "telegram:1", "email:a@example.com", "notes:internal", `notes:${folder.id}`, `notes:${drive?.id}`].sort(),
   )
 
   const text = captureStreams()

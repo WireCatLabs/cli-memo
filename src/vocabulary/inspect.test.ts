@@ -46,7 +46,7 @@ it("previews selected tags through the CLI with standard output, complete counts
   expect(result.item).toMatchObject({
     vocabulary_fingerprint: fingerprint,
     assignments: { source: 1, survivor: 1, overlapping_targets: 1 },
-    coverage: { rows: 2, samples_complete: false, apply_supported: false },
+    coverage: { rows: 2, samples_complete: false, apply_supported: true },
   })
   expect(result.item.assignments.samples).toHaveLength(1)
   const projected = await cli(env, [...args, "--json=source,survivor,coverage"])
@@ -100,7 +100,7 @@ it("serves a read-only MCP preview and names unknown fields in the handler's val
     const body = envelopeOf(JSON.stringify(result.structuredContent))
     expect(body.item).toMatchObject({
       assignments: { overlapping_targets: 1 },
-      coverage: { samples_complete: false, apply_supported: false },
+      coverage: { samples_complete: false, apply_supported: true },
     })
     for (const fields of [{ unexpected_argument: true }, { maxRows: 1 }, { max_rows: 0 }]) {
       const failed = await call(fields)

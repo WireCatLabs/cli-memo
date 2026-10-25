@@ -156,7 +156,9 @@ describe("memo context", () => {
 
   it("lists files Google reports they own, and leaves out unreviewed links a program guessed", async () => {
     const store = await openStore({ env })
-    const folder = await store.notes.addFolder({ name: "google-drive:u1" })
+    const drive = { provider: "google-drive", account: "u1" }
+    const folder = await store.notes.documentsAccount(drive, true)
+    if (folder === undefined) throw new Error("no documents account")
     await store.catalog.upsert(folder.id, [
       {
         externalId: "f1.md",
@@ -168,7 +170,6 @@ describe("memo context", () => {
       },
       { externalId: "f2.md", kind: "file", name: "Guessed file", parents: [] },
     ])
-    const drive = { provider: "google-drive", account: "u1" }
     await store.accounts.saveAccount(drive, { name: "Google Drive" })
     await store.people.savePeople(drive, [{ id: "g1", name: "Rin Example" }])
     await store.people.linkIdentities(

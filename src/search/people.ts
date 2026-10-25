@@ -26,8 +26,8 @@ export interface PeopleFound {
   accounts: AccountKey[]
 }
 
-/** Notes folders hold no people. */
-const NO_PEOPLE = new Set(["folder", "notes"])
+/** Notes folders hold no people; Drive's account does, its files' owners and editors. */
+const NO_PEOPLE = new Set(["folder", "local", "obsidian", "notes"])
 
 /** Case, accents, ё and emoji variation marks fold away; SQLite's lower() folds ASCII only, so this runs here. */
 export const fold = (text: string) => text.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase()

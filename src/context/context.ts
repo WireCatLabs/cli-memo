@@ -98,7 +98,7 @@ export const memoContext = async (
     yourNotes.push({ id: note.id, ref: note.ref, text: note.text, revision: note.revision, updatedAt: note.updatedAt })
   }
   const notRead: MemoContext["notRead"] = []
-  if ((await store.notes.folders()).length === 0)
+  if ((await store.notes.folders()).length + (await store.notes.documentsAccounts()).length === 0)
     notRead.push({
       source: "notes",
       reason: "no folder of notes — memo folders add <path>, then memo sync --only notes",

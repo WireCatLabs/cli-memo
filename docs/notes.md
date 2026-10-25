@@ -209,7 +209,7 @@ memo folders update 1 /other/path/to/notes
 
 With the same ID, the notes keep their links and tags on both computers.
 
-A folder named `google-drive:…` holds the Google Drive documents drive-cli saved. `memo folders list` marks it
-"kept by drive", and `memo folders update` refuses it: memo search reads it already.
+The Google Drive documents drive-cli saved belong to its `google-drive:…` account. `memo folders list` marks that
+account "kept by drive", and `memo folders update` refuses it: memo search reads it already.
 
 Next: [label your notes with tags](tags.md), or [search them](search.md).
