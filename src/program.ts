@@ -12,6 +12,7 @@ import {
   NO_EFFECTS,
   overrideSharedContract,
   provide,
+  recordRuns,
   runsCommand,
   skillCommand as sharedSkillCommand,
 } from "@wirecat/cli-core/cli"
@@ -21,6 +22,7 @@ import { agentsCommand } from "./agents/command.js"
 import { trackAnswers } from "./answer.js"
 import { askCommand } from "./answers/command.js"
 import { APP } from "./app.js"
+import { loadConfig } from "./config.js"
 import { configCommand } from "./config-command.js"
 import { contextCommand } from "./context/command.js"
 import { SHELL_OVERRIDES } from "./contract-overrides.js"
@@ -28,6 +30,7 @@ import { commandsCommand, placeInSections } from "./discovery/command.js"
 import { doctorCommand } from "./doctor/command.js"
 import { addExamples } from "./examples.js"
 import { factsCommand } from "./facts/command.js"
+import { recognisable } from "./failure.js"
 import { findingsCommand } from "./findings/command.js"
 import { jsonFields } from "./json-fields.js"
 import { knowledgeCommands } from "./knowledge/command.js"
@@ -46,7 +49,6 @@ import { readOnlyAvailability, refuseWritesUnderLock } from "./read-only.js"
 import { REASONS } from "./reasons.js"
 import { autoCommand } from "./run/auto.js"
 import { syncCommand } from "./run/import.js"
-import { recordRuns } from "./run-recording.js"
 import { searchCommand } from "./search/command.js"
 import { storeCommand } from "./store/info-command.js"
 import { tagsCommand } from "./tags/command.js"
@@ -245,7 +247,17 @@ export const createProgram = ({
     )
   addExamples(program)
   fields.install(program)
-  recordRuns(program, env, streams)
+  recordRuns(program, {
+    app: APP,
+    content: "note or mail content",
+    settings: () => {
+      const config = loadConfig(env)
+      return { record: config.record, keepRunsForDays: config.keep_runs_for_days }
+    },
+    recognise: recognisable,
+    env,
+    streams,
+  })
   trackAnswers(program)
   placeInSections(program)
   installHelp(program, FIRST_SCREEN)

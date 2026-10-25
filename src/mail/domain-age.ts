@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { resolvePaths } from "@wirecat/cli-base"
-import { providerRequest } from "../run-recording.js"
+import { providerRequest } from "@wirecat/cli-core/cli"
 import { VERSION } from "../version.js"
 import type { DomainAge } from "./score.js"
 

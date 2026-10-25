@@ -2,7 +2,7 @@ import { mkdtempSync, readFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
-import { findRun, listRuns, readEvents, runsDirFor } from "@wirecat/cli-core/cli"
+import { findRun, listRuns, readEvents, recordRuns, runsDirFor } from "@wirecat/cli-core/cli"
 import { Command } from "commander"
 import { expect, it } from "vitest"
 import { answerOf } from "../test/answer.js"
@@ -10,7 +10,6 @@ import { APP } from "./app.js"
 import { lookUpAges } from "./mail/domain-age.js"
 import { himalaya, operationOf } from "./mail/himalaya.js"
 import { createProgram } from "./program.js"
-import { recordRuns } from "./run-recording.js"
 
 const sandbox = (): NodeJS.ProcessEnv => {
   const dir = mkdtempSync(join(tmpdir(), "memo-runs-"))
@@ -81,7 +80,7 @@ const withRecording = (env: NodeJS.ProcessEnv, action: () => Promise<unknown>) =
   program.command("probe").action(async () => {
     await action()
   })
-  recordRuns(program, env, captureStreams())
+  recordRuns(program, { app: APP, content: "note content", settings: () => ({}), env, streams: captureStreams() })
   return program.parseAsync(["probe", "--record"], { from: "user" })
 }
 
