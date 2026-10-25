@@ -17,6 +17,7 @@ export const MCP_EXCLUSIONS = [
   { path: ["skill", "install"], reason: "installs instructions into other applications" },
   { path: ["jobs", "start"], reason: "installs a background timer" },
   { path: ["jobs", "stop"], reason: "removes a background timer" },
+  { path: ["config", "unset"], reason: "can remove a saved permission the server enforces" },
 ] as const
 
 export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramFactory) => {
@@ -106,6 +107,7 @@ export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramF
     },
     authority,
     keyOf,
+    program,
     run: async (path: readonly string[], input: Record<string, unknown>, levels: Record<string, Level>) =>
       inRun({ runId: randomUUID(), command: path.join(" "), startedAt: Date.now() }, () =>
         runCommandForAgent(runner, path, stdin(path) ? { ...input, file: "-" } : input, {

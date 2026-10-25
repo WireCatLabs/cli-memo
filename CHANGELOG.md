@@ -7,13 +7,27 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo doctor --json` lists every problem in the config file as `config.issues`**, in the shape every WireCat doctor uses: `{ kind, file, key?, line?, column?, what, fix? }`, with `kind` one of `invalid_json`, `unknown_setting`, `unknown_permission`, `missing_setting` or `invalid_value`. `what` says what a value has to be and never quotes the saved value; `fix` is a `memo config unset <key>` that runs as written, and is left out for invalid JSON, where `line` and `column` say where parsing stopped. Doctor still answers on a broken file, diagnoses the rest from what of the file still loads, and config problems alone leave its exit code at 0. Text output lists them with the other problems.
+- **`memo config unset <key>` removes one setting by its dotted path** (`mail.accounts.0.colour`, `permissions.notes.edit`), even one memo does not know and on a file with other problems, so every fix doctor prints works. It is not offered over MCP, where it could remove a saved permission the server enforces.
+
+### Changed — may break callers
+
+- **`memo doctor --json`'s `config.exists` is now `config.found`**, next to the new `config.issues`.
+- **A config file with problems is refused with the first problem, its fix, and how many more `memo doctor` lists**: "<file>: setting default_profile is not a setting of memo — remove it with \`memo config unset default_profile\` (and 2 more problems — \`memo doctor\` lists them all)". Before, the refusal named only the first key and a fixed reason.
+- **Old command names are no longer recognised as permission keys.** A saved permission or `--permission` key from a retired command path (`auto.start`, `mail.trash`, `note` and the rest) gets the same answer as any key that names no command: `memo mcp` refuses to start, naming the `memo config unset` that removes a saved one, or `--permission <key> names no command`, with no pointer to a replacement. Any other unknown permission key is refused the same way; before, it was ignored.
+- **`memo sync --account` is removed.** Name mailboxes with `--source email:<account>`.
+- **Uses cli-core 0.423.0.** With it `--source obsidian:<id>` and `--source local:<id>` name one notes folder; before, they found no account.
+
 ### Fixed
 
-- **memo's help describes memo's own commands.** The first screen points to `answers create "…" --all` (there is no `ask` command). The MCP server's instructions open an email with `messages show`, not with a `mail show` memo does not have. `search messages` and `search mail` describe `--brief` and `--full` for a message or an email, and `--full` says JSON still gives the excerpt. Meeting examples name a real meeting account (`zoom:me@example.com`). The `mail delete`, `mail restore` and `mail rules apply` examples are dry runs, and `upgrade` shows only `--check`. memo uses cli-core 0.422.0 and tells it that memo is not a messenger (`AppIdentity.messenger: false`). The store's `minCompatible` does not change.
+- **memo's help describes memo's own commands.** The first screen points to `answers create "…" --all` (there is no `ask` command). The MCP server's instructions open an email with `messages show`, not with a `mail show` memo does not have. `search messages` and `search mail` describe `--brief` and `--full` for a message or an email, and `--full` says JSON still gives the excerpt. Meeting examples name a real meeting account (`zoom:me@example.com`). The `mail delete`, `mail restore` and `mail rules apply` examples are dry runs, and `upgrade` shows only `--check`. memo tells cli-core that it is not a messenger (`AppIdentity.messenger: false`). The store's `minCompatible` does not change.
 
 ### Removed
 
 - **`search all` and `search notes` no longer take `--brief` or `--full`.** Both flags were accepted and then ignored. A call that passes one now fails with an unknown option.
+- The anchors for retired command names in `docs/commands.md` and the table of retired MCP tool names in `docs/mcp.md`.
 
 ## 0.103.0 — 25.10.2026
 

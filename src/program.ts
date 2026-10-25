@@ -20,6 +20,7 @@ import { agentsCommand } from "./agents/command.js"
 import { trackAnswers } from "./answer.js"
 import { askCommand } from "./answers/command.js"
 import { APP } from "./app.js"
+import { configCommand } from "./config-command.js"
 import { contextCommand } from "./context/command.js"
 import { SHELL_OVERRIDES } from "./contract-overrides.js"
 import { commandsCommand, placeInSections } from "./discovery/command.js"
@@ -196,6 +197,7 @@ export const createProgram = ({
   askCommand(program, streams, env)
   syncCommand(program, streams, env)
   autoCommand(program, streams, env)
+  configCommand(program, streams, env)
   doctorCommand(program, streams, env)
   program.addCommand(upgradeCommand(streams))
   commandsCommand(program, streams)
