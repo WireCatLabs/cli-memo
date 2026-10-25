@@ -325,7 +325,7 @@ export const search: readonly SharedContractOverride[] = [
       {
         flags: "--discover",
         description:
-          "find partial lexical matches and eligible replies in the local archive; results are evidence, not confirmed answers",
+          "find partial word matches, eligible replies and, once messages have vectors, messages close in meaning in the local archive; results are evidence, not confirmed answers",
         takes_value: false,
         mandatory: false,
       },

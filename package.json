@@ -1,6 +1,6 @@
 {
   "name": "@wirecat/cli-memo",
-  "version": "0.108.0",
+  "version": "0.109.0",
   "description": "Context about people across messengers, notes and mail, from a local store",
   "license": "Apache-2.0",
   "author": "Viacheslav Ptsarev",
@@ -56,9 +56,9 @@
     "smoke:bun": "bun scripts/smoke.ts"
   },
   "dependencies": {
-    "@modelcontextprotocol/server": "2.3.0",
+    "@modelcontextprotocol/server": "2.4.0",
     "@wirecat/cli-base": "0.57.1",
-    "@wirecat/cli-core": "0.431.0",
+    "@wirecat/cli-core": "0.435.0",
     "commander": "15.0.0",
     "disposable-email-domains-js": "1.26.0",
     "postal-mime": "4.1.4",

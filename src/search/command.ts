@@ -11,7 +11,7 @@ import { searchText } from "../notes/search.js"
 import { positive } from "../options.js"
 import { SAVE_HELP } from "../save-help.js"
 import { ACCOUNTS_HELP, MAIL_SOURCES, mailboxesOf } from "../store/source-list.js"
-import { allAnswer, kindAnswer, notesAnswer } from "./answers.js"
+import { allAnswer, kindAnswer, messagesMeaningNote, notesAnswer } from "./answers.js"
 import { peopleAnswer, peopleText, searchPeople } from "./people.js"
 import { keyDocumentsFirst, searchEverywhere, searchKind, searchNotes } from "./search.js"
 
@@ -135,6 +135,8 @@ content: narrows a search to the text of files, transcript: to voice transcripts
           for (const skipped of answer.skipped)
             streams.diagnostic(`${skipped.resource} not searched: ${skipped.reason}\n`)
           if (answer.notes?.meaningSkipped) streams.diagnostic(`Notes by words only: ${answer.notes.meaningSkipped}\n`)
+          if (answer.messages?.meaningSkipped)
+            streams.diagnostic(`${messagesMeaningNote(answer.messages.meaningSkipped)}\n`)
         }
         print(
           options.json,

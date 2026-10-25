@@ -28,6 +28,21 @@ const metaOf = (
 const meaningMissed = (why: string | undefined, exact = false): Missing[] =>
   why === undefined || exact ? [] : [{ field: "found_by", why }]
 
+type MessagesMeaning = NonNullable<NonNullable<SearchAllFound["messages"]>["meaningSkipped"]>
+
+/** memo has no `conversations rebuild`: the messenger CLI that imported the messages gives them their vectors. */
+export const messagesMeaningNote = ({ reason, step, model }: MessagesMeaning) =>
+  `Messages by words only: ${reason}${
+    step === "models.download"
+      ? ` — \`memo models download ${model}\`, then the messenger's \`conversations rebuild\` gives messages their vectors`
+      : step === "conversations.rebuild"
+        ? " — the messenger's `conversations rebuild` (tg, max, wa) gives messages their vectors"
+        : ""
+  }`
+
+const messagesMeaningMissed = (meaning: MessagesMeaning | undefined): Missing[] =>
+  meaning === undefined ? [] : [{ field: "found_by", why: messagesMeaningNote(meaning) }]
+
 const TASKS_OF_HIT: StepDefinition = {
   id: "hit.tasks",
   kind: "command",
@@ -64,7 +79,10 @@ export const allAnswer = (
     limit,
     has_more: found.hasMore,
     ...(next.length ? { next: next.slice(0, 2) } : {}),
-    missing: meaningMissed(found.notes?.meaningSkipped, exact),
+    missing: [
+      ...meaningMissed(found.notes?.meaningSkipped, exact),
+      ...messagesMeaningMissed(found.messages?.meaningSkipped),
+    ],
     meta: metaOf(found.accounts, found.skipped),
   })
 }

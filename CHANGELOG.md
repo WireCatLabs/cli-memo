@@ -5,6 +5,16 @@ first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0
 the API.
 
 
+## 0.109.0 — 26.10.2026
+
+### Added
+
+- **`memo search all` finds messages by meaning too, once it can** (cli-core 0.435.0). It looks up the 100 messages nearest in meaning (e5-small over each message's own vector, every account it reads) and fuses them with the word hits into one messages list before the merge with mail and notes; each item's `found_by` says which search found it. Without the model or the vectors, messages are read by words as before and the answer says so: a `Messages by words only: …` note in the terminal and a `found_by` entry in `missing` with `--json` and MCP, naming `memo models download e5-small` or the messenger's `conversations rebuild`. `--exact`, and a query with NOT or with a filter under OR or in a group, stay words only. A search never downloads a model or sends text anywhere.
+
+### Changed — may break callers
+
+- **cli-core 0.435.0 moves the shared store to version 34**, which keeps an index for search by meaning (sqlite-vec, shipped in `@wirecat/cli-core-sqlite` 1.1.0). Once memo, or any WireCat CLI on cli-core 0.434.0 or later, has opened the store, memo 0.108 and older refuse it and ask to be upgraded, so upgrade every WireCat CLI together.
+
 ## 0.108.0 — 25.10.2026
 
 ### Fixed
