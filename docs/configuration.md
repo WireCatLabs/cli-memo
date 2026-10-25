@@ -83,6 +83,19 @@ next run. See [importing on a timer](archive.md#import-on-a-timer-linux).
 
 `false` stops the once-a-day check for a newer memo. `MEMO_NO_UPDATE_CHECK=1` does the same for one shell.
 
+## `record` and `keep_runs_for_days`
+
+Memo keeps a run of every command that fails: the command's words, how it ended, and the mail and RDAP
+requests it made, with their timings and status codes. Never a note, an address, a subject or a folder name.
+`memo runs list` shows them, `memo runs show <run-id>` shows one.
+
+| Key | Meaning |
+|---|---|
+| `record` | `true` keeps every run, not only failed ones; `false` keeps none, not even failed ones. Unset: failed runs only. `--record` and `--no-record` decide for one command. |
+| `keep_runs_for_days` | How many days of runs are kept. Default 30. |
+
+Memo has no `config` command: add the keys to `config.json` by hand.
+
 ## `agent_decisions`
 
 By default an agent may confirm or reject [project proposals](recipes.md#review-project-facts-and-follow-ups)

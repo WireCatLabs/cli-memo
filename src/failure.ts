@@ -17,7 +17,7 @@ import { interactiveOf, optionsOf } from "./terminal.js"
 
 const context: FailureContext = failureContext(APP.errors)
 
-const recognisable = (error: unknown): unknown => {
+export const recognisable = (error: unknown): unknown => {
   if (error instanceof CommanderError)
     return new CliError("validation_error", error.message.replace(/^error: /, ""), { reason: "input.invalid" })
   if (error instanceof ValiError) {

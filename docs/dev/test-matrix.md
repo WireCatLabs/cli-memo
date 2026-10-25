@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**496 ✅ · 0 ⛔ · 89 ❌** — 131 commands, 454 options.
+**507 ✅ · 0 ⛔ · 89 ❌** — 134 commands, 462 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -592,7 +592,18 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `skill install` | `--for` | ✅ |  |
 | `guide` |  | ✅ |  |
 | `guide` | `--json` | ✅ |  |
+| `runs list` |  | ✅ |  |
+| `runs list` | `--limit` | ✅ |  |
+| `runs list` | `--page` | ✅ |  |
+| `runs list` | `--json` | ✅ |  |
+| `runs show` |  | ✅ |  |
+| `runs show` | `--problems` | ✅ |  |
+| `runs show` | `--json` | ✅ |  |
+| `runs path` |  | ✅ |  |
+| `runs path` | `--json` | ✅ |  |
 | `help` |  | ✅ |  |
 | *global* | `--version` | ❌ |  |
 | *global* | `--debug` | ❌ |  |
+| *global* | `--record` | ✅ |  |
+| *global* | `--no-record` | ✅ |  |
 | *global* | `--help-all` | ❌ |  |
