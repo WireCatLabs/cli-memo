@@ -1040,7 +1040,7 @@ memo tasks link <task> [targets] [options]
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
 | `--json` | print JSON. |
 
-**Returns:** task links — ; every field: memo commands info tasks link
+**Returns:** task links — id, ref, key, project, title, description, type, status, and 20 more; every field: memo commands info tasks link
 
 **Example:** `memo tasks link HRB-2 HRB-1 --kind blocked-by`
 
@@ -1343,7 +1343,7 @@ memo projects actions list <project> [query] [options]
 | `--before-n <n>` | messages or document paragraphs before the citation, at most 5. Default: `2`. |
 | `--after-n <n>` | messages or document paragraphs after the citation, at most 5. Default: `2`. |
 
-**Returns:** project action — ; every field: memo commands info projects actions list
+**Returns:** project action — kind, id, status, reason, provenance, evidence, fingerprint, author, and 5 more; every field: memo commands info projects actions list
 
 **Example:** `memo projects actions list SYH`, `memo projects actions list SYH status:reviewed --brief --json`
 
