@@ -46,6 +46,7 @@ it("keeps a failed command, and a successful one only under --record", async () 
     ["notes show", "failed"],
     ["agents list", "success"],
   ])
+  for (const run of listRuns(runsDirFor(APP, env))) expect(run).not.toHaveProperty("profile")
 })
 
 it("keeps a usage mistake under the words that name a command, never its arguments", async () => {
