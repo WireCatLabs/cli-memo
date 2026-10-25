@@ -2,6 +2,14 @@
 name: cli-memo
 description: >-
   Find what the owner knows about a person or a project across Telegram, MAX, mail and notes through memo, and record facts, memories and key documents. Use when asked about a person, a project, what was agreed, or to search messages, mail and notes together.
+metadata:
+  openclaw:
+    requires:
+      bins: [memo]
+    install:
+      - kind: node
+        package: "@wirecat/cli-memo"
+        bins: [memo]
 ---
 
 # memo — the owner's context across messengers, mail and notes
