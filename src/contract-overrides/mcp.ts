@@ -6,18 +6,18 @@ export const mcp: readonly SharedContractOverride[] = [
     command: ["mcp"],
     field: "summary",
     before: "serve this profile's commands to an AI agent",
-    after: null,
+    after: "serve commands over stdio or authenticated HTTP",
     reason:
-      "Memo delegates MCP framing and command dispatch to Core over stdio while binding its local store, saved permissions and environment; it has no HTTP transport.",
+      "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
   },
   {
     command: ["mcp"],
     field: "description",
     before:
       "serve this profile to an agent over MCP, on stdin and stdout — `claude mcp add memo -- memo <profile> mcp`",
-    after: "serve memo commands over MCP on stdio, limited by saved permissions",
+    after: "serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions",
     reason:
-      "Memo delegates MCP framing and command dispatch to Core over stdio while binding its local store, saved permissions and environment; it has no HTTP transport.",
+      "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
   },
   {
     command: ["mcp"],
@@ -31,15 +31,7 @@ export const mcp: readonly SharedContractOverride[] = [
       local: "write",
     },
     reason:
-      "Memo delegates MCP framing and command dispatch to Core over stdio while binding its local store, saved permissions and environment; it has no HTTP transport.",
-  },
-  {
-    command: ["mcp"],
-    field: "mcp",
-    before: false,
-    after: null,
-    reason:
-      "Memo delegates MCP framing and command dispatch to Core over stdio while binding its local store, saved permissions and environment; it has no HTTP transport.",
+      "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
   },
   {
     command: ["mcp"],
@@ -47,7 +39,7 @@ export const mcp: readonly SharedContractOverride[] = [
     before: true,
     after: null,
     reason:
-      "Memo delegates MCP framing and command dispatch to Core over stdio while binding its local store, saved permissions and environment; it has no HTTP transport.",
+      "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
   },
   {
     command: ["mcp"],
@@ -93,9 +85,40 @@ export const mcp: readonly SharedContractOverride[] = [
         takes_value: true,
         mandatory: false,
       },
+      {
+        flags: "--json",
+        description: "print the revocation receipt as JSON",
+        takes_value: false,
+        mandatory: false,
+      },
+      {
+        flags: "--http",
+        description: "serve on 127.0.0.1 behind an HTTPS tunnel with an owner access-code login",
+        takes_value: false,
+        mandatory: false,
+      },
+      {
+        flags: "--port <port>",
+        description: "local HTTP port (default 8767); requires --http",
+        takes_value: true,
+        mandatory: false,
+      },
+      {
+        flags: "--public-url <url>",
+        description: "tunnel's HTTPS origin without /mcp; requires --http",
+        takes_value: true,
+        mandatory: false,
+      },
+      {
+        flags: "--revoke",
+        description: "log every browser app out of Memo",
+        takes_value: false,
+        mandatory: false,
+        conflicts: ["http", "port", "publicUrl", "permission"],
+      },
     ],
     reason:
-      "Memo delegates MCP framing and command dispatch to Core over stdio while binding its local store, saved permissions and environment; it has no HTTP transport.",
+      "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
   },
   {
     command: ["mcp"],
@@ -103,6 +126,6 @@ export const mcp: readonly SharedContractOverride[] = [
     before: ["config", "add", "check"],
     after: [],
     reason:
-      "Memo delegates MCP framing and command dispatch to Core over stdio while binding its local store, saved permissions and environment; it has no HTTP transport.",
+      "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
   },
 ]

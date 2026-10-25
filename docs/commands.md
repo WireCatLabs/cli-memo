@@ -1040,7 +1040,7 @@ memo tasks link <task> [targets] [options]
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
 | `--json` | print JSON. |
 
-**Returns:** task links — ; every field: memo commands info tasks link
+**Returns:** task links — id, ref, key, project, title, description, type, status, and 20 more; every field: memo commands info tasks link
 
 **Example:** `memo tasks link HRB-2 HRB-1 --kind blocked-by`
 
@@ -1343,7 +1343,7 @@ memo projects actions list <project> [query] [options]
 | `--before-n <n>` | messages or document paragraphs before the citation, at most 5. Default: `2`. |
 | `--after-n <n>` | messages or document paragraphs after the citation, at most 5. Default: `2`. |
 
-**Returns:** project action — ; every field: memo commands info projects actions list
+**Returns:** project action — kind, id, status, reason, provenance, evidence, fingerprint, author, and 5 more; every field: memo commands info projects actions list
 
 **Example:** `memo projects actions list SYH`, `memo projects actions list SYH status:reviewed --brief --json`
 
@@ -2675,7 +2675,7 @@ memo agents list [query] [options]
 
 ## `memo mcp`
 
-serve memo commands over MCP on stdio, limited by saved permissions
+serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions
 
 This command changes the local store or your files.
 
@@ -2686,8 +2686,13 @@ memo mcp [options]
 | Option | What it does |
 |---|---|
 | `--permission <key=level>` | tighten one saved permission for this server; repeat for more keys. |
+| `--json` | print the revocation receipt as JSON. |
+| `--http` | serve on 127.0.0.1 behind an HTTPS tunnel with an owner access-code login. |
+| `--port <port>` | local HTTP port (default 8767); requires --http. |
+| `--public-url <url>` | tunnel's HTTPS origin without /mcp; requires --http. |
+| `--revoke` | log every browser app out of Memo. |
 
-**Returns:** serve memo commands over MCP on stdio, limited by saved permissions
+**Returns:** serve commands over stdio or authenticated HTTP
 
 **Example:** `memo mcp`
 

@@ -161,6 +161,10 @@ separate; a matched speaker label does not establish a person.
 
 ## MCP permissions
 
+Local clients use stdio; remote clients can use `memo mcp --http --public-url <https-origin>` behind the owner’s
+HTTPS tunnel and cli-core’s access-code OAuth login. Both expose the same commands and permission checks.
+`memo mcp --revoke` logs every remote app out; use the same Memo state environment as the server.
+
 MCP offers `memo_tools_search`, `memo_read` and `memo_write`, using CLI paths and advertised snake_case arguments.
 Saved dotted `permissions` keys apply to commands. `deny` keeps a command visible but unavailable,
 `readonly` allows reads, and `ask` or `allow` permits a write. `ask` runs without a terminal question over MCP:

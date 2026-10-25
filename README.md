@@ -117,7 +117,8 @@ More: [search](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md)
   search.
 - **MCP** — `memo mcp` lets MCP apps such as Claude Desktop or Cursor read your messages, mail and notes, and
   propose memories, directly recorded facts and outbound actions. Project proposals can also be decided
-  by the agent when allowed; you can require owner decisions instead.
+  by the agent when allowed; you can require owner decisions instead. Apps on the web or phone use
+  [authenticated HTTP MCP](docs/remote.md) through your HTTPS tunnel, with the same saved permissions.
 
 More: [connect your AI agent](https://wirecat.dev/en/docs/agents) ·
 [memories and facts](https://github.com/WireCatLabs/cli-memo/blob/main/docs/memories.md) · [the MCP server](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md)
@@ -396,12 +397,13 @@ add the sources you need.
 | [How memo works](https://github.com/WireCatLabs/cli-memo/blob/main/docs/how-it-works.md) | The local store, imports, links, references, review |
 | [Notes and folders](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) | Markdown and Obsidian folders, documents, your own notes, export |
 | [Tags](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tags.md) | Labels on any source |
-| [Search](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md) | Search words, `search all`, `ask` |
+| [Search](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md) | Search words, `search all`, `answers create` |
 | [People and projects](https://github.com/WireCatLabs/cli-memo/blob/main/docs/people.md) | Person context, linking, organizations, relationships |
 | [Mail](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mail.md) | Gmail and IMAP through Himalaya |
 | [Tasks and reminders](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tasks.md) | Tasks, dependencies and local reminders |
 | [Memories and facts](https://github.com/WireCatLabs/cli-memo/blob/main/docs/memories.md) | What agents and you record, and proposed actions |
 | [The MCP server](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md) | Apps without a terminal, the agent log |
+| [Remote connection](docs/remote.md) | Browser and phone apps, access-code login and revocation |
 | [Keeping memo up to date](https://github.com/WireCatLabs/cli-memo/blob/main/docs/archive.md) | `memo sync` and the timer |
 | [Recipes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/recipes.md) | Whole tasks to hand to your agent |
 | [All commands](https://github.com/WireCatLabs/cli-memo/blob/main/docs/commands.md) | Every command and option, generated |

@@ -65,6 +65,10 @@ nothing and tells you.
 
 ## What can leave your computer
 
+- Browser and phone apps connect through your HTTPS tunnel and the shared access-code login. They use
+  the same command permissions as local MCP clients. `memo mcp --revoke` invalidates their saved logins,
+  including on a running server; see [remote access](remote.md).
+
 - `memo answers create` gives the sources to your own agent by default. It sends them to an AI provider only
   with `--analyze`, and to a provider outside your computer only with `--allow-remote` as well. The
   provider's answer is generated text: check it against the sources.
