@@ -1,6 +1,6 @@
 import { execFile } from "node:child_process"
 import { CliError } from "@wirecat/cli-base"
-import { providerRequest } from "../run-recording.js"
+import { providerRequest } from "@wirecat/cli-core/cli"
 
 export type Himalaya = (args: string[], input?: string, options?: { maxBuffer?: number }) => Promise<string>
 
