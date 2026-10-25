@@ -7,6 +7,8 @@ the API.
 
 ## Unreleased
 
+## 0.106.0 — 25.10.2026
+
 ### Changed — may break callers
 
 - **Run recording comes from cli-core 0.430.0** (`recordRuns`) in place of memo's own copy. Runs are kept as before — every failed command, a usage error before any command included, a successful one under `--record` or `record: true`, nothing under `--no-record` — and Himalaya and RDAP calls are logged as before. A run now leaves `profile` out of `runs list` and `runs show` instead of `""`, since memo has no profiles.
