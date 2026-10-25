@@ -146,7 +146,7 @@ const FIRST_SCREEN = {
   can: [
     { command: "context <person>", does: "one person's messages, mail, notes and tasks" },
     { command: 'search all "budget"', does: "messages, mail and notes ranked together" },
-    { command: 'ask "…" --all', does: "evidence with sources, ready for your agent" },
+    { command: 'answers create "…" --all', does: "evidence with sources, ready for your agent" },
     { command: "tasks agenda", does: "overdue tasks, replies you owe and wait for" },
     { command: "meetings prepare <series-id>", does: "a briefing with sources for a meeting" },
     { command: "jobs start", does: "sync notes and mail every 5 minutes" },

@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**497 ✅ · 0 ⛔ · 91 ❌** — 130 commands, 458 options.
+**495 ✅ · 0 ⛔ · 89 ❌** — 130 commands, 454 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -79,11 +79,11 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `mail delete` |  | ✅ |  |
 | `mail delete` | `--limit` | ✅ |  |
 | `mail delete` | `--since-time` | ✅ |  |
-| `mail delete` | `--yes` | ✅ |  |
+| `mail delete` | `--yes` | ❌ |  |
 | `mail delete` | `--json` | ✅ |  |
 | `mail restore` |  | ✅ |  |
 | `mail restore` | `--run` | ✅ |  |
-| `mail restore` | `--yes` | ✅ |  |
+| `mail restore` | `--yes` | ❌ |  |
 | `mail restore` | `--json` | ❌ |  |
 | `mail runs list` |  | ✅ |  |
 | `mail runs list` | `--json` | ✅ |  |
@@ -503,8 +503,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `search all` | `--exact` | ✅ |  |
 | `search all` | `--timezone` | ❌ |  |
 | `search all` | `--json` | ✅ |  |
-| `search all` | `--brief` | ❌ |  |
-| `search all` | `--full` | ❌ |  |
 | `search all` | `--only` | ✅ |  |
 | `search all` | `--plain-order` | ❌ |  |
 | `search all` | `--project` | ✅ |  |
@@ -529,8 +527,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `search notes` | `--exact` | ✅ |  |
 | `search notes` | `--timezone` | ❌ |  |
 | `search notes` | `--json` | ✅ |  |
-| `search notes` | `--brief` | ❌ |  |
-| `search notes` | `--full` | ❌ |  |
 | `search notes` | `--filter` | ✅ |  |
 | `search notes` | `--source` | ✅ |  |
 | `search notes` | `--page` | ✅ |  |

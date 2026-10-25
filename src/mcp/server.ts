@@ -17,7 +17,7 @@ export const INSTRUCTIONS = [
   "The owner's stored messages, mail, notes and meetings, with facts, memories and proposed actions.",
   "Find commands with memo_tools_search; call their CLI path with memo_read or memo_write and the advertised arguments.",
   "Search all combines messages, mail and notes. Search meetings needs one explicit source account.",
-  "Open search references with notes show, messages show, mail show or meetings passage before citing evidence.",
+  "Open search references with notes show, messages show (messages and emails) or meetings passage before citing evidence.",
   "What happened is a fact (facts add); a conclusion is a memory (memories add). Both stay proposed until confirmed.",
   "Propose outbound work with actions add; it sends nothing. Meeting/project actions stage cited findings before review.",
   "Look for existing facts and memories first. Save only what will matter later and cite the evidence you read.",

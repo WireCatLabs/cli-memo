@@ -52,8 +52,8 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "models download": ["memo models download e5-small"],
   "mail inspect": ["memo mail inspect personal --limit 30", "memo mail inspect work --since-time 365d --json"],
   "mail status": ["memo mail status personal", "memo mail status personal --json"],
-  "mail delete": ["memo mail delete personal", "memo mail delete personal --yes --limit 100"],
-  "mail restore": ["memo mail restore personal --run 2026-10-16T09-00-00-000Z-ab12 --yes"],
+  "mail delete": ["memo mail delete personal", "memo mail delete personal --limit 100 --json"],
+  "mail restore": ["memo mail restore personal --run 2026-10-16T09-00-00-000Z-ab12"],
   "mail runs list": ["memo mail runs list personal", "memo mail runs list personal --json"],
   "mail rules list": ["memo mail rules list personal --json", "memo mail rules list personal protected:true"],
   "mail rules add": [
@@ -62,7 +62,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo mail rules add personal --filter 'label:Promotions older:365d' --do envelope",
   ],
   "mail rules remove": ["memo mail rules remove personal --domain news.example"],
-  "mail rules apply": ["memo mail rules apply personal", "memo mail rules apply personal --yes --json"],
+  "mail rules apply": ["memo mail rules apply personal", "memo mail rules apply personal --json"],
   "mail rules export": ["memo mail rules export personal"],
   "mail rules import": [
     "memo mail rules import personal rules.json",
@@ -158,24 +158,24 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "actions add": [
     "memo actions add reply --reason 'Kai asked twice' --account telegram:1 --target 'msg:telegram/1/77/42' --payload '{\"text\":\"Friday works\"}'",
   ],
-  "meetings actions add": ["memo meetings actions add findings.json --account example:synthetic"],
+  "meetings actions add": ["memo meetings actions add findings.json --account zoom:me@example.com"],
   "meetings passage": [
-    "memo meetings passage meeting:1/1/1/0 --source example:synthetic --before-n 1 --after-n 1 --json",
+    "memo meetings passage meeting:1/1/1/0 --source zoom:me@example.com --before-n 1 --after-n 1 --json",
   ],
   "meetings prepare": [
-    "memo meetings prepare example-series --source example:synthetic --json",
-    "memo meetings prepare example-series --source example:synthetic --context-source tg.personal --context-query Harbour --json",
+    "memo meetings prepare example-series --source zoom:me@example.com --json",
+    "memo meetings prepare example-series --source zoom:me@example.com --context-source tg.personal --context-query Harbour --json",
   ],
   "search meetings": [
-    "memo search meetings budget --source example:synthetic --project Harbour --since-time 2026-10-01 --limit 10 --json",
+    "memo search meetings budget --source zoom:me@example.com --project Harbour --since-time 2026-10-01 --limit 10 --json",
   ],
-  "meetings actions list": ["memo meetings actions list status:proposed --source example:synthetic"],
-  "meetings actions show": ["memo meetings actions show 5 --source example:synthetic"],
+  "meetings actions list": ["memo meetings actions list status:proposed --source zoom:me@example.com"],
+  "meetings actions show": ["memo meetings actions show 5 --source zoom:me@example.com"],
   "meetings actions confirm": [
-    "memo meetings actions confirm 5 decision --fingerprint aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --account example:synthetic",
+    "memo meetings actions confirm 5 decision --fingerprint aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --account zoom:me@example.com",
   ],
   "meetings actions reject": [
-    "memo meetings actions reject 5 --fingerprint aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --account example:synthetic",
+    "memo meetings actions reject 5 --fingerprint aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --account zoom:me@example.com",
   ],
   "actions list": ["memo actions list status:proposed"],
   "actions show": ["memo actions show 5"],
@@ -202,7 +202,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "jobs stop": ["memo jobs stop"],
   "jobs status": ["memo jobs status --json"],
   doctor: ["memo doctor", "memo doctor --json"],
-  upgrade: ["memo upgrade --check", "memo upgrade"],
+  upgrade: ["memo upgrade --check"],
   commands: ["memo commands --json", "memo commands tags add --json"],
   "skill show": ["memo skill show"],
   "skill install": ["memo skill install --for all"],

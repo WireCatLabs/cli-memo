@@ -40,7 +40,7 @@ export const commands: readonly SharedContractOverride[] = [
   {
     command: ["commands", "info"],
     field: "examples",
-    before: ["memo commands info messages list"],
+    before: ["memo commands info commands"],
     after: ["memo commands info --json"],
     reason: "Memo binds discovery to its command-local JSON renderer and scoped stored-data document format.",
   },

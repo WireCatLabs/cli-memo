@@ -86,8 +86,6 @@ const searchCommandDefinition = (program: Command, streams: Streams, env: NodeJS
       .option("--exact", "words as written; skip meaning search")
       .option("--timezone <zone>", "IANA timezone for calendar date boundaries")
       .option("--json", "print JSON; --json=id,title keeps only those fields")
-      .option("--brief", "each message or email as reference, time, sender and excerpt only")
-      .option("--full", "each message or email with its whole text; --json keeps the excerpt, messages show the text")
 
   queryOptions(
     annotate(group.command("all"), { effects: LOCAL_READ, output: { entity: "hit" } })
@@ -150,11 +148,14 @@ content: narrows a search to the text of files, transcript: to voice transcripts
     )
 
   for (const kind of ["messages", "mail"] as const) {
+    const one = kind === "mail" ? "email" : "message"
     const leaf = queryOptions(
       annotate(group.command(kind), { effects: LOCAL_READ, output: { entity: "message", view: "hit" } }).description(
         kind === "mail" ? "imported emails only" : "stored messenger messages only",
       ),
     )
+      .option("--brief", `each ${one} as reference, time, sender and excerpt only`)
+      .option("--full", `each ${one} with its whole text; --json still gives the excerpt`)
     if (kind === "mail")
       leaf
         .option("--source <accounts>", `the mailboxes to search (default: every one): ${MAIL_SOURCES}`)
