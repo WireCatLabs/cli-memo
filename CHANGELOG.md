@@ -7,6 +7,8 @@ the API.
 
 ## Unreleased
 
+## 0.97.0 — 25.10.2026
+
 ### Added
 
 - `memo mcp --http --public-url <https-origin>` serves the same three MCP tools through cli-core’s authenticated HTTP transport, on loopback port 8767 by default. The shared access-code OAuth login, token hashing and `--revoke` work with the same per-call permissions and stricter server overrides as stdio. `--port` selects another local port; HTTP-only options without `--http` are refused. The remote connection guide covers tunnels, app login and revocation.
