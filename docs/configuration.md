@@ -94,7 +94,7 @@ requests it made, with their timings and status codes. Never a note, an address,
 | `record` | `true` keeps every run, not only failed ones; `false` keeps none, not even failed ones. Unset: failed runs only. `--record` and `--no-record` decide for one command. |
 | `keep_runs_for_days` | How many days of runs are kept. Default 30. |
 
-Memo has no `config` command: add the keys to `config.json` by hand.
+Add the keys to `config.json` by hand; `memo config unset <key>` removes one.
 
 ## `agent_decisions`
 
