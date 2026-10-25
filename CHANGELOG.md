@@ -5,6 +5,12 @@ first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0
 the API.
 
 
+## Unreleased
+
+### Fixed
+
+- **`memo projects evidence --cursor` drains a busy linked chat at full speed once the other chats are done.** A chat's share of a run's items now counts only the linked chats that still have something to read, so on a project with ten linked chats the last busy one takes about 10 runs instead of about 45. Uses cli-core 0.416.0 and cli-base 0.53.0.
+
 ## 0.97.0 — 25.10.2026
 
 ### Added
