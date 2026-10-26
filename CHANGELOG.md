@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.113.0 — 26.10.2026
+
 ### Fixed
 
 - **Search by meaning, and the meaning lane of `memo search all`, run 2–3× faster on Linux and Apple-silicon Macs
