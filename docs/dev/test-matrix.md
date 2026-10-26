@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**513 ✅ · 0 ⛔ · 90 ❌** — 136 commands, 467 options.
+**517 ✅ · 0 ⛔ · 92 ❌** — 139 commands, 470 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -492,6 +492,12 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `mcp` | `--port` | ✅ |  |
 | `mcp` | `--public-url` | ✅ |  |
 | `mcp` | `--revoke` | ✅ |  |
+| `mcp server start` |  | ✅ |  |
+| `mcp server start` | `--port` | ❌ |  |
+| `mcp server start` | `--public-url` | ✅ |  |
+| `mcp server start` | `--permission` | ❌ |  |
+| `mcp server stop` |  | ✅ |  |
+| `mcp server status` |  | ✅ |  |
 | `models list` |  | ✅ |  |
 | `models list` | `--json` | ✅ |  |
 | `models download` |  | ✅ |  |
