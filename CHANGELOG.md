@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.111.0 — 26.10.2026
+
 ### Added
 
 - **`memo mcp server start|stop|status` runs the HTTP MCP server in the background (cli-core 0.445.0).** `start`
