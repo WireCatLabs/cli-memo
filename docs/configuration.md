@@ -83,15 +83,18 @@ next run. See [importing on a timer](archive.md#import-on-a-timer-linux).
 
 `false` stops the once-a-day check for a newer memo. `MEMO_NO_UPDATE_CHECK=1` does the same for one shell.
 
-## `record` and `keep_runs_for_days`
+## `record`, `record_input` and `keep_runs_for_days`
 
-Memo keeps a run of every command that fails: the command's words, how it ended, and the mail and RDAP
-requests it made, with their timings and status codes. Never a note, an address, a subject or a folder name.
+Memo keeps a run of every command that fails: the command as typed, how it ended, and the mail and RDAP
+requests it made, with their timings and status codes. A secret in the command (an option named for a token,
+password or API key, a password in a URL, a long opaque string) and a phone number are written `[redacted]`.
+What the command read or wrote is never kept: no note, mail text or folder name it reached.
 `memo runs list` shows them, `memo runs show <run-id>` shows one.
 
 | Key | Meaning |
 |---|---|
 | `record` | `true` keeps every run, not only failed ones; `false` keeps none, not even failed ones. Unset: failed runs only. `--record` and `--no-record` decide for one command. |
+| `record_input` | `false` writes every typed value that may be content as `[redacted]`, keeping only command words, option names, numbers, dates and choices. Unset: the command is kept as typed, secrets hidden. |
 | `keep_runs_for_days` | How many days of runs are kept. Default 30. |
 
 Add the keys to `config.json` by hand; `memo config unset <key>` removes one.

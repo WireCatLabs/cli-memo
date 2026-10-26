@@ -247,12 +247,16 @@ export const createProgram = ({
     )
   addExamples(program)
   fields.install(program)
+  keepTypedWords(program)
   recordRuns(program, {
     app: APP,
-    content: "note or mail content",
     settings: () => {
       const config = loadConfig(env)
-      return { record: config.record, keepRunsForDays: config.keep_runs_for_days }
+      return {
+        record: config.record,
+        keepRunsForDays: config.keep_runs_for_days,
+        recordInput: config.record_input,
+      }
     },
     recognise: recognisable,
     env,
@@ -277,6 +281,18 @@ export const createProgram = ({
   })
   assertSharedContracts(program)
   return program
+}
+
+/**
+ * `recordRuns` reads the typed words from the environment, which only cli-core's `run()` fills; memo parses its own
+ * line, so it hands them over before json-fields lifts `--json=…` out of them.
+ */
+const keepTypedWords = (program: Command): void => {
+  const parse = program.parseAsync.bind(program)
+  program.parseAsync = (argv = process.argv, settings) => {
+    provide(program, { ...environmentOf(program), argv: settings?.from === "user" ? argv : argv.slice(2) })
+    return parse(argv, settings)
+  }
 }
 
 /**

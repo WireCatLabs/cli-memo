@@ -4,6 +4,15 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Changed — may break callers
+
+- **A run keeps the command as typed (cli-core 0.440.0).** `memo runs show` and `run.json` now carry `argv`, the words
+  after `memo`, so the owner can read back what was run: a search, a name, a note's title. A secret is still
+  `[redacted]` (an option named for a token, password or API key, a password in a URL, a long opaque string), and so is
+  a phone number. The new `record_input` key in `config.json` set to `false` writes every value that may be content as
+  `[redacted]`. `--record` help says so; it read "ids and timings, never note or mail content".
 
 ## 0.110.0 — 26.10.2026
 
