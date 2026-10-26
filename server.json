@@ -1,0 +1,29 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "dev.wirecat/cli-memo",
+  "title": "WireCat Memo",
+  "description": "People's context across messengers, notes and mail, from a local store. Set up the memo CLI first.",
+  "websiteUrl": "https://wirecat.dev/en/docs/memo",
+  "repository": {
+    "url": "https://github.com/WireCatLabs/cli-memo",
+    "source": "github"
+  },
+  "version": "0.113.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@wirecat/cli-memo",
+      "version": "0.113.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "mcp"
+        }
+      ]
+    }
+  ]
+}
