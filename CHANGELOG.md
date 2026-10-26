@@ -11,6 +11,7 @@ the API.
 
 - **`memo skill install --for hermes` gives Hermes Agent the skill, and `memo skill status` says what Hermes reads (cli-base 0.59.0).** It adds `~/.agents/skills` to Hermes's `skills.external_dirs` through `hermes config set`, keeping the folders already listed, or copies the file into Hermes's home when that fails. With no Hermes installed it fails with `not_found` and writes nothing. A bare `memo skill install` and `--for all` still write only the Claude Code and `~/.agents/skills` copies. `skill status --json` gains `hermes` beside `targets`.
 - **A run started by OpenClaw or Hermes Agent names that agent (cli-core 0.437.0).** `runs show` gives `agent` as `openclaw` for a command OpenClaw's agent ran, with `from_chat: true` when a chat message started it; a Hermes run carries its session, so a task claim from Hermes is held per session.
+- **The `cli-memo` skill tells OpenClaw and ClawHub that it needs `memo`, and how to install it** (`metadata.openclaw`: `requires.bins` and the npm package `@wirecat/cli-memo`). With `memo` missing from PATH, OpenClaw marks the skill not ready and offers to install the package. Claude Code and Codex ignore the block.
 
 ## 0.109.0 — 26.10.2026
 
