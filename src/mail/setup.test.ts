@@ -65,3 +65,31 @@ it("does not expose TOML values or parser errors when configuration is invalid",
     "the selected Himalaya TOML configuration cannot be read",
   )
 })
+
+it("takes the address from the IMAP login, or the SMTP one, when the account sets no email", async () => {
+  const f = fixture()
+  writeFileSync(
+    f.env.HIMALAYA_CONFIG,
+    '[accounts.first]\nimap.sasl.plain.username = "first@example.test"\n' +
+      '[accounts.chosen]\nimap.sasl.login.username = "chosen"\nsmtp.sasl.plain.authcid = "chosen@example.test"\n',
+  )
+  await f.run(["mail", "add", "first", "first@example.test"])
+  await f.run(["mail", "add", "chosen", "chosen@example.test"])
+  expect(loadConfig(f.env).mail?.accounts?.map((one) => one.address)).toEqual([
+    "first@example.test",
+    "chosen@example.test",
+  ])
+  await f.run(["mail", "check", "chosen", "--json"])
+})
+
+it("names the file and the line to add when neither email nor login is an address, without the login", async () => {
+  const f = fixture()
+  writeFileSync(f.env.HIMALAYA_CONFIG, '[accounts.chosen]\nimap.sasl.plain.username = "private-login-name"\n')
+  const error = await f.run(["mail", "add", "chosen", "chosen@example.test"]).catch((e: Error) => e)
+  expect(error).toBeInstanceOf(Error)
+  expect((error as Error).message).toBe(
+    "Himalaya's account chosen names no email address, and its login is not one. " +
+      'Add this line under [accounts.chosen] in ~/himalaya.toml: email = "you@example.com"',
+  )
+  expect((error as Error).message).not.toContain("private-login-name")
+})

@@ -8,6 +8,11 @@ the API.
 
 ### Fixed
 
+- **`memo mail add` and `memo mail check` accept a Himalaya account that sets no `email`.** Himalaya works without
+  it, so many accounts name their address only as the login. Memo now takes the address from the IMAP login, then
+  the SMTP one, when it is an email address. When neither is, the error names the Himalaya config file and the line
+  to add: `email = "you@example.com"` under `[accounts.<name>]`.
+
 - **Every command spends less time getting ready (cli-base 0.62.0, cli-core 0.449.0).** The check of shared commands now
   describes each command once, not again for every group above it. It was about 60% of each command's setup; in tg a
   warm `run(["--version"])` went from 49 to 29 ms. It catches the same changes as before.
