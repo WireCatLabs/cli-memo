@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.112.0 — 26.10.2026
+
 ### Security
 
 - **A run record hides a secret by what it looks like, not only by the option's name (cli-core 0.446.0).** A token in
