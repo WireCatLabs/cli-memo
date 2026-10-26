@@ -2,6 +2,7 @@ import { CliError, isCliError } from "@wirecat/cli-base"
 import { parseLucene, type QueryNode } from "@wirecat/cli-base/query"
 import { parseLocator } from "@wirecat/cli-core"
 import {
+  meaningLane,
   type SearchAllFound,
   type SearchedResource,
   searchAll,
@@ -250,6 +251,7 @@ export const searchEverywhere = async (
       messageAccounts = read.coverage?.accounts ?? []
       return read
     },
+    meaningLane({ env, store: async () => store, messenger: { app: { command: "memo" } } }),
   )
   const searched: SearchedAccount[] = []
   for (const resource of found.searched) {
