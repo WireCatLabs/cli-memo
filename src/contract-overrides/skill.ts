@@ -16,7 +16,7 @@ const INSTALL_FOR = {
   description: "which agents to install for",
   takes_value: true,
   mandatory: false,
-  choices: ["claude", "agents", "all"],
+  choices: ["claude", "agents", "hermes", "all"],
   default: "all",
 }
 

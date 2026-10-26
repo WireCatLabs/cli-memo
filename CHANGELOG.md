@@ -5,6 +5,13 @@ first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0
 the API.
 
 
+## Unreleased
+
+### Added
+
+- **`memo skill install --for hermes` gives Hermes Agent the skill, and `memo skill status` says what Hermes reads (cli-base 0.59.0).** It adds `~/.agents/skills` to Hermes's `skills.external_dirs` through `hermes config set`, keeping the folders already listed, or copies the file into Hermes's home when that fails. With no Hermes installed it fails with `not_found` and writes nothing. A bare `memo skill install` and `--for all` still write only the Claude Code and `~/.agents/skills` copies. `skill status --json` gains `hermes` beside `targets`.
+- **A run started by OpenClaw or Hermes Agent names that agent (cli-core 0.437.0).** `runs show` gives `agent` as `openclaw` for a command OpenClaw's agent ran, with `from_chat: true` when a chat message started it; a Hermes run carries its session, so a task claim from Hermes is held per session.
+
 ## 0.109.0 — 26.10.2026
 
 ### Added

@@ -3172,7 +3172,7 @@ memo skill show [options]
 
 ### `memo skill install`
 
-write SKILL.md to \~/.claude/skills/cli-memo/ (Claude Code) and \~/.agents/skills/cli-memo/ (Codex, Gemini CLI)
+write SKILL.md to \~/.claude/skills/cli-memo/ (Claude Code) and \~/.agents/skills/cli-memo/ (Codex, Gemini CLI, OpenClaw); --for hermes also has Hermes read \~/.agents/skills, which changes Hermes's own settings, so all leaves it out
 
 This command changes the local store or your files.
 
@@ -3182,7 +3182,7 @@ memo skill install [options]
 
 | Option | What it does |
 |---|---|
-| `--for <agents>` | which agents to install for. One of: `claude`, `agents`, `all`. Default: `all`. |
+| `--for <agents>` | which agents to install for. One of: `claude`, `agents`, `hermes`, `all`. Default: `all`. |
 | `--json` | print JSON. |
 
 **Returns:** install the tool's instructions for AI agents
@@ -3191,7 +3191,7 @@ memo skill install [options]
 
 ### `memo skill status`
 
-for each place `memo skill install` writes to: the path, the version installed there, and whether it is current, stale, missing or unversioned
+for each place `memo skill install` writes to, and for the copy Hermes reads: the path, the version installed there, and whether it is current, stale, missing or unversioned
 
 ```sh
 memo skill status [options]
