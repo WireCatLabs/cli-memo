@@ -12,6 +12,14 @@ the API.
   describes each command once, not again for every group above it. It was about 60% of each command's setup; in tg a
   warm `run(["--version"])` went from 49 to 29 ms. It catches the same changes as before.
 
+## 0.113.0 — 26.10.2026
+
+### Fixed
+
+- **Search by meaning, and the meaning lane of `memo search all`, run 2–3× faster on Linux and Apple-silicon Macs
+  (cli-core 0.448.0)** after the next `memo models download`: the text models then run on the native ONNX Runtime,
+  and on WebAssembly where it is not installed.
+
 ## 0.112.0 — 26.10.2026
 
 ### Security
