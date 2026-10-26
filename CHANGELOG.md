@@ -6,6 +6,12 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **Search by meaning, and the meaning lane of `memo search all`, run 2–3× faster on Linux and Apple-silicon Macs
+  (cli-core 0.448.0)** after the next `memo models download`: the text models then run on the native ONNX Runtime,
+  and on WebAssembly where it is not installed.
+
 ## 0.112.0 — 26.10.2026
 
 ### Security
