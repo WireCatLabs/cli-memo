@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.114.0 — 27.10.2026
+
 ### Fixed
 
 - **`memo mail add` and `memo mail check` accept a Himalaya account that sets no `email`.** Himalaya works without
