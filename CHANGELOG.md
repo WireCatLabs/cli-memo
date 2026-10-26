@@ -6,6 +6,12 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **Memo's agent skill publishes to ClawHub as `wirecat-memo`.** ClawHub holds a `cli-memo` 1.0.0 that is not
+  public and rejects every new 1.0.0 under that name, so no release could list the skill. `memo skill install` still
+  writes `skills/cli-memo/`.
+
 ## 0.114.0 — 27.10.2026
 
 ### Fixed

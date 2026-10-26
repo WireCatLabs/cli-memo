@@ -8,7 +8,7 @@ import { completeGlobalInstall } from "./install/postinstall.js"
 import { createProgram } from "./program.js"
 import { VERSION } from "./version.js"
 
-const skill = new URL("../skills/cli-memo/SKILL.md", import.meta.url)
+const skill = new URL("../skills/wirecat-memo/SKILL.md", import.meta.url)
 
 it("ships a skill whose frontmatter and every memo command it names are valid", () => {
   expect(validateSkill(readFileSync(skill, "utf8"), { folder: "cli-memo", program: createProgram() })).toEqual([])

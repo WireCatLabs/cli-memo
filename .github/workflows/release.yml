@@ -165,6 +165,8 @@ jobs:
 
   # ClawHub's own workflow, pinned: it runs the ClawHub CLI from this commit and needs id-token only to read which
   # commit that is. It publishes the skill only when it changed, as the next patch of ClawHub's own version line.
+  # ClawHub takes the slug from the folder name. `cli-memo` is held by a 1.0.0 that is not public,
+  # so the folder is `wirecat-memo`; SKILL.md keeps `name: cli-memo`, which is what `memo skill install` writes.
   clawhub-dry-run:
     needs: build
     if: inputs.dry_run
@@ -173,7 +175,7 @@ jobs:
       id-token: write
     uses: openclaw/clawhub/.github/workflows/skill-publish.yml@52358852d3510f1150756d48e8a72cb8c8e698e0 # main, 2026-10-25
     with:
-      skill_path: skills/cli-memo
+      skill_path: skills/wirecat-memo
       owner: wirecat
       dry_run: true
 
@@ -186,7 +188,7 @@ jobs:
       id-token: write
     uses: openclaw/clawhub/.github/workflows/skill-publish.yml@52358852d3510f1150756d48e8a72cb8c8e698e0 # main, 2026-10-25
     with:
-      skill_path: skills/cli-memo
+      skill_path: skills/wirecat-memo
       owner: wirecat
       dry_run: false
     secrets:
