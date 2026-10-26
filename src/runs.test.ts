@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
@@ -33,6 +33,13 @@ const memo = async (env: NodeJS.ProcessEnv, args: string[]) => {
   return { failure, stdout: streams.stdout.join("") }
 }
 
+const argvOfRun = (env: NodeJS.ProcessEnv) => {
+  const [run] = listRuns(runsDirFor(APP, env))
+  return run?.argv
+}
+
+const typed = ["search", "notes", "Kai Sample +34612345678", "--api-key", "fake-key-123", "--nonsense"]
+
 const kept = (env: NodeJS.ProcessEnv) => listRuns(runsDirFor(APP, env)).map(({ command, status }) => [command, status])
 
 it("keeps a failed command, and a successful one only under --record", async () => {
@@ -53,6 +60,27 @@ it("keeps a usage mistake under the words that name a command, never its argumen
   const env = sandbox()
   await memo(env, ["mail", "nonsense-word"])
   expect(kept(env)).toEqual([["mail", "failed"]])
+})
+
+it("keeps the command as typed, with a secret and a phone number hidden", async () => {
+  const env = sandbox()
+  await memo(env, typed)
+  const argv = argvOfRun(env)
+  expect(argv).toContain("--nonsense")
+  expect(argv?.join(" ")).toContain("Kai Sample")
+  expect(argv?.join(" ")).not.toContain("612345678")
+  expect(argv?.join(" ")).not.toContain("fake-key-123")
+})
+
+it("leaves the typed words out under record_input false", async () => {
+  const env = sandbox()
+  mkdirSync(env.MEMO_CONFIG_DIR ?? "", { recursive: true })
+  writeFileSync(join(env.MEMO_CONFIG_DIR ?? "", "config.json"), JSON.stringify({ record_input: false }))
+  await memo(env, typed)
+  const argv = argvOfRun(env)
+  expect(argv).toContain("search")
+  expect(argv?.join(" ")).not.toContain("Kai Sample")
+  expect(argv?.join(" ")).not.toContain("fake-key-123")
 })
 
 it("keeps nothing under --no-record, even a failure", async () => {
@@ -81,7 +109,7 @@ const withRecording = (env: NodeJS.ProcessEnv, action: () => Promise<unknown>) =
   program.command("probe").action(async () => {
     await action()
   })
-  recordRuns(program, { app: APP, content: "note content", settings: () => ({}), env, streams: captureStreams() })
+  recordRuns(program, { app: APP, settings: () => ({}), env, streams: captureStreams() })
   return program.parseAsync(["probe", "--record"], { from: "user" })
 }
 
