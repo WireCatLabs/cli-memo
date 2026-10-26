@@ -35,14 +35,6 @@ export const mcp: readonly SharedContractOverride[] = [
   },
   {
     command: ["mcp"],
-    field: "runnable",
-    before: true,
-    after: null,
-    reason:
-      "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
-  },
-  {
-    command: ["mcp"],
     field: "options",
     before: [
       {
@@ -123,8 +115,78 @@ export const mcp: readonly SharedContractOverride[] = [
   {
     command: ["mcp"],
     field: "children",
-    before: ["config", "add", "check"],
-    after: [],
+    before: ["server", "config", "add", "check"],
+    after: ["server"],
+    reason:
+      "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
+  },
+  {
+    command: ["mcp", "server", "start"],
+    field: "examples",
+    before: ["memo personal mcp server start --public-url https://laptop.example.ts.net"],
+    after: ["memo mcp server start --public-url https://laptop.example.ts.net"],
+    reason:
+      "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
+  },
+  {
+    command: ["mcp", "server", "start"],
+    field: "options",
+    before: [
+      {
+        flags: "--port <port>",
+        description: "the local port (default 8765)",
+        takes_value: true,
+        mandatory: false,
+      },
+      {
+        flags: "--public-url <url>",
+        description: "the tunnel's https address the browser apps use, e.g. https://<name>.ts.net",
+        takes_value: true,
+        mandatory: false,
+      },
+      {
+        flags: "--permission <key=level>",
+        description: "make a permission stricter for this server only; repeat for more keys",
+        takes_value: true,
+        mandatory: false,
+      },
+    ],
+    after: [
+      {
+        flags: "--port <port>",
+        description: "the local port (default 8767)",
+        takes_value: true,
+        mandatory: false,
+      },
+      {
+        flags: "--public-url <url>",
+        description: "the tunnel's https address the browser apps use, e.g. https://<name>.ts.net",
+        takes_value: true,
+        mandatory: false,
+      },
+      {
+        flags: "--permission <key=level>",
+        description: "make a permission stricter for this server only; repeat for more keys",
+        takes_value: true,
+        mandatory: false,
+      },
+    ],
+    reason:
+      "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
+  },
+  {
+    command: ["mcp", "server", "stop"],
+    field: "examples",
+    before: ["memo personal mcp server stop"],
+    after: ["memo mcp server stop"],
+    reason:
+      "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
+  },
+  {
+    command: ["mcp", "server", "status"],
+    field: "examples",
+    before: ["memo personal mcp server status --json"],
+    after: ["memo mcp server status --json"],
     reason:
       "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
   },

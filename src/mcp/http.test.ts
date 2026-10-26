@@ -179,6 +179,29 @@ describe("Memo HTTP MCP", () => {
     await expect(fetch(base)).rejects.toThrow()
   })
 
+  it("shows a running server and its current login code in mcp server status, and frees the lock on close", async () => {
+    const { env, codes, close, base } = await start()
+    const status = async () => {
+      const streams = captureStreams()
+      const program = createProgram({ streams, env })
+      throwParseFailures(program)
+      await program.parseAsync(["mcp", "server", "status", "--json"], { from: "user" })
+      return JSON.parse(streams.stdout.join("")).item
+    }
+
+    expect(await status()).toMatchObject({
+      running: true,
+      by: "hand",
+      port: Number(base.port),
+      connector_url: new URL("/mcp", base).href,
+      login_code: { code: codes.at(-1) },
+      clients: [],
+    })
+    await close()
+    expect(await status()).toEqual(expect.objectContaining({ running: false }))
+    expect(await status()).not.toHaveProperty("stale")
+  })
+
   it("retains app logins across a normal server restart at the same origin", async () => {
     const env = fixture()
     const port = await portAvailable()

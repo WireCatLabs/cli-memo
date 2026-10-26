@@ -4,11 +4,14 @@ import { beforeAll, describe, expect, it } from "vitest"
 import { EXAMPLES } from "./examples.js"
 import { createProgram } from "./program.js"
 
+/** Groups that also run on their own, so they keep examples of their own. */
+const RUNNABLE_GROUPS = ["commands", "mcp"]
+
 const leaves = (command: Command, path: string[] = []): string[] =>
   command.commands.flatMap((child) =>
     child.commands.length
       ? [
-          ...(child.name() === "commands" ? [[...path, child.name()].join(" ")] : []),
+          ...(RUNNABLE_GROUPS.includes(child.name()) ? [[...path, child.name()].join(" ")] : []),
           ...leaves(child, [...path, child.name()]),
         ]
       : [[...path, child.name()].join(" ")],
@@ -23,7 +26,7 @@ const parse = async (args: string[]) => {
   const program = createProgram({ env: {} })
   const quiet = (command: Command): void => {
     command.exitOverride().configureOutput({ writeErr: () => {}, writeOut: () => {} })
-    if (command.commands.length === 0) command.action(() => {})
+    if (command.commands.length === 0 || RUNNABLE_GROUPS.includes(command.name())) command.action(() => {})
     for (const child of command.commands) quiet(child)
   }
   quiet(program)

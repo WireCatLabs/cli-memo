@@ -1,7 +1,7 @@
 import { join } from "node:path"
 import { CliError, resolvePaths, type Streams } from "@wirecat/cli-base"
 import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
-import { LOCAL_WRITE, sharedCommandTemplate } from "@wirecat/cli-core/cli"
+import { LOCAL_WRITE, mcpServerCommand, sharedCommandTemplate } from "@wirecat/cli-core/cli"
 import { type Command, Option } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { APP } from "../app.js"
@@ -49,6 +49,22 @@ const mcpCommandDefinition = (
         "permission",
       ]),
     )
+    .addCommand(
+      mcpServerCommand({
+        example: "memo",
+        defaultPort: DEFAULT_PORT,
+        target: () => ({
+          invocation: "memo",
+          envPrefix: APP.envPrefix,
+          env,
+          tokenFile: httpTokenFile(env),
+          argv: ["mcp", "--http"],
+          version: APP.version,
+        }),
+        answer: (self, item, lines) =>
+          out.print(self.optsWithGlobals<{ json?: boolean }>().json, itemAnswer(item), lines.join("\n")),
+      }),
+    )
     .action(async (options: McpOptions) => {
       if (!options.http && (options.port !== undefined || options.publicUrl !== undefined))
         throw new CliError("validation_error", "--port and --public-url require --http")
@@ -61,7 +77,7 @@ const mcpCommandDefinition = (
       const { createMemoServer } = await import("./server.js")
       const build = () => createMemoServer(env, createProgram, options.permission)
       if (options.http) {
-        const { MCP_PATH, portOf, publicUrlOf, serveOverHttp } = await import("@wirecat/cli-core/mcp")
+        const { MCP_PATH, httpLockFile, portOf, publicUrlOf, serveOverHttp } = await import("@wirecat/cli-core/mcp")
         const publicUrl = publicUrlOf(options.publicUrl, { missing: "--http", reaches: "the browser apps reach memo" })
         const port = portOf(options.port, DEFAULT_PORT)
         // Fail closed before opening a socket, even when no client has asked for tools yet.
@@ -77,10 +93,15 @@ const mcpCommandDefinition = (
             publicUrl,
             port,
             tokenFile: httpTokenFile(env),
+            lockFile: httpLockFile(httpTokenFile(env)),
+            version: APP.version,
             appName: "memo",
+            // Started by `mcp server start`, its log is a file: the code goes only to the lock that status reads.
             onCode: (code, expires) =>
               streams.diagnostic(
-                `login code for a new browser app: ${code} (until ${expires.toTimeString().slice(0, 5)})`,
+                env[`${APP.envPrefix}_MCP_HTTP`] === undefined
+                  ? `login code for a new browser app: ${code} (until ${expires.toTimeString().slice(0, 5)})`
+                  : "a new login code for a browser app: `memo mcp server status`",
               ),
             onError: (error) => streams.diagnostic(`mcp: ${error.message}`),
           }).catch((error: unknown) => {

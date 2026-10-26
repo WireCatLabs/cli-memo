@@ -2676,9 +2676,55 @@ memo mcp [options]
 | `--public-url <url>` | tunnel's HTTPS origin without /mcp; requires --http. |
 | `--revoke` | log every browser app out of Memo. |
 
-**Returns:** serve commands over stdio or authenticated HTTP
+### `memo mcp server`
 
-**Example:** `memo mcp`
+start, stop and check `mcp --http` in the background; status shows the login code for a browser app
+
+#### `memo mcp server start`
+
+start `mcp --http` apart from this shell and answer once it listens, with its login code
+
+This command changes the local store or your files.
+
+```sh
+memo mcp server start [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--port <port>` | the local port (default 8767). |
+| `--public-url <url>` | the tunnel's https address the browser apps use, e.g. https://<name>.ts.net. |
+| `--permission <key=level>` | make a permission stricter for this server only; repeat for more keys. |
+
+**Returns:** start the HTTP MCP server in the background
+
+**Example:** `memo mcp server start --public-url https://laptop.example.ts.net`
+
+#### `memo mcp server stop`
+
+stop `mcp --http` — only one that `mcp server start` started
+
+This command changes the local store or your files.
+
+```sh
+memo mcp server stop
+```
+
+**Returns:** stop the background HTTP MCP server
+
+**Example:** `memo mcp server stop`
+
+#### `memo mcp server status`
+
+whether `mcp --http` runs, on which port and address, the login code for a new browser app, and the apps logged in
+
+```sh
+memo mcp server status
+```
+
+**Returns:** whether the HTTP MCP server runs, its login code and the apps logged in
+
+**Example:** `memo mcp server status --json`
 
 ## `memo models`
 

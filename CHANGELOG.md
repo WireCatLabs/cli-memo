@@ -6,6 +6,14 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo mcp server start|stop|status` runs the HTTP MCP server in the background (cli-core 0.445.0).** `start`
+  takes `--public-url`, `--port` (default 8767) and `--permission` and answers once it listens; `status --json` gives
+  the port, the connector address, the current login code with when it runs out, and the apps logged in, each by the
+  name it gave itself; `stop` ends only a server `start` started. `memo mcp --http` now keeps a lock beside its token
+  file, so a second server is refused, and its login code renews when it runs out. WireCat Desktop uses these.
+
 ### Changed — may break callers
 
 - **A run keeps the command as typed (cli-core 0.440.0).** `memo runs show` and `run.json` now carry `argv`, the words
