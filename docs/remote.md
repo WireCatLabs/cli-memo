@@ -43,6 +43,18 @@ memo mcp --http --port 8768 --public-url https://device.example:8443
 Each WireCat server needs its own local port and public origin. Memo's default 8767 leaves tg and
 MAX's usual ports free. Follow the tunnel provider's rules when choosing a public port.
 
+To keep it running after the terminal closes, start it in the background instead. It answers once it listens,
+with the connector address and the login code:
+
+```sh
+memo mcp server start --public-url https://device.example
+memo mcp server status   # running, port, connector address, the current login code, apps logged in
+memo mcp server stop     # stops only a server that `mcp server start` started
+```
+
+The code is kept beside the token file (`mcp-http/memo.lock`, mode 600) and renews every ten minutes; a server
+started this way does not write it to its log. WireCat Desktop shows the same status under Tools → Memo → MCP server.
+
 ## Connect the app
 
 Add the connector address printed by Memo, ending in `/mcp`, in the app's remote MCP settings.
