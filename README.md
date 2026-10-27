@@ -115,7 +115,7 @@ More: [search](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md)
   gives them structured output.
 - **Evidence, not guesses** — `memo answers create` hands over sources with references, and says what it could not
   search.
-- **MCP** — `memo mcp` lets MCP apps such as Claude Desktop or Cursor read your messages, mail and notes, and
+- **MCP** — `memo mcp serve` lets MCP apps such as Claude Desktop or Cursor read your messages, mail and notes, and
   propose memories, directly recorded facts and outbound actions. Project proposals can also be decided
   by the agent when allowed; you can require owner decisions instead. Apps on the web or phone use
   [authenticated HTTP MCP](docs/remote.md) through your HTTPS tunnel, with the same saved permissions.
@@ -175,7 +175,7 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 | Open work | `memo tasks add` · `tasks list` · `tasks agenda` · `tasks show` · `tasks update` · `tasks assign` · `tasks close` · `stats tasks show` |
 | Task dependencies | `memo tasks link` / `unlink` / `relations` · `tasks status` · `tasks list project:HRB ready:true` |
 | Reminders | `memo reminders add` / `list` / `poll` / `ack` / `update` / `cancel` |
-| Agents | `memo memories …` · `facts …` · `actions …` · `agents list` · `memo mcp` |
+| Agents | `memo memories …` · `facts …` · `actions …` · `agents list` · `memo mcp serve` |
 
 Every command takes `--help`; most take `--json`. `memo guide` lists scenarios — the commands for a common task, in
 order — and `memo guide person-brief` gathers one person across every WireCat tool.
@@ -297,12 +297,12 @@ More: [tags](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tags.md) ·
 
 ## Agents and MCP
 
-An agent with a terminal runs `memo` with `--json`. An MCP app starts `memo mcp` on stdin and stdout. Through it
+An agent with a terminal runs `memo` with `--json`. An MCP app starts `memo mcp serve` on stdin and stdout. Through it
 the app can use Memo's commands, including writes, limited by the saved permissions and read lock.
 It can open search references with `notes_show` and `messages_show`. Existing tool names still work:
 
 ```json
-{ "mcpServers": { "memo": { "command": "memo", "args": ["mcp"] } } }
+{ "mcpServers": { "memo": { "command": "memo", "args": ["mcp", "serve"] } } }
 ```
 
 An agent's new memories, directly recorded facts and outbound action proposals start as `proposed`.

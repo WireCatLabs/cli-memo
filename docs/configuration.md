@@ -128,7 +128,7 @@ of meeting findings or replace the tool's other permission checks.
 | `MEMO_MODELS_ANALYSIS_PROVIDER`, `MEMO_MODELS_ANALYSIS_MODEL` | The AI provider and the model identifier (the name the provider uses for it) that `memo answers create --analyze` calls. |
 | `MEMO_MODELS_ANALYSIS_BASE_URL` | Optional: the provider's address. |
 | `MEMO_MODEL_API_KEY` | The provider's key. |
-| `MEMO_READ_ONLY` | Any value but `0` refuses every change with `permission_error` (exit 5): writes to the store, your files, mail at the provider, the timer, the skill files, `upgrade` and `answers create --allow-remote`. Reads, `memo sync` and `tasks link` still run (a link is only suggested, and linking two tasks is refused); `reminders claim` is refused; `memo mcp` marks writing commands unavailable. |
+| `MEMO_READ_ONLY` | Any value but `0` refuses every change with `permission_error` (exit 5): writes to the store, your files, mail at the provider, the timer, the skill files, `upgrade` and `answers create --allow-remote`. Reads, `memo sync` and `tasks link` still run (a link is only suggested, and linking two tasks is refused); `reminders claim` is refused; `memo mcp serve` marks writing commands unavailable. |
 
 Memo calls a provider outside your computer only when `memo answers create` has both `--analyze` and
 `--allow-remote`. See [give your agent the sources](search.md#give-your-agent-the-sources).
@@ -155,5 +155,5 @@ key to `ask` or `allow` to delegate one of these owner operations. `agent_decisi
 project proposal decisions. The shared WireCat read ceiling and `MEMO_READ_ONLY` cap every permission.
 
 Supported commands stay visible with their current availability. Saved permission changes take effect
-on existing connections too. `memo mcp --permission notes.edit=deny` tightens one key for that server
+on existing connections too. `memo mcp serve --permission notes.edit=deny` tightens one key for that server
 without changing the file; an override that loosens any saved key is refused.

@@ -1,40 +1,70 @@
 import type { SharedContractOverride } from "@wirecat/cli-base/commands"
 
+const REASON =
+  "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app."
+
 // Reviewed differences from Core; update only after reviewing both definitions.
 export const mcp: readonly SharedContractOverride[] = [
   {
     command: ["mcp"],
     field: "summary",
-    before: "serve this profile's commands to an AI agent",
+    before: "serve this profile's commands to an AI agent, and set that up",
     after: "serve commands over stdio or authenticated HTTP",
-    reason:
-      "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
+    reason: REASON,
   },
   {
     command: ["mcp"],
     field: "description",
+    before: "serve this profile to an agent over MCP and set it up — `claude mcp add memo -- memo <profile> mcp serve`",
+    after:
+      "serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions — `claude mcp add memo -- memo mcp serve`",
+    reason: REASON,
+  },
+  {
+    command: ["mcp"],
+    field: "options",
+    before: [],
+    after: [{ flags: "--json", description: "print JSON", takes_value: false, mandatory: false }],
+    reason: REASON,
+  },
+  {
+    command: ["mcp"],
+    field: "children",
+    before: ["serve", "revoke", "server", "config", "add", "check"],
+    after: ["serve", "revoke", "server"],
+    reason: REASON,
+  },
+  {
+    command: ["mcp", "serve"],
+    field: "summary",
+    before: "serve this profile's commands to an AI agent",
+    after: "serve memo commands to an AI agent",
+    reason: REASON,
+  },
+  {
+    command: ["mcp", "serve"],
+    field: "description",
     before:
-      "serve this profile to an agent over MCP, on stdin and stdout — `claude mcp add memo -- memo <profile> mcp`; with no profile, `memo mcp` serves every profile and each tool asks which",
+      "serve this profile to an agent over MCP, on stdin and stdout — `claude mcp add memo -- memo <profile> mcp serve`; with no profile, `memo mcp serve` serves every profile and each tool asks which",
     after: "serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions",
-    reason:
-      "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
+    reason: REASON,
   },
   {
-    command: ["mcp"],
+    command: ["mcp", "serve"],
     field: "effects",
-    before: {
-      remote: "write",
-      local: "write",
-    },
-    after: {
-      remote: "none",
-      local: "write",
-    },
-    reason:
-      "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
+    before: { remote: "write", local: "write" },
+    after: { remote: "none", local: "write" },
+    reason: REASON,
   },
   {
-    command: ["mcp"],
+    command: ["mcp", "serve"],
+    field: "examples",
+    before: ["memo personal mcp serve", "memo personal mcp serve --http --public-url https://laptop.example.ts.net"],
+    after: ["memo mcp serve", "memo mcp serve --http --public-url https://laptop.example.ts.net"],
+    reason: REASON,
+  },
+  {
+    command: ["mcp", "serve"],
     field: "options",
     before: [
       {
@@ -64,24 +94,12 @@ export const mcp: readonly SharedContractOverride[] = [
         takes_value: true,
         mandatory: false,
       },
-      {
-        flags: "--revoke",
-        description: "forget every login given to a browser app; each must log in again",
-        takes_value: false,
-        mandatory: false,
-      },
     ],
     after: [
       {
         flags: "--permission <key=level>",
         description: "tighten one saved permission for this server; repeat for more keys",
         takes_value: true,
-        mandatory: false,
-      },
-      {
-        flags: "--json",
-        description: "print the revocation receipt as JSON",
-        takes_value: false,
         mandatory: false,
       },
       {
@@ -103,43 +121,36 @@ export const mcp: readonly SharedContractOverride[] = [
         takes_value: true,
         mandatory: false,
       },
-      {
-        flags: "--revoke",
-        description: "log every browser app out of Memo",
-        takes_value: false,
-        mandatory: false,
-        conflicts: ["http", "port", "publicUrl", "permission"],
-      },
     ],
-    reason:
-      "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
+    reason: REASON,
   },
   {
-    command: ["mcp"],
-    field: "children",
-    before: ["server", "config", "add", "check"],
-    after: ["server"],
-    reason:
-      "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
+    command: ["mcp", "revoke"],
+    field: "description",
+    before:
+      "forget every login `mcp serve --http` gave a browser app, of this profile or, with no profile, of the server of every profile; each app must log in again",
+    after: "forget every login `memo mcp serve --http` gave a browser app; each app must log in again",
+    reason: REASON,
+  },
+  {
+    command: ["mcp", "revoke"],
+    field: "examples",
+    before: ["memo personal mcp revoke"],
+    after: ["memo mcp revoke --json"],
+    reason: REASON,
   },
   {
     command: ["mcp", "server", "start"],
     field: "examples",
     before: ["memo personal mcp server start --public-url https://laptop.example.ts.net"],
     after: ["memo mcp server start --public-url https://laptop.example.ts.net"],
-    reason:
-      "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
+    reason: REASON,
   },
   {
     command: ["mcp", "server", "start"],
     field: "options",
     before: [
-      {
-        flags: "--port <port>",
-        description: "the local port (default 8765)",
-        takes_value: true,
-        mandatory: false,
-      },
+      { flags: "--port <port>", description: "the local port (default 8765)", takes_value: true, mandatory: false },
       {
         flags: "--public-url <url>",
         description:
@@ -155,12 +166,7 @@ export const mcp: readonly SharedContractOverride[] = [
       },
     ],
     after: [
-      {
-        flags: "--port <port>",
-        description: "the local port (default 8767)",
-        takes_value: true,
-        mandatory: false,
-      },
+      { flags: "--port <port>", description: "the local port (default 8767)", takes_value: true, mandatory: false },
       {
         flags: "--public-url <url>",
         description:
@@ -175,23 +181,20 @@ export const mcp: readonly SharedContractOverride[] = [
         mandatory: false,
       },
     ],
-    reason:
-      "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
+    reason: REASON,
   },
   {
     command: ["mcp", "server", "stop"],
     field: "examples",
     before: ["memo personal mcp server stop"],
     after: ["memo mcp server stop"],
-    reason:
-      "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
+    reason: REASON,
   },
   {
     command: ["mcp", "server", "status"],
     field: "examples",
     before: ["memo personal mcp server status --json"],
     after: ["memo mcp server status --json"],
-    reason:
-      "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
+    reason: REASON,
   },
 ]

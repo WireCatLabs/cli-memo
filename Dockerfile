@@ -4,4 +4,4 @@ FROM node:24-slim
 # hadolint ignore=DL3016
 RUN npm install -g @wirecat/cli-memo && npm cache clean --force
 USER node
-CMD ["memo", "mcp"]
+CMD ["memo", "mcp", "serve"]
