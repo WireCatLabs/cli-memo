@@ -19,6 +19,11 @@ the API.
 
 ### Fixed
 
+- **`memo` starts in about half the time: the package runs from a bundle.** A command loaded about a thousand module
+  files before doing any work; it now loads a few dozen that hold the same code, built by cli-base's
+  `cli-dev bundle`. Warm `memo search all --help` went from 420 to 186 ms, `memo --version` from 39 to 18 ms. Output
+  is unchanged. A running `memo mcp serve` loads all of its code soon after it starts, so upgrading `memo` in place
+  does not break it. The package is larger: 3.1 MB to download instead of 0.4 MB.
 - **`memo mcp --json` refuses the flag with a JSON `validation_error` (exit 2)**, as `memo notes --json` and
   `memo mail --json` do; it printed the group's help and nothing in JSON. `mcp revoke` and `mcp server
   start|stop|status` now take `--json` themselves, so it goes after the command: `memo mcp revoke --json`, no longer
