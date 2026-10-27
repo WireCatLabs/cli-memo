@@ -139,6 +139,7 @@ export const importMail = async ({
   resumeFrom = RESUME_FROM,
   indexThreads = embedChanged,
   embedMail = embedMailChunks,
+  signal,
 }: {
   store: MessageStore
   source: MailSource
@@ -158,6 +159,8 @@ export const importMail = async ({
   resumeFrom?: number
   indexThreads?: typeof embedChanged
   embedMail?: typeof embedMailChunks
+  /** Stops between batches of emails, after saving the resume point. */
+  signal?: AbortSignal
 }): Promise<ImportResult> => {
   if (retryAttachments)
     return retryUnread({
@@ -431,10 +434,16 @@ export const importMail = async ({
     savedAt = now()
     await saveProgress()
   }
+  const stopIfAborted = async () => {
+    if (!signal?.aborted) return
+    await saveNow(true)
+    throw signal.reason
+  }
   await saveNow(true)
 
   // An envelope costs nothing more from the source: its fields were read with the listing.
   for (const { item, rule } of toRecord) {
+    await stopIfAborted()
     const headers = item.headers
     await store.mail.saveThread({
       accountId,
@@ -470,8 +479,10 @@ export const importMail = async ({
     await saveNow()
   }
   for (let start = 0; start < pending.length; start += FETCH_CHUNK) {
+    await stopIfAborted()
     const chunk = pending.slice(start, start + FETCH_CHUNK)
     const raws = await source.fetchRaw(chunk)
+    await stopIfAborted()
     // Every email of a chunk failing is the connection or the login, not the mail: stop instead of trying the rest.
     if (chunk.length > 1 && raws.every((raw) => raw instanceof Error)) throw raws[0]
     for (const [index, item] of chunk.entries()) {
@@ -556,6 +567,7 @@ export const importMail = async ({
   )
   if (bulk.size) await store.mail.setMailboxes(accountId, [bulkBox], bulk, startedAt)
   if (!snapshot) await store.sync.setSyncState(key, "mail_folder_scope", scope)
+  await stopIfAborted()
   const embedding = { embed: embed && account.embed !== false, ...(env === undefined ? {} : { env }) }
   // Chats an earlier import saved as messages may still wait for vectors; the mail tables have their own.
   const older = await indexThreads(store, key, [], embedding)

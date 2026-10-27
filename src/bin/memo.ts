@@ -29,7 +29,7 @@ await startCli({
     }
     const { updateNotice } = await import("../update.js")
     const notice = updateNotice(entry.args)
-    program = createProgram()
+    program = createProgram({ signal: entry.signal })
     program.hook("preAction", (_root, command) => entry.atStart(command))
     failure.throwParseFailures(program)
     refuseJoinedPath(program, entry.args)

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Stands in for himalaya in tests: answers `imap raw` and `imap fetch` from the mailbox JSON at
 // MEMO_FAKE_MAILBOX, in the shapes Himalaya 2.2.1 printed against a real Gmail account.
-import { appendFileSync, readFileSync, writeFileSync } from "node:fs"
+import { appendFileSync, existsSync, readFileSync, writeFileSync } from "node:fs"
 
 const mailbox = JSON.parse(readFileSync(process.env.MEMO_FAKE_MAILBOX, "utf8"))
 const args = process.argv.slice(2)
@@ -166,6 +166,17 @@ if (args[0] === "imap" && args[1] === "raw") {
   process.stdout.write(`${out.join("\r\n")}\r\n`)
 } else if (args.includes("imap") && args.includes("fetch")) {
   const set = args[args.indexOf("fetch") + 1].split(",")
+  // `stallFetch: n` hangs the nth fetch, after writing this process's id to `<mailbox>.stalled`, so a test can stop
+  // a sync mid-import.
+  if (mailbox.stallFetch) {
+    const counter = `${process.env.MEMO_FAKE_MAILBOX}.fetches`
+    const count = (existsSync(counter) ? Number(readFileSync(counter, "utf8")) : 0) + 1
+    writeFileSync(counter, String(count))
+    if (count === mailbox.stallFetch) {
+      writeFileSync(`${process.env.MEMO_FAKE_MAILBOX}.stalled`, String(process.pid))
+      await new Promise((wake) => setTimeout(wake, 60_000))
+    }
+  }
   if (set.some((uid) => mailbox.unreadable?.includes(uid))) {
     process.stderr.write("fake himalaya: unreadable message\n")
     process.exit(1)

@@ -40,6 +40,10 @@ An import reads your folders and mail accounts and brings the local store up to 
 
 Two Memo imports never run at the same time, and one source that fails does not stop the others.
 
+An import can be stopped at any time with Ctrl-C or `kill <pid>` (SIGTERM). It stops at the next batch of
+emails or the next folder, keeps what it read, and the next `memo sync` continues from there. `--timeout 10m`
+stops it the same way after ten minutes; with no `--timeout` it has no time limit.
+
 ## Folders on more than one computer
 
 When you add a folder, Memo gives it an ID (a short number) in the local store. Notes and links use

@@ -3048,6 +3048,7 @@ memo sync [options]
 | `--retry-attachments` | mail: reread stored emails' attachments that an older memo or a broken install left unread. |
 | `--rescan` | mail: list every message again, not only mail an earlier run left; also checks deletions. |
 | `--no-embed` | skip embedding notes and mail for search by meaning this run. |
+| `--timeout <duration>` | stop after this long, e.g. 10m; progress so far is kept (default: no limit). |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** bring notes and mail up to date in the store, only what changed

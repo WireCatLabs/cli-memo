@@ -36,6 +36,10 @@ the API.
 
 ### Fixed
 
+- **`memo sync` stops on Ctrl-C and SIGTERM**, where it used to ignore SIGTERM and run to the end. It stops at the
+  next batch of emails, mail account or notes folder, keeps the resume point, ends a running himalaya, releases the
+  import lock, and fails with `cancelled` (exit 130). **`memo sync --timeout <duration>`** stops it the same way at
+  a deadline, with `timeout` (exit 9); without it a sync has no time limit, as before.
 - **Memo's agent skill publishes to ClawHub as `cli-memo` again.** ClawHub keeps skill names per publisher, so
   `wirecat/cli-memo` is memo's own name, and every WireCat tool's skill now uses its plain name. The next release
   publishes it as `cli-memo` 1.0.1. `memo skill install` still writes `skills/cli-memo/`.

@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process"
+import { setTimeout as sleep } from "node:timers/promises"
 import { CliError } from "@wirecat/cli-base"
 import { providerRequest } from "@wirecat/cli-core/cli"
 
@@ -70,14 +71,14 @@ export const operationOf = (args: readonly string[]): string =>
   ["himalaya", ...args.slice(0, 2).filter((word) => WORD.test(word))].join(".")
 
 const once =
-  (env: NodeJS.ProcessEnv): Himalaya =>
+  (env: NodeJS.ProcessEnv, signal?: AbortSignal): Himalaya =>
   (args, input, options) =>
     new Promise((resolve, reject) => {
       const answered = providerRequest(operationOf(args))
       const child = execFile(
         env.MEMO_HIMALAYA ?? "himalaya",
         args,
-        { env, maxBuffer: options?.maxBuffer ?? 64 * 1024 * 1024 },
+        { env, maxBuffer: options?.maxBuffer ?? 64 * 1024 * 1024, ...(signal ? { signal } : {}) },
         (error, stdout, stderr) => {
           if (error === null) {
             answered({ status: 0 })
@@ -85,6 +86,7 @@ const once =
           }
           const exit = (error as ExecFailure).code
           answered({ ...(typeof exit === "number" ? { status: exit } : {}), error })
+          if (signal?.aborted) return reject(signal.reason)
           const what = `himalaya ${args[0] ?? ""} ${args[1] ?? ""}`.trim()
           if (isThrottled(stderr) || isThrottled(String(stdout).slice(-4096))) return reject(throttledError(what))
           const failure = error as ExecFailure
@@ -116,17 +118,15 @@ const once =
       child.stdin?.end(input ?? "")
     })
 
-const pause = (ms: number) => new Promise((done) => setTimeout(done, ms))
-
 /**
  * `MEMO_HIMALAYA` names the program, so the test sandbox can point it at a fake. A read that fails is tried once
  * more after `MEMO_HIMALAYA_RETRY_MS` (15 s): six failed runs in two days (2026-10-14/15) each passed on the next run.
  * A failed login is not: with two accounts it held sync for a minute.
  */
 export const himalaya =
-  (env: NodeJS.ProcessEnv = process.env): Himalaya =>
+  (env: NodeJS.ProcessEnv = process.env, signal?: AbortSignal): Himalaya =>
   async (args, input, options) => {
-    const run = once(env)
+    const run = once(env, signal)
     try {
       return await run(args, input, options)
     } catch (error) {
@@ -137,7 +137,10 @@ export const himalaya =
         !error.message.includes("too large") &&
         !WRITES.test(input ?? "")
       if (!again) throw error
-      await pause(Number(env.MEMO_HIMALAYA_RETRY_MS ?? 15_000))
+      // Stop sends SIGKILL 5 s after SIGTERM; a 15 s wait would lose the resume point.
+      await sleep(Number(env.MEMO_HIMALAYA_RETRY_MS ?? 15_000), undefined, signal ? { signal } : {}).catch(() => {
+        throw signal?.reason
+      })
       return run(args, input, options)
     }
   }
