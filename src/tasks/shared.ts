@@ -20,9 +20,9 @@ import {
   writeOptions,
 } from "../store/source-list.js"
 
-const SHARED = ["agenda", "update", "show", "link"] as const
+const SHARED = ["agenda", "update", "show", "link", "claim", "release"] as const
 /** These change a task and name the account they act as with `--account`; the rest read with `--source`. */
-const WRITES: ReadonlySet<string> = new Set(["update", "link"])
+const WRITES: ReadonlySet<string> = new Set(["update", "link", "claim", "release"])
 /** `task:15`, a bare id or a project key: a `tasks link` target that needs no messenger account. */
 const TASKISH = /^(task:.+|\d+|[A-Z][A-Z0-9]*-\d+)$/
 
@@ -46,8 +46,8 @@ const messenger: Messenger = {
 
 /**
  * Never one picked for the owner: a command that names no account fails, listing the ones the store holds.
- * `tasks link` between two project tasks and `tasks show` of one need none: project tasks belong to no messenger
- * account.
+ * `tasks link` between two project tasks, and `tasks show`, `update`, `claim` or `release` of one, need none: project
+ * tasks belong to no messenger account.
  */
 const requireAccount =
   (env: NodeJS.ProcessEnv, warn: (text: string) => void) => async (_: Command, command: Command) => {
@@ -71,7 +71,11 @@ const requireAccount =
         targets.every((one) => TASKISH.test(one))
       )
         return
-      if (["show", "update"].includes(command.name()) && first !== undefined && (await store.tasks.projectTask(first)))
+      if (
+        ["show", "update", "claim", "release"].includes(command.name()) &&
+        first !== undefined &&
+        (await store.tasks.projectTask(first))
+      )
         return
       const listed = (await store.accounts.accounts())
         .map((key) => `${option} ${key.provider}:${key.account}`)
@@ -97,8 +101,9 @@ const scoped = (command: Command, env: NodeJS.ProcessEnv, warn: (text: string) =
   )
 
 /**
- * `tasks agenda|update|show|link` and `stats tasks show` are cli-core's builders, the ones tg and max have, mounted
- * with memo's own `--source`, or `--account` for update and link, resolved to one account (`Messenger.accountOf`).
+ * `tasks agenda|update|show|link|claim|release` and `stats tasks show` are cli-core's builders, the ones tg and max
+ * have, mounted with memo's own `--source`, or `--account` for the writes, resolved to one account
+ * (`Messenger.accountOf`).
  */
 export const sharedTaskCommands = (program: Command, tasks: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   provide(program, { streams, env })

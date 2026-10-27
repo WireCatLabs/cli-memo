@@ -106,3 +106,26 @@ it("shows a project task with no account, and still asks for one for a messenger
       message: expect.stringContaining("--source telegram:500"),
     })
 })
+
+it("**claims and releases a task** with tg's builders, one holder at a time, for a project task too", async () => {
+  const { run } = await setUp()
+  const task = (await run("tasks", "agenda", ...scope, "--json")).json().item.tasks[0].key
+  const mine = [...acts, "--holder", "session-1", "--json"]
+
+  expect((await run("tasks", "claim", task, "--lease", "2h", ...mine)).json().item).toMatchObject({
+    claimed_by: "session-1",
+  })
+  await expect(run("tasks", "claim", task, ...acts, "--holder", "session-2", "--json")).rejects.toMatchObject({
+    message: expect.stringContaining("session-1 holds task"),
+  })
+  expect((await run("tasks", "release", task, ...mine)).json().item.claimed_by).toBeNull()
+
+  await run("projects", "add", "Harbour Example", "--key", "HRB", "--json")
+  await run("tasks", "add", "--project", "HRB", "--title", "Send the survey", "--json")
+  expect((await run("tasks", "claim", "HRB-1", "--holder", "session-1", "--json")).json().item.claimed_by).toBe(
+    "session-1",
+  )
+  await expect(run("tasks", "claim", task, "--holder", "session-1", "--json")).rejects.toMatchObject({
+    message: expect.stringContaining("--account telegram:500"),
+  })
+})
