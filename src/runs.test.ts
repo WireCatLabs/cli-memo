@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
@@ -42,18 +42,33 @@ const typed = ["search", "notes", "Kai Sample +34612345678", "--api-key", "fake-
 
 const kept = (env: NodeJS.ProcessEnv) => listRuns(runsDirFor(APP, env)).map(({ command, status }) => [command, status])
 
-it("keeps a failed command, and a successful one only under --record", async () => {
+it("keeps every command, and only the failed ones under record false", async () => {
   const env = sandbox()
   await memo(env, ["agents", "list", "--json"])
-  expect(kept(env)).toEqual([])
-
-  await memo(env, ["agents", "list", "--json", "--record"])
   await memo(env, ["notes", "show", "note:999999", "--json"])
   expect(kept(env)).toEqual([
     ["notes show", "failed"],
     ["agents list", "success"],
   ])
   for (const run of listRuns(runsDirFor(APP, env))) expect(run).not.toHaveProperty("profile")
+
+  const quiet = sandbox()
+  mkdirSync(quiet.MEMO_CONFIG_DIR ?? "", { recursive: true })
+  writeFileSync(join(quiet.MEMO_CONFIG_DIR ?? "", "config.json"), JSON.stringify({ record: false }))
+  await memo(quiet, ["agents", "list", "--json"])
+  await memo(quiet, ["notes", "show", "note:999999", "--json"])
+  expect(kept(quiet)).toEqual([["notes show", "failed"]])
+})
+
+it("takes record_input failed and the success retention and size limit", async () => {
+  const env = sandbox()
+  mkdirSync(env.MEMO_CONFIG_DIR ?? "", { recursive: true })
+  writeFileSync(
+    join(env.MEMO_CONFIG_DIR ?? "", "config.json"),
+    JSON.stringify({ record_input: "failed", keep_successful_runs_for_days: 3, runs_size_limit_mb: 50 }),
+  )
+  await memo(env, typed)
+  expect(argvOfRun(env)?.join(" ")).toContain("Kai Sample")
 })
 
 it("keeps a usage mistake under the words that name a command, never its arguments", async () => {
@@ -131,12 +146,15 @@ it("names a himalaya call by its subcommand words only", async () => {
     himalaya(env)(["account", "list", "--config", "/home/kai/secret.toml"]).catch(() => undefined),
   )
   const { lines } = recorded(env)
-  expect(lines.map(({ event, operation, status, outcome }) => ({ event, operation, status, outcome }))).toEqual([
-    { event: "provider.request", operation: "himalaya.account.list", status: undefined, outcome: undefined },
-    { event: "provider.response", operation: "himalaya.account.list", status: 1, outcome: "error" },
-    { event: "provider.request", operation: "himalaya.account.list", status: undefined, outcome: undefined },
-    { event: "provider.response", operation: "himalaya.account.list", status: 1, outcome: "error" },
+  expect(
+    lines.map(({ event, status, outcome, attempt, wait_ms }) => [event, status, outcome, attempt, wait_ms]),
+  ).toEqual([
+    ["provider.request", undefined, undefined, 1, undefined],
+    ["provider.response", 1, "error", 1, undefined],
+    ["provider.request", undefined, undefined, 2, 0],
+    ["provider.response", 1, "error", 2, 0],
   ])
+  expect(new Set(lines.map(({ operation }) => operation))).toEqual(new Set(["himalaya.account.list"]))
   expect(JSON.stringify(lines)).not.toContain("secret")
 })
 
@@ -157,6 +175,45 @@ it("records RDAP questions without the domain asked about", async () => {
     "rdap.bootstrap",
     "rdap.domain",
   ])
+  expect(lines.at(-1)).toMatchObject({ method: "GET", endpoint_template: "/domain/:id", transport: "http", attempt: 1 })
   expect(text).not.toContain("kai-sample")
   expect(text).toContain('"status":404')
+})
+
+it("names a throttled mail account mail.throttled, without what himalaya printed", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "memo-himalaya-"))
+  const program = join(dir, "himalaya")
+  writeFileSync(program, '#!/bin/sh\necho "b NO [THROTTLED] Kai Sample exceeded bandwidth limits" >&2\nexit 1\n')
+  chmodSync(program, 0o755)
+  const env = { ...sandbox(), MEMO_HIMALAYA: program }
+  await withRecording(env, () => himalaya(env)(["envelope", "list"]).catch(() => undefined))
+  const { lines, text } = recorded(env)
+  expect(lines.filter(({ event }) => event === "provider.response").map((line) => line.provider_error)).toEqual([
+    "mail.throttled",
+  ])
+  expect(text).not.toMatch(/Kai|THROTTLED|bandwidth/)
+})
+
+it("names an RDAP refusal by its errorCode only, and not at all from a large or non-JSON body", async () => {
+  const nameOf = async (body: string) => {
+    const env = sandbox()
+    const answers: Record<string, () => Response> = {
+      "https://data.iana.org/rdap/dns.json": () => Response.json({ services: [[["test"], ["https://rdap.example/"]]] }),
+    }
+    await withRecording(env, () =>
+      lookUpAges(env, ["kai-sample.test"], {
+        fetch: async (input) => answers[String(input)]?.() ?? new Response(body, { status: 429 }),
+        sleep: async () => {},
+        now: () => new Date("2026-10-25T00:00:00Z"),
+      }),
+    )
+    const { lines, text } = recorded(env)
+    expect(text).not.toMatch(/Kai|quota/)
+    return lines.at(-1)?.provider_error
+  }
+  expect(
+    await nameOf(JSON.stringify({ errorCode: 429, title: "Kai Sample", description: ["quota for kai-sample.test"] })),
+  ).toBe("rdap.429")
+  expect(await nameOf(JSON.stringify({ errorCode: 429, description: ["x".repeat(5000)] }))).toBeUndefined()
+  expect(await nameOf("<html>Kai Sample quota</html>")).toBeUndefined()
 })

@@ -71,10 +71,14 @@ export const operationOf = (args: readonly string[]): string =>
   ["himalaya", ...args.slice(0, 2).filter((word) => WORD.test(word))].join(".")
 
 const once =
-  (env: NodeJS.ProcessEnv, signal?: AbortSignal): Himalaya =>
+  (
+    env: NodeJS.ProcessEnv,
+    signal?: AbortSignal,
+    retry: { attempt: number; waitMs?: number } = { attempt: 1 },
+  ): Himalaya =>
   (args, input, options) =>
     new Promise((resolve, reject) => {
-      const answered = providerRequest(operationOf(args))
+      const answered = providerRequest(operationOf(args), undefined, retry)
       const child = execFile(
         env.MEMO_HIMALAYA ?? "himalaya",
         args,
@@ -85,10 +89,18 @@ const once =
             return resolve(stdout)
           }
           const exit = (error as ExecFailure).code
-          answered({ ...(typeof exit === "number" ? { status: exit } : {}), error })
+          const printed = stderrTail(stderr)
+          const tail = printed.length ? printed : errorReport(String(stdout))
+          const throttled =
+            isThrottled(stderr) || isThrottled(String(stdout).slice(-4096)) || isThrottled(tail.join("\n"))
+          answered({
+            ...(typeof exit === "number" ? { status: exit } : {}),
+            error,
+            ...(throttled ? { providerError: "mail.throttled" } : {}),
+          })
           if (signal?.aborted) return reject(signal.reason)
           const what = `himalaya ${args[0] ?? ""} ${args[1] ?? ""}`.trim()
-          if (isThrottled(stderr) || isThrottled(String(stdout).slice(-4096))) return reject(throttledError(what))
+          if (throttled) return reject(throttledError(what))
           const failure = error as ExecFailure
           if (failure.code === "ENOENT")
             return reject(
@@ -98,9 +110,6 @@ const once =
                 }),
               ),
             )
-          const printed = stderrTail(stderr)
-          const tail = printed.length ? printed : errorReport(String(stdout))
-          if (isThrottled(tail.join("\n"))) return reject(throttledError(what))
           const ended = howItEnded(failure)
           const said =
             tail.at(-1) ?? (/maxBuffer/i.test(failure.message) ? "its answer was too large" : "no error text")
@@ -126,9 +135,8 @@ const once =
 export const himalaya =
   (env: NodeJS.ProcessEnv = process.env, signal?: AbortSignal): Himalaya =>
   async (args, input, options) => {
-    const run = once(env, signal)
     try {
-      return await run(args, input, options)
+      return await once(env, signal)(args, input, options)
     } catch (error) {
       const again =
         error instanceof CliError &&
@@ -138,9 +146,10 @@ export const himalaya =
         !WRITES.test(input ?? "")
       if (!again) throw error
       // Stop sends SIGKILL 5 s after SIGTERM; a 15 s wait would lose the resume point.
-      await sleep(Number(env.MEMO_HIMALAYA_RETRY_MS ?? 15_000), undefined, signal ? { signal } : {}).catch(() => {
+      const waitMs = Number(env.MEMO_HIMALAYA_RETRY_MS ?? 15_000)
+      await sleep(waitMs, undefined, signal ? { signal } : {}).catch(() => {
         throw signal?.reason
       })
-      return run(args, input, options)
+      return once(env, signal, { attempt: 2, waitMs })(args, input, options)
     }
   }
