@@ -393,7 +393,11 @@ it("search all finds calendar events in every calendar, names each one read, and
   ])
   expect(events.items[0].ref).toMatch(/^event:\d+$/)
   expect(events.items[0].untrusted).toEqual(["title", "excerpt"])
-  expect(answer.items.find((item: { kind: string }) => item.kind === "message")).not.toHaveProperty("untrusted")
+  expect(answer.items.find((item: { kind: string }) => item.kind === "message")?.untrusted).toEqual([
+    "title",
+    "excerpt",
+    "sender_name",
+  ])
   expect(events.meta.accounts.sort()).toEqual([
     "google-calendar:home@example.test",
     "google-calendar:work@example.test",

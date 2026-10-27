@@ -2855,7 +2855,7 @@ memo search messages <query> [options]
 | `--brief` | each message as reference, time, sender and excerpt only. |
 | `--full` | each message with its whole text; --json still gives the excerpt. |
 
-**Returns:** message hit — ref, timestamp, sender_name, chat_title, excerpt, matched_in, score, match, and 5 more; every field: memo commands info search messages
+**Returns:** message hit — ref, timestamp, sender_name, chat_title, excerpt, matched_in, score, match, and 6 more; every field: memo commands info search messages
 
 **Next usually:** `memo messages show <message>`
 
@@ -2884,7 +2884,7 @@ memo search mail <query> [options]
 | `--source <accounts>` | the mailboxes to search (default: every one): email:<account> (its name in mail.accounts or its address), email or group:<name>. |
 | `--plain-order` | best first by the words alone, without moving mail from suspicious senders down. |
 
-**Returns:** message hit — ref, timestamp, sender_name, chat_title, excerpt, matched_in, score, match, and 5 more; every field: memo commands info search mail
+**Returns:** message hit — ref, timestamp, sender_name, chat_title, excerpt, matched_in, score, match, and 6 more; every field: memo commands info search mail
 
 **Next usually:** `memo messages show <message>`
 
@@ -2913,7 +2913,7 @@ memo search notes <query> [options]
 | `--page <n>` | which page, from 1. Default: `1`. |
 | `--project <project>` | rank the key documents of this project (id, project:<id>, key, exact name or alias) first, labelled key; nothing is left out. |
 
-**Returns:** note hit — ref, source, folder_id, path, title, updated_at, kind, provider, and 5 more; every field: memo commands info search notes
+**Returns:** note hit — ref, source, folder_id, path, title, updated_at, kind, provider, and 6 more; every field: memo commands info search notes
 
 **Next usually:** `memo notes show <note>`
 
@@ -2993,7 +2993,7 @@ memo search meetings <query> [options]
 | `--source <accounts>` | the meeting account: provider:account (zoom:me@example.com), or a provider that has one. |
 | `--json` | print the standard JSON answer. |
 
-**Returns:** meeting hit — ref, meeting, scope, id, excerpt, offset_ms, match, corrections, and 1 more; every field: memo commands info search meetings
+**Returns:** meeting hit — ref, meeting, scope, id, excerpt, offset_ms, match, corrections, and 2 more; every field: memo commands info search meetings
 
 **Example:** `memo search meetings budget --source zoom:me@example.com --project Harbour --since-time 2026-10-01 --limit 10 --json`
 
@@ -3230,7 +3230,7 @@ the instructions an agent is given for this tool
 
 ### `memo skill show`
 
-print SKILL.md — `memo skill install` puts it where Claude Code, Codex and Gemini CLI look for it; --for prints the copy already there
+print SKILL.md — `memo skill install` puts it where Claude Code, Codex, Gemini CLI and OpenClaw look for it, and where Hermes does on request; --for prints the copy already there
 
 ```sh
 memo skill show [options]
