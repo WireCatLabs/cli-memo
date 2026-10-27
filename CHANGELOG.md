@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.117.0 — 27.10.2026
+
 ### Added
 
 - **The skill tells an agent never to ask for a mail or app password in the chat**: the owner adds a mail account
