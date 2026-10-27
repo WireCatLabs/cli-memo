@@ -43,6 +43,12 @@ the API.
   its `args` to `["mcp", "serve"]`; set Claude Code up with `claude mcp add memo -- memo mcp serve`.
   `memo mcp server start` runs `mcp serve --http` and still passes `--permission` on.
 - **Re-run `memo mcp add` or `memo mcp config`** after this upgrade, so your AI app starts `memo mcp serve`.
+- **`memo skill show`, `skill status` and `skill install` answer `--json` as `{ item, meta }` (cli-core 0.462.0).**
+  What was the whole answer is now under `item`, like every other single-thing answer.
+- **A run says who asked for it (cli-core).** `run.json` gains `via` (`cli`, `mcp-stdio`, `mcp-http`, `desktop`),
+  `mcp` (tool, request and connection ids) and `agent.client` (the AI app's name and version). Over HTTP the agent
+  is the browser app's MCP session, no longer whichever agent started `mcp serve --http`. A reader that checks a run
+  against an older copy of its shape refuses the new fields.
 - **Every run is now kept, successes too (cli-core record-every-run).** Before, only failed runs were kept unless
   `--record` or `record: true`. A successful run stays 7 days (`keep_successful_runs_for_days`), a failed one 30
   (`keep_runs_for_days`), and the runs folder stays under `runs_size_limit_mb` (200 MB; the oldest successes go
