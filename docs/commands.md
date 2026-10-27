@@ -12,7 +12,7 @@ These options work with the `memo` command itself.
 |---|---|
 | `-V, --version` | output the version number. |
 | `--debug` | on failure, show the full error record: cause and stack. |
-| `--record` | keep this run, with the command as typed and secrets hidden; record_input false leaves the typed words out. |
+| `--record` | keep this run even where the config says record false; record_input false leaves the typed words out. |
 | `--no-record` | do not keep this run, even if it fails. |
 
 ## `memo context`

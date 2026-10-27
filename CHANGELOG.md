@@ -10,6 +10,13 @@ the API.
 
 ### Added
 
+- **`memo upgrade` restarts the HTTP MCP server and names the stdio MCP sessions still on the old version**
+  (cli-core). After an install it restarts each `memo mcp serve --http` that `memo mcp server start` launched, with
+  the same port, address and `--permission` limits, and lists this install's stdio `memo mcp serve` processes as
+  `stale_sessions` to restart from your AI app. It works from the next upgrade on.
+- **A mail read that himalaya tries again is two request lines in the run**: the second has `attempt: 2` and the
+  15 s it waited. RDAP lines carry `method`, the path with the domain as `:id`, and `transport: "http"`.
+- **`record_input: "failed"`, `keep_successful_runs_for_days` and `runs_size_limit_mb`** in `config.json`.
 - **A `search all` event hit names its invitation text in `untrusted`** (`["title", "excerpt"]`), on cli-core
   0.460.0. Over MCP an agent sees it marked in the answer itself, not only in the server instructions.
 - **`memo search all` finds Google Calendar events** that gcal stored, from every calendar, ranked with messages,
@@ -35,6 +42,14 @@ the API.
   `memo mcp revoke`. There is no alias: an app whose MCP settings run `memo mcp` gets the help and exit 2, so change
   its `args` to `["mcp", "serve"]`; set Claude Code up with `claude mcp add memo -- memo mcp serve`.
   `memo mcp server start` runs `mcp serve --http` and still passes `--permission` on.
+- **Re-run `memo mcp add` or `memo mcp config`** after this upgrade, so your AI app starts `memo mcp serve`.
+- **Every run is now kept, successes too (cli-core record-every-run).** Before, only failed runs were kept unless
+  `--record` or `record: true`. A successful run stays 7 days (`keep_successful_runs_for_days`), a failed one 30
+  (`keep_runs_for_days`), and the runs folder stays under `runs_size_limit_mb` (200 MB; the oldest successes go
+  first). **Privacy:** a kept run holds the command as typed (secrets and phone numbers hidden), so a successful
+  `memo search` or `notes add` now leaves its words in a local, 0600 file for 7 days. `record_input: "failed"` keeps
+  them only in a failed run, `record_input: false` masks them everywhere; `record: false` now keeps failed runs
+  (before: nothing); `--no-record` keeps nothing. `memo mcp serve` keeps a success only under `--record`.
 
 ### Fixed
 

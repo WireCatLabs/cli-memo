@@ -42,18 +42,33 @@ const typed = ["search", "notes", "Kai Sample +34612345678", "--api-key", "fake-
 
 const kept = (env: NodeJS.ProcessEnv) => listRuns(runsDirFor(APP, env)).map(({ command, status }) => [command, status])
 
-it("keeps a failed command, and a successful one only under --record", async () => {
+it("keeps every command, and only the failed ones under record false", async () => {
   const env = sandbox()
   await memo(env, ["agents", "list", "--json"])
-  expect(kept(env)).toEqual([])
-
-  await memo(env, ["agents", "list", "--json", "--record"])
   await memo(env, ["notes", "show", "note:999999", "--json"])
   expect(kept(env)).toEqual([
     ["notes show", "failed"],
     ["agents list", "success"],
   ])
   for (const run of listRuns(runsDirFor(APP, env))) expect(run).not.toHaveProperty("profile")
+
+  const quiet = sandbox()
+  mkdirSync(quiet.MEMO_CONFIG_DIR ?? "", { recursive: true })
+  writeFileSync(join(quiet.MEMO_CONFIG_DIR ?? "", "config.json"), JSON.stringify({ record: false }))
+  await memo(quiet, ["agents", "list", "--json"])
+  await memo(quiet, ["notes", "show", "note:999999", "--json"])
+  expect(kept(quiet)).toEqual([["notes show", "failed"]])
+})
+
+it("takes record_input failed and the success retention and size limit", async () => {
+  const env = sandbox()
+  mkdirSync(env.MEMO_CONFIG_DIR ?? "", { recursive: true })
+  writeFileSync(
+    join(env.MEMO_CONFIG_DIR ?? "", "config.json"),
+    JSON.stringify({ record_input: "failed", keep_successful_runs_for_days: 3, runs_size_limit_mb: 50 }),
+  )
+  await memo(env, typed)
+  expect(argvOfRun(env)?.join(" ")).toContain("Kai Sample")
 })
 
 it("keeps a usage mistake under the words that name a command, never its arguments", async () => {
@@ -131,12 +146,15 @@ it("names a himalaya call by its subcommand words only", async () => {
     himalaya(env)(["account", "list", "--config", "/home/kai/secret.toml"]).catch(() => undefined),
   )
   const { lines } = recorded(env)
-  expect(lines.map(({ event, operation, status, outcome }) => ({ event, operation, status, outcome }))).toEqual([
-    { event: "provider.request", operation: "himalaya.account.list", status: undefined, outcome: undefined },
-    { event: "provider.response", operation: "himalaya.account.list", status: 1, outcome: "error" },
-    { event: "provider.request", operation: "himalaya.account.list", status: undefined, outcome: undefined },
-    { event: "provider.response", operation: "himalaya.account.list", status: 1, outcome: "error" },
+  expect(
+    lines.map(({ event, status, outcome, attempt, wait_ms }) => [event, status, outcome, attempt, wait_ms]),
+  ).toEqual([
+    ["provider.request", undefined, undefined, 1, undefined],
+    ["provider.response", 1, "error", 1, undefined],
+    ["provider.request", undefined, undefined, 2, 0],
+    ["provider.response", 1, "error", 2, 0],
   ])
+  expect(new Set(lines.map(({ operation }) => operation))).toEqual(new Set(["himalaya.account.list"]))
   expect(JSON.stringify(lines)).not.toContain("secret")
 })
 
@@ -157,6 +175,7 @@ it("records RDAP questions without the domain asked about", async () => {
     "rdap.bootstrap",
     "rdap.domain",
   ])
+  expect(lines.at(-1)).toMatchObject({ method: "GET", endpoint_template: "/domain/:id", transport: "http", attempt: 1 })
   expect(text).not.toContain("kai-sample")
   expect(text).toContain('"status":404')
 })

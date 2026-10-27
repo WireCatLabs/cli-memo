@@ -257,6 +257,8 @@ export const createProgram = ({
       return {
         record: config.record,
         keepRunsForDays: config.keep_runs_for_days,
+        keepSuccessfulRunsForDays: config.keep_successful_runs_for_days,
+        runsSizeLimitMb: config.runs_size_limit_mb,
         recordInput: config.record_input,
       }
     },

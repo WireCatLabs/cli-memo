@@ -378,7 +378,7 @@ More: [files memo can read](https://github.com/WireCatLabs/cli-memo/blob/main/do
   kind's own search, looser words, or import that source first.
 
 - **A command failed and you want to see why:** `memo runs list status:failed`, then `memo runs show <run-id>`.
-  Failed runs are kept for 30 days; `--record` keeps a run that worked too
+  Failed runs are kept for 30 days, runs that worked for 7
   ([runs](https://github.com/WireCatLabs/cli-memo/blob/main/docs/configuration.md#record-and-keep_runs_for_days)).
 
 More: [if something is missing](https://wirecat.dev/en/docs/memo/troubleshooting) ·
