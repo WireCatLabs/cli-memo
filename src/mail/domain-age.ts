@@ -57,7 +57,12 @@ const getJson = async (
   url: string,
   operation: "rdap.bootstrap" | "rdap.domain",
 ): Promise<{ status: number; body: unknown }> => {
-  const answered = providerRequest(operation)
+  const answered = providerRequest(operation, undefined, {
+    method: "GET",
+    endpointTemplate: operation === "rdap.bootstrap" ? "/rdap/dns.json" : "/domain/:id",
+    transport: "http",
+    attempt: 1,
+  })
   let response: Response
   try {
     response = await deps.fetch(url, {

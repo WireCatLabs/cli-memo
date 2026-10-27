@@ -71,10 +71,14 @@ export const operationOf = (args: readonly string[]): string =>
   ["himalaya", ...args.slice(0, 2).filter((word) => WORD.test(word))].join(".")
 
 const once =
-  (env: NodeJS.ProcessEnv, signal?: AbortSignal): Himalaya =>
+  (
+    env: NodeJS.ProcessEnv,
+    signal?: AbortSignal,
+    retry: { attempt: number; waitMs?: number } = { attempt: 1 },
+  ): Himalaya =>
   (args, input, options) =>
     new Promise((resolve, reject) => {
-      const answered = providerRequest(operationOf(args))
+      const answered = providerRequest(operationOf(args), undefined, retry)
       const child = execFile(
         env.MEMO_HIMALAYA ?? "himalaya",
         args,
@@ -126,9 +130,8 @@ const once =
 export const himalaya =
   (env: NodeJS.ProcessEnv = process.env, signal?: AbortSignal): Himalaya =>
   async (args, input, options) => {
-    const run = once(env, signal)
     try {
-      return await run(args, input, options)
+      return await once(env, signal)(args, input, options)
     } catch (error) {
       const again =
         error instanceof CliError &&
@@ -138,9 +141,10 @@ export const himalaya =
         !WRITES.test(input ?? "")
       if (!again) throw error
       // Stop sends SIGKILL 5 s after SIGTERM; a 15 s wait would lose the resume point.
-      await sleep(Number(env.MEMO_HIMALAYA_RETRY_MS ?? 15_000), undefined, signal ? { signal } : {}).catch(() => {
+      const waitMs = Number(env.MEMO_HIMALAYA_RETRY_MS ?? 15_000)
+      await sleep(waitMs, undefined, signal ? { signal } : {}).catch(() => {
         throw signal?.reason
       })
-      return run(args, input, options)
+      return once(env, signal, { attempt: 2, waitMs })(args, input, options)
     }
   }
