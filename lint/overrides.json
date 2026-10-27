@@ -1,16 +1,1 @@
-[
-  {
-    "rule": "unknown-verb",
-    "target": "mcp revoke",
-    "reason": "cli-core 0.463.0 names the MCP server mcp serve and the logout mcp revoke (NEED-1871, NEED-1880); the shared vocabulary in cli-base 0.63 does not list serve or revoke yet.",
-    "owner": "@leemour",
-    "review_after": "2027-01-25"
-  },
-  {
-    "rule": "unknown-verb",
-    "target": "mcp serve",
-    "reason": "cli-core 0.463.0 names the MCP server mcp serve and the logout mcp revoke (NEED-1871, NEED-1880); the shared vocabulary in cli-base 0.63 does not list serve or revoke yet.",
-    "owner": "@leemour",
-    "review_after": "2027-01-25"
-  }
-]
+[]
