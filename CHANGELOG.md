@@ -6,6 +6,12 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **Memo's agent skill publishes to ClawHub as `cli-memo` again.** ClawHub keeps skill names per publisher, so
+  `wirecat/cli-memo` is memo's own name, and every WireCat tool's skill now uses its plain name. The next release
+  publishes it as `cli-memo` 1.0.1. `memo skill install` still writes `skills/cli-memo/`.
+
 ## 0.117.0 — 27.10.2026
 
 ### Added
