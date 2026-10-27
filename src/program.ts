@@ -208,10 +208,10 @@ export const createProgram = ({
   program.addCommand(upgradeCommand(streams))
   commandsCommand(program, streams)
   const skill = customizeSharedCommand(
-    sharedSkillCommand(APP, new URL("../skills/cli-memo/SKILL.md", import.meta.url)),
+    sharedSkillCommand(APP, new URL("../skills/wirecat-memo/SKILL.md", import.meta.url)),
     "Memo installs its own stored-data instructions through its environment, prints the packaged primary skill without filesystem effects, and takes --json on each skill command because it has no global one.",
     () => {
-      const skill = skillCommand(APP, new URL("../skills/cli-memo/SKILL.md", import.meta.url), (command) => ({
+      const skill = skillCommand(APP, new URL("../skills/wirecat-memo/SKILL.md", import.meta.url), (command) => ({
         renderer: createRenderer({ format: command.opts().json ? "json" : "pretty", color: false, streams }),
         streams,
         env,
