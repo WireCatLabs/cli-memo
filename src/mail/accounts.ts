@@ -42,8 +42,8 @@ export const mailFolders = async (
   return [all ?? GMAIL_ALL_MAIL]
 }
 
-export const mailSource = (account: MailAccountConfig, env: NodeJS.ProcessEnv): MailSource => {
-  if (account.mode !== "mbox") return himalayaSource(himalaya(env), account)
+export const mailSource = (account: MailAccountConfig, env: NodeJS.ProcessEnv, signal?: AbortSignal): MailSource => {
+  if (account.mode !== "mbox") return himalayaSource(himalaya(env, signal), account)
   if (account.path === undefined)
     throw new CliError("validation_error", `mail account "${account.name}" is mode mbox but names no path`)
   return mboxSource(account.path.replace(/^~(?=\/|$)/, env.HOME ?? homedir()))

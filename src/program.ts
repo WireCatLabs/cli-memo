@@ -166,9 +166,12 @@ const FIRST_SCREEN = {
 export const createProgram = ({
   streams: raw = processStreams,
   env = process.env,
+  signal,
 }: {
   streams?: Streams
   env?: NodeJS.ProcessEnv
+  /** Ctrl-C or SIGTERM from `startCli`: a sync stops at its next safe point. */
+  signal?: AbortSignal
 } = {}): Command => {
   const fields = jsonFields(raw, OWN_ENTITIES)
   const { streams } = fields
@@ -200,7 +203,7 @@ export const createProgram = ({
   meetingReadCommands(program, streams, env)
   meetingPreparationCommand(program, streams, env)
   askCommand(program, streams, env)
-  syncCommand(program, streams, env)
+  syncCommand(program, streams, env, signal)
   storeCommand(program, streams, env)
   autoCommand(program, streams, env)
   configCommand(program, streams, env)
