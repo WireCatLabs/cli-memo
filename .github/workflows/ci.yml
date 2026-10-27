@@ -22,5 +22,7 @@ jobs:
       bun-run: pnpm build && pnpm smoke:bun
       cli: true
       bin: memo
+      checks: |
+        pnpm smoke:node
       # Off until the unit suite passes on Windows: its first run there failed the mail sync tests. macOS passed.
       platforms: false
