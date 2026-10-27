@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**516 ✅ · 0 ⛔ · 92 ❌** — 140 commands, 468 options.
+**517 ✅ · 0 ⛔ · 92 ❌** — 140 commands, 469 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -575,6 +575,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `sync` | `--retry-attachments` | ❌ |  |
 | `sync` | `--rescan` | ❌ |  |
 | `sync` | `--no-embed` | ✅ |  |
+| `sync` | `--timeout` | ✅ |  |
 | `sync` | `--json` | ✅ |  |
 | `store info` |  | ✅ |  |
 | `store info` | `--json` | ✅ |  |
