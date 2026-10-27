@@ -228,7 +228,7 @@ describe("Memo HTTP MCP", () => {
     ["--http"],
     ["--http", "--public-url", "http://remote.example"],
     ["--http", "--public-url", "https://user:synthetic-password@device.example"],
-    ["--http", "--public-url", "https://device.example/mcp"],
+    ["--http", "--public-url", "https://device.example/memo?x=1"],
     ["--http", "--public-url", "https://device.example", "--port", "0"],
     ["--http", "--public-url", "https://device.example", "--permission", "mcp.authority=allow"],
     ["--revoke", "--http"],
