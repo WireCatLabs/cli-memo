@@ -25,7 +25,7 @@ None.
 ## Next (P2)
 
 - **MEMO-7** · P2 · `search all` and `context` do not read meetings; meetings need `search meetings` with one
-  explicit `--source` (`skills/wirecat-memo/SKILL.md:104`). Add stored meetings to `search all` with coverage.
+  explicit `--source` (`skills/cli-memo/SKILL.md:104`). Add stored meetings to `search all` with coverage.
 - **MEMO-8** · P2 · Project gathering, next slices: source readiness (slice 1), context expansion with the
   merged Core #1700 (slice 2), optional semantic lane (slice 3). Core-led; memo hosts
   `projects evidence`. Plan: cli-private `plans/projects/2026-10-21-project-semantic-gathering.md`.

@@ -35,7 +35,7 @@ export const completeGlobalInstall = ({
   if (targets === undefined) throw new Error("MEMO_INSTALL_AGENT must be all, codex, cursor, claude, gemini or none")
   installSkill(
     { command: APP.command, appName: APP.appName, version: APP.version },
-    pathToFileURL(join(packageRoot, "skills/wirecat-memo/SKILL.md")),
+    pathToFileURL(join(packageRoot, "skills/cli-memo/SKILL.md")),
     { env, targets },
   )
   note("memo: agent skill installed. Agent: read memo skill show before using memo.")
