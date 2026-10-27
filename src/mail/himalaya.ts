@@ -89,10 +89,19 @@ const once =
             return resolve(stdout)
           }
           const exit = (error as ExecFailure).code
-          answered({ ...(typeof exit === "number" ? { status: exit } : {}), error })
+          const printed = stderrTail(stderr)
+          const tail = printed.length ? printed : errorReport(String(stdout))
+          const throttled =
+            isThrottled(stderr) || isThrottled(String(stdout).slice(-4096)) || isThrottled(tail.join("
+"))
+          answered({
+            ...(typeof exit === "number" ? { status: exit } : {}),
+            error,
+            ...(throttled ? { providerError: "mail.throttled" } : {}),
+          })
           if (signal?.aborted) return reject(signal.reason)
           const what = `himalaya ${args[0] ?? ""} ${args[1] ?? ""}`.trim()
-          if (isThrottled(stderr) || isThrottled(String(stdout).slice(-4096))) return reject(throttledError(what))
+          if (throttled) return reject(throttledError(what))
           const failure = error as ExecFailure
           if (failure.code === "ENOENT")
             return reject(
@@ -102,9 +111,6 @@ const once =
                 }),
               ),
             )
-          const printed = stderrTail(stderr)
-          const tail = printed.length ? printed : errorReport(String(stdout))
-          if (isThrottled(tail.join("\n"))) return reject(throttledError(what))
           const ended = howItEnded(failure)
           const said =
             tail.at(-1) ?? (/maxBuffer/i.test(failure.message) ? "its answer was too large" : "no error text")

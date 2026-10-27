@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
@@ -178,4 +178,42 @@ it("records RDAP questions without the domain asked about", async () => {
   expect(lines.at(-1)).toMatchObject({ method: "GET", endpoint_template: "/domain/:id", transport: "http", attempt: 1 })
   expect(text).not.toContain("kai-sample")
   expect(text).toContain('"status":404')
+})
+
+it("names a throttled mail account mail.throttled, without what himalaya printed", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "memo-himalaya-"))
+  const program = join(dir, "himalaya")
+  writeFileSync(program, '#!/bin/sh\necho "b NO [THROTTLED] Kai Sample exceeded bandwidth limits" >&2\nexit 1\n')
+  chmodSync(program, 0o755)
+  const env = { ...sandbox(), MEMO_HIMALAYA: program }
+  await withRecording(env, () => himalaya(env)(["envelope", "list"]).catch(() => undefined))
+  const { lines, text } = recorded(env)
+  expect(lines.filter(({ event }) => event === "provider.response").map((line) => line.provider_error)).toEqual([
+    "mail.throttled",
+  ])
+  expect(text).not.toMatch(/Kai|THROTTLED|bandwidth/)
+})
+
+it("names an RDAP refusal by its errorCode only, and not at all from a large or non-JSON body", async () => {
+  const nameOf = async (body: string) => {
+    const env = sandbox()
+    const answers: Record<string, () => Response> = {
+      "https://data.iana.org/rdap/dns.json": () => Response.json({ services: [[["test"], ["https://rdap.example/"]]] }),
+    }
+    await withRecording(env, () =>
+      lookUpAges(env, ["kai-sample.test"], {
+        fetch: async (input) => answers[String(input)]?.() ?? new Response(body, { status: 429 }),
+        sleep: async () => {},
+        now: () => new Date("2026-10-25T00:00:00Z"),
+      }),
+    )
+    const { lines, text } = recorded(env)
+    expect(text).not.toMatch(/Kai|quota/)
+    return lines.at(-1)?.provider_error
+  }
+  expect(
+    await nameOf(JSON.stringify({ errorCode: 429, title: "Kai Sample", description: ["quota for kai-sample.test"] })),
+  ).toBe("rdap.429")
+  expect(await nameOf(JSON.stringify({ errorCode: 429, description: ["x".repeat(5000)] }))).toBeUndefined()
+  expect(await nameOf("<html>Kai Sample quota</html>")).toBeUndefined()
 })

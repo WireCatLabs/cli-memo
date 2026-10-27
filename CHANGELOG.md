@@ -15,7 +15,9 @@ the API.
   the same port, address and `--permission` limits, and lists this install's stdio `memo mcp serve` processes as
   `stale_sessions` to restart from your AI app. It works from the next upgrade on.
 - **A mail read that himalaya tries again is two request lines in the run**: the second has `attempt: 2` and the
-  15 s it waited. RDAP lines carry `method`, the path with the domain as `:id`, and `transport: "http"`.
+  15 s it waited, and a throttled account is named `mail.throttled`, never with what himalaya printed. RDAP lines
+  carry `method`, the path with the domain as `:id`, and `transport: "http"`; a refusal names the registry's
+  `errorCode` (`rdap.429`), read from an error body of 4 KB at most, never its title or description.
 - **`record_input: "failed"`, `keep_successful_runs_for_days` and `runs_size_limit_mb`** in `config.json`.
 - **A `search all` event hit names its invitation text in `untrusted`** (`["title", "excerpt"]`), on cli-core
   0.460.0. Over MCP an agent sees it marked in the answer itself, not only in the server instructions.
