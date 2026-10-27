@@ -12,6 +12,17 @@ the API.
   cli-base 0.65 knows the verbs `serve` and `revoke`, so their lint baseline entries are gone, and its `cli-dev bundle`
   finds a server started with a flag before `mcp serve`. From cli-core 0.468, an MCP server offers a command that only
   fetches into the store through its read tool.
+- **`skill show`, `skill status` and `skill install` answer `--json` in the one-thing envelope**
+  ([WC-OUT-4](https://github.com/WireCatLabs/cli-base/blob/main/docs/standards/output.md#wc-out-4--answer-every-json-request-with-one-envelope-a-list-or-one-thing)),
+  `{ item, meta }`, like every other memo command and cli-core's own `skill`; they printed the bare object. A caller
+  reads the old fields under `item`, e.g. `item.targets` of `skill status`.
+
+### Fixed
+
+- **`memo mcp --json` refuses the flag with a JSON `validation_error` (exit 2)**, as `memo notes --json` and
+  `memo mail --json` do; it printed the group's help and nothing in JSON. `mcp revoke` and `mcp server
+  start|stop|status` now take `--json` themselves, so it goes after the command: `memo mcp revoke --json`, no longer
+  `memo mcp --json revoke`.
 
 ## 0.119.0 — 27.10.2026
 

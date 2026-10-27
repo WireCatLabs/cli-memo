@@ -2661,14 +2661,6 @@ memo agents list [query] [options]
 
 serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions — `claude mcp add memo -- memo mcp serve`
 
-```sh
-memo mcp [options]
-```
-
-| Option | What it does |
-|---|---|
-| `--json` | print JSON. |
-
 ### `memo mcp serve`
 
 serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions
@@ -2697,8 +2689,12 @@ forget every login `memo mcp serve --http` gave a browser app; each app must log
 This command changes the local store or your files.
 
 ```sh
-memo mcp revoke
+memo mcp revoke [options]
 ```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
 
 **Returns:** forget every login given to a browser app
 
@@ -2723,6 +2719,7 @@ memo mcp server start [options]
 | `--port <port>` | the local port (default 8767). |
 | `--public-url <url>` | the tunnel's https address the browser apps use, e.g. https://<name>.ts.net or https://<name>.ts.net/tg. |
 | `--permission <key=level>` | make a permission stricter for this server only; repeat for more keys. |
+| `--json` | print JSON. |
 
 **Returns:** start the HTTP MCP server in the background
 
@@ -2735,8 +2732,12 @@ stop `mcp serve --http` — only one that `mcp server start` started
 This command changes the local store or your files.
 
 ```sh
-memo mcp server stop
+memo mcp server stop [options]
 ```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
 
 **Returns:** stop the background HTTP MCP server
 
@@ -2747,8 +2748,12 @@ memo mcp server stop
 whether `mcp serve --http` runs, on which port and address, the login code for a new browser app, and the apps logged in
 
 ```sh
-memo mcp server status
+memo mcp server status [options]
 ```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
 
 **Returns:** whether the HTTP MCP server runs, its login code and the apps logged in
 

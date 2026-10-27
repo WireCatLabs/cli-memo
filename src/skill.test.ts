@@ -68,12 +68,18 @@ it("answers skill show, install and status in JSON with --json", async () => {
     return JSON.parse(streams.stdout.join(""))
   }
 
-  expect(await json(["skill", "show", "--json"])).toMatchObject({ name: "cli-memo" })
-  expect(await json(["skill", "install", "--for", "claude", "--json"])).toMatchObject({ version: VERSION })
+  expect(await json(["skill", "show", "--json"])).toMatchObject({ item: { name: "cli-memo" }, meta: {} })
+  expect(await json(["skill", "install", "--for", "claude", "--json"])).toMatchObject({
+    item: { version: VERSION },
+    meta: {},
+  })
   expect(await json(["skill", "status", "--json"])).toMatchObject({
-    name: "cli-memo",
-    targets: expect.arrayContaining([
-      { target: "claude", path: expect.any(String), installed: VERSION, state: "current" },
-    ]),
+    item: {
+      name: "cli-memo",
+      targets: expect.arrayContaining([
+        { target: "claude", path: expect.any(String), installed: VERSION, state: "current" },
+      ]),
+    },
+    meta: {},
   })
 })

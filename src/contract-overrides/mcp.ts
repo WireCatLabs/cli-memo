@@ -1,5 +1,7 @@
 import type { SharedContractOverride } from "@wirecat/cli-base/commands"
 
+const JSON_OPTION = { flags: "--json", description: "print JSON", takes_value: false, mandatory: false }
+
 const REASON =
   "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app."
 
@@ -18,13 +20,6 @@ export const mcp: readonly SharedContractOverride[] = [
     before: "serve this profile to an agent over MCP and set it up — `claude mcp add memo -- memo <profile> mcp serve`",
     after:
       "serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions — `claude mcp add memo -- memo mcp serve`",
-    reason: REASON,
-  },
-  {
-    command: ["mcp"],
-    field: "options",
-    before: [],
-    after: [{ flags: "--json", description: "print JSON", takes_value: false, mandatory: false }],
     reason: REASON,
   },
   {
@@ -140,6 +135,13 @@ export const mcp: readonly SharedContractOverride[] = [
     reason: REASON,
   },
   {
+    command: ["mcp", "revoke"],
+    field: "options",
+    before: [],
+    after: [JSON_OPTION],
+    reason: REASON,
+  },
+  {
     command: ["mcp", "server", "start"],
     field: "examples",
     before: ["memo personal mcp server start --public-url https://laptop.example.ts.net"],
@@ -180,6 +182,7 @@ export const mcp: readonly SharedContractOverride[] = [
         takes_value: true,
         mandatory: false,
       },
+      JSON_OPTION,
     ],
     reason: REASON,
   },
@@ -191,10 +194,24 @@ export const mcp: readonly SharedContractOverride[] = [
     reason: REASON,
   },
   {
+    command: ["mcp", "server", "stop"],
+    field: "options",
+    before: [],
+    after: [JSON_OPTION],
+    reason: REASON,
+  },
+  {
     command: ["mcp", "server", "status"],
     field: "examples",
     before: ["memo personal mcp server status --json"],
     after: ["memo mcp server status --json"],
+    reason: REASON,
+  },
+  {
+    command: ["mcp", "server", "status"],
+    field: "options",
+    before: [],
+    after: [JSON_OPTION],
     reason: REASON,
   },
 ]

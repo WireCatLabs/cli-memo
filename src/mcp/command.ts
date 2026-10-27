@@ -32,7 +32,6 @@ const mcpCommandDefinition = (
     .description(
       "serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions — `claude mcp add memo -- memo mcp serve`",
     )
-    .option("--json", "print JSON")
   annotate(mcp.command("serve"), {
     effects: LOCAL_WRITE,
     lifetime: "persistent",
@@ -120,28 +119,29 @@ const mcpCommandDefinition = (
   annotate(mcp.command("revoke"), { effects: LOCAL_WRITE, mcp: false, examples: ["memo mcp revoke --json"] })
     .summary("forget every login given to a browser app")
     .description("forget every login `memo mcp serve --http` gave a browser app; each app must log in again")
+    .option("--json", "print JSON")
     .action(async function (this: Command) {
       const { revokeAll } = await import("@wirecat/cli-core/mcp")
       revokeAll(httpTokenFile(env))
-      out.print(this.optsWithGlobals<{ json?: boolean }>().json, itemAnswer({ revoked: true }))
+      out.print(this.opts<{ json?: boolean }>().json, itemAnswer({ revoked: true }))
     })
-  mcp.addCommand(
-    mcpServerCommand({
-      example: "memo",
-      defaultPort: DEFAULT_PORT,
-      permission: true,
-      target: () => ({
-        invocation: "memo",
-        envPrefix: APP.envPrefix,
-        env,
-        tokenFile: httpTokenFile(env),
-        argv: ["mcp", "serve", "--http"],
-        version: APP.version,
-      }),
-      answer: (self, item, lines) =>
-        out.print(self.optsWithGlobals<{ json?: boolean }>().json, itemAnswer(item), lines.join("\n")),
+  const server = mcpServerCommand({
+    example: "memo",
+    defaultPort: DEFAULT_PORT,
+    permission: true,
+    target: () => ({
+      invocation: "memo",
+      envPrefix: APP.envPrefix,
+      env,
+      tokenFile: httpTokenFile(env),
+      argv: ["mcp", "serve", "--http"],
+      version: APP.version,
     }),
-  )
+    answer: (self, item, lines) => out.print(self.opts<{ json?: boolean }>().json, itemAnswer(item), lines.join("\n")),
+  })
+  // memo has no global --json, so each mcp command that answers takes its own, as notes and mail do.
+  for (const command of server.commands) command.option("--json", "print JSON")
+  mcp.addCommand(server)
 }
 
 export const mcpCommand = (...args: Parameters<typeof mcpCommandDefinition>) =>
