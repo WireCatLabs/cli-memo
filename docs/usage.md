@@ -29,7 +29,7 @@ Your agent searches your notes, mail and messages together and shows where each 
 When you know where something is, search only there:
 
 ```sh
-memo search all 'venue'               # messages, mail and notes together
+memo search all 'venue'               # messages, mail, notes and calendar events together
 memo search notes 'venue'             # notes only
 memo search mail 'from:kai invoice'   # mail only
 ```

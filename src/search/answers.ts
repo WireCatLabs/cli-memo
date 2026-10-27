@@ -40,6 +40,10 @@ export const messagesMeaningNote = ({ reason, step, model }: MessagesMeaning) =>
         : ""
   }`
 
+/** memo has no calendar sync: gcal's `sync --embed` gives events their vectors. */
+export const eventsMeaningNote = (reason: string) =>
+  `Events by words only: ${reason}${reason.startsWith("no event has vectors") ? " — gcal <profile> sync --embed gives events their vectors" : ""}`
+
 const messagesMeaningMissed = (meaning: MessagesMeaning | undefined): Missing[] =>
   meaning === undefined ? [] : [{ field: "found_by", why: messagesMeaningNote(meaning) }]
 
@@ -82,6 +86,9 @@ export const allAnswer = (
     missing: [
       ...meaningMissed(found.notes?.meaningSkipped, exact),
       ...messagesMeaningMissed(found.messages?.meaningSkipped),
+      ...(found.events?.meaningSkipped === undefined || exact
+        ? []
+        : [{ field: "found_by", why: eventsMeaningNote(found.events.meaningSkipped) }]),
     ],
     meta: metaOf(found.accounts, found.skipped),
   })

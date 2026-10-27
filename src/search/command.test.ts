@@ -315,3 +315,90 @@ it("search all runs as no stored account and names every account it read", async
   expect(text.stderr.join("")).toContain("searched: ")
   expect(text.stderr.join("")).toContain("telegram:1")
 })
+
+it("search all finds calendar events in every calendar, names each one read, and --only events reads them alone", async () => {
+  const root = mkdtempSync(join(tmpdir(), "memo-all-events-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const store = await openStore({ env })
+  await store.accounts.registerProvider({ name: "google-calendar", kind: "events", aliases: ["gcal"], command: "gcal" })
+  for (const account of ["work@example.test", "home@example.test"]) {
+    const id = await store.accounts.saveAccount({ provider: "google-calendar", account }, { name: null })
+    const [calendar] = await store.calendar.saveCalendars(
+      id,
+      [
+        {
+          externalId: "primary",
+          title: "Main",
+          timezone: "UTC",
+          accessRole: "owner",
+          primary: true,
+          syncByDefault: true,
+        },
+      ],
+      1,
+    )
+    await store.calendar.saveEntries(
+      calendar?.id as number,
+      [
+        {
+          externalId: `quillmark-${account}`,
+          kind: "single",
+          status: "confirmed",
+          title: `Quillmark planning ${account.split("@")[0]}`,
+          startsAt: Date.UTC(2099, 0, 5, 9),
+          endsAt: Date.UTC(2099, 0, 5, 10),
+        },
+      ],
+      1,
+    )
+  }
+  await store.messages.saveMessages(
+    { provider: "telegram", account: "1" },
+    "7",
+    [
+      {
+        id: "1",
+        chatId: "7",
+        senderId: "9",
+        senderName: null,
+        timestamp: "2026-10-09T00:00:00Z",
+        editedAt: null,
+        text: "Quillmark notes",
+        outgoing: false,
+        attachments: [],
+        replyTo: null,
+        forwardedFrom: null,
+        reactions: null,
+      },
+    ],
+    { via: "test" },
+  )
+  await store.close()
+  const search = async (...args: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env }).parseAsync(["search", "all", ...args], { from: "user" })
+    return streams
+  }
+
+  const answer = answerOf((await search("Quillmark", "--exact", "--json")).stdout.join(""))
+  expect(answer.items.map((item: { kind: string }) => item.kind).sort()).toEqual(["event", "event", "message"])
+  expect(answer.meta.accounts).toEqual(
+    expect.arrayContaining(["google-calendar:work@example.test", "google-calendar:home@example.test", "telegram:1"]),
+  )
+
+  const events = answerOf((await search("Quillmark", "--exact", "--only", "events", "--json")).stdout.join(""))
+  expect(events.items.map((item: { title: string }) => item.title).sort()).toEqual([
+    "Quillmark planning home",
+    "Quillmark planning work",
+  ])
+  expect(events.items[0].ref).toMatch(/^event:\d+$/)
+  expect(events.meta.accounts.sort()).toEqual([
+    "google-calendar:home@example.test",
+    "google-calendar:work@example.test",
+  ])
+
+  const text = await search("Quillmark", "--only", "events")
+  expect(text.stderr.join("")).toContain("google-calendar:work@example.test")
+  expect(text.stderr.join("")).toMatch(/Events by words only: /)
+  expect(text.stdout.join("")).toMatch(/event {2}event:\d+/)
+})

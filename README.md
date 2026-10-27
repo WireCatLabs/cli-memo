@@ -212,7 +212,7 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 
 Notes are searched by words and word stems in the query language messages use — phrases, `AND`/`OR`/`NOT`,
 `tag:`, `date:` — and by meaning once the local model is downloaded (`memo models download e5-small`); both are ranked together. `search all`
-reads messages, imported mail and notes together, and nothing else. When you know the kind, its own search
+reads messages, imported mail, notes and the calendar events gcal stored together, and nothing else. When you know the kind, its own search
 reads every field: `search mail` takes `from:`, `to:`, `cc:`, `bcc:`, `subject:` and `mailbox:`.
 
 ```sh
@@ -231,7 +231,7 @@ More: [search](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md)
 ## People, organizations and projects
 
 `memo context` answers from the shared store: every identity linked to the person, the last message each
-way, recent messages, chats in common, linked mail, the notes about them and the open tasks. Who is who is
+way, recent messages, chats in common, linked mail, their calendar events, the notes about them and the open tasks. Who is who is
 decided in messaging — `tg personal contacts link <person> email:<address>` — and a same name is never enough.
 `memo notes links add telegram:"Alice Example" /path/to/notes/people/Alice.md` names the note that is about her.
 

@@ -17,7 +17,7 @@ These options work with the `memo` command itself.
 
 ## `memo context`
 
-messages, mail and notes about a person, each with a link to its source
+messages, mail, notes and events about a person, each with a link to its source
 
 ```sh
 memo context <person> [options]
@@ -29,11 +29,11 @@ memo context <person> [options]
 
 | Option | What it does |
 |---|---|
-| `--limit <n>` | most messages and notes of each kind. Default: `20`. |
+| `--limit <n>` | most messages, notes and events of each kind. Default: `20`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--source <accounts>` | the account to read, as provider:account; required when the store holds several of that messenger. |
 
-**Returns:** messages, mail and notes about a person, each with a link to its source
+**Returns:** messages, mail, notes and events about a person, each with a link to its source
 
 **Example:** `memo context telegram:'Kai Sample'`, `memo context email:kai@example.com --limit 5 --json`
 
@@ -2782,7 +2782,7 @@ search messages, mail, notes, memories and people; search all when unsure where
 
 ### `memo search all`
 
-messages, mail and notes ranked together; not people, memories, projects or decisions. A kind you know reads better with its own search, with all its fields
+messages, mail, notes and calendar events ranked together; not people, memories, projects or decisions. A kind you know reads better with its own search, with all its fields
 
 ```sh
 memo search all <query> [options]
@@ -2798,7 +2798,7 @@ memo search all <query> [options]
 | `--exact` | words as written; skip meaning search. |
 | `--timezone <zone>` | IANA timezone for calendar date boundaries. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--only <resources>` | messages,mail,notes, separated by commas. |
+| `--only <resources>` | messages,mail,notes,events, separated by commas. |
 | `--plain-order` | best first by the words alone, without moving mail from suspicious senders down. |
 | `--project <project>` | rank the key documents of this project (id, project:<id>, key, exact name or alias) first; nothing is left out. |
 
