@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.116.0 — 27.10.2026
+
 ### Fixed
 
 - **`memo search all` and meaning search over notes and files answer in a fraction of a second (cli-core 0.451.0).**
