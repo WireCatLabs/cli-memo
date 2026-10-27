@@ -38,22 +38,8 @@ export const skill: readonly SharedContractOverride[] = [
   {
     command: ["skill", "show"],
     field: "examples",
-    before: ["memo skill show", "memo skill show follow-ups"],
+    before: ["memo skill show"],
     after: null,
-    reason: REASON,
-  },
-  {
-    command: ["skill", "show"],
-    field: "arguments",
-    before: [
-      {
-        name: "name",
-        required: false,
-        variadic: false,
-        description: "one of the skills shipped for a task: follow-ups, link-conversations",
-      },
-    ],
-    after: [],
     reason: REASON,
   },
   {
