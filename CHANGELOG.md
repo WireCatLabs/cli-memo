@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo mcp --http --public-url` takes a path (cli-core 0.450.0),** `https://<name>.ts.net/memo`, so memo shares one
+  tunnel address with the other tools, a path each. The login and the connector address (`…/memo/mcp`) carry the
+  path; the tunnel also routes `/.well-known/oauth-authorization-server/memo` and
+  `/.well-known/oauth-protected-resource/memo` to the server. WireCat Desktop sets this up with Tailscale Funnel.
+
 ### Fixed
 
 - **Memo's agent skill publishes to ClawHub as `wirecat-memo`.** ClawHub holds a `cli-memo` 1.0.0 that is not

@@ -14,7 +14,7 @@ export const mcp: readonly SharedContractOverride[] = [
     command: ["mcp"],
     field: "description",
     before:
-      "serve this profile to an agent over MCP, on stdin and stdout — `claude mcp add memo -- memo <profile> mcp`",
+      "serve this profile to an agent over MCP, on stdin and stdout — `claude mcp add memo -- memo <profile> mcp`; with no profile, `memo mcp` serves every profile and each tool asks which",
     after: "serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions",
     reason:
       "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
@@ -59,7 +59,8 @@ export const mcp: readonly SharedContractOverride[] = [
       },
       {
         flags: "--public-url <url>",
-        description: "the tunnel's https address the browser apps use, e.g. https://<name>.ts.net",
+        description:
+          "the tunnel's https address the browser apps use, e.g. https://<name>.ts.net or https://<name>.ts.net/tg",
         takes_value: true,
         mandatory: false,
       },
@@ -97,7 +98,8 @@ export const mcp: readonly SharedContractOverride[] = [
       },
       {
         flags: "--public-url <url>",
-        description: "tunnel's HTTPS origin without /mcp; requires --http",
+        description:
+          "tunnel's HTTPS address without /mcp, or a path of it such as https://<name>.ts.net/memo; requires --http",
         takes_value: true,
         mandatory: false,
       },
@@ -140,7 +142,8 @@ export const mcp: readonly SharedContractOverride[] = [
       },
       {
         flags: "--public-url <url>",
-        description: "the tunnel's https address the browser apps use, e.g. https://<name>.ts.net",
+        description:
+          "the tunnel's https address the browser apps use, e.g. https://<name>.ts.net or https://<name>.ts.net/tg",
         takes_value: true,
         mandatory: false,
       },
@@ -160,7 +163,8 @@ export const mcp: readonly SharedContractOverride[] = [
       },
       {
         flags: "--public-url <url>",
-        description: "the tunnel's https address the browser apps use, e.g. https://<name>.ts.net",
+        description:
+          "the tunnel's https address the browser apps use, e.g. https://<name>.ts.net or https://<name>.ts.net/tg",
         takes_value: true,
         mandatory: false,
       },

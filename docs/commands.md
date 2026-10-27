@@ -2673,7 +2673,7 @@ memo mcp [options]
 | `--json` | print the revocation receipt as JSON. |
 | `--http` | serve on 127.0.0.1 behind an HTTPS tunnel with an owner access-code login. |
 | `--port <port>` | local HTTP port (default 8767); requires --http. |
-| `--public-url <url>` | tunnel's HTTPS origin without /mcp; requires --http. |
+| `--public-url <url>` | tunnel's HTTPS address without /mcp, or a path of it such as https://<name>.ts.net/memo; requires --http. |
 | `--revoke` | log every browser app out of Memo. |
 
 ### `memo mcp server`
@@ -2693,7 +2693,7 @@ memo mcp server start [options]
 | Option | What it does |
 |---|---|
 | `--port <port>` | the local port (default 8767). |
-| `--public-url <url>` | the tunnel's https address the browser apps use, e.g. https://<name>.ts.net. |
+| `--public-url <url>` | the tunnel's https address the browser apps use, e.g. https://<name>.ts.net or https://<name>.ts.net/tg. |
 | `--permission <key=level>` | make a permission stricter for this server only; repeat for more keys. |
 
 **Returns:** start the HTTP MCP server in the background

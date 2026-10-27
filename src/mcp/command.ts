@@ -40,7 +40,10 @@ const mcpCommandDefinition = (
     .option("--json", "print the revocation receipt as JSON")
     .option("--http", "serve on 127.0.0.1 behind an HTTPS tunnel with an owner access-code login")
     .option("--port <port>", `local HTTP port (default ${DEFAULT_PORT}); requires --http`)
-    .option("--public-url <url>", "tunnel's HTTPS origin without /mcp; requires --http")
+    .option(
+      "--public-url <url>",
+      "tunnel's HTTPS address without /mcp, or a path of it such as https://<name>.ts.net/memo; requires --http",
+    )
     .addOption(
       new Option("--revoke", "log every browser app out of Memo").conflicts([
         "http",
@@ -77,8 +80,12 @@ const mcpCommandDefinition = (
       const { createMemoServer } = await import("./server.js")
       const build = () => createMemoServer(env, createProgram, options.permission)
       if (options.http) {
-        const { MCP_PATH, httpLockFile, portOf, publicUrlOf, serveOverHttp } = await import("@wirecat/cli-core/mcp")
-        const publicUrl = publicUrlOf(options.publicUrl, { missing: "--http", reaches: "the browser apps reach memo" })
+        const { httpLockFile, mcpUrlOf, portOf, publicUrlOf, serveOverHttp } = await import("@wirecat/cli-core/mcp")
+        const publicUrl = publicUrlOf(options.publicUrl, {
+          missing: "--http",
+          reaches: "the browser apps reach memo",
+          path: true,
+        })
         const port = portOf(options.port, DEFAULT_PORT)
         // Fail closed before opening a socket, even when no client has asked for tools yet.
         await build().close()
@@ -111,7 +118,7 @@ const mcpCommandDefinition = (
           })
           try {
             streams.diagnostic(
-              `serving on ${listening.url.href} — point your tunnel at it; connectors use ${new URL(MCP_PATH, publicUrl).href}`,
+              `serving on ${listening.url.href} — point your tunnel at it; connectors use ${mcpUrlOf(publicUrl).href}`,
             )
             await stopped
           } finally {
