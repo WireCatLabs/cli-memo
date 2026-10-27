@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.118.0 — 27.10.2026
+
 ### Added
 
 - **A `search all` event hit names its invitation text in `untrusted`** (`["title", "excerpt"]`), on cli-core
