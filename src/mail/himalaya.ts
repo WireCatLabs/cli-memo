@@ -92,8 +92,7 @@ const once =
           const printed = stderrTail(stderr)
           const tail = printed.length ? printed : errorReport(String(stdout))
           const throttled =
-            isThrottled(stderr) || isThrottled(String(stdout).slice(-4096)) || isThrottled(tail.join("
-"))
+            isThrottled(stderr) || isThrottled(String(stdout).slice(-4096)) || isThrottled(tail.join("\n"))
           answered({
             ...(typeof exit === "number" ? { status: exit } : {}),
             error,
