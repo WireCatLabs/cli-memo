@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.118.0 — 27.10.2026
+
 ### Added
 
 - **A `search all` event hit names its invitation text in `untrusted`** (`["title", "excerpt"]`), on cli-core
@@ -26,11 +28,20 @@ the API.
 
 - **`memo context --json` names a missing calendar in `not_read`** (`source: "events"`, "no calendar in the store —
   gcal <profile> sync"), so an answer that used to have an empty `not_read` now has that entry until gcal syncs.
-- **`@wirecat/cli-core` 0.451.0 → 0.459.0.** The shared store moves to version 35 (an occurrence names its series
+- **`@wirecat/cli-core` 0.451.0 → 0.463.0.** The shared store moves to version 35 (an occurrence names its series
   in a column); builds that speak version 34 still open it.
+- **The MCP server is `memo mcp serve`; `memo mcp` alone only shows its commands** (cli-core 0.463.0). `--http`,
+  `--port`, `--public-url` and `--permission` move to `mcp serve`, and `memo mcp --revoke` is now
+  `memo mcp revoke`. There is no alias: an app whose MCP settings run `memo mcp` gets the help and exit 2, so change
+  its `args` to `["mcp", "serve"]`; set Claude Code up with `claude mcp add memo -- memo mcp serve`.
+  `memo mcp server start` runs `mcp serve --http` and still passes `--permission` on.
 
 ### Fixed
 
+- **`memo sync` stops on Ctrl-C and SIGTERM**, where it used to ignore SIGTERM and run to the end. It stops at the
+  next batch of emails, mail account or notes folder, keeps the resume point, ends a running himalaya, releases the
+  import lock, and fails with `cancelled` (exit 130). **`memo sync --timeout <duration>`** stops it the same way at
+  a deadline, with `timeout` (exit 9); without it a sync has no time limit, as before.
 - **Memo's agent skill publishes to ClawHub as `cli-memo` again.** ClawHub keeps skill names per publisher, so
   `wirecat/cli-memo` is memo's own name, and every WireCat tool's skill now uses its plain name. The next release
   publishes it as `cli-memo` 1.0.1. `memo skill install` still writes `skills/cli-memo/`.

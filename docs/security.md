@@ -57,7 +57,7 @@ nothing and tells you.
   cannot replace a full archive backup.
 - The agent log records the agent, the tool, the result and the time, never what the agent sent.
 - An agent that should only read runs with `MEMO_READ_ONLY=1`. Every command that changes something then
-  stops with `permission_error` (exit 5), and `memo mcp` keeps writing commands discoverable but refuses them. Reads and `memo sync`
+  stops with `permission_error` (exit 5), and `memo mcp serve` keeps writing commands discoverable but refuses them. Reads and `memo sync`
   still run, and so does `tasks link`, the task write a scheduled agent makes, as in tg and max:
   a link is only suggested, and linking two tasks is refused. `reminders claim` is refused.
 - Two accounts are treated as one person only after you link them. A matching name or email domain
@@ -66,7 +66,7 @@ nothing and tells you.
 ## What can leave your computer
 
 - Browser and phone apps connect through your HTTPS tunnel and the shared access-code login. They use
-  the same command permissions as local MCP clients. `memo mcp --revoke` invalidates their saved logins,
+  the same command permissions as local MCP clients. `memo mcp revoke` invalidates their saved logins,
   including on a running server; see [remote access](remote.md).
 
 - `memo answers create` gives the sources to your own agent by default. It sends them to an AI provider only

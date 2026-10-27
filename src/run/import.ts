@@ -1,6 +1,6 @@
-import { type ErrorCode, errorCodes, isCliError, type Streams } from "@wirecat/cli-base"
+import { createDeadline, type ErrorCode, errorCodes, isCliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { dateWindow, FETCH } from "@wirecat/cli-core/cli"
+import { dateWindow, FETCH, parseDuration } from "@wirecat/cli-core/cli"
 import { openStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError, Option } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
@@ -123,6 +123,7 @@ interface SyncOptions {
   rescan?: boolean
   embed: boolean
   json?: boolean
+  timeout?: number
 }
 
 const onlyOf = (value: string): Synced[] => {
@@ -171,7 +172,7 @@ export const failureReason = (error: unknown, failure: { reason: string; message
   return `${failure.message} (${error.name}: ${error.message.split("\n")[0]?.slice(0, 160)})`
 }
 
-export const syncCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
+export const syncCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv, signal?: AbortSignal): void => {
   const { print } = answers(program, streams, env)
   annotate(program.command("sync"), { effects: FETCH })
     .summary("bring notes and mail up to date in the store, only what changed")
@@ -217,136 +218,160 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       ),
     )
     .option("--no-embed", "skip embedding notes and mail for search by meaning this run")
+    .option(
+      "--timeout <duration>",
+      "stop after this long, e.g. 10m; progress so far is kept (default: no limit)",
+      (raw) => parseDuration(raw, "--timeout"),
+    )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText("after", `\n${LARGE_IMPORT_HELP}`)
     .action(async (options: SyncOptions, command: Command) => {
-      const debug = command.optsWithGlobals().debug === true
-      const synced = syncedOf(options)
-      const config = loadConfig(env)
-      const named =
-        options.source === undefined
-          ? undefined
-          : await withStore(env, (store) => syncedMailboxesOf(store, options.source as string))
-      if (env.MEMO_AUTO === "1") {
-        await applyAuto(env, autoState(config))
-        if (!autoState(config).enabled) return
-      }
-      const window = dateWindow({ sinceTime: options.sinceTime })
-      const since = new Date(window.since ?? Date.now() - MAIL_WINDOW_DAYS * DAY)
-      // An archive file is read whole each run, so only a sync that names it reads it.
-      const accounts = synced.has("mail")
-        ? mailAccounts(config.mail?.accounts ?? [], named).filter(
-            (account) => account.mode !== "mbox" || named !== undefined,
-          )
-        : []
-      const run: ImportRun = { notes: [], mail: [], failed: [] }
-      const startedAt = Date.now()
-      const answer = () =>
-        itemAnswer(run, {
-          meta: {
-            ...(accounts.length ? { accounts: accounts.map(({ name }) => name) } : {}),
-            ...window.meta,
-            complete: run.failed.length === 0,
-            ...(run.failed.length ? { issues: issuesOf(run.failed) } : {}),
-          },
-        })
-      const work = withImportLock(env, async () => {
-        const store = await openStore({ env, ...STORE_CLIENT })
-        const attempt = async (source: string, work: () => Promise<void>) => {
-          try {
-            await work()
-          } catch (error) {
-            const { error: failure } = await errorObject(error)
-            const reason = failureReason(error, failure, debug)
-            run.failed.push({ source, code: failure.code, reasonId: failure.reason, reason })
-          }
-        }
-        try {
-          if (synced.has("notes")) {
-            const folders =
-              options.folder === undefined
-                ? await boundFolders(store, env, { strict: false })
-                : await boundFolders(store, env, { only: options.folder })
-            if (options.folder === undefined)
-              for (const folder of noteFolders(config.notes))
-                if (!folders.some(({ path }) => path === folder.path))
-                  run.failed.push({
-                    source: `notes ${folder.path}`,
-                    code: "configuration_error",
-                    reasonId: UNBOUND,
-                    reason: unboundReason(folder.path),
-                  })
-            const ignore = config.notes?.ignore ?? []
-            const skip = options.ignore ?? []
-            for (const folder of folders)
-              await attempt(`notes ${folder.path}`, async () => {
-                run.notes.push(await importNotes(store, folder, { ignore, skip, env }))
-              })
-            if (folders.length > 0)
-              await attempt("notes by meaning", async () => {
-                run.notesEmbedded = await embedNoteChunks(store, {
-                  embed: options.embed && config.notes?.embed !== false,
-                  env,
-                })
-              })
-            await attempt("people-notes.json", async () => {
-              await importNotesMap(store, env, folders)
-            })
-          }
-          for (const account of accounts)
-            await attempt(`mail ${account.name}`, async () => {
-              const rules = await rulesOf(store, account, env, streams.diagnostic)
-              const repaired = await repairHtmlText(store, account.address)
-              if (repaired) streams.diagnostic(`mail ${account.name}: ${repaired} emails' HTML text read again as text`)
-              run.mail.push(
-                await importMail({
-                  store,
-                  source: mailSource(account, env),
-                  account: { ...account, rules },
-                  since,
-                  env,
-                  embed: options.embed,
-                  ...(options.limit === undefined ? {} : { max: options.limit }),
-                  ...(config.mail?.max_body_chars === undefined ? {} : { maxBodyChars: config.mail.max_body_chars }),
-                  ...(config.mail?.max_attachment_chars === undefined
-                    ? {}
-                    : { maxAttachmentChars: config.mail.max_attachment_chars }),
-                  retryAttachments: options.retryAttachments ?? false,
-                  rescan: options.rescan ?? false,
-                }),
-              )
-              const filled = await backfillHeaders(store, mailSource(account, env), account.address)
-              if (filled) streams.diagnostic(`mail ${account.name}: ${filled} older emails' headers read`)
-              const scored = await scoreSenders(store, account.address, env, Date.now(), lookUpAges, rules)
-              if (scored)
-                streams.diagnostic(
-                  `mail ${account.name}: ${scored.scored} senders scored, ${scored.demoted} ranked lower, ` +
-                    `${scored.looked} domain ages looked up` +
-                    (scored.failed ? `, ${scored.failed} failed` : ""),
-                )
-            })
-        } finally {
-          await store.close()
-        }
+      const deadline = createDeadline({
+        ...(options.timeout === undefined ? {} : { timeoutMs: options.timeout }),
+        ...(signal ? { signal } : {}),
       })
-      // The timer fires on schedule whatever the last run is doing; an overlap is not a failure of the unit.
-      const skipped = await work.then(
-        () => undefined,
-        (error: unknown) => {
-          if (env.MEMO_AUTO === "1" && isCliError(error) && error.details.reason === "sync.running")
-            return `another memo sync is running (process ${String(error.details.pid)})`
-          recordAutoRun(env, startedAt, crashReason(error))
-          throw error
-        },
-      )
-      if (skipped !== undefined) {
-        run.skipped = skipped
-        streams.diagnostic(`memo sync skipped: ${skipped}`)
-        if (options.json) print(true, answer())
-        return
+      try {
+        await sync(options, command, deadline.signal)
+      } finally {
+        deadline.dispose()
       }
-      recordAutoRun(env, startedAt, failedReason(run.failed))
-      print(options.json, answer(), text(run))
-      if (run.failed.length > 0) process.exitCode = 1
     })
+  const sync = async (options: SyncOptions, command: Command, stop: AbortSignal) => {
+    const halt = () => {
+      if (stop.aborted) throw stop.reason
+    }
+    const debug = command.optsWithGlobals().debug === true
+    const synced = syncedOf(options)
+    const config = loadConfig(env)
+    const named =
+      options.source === undefined
+        ? undefined
+        : await withStore(env, (store) => syncedMailboxesOf(store, options.source as string))
+    if (env.MEMO_AUTO === "1") {
+      await applyAuto(env, autoState(config))
+      if (!autoState(config).enabled) return
+    }
+    const window = dateWindow({ sinceTime: options.sinceTime })
+    const since = new Date(window.since ?? Date.now() - MAIL_WINDOW_DAYS * DAY)
+    // An archive file is read whole each run, so only a sync that names it reads it.
+    const accounts = synced.has("mail")
+      ? mailAccounts(config.mail?.accounts ?? [], named).filter(
+          (account) => account.mode !== "mbox" || named !== undefined,
+        )
+      : []
+    const run: ImportRun = { notes: [], mail: [], failed: [] }
+    const startedAt = Date.now()
+    const answer = () =>
+      itemAnswer(run, {
+        meta: {
+          ...(accounts.length ? { accounts: accounts.map(({ name }) => name) } : {}),
+          ...window.meta,
+          complete: run.failed.length === 0,
+          ...(run.failed.length ? { issues: issuesOf(run.failed) } : {}),
+        },
+      })
+    const work = withImportLock(env, async () => {
+      const store = await openStore({ env, ...STORE_CLIENT })
+      const attempt = async (source: string, work: () => Promise<void>) => {
+        halt()
+        try {
+          await work()
+        } catch (error) {
+          halt()
+          const { error: failure } = await errorObject(error)
+          const reason = failureReason(error, failure, debug)
+          run.failed.push({ source, code: failure.code, reasonId: failure.reason, reason })
+        }
+      }
+      try {
+        if (synced.has("notes")) {
+          const folders =
+            options.folder === undefined
+              ? await boundFolders(store, env, { strict: false })
+              : await boundFolders(store, env, { only: options.folder })
+          if (options.folder === undefined)
+            for (const folder of noteFolders(config.notes))
+              if (!folders.some(({ path }) => path === folder.path))
+                run.failed.push({
+                  source: `notes ${folder.path}`,
+                  code: "configuration_error",
+                  reasonId: UNBOUND,
+                  reason: unboundReason(folder.path),
+                })
+          const ignore = config.notes?.ignore ?? []
+          const skip = options.ignore ?? []
+          for (const folder of folders)
+            await attempt(`notes ${folder.path}`, async () => {
+              run.notes.push(await importNotes(store, folder, { ignore, skip, env }))
+            })
+          if (folders.length > 0)
+            await attempt("notes by meaning", async () => {
+              run.notesEmbedded = await embedNoteChunks(store, {
+                embed: options.embed && config.notes?.embed !== false,
+                env,
+              })
+            })
+          await attempt("people-notes.json", async () => {
+            await importNotesMap(store, env, folders)
+          })
+        }
+        for (const account of accounts)
+          await attempt(`mail ${account.name}`, async () => {
+            const rules = await rulesOf(store, account, env, streams.diagnostic)
+            const repaired = await repairHtmlText(store, account.address)
+            if (repaired) streams.diagnostic(`mail ${account.name}: ${repaired} emails' HTML text read again as text`)
+            run.mail.push(
+              await importMail({
+                store,
+                source: mailSource(account, env, stop),
+                account: { ...account, rules },
+                since,
+                env,
+                embed: options.embed,
+                ...(options.limit === undefined ? {} : { max: options.limit }),
+                ...(config.mail?.max_body_chars === undefined ? {} : { maxBodyChars: config.mail.max_body_chars }),
+                ...(config.mail?.max_attachment_chars === undefined
+                  ? {}
+                  : { maxAttachmentChars: config.mail.max_attachment_chars }),
+                retryAttachments: options.retryAttachments ?? false,
+                rescan: options.rescan ?? false,
+                signal: stop,
+              }),
+            )
+            halt()
+            const filled = await backfillHeaders(store, mailSource(account, env, stop), account.address)
+            if (filled) streams.diagnostic(`mail ${account.name}: ${filled} older emails' headers read`)
+            halt()
+            const scored = await scoreSenders(store, account.address, env, Date.now(), lookUpAges, rules)
+            if (scored)
+              streams.diagnostic(
+                `mail ${account.name}: ${scored.scored} senders scored, ${scored.demoted} ranked lower, ` +
+                  `${scored.looked} domain ages looked up` +
+                  (scored.failed ? `, ${scored.failed} failed` : ""),
+              )
+          })
+      } finally {
+        await store.close()
+      }
+    })
+    // The timer fires on schedule whatever the last run is doing; an overlap is not a failure of the unit.
+    const skipped = await work.then(
+      () => undefined,
+      (error: unknown) => {
+        if (env.MEMO_AUTO === "1" && isCliError(error) && error.details.reason === "sync.running")
+          return `another memo sync is running (process ${String(error.details.pid)})`
+        recordAutoRun(env, startedAt, crashReason(error))
+        throw error
+      },
+    )
+    if (skipped !== undefined) {
+      run.skipped = skipped
+      streams.diagnostic(`memo sync skipped: ${skipped}`)
+      if (options.json) print(true, answer())
+      return
+    }
+    recordAutoRun(env, startedAt, failedReason(run.failed))
+    print(options.json, answer(), text(run))
+    if (run.failed.length > 0) process.exitCode = 1
+  }
 }

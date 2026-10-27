@@ -2659,9 +2659,7 @@ memo agents list [query] [options]
 
 ## `memo mcp`
 
-serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions
-
-This command changes the local store or your files.
+serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions — `claude mcp add memo -- memo mcp serve`
 
 ```sh
 memo mcp [options]
@@ -2669,20 +2667,50 @@ memo mcp [options]
 
 | Option | What it does |
 |---|---|
+| `--json` | print JSON. |
+
+### `memo mcp serve`
+
+serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions
+
+This command changes the local store or your files.
+
+```sh
+memo mcp serve [options]
+```
+
+| Option | What it does |
+|---|---|
 | `--permission <key=level>` | tighten one saved permission for this server; repeat for more keys. |
-| `--json` | print the revocation receipt as JSON. |
 | `--http` | serve on 127.0.0.1 behind an HTTPS tunnel with an owner access-code login. |
 | `--port <port>` | local HTTP port (default 8767); requires --http. |
 | `--public-url <url>` | tunnel's HTTPS address without /mcp, or a path of it such as https://<name>.ts.net/memo; requires --http. |
-| `--revoke` | log every browser app out of Memo. |
+
+**Returns:** serve memo commands to an AI agent
+
+**Example:** `memo mcp serve`, `memo mcp serve --http --public-url https://laptop.example.ts.net`
+
+### `memo mcp revoke`
+
+forget every login `memo mcp serve --http` gave a browser app; each app must log in again
+
+This command changes the local store or your files.
+
+```sh
+memo mcp revoke
+```
+
+**Returns:** forget every login given to a browser app
+
+**Example:** `memo mcp revoke --json`
 
 ### `memo mcp server`
 
-start, stop and check `mcp --http` in the background; status shows the login code for a browser app
+start, stop and check `mcp serve --http` in the background; status shows the login code for a browser app
 
 #### `memo mcp server start`
 
-start `mcp --http` apart from this shell and answer once it listens, with its login code
+start `mcp serve --http` apart from this shell and answer once it listens, with its login code
 
 This command changes the local store or your files.
 
@@ -2702,7 +2730,7 @@ memo mcp server start [options]
 
 #### `memo mcp server stop`
 
-stop `mcp --http` — only one that `mcp server start` started
+stop `mcp serve --http` — only one that `mcp server start` started
 
 This command changes the local store or your files.
 
@@ -2716,7 +2744,7 @@ memo mcp server stop
 
 #### `memo mcp server status`
 
-whether `mcp --http` runs, on which port and address, the login code for a new browser app, and the apps logged in
+whether `mcp serve --http` runs, on which port and address, the login code for a new browser app, and the apps logged in
 
 ```sh
 memo mcp server status
@@ -3020,6 +3048,7 @@ memo sync [options]
 | `--retry-attachments` | mail: reread stored emails' attachments that an older memo or a broken install left unread. |
 | `--rescan` | mail: list every message again, not only mail an earlier run left; also checks deletions. |
 | `--no-embed` | skip embedding notes and mail for search by meaning this run. |
+| `--timeout <duration>` | stop after this long, e.g. 10m; progress so far is kept (default: no limit). |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** bring notes and mail up to date in the store, only what changed
