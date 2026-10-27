@@ -8,6 +8,8 @@ the API.
 
 ### Added
 
+- **A `search all` event hit names its invitation text in `untrusted`** (`["title", "excerpt"]`), on cli-core
+  0.460.0. Over MCP an agent sees it marked in the answer itself, not only in the server instructions.
 - **`memo search all` finds Google Calendar events** that gcal stored, from every calendar, ranked with messages,
   mail and notes (cli-core 0.459.0). A hit has `kind: "event"` and an `event:<id>` reference, which
   `gcal <profile> events show` opens. `--only` takes `events`; `meta.accounts` and the `searched:` line name each
