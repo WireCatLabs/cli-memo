@@ -85,17 +85,19 @@ next run. See [importing on a timer](archive.md#import-on-a-timer-linux).
 
 ## `record`, `record_input` and `keep_runs_for_days`
 
-Memo keeps a run of every command that fails: the command as typed, how it ended, and the mail and RDAP
-requests it made, with their timings and status codes. A secret in the command (an option named for a token,
+Memo keeps a run of every command: the command as typed, how it ended, and the mail and RDAP requests it made,
+with their timings, status codes and, for a mail read tried again, the attempt and the wait before it. A secret in the command (an option named for a token,
 password or API key, a password in a URL, a long opaque string) and a phone number are written `[redacted]`.
 What the command read or wrote is never kept: no note, mail text or folder name it reached.
 `memo runs list` shows them, `memo runs show <run-id>` shows one.
 
 | Key | Meaning |
 |---|---|
-| `record` | `true` keeps every run, not only failed ones; `false` keeps none, not even failed ones. Unset: failed runs only. `--record` and `--no-record` decide for one command. |
-| `record_input` | `false` writes every typed value that may be content as `[redacted]`, keeping only command words, option names, numbers, dates and choices. Unset: the command is kept as typed, secrets hidden. |
-| `keep_runs_for_days` | How many days of runs are kept. Default 30. |
+| `record` | `false` keeps only failed runs. Unset or `true`: every run. `--record` keeps one command's run anyway, `--no-record` keeps nothing for it. `memo mcp serve` and other commands that run until stopped keep a success only under `--record`. |
+| `record_input` | `false` writes every typed value that may be content as `[redacted]`, keeping only command words, option names, numbers, dates and choices. `"failed"` does that in a successful run and keeps the words in a failed one. Unset: the command is kept as typed, secrets hidden. |
+| `keep_runs_for_days` | How many days a failed run is kept. Default 30. |
+| `keep_successful_runs_for_days` | How many days a successful run is kept. Default 7. |
+| `runs_size_limit_mb` | The most the runs folder may hold; the oldest successful runs go first. Default 200. |
 
 Add the keys to `config.json` by hand; `memo config unset <key>` removes one.
 

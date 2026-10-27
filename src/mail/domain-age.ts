@@ -52,12 +52,45 @@ const realDeps: LookupDeps = {
   now: () => new Date(),
 }
 
+const ERROR_BODY_BYTES = 4096
+
+/**
+ * The registry's own `errorCode` from an RDAP error body (RFC 9083 §6), as `rdap.<code>`; never its title or
+ * description. A body over 4 KB, or one that is not JSON, gives none. Reads a clone, so the body stays readable.
+ */
+export const rdapErrorName = async (response: Response): Promise<string | undefined> => {
+  const reader = response.clone().body?.getReader()
+  if (!reader) return undefined
+  const chunks: Uint8Array[] = []
+  let size = 0
+  try {
+    for (;;) {
+      const { done, value } = await reader.read()
+      if (done) break
+      size += value.byteLength
+      if (size > ERROR_BODY_BYTES) return undefined
+      chunks.push(value)
+    }
+    const { errorCode } = JSON.parse(Buffer.concat(chunks).toString("utf8")) as { errorCode?: unknown }
+    return Number.isInteger(errorCode) ? `rdap.${errorCode}` : undefined
+  } catch {
+    return undefined
+  } finally {
+    reader.cancel().catch(() => {})
+  }
+}
+
 const getJson = async (
   deps: LookupDeps,
   url: string,
   operation: "rdap.bootstrap" | "rdap.domain",
 ): Promise<{ status: number; body: unknown }> => {
-  const answered = providerRequest(operation)
+  const answered = providerRequest(operation, undefined, {
+    method: "GET",
+    endpointTemplate: operation === "rdap.bootstrap" ? "/rdap/dns.json" : "/domain/:id",
+    transport: "http",
+    attempt: 1,
+  })
   let response: Response
   try {
     response = await deps.fetch(url, {
@@ -69,9 +102,11 @@ const getJson = async (
     throw error
   }
   // A domain the registry does not know is an answer, not a failure.
-  answered(
-    response.ok || response.status === 404 ? { status: response.status } : { status: response.status, error: true },
-  )
+  if (response.ok || response.status === 404) answered({ status: response.status })
+  else {
+    const providerError = await rdapErrorName(response)
+    answered({ status: response.status, error: true, ...(providerError ? { providerError } : {}) })
+  }
   return { status: response.status, body: response.ok ? await response.json() : undefined }
 }
 

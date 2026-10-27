@@ -6,6 +6,39 @@ the API.
 
 ## Unreleased
 
+## 0.119.0 — 27.10.2026
+
+### Changed — may break callers
+
+- **cli-core 0.467.0 and cli-base 0.64.0.** cli-core accepts only cli-base 0.64, so both pins move together.
+- **Every search hit marks the text someone else wrote (cli-core 0.464.0).** `search all` message and mail hits carry
+  `untrusted: ["title", "excerpt", "sender_name"]`, document hits `["title", "excerpt"]`, as event hits did;
+  `search messages` and `search mail` mark the sender, chat title and text. A note stays unmarked: it is your own. A
+  caller that checks hits against an older, strict copy of their shape refuses the new field.
+- **Every run is now kept, successes too (cli-core record-every-run).** Before, only failed runs were kept unless
+  `--record` or `record: true`. A successful run stays 7 days (`keep_successful_runs_for_days`), a failed one 30
+  (`keep_runs_for_days`), and the runs folder stays under `runs_size_limit_mb` (200 MB; the oldest successes go
+  first). **Privacy:** a kept run holds the command as typed (secrets and phone numbers hidden), so a successful
+  `memo search` or `notes add` now leaves its words in a local, 0600 file for 7 days. `record_input: "failed"` keeps
+  them only in a failed run, `record_input: false` masks them everywhere; `record: false` now keeps failed runs
+  (before: nothing); `--no-record` keeps nothing. `memo mcp serve` keeps a success only under `--record`.
+- **A run says who asked for it (cli-core).** `run.json` gains `via` (`cli`, `mcp-stdio`, `mcp-http`, `desktop`),
+  `mcp` (tool, request and connection ids) and `agent.client` (the AI app's name and version). Over HTTP the agent
+  is the browser app's MCP session, no longer whichever agent started `mcp serve --http`. A reader that checks a run
+  against an older copy of its shape refuses the new fields.
+
+### Added
+
+- **`memo upgrade` restarts the HTTP MCP server and names the stdio MCP sessions still on the old version**
+  (cli-core). After an install it restarts each `memo mcp serve --http` that `memo mcp server start` launched, with
+  the same port, address and `--permission` limits, and lists this install's stdio `memo mcp serve` processes as
+  `stale_sessions` to restart from your AI app. It works from the next upgrade on.
+- **A mail read that himalaya tries again is two request lines in the run**: the second has `attempt: 2` and the
+  15 s it waited, and a throttled account is named `mail.throttled`, never with what himalaya printed. RDAP lines
+  carry `method`, the path with the domain as `:id`, and `transport: "http"`; a refusal names the registry's
+  `errorCode` (`rdap.429`), read from an error body of 4 KB at most, never its title or description.
+- **`record_input: "failed"`, `keep_successful_runs_for_days` and `runs_size_limit_mb`** in `config.json`.
+
 ## 0.118.0 — 27.10.2026
 
 ### Added
