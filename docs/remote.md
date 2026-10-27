@@ -27,7 +27,7 @@ Keep the tunnel running in one terminal. In another, replace the example origin 
 HTTPS origin your tunnel gives you, including its port if shown:
 
 ```sh
-memo mcp --http --public-url https://device.example
+memo mcp serve --http --public-url https://device.example
 ```
 
 Memo listens only on `127.0.0.1:8767` and prints a one-time login code and connector address. Point
@@ -37,7 +37,7 @@ adds `/mcp` for the connector. Remote public origins must use HTTPS.
 To use another local port, pass `--port` and change the tunnel target to match:
 
 ```sh
-memo mcp --http --port 8768 --public-url https://device.example:8443
+memo mcp serve --http --port 8768 --public-url https://device.example:8443
 ```
 
 Each WireCat server needs its own local port and public origin. Memo's default 8767 leaves tg and
@@ -78,7 +78,7 @@ a question in Memo's terminal; approval prompts depend on the client app.
 A server override can only tighten saved permissions:
 
 ```sh
-memo mcp --http --public-url https://device.example --permission notes.add=deny
+memo mcp serve --http --public-url https://device.example --permission notes.add=deny
 ```
 
 Repeat `--permission` for more keys. `MEMO_READ_ONLY=1` refuses writes. Decisions on meeting findings,
@@ -94,7 +94,7 @@ routes used by other servers.
 To log every browser app out of this Memo installation:
 
 ```sh
-memo mcp --revoke --json
+memo mcp revoke --json
 ```
 
 Revocation also affects a running server: existing tokens stop working and apps must log in again.

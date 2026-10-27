@@ -36,13 +36,13 @@ Meeting findings decisions (`meetings.actions.confirm` and `meetings.actions.rej
 before an agent can use it. Save permissions in the configuration; discovery and the next command call
 read the current levels. Permissions and the shared WireCat read ceiling are checked again on every call.
 
-`memo mcp --permission notes.edit=deny` makes a saved permission stricter for one server; repeat the option
+`memo mcp serve --permission notes.edit=deny` makes a saved permission stricter for one server; repeat the option
 for more keys. It cannot loosen the saved permissions, including more specific keys.
 `MEMO_READ_ONLY=1` marks every writing command unavailable and refuses writes on an existing connection.
 Discovery retains blocked commands with current `availability` and the reason, as cli-core does.
 
-The named CLI-only exclusions are `mcp`, `upgrade`, `skill install`, `jobs start` and `jobs stop`: they start
-another server, replace the running program, install instructions in other apps, or manage a background timer.
+The named CLI-only exclusions are the `mcp` commands, `upgrade`, `skill install`, `jobs start` and `jobs stop`: they
+start another server, replace the running program, install instructions in other apps, or manage a background timer.
 
 `memories add`, `facts add`, `actions add`, `meetings actions add` and `projects actions add` save proposals.
 By default, `projects actions confirm` and `projects actions reject` may decide project proposals with a recorded
@@ -61,7 +61,7 @@ Messenger reads use the explicit account and chat encoded in the reference; noth
 Add Memo to the app's MCP settings. Most apps use a file like this:
 
 ```json
-{ "mcpServers": { "memo": { "command": "memo", "args": ["mcp"] } } }
+{ "mcpServers": { "memo": { "command": "memo", "args": ["mcp", "serve"] } } }
 ```
 
 Add the `memo` entry next to any servers already in the file:

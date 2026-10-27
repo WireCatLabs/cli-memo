@@ -35,10 +35,10 @@ describe("memo", () => {
     expect(parseCommandsDocument(JSON.parse(streams.stdout.join(""))).problems).toBeUndefined()
   })
 
-  it("lists mcp as persistent, since it serves until stdin closes", async () => {
+  it("lists mcp serve as persistent, since it serves until stdin closes", async () => {
     const streams = captureStreams()
-    await createProgram({ streams }).parseAsync(["commands", "mcp", "--json"], { from: "user" })
-    expect(JSON.parse(streams.stdout.join("")).commands).toMatchObject([{ name: "mcp", lifetime: "persistent" }])
+    await createProgram({ streams }).parseAsync(["commands", "mcp", "serve", "--json"], { from: "user" })
+    expect(JSON.parse(streams.stdout.join("")).commands).toMatchObject([{ name: "serve", lifetime: "persistent" }])
   })
 
   it("lists commands as text by section without --json, one group with a path", async () => {

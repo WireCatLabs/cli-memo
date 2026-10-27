@@ -26,8 +26,13 @@ the API.
 
 - **`memo context --json` names a missing calendar in `not_read`** (`source: "events"`, "no calendar in the store —
   gcal <profile> sync"), so an answer that used to have an empty `not_read` now has that entry until gcal syncs.
-- **`@wirecat/cli-core` 0.451.0 → 0.459.0.** The shared store moves to version 35 (an occurrence names its series
+- **`@wirecat/cli-core` 0.451.0 → 0.463.0.** The shared store moves to version 35 (an occurrence names its series
   in a column); builds that speak version 34 still open it.
+- **The MCP server is `memo mcp serve`; `memo mcp` alone only shows its commands** (cli-core 0.463.0). `--http`,
+  `--port`, `--public-url` and `--permission` move to `mcp serve`, and `memo mcp --revoke` is now
+  `memo mcp revoke`. There is no alias: an app whose MCP settings run `memo mcp` gets the help and exit 2, so change
+  its `args` to `["mcp", "serve"]`; set Claude Code up with `claude mcp add memo -- memo mcp serve`.
+  `memo mcp server start` runs `mcp serve --http` and still passes `--permission` on.
 
 ### Fixed
 

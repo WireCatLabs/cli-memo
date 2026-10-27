@@ -55,9 +55,12 @@ const start = async (env = fixture(), extra: string[] = [], givenPort?: number) 
   const before = new Set(process.listeners("SIGTERM"))
   const program = createProgram({ streams, env })
   throwParseFailures(program)
-  const running = program.parseAsync(["mcp", "--http", "--public-url", base.href, "--port", String(port), ...extra], {
-    from: "user",
-  })
+  const running = program.parseAsync(
+    ["mcp", "serve", "--http", "--public-url", base.href, "--port", String(port), ...extra],
+    {
+      from: "user",
+    },
+  )
   const stop = () => process.listeners("SIGTERM").find((listener) => !before.has(listener))
   let stopped = false
   const close = async () => {
@@ -163,7 +166,7 @@ describe("Memo HTTP MCP", () => {
     const revokeStreams = captureStreams()
     const program = createProgram({ streams: revokeStreams, env })
     throwParseFailures(program)
-    await program.parseAsync(["mcp", "--revoke", "--json"], { from: "user" })
+    await program.parseAsync(["mcp", "revoke", "--json"], { from: "user" })
     expect(JSON.parse(revokeStreams.stdout.join("")).item).toEqual({ revoked: true })
     expect(
       (
@@ -231,10 +234,9 @@ describe("Memo HTTP MCP", () => {
     ["--http", "--public-url", "https://device.example/memo?x=1"],
     ["--http", "--public-url", "https://device.example", "--port", "0"],
     ["--http", "--public-url", "https://device.example", "--permission", "mcp.authority=allow"],
-    ["--revoke", "--http"],
   ])("refuses invalid or loosening startup options: %j", async (...argv) => {
     const program = createProgram({ streams: captureStreams(), env: fixture() })
     throwParseFailures(program)
-    await expect(program.parseAsync(["mcp", ...argv], { from: "user" })).rejects.toThrow()
+    await expect(program.parseAsync(["mcp", "serve", ...argv], { from: "user" })).rejects.toThrow()
   })
 })

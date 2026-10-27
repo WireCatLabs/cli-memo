@@ -1,8 +1,8 @@
 import { join } from "node:path"
 import { CliError, resolvePaths, type Streams } from "@wirecat/cli-base"
 import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
-import { LOCAL_WRITE, mcpServerCommand, sharedCommandTemplate } from "@wirecat/cli-core/cli"
-import { type Command, Option } from "commander"
+import { LOCAL_READ, LOCAL_WRITE, mcpServerCommand, sharedCommandTemplate } from "@wirecat/cli-core/cli"
+import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { APP } from "../app.js"
 import { SHELL_OVERRIDES } from "../contract-overrides.js"
@@ -13,13 +13,11 @@ const DEFAULT_PORT = 8767
 export const httpTokenFile = (env: NodeJS.ProcessEnv): string =>
   join(resolvePaths({ appName: APP.appName, prefix: APP.envPrefix, env }).state, "mcp-http", "memo.json")
 
-interface McpOptions {
+interface ServeOptions {
   permission?: string[]
   http?: boolean
   port?: string
   publicUrl?: string
-  revoke?: boolean
-  json?: boolean
 }
 
 const mcpCommandDefinition = (
@@ -29,54 +27,34 @@ const mcpCommandDefinition = (
   createProgram: ProgramFactory,
 ): void => {
   const out = answers(program, streams, env)
-  annotate(program.command("mcp"), { effects: LOCAL_WRITE, lifetime: "persistent", mcp: false })
+  const mcp = annotate(program.command("mcp"), { effects: LOCAL_READ, mcp: false })
     .summary("serve commands over stdio or authenticated HTTP")
+    .description(
+      "serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions — `claude mcp add memo -- memo mcp serve`",
+    )
+    .option("--json", "print JSON")
+  annotate(mcp.command("serve"), {
+    effects: LOCAL_WRITE,
+    lifetime: "persistent",
+    mcp: false,
+    examples: ["memo mcp serve", "memo mcp serve --http --public-url https://laptop.example.ts.net"],
+  })
+    .summary("serve memo commands to an AI agent")
     .description("serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions")
     .option(
       "--permission <key=level>",
       "tighten one saved permission for this server; repeat for more keys",
       (value: string, previous: string[] = []) => [...previous, value],
     )
-    .option("--json", "print the revocation receipt as JSON")
     .option("--http", "serve on 127.0.0.1 behind an HTTPS tunnel with an owner access-code login")
     .option("--port <port>", `local HTTP port (default ${DEFAULT_PORT}); requires --http`)
     .option(
       "--public-url <url>",
       "tunnel's HTTPS address without /mcp, or a path of it such as https://<name>.ts.net/memo; requires --http",
     )
-    .addOption(
-      new Option("--revoke", "log every browser app out of Memo").conflicts([
-        "http",
-        "port",
-        "publicUrl",
-        "permission",
-      ]),
-    )
-    .addCommand(
-      mcpServerCommand({
-        example: "memo",
-        defaultPort: DEFAULT_PORT,
-        target: () => ({
-          invocation: "memo",
-          envPrefix: APP.envPrefix,
-          env,
-          tokenFile: httpTokenFile(env),
-          argv: ["mcp", "--http"],
-          version: APP.version,
-        }),
-        answer: (self, item, lines) =>
-          out.print(self.optsWithGlobals<{ json?: boolean }>().json, itemAnswer(item), lines.join("\n")),
-      }),
-    )
-    .action(async (options: McpOptions) => {
+    .action(async (options: ServeOptions) => {
       if (!options.http && (options.port !== undefined || options.publicUrl !== undefined))
         throw new CliError("validation_error", "--port and --public-url require --http")
-      if (options.revoke) {
-        const { revokeAll } = await import("@wirecat/cli-core/mcp")
-        revokeAll(httpTokenFile(env))
-        out.print(options.json, itemAnswer({ revoked: true }))
-        return
-      }
       const { createMemoServer } = await import("./server.js")
       const build = () => createMemoServer(env, createProgram, options.permission)
       if (options.http) {
@@ -139,6 +117,31 @@ const mcpCommandDefinition = (
         process.once("SIGTERM", resolve)
       })
     })
+  annotate(mcp.command("revoke"), { effects: LOCAL_WRITE, mcp: false, examples: ["memo mcp revoke --json"] })
+    .summary("forget every login given to a browser app")
+    .description("forget every login `memo mcp serve --http` gave a browser app; each app must log in again")
+    .action(async function (this: Command) {
+      const { revokeAll } = await import("@wirecat/cli-core/mcp")
+      revokeAll(httpTokenFile(env))
+      out.print(this.optsWithGlobals<{ json?: boolean }>().json, itemAnswer({ revoked: true }))
+    })
+  mcp.addCommand(
+    mcpServerCommand({
+      example: "memo",
+      defaultPort: DEFAULT_PORT,
+      permission: true,
+      target: () => ({
+        invocation: "memo",
+        envPrefix: APP.envPrefix,
+        env,
+        tokenFile: httpTokenFile(env),
+        argv: ["mcp", "serve", "--http"],
+        version: APP.version,
+      }),
+      answer: (self, item, lines) =>
+        out.print(self.optsWithGlobals<{ json?: boolean }>().json, itemAnswer(item), lines.join("\n")),
+    }),
+  )
 }
 
 export const mcpCommand = (...args: Parameters<typeof mcpCommandDefinition>) =>
