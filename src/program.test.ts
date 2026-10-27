@@ -82,6 +82,16 @@ describe("memo", () => {
     expect(failed).toEqual([])
   }, 30_000)
 
+  it("refuses --json on the mcp group as on its other groups, instead of printing help", async () => {
+    for (const group of ["mcp", "notes"]) {
+      const program = createProgram({ streams: captureStreams() })
+      throwParseFailures(program)
+      await expect(program.parseAsync([group, "--json"], { from: "user" })).rejects.toMatchObject({
+        code: "commander.unknownOption",
+      })
+    }
+  })
+
   it("refuses an unknown command path", async () => {
     await expect(
       createProgram({ streams: captureStreams() }).parseAsync(["commands", "nope"], { from: "user" }),
