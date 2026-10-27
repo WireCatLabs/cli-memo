@@ -1,7 +1,7 @@
 import type { Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { LOCAL_READ } from "@wirecat/cli-core/cli"
-import type { ContextMessage } from "@wirecat/cli-core/services"
+import type { ContextEvent, ContextMessage } from "@wirecat/cli-core/services"
 import type { Command } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
 import { boundFolders } from "../notes/bound.js"
@@ -17,6 +17,10 @@ const one = (message: ContextMessage | null): string =>
     : `${message.timestamp.slice(0, 16).replace("T", " ")}  ${message.provider}  ${message.chatTitle ?? message.chatId}: ` +
       `${message.text.replace(/\s+/g, " ").slice(0, MAX_TEXT)}  ${message.locator}`
 
+const eventLine = (event: ContextEvent) =>
+  `  ${(event.allDay ? event.startsAt?.slice(0, 10) : event.startsAt?.slice(0, 16).replace("T", " ")) ?? "—"}  ` +
+  `${(event.title ?? "untitled").replace(/\s+/g, " ").slice(0, MAX_TEXT)}${event.location ? `  ${event.location}` : ""}  ${event.ref}`
+
 /** A note by the reference `notes show` takes, then where it is. */
 const noteLine = (note: { ref: string; path: string | null; title?: string | null }) =>
   `  ${note.ref}${(note.path ?? note.title) ? `  ${note.path ?? note.title}` : ""}`
@@ -24,7 +28,7 @@ const noteLine = (note: { ref: string; path: string | null; title?: string | nul
 const fileLine = (file: MemoContext["files"][number]) =>
   `  ${file.ref}  ${file.role ?? ""}  ${file.title ?? ""}  ${file.modifiedAt?.slice(0, 16).replace("T", " ") ?? ""}  ${file.url ?? ""}`
 
-export const contextText = ({ messages, notes, notRead, tasks, yourNotes, files }: MemoContext): string => {
+export const contextText = ({ messages, events, notes, notRead, tasks, yourNotes, files }: MemoContext): string => {
   const { person, last, recent, shared } = messages
   return [
     `${person.name ?? person.uid}  person:${person.uid}`,
@@ -35,6 +39,8 @@ export const contextText = ({ messages, notes, notRead, tasks, yourNotes, files 
     `In common        ${shared.length} chats`,
     ...(recent.direct.length === 0 ? [] : ["", "Recent, direct", ...recent.direct.map((m) => `  ${one(m)}`)]),
     ...(recent.groups.length === 0 ? [] : ["", "Recent, in groups", ...recent.groups.map((m) => `  ${one(m)}`)]),
+    ...(events.upcoming.length === 0 ? [] : ["", "Upcoming events", ...events.upcoming.map(eventLine)]),
+    ...(events.recent.length === 0 ? [] : ["", "Recent events", ...events.recent.map(eventLine)]),
     "",
     "",
     ...(notes.about.length === 0
@@ -71,9 +77,9 @@ export const contextText = ({ messages, notes, notRead, tasks, yourNotes, files 
 export const contextCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
   annotate(program.command("context"), { effects: LOCAL_READ })
-    .description("messages, mail and notes about a person, each with a link to its source")
+    .description("messages, mail, notes and events about a person, each with a link to its source")
     .argument("<person>", "<messenger>:<name or id>, e.g. telegram:Ana or email:ana@example.com")
-    .option("--limit <n>", "most messages and notes of each kind", positive, 20)
+    .option("--limit <n>", "most messages, notes and events of each kind", positive, 20)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .option(
       "--source <accounts>",

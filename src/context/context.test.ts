@@ -128,13 +128,79 @@ describe("memo context", () => {
     expect(answer.notes.linking.map(({ path }: { path: string }) => path)).toEqual(["Call.md"])
     expect(answer.notes.through_notes.map(({ path }: { path: string }) => path)).toEqual(["Meeting.md"])
     expect(answer.your_notes.map(({ text }: { text: string }) => text)).toEqual(["Prefers mornings"])
-    expect(answer.not_read).toEqual([])
+    expect(answer.not_read.map(({ source }: { source: string }) => source)).toEqual(["events"])
   })
 
   it("says which sources gave nothing, and why", async () => {
     const answer = answerOf(await run("context", "telegram:101", "--json"))
 
-    expect(answer.not_read.map(({ source }: { source: string }) => source)).toEqual(["notes", "mail"])
+    expect(answer.not_read.map(({ source }: { source: string }) => source)).toEqual(["notes", "mail", "events"])
+  })
+
+  it("lists the calendar events of a linked email, from every calendar, with the invitation's words marked untrusted", async () => {
+    const store = await openStore({ env })
+    await store.people.linkIdentities(
+      { provider: "telegram", id: "101" },
+      { provider: "email", id: "rin@example.test" },
+      { method: "manual", by: "owner" },
+    )
+    await store.accounts.registerProvider({
+      name: "google-calendar",
+      kind: "events",
+      aliases: ["gcal"],
+      command: "gcal",
+    })
+    const rin = [{ email: "rin@example.test", name: "Rin Example" }]
+    const entry = (externalId: string, title: string, startsAt: number) => ({
+      externalId,
+      kind: "single" as const,
+      status: "confirmed" as const,
+      title,
+      location: "Room 4",
+      startsAt,
+      endsAt: startsAt + 3_600_000,
+      participants: rin,
+    })
+    for (const [account, events] of [
+      ["work@example.test", [entry("e1", "Lighthouse review", Date.UTC(2099, 0, 5, 9))]],
+      ["home@example.test", [entry("e2", "Budget call", Date.UTC(2001, 0, 5, 9))]],
+    ] as const) {
+      const id = await store.accounts.saveAccount({ provider: "google-calendar", account }, { name: null })
+      const [calendar] = await store.calendar.saveCalendars(
+        id,
+        [
+          {
+            externalId: "primary",
+            title: "Main",
+            timezone: "UTC",
+            accessRole: "owner",
+            primary: true,
+            syncByDefault: true,
+          },
+        ],
+        1,
+      )
+      await store.calendar.saveEntries(calendar?.id as number, [...events], 1)
+    }
+    await store.close()
+
+    const answer = answerOf(await run("context", "telegram:101", "--json"))
+
+    expect(answer.events.upcoming.map(({ title }: { title: string }) => title)).toEqual(["Lighthouse review"])
+    expect(answer.events.recent.map(({ title }: { title: string }) => title)).toEqual(["Budget call"])
+    expect(answer.events.upcoming[0].ref).toMatch(/^event:\d+$/)
+    expect(answer.events.accounts.sort()).toEqual([
+      "google-calendar:home@example.test",
+      "google-calendar:work@example.test",
+    ])
+    expect(answer.messages.events).toBeUndefined()
+    expect(answer.untrusted).toEqual(expect.arrayContaining(["events.upcoming.title", "events.recent.location"]))
+    expect(answer.not_read.map(({ source }: { source: string }) => source)).not.toContain("events")
+
+    const text = await run("context", "telegram:101")
+    expect(text).toContain("Upcoming events")
+    expect(text).toMatch(/2099-01-05 09:00 {2}Lighthouse review {2}Room 4 {2}event:\d+/)
+    expect(text).toContain("Recent events")
   })
 
   it("prints a readable answer, naming the person, each message and each note by a reference memo takes", async () => {

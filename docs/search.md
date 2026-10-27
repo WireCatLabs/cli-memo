@@ -26,8 +26,10 @@ one with `memo notes show` or in the original app.
 | Stored meeting transcripts and summaries | `memo search meetings 'budget' --source zoom:work` |
 | A person, by name, username or alias | `memo search people kai` |
 
-`search all` looks in messages, mail and notes together. It does not search meetings, people, memories,
-projects or tasks; use `memo search people`, `memo context`, `memo search memories` and `memo tasks list` for those.
+`search all` looks in messages, mail, notes and calendar events together. Events come from every calendar
+gcal stored; the answer names each calendar it read, and `--only events` searches them alone. An event's title,
+description and place are written by whoever sent the invitation. Memo cannot open an `event:` reference;
+`gcal <profile> events show <ref>` does. It does not search meetings, people, memories, projects or tasks; use `memo search people`, `memo context`, `memo search memories` and `memo tasks list` for those.
 When you know where something is, its own search is better, because it understands more search
 words.
 

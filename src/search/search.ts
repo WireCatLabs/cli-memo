@@ -212,19 +212,12 @@ export const lowerSuspicious = <T>(items: readonly T[], suspicious: (item: T) =>
   ...items.filter(suspicious),
 ]
 
-export interface SearchedAccount {
-  resource: SearchedResource
-  provider: string
-  account: string
-}
-
 interface EverywhereExtras {
-  accounts: SearchedAccount[]
   tasks: (Awaited<ReturnType<typeof taskPage>>["items"][number] & { heldBy: AccountKey })[]
   tasksIncomplete: boolean
 }
 
-/** Messages, mail and notes ranked together, with the open tasks that point at a hit and every account read. */
+/** Messages, mail, notes and calendar events ranked together, with the open tasks that point at a hit. */
 export const searchEverywhere = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
@@ -233,7 +226,6 @@ export const searchEverywhere = async (
   const accounts = await store.accounts.accounts()
   // Group lists belong to tg; model downloads belong to memo.
   const messenger = { app: { ...APP, command: "tg" }, hintCommand: "memo" }
-  let messageAccounts: AccountKey[] = []
   const found = await searchAll(
     store,
     MEMO,
@@ -246,33 +238,9 @@ export const searchEverywhere = async (
       ...(timezone === undefined ? {} : { timezone }),
     },
     messenger,
-    async (query) => {
-      const read = await searchStore(store, MEMO, query, messenger)
-      messageAccounts = read.coverage?.accounts ?? []
-      return read
-    },
+    (query) => searchStore(store, MEMO, query, messenger),
     meaningLane({ env, store: async () => store, messenger: { app: { command: "memo" } } }),
   )
-  const searched: SearchedAccount[] = []
-  for (const resource of found.searched) {
-    if (resource === "messages")
-      searched.push(...messageAccounts.map(({ provider, account }) => ({ resource, provider, account })))
-    if (resource === "mail")
-      searched.push(
-        ...accounts
-          .filter(({ provider }) => provider === "email")
-          .map(({ provider, account }) => ({ resource, provider, account })),
-      )
-    if (resource === "notes")
-      searched.push(
-        { resource, provider: "notes", account: "internal" },
-        ...[...(await store.notes.folders()), ...(await store.notes.documentsAccounts())].map(({ id }) => ({
-          resource,
-          provider: "notes",
-          account: id,
-        })),
-      )
-  }
   const tasks: EverywhereExtras["tasks"] = []
   let tasksIncomplete = false
   const sources = found.items.map((item) => item.ref)
@@ -285,7 +253,6 @@ export const searchEverywhere = async (
   return {
     ...found,
     items: lowerSuspicious(found.items, (item) => suspicious.has(item.ref)),
-    accounts: searched,
     tasks: tasks.slice(0, limit),
     tasksIncomplete: tasksIncomplete || tasks.length > limit,
   }

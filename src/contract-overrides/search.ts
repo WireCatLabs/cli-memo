@@ -30,8 +30,8 @@ export const search: readonly SharedContractOverride[] = [
   {
     command: ["search", "all"],
     field: "summary",
-    before: "search stored messages, notes and selected meeting transcripts",
-    after: "messages, mail and notes ranked together",
+    before: "search stored messages, notes, calendar events and selected meeting transcripts",
+    after: "messages, mail, notes and calendar events ranked together",
     reason:
       "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
@@ -39,9 +39,9 @@ export const search: readonly SharedContractOverride[] = [
     command: ["search", "all"],
     field: "description",
     before:
-      "search messenger messages and notes in the local store, and a meeting account's transcripts when --source names one — best match first; not mail (the separate memo CLI searches it: memo search mail), tasks, people, memories or projects. Use it when you do not know where something was written; search messages or notes reads one kind with all its fields",
+      "search messenger messages and notes in the local store, calendar events when the store holds a calendar, and a meeting account's transcripts when --source names one — best match first; not mail (the separate memo CLI searches it: memo search mail), tasks, people, memories or projects. Use it when you do not know where something was written; search messages or notes reads one kind with all its fields",
     after:
-      "messages, mail and notes ranked together; not people, memories, projects or decisions. A kind you know reads better with its own search, with all its fields",
+      "messages, mail, notes and calendar events ranked together; not people, memories, projects or decisions. A kind you know reads better with its own search, with all its fields",
     reason:
       "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
@@ -96,7 +96,7 @@ export const search: readonly SharedContractOverride[] = [
       {
         flags: "--only <resources>",
         description:
-          "only these resources, separated by commas: messages, notes; meetings when --source names a meeting account",
+          "only these resources, separated by commas: messages, notes, events; meetings when --source names a meeting account",
         takes_value: true,
         mandatory: false,
       },
@@ -167,7 +167,7 @@ export const search: readonly SharedContractOverride[] = [
       },
       {
         flags: "--only <resources>",
-        description: "messages,mail,notes, separated by commas",
+        description: "messages,mail,notes,events, separated by commas",
         takes_value: true,
         mandatory: false,
       },

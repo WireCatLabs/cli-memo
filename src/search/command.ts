@@ -11,14 +11,14 @@ import { searchText } from "../notes/search.js"
 import { positive } from "../options.js"
 import { SAVE_HELP } from "../save-help.js"
 import { ACCOUNTS_HELP, MAIL_SOURCES, mailboxesOf } from "../store/source-list.js"
-import { allAnswer, kindAnswer, messagesMeaningNote, notesAnswer } from "./answers.js"
+import { allAnswer, eventsMeaningNote, kindAnswer, messagesMeaningNote, notesAnswer } from "./answers.js"
 import { peopleAnswer, peopleText, searchPeople } from "./people.js"
 import { keyDocumentsFirst, searchEverywhere, searchKind, searchNotes } from "./search.js"
 
 const onlyOf = (value: string): SearchedResource[] => {
   const selected = value.split(",").map((part) => part.trim())
-  if (!selected.length || selected.some((part) => !["messages", "mail", "notes"].includes(part)))
-    throw new InvalidArgumentError("choose messages,mail,notes, separated by commas")
+  if (!selected.length || selected.some((part) => !["messages", "mail", "notes", "events"].includes(part)))
+    throw new InvalidArgumentError("choose messages,mail,notes,events, separated by commas")
   return [...new Set(selected)] as SearchedResource[]
 }
 
@@ -90,18 +90,19 @@ const searchCommandDefinition = (program: Command, streams: Streams, env: NodeJS
   queryOptions(
     annotate(group.command("all"), { effects: LOCAL_READ, output: { entity: "hit" } })
       .description(
-        "messages, mail and notes ranked together; not people, memories, projects or decisions. A kind you know " +
-          "reads better with its own search, with all its fields",
+        "messages, mail, notes and calendar events ranked together; not people, memories, projects or decisions. " +
+          "A kind you know reads better with its own search, with all its fields",
       )
-      .summary("messages, mail and notes ranked together"),
+      .summary("messages, mail, notes and calendar events ranked together"),
   )
-    .option("--only <resources>", "messages,mail,notes, separated by commas", onlyOf)
+    .option("--only <resources>", "messages,mail,notes,events, separated by commas", onlyOf)
     .option("--plain-order", "best first by the words alone, without moving mail from suspicious senders down")
     .option("--project <project>", PROJECT_ORDER_HELP)
     .addHelpText(
       "after",
       `
 content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names — memo search all 'content:invoice'.
+Calendar events come from every calendar gcal stored; an event's title, description and place are written by whoever sent the invitation.
 --json: the list is items, each a hit as in tg search all: ref, kind, title, timestamp, excerpt.`,
     )
     .action(
@@ -135,6 +136,7 @@ content: narrows a search to the text of files, transcript: to voice transcripts
           for (const skipped of answer.skipped)
             streams.diagnostic(`${skipped.resource} not searched: ${skipped.reason}\n`)
           if (answer.notes?.meaningSkipped) streams.diagnostic(`Notes by words only: ${answer.notes.meaningSkipped}\n`)
+          if (answer.events?.meaningSkipped) streams.diagnostic(`${eventsMeaningNote(answer.events.meaningSkipped)}\n`)
           if (answer.messages?.meaningSkipped)
             streams.diagnostic(`${messagesMeaningNote(answer.messages.meaningSkipped)}\n`)
         }
