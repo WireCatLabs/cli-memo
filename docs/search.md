@@ -28,7 +28,8 @@ one with `memo notes show` or in the original app.
 
 `search all` looks in messages, mail, notes and calendar events together. Events come from every calendar
 gcal stored; the answer names each calendar it read, and `--only events` searches them alone. An event's title,
-description and place are written by whoever sent the invitation. Memo cannot open an `event:` reference;
+description and place are written by whoever sent the invitation, and `--json` names those fields in the hit's
+`untrusted`. Memo cannot open an `event:` reference;
 `gcal <profile> events show <ref>` does. It does not search meetings, people, memories, projects or tasks; use `memo search people`, `memo context`, `memo search memories` and `memo tasks list` for those.
 When you know where something is, its own search is better, because it understands more search
 words.

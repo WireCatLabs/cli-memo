@@ -18,8 +18,8 @@ importers:
         specifier: 0.63.0
         version: 0.63.0(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.5)
       '@wirecat/cli-core':
-        specifier: 0.459.0
-        version: 0.459.0(@wirecat/cli-base@0.63.0(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.5))(commander@15.0.0)(typescript@7.0.2)(zod@4.6.7)
+        specifier: 0.460.0
+        version: 0.460.0(@wirecat/cli-base@0.63.0(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.5))(commander@15.0.0)(typescript@7.0.2)(zod@4.6.7)
       commander:
         specifier: 15.0.0
         version: 15.0.0
@@ -1000,8 +1000,8 @@ packages:
   '@wirecat/cli-core-sqlite@1.1.0':
     resolution: {integrity: sha512-GpGlh/dAIX/nblBYCdT6DfWSLFxav9mxxeELQAfEuw+QZdT9unKxbi5xa02s/s4JS1P7n0PQx2sCABj4FlMRNw==}
 
-  '@wirecat/cli-core@0.459.0':
-    resolution: {integrity: sha512-08xo8m1USlect8Gmrr8y9pcW8lB8w0AT58vttaXfYQ1jPuVMgGwGOAEvPdNjcb46cXes353oAK0HNFcFdDq95Q==}
+  '@wirecat/cli-core@0.460.0':
+    resolution: {integrity: sha512-5C827EXSUZGmrIJnjHH8TlDoptA3mQuWrzGDRITrNilj4jrszp+07q5utB8ANhVDB7GkTef+lmD1747Z7b7tCQ==}
     engines: {node: ^22.16.0 || >=24}
     hasBin: true
     peerDependencies:
@@ -3206,7 +3206,7 @@ snapshots:
 
   '@wirecat/cli-core-sqlite@1.1.0': {}
 
-  '@wirecat/cli-core@0.459.0(@wirecat/cli-base@0.63.0(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.5))(commander@15.0.0)(typescript@7.0.2)(zod@4.6.7)':
+  '@wirecat/cli-core@0.460.0(@wirecat/cli-base@0.63.0(commander@15.0.0)(typescript@7.0.2)(vitest@5.0.5))(commander@15.0.0)(typescript@7.0.2)(zod@4.6.7)':
     dependencies:
       '@anthropic-ai/sdk': 1.3.0(zod@4.6.7)
       '@bomb.sh/tab': 0.0.22(commander@15.0.0)
