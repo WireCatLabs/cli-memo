@@ -6,6 +6,11 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **The skill tells an agent never to ask for a mail or app password in the chat**: the owner adds a mail account
+  themselves, in Himalaya and then `memo mail add`.
+
 ## 0.116.0 — 27.10.2026
 
 ### Fixed
