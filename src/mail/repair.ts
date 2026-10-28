@@ -1,6 +1,5 @@
+import { ENVELOPE, htmlToText, looksLikeHtml } from "@wirecat/cli-core/mail"
 import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
-import { htmlToText, looksLikeHtml } from "./parse.js"
-import { ENVELOPE } from "./rules.js"
 
 const REPAIRED = "mail_text_repair"
 const VERSION = "html-text-1"

@@ -1,6 +1,7 @@
 import { CliError, isCliError } from "@wirecat/cli-base"
 import { parseLucene, type QueryNode } from "@wirecat/cli-base/query"
 import { parseLocator } from "@wirecat/cli-core"
+import { demotedSenders } from "@wirecat/cli-core/mail"
 import {
   meaningLane,
   type SearchAllFound,
@@ -13,7 +14,6 @@ import {
 import type { AccountKey, MessageStore, Note } from "@wirecat/cli-core/store"
 import { APP } from "../app.js"
 import { keyDocuments, keyFirst, projectOf } from "../knowledge/key-documents.js"
-import { demotedSenders } from "../mail/sender-scores.js"
 import { accountsOf } from "../store/source-list.js"
 import { taskPage } from "../tasks/context.js"
 

@@ -1,8 +1,6 @@
+import type { MailHeaders, MailSource } from "@wirecat/cli-core/mail"
+import { ENVELOPE, GMAIL_ALL_MAIL } from "@wirecat/cli-core/mail"
 import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
-import { GMAIL_ALL_MAIL } from "./accounts.js"
-import type { MailHeaders } from "./headers.js"
-import { ENVELOPE } from "./rules.js"
-import type { MailSource } from "./source.js"
 
 const STATE = "mail_headers_backfill"
 /** Emails read per sync: about 4 MB of headers, so a timer run stays short and the backlog clears in hours. */

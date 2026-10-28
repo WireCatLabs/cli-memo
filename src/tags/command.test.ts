@@ -10,8 +10,8 @@ import { answerOf } from "../../test/answer.js"
 import { APP } from "../app.js"
 import { throwParseFailures } from "../failure.js"
 import { himalaya } from "../mail/himalaya.js"
-import { importMail } from "../mail/import.js"
 import { himalayaSource } from "../mail/source.js"
+import { importMail } from "../mail/sync.js"
 import { createProgram } from "../program.js"
 
 let env: NodeJS.ProcessEnv

@@ -5,8 +5,8 @@ import { formatLocator } from "@wirecat/cli-core"
 import { openStore } from "@wirecat/cli-core/store"
 import { describe, expect, it } from "vitest"
 import type { Himalaya } from "./himalaya.js"
-import { importMail } from "./import.js"
 import { himalayaSource } from "./source.js"
+import { importMail } from "./sync.js"
 
 describe("read-only email attachment sources", () => {
   it("keeps attachment text on its email, and drops it when the mail disappears", async () => {

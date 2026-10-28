@@ -2,13 +2,10 @@ import { randomBytes } from "node:crypto"
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { CliError, resolvePaths } from "@wirecat/cli-base"
-import { type AccountKey, type EmailFacts, type MessageStore, storePath } from "@wirecat/cli-core/store"
+import type { Listed, MailAccount, MailSource } from "@wirecat/cli-core/mail"
+import { decide, describeMatch, ENVELOPE, factsOf, listedOf, type MailRule } from "@wirecat/cli-core/mail"
+import { type AccountKey, type MessageStore, storePath } from "@wirecat/cli-core/store"
 import type { MailAccountConfig } from "./accounts.js"
-import { BULK } from "./bulk.js"
-import { factsOf } from "./facts.js"
-import type { MailAccount } from "./import.js"
-import { decide, describeMatch, ENVELOPE, type MailRule } from "./rules.js"
-import type { Listed, MailSource } from "./source.js"
 
 const DAY = 86_400_000
 /** Gmail deletes Trash for good after 30 days (support.google.com/mail/answer/7401). */
@@ -157,42 +154,6 @@ export const archiveCheck = (
 }
 
 const userLabels = (item: Listed) => (item.labels ?? []).filter((label) => !SYSTEM_LABELS.has(label))
-
-type StoredMail = Listed & { envelope: boolean }
-
-/** A stored email in the shape a Gmail listing has; it has no UID until Gmail is asked. */
-export const listedOf = (email: EmailFacts): StoredMail => {
-  const labels = email.mailboxes.filter(({ kind }) => kind === "label").map(({ name }) => name)
-  if (email.flagged && !labels.includes("Starred")) labels.push("Starred")
-  return {
-    uid: "",
-    messageId: email.externalId,
-    threadId: "",
-    receivedAt: new Date(email.receivedAt ?? 0).toISOString(),
-    labels: labels.sort(),
-    seen: email.read,
-    flagged: email.flagged,
-    ...(email.size === null ? {} : { size: email.size }),
-    headers: {
-      ...(email.fromAddress === null ? {} : { from: email.fromAddress }),
-      ...(email.fromName === null ? {} : { fromName: email.fromName }),
-      ...(email.subject === null ? {} : { subject: email.subject }),
-      ...(email.listId === null ? {} : { listId: email.listId }),
-      to: email.recipients,
-      bulk: email.mailboxes.some(({ kind }) => kind === BULK),
-      ...(email.replyTo === null ? {} : { replyTo: email.replyTo }),
-      ...(email.dkim === null && email.dmarc === null
-        ? {}
-        : {
-            auth: {
-              ...(email.dkim === null ? {} : { dkim: email.dkim }),
-              ...(email.dmarc === null ? {} : { dmarc: email.dmarc }),
-            },
-          }),
-    },
-    envelope: email.mailboxes.some(({ kind }) => kind === ENVELOPE),
-  }
-}
 
 /** Why an envelope stays in Gmail, or undefined when the cleanup may trash it. */
 const keptBecause = (

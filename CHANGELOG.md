@@ -12,6 +12,10 @@ the API.
   cli-base 0.65 knows the verbs `serve` and `revoke`, so their lint baseline entries are gone, and its `cli-dev bundle`
   finds a server started with a flag before `mcp serve`. From cli-core 0.468, an MCP server offers a command that only
   fetches into the store through its read tool.
+- **Mail sync, rules and scoring run from cli-core 0.472.0.** The engine moved to `@wirecat/cli-core/mail`; memo keeps
+  its Himalaya and mbox sources, the domain-age lookup and the embedding. The account, ids, sync state and answers are
+  the same. `mail.source-failed` is now declared by cli-core, and `mcp serve` has the `--profiles` option of
+  cli-core 0.470 only in the shared contract it is checked against, not in memo.
 - **`skill show`, `skill status` and `skill install` answer `--json` in the one-thing envelope**
   ([WC-OUT-4](https://github.com/WireCatLabs/cli-base/blob/main/docs/standards/output.md#wc-out-4--answer-every-json-request-with-one-envelope-a-list-or-one-thing)),
   `{ item, meta }`, like every other memo command and cli-core's own `skill`; they printed the bare object. A caller

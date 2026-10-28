@@ -1,12 +1,12 @@
 import { mkdtempSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import type { Listed } from "@wirecat/cli-core/mail"
 import { openStore } from "@wirecat/cli-core/store"
 import { describe, expect, it } from "vitest"
-import type { Listed } from "./gmail.js"
 import type { Himalaya } from "./himalaya.js"
-import { importMail } from "./import.js"
 import { himalayaSource } from "./source.js"
+import { importMail } from "./sync.js"
 
 const item = (uid: number, size = 1000): Listed => ({
   uid: String(uid),

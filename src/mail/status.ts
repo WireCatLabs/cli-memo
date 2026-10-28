@@ -1,9 +1,15 @@
 import { type Progress, progressLine, progressOf } from "@wirecat/cli-core/background"
+import type { MailAccount } from "@wirecat/cli-core/mail"
+import {
+  ENVELOPE,
+  MBOX_RESUME,
+  type MboxPoint,
+  mailFolders,
+  parsePoint,
+  type ResumePoint,
+  resumeKey,
+} from "@wirecat/cli-core/mail"
 import type { MessageStore } from "@wirecat/cli-core/store"
-import { mailFolders } from "./accounts.js"
-import type { MailAccount } from "./import.js"
-import { MBOX_RESUME, type MboxPoint, parsePoint, type ResumePoint, resumeKey } from "./resume.js"
-import { ENVELOPE } from "./rules.js"
 
 export interface FolderStatus {
   folder: string
@@ -31,7 +37,11 @@ export interface MailStatus {
 }
 
 /** Read from the store only; the mailbox is not asked, so this answers while a sync runs. */
-export const mailStatus = async (store: MessageStore, account: MailAccount, now = new Date()): Promise<MailStatus> => {
+export const mailStatus = async (
+  store: MessageStore,
+  account: MailAccount & { name: string },
+  now = new Date(),
+): Promise<MailStatus> => {
   const key = { provider: "email", account: account.address.toLowerCase() }
   const stored = await store.accounts.storedAccount(key).catch(() => null)
   const refs = stored === null ? [] : await store.mail.emailRefs({ accountId: stored.id })

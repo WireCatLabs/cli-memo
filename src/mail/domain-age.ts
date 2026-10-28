@@ -2,8 +2,8 @@ import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { resolvePaths } from "@wirecat/cli-base"
 import { providerRequest } from "@wirecat/cli-core/cli"
+import type { DomainAge } from "@wirecat/cli-core/mail"
 import { VERSION } from "../version.js"
-import type { DomainAge } from "./score.js"
 
 /** IANA's list of which registry answers RDAP for which top-level domain (RFC 9224). */
 export const BOOTSTRAP_URL = "https://data.iana.org/rdap/dns.json"
