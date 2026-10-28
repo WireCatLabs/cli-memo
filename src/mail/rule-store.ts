@@ -1,11 +1,19 @@
 import { chmodSync, copyFileSync, existsSync } from "node:fs"
 import type { QueryAst } from "@wirecat/cli-base/query"
 import { momentOf } from "@wirecat/cli-core/cli"
+import {
+  conditionKeys,
+  ENVELOPE,
+  envelopeBox,
+  type MailAction,
+  type MailRule,
+  type MailRuleMatch,
+  PRESET_NAMES,
+  type PresetName,
+} from "@wirecat/cli-core/mail"
 import type { AccountKey, MessageStore, MailRule as StoredRule } from "@wirecat/cli-core/store"
 import { configPath, loadConfig, updateConfig } from "../config.js"
 import type { MailAccountConfig } from "./accounts.js"
-import { PRESET_NAMES, type PresetName } from "./presets.js"
-import { conditionKeys, ENVELOPE, envelopeBox, type MailAction, type MailRule, type MailRuleMatch } from "./rules.js"
 
 const STORE_ACTION: Record<MailAction, string> = { keep: "full", envelope: "envelope", skip: "skip" }
 const ACTION_OF: Record<string, MailAction> = { full: "keep", envelope: "envelope", skip: "skip" }

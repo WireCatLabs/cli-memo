@@ -8,8 +8,8 @@ import { describe, expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
 import { himalaya } from "./himalaya.js"
-import { importMail } from "./import.js"
 import { himalayaSource } from "./source.js"
+import { importMail } from "./sync.js"
 
 const ME = "owner@example.test"
 const KEY = { provider: "email", account: ME }

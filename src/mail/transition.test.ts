@@ -6,8 +6,8 @@ import { searchStore } from "@wirecat/cli-core/services"
 import { type MessageStore, openStore } from "@wirecat/cli-core/store"
 import { afterEach, describe, expect, it } from "vitest"
 import { himalaya } from "./himalaya.js"
-import { importMail } from "./import.js"
 import { himalayaSource } from "./source.js"
+import { importMail } from "./sync.js"
 
 const ME = "owner@example.test"
 const KEY = { provider: "email", account: ME }

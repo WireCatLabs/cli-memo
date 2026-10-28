@@ -1,6 +1,6 @@
 import { CliError } from "@wirecat/cli-base"
+import type { MailRule, MailRuleMatch } from "@wirecat/cli-core/mail"
 import { isAddress, senderMatch } from "./rule-query.js"
-import type { MailRule, MailRuleMatch } from "./rules.js"
 
 export interface FiltersProposal {
   rules: MailRule[]

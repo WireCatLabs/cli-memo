@@ -14,25 +14,37 @@ import {
   typedQuery,
   withQuery,
 } from "@wirecat/cli-core/cli"
+import type { Listed } from "@wirecat/cli-core/mail"
+import {
+  conditionKeys,
+  describeMatch,
+  domainsToAge,
+  FREE_MAIL,
+  type MailAction,
+  type MailRule,
+  type MailRuleMatch,
+  mailFolders,
+  mapProposedTags,
+  PRESET_NAMES,
+  type PresetName,
+  type Probe,
+  probeMail,
+  SCORE_RULE,
+  SUGGEST_RULE,
+} from "@wirecat/cli-core/mail"
 import type { Command } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { type Config, loadConfig } from "../config.js"
 import { oneOf, positive } from "../options.js"
 import { withImportLock } from "../run/lock.js"
-import { type MailAccountConfig, mailAccounts, mailFolders, mailSource } from "./accounts.js"
+import { type MailAccountConfig, mailAccounts, mailSource } from "./accounts.js"
 import { type ApplyResult, applyRules } from "./apply.js"
 import { knownAges, lookUpAges } from "./domain-age.js"
 import { importFilters } from "./filters.js"
 import { MAIL_RULES_QUERY, MAIL_RUNS_QUERY, mailRule, mailRun } from "./list-queries.js"
-import { PRESET_NAMES, type PresetName } from "./presets.js"
-import { domainsToAge, type Probe, probeMail, SUGGEST_RULE } from "./probe.js"
 import { ACTION_HELP, actionsOf, FILTER_HELP, filterMatch } from "./rule-query.js"
 import { removeRule, ruleCounts, rulesOf, saveRule } from "./rule-store.js"
-import { mapProposedTags } from "./rule-tags.js"
-import { conditionKeys, describeMatch, type MailAction, type MailRule, type MailRuleMatch } from "./rules.js"
-import { FREE_MAIL, SCORE_RULE } from "./score.js"
 import { mailSetupCommand } from "./setup-command.js"
-import type { Listed } from "./source.js"
 import { mailStatus, statusText } from "./status.js"
 import {
   DEFAULT_LIMIT,

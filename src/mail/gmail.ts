@@ -1,24 +1,7 @@
 import { createHash } from "node:crypto"
 import { CliError } from "@wirecat/cli-base"
-import { HEADER_FIELDS, headersOf, type MailHeaders } from "./headers.js"
+import { HEADER_FIELDS, headersOf, type Listed, type Searched } from "@wirecat/cli-core/mail"
 import { type Himalaya, isThrottled, throttledError } from "./himalaya.js"
-
-export interface Listed {
-  uid: string
-  /** Gmail's own ids: the same in every folder, and they survive a UID reset. */
-  messageId: string
-  threadId: string
-  receivedAt: string
-  folder?: string
-  /** Gmail labels, plain names; absent when the answer could not be read, so nothing is changed. */
-  labels?: string[]
-  seen?: boolean
-  flagged?: boolean
-  /** RFC822.SIZE in bytes, to size fetch batches. */
-  size?: number
-  /** Read only when asked for; absent when not asked or unreadable, so no rule applies to it. */
-  headers?: MailHeaders
-}
 
 const SYSTEM_LABELS: Record<string, string> = {
   inbox: "Inbox",
@@ -131,13 +114,6 @@ const assertCompleted = (output: string, tags: string[]): void => {
       })
     }
   }
-}
-
-/** A mailbox's UIDs in the window and its UIDVALIDITY, read without fetching any message. */
-export interface Searched {
-  /** Absent when the server does not say; then no UID is trusted across runs. */
-  validity?: string
-  uids: string[]
 }
 
 const mailboxOf = (folder: string): string => {

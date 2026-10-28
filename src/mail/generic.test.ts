@@ -5,8 +5,8 @@ import { openStore } from "@wirecat/cli-core/store"
 import { describe, expect, it } from "vitest"
 import { listImapMail } from "./gmail.js"
 import type { Himalaya } from "./himalaya.js"
-import { importMail } from "./import.js"
 import { himalayaSource } from "./source.js"
+import { importMail } from "./sync.js"
 
 const runner =
   (validity: string, folder: string, fail = false): Himalaya =>

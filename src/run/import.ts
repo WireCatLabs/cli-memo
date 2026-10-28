@@ -1,6 +1,7 @@
 import { createDeadline, type ErrorCode, errorCodes, isCliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { dateWindow, FETCH, parseDuration } from "@wirecat/cli-core/cli"
+import { scoreSenders } from "@wirecat/cli-core/mail"
 import { openStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError, Option } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
@@ -9,11 +10,10 @@ import { loadConfig } from "../config.js"
 import { errorObject } from "../failure.js"
 import { mailAccounts, mailSource } from "../mail/accounts.js"
 import { backfillHeaders } from "../mail/backfill-headers.js"
-import { lookUpAges } from "../mail/domain-age.js"
-import { type ImportResult, importMail } from "../mail/import.js"
+import { knownAges, lookUpAges } from "../mail/domain-age.js"
 import { repairHtmlText } from "../mail/repair.js"
 import { rulesOf } from "../mail/rule-store.js"
-import { scoreSenders } from "../mail/sender-scores.js"
+import { type ImportResult, importMail } from "../mail/sync.js"
 import { boundFolders, UNBOUND, unboundReason } from "../notes/bound.js"
 import { embedNoteChunks, type NoteChunksEmbedded } from "../notes/embed.js"
 import { noteFolders } from "../notes/folders.js"
@@ -342,7 +342,13 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
             const filled = await backfillHeaders(store, mailSource(account, env, stop), account.address)
             if (filled) streams.diagnostic(`mail ${account.name}: ${filled} older emails' headers read`)
             halt()
-            const scored = await scoreSenders(store, account.address, env, Date.now(), lookUpAges, rules)
+            const scored = await scoreSenders(
+              store,
+              account.address,
+              { known: () => knownAges(env), lookUp: (domains) => lookUpAges(env, domains) },
+              Date.now(),
+              rules,
+            )
             if (scored)
               streams.diagnostic(
                 `mail ${account.name}: ${scored.scored} senders scored, ${scored.demoted} ranked lower, ` +

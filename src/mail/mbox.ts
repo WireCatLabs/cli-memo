@@ -1,9 +1,13 @@
 import { createReadStream } from "node:fs"
 import { open, stat } from "node:fs/promises"
 import { CliError } from "@wirecat/cli-base"
-import { type Listed, systemLabel } from "./gmail.js"
-import { field, headersOf, unfold } from "./headers.js"
-import type { MailSource } from "./source.js"
+import { headersOf, type Listed, type MailSource } from "@wirecat/cli-core/mail"
+import { systemLabel } from "./gmail.js"
+
+const unfold = (text: string): string => text.replace(/\r?\n[ \t]+/g, " ")
+
+const field = (unfolded: string, name: string): string | undefined =>
+  new RegExp(`^${name}:[ \\t]*(.*?)\\r?$`, "im").exec(unfolded)?.[1]
 
 interface Entry {
   item: Listed

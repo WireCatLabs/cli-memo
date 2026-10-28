@@ -40,7 +40,7 @@ export const mcp: readonly SharedContractOverride[] = [
     command: ["mcp", "serve"],
     field: "description",
     before:
-      "serve this profile to an agent over MCP, on stdin and stdout — `claude mcp add memo -- memo <profile> mcp serve`; with no profile, `memo mcp serve` serves every profile and each tool asks which",
+      "serve this profile to an agent over MCP, on stdin and stdout — `claude mcp add memo -- memo <profile> mcp serve`; `memo mcp serve --profiles a,b` or `--profiles all` serves those profiles from one server and each tool asks which",
     after: "serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions",
     reason: REASON,
   },
@@ -54,7 +54,11 @@ export const mcp: readonly SharedContractOverride[] = [
   {
     command: ["mcp", "serve"],
     field: "examples",
-    before: ["memo personal mcp serve", "memo personal mcp serve --http --public-url https://laptop.example.ts.net"],
+    before: [
+      "memo personal mcp serve",
+      "memo mcp serve --profiles work,personal",
+      "memo personal mcp serve --http --public-url https://laptop.example.ts.net",
+    ],
     after: ["memo mcp serve", "memo mcp serve --http --public-url https://laptop.example.ts.net"],
     reason: REASON,
   },
@@ -66,6 +70,13 @@ export const mcp: readonly SharedContractOverride[] = [
         flags: "--permission <key=level>",
         description:
           "make a permission stricter for this server only, like messages.send=deny; it never loosens the profile; repeat for more keys",
+        takes_value: true,
+        mandatory: false,
+      },
+      {
+        flags: "--profiles <names|all>",
+        description:
+          "serve several profiles from one server instead of one: names, comma-separated, or all for every profile",
         takes_value: true,
         mandatory: false,
       },
@@ -123,21 +134,29 @@ export const mcp: readonly SharedContractOverride[] = [
     command: ["mcp", "revoke"],
     field: "description",
     before:
-      "forget every login `mcp serve --http` gave a browser app, of this profile or, with no profile, of the server of every profile; each app must log in again",
+      "forget every login `mcp serve --http` gave a browser app, of this profile or of the server `--profiles` names; each app must log in again",
     after: "forget every login `memo mcp serve --http` gave a browser app; each app must log in again",
     reason: REASON,
   },
   {
     command: ["mcp", "revoke"],
     field: "examples",
-    before: ["memo personal mcp revoke"],
+    before: ["memo personal mcp revoke", "memo mcp revoke --profiles all"],
     after: ["memo mcp revoke --json"],
     reason: REASON,
   },
   {
     command: ["mcp", "revoke"],
     field: "options",
-    before: [],
+    before: [
+      {
+        flags: "--profiles <names|all>",
+        description:
+          "serve several profiles from one server instead of one: names, comma-separated, or all for every profile",
+        takes_value: true,
+        mandatory: false,
+      },
+    ],
     after: [JSON_OPTION],
     reason: REASON,
   },
@@ -163,6 +182,13 @@ export const mcp: readonly SharedContractOverride[] = [
       {
         flags: "--permission <key=level>",
         description: "make a permission stricter for this server only; repeat for more keys",
+        takes_value: true,
+        mandatory: false,
+      },
+      {
+        flags: "--profiles <names|all>",
+        description:
+          "the server of several profiles that `mcp serve --profiles` serves: names, comma-separated, or all",
         takes_value: true,
         mandatory: false,
       },
@@ -196,7 +222,15 @@ export const mcp: readonly SharedContractOverride[] = [
   {
     command: ["mcp", "server", "stop"],
     field: "options",
-    before: [],
+    before: [
+      {
+        flags: "--profiles <names|all>",
+        description:
+          "the server of several profiles that `mcp serve --profiles` serves: names, comma-separated, or all",
+        takes_value: true,
+        mandatory: false,
+      },
+    ],
     after: [JSON_OPTION],
     reason: REASON,
   },
@@ -210,7 +244,15 @@ export const mcp: readonly SharedContractOverride[] = [
   {
     command: ["mcp", "server", "status"],
     field: "options",
-    before: [],
+    before: [
+      {
+        flags: "--profiles <names|all>",
+        description:
+          "the server of several profiles that `mcp serve --profiles` serves: names, comma-separated, or all",
+        takes_value: true,
+        mandatory: false,
+      },
+    ],
     after: [JSON_OPTION],
     reason: REASON,
   },

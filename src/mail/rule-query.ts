@@ -1,5 +1,5 @@
 import { CliError } from "@wirecat/cli-base"
-import type { MailAction, MailRuleMatch } from "./rules.js"
+import type { MailAction, MailRuleMatch } from "@wirecat/cli-core/mail"
 
 export const FILTER_HELP =
   "from:<address, domain or word>, to:<address>, subject:<word> (or a bare word), older:<n>d, larger:<size> (5MB, 300KB), has:attachment, label:<name> " +

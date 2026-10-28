@@ -1,10 +1,20 @@
+import type { Listed, MailSource } from "@wirecat/cli-core/mail"
+import {
+  decide,
+  ENVELOPE,
+  envelopeBox,
+  factsOf,
+  type MailRule,
+  type MailRuleMatch,
+  mailFolders,
+  ruleTagger,
+  sameMatch,
+  settleRuleTags,
+  type TagOutcome,
+  tagsOf,
+} from "@wirecat/cli-core/mail"
 import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
-import { mailFolders } from "./accounts.js"
-import { factsOf } from "./facts.js"
-import type { MailAccount } from "./import.js"
-import { ruleTagger, settleRuleTags, type TagOutcome } from "./rule-tags.js"
-import { decide, ENVELOPE, envelopeBox, type MailRule, type MailRuleMatch, sameMatch, tagsOf } from "./rules.js"
-import type { Listed, MailSource } from "./source.js"
+import type { MailAccount } from "./sync.js"
 
 export interface RuleEffect {
   rule: MailRule

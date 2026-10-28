@@ -53,12 +53,6 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: [],
   },
   {
-    reason: "mail.source-failed",
-    code: "provider_error",
-    message: "the mail program failed",
-    details: ["exit_code", "signal", "stderr_tail"],
-  },
-  {
     reason: "mail.not-gmail",
     code: "validation_error",
     message: "only a Gmail account can move mail to its Trash",
