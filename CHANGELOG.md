@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.121.0 — 29.10.2026
+
 ### Changed — may break callers
 
 - **cli-core 0.473.0.** `memo projects list` leaves out the task inbox each messenger account has (a project named
