@@ -1233,7 +1233,7 @@ memo projects list [query] [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** project — id, ref, key, name, type, organization_id, scope, created_at; every field: memo commands info projects list
+**Returns:** project — id, ref, key, name, kind, type, organization_id, scope, and 1 more; every field: memo commands info projects list
 
 **Example:** `memo projects list`
 
