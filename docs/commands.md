@@ -25,7 +25,7 @@ memo context <person> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `person` | required | <messenger>:<name or id>, e.g. telegram:Ana or email:ana@example.com, or person:<id>. |
+| `person` | required | <messenger>:<name or id>, e.g. telegram:Ana or email:ana@example.com, person:<id>, or person:me for you. |
 
 | Option | What it does |
 |---|---|

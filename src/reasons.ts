@@ -90,6 +90,12 @@ export const REASONS: ErrorReason[] = defineReasons([
   },
   { reason: "person.not-found", code: "not_found", message: "the store has no person by that name", details: [] },
   {
+    reason: "person.no-owner",
+    code: "not_found",
+    message: "no person is marked as the owner in the store",
+    details: [],
+  },
+  {
     reason: "identity.no-messenger",
     code: "validation_error",
     message: "the name has no messenger; write it as <messenger>:<name or id>",

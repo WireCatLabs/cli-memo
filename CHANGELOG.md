@@ -14,6 +14,9 @@ the API.
 
 ### Added
 
+- **`person:me` names you** in `context`, `relationships add`, `notes` subjects, `tasks assign`, `mentions confirm` and
+  `projects gather --contact`. It is the person the store marks as the owner; with none marked, the error says how to
+  mark one (`tg <profile> contacts link <your id> me`).
 - **`memo context person:<id>` reads a person you already hold the reference of.** It used to ask for a messenger
   account. The person is read from the one account that saw them; when several did, it lists them and asks for
   `--source provider:account`.

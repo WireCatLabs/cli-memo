@@ -2,6 +2,7 @@ import { CliError } from "@wirecat/cli-base"
 import { calendarAccounts, type PersonContext, personContext } from "@wirecat/cli-core/services"
 import type { AccountKey, Link, MessageStore, Note } from "@wirecat/cli-core/store"
 import { type NotesAbout, notesAbout } from "../notes/about.js"
+import { withOwner } from "../people/owner.js"
 import { selectAccount } from "../store/scope.js"
 import { oneAccountOf } from "../store/source-list.js"
 import { personTasks } from "../tasks/context.js"
@@ -125,8 +126,9 @@ export const memoContext = async (
   reference: string,
   { limit = 20, source }: { limit?: number; source?: AccountKey } = {},
 ): Promise<MemoContext> => {
-  if (reference.trim().startsWith("person:")) {
-    const anchor = await anchorOf(store, reference.trim().slice("person:".length), source)
+  const named = (await withOwner(store, reference)).trim()
+  if (named.startsWith("person:")) {
+    const anchor = await anchorOf(store, named.slice("person:".length), source)
     return memoContext(store, anchor.reference, { limit, source: anchor })
   }
   const [, provider, who] = /^([a-z][a-z0-9-]*):(.+)$/.exec(reference.trim()) ?? []

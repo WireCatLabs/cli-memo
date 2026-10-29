@@ -78,7 +78,10 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
   const { print } = answers(program, streams, env)
   annotate(program.command("context"), { effects: LOCAL_READ })
     .description("messages, mail, notes and events about a person, each with a link to its source")
-    .argument("<person>", "<messenger>:<name or id>, e.g. telegram:Ana or email:ana@example.com, or person:<id>")
+    .argument(
+      "<person>",
+      "<messenger>:<name or id>, e.g. telegram:Ana or email:ana@example.com, person:<id>, or person:me for you",
+    )
     .option("--limit <n>", "most messages, notes and events of each kind", positive, 20)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .option(

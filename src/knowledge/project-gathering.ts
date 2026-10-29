@@ -10,6 +10,7 @@ import {
 } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import * as v from "valibot"
+import { withOwner } from "../people/owner.js"
 import { contextSourcesOf } from "../store/source-list.js"
 import { canonicalProject } from "../vocabulary/project.js"
 
@@ -64,8 +65,9 @@ const sendersOf = (person: { identities: { provider: string; id: string | number
  * Any other text is a name.
  */
 const contactOf = async (store: MessageStore, contact: string): Promise<Contact[]> => {
-  if (!contact.startsWith("person:")) return [{ name: contact }]
-  const person = await store.people.personByUid(contact.slice("person:".length))
+  const reference = await withOwner(store, contact)
+  if (!reference.startsWith("person:")) return [{ name: contact }]
+  const person = await store.people.personByUid(reference.slice("person:".length))
   if (!person) throw new CliError("not_found", `no person ${contact}`, { param: "contact" })
   const senders = sendersOf(person)
   const aliases = new Set<string>()
