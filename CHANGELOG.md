@@ -6,6 +6,12 @@ the API.
 
 ## Unreleased
 
+### Changed
+
+- **The agent skill is listed on ClawHub as `wirecat-memo`.** Install it with
+  `openclaw skills install @wirecat/wirecat-memo`. The `cli-memo` listing is no longer updated.
+  `memo skill install` still writes `skills/cli-memo/`.
+
 ## 0.121.0 — 29.10.2026
 
 ### Changed — may break callers
