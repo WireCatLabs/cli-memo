@@ -25,7 +25,7 @@ memo context <person> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `person` | required | <messenger>:<name or id>, e.g. telegram:Ana or email:ana@example.com. |
+| `person` | required | <messenger>:<name or id>, e.g. telegram:Ana or email:ana@example.com, or person:<id>. |
 
 | Option | What it does |
 |---|---|
@@ -348,7 +348,7 @@ memo messages show <message> [options]
 |---|---|
 | `--before-n <n>` | also this many earlier emails of its thread. Default: `0`. |
 | `--after-n <n>` | also this many later emails of its thread. Default: `0`. |
-| `--full` | whole attachment text, not the first 4000 characters of each. |
+| `--full` | whole attachment text, not the first 4000 characters of each, and the HTML and AMP versions of the body. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** one stored message or email whole, with optional stored neighbours

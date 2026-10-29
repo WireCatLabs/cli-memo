@@ -78,7 +78,7 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
   const { print } = answers(program, streams, env)
   annotate(program.command("context"), { effects: LOCAL_READ })
     .description("messages, mail, notes and events about a person, each with a link to its source")
-    .argument("<person>", "<messenger>:<name or id>, e.g. telegram:Ana or email:ana@example.com")
+    .argument("<person>", "<messenger>:<name or id>, e.g. telegram:Ana or email:ana@example.com, or person:<id>")
     .option("--limit <n>", "most messages, notes and events of each kind", positive, 20)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .option(
@@ -88,9 +88,9 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
     .action(async (person: string, options: { limit: number; json?: boolean; source?: string }) => {
       const answer = await withStore(env, async (store) => {
         await importNotesMap(store, env, await boundFolders(store, env, { strict: false }))
-        const account =
+        const source =
           options.source === undefined ? undefined : await contextAccountOf(store, env, person, options.source)
-        return memoContext(store, person, { limit: options.limit, ...(account === undefined ? {} : { account }) })
+        return memoContext(store, person, { limit: options.limit, ...(source === undefined ? {} : { source }) })
       })
       print(options.json, itemAnswer(answer), contextText(answer))
     })

@@ -131,6 +131,27 @@ describe("memo context", () => {
     expect(answer.not_read.map(({ source }: { source: string }) => source)).toEqual(["events"])
   })
 
+  it("takes a person reference, and asks for an account when several saw the person", async () => {
+    const store = await openStore({ env })
+    const alone = (await store.people.personOf({ provider: "telegram", id: "101" }))?.uid as string
+    expect(answerOf(await run("context", `person:${alone}`, "--json")).messages.person.uid).toBe(alone)
+    await store.people.linkIdentities(
+      { provider: "telegram", id: "101" },
+      { provider: "email", id: "rin@example.test" },
+      { method: "manual", by: "owner" },
+    )
+    const uid = (await store.people.personOf({ provider: "telegram", id: "101" }))?.uid as string
+    await store.sync.applyDelta(mail, { people: [{ id: "rin@example.test", name: "Rin Example" }] })
+    await store.close()
+
+    await expect(run("context", `person:${uid}`, "--json")).rejects.toThrow(/seen by 2 accounts.*--source/)
+    const answer = answerOf(await run("context", `person:${uid}`, "--source", "telegram:1", "--json"))
+
+    expect(answer.messages.person.uid).toBe(uid)
+    expect(answer.messages.last.from_them.text).toBe("Are we still on for Friday?")
+    await expect(run("context", "person:99999", "--json")).rejects.toThrow(/no person:99999/)
+  })
+
   it("says which sources gave nothing, and why", async () => {
     const answer = answerOf(await run("context", "telegram:101", "--json"))
 

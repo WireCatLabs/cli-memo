@@ -3,6 +3,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { validateSkill } from "@wirecat/cli-core/skill-validation"
+import type { Command } from "commander"
 import { expect, it } from "vitest"
 import { completeGlobalInstall } from "./install/postinstall.js"
 import { createProgram } from "./program.js"
@@ -12,6 +13,48 @@ const skill = new URL("../skills/cli-memo/SKILL.md", import.meta.url)
 
 it("ships a skill whose frontmatter and every memo command it names are valid", () => {
   expect(validateSkill(readFileSync(skill, "utf8"), { folder: "cli-memo", program: createProgram() })).toEqual([])
+})
+
+const subcommand = (parent: Command, word: string) =>
+  parent.commands.find((command) => command.name() === word || command.aliases().includes(word))
+
+/** The leading words of a command line that name commands; the first word that does not is an argument. */
+const commandPath = (root: Command, words: string[]): { path: string[]; rest: string[] } => {
+  let at = root
+  const path: string[] = []
+  for (const word of words) {
+    const next = subcommand(at, word)
+    if (next === undefined) break
+    path.push(word)
+    at = next
+  }
+  return { path, rest: words.slice(path.length) }
+}
+
+const memoLines = (text: string): string[][] => {
+  const fenced = [...text.matchAll(/^```[^\n]*\n([\s\S]*?)^```/gm)].flatMap(([, block = ""]) => block.split("\n"))
+  const inline = [...text.replaceAll(/^```[\s\S]*?^```/gm, "").matchAll(/`(memo [^`]+)`/g)].map(([, span = ""]) => span)
+  return [...fenced, ...inline]
+    .filter((line) => line.startsWith("memo "))
+    .map((line) =>
+      line
+        .replace(/\s#.*$/, "")
+        .split(/\s+/)
+        .slice(1)
+        .filter((word) => word !== "" && !/^[-<'"[]/.test(word)),
+    )
+}
+
+it("names only commands that exist, and `memo commands` only with a path that exists", () => {
+  const program = createProgram()
+  const lines = memoLines(readFileSync(skill, "utf8"))
+  expect(lines.length).toBeGreaterThan(10)
+  for (const words of lines.filter((line) => line.length > 0)) {
+    const { path } = commandPath(program, words)
+    expect(path.length, `memo ${words.join(" ")} names no command`).toBeGreaterThan(0)
+    if (path[0] === "commands")
+      expect(commandPath(program, words.slice(1)).rest, `memo ${words.join(" ")}: not a command path`).toEqual([])
+  }
 })
 
 it("prints the skill and installs it, stamped with this version, where agents look", async () => {

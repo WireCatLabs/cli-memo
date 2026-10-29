@@ -12,6 +12,20 @@ the API.
   `openclaw skills install @wirecat/wirecat-memo`. The `cli-memo` listing is no longer updated.
   `memo skill install` still writes `skills/cli-memo/`.
 
+### Added
+
+- **`memo context person:<id>` reads a person you already hold the reference of.** It used to ask for a messenger
+  account. The person is read from the one account that saw them; when several did, it lists them and asks for
+  `--source provider:account`.
+
+### Fixed
+
+- **`memo messages show <email>` no longer prints the AMP and HTML versions of the body** (about 4 000 characters of
+  markup) after the plain text. `--full` brings them back.
+- **The skill sent agents to `memo commands search <word>`, which looks like a keyword search and answers
+  `not_found`.** `memo commands` takes a command path (`memo commands search notes --json`); the skill now says so, and a
+  test checks that every `memo` command line in it names a command that exists.
+
 ## 0.121.0 — 29.10.2026
 
 ### Changed — may break callers
