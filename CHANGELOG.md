@@ -4,6 +4,14 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Changed — may break callers
+
+- **cli-core 0.473.0.** `memo projects list` leaves out the task inbox each messenger account has (a project named
+  like `telegram:100`, its key `IN` and eight characters); `memo projects list kind:inbox` lists only them, and
+  `name:` takes `*` wildcards.
+
 ## 0.120.0 — 27.10.2026
 
 ### Changed — may break callers
