@@ -7,6 +7,7 @@ import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
 import { authorOf, byOption } from "../author.js"
 import { positive } from "../options.js"
+import { withOwner } from "../people/owner.js"
 import { SOURCE_HELP, type SourceList, sourceListOf } from "../store/source-list.js"
 
 type Found = Awaited<ReturnType<MessageStore["sourceMentions"]["list"]>>["items"][number]
@@ -132,7 +133,12 @@ export const mentionsCommand = (program: Command, streams: Streams, env: NodeJS.
     .action((id: number, person: string | undefined, options: Options) =>
       run(options.json, async (store) =>
         itemAnswer(
-          await store.sourceMentions.confirm(id, person, decider(options), await mailOf(store, env, options.source)),
+          await store.sourceMentions.confirm(
+            id,
+            person === undefined ? person : await withOwner(store, person),
+            decider(options),
+            await mailOf(store, env, options.source),
+          ),
         ),
       ),
     )

@@ -15,7 +15,8 @@ metadata:
 # memo — the owner's context across messengers, mail and notes
 
 memo reads the local store tg and max write, plus the owner's notes and imported mail. It never sends
-anything. Discover only the relevant command with `memo commands search notes --json` or help.
+anything. Find a command with `memo commands` (all of them, by section), then read just that one with its path:
+`memo commands search notes --json`. A path, not a keyword. `memo <command> --help` works too.
 `memo guide` lists scenarios, command sequences for common tasks (`memo guide person-brief --json`).
 `memo skill show` prints the installed binary's instructions; `memo skill install` refreshes copies.
 Use `--json=ref,excerpt` for compact search hits. Dotted paths select nested objects and arrays;
@@ -112,7 +113,7 @@ memo projects context <key> --json               # one project: key documents fi
 memo search all '<words>' --project <key> --json # everything, the project's key documents first
 memo search messages 'content:invoice' --json    # inside files
 memo search mail '<words>' --source email:<name> --json # add NOT mailbox:bulk when newsletters crowd it
-memo commands search messages --json             # one relevant command
+memo commands search messages --json             # one command's contract, by its path
 ```
 
 Cite each result by its reference (`msg:…`, `note:…`, `document:…`) so the owner can open it.

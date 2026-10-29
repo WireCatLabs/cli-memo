@@ -6,6 +6,7 @@ import { TASK_ROLES, TASK_TYPES, type TaskRole } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
 import { oneOf, positive, readScope, writeScope } from "../options.js"
+import { withOwner } from "../people/owner.js"
 import { scopeOf } from "../store/scope.js"
 import { ACCOUNTS_HELP, type SourceOptions, theAccounts, type WriteOptions } from "../store/source-list.js"
 import { listTasks, TASKS_LIST_QUERY } from "./list.js"
@@ -91,7 +92,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (id: string, person: string, options: { role: TaskRole; json?: boolean }) => {
       await withStore(env, async (store) => {
-        print(options.json, itemAnswer(await assignTask(store, id, person, options.role)))
+        print(options.json, itemAnswer(await assignTask(store, id, await withOwner(store, person), options.role)))
       })
     })
   sharedTaskCommands(program, group, streams, env)

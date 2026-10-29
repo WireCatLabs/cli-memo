@@ -1,7 +1,8 @@
 import { CliError } from "@wirecat/cli-base"
 import { calendarAccounts, type PersonContext, personContext } from "@wirecat/cli-core/services"
-import type { Link, MessageStore, Note } from "@wirecat/cli-core/store"
+import type { AccountKey, Link, MessageStore, Note } from "@wirecat/cli-core/store"
 import { type NotesAbout, notesAbout } from "../notes/about.js"
+import { withOwner } from "../people/owner.js"
 import { selectAccount } from "../store/scope.js"
 import { oneAccountOf } from "../store/source-list.js"
 import { personTasks } from "../tasks/context.js"
@@ -81,25 +82,62 @@ export const contextAccountOf = async (
   env: NodeJS.ProcessEnv,
   person: string,
   source: string,
-): Promise<string> => {
+): Promise<AccountKey> => {
   const key = await oneAccountOf(store, env, source)
-  if (key.provider !== person.split(":")[0])
+  if (!person.startsWith("person:") && key.provider !== person.split(":")[0])
     throw new CliError("validation_error", `${source} is not an account of ${person}'s messenger`)
-  return key.account
+  return key
+}
+
+/**
+ * `person:<uid>` as the `<messenger>:<id>` of one identity, read from the one account that saw it. A person seen by
+ * several accounts is not guessed at: the owner picks with `--source`.
+ */
+const anchorOf = async (
+  store: MessageStore,
+  uid: string,
+  source: AccountKey | undefined,
+): Promise<{ reference: string; provider: string; account: string }> => {
+  const person = await store.people.personByUid(uid)
+  if (person === undefined) throw new CliError("not_found", `no person:${uid} in the store`)
+  const seen = person.identities.flatMap((identity) =>
+    identity.accounts.map((held) => ({
+      reference: `${identity.provider}:${identity.id}`,
+      provider: identity.provider,
+      account: held,
+    })),
+  )
+  const matches = seen.filter(
+    (one) => source === undefined || (one.provider === source.provider && one.account === source.account),
+  )
+  const [only] = matches
+  if (matches.length === 1 && only) return only
+  const accounts = [...new Set(matches.map((one) => `${one.provider}:${one.account}`))]
+  throw new CliError(
+    matches.length === 0 ? "not_found" : "validation_error",
+    matches.length === 0
+      ? `no account in the store has seen person:${uid}`
+      : `person:${uid} was seen by ${accounts.length} accounts; give one with --source: ${accounts.join(", ")}`,
+  )
 }
 
 export const memoContext = async (
   store: MessageStore,
   reference: string,
-  { limit = 20, account }: { limit?: number; account?: string } = {},
+  { limit = 20, source }: { limit?: number; source?: AccountKey } = {},
 ): Promise<MemoContext> => {
+  const named = (await withOwner(store, reference)).trim()
+  if (named.startsWith("person:")) {
+    const anchor = await anchorOf(store, named.slice("person:".length), source)
+    return memoContext(store, anchor.reference, { limit, source: anchor })
+  }
   const [, provider, who] = /^([a-z][a-z0-9-]*):(.+)$/.exec(reference.trim()) ?? []
   if (provider === undefined || who === undefined)
     throw new CliError("validation_error", `"${reference}" names no messenger — write it as <messenger>:<name or id>`, {
       reason: "identity.no-messenger",
     })
   const accounts = await store.accounts.accounts()
-  const asked = await selectAccount(store, { provider, ...(account === undefined ? {} : { account }) })
+  const asked = await selectAccount(store, { provider, ...(source === undefined ? {} : { account: source.account }) })
 
   const { events, ...messages } = await personContext(store, asked, who, { messages: limit })
   const calendars = await calendarAccounts(store)

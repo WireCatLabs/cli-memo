@@ -20,21 +20,27 @@ interface StoredFile {
   extractionError: string | null
 }
 
+/** The HTML and AMP alternatives of the body: markup, not attachments, and thousands of characters each. */
+const isBodyAlternative = (attachment: { mime?: string | null }) =>
+  attachment.mime === "text/html" || attachment.mime === "text/x-amp-html"
+
 /** The extracted text of each attachment, next to the name the email lists; a file without text says why. */
 export const withAttachmentText = (hit: Shown, files: readonly StoredFile[], full: boolean): Shown => ({
   ...hit,
-  attachments: (hit.attachments ?? []).map((attachment, at) => {
-    const file = files[at]
-    const text = file?.text ?? ""
-    if (!text) return { ...attachment, extraction: file?.extractionError ?? file?.extraction ?? "none" }
-    const cut = !full && text.length > ATTACHMENT_CHARS
-    return {
-      ...attachment,
-      text: cut ? text.slice(0, ATTACHMENT_CHARS) : text,
-      text_chars: text.length,
-      ...(cut ? { text_cut: true } : {}),
-    }
-  }),
+  attachments: (hit.attachments ?? [])
+    .map((attachment, at) => ({ attachment, file: files[at] }))
+    .filter(({ attachment }) => full || !isBodyAlternative(attachment))
+    .map(({ attachment, file }) => {
+      const text = file?.text ?? ""
+      if (!text) return { ...attachment, extraction: file?.extractionError ?? file?.extraction ?? "none" }
+      const cut = !full && text.length > ATTACHMENT_CHARS
+      return {
+        ...attachment,
+        text: cut ? text.slice(0, ATTACHMENT_CHARS) : text,
+        text_chars: text.length,
+        ...(cut ? { text_cut: true } : {}),
+      }
+    }),
 })
 
 const attachmentText = (hit: Shown): string =>
@@ -56,7 +62,10 @@ export const messagesCommand = (program: Command, streams: Streams, env: NodeJS.
     .argument("<message>", "the msg:provider/account/chat/message reference a search gives")
     .option("--before-n <n>", "also this many earlier emails of its thread", whole, 0)
     .option("--after-n <n>", "also this many later emails of its thread", whole, 0)
-    .option("--full", `whole attachment text, not the first ${ATTACHMENT_CHARS} characters of each`)
+    .option(
+      "--full",
+      `whole attachment text, not the first ${ATTACHMENT_CHARS} characters of each, and the HTML and AMP versions of the body`,
+    )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (reference: string, options: { json?: boolean; beforeN: number; afterN: number; full?: boolean }) => {
       const locator = parseLocator(reference)

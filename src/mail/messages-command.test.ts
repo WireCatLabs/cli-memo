@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest"
 import { ATTACHMENT_CHARS, withAttachmentText } from "./messages-command.js"
 
-const hit = (names: string[]) =>
+const hit = (names: string[], mimes: string[] = []) =>
   ({
     id: "m1",
     locator: "msg:email/alice@example.com/t1/m1",
-    attachments: names.map((name) => ({ kind: "file", name })),
+    attachments: names.map((name, at) => ({ kind: "file", name, mime: mimes[at] ?? "application/pdf" })),
   }) as unknown as Parameters<typeof withAttachmentText>[0]
 
 const file = (text: string | null, extractionError: string | null = null) => ({
@@ -18,7 +18,7 @@ describe("messages show attachment text", () => {
   it("puts each attachment's extracted text next to its name", () => {
     const shown = withAttachmentText(hit(["bill.pdf"]), [file("Total 85,93 €\nPay by 5 Oct")], false)
     expect(shown.attachments).toEqual([
-      { kind: "file", name: "bill.pdf", text: "Total 85,93 €\nPay by 5 Oct", text_chars: 26 },
+      { kind: "file", name: "bill.pdf", mime: "application/pdf", text: "Total 85,93 €\nPay by 5 Oct", text_chars: 26 },
     ])
   })
 
@@ -33,6 +33,18 @@ describe("messages show attachment text", () => {
 
   it("says why a file has no text", () => {
     const [scan] = withAttachmentText(hit(["photo.pdf"]), [file(null, "needs-agent")], false).attachments ?? []
-    expect(scan).toEqual({ kind: "file", name: "photo.pdf", extraction: "needs-agent" })
+    expect(scan).toEqual({ kind: "file", name: "photo.pdf", mime: "application/pdf", extraction: "needs-agent" })
+  })
+
+  it("leaves out the HTML and AMP versions of the body unless --full is given", () => {
+    const email = hit(["attachment-0", "attachment-1", "bill.pdf"], ["text/x-amp-html", "text/html", "application/pdf"])
+    const files = [file("<html amp4email>…</html>"), file("<html>…</html>"), file("Total 85,93 €")]
+
+    expect(withAttachmentText(email, files, false).attachments?.map(({ name }) => name)).toEqual(["bill.pdf"])
+    expect(withAttachmentText(email, files, true).attachments?.map(({ name }) => name)).toEqual([
+      "attachment-0",
+      "attachment-1",
+      "bill.pdf",
+    ])
   })
 })

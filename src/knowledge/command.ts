@@ -30,6 +30,7 @@ import { answers, itemAnswer, listAnswer, wholeList, withStore } from "../answer
 import { authorOf, byOption } from "../author.js"
 import { notesAbout } from "../notes/about.js"
 import { oneOf, positive, readScope, writeScope } from "../options.js"
+import { withOwner } from "../people/owner.js"
 import {
   ACCOUNTS_HELP,
   accountName,
@@ -262,10 +263,10 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         },
       ) => {
         const author = authorOf(env, options.asOwner)
-        return owned(options, (store) =>
+        return owned(options, async (store) =>
           store.knowledge.relate(null, {
-            from,
-            to,
+            from: await withOwner(store, from),
+            to: await withOwner(store, to),
             kind: options.kind,
             ...(author === "owner" ? {} : { confirmed: false, provenance: `agent:${author.bot}` }),
             ...(options.role === undefined ? {} : { role: options.role }),
