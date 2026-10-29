@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.122.0 — 29.10.2026
+
 ### Changed — may break callers
 
 - **The agent skill is listed on ClawHub as `wirecat-memo`.** Install it with
