@@ -6,6 +6,22 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **Names match ignoring case in any alphabet, not only Latin.** `memo projects list 'name:*ТАРТ*'` now finds
+  «Тартус». The same holds for chat titles, contact names, mail subjects and mailbox and label names, in
+  `tags list name:` and in mail search `mailbox:` and `label:`. The store moves to version 38 the first time this
+  version opens it, and fills the lowercase copies it matches against. An older memo or other WireCat CLI still reads
+  the store, and warns you to upgrade.
+
+### Added
+
+- **`search all`, `search messages` and `search mail` hits carry `sender_is_me`**, true when you sent the message.
+
+### Changed — may break callers
+
+- **`--help` lists `gcal` under "Works with".** A script or test that pins the first screen gains that line. Install gcal with `@wirecat/gcal-cli`.
+
 ## 0.122.0 — 29.10.2026
 
 ### Changed — may break callers
