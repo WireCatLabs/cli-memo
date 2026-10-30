@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.123.0 — 30.10.2026
+
 ### Fixed
 
 - **`memo sync` no longer fails with "database is locked" while another tool writes the shared store.** The store
