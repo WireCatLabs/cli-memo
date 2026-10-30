@@ -8,6 +8,9 @@ the API.
 
 ### Fixed
 
+- **`memo sync` no longer fails with "database is locked" while another tool writes the shared store.** The store
+  waits for the write lock by trying every millisecond, so a tool that writes without pause (`mail sync`) cannot hold
+  it for the whole 5 second wait.
 - **Names match ignoring case in any alphabet, not only Latin.** `memo projects list 'name:*ТАРТ*'` now finds
   «Тартус». The same holds for chat titles, contact names, mail subjects and mailbox and label names, in
   `tags list name:` and in mail search `mailbox:` and `label:`. The store moves to version 38 the first time this
