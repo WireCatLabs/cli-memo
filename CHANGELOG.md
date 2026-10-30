@@ -6,6 +6,22 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **Names match ignoring case in any alphabet, not only Latin.** `memo projects list 'name:*ТАРТ*'` now finds
+  «Тартус». The same holds for chat titles, contact names, mail subjects and mailbox and label names, in
+  `tags list name:` and in mail search `mailbox:` and `label:`. The store moves to version 38 the first time this
+  version opens it, and fills the lowercase copies it matches against. An older memo or other WireCat CLI still reads
+  the store, and warns you to upgrade.
+
+### Added
+
+- **`search all`, `search messages` and `search mail` hits carry `sender_is_me`**, true when you sent the message.
+
+### Changed — may break callers
+
+- **`--help` lists `gcal` under "Works with".** A script or test that pins the first screen gains that line. Install gcal with `@wirecat/gcal-cli`.
+
 ## 0.122.0 — 29.10.2026
 
 ### Changed — may break callers
@@ -938,7 +954,7 @@ Only the version number changed from 0.101.0.
   sender a protect rule keeps. `--plain-order` keeps the plain order, to find such mail. The sync log says how many
   senders are ranked lower.
 
-### Changed
+### Changed — may break callers
 
 - **A read names its accounts with `--source`**, as `memo mentions` and `memo search mail` already do:
   `provider:account` (`telegram:1`, `email:personal`), a provider, a kind or `group:<name>`. `memo tasks list`,
@@ -984,7 +1000,7 @@ Only the version number changed from 0.101.0.
 
 ## 0.62.0 — 17.10.2026
 
-### Changed
+### Changed — may break callers
 
 - **cli-core 0.323.0.** An address keeps its city in its value, so the same street in two cities is two places; a
   word of a contact's name counts alone only as a first name or a surname, so a contact named like a company no
@@ -1136,7 +1152,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
 
 ## 0.52.1 — 16.10.2026
 
-### Changed
+### Changed — may break callers
 
 - **memo starts about a fifth faster after its first run.** It keeps Node's compiled code in a cache, in the
   system's temporary folder (`NODE_COMPILE_CACHE` moves it): `memo --help` went from about 0.70 to 0.54 seconds.
@@ -1216,7 +1232,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
 
 ## 0.46.0 — 16.10.2026
 
-### Changed
+### Changed — may break callers
 
 - **`memo mail probe` is now `memo mail inspect`.** Same command and output; `inspect` is the shared word for
   looking at a source before taking anything from it, as `tg chats inspect` looks at a link before joining.
@@ -1256,7 +1272,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
 
 ## 0.43.0 — 15.10.2026
 
-### Changed
+### Changed — may break callers
 
 - **`--json=<field>` is checked on memo's own lists too.** `tags list`, `vocabulary list`, `actions list`,
   `agents log`, `projects meetings list` and `folders list` refuse a field their rows lack
@@ -1474,7 +1490,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
 
 ## 0.32.0 — 15.10.2026
 
-### Changed
+### Changed — may break callers
 
 - **Mail rules live in the store**, beside the mail they decide, instead of `config.json`. `memo mail rules list`
   counts every rule's emails in one query (it took minutes with hundreds of rules), and each envelope email
@@ -1535,7 +1551,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
   full, and in the metadata of envelopes. Listing reads two more header fields, about 1 KB an email instead of
   300 bytes.
 
-### Changed
+### Changed — may break callers
 
 - **Config settings are named in snake_case:** `mail.max_body_chars`, `mail.max_attachment_chars`, and `list_id`
   and `decided_at` in `mail.accounts[].rules[]`, which `memo mail rules` writes and prints that way. The camelCase
@@ -1588,7 +1604,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
   started by hand do not print or count.
 - **Mail stored in full keeps its size at the source** (RFC822.SIZE), as envelopes already did.
 
-### Changed
+### Changed — may break callers
 
 - **On cli-core 0.274.0 and cli-base 0.28.1.** Every answer's `meta` has
   `complete`; `memo sync` answers `complete: false` with `issues` (`{ code, source }`) when a source failed, and
@@ -1609,7 +1625,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
 
 ## 0.27.0 — 14.10.2026
 
-### Changed
+### Changed — may break callers
 
 - **Every JSON key memo prints is snake_case**, on the CLI and in MCP: `has_more`, `next_offset`, `key_documents`,
   `your_notes`, `not_read`, `from_them`, `proposed_by`, `creation_fingerprint`, `already_stored`,
@@ -1627,7 +1643,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
 
 ## 0.26.0 — 14.10.2026
 
-### Changed
+### Changed — may break callers
 
 - **Errors are one object, the same on the CLI and in MCP:** `{"error": {"code", "reason", "message", "param"?,
   "details"?}}`. The CLI prints it as one JSON line on stderr in machine mode and `✗ message` at a terminal; MCP
@@ -1682,7 +1698,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
 - **A mail marked deleted by mistake is saved again when IMAP lists it again.** It used to count as already
   stored and stayed without its text. An mbox archive still leaves mail that IMAP proved deleted alone.
 
-### Changed
+### Changed — may break callers
 
 - **Depends on `@wirecat/cli-core` 0.265.0 and `@wirecat/cli-base` 0.27.1.** `@wirecat/cli-core` is the new name
   of `@wirecat/cli-messaging`; opening the store with it runs store migrations up to version 7. `memo commands
@@ -1807,7 +1823,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
 
 ## 0.22.0 — 12.10.2026
 
-### Changed
+### Changed — may break callers
 
 - **Built on `@wirecat/cli-base` 0.21.0, the framework's new name, and the shared library 0.254.0.** Nothing
   changes in memo's commands; `memo search` answers carry `nextOffset` where the shared search gives it, and
@@ -1873,7 +1889,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
   and only what will matter later. `memo search …` and `memo notes show` end their `--help` with
   the same hint for `memo facts add` and `memo memories add`.
 
-### Changed
+### Changed — may break callers
 
 - **Mail meaning search finds the email that holds the answer.** Mail is cut into pieces email by email again,
   with re-quoted text, greetings and signatures still left out; before, a piece spanned several emails of a thread
@@ -2072,7 +2088,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
 
 ## 0.7.0 — 11.10.2026
 
-### Changed
+### Changed — may break callers
 
 - **memo runs on `@wirecat/cli-messaging` 0.226.0.** The store prunes its growing logs on open, at most once a
   day: agent tool calls older than 90 days are deleted, and a handled bot update older than 30 days loses its
@@ -2099,7 +2115,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
 - Package references, documentation and fixtures use the WireCat namespace throughout.
 - The printed Memo version matches the published package version.
 
-### Changed
+### Changed — may break callers
 
 - **memo runs on `@wirecat/cli-messaging` 0.221.0.** The store prunes its growing logs on open, at most once a
   day: agent tool calls older than 90 days are deleted, and a handled bot update older than 30 days loses its
@@ -2132,7 +2148,7 @@ The same code as 0.60.0, published again under a new number. Nothing changed for
 
 ## 0.5.1 — 10.10.2026
 
-### Changed
+### Changed — may break callers
 
 - **The project is now licensed under Apache License 2.0.** See `LICENSE` for the terms.
 
