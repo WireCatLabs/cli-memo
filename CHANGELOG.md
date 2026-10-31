@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.129.0 — 31.10.2026
+
 ### Added
 
 - **`memo doctor --online` says whether a newer memo is published.** The answer gains `online` with the shape of
