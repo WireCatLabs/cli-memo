@@ -223,7 +223,8 @@ Mail from senders with signs of fraud (memo mail inspect) comes after the rest o
       "after",
       "\nsource:internal keeps the notes written in memo, source:file the notes from a folder — 'budget source:internal'." +
         "\n--source notes:<folder id> is different: it chooses which notes accounts are read." +
-        "\ntag: in --filter keeps the notes with that tag and leaves the search by meaning as it is — --filter 'tag:work'." +
+        "\nFields in the query or in --filter (tag:, date:) hold for every hit, found by words or by meaning; a query of" +
+        "\nfields alone lists the matching notes, newest first — 'budget tag:work', 'date:today'." +
         "\n--json: each note's reference is ref (note: or document:).",
     )
     .option("--filter <query>", "another query every note must match")

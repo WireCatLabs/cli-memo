@@ -71,6 +71,10 @@ memo search notes 'budget' --filter 'date:2026-10-08'    # and a second conditio
 option is different: it chooses which folders are read. Results come 20 at a time; when there are more, `--page 2`
 shows the next page, and the answer's `page.next_page` says which page that is.
 
+A field in the query works like `--filter`: `memo search notes 'budget tag:work'` finds by meaning only notes tagged
+`work`. Only the words are searched by meaning, so `memo search notes 'date:today'` lists just today's notes, newest
+first. For a Google Drive document, `date:` and the date a result shows are its last edit on Drive.
+
 ## Search mail
 
 ```sh
