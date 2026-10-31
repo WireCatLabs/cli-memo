@@ -18,9 +18,6 @@ the API.
   stays partial with the reason, and its `missing` and `next` stay.
 - **The text names the command that syncs a partial linked chat**, with its CLI and profile:
   `tg work messages sync 9 --since-time 2026-09-01`.
-
-### Changed
-
 - **`projects evidence` comes from cli-core** (`gatherStoredProject`, shared with tg and max). The command is
   declared a fetch because of `--sync-first`. Needs cli-core 0.504.0.
 
