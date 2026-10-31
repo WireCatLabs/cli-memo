@@ -76,7 +76,7 @@ Check that it works:
 ```sh
 memo --version
 memo --help            # the list of commands
-memo doctor            # the state this installation is in; memo connects to nothing
+memo doctor            # the state this installation is in; --online also asks npm for a newer memo
 memo commands --json   # every command and option, for agents and scripts
 ```
 

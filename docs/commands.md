@@ -3290,6 +3290,7 @@ memo doctor [options]
 
 | Option | What it does |
 |---|---|
+| `--online` | also connect once and read the account; sends nothing. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** the state this installation is in, without connecting unless --online

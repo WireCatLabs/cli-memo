@@ -2,7 +2,7 @@ import { chmodSync, mkdirSync, mkdtempSync, readFileSync, statSync, writeFileSyn
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
-import { afterEach, beforeEach, describe, expect, it } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { configPath, loadConfig, updateConfig } from "../config.js"
 import { createProgram } from "../program.js"
 import { updateNotice } from "../update.js"
@@ -202,6 +202,40 @@ describe.skipIf(process.platform === "win32")("memo doctor on files other users 
     await memo("config", "unset", "record")
 
     expect(statSync(configPath(env)).mode & 0o777).toBe(0o600)
+  })
+})
+
+describe("memo doctor --online", () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it("makes no network call without --online", async () => {
+    const fetch = vi.fn()
+    vi.stubGlobal("fetch", fetch)
+    const report = JSON.parse(await doctor("--json"))
+
+    expect(fetch).not.toHaveBeenCalled()
+    expect(report.item.online).toBeUndefined()
+  })
+
+  it("says whether a newer memo is published", async () => {
+    const fetch = vi.fn(async () => Response.json({ version: "999.0.0" }))
+    vi.stubGlobal("fetch", fetch)
+    const report = JSON.parse(await doctor("--online", "--json"))
+
+    expect(fetch).toHaveBeenCalledOnce()
+    expect(report.item.online).toMatchObject({ ok: true, version: { latest: "999.0.0", newer: true } })
+    expect(await doctor("--online")).toContain("memo 999.0.0 is published")
+  })
+
+  it("reports an unreachable npm without failing", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Promise.reject(new Error("offline"))),
+    )
+    const report = JSON.parse(await doctor("--online", "--json"))
+
+    expect(report.item.online.version).toMatchObject({ latest: null, newer: false })
+    expect(process.exitCode ?? 0).toBe(0)
   })
 })
 
