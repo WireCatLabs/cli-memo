@@ -6,13 +6,13 @@ workaround: a missing feature may already be planned. The order is rough and can
 
 ## What works today
 
-Memo reads folders of notes and the documents in them, imports Gmail and IMAP mail through Himalaya, and reads
+Memo reads folders of notes and the documents in them, searches the mail that the `mail` CLI syncs (it still imports through Himalaya, until a later version removes that), and reads
 the messages tg, max and wa keep in the local store. You can search all of it together, see what you know about
 one person or project, tag anything, keep tasks and local reminders, and let an agent record memories, facts
 and proposals for you to review, from the terminal or over MCP. MCP exposes command tools, including writes,
 limited by saved permissions, and can open cited records in full. Local clients use stdio;
 browser and phone apps can connect over authenticated HTTP through your HTTPS tunnel ([remote connection](remote.md)). Download the search model with
-`models download` and add an explicit Himalaya account with `mail add`. Every command and option is in
+`models download` and add an account of the older Himalaya import with `mail add`. Every command and option is in
 [all commands](commands.md); the guides start at [the overview](index.md).
 
 ## In progress
@@ -34,7 +34,7 @@ Nothing is being built right now. The first items under Next come first.
 - Reminders on a project's own tasks.
 - macOS and Windows support. Today Memo is tested on Linux only.
 - Finding images by the conversation around them and by photo data.
-- Reading mail without Himalaya: Memo connects to your mailbox itself, so there is no separate mail program to
-  install and set up.
+- Removing the Himalaya import. Mail comes in through the `mail` CLI, which fills the shared store; Memo only
+  searches it. Memo will not connect to a mailbox for import.
 
 What changed in each released version is in the [changelog](../CHANGELOG.md).

@@ -71,7 +71,8 @@ markers to bypass that permission. Historical proposals stay proposed.
 9. **Mail imports resume.** Bound initial runs with `--limit`, then repeat; completed mail is skipped.
    `memo mail status <account> --json` reports progress. `--rescan` lists all mail again to detect
    deletions sooner than the daily whole listing. Import throughput depends on the mailbox and server.
-   The owner adds a mail account themselves (Himalaya, then `memo mail add`); never ask for a mail or app
+   The owner adds a mailbox themselves (`mail <profile> session start`, then `mail <profile> sync`; the older way is Himalaya and `memo mail add`);
+   `memo mail status` counts only the Himalaya import, `mail <profile> status` shows a `mail` sync. Never ask for a mail or app
    password in the chat.
 10. **Inspect before a first large mail import.** `memo mail inspect <account> --json` groups mail by
     sender and list from headers only; its `suggest` is a hint, not a decision. Its `score` and `signals`

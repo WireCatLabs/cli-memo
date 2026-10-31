@@ -28,7 +28,7 @@ Set `permissions` in Memo's [configuration](configuration.md#permissions) to lim
 A dotted command path is a key, such as `notes.edit`; a parent key such as `notes` covers its commands.
 `deny` marks a command unavailable in discovery, `readonly` permits reads, and `ask` or `allow` permits writes. Over MCP, `ask` runs
 without a terminal question; approval prompts depend on the client app. Writes without a saved level use `ask`.
-`mail delete` and `mail restore` also require `yes: true`, just as their CLI commands need `--yes`.
+`memo mail delete` and `memo mail restore` also require `yes: true`, just as their CLI commands need `--yes`.
 
 Commands that change source folders or mail rules need `mcp.authority`, which defaults to `deny`.
 Meeting findings decisions (`meetings.actions.confirm` and `meetings.actions.reject`) and
@@ -53,7 +53,7 @@ proposals through the CLI and MCP. Memo never sends a message or mail.
 
 Pass a search hit's `ref` to `notes show` as `note`, or a message or email reference to `messages show` as `message`.
 `notes show` returns the whole note; `messages show` returns the stored message or email and takes `full: true` for whole
-attachment text. `mail inspect` reads mailbox headers for an explicit account. `tags list` lists tags.
+attachment text. `memo mail inspect` reads mailbox headers for an explicit account. `tags list` lists tags.
 Messenger reads use the explicit account and chat encoded in the reference; nothing is fetched from a provider.
 
 ## Connect an app

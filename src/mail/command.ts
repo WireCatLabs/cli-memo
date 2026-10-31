@@ -316,13 +316,14 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     )
 
   annotate(mail.command("status"), { effects: LOCAL_READ })
-    .description("how far an account's import is: mail stored, recorded, and left to read")
+    .description("how far an account's Himalaya import is: mail stored, recorded, and left to read")
     .argument("<account>", "the account's name in mail.accounts, or its address")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText(
       "after",
       "\nRead from the store only, so it answers while a sync runs. Done counts mail whose outcome is final: stored, " +
-        "recorded by a rule or skipped by one. The total is the mail in the window at the last sync's search.",
+        "recorded by a rule or skipped by one. The total is the mail in the window at the last sync's search. " +
+        "This counts only the Himalaya import; for mail synced by the mail CLI, run: mail <profile> status.",
     )
     .action(async (name: string, options: { json?: boolean }) => {
       const account = accountOf(loadConfig(env), name)
