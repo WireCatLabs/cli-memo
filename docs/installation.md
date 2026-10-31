@@ -76,7 +76,7 @@ Check that it works:
 ```sh
 memo --version
 memo --help            # the list of commands
-memo doctor            # where Memo keeps its files and what needs attention; connects to nothing
+memo doctor            # the state this installation is in; memo connects to nothing
 memo commands --json   # every command and option, for agents and scripts
 ```
 
