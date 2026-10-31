@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo doctor --online` says whether a newer memo is published.** The answer gains `online` with the shape of
+  the other WireCat doctors: `ok`, `duration_ms` and `version: { current, latest, newer }` (`latest` is `null` when
+  npm cannot be reached, which does not fail the command). Without `--online` memo's doctor still connects to
+  nothing. Needs cli-core 0.507.0 and cli-base 0.68.1.
+
 ## 0.128.0 — 31.10.2026
 
 ### Changed — may break callers
@@ -27,9 +34,6 @@ the API.
   `tg work messages sync 9 --since-time 2026-09-01`.
 - **`projects evidence` comes from cli-core** (`gatherStoredProject`, shared with tg and max). The command is
   declared a fetch because of `--sync-first`. Needs cli-core 0.504.0.
-- **`memo doctor --online` says whether a newer memo is published.** The answer gains `online` with the shape of
-  the other WireCat doctors: `ok`, `duration_ms` and `version: { current, latest, newer }` (`latest` is `null` when npm
-  cannot be reached, which does not fail the command). Without `--online` memo's doctor still connects to nothing. Needs cli-core 0.507.0 and cli-base 0.68.1.
 
 ### Fixed
 
@@ -37,9 +41,9 @@ the API.
   `facts remove` of the newest record, the next one took its number, so a `memory:N` or `fact:N` read before the
   forget named a different record.
 - **`memo doctor`, `memo mcp` and `memo mcp serve` use the summaries every WireCat CLI shares.** `memo doctor --help`
-  opens with "the state this installation is in, without connecting unless --online", `memo mcp` with "serve this
-  profile's commands to an AI agent, and set that up" and `memo mcp serve` with "serve this profile's commands to an
-  AI agent". Only the help text changed. memo keeps no `--profiles`: it has one store and no profiles.
+  now opens with "the state this installation is in, without connecting unless --online" (memo still connects to
+  nothing and has no `--online`), `memo mcp` with "serve this profile's commands to an AI agent, and set that up" and
+  `memo mcp serve` with "serve this profile's commands to an AI agent". Only the help text changed.
 
 ## 0.127.0 — 31.10.2026
 
