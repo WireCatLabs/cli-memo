@@ -1,7 +1,7 @@
 import { type CallToolResult, McpServer } from "@modelcontextprotocol/server"
 import { CliError, mcpErrorResult } from "@wirecat/cli-base"
 import { agentResult, type Body, sealed, UNTRUSTED_INSTRUCTION } from "@wirecat/cli-core/cli"
-import { type McpCommand, registerCommands } from "@wirecat/cli-core/mcp"
+import { callingAgent, type McpCommand, registerCommands } from "@wirecat/cli-core/mcp"
 import type { Level } from "@wirecat/cli-core/sends"
 import { openStore } from "@wirecat/cli-core/store"
 import * as v from "valibot"
@@ -106,7 +106,7 @@ export const createMemoServer = (
           try {
             const code = (result.structuredContent as { error?: { code?: string } } | undefined)?.error?.code
             await store.agentActions.record({
-              actor: { bot: AGENT },
+              actor: { bot: callingAgent(AGENT) },
               tool: tool.path.join("_").replaceAll("-", "_"),
               tier: tool.writes ? "write-private" : "read",
               status: result.isError ? "failed" : "ok",

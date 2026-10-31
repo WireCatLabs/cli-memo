@@ -39,7 +39,10 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .option("--subject <ref>", "what it is about, as a reference")
     .option("--occurred-time <time>", "when it happened, as the evidence shows, ISO 8601")
     .option("--scope <scope>", MEMORY_SCOPES.join(" or "), oneOf(MEMORY_SCOPES))
-    .option("--supersedes <ref>", "a decision only: the decision this one replaces")
+    .option(
+      "--supersedes <ref>",
+      "the proposed or accepted fact this one corrects; it stays, marked superseded once this one is accepted",
+    )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((words: string[], options: AddOptions) =>
       run(options.json, async (store) =>
@@ -83,7 +86,7 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     )
 
   annotate(facts.command("confirm"), { effects: LOCAL_WRITE, output: { entity: "fact" } })
-    .description("stand behind a fact an agent proposed; a decision it supersedes stops holding")
+    .description("stand behind a fact an agent proposed; a fact it supersedes stops holding")
     .argument("<ref>", "fact:<id>")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((ref: string, options: { json?: boolean }) =>

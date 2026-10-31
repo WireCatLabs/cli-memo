@@ -35,10 +35,10 @@ beforeEach(async () => {
   }
 })
 
-const connected = async () => {
+const connected = async (name = "fixture") => {
   const [serverSide, clientSide] = InMemoryTransport.createLinkedPair()
   await createMemoServer(env, createProgram).connect(serverSide)
-  const client = new Client({ name: "fixture", version: "0" })
+  const client = new Client({ name, version: "0" })
   await client.connect(clientSide)
   const call = await commandCaller(client)
   const answer = async (name: string, args: Record<string, unknown>) =>
@@ -57,7 +57,7 @@ it("tells a connecting agent when to save a fact, a memory or an action, within 
   }
 })
 
-it("offers the memo tools, saves an agent's memory and proposal as its own, and logs every call", async () => {
+it("offers the memo tools, saves an agent's memory and proposal as the client's, and logs every call", async () => {
   const { client, call, answer } = await connected()
   try {
     expect((await client.listTools()).tools.map(({ name }) => name)).toEqual([
@@ -75,7 +75,7 @@ it("offers the memo tools, saves an agent's memory and proposal as its own, and 
     expect(answerOf(JSON.stringify(memory.structuredContent))).toMatchObject({
       text: "Bob Sample prefers Friday meetings",
       status: "proposed",
-      author: { type: "bot" },
+      author: { type: "bot", name: "fixture" },
     })
 
     const proposal = await call("actions add", {
@@ -116,7 +116,7 @@ it("offers the memo tools, saves an agent's memory and proposal as its own, and 
     })
     expect(refused).toMatchObject({ isError: true, structuredContent: { error: { code: expect.any(String) } } })
 
-    const log = (await answer("agents list", { query: `agent:${AGENT}` })) as {
+    const log = (await answer("agents list", { query: "agent:fixture" })) as {
       items: { tool: string; status: string; actor: { name: string } }[]
     }
     expect(log.items.map(({ tool, status }) => `${tool} ${status}`)).toEqual([
@@ -127,7 +127,25 @@ it("offers the memo tools, saves an agent's memory and proposal as its own, and 
       "memories_add ok",
     ])
     expect((await answer("memories list", { limit: 1 })).page).toMatchObject({ has_more: false })
-    expect(log.items.every(({ actor }) => actor.name === AGENT)).toBe(true)
+    expect(log.items.every(({ actor }) => actor.name === "fixture")).toBe(true)
+  } finally {
+    await client.close()
+  }
+})
+
+it("names the server when the client's name is not one a log can keep", async () => {
+  const { call, answer, client } = await connected("$".repeat(3))
+  try {
+    await call("memories add", {
+      text: "Bob Sample likes tea",
+      kind: "preference",
+      scope: "work",
+      evidence: ["note:1"],
+    })
+    expect((await answer("memories list", { limit: 1 })).items).toMatchObject([{ author: { name: AGENT } }])
+    expect((await answer("agents list", { query: `agent:${AGENT}` })).items).toContainEqual(
+      expect.objectContaining({ tool: "memories_add" }),
+    )
   } finally {
     await client.close()
   }

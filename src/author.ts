@@ -8,6 +8,8 @@ import type { Command } from "commander"
  */
 export const authorOf = (env: NodeJS.ProcessEnv, asOwner?: boolean): Author => {
   if (asOwner) return "owner"
+  // memo's MCP server marks its runs `memo-mcp` and names the client that made the call beside it.
+  if (env.AI_AGENT === "memo-mcp") return { bot: env.MEMO_MCP_CLIENT?.trim() || "memo-mcp" }
   const agent = env.AI_AGENT?.trim().split("_")[0]
   if (agent) return { bot: agent }
   return env.CLAUDECODE ? { bot: "claude-code" } : "owner"

@@ -6,6 +6,19 @@ the API.
 
 ## Unreleased
 
+### Changed — may break callers
+
+- **cli-core 0.509.0** (from 0.507.0) brings the two changes below; 0.508.0 changed only calendar commands memo does
+  not offer.
+- **`agents list` names the agent that made an MCP call, not `memo-mcp`.** A call through `memo mcp serve` is logged,
+  and a fact, memory or action it adds is authored, under the name the client gave itself (MCP `clientInfo.name`,
+  such as `claude-code`), else the coding agent that started the server, else `memo-mcp`. A filter on
+  `agent:memo-mcp` no longer finds new calls. The name is the client's own claim, shown and never trusted.
+- **`facts add --supersedes` corrects a fact of any kind**, not only an accepted decision. The old fact must be
+  proposed or accepted; it becomes `superseded` once the new one is accepted, which the owner's is at once (a proposed
+  one used to stay proposed). An agent's `--supersedes` of a fact the owner accepted is refused (exit 5); of a proposed
+  one it waits, as before, for the owner to confirm.
+
 ## 0.129.0 — 31.10.2026
 
 ### Added

@@ -100,8 +100,9 @@ A fact you add with the `memo` command is accepted at once. One an agent adds wa
 until you run `memo facts confirm`; `author` and `source` say who wrote it. `facts list` narrows by `kind`,
 `status`, `project` and `subject` in its query. `--project project:1` puts the fact in a project, and `--occurred-time` gives the date it happened.
 
-A decision can replace an earlier one: add `--supersedes fact:2`. When you accept the new decision,
-the old one stops holding. When a decision no longer holds and nothing replaced it, run
+To correct a fact of any kind, add the right one with `--supersedes fact:2`. The old one stays, marked
+`superseded` once the new one is accepted, which yours is at once. Only a proposed or accepted fact can be corrected.
+An agent may propose a correction of another proposed fact; one you accepted only you correct. When a decision no longer holds and nothing replaced it, run
 `memo facts reverse fact:4`.
 
 ## Meeting findings
