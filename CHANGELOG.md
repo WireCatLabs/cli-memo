@@ -14,7 +14,7 @@ the API.
   gain `completeness` and `held`, and the answer may carry `meta.complete: false`, `missing` and `next`. A caller that
   read `meta.complete` as "no source failed" must read `missing` for the reason.
 
-### Changed
+### Fixed
 
 - **`memo doctor`, `memo mcp` and `memo mcp serve` use the summaries every WireCat CLI shares.** `memo doctor --help`
   now opens with "the state this installation is in, without connecting unless --online" (memo still connects to
