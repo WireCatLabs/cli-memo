@@ -29,7 +29,7 @@ the API.
   declared a fetch because of `--sync-first`. Needs cli-core 0.504.0.
 - **`memo doctor --online` says whether a newer memo is published.** The answer gains `online` with the shape of
   the other WireCat doctors: `ok`, `duration_ms` and `version: { current, latest, newer }` (`latest` is `null` when npm
-  cannot be reached, which does not fail the command). Without `--online` memo's doctor still connects to nothing. Needs cli-core 0.505.0.
+  cannot be reached, which does not fail the command). Without `--online` memo's doctor still connects to nothing. Needs cli-core 0.507.0 and cli-base 0.68.1.
 
 ### Fixed
 
