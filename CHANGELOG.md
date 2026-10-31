@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.126.0 — 31.10.2026
+
 ### Added
 
 - **`search notes`, `search messages` and `search mail` say how many match in all.** `--json` adds
