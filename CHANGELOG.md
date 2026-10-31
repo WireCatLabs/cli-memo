@@ -6,6 +6,11 @@ the API.
 
 ## Unreleased
 
+### Changed — may break callers
+
+- **cli-core 0.506.0: `search messages --discover` also searches by meaning when the query uses `-`, `NOT`, `OR`,
+  groups, phrases or `exact:`**, where it ran strict search alone; every hit still matches the whole query.
+
 ### Added
 
 - **`projects evidence --sync-first` syncs the project's linked chats before reading.** Off by default and not on
@@ -23,6 +28,9 @@ the API.
 
 ### Fixed
 
+- **A forgotten memory's or fact's number is never given to a new one** (cli-core 0.506.0). After `memories remove` or
+  `facts remove` of the newest record, the next one took its number, so a `memory:N` or `fact:N` read before the
+  forget named a different record.
 - **`memo doctor`, `memo mcp` and `memo mcp serve` use the summaries every WireCat CLI shares.** `memo doctor --help`
   now opens with "the state this installation is in, without connecting unless --online" (memo still connects to
   nothing and has no `--online`), `memo mcp` with "serve this profile's commands to an AI agent, and set that up" and
