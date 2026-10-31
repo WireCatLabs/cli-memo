@@ -21,6 +21,8 @@ export const memoryItem = ({ body, ...memory }: Memory) => ({
   kind: memory.kind,
   text: body,
   subject: memory.subject,
+  subjectName: memory.subjectName,
+  subjectIsOwner: memory.subjectIsOwner,
   author: memory.author,
   model: memory.model,
   confidence: memory.confidence,

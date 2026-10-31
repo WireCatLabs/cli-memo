@@ -2029,6 +2029,7 @@ memo memories add <text> [options]
 | `--scope <scope>` | personal or work. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
 | `--subject <ref>` | what it is about, as a reference. |
+| `--supersedes <ref>` | yours only: the memory this one corrects; it stays, marked superseded. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 10 more; every field: memo commands info memories add
@@ -2070,11 +2071,12 @@ memo memories show <ref> [options]
 
 | Option | What it does |
 |---|---|
+| `--sources` | read each piece of evidence back: who, when, a short excerpt, and whether it is gone. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 10 more; every field: memo commands info memories show
 
-**Example:** `memo memories show memory:4`
+**Example:** `memo memories show memory:4 --sources`
 
 ### `memo memories confirm`
 
@@ -2119,6 +2121,28 @@ memo memories invalidate <ref> [options]
 **Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 10 more; every field: memo commands info memories invalidate
 
 **Example:** `memo memories invalidate memory:4`
+
+### `memo memories remove`
+
+forget a memory: erase its text, its links to sources and its search entry
+
+This command changes the local store or your files.
+
+```sh
+memo memories remove <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | memory:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** forget a memory: erase its text, its links to sources and its search entry
+
+**Example:** `memo memories remove memory:4`
 
 ## `memo mentions`
 
@@ -2285,11 +2309,12 @@ memo facts show <ref> [options]
 
 | Option | What it does |
 |---|---|
+| `--sources` | read each piece of evidence back: who, when, a short excerpt, and whether it is gone. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 12 more; every field: memo commands info facts show
 
-**Example:** `memo facts show fact:4`
+**Example:** `memo facts show fact:4 --sources`
 
 ### `memo facts confirm`
 
@@ -2334,6 +2359,50 @@ memo facts reverse <ref> [options]
 **Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 12 more; every field: memo commands info facts reverse
 
 **Example:** `memo facts reverse fact:4`
+
+### `memo facts reject`
+
+turn down a fact an agent proposed; it stays, marked rejected
+
+This command changes the local store or your files.
+
+```sh
+memo facts reject <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | fact:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 12 more; every field: memo commands info facts reject
+
+**Example:** `memo facts reject fact:4`
+
+### `memo facts remove`
+
+forget a fact: erase its text, its links to sources and its tags
+
+This command changes the local store or your files.
+
+```sh
+memo facts remove <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | fact:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** forget a fact: erase its text, its links to sources and its tags
+
+**Example:** `memo facts remove fact:4`
 
 ## `memo meetings`
 

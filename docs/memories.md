@@ -49,7 +49,7 @@ meetings that show it. It has a kind and a scope:
 ```sh
 memo memories add 'Kai Sample prefers Friday meetings' --kind preference --scope work --evidence note:12
 memo memories list kind:preference scope:work
-memo memories show memory:3
+memo memories show memory:3 --sources
 memo search memories friday meetings scope:work
 memo memories confirm memory:3
 memo memories invalidate memory:3
@@ -59,6 +59,30 @@ A memory you add with the `memo` command is confirmed at once. One an agent adds
 `proposed` until you check its evidence and `confirm` it. When the evidence no longer holds, for
 example Kai now prefers Mondays, mark it `stale`. `--subject person:…` says who or what the memory is about.
 `memories list` narrows by `kind`, `status`, `scope` and `subject` in its query: `subject:"person:42"`.
+Each memory carries `subject_name`, what its subject is called, and `subject_is_owner` when it is about you.
+`show --sources` reads each piece of evidence back: the sender or title, the time, a short excerpt, and
+`missing: true` when the source was deleted since.
+
+## Correct or forget
+
+Three ways to deal with a wrong memory or fact, from keeping the most to keeping nothing:
+
+```sh
+memo memories add 'Kai Sample prefers Monday calls' --kind preference --scope work --evidence note:12 --supersedes memory:3
+memo memories invalidate memory:3
+memo memories remove memory:3
+memo facts reject fact:4
+memo facts remove fact:4
+```
+
+- **Correct**: add the right memory with `--supersedes`. The old one stays, marked `superseded`, so you keep a
+  record of the mistake. Only you correct a memory; an agent's `--supersedes` is refused.
+- **No longer true**: `invalidate` marks a memory `stale`; `facts reverse` does it for an accepted decision, and
+  `facts reject` turns down a fact an agent proposed. Each keeps the record.
+- **Forget**: `remove` erases the record: its text, its links to its sources and its entry in Memo's search. The
+  messages, notes and meetings it cites stay. A store backup made before keeps it, until that backup is deleted.
+
+An agent cannot forget or reject through the MCP server, and cannot correct a memory there.
 
 ## Facts
 
