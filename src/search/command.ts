@@ -1,6 +1,6 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
-import { LOCAL_READ, sharedCommandTemplate } from "@wirecat/cli-core/cli"
+import { LOCAL_READ, sharedCommandTemplate, shownOf } from "@wirecat/cli-core/cli"
 import type { SearchedResource, SearchFound } from "@wirecat/cli-core/services"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, withStore } from "../answer.js"
@@ -208,7 +208,10 @@ Mail from senders with signs of fraud (memo mail inspect) comes after the rest o
         print(
           options.json,
           kindAnswer(kind, answer, options.limit, level, words.join(" ")),
-          answer.items.map((item) => found(item, level)).join("\n"),
+          [
+            ...answer.items.map((item) => found(item, level)),
+            ...[shownOf(answer.items.length, 0, answer.total)].filter((line) => line !== undefined),
+          ].join("\n"),
         )
       },
     )
@@ -254,7 +257,11 @@ Mail from senders with signs of fraud (memo mail inspect) comes after the rest o
           streams.diagnostic(`Searched by words only: ${answer.meaning_skipped}\n`)
         for (const { source, reason } of answer.skipped) streams.diagnostic(`${source} not searched: ${reason}\n`)
         const { limit, page, json, ...rest } = options
-        print(json, notesAnswer(answer, limit, page, { query: words.join(" "), ...rest }), searchText(answer))
+        print(
+          json,
+          notesAnswer(answer, limit, page, { query: words.join(" "), ...rest }),
+          searchText(answer, (page - 1) * limit),
+        )
       },
     )
   searchMemoriesCommand(group, streams, env)

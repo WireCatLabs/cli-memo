@@ -42,7 +42,13 @@ describe("structured note retrieval and saved links", () => {
   it("uses shared phrase/Boolean filters, provides exact current excerpts and paginates distinct notes", async () => {
     const first = await run("search", "notes", '"budget review" AND NOT cancelled', "--limit", "2")
     expect(first.items).toHaveLength(2)
-    expect(first.page).toEqual({ mode: "page", limit: 2, has_more: true, next_page: 2 })
+    expect(first.page).toEqual({
+      mode: "page",
+      limit: 2,
+      has_more: true,
+      next_page: 2,
+      total: { value: 3, relation: "eq" },
+    })
     expect(first.items.every((hit: { excerpt: string }) => /budget review/i.test(hit.excerpt))).toBe(true)
     const second = await run("search", "notes", '"budget review" AND NOT cancelled', "--limit", "2", "--page", "2")
     expect(second.items).toHaveLength(1)
