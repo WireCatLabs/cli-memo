@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.124.0 — 31.10.2026
+
 ### Changed — may break callers
 
 - **Searching notes, documents, annotations and contact notes finds part of a word, in any letter case.** A mixed case
