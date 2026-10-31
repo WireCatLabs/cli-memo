@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.127.0 — 31.10.2026
+
 ### Added
 
 - **Correct, reject and forget memories and facts.** `memories add --supersedes memory:<id>` corrects a memory: the
