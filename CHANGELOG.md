@@ -6,7 +6,7 @@ the API.
 
 ## Unreleased
 
-### Changed
+### Changed — may break callers
 
 - **Searching notes, documents, annotations and contact notes finds part of a word, in any letter case.** A mixed case
   Cyrillic word is no longer missed, and the title is searched with the text. A search of one or two characters is
