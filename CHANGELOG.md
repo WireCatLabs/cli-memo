@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.0 — 31.10.2026
+
 ### Fixed
 
 - **The header backfill and the HTML text repair no longer lock other CLIs out of the store.** Both saved one email
