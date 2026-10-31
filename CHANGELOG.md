@@ -6,6 +6,15 @@ the API.
 
 ## Unreleased
 
+### Changed
+
+- **Searching notes, documents, annotations and contact notes finds part of a word, in any letter case.** A mixed case
+  Cyrillic word is no longer missed, and the title is searched with the text. A search of one or two characters is
+  refused with "search needs at least three characters", as message search is. The store moves to version 40 the
+  first time this version opens it; notes stored before get their search index in batches while `search notes` or
+  `store migrate` runs. An older memo or other WireCat CLI must be upgraded the same day, or it stops indexing new
+  notes. This memo uses cli-core 0.491.0, which also finishes locating a large mail folder over several budgeted syncs.
+
 ## 0.123.0 — 30.10.2026
 
 ### Fixed
