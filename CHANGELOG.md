@@ -4,6 +4,26 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- **`projects evidence --sync-first` syncs the project's linked chats before reading.** Off by default and not on
+  MCP. For each linked chat the store does not hold back to `--since-time`, memo runs that chat's messenger CLI as
+  `<tg|max|wa> <profile> messages sync --since-time <start> -- <chat>`, one chat at a time, inside `--sync-time`
+  (3 minutes in all). The profile is the one signed in to the chat's account, from the messenger's own record of it;
+  none or several is a refusal for that chat that lists them, never a guess. memo runs `wcat-<tool>` when it
+  describes itself as that tool, or the short name only when it is WireCat's package. The child's stderr is passed
+  on as progress. A chat the time cuts, or whose sync fails (another run holds the session, MAX needs `serve`),
+  stays partial with the reason, and its `missing` and `next` stay.
+- **The text names the command that syncs a partial linked chat**, with its CLI and profile:
+  `tg work messages sync 9 --since-time 2026-09-01`.
+
+### Changed
+
+- **`projects evidence` comes from cli-core** (`gatherStoredProject`, shared with tg and max). The command is
+  declared a fetch because of `--sync-first`. Needs the cli-core release with `projectsCommand`.
+
 ## 0.126.0 — 31.10.2026
 
 ### Added

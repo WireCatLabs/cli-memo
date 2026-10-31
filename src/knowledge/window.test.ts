@@ -1,5 +1,5 @@
+import { projectWindowOf as windowOf } from "@wirecat/cli-core/cli"
 import { afterEach, expect, it } from "vitest"
-import { windowOf } from "./project-gathering.js"
 
 const processZone = process.env.TZ
 afterEach(() => {

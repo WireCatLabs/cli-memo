@@ -1259,7 +1259,9 @@ memo projects context <project> [options]
 
 ### `memo projects evidence`
 
-cited references about a project in stored messages, mail, meeting transcripts and imported notes folders. The project's name, its key, each of its aliases and each --alias, each --context-query and each --contact name is its own search: every word of it must appear in one text, in any order, as whole words; their hits are joined. Every message of a chat confirmed as the project's (memo relationships add chat:<provider>/<account>/<chat> project:<id>) is read too, when --source holds its account, and so is everything a confirmed person member of the project wrote (as --contact person:<id>, without aliases). New mail and documents are indexed for search first, unless --no-catch-up. Reads only what the store holds; proposes and confirms nothing
+cited references about a project in stored messages, mail, meeting transcripts and imported notes folders. The project's name, its key, each of its aliases and each --alias, each --context-query and each --contact name is its own search: every word of it must appear in one text, in any order, as whole words; their hits are joined. Every message of a chat confirmed as the project's (memo relationships add chat:<provider>/<account>/<chat> project:<id>) is read too, when --source holds its account, and so is everything a confirmed person member of the project wrote (as --contact person:<id>, without aliases). New mail and documents are indexed for search first, unless --no-catch-up. Reads what the store holds; with --sync-first it first syncs the linked chats the store lacks for the window by running their messenger CLI (tg, max, wa) with the profile signed in to each chat's account; proposes and confirms nothing
+
+This command changes the local store or your files.
 
 ```sh
 memo projects evidence <project> [options]
@@ -1283,6 +1285,8 @@ memo projects evidence <project> [options]
 | `--before-n <n>` | messages before each message hit, shown as its context, at most 5. Default: `2`. |
 | `--after-n <n>` | messages after each message hit, shown as its context, at most 5. Default: `2`. |
 | `--no-catch-up` | read the search index as it is, without indexing new mail and documents first. |
+| `--sync-first` | first sync the linked chats the store does not hold back to --since-time, through their messenger CLI; off by default. |
+| `--sync-time <duration>` | time for all of --sync-first's syncs together. Default: `3m`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** find what the store holds about a project: names, words, people, linked chats

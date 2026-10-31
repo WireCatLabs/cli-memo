@@ -187,7 +187,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       const context = await withStore(env, (store) => projectContext(store, reference))
       print(options.json, itemAnswer(context), projectContextText(context))
     })
-  projectGatherCommand(projects, print, env)
+  projectGatherCommand(projects, print, env, warn)
   projectActionsCommand(projects, streams, env)
   projectTransferCommand(projects, streams, env)
   const keys = projects
