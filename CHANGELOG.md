@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.130.0 — 31.10.2026
+
 ### Changed — may break callers
 
 - **cli-core 0.509.0** (from 0.507.0) brings the two changes below; 0.508.0 changed only calendar commands memo does
