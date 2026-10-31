@@ -4,6 +4,20 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- **Correct, reject and forget memories and facts.** `memories add --supersedes memory:<id>` corrects a memory: the
+  old one stays as `superseded` (yours only; an agent's is refused with `permission_error`). `facts reject fact:<id>`
+  turns down a proposed fact (new status `rejected`). `memories remove` and `facts remove` erase the record, its links
+  to sources and its search entry, and answer `{ ref, removed: true, links }`; a store backup made before keeps it.
+  None of the three is offered over MCP.
+- **`subject_name` and `subject_is_owner`** in `memories list`, `memories show`, `facts list` and `facts show`: what the
+  subject is called, without a second lookup.
+- **`memories show --sources` and `facts show --sources`** read each piece of evidence back in one call: `ref`, `kind`,
+  `title`, `sender`, `at`, `excerpt`, `tool`, and `missing` for a source deleted since.
+
 ## 0.126.0 — 31.10.2026
 
 ### Added

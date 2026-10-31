@@ -43,6 +43,30 @@
       "json": {
         "items": []
       }
+    },
+    {
+      "id": "forget-unknown-memory",
+      "args": ["memories", "remove", "memory:999", "--json"],
+      "exit": 6,
+      "stream": "stderr",
+      "kind": "json",
+      "errorCode": "not_found"
+    },
+    {
+      "id": "forget-unknown-fact",
+      "args": ["facts", "remove", "fact:999", "--json"],
+      "exit": 6,
+      "stream": "stderr",
+      "kind": "json",
+      "errorCode": "not_found"
+    },
+    {
+      "id": "reject-unknown-fact",
+      "args": ["facts", "reject", "fact:999", "--json"],
+      "exit": 6,
+      "stream": "stderr",
+      "kind": "json",
+      "errorCode": "not_found"
     }
   ],
   "mcp": {

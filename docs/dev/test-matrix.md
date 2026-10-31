@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**519 ✅ · 0 ⛔ · 94 ❌** — 140 commands, 473 options.
+**530 ✅ · 0 ⛔ · 92 ❌** — 143 commands, 479 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -377,17 +377,21 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `memories add` | `--kind` | ✅ |  |
 | `memories add` | `--scope` | ✅ |  |
 | `memories add` | `--evidence` | ✅ |  |
-| `memories add` | `--subject` | ❌ |  |
+| `memories add` | `--subject` | ✅ |  |
+| `memories add` | `--supersedes` | ✅ |  |
 | `memories add` | `--json` | ✅ |  |
 | `memories list` |  | ✅ |  |
 | `memories list` | `--limit` | ✅ |  |
 | `memories list` | `--json` | ✅ |  |
 | `memories show` |  | ✅ |  |
+| `memories show` | `--sources` | ✅ |  |
 | `memories show` | `--json` | ✅ |  |
 | `memories confirm` |  | ✅ |  |
 | `memories confirm` | `--json` | ✅ |  |
 | `memories invalidate` |  | ✅ |  |
 | `memories invalidate` | `--json` | ✅ |  |
+| `memories remove` |  | ✅ |  |
+| `memories remove` | `--json` | ✅ |  |
 | `mentions list` |  | ✅ |  |
 | `mentions list` | `--source` | ✅ |  |
 | `mentions list` | `--limit` | ❌ |  |
@@ -408,7 +412,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `facts add` | `--kind` | ✅ |  |
 | `facts add` | `--evidence` | ✅ |  |
 | `facts add` | `--project` | ✅ |  |
-| `facts add` | `--subject` | ❌ |  |
+| `facts add` | `--subject` | ✅ |  |
 | `facts add` | `--occurred-time` | ✅ |  |
 | `facts add` | `--scope` | ❌ |  |
 | `facts add` | `--supersedes` | ✅ |  |
@@ -417,11 +421,16 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `facts list` | `--limit` | ✅ |  |
 | `facts list` | `--json` | ✅ |  |
 | `facts show` |  | ✅ |  |
+| `facts show` | `--sources` | ✅ |  |
 | `facts show` | `--json` | ✅ |  |
 | `facts confirm` |  | ✅ |  |
 | `facts confirm` | `--json` | ✅ |  |
 | `facts reverse` |  | ✅ |  |
 | `facts reverse` | `--json` | ✅ |  |
+| `facts reject` |  | ✅ |  |
+| `facts reject` | `--json` | ✅ |  |
+| `facts remove` |  | ✅ |  |
+| `facts remove` | `--json` | ✅ |  |
 | `meetings actions add` |  | ✅ |  |
 | `meetings actions add` | `--account` | ✅ |  |
 | `meetings actions add` | `--json` | ✅ |  |

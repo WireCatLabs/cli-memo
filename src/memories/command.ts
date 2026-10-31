@@ -25,6 +25,7 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     .requiredOption("--scope <scope>", MEMORY_SCOPES.join(" or "), oneOf(MEMORY_SCOPES))
     .requiredOption("--evidence <ref...>", "what shows it: msg:, note:, meeting:, person: or another reference")
     .option("--subject <ref>", "what it is about, as a reference")
+    .option("--supersedes <ref>", "yours only: the memory this one corrects; it stays, marked superseded")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(
       (
@@ -34,6 +35,7 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
           scope: Memory["scope"]
           evidence: string[]
           subject?: string
+          supersedes?: string
           asOwner?: boolean
           json?: boolean
         },
@@ -49,6 +51,7 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
                   scope: options.scope,
                   evidence: options.evidence,
                   ...(options.subject === undefined ? {} : { subject: options.subject }),
+                  ...(options.supersedes === undefined ? {} : { supersedes: options.supersedes }),
                 },
                 authorOf(env, options.asOwner),
               ),
@@ -70,9 +73,15 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
   annotate(memories.command("show"), { effects: LOCAL_READ, output: { entity: "memory" } })
     .description("one memory with its evidence")
     .argument("<ref>", "memory:<id>")
+    .option("--sources", "read each piece of evidence back: who, when, a short excerpt, and whether it is gone")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(memoryItem(await store.memories.get(ref)))),
+    .action((ref: string, options: { sources?: boolean; json?: boolean }) =>
+      run(options.json, async (store) =>
+        itemAnswer({
+          ...memoryItem(await store.memories.get(ref)),
+          ...(options.sources ? { sources: await store.memories.sources(ref) } : {}),
+        }),
+      ),
     )
 
   annotate(memories.command("confirm"), { effects: LOCAL_WRITE, output: { entity: "memory" } })
@@ -90,7 +99,21 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     .action((ref: string, options: { json?: boolean }) =>
       run(options.json, async (store) => itemAnswer(memoryItem(await store.memories.markStale(ref)))),
     )
+
+  annotate(memories.command("remove"), { effects: LOCAL_WRITE })
+    .description("forget a memory: erase its text, its links to sources and its search entry")
+    .argument("<ref>", "memory:<id>")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .addHelpText("after", `\n${FORGET_HELP}`)
+    .action((ref: string, options: { json?: boolean }) =>
+      run(options.json, async (store) => itemAnswer(await store.memories.remove(ref))),
+    )
 }
+
+/** What Forget leaves behind, said where the owner decides (NEED-169). */
+export const FORGET_HELP =
+  "The messages, notes and meetings it cites stay. A store backup made before keeps it, until that backup is " +
+  "deleted. To keep a record of the mistake, use invalidate, or add the right one with --supersedes instead."
 
 export const searchMemoriesCommand = (search: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { run } = answers(search, streams, env)
