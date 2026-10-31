@@ -13,7 +13,6 @@ import { decodeMailboxName, labelName } from "./gmail.js"
 import { himalaya } from "./himalaya.js"
 import { mboxSource } from "./mbox.js"
 import { himalayaSource } from "./source.js"
-import { mailStatus, statusText } from "./status.js"
 import { importMail } from "./sync.js"
 
 const ME = "owner@example.test"
@@ -651,33 +650,6 @@ describe("importMail resuming", () => {
     expect(await resumable(env, { rules })).toMatchObject({ pass: "resumed", listed: 0 })
   })
 
-  it("reports the widest window ever listed, not a later narrow run that started the resume point over", async () => {
-    const { env } = withLog([1, 2, 3, 4, 5, 6].map((n) => mail(n)))
-    await resumable(env, { max: 2 })
-    const rules: MailRule[] = [{ match: { domain: "shop.example" }, action: "envelope", decided_at: "2026-10-01" }]
-    await importMail({
-      store: await store(env),
-      source: himalayaSource(himalaya(env), { name: "test" }),
-      account: { name: "test", address: ME, rules },
-      since: new Date("2026-09-15T00:00:00Z"),
-      now: () => NOW,
-      resumeFrom: 0,
-      indexThreads: async () => ({ chats: 0, chunks: 0, left: false }),
-    })
-
-    const status = await mailStatus(await store(env), { name: "test", address: ME }, new Date(NOW))
-    expect(status.folders).toEqual([
-      expect.objectContaining({
-        since: SINCE.toISOString(),
-        done: 2,
-        total: 6,
-        last: expect.objectContaining({ since: "2026-09-15T00:00:00.000Z", done: 2, total: 2 }),
-      }),
-    ])
-    expect(status.progress).toMatchObject({ done: 2, total: 6, remaining: 4, state: "partial" })
-    expect(statusText(status)).toContain("last run, since 2026-09-15 only: 2 of 2 done")
-  })
-
   it("lists everything again when the mailbox's UIDVALIDITY changes", async () => {
     const { env, write } = withLog([mail(1), mail(2)])
     await resumable(env)
@@ -780,25 +752,6 @@ describe("memo sync --only mail", () => {
       duration_ms: expect.any(Number),
       accounts: ["second"],
     })
-  })
-
-  it("says how far an account's import is, from the store, in text and in JSON", async () => {
-    const { dir, env } = setup([mail(1), mail(2), mail(3)])
-    const withConfig = configured(dir, env)
-    await run(
-      ["sync", "--source", "email:test", "--since-time", "2026-09-01", "--limit", "2", "--no-embed"],
-      withConfig,
-    )
-
-    expect(await run(["mail", "status", "test"], withConfig)).toContain("2 stored in full, 0 recorded as envelopes")
-    const answer = envelopeOf(await run(["mail", "status", "test", "--json"], withConfig))
-    expect(answer.item).toMatchObject({
-      stored: 2,
-      envelopes: 0,
-      progress: { job: "mail", profile: "test", done: 2, total: 3, remaining: 1, state: "partial" },
-      folders: [{ folder: "[Gmail]/All Mail", done: 2, total: 3, full_at: expect.any(String) }],
-    })
-    expect(answer.meta).toMatchObject({ accounts: ["test"] })
   })
 
   it("syncs only the account named, from the time asked, and reports what it did", async () => {

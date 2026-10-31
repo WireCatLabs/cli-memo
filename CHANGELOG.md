@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Removed
+
+- **`memo mail status` is removed.** It counted only the Himalaya import, while `mail <profile> status` counts the
+  mailboxes the `mail` CLI syncs, so two status commands gave two different numbers. Use `mail <profile> status`
+  for a mailbox synced by `mail`; the Himalaya import has no status command until a better one, covering both,
+  comes later. The MCP tool `mail status` goes with it.
+
 ### Fixed
 
 - **The docs say that the `mail` CLI brings mail in, and that the Himalaya import will be removed in a later version.**

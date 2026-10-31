@@ -272,9 +272,8 @@ memo messages show <ref>
 
 Memo can still import mail itself through [Himalaya](https://github.com/pimalaya/himalaya). That older path works for
 now and will be removed in a later version. It reads attachments' text, and `memo sync` and the timer read every
-account in `mail.accounts` (`--source email:<name>` narrows it). `memo mail inspect`, `rules`, `delete`, `restore`
-and `status` work on those accounts. `memo mail status` counts only that import; for mail synced by `mail`, run
-`mail <profile> status`.
+account in `mail.accounts` (`--source email:<name>` narrows it). `memo mail inspect`, `rules`, `delete` and `restore`
+work on those accounts. To see how far a mailbox synced by `mail` is, run `mail <profile> status`.
 
 More: [mail](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mail.md) ·
 [mail on wirecat.dev](https://wirecat.dev/en/docs/memo/mail)

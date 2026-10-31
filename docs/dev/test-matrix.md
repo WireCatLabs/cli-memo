@@ -74,8 +74,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `mail inspect` | `--limit` | ✅ |  |
 | `mail inspect` | `--domain-age` | ❌ |  |
 | `mail inspect` | `--json` | ✅ |  |
-| `mail status` |  | ✅ |  |
-| `mail status` | `--json` | ✅ |  |
 | `mail delete` |  | ✅ |  |
 | `mail delete` | `--limit` | ✅ |  |
 | `mail delete` | `--since-time` | ✅ |  |
