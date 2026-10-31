@@ -6,6 +6,14 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **`search notes` and `search all` keep the query's fields for notes found by meaning.** `date:today` or `tag:work`
+  without `--exact` returned about 20 notes that matched neither; now every field and every excluded word holds for
+  every hit, and a query of fields alone lists the matching notes, newest first. For a Google Drive document, `date:`
+  reads its last edit on Drive, the time its result shows as `updated_at`, where it read when it was last imported
+  (cli-core 0.496.0, with cli-base 0.65.5).
+
 ## 0.124.0 — 31.10.2026
 
 ### Changed — may break callers

@@ -445,7 +445,7 @@ export const search: readonly SharedContractOverride[] = [
       },
       {
         flags: "--filter <query>",
-        description: "a query every hit must also match; it does not change the search by meaning",
+        description: "a query every hit must also match, found by words or by meaning",
         takes_value: true,
         mandatory: false,
       },
