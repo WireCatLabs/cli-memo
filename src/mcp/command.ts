@@ -28,7 +28,7 @@ const mcpCommandDefinition = (
 ): void => {
   const out = answers(program, streams, env)
   const mcp = annotate(program.command("mcp"), { effects: LOCAL_READ, mcp: false })
-    .summary("serve commands over stdio or authenticated HTTP")
+    .summary("serve this profile's commands to an AI agent, and set that up")
     .description(
       "serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions — `claude mcp add memo -- memo mcp serve`",
     )
@@ -38,7 +38,7 @@ const mcpCommandDefinition = (
     mcp: false,
     examples: ["memo mcp serve", "memo mcp serve --http --public-url https://laptop.example.ts.net"],
   })
-    .summary("serve memo commands to an AI agent")
+    .summary("serve this profile's commands to an AI agent")
     .description("serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions")
     .option(
       "--permission <key=level>",

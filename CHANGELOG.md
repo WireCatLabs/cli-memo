@@ -21,6 +21,13 @@ the API.
 - **`projects evidence` comes from cli-core** (`gatherStoredProject`, shared with tg and max). The command is
   declared a fetch because of `--sync-first`. Needs cli-core 0.504.0.
 
+### Fixed
+
+- **`memo doctor`, `memo mcp` and `memo mcp serve` use the summaries every WireCat CLI shares.** `memo doctor --help`
+  now opens with "the state this installation is in, without connecting unless --online" (memo still connects to
+  nothing and has no `--online`), `memo mcp` with "serve this profile's commands to an AI agent, and set that up" and
+  `memo mcp serve` with "serve this profile's commands to an AI agent". Only the help text changed.
+
 ## 0.127.0 — 31.10.2026
 
 ### Added

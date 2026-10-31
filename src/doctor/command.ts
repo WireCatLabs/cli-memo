@@ -234,7 +234,7 @@ export const doctorText = (d: Diagnosis, fixes: readonly string[] = []): string 
 const doctorCommandDefinition = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
   annotate(program.command("doctor"), { effects: LOCAL_READ })
-    .description("where memo keeps its files and what needs attention; connects to nothing")
+    .description("the state this installation is in, without connecting unless --online")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText(
       "after",

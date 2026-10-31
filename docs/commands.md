@@ -2751,7 +2751,7 @@ memo mcp serve [options]
 | `--port <port>` | local HTTP port (default 8767); requires --http. |
 | `--public-url <url>` | tunnel's HTTPS address without /mcp, or a path of it such as https://<name>.ts.net/memo; requires --http. |
 
-**Returns:** serve memo commands to an AI agent
+**Returns:** serve this profile's commands to an AI agent
 
 **Example:** `memo mcp serve`, `memo mcp serve --http --public-url https://laptop.example.ts.net`
 
@@ -3233,7 +3233,7 @@ memo config unset <key> [options]
 
 ## `memo doctor`
 
-where memo keeps its files and what needs attention; connects to nothing
+the state this installation is in, without connecting unless --online
 
 ```sh
 memo doctor [options]
@@ -3243,7 +3243,7 @@ memo doctor [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** where memo keeps its files and what needs attention; connects to nothing
+**Returns:** the state this installation is in, without connecting unless --online
 
 **Example:** `memo doctor`, `memo doctor --json`
 
