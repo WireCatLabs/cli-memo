@@ -116,6 +116,7 @@ export const kindAnswer = (
     ),
     limit,
     has_more: found.hasMore,
+    ...(found.total ? { total: found.total } : {}),
     ...(archive.next.length ? { next: archive.next } : {}),
     missing: [
       ...archive.missing,
@@ -132,6 +133,7 @@ export const notesAnswer = (found: NotesFound, limit: number, page: number, args
     limit,
     has_more: found.has_more && found.next_offset !== undefined,
     page,
+    ...(found.total ? { total: found.total } : {}),
     args,
     missing: meaningMissed(found.meaning_skipped, args.exact === true),
   })

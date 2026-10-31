@@ -6,6 +6,19 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`search notes`, `search messages` and `search mail` say how many match in all.** `--json` adds
+  `page.total: { value, relation }`, shaped as Elasticsearch's `hits.total`: `eq` is the exact count, `gte` a lower
+  bound (counting stops at 10,000). The text view adds `showing 1–20 of 144` under the hits. Notes count those the
+  words find and those found by meaning, every page together (cli-core 0.501.0).
+
+### Fixed
+
+- **Search by meaning inside a filter finds the filter's own notes.** With a filter of at most 2,000 notes, every one
+  of them is ranked by meaning, instead of the 50 nearest overall cut to the filter (cli-core 0.501.0). memo requires
+  cli-base 0.67.0.
+
 ### Changed — may break callers
 
 - **`projects evidence` says what the store holds of each linked chat, and `search messages` and `search all` keep the

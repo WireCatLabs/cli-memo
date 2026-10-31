@@ -205,6 +205,7 @@ it("shows each email reference first, with its people, labels, subject and an ex
     "  2026-10-01T00:00:00.000Z  Alice Example  to Bob Sample · cc Kai Sample · Starred",
     "  Offsite",
     expect.stringMatching(/^ {2}….*The offsite budget is approved\.$/),
+    "showing 1–1 of 1",
     "",
   ])
   expect(shown).not.toContain(body)
