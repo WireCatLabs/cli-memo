@@ -496,3 +496,34 @@ it("says which members it left out when the lane limit is reached", async () => 
     `${sorted[13]} (member, member-limit)`,
   )
 })
+
+it("names a linked chat held in part and one not reached, and answers meta.complete false with exit 0", async () => {
+  const { env, json, run } = await setUp()
+  const store = await openStore({ env })
+  for (const chat of ["8", "9"]) {
+    const rows = Array.from({ length: 60 }, (_, n) => ({
+      ...message(`${n + 1}`, `Line ${n}`, daysAgo(4)),
+      chatId: chat,
+    }))
+    await store.messages.saveMessages(telegram, chat, rows, { via: "test" })
+    await store.sync.markRange(telegram, chat, 1, 60)
+  }
+  await store.close()
+  for (const chat of ["8", "9"])
+    await json("relationships", "add", `chat:telegram/1/${chat}`, "project:1", "--as-owner")
+
+  const found = await json("projects", "evidence", "SYP", "--source", "telegram:1", "--limit", "20")
+  expect(found.completeness).toBe("partial")
+  expect(found.linked_chats.map((one: { state: string }) => one.state)).toContain("pending")
+  expect(found.linked_chats).toEqual(
+    expect.arrayContaining([expect.objectContaining({ completeness: expect.objectContaining({ state: "partial" }) })]),
+  )
+  const answer = JSON.parse(
+    await run("projects", "evidence", "SYP", "--source", "telegram:1", "--limit", "20", "--json"),
+  )
+  expect(answer.meta.complete).toBe(false)
+  expect(answer.missing).toEqual([expect.objectContaining({ field: "history", step: "messages.sync" })])
+  expect(await run("projects", "evidence", "SYP", "--source", "telegram:1", "--limit", "20")).toMatch(
+    /chat:telegram\/1\/9: held from \d{4}-\d{2}-\d{2} only, not read this run — sync it with its messenger CLI: messages sync 9 --since-time \d{4}/,
+  )
+})

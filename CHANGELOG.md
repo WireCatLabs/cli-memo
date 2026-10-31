@@ -8,6 +8,17 @@ the API.
 
 ### Changed — may break callers
 
+- **`projects evidence` says what the store holds of each linked chat, and `search messages` and `search all` keep the
+  coverage gap in their answers** (cli-core 0.498.0). Each `linked_chats` row gains `title`, `completeness` and `held`;
+  a chat the run did not reach is `state: "pending"` with no `items` or `capped`, where it said `in-scope` with
+  `items: 0`. The answer's `completeness` is `partial`, `unknown` or `complete`, and `meta.complete` is true only when
+  the planned reads finished and every linked chat is held in full; `complete` keeps its meaning, "the planned reads
+  finished". A chat held in part gives `missing` (`field: "history"`) and a line in the text naming it and the sync
+  command; the exit code stays 0. memo has no `messages sync`, so `next` (cli-core's `messages.sync` step) is dropped
+  from memo's answers: the messenger CLI syncs the chat. `search messages` and `search all` answered `meta.complete:
+  true` without `missing` for a chat held in part, because memo's answer builders dropped what cli-core returned; they
+  now carry both.
+
 - **0.125.0 also carried cli-core's coverage answers, which change JSON output** (cli-core 0.493.0, not listed in that
   release). `memo search all --json` answers `meta.complete: false` with `missing` and `next` when a chat it searched is
   held only in part or was never fetched, where it said `true`; the exit code stays 0. `memo tasks agenda --json` rows

@@ -1,6 +1,6 @@
 import type { ErrorCode } from "@wirecat/cli-base"
 import { type Missing, type StepDefinition, stepOf } from "@wirecat/cli-base/standards"
-import { allHitItem, messageHitItem, noteHitItem } from "@wirecat/cli-core/cli"
+import { allHitItem, coverageGaps, messageHitItem, noteHitItem } from "@wirecat/cli-core/cli"
 import type { NotesFound, SearchAllFound, SearchFound } from "@wirecat/cli-core/services"
 import type { AccountKey } from "@wirecat/cli-core/store"
 import { listAnswer } from "../answer.js"
@@ -19,9 +19,14 @@ const named = (accounts: readonly Account[]) => [
 const metaOf = (
   accounts: readonly Account[],
   skipped: readonly { code: ErrorCode; source?: string; resource?: string }[] = [],
+  heldInPart = false,
 ) => {
   const issues = skipped.map((one) => ({ code: one.code, source: one.source ?? one.resource ?? "" }))
-  return { accounts: named(accounts), ...(issues.length ? { issues } : {}) }
+  return {
+    accounts: named(accounts),
+    ...(heldInPart ? { complete: false } : {}),
+    ...(issues.length ? { issues } : {}),
+  }
 }
 
 /** Meaning not searched because the model is missing is a gap; `--exact` leaving it out is not. */
@@ -67,6 +72,7 @@ export const allAnswer = (
   limit: number,
   exact = false,
 ) => {
+  const archive = coverageGaps({ coverage: found.coverage }, found.items.length)
   const next = found.items.flatMap((item) => {
     const tasks = found.tasks.filter((task) => task.source === item.ref)
     const held = tasks[0]?.heldBy
@@ -82,15 +88,16 @@ export const allAnswer = (
     items: found.items.map(allHitItem),
     limit,
     has_more: found.hasMore,
-    ...(next.length ? { next: next.slice(0, 2) } : {}),
+    ...(next.length + archive.next.length ? { next: [...next.slice(0, 2), ...archive.next] } : {}),
     missing: [
+      ...archive.missing,
       ...meaningMissed(found.notes?.meaningSkipped, exact),
       ...messagesMeaningMissed(found.messages?.meaningSkipped),
       ...(found.events?.meaningSkipped === undefined || exact
         ? []
         : [{ field: "found_by", why: eventsMeaningNote(found.events.meaningSkipped) }]),
     ],
-    meta: metaOf(found.accounts, found.skipped),
+    meta: metaOf(found.accounts, found.skipped, archive.missing.length > 0),
   })
 }
 
@@ -101,16 +108,22 @@ export const kindAnswer = (
   limit: number,
   level?: "brief" | "default" | "full",
   query = "",
-) =>
-  listAnswer(`search ${kind}`, {
+) => {
+  const archive = coverageGaps(found, found.items.length)
+  return listAnswer(`search ${kind}`, {
     items: found.items.map((item) =>
       level === "brief" ? briefHit(messageHitItem(item, query)) : messageHitItem(item, query),
     ),
     limit,
     has_more: found.hasMore,
-    missing: found.wordsReady ? [] : [{ field: "text", why: "the word index is still being built" }],
-    meta: metaOf(found.coverage?.accounts ?? found.accounts ?? [], found.skipped),
+    ...(archive.next.length ? { next: archive.next } : {}),
+    missing: [
+      ...archive.missing,
+      ...(found.wordsReady ? [] : [{ field: "text", why: "the word index is still being built" }]),
+    ],
+    meta: metaOf(found.coverage?.accounts ?? found.accounts ?? [], found.skipped, archive.missing.length > 0),
   })
+}
 
 /** `search notes`, CLI and MCP alike; `args` reruns the same search for the next page. */
 export const notesAnswer = (found: NotesFound, limit: number, page: number, args: Record<string, unknown> = {}) =>
