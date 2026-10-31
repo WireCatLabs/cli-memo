@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.125.0 — 31.10.2026
+
 ### Fixed
 
 - **`search notes` and `search all` keep the query's fields for notes found by meaning.** `date:today` or `tag:work`
