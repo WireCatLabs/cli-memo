@@ -268,7 +268,8 @@ with the message as evidence, in the Harbour project.
 
 A fact you record directly is accepted; one added by an agent stays proposed. The
 [project review flow](#review-project-facts-and-follow-ups) keeps cited findings together before a
-decision. If a fact replaces an earlier decision, ask your agent to mark that with `--supersedes`.
+decision. If a fact replaces an earlier proposed one, ask your agent to mark that with `--supersedes`; a fact you accepted
+you correct yourself.
 
 ## Weekly review
 

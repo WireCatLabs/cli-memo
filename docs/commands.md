@@ -2316,7 +2316,7 @@ memo facts add <statement> [options]
 | `--subject <ref>` | what it is about, as a reference. |
 | `--occurred-time <time>` | when it happened, as the evidence shows, ISO 8601. |
 | `--scope <scope>` | personal or work. |
-| `--supersedes <ref>` | a decision only: the decision this one replaces. |
+| `--supersedes <ref>` | the proposed or accepted fact this one corrects; it stays, marked superseded once this one is accepted. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 12 more; every field: memo commands info facts add
@@ -2367,7 +2367,7 @@ memo facts show <ref> [options]
 
 ### `memo facts confirm`
 
-stand behind a fact an agent proposed; a decision it supersedes stops holding
+stand behind a fact an agent proposed; a fact it supersedes stops holding
 
 This command changes the local store or your files.
 

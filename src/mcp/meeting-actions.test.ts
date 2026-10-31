@@ -107,7 +107,7 @@ it("stages replay-safe attributed proposals, exposes previews and keeps project 
     const args = { account: "example:synthetic", input }
     const first = await call("meetings actions add", args)
     expect(first.failed).not.toBe(true)
-    expect(first.item).toMatchObject({ status: "proposed", receipt: null, author: { type: "bot", name: "memo-mcp" } })
+    expect(first.item).toMatchObject({ status: "proposed", receipt: null, author: { type: "bot", name: "synthetic" } })
     expect((await call("meetings actions add", args)).item.id).toBe(first.item.id)
     expect((await call("meetings actions show", { source: args.account, id: first.item.id })).item).toEqual(first.item)
     expect(

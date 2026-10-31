@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto"
 import { captureStreams, type Streams } from "@wirecat/cli-base"
 import { describeProgram, flatten } from "@wirecat/cli-base/commands"
 import { changesAuthorityAt, environmentOf, inRun, provide } from "@wirecat/cli-core/cli"
-import { type AgentProgram, runCommandForAgent, toolsFromCommands } from "@wirecat/cli-core/mcp"
+import { type AgentProgram, callingAgent, runCommandForAgent, toolsFromCommands } from "@wirecat/cli-core/mcp"
 import type { Level } from "@wirecat/cli-core/sends"
 import type { Command } from "commander"
 import * as v from "valibot"
@@ -117,7 +117,7 @@ export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramF
           stdin,
           authority,
           profile: "",
-          env: { ...env, AI_AGENT: "memo-mcp" },
+          env: { ...env, AI_AGENT: "memo-mcp", MEMO_MCP_CLIENT: callingAgent("memo-mcp") },
           levels: () => levels,
           keyOf,
         }),

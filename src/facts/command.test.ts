@@ -77,3 +77,45 @@ it("filters facts by a query in the store, and refuses the old flags and a quest
   })
   await expect(run("facts", "list", "text:Fridays")).rejects.toMatchObject({ code: "validation_error" })
 })
+
+it("lets the owner correct a fact of any kind, and an agent only one the owner has not accepted", async () => {
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-facts-")), "store.db") }
+  const run = async (as: NodeJS.ProcessEnv, ...args: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env: { ...env, ...as } })
+      .exitOverride()
+      .parseAsync([...args, "--json"], { from: "user" })
+    return answerOf(streams.stdout.join(""))
+  }
+  const owner = { AI_AGENT: "", CLAUDECODE: "" }
+  const agent = { AI_AGENT: "hermes" }
+  const note = await run(owner, "notes", "add", "Alice Example: the review moved")
+  const proposed = await run(
+    agent,
+    "facts",
+    "add",
+    "The review moved to May",
+    "--kind",
+    "statement",
+    "--evidence",
+    note.ref,
+  )
+  const fixed = await run(
+    owner,
+    "facts",
+    "add",
+    "The review moved to June",
+    "--kind",
+    "statement",
+    "--supersedes",
+    proposed.ref,
+  )
+  expect(fixed).toMatchObject({ status: "accepted", supersedes: proposed.ref })
+  expect(await run(owner, "facts", "show", proposed.ref)).toMatchObject({ status: "superseded" })
+
+  const args = ["facts", "add", "The review is in July", "--kind", "statement", "--evidence", note.ref, "--supersedes"]
+  await expect(run(agent, ...args, fixed.ref)).rejects.toMatchObject({ code: "permission_error" })
+  await expect(run(owner, ...args, proposed.ref)).rejects.toMatchObject({ code: "validation_error" })
+  const again = await run(agent, "facts", "add", "A promise", "--kind", "promise", "--evidence", note.ref)
+  expect(await run(agent, ...args, again.ref)).toMatchObject({ status: "proposed", supersedes: again.ref })
+})
