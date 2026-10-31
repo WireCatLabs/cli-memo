@@ -1,9 +1,10 @@
+import { shownOf } from "@wirecat/cli-core/cli"
 import type { NotesFound as NotesSearch } from "@wirecat/cli-core/services"
 
 export type { FoundNote as NoteHit, LinkedRecord, NotesFound as NotesSearch } from "@wirecat/cli-core/services"
 export { searchNotes } from "@wirecat/cli-core/services"
 
-export const searchText = (result: NotesSearch): string =>
+export const searchText = (result: NotesSearch, offset = 0): string =>
   [
     ...(result.hits.length === 0
       ? [`No note holds "${result.query}". Run memo sync --only notes if notes changed.`]
@@ -12,6 +13,7 @@ export const searchText = (result: NotesSearch): string =>
       (hit) =>
         `${"key" in hit ? "key  " : ""}${hit.path ?? hit.ref}${hit.found_by.length === 1 && hit.found_by[0] === "meaning" ? "  (by meaning)" : ""}\n  ${hit.excerpt}`,
     ),
+    ...[shownOf(result.hits.length, offset, result.total)].filter((line) => line !== undefined),
     ...(result.has_more ? ["More notes match; raise --limit or ask for --page with the next number."] : []),
     ...(result.linked.length === 0
       ? []
