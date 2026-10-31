@@ -6,6 +6,14 @@ the API.
 
 ## Unreleased
 
+### Changed — may break callers
+
+- **0.125.0 also carried cli-core's coverage answers, which change JSON output** (cli-core 0.493.0, not listed in that
+  release). `memo search all --json` answers `meta.complete: false` with `missing` and `next` when a chat it searched is
+  held only in part or was never fetched, where it said `true`; the exit code stays 0. `memo tasks agenda --json` rows
+  gain `completeness` and `held`, and the answer may carry `meta.complete: false`, `missing` and `next`. A caller that
+  read `meta.complete` as "no source failed" must read `missing` for the reason.
+
 ## 0.125.0 — 31.10.2026
 
 ### Fixed
