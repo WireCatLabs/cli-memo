@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **`memo doctor`, `memo mcp` and `memo mcp serve` use the summaries every WireCat CLI shares.** `memo doctor --help`
+  now opens with "the state this installation is in, without connecting unless --online" (memo still connects to
+  nothing and has no `--online`), `memo mcp` with "serve this profile's commands to an AI agent, and set that up" and
+  `memo mcp serve` with "serve this profile's commands to an AI agent". Only the help text changed.
+
 ## 0.127.0 — 31.10.2026
 
 ### Added
@@ -53,13 +60,6 @@ the API.
   held only in part or was never fetched, where it said `true`; the exit code stays 0. `memo tasks agenda --json` rows
   gain `completeness` and `held`, and the answer may carry `meta.complete: false`, `missing` and `next`. A caller that
   read `meta.complete` as "no source failed" must read `missing` for the reason.
-
-### Fixed
-
-- **`memo doctor`, `memo mcp` and `memo mcp serve` use the summaries every WireCat CLI shares.** `memo doctor --help`
-  now opens with "the state this installation is in, without connecting unless --online" (memo still connects to
-  nothing and has no `--online`), `memo mcp` with "serve this profile's commands to an AI agent, and set that up" and
-  `memo mcp serve` with "serve this profile's commands to an AI agent". Only the help text changed.
 
 ## 0.125.0 — 31.10.2026
 
