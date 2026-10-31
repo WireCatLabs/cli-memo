@@ -9,13 +9,6 @@ const REASON =
 export const mcp: readonly SharedContractOverride[] = [
   {
     command: ["mcp"],
-    field: "summary",
-    before: "serve this profile's commands to an AI agent, and set that up",
-    after: "serve commands over stdio or authenticated HTTP",
-    reason: REASON,
-  },
-  {
-    command: ["mcp"],
     field: "description",
     before: "serve this profile to an agent over MCP and set it up — `claude mcp add memo -- memo <profile> mcp serve`",
     after:
@@ -27,13 +20,6 @@ export const mcp: readonly SharedContractOverride[] = [
     field: "children",
     before: ["serve", "revoke", "server", "config", "add", "check"],
     after: ["serve", "revoke", "server"],
-    reason: REASON,
-  },
-  {
-    command: ["mcp", "serve"],
-    field: "summary",
-    before: "serve this profile's commands to an AI agent",
-    after: "serve memo commands to an AI agent",
     reason: REASON,
   },
   {
