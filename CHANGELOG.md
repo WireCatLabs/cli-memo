@@ -21,8 +21,21 @@ the API.
 - **`projects evidence` comes from cli-core** (`gatherStoredProject`, shared with tg and max). The command is
   declared a fetch because of `--sync-first`. Needs cli-core 0.504.0.
 
+### Changed — may break callers
+
+- **`search messages --discover` searches by meaning when the query uses `-`, `NOT`, `OR`, groups, phrases or
+  `exact:`** (cli-core 0.506.0). Such a query ran strict search alone. Now its words still match the whole query
+  (`discovery.method: "lexical-strict"`), and messages near in meaning to its wanted words join them. Every hit found
+  by meaning, and every reply and follow-up added, matches every field of the query and every excluded word.
+
 ### Fixed
 
+- **`search messages --discover` with a narrow filter (`chat:`, `date:`) ranks that filter's own messages by
+  meaning** when it holds at most 100,000 messages, instead of the 100 nearest overall, so it fills its page
+  (cli-core 0.506.0).
+- **`search messages --discover` works on a read-only store** (cli-core 0.506.0).
+- **A long rebuild in one process no longer makes another process's write fail with "database is locked"**
+  (cli-core 0.506.0).
 - **`memo doctor`, `memo mcp` and `memo mcp serve` use the summaries every WireCat CLI shares.** `memo doctor --help`
   now opens with "the state this installation is in, without connecting unless --online" (memo still connects to
   nothing and has no `--online`), `memo mcp` with "serve this profile's commands to an AI agent, and set that up" and
