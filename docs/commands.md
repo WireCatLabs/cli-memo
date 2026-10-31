@@ -1038,6 +1038,55 @@ memo tasks link <task> [targets] [options]
 
 **Example:** `memo tasks link HRB-2 HRB-1 --kind blocked-by`
 
+### `memo tasks claim`
+
+take an open task so no other agent works it at once; the claim lapses by itself
+
+This command changes the local store or your files.
+
+```sh
+memo tasks claim <task> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `task` | required | the task's id or key, as tasks list shows it. |
+
+| Option | What it does |
+|---|---|
+| `--lease <duration>` | how long the claim lasts: 30m, 2h (default 30m); claiming again extends it. |
+| `--holder <name>` | who you are for claims: a session id or a chat id; default WIRECAT_HOLDER, else Claude Code's session, else the agent's name. |
+| `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
+| `--json` | print JSON. |
+
+**Returns:** task card — id, ref, key, project, title, description, type, status, and 18 more; every field: memo commands info tasks claim
+
+**Example:** `memo tasks claim HRB-1 --lease 2h --account telegram:1`
+
+### `memo tasks release`
+
+give back a task you claimed, before the claim lapses; the owner may release any
+
+This command changes the local store or your files.
+
+```sh
+memo tasks release <task> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `task` | required | the task's id or key, as tasks list shows it. |
+
+| Option | What it does |
+|---|---|
+| `--holder <name>` | who you are for claims: a session id or a chat id; default WIRECAT_HOLDER, else Claude Code's session, else the agent's name. |
+| `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
+| `--json` | print JSON. |
+
+**Returns:** task card — id, ref, key, project, title, description, type, status, and 18 more; every field: memo commands info tasks release
+
+**Example:** `memo tasks release HRB-1 --account telegram:1`
+
 ## `memo stats`
 
 statistics about what the store holds
