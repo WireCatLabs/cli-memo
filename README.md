@@ -65,8 +65,8 @@ That is all notes need. Then add more context:
   [max-cli](https://github.com/WireCatLabs/max-cli); memo reads the same local store.
 - **Search by meaning:** needs a local model of about 135 MB, downloaded once with: `memo models download e5-small`. Without it, memo searches
   by words.
-- **Mail:** set up [Himalaya](https://github.com/pimalaya/himalaya), run `memo mail add <account> <address>`,
-  then `memo sync --only mail`.
+- **Mail:** install [mail](https://github.com/WireCatLabs/mail-cli), run `mail <profile> session start --address <address>`
+  and `mail <profile> sync`; memo then searches that mail (`memo search mail 'invoice'`).
 - **Stay current:** `memo jobs start` runs `memo sync` every five minutes (Linux, systemd).
 - **Your agent:** `memo skill install --for all` puts memo's skill where Claude Code, Codex and Gemini CLI read
   it; `memo skill show` prints it.
@@ -147,7 +147,7 @@ More: [security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security
 - **Folders of notes:** Obsidian or plain Markdown, with links, aliases and tags.
 - **Documents in them:** TXT, CSV/TSV, text-layer PDF, DOCX, XLSX, ODT/ODS, PPTX and EPUB, with the page,
   row or cell each passage came from.
-- **Mail:** Gmail or another IMAP account, through Himalaya, attachments included.
+- **Mail:** Gmail or another IMAP account, synced by the [mail](https://github.com/WireCatLabs/mail-cli) CLI, text and headers only. The older Himalaya import still reads attachments and will be removed in a later version.
 - **Messages:** the tg, max and wa store, with the people linked across messengers and mail.
 
 You add your own notes about messages, people and projects, tags, tasks and reminders, organizations and
@@ -261,17 +261,20 @@ More: [people and projects](https://github.com/WireCatLabs/cli-memo/blob/main/do
 
 ## Mail
 
-memo reads mail through [Himalaya](https://github.com/pimalaya/himalaya), a command-line mail client you
-set up first. Gmail is the default; another IMAP provider uses `mode: "imap"` with the folders to read. The
-mailbox is opened read-only, `--limit` (default 200) bounds the new mail per run and the next run continues.
-Gmail labels become mailboxes, attachments' text is searched with its email, and mail deleted at the
-source loses its text in the store. Each account is named in `mail.accounts`; `memo sync` and the timer read
-every account and name each in the report, and `--source email:<name>` narrows it.
+The separate [mail](https://github.com/WireCatLabs/mail-cli) CLI brings mail in: `mail <profile> session start
+--address me@example.com`, then `mail <profile> sync`, fill the shared store, and memo searches and shows that mail.
+`mail` keeps text and headers, not attachments, and only reads your mailbox.
 
 ```sh
-memo sync --source email:work --since-time 2026-09-01   # work: the account's name in mail.accounts
 memo search mail 'mailbox:important budget'
+memo messages show <ref>
 ```
+
+Memo can still import mail itself through [Himalaya](https://github.com/pimalaya/himalaya). That older path works for
+now and will be removed in a later version. It reads attachments' text, and `memo sync` and the timer read every
+account in `mail.accounts` (`--source email:<name>` narrows it). `memo mail inspect`, `rules`, `delete`, `restore`
+and `status` work on those accounts. `memo mail status` counts only that import; for mail synced by `mail`, run
+`mail <profile> status`.
 
 More: [mail](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mail.md) ·
 [mail on wirecat.dev](https://wirecat.dev/en/docs/memo/mail)
@@ -329,7 +332,7 @@ More: [keeping memo up to date](https://github.com/WireCatLabs/cli-memo/blob/mai
 ## Configuration
 
 `memo folders add` and `memo jobs start` write `~/.config/cli-memo/config.json` for you. By hand you set what
-to skip and where exported notes go; `memo mail add` adds an explicit Himalaya account:
+to skip and where exported notes go; `memo mail add` adds an explicit Himalaya account (the older mail import):
 
 ```json
 {
@@ -343,8 +346,8 @@ More: [configuration](https://github.com/WireCatLabs/cli-memo/blob/main/docs/con
 
 ## Security
 
-- Imports read note folders and mailboxes without changing them or marking mail as read. Memo never sends mail.
-- Separate Gmail cleanup commands move selected mail to Trash or restore it only with `--yes`; the timer never runs them.
+- Imports read note folders and mailboxes without changing them or marking mail as read, and `mail` only reads your mailbox. Memo never sends mail.
+- Separate Gmail cleanup commands (`memo mail delete`, `memo mail restore`) move selected Gmail mail to Trash or restore it only with `--yes`; the timer never runs them.
 - What memo adds — your notes, links, tags, tasks, memories — stays in the local store.
 - A note or mail deleted at the source loses its text in the store on the next import; a run that finds an
   unusually large share missing deletes nothing and says so.
@@ -403,7 +406,7 @@ add the sources you need.
 | [Tags](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tags.md) | Labels on any source |
 | [Search](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md) | Search words, `search all`, `answers create` |
 | [People and projects](https://github.com/WireCatLabs/cli-memo/blob/main/docs/people.md) | Person context, linking, organizations, relationships |
-| [Mail](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mail.md) | Gmail and IMAP through Himalaya |
+| [Mail](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mail.md) | Bring mail in with `mail`, search it in memo, and the older Himalaya import |
 | [Tasks and reminders](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tasks.md) | Tasks, dependencies and local reminders |
 | [Memories and facts](https://github.com/WireCatLabs/cli-memo/blob/main/docs/memories.md) | What agents and you record, and proposed actions |
 | [The MCP server](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md) | Apps without a terminal, the agent log |

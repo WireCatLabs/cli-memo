@@ -429,7 +429,7 @@ memo mail inspect <account> [options]
 
 ### `memo mail status`
 
-how far an account's import is: mail stored, recorded, and left to read
+how far an account's Himalaya import is: mail stored, recorded, and left to read
 
 ```sh
 memo mail status <account> [options]
@@ -443,7 +443,7 @@ memo mail status <account> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** how far an account's import is: mail stored, recorded, and left to read
+**Returns:** how far an account's Himalaya import is: mail stored, recorded, and left to read
 
 **Example:** `memo mail status personal`, `memo mail status personal --json`
 

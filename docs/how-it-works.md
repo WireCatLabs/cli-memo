@@ -14,13 +14,14 @@ notes together.
 | Where it comes from | Who puts it in the local store |
 |---|---|
 | Telegram, MAX and WhatsApp messages | tg, max and wa, when they download your chats |
-| Email | `memo sync --only mail` or `memo sync` |
+| Email | The [mail](https://github.com/WireCatLabs/mail-cli) CLI, with `mail <profile> sync`. The older Himalaya import runs with `memo sync --only mail` and will be removed in a later version |
 | Files in your note folders | `memo sync --only notes` or `memo sync` |
 | Your own notes, tags, tasks, memories and facts | Memo, when you or your agent add them |
 
 Imports leave the originals unchanged: your files stay as they are, and your mailbox is opened read-only.
 The local store holds a copy of their text. Separate [Gmail cleanup commands](mail.md#clean-up-gmail)
-move selected mail to Trash or restore it only with `--yes`; the sync timer never runs cleanup.
+(`memo mail delete` and `memo mail restore`) move selected Gmail mail to Trash or restore it only with `--yes`;
+the sync timer never runs cleanup.
 
 ## What an import does
 

@@ -2,7 +2,7 @@
 
 Use this reference to look up Memo's own configuration settings and environment variables. You
 rarely need to edit the file by hand. `memo folders add` adds a folder
-and `memo jobs start` turns the timer on for you. `memo mail add` adds an explicit Himalaya account. Edit the file yourself for files to skip and where
+and `memo jobs start` turns the timer on for you. `memo mail add` adds an explicit account of the older Himalaya mail import. Edit the file yourself for files to skip and where
 exported notes go.
 
 The file is `~/.config/cli-memo/config.json`. It is a JSON file: keep the quotes, commas and braces
@@ -45,7 +45,8 @@ The folder `id` is the same on every computer; the `path` is different on each. 
 
 ## `mail`
 
-`accounts` lists the mail accounts to import. Each account has:
+`accounts` lists the mail accounts of the older Himalaya import, which will be removed in a later version. Mail synced
+by [mail](mail.md#bring-mail-in-with-mail) needs no entry here. Each account has:
 
 | Key | Meaning |
 |---|---|

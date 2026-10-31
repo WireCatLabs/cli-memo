@@ -48,9 +48,10 @@ data. Check that the folder or disk is there and that the mail account works, th
 
 ## "no mail account" or mail import asks for an account
 
-`no mail account` means the config file has no mail accounts yet. Run `memo mail add <account> <address>`
-after setting up Himalaya, or add one under `mail.accounts`
-([mail](mail.md#add-the-account-to-memo)).
+`no mail account` means the config file has no accounts for the older Himalaya import. To bring mail in, use
+[mail](mail.md#bring-mail-in-with-mail): `mail <profile> sync` fills the store and `memo search mail` finds it, with
+no account in Memo's config. Only for the older import, run `memo mail add <account> <address>` after setting up
+Himalaya, or add one under `mail.accounts` ([mail](mail.md#add-the-account-to-memo)).
 
 `memo sync --source email:work` takes the account's name: the `name` in `mail.accounts` of the config file. Memo
 lists the names it knows when the name is wrong. Without `--source`, it reads every account.

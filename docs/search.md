@@ -84,8 +84,8 @@ memo search mail 'budget' --source email:you@example.com
 ```
 
 `mailbox:` finds a mail folder or a Gmail label, such as `inbox`, `important` or `starred`. Without
-`--source`, Memo searches every mail account; `--source email:work,email:personal` searches those two. Text inside attachments is searched too
-(`filename:` and `content:`).
+`--source`, Memo searches every mail account; `--source email:work,email:personal` searches those two. Text inside attachments is searched too for mail from the older Himalaya import
+(`filename:` and `content:`). Mail synced by `mail` keeps text and headers only, so it has no attachment text.
 
 ## Search stored meetings
 

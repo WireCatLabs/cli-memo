@@ -1,18 +1,72 @@
 # Mail
 
 This page helps you bring your email into Memo, so mail sits beside your notes and messages in
-search, in a person's context and in the sources your agent reads. Memo reads mail through
-[Himalaya](https://github.com/pimalaya/himalaya), a mail program you set up first. Imports read your mailbox without changing it or marking mail as read.
-[Clean up Gmail](#clean-up-gmail) separately moves selected mail to Trash, or restores it, only with `--yes`.
-Memo never sends mail.
+search, in a person's context and in the sources your agent reads. The way in is the separate
+[mail](https://github.com/WireCatLabs/mail-cli) program: `mail` copies your mailbox into the shared WireCat store, and
+Memo searches and shows what is there. `mail` only reads your mailbox. Memo never sends mail.
+
+Memo can still import mail through Himalaya. That older path works for now and will be removed in a later version;
+it is described in [Older import through Himalaya](#older-import-through-himalaya-legacy).
 
 <a id="import-mail" />
 
-## Before you start
+## Bring mail in with mail
+
+Install `mail` and add your mailbox. Its [documentation](https://github.com/WireCatLabs/mail-cli/blob/main/docs/index.md)
+lists the steps for each provider, such as the IMAP setting and the app password (a separate password for one program,
+which you can revoke at any time).
+
+```sh
+npm install -g @wirecat/mail-cli
+mail ya session start --address me@example.com
+mail ya sync
+mail ya status
+```
+
+`ya` is a profile name you choose for one mailbox. `session start` signs in, `sync` reads the last 30 days into the
+shared store, and `status` shows how far a large mailbox is. Run `mail ya sync` again to bring in new mail. Memo needs
+no setting for this mail: it reads the same store.
+
+`mail` keeps the text and the headers of each message, not the attachments. See its
+[documentation](https://github.com/WireCatLabs/mail-cli/blob/main/docs/index.md) for what it keeps and how to keep a
+mailbox up to date.
+
+## Search and read mail in Memo
+
+```sh
+memo search mail 'invoice'
+memo messages show <ref>
+```
+
+`<ref>` is the `ref` of a search hit. `memo search all` finds this mail together with your notes and messages. More
+search words are in [Find your mail](#find-your-mail) and [Search](search.md#search-mail).
+
+## The memo mail commands
+
+`memo mail inspect`, `rules`, `delete`, `restore` and `status` stay for now. They take an account from Memo's
+`mail.accounts` list, which `memo mail add` fills from a Himalaya account, so they do not work for an account that only
+`mail` added.
+
+| Command | What it needs | What it does |
+|---|---|---|
+| `memo mail inspect <account>` | A Himalaya account in Memo's config | Reads headers from the mailbox and groups mail by sender ([Choose what to import](#choose-what-to-import)) |
+| `memo mail rules ...` | The same | Keeps and changes the rules for what an import stores. `rules apply` also reads headers from the mailbox |
+| `memo mail delete <account>` | The same, and `--yes` | Moves selected Gmail mail to Gmail's Trash ([Clean up Gmail](#clean-up-gmail)) |
+| `memo mail restore <account>` | The same, and `--yes` | Moves a logged run back from Trash |
+| `memo mail status <account>` | The same | Counts only the Himalaya import. For an account that `mail` synced, run `mail <profile> status` |
+
+`memo mail delete` is the one place where Memo changes a mailbox. `mail` itself never does.
+
+## Older import through Himalaya (legacy)
+
+This import will be removed in a later version. Use [mail](#bring-mail-in-with-mail) for new accounts. Memo reads
+mail here through [Himalaya](https://github.com/pimalaya/himalaya), a mail program you set up first. The import reads
+your mailbox without changing it or marking mail as read.
+
+### Before you start
 
 Set up your mail account in Himalaya. For Gmail, use an IMAP account with a Gmail
-[app password](https://myaccount.google.com/apppasswords) (a separate password for one program,
-which you can revoke at any time). Memo works with Himalaya 2.x (`himalaya --version`).
+[app password](https://myaccount.google.com/apppasswords). Memo works with Himalaya 2.x (`himalaya --version`).
 
 Himalaya reads its accounts from `~/.config/himalaya/config.toml` (`HIMALAYA_CONFIG` or `-c` points it
 elsewhere). A Gmail account named `work` looks like this; the password comes from a command, here the Linux
@@ -33,7 +87,7 @@ Help me set up Himalaya for my Gmail account with an app password, and check tha
 Then add the account to Memo's config and import the last 30 days of mail.
 ```
 
-## Add the account to Memo
+### Add the account to Memo
 
 Give the Himalaya account's name and its configured email explicitly:
 
@@ -58,7 +112,7 @@ Gmail is the default kind. These commands support one Himalaya config file, sele
 or its normal location. Keep the same environment for imports. A merged list of config files needs manual
 configuration. A Google Takeout `mbox` still uses the `mode: "mbox"` configuration described below.
 
-## Sync mail
+### Sync mail
 
 ```sh
 memo sync --source email:work --since-time 2026-09-01
@@ -74,7 +128,8 @@ config and names each one in its report; it lists the accounts it knows when a n
   day, after any change to your rules, and with `--rescan`; a window under 5,000 emails is listed whole every run.
 - `memo sync` and the timer read every account in the config.
 
-See how far an import is, without asking the mailbox:
+See how far an import is, without asking the mailbox. This counts only the Himalaya import; for an account that
+`mail` synced, run `mail <profile> status`:
 
 ```sh
 memo mail status work
@@ -85,6 +140,8 @@ when all of it is stored. A narrower later run, like the timer's 30 days, is sho
 run. It never counts as the whole mailbox.
 
 ## Choose what to import
+
+This works on an account of the Himalaya import.
 
 A large mailbox is mostly newsletters and notifications. Look before a first large import:
 
@@ -264,6 +321,9 @@ whose reason says "never remove" becomes protected: no cleanup may cut or delete
 
 ## Clean up Gmail
 
+This works on an account of the Himalaya import. It is the one place where Memo changes a mailbox: it moves mail to
+Gmail's Trash, and Gmail deletes Trash for good after 30 days.
+
 Envelope mail is junk you chose not to keep the text of. `memo mail delete` moves it to Gmail's Trash, where Gmail
 keeps it 30 days before deleting it for good:
 
@@ -340,15 +400,19 @@ memo search mail 'invoice' --plain-order
 Gmail labels such as Inbox, Important, Starred and your own labels become mail folders, so
 `mailbox:important` finds them. See [Search](search.md#search-mail).
 
-`memo messages show <msg:email/…>` prints one email whole, with the text memo read from each attachment, such as
-a bill's PDF: the first 4,000 characters of each, or all of it with `--full`. An attachment with no text says why,
-for example `needs-agent` for a scanned page.
+`memo messages show <msg:email/…>` prints one email whole. For mail from the Himalaya import it adds the text memo
+read from each attachment, such as a bill's PDF: the first 4,000 characters of each, or all of it with `--full`. An
+attachment with no text says why, for example `needs-agent` for a scanned page. Mail synced by `mail` has no
+attachment text.
 
 ## What is kept
 
+This list is for the Himalaya import. Mail that `mail` synced keeps its text and headers only: no attachments, so
+no attachment text.
+
 - The sender, the recipients (To, CC and BCC), the subject, the date and the text of each email.
 - Whether an email is read or starred, as your mailbox shows it.
-- The text of readable attachments, searched with the email ([files Memo can read](notes.md#files-memo-can-read)).
+- For the Himalaya import: the text of readable attachments, searched with the email ([files Memo can read](notes.md#files-memo-can-read)).
   The PDF and Word readers come with Memo. If an attachment was left unread because its reader was not installed
   (`engine-missing`, from an older Memo or a broken install), `memo sync --source email:work --retry-attachments`
   reads again, by their Gmail id, only those emails, up to `--limit` of them; it lists nothing, so it is quick, and
@@ -361,7 +425,7 @@ skips this.
 
 ## When mail is deleted
 
-When you delete an email in your mailbox, its text leaves the local store on the next import. Mail
+When you delete an email in your mailbox, its text leaves the local store on the next Himalaya import. Mail
 moved to Spam counts as deleted. To protect you from mistakes:
 
 - the first two days of the period are not checked for deletions;

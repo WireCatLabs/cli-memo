@@ -6,6 +6,15 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **The docs say that the `mail` CLI brings mail in, and that the Himalaya import will be removed in a later version.**
+  `mail <profile> session start` and `mail <profile> sync` fill the shared store; memo searches and shows that mail.
+  The Himalaya import and `memo mail inspect`, `rules`, `delete`, `restore` and `status` still work and are unchanged.
+  Docs and help text only: `memo mail status` now says it counts only the Himalaya import and points to
+  `mail <profile> status`. The docs also say that mail synced by `mail` has no attachment text, that `memo mail delete`
+  moves Gmail mail to Trash, and write `memo mail delete`, `memo mail restore` and `memo mail inspect` in full.
+
 ## 0.131.0 — 31.10.2026
 
 ### Fixed
