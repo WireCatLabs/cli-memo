@@ -1,5 +1,5 @@
 import { CliError } from "@wirecat/cli-base"
-import type { Listed, MailSource } from "@wirecat/cli-core/mail"
+import type { MailSource, Quick } from "@wirecat/cli-core/mail"
 import {
   addLabels,
   listAllMail,
@@ -17,16 +17,16 @@ const BATCH_BYTES = 20 * 1024 * 1024
 const MIN_BUFFER = 64 * 1024 * 1024
 
 /** One IMAP call reads one folder, so items are grouped by folder first; the newest-first order mixes folders. */
-const batchesOf = (items: Listed[]): Listed[][] => {
-  const byFolder = new Map<string | undefined, Listed[]>()
+const batchesOf = (items: Quick[]): Quick[][] => {
+  const byFolder = new Map<string | undefined, Quick[]>()
   for (const item of items) {
     const group = byFolder.get(item.folder)
     if (group) group.push(item)
     else byFolder.set(item.folder, [item])
   }
-  const batches: Listed[][] = []
+  const batches: Quick[][] = []
   for (const group of byFolder.values()) {
-    let current: Listed[] = []
+    let current: Quick[] = []
     let bytes = 0
     for (const item of group) {
       const size = item.size ?? 0
@@ -47,7 +47,7 @@ export const himalayaSource = (
   run: Himalaya,
   account: { name: string; mode?: "gmail" | "imap" | "mbox" },
 ): MailSource => {
-  const fetchBatch = async (batch: Listed[]): Promise<Map<string, Uint8Array>> => {
+  const fetchBatch = async (batch: Quick[]): Promise<Map<string, Uint8Array>> => {
     const bytes = batch.reduce((sum, item) => sum + (item.size ?? 0), 0)
     const output = await run(
       [
@@ -108,8 +108,8 @@ export const himalayaSource = (
       : {}),
 
     fetchRaw: async (items) => {
-      const read = new Map<Listed, Uint8Array | Error>()
-      const settle = async (batch: Listed[]) => {
+      const read = new Map<Quick, Uint8Array | Error>()
+      const settle = async (batch: Quick[]) => {
         const found = await fetchBatch(batch)
         for (const item of batch)
           read.set(item, found.get(item.uid) ?? new CliError("not_found", `email ${item.uid} was not returned`))

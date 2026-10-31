@@ -235,7 +235,8 @@ export const mboxSource = (path: string, { chunkSize = 1024 * 1024 }: { chunkSiz
       return { size, mtimeMs }
     },
 
-    fetchRaw: async (items) => {
+    fetchRaw: async (quick) => {
+      const items = quick as Listed[]
       const entries = await indexed()
       const handle = await open(path)
       try {
