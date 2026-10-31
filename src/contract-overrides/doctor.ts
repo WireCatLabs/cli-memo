@@ -4,20 +4,6 @@ import type { SharedContractOverride } from "@wirecat/cli-base/commands"
 export const doctor: readonly SharedContractOverride[] = [
   {
     command: ["doctor"],
-    field: "effects",
-    before: {
-      remote: "read",
-      local: "read",
-    },
-    after: {
-      remote: "none",
-      local: "read",
-    },
-    reason:
-      "Memo diagnoses imported-data paths and stored account configuration without connecting to a messenger or querying a keyring.",
-  },
-  {
-    command: ["doctor"],
     field: "runnable",
     before: true,
     after: null,
@@ -36,6 +22,12 @@ export const doctor: readonly SharedContractOverride[] = [
       },
     ],
     after: [
+      {
+        flags: "--online",
+        description: "also connect once and read the account; sends nothing",
+        takes_value: false,
+        mandatory: false,
+      },
       {
         flags: "--json",
         description: "print JSON; --json=id,title keeps only those fields",

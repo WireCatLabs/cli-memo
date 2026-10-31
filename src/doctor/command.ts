@@ -5,9 +5,10 @@ import { dirname, join } from "node:path"
 import { resolvePaths, type Streams } from "@wirecat/cli-base"
 import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
 import { SKILL_TARGETS, skillPath, skillVersion } from "@wirecat/cli-base/skill"
+import { isNewer } from "@wirecat/cli-base/update"
 import {
-  LOCAL_READ,
   privateFiles,
+  REMOTE_READ,
   runsDirFor,
   sharedCommandTemplate,
   storeSummary,
@@ -23,7 +24,7 @@ import { SHELL_OVERRIDES } from "../contract-overrides.js"
 import { archiveCheck, RESTORE_DAYS, trashRuns } from "../mail/trash.js"
 import { noteFolders } from "../notes/folders.js"
 import { autoState, lastAutoRun } from "../run/auto.js"
-import { installer } from "../update.js"
+import { installer, latest } from "../update.js"
 import { VERSION } from "../version.js"
 
 const TEXT_MODEL = "e5-small"
@@ -190,7 +191,16 @@ const fileLines = (d: Diagnosis, fixes: readonly string[]): string[] =>
       )
     : []
 
-export const doctorText = (d: Diagnosis, fixes: readonly string[] = []): string =>
+type Online = Awaited<ReturnType<typeof onlineCheck>>
+
+const onlineLine = ({ version }: Online): string =>
+  version.latest === null
+    ? "online     npm could not be reached"
+    : version.newer
+      ? `online     memo ${version.latest} is published (this is ${version.current}) — memo upgrade`
+      : `online     memo ${version.current} is the newest published`
+
+export const doctorText = (d: Diagnosis, fixes: readonly string[] = [], online?: Online): string =>
   [
     `memo ${d.memo.version} on Node ${d.memo.node}, installed by ${d.memo.installed_by}`,
     `config     ${d.config.path}${d.config.found ? "" : " (none yet)"}`,
@@ -221,6 +231,7 @@ export const doctorText = (d: Diagnosis, fixes: readonly string[] = []): string 
     `search     ${d.search_model.name} ${d.search_model.present ? "present" : "not downloaded — search is by words"}`,
     `timer      ${d.timer.enabled ? `on, every ${d.timer.every}` : "off"}`,
     ...d.skills.map((s) => `skill      ${s.path} ${s.version === null ? "(not installed)" : `(${s.version})`}`),
+    ...(online ? [onlineLine(online)] : []),
     "",
     ...(d.problems.length + d.config.issues.length + fileLines(d, fixes).length === 0
       ? ["nothing needs attention"]
@@ -231,21 +242,43 @@ export const doctorText = (d: Diagnosis, fixes: readonly string[] = []): string 
         ]),
   ].join("\n")
 
+const sharedDoctor = sharedCommandTemplate(APP, "doctor")
+const ONLINE_FLAGS = "--online"
+const onlineText = sharedDoctor.options.find((option) => option.long === ONLINE_FLAGS)?.description ?? ""
+
+/** Same shape as cli-core's `appDoctorCommand` `--online` answer; memo has no account to read, only npm. */
+const onlineCheck = async () => {
+  const started = Date.now()
+  const newest = await latest()
+  return {
+    ok: true,
+    duration_ms: Date.now() - started,
+    version: { current: VERSION, latest: newest ?? null, newer: newest !== undefined && isNewer(newest, VERSION) },
+  }
+}
+
 const doctorCommandDefinition = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
-  annotate(program.command("doctor"), { effects: LOCAL_READ })
-    .description("the state this installation is in, without connecting unless --online")
+  annotate(program.command("doctor"), { effects: REMOTE_READ })
+    .description(sharedDoctor.description())
+    .option(ONLINE_FLAGS, onlineText)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText(
       "after",
-      "\nReads this computer only: the config, the store, the notes folders, Himalaya, the search model, the timer " +
-        "and the agent skill, each problem with the command that fixes it. Exits 1 when something other than the config " +
-        "file or a file mode needs attention; problems in the config file are listed in config.issues, and files or " +
-        "folders other users can read in files.problems, and neither changes the exit code.",
+      "\nReads this computer only, unless --online: the config, the store, the notes folders, Himalaya, the search " +
+        "model, the timer and the agent skill, each problem with the command that fixes it. --online also asks npm " +
+        "whether a newer memo is published, and nothing else leaves this computer. Exits 1 when something other than " +
+        "the config file or a file mode needs attention; problems in the config file are listed in config.issues, and " +
+        "files or folders other users can read in files.problems, and neither changes the exit code.",
     )
-    .action(async (options: { json?: boolean }) => {
+    .action(async (options: { json?: boolean; online?: boolean }) => {
       const { fixes, ...diagnosis } = await diagnose(env, program)
-      print(options.json, itemAnswer(diagnosis), doctorText(diagnosis, fixes))
+      const online = options.online ? await onlineCheck() : undefined
+      print(
+        options.json,
+        itemAnswer(online ? { ...diagnosis, online } : diagnosis),
+        doctorText(diagnosis, fixes, online),
+      )
       if (options.json) for (const fix of fixes) streams.diagnostic(`to make it private: ${fix}`)
       if (diagnosis.problems.length > 0) process.exitCode = 1
     })
