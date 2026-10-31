@@ -408,3 +408,42 @@ it("search all finds calendar events in every calendar, names each one read, and
   expect(text.stderr.join("")).toMatch(/Events by words only: /)
   expect(text.stdout.join("")).toMatch(/event {2}event:\d+/)
 })
+
+it("search messages and search all answer meta.complete false and name the history gap for a chat held in part", async () => {
+  const root = mkdtempSync(join(tmpdir(), "memo-partial-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const store = await openStore({ env })
+  const account = { provider: "telegram", account: "1" }
+  const message = {
+    id: "1",
+    chatId: "7",
+    senderId: "9",
+    senderName: null,
+    timestamp: "2026-10-09T00:00:00Z",
+    editedAt: null,
+    text: "Partialsignal synthetic",
+    outgoing: false,
+    attachments: [],
+    replyTo: null,
+    forwardedFrom: null,
+    reactions: null,
+  }
+  await store.messages.saveMessages(account, "7", [message], { via: "test" })
+  await store.sync.markRange(account, "7", 1, 1)
+  await store.close()
+  const run = async (...args: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env })
+      .exitOverride()
+      .parseAsync([...args, "--json"], { from: "user" })
+    return JSON.parse(streams.stdout.join(""))
+  }
+  for (const args of [
+    ["search", "messages", "Partialsignal"],
+    ["search", "all", "Partialsignal", "--exact"],
+  ]) {
+    const found = await run(...args)
+    expect(found.meta.complete).toBe(false)
+    expect(found.missing).toEqual(expect.arrayContaining([expect.objectContaining({ step: "messages.sync" })]))
+  }
+})

@@ -1,7 +1,9 @@
 import { CliError } from "@wirecat/cli-base"
 import { formatReference, parseReference } from "@wirecat/cli-core"
-import { dateWindow, momentOf } from "@wirecat/cli-core/cli"
+import { coverageGaps, dateWindow, momentOf } from "@wirecat/cli-core/cli"
 import {
+  type ChatCoverage,
+  chatCoverage,
   type EvidenceMentions,
   findEvidenceMentions,
   gatherProjectEvidence,
@@ -155,12 +157,29 @@ export const windowOf = (value: string): { days: number } | { after: number } =>
   )
 }
 
-/** The zone a typed start date was read in, and the window the run used, in UTC. */
-export const gatherMeta = (sinceTime: string, { window }: ProjectGathering) => {
+const coverageRows = ({ linkedChats }: ProjectGathering): ChatCoverage[] =>
+  linkedChats.flatMap((one) =>
+    one.completeness === null || one.held === null
+      ? []
+      : [{ chatId: one.chat, title: one.title, completeness: one.completeness, held: one.held }],
+  )
+
+/**
+ * The zone a typed start date was read in, and the window the run used, in UTC. `complete` is "the answer is whole":
+ * reads finished and every linked chat held in full; the answer's own `complete` stays "reads finished".
+ */
+export const gatherAnswerParts = (sinceTime: string, found: ProjectGathering) => {
+  const { window } = found
   const { timezone } = dateWindow({ sinceTime }).meta
+  const { next, missing } = coverageGaps(coverageRows(found), 0, new Date(window.after).toISOString())
   return {
-    ...(timezone === undefined ? {} : { timezone }),
-    window: { since: new Date(window.after).toISOString(), until: new Date(window.before).toISOString() },
+    ...(next.length ? { next } : {}),
+    ...(missing.length ? { missing } : {}),
+    meta: {
+      ...(timezone === undefined ? {} : { timezone }),
+      window: { since: new Date(window.after).toISOString(), until: new Date(window.before).toISOString() },
+      complete: found.complete && found.completeness === "complete",
+    },
   }
 }
 
@@ -234,6 +253,7 @@ export const gatherStoredProject = async (
     {
       evidence: store.contextEvidence,
       neighbours: storedNeighbours(store),
+      coverage: (account, chatIds) => chatCoverage(store, account, chatIds),
       ...(store.contextIndex ? { index: store.contextIndex } : {}),
     },
     {
@@ -361,6 +381,16 @@ export const projectGatherText = (found: StoredProjectGathering) => {
         .map((one) => `${one.source} (${one.kind}${one.reason ? `, ${one.reason}` : ""})`)
         .join(", ")}`,
     )
+  const held = (one: ProjectGathering["linkedChats"][number]) =>
+    one.completeness?.state === "unknown" || !one.held?.oldestAt
+      ? "never fetched"
+      : `held from ${one.held.oldestAt.slice(0, 10)} only`
+  for (const one of found.linkedChats)
+    if (one.completeness !== null && one.completeness.state !== "complete")
+      lines.push(
+        `${one.title ?? one.ref}: ${held(one)}${one.state === "pending" ? ", not read this run" : ""}` +
+          ` — sync it with its messenger CLI: messages sync ${one.chat} --since-time ${day(found.window.after)}`,
+      )
   const capped = found.linkedChats.filter((one) => one.capped)
   if (capped.length)
     lines.push(
