@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.128.0 — 31.10.2026
+
 ### Changed — may break callers
 
 - **cli-core 0.506.0: `search messages --discover` also searches by meaning when the query uses `-`, `NOT`, `OR`,
