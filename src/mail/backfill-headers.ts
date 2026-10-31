@@ -93,8 +93,7 @@ export const backfillHeaders = async (
         ],
       })
     }
-    const oldest = Math.min(...slice.map(({ receivedAt }) => receivedAt ?? 0))
-    const value = JSON.stringify({ done: false, before: oldest })
+    const value = JSON.stringify({ done: false, before: slice.at(-1)?.receivedAt ?? 0 })
     await store.mail.saveThreads(inputs, [{ accountId: stored.id, name: STATE, value }])
     filled += inputs.length
     if (at < slices.length - 1) await pause()
