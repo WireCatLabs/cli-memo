@@ -667,6 +667,30 @@ memo mail rules import <account> <file> [options]
 
 **Example:** `memo mail rules import personal rules.json`, `memo mail rules import personal Filters.json --format gmail`, `memo mail rules import personal Filters.json --format gmail --yes`
 
+## `memo people`
+
+the people memo's tasks name
+
+### `memo people list`
+
+the owner and everyone who holds a role on a task, by name; search people finds anyone else
+
+```sh
+memo people list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms; this list filters by none yet. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** the owner and everyone who holds a role on a task
+
+**Example:** `memo people list --json`
+
 ## `memo tags`
 
 your labels on stored sources and folders or threads
@@ -848,7 +872,7 @@ memo tasks add [source] [options]
 | `--account <account>` | the account it acts as: provider:account, such as telegram:1 or email:personal. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--title <title>` | one line saying what is to be done. |
-| `--priority <n>` | 0 urgent … 4 low. |
+| `--priority <n>` | low, medium, high, critical; 0 (urgent) … 4 (low) still read as before. |
 | `--parent <id>` | the parent task, in the same project. |
 | `--description <text>` | the detail, in Markdown. |
 | `--type <type>` | question, request (default), mention or promise from a source; bug, feature or chore (default) in a project. |
@@ -877,13 +901,58 @@ memo tasks list [query] [options]
 |---|---|
 | `--source <accounts>` | which accounts, separated by commas: provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--limit <n>` | most tasks. Default: `100`. |
+| `--limit <n>` | most tasks, at most 500 for a project's. Default: `100`. |
+| `--sort <field>` | project tasks: priority, due, created, updated, key, state (default priority). |
+| `--desc` | project tasks: the --sort order reversed. |
+| `--cursor <cursor>` | project tasks: the next page, from page.next_cursor, with the same query and order. |
 
-**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 15 more; every field: memo commands info tasks list
+**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 21 more; every field: memo commands info tasks list
 
 **Next usually:** `memo tasks links <task>`, `memo tasks status <task>`, `memo tasks show <task>`
 
-**Example:** `memo tasks list state:done --source telegram:1`, `memo tasks list project:HRB ready:true --json`
+**Example:** `memo tasks list state:done --source telegram:1`, `memo tasks list project:HRB ready:true --json`, `memo tasks list project:* priority:[high TO critical] "invoice" --sort due --json`
+
+### `memo tasks counts`
+
+how many project tasks match, by project, assignee, priority and state
+
+```sh
+memo tasks counts [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 21 more; every field: memo commands info tasks counts
+
+**Next usually:** `memo tasks links <task>`, `memo tasks status <task>`, `memo tasks show <task>`
+
+**Example:** `memo tasks counts project:* --json`
+
+### `memo tasks history`
+
+who changed a task, what and when, oldest first
+
+```sh
+memo tasks history <id> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `id` | required | the task's id or key. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** who changed a task, what and when, oldest first
+
+**Example:** `memo tasks history HRB-1 --json`
 
 ### `memo tasks close`
 
@@ -905,6 +974,7 @@ memo tasks close <id> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as <state>` | done or dismissed. Default: `done`. |
 | `--reason <text>` | why it is closed. |
+| `--revision <n>` | refuse the write unless the task is still at this revision (task.stale, exit 3). |
 
 **Returns:** close a task as done or dismissed
 
@@ -912,7 +982,7 @@ memo tasks close <id> [options]
 
 ### `memo tasks assign`
 
-name who works on a task
+name who works on a task, or with --clear take them off it
 
 This command changes the local store or your files.
 
@@ -928,11 +998,39 @@ memo tasks assign <id> <person> [options]
 | Option | What it does |
 |---|---|
 | `--role <role>` | assignee, reviewer, watcher. Default: `assignee`. |
+| `--clear` | take the person off the task in that role, instead of adding them. |
+| `--revision <n>` | refuse the write unless the task is still at this revision (task.stale, exit 3). |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** name who works on a task
+**Returns:** name who works on a task, or with --clear take them off it
 
-**Example:** `memo tasks assign 7 person:3`
+**Example:** `memo tasks assign 7 person:3`, `memo tasks assign HRB-1 person:3 --clear --revision 4`
+
+### `memo tasks move`
+
+put a project task before or after another in its board column: it takes a priority between them, and the answer says when its label changed
+
+This command changes the local store or your files.
+
+```sh
+memo tasks move <id> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `id` | required | the task's id or key. |
+
+| Option | What it does |
+|---|---|
+| `--status <state>` | move it to this column too: open, todo, in_progress, done, dismissed. |
+| `--before <id>` | the task it goes just above. |
+| `--after <id>` | the task it goes just below. |
+| `--revision <n>` | refuse the write unless the task is still at this revision (task.stale, exit 3). |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** put a project task before or after another in its board column
+
+**Example:** `memo tasks move HRB-3 --status in_progress --before HRB-1 --revision 4`
 
 ### `memo tasks agenda`
 
@@ -962,7 +1060,7 @@ memo tasks agenda [query] [options]
 
 ### `memo tasks update`
 
-update stored tasks: source edits name --account; priority and parent apply to project tasks
+update stored tasks: source edits name --account; priority, parent and status apply to project tasks
 
 This command changes the local store or your files.
 
@@ -977,7 +1075,7 @@ memo tasks update <task> [options]
 | Option | What it does |
 |---|---|
 | `--category <name>` | what it is about, from the list tasks categories prints: money, documents, meeting, …; a change is kept in the task's history. |
-| `--priority <n>` | priority from 0 (urgent) through 4 (low). |
+| `--priority <n>` | low, medium, high, critical or none; 0 (urgent) … 4 (low) still read as before. |
 | `--parent <id>` | parent task in the same project; none clears it. |
 | `--title <title>` | one line: the action and its object — send Alex the API token. |
 | `--description <text>` | the detail, in Markdown: who owes whom, done when, next step, keywords. |
@@ -986,10 +1084,13 @@ memo tasks update <task> [options]
 | `--assignee <person...>` | who does it: sender (whoever sent the task's message) or person:<id>; none clears it. Leave it out when unsure: a task with no assignee is better than none. |
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
 | `--json` | print JSON. |
+| `--agent <agent>` | a project task: the agent working on it, apart from its assignees; none clears it. |
+| `--revision <n>` | refuse the write unless the task is still at this revision (task.stale, exit 3). |
+| `--status <state>` | a project task's state: open, todo, in_progress, done, dismissed; a closed one reopens. |
 
-**Returns:** task card — id, ref, key, project, title, description, type, status, and 18 more; every field: memo commands info tasks update
+**Returns:** task card — id, ref, key, project, title, description, type, status, and 21 more; every field: memo commands info tasks update
 
-**Example:** `memo tasks update HRB-1 --title 'Send the budget' --priority 1 --account telegram:1`, `memo tasks update 1a2b3c4d --due 2d --title 'Send the revised budget' --account telegram:1`
+**Example:** `memo tasks update HRB-1 --title 'Send the budget' --priority high --account telegram:1`, `memo tasks update 1a2b3c4d --due 2d --title 'Send the revised budget' --account telegram:1`
 
 ### `memo tasks show`
 
@@ -1008,7 +1109,7 @@ memo tasks show <task> [options]
 | `--source <accounts>` | the account: telegram:<account>, email:<account>, notes:<id>, or group:<name> of one. |
 | `--json` | print JSON. |
 
-**Returns:** task card — id, ref, key, project, title, description, type, status, and 18 more; every field: memo commands info tasks show
+**Returns:** task card — id, ref, key, project, title, description, type, status, and 21 more; every field: memo commands info tasks show
 
 **Example:** `memo tasks show 1a2b3c4d --source telegram:1 --json`
 
@@ -1034,7 +1135,7 @@ memo tasks link <task> [targets] [options]
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
 | `--json` | print JSON. |
 
-**Returns:** task links — id, ref, key, project, title, description, type, status, and 20 more; every field: memo commands info tasks link
+**Returns:** task links — id, ref, key, project, title, description, type, status, and 23 more; every field: memo commands info tasks link
 
 **Example:** `memo tasks link HRB-2 HRB-1 --kind blocked-by`
 
@@ -1059,7 +1160,7 @@ memo tasks claim <task> [options]
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
 | `--json` | print JSON. |
 
-**Returns:** task card — id, ref, key, project, title, description, type, status, and 18 more; every field: memo commands info tasks claim
+**Returns:** task card — id, ref, key, project, title, description, type, status, and 21 more; every field: memo commands info tasks claim
 
 **Example:** `memo tasks claim HRB-1 --lease 2h --account telegram:1`
 
@@ -1083,7 +1184,7 @@ memo tasks release <task> [options]
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
 | `--json` | print JSON. |
 
-**Returns:** task card — id, ref, key, project, title, description, type, status, and 18 more; every field: memo commands info tasks release
+**Returns:** task card — id, ref, key, project, title, description, type, status, and 21 more; every field: memo commands info tasks release
 
 **Example:** `memo tasks release HRB-1 --account telegram:1`
 

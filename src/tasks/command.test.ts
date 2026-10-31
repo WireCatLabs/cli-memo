@@ -128,19 +128,20 @@ it("adds a bug to a project with its fields and assignee, updates, lists and clo
     "--type",
     "bug",
     "--priority",
-    "1",
+    "high",
     "--assignee",
     person?.uid as string,
   )
   expect(bug).toMatchObject({
     id: "LHT-1",
     type: "bug",
-    priority: 1,
+    priority: 0.625,
+    priority_label: "high",
     assignments: [{ to: `person:${person?.uid}`, role: "assignee" }],
   })
   const sub = await run("tasks", "add", "--project", "LHT", "--title", "Add a test", "--parent", bug.id)
   expect(sub).toMatchObject({ id: "LHT-2", type: "chore", parent: "task:LHT-1" })
-  expect(await run("tasks", "update", bug.id, "--priority", "0")).toMatchObject({ priority: 0 })
+  expect(await run("tasks", "update", bug.id, "--priority", "0")).toMatchObject({ priority_label: "critical" })
   expect(await run("tasks", "assign", bug.id, person?.uid as string, "--role", "reviewer")).toMatchObject({
     assignments: [
       { to: `person:${person?.uid}`, role: "assignee" },
@@ -149,7 +150,7 @@ it("adds a bug to a project with its fields and assignee, updates, lists and clo
   })
   const project = (await run("tasks", "list", "project:LHT")).items
   expect(project.map((task: { id: string }) => task.id)).toEqual(["LHT-1", "LHT-2"])
-  expect(project[0]).toMatchObject({ kind: "bug", state: "open", priority: 0, project: "project:1" })
+  expect(project[0]).toMatchObject({ kind: "bug", state: "open", priority: 0.875, project: "project:1" })
   const list = createProgram({ streams: captureStreams(), env })
     .commands.find((command) => command.name() === "tasks")
     ?.commands.find((command) => command.name() === "list")

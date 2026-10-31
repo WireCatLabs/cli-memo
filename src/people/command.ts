@@ -1,9 +1,10 @@
 import { join } from "node:path"
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { LOCAL_READ, LOCAL_WRITE } from "@wirecat/cli-core/cli"
+import type { QueryRegistry } from "@wirecat/cli-base/query"
+import { LOCAL_READ, LOCAL_WRITE, listQuery, typedQuery, withQuery } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
-import { answers, itemAnswer, withStore } from "../answer.js"
+import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { boundFolders, folderOfFile } from "../notes/bound.js"
 import { folderNotes } from "../notes/import.js"
 import { identityOf } from "./identity.js"
@@ -66,4 +67,31 @@ export const noteCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       print(command.opts().json, itemAnswer(result), `${result.name}: ${result.files.join(", ") || "no note"}`)
     })
   }
+}
+
+/** For an assignee picker: the people tasks already name, and the owner; anyone else is found with search people. */
+export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
+  const { print } = answers(program, streams, env)
+  const people = program.command("people").description("the people memo's tasks name")
+  const query = { entity: "task_person", backend: "native", fields: [] } as const satisfies QueryRegistry
+  withQuery(
+    annotate(people.command("list"), { effects: LOCAL_READ })
+      .summary("the owner and everyone who holds a role on a task")
+      .description("the owner and everyone who holds a role on a task, by name; search people finds anyone else"),
+    query,
+  )
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .action(async (words: string[], options: { json?: boolean }) => {
+      listQuery(typedQuery(words), query, "people list")
+      await withStore(env, async (store) => {
+        const found = await store.tasks.taskPeople()
+        print(
+          options.json,
+          wholeList(
+            "people list",
+            found.map(({ person, ...rest }) => ({ ref: person, ...rest })),
+          ),
+        )
+      })
+    })
 }

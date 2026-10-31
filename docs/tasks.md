@@ -55,33 +55,102 @@ A task in a project does not need a source. It gets a key made of the project's 
 such as `HRB-1`:
 
 ```sh
-memo tasks add --project HRB --title 'Book the venue' --priority 1
+memo tasks add --project HRB --title 'Book the venue' --priority high
 memo tasks add --project HRB --title 'Export drops the last row' --type bug
 memo tasks list project:HRB
-memo tasks update HRB-1 --priority 0 --description 'Call before Friday'
+memo tasks update HRB-1 --priority critical --description 'Call before Friday'
 ```
 
 A plain `memo tasks list` shows the tasks of your accounts only; a project's tasks are listed with
-`project:` and the project's key.
+`project:` and the project's key, its name or an alias, and every project's with `project:*`.
 
 | Option | Meaning |
 |---|---|
 | `--type` | `chore` (the default), `bug` or `feature` |
-| `--priority` | a number from 0 (urgent) to 4 (low) |
+| `--priority` | `low`, `medium`, `high` or `critical`; `none` clears it. 0 (urgent) to 4 (low) still work as before |
 | `--parent` | a bigger task this one is part of, in the same project |
 | `--description` | more detail, in Markdown |
 | `--assignee` | who does it, by the person's ID |
 
 To create the project first, see [organizations and projects](people.md#organizations-and-projects).
 
+## Priority and order
+
+A priority is a number from 0 to 1, higher first, and you see it as one of four labels by quarter: `low`
+(below 0.25), `medium`, `high` and `critical` (0.75 and up). `--json` gives both, `priority` and
+`priority_label`. The number also orders a project's tasks, so a board column keeps the order you give it:
+
+```sh
+memo tasks move HRB-3 --before HRB-1                      # HRB-3 goes just above HRB-1
+memo tasks move HRB-3 --status in_progress --after HRB-2  # into another column, below HRB-2
+```
+
+`tasks move` gives the task a priority between its new neighbours. When that crosses a quarter, its label changes,
+and the answer says so (`label.changed`). When two neighbours leave no room, Memo spreads that quarter of the
+column out evenly and names the tasks it renumbered.
+
+## States
+
+A project task is `open` (new), `todo` (decided to do), `in_progress`, `done` or `dismissed`. Move it with
+`tasks update --status`, back from `done` or `dismissed` too; every change is kept in its history. `todo` and
+`in_progress` count as open work everywhere: a task that waits for one is not ready, and an agent may claim one.
+A task from a message is only `open`, `done` or `dismissed`.
+
+```sh
+memo tasks update HRB-1 --status in_progress
+memo tasks history HRB-1 --json      # who changed what, and when
+```
+
+## Find project tasks
+
+`memo tasks list` with `project:` takes a query: fields joined by AND, OR inside a field, NOT, and plain words,
+which search the title and description:
+
+```sh
+memo tasks list project:* 'assignee:"person:3"' priority:[high TO critical] invoice
+memo tasks list project:(HRB OR OPS) state:(done OR dismissed) closed:>=14d
+memo tasks list project:* overdue:true --sort due
+memo tasks list project:* NOT due:* NOT priority:*
+memo tasks counts project:* --json   # how many per project, assignee, priority and state
+```
+
+| Field | Meaning |
+|---|---|
+| `state:` | `open`, `todo`, `in_progress`, `done`, `dismissed`; without it, the three open states |
+| `project:` | a key, a name, `project:<id>`, or `*` for every project |
+| `assignee:` | `any`, `none`, or a person: `"person:3"` in quotes, or `3` |
+| `priority:` | a label, `none`, or a range of labels or numbers |
+| `agent:` | the agent working on it, `none` or `any` |
+| `due:`, `closed:` | a date or a range: `due:[today TO 2026-12-31]`, `closed:>=14d` |
+| `overdue:`, `ready:` | `true` or `false` |
+
+`--sort` takes `priority` (the default), `due`, `created`, `updated`, `key` or `state`; `--desc` turns it round.
+A list holds at most 500 tasks; `page.next_cursor` and `--cursor` read the next ones, and `page.total` says how
+many match. Each task carries its `assignments`, `ready` and `blocked_by`, and its `revision`.
+
+## Changed elsewhere
+
+An agent may edit a task while you look at it. Give the `revision` you read, and Memo refuses the write when the
+task changed since, with the reason `task.stale` and exit code 3:
+
+```sh
+memo tasks update HRB-1 --title 'Book the hall' --revision 4
+```
+
+`tasks update`, `close`, `assign` and `move` take `--revision`.
+
 ## Who works on it
 
 ```sh
 memo tasks assign HRB-1 PERSON_UID
 memo tasks assign HRB-1 PERSON_UID --role reviewer
+memo tasks assign HRB-1 PERSON_UID --clear     # take them off it
+memo people list                               # you, and everyone tasks already name
+memo tasks update HRB-1 --agent hermes         # the agent working on it; --agent none clears it
 ```
 
-The role is `assignee` (the default), `reviewer` or `watcher`. A person's ID comes from their
+An agent is not an assignee: `agent` names the agent on the work until someone changes it, while a claim
+(`tasks claim`) is a lease that runs out on its own. The role is `assignee` (the default), `reviewer` or `watcher`. A person's ID comes from their
 context (`memo context … --json`). Tasks assigned to someone appear in
 [their context](people.md#everything-about-a-person).
 
