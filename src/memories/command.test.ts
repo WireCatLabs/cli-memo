@@ -165,3 +165,30 @@ it("rejects only a proposed fact, and names the subject and reads back each sour
     sources: [{ ref: note.ref, kind: "note", title: null, sender: null, at: expect.any(String), missing: false }],
   })
 })
+
+it("gives a new memory or fact a new number after the newest one was forgotten", async () => {
+  const { owner, agent } = setUp()
+  const note = await owner("notes", "add", "Kai Sample: Fridays work best")
+  const add = () =>
+    agent(
+      "memories",
+      "add",
+      "Kai Sample prefers Fridays",
+      "--kind",
+      "preference",
+      "--scope",
+      "work",
+      "--evidence",
+      note.ref,
+    )
+  const newest = await add()
+  const fact = await agent("facts", "add", "Kai Sample promised the draft", "--kind", "promise", "--evidence", note.ref)
+  await owner("memories", "remove", newest.ref)
+  await owner("facts", "remove", fact.ref)
+
+  expect((await add()).ref).not.toBe(newest.ref)
+  expect(
+    (await agent("facts", "add", "Kai Sample sent the draft", "--kind", "fact", "--evidence", note.ref)).ref,
+  ).not.toBe(fact.ref)
+  await expect(owner("memories", "show", newest.ref)).rejects.toMatchObject({ code: "not_found" })
+})
