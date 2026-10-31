@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**530 ✅ · 0 ⛔ · 92 ❌** — 143 commands, 479 options.
+**541 ✅ · 0 ⛔ · 92 ❌** — 145 commands, 488 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -204,6 +204,15 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tasks link` | `--kind` | ✅ |  |
 | `tasks link` | `--account` | ❌ |  |
 | `tasks link` | `--json` | ✅ |  |
+| `tasks claim` |  | ✅ |  |
+| `tasks claim` | `--lease` | ✅ |  |
+| `tasks claim` | `--holder` | ✅ |  |
+| `tasks claim` | `--account` | ✅ |  |
+| `tasks claim` | `--json` | ✅ |  |
+| `tasks release` |  | ✅ |  |
+| `tasks release` | `--holder` | ✅ |  |
+| `tasks release` | `--account` | ✅ |  |
+| `tasks release` | `--json` | ✅ |  |
 | `stats tasks show` |  | ✅ |  |
 | `stats tasks show` | `--chat` | ❌ |  |
 | `stats tasks show` | `--type` | ✅ |  |
@@ -250,6 +259,8 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `projects evidence` | `--before-n` | ✅ |  |
 | `projects evidence` | `--after-n` | ✅ |  |
 | `projects evidence` | `--no-catch-up` | ✅ |  |
+| `projects evidence` | `--sync-first` | ✅ |  |
+| `projects evidence` | `--sync-time` | ✅ |  |
 | `projects evidence` | `--json` | ✅ |  |
 | `projects actions add` |  | ✅ |  |
 | `projects actions add` | `--json` | ✅ |  |

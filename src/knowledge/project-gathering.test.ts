@@ -524,6 +524,6 @@ it("names a linked chat held in part and one not reached, and answers meta.compl
   expect(answer.meta.complete).toBe(false)
   expect(answer.missing).toEqual([expect.objectContaining({ field: "history", step: "messages.sync" })])
   expect(await run("projects", "evidence", "SYP", "--source", "telegram:1", "--limit", "20")).toMatch(
-    /chat:telegram\/1\/9: held from \d{4}-\d{2}-\d{2} only, not read this run — sync it with its messenger CLI: messages sync 9 --since-time \d{4}/,
+    /chat:telegram\/1\/9: held from \d{4}-\d{2}-\d{2} only, not read this run — sync it: tg <profile> messages sync 9 --since-time \d{4}-\d{2}-\d{2} \(no tg profile here is signed in to account 1; profiles: none\)/,
   )
 })

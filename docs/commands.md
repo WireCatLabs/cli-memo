@@ -1038,6 +1038,55 @@ memo tasks link <task> [targets] [options]
 
 **Example:** `memo tasks link HRB-2 HRB-1 --kind blocked-by`
 
+### `memo tasks claim`
+
+take an open task so no other agent works it at once; the claim lapses by itself
+
+This command changes the local store or your files.
+
+```sh
+memo tasks claim <task> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `task` | required | the task's id or key, as tasks list shows it. |
+
+| Option | What it does |
+|---|---|
+| `--lease <duration>` | how long the claim lasts: 30m, 2h (default 30m); claiming again extends it. |
+| `--holder <name>` | who you are for claims: a session id or a chat id; default WIRECAT_HOLDER, else Claude Code's session, else the agent's name. |
+| `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
+| `--json` | print JSON. |
+
+**Returns:** task card — id, ref, key, project, title, description, type, status, and 18 more; every field: memo commands info tasks claim
+
+**Example:** `memo tasks claim HRB-1 --lease 2h --account telegram:1`
+
+### `memo tasks release`
+
+give back a task you claimed, before the claim lapses; the owner may release any
+
+This command changes the local store or your files.
+
+```sh
+memo tasks release <task> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `task` | required | the task's id or key, as tasks list shows it. |
+
+| Option | What it does |
+|---|---|
+| `--holder <name>` | who you are for claims: a session id or a chat id; default WIRECAT_HOLDER, else Claude Code's session, else the agent's name. |
+| `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
+| `--json` | print JSON. |
+
+**Returns:** task card — id, ref, key, project, title, description, type, status, and 18 more; every field: memo commands info tasks release
+
+**Example:** `memo tasks release HRB-1 --account telegram:1`
+
 ## `memo stats`
 
 statistics about what the store holds
@@ -1259,7 +1308,9 @@ memo projects context <project> [options]
 
 ### `memo projects evidence`
 
-cited references about a project in stored messages, mail, meeting transcripts and imported notes folders. The project's name, its key, each of its aliases and each --alias, each --context-query and each --contact name is its own search: every word of it must appear in one text, in any order, as whole words; their hits are joined. Every message of a chat confirmed as the project's (memo relationships add chat:<provider>/<account>/<chat> project:<id>) is read too, when --source holds its account, and so is everything a confirmed person member of the project wrote (as --contact person:<id>, without aliases). New mail and documents are indexed for search first, unless --no-catch-up. Reads only what the store holds; proposes and confirms nothing
+cited references about a project in stored messages, mail, meeting transcripts and imported notes folders. The project's name, its key, each of its aliases and each --alias, each --context-query and each --contact name is its own search: every word of it must appear in one text, in any order, as whole words; their hits are joined. Every message of a chat confirmed as the project's (memo relationships add chat:<provider>/<account>/<chat> project:<id>) is read too, when --source holds its account, and so is everything a confirmed person member of the project wrote (as --contact person:<id>, without aliases). New mail and documents are indexed for search first, unless --no-catch-up. Reads what the store holds; with --sync-first it first syncs the linked chats the store lacks for the window by running their messenger CLI (tg, max, wa) with the profile signed in to each chat's account; proposes and confirms nothing
+
+This command changes the local store or your files.
 
 ```sh
 memo projects evidence <project> [options]
@@ -1283,6 +1334,8 @@ memo projects evidence <project> [options]
 | `--before-n <n>` | messages before each message hit, shown as its context, at most 5. Default: `2`. |
 | `--after-n <n>` | messages after each message hit, shown as its context, at most 5. Default: `2`. |
 | `--no-catch-up` | read the search index as it is, without indexing new mail and documents first. |
+| `--sync-first` | first sync the linked chats the store does not hold back to --since-time, through their messenger CLI; off by default. |
+| `--sync-time <duration>` | time for all of --sync-first's syncs together. Default: `3m`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** find what the store holds about a project: names, words, people, linked chats
