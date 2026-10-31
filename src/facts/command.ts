@@ -5,6 +5,7 @@ import { FACT_TYPES, type Fact, MEMORY_SCOPES } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { authorOf, byOption } from "../author.js"
+import { FORGET_HELP } from "../memories/command.js"
 import { oneOf, positive } from "../options.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { FACT_QUERY, factItem, listFacts } from "./fact.js"
@@ -70,9 +71,15 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   annotate(facts.command("show"), { effects: LOCAL_READ, output: { entity: "fact" } })
     .description("one fact with its evidence")
     .argument("<ref>", "fact:<id>")
+    .option("--sources", "read each piece of evidence back: who, when, a short excerpt, and whether it is gone")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(factItem(await store.facts.get(ref)))),
+    .action((ref: string, options: { sources?: boolean; json?: boolean }) =>
+      run(options.json, async (store) =>
+        itemAnswer({
+          ...factItem(await store.facts.get(ref)),
+          ...(options.sources ? { sources: await store.facts.sources(ref) } : {}),
+        }),
+      ),
     )
 
   annotate(facts.command("confirm"), { effects: LOCAL_WRITE, output: { entity: "fact" } })
@@ -89,5 +96,22 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((ref: string, options: { json?: boolean }) =>
       run(options.json, async (store) => itemAnswer(factItem(await store.facts.reverse(ref)))),
+    )
+
+  annotate(facts.command("reject"), { effects: LOCAL_WRITE, output: { entity: "fact" } })
+    .description("turn down a fact an agent proposed; it stays, marked rejected")
+    .argument("<ref>", "fact:<id>")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .action((ref: string, options: { json?: boolean }) =>
+      run(options.json, async (store) => itemAnswer(factItem(await store.facts.reject(ref)))),
+    )
+
+  annotate(facts.command("remove"), { effects: LOCAL_WRITE })
+    .description("forget a fact: erase its text, its links to sources and its tags")
+    .argument("<ref>", "fact:<id>")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .addHelpText("after", `\n${FORGET_HELP.replace("use invalidate", "use reject or reverse")}`)
+    .action((ref: string, options: { json?: boolean }) =>
+      run(options.json, async (store) => itemAnswer(await store.facts.remove(ref))),
     )
 }

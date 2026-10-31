@@ -24,6 +24,8 @@ export const factItem = ({ type, statement, source, confirmedBy, ...fact }: Fact
   status: fact.status,
   project: fact.project,
   subject: fact.subject,
+  subject_name: fact.subjectName,
+  subject_is_owner: fact.subjectIsOwner,
   occurred_at: fact.occurredAt,
   supersedes: fact.supersedes,
   author: fact.author,

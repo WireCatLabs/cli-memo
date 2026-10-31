@@ -337,6 +337,34 @@ it("covers every runnable command with a tool or a named exclusion", async () =>
   }
 })
 
+it("never offers an agent forgetting, rejecting or correcting a memory", async () => {
+  const { client, call } = await connected()
+  try {
+    const catalogue = await client.callTool({ name: "memo_tools_search", arguments: {} })
+    const names = (catalogue.structuredContent as { items: { command: string }[] }).items.map(({ command }) => command)
+    expect(names).toEqual(expect.arrayContaining(["memories add", "memories invalidate"]))
+    for (const owners of ["memories remove", "facts remove", "facts reject"]) expect(names).not.toContain(owners)
+
+    const memory = await call("memories add", {
+      text: "Bob Sample prefers Fridays",
+      kind: "preference",
+      scope: "work",
+      evidence: ["note:1"],
+    })
+    const ref = (answerOf(JSON.stringify(memory.structuredContent)) as { ref: string }).ref
+    const correction = await call("memories add", {
+      text: "Bob Sample prefers Mondays",
+      kind: "preference",
+      scope: "work",
+      evidence: ["note:1"],
+      supersedes: ref,
+    })
+    expect(correction.isError).toBe(true)
+  } finally {
+    await client.close()
+  }
+})
+
 it("opens a search hit in full and runs generated writes through the CLI as the MCP agent", async () => {
   const { client, call, answer } = await connected()
   try {

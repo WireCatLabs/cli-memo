@@ -18,6 +18,9 @@ export const MCP_EXCLUSIONS = [
   { path: ["jobs", "start"], reason: "installs a background timer" },
   { path: ["jobs", "stop"], reason: "removes a background timer" },
   { path: ["config", "unset"], reason: "can remove a saved permission the server enforces" },
+  { path: ["memories", "remove"], reason: "erases what the owner reviews; only the owner forgets" },
+  { path: ["facts", "remove"], reason: "erases what the owner reviews; only the owner forgets" },
+  { path: ["facts", "reject"], reason: "the owner's answer to an agent's proposal" },
 ] as const
 
 export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramFactory) => {

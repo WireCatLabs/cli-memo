@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "rule": "option-role",
+    "target": "memories show --sources",
+    "reason": "WireCat Desktop's Memory page reads every source of a memory in one call (plan step 3, 2026-10-31); the shared flag vocabulary in cli-base 0.65 has no switch that adds the evidence read back. Add --sources there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-01-31"
+  },
+  {
+    "rule": "option-role",
+    "target": "facts show --sources",
+    "reason": "WireCat Desktop's Memory page reads every source of a fact in one call (plan step 3, 2026-10-31); the shared flag vocabulary in cli-base 0.65 has no switch that adds the evidence read back. Add --sources there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-01-31"
+  }
+]
