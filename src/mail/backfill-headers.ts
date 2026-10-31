@@ -1,6 +1,7 @@
 import type { MailHeaders, MailSource } from "@wirecat/cli-core/mail"
 import { ENVELOPE, GMAIL_ALL_MAIL } from "@wirecat/cli-core/mail"
-import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
+import type { AccountKey, MessageStore, ThreadSave } from "@wirecat/cli-core/store"
+import { pause, slicesOf } from "./slices.js"
 
 const STATE = "mail_headers_backfill"
 /** Emails read per sync: about 4 MB of headers, so a timer run stays short and the backlog clears in hours. */
@@ -63,34 +64,39 @@ export const backfillHeaders = async (
     ).map((item) => [item.messageId, item]),
   )
   let filled = 0
-  for (const { externalId } of batch) {
-    const headers = found.get(externalId)?.headers
-    if (headers === undefined) continue
-    const record = storedOf(headers)
-    const email = await store.mail.email(stored.id, externalId)
-    // Headers already kept, even without a verdict, stay as the import wrote them.
-    if (email === null || email.bodyText === null || Object.keys(email.headers ?? {}).length) continue
-    if (Object.keys(record).length === 0) continue
-    const [placed] = await store.mail.inThreads(stored.id, [externalId])
-    if (placed === undefined) continue
-    await store.mail.saveThread({
-      accountId: stored.id,
-      externalId: placed.threadExternalId,
-      now,
-      emails: [
-        {
-          externalId,
-          subject: email.subject,
-          from: email.fromAddress === null ? null : { address: email.fromAddress, name: email.fromName },
-          sentAt: email.sentAt,
-          bodyText: email.bodyText,
-          headers: record,
-        },
-      ],
-    })
-    filled++
+  const slices = slicesOf(batch)
+  for (const [at, slice] of slices.entries()) {
+    const inputs: ThreadSave[] = []
+    for (const { externalId } of slice) {
+      const headers = found.get(externalId)?.headers
+      if (headers === undefined) continue
+      const record = storedOf(headers)
+      const email = await store.mail.email(stored.id, externalId)
+      // Headers already kept, even without a verdict, stay as the import wrote them.
+      if (email === null || email.bodyText === null || Object.keys(email.headers ?? {}).length) continue
+      if (Object.keys(record).length === 0) continue
+      const [placed] = await store.mail.inThreads(stored.id, [externalId])
+      if (placed === undefined) continue
+      inputs.push({
+        accountId: stored.id,
+        externalId: placed.threadExternalId,
+        now,
+        emails: [
+          {
+            externalId,
+            subject: email.subject,
+            from: email.fromAddress === null ? null : { address: email.fromAddress, name: email.fromName },
+            sentAt: email.sentAt,
+            bodyText: email.bodyText,
+            headers: record,
+          },
+        ],
+      })
+    }
+    const value = JSON.stringify({ done: false, before: slice.at(-1)?.receivedAt ?? 0 })
+    await store.mail.saveThreads(inputs, [{ accountId: stored.id, name: STATE, value }])
+    filled += inputs.length
+    if (at < slices.length - 1) await pause()
   }
-  const oldest = Math.min(...batch.map(({ receivedAt }) => receivedAt ?? 0))
-  await store.sync.setSyncState(key, STATE, JSON.stringify({ done: false, before: oldest }))
   return filled
 }

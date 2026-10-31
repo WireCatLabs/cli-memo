@@ -6,6 +6,14 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **The header backfill and the HTML text repair no longer lock other CLIs out of the store.** Both saved one email
+  per transaction. They now save 50 per transaction through cli-core's `MailStore.saveThreads` (cli-core 0.506.0,
+  already in use at 0.509.0), pause 100 ms between slices, and keep their progress in the same transaction: the
+  backfill saves its cursor with every slice, and the repair marks itself done with the last one. A run that fails
+  resumes after the last saved slice.
+
 ## 0.130.0 — 31.10.2026
 
 ### Changed — may break callers
