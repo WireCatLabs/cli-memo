@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.7 — 01.11.2026
+
 ### Added
 
 - **A memory can belong to a project**: `memories add --project <key>`, `memories list project:<key>`, and
