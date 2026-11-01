@@ -159,12 +159,12 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .summary("put a project task before or after another in its board column")
     .description(
       "put a project task before or after another in its board column: it takes a priority between them, " +
-        "and the answer says when its label changed",
+        "and the answer says when its label changed; beside a task in another column it moves into that column",
     )
     .argument("<id>", "the task's id or key")
     .option(
       "--status <state>",
-      `move it to this column too: ${TASK_STATES.join(", ")}`,
+      `move it to this column too: ${TASK_STATES.join(", ")}; with --before or --after it must be that task's column`,
       oneOf(TASK_STATES as readonly TaskState[]),
     )
     .option("--before <id>", "the task it goes just above")
@@ -200,10 +200,17 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
           oneOf(TASK_STATES as readonly TaskState[]),
         )
       command.action(async (id: string, given: UpdateOptions & WriteOptions & { json?: boolean }) => {
-        const raw = given as Omit<UpdateOptions, "parent" | "due" | "remindTime"> &
-          WriteOptions & { json?: boolean; parent?: string | null; due?: Date | "none"; remindTime?: Date | "none" }
+        const raw = given as Omit<UpdateOptions, "parent" | "due" | "remindTime" | "priority"> &
+          WriteOptions & {
+            json?: boolean
+            parent?: string | null
+            due?: Date | "none"
+            remindTime?: Date | "none"
+            priority?: number | "none"
+          }
         const options = {
           ...given,
+          priority: raw.priority === "none" ? null : raw.priority,
           parent: raw.parent === null || raw.parent === "none" ? null : raw.parent,
           due: raw.due === "none" ? null : raw.due,
           remindTime: raw.remindTime === "none" ? null : raw.remindTime,

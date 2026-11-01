@@ -82,12 +82,17 @@ A priority is a number from 0 to 1, higher first, and you see it as one of four 
 
 ```sh
 memo tasks move HRB-3 --before HRB-1                      # HRB-3 goes just above HRB-1
-memo tasks move HRB-3 --status in_progress --after HRB-2  # into another column, below HRB-2
+memo tasks move HRB-3 --after HRB-2                       # into HRB-2's column, below it
+memo tasks move HRB-3 --status in_progress                # into an empty column
 ```
 
 `tasks move` gives the task a priority between its new neighbours. When that crosses a quarter, its label changes,
 and the answer says so (`label.changed`). When two neighbours leave no room, Memo spreads that quarter of the
 column out evenly and names the tasks it renumbered.
+
+Beside a task in another column, the task moves into that column. `--status` with `--before` or `--after` must name
+the neighbour's column; another is refused with reason `task.column` (`HRB-2 is in in_progress, not todo: pick a task
+in the todo column`). `--status` alone moves the task into an empty column.
 
 ## States
 
@@ -138,6 +143,10 @@ memo tasks update HRB-1 --title 'Book the hall' --revision 4
 ```
 
 `tasks update`, `close`, `assign` and `move` take `--revision`.
+
+The revision goes up when a person could overwrite something: the title, description, state, priority, assignees,
+agent, due date, project, parent or tags. An agent taking, renewing or giving back its claim, or setting when it looks
+again (`--remind-time`), leaves it as it is, so working on a task does not make your copy stale.
 
 ## Who works on it
 

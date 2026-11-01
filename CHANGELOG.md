@@ -6,6 +6,20 @@ the API.
 
 ## Unreleased
 
+### Changed — may break callers
+
+- **A task's `revision` goes up only for a change a person could overwrite** (cli-core 0.516.0, store version 42):
+  title, description, state, priority, assignees, agent, due date, project, parent or tags. An agent's claim, its
+  renewal and release, and `--remind-time` leave it as it is, so a board no longer says "changed elsewhere" while an
+  agent works.
+- **`tasks move <id> --before|--after <other>` beside a task in another column moves it into that column.** A
+  `--status` that names another column than the neighbour's is refused with reason `task.column`
+  (`HRB-2 is in in_progress, not todo: pick a task in the todo column`).
+
+### Fixed
+
+- **`tasks update --priority none` clears the priority** instead of failing with "a priority score is 0 to 1".
+
 ## 0.131.3 — 01.11.2026
 
 ### Added
