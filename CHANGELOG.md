@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.3 — 01.11.2026
+
 ### Added
 
 - **`projects evidence --sync-profile <tool>=<profile>`** names the messenger profile `--sync-first` syncs as when
