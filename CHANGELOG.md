@@ -6,7 +6,7 @@ the API.
 
 ## Unreleased
 
-### Changed
+### Fixed
 
 - **Built on cli-core 0.529.0 and cli-base 0.71.0.** cli-core 0.529.0 stops hiding a locked or broken store when it
   scores mail senders; only a missing account counts as "nothing to score".
