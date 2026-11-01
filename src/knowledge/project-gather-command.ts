@@ -13,7 +13,7 @@ import { type Command, Option } from "commander"
 import { itemAnswer, withStore } from "../answer.js"
 import { collect, positive, whole } from "../options.js"
 import { ACCOUNTS_HELP, contextSourcesOf } from "../store/source-list.js"
-import { messengerFetcher, syncHint } from "./messenger-sync.js"
+import { chatSync, messengerFetcher, syncHint, syncProfileOf } from "./messenger-sync.js"
 
 interface Options {
   source: string
@@ -30,6 +30,7 @@ interface Options {
   afterN: number
   syncFirst?: boolean
   syncTime: string
+  syncProfile?: Record<string, string>
   json?: boolean
 }
 
@@ -43,7 +44,7 @@ export const projectGatherCommand = (
   warn: (text: string) => void,
 ) =>
   // Declared as a fetch for --sync-first; cli-base fixes effects per command, and without it nothing leaves this machine.
-  annotate(projects.command("evidence"), { effects: FETCH })
+  annotate(projects.command("evidence"), { effects: FETCH, partial: true })
     .description(
       "cited references about a project in stored messages, mail, meeting transcripts and imported notes folders. The project's name, " +
         "its key, each of its aliases and each --alias, each --context-query and each --contact name is its own search: every word of " +
@@ -52,7 +53,8 @@ export const projectGatherCommand = (
         "account, and so is everything a confirmed person member of the project wrote (as --contact person:<id>, " +
         "without aliases). New mail and documents are indexed for search first, unless --no-catch-up. Reads " +
         "what the store holds; with --sync-first it first syncs the linked chats the store lacks for the window by running " +
-        "their messenger CLI (tg, max, wa) with the profile signed in to each chat's account; proposes and confirms nothing",
+        "their messenger CLI (tg, max, wa) with the profile signed in to each chat's account, or the one --sync-profile " +
+        "names when several are; proposes and confirms nothing. A partial answer exits 0 with meta.complete false",
     )
     .summary("find what the store holds about a project: names, words, people, linked chats")
     .argument("<project>", "an existing project's id, key, exact name or alias, or a new project's name")
@@ -86,9 +88,19 @@ export const projectGatherCommand = (
     .addOption(
       cliOnly(new Option("--sync-time <duration>", "time for all of --sync-first's syncs together").default("3m")),
     )
+    .addOption(
+      cliOnly(
+        new Option(
+          "--sync-profile <tool=profile>",
+          "the messenger profile to sync as when several are signed in to a chat's account, such as max=default; " +
+            "repeat for another tool. It must be signed in to that account",
+        ).argParser(syncProfileOf),
+      ),
+    )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (project: string, options: Options) => {
       const maxFetchMs = parseDuration(options.syncTime, "--sync-time")
+      const chosen = options.syncProfile ?? {}
       const found = await withStore(env, async (store) =>
         gatherStoredProject(store, {
           project,
@@ -104,14 +116,27 @@ export const projectGatherCommand = (
           ...(options.contact ? { people: options.contact } : {}),
           ...(options.maxPages === undefined ? {} : { maxReads: options.maxPages }),
           ...(options.cursor === undefined ? {} : { checkpoint: options.cursor }),
-          ...(options.syncFirst ? { fetcher: messengerFetcher({ env, note: warn }), maxFetchMs } : {}),
+          ...(options.syncFirst ? { fetcher: messengerFetcher({ env, note: warn, chosen }), maxFetchMs } : {}),
         }),
       )
+      const since = new Date(found.window.after).toISOString().slice(0, 10)
+      const syncs = found.linkedChats.map((one) =>
+        one.completeness === null || one.completeness.state === "complete" ? null : chatSync(one, since, env, chosen),
+      )
+      const parts = projectAnswerParts(options.sinceTime, found)
+      const blocked = [...new Set(syncs.flatMap((one) => (one && one.command === null ? [one.why] : [])))]
+      const missing = [...(parts.missing ?? []), ...blocked.map((why) => ({ field: "sync_command", why }))]
       print(
         options.json,
-        itemAnswer(found, projectAnswerParts(options.sinceTime, found)),
+        itemAnswer(
+          {
+            ...found,
+            linkedChats: found.linkedChats.map((one, i) => ({ ...one, syncCommand: syncs[i]?.command ?? null })),
+          },
+          { ...parts, ...(missing.length ? { missing } : {}) },
+        ),
         projectEvidenceText(found, {
-          sync: (chat, since) => syncHint(chat, since, env),
+          sync: (chat, at) => syncHint(chat, at, env, chosen),
           showDocument: "memo notes show",
         }),
       )
