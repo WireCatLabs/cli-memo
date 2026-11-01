@@ -606,3 +606,23 @@ it("updates blocked command availability after an explicit authority grant witho
     await client.close()
   }
 })
+
+it("adds and comments on a project task in the client's name, and lists who wrote what", async () => {
+  const seed = await openStore({ env })
+  try {
+    await seed.knowledge.addProject({ name: "Harbour launch", key: "HRB" })
+  } finally {
+    await seed.close()
+  }
+  const { client, answer } = await connected("claude-desktop")
+  try {
+    const task = await answer("tasks add", { project: "HRB", title: "Book the venue" })
+    expect(task.created_by).toMatchObject({ type: "bot", name: "claude-desktop", owner: false })
+    const comment = await answer("tasks comments add", { id: task.key, text: ["Asked", "for", "two", "rooms"] })
+    expect(comment).toMatchObject({ text: "Asked for two rooms", author: { name: "claude-desktop", owner: false } })
+    const listed = await answer("tasks comments list", { id: task.key })
+    expect(listed.items).toMatchObject([{ text: "Asked for two rooms", author: { type: "bot" } }])
+  } finally {
+    await client.close()
+  }
+})

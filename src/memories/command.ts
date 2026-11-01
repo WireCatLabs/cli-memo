@@ -6,6 +6,7 @@ import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { authorOf, byOption } from "../author.js"
 import { oneOf, positive } from "../options.js"
+import { canonicalProject } from "../vocabulary/project.js"
 import { addMemory } from "./memories.js"
 import { listMemories, MEMORY_QUERY, memoryItem, searchMemories } from "./memory.js"
 
@@ -25,6 +26,7 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     .requiredOption("--scope <scope>", MEMORY_SCOPES.join(" or "), oneOf(MEMORY_SCOPES))
     .requiredOption("--evidence <ref...>", "what shows it: msg:, note:, meeting:, person: or another reference")
     .option("--subject <ref>", "what it is about, as a reference")
+    .option("--project <project>", "the project it belongs to: its key or project:<id>")
     .option("--supersedes <ref>", "yours only: the memory this one corrects; it stays, marked superseded")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(
@@ -35,6 +37,7 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
           scope: Memory["scope"]
           evidence: string[]
           subject?: string
+          project?: string
           supersedes?: string
           asOwner?: boolean
           json?: boolean
@@ -51,6 +54,7 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
                   scope: options.scope,
                   evidence: options.evidence,
                   ...(options.subject === undefined ? {} : { subject: options.subject }),
+                  ...(options.project === undefined ? {} : { project: options.project }),
                   ...(options.supersedes === undefined ? {} : { supersedes: options.supersedes }),
                 },
                 authorOf(env, options.asOwner),
@@ -81,6 +85,23 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
           ...memoryItem(await store.memories.get(ref)),
           ...(options.sources ? { sources: await store.memories.sources(ref) } : {}),
         }),
+      ),
+    )
+
+  annotate(memories.command("update"), { effects: LOCAL_WRITE, output: { entity: "memory" } })
+    .description("move a memory to another project, or to none")
+    .argument("<ref>", "memory:<id>")
+    .requiredOption("--project <project>", "the project's key or project:<id>; none takes it out of its project")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .action((ref: string, options: { project: string; json?: boolean }) =>
+      run(options.json, async (store) =>
+        itemAnswer(
+          memoryItem(
+            await store.memories.update(ref, {
+              project: options.project === "none" ? null : await canonicalProject(store, options.project),
+            }),
+          ),
+        ),
       ),
     )
 

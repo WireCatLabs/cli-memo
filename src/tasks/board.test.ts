@@ -86,8 +86,8 @@ it("counts project tasks for the pickers, and keeps an account's list as it was"
   const counts = await run(["tasks", "counts", "project:HRB"])
   expect(counts.total).toBe(1)
   expect(counts.project).toEqual([
-    { value: "HRB", name: "Harbour launch", count: 1 },
-    { value: "OPS", name: "Operations", count: 1 },
+    { value: "HRB", ref: "project:1", name: "Harbour launch", count: 1 },
+    { value: "OPS", ref: "project:2", name: "Operations", count: 1 },
   ])
   expect(counts.state.find(({ value }: { value: string }) => value === "todo")).toEqual({ value: "todo", count: 0 })
   expect((await run(["tasks", "list"])).items).toEqual([])
@@ -124,13 +124,63 @@ it("moves, reopens, unassigns and tells the history, naming the agent that acted
   })
 })
 
-it("lists the people the board offers to assign", async () => {
+it("adds a person by name, and lists everyone memo knows to assign", async () => {
   const { run, ana } = await setUp()
   await run(["tasks", "add", "--project", "HRB", "--title", "A", "--assignee", ana])
+  const lena = await run(["people", "add", "Lena", "Example"])
+  expect(lena).toMatchObject({ ref: expect.stringMatching(/^person:\d+$/), name: "Lena Example" })
+  await run(["tasks", "add", "--project", "HRB", "--title", "B", "--assignee", lena.ref])
+
   const people = await run(["people", "list"])
+  expect(people.items[0]).toMatchObject({ owner: true })
   expect(people.items.filter(({ owner }: { owner: boolean }) => !owner)).toEqual([
     { ref: ana, name: "Ana Example", owner: false, tasks: 1 },
+    { ref: lena.ref, name: "Lena Example", owner: false, tasks: 1 },
   ])
+  expect((await run(["people", "list", "--limit", "1"])).items).toHaveLength(1)
+})
+
+it("adds a task with its due date, state and agent at once, and names its project as counts do", async () => {
+  const { run } = await setUp()
+  const added = await run([
+    "tasks",
+    "add",
+    "--project",
+    "HRB",
+    "--title",
+    "Book the venue",
+    "--due",
+    "2d",
+    "--status",
+    "in_progress",
+    "--agent",
+    "hermes",
+    "--priority",
+    "0.3",
+    "--description",
+    "Two rooms",
+  ])
+  expect(added).toMatchObject({ status: "in_progress", agent: "hermes", priority: 0.3, due_at: expect.any(String) })
+  await expect(run(["tasks", "add", "note:1", "--due", "2d"])).rejects.toMatchObject({ code: "validation_error" })
+
+  const [listed] = (await run(["tasks", "list", "project:HRB"])).items
+  expect(listed).toMatchObject({ project: "project:1", project_key: "HRB", project_name: "Harbour launch" })
+  expect(await run(["tasks", "update", "HRB-1", "--description", "none"])).toMatchObject({ description: null })
+
+  const counts = await run(["tasks", "counts", "project:HRB"])
+  expect(counts.due).toEqual([
+    { value: "overdue", count: 0 },
+    { value: "today", count: 0 },
+    { value: "upcoming", count: 1 },
+    { value: "later", count: 0 },
+    { value: "none", count: 0 },
+  ])
+  expect(counts.agent).toEqual([{ value: "hermes", count: 1 }])
+  expect((await run(["tasks", "list", "project:HRB", "when:upcoming"])).items).toHaveLength(1)
+  expect((await run(["tasks", "list", "project:HRB", "overdue:true"])).items).toEqual([])
+
+  const due = (await run(["tasks", "history", "HRB-1"])).items.find(({ kind }: { kind: string }) => kind === "due")
+  expect(due.changes.due_at[1]).toBe(listed.due_at)
 })
 
 it("moves a card between two others, says when its label changed, and refuses a stale revision", async () => {
@@ -178,4 +228,31 @@ it("moves a card into the column of the task it is dropped beside, and clears a 
     priority: null,
     priority_label: null,
   })
+})
+
+it("moves a task to another project, changes its kind and keeps comments with their author", async () => {
+  const { run } = await setUp()
+  const added = await run(["tasks", "add", "--project", "HRB", "--title", "Renew the domain"])
+  expect(added.created_by).toMatchObject({ type: "person", owner: true })
+  const moved = await run(["tasks", "update", "HRB-1", "--project", "OPS", "--revision", String(added.revision)])
+  expect(moved).toMatchObject({ key: "OPS-1", id: "OPS-1" })
+  expect(await run(["tasks", "show", "HRB-1"])).toMatchObject({ key: "OPS-1" })
+  expect(await run(["tasks", "update", "OPS-1", "--type", "bug"])).toMatchObject({ type: "bug" })
+  await expect(run(["tasks", "update", "OPS-1", "--type", "question"])).rejects.toBeDefined()
+
+  await run(["tasks", "comments", "add", "OPS-1", "Paid", "for", "two", "years"], { AI_AGENT: "hermes" })
+  await run(["tasks", "comments", "add", "HRB-1", "Thanks"])
+  const comments = await run(["tasks", "comments", "list", "OPS-1"])
+  expect(
+    comments.items.map(({ text, author }: { text: string; author: { name: string | null; owner: boolean } }) => [
+      text,
+      author.owner ? "owner" : author.name,
+    ]),
+  ).toEqual([
+    ["Paid for two years", "hermes"],
+    ["Thanks", "owner"],
+  ])
+  const [listed] = (await run(["tasks", "list", "project:OPS"])).items
+  expect(listed.created_by).toMatchObject({ owner: true })
+  expect((await run(["tasks", "list", "project:OPS", "due:tomorrow"])).items).toEqual([])
 })

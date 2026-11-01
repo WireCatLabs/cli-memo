@@ -429,11 +429,33 @@ memo mail inspect <account> [options]
 
 ## `memo people`
 
-the people memo's tasks name
+the people memo knows, to assign tasks to
+
+### `memo people add`
+
+add a person by name, before any message names them
+
+This command changes the local store or your files.
+
+```sh
+memo people add <name> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | required | what to call them. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** add a person by name, before any message names them
+
+**Example:** `memo people add Lena Example`
 
 ### `memo people list`
 
-the owner and everyone who holds a role on a task, by name; search people finds anyone else
+everyone memo knows, by name: the owner first, then by how many tasks name them
 
 ```sh
 memo people list [query] [options]
@@ -445,9 +467,10 @@ memo people list [query] [options]
 
 | Option | What it does |
 |---|---|
+| `--limit <n>` | most people, up to 5000. Default: `500`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** the owner and everyone who holds a role on a task
+**Returns:** everyone memo knows, the owner first
 
 **Example:** `memo people list --json`
 
@@ -638,6 +661,9 @@ memo tasks add [source] [options]
 | `--type <type>` | question, request (default), mention or promise from a source; bug, feature or chore (default) in a project. |
 | `--project <project>` | a task without a source: the project's key or project:<id>. |
 | `--assignee <person...>` | who does it: a person's UID. |
+| `--due <time>` | a project task: when it must be done, an ISO 8601 time or 2h, 3d from now. |
+| `--status <state>` | a project task: its state from the start, open, todo, in_progress, done, dismissed. |
+| `--agent <agent>` | a project task: the agent working on it, apart from its assignees. |
 | `--into <id>` | link the source to this task instead of opening one that may be the same job. |
 | `--new` | open the task even when one like it is open or was closed in the last 14 days. |
 
@@ -666,7 +692,7 @@ memo tasks list [query] [options]
 | `--desc` | project tasks: the --sort order reversed. |
 | `--cursor <cursor>` | project tasks: the next page, from page.next_cursor, with the same query and order. |
 
-**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 21 more; every field: memo commands info tasks list
+**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 24 more; every field: memo commands info tasks list
 
 **Next usually:** `memo tasks links <task>`, `memo tasks status <task>`, `memo tasks show <task>`
 
@@ -688,11 +714,59 @@ memo tasks counts [query] [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 21 more; every field: memo commands info tasks counts
+**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 24 more; every field: memo commands info tasks counts
 
 **Next usually:** `memo tasks links <task>`, `memo tasks status <task>`, `memo tasks show <task>`
 
 **Example:** `memo tasks counts project:* --json`
+
+### `memo tasks comments`
+
+what people and agents wrote on a task
+
+#### `memo tasks comments add`
+
+comment on a task, in your name or the agent's that runs memo
+
+This command changes the local store or your files.
+
+```sh
+memo tasks comments add <id> <text> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `id` | required | the task's id or key. |
+| `text` | required | what to say, in Markdown. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** comment on a task, in your name or the agent's that runs memo
+
+**Example:** `memo tasks comments add HRB-1 Booked the hall for Friday`
+
+#### `memo tasks comments list`
+
+a task's comments, oldest first, with who wrote each and when
+
+```sh
+memo tasks comments list <id> [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `id` | required | the task's id or key. |
+| `query` | optional | field:value terms; this list filters by none yet. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** a task's comments, oldest first, with who wrote each and when
+
+**Example:** `memo tasks comments list HRB-1 --json`
 
 ### `memo tasks history`
 
@@ -838,17 +912,19 @@ memo tasks update <task> [options]
 | `--priority <n>` | low, medium, high, critical or none; 0 (urgent) … 4 (low) still read as before. |
 | `--parent <id>` | parent task in the same project; none clears it. |
 | `--title <title>` | one line: the action and its object — send Alex the API token. |
-| `--description <text>` | the detail, in Markdown: who owes whom, done when, next step, keywords. |
+| `--description <text>` | the detail, in Markdown; none clears it. |
 | `--due <time>` | when it must be done: an ISO 8601 time or 2h, 3d from now; none clears it. |
 | `--remind-time <time>` | when to look at it again: an ISO 8601 time or 2h, 3d from now; none clears it. |
 | `--assignee <person...>` | who does it: sender (whoever sent the task's message) or person:<id>; none clears it. Leave it out when unsure: a task with no assignee is better than none. |
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
 | `--json` | print JSON. |
 | `--agent <agent>` | a project task: the agent working on it, apart from its assignees; none clears it. |
+| `--project <project>` | a project task: move it to another project, by key or project:<id>; it takes a new key there, and the old key still finds it. |
+| `--type <type>` | a project task's kind: bug, feature, chore. |
 | `--revision <n>` | refuse the write unless the task is still at this revision (task.stale, exit 3). |
 | `--status <state>` | a project task's state: open, todo, in_progress, done, dismissed; a closed one reopens. |
 
-**Returns:** task card — id, ref, key, project, title, description, type, status, and 21 more; every field: memo commands info tasks update
+**Returns:** task card — id, ref, key, project, project_key, project_name, created_by, title, and 24 more; every field: memo commands info tasks update
 
 **Example:** `memo tasks update HRB-1 --title 'Send the budget' --priority high --account telegram:1`, `memo tasks update 1a2b3c4d --due 2d --title 'Send the revised budget' --account telegram:1`
 
@@ -869,7 +945,7 @@ memo tasks show <task> [options]
 | `--source <accounts>` | the account: telegram:<account>, email:<account>, notes:<id>, or group:<name> of one. |
 | `--json` | print JSON. |
 
-**Returns:** task card — id, ref, key, project, title, description, type, status, and 21 more; every field: memo commands info tasks show
+**Returns:** task card — id, ref, key, project, project_key, project_name, created_by, title, and 24 more; every field: memo commands info tasks show
 
 **Example:** `memo tasks show 1a2b3c4d --source telegram:1 --json`
 
@@ -895,7 +971,7 @@ memo tasks link <task> [targets] [options]
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
 | `--json` | print JSON. |
 
-**Returns:** task links — id, ref, key, project, title, description, type, status, and 23 more; every field: memo commands info tasks link
+**Returns:** task links — id, ref, key, project, project_key, project_name, created_by, title, and 26 more; every field: memo commands info tasks link
 
 **Example:** `memo tasks link HRB-2 HRB-1 --kind blocked-by`
 
@@ -920,7 +996,7 @@ memo tasks claim <task> [options]
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
 | `--json` | print JSON. |
 
-**Returns:** task card — id, ref, key, project, title, description, type, status, and 21 more; every field: memo commands info tasks claim
+**Returns:** task card — id, ref, key, project, project_key, project_name, created_by, title, and 24 more; every field: memo commands info tasks claim
 
 **Example:** `memo tasks claim HRB-1 --lease 2h --account telegram:1`
 
@@ -944,7 +1020,7 @@ memo tasks release <task> [options]
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
 | `--json` | print JSON. |
 
-**Returns:** task card — id, ref, key, project, title, description, type, status, and 21 more; every field: memo commands info tasks release
+**Returns:** task card — id, ref, key, project, project_key, project_name, created_by, title, and 24 more; every field: memo commands info tasks release
 
 **Example:** `memo tasks release HRB-1 --account telegram:1`
 
@@ -1940,6 +2016,7 @@ memo memories add <text> [options]
 | `--scope <scope>` | personal or work. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
 | `--subject <ref>` | what it is about, as a reference. |
+| `--project <project>` | the project it belongs to: its key or project:<id>. |
 | `--supersedes <ref>` | yours only: the memory this one corrects; it stays, marked superseded. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
@@ -1988,6 +2065,29 @@ memo memories show <ref> [options]
 **Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 12 more; every field: memo commands info memories show
 
 **Example:** `memo memories show memory:4 --sources`
+
+### `memo memories update`
+
+move a memory to another project, or to none
+
+This command changes the local store or your files.
+
+```sh
+memo memories update <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | memory:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--project <project>` | the project's key or project:<id>; none takes it out of its project. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 12 more; every field: memo commands info memories update
+
+**Example:** `memo memories update memory:4 --project SYH`, `memo memories update memory:4 --project none`
 
 ### `memo memories confirm`
 
@@ -2546,6 +2646,7 @@ memo actions list [query] [options]
 | Option | What it does |
 |---|---|
 | `--limit <n>` | most actions, up to 500. Default: `100`. |
+| `--brief` | without each findings batch's cited sources. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** proposed actions, newest first
@@ -2554,7 +2655,7 @@ memo actions list [query] [options]
 
 ### `memo actions show`
 
-one proposed action, with its payload
+one proposed action; a findings batch with its fingerprint and sources
 
 ```sh
 memo actions show <id> [options]
@@ -2568,35 +2669,39 @@ memo actions show <id> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** one proposed action, with its payload
+**Returns:** one proposed action; a findings batch with its fingerprint and sources
 
 **Example:** `memo actions show 5`
 
 ### `memo actions confirm`
 
-confirm it: it becomes a task in the account that would act; nothing is sent
+confirm it: it becomes a task in the account that would act, nothing is sent; for a findings batch, create the named findings (all when none is named) and reject the rest
 
 This command changes the local store or your files.
 
 ```sh
-memo actions confirm <id> [options]
+memo actions confirm <id> [findings] [options]
 ```
 
 | Argument | | What it is |
 |---|---|---|
 | `id` | required | the action's id, as actions list gives it. |
+| `findings` | optional | a findings batch: the finding IDs to create. |
 
 | Option | What it does |
 |---|---|
+| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+| `--fingerprint <hash>` | a findings batch: the fingerprint actions show gives. |
+| `--reason <text>` | a findings batch: why, in a few words; required when an agent decides for you. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** confirm it: it becomes a task in the account that would act; nothing is sent
+**Returns:** confirm it: a task to act on, or a findings batch's facts and tasks
 
 **Example:** `memo actions confirm 5`
 
 ### `memo actions reject`
 
-reject it; nothing is done
+reject it; nothing is done. For a findings batch, every new finding
 
 This command changes the local store or your files.
 
@@ -2610,9 +2715,12 @@ memo actions reject <id> [options]
 
 | Option | What it does |
 |---|---|
+| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+| `--fingerprint <hash>` | a findings batch: the fingerprint actions show gives. |
+| `--reason <text>` | a findings batch: why, in a few words; required when an agent decides for you. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** reject it; nothing is done
+**Returns:** reject it; nothing is done. For a findings batch, every new finding
 
 **Example:** `memo actions reject 5`
 

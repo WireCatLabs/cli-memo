@@ -1,5 +1,5 @@
+import { ruleInput } from "@wirecat/cli-core/mail"
 import { afterEach, expect, it } from "vitest"
-import { ruleInput } from "./rule-store.js"
 
 const processZone = process.env.TZ
 afterEach(() => {

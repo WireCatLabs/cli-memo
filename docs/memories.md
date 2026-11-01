@@ -58,8 +58,12 @@ memo memories invalidate memory:3
 A memory you add with the `memo` command is confirmed at once. One an agent adds waits as
 `proposed` until you check its evidence and `confirm` it. When the evidence no longer holds, for
 example Kai now prefers Mondays, mark it `stale`. `--subject person:…` says who or what the memory is about.
-`memories list` narrows by `kind`, `status`, `scope` and `subject` in its query: `subject:"person:42"`.
-Each memory carries `subject_name`, what its subject is called, and `subject_is_owner` when it is about you.
+`--project SYH` puts it in a project, by key or `project:<id>`; `memories update memory:4 --project LHT` moves it, and
+`--project none` takes it out.
+`memories list` narrows by `kind`, `status`, `scope`, `subject` and `project` in its query: `subject:"person:42"`,
+`project:SYH`.
+Each memory carries `subject_name`, what its subject is called, `subject_is_owner` when it is about you, and
+`project_name` beside `project`.
 `show --sources` reads each piece of evidence back: the sender or title, the time, a short excerpt, and
 `missing: true` when the source was deleted since.
 

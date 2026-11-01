@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto"
 import { mkdtempSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
@@ -69,6 +70,14 @@ describe("generic IMAP identities", () => {
     })
     await expect(listImapMail(runner("12", "INBOX"), "synthetic", since, "INBOX\r\nUID STORE")).rejects.toMatchObject({
       code: "validation_error",
+    })
+  })
+  it("gives an email the id and thread mail gives it, the hash of its Message-ID and of its first Reference", async () => {
+    const digest = (id: string) => `imap:${createHash("sha256").update(id).digest("hex")}`
+    const [item] = await listImapMail(runner("12", "INBOX"), "synthetic", new Date("2026-10-01T00:00:00Z"), "INBOX")
+    expect(item).toMatchObject({
+      messageId: digest("<synthetic@example.test>"),
+      threadId: digest("<root@example.test>"),
     })
   })
 })

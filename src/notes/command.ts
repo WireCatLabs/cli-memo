@@ -3,6 +3,7 @@ import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { LOCAL_READ, LOCAL_WRITE, queryTerms, sharedCommandTemplate, termField, withQuery } from "@wirecat/cli-core/cli"
+import { contextEvidenceFingerprint } from "@wirecat/cli-core/services"
 import type { MessageStore, Note } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
@@ -99,6 +100,7 @@ const notesCommandDefinition = (program: Command, streams: Streams, env: NodeJS.
             kind,
             anchor,
           })),
+          fingerprint: await citedFingerprint(store, ref),
         }
       })
       print(
@@ -280,6 +282,11 @@ const notesCommandDefinition = (program: Command, streams: Streams, env: NodeJS.
         ].join("\n"),
       )
     })
+}
+
+const citedFingerprint = async (store: MessageStore, ref: string) => {
+  const record = await store.contextRecords?.read(ref)
+  return record ? contextEvidenceFingerprint(record) : null
 }
 
 export const notesCommand = (...args: Parameters<typeof notesCommandDefinition>) => {

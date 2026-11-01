@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**543 ✅ · 0 ⛔ · 82 ❌** — 148 commands, 477 options.
+**565 ✅ · 0 ⛔ · 83 ❌** — 152 commands, 496 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -83,7 +83,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `mail rules apply` |  | ✅ |  |
 | `mail rules export` |  | ✅ |  |
 | `mail rules import` |  | ✅ |  |
+| `people add` |  | ✅ |  |
+| `people add` | `--json` | ✅ |  |
 | `people list` |  | ✅ |  |
+| `people list` | `--limit` | ✅ |  |
 | `people list` | `--json` | ✅ |  |
 | `tags add` |  | ✅ |  |
 | `tags add` | `--message` | ✅ |  |
@@ -130,10 +133,13 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tasks add` | `--title` | ✅ |  |
 | `tasks add` | `--priority` | ✅ |  |
 | `tasks add` | `--parent` | ✅ |  |
-| `tasks add` | `--description` | ❌ |  |
+| `tasks add` | `--description` | ✅ |  |
 | `tasks add` | `--type` | ✅ |  |
 | `tasks add` | `--project` | ✅ |  |
 | `tasks add` | `--assignee` | ✅ |  |
+| `tasks add` | `--due` | ✅ |  |
+| `tasks add` | `--status` | ✅ |  |
+| `tasks add` | `--agent` | ✅ |  |
 | `tasks add` | `--into` | ✅ |  |
 | `tasks add` | `--new` | ✅ |  |
 | `tasks list` |  | ✅ |  |
@@ -145,6 +151,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tasks list` | `--cursor` | ✅ |  |
 | `tasks counts` |  | ✅ |  |
 | `tasks counts` | `--json` | ✅ |  |
+| `tasks comments add` |  | ✅ |  |
+| `tasks comments add` | `--json` | ✅ |  |
+| `tasks comments list` |  | ✅ |  |
+| `tasks comments list` | `--json` | ✅ |  |
 | `tasks history` |  | ✅ |  |
 | `tasks history` | `--json` | ✅ |  |
 | `tasks close` |  | ✅ |  |
@@ -177,13 +187,15 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tasks update` | `--priority` | ✅ |  |
 | `tasks update` | `--parent` | ✅ |  |
 | `tasks update` | `--title` | ✅ |  |
-| `tasks update` | `--description` | ❌ |  |
+| `tasks update` | `--description` | ✅ |  |
 | `tasks update` | `--due` | ✅ |  |
 | `tasks update` | `--remind-time` | ❌ |  |
 | `tasks update` | `--assignee` | ✅ |  |
 | `tasks update` | `--account` | ✅ |  |
 | `tasks update` | `--json` | ✅ |  |
 | `tasks update` | `--agent` | ✅ |  |
+| `tasks update` | `--project` | ✅ |  |
+| `tasks update` | `--type` | ✅ |  |
 | `tasks update` | `--revision` | ✅ |  |
 | `tasks update` | `--status` | ✅ |  |
 | `tasks show` |  | ✅ |  |
@@ -380,6 +392,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `memories add` | `--scope` | ✅ |  |
 | `memories add` | `--evidence` | ✅ |  |
 | `memories add` | `--subject` | ✅ |  |
+| `memories add` | `--project` | ✅ |  |
 | `memories add` | `--supersedes` | ✅ |  |
 | `memories add` | `--json` | ✅ |  |
 | `memories list` |  | ✅ |  |
@@ -388,6 +401,9 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `memories show` |  | ✅ |  |
 | `memories show` | `--sources` | ✅ |  |
 | `memories show` | `--json` | ✅ |  |
+| `memories update` |  | ✅ |  |
+| `memories update` | `--project` | ✅ |  |
+| `memories update` | `--json` | ✅ |  |
 | `memories confirm` |  | ✅ |  |
 | `memories confirm` | `--json` | ✅ |  |
 | `memories invalidate` |  | ✅ |  |
@@ -486,12 +502,19 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `actions add` | `--json` | ✅ |  |
 | `actions list` |  | ✅ |  |
 | `actions list` | `--limit` | ❌ |  |
+| `actions list` | `--brief` | ✅ |  |
 | `actions list` | `--json` | ✅ |  |
 | `actions show` |  | ✅ |  |
-| `actions show` | `--json` | ❌ |  |
+| `actions show` | `--json` | ✅ |  |
 | `actions confirm` |  | ✅ |  |
+| `actions confirm` | `--as-owner` | ❌ |  |
+| `actions confirm` | `--fingerprint` | ✅ |  |
+| `actions confirm` | `--reason` | ❌ |  |
 | `actions confirm` | `--json` | ✅ |  |
 | `actions reject` |  | ✅ |  |
+| `actions reject` | `--as-owner` | ❌ |  |
+| `actions reject` | `--fingerprint` | ✅ |  |
+| `actions reject` | `--reason` | ❌ |  |
 | `actions reject` | `--json` | ✅ |  |
 | `agents list` |  | ✅ |  |
 | `agents list` | `--limit` | ✅ |  |

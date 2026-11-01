@@ -7,6 +7,7 @@ import type { Command } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { boundFolders, folderOfFile } from "../notes/bound.js"
 import { folderNotes } from "../notes/import.js"
+import { positive } from "../options.js"
 import { identityOf } from "./identity.js"
 import { importNotesMap } from "./notes-map.js"
 
@@ -69,22 +70,33 @@ export const noteCommand = (program: Command, streams: Streams, env: NodeJS.Proc
   }
 }
 
-/** For an assignee picker: the people tasks already name, and the owner; anyone else is found with search people. */
+/** For an assignee picker: everyone the store knows, the owner first, then by how many tasks name them. */
 export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
-  const people = program.command("people").description("the people memo's tasks name")
+  const people = program.command("people").description("the people memo knows, to assign tasks to")
+  annotate(people.command("add"), { effects: LOCAL_WRITE })
+    .description("add a person by name, before any message names them")
+    .argument("<name...>", "what to call them")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .action(async (words: string[], options: { json?: boolean }) => {
+      await withStore(env, async (store) => {
+        const person = await store.people.add({ name: words.join(" ") })
+        print(options.json, itemAnswer({ ref: `person:${person.uid}`, name: person.name }), `person:${person.uid}`)
+      })
+    })
   const query = { entity: "task_person", backend: "native", fields: [] } as const satisfies QueryRegistry
   withQuery(
     annotate(people.command("list"), { effects: LOCAL_READ })
-      .summary("the owner and everyone who holds a role on a task")
-      .description("the owner and everyone who holds a role on a task, by name; search people finds anyone else"),
+      .summary("everyone memo knows, the owner first")
+      .description("everyone memo knows, by name: the owner first, then by how many tasks name them"),
     query,
   )
+    .option("--limit <n>", "most people, up to 5000", positive, 500)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action(async (words: string[], options: { json?: boolean }) => {
+    .action(async (words: string[], options: { limit: number; json?: boolean }) => {
       listQuery(typedQuery(words), query, "people list")
       await withStore(env, async (store) => {
-        const found = await store.tasks.taskPeople()
+        const found = await store.tasks.taskPeople({ limit: options.limit })
         print(
           options.json,
           wholeList(

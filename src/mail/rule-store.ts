@@ -1,55 +1,15 @@
 import { chmodSync, copyFileSync, existsSync } from "node:fs"
-import { momentOf } from "@wirecat/cli-core/cli"
 import {
-  conditionKeys,
   ENVELOPE,
   envelopeBox,
-  type MailAction,
   type MailRule,
-  type MailRuleMatch,
+  ruleInput,
   storedMailRule,
-  storedMailRules,
+  storedMailRuleSet,
 } from "@wirecat/cli-core/mail"
 import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
 import { configPath, loadConfig, updateConfig } from "../config.js"
 import type { MailAccountConfig } from "./accounts.js"
-
-const STORE_ACTION: Record<MailAction, string> = { keep: "full", envelope: "envelope", skip: "skip" }
-
-const LOWER: readonly (keyof MailRuleMatch)[] = ["from", "domain", "list_id", "subject"]
-
-const conditionsOf = (match: MailRuleMatch): Record<string, string | number | boolean> =>
-  Object.fromEntries(
-    conditionKeys(match).map((key) => {
-      const value = match[key]
-      return [
-        key,
-        LOWER.includes(key) && typeof value === "string" ? value.toLowerCase() : (value as string | number | boolean),
-      ]
-    }),
-  )
-
-/** When the owner decided: a time without a zone is read in the computer's; an unreadable one is when it is saved. */
-const decidedAtOf = (value: string): number => {
-  try {
-    return momentOf(value, "decided_at")
-  } catch {
-    return Date.now()
-  }
-}
-
-export const ruleInput = (rule: MailRule, source = rule.source ?? "owner") => ({
-  conditions: conditionsOf(rule.match),
-  actions: {
-    store: STORE_ACTION[rule.action],
-    ...(rule.tags?.length ? { tags: rule.tags } : {}),
-    ...(rule.tags_skipped && Object.keys(rule.tags_skipped).length ? { tags_skipped: rule.tags_skipped } : {}),
-  },
-  protected: rule.protected === true,
-  source,
-  reason: rule.reason ?? null,
-  decidedAt: decidedAtOf(rule.decided_at),
-})
 
 const accountKey = (address: string): AccountKey => ({ provider: "email", account: address.toLowerCase() })
 
@@ -140,7 +100,13 @@ export const rulesOf = async (
   const cached = byAccount.get(key)
   if (cached !== undefined) return cached
   await moveConfigRules(store, env, say)
-  const rules = await storedMailRules(store, account)
+  const { rules, unreadable } = await storedMailRuleSet(store, account)
+  // mail reports these in its sync answer; a build that reads them would decide mail differently.
+  if (unreadable.length)
+    say(
+      `memo: ${unreadable.length} stored mail rules of ${account.address} are left out, this memo does not know their ` +
+        `${[...new Set(unreadable.map(({ why }) => why))].join(", ")}; update memo\n`,
+    )
   byAccount.set(key, rules)
   return rules
 }
