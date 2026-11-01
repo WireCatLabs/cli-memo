@@ -44,7 +44,7 @@ import { mentionsCommand } from "./mentions/command.js"
 import { modelsCommand } from "./models/command.js"
 import { notesCommand } from "./notes/command.js"
 import { foldersCommand } from "./notes/folders-command.js"
-import { noteCommand } from "./people/command.js"
+import { noteCommand, peopleCommand } from "./people/command.js"
 import { readOnlyAvailability, refuseWritesUnderLock } from "./read-only.js"
 import { REASONS } from "./reasons.js"
 import { autoCommand } from "./run/auto.js"
@@ -187,6 +187,7 @@ export const createProgram = ({
   messagesCommand(program, streams, env)
   mailCommand(program, streams, env)
   noteCommand(program, streams, env)
+  peopleCommand(program, streams, env)
   tagsCommand(program, streams, env)
   tasksCommand(program, streams, env)
   knowledgeCommands(program, streams, env)

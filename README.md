@@ -172,8 +172,8 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 | Project and topic aliases | `memo vocabulary list` / `show` / `check` / `inspect` · `vocabulary aliases add` / `remove` · `vocabulary create` |
 | Relationships | `memo relationships add` / `list` / `remove` / `confirm` / `suggest` |
 | Labels | `memo tags add` · `tags remove` · `tags list` |
-| Open work | `memo tasks add` · `tasks list` · `tasks agenda` · `tasks show` · `tasks update` · `tasks assign` · `tasks close` · `stats tasks show` |
-| Task dependencies | `memo tasks link` / `unlink` / `relations` · `tasks status` · `tasks list project:HRB ready:true` |
+| Open work | `memo tasks add` · `tasks list` · `tasks counts` · `tasks agenda` · `tasks show` · `tasks update` · `tasks move` · `tasks assign` · `tasks history` · `tasks close` · `stats tasks show` · `people list` |
+| Task dependencies | `memo tasks link` / `unlink` / `links` · `tasks status` · `tasks list project:HRB ready:true` |
 | Reminders | `memo reminders add` / `list` / `poll` / `ack` / `update` / `cancel` |
 | Agents | `memo memories …` · `facts …` · `actions …` · `agents list` · `memo mcp serve` |
 

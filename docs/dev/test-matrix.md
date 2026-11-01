@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**540 ✅ · 0 ⛔ · 92 ❌** — 144 commands, 488 options.
+**560 ✅ · 0 ⛔ · 93 ❌** — 148 commands, 505 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -112,6 +112,8 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `mail rules import` | `--format` | ✅ |  |
 | `mail rules import` | `--yes` | ✅ |  |
 | `mail rules import` | `--json` | ✅ |  |
+| `people list` |  | ✅ |  |
+| `people list` | `--json` | ✅ |  |
 | `tags add` |  | ✅ |  |
 | `tags add` | `--message` | ✅ |  |
 | `tags add` | `--note` | ✅ |  |
@@ -166,15 +168,31 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tasks list` |  | ✅ |  |
 | `tasks list` | `--source` | ✅ |  |
 | `tasks list` | `--json` | ✅ |  |
-| `tasks list` | `--limit` | ❌ |  |
+| `tasks list` | `--limit` | ✅ |  |
+| `tasks list` | `--sort` | ✅ |  |
+| `tasks list` | `--desc` | ❌ |  |
+| `tasks list` | `--cursor` | ✅ |  |
+| `tasks counts` |  | ✅ |  |
+| `tasks counts` | `--json` | ✅ |  |
+| `tasks history` |  | ✅ |  |
+| `tasks history` | `--json` | ✅ |  |
 | `tasks close` |  | ✅ |  |
 | `tasks close` | `--account` | ✅ |  |
 | `tasks close` | `--json` | ✅ |  |
 | `tasks close` | `--as` | ✅ |  |
 | `tasks close` | `--reason` | ✅ |  |
+| `tasks close` | `--revision` | ❌ |  |
 | `tasks assign` |  | ✅ |  |
 | `tasks assign` | `--role` | ✅ |  |
+| `tasks assign` | `--clear` | ✅ |  |
+| `tasks assign` | `--revision` | ✅ |  |
 | `tasks assign` | `--json` | ✅ |  |
+| `tasks move` |  | ✅ |  |
+| `tasks move` | `--status` | ✅ |  |
+| `tasks move` | `--before` | ✅ |  |
+| `tasks move` | `--after` | ❌ |  |
+| `tasks move` | `--revision` | ✅ |  |
+| `tasks move` | `--json` | ✅ |  |
 | `tasks agenda` |  | ✅ |  |
 | `tasks agenda` | `--due-within` | ❌ |  |
 | `tasks agenda` | `--unanswered` | ❌ |  |
@@ -186,7 +204,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tasks update` |  | ✅ |  |
 | `tasks update` | `--category` | ❌ |  |
 | `tasks update` | `--priority` | ✅ |  |
-| `tasks update` | `--parent` | ❌ |  |
+| `tasks update` | `--parent` | ✅ |  |
 | `tasks update` | `--title` | ✅ |  |
 | `tasks update` | `--description` | ❌ |  |
 | `tasks update` | `--due` | ✅ |  |
@@ -194,6 +212,9 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tasks update` | `--assignee` | ✅ |  |
 | `tasks update` | `--account` | ✅ |  |
 | `tasks update` | `--json` | ✅ |  |
+| `tasks update` | `--agent` | ✅ |  |
+| `tasks update` | `--revision` | ✅ |  |
+| `tasks update` | `--status` | ✅ |  |
 | `tasks show` |  | ✅ |  |
 | `tasks show` | `--source` | ✅ |  |
 | `tasks show` | `--json` | ✅ |  |
