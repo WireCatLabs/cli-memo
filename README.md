@@ -394,6 +394,9 @@ Telegram, max for MAX, wa for WhatsApp, zm for archived Zoom recordings, drive f
 and memo for your notes and mail. Their imported context is searchable locally. Start with your notes and
 add the sources you need.
 
+Questions and setup help: join the [WireCat Discord](https://discord.gg/DebENqbRrJ). Bugs go to this
+repository's issues.
+
 ## Technical docs
 
 | Page | What it covers |
