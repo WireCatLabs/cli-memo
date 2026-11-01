@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.2 — 01.11.2026
+
 ### Added
 
 - **Project tasks have five states: `open`, `todo`, `in_progress`, `done`, `dismissed`** (WireCat Desktop's Tasks
