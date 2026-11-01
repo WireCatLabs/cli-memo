@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.12 — 01.11.2026
+
 ### Removed
 
 - **Mail rules, Gmail cleanup and restore moved to the `mail` CLI; memo no longer changes a mailbox.** The old
