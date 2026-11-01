@@ -4,6 +4,14 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Changed
+
+- **cli-core 0.520.0.** `memo search mail` and `memo messages show` now run on cli-core's `searchMail` and `showMail`,
+  the same code `mail <profile> search messages` and `messages show` use, so both tools give the same answer. Nothing
+  changes for memo.
+
 ## 0.131.5 — 01.11.2026
 
 ### Added
