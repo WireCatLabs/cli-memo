@@ -4,6 +4,13 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Changed
+
+- **Built on cli-core 0.535.0.** Message search hits now list `attachments.name` among their untrusted fields. The
+  security page says memo never changes a mailbox.
+
 ## 0.131.12 — 01.11.2026
 
 ### Removed
