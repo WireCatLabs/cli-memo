@@ -3,6 +3,7 @@ import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from "n
 import { delimiter, join } from "node:path"
 import { resolvePaths } from "@wirecat/cli-base"
 import type { ProjectChatFetcher } from "@wirecat/cli-core/services"
+import { InvalidArgumentError } from "commander"
 
 /** The WireCat messenger CLI that holds each provider's connection: its command and where it keeps its state. */
 const TOOLS: Record<string, { tool: string; appName: string; envPrefix: string }> = {
@@ -13,15 +14,28 @@ const TOOLS: Record<string, { tool: string; appName: string; envPrefix: string }
 
 export const messengerToolOf = (provider: string) => TOOLS[provider]
 
+/** `--sync-profile max=default`: the profile memo runs a messenger CLI as, one per tool. */
+export const syncProfileOf = (value: string, previous: Record<string, string> = {}): Record<string, string> => {
+  const [tool, profile] = value.split("=", 2)
+  const tools = Object.values(TOOLS).map((one) => one.tool)
+  if (!tool || !profile || !tools.includes(tool))
+    throw new InvalidArgumentError(`<tool>=<profile>, where the tool is ${tools.join(", ")}: max=default`)
+  if (previous[tool] !== undefined && previous[tool] !== profile)
+    throw new InvalidArgumentError(`one profile per tool; ${tool} is already ${previous[tool]}`)
+  return { ...previous, [tool]: profile }
+}
+
 /**
- * The profile signed in to this account, from the CLI's own record of it (`<state>/accounts/<profile>.json`). Exact
- * match only: memo never picks a profile for the owner.
+ * The profile signed in to this account, from the CLI's own record of it (`<state>/accounts/<profile>.json`). memo
+ * never picks one for the owner: one signed in is used, several or none is a refusal naming them, and a profile the
+ * owner chose with `--sync-profile` must be signed in to this account too.
  */
 export const profileFor = (
   provider: string,
   account: string,
   env: NodeJS.ProcessEnv,
-): { profile: string } | { profiles: string[] } | undefined => {
+  chosen: Record<string, string> = {},
+): { profile: string } | { why: string } | undefined => {
   const tool = TOOLS[provider]
   if (!tool) return undefined
   const dir = join(resolvePaths({ appName: tool.appName, prefix: tool.envPrefix, env }).state, "accounts")
@@ -31,14 +45,31 @@ export const profileFor = (
         .map((name) => name.slice(0, -".json".length))
         .sort()
     : []
-  const matching = profiles.filter((profile) => {
+  const accountOf = (profile: string): unknown => {
     try {
-      return JSON.parse(readFileSync(join(dir, `${profile}.json`), "utf8"))?.account === account
+      return JSON.parse(readFileSync(join(dir, `${profile}.json`), "utf8"))?.account
     } catch {
-      return false
+      return undefined
     }
-  })
-  return matching.length === 1 && matching[0] ? { profile: matching[0] } : { profiles }
+  }
+  const all = profiles.join(", ") || "none"
+  const pick = chosen[tool.tool]
+  if (pick !== undefined) {
+    if (!profiles.includes(pick)) return { why: `${tool.tool} profile ${pick} is not signed in here; profiles: ${all}` }
+    const held = accountOf(pick)
+    return held === account
+      ? { profile: pick }
+      : { why: `${tool.tool} profile ${pick} is signed in to account ${String(held)}, not ${account}` }
+  }
+  const matching = profiles.filter((profile) => accountOf(profile) === account)
+  if (matching.length === 1 && matching[0]) return { profile: matching[0] }
+  if (matching.length > 1)
+    return {
+      why:
+        `${matching.length} ${tool.tool} profiles are signed in to account ${account}: ${matching.join(", ")}` +
+        ` — choose one with --sync-profile ${tool.tool}=<profile>`,
+    }
+  return { why: `no ${tool.tool} profile here is signed in to account ${account}; profiles: ${all}` }
 }
 
 const onPath = (name: string, env: NodeJS.ProcessEnv) =>
@@ -144,11 +175,13 @@ const MARGIN_MS = 5_000
 export const messengerFetcher = ({
   env,
   note,
+  chosen = {},
   run = runChild,
   now = Date.now,
 }: {
   env: NodeJS.ProcessEnv
   note: (line: string) => void
+  chosen?: Record<string, string>
   run?: RunChild
   now?: () => number
 }): ProjectChatFetcher => {
@@ -157,14 +190,8 @@ export const messengerFetcher = ({
     fetch: async ({ account, chatId, after, until, signal }) => {
       const tool = TOOLS[account.provider]
       if (!tool) return { state: "failed", reason: `no WireCat messenger CLI syncs ${account.provider}` }
-      const found = profileFor(account.provider, account.account, env)
-      if (!found || !("profile" in found))
-        return {
-          state: "failed",
-          reason:
-            `no ${tool.tool} profile is signed in to account ${account.account}` +
-            ` (profiles: ${found?.profiles.join(", ") || "none"})`,
-        }
+      const found = profileFor(account.provider, account.account, env, chosen)
+      if (!found || !("profile" in found)) return { state: "failed", reason: found?.why ?? "no profile" }
       if (!binaries.has(tool.tool)) binaries.set(tool.tool, binaryOf(account.provider, env, run))
       const bin = await binaries.get(tool.tool)
       if (!bin) return { state: "failed", reason: `${tool.tool} is not installed, or the one on PATH is not WireCat's` }
@@ -184,7 +211,13 @@ export const messengerFetcher = ({
         "--",
         chatId,
       ]
-      const done = await run(bin, args, { env, signal, onStderr: (line) => note(`${tool.tool}: ${line}`) })
+      const done = await run(bin, args, {
+        env,
+        signal,
+        onStderr: (line) => {
+          if (!isEvent(line)) note(`${tool.tool}: ${line}`)
+        },
+      })
       const answer = answerOf(done.stdout)
       if (done.code !== 0) {
         const why = answer.error?.message?.split("\n")[0]
@@ -202,21 +235,44 @@ export const messengerFetcher = ({
   }
 }
 
-/** The command that syncs one chat here, with the profile when exactly one is signed in to its account. */
-export const syncHint = (
-  chat: { provider: string; account: string; chat: string },
+/** With `--json` the child writes each progress event twice, as a JSON line and as a sentence: the sentence is kept. */
+const isEvent = (line: string) => {
+  if (!line.startsWith("{")) return false
+  try {
+    return typeof JSON.parse(line)?.event === "string"
+  } catch {
+    return false
+  }
+}
+
+type LinkedChat = { provider: string; account: string; chat: string }
+
+/** The command that syncs one chat here, or why there is none: no profile, or more than one, for its account. */
+export const chatSync = (
+  chat: LinkedChat,
   since: string,
   env: NodeJS.ProcessEnv,
-): string | null => {
+  chosen: Record<string, string> = {},
+): { command: string } | { command: null; line: string; why: string } | null => {
   const tool = TOOLS[chat.provider]
   if (!tool) return null
-  const found = profileFor(chat.provider, chat.account, env)
+  const found = profileFor(chat.provider, chat.account, env, chosen)
   const target = chat.chat.startsWith("-")
     ? `--since-time ${since} -- ${chat.chat}`
     : `${chat.chat} --since-time ${since}`
   const line = (profile: string) => `${tool.tool} ${profile} messages sync ${target}`
-  if (found && "profile" in found) return line(found.profile)
-  return `${line("<profile>")} (no ${tool.tool} profile here is signed in to account ${chat.account}; profiles: ${
-    found?.profiles.join(", ") || "none"
-  })`
+  if (found && "profile" in found) return { command: line(found.profile) }
+  return { command: null, line: line("<profile>"), why: found?.why ?? "no profile" }
+}
+
+/** `chatSync` as the plain text says it. */
+export const syncHint = (
+  chat: LinkedChat,
+  since: string,
+  env: NodeJS.ProcessEnv,
+  chosen: Record<string, string> = {},
+): string | null => {
+  const sync = chatSync(chat, since, env, chosen)
+  if (!sync) return null
+  return sync.command ?? `${sync.line} (${sync.why})`
 }

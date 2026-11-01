@@ -18,6 +18,26 @@ the API.
 - **Needs `@wirecat/cli-core` 0.516.0.** Memo reads stored mail rules and names Gmail labels with cli-core's shared
   functions, the same ones the `mail` CLI uses.
 
+## 0.131.3 — 01.11.2026
+
+### Added
+
+- **`projects evidence --sync-profile <tool>=<profile>`** names the messenger profile `--sync-first` syncs as when
+  several are signed in to a chat's account (`--sync-profile max=default`; repeat for another tool). The profile must
+  be signed in to that chat's account, or the chat is not synced and the answer says why.
+- **`projects evidence --json` carries each linked chat's `sync_command`**: the exact `tg`, `max` or `wa` line that
+  syncs a chat held in part back to `--since-time`, or `null` when it needs no sync or no profile can be chosen here;
+  then a `missing` entry with field `sync_command` says why.
+
+### Fixed
+
+- **`projects evidence` exits 0 on a partial answer.** A chat held in part made it exit 1 with nothing on stderr;
+  `meta.complete: false`, `missing` and `next` now say what is missing, as in the searches.
+- **`projects evidence --sync-first` says when several profiles are signed in to a chat's account**, and names them,
+  instead of "no profile is signed in".
+- **`--sync-first` no longer passes the messenger CLI's JSON progress lines through**; its sentence for the same
+  progress is kept.
+
 ### Removed
 
 - **`memo mail status` is removed.** It counted only the Himalaya import, while `mail <profile> status` counts the
