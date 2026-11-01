@@ -33,6 +33,7 @@ the API.
 - **memo says when it leaves stored mail rules out**: a rule with a condition this memo does not know is named on
   stderr with what it does not know, instead of being dropped silently.
 - **Rules are written by cli-core's `ruleInput`**, the one mail writes them with; memo's copy is gone.
+- On cli-core 0.526.0, the version mail pins too.
 
 ## 0.131.6 — 01.11.2026
 
