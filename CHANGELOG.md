@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.9 — 01.11.2026
+
 ### Added
 
 - **`people add <name...>`** adds a person by name, to assign a task to before any message names them.
