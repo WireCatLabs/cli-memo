@@ -16,7 +16,8 @@ the API.
 ### Changed
 
 - **Needs `@wirecat/cli-core` 0.516.0.** Memo reads stored mail rules and names Gmail labels with cli-core's shared
-  functions, the same ones the `mail` CLI uses.
+  functions, the same ones the `mail` CLI uses. The shared store moves to schema 42, so other WireCat CLIs need a
+  version that speaks it (`<cli> upgrade`).
 
 ## 0.131.3 — 01.11.2026
 
