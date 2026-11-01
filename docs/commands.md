@@ -886,7 +886,7 @@ memo tasks list [query] [options]
 | `--desc` | project tasks: the --sort order reversed. |
 | `--cursor <cursor>` | project tasks: the next page, from page.next_cursor, with the same query and order. |
 
-**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 21 more; every field: memo commands info tasks list
+**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 23 more; every field: memo commands info tasks list
 
 **Next usually:** `memo tasks links <task>`, `memo tasks status <task>`, `memo tasks show <task>`
 
@@ -908,7 +908,7 @@ memo tasks counts [query] [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 21 more; every field: memo commands info tasks counts
+**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 23 more; every field: memo commands info tasks counts
 
 **Next usually:** `memo tasks links <task>`, `memo tasks status <task>`, `memo tasks show <task>`
 
@@ -1068,7 +1068,7 @@ memo tasks update <task> [options]
 | `--revision <n>` | refuse the write unless the task is still at this revision (task.stale, exit 3). |
 | `--status <state>` | a project task's state: open, todo, in_progress, done, dismissed; a closed one reopens. |
 
-**Returns:** task card — id, ref, key, project, title, description, type, status, and 21 more; every field: memo commands info tasks update
+**Returns:** task card — id, ref, key, project, project_key, project_name, title, description, and 23 more; every field: memo commands info tasks update
 
 **Example:** `memo tasks update HRB-1 --title 'Send the budget' --priority high --account telegram:1`, `memo tasks update 1a2b3c4d --due 2d --title 'Send the revised budget' --account telegram:1`
 
@@ -1089,7 +1089,7 @@ memo tasks show <task> [options]
 | `--source <accounts>` | the account: telegram:<account>, email:<account>, notes:<id>, or group:<name> of one. |
 | `--json` | print JSON. |
 
-**Returns:** task card — id, ref, key, project, title, description, type, status, and 21 more; every field: memo commands info tasks show
+**Returns:** task card — id, ref, key, project, project_key, project_name, title, description, and 23 more; every field: memo commands info tasks show
 
 **Example:** `memo tasks show 1a2b3c4d --source telegram:1 --json`
 
@@ -1115,7 +1115,7 @@ memo tasks link <task> [targets] [options]
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
 | `--json` | print JSON. |
 
-**Returns:** task links — id, ref, key, project, title, description, type, status, and 23 more; every field: memo commands info tasks link
+**Returns:** task links — id, ref, key, project, project_key, project_name, title, description, and 25 more; every field: memo commands info tasks link
 
 **Example:** `memo tasks link HRB-2 HRB-1 --kind blocked-by`
 
@@ -1140,7 +1140,7 @@ memo tasks claim <task> [options]
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
 | `--json` | print JSON. |
 
-**Returns:** task card — id, ref, key, project, title, description, type, status, and 21 more; every field: memo commands info tasks claim
+**Returns:** task card — id, ref, key, project, project_key, project_name, title, description, and 23 more; every field: memo commands info tasks claim
 
 **Example:** `memo tasks claim HRB-1 --lease 2h --account telegram:1`
 
@@ -1164,7 +1164,7 @@ memo tasks release <task> [options]
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
 | `--json` | print JSON. |
 
-**Returns:** task card — id, ref, key, project, title, description, type, status, and 21 more; every field: memo commands info tasks release
+**Returns:** task card — id, ref, key, project, project_key, project_name, title, description, and 23 more; every field: memo commands info tasks release
 
 **Example:** `memo tasks release HRB-1 --account telegram:1`
 
