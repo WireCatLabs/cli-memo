@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.11 — 01.11.2026
+
 ### Added
 
 - **`tasks update <id> --project <key>`** moves a project task to another project. It takes the next key there
