@@ -24,6 +24,13 @@ the API.
 - **`--sync-first` no longer passes the messenger CLI's JSON progress lines through**; its sentence for the same
   progress is kept.
 
+### Removed
+
+- **`memo mail status` is removed.** It counted only the Himalaya import, while `mail <profile> status` counts the
+  mailboxes the `mail` CLI syncs, so two status commands gave two different numbers. Use `mail <profile> status`
+  for a mailbox synced by `mail`; the Himalaya import has no status command until a better one, covering both,
+  comes later. The MCP tool `mail status` goes with it.
+
 ## 0.131.2 — 01.11.2026
 
 ### Added

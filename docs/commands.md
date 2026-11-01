@@ -427,26 +427,6 @@ memo mail inspect <account> [options]
 
 **Example:** `memo mail inspect personal --limit 30`, `memo mail inspect work --since-time 365d --json`
 
-### `memo mail status`
-
-how far an account's Himalaya import is: mail stored, recorded, and left to read
-
-```sh
-memo mail status <account> [options]
-```
-
-| Argument | | What it is |
-|---|---|---|
-| `account` | required | the account's name in mail.accounts, or its address. |
-
-| Option | What it does |
-|---|---|
-| `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** how far an account's Himalaya import is: mail stored, recorded, and left to read
-
-**Example:** `memo mail status personal`, `memo mail status personal --json`
-
 ### `memo mail delete`
 
 move envelope mail to Gmail's Trash, decided again; dry run unless --yes

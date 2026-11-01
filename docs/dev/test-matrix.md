@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**563 ✅ · 0 ⛔ · 93 ❌** — 149 commands, 507 options.
+**561 ✅ · 0 ⛔ · 93 ❌** — 148 commands, 506 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -74,8 +74,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `mail inspect` | `--limit` | ✅ |  |
 | `mail inspect` | `--domain-age` | ❌ |  |
 | `mail inspect` | `--json` | ✅ |  |
-| `mail status` |  | ✅ |  |
-| `mail status` | `--json` | ✅ |  |
 | `mail delete` |  | ✅ |  |
 | `mail delete` | `--limit` | ✅ |  |
 | `mail delete` | `--since-time` | ✅ |  |
