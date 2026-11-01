@@ -398,6 +398,7 @@ it("search all finds calendar events in every calendar, names each one read, and
     "title",
     "excerpt",
     "sender_name",
+    "attachments.name",
   ])
   expect(events.meta.accounts.sort()).toEqual([
     "google-calendar:home@example.test",

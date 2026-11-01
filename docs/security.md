@@ -1,8 +1,8 @@
 # Security
 
 This page says what Memo reads, what it writes and what can leave your computer, so you can decide
-what to point it at. Imports leave your sources unchanged; separate Gmail cleanup commands can
-move mail when you run them with `--yes`. Memo keeps its records on your computer and sends text
+what to point it at. Imports leave your sources unchanged, and Memo never changes a mailbox:
+Gmail cleanup is a command of the separate `mail` program. Memo keeps its records on your computer and sends text
 to an AI provider only when you configure one and allow it.
 
 <a id="your-sources-are-only-read"></a>
