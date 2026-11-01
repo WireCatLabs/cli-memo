@@ -53,7 +53,6 @@ search words are in [Find your mail](#find-your-mail) and [Search](search.md#sea
 | `memo mail rules ...` | The same | Keeps and changes the rules for what an import stores. `rules apply` also reads headers from the mailbox |
 | `memo mail delete <account>` | The same, and `--yes` | Moves selected Gmail mail to Gmail's Trash ([Clean up Gmail](#clean-up-gmail)) |
 | `memo mail restore <account>` | The same, and `--yes` | Moves a logged run back from Trash |
-| `memo mail status <account>` | The same | Counts only the Himalaya import. For an account that `mail` synced, run `mail <profile> status` |
 
 `memo mail delete` is the one place where Memo changes a mailbox. `mail` itself never does.
 
@@ -128,16 +127,8 @@ config and names each one in its report; it lists the accounts it knows when a n
   day, after any change to your rules, and with `--rescan`; a window under 5,000 emails is listed whole every run.
 - `memo sync` and the timer read every account in the config.
 
-See how far an import is, without asking the mailbox. This counts only the Himalaya import; for an account that
-`mail` synced, run `mail <profile> status`:
-
-```sh
-memo mail status work
-```
-
-The first line counts the widest window ever imported, such as everything since 2004, and says "complete" only
-when all of it is stored. A narrower later run, like the timer's 30 days, is shown on its own line as the last
-run. It never counts as the whole mailbox.
+To see how far a mailbox that `mail` synced is, run `mail <profile> status`. The Himalaya import has no
+status command now.
 
 ## Choose what to import
 

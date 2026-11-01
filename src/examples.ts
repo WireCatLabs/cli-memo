@@ -52,7 +52,6 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "commands info": ["memo commands info --json"],
   "models download": ["memo models download e5-small"],
   "mail inspect": ["memo mail inspect personal --limit 30", "memo mail inspect work --since-time 365d --json"],
-  "mail status": ["memo mail status personal", "memo mail status personal --json"],
   "mail delete": ["memo mail delete personal", "memo mail delete personal --limit 100 --json"],
   "mail restore": ["memo mail restore personal --run 2026-10-16T09-00-00-000Z-ab12"],
   "mail runs list": ["memo mail runs list personal", "memo mail runs list personal --json"],

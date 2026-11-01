@@ -45,7 +45,6 @@ import { MAIL_RULES_QUERY, MAIL_RUNS_QUERY, mailRule, mailRun } from "./list-que
 import { ACTION_HELP, actionsOf, FILTER_HELP, filterMatch } from "./rule-query.js"
 import { removeRule, ruleCounts, rulesOf, saveRule } from "./rule-store.js"
 import { mailSetupCommand } from "./setup-command.js"
-import { mailStatus, statusText } from "./status.js"
 import {
   DEFAULT_LIMIT,
   RESTORE_DAYS,
@@ -314,22 +313,6 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         print(options.json, itemAnswer(shown, { meta: window.meta }), probeText(shown))
       },
     )
-
-  annotate(mail.command("status"), { effects: LOCAL_READ })
-    .description("how far an account's Himalaya import is: mail stored, recorded, and left to read")
-    .argument("<account>", "the account's name in mail.accounts, or its address")
-    .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .addHelpText(
-      "after",
-      "\nRead from the store only, so it answers while a sync runs. Done counts mail whose outcome is final: stored, " +
-        "recorded by a rule or skipped by one. The total is the mail in the window at the last sync's search. " +
-        "This counts only the Himalaya import; for mail synced by the mail CLI, run: mail <profile> status.",
-    )
-    .action(async (name: string, options: { json?: boolean }) => {
-      const account = accountOf(loadConfig(env), name)
-      const status = await withStore(env, (store) => mailStatus(store, account))
-      print(options.json, itemAnswer(status, { meta: { accounts: [account.name] } }), statusText(status))
-    })
 
   annotate(mail.command("delete"), { effects: REMOTE_WRITE })
     .description("move envelope mail to Gmail's Trash, decided again; dry run unless --yes")
