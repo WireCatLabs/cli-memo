@@ -15,7 +15,7 @@ the API.
 
   | Old | Run instead |
   |---|---|
-  | `memo mail delete <account>` | `mail <profile> messages delete --by rules` (a preview; `--yes` moves the mail) |
+  | `memo mail delete <account>` | `mail <profile> messages delete --rules` (a preview; `--yes` moves the mail) |
   | `memo mail restore <account> --run <id>` | `mail <profile> messages restore --run <id>`; memo's run ids work there |
   | `memo mail runs list <account>` | `mail runs list` |
   | `memo mail rules list\|add\|remove\|apply\|export\|import <account> …` | `mail <profile> rules <same verb> …`, same options, no account |

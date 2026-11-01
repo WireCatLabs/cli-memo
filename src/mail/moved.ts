@@ -5,7 +5,7 @@ import type { Command } from "commander"
 
 /** memo's old mail-writing commands and what the `mail` CLI runs instead; `<profile>` is the mailbox's profile. */
 export const MOVED_TO_MAIL = [
-  ["delete", "mail <profile> messages delete --by rules", "previews; --yes moves the mail to Trash"],
+  ["delete", "mail <profile> messages delete --rules", "previews; --yes moves the mail to Trash"],
   ["restore", "mail <profile> messages restore --run <id>", "memo's run ids work there"],
   ["runs list", "mail runs list", ""],
   ["rules list", "mail <profile> rules list", ""],
@@ -16,7 +16,7 @@ export const MOVED_TO_MAIL = [
   ["rules import", "mail <profile> rules import <file>", "same options, no account argument"],
 ] as const
 
-const PROFILES = "mail session status lists the profiles and the address each one holds"
+const PROFILES = "mail session list lists the profiles and the address each one holds"
 
 export const movedMessage = (from: string, to: string, note: string): string =>
   `memo mail ${from} moved to the mail CLI: run ${to}${note ? ` (${note})` : ""}; ${PROFILES}`

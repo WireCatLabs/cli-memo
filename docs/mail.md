@@ -62,7 +62,7 @@ change nothing. `<profile>` is the `mail` profile that holds the address; `mail 
 | Old Memo command | Run instead |
 |---|---|
 | `memo mail rules list\|add\|remove\|apply\|export\|import <account> …` | `mail <profile> rules list\|add\|remove\|apply\|export\|import …`, same options, no account |
-| `memo mail delete <account>` | `mail <profile> messages delete --by rules` (a preview; `--yes` moves the mail) |
+| `memo mail delete <account>` | `mail <profile> messages delete --rules` (a preview; `--yes` moves the mail) |
 | `memo mail restore <account> --run <id>` | `mail <profile> messages restore --run <id>`; Memo's run ids work there |
 | `memo mail runs list <account>` | `mail runs list` |
 
@@ -216,7 +216,7 @@ whose reason says "never remove" becomes protected.
 ## Clean up Gmail
 
 Memo no longer changes a mailbox. Moving envelope mail to Gmail's Trash, and bringing a run back, are commands of
-`mail`: `mail <profile> messages delete --by rules` previews and `--yes` moves, `mail <profile> messages restore
+`mail`: `mail <profile> messages delete --rules` previews and `--yes` moves, `mail <profile> messages restore
 --run <id>` undoes a run, and `mail runs list` lists the runs. `mail` reads the restore logs older Memo versions
 wrote, so their run ids still work.
 

@@ -79,7 +79,7 @@ markers to bypass that permission. Historical proposals stay proposed.
     flag likely spam, scams and robots; a high score is a reason to show the owner, not to add a rule.
     Pass `--domain-age` only when the owner agrees: it tells domain registries the sender domains.
 11. **Mail rules, Gmail cleanup and restore are commands of the `mail` CLI, not memo.** Use
-    `mail <profile> rules list|add|remove|apply|export|import …`, `mail <profile> messages delete --by rules`,
+    `mail <profile> rules list|add|remove|apply|export|import …`, `mail <profile> messages delete --rules`,
     `mail <profile> messages restore --run <id>` and `mail runs list`; `mail session status` lists the profiles and
     their addresses. memo's old `memo mail rules|delete|restore|runs` commands only answer with that command. Rules
     stay the owner's decision: never add a skip or envelope rule unasked, and never run a cleanup's `--yes` without
