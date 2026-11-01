@@ -268,3 +268,65 @@ it("rejects a batch whose cited text changed, which can no longer be confirmed",
     await run(owner, "projects", "actions", "reject", "SYP", staged.id, "--fingerprint", staged.fingerprint),
   ).toMatchObject({ status: "reviewed", receipt: { accepted: [] } })
 })
+
+it("shows a findings batch in actions with its project's name, fingerprint, summary and cited sources", async () => {
+  const { owner, agent, run, file } = await setUp()
+  const staged = await run(agent, "projects", "actions", "add", file)
+
+  const shown = await run(owner, "actions", "show", staged.id)
+  expect(shown).toMatchObject({
+    id: staged.id,
+    status: "proposed",
+    project: "project:1",
+    project_name: "Synthetic Port",
+    fingerprint: staged.fingerprint,
+    summary: "Create 1 fact and 1 task in Synthetic Port",
+  })
+  expect(shown.sources).toHaveLength(2)
+  expect(shown.sources[0]).toMatchObject({ kind: "message", sender: "Rita Example", missing: false })
+  expect(shown.sources[0].excerpt).toContain("Harbour budget agreed")
+  for (const source of shown.sources) expect(source.excerpt.length).toBeLessThanOrEqual(280)
+
+  const [listed] = (await run(owner, "actions", "list")).items
+  expect(listed).toMatchObject({ fingerprint: staged.fingerprint, project_name: "Synthetic Port" })
+  expect(listed.sources).toHaveLength(2)
+  const [brief] = (await run(owner, "actions", "list", "--brief")).items
+  expect(brief).toMatchObject({ fingerprint: staged.fingerprint })
+  expect(brief).not.toHaveProperty("sources")
+})
+
+it("reports a findings batch rejected as a whole as rejected, in actions and by the status filter", async () => {
+  const { owner, agent, run, file } = await setUp()
+  const staged = await run(agent, "projects", "actions", "add", file)
+  await run(owner, "projects", "actions", "reject", "SYP", staged.id, "--fingerprint", staged.fingerprint)
+
+  expect(await run(owner, "actions", "show", staged.id)).toMatchObject({ status: "rejected" })
+  expect((await run(owner, "actions", "list", "status:rejected")).items).toMatchObject([{ id: staged.id }])
+  expect((await run(owner, "actions", "list", "status:approved")).items).toEqual([])
+})
+
+it("summarises an action of any kind as what it would do, and to what", async () => {
+  const { owner, run } = await setUp()
+  const reply = await run(
+    owner,
+    "actions",
+    "add",
+    "reply",
+    "--reason",
+    "they asked",
+    "--account",
+    "telegram:1",
+    "--target",
+    "project:1",
+    "--payload",
+    '{"text":"Friday works"}',
+  )
+  expect(await run(owner, "actions", "show", reply.id)).toMatchObject({
+    summary: "Reply Synthetic Port: Friday works",
+    project_name: "Synthetic Port",
+  })
+  const ban = await run(owner, "actions", "add", "ban", "--reason", "spam", "--account", "telegram:1")
+  const shown = await run(owner, "actions", "show", ban.id)
+  expect(shown).toMatchObject({ summary: "Ban", project: null })
+  expect(shown).not.toHaveProperty("fingerprint")
+})

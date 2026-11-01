@@ -23,6 +23,7 @@ export const factItem = ({ type, statement, source, confirmedBy, ...fact }: Fact
   text: statement,
   status: fact.status,
   project: fact.project,
+  project_name: fact.projectName,
   subject: fact.subject,
   subject_name: fact.subjectName,
   subject_is_owner: fact.subjectIsOwner,
