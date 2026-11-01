@@ -330,3 +330,61 @@ it("summarises an action of any kind as what it would do, and to what", async ()
   expect(shown).toMatchObject({ summary: "Ban", project: null })
   expect(shown).not.toHaveProperty("fingerprint")
 })
+
+it("stages findings about a person citing a note, and decides them by batch id alone", async () => {
+  const { owner, agent, run, dir } = await setUp()
+  const lena = await run(owner, "people", "add", "Lena", "Example")
+  const note = await run(owner, "notes", "add", "Call with Lena: she moves to Valencia in March")
+  const shown = await run(owner, "notes", "show", note.ref)
+  expect(shown.fingerprint).toMatch(/^[a-f0-9]{64}$/)
+  const file = join(dir, "about-lena.json")
+  writeFileSync(
+    file,
+    JSON.stringify({
+      schema_version: 1,
+      key: "lena-1",
+      extractor: "synthetic",
+      findings: [
+        {
+          id: "move",
+          kind: "fact",
+          type: "fact",
+          statement: "Lena moves to Valencia in March",
+          subject: lena.ref,
+          evidence: [{ reference: note.ref, fingerprint: shown.fingerprint }],
+        },
+      ],
+    }),
+  )
+  const staged = await run(agent, "projects", "actions", "add", file)
+  const batch = await run(owner, "actions", "show", staged.id)
+  expect(batch).toMatchObject({
+    subject: lena.ref,
+    subject_name: "Lena Example",
+    project: null,
+    summary: "Create 1 fact about Lena Example",
+    sources: [{ ref: note.ref, kind: "note", missing: false }],
+  })
+  await expect(run(owner, "actions", "confirm", staged.id)).rejects.toMatchObject({ code: "validation_error" })
+
+  const confirmed = await run(owner, "actions", "confirm", staged.id, "--fingerprint", batch.fingerprint)
+  expect(confirmed).toMatchObject({ status: "approved" })
+  const fact = confirmed.result.items[0].reference
+  expect(await run(owner, "facts", "show", fact)).toMatchObject({ status: "accepted", subject: lena.ref })
+})
+
+it("rejects a findings batch by id, and keeps an agent's decision behind its reason", async () => {
+  const { owner, agent, run, file } = await setUp()
+  const staged = await run(agent, "projects", "actions", "add", file)
+  const { fingerprint } = await run(owner, "actions", "show", staged.id)
+  await expect(run(agent, "actions", "reject", staged.id, "--fingerprint", fingerprint)).rejects.toMatchObject({
+    code: "validation_error",
+  })
+  expect(await run(owner, "actions", "reject", staged.id, "--fingerprint", fingerprint)).toMatchObject({
+    status: "rejected",
+  })
+  const reply = await run(owner, "actions", "add", "reply", "--reason", "asked", "--account", "telegram:1")
+  await expect(run(owner, "actions", "reject", reply.id, "--fingerprint", fingerprint)).rejects.toMatchObject({
+    code: "validation_error",
+  })
+})

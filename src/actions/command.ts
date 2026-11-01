@@ -7,7 +7,15 @@ import { answers, itemAnswer } from "../answer.js"
 import { authorOf, byOption } from "../author.js"
 import { positive } from "../options.js"
 import { type WriteOptions, writeAccount, writeOptions } from "../store/source-list.js"
-import { ACTION_QUERY, listActions, type NewProposal, propose, showAction } from "./actions.js"
+import {
+  ACTION_QUERY,
+  type Decision,
+  decideFindings,
+  listActions,
+  type NewProposal,
+  propose,
+  showAction,
+} from "./actions.js"
 
 export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { run } = answers(program, streams, env)
@@ -64,19 +72,34 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
       run(options.json, async (store) => itemAnswer(await showAction(store, id))),
     )
 
-  annotate(actions.command("confirm"), { effects: LOCAL_WRITE })
-    .description("confirm it: it becomes a task in the account that would act; nothing is sent")
+  byOption(annotate(actions.command("confirm"), { effects: LOCAL_WRITE }))
+    .summary("confirm it: a task to act on, or a findings batch's facts and tasks")
+    .description(
+      "confirm it: it becomes a task in the account that would act, nothing is sent; for a findings batch, create " +
+        "the named findings (all when none is named) and reject the rest",
+    )
     .argument("<id>", "the action's id, as actions list gives it")
+    .argument("[findings...]", "a findings batch: the finding IDs to create")
+    .option("--fingerprint <hash>", "a findings batch: the fingerprint actions show gives")
+    .option("--reason <text>", "a findings batch: why, in a few words; required when an agent decides for you")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((id: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(await approveAsTask(store, id))),
+    .action((id: string, findings: string[], options: Decision & { json?: boolean }) =>
+      run(options.json, async (store) => {
+        const findingsAnswer = await decideFindings(store, env, id, { ...options, accept: findings, confirm: true })
+        return itemAnswer(findingsAnswer ?? (await approveAsTask(store, id)))
+      }),
     )
 
-  annotate(actions.command("reject"), { effects: LOCAL_WRITE })
-    .description("reject it; nothing is done")
+  byOption(annotate(actions.command("reject"), { effects: LOCAL_WRITE }))
+    .description("reject it; nothing is done. For a findings batch, every new finding")
     .argument("<id>", "the action's id, as actions list gives it")
+    .option("--fingerprint <hash>", "a findings batch: the fingerprint actions show gives")
+    .option("--reason <text>", "a findings batch: why, in a few words; required when an agent decides for you")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((id: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(await store.proposedActions.reject(id))),
+    .action((id: string, options: Decision & { json?: boolean }) =>
+      run(options.json, async (store) => {
+        const findingsAnswer = await decideFindings(store, env, id, { ...options, accept: [], confirm: false })
+        return itemAnswer(findingsAnswer ?? (await store.proposedActions.reject(id)))
+      }),
     )
 }

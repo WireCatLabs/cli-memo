@@ -30,7 +30,8 @@ export interface FieldOptions {
   priority?: number | null
   /** `null` makes it top-level. */
   parent?: string | null
-  description?: string
+  /** `null` clears it. */
+  description?: string | null
 }
 
 export type AddOptions = AccountScope &
@@ -40,6 +41,9 @@ export type AddOptions = AccountScope &
     assignee?: string[]
     into?: string
     new?: boolean
+    due?: Date | "none"
+    status?: TaskState
+    agent?: string
   }
 
 type Details = Awaited<ReturnType<MessageStore["tasks"]["details"]>>
@@ -74,6 +78,9 @@ const addToProject = async (store: MessageStore, env: NodeJS.ProcessEnv, options
       title: options.title,
       type: type as WorkTaskType,
       ...fieldsOf(options),
+      ...(options.due === undefined || options.due === "none" ? {} : { dueAt: options.due }),
+      ...(options.status === undefined ? {} : { status: options.status }),
+      ...(options.agent === undefined ? {} : { agent: options.agent }),
     },
     authorOf(env),
   )
@@ -90,6 +97,8 @@ const folderOf = async (store: MessageStore, source: string): Promise<AccountKey
 }
 
 const addFromSource = async (store: MessageStore, env: NodeJS.ProcessEnv, source: string, options: AddOptions) => {
+  if (options.due !== undefined || options.status !== undefined || options.agent !== undefined)
+    throw new CliError("validation_error", "--due, --status and --agent are for a task in a project")
   if (options.project !== undefined)
     throw new CliError("validation_error", "a task from a source goes in its account; --project is for one without")
   const type = options.type ?? "request"

@@ -51,6 +51,8 @@ const taskItem = (task: TaskDetails, extra: { held?: HeldTask; readiness?: Readi
     kind: task.type,
     state: task.status,
     project: task.project,
+    project_key: task.projectKey,
+    project_name: task.projectName,
     ...(held
       ? {
           origin: held.origin,

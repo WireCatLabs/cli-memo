@@ -9,6 +9,8 @@ import {
   PROPOSAL_STATUSES,
   type ProposedAction,
 } from "@wirecat/cli-core/store"
+import { authorOf } from "../author.js"
+import { deciderOf } from "../knowledge/project-actions.js"
 import { pageOf } from "../page.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 
@@ -36,7 +38,8 @@ const summaryOf = (action: ProposedAction, targetName: string | null) => {
     const facts = findings.filter((one) => one.kind === "fact").length
     const made = [facts && counted(facts, "fact"), findings.length - facts && counted(findings.length - facts, "task")]
     const what = made.filter(Boolean).join(" and ") || "nothing"
-    return `Create ${what}${target === null ? "" : ` ${action.kind === EVIDENCE_FINDINGS_KIND ? "in" : "from"} ${target}`}`
+    const word = action.kind === MEETING_FINDINGS_KIND ? "from" : action.target?.startsWith("project:") ? "in" : "about"
+    return `Create ${what}${target === null ? "" : ` ${word} ${target}`}`
   }
   const words = action.kind.replaceAll("_", " ")
   const text = [payload.text, payload.title].find((one): one is string => typeof one === "string" && one.trim() !== "")
@@ -47,22 +50,33 @@ const summaryOf = (action: ProposedAction, targetName: string | null) => {
   ].join("")
 }
 
-const fingerprintOf = async (store: MessageStore, action: ProposedAction) => {
+/** The fingerprint a decision needs and, for an evidence batch, the one project its findings name. */
+const batchOf = async (store: MessageStore, action: ProposedAction) => {
   try {
-    if (action.kind === EVIDENCE_FINDINGS_KIND) return (await store.evidenceFindings.get(action.id)).fingerprint
+    if (action.kind === EVIDENCE_FINDINGS_KIND) {
+      const batch = await store.evidenceFindings.get(action.id)
+      return { fingerprint: batch.fingerprint, project: batch.project }
+    }
     if (action.kind === MEETING_FINDINGS_KIND && action.account)
-      return (await store.meetingFindings.get(action.account, action.id)).fingerprint
+      return { fingerprint: (await store.meetingFindings.get(action.account, action.id)).fingerprint }
   } catch {
     // A batch over the read budget, or stored by a newer build, still lists; it is decided where it is shown in full.
   }
-  return null
+  return { fingerprint: null }
 }
 
-/** Project names by reference, read once for a whole answer. */
-const projectNames = async (store: MessageStore, actions: readonly ProposedAction[]) =>
-  actions.some((action) => action.target?.startsWith("project:"))
-    ? new Map((await store.knowledge.projects()).map((project) => [project.ref, project.name]))
-    : new Map<string, string>()
+/** Project and person names by reference, read once for a whole answer. */
+const targetNames = async (store: MessageStore, actions: readonly ProposedAction[]) => {
+  const names = new Map<string, string>()
+  if (actions.some((action) => action.target?.startsWith("project:")))
+    for (const project of await store.knowledge.projects()) names.set(project.ref, project.name)
+  for (const target of new Set(actions.flatMap((action) => action.target ?? [])))
+    if (target.startsWith("person:")) {
+      const person = await store.people.personByUid(target.slice(7))
+      if (person?.name) names.set(target, person.name)
+    }
+  return names
+}
 
 /**
  * An action as memo answers it: what it would do in a sentence, the project it is about with its name, and for a
@@ -73,18 +87,27 @@ export const actionItems = async (
   actions: readonly ProposedAction[],
   { brief = false }: { brief?: boolean } = {},
 ) => {
-  const names = await projectNames(store, actions)
+  const findings = (action: ProposedAction) =>
+    action.kind === EVIDENCE_FINDINGS_KIND || action.kind === MEETING_FINDINGS_KIND
+  const batches = await Promise.all(actions.map((action) => (findings(action) ? batchOf(store, action) : undefined)))
+  const names = await targetNames(store, actions)
+  for (const batch of batches)
+    if (batch?.project && !names.has(batch.project))
+      for (const project of await store.knowledge.projects()) names.set(project.ref, project.name)
   return Promise.all(
-    actions.map(async (action) => {
-      const project = action.target?.startsWith("project:") ? action.target : null
+    actions.map(async (action, at) => {
+      const batch = batches[at]
+      const project = batch?.project ?? (action.target?.startsWith("project:") ? action.target : null)
       const projectName = project === null ? null : (names.get(project) ?? null)
-      const findings = action.kind === EVIDENCE_FINDINGS_KIND || action.kind === MEETING_FINDINGS_KIND
+      const targetName = action.target === null ? null : (names.get(action.target) ?? null)
       return {
         ...action,
-        summary: summaryOf(action, projectName),
+        summary: summaryOf(action, targetName),
         project,
         projectName,
-        ...(findings ? { fingerprint: await fingerprintOf(store, action) } : {}),
+        ...(batch === undefined
+          ? {}
+          : { fingerprint: batch.fingerprint, subject: action.target, subjectName: targetName }),
         ...(action.kind === EVIDENCE_FINDINGS_KIND && !brief
           ? { sources: await store.evidenceFindings.sources(action.id).catch(() => []) }
           : {}),
@@ -112,6 +135,43 @@ export const listActions = (
 
 export const showAction = async (store: MessageStore, id: string) =>
   (await actionItems(store, [await store.proposedActions.get(id)]))[0]
+
+export interface Decision {
+  fingerprint?: string
+  reason?: string
+  asOwner?: boolean
+}
+
+/**
+ * A findings batch decided by its id alone, whatever it is about; `undefined` for any other action, which the generic
+ * confirm and reject handle.
+ */
+export const decideFindings = async (
+  store: MessageStore,
+  env: NodeJS.ProcessEnv,
+  id: string,
+  decision: Decision & { accept: string[]; confirm: boolean },
+) => {
+  const action = await store.proposedActions.get(id)
+  if (action.kind !== EVIDENCE_FINDINGS_KIND) {
+    if (decision.accept.length || decision.fingerprint !== undefined)
+      throw new CliError("validation_error", "finding IDs and --fingerprint are for a findings batch")
+    return undefined
+  }
+  if (decision.fingerprint === undefined)
+    throw new CliError("validation_error", "a findings batch needs the --fingerprint actions show gives", {
+      param: "fingerprint",
+    })
+  const by = deciderOf(env, authorOf(env, decision.asOwner), decision.reason)
+  const batch = await store.evidenceFindings.get(id)
+  const accept = !decision.confirm
+    ? []
+    : decision.accept.length
+      ? decision.accept
+      : batch.input.findings.map((finding) => finding.id)
+  await store.evidenceFindings.review(id, { fingerprint: decision.fingerprint, accept, by })
+  return showAction(store, id)
+}
 
 export interface NewProposal extends AccountScope {
   kind: string
