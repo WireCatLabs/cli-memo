@@ -6,6 +6,22 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **A memory can belong to a project**: `memories add --project <key>`, `memories list project:<key>`, and
+  `memories update <ref> --project <key>` (`none` takes it out). Memories carry `project` and `project_name`; facts
+  carry `project_name` beside `project`.
+- **`actions list` and `actions show` say what each action would do**, in `summary` ("Create 1 fact and 1 task in
+  Synthetic Port", "Reply Synthetic Port: Friday works"), and name its project in `project` and `project_name`.
+- **A findings batch in `actions list` and `actions show` carries its `fingerprint`**, which `projects actions
+  confirm` and `reject` need, and each cited source read back in `sources` (`kind`, `title`, `sender`, `at`, an
+  `excerpt` of at most 280 characters, `tool`, `missing`). `actions list --brief` leaves the sources out.
+
+### Fixed
+
+- **A findings batch rejected as a whole reads as `rejected`** in `actions list` and `actions show`, not `approved`,
+  and `actions list status:rejected` finds it.
+
 ## 0.131.6 — 01.11.2026
 
 ### Fixed
@@ -38,22 +54,6 @@ the API.
 ### Fixed
 
 - **`tasks update --priority none` clears the priority** instead of failing with "a priority score is 0 to 1".
-
-### Added
-
-- **A memory can belong to a project**: `memories add --project <key>`, `memories list project:<key>`, and
-  `memories update <ref> --project <key>` (`none` takes it out). Memories carry `project` and `project_name`; facts
-  carry `project_name` beside `project`.
-- **`actions list` and `actions show` say what each action would do**, in `summary` ("Create 1 fact and 1 task in
-  Synthetic Port", "Reply Synthetic Port: Friday works"), and name its project in `project` and `project_name`.
-- **A findings batch in `actions list` and `actions show` carries its `fingerprint`**, which `projects actions
-  confirm` and `reject` need, and each cited source read back in `sources` (`kind`, `title`, `sender`, `at`, an
-  `excerpt` of at most 280 characters, `tool`, `missing`). `actions list --brief` leaves the sources out.
-
-### Fixed
-
-- **A findings batch rejected as a whole reads as `rejected`** in `actions list` and `actions show`, not `approved`,
-  and `actions list status:rejected` finds it.
 
 ## 0.131.3 — 01.11.2026
 
