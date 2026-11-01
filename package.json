@@ -1,6 +1,6 @@
 {
   "name": "@wirecat/cli-memo",
-  "version": "0.131.10",
+  "version": "0.131.11",
   "description": "Context about people across messengers, notes and mail, from a local store",
   "mcpName": "dev.wirecat/cli-memo",
   "license": "Apache-2.0",
