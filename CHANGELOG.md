@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.4 — 01.11.2026
+
 ### Changed — may break callers
 
 - **A task's `revision` goes up only for a change a person could overwrite** (cli-core 0.516.0, store version 42):
