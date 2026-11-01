@@ -19,9 +19,8 @@ notes together.
 | Your own notes, tags, tasks, memories and facts | Memo, when you or your agent add them |
 
 Imports leave the originals unchanged: your files stay as they are, and your mailbox is opened read-only.
-The local store holds a copy of their text. Separate [Gmail cleanup commands](mail.md#clean-up-gmail)
-(`memo mail delete` and `memo mail restore`) move selected Gmail mail to Trash or restore it only with `--yes`;
-the sync timer never runs cleanup.
+The local store holds a copy of their text. Memo never changes a mailbox: [Gmail cleanup](mail.md#clean-up-gmail)
+is a command of the separate `mail` program.
 
 ## What an import does
 

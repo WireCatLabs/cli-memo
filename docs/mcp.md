@@ -28,9 +28,7 @@ Set `permissions` in Memo's [configuration](configuration.md#permissions) to lim
 A dotted command path is a key, such as `notes.edit`; a parent key such as `notes` covers its commands.
 `deny` marks a command unavailable in discovery, `readonly` permits reads, and `ask` or `allow` permits writes. Over MCP, `ask` runs
 without a terminal question; approval prompts depend on the client app. Writes without a saved level use `ask`.
-`memo mail delete` and `memo mail restore` also require `yes: true`, just as their CLI commands need `--yes`.
-
-Commands that change source folders or mail rules need `mcp.authority`, which defaults to `deny`.
+Commands that change source folders need `mcp.authority`, which defaults to `deny`.
 Meeting findings decisions (`meetings.actions.confirm` and `meetings.actions.reject`) and
 `projects.annotations.restore` also default to `deny`; the owner must explicitly permit each operation
 before an agent can use it. Save permissions in the configuration; discovery and the next command call

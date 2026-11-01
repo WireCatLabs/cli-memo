@@ -50,9 +50,9 @@ describe("memo", () => {
     expect(text).toMatch(/\nAutomate\n(?: {2}.*\n)* {2}memo sync /)
     expect(text).not.toContain("\nOther\n")
     const scoped = captureStreams()
-    await createProgram({ streams: scoped }).parseAsync(["commands", "mail", "rules"], { from: "user" })
+    await createProgram({ streams: scoped }).parseAsync(["commands", "mail"], { from: "user" })
     expect(scoped.stdout.join("")).toMatch(
-      /^memo mail rules commands, by section\.[\s\S]*\nOrganise\n {2}memo mail rules list /,
+      /^memo mail commands, by section\.[\s\S]*\nRead\n(?: {2}.*\n)* {2}memo mail inspect /,
     )
   })
 

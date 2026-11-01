@@ -12,11 +12,8 @@ to an AI provider only when you configure one and allow it.
 - **Note folders** are only read. Hidden folders such as `.obsidian` are skipped. Note exports write
   into the folder you name and never overwrite a file you edited. Selected annotation exports create
   a new private file at the path you choose, as described below.
-- **Mail imports** open your mailbox read-only and do not mark mail as read, and so does `mail`. Memo never sends mail.
-- **Gmail cleanup** is separate: `memo mail delete` and `memo mail restore` show a preview unless you
-  pass `--yes`. Trash moves selected mail into Gmail's Trash; Gmail deletes it permanently after
-  30 days. Restore returns a logged run's mail while it remains in Trash. Cleanup requires a recent
-  store backup and never runs from the sync timer. See [Gmail cleanup](mail.md#clean-up-gmail).
+- **Mail imports** open your mailbox read-only and do not mark mail as read. Memo never sends mail or changes a
+  mailbox: [Gmail cleanup](mail.md#clean-up-gmail) is a command of the separate `mail` program.
 - **Tags** leave your files, Gmail labels and mailbox flags as they are.
 
 ## What Memo adds stays on your computer

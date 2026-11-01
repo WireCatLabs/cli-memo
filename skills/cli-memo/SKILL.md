@@ -78,17 +78,12 @@ markers to bypass that permission. Historical proposals stay proposed.
     sender and list from headers only; its `suggest` is a hint, not a decision. Its `score` and `signals`
     flag likely spam, scams and robots; a high score is a reason to show the owner, not to add a rule.
     Pass `--domain-age` only when the owner agrees: it tells domain registries the sender domains.
-11. **Mail rules are the owner's decision.** Suggest groups to skip or record; never run
-    `memo mail rules add … --do skip` or `--do envelope` unasked. A skipped email is never imported. An envelope
-    email is stored without its text and is never a search hit; `memo mail rules list` counts it. Mail
-    already stored stays until `memo mail rules apply <account> --yes` cuts it; run it without `--yes`
-    first and show the owner what it would cut. Rules live in the store, not in `config.json`: never edit
-    them there; `memo mail rules export|import` moves them as a file. A protected rule (`--do protect`) is
-    never cut and wins over every other rule; add one only when the owner names mail that must never be removed.
-    Kinds (`--kind social|newsletters|developer|shopping|alerts`) and `mail rules import --format gmail` are proposals: show
-    `memo mail inspect`'s kind counts or `mail rules import --format gmail` without `--yes`, and add rules only on the owner's yes.
-    `memo mail delete <account>` moves envelope mail to Gmail's Trash: show its preview first and run `--yes` only on
-    the owner's yes, never from a timer; `memo mail restore <account> --run <id> --yes` undoes a run for 30 days.
+11. **Mail rules, Gmail cleanup and restore are commands of the `mail` CLI, not memo.** Use
+    `mail <profile> rules list|add|remove|apply|export|import …`, `mail <profile> messages delete --by rules`,
+    `mail <profile> messages restore --run <id>` and `mail runs list`; `mail session status` lists the profiles and
+    their addresses. memo's old `memo mail rules|delete|restore|runs` commands only answer with that command. Rules
+    stay the owner's decision: never add a skip or envelope rule unasked, and never run a cleanup's `--yes` without
+    the owner's yes. `memo sync` still honours the rules stored for an account.
 12. **Old years come from a Google Takeout mbox**, an account with `"mode": "mbox"` and the Gmail
     address; it syncs only when named. An incomplete import scans the file again, so use a generous
     `--limit`; a completed snapshot is skipped until its size or modification time changes. `--rescan`

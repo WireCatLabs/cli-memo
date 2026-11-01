@@ -1,5 +1,4 @@
 import { chmodSync, copyFileSync, existsSync } from "node:fs"
-import type { QueryAst } from "@wirecat/cli-base/query"
 import { momentOf } from "@wirecat/cli-core/cli"
 import {
   conditionKeys,
@@ -52,7 +51,7 @@ export const ruleInput = (rule: MailRule, source = rule.source ?? "owner") => ({
   decidedAt: decidedAtOf(rule.decided_at),
 })
 
-export const accountKey = (address: string): AccountKey => ({ provider: "email", account: address.toLowerCase() })
+const accountKey = (address: string): AccountKey => ({ provider: "email", account: address.toLowerCase() })
 
 const accountIdOf = (store: MessageStore, address: string) =>
   store.accounts.saveAccount(accountKey(address), { name: address })
@@ -134,35 +133,14 @@ export const rulesOf = async (
   account: Pick<MailAccountConfig, "address">,
   env: NodeJS.ProcessEnv,
   say: (line: string) => void,
-  query?: QueryAst,
 ): Promise<MailRule[]> => {
   const key = account.address.toLowerCase()
   const byAccount = loaded.get(store) ?? new Map<string, MailRule[]>()
   loaded.set(store, byAccount)
   const cached = byAccount.get(key)
-  if (cached !== undefined && query === undefined) return cached
+  if (cached !== undefined) return cached
   await moveConfigRules(store, env, say)
-  const rules = await storedMailRules(store, account, query)
-  if (query === undefined) byAccount.set(key, rules)
+  const rules = await storedMailRules(store, account)
+  byAccount.set(key, rules)
   return rules
 }
-
-export const saveRule = async (store: MessageStore, address: string, rule: MailRule): Promise<MailRule> => {
-  const stored = await store.mail.rules.upsert(await accountIdOf(store, address), ruleInput(rule), Date.now())
-  loaded.delete(store)
-  return storedMailRule(stored) ?? rule
-}
-
-export const removeRule = async (store: MessageStore, address: string, match: MailRuleMatch): Promise<boolean> => {
-  const removed = await store.mail.rules.remove(await accountIdOf(store, address), conditionsOf(match))
-  loaded.delete(store)
-  return removed
-}
-
-export const ruleCounts = async (store: MessageStore, address: string) =>
-  new Map(
-    (await store.mail.rules.counts(await accountIdOf(store, address))).map(({ ruleId, emails, bytes }) => [
-      ruleId,
-      { emails, bytes },
-    ]),
-  )

@@ -10,11 +10,11 @@ describe("command effects", () => {
     expect(commands.filter(([, command]) => metaOf(command).effects === undefined).map(([path]) => path)).toEqual([])
   })
 
-  it("write to the mail server only to move mail to Gmail's Trash and back", () => {
+  it("never write to the mail server", () => {
     expect(
       leaves(createProgram())
         .filter(([, command]) => metaOf(command).effects?.remote === "write")
         .map(([path]) => path),
-    ).toEqual(["mail delete", "mail restore"])
+    ).toEqual([])
   })
 })

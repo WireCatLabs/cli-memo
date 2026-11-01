@@ -67,6 +67,15 @@
       "stream": "stderr",
       "kind": "json",
       "errorCode": "not_found"
+    },
+    {
+      "id": "moved-to-mail-cli",
+      "args": ["mail", "rules", "add", "personal", "--domain", "news.example", "--do", "envelope", "--json"],
+      "exit": 2,
+      "stream": "stderr",
+      "kind": "json",
+      "errorCode": "validation_error",
+      "contains": "mail <profile> rules add"
     }
   ],
   "mcp": {

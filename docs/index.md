@@ -35,8 +35,8 @@ Three words appear on every page:
 1. **You choose your sources.** You add a folder of notes, connect a mail account, or use tg, max and wa
    to save your chats. Nothing is read until you choose it.
 2. **Memo copies the text into the local store.** Imports leave your files and mail
-   unchanged. On Linux, a timer can repeat the import. Separate [Gmail cleanup commands](./mail.md#clean-up-gmail)
-   move selected mail to Trash or restore it only with `--yes`.
+   unchanged. On Linux, a timer can repeat the import. [Gmail cleanup](./mail.md#clean-up-gmail) is a command of the
+   separate `mail` program.
 3. **You or your agent ask.** Memo answers with the matching text and a reference to each source,
    so you can open the original and check it.
 4. **You control project decisions.** An agent's new memories, directly recorded facts and outbound action
@@ -68,8 +68,7 @@ memo search notes budget
 
 Memo needs Node.js 22.16+ or 24+ ([what to install first](./installation.md)). Your files stay
 where they are. Memo reads your files and mail without changing them. `notes edit` can change a note's
-source file; `notes export` writes notes to files. Explicit `memo mail delete` and `memo mail restore` move Gmail mail
-to Trash, only with `--yes`.
+source file; `notes export` writes notes to files. Memo never changes your mailbox.
 
 ## Where to go next
 

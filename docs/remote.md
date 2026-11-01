@@ -82,7 +82,7 @@ memo mcp serve --http --public-url https://device.example --permission notes.add
 ```
 
 Repeat `--permission` for more keys. `MEMO_READ_ONLY=1` refuses writes. Decisions on meeting findings,
-restoring annotations, and changes to source folders or mail rules still need their explicit
+restoring annotations, and changes to source folders still need their explicit
 permissions. Memo never sends messages or mail. [The MCP guide](mcp.md) describes those boundaries.
 
 ## Stop or revoke access

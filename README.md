@@ -130,9 +130,8 @@ More: [connect your AI agent](https://wirecat.dev/en/docs/agents) ·
    page, an email, a message.
 3. **Links, not guesses.** Notes link to people and records; identities are never merged because a name
    matches.
-4. **Imports leave your sources untouched.** Separate [Gmail cleanup commands](docs/mail.md#clean-up-gmail)
-   move selected mail to Trash or restore it only with `--yes`. Tags and your own notes live in
-   the store.
+4. **Imports leave your sources untouched.** Memo never changes a mailbox; [Gmail cleanup](docs/mail.md#clean-up-gmail)
+   is a command of the separate `mail` program. Tags and your own notes live in the store.
 5. **Review and delegation are recorded.** Memories and outbound actions an agent suggests wait for
    your confirmation. Project decisions can be delegated or left to the owner. Memo never sends anything.
 
@@ -346,8 +345,7 @@ More: [configuration](https://github.com/WireCatLabs/cli-memo/blob/main/docs/con
 
 ## Security
 
-- Imports read note folders and mailboxes without changing them or marking mail as read, and `mail` only reads your mailbox. Memo never sends mail.
-- Separate Gmail cleanup commands (`memo mail delete`, `memo mail restore`) move selected Gmail mail to Trash or restore it only with `--yes`; the timer never runs them.
+- Imports read note folders and mailboxes without changing them or marking mail as read. Memo never sends mail or changes a mailbox; Gmail cleanup is a command of `mail`.
 - What memo adds — your notes, links, tags, tasks, memories — stays in the local store.
 - A note or mail deleted at the source loses its text in the store on the next import; a run that finds an
   unusually large share missing deletes nothing and says so.

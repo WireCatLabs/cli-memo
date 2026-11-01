@@ -56,7 +56,7 @@ by [mail](mail.md#bring-mail-in-with-mail) needs no entry here. Each account has
 | `path` | For `mbox`: the Takeout file, such as `~/Takeout/Mail/All mail Including Spam and Trash.mbox`. |
 | `folders` | For `imap`: the mail folders to read, such as `["INBOX", "Archive"]`. |
 | `embed` | `false` keeps this account's mail out of search by meaning. |
-| `rules` | Read only to move them into the store: rules live there, managed by `memo mail rules`. See [Mail](mail.md#choose-what-to-import). |
+| `rules` | Read only to move them into the store: rules live there, managed by the `mail` CLI (`mail <profile> rules`). See [Mail](mail.md#choose-what-to-import). |
 
 Next to `accounts`:
 
@@ -152,7 +152,7 @@ without a terminal question; approval prompts depend on the client app. Writes w
 }
 ```
 
-`mcp.authority` defaults to `deny` for source-folder and mail-rule changes. `meetings.actions.confirm`,
+`mcp.authority` defaults to `deny` for source-folder changes. `meetings.actions.confirm`,
 `meetings.actions.reject` and `projects.annotations.restore` default to `deny` too; explicitly set the relevant
 key to `ask` or `allow` to delegate one of these owner operations. `agent_decisions: false` continues to refuse
 project proposal decisions. The shared WireCat read ceiling and `MEMO_READ_ONLY` cap every permission.
