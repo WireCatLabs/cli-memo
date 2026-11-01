@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.13 — 01.11.2026
+
 ### Fixed
 
 - **Built on cli-core 0.535.0.** Message search hits now list `attachments.name` among their untrusted fields. The
