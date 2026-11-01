@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.8 — 01.11.2026
+
 ### Fixed
 
 - **Mail ids and threads come from cli-core's `mailIds`, the function mail uses**, so memo and mail give one email one
