@@ -229,3 +229,30 @@ it("moves a card into the column of the task it is dropped beside, and clears a 
     priority_label: null,
   })
 })
+
+it("moves a task to another project, changes its kind and keeps comments with their author", async () => {
+  const { run } = await setUp()
+  const added = await run(["tasks", "add", "--project", "HRB", "--title", "Renew the domain"])
+  expect(added.created_by).toMatchObject({ type: "person", owner: true })
+  const moved = await run(["tasks", "update", "HRB-1", "--project", "OPS", "--revision", String(added.revision)])
+  expect(moved).toMatchObject({ key: "OPS-1", id: "OPS-1" })
+  expect(await run(["tasks", "show", "HRB-1"])).toMatchObject({ key: "OPS-1" })
+  expect(await run(["tasks", "update", "OPS-1", "--type", "bug"])).toMatchObject({ type: "bug" })
+  await expect(run(["tasks", "update", "OPS-1", "--type", "question"])).rejects.toBeDefined()
+
+  await run(["tasks", "comments", "add", "OPS-1", "Paid", "for", "two", "years"], { AI_AGENT: "hermes" })
+  await run(["tasks", "comments", "add", "HRB-1", "Thanks"])
+  const comments = await run(["tasks", "comments", "list", "OPS-1"])
+  expect(
+    comments.items.map(({ text, author }: { text: string; author: { name: string | null; owner: boolean } }) => [
+      text,
+      author.owner ? "owner" : author.name,
+    ]),
+  ).toEqual([
+    ["Paid for two years", "hermes"],
+    ["Thanks", "owner"],
+  ])
+  const [listed] = (await run(["tasks", "list", "project:OPS"])).items
+  expect(listed.created_by).toMatchObject({ owner: true })
+  expect((await run(["tasks", "list", "project:OPS", "due:tomorrow"])).items).toEqual([])
+})
