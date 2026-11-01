@@ -13,6 +13,11 @@ the API.
   `--json`), and `memo mail inspect`, `rules`, `delete` and `restore` keep working on it. Memo still repairs HTML
   text, scores senders and embeds the mail in the store for it; only the Himalaya header backfill stops.
 
+### Changed
+
+- **Needs `@wirecat/cli-core` 0.516.0.** Memo reads stored mail rules and names Gmail labels with cli-core's shared
+  functions, the same ones the `mail` CLI uses.
+
 ### Removed
 
 - **`memo mail status` is removed.** It counted only the Himalaya import, while `mail <profile> status` counts the

@@ -8,15 +8,14 @@ import {
   type MailAction,
   type MailRule,
   type MailRuleMatch,
-  PRESET_NAMES,
-  type PresetName,
+  storedMailRule,
+  storedMailRules,
 } from "@wirecat/cli-core/mail"
-import type { AccountKey, MessageStore, MailRule as StoredRule } from "@wirecat/cli-core/store"
+import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
 import { configPath, loadConfig, updateConfig } from "../config.js"
 import type { MailAccountConfig } from "./accounts.js"
 
 const STORE_ACTION: Record<MailAction, string> = { keep: "full", envelope: "envelope", skip: "skip" }
-const ACTION_OF: Record<string, MailAction> = { full: "keep", envelope: "envelope", skip: "skip" }
 
 const LOWER: readonly (keyof MailRuleMatch)[] = ["from", "domain", "list_id", "subject"]
 
@@ -52,53 +51,6 @@ export const ruleInput = (rule: MailRule, source = rule.source ?? "owner") => ({
   reason: rule.reason ?? null,
   decidedAt: decidedAtOf(rule.decided_at),
 })
-
-const KINDS: Record<keyof MailRuleMatch, "string" | "number" | "boolean"> = {
-  from: "string",
-  from_contains: "string",
-  domain: "string",
-  to: "string",
-  list_id: "string",
-  subject: "string",
-  older_than_days: "number",
-  larger_than_bytes: "number",
-  has_attachments: "boolean",
-  label: "string",
-  unread: "boolean",
-  bulk: "boolean",
-  score_at_least: "number",
-  preset: "string",
-}
-
-const fromStored = (stored: StoredRule): MailRule | undefined => {
-  const action = ACTION_OF[String(stored.actions.store)]
-  const entries = Object.entries(stored.conditions as Record<string, unknown>)
-  // A condition memo does not know yet, from a newer memo, is left to that memo rather than misread.
-  const known = entries.every(
-    ([key, value]) =>
-      key in KINDS &&
-      typeof value === KINDS[key as keyof MailRuleMatch] &&
-      !(key === "preset" && !PRESET_NAMES.includes(value as PresetName)),
-  )
-  if (action === undefined || !known || entries.length === 0) return undefined
-  const tags = Array.isArray(stored.actions.tags) ? stored.actions.tags.filter((tag) => typeof tag === "string") : []
-  const skipped = stored.actions.tags_skipped
-  const tagsSkipped =
-    skipped !== null && typeof skipped === "object" && !Array.isArray(skipped)
-      ? Object.fromEntries(Object.entries(skipped).filter(([, why]) => typeof why === "string"))
-      : {}
-  return {
-    id: stored.id,
-    match: Object.fromEntries(entries) as MailRuleMatch,
-    action,
-    ...(tags.length ? { tags: tags as string[] } : {}),
-    ...(Object.keys(tagsSkipped).length ? { tags_skipped: tagsSkipped as Record<string, string> } : {}),
-    ...(stored.reason === null ? {} : { reason: stored.reason }),
-    ...(stored.protected ? { protected: true } : {}),
-    ...(stored.source === "owner" ? {} : { source: stored.source }),
-    decided_at: new Date(stored.decidedAt).toISOString(),
-  }
-}
 
 export const accountKey = (address: string): AccountKey => ({ provider: "email", account: address.toLowerCase() })
 
@@ -161,7 +113,7 @@ export const moveConfigRules = async (
 const assignEnvelopes = async (store: MessageStore, accountId: number): Promise<void> => {
   const byBox = new Map<string, number>()
   for (const stored of await store.mail.rules.list(accountId)) {
-    const rule = fromStored(stored)
+    const rule = storedMailRule(stored)
     if (rule?.action === ENVELOPE && rule.id !== undefined) byBox.set(envelopeBox(rule.match).externalId, rule.id)
   }
   if (byBox.size === 0) return
@@ -190,8 +142,7 @@ export const rulesOf = async (
   const cached = byAccount.get(key)
   if (cached !== undefined && query === undefined) return cached
   await moveConfigRules(store, env, say)
-  const accountId = await accountIdOf(store, account.address)
-  const rules = (await store.mail.rules.list(accountId, query)).flatMap((stored) => fromStored(stored) ?? [])
+  const rules = await storedMailRules(store, account, query)
   if (query === undefined) byAccount.set(key, rules)
   return rules
 }
@@ -199,7 +150,7 @@ export const rulesOf = async (
 export const saveRule = async (store: MessageStore, address: string, rule: MailRule): Promise<MailRule> => {
   const stored = await store.mail.rules.upsert(await accountIdOf(store, address), ruleInput(rule), Date.now())
   loaded.delete(store)
-  return fromStored(stored) ?? rule
+  return storedMailRule(stored) ?? rule
 }
 
 export const removeRule = async (store: MessageStore, address: string, match: MailRuleMatch): Promise<boolean> => {
