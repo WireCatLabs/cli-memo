@@ -10,10 +10,14 @@ import { binaryOf, profileFor, type RunChild, syncProfileOf } from "./messenger-
 const telegram = { provider: "telegram", account: "1" }
 const daysAgo = (n: number) => new Date(Date.now() - n * 86400000).toISOString()
 
-/** A stand-in `tg` that records its arguments; chat 8 finds its session held by another run. */
+/**
+ * A stand-in `tg` that records its arguments; chat 8 finds its session held by another run. It reads `fs` through
+ * `process.getBuiltinModule`, not `require`: next to a package.json with "type": "module" (as under TMPDIR) an
+ * extensionless script is ES module code, where `require` does not exist.
+ */
 const FAKE_TG = `#!/usr/bin/env node
 // @wirecat/tg-cli test double
-const { appendFileSync } = require("node:fs")
+const { appendFileSync } = process.getBuiltinModule("node:fs")
 const args = process.argv.slice(2)
 appendFileSync(process.env.FAKE_TG_LOG, JSON.stringify(args) + "\\n")
 process.stderr.write(JSON.stringify({ event: "progress", step: "sync", fetched: 1 }) + "\\n")
