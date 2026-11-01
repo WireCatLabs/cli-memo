@@ -256,3 +256,23 @@ it("moves a task to another project, changes its kind and keeps comments with th
   expect(listed.created_by).toMatchObject({ owner: true })
   expect((await run(["tasks", "list", "project:OPS", "due:tomorrow"])).items).toEqual([])
 })
+
+it("refuses to move a subtask alone unless it is detached in the same write, and finds subtasks by parent:", async () => {
+  const { run } = await setUp()
+  await run(["tasks", "add", "--project", "HRB", "--title", "Launch"])
+  await run(["tasks", "add", "--project", "HRB", "--title", "Print badges", "--parent", "HRB-1"])
+  expect(
+    (await run(["tasks", "list", "project:HRB", "parent:HRB-1"])).items.map(({ key }: { key: string }) => key),
+  ).toEqual(["HRB-2"])
+  await expect(run(["tasks", "update", "HRB-1", "--project", "OPS"])).rejects.toMatchObject({
+    code: "validation_error",
+    details: { reason: "task.has-subtasks", subtasks: ["HRB-2"] },
+  })
+  await expect(run(["tasks", "update", "HRB-2", "--project", "OPS"])).rejects.toMatchObject({
+    details: { reason: "task.is-subtask", parent: "HRB-1" },
+  })
+  expect(await run(["tasks", "update", "HRB-2", "--project", "OPS", "--parent", "none"])).toMatchObject({
+    key: "OPS-1",
+    parent: null,
+  })
+})
