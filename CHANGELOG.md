@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.10 — 01.11.2026
+
 ### Fixed
 
 - **Built on cli-base 0.71.0**, which cli-core 0.529.0 needs (its peer range is `>=0.71.0 <0.72.0`).
