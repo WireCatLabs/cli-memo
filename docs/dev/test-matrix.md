@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**562 ✅ · 0 ⛔ · 92 ❌** — 148 commands, 506 options.
+**568 ✅ · 0 ⛔ · 91 ❌** — 149 commands, 510 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -409,6 +409,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `memories add` | `--scope` | ✅ |  |
 | `memories add` | `--evidence` | ✅ |  |
 | `memories add` | `--subject` | ✅ |  |
+| `memories add` | `--project` | ✅ |  |
 | `memories add` | `--supersedes` | ✅ |  |
 | `memories add` | `--json` | ✅ |  |
 | `memories list` |  | ✅ |  |
@@ -417,6 +418,9 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `memories show` |  | ✅ |  |
 | `memories show` | `--sources` | ✅ |  |
 | `memories show` | `--json` | ✅ |  |
+| `memories update` |  | ✅ |  |
+| `memories update` | `--project` | ✅ |  |
+| `memories update` | `--json` | ✅ |  |
 | `memories confirm` |  | ✅ |  |
 | `memories confirm` | `--json` | ✅ |  |
 | `memories invalidate` |  | ✅ |  |
@@ -515,9 +519,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `actions add` | `--json` | ✅ |  |
 | `actions list` |  | ✅ |  |
 | `actions list` | `--limit` | ❌ |  |
+| `actions list` | `--brief` | ✅ |  |
 | `actions list` | `--json` | ✅ |  |
 | `actions show` |  | ✅ |  |
-| `actions show` | `--json` | ❌ |  |
+| `actions show` | `--json` | ✅ |  |
 | `actions confirm` |  | ✅ |  |
 | `actions confirm` | `--json` | ✅ |  |
 | `actions reject` |  | ✅ |  |
