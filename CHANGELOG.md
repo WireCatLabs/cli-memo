@@ -4,6 +4,14 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- **memo opens a store moved to schema 43** by mail 0.4.0 and other CLIs on cli-core 0.520.0; 0.131.5 refused it and
+  asked for an upgrade. `memo search mail` and `messages show` now run on the same code as mail's own search, with the
+  same answers.
+
 ## 0.131.5 — 01.11.2026
 
 ### Added
