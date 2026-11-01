@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.6 — 01.11.2026
+
 ### Fixed
 
 - **memo opens a store moved to schema 43** by mail 0.4.0 and other CLIs on cli-core 0.520.0; 0.131.5 refused it and
