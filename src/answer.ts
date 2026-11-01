@@ -58,8 +58,10 @@ const rowOf = (row: unknown): string => {
 }
 
 /** A record as `field: value` lines; a nested record is indented under its field, a list counted or joined. */
+/** A person reads a priority by its label; the number behind it is for scripts and the board's order. */
 const blockOf = (fields: Fields, indent = ""): string =>
   Object.entries(fields)
+    .filter(([name]) => !(name === "priority" && "priority_label" in fields))
     .filter(([, value]) => shown(value) && !(Array.isArray(value) && value.length === 0))
     .map(([name, value]) => {
       if (isFields(value)) return `${indent}${name}:\n${blockOf(value, `${indent}  `)}`

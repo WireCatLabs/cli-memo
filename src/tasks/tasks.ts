@@ -12,6 +12,7 @@ import {
   type MessageStore,
   type TaskFields,
   type TaskRole,
+  type TaskState,
   type TaskType,
   WORK_TASK_TYPES,
   type WorkTaskType,
@@ -25,8 +26,10 @@ import { canonicalProject } from "../vocabulary/project.js"
 
 export interface FieldOptions {
   title?: string
-  priority?: number
-  parent?: string
+  /** 0 to 1, as `priorityOf` reads a label; `null` clears it. */
+  priority?: number | null
+  /** `null` makes it top-level. */
+  parent?: string | null
   description?: string
 }
 
@@ -52,11 +55,12 @@ export const fieldsOf = (options: FieldOptions): TaskFields => ({
   ...(options.description === undefined ? {} : { description: options.description }),
 })
 
-const assignAll = async (store: MessageStore, id: string, people: string[] | undefined) => {
-  for (const person of people ?? []) await store.tasks.assign(id, { to: personRef(person), role: "assignee" }, "owner")
+const assignAll = async (store: MessageStore, env: NodeJS.ProcessEnv, id: string, people: string[] | undefined) => {
+  for (const person of people ?? [])
+    await store.tasks.assign(id, { to: personRef(person), role: "assignee" }, authorOf(env))
 }
 
-const addToProject = async (store: MessageStore, options: AddOptions) => {
+const addToProject = async (store: MessageStore, env: NodeJS.ProcessEnv, options: AddOptions) => {
   if (options.project === undefined || options.title === undefined)
     throw new CliError("validation_error", "a task without a source needs --project and --title")
   if (options.into !== undefined || options.new)
@@ -71,9 +75,9 @@ const addToProject = async (store: MessageStore, options: AddOptions) => {
       type: type as WorkTaskType,
       ...fieldsOf(options),
     },
-    "owner",
+    authorOf(env),
   )
-  await assignAll(store, task.id, options.assignee)
+  await assignAll(store, env, task.id, options.assignee)
   return store.tasks.details(task.id)
 }
 
@@ -122,7 +126,7 @@ const addFromSource = async (store: MessageStore, env: NodeJS.ProcessEnv, source
   const fields = fieldsOf(options)
   if (Object.keys(fields).length === 0 && !options.assignee?.length) return answer
   await store.tasks.edit(answer.task.id, fields, "owner")
-  await assignAll(store, answer.task.id, options.assignee)
+  await assignAll(store, env, answer.task.id, options.assignee)
   return { ...answer, details: await store.tasks.details(answer.task.id) }
 }
 
@@ -133,18 +137,22 @@ export const addTask = (
   source: string | undefined,
   options: AddOptions,
 ): Promise<Details | Added | (Added & { details: Details })> =>
-  source === undefined ? addToProject(store, options) : addFromSource(store, env, source, options)
+  source === undefined ? addToProject(store, env, options) : addFromSource(store, env, source, options)
+
+const checkOf = (revision: number | undefined) => (revision === undefined ? {} : { revision })
 
 export const closeTask = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
   id: string,
-  options: AccountScope & { as: ReturnType<typeof closedStateOf>; reason?: string },
+  options: AccountScope & { as: ReturnType<typeof closedStateOf>; reason?: string; revision?: number },
 ): Promise<Closed> => {
   if ((await store.tasks.get(id)) === undefined) {
     const reason = options.reason === undefined ? {} : { reason: options.reason }
-    return store.tasks.edit(id, { status: options.as, ...reason }, "owner")
+    return store.tasks.edit(id, { status: options.as, ...reason }, authorOf(env), checkOf(options.revision))
   }
+  if (options.revision !== undefined)
+    throw new CliError("validation_error", "--revision checks a project task; a task from a message has none")
   const key = await selectAccount(store, options)
   return tasksService(storeOnlyDeps(store, key, { app: APP, env })).close(id, {
     as: options.as,
@@ -159,6 +167,10 @@ export type UpdateOptions = AccountScope &
     remindTime?: Date | null
     category?: string
     assignee?: string[]
+    status?: TaskState
+    /** `none` clears it. */
+    agent?: string
+    revision?: number
   }
 
 /**
@@ -174,11 +186,13 @@ export const updateTask = async (store: MessageStore, env: NodeJS.ProcessEnv, id
   if (
     Object.keys(fields).length + Object.keys(times).length === 0 &&
     options.category === undefined &&
-    options.assignee === undefined
+    options.assignee === undefined &&
+    options.status === undefined &&
+    options.agent === undefined
   )
     throw new CliError(
       "validation_error",
-      "give --title, --description, --priority, --parent, --due, --remind-time, --category or --assignee",
+      "give --title, --description, --priority, --parent, --due, --remind-time, --category, --assignee, --status or --agent",
     )
   if ((await store.tasks.get(id)) === undefined) {
     if (options.category !== undefined || options.assignee !== undefined)
@@ -186,8 +200,23 @@ export const updateTask = async (store: MessageStore, env: NodeJS.ProcessEnv, id
         "validation_error",
         "--category and --assignee are for a task from a source; name a project task's people with tasks assign",
       )
-    return store.tasks.edit(id, { ...fields, ...times }, authorOf(env))
+    return store.tasks.edit(
+      id,
+      {
+        ...fields,
+        ...times,
+        ...(options.status === undefined ? {} : { status: options.status }),
+        ...(options.agent === undefined ? {} : { agent: options.agent === "none" ? null : options.agent }),
+      },
+      authorOf(env),
+      checkOf(options.revision),
+    )
   }
+  if (options.status !== undefined || options.agent !== undefined || options.revision !== undefined)
+    throw new CliError(
+      "validation_error",
+      "--status, --agent and --revision are for a project task; close a task from a message with tasks close",
+    )
   if (options.priority !== undefined || options.parent !== undefined)
     throw new CliError("validation_error", "--priority and --parent are for a task in a project")
   const assignees = options.assignee?.map((one) => (one === "sender" || one === "none" ? one : personRef(one)))
@@ -207,5 +236,46 @@ export const updateTask = async (store: MessageStore, env: NodeJS.ProcessEnv, id
   )
 }
 
-export const assignTask = (store: MessageStore, id: string, person: string, role: TaskRole) =>
-  store.tasks.assign(id, { to: personRef(person), role }, "owner")
+export const assignTask = (
+  store: MessageStore,
+  env: NodeJS.ProcessEnv,
+  id: string,
+  person: string,
+  role: TaskRole,
+  revision?: number,
+) => store.tasks.assign(id, { to: personRef(person), role }, authorOf(env), checkOf(revision))
+
+export const unassignTask = (
+  store: MessageStore,
+  env: NodeJS.ProcessEnv,
+  id: string,
+  person: string,
+  role: TaskRole,
+  revision?: number,
+) => store.tasks.unassign(id, { to: personRef(person), role }, authorOf(env), checkOf(revision))
+
+/** The task in its new place; `label.changed` says a move across a band edge changed its priority's label. */
+export const moveTask = (
+  store: MessageStore,
+  env: NodeJS.ProcessEnv,
+  id: string,
+  options: { status?: TaskState; before?: string; after?: string; revision?: number },
+) => {
+  const { revision, ...move } = options
+  return store.tasks.move(id, move, authorOf(env), checkOf(revision))
+}
+
+/** Who changed what and when, oldest first; `by` names the person or agent as the store knows it now. */
+export const taskHistory = async (store: MessageStore, id: string) => {
+  const owner = (await store.people.owner())?.uid
+  return (await store.tasks.events(id)).map((event) => ({
+    at: event.at,
+    kind: event.kind,
+    by: event.actor && {
+      ref: `${event.actor.type}:${event.actor.id}`,
+      name: event.actor.name,
+      owner: event.actor.type === "person" && String(event.actor.id) === String(owner),
+    },
+    changes: event.changes,
+  }))
+}

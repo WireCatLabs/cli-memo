@@ -4,6 +4,46 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- **Project tasks have five states: `open`, `todo`, `in_progress`, `done`, `dismissed`** (WireCat Desktop's Tasks
+  page, cli-core 0.513.0). `tasks update --status` moves a project task to any of them, back from `done` or
+  `dismissed` too, and each move is kept in the task's history. `todo` and `in_progress` count as open work for
+  readiness, claims and the default list.
+- **`tasks list` with `project:` takes a full query**: `project:*` for every project, a project by its name or alias,
+  `assignee:`, `priority:` (labels, `none`, ranges), `agent:`, `due:` and `closed:` with ranges, `overdue:`, OR within
+  a field, NOT, and plain words over the title and description. `--sort` and `--desc` order it, `--cursor` reads past
+  500, and `page.total` says how many match. Each task carries `assignments`, `ready`, `blocked_by`, `agent`,
+  `priority_label` and `revision`.
+- **`tasks counts [query]`** counts the matching project tasks per project, assignee, priority and state, each without
+  the query's own terms on that field, for a picker.
+- **`tasks move <id> --before|--after <id> [--status s]`** puts a project task beside another in its board column by
+  giving it a priority between them; the answer says when its label changed and which tasks were spread out to make
+  room.
+- **`tasks history <id>`** lists who changed a task, what and when; **`tasks assign --clear`** takes a person off a
+  task; **`tasks update --agent`** names the agent working on it, apart from its assignees; **`people list`** lists you
+  and everyone tasks name, for an assignee picker.
+- **`--revision`** on `tasks update`, `close`, `assign` and `move` refuses a write made on a stale copy:
+  `configuration_error`, reason `task.stale`, exit code 3.
+
+### Changed — may break callers
+
+- **A task's priority is a label over a number from 0 to 1, higher first.** `--priority` takes `low`, `medium`,
+  `high`, `critical` or `none`, and still reads 0 (urgent) … 4 (low) as critical, high, medium, low, low. `--json`
+  gives `priority` as the number (0.875 for what was 0) and `priority_label`. Lists order by it, highest first.
+- **A plain `tasks list` reads `state:` as open work**: without `state:`, it lists `open`, `todo` and `in_progress`.
+  An explicit `state:open` now means only new tasks.
+
+### Fixed
+
+- **`tasks update --parent none`** makes a subtask top-level; it failed with "no task none".
+- **`tasks add`, `close` and `assign` record the agent** whose terminal runs memo, as `update` did; they always
+  recorded the owner.
+- **A project's list says `has_more` at 500 tasks**; it said there were no more.
+- **The README names `tasks links`**, not `relations`.
+
 ## 0.131.1 — 01.11.2026
 
 ### Fixed

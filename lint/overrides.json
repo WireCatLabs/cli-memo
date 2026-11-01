@@ -12,5 +12,54 @@
     "reason": "WireCat Desktop's Memory page reads every source of a fact in one call (plan step 3, 2026-10-31); the shared flag vocabulary in cli-base 0.65 has no switch that adds the evidence read back. Add --sources there, then drop this.",
     "owner": "@leemour",
     "review_after": "2027-01-31"
+  },
+  {
+    "rule": "unknown-verb",
+    "target": "tasks counts",
+    "reason": "WireCat Desktop's Tasks page (plan 2026-10-31-tasks-page, owner's choices NEED-175 and NEED-176, 2026-11-01) counts project tasks per project, assignee, priority and state for its pickers; no verb or view noun in the cli-base vocabulary names per-value counts, and a list envelope has no room for them. Add a view noun there, then rename.",
+    "owner": "@leemour",
+    "review_after": "2027-02-01"
+  },
+  {
+    "rule": "option-role",
+    "target": "tasks update --status",
+    "reason": "WireCat Desktop's Tasks page (plan 2026-10-31-tasks-page, owner's choices NEED-175 and NEED-176, 2026-11-01) moves a project task between its five work states; the vocabulary has only --as, which means how a task is closed. Add --status there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-01"
+  },
+  {
+    "rule": "option-role",
+    "target": "tasks move --status",
+    "reason": "WireCat Desktop's Tasks page (plan 2026-10-31-tasks-page, owner's choices NEED-175 and NEED-176, 2026-11-01) moves a card to another column; same flag as tasks update --status.",
+    "owner": "@leemour",
+    "review_after": "2027-02-01"
+  },
+  {
+    "rule": "option-role",
+    "target": "tasks move --before",
+    "reason": "WireCat Desktop's Tasks page (plan 2026-10-31-tasks-page, owner's choices NEED-175 and NEED-176, 2026-11-01) drops a card above another; --before-id in the vocabulary pages messages, a different meaning.",
+    "owner": "@leemour",
+    "review_after": "2027-02-01"
+  },
+  {
+    "rule": "option-role",
+    "target": "tasks move --after",
+    "reason": "WireCat Desktop's Tasks page (plan 2026-10-31-tasks-page, owner's choices NEED-175 and NEED-176, 2026-11-01) drops a card below another; --after-id in the vocabulary pages messages, a different meaning.",
+    "owner": "@leemour",
+    "review_after": "2027-02-01"
+  },
+  {
+    "rule": "option-role",
+    "target": "tasks list --sort",
+    "reason": "WireCat Desktop's Tasks page (plan 2026-10-31-tasks-page, owner's choices NEED-175 and NEED-176, 2026-11-01) sorts its table by a column; --order in the vocabulary takes only recent or name.",
+    "owner": "@leemour",
+    "review_after": "2027-02-01"
+  },
+  {
+    "rule": "option-role",
+    "target": "tasks list --desc",
+    "reason": "WireCat Desktop's Tasks page (plan 2026-10-31-tasks-page, owner's choices NEED-175 and NEED-176, 2026-11-01) sorts its table by a column either way; the vocabulary has no switch for the direction.",
+    "owner": "@leemour",
+    "review_after": "2027-02-01"
   }
 ]

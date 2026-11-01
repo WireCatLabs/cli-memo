@@ -1,0 +1,161 @@
+import { mkdtempSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
+import { captureStreams } from "@wirecat/cli-base"
+import { openStore } from "@wirecat/cli-core/store"
+import { expect, it } from "vitest"
+import { answerOf } from "../../test/answer.js"
+import { createProgram } from "../program.js"
+
+const setUp = async () => {
+  const root = mkdtempSync(join(tmpdir(), "memo-task-board-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "store.db") }
+  const store = await openStore({ env })
+  await store.knowledge.addProject({ name: "Harbour launch", key: "HRB" })
+  await store.knowledge.addProject({ name: "Operations", key: "OPS" })
+  await store.people.savePeople({ provider: "telegram", account: "1" }, [{ id: "101", name: "Ana Example" }])
+  const ana = await store.people.personOf({ provider: "telegram", id: "101" })
+  await store.close()
+  const run = async (args: string[], more: NodeJS.ProcessEnv = {}) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env: { ...env, ...more } })
+      .exitOverride()
+      .parseAsync([...args, "--json"], { from: "user" })
+    return answerOf(streams.stdout.join(""))
+  }
+  return { run, ana: `person:${ana?.uid}` }
+}
+
+it("lists every project's open work with a query, a sort, a cursor and a total", async () => {
+  const { run, ana } = await setUp()
+  await run(["tasks", "add", "--project", "HRB", "--title", "Send the invoice", "--priority", "critical"])
+  await run(["tasks", "add", "--project", "HRB", "--title", "Print badges", "--priority", "low"])
+  await run(["tasks", "add", "--project", "OPS", "--title", "Renew the domain", "--assignee", ana])
+  await run(["tasks", "update", "OPS-1", "--status", "in_progress"])
+  await run(["tasks", "close", "HRB-2", "--as", "dismissed"])
+  await run(["tasks", "link", "HRB-1", "OPS-1", "--kind", "blocked-by"])
+
+  const first = await run(["tasks", "list", "project:*", "--limit", "1", "--sort", "key"])
+  expect(first.page).toMatchObject({ mode: "cursor", limit: 1, has_more: true, total: { value: 2, relation: "eq" } })
+  expect(first.items[0]).toMatchObject({
+    key: "HRB-1",
+    state: "open",
+    kind: "chore",
+    priority: 0.875,
+    priority_label: "critical",
+    agent: null,
+    revision: expect.any(Number),
+    assignments: [],
+    ready: false,
+    blocked_by: [{ task: "task:OPS-1", state: "open" }],
+  })
+  const second = await run([
+    "tasks",
+    "list",
+    "project:*",
+    "--limit",
+    "1",
+    "--sort",
+    "key",
+    "--cursor",
+    first.page.next_cursor,
+  ])
+  expect(second.items.map(({ key }: { key: string }) => key)).toEqual(["OPS-1"])
+  expect(second.items[0]).toMatchObject({ state: "in_progress", assignments: [{ to: ana, role: "assignee" }] })
+  expect(second.page).toMatchObject({ has_more: false })
+  await expect(
+    run(["tasks", "list", "project:HRB", "--limit", "1", "--cursor", first.page.next_cursor]),
+  ).rejects.toMatchObject({ code: "validation_error" })
+
+  const keys = async (...query: string[]) =>
+    (await run(["tasks", "list", ...query])).items.map(({ key }: { key: string }) => key)
+  expect(await keys("project:(HRB OR OPS)", "state:dismissed")).toEqual(["HRB-2"])
+  expect(await keys("project:*", "invoice")).toEqual(["HRB-1"])
+  expect(await keys("project:*", `assignee:"${ana}"`)).toEqual(["OPS-1"])
+  expect(await keys("project:*", "state:(done OR dismissed)", "closed:>=1d")).toEqual(["HRB-2"])
+  expect(await keys("project:*", "closed:>=1d")).toEqual([])
+  await expect(run(["tasks", "list", "priority:high"])).rejects.toThrow("project:*")
+})
+
+it("counts project tasks for the pickers, and keeps an account's list as it was", async () => {
+  const { run } = await setUp()
+  await run(["tasks", "add", "--project", "HRB", "--title", "A"])
+  await run(["tasks", "add", "--project", "OPS", "--title", "B"])
+  await run(["tasks", "update", "OPS-1", "--status", "todo"])
+
+  const counts = await run(["tasks", "counts", "project:HRB"])
+  expect(counts.total).toBe(1)
+  expect(counts.project).toEqual([
+    { value: "HRB", name: "Harbour launch", count: 1 },
+    { value: "OPS", name: "Operations", count: 1 },
+  ])
+  expect(counts.state.find(({ value }: { value: string }) => value === "todo")).toEqual({ value: "todo", count: 0 })
+  expect((await run(["tasks", "list"])).items).toEqual([])
+})
+
+it("moves, reopens, unassigns and tells the history, naming the agent that acted", async () => {
+  const { run, ana } = await setUp()
+  await run(["tasks", "add", "--project", "HRB", "--title", "Book the venue", "--assignee", ana])
+  await run(["tasks", "add", "--project", "HRB", "--title", "Sub", "--parent", "HRB-1"])
+  expect(await run(["tasks", "update", "HRB-2", "--parent", "none"])).toMatchObject({ parent: null })
+  await run(["tasks", "update", "HRB-1", "--status", "in_progress"], { AI_AGENT: "hermes" })
+  await run(["tasks", "close", "HRB-1", "--as", "done"], { AI_AGENT: "hermes" })
+  expect(await run(["tasks", "update", "HRB-1", "--status", "todo"])).toMatchObject({ status: "todo", closed_at: null })
+  expect((await run(["tasks", "assign", "HRB-1", ana, "--clear"])).assignments).toEqual([])
+
+  const history = await run(["tasks", "history", "HRB-1"])
+  const who = ({ kind, by }: { kind: string; by: { name: string | null; owner: boolean } }) => [
+    kind,
+    by.owner ? "owner" : by.name,
+  ]
+  expect(history.items.map(who)).toEqual([
+    ["created", "owner"],
+    ["assigned", "owner"],
+    ["status", "hermes"],
+    ["status", "hermes"],
+    ["status", "owner"],
+    ["unassigned", "owner"],
+  ])
+  expect(history.items[2]).toMatchObject({
+    at: expect.any(String),
+    kind: "status",
+    by: { ref: expect.stringMatching(/^bot:\d+$/), name: "hermes", owner: false },
+    changes: { status: ["open", "in_progress"] },
+  })
+})
+
+it("lists the people the board offers to assign", async () => {
+  const { run, ana } = await setUp()
+  await run(["tasks", "add", "--project", "HRB", "--title", "A", "--assignee", ana])
+  const people = await run(["people", "list"])
+  expect(people.items.filter(({ owner }: { owner: boolean }) => !owner)).toEqual([
+    { ref: ana, name: "Ana Example", owner: false, tasks: 1 },
+  ])
+})
+
+it("moves a card between two others, says when its label changed, and refuses a stale revision", async () => {
+  const { run } = await setUp()
+  await run(["tasks", "add", "--project", "HRB", "--title", "A", "--priority", "critical"])
+  await run(["tasks", "add", "--project", "HRB", "--title", "B", "--priority", "high"])
+  const c = await run(["tasks", "add", "--project", "OPS", "--title", "C", "--priority", "medium"])
+
+  const moved = await run(["tasks", "move", "OPS-1", "--before", "HRB-2", "--revision", String(c.revision)])
+  expect(moved).toMatchObject({
+    task: { key: "OPS-1", priority_label: "critical", revision: c.revision + 1 },
+    label: { from: "medium", to: "critical", changed: true },
+    renumbered: [],
+  })
+  const column = await run(["tasks", "list", "project:*", "--json"])
+  expect(column.items.map(({ key }: { key: string }) => key)).toEqual(["HRB-1", "OPS-1", "HRB-2"])
+  await expect(
+    run(["tasks", "update", "OPS-1", "--title", "D", "--revision", String(c.revision)]),
+  ).rejects.toMatchObject({
+    code: "configuration_error",
+    details: { reason: "task.stale" },
+  })
+  expect(await run(["tasks", "update", "OPS-1", "--agent", "hermes"])).toMatchObject({ agent: "hermes" })
+  expect(
+    (await run(["tasks", "list", "project:*", "agent:hermes"])).items.map(({ key }: { key: string }) => key),
+  ).toEqual(["OPS-1"])
+  expect(await run(["tasks", "update", "OPS-1", "--agent", "none"])).toMatchObject({ agent: null })
+})
