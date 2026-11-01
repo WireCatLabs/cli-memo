@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.5 — 01.11.2026
+
 ### Added
 
 - **`"import": false` on a `mail.accounts` entry hands its import to the `mail` CLI.** `memo sync` and the timer skip
