@@ -1,8 +1,7 @@
 import { createReadStream } from "node:fs"
 import { open, stat } from "node:fs/promises"
 import { CliError } from "@wirecat/cli-base"
-import { headersOf, type Listed, type MailSource } from "@wirecat/cli-core/mail"
-import { systemLabel } from "./gmail.js"
+import { headersOf, type Listed, type MailSource, systemLabel } from "@wirecat/cli-core/mail"
 
 const unfold = (text: string): string => text.replace(/\r?\n[ \t]+/g, " ")
 

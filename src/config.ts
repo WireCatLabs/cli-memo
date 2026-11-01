@@ -67,6 +67,8 @@ const ConfigSchema = v.strictObject({
           path: v.optional(v.pipe(v.string(), v.minLength(1))),
           folders: v.optional(v.array(v.string())),
           embed: v.optional(v.boolean()),
+          /** `false` hands the account's import to the `mail` CLI: memo's sync skips it; rules, delete, restore and inspect keep working. */
+          import: v.optional(v.boolean()),
           /** The owner's keep, envelope and skip decisions per sender, domain or list; written by `memo mail rules`. */
           rules: v.optional(
             v.array(

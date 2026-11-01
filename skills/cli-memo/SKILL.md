@@ -94,6 +94,8 @@ markers to bypass that permission. Historical proposals stay proposed.
     `--limit`; a completed snapshot is skipped until its size or modification time changes. `--rescan`
     forces another scan:
     `memo sync --source email:<name> --since-time 2000-01-01 --limit 5000`.
+    An account with `"import": false` is synced by `mail`: memo's sync skips it (naming it says so) while rules,
+    delete, restore and inspect still work.
 13. **A stderr line `memo: scheduled sync failing since …` means the owner's timer is broken** and their
     notes or mail are going stale. Tell the owner, quote its reason (an error code and reason id); the full
     message is in the journal `memo jobs status` names.
