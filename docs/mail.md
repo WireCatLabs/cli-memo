@@ -64,7 +64,7 @@ change nothing. `<profile>` is the `mail` profile that holds the address; `mail 
 | `memo mail rules list\|add\|remove\|apply\|export\|import <account> …` | `mail <profile> rules list\|add\|remove\|apply\|export\|import …`, same options, no account |
 | `memo mail delete <account>` | `mail <profile> messages delete --rules` (a preview; `--yes` moves the mail) |
 | `memo mail restore <account> --run <id>` | `mail <profile> messages restore --run <id>`; Memo's run ids work there |
-| `memo mail runs list <account>` | `mail runs list` |
+| `memo mail runs list <account>` | `mail doctor`, which names the runs that stopped part way or whose Gmail Trash empties soon; every run is a file `<id>.jsonl` in Memo's state folder under `mail-trash/<profile>/` |
 
 ## Older import through Himalaya (legacy)
 
@@ -217,8 +217,9 @@ whose reason says "never remove" becomes protected.
 
 Memo no longer changes a mailbox. Moving envelope mail to Gmail's Trash, and bringing a run back, are commands of
 `mail`: `mail <profile> messages delete --rules` previews and `--yes` moves, `mail <profile> messages restore
---run <id>` undoes a run, and `mail runs list` lists the runs. `mail` reads the restore logs older Memo versions
-wrote, so their run ids still work.
+--run <id>` undoes a run, and `mail doctor` names the runs that stopped part way or whose Gmail Trash empties soon.
+`mail` reads the restore logs older Memo versions wrote, so their run ids still work: each is a file `<id>.jsonl` in
+Memo's state folder under `mail-trash/<profile>/` (`memo doctor` shows the folder).
 
 ## Old mail from Google Takeout
 

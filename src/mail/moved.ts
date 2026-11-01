@@ -7,7 +7,12 @@ import type { Command } from "commander"
 export const MOVED_TO_MAIL = [
   ["delete", "mail <profile> messages delete --rules", "previews; --yes moves the mail to Trash"],
   ["restore", "mail <profile> messages restore --run <id>", "memo's run ids work there"],
-  ["runs list", "mail runs list", ""],
+  [
+    "runs list",
+    "mail doctor",
+    "it names the cleanup runs, memo's included, that stopped part way or whose Gmail Trash empties soon; every run " +
+      "is a file <id>.jsonl in memo's state folder under mail-trash/<profile>/, and messages restore --run <id> takes it",
+  ],
   ["rules list", "mail <profile> rules list", ""],
   ["rules add", "mail <profile> rules add", "same options, no account argument"],
   ["rules remove", "mail <profile> rules remove", "same options, no account argument"],
