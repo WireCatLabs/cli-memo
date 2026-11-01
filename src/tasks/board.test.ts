@@ -159,3 +159,23 @@ it("moves a card between two others, says when its label changed, and refuses a 
   ).toEqual(["OPS-1"])
   expect(await run(["tasks", "update", "OPS-1", "--agent", "none"])).toMatchObject({ agent: null })
 })
+
+it("moves a card into the column of the task it is dropped beside, and clears a priority with none", async () => {
+  const { run } = await setUp()
+  await run(["tasks", "add", "--project", "HRB", "--title", "A", "--priority", "high"])
+  await run(["tasks", "add", "--project", "HRB", "--title", "B"])
+  await run(["tasks", "update", "HRB-2", "--status", "in_progress"])
+
+  expect(await run(["tasks", "move", "HRB-1", "--after", "HRB-2"])).toMatchObject({
+    task: { key: "HRB-1", status: "in_progress" },
+  })
+  await run(["tasks", "update", "HRB-1", "--status", "done"])
+  await expect(run(["tasks", "move", "HRB-1", "--status", "todo", "--before", "HRB-2"])).rejects.toMatchObject({
+    code: "validation_error",
+    details: { reason: "task.column" },
+  })
+  expect(await run(["tasks", "update", "HRB-1", "--priority", "none"])).toMatchObject({
+    priority: null,
+    priority_label: null,
+  })
+})

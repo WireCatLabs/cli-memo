@@ -988,7 +988,7 @@ memo tasks assign <id> <person> [options]
 
 ### `memo tasks move`
 
-put a project task before or after another in its board column: it takes a priority between them, and the answer says when its label changed
+put a project task before or after another in its board column: it takes a priority between them, and the answer says when its label changed; beside a task in another column it moves into that column
 
 This command changes the local store or your files.
 
@@ -1002,7 +1002,7 @@ memo tasks move <id> [options]
 
 | Option | What it does |
 |---|---|
-| `--status <state>` | move it to this column too: open, todo, in_progress, done, dismissed. |
+| `--status <state>` | move it to this column too: open, todo, in_progress, done, dismissed; with --before or --after it must be that task's column. |
 | `--before <id>` | the task it goes just above. |
 | `--after <id>` | the task it goes just below. |
 | `--revision <n>` | refuse the write unless the task is still at this revision (task.stale, exit 3). |

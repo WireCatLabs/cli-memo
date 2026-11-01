@@ -13,11 +13,21 @@ the API.
   `--json`), and `memo mail inspect`, `rules`, `delete` and `restore` keep working on it. Memo still repairs HTML
   text, scores senders and embeds the mail in the store for it; only the Himalaya header backfill stops.
 
+## 0.131.4 — 01.11.2026
+
 ### Changed — may break callers
 
-- **Needs `@wirecat/cli-core` 0.516.0.** Memo reads stored mail rules and names Gmail labels with cli-core's shared
-  functions, the same ones the `mail` CLI uses. The shared store moves to schema 42, so other WireCat CLIs need a
-  version that speaks it (`<cli> upgrade`).
+- **A task's `revision` goes up only for a change a person could overwrite** (cli-core 0.516.0, store version 42):
+  title, description, state, priority, assignees, agent, due date, project, parent or tags. An agent's claim, its
+  renewal and release, and `--remind-time` leave it as it is, so a board no longer says "changed elsewhere" while an
+  agent works.
+- **`tasks move <id> --before|--after <other>` beside a task in another column moves it into that column.** A
+  `--status` that names another column than the neighbour's is refused with reason `task.column`
+  (`HRB-2 is in in_progress, not todo: pick a task in the todo column`).
+
+### Fixed
+
+- **`tasks update --priority none` clears the priority** instead of failing with "a priority score is 0 to 1".
 
 ## 0.131.3 — 01.11.2026
 
