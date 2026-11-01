@@ -388,3 +388,38 @@ it("rejects a findings batch by id, and keeps an agent's decision behind its rea
     code: "validation_error",
   })
 })
+
+it("gives an action's parts to compose a line from: its verb, its target's and chat's names, and its whole text", async () => {
+  const { owner, agent, run, file } = await setUp()
+  const staged = await run(agent, "projects", "actions", "add", file)
+  expect(await run(owner, "actions", "show", staged.id)).toMatchObject({
+    verb: "create",
+    target_name: "Synthetic Port",
+    chat_name: null,
+    text: null,
+    counts: { facts: 1, tasks: 1 },
+  })
+
+  const seed = await openStore({ env: owner })
+  await seed.chats.saveChats(telegram, [{ id: "7", title: "Harbour crew", kind: "group" } as never])
+  await seed.close()
+  const long = `Friday works; ${"we can bring the boards and the badges. ".repeat(5)}`
+  const reply = await run(
+    owner,
+    "actions",
+    "add",
+    "reply",
+    "--reason",
+    "they asked",
+    "--account",
+    "telegram:1",
+    "--target",
+    "msg:telegram/1/7/1",
+    "--payload",
+    JSON.stringify({ text: long }),
+  )
+  const shown = await run(owner, "actions", "show", reply.id)
+  expect(shown).toMatchObject({ verb: "reply", target_name: "Harbour crew", chat_name: "Harbour crew", text: long })
+  expect(shown.summary).toMatch(/^Reply Harbour crew: Friday works/)
+  expect(shown.summary.length).toBeLessThan(long.length)
+})

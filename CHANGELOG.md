@@ -6,6 +6,24 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **Actions carry the parts of their line**, so a reader can write it in its own language: `verb` (the kind, or
+  `create` for a findings batch), `target_name` (a project, person, task or the chat of a message, by name),
+  `chat_name` (for a message or chat target), `text` (the whole reply or title, never cut) and, for a findings
+  batch, `counts: { facts, tasks }`. `summary` now names the target instead of printing its reference.
+- **`tasks list parent:<key>`** lists a task's subtasks; `parent:none` and `parent:any`.
+
+### Fixed
+
+- **A findings batch can be confirmed after another batch of the same project was decided**; only a change in its
+  own cited sources refuses it.
+
+### Changed — may break callers
+
+- **`tasks update <key> --project <key>` refuses a subtask** (`task.is-subtask`, details `parent`) unless
+  `--parent none` detaches it in the same command. It used to drop the parent without saying so.
+
 ## 0.131.13 — 01.11.2026
 
 ### Fixed

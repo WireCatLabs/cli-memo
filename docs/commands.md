@@ -919,7 +919,7 @@ memo tasks update <task> [options]
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
 | `--json` | print JSON. |
 | `--agent <agent>` | a project task: the agent working on it, apart from its assignees; none clears it. |
-| `--project <project>` | a project task: move it to another project, by key or project:<id>; it takes a new key there, and the old key still finds it. |
+| `--project <project>` | a project task: move it to another project, by key or project:<id>; it takes a new key there, and the old key still finds it. A subtask moves only with --parent none. |
 | `--type <type>` | a project task's kind: bug, feature, chore. |
 | `--revision <n>` | refuse the write unless the task is still at this revision (task.stale, exit 3). |
 | `--status <state>` | a project task's state: open, todo, in_progress, done, dismissed; a closed one reopens. |

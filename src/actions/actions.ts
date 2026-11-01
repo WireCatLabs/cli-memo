@@ -1,5 +1,6 @@
 import { CliError } from "@wirecat/cli-base"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
+import { parseLocator } from "@wirecat/cli-core"
 import { queryTerms, termField } from "@wirecat/cli-core/cli"
 import { MEETING_FINDINGS_KIND } from "@wirecat/cli-core/meetings"
 import {
@@ -29,25 +30,50 @@ const clip = (text: string) => {
 
 const counted = (n: number, one: string) => `${n} ${one}${n === 1 ? "" : "s"}`
 
-/** What the action would do, and to what, in one line a person reads without opening its payload. */
-const summaryOf = (action: ProposedAction, targetName: string | null) => {
+const isBatch = (action: ProposedAction) =>
+  action.kind === EVIDENCE_FINDINGS_KIND || action.kind === MEETING_FINDINGS_KIND
+
+/**
+ * The parts a reader composes its own line from, in its own language: what it would do, to what by name, the
+ * payload's whole text, and how many facts and tasks a findings batch would create.
+ */
+const partsOf = (action: ProposedAction, targetName: string | null) => {
   const payload = (action.payload ?? {}) as { text?: unknown; title?: unknown; findings?: { kind?: unknown }[] }
-  const target = targetName ?? action.target
-  if (action.kind === EVIDENCE_FINDINGS_KIND || action.kind === MEETING_FINDINGS_KIND) {
+  if (isBatch(action)) {
     const findings = Array.isArray(payload.findings) ? payload.findings : []
     const facts = findings.filter((one) => one.kind === "fact").length
-    const made = [facts && counted(facts, "fact"), findings.length - facts && counted(findings.length - facts, "task")]
-    const what = made.filter(Boolean).join(" and ") || "nothing"
-    const word = action.kind === MEETING_FINDINGS_KIND ? "from" : action.target?.startsWith("project:") ? "in" : "about"
-    return `Create ${what}${target === null ? "" : ` ${word} ${target}`}`
+    return { verb: "create", targetName, text: null, counts: { facts, tasks: findings.length - facts } }
   }
-  const words = action.kind.replaceAll("_", " ")
   const text = [payload.text, payload.title].find((one): one is string => typeof one === "string" && one.trim() !== "")
+  return { verb: action.kind, targetName, text: text ?? null }
+}
+
+/** The same parts as one English line, for a terminal or an agent. */
+const summaryOf = (action: ProposedAction, parts: ReturnType<typeof partsOf>) => {
+  const target = parts.targetName ?? action.target
+  if ("counts" in parts && parts.counts) {
+    const { facts, tasks } = parts.counts
+    const what = [facts && counted(facts, "fact"), tasks && counted(tasks, "task")].filter(Boolean).join(" and ")
+    const word = action.kind === MEETING_FINDINGS_KIND ? "from" : action.target?.startsWith("project:") ? "in" : "about"
+    return `Create ${what || "nothing"}${target === null ? "" : ` ${word} ${target}`}`
+  }
+  const words = parts.verb.replaceAll("_", " ")
   return [
     `${words.charAt(0).toUpperCase()}${words.slice(1)}`,
     target === null ? "" : ` ${target}`,
-    text === undefined ? "" : `: ${clip(text)}`,
+    parts.text === null ? "" : `: ${clip(parts.text)}`,
   ].join("")
+}
+
+/** A message's or chat's reference names its chat; `undefined` for any other reference. */
+const chatOf = (reference: string) => {
+  if (!reference.startsWith("msg:") && !reference.startsWith("chat:")) return undefined
+  try {
+    const at = parseLocator(reference)
+    return { key: { provider: at.provider, account: at.account }, chat: at.chat }
+  } catch {
+    return undefined
+  }
 }
 
 /** The fingerprint a decision needs and, for an evidence batch, the one project its findings name. */
@@ -65,17 +91,29 @@ const batchOf = async (store: MessageStore, action: ProposedAction) => {
   return { fingerprint: null }
 }
 
-/** Project and person names by reference, read once for a whole answer. */
+/** What memo calls each target: a project, person, task, or the chat of a message; read once for a whole answer. */
 const targetNames = async (store: MessageStore, actions: readonly ProposedAction[]) => {
   const names = new Map<string, string>()
+  const chats = new Map<string, string>()
   if (actions.some((action) => action.target?.startsWith("project:")))
     for (const project of await store.knowledge.projects()) names.set(project.ref, project.name)
-  for (const target of new Set(actions.flatMap((action) => action.target ?? [])))
+  for (const target of new Set(actions.flatMap((action) => action.target ?? []))) {
     if (target.startsWith("person:")) {
       const person = await store.people.personByUid(target.slice(7))
       if (person?.name) names.set(target, person.name)
+    } else if (target.startsWith("task:")) {
+      const task = await store.tasks.details(target.slice(5)).catch(() => undefined)
+      if (task) names.set(target, task.title)
+    } else {
+      const chat = chatOf(target)
+      const title = chat && (await store.chats.chatTitle(chat.key, chat.chat).catch(() => null))
+      if (title) {
+        names.set(target, title)
+        chats.set(target, title)
+      }
     }
-  return names
+  }
+  return { names, chats }
 }
 
 /**
@@ -87,10 +125,8 @@ export const actionItems = async (
   actions: readonly ProposedAction[],
   { brief = false }: { brief?: boolean } = {},
 ) => {
-  const findings = (action: ProposedAction) =>
-    action.kind === EVIDENCE_FINDINGS_KIND || action.kind === MEETING_FINDINGS_KIND
-  const batches = await Promise.all(actions.map((action) => (findings(action) ? batchOf(store, action) : undefined)))
-  const names = await targetNames(store, actions)
+  const batches = await Promise.all(actions.map((action) => (isBatch(action) ? batchOf(store, action) : undefined)))
+  const { names, chats } = await targetNames(store, actions)
   for (const batch of batches)
     if (batch?.project && !names.has(batch.project))
       for (const project of await store.knowledge.projects()) names.set(project.ref, project.name)
@@ -100,9 +136,12 @@ export const actionItems = async (
       const project = batch?.project ?? (action.target?.startsWith("project:") ? action.target : null)
       const projectName = project === null ? null : (names.get(project) ?? null)
       const targetName = action.target === null ? null : (names.get(action.target) ?? null)
+      const parts = partsOf(action, targetName)
       return {
         ...action,
-        summary: summaryOf(action, targetName),
+        summary: summaryOf(action, parts),
+        ...parts,
+        chatName: action.target === null ? null : (chats.get(action.target) ?? null),
         project,
         projectName,
         ...(batch === undefined
