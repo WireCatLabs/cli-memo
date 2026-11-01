@@ -6,6 +6,18 @@ the API.
 
 ## Unreleased
 
+### Changed
+
+- **Mail ids and threads come from cli-core's `mailIds`, the function mail uses**, so memo and mail give one email one
+  id on every server. Ids already stored do not change; a reply whose In-Reply-To holds a name before the `<id>` now
+  joins its parent's thread, as in mail.
+
+### Fixed
+
+- **memo says when it leaves stored mail rules out**: a rule with a condition this memo does not know is named on
+  stderr with what it does not know, instead of being dropped silently.
+- **Rules are written by cli-core's `ruleInput`**, the one mail writes them with; memo's copy is gone.
+
 ## 0.131.6 — 01.11.2026
 
 ### Fixed

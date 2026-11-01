@@ -1,6 +1,5 @@
-import { createHash } from "node:crypto"
 import { CliError } from "@wirecat/cli-base"
-import { HEADER_FIELDS, headersOf, type Listed, labelName, type Searched } from "@wirecat/cli-core/mail"
+import { HEADER_FIELDS, headersOf, type Listed, labelName, mailIds, type Searched } from "@wirecat/cli-core/mail"
 import { type Himalaya, isThrottled, throttledError } from "./himalaya.js"
 
 /** The atoms and quoted strings of one parenthesised IMAP list, or undefined when it holds a literal. */
@@ -361,7 +360,6 @@ export const listImapMail = async (
   if (!validity)
     throw new CliError("invalid_response", "IMAP did not report UIDVALIDITY", { reason: "mail.invalid-imap" })
   const listed: Listed[] = []
-  const digest = (id: string) => `imap:${createHash("sha256").update(id).digest("hex")}`
   for (let start = 0; start < uids.length; start += FETCH_BATCH) {
     const batch = uids.slice(start, start + FETCH_BATCH)
     const before = listed.length
@@ -379,17 +377,12 @@ export const listImapMail = async (
       if (!uid || !internal || !batch.includes(uid))
         throw new CliError("invalid_response", "incomplete IMAP envelope", { reason: "mail.invalid-imap" })
       const unfolded = fields.replace(/\r?\n[ \t]+/g, " ")
-      const messageId = /^Message-ID:\s*(.+)$/im.exec(unfolded)?.[1]?.trim()
-      const refs = /^References:\s*(.+)$/im.exec(unfolded)?.[1]?.match(/<[^>]+>/g)
-      const parent = /^In-Reply-To:\s*(<[^>]+>)/im.exec(unfolded)?.[1]
-      const identity = messageId ?? `uid:${folder}:${validity}:${uid}`
       const flags = imapList(fields, "FLAGS")
       const size = /RFC822\.SIZE (\d+)/.exec(fields)?.[1]
       listed.push({
         uid,
         ...(size === undefined ? {} : { size: Number(size) }),
-        messageId: digest(identity),
-        threadId: digest(refs?.[0] ?? parent ?? identity),
+        ...mailIds({ head: fields, folder, validity, uid }),
         receivedAt: isoOf(internal),
         folder,
         headers: headersOf(unfolded),
