@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`"import": false` on a `mail.accounts` entry hands its import to the `mail` CLI.** `memo sync` and the timer skip
+  the account, `memo sync --source email:<name>` says the import is handed to `mail` (`meta.handed_to_mail` in
+  `--json`), and `memo mail inspect`, `rules`, `delete` and `restore` keep working on it. Memo still repairs HTML
+  text, scores senders and embeds the mail in the store for it; only the Himalaya header backfill stops.
+
 ### Removed
 
 - **`memo mail status` is removed.** It counted only the Himalaya import, while `mail <profile> status` counts the

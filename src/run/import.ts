@@ -15,7 +15,7 @@ import { repairHtmlText } from "../mail/repair.js"
 import { rulesOf } from "../mail/rule-store.js"
 import { type ImportResult, importMail } from "../mail/sync.js"
 import { boundFolders, UNBOUND, unboundReason } from "../notes/bound.js"
-import { embedNoteChunks, type NoteChunksEmbedded } from "../notes/embed.js"
+import { embedMailChunks, embedNoteChunks, type NoteChunksEmbedded } from "../notes/embed.js"
 import { noteFolders } from "../notes/folders.js"
 import { importNotes, type NotesImport } from "../notes/import.js"
 import { collect, positive } from "../options.js"
@@ -254,17 +254,20 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     const window = dateWindow({ sinceTime: options.sinceTime })
     const since = new Date(window.since ?? Date.now() - MAIL_WINDOW_DAYS * DAY)
     // An archive file is read whole each run, so only a sync that names it reads it.
-    const accounts = synced.has("mail")
+    const wanted = synced.has("mail")
       ? mailAccounts(config.mail?.accounts ?? [], named).filter(
           (account) => account.mode !== "mbox" || named !== undefined,
         )
       : []
+    const accounts = wanted.filter((account) => account.import !== false)
+    const handed = wanted.filter((account) => account.import === false)
     const run: ImportRun = { notes: [], mail: [], failed: [] }
     const startedAt = Date.now()
     const answer = () =>
       itemAnswer(run, {
         meta: {
           ...(accounts.length ? { accounts: accounts.map(({ name }) => name) } : {}),
+          ...(named !== undefined && handed.length ? { handed_to_mail: handed.map(({ name }) => name) } : {}),
           ...window.meta,
           complete: run.failed.length === 0,
           ...(run.failed.length ? { issues: issuesOf(run.failed) } : {}),
@@ -355,6 +358,36 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
                   `${scored.looked} domain ages looked up` +
                   (scored.failed ? `, ${scored.failed} failed` : ""),
               )
+          })
+        // Needs no Himalaya, only the mail already in the store, which the `mail` CLI fills. Header backfill needs it.
+        for (const account of handed) {
+          if (named !== undefined)
+            streams.diagnostic(
+              `mail ${account.name}: import is handed to the mail CLI (import: false in mail.accounts), memo did not read it`,
+            )
+          await attempt(`mail ${account.name}`, async () => {
+            const rules = await rulesOf(store, account, env, streams.diagnostic)
+            const repaired = await repairHtmlText(store, account.address)
+            if (repaired) streams.diagnostic(`mail ${account.name}: ${repaired} emails' HTML text read again as text`)
+            halt()
+            const scored = await scoreSenders(
+              store,
+              account.address,
+              { known: () => knownAges(env), lookUp: (domains) => lookUpAges(env, domains) },
+              Date.now(),
+              rules,
+            )
+            if (scored)
+              streams.diagnostic(
+                `mail ${account.name}: ${scored.scored} senders scored, ${scored.demoted} ranked lower, ` +
+                  `${scored.looked} domain ages looked up` +
+                  (scored.failed ? `, ${scored.failed} failed` : ""),
+              )
+          })
+        }
+        if (handed.some((account) => account.embed !== false))
+          await attempt("mail by meaning", async () => {
+            await embedMailChunks(store, { embed: options.embed, env })
           })
       } finally {
         await store.close()

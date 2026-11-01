@@ -43,9 +43,15 @@ search words are in [Find your mail](#find-your-mail) and [Search](search.md#sea
 
 ## The memo mail commands
 
-`memo mail inspect`, `rules`, `delete`, `restore` and `status` stay for now. They take an account from Memo's
+`memo mail inspect`, `rules`, `delete` and `restore` stay for now. They take an account from Memo's
 `mail.accounts` list, which `memo mail add` fills from a Himalaya account, so they do not work for an account that only
 `mail` added.
+
+When `mail` syncs an account that is also in `mail.accounts`, set `"import": false` on it, for example
+`{ "name": "personal", "address": "you@gmail.com", "import": false }`. `memo sync` and the timer then skip its
+Himalaya import, and `memo sync --source email:personal` says the import is handed to `mail`. The four commands above
+keep working, and each sync still repairs HTML text, scores senders and embeds the mail already in the store. Only the
+header backfill needs Himalaya, so it stops.
 
 | Command | What it needs | What it does |
 |---|---|---|
