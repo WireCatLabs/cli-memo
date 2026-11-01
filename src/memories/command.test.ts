@@ -192,3 +192,45 @@ it("gives a new memory or fact a new number after the newest one was forgotten",
   ).not.toBe(fact.ref)
   await expect(owner("memories", "show", newest.ref)).rejects.toMatchObject({ code: "not_found" })
 })
+
+it("keeps a memory in a project, by key, names it on memories and facts, filters by it, and moves it", async () => {
+  const { owner, env } = setUp()
+  const store = await openStore({ env })
+  await store.knowledge.addProject({ name: "Project Harbour", key: "HRB", type: "work" })
+  await store.knowledge.addProject({ name: "Lighthouse", key: "LHT", type: "work" })
+  await store.close()
+  const note = await owner("notes", "add", "Kai Sample: Fridays work best")
+  const add = (...extra: string[]) =>
+    owner(
+      "memories",
+      "add",
+      "Kai prefers Fridays",
+      "--kind",
+      "preference",
+      "--scope",
+      "work",
+      "--evidence",
+      note.ref,
+      ...extra,
+    )
+
+  const harbour = await add("--project", "HRB")
+  const loose = await add()
+  expect(harbour).toMatchObject({ project: "project:1", project_name: "Project Harbour" })
+  expect(loose).toMatchObject({ project: null, project_name: null })
+  expect((await owner("memories", "list", "project:HRB")).items).toMatchObject([{ ref: harbour.ref }])
+  expect((await owner("memories", "show", harbour.ref)).project_name).toBe("Project Harbour")
+
+  expect(await owner("memories", "update", loose.ref, "--project", "LHT")).toMatchObject({
+    project: "project:2",
+    project_name: "Lighthouse",
+  })
+  expect(await owner("memories", "update", harbour.ref, "--project", "none")).toMatchObject({ project: null })
+  await expect(owner("memories", "update", harbour.ref, "--project", "NOPE")).rejects.toMatchObject({
+    code: "not_found",
+  })
+
+  const fact = await owner("facts", "add", "Harbour moved to Fridays", "--kind", "decision", "--project", "HRB")
+  expect(fact).toMatchObject({ project: "project:1", project_name: "Project Harbour" })
+  expect((await owner("facts", "list", "project:HRB")).items).toMatchObject([{ project_name: "Project Harbour" }])
+})

@@ -2,6 +2,7 @@ import { type Predicate, parseLucene, type QueryRegistry, queryError } from "@wi
 import { LIST_QUERY_GUIDE, queryTerms, termField, typedQuery } from "@wirecat/cli-core/cli"
 import { MEMORY_KINDS, MEMORY_SCOPES, MEMORY_STATUSES, type Memory, type MessageStore } from "@wirecat/cli-core/store"
 import { pageOf } from "../page.js"
+import { canonicalProject } from "../vocabulary/project.js"
 
 export const MEMORY_QUERY = {
   entity: "memory",
@@ -11,6 +12,7 @@ export const MEMORY_QUERY = {
     termField("status", "enum", "status:proposed", { values: MEMORY_STATUSES }),
     termField("scope", "enum", "scope:work", { values: MEMORY_SCOPES }),
     termField("subject", "ref", 'subject:"person:42"'),
+    termField("project", "kw", "project:SYH"),
   ],
 } as const satisfies QueryRegistry
 
@@ -23,6 +25,8 @@ export const memoryItem = ({ body, ...memory }: Memory) => ({
   subject: memory.subject,
   subjectName: memory.subjectName,
   subjectIsOwner: memory.subjectIsOwner,
+  project: memory.project,
+  projectName: memory.projectName,
   author: memory.author,
   model: memory.model,
   confidence: memory.confidence,
@@ -36,13 +40,19 @@ export const memoryItem = ({ body, ...memory }: Memory) => ({
 })
 
 /** Memories the store filters by the query's terms; CLI and MCP list through it. */
-export const listMemories = (store: MessageStore, query: readonly string[] | string | undefined, limit?: number) => {
+export const listMemories = async (
+  store: MessageStore,
+  query: readonly string[] | string | undefined,
+  limit?: number,
+) => {
   const terms = queryTerms(query, MEMORY_QUERY, "memories list")
+  const project = terms.get("project") as string | undefined
   const filters = {
     ...(terms.has("kind") ? { kind: terms.get("kind") as Memory["kind"] } : {}),
     ...(terms.has("status") ? { status: terms.get("status") as Memory["status"] } : {}),
     ...(terms.has("scope") ? { scope: terms.get("scope") as Memory["scope"] } : {}),
     ...(terms.has("subject") ? { subject: terms.get("subject") as string } : {}),
+    ...(project === undefined ? {} : { project: await canonicalProject(store, project) }),
   }
   return pageOf("memories list", limit, async (most) =>
     (await store.memories.list({ ...filters, limit: most })).map(memoryItem),

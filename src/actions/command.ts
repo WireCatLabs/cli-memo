@@ -7,7 +7,7 @@ import { answers, itemAnswer } from "../answer.js"
 import { authorOf, byOption } from "../author.js"
 import { positive } from "../options.js"
 import { type WriteOptions, writeAccount, writeOptions } from "../store/source-list.js"
-import { ACTION_QUERY, listActions, type NewProposal, propose } from "./actions.js"
+import { ACTION_QUERY, listActions, type NewProposal, propose, showAction } from "./actions.js"
 
 export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { run } = answers(program, streams, env)
@@ -50,17 +50,18 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     ACTION_QUERY,
   )
     .option("--limit <n>", "most actions, up to 500", positive, 100)
+    .option("--brief", "without each findings batch's cited sources")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((words: string[], options: { limit: number; json?: boolean }) =>
-      run(options.json, (store) => listActions(store, words, options.limit)),
+    .action((words: string[], options: { limit: number; brief?: boolean; json?: boolean }) =>
+      run(options.json, (store) => listActions(store, words, options.limit, { brief: options.brief === true })),
     )
 
   annotate(actions.command("show"), { effects: LOCAL_READ })
-    .description("one proposed action, with its payload")
+    .description("one proposed action; a findings batch with its fingerprint and sources")
     .argument("<id>", "the action's id, as actions list gives it")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((id: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(await store.proposedActions.get(id))),
+      run(options.json, async (store) => itemAnswer(await showAction(store, id))),
     )
 
   annotate(actions.command("confirm"), { effects: LOCAL_WRITE })

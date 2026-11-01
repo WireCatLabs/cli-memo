@@ -156,6 +156,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "memories add": ["memo memories add 'Kai prefers Friday meetings' --kind preference --scope work --evidence note:12"],
   "memories list": ["memo memories list status:proposed kind:preference"],
   "memories show": ["memo memories show memory:4 --sources"],
+  "memories update": ["memo memories update memory:4 --project SYH", "memo memories update memory:4 --project none"],
   "memories confirm": ["memo memories confirm memory:4"],
   "memories invalidate": ["memo memories invalidate memory:4"],
   "memories remove": ["memo memories remove memory:4"],
