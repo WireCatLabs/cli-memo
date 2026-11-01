@@ -6,7 +6,7 @@ the API.
 
 ## Unreleased
 
-### Changed
+### Fixed
 
 - **Built on cli-core 0.535.0.** Message search hits now list `attachments.name` among their untrusted fields. The
   security page says memo never changes a mailbox.
