@@ -4,21 +4,12 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
-## 0.131.1 — 01.11.2026
-
-### Fixed
-
-- **The docs say that the `mail` CLI brings mail in, and that the Himalaya import will be removed in a later version.**
-  `mail <profile> session start` and `mail <profile> sync` fill the shared store; memo searches and shows that mail.
-  The Himalaya import and `memo mail inspect`, `rules`, `delete`, `restore` and `status` still work and are unchanged.
-  Docs and help text only: `memo mail status` now says it counts only the Himalaya import and points to
-  `mail <profile> status`. The docs also say that mail synced by `mail` has no attachment text, that `memo mail delete`
-  moves Gmail mail to Trash, and write `memo mail delete`, `memo mail restore` and `memo mail inspect` in full.
+## Unreleased
 
 ### Added
 
 - **Project tasks have five states: `open`, `todo`, `in_progress`, `done`, `dismissed`** (WireCat Desktop's Tasks
-  page, cli-core 0.512.0). `tasks update --status` moves a project task to any of them, back from `done` or
+  page, cli-core 0.513.0). `tasks update --status` moves a project task to any of them, back from `done` or
   `dismissed` too, and each move is kept in the task's history. `todo` and `in_progress` count as open work for
   readiness, claims and the default list.
 - **`tasks list` with `project:` takes a full query**: `project:*` for every project, a project by its name or alias,
@@ -52,6 +43,17 @@ the API.
   recorded the owner.
 - **A project's list says `has_more` at 500 tasks**; it said there were no more.
 - **The README names `tasks links`**, not `relations`.
+
+## 0.131.1 — 01.11.2026
+
+### Fixed
+
+- **The docs say that the `mail` CLI brings mail in, and that the Himalaya import will be removed in a later version.**
+  `mail <profile> session start` and `mail <profile> sync` fill the shared store; memo searches and shows that mail.
+  The Himalaya import and `memo mail inspect`, `rules`, `delete`, `restore` and `status` still work and are unchanged.
+  Docs and help text only: `memo mail status` now says it counts only the Himalaya import and points to
+  `mail <profile> status`. The docs also say that mail synced by `mail` has no attachment text, that `memo mail delete`
+  moves Gmail mail to Trash, and write `memo mail delete`, `memo mail restore` and `memo mail inspect` in full.
 
 ## 0.131.0 — 31.10.2026
 
