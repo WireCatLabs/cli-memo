@@ -1,7 +1,7 @@
 import { CliError, isCliError } from "@wirecat/cli-base"
 import { parseLucene, type QueryNode } from "@wirecat/cli-base/query"
 import { parseLocator } from "@wirecat/cli-core"
-import { demotedSenders } from "@wirecat/cli-core/mail"
+import { demotedSenders, lowerSuspicious, searchMail } from "@wirecat/cli-core/mail"
 import {
   meaningLane,
   type SearchAllFound,
@@ -204,14 +204,6 @@ export interface QueryInput {
   plainOrder?: boolean
 }
 
-const LOWERED_SPARE = 20
-
-/** Mail from senders with signs of fraud after the rest of the page, each part in the order it had. */
-export const lowerSuspicious = <T>(items: readonly T[], suspicious: (item: T) => boolean): T[] => [
-  ...items.filter((item) => !suspicious(item)),
-  ...items.filter(suspicious),
-]
-
 interface EverywhereExtras {
   tasks: (Awaited<ReturnType<typeof taskPage>>["items"][number] & { heldBy: AccountKey })[]
   tasksIncomplete: boolean
@@ -298,26 +290,30 @@ export const searchKind = async (
       "not_found",
       kind === "mail" ? "no imported mail; run memo sync --only mail" : "no stored messenger messages",
     )
-  const lower = kind === "mail" && !plainOrder
-  const found = await searchStore(
+  const scope = {
+    ...(accounts === undefined ? {} : { accounts }),
+    ...(exact ? { exact: true } : {}),
+    ...(timezone === undefined ? {} : { timezone }),
+  }
+  if (kind === "mail")
+    return searchMail(
+      store,
+      MEMO,
+      {
+        text,
+        limit,
+        ...scope,
+        ...(account === undefined ? {} : { mailAccount: account }),
+        ...(plainOrder ? { plainOrder: true } : {}),
+      },
+      { app: APP },
+    )
+  return searchStore(
     store,
     MEMO,
-    {
-      text,
-      kind,
-      ...(kind === "messages" && !hasSource(parseLucene(text).root) ? { source: "all" as const } : {}),
-      // A few more than asked, so mail moved down makes room for the next best rather than an empty slot.
-      limit: lower ? limit + LOWERED_SPARE : limit,
-      ...(account === undefined ? {} : { mailAccount: account }),
-      ...(accounts === undefined ? {} : { accounts }),
-      ...(exact ? { exact: true } : {}),
-      ...(timezone === undefined ? {} : { timezone }),
-    },
+    { text, kind, ...(hasSource(parseLucene(text).root) ? {} : { source: "all" as const }), limit, ...scope },
     { app: APP },
   )
-  if (!lower) return found
-  const items = lowerSuspicious(found.items, (item) => item.email?.senderScore?.demoted === true)
-  return { ...found, items: items.slice(0, limit), hasMore: found.hasMore || items.length > limit }
 }
 
 const keyRefs = async (store: MessageStore, project: string) =>
