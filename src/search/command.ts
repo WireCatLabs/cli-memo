@@ -1,7 +1,8 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
 import { LOCAL_READ, sharedCommandTemplate, shownOf } from "@wirecat/cli-core/cli"
-import type { SearchedResource, SearchFound } from "@wirecat/cli-core/services"
+import { hitText } from "@wirecat/cli-core/mail"
+import type { SearchedResource } from "@wirecat/cli-core/services"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, withStore } from "../answer.js"
 import { APP } from "../app.js"
@@ -27,35 +28,6 @@ export type Level = "brief" | "full"
 const levelOf = ({ brief, full }: { brief?: boolean; full?: boolean }): Level | undefined => {
   if (brief && full) throw new CliError("validation_error", "--brief and --full ask for opposite things — pick one")
   return brief ? "brief" : full ? "full" : undefined
-}
-
-const line = (text: string) => text.replace(/\s+/g, " ").trim()
-
-/**
- * A found message or email for a reader: its reference first, then when and from whom, who else it went to and
- * where it is filed, its subject or chat, and an excerpt — the whole text only with --full.
- */
-export const found = (item: SearchFound["items"][number], level: Level | undefined): string => {
-  const mail = item.email
-  const names = (people: { name: string | null; address: string }[]) =>
-    people.map(({ name, address }) => line(name ?? address)).join(", ")
-  const between = mail
-    ? [
-        mail.to.length ? `to ${names(mail.to)}` : "",
-        mail.cc.length ? `cc ${names(mail.cc)}` : "",
-        mail.labels.join(", "),
-      ]
-        .filter(Boolean)
-        .join(" · ")
-    : ""
-  const who = line(item.senderName ?? item.senderId ?? "unknown")
-  const lines = [
-    item.locator,
-    `  ${item.timestamp}  ${who}${level === "brief" || !between ? "" : `  ${between}`}`,
-    ...(level === "brief" || !item.chatTitle ? [] : [`  ${line(item.chatTitle)}`]),
-    `  ${level === "full" ? item.text.replace(/\n/g, "\n  ") : line(item.excerpt ?? item.text)}`,
-  ]
-  return lines.join("\n")
 }
 
 const PROJECT_HELP =
@@ -209,7 +181,7 @@ Mail from senders with signs of fraud (memo mail inspect) comes after the rest o
           options.json,
           kindAnswer(kind, answer, options.limit, level, words.join(" ")),
           [
-            ...answer.items.map((item) => found(item, level)),
+            ...answer.items.map((item) => hitText(item, level)),
             ...[shownOf(answer.items.length, 0, answer.total)].filter((line) => line !== undefined),
           ].join("\n"),
         )

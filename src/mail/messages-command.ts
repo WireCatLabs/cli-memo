@@ -2,57 +2,11 @@ import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { formatLocator, parseLocator } from "@wirecat/cli-core"
 import { LOCAL_READ } from "@wirecat/cli-core/cli"
-import { readMail } from "@wirecat/cli-core/services"
+import { ATTACHMENT_CHARS, attachmentsText, hitText, showMail } from "@wirecat/cli-core/mail"
 import type { Command } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { whole } from "../options.js"
 import { atDetail } from "../output.js"
-import { found } from "../search/command.js"
-
-/** Enough for a bill's amounts and dates; `--full` gives the rest. */
-export const ATTACHMENT_CHARS = 4000
-
-type Shown = Awaited<ReturnType<typeof readMail>>[number]
-
-interface StoredFile {
-  text: string | null
-  extraction: string | null
-  extractionError: string | null
-}
-
-/** The HTML and AMP alternatives of the body: markup, not attachments, and thousands of characters each. */
-const isBodyAlternative = (attachment: { mime?: string | null }) =>
-  attachment.mime === "text/html" || attachment.mime === "text/x-amp-html"
-
-/** The extracted text of each attachment, next to the name the email lists; a file without text says why. */
-export const withAttachmentText = (hit: Shown, files: readonly StoredFile[], full: boolean): Shown => ({
-  ...hit,
-  attachments: (hit.attachments ?? [])
-    .map((attachment, at) => ({ attachment, file: files[at] }))
-    .filter(({ attachment }) => full || !isBodyAlternative(attachment))
-    .map(({ attachment, file }) => {
-      const text = file?.text ?? ""
-      if (!text) return { ...attachment, extraction: file?.extractionError ?? file?.extraction ?? "none" }
-      const cut = !full && text.length > ATTACHMENT_CHARS
-      return {
-        ...attachment,
-        text: cut ? text.slice(0, ATTACHMENT_CHARS) : text,
-        text_chars: text.length,
-        ...(cut ? { text_cut: true } : {}),
-      }
-    }),
-})
-
-const attachmentText = (hit: Shown): string =>
-  (hit.attachments ?? [])
-    .map((attachment) => {
-      const file = attachment as typeof attachment & { text?: string; text_chars?: number; extraction?: string }
-      const name = file.name ?? file.kind
-      if (file.text === undefined) return `  ── attachment ${name}: no text (${file.extraction}) ──`
-      const cut = file.text.length < (file.text_chars ?? 0) ? `, first ${file.text.length} of ${file.text_chars}` : ""
-      return `  ── attachment ${name} (${file.text_chars} characters${cut}) ──\n  ${file.text.replace(/\n/g, "\n  ")}`
-    })
-    .join("\n")
 
 export const messagesCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
@@ -91,24 +45,15 @@ export const messagesCommand = (program: Command, streams: Streams, env: NodeJS.
         )
         return
       }
-      const emails = await withStore(env, async (store) => {
-        const shown = await readMail(store, reference, { before: options.beforeN, after: options.afterN })
-        const account = await store.accounts.storedAccount({ provider: "email", account: locator.account })
-        if (!account) return shown
-        return Promise.all(
-          shown.map(async (hit) => {
-            if (!hit.attachments?.length) return hit
-            const email = await store.mail.email(account.id, hit.id)
-            return withAttachmentText(hit, email?.attachments ?? [], options.full === true)
-          }),
-        )
-      })
+      const emails = await withStore(env, (store) =>
+        showMail(store, reference, { before: options.beforeN, after: options.afterN, full: options.full === true }),
+      )
       print(
         options.json,
         options.beforeN || options.afterN
           ? wholeList("messages show", atDetail(emails))
           : itemAnswer(atDetail(emails[0])),
-        emails.map((email) => [found(email, "full"), attachmentText(email)].filter(Boolean).join("\n")).join("\n\n"),
+        emails.map((email) => [hitText(email, "full"), attachmentsText(email)].filter(Boolean).join("\n")).join("\n\n"),
       )
     })
 }
