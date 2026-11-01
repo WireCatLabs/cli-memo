@@ -1,6 +1,15 @@
 import type { Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { dateOrNone, LOCAL_READ, LOCAL_WRITE, overrideSharedContract, withQuery } from "@wirecat/cli-core/cli"
+import type { QueryRegistry } from "@wirecat/cli-base/query"
+import {
+  dateOrNone,
+  LOCAL_READ,
+  LOCAL_WRITE,
+  listQuery,
+  overrideSharedContract,
+  typedQuery,
+  withQuery,
+} from "@wirecat/cli-core/cli"
 import { closedStateOf } from "@wirecat/cli-core/services"
 import {
   PRIORITY_LABELS,
@@ -11,6 +20,7 @@ import {
   TASK_TYPES,
   type TaskRole,
   type TaskState,
+  WORK_TASK_TYPES,
 } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
@@ -26,6 +36,7 @@ import {
   addTask,
   assignTask,
   closeTask,
+  commentTask,
   moveTask,
   taskHistory,
   type UpdateOptions,
@@ -109,6 +120,31 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .action(async (words: string[], options: { json?: boolean }) => {
       await withStore(env, async (store) => {
         print(options.json, itemAnswer(await countTasks(store, words)))
+      })
+    })
+  const comments = group.command("comments").description("what people and agents wrote on a task")
+  annotate(comments.command("add"), { effects: LOCAL_WRITE })
+    .description("comment on a task, in your name or the agent's that runs memo")
+    .argument("<id>", "the task's id or key")
+    .argument("<text...>", "what to say, in Markdown")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .action(async (id: string, words: string[], options: { json?: boolean }) => {
+      await withStore(env, async (store) => {
+        print(options.json, itemAnswer(await commentTask(store, env, id, words.join(" "))))
+      })
+    })
+  const commentQuery = { entity: "task_comment", backend: "native", fields: [] } as const satisfies QueryRegistry
+  withQuery(
+    annotate(comments.command("list"), { effects: LOCAL_READ })
+      .description("a task's comments, oldest first, with who wrote each and when")
+      .argument("<id>", "the task's id or key"),
+    commentQuery,
+  )
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .action(async (id: string, words: string[], options: { json?: boolean }) => {
+      listQuery(typedQuery(words), commentQuery, "tasks comments list")
+      await withStore(env, async (store) => {
+        print(options.json, wholeList("tasks comments list", await store.tasks.comments(id)))
       })
     })
   annotate(group.command("history"), { effects: LOCAL_READ, output: { entity: "task_event" } })
@@ -204,6 +240,12 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
           "update stored tasks: source edits name --account; priority, parent and status apply to project tasks",
         )
         .option("--agent <agent>", "a project task: the agent working on it, apart from its assignees; none clears it")
+        .option(
+          "--project <project>",
+          "a project task: move it to another project, by key or project:<id>; it takes a new key there, and the " +
+            "old key still finds it",
+        )
+        .option("--type <type>", `a project task's kind: ${WORK_TASK_TYPES.join(", ")}`, oneOf(WORK_TASK_TYPES))
         .option("--revision <n>", REVISION_HELP, revisionOf)
         .option(
           "--status <state>",

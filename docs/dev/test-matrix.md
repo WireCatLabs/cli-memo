@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**578 ✅ · 0 ⛔ · 93 ❌** — 150 commands, 521 options.
+**584 ✅ · 0 ⛔ · 93 ❌** — 152 commands, 525 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -180,6 +180,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tasks list` | `--cursor` | ✅ |  |
 | `tasks counts` |  | ✅ |  |
 | `tasks counts` | `--json` | ✅ |  |
+| `tasks comments add` |  | ✅ |  |
+| `tasks comments add` | `--json` | ✅ |  |
+| `tasks comments list` |  | ✅ |  |
+| `tasks comments list` | `--json` | ✅ |  |
 | `tasks history` |  | ✅ |  |
 | `tasks history` | `--json` | ✅ |  |
 | `tasks close` |  | ✅ |  |
@@ -219,6 +223,8 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tasks update` | `--account` | ✅ |  |
 | `tasks update` | `--json` | ✅ |  |
 | `tasks update` | `--agent` | ✅ |  |
+| `tasks update` | `--project` | ✅ |  |
+| `tasks update` | `--type` | ✅ |  |
 | `tasks update` | `--revision` | ✅ |  |
 | `tasks update` | `--status` | ✅ |  |
 | `tasks show` |  | ✅ |  |

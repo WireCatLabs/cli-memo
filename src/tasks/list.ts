@@ -81,6 +81,7 @@ const taskItem = (task: TaskDetails, extra: { held?: HeldTask; readiness?: Readi
     claimed_by: task.claimedBy,
     claimed_until: task.claimedUntil,
     ...(readiness ? { assignments: task.assignments, ready: readiness.ready, blocked_by: readiness.blockers } : {}),
+    created_by: task.createdBy,
     created_at: task.createdAt,
     updated_at: task.updatedAt,
   }

@@ -6,6 +6,19 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`tasks update <id> --project <key>`** moves a project task to another project. It takes the next key there
+  and the answer gives the new `key`, `id` and `ref`; the old key still finds the task.
+  A subtask leaves its parent; a task with subtasks is refused (`task.has-subtasks`).
+- **`tasks update <id> --type bug|feature|chore`** changes a project task's kind.
+- **Tasks say who added them**: `created_by` (`{ type, id, name, owner }`) on `tasks add`, `list`, `show` and every
+  task answer. A task added over MCP or from an agent's terminal is the agent's, also when it comes from a message
+  or note; memo recorded the owner there.
+- **Task comments**: `tasks comments add <id> <text...>` comments in the owner's or the agent's name, over MCP too;
+  `tasks comments list <id>` lists `ref`, `text`, `author` and `at`, oldest first.
+- **`due:tomorrow`** in task queries, and in any other time field.
+
 ## 0.131.10 — 01.11.2026
 
 ### Fixed

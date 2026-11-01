@@ -90,6 +90,8 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   ],
   "tasks counts": ["memo tasks counts project:* --json"],
   "tasks history": ["memo tasks history HRB-1 --json"],
+  "tasks comments add": ["memo tasks comments add HRB-1 Booked the hall for Friday"],
+  "tasks comments list": ["memo tasks comments list HRB-1 --json"],
   "tasks move": ["memo tasks move HRB-3 --status in_progress --before HRB-1 --revision 4"],
   "people list": ["memo people list --json"],
   "people add": ["memo people add Lena Example"],

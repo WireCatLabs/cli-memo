@@ -122,15 +122,17 @@ const addFromSource = async (store: MessageStore, env: NodeJS.ProcessEnv, source
     (await heldMessage(store, key, parsed.message, parsed.chat)) === undefined
   )
     throw new CliError("not_found", "the task source is unavailable or deleted")
+  const author = authorOf(env)
   const answer = await tasksService(storeOnlyDeps(store, key, { app: APP, env })).add(
     source,
     type as Exclude<TaskType, WorkTaskType>,
-    "owner",
+    author === "owner" ? "owner" : "agent",
     undefined,
     {
       ...(options.into === undefined ? {} : { attach: options.into }),
       ...(options.new ? { new: true } : {}),
     },
+    author,
   )
   const fields = fieldsOf(options)
   if (Object.keys(fields).length === 0 && !options.assignee?.length) return answer
@@ -180,6 +182,9 @@ export type UpdateOptions = AccountScope &
     /** `none` clears it. */
     agent?: string
     revision?: number
+    /** Another project, by key or `project:<id>`. */
+    project?: string
+    type?: TaskType
   }
 
 /**
@@ -197,11 +202,14 @@ export const updateTask = async (store: MessageStore, env: NodeJS.ProcessEnv, id
     options.category === undefined &&
     options.assignee === undefined &&
     options.status === undefined &&
-    options.agent === undefined
+    options.agent === undefined &&
+    options.project === undefined &&
+    options.type === undefined
   )
     throw new CliError(
       "validation_error",
-      "give --title, --description, --priority, --parent, --due, --remind-time, --category, --assignee, --status or --agent",
+      "give --title, --description, --priority, --parent, --due, --remind-time, --category, --assignee, --status, " +
+        "--agent, --project or --type",
     )
   if ((await store.tasks.get(id)) === undefined) {
     if (options.category !== undefined || options.assignee !== undefined)
@@ -216,15 +224,24 @@ export const updateTask = async (store: MessageStore, env: NodeJS.ProcessEnv, id
         ...times,
         ...(options.status === undefined ? {} : { status: options.status }),
         ...(options.agent === undefined ? {} : { agent: options.agent === "none" ? null : options.agent }),
+        ...(options.project === undefined ? {} : { project: await canonicalProject(store, options.project) }),
+        ...(options.type === undefined ? {} : { type: options.type as WorkTaskType }),
       },
       authorOf(env),
       checkOf(options.revision),
     )
   }
-  if (options.status !== undefined || options.agent !== undefined || options.revision !== undefined)
+  if (
+    options.status !== undefined ||
+    options.agent !== undefined ||
+    options.revision !== undefined ||
+    options.project !== undefined ||
+    options.type !== undefined
+  )
     throw new CliError(
       "validation_error",
-      "--status, --agent and --revision are for a project task; close a task from a message with tasks close",
+      "--status, --agent, --revision, --project and --type are for a project task; close a task from a message with " +
+        "tasks close",
     )
   if (options.priority !== undefined || options.parent !== undefined)
     throw new CliError("validation_error", "--priority and --parent are for a task in a project")
@@ -275,6 +292,9 @@ export const moveTask = (
 }
 
 /** Who changed what and when, oldest first; `by` names the person or agent as the store knows it now. */
+export const commentTask = (store: MessageStore, env: NodeJS.ProcessEnv, id: string, text: string) =>
+  store.tasks.comment(id, text, authorOf(env))
+
 export const taskHistory = async (store: MessageStore, id: string) => {
   const owner = (await store.people.owner())?.uid
   return (await store.tasks.events(id)).map((event) => ({
