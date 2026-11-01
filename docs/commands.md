@@ -2160,6 +2160,7 @@ memo memories add <text> [options]
 | `--scope <scope>` | personal or work. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
 | `--subject <ref>` | what it is about, as a reference. |
+| `--project <project>` | the project it belongs to: its key or project:<id>. |
 | `--supersedes <ref>` | yours only: the memory this one corrects; it stays, marked superseded. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
@@ -2208,6 +2209,29 @@ memo memories show <ref> [options]
 **Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 12 more; every field: memo commands info memories show
 
 **Example:** `memo memories show memory:4 --sources`
+
+### `memo memories update`
+
+move a memory to another project, or to none
+
+This command changes the local store or your files.
+
+```sh
+memo memories update <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | memory:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--project <project>` | the project's key or project:<id>; none takes it out of its project. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 12 more; every field: memo commands info memories update
+
+**Example:** `memo memories update memory:4 --project SYH`, `memo memories update memory:4 --project none`
 
 ### `memo memories confirm`
 
@@ -2766,6 +2790,7 @@ memo actions list [query] [options]
 | Option | What it does |
 |---|---|
 | `--limit <n>` | most actions, up to 500. Default: `100`. |
+| `--brief` | without each findings batch's cited sources. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** proposed actions, newest first
@@ -2774,7 +2799,7 @@ memo actions list [query] [options]
 
 ### `memo actions show`
 
-one proposed action, with its payload
+one proposed action; a findings batch with its fingerprint and sources
 
 ```sh
 memo actions show <id> [options]
@@ -2788,7 +2813,7 @@ memo actions show <id> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** one proposed action, with its payload
+**Returns:** one proposed action; a findings batch with its fingerprint and sources
 
 **Example:** `memo actions show 5`
 
