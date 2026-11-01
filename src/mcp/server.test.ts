@@ -526,7 +526,6 @@ it("keeps owner operation defaults denied under broader allow keys", async () =>
       "projects annotations restore",
       "folders add",
       "folders update",
-      "mail rules import",
     ])
       expect(items.find((item) => item.command === name)?.availability.available).toBe(false)
   } finally {

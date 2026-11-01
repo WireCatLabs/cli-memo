@@ -3,7 +3,7 @@
 This page helps you bring your email into Memo, so mail sits beside your notes and messages in
 search, in a person's context and in the sources your agent reads. The way in is the separate
 [mail](https://github.com/WireCatLabs/mail-cli) program: `mail` copies your mailbox into the shared WireCat store, and
-Memo searches and shows what is there. `mail` only reads your mailbox. Memo never sends mail.
+Memo searches and shows what is there. Memo never changes your mailbox or sends mail.
 
 Memo can still import mail through Himalaya. That older path works for now and will be removed in a later version;
 it is described in [Older import through Himalaya](#older-import-through-himalaya-legacy).
@@ -43,24 +43,28 @@ search words are in [Find your mail](#find-your-mail) and [Search](search.md#sea
 
 ## The memo mail commands
 
-`memo mail inspect`, `rules`, `delete` and `restore` stay for now. They take an account from Memo's
-`mail.accounts` list, which `memo mail add` fills from a Himalaya account, so they do not work for an account that only
-`mail` added.
+`memo mail inspect` stays. It takes an account from Memo's `mail.accounts` list, which `memo mail add` fills from a
+Himalaya account, so it does not work for an account that only `mail` added.
 
 When `mail` syncs an account that is also in `mail.accounts`, set `"import": false` on it, for example
 `{ "name": "personal", "address": "you@gmail.com", "import": false }`. `memo sync` and the timer then skip its
-Himalaya import, and `memo sync --source email:personal` says the import is handed to `mail`. The four commands above
-keep working, and each sync still repairs HTML text, scores senders and embeds the mail already in the store. Only the
+Himalaya import, and `memo sync --source email:personal` says the import is handed to `mail`. `memo mail inspect`
+keeps working, and each sync still repairs HTML text, scores senders and embeds the mail already in the store. Only the
 header backfill needs Himalaya, so it stops.
 
 | Command | What it needs | What it does |
 |---|---|---|
 | `memo mail inspect <account>` | A Himalaya account in Memo's config | Reads headers from the mailbox and groups mail by sender ([Choose what to import](#choose-what-to-import)) |
-| `memo mail rules ...` | The same | Keeps and changes the rules for what an import stores. `rules apply` also reads headers from the mailbox |
-| `memo mail delete <account>` | The same, and `--yes` | Moves selected Gmail mail to Gmail's Trash ([Clean up Gmail](#clean-up-gmail)) |
-| `memo mail restore <account>` | The same, and `--yes` | Moves a logged run back from Trash |
 
-`memo mail delete` is the one place where Memo changes a mailbox. `mail` itself never does.
+Rules, Gmail cleanup and restore are commands of `mail`. The old Memo commands only name their replacement and
+change nothing. `<profile>` is the `mail` profile that holds the address; `mail session status` lists them.
+
+| Old Memo command | Run instead |
+|---|---|
+| `memo mail rules list\|add\|remove\|apply\|export\|import <account> …` | `mail <profile> rules list\|add\|remove\|apply\|export\|import …`, same options, no account |
+| `memo mail delete <account>` | `mail <profile> messages delete --rules` (a preview; `--yes` moves the mail) |
+| `memo mail restore <account> --run <id>` | `mail <profile> messages restore --run <id>`; Memo's run ids work there |
+| `memo mail runs list <account>` | `mail doctor`, which names the runs that stopped part way or whose Gmail Trash empties soon; every run is a file `<id>.jsonl` in Memo's state folder under `mail-trash/<profile>/` |
 
 ## Older import through Himalaya (legacy)
 
@@ -185,167 +189,37 @@ the answer on this computer for good. **Each question tells that registry the do
 someone looks at mail from it. Big mailbox providers such as gmail.com are never asked. Most country domains, such
 as .ru, .de, .es and .io, have no RDAP: they stay unknown and add nothing.
 
-You decide:
-
-```sh
-memo mail rules add work --domain shop.example --do envelope --reason 'newsletters'
-memo mail rules add work --domain spam.example --do skip
-memo mail rules add work --sender orders@shop.example --do keep
-memo mail rules list work
-```
-
-The basic `--do` actions are listed below; protection and tags follow in the next section:
+You decide with rules, which `mail <profile> rules add` writes into the store (see the
+[mail documentation](https://github.com/WireCatLabs/mail-cli/blob/main/docs/index.md)). `memo sync` reads the
+account's rules from the store on each Himalaya import:
 
 - `skip`: `memo sync` never reads or stores the email, and counts it as skipped.
 - `envelope`: `memo sync` stores the sender, date, size, labels and the Gmail id, but not the text or
-  attachments. The subject is kept in the email's metadata, so the email is never a search hit.
-  `memo mail rules list` shows how many emails each envelope rule recorded and their size, so you can see
-  what a cleanup would remove. An envelope costs no more from Gmail than a skip: its fields come with the
-  listing.
+  attachments. The subject is kept in the email's metadata, so the email is never a search hit. An envelope costs
+  no more from Gmail than a skip: its fields come with the listing.
 - `keep`: imports the email even when a skip or envelope rule matches it.
+- A tag on a rule puts a memo tag on every email the rule matches that a sync stores or records. A tag the store
+  refuses as too close to an existing label is put on as that label; one refused with nothing to reuse is skipped,
+  and the mail is still stored.
+- A protected rule wins over all others and always stores in full.
 
 A keep wins over an envelope, and an envelope wins over a skip. When you remove an envelope rule, or change it
-to keep, the next sync reads those emails in full. Mail stored in full before a rule stays as it is.
+to keep, the next sync reads those emails in full. Mail stored in full before a rule stays as it is. Rules that
+judge a sender by its mail (a score or a kind) judge it from the mail in the same listing, so a sync that lists
+only new mail judges the sender from that mail.
 
-### More conditions, tags and protection
-
-Besides `--sender`, `--domain` and `--list-id`, a rule can take a `--filter` query and a `--kind`. Every condition
-given must hold:
-
-| In `--filter` | Matches mail |
-|---|---|
-| `from:<address>`, `from:<domain>` | from this one sender, or from this domain and its subdomains |
-| `from:<word>` | from a sender whose address or display name contains the word, any case |
-| `to:<address>` | sent to this address, in To or Cc |
-| `subject:<word>`, or a bare word | with every such word in the subject, any case |
-| `older:<n>d` | received more than n days ago |
-| `larger:<size>` | bigger than `5MB`, `300KB` or a number of bytes at the source |
-| `has:attachment` | sent as `multipart/mixed`, the way mail with attachments is: a guess from the header |
-| `label:<name>` | carrying this Gmail label, such as `label:Promotions` or `label:"Two words"` |
-| `is:unread` | never opened |
-| `is:bulk` | sent to many: List-Id, List-Unsubscribe or `Precedence: bulk` |
-| `score:<n>` | from a sender whose score (above) is at least n |
-
-`--do` takes one action and any number of tags, comma-separated: `skip`, `envelope`, `keep` or `protect`, plus
-`tag:<name>`.
-
-```sh
-memo mail rules add work --filter 'label:Promotions older:365d' --do envelope
-memo mail rules add work --domain shop.example --do keep,tag:shopping
-memo mail rules add work --domain tax.gov.example --do protect
-memo mail rules list work protected:true
-```
-
-- **`tag:<name>`** puts a memo tag on every email the rule matches, whichever rule decides the action. A sync
-  tags the mail it stores or records; `memo mail rules apply` tags mail stored earlier. A tag the store refuses
-  as too close to an existing label is put on as that label, and the rule is updated to it (`tags_reused` in
-  `--json`). A tag refused with nothing to reuse is skipped, the mail is still stored, and the rule lists it as
-  `tags skipped` (`tags_skipped`). A refused tag never stops the sync.
-- **`protect`** keeps the mail whole and out of every cleanup, whatever other rules or kinds say. A protected
-  rule wins over all others and always stores in full, so `memo mail rules apply` never cuts its mail and a later
-  mailbox cleanup must refuse it. Use it for government, tax and bank mail. `memo mail rules list` shows
-  protected rules first, as `PROTECTED`.
-- **`score:` and `--kind`** judge a sender by its mail in the same listing: a sync that lists only new mail
-  judges the sender from that mail.
-
-### Kinds of mail
-
-`--kind` names a built-in kind of mail, matched by who sends it and how, not by your own senders:
-
-| Kind | Matches |
-|---|---|
-| `social` | notifications from social networks |
-| `newsletters` | mailing lists with List-Id and List-Unsubscribe, and newsletter services |
-| `developer` | code hosting, CI, package and error-tracker notifications |
-| `shopping` | shops, and what Gmail files under Promotions |
-| `alerts` | monitoring and uptime alerts |
-
-`memo mail inspect` ends with how much of your mail each kind would match. Nothing applies until you add a rule:
-
-```sh
-memo mail rules add work --kind social --do envelope
-```
-
-Mail from someone you wrote to never matches a kind, and any explicit rule wins over a `--kind` rule.
-
-### Gmail filters
-
-A Google Takeout export of Mail holds your Gmail filters in `Mail/User settings/Filters.json`. memo proposes a
-rule for each filter it can express:
-
-```sh
-memo mail rules import work Filters.json --format gmail        # shows the proposed rules and the skipped filters
-memo mail rules import work Filters.json --format gmail --yes  # adds them
-```
-
-Each Gmail label a filter adds is matched to memo's labels first: the same label in other capitals is reused,
-and a close one is suggested in its place; the proposal lists each mapping as `label … → …`.
-
-A filter that skips the inbox, marks read or deletes becomes an envelope rule; one that only adds a label becomes
-a keep rule with that label as a tag. A filter naming several senders or recipients (`from:a from:b`,
-`from:(a OR b)`) becomes one rule each, since one email cannot come from both. Words in a filter become subject
-words: Gmail searched the whole email, memo matches the subject, and the rule's reason says so. A filter that
-excludes words or uses a field memo does not match (`list:`, `size:`) is skipped and listed. Takeout's
-`{"filter": [{query, labelsToAdd, labelsToRemove}]}`, Gmail's API shape (`criteria` and `action`) and the
-settings export's flat properties (`from`, `shouldArchive`, `label`) are all read; a label given only by its Gmail
-id is tagged with that id.
-
-Mail stored in full before an envelope rule existed stays whole until you cut it:
-
-```sh
-memo mail rules apply work        # says how many emails and how much text each rule would cut
-memo mail rules apply work --yes  # cuts them to envelopes
-```
-
-It reads the account's headers from the mailbox, as `memo sync` does, because mail stored before memo kept
-List-Id lacks it. Each matching email loses its text, attachments and search entries and keeps its sender, date,
-size, labels and subject in metadata. Mail only a skip rule matches stays as stored. Nothing changes in the
-mailbox, and changing the rule to keep reads the emails in full again on the next sync.
-
-Rules live in the local store, beside the mail they decide, so `memo mail rules list` counts each rule's
-emails in one query. Each envelope email remembers the rule that recorded it. To review rules, keep a copy or
-move them to another computer:
-
-```sh
-memo mail rules export work > rules.json
-memo mail rules import work rules.json   # a rule with the same sender, domain or list is replaced
-```
-
-Older settings kept rules in `config.json`. The first memo command that reads rules moves them into the
-store, checks they all arrived, and only then drops them from the config. The old config stays beside it as
+Older settings kept rules in `config.json`. The first `memo sync` that reads rules moves them into the store,
+checks they all arrived, and only then drops them from the config. The old config stays beside it as
 `config.json.<time>.before-rules-in-store`, readable only by you, and memo says so on stderr once. A keep rule
-whose reason says "never remove" becomes protected: no cleanup may cut or delete what it matches.
+whose reason says "never remove" becomes protected.
 
 ## Clean up Gmail
 
-This works on an account of the Himalaya import. It is the one place where Memo changes a mailbox: it moves mail to
-Gmail's Trash, and Gmail deletes Trash for good after 30 days.
-
-Envelope mail is junk you chose not to keep the text of. `memo mail delete` moves it to Gmail's Trash, where Gmail
-keeps it 30 days before deleting it for good:
-
-```sh
-memo mail delete work                  # says what would move, per rule, and what stays and why
-memo mail delete work --yes            # a first run moves at most 100, to check by hand in Gmail's Trash
-memo mail delete work --yes            # later runs move up to 5,000, oldest first (--limit changes it)
-memo mail delete work --yes --since-time 2012-01-01   # only mail from 2012 on; older mail stays for now
-memo mail runs list work                   # each run: how much moved, and until when it can be restored
-memo mail restore work --run <id> --yes   # moves a run back, to the inbox if it was there, with its labels
-```
-
-Each email is decided again with today's rules, from what the last sync stored; only the emails about to move are
-read from Gmail again, for their labels and stars now, so a run costs Gmail little however big the mailbox is. It stays in Gmail when a protected or keep rule
-matches it, you ever replied to its sender, it is starred, important, sent or a draft, it carries a label of yours
-that its rule does not add, or it is under 30 days old. `--yes` refuses until a store backup under 8 days old is
-recorded: the backup script writes `backups/last.json` next to the store when a copy passes its check. A Google
-Takeout `mbox` file of the mailbox is advised, not required, so the full text of what is trashed is kept; the preview and
-`memo doctor` say whether one is imported.
-
-Before each batch, every email's Gmail id, labels and flags go to a restore log in memo's state folder
-(`mail-trash/<account>/<run>.jsonl`). Moving to Trash takes a message out of All Mail and drops its Inbox label;
-Gmail keeps its other labels, and moving it back returns it as it was. A moved email is marked deleted in the store;
-the next sync after a restore stores it again under today's rules. A restore brings back every email the log lists
-that Trash holds, also from a batch Gmail moved without confirming it. Cleanup never runs from the timer.
+Memo no longer changes a mailbox. Moving envelope mail to Gmail's Trash, and bringing a run back, are commands of
+`mail`: `mail <profile> messages delete --rules` previews and `--yes` moves, `mail <profile> messages restore
+--run <id>` undoes a run, and `mail doctor` names the runs that stopped part way or whose Gmail Trash empties soon.
+`mail` reads the restore logs older Memo versions wrote, so their run ids still work: each is a file `<id>.jsonl` in
+Memo's state folder under `mail-trash/<profile>/` (`memo doctor` shows the folder).
 
 ## Old mail from Google Takeout
 

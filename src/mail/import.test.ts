@@ -3,13 +3,12 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import type { MailRule } from "@wirecat/cli-core/mail"
-import { decodeMailboxName, labelName } from "@wirecat/cli-core/mail"
+import { decodeMailboxName, labelName, ruleInput } from "@wirecat/cli-core/mail"
 import { type MessageStore, openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { afterEach, describe, expect, it } from "vitest"
 import { answerOf, envelopeOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
-import { applyRules } from "./apply.js"
 import { himalaya } from "./himalaya.js"
 import { mboxSource } from "./mbox.js"
 import { himalayaSource } from "./source.js"
@@ -59,6 +58,12 @@ const setup = (messages: Fixture[], extra: Record<string, unknown> = {}) => {
   write(messages)
   const env = { ...process.env, MEMO_FAKE_MAILBOX: mailbox, MESSAGING_STORE: join(dir, "messages.db") }
   return { dir, env, write }
+}
+
+const seedRules = async (env: NodeJS.ProcessEnv, ruled: MailRule[]) => {
+  const opened = await store(env)
+  const accountId = await opened.accounts.saveAccount(KEY, { name: ME })
+  for (const rule of ruled) await opened.mail.rules.upsert(accountId, ruleInput(rule), Date.now())
 }
 
 const store = async (env: NodeJS.ProcessEnv) => {
@@ -459,66 +464,6 @@ describe("importMail with the owner's rules", () => {
     expect((await emails(env))[0]?.bodyText).toBe("Synthetic body 1")
   })
 
-  const applyRuled = async (env: NodeJS.ProcessEnv, ruled: MailRule[], apply: boolean) =>
-    applyRules({
-      store: await store(env),
-      source: himalayaSource(himalaya(env), { name: "test" }),
-      account: { name: "test", address: ME, rules: ruled },
-      since: SINCE,
-      apply,
-      now: () => NOW,
-    })
-
-  it("cuts stored mail an envelope rule matches to its envelope, only with apply, and reads it again on keep", async () => {
-    const deal = mail(2, {
-      from: ["Shop Deals", "deals@shop.example"],
-      subject: "Unrepeatable bargain",
-      text: "Unrepeatable bargain inside",
-      listId: "deals.shop.example",
-    })
-    const news = mail(3, { from: [null, "news@other.example"], text: "Synthetic headline" })
-    const { env } = setup([mail(1), deal, news])
-    await importInto(env)
-    const ruled = [
-      envelope({ list_id: "deals.shop.example" }),
-      { match: { domain: "other.example" }, action: "skip" as const, decided_at: "2026-10-14T00:00:00.000Z" },
-    ]
-
-    const dry = await applyRuled(env, ruled, false)
-
-    expect(dry).toMatchObject({ applied: false, listed: 3, envelopes: 1, skipMatched: 1 })
-    expect(dry.bytes).toBe(Buffer.byteLength("Unrepeatable bargain inside"))
-    expect(dry.rules).toMatchObject([{ rule: { match: { list_id: "deals.shop.example" } }, emails: 1 }])
-    expect((await (await store(env)).mail.search("Unrepeatable")).map(({ externalId }) => externalId)).toEqual(["9002"])
-
-    expect(await applyRuled(env, ruled, true)).toMatchObject({ applied: true, envelopes: 1 })
-
-    const cut = (await emails(env)).find(({ externalId }) => externalId === "9002")
-    expect(cut).toMatchObject({
-      subject: null,
-      bodyText: null,
-      fromAddress: "deals@shop.example",
-      metadata: {
-        rule: { action: "envelope", match: { list_id: "deals.shop.example" } },
-        subject: "Unrepeatable bargain",
-        listId: "deals.shop.example",
-      },
-    })
-    expect(cut?.mailboxes.map(({ externalId }) => externalId)).toContain("memo:envelope:list-id:deals.shop.example")
-    expect((await emails(env)).find(({ externalId }) => externalId === "9003")?.bodyText).toBe("Synthetic headline")
-    const opening = await store(env)
-    expect(await opening.mail.search("Unrepeatable")).toEqual([])
-    expect(
-      (await opening.mail.chunksToEmbed("test-model", { limit: 100 })).filter(({ text }) => text.includes("bargain")),
-    ).toEqual([])
-    expect(await applyRuled(env, ruled, true)).toMatchObject({ envelopes: 0 })
-
-    const reread = await importRuled(env, [{ ...envelope({ list_id: "deals.shop.example" }), action: "keep" }])
-
-    expect(reread).toMatchObject({ saved: 1 })
-    expect(await (await store(env)).mail.search("Unrepeatable")).toHaveLength(1)
-  })
-
   it("fails the listing instead of importing mail unruled when Gmail refuses the header fetch", async () => {
     const { env } = setup([mail(1, { from: [null, "news@shop.example"] })], { headersFail: true })
 
@@ -771,26 +716,6 @@ describe("memo sync --only mail", () => {
     ])
   })
 
-  it("adds an envelope rule, records its mail on sync, and lists how many emails and bytes it recorded", async () => {
-    const { dir, env } = setup([mail(1), mail(2, { from: [null, "deals@shop.example"] })])
-    const withConfig = configured(dir, env)
-    await run(["mail", "rules", "add", "test", "--domain", "shop.example", "--do", "envelope"], withConfig)
-
-    await run(["sync", "--source", "email:test", "--since-time", "2026-09-01", "--no-embed", "--json"], withConfig)
-    const listed = answerOf(await run(["mail", "rules", "list", "test", "--json"], withConfig))
-
-    expect(listed.items).toMatchObject([
-      { action: "envelope", match: { domain: "shop.example" }, recorded: { emails: 1, bytes: expect.any(Number) } },
-    ])
-    expect(listed.items[0].recorded.bytes).toBeGreaterThan(0)
-    expect(await run(["mail", "rules", "list", "test"], withConfig)).toMatch(
-      /^envelope\s+domain shop\.example .* 1 emails/,
-    )
-    await expect(
-      run(["mail", "rules", "add", "test", "--domain", "shop.example", "--do", "envelope,skip"], withConfig),
-    ).rejects.toThrow("choose skip, envelope, keep")
-  })
-
   it("refuses while another import holds the lock", async () => {
     const { dir, env } = setup([mail(1)])
     const withConfig = configured(dir, env)
@@ -803,28 +728,6 @@ describe("memo sync --only mail", () => {
     await expect(run(["sync", "--source", "email:test"], withConfig)).rejects.toThrow("is running")
   })
 
-  it("says what memo mail rules apply would cut, cuts it with --yes, and counts it under the rule", async () => {
-    const { dir, env } = setup([mail(1), mail(2, { from: [null, "deals@shop.example"], text: "Synthetic coupon" })])
-    const withConfig = configured(dir, env)
-    await run(["sync", "--source", "email:test", "--since-time", "2026-09-01", "--no-embed", "--json"], withConfig)
-    await run(["mail", "rules", "add", "test", "--domain", "shop.example", "--do", "envelope"], withConfig)
-
-    const dry = envelopeOf(await run(["mail", "rules", "apply", "test", "--json"], withConfig))
-
-    expect(dry.item).toMatchObject({ applied: false, envelopes: 1, skip_matched: 0 })
-    expect(dry.item.rules).toMatchObject([{ rule: { match: { domain: "shop.example" } }, emails: 1 }])
-    expect(dry.meta).toMatchObject({ run_id: expect.any(String), accounts: ["test"] })
-    expect(await run(["mail", "rules", "apply", "test"], withConfig)).toMatch(/would cut 1 emails .* --yes cuts them/)
-
-    expect(await run(["mail", "rules", "apply", "test", "--yes"], withConfig)).toMatch(
-      /^domain shop\.example\s+1 emails/,
-    )
-
-    const listed = answerOf(await run(["mail", "rules", "list", "test", "--json"], withConfig))
-    expect(listed.items[0].recorded.emails).toBe(1)
-    expect(await (await store(env)).mail.search("coupon")).toEqual([])
-  })
-
   it("keeps protected mail whole, records mail by label, and tags what a rule matches", async () => {
     const { dir, env } = setup([
       mail(1, { from: [null, "notice@tax.gov.example"], labels: ["Promotions"], text: "Synthetic tax notice" }),
@@ -832,14 +735,10 @@ describe("memo sync --only mail", () => {
       mail(3),
     ])
     const withConfig = configured(dir, env)
-    await run(["mail", "rules", "add", "test", "--domain", "gov.example", "--do", "protect"], withConfig)
-    await run(
-      ["mail", "rules", "add", "test", "--filter", "label:Promotions", "--do", "envelope,tag:promo"],
-      withConfig,
-    )
-    await expect(
-      run(["mail", "rules", "add", "test", "--domain", "gov.example", "--do", "protect,skip"], withConfig),
-    ).rejects.toThrow("choose skip, envelope, keep, protect")
+    await seedRules(env, [
+      { match: { domain: "gov.example" }, action: "keep", protected: true, decided_at: "2026-10-01" },
+      { match: { label: "Promotions" }, action: "envelope", tags: ["promo"], decided_at: "2026-10-01" },
+    ])
 
     await run(["sync", "--source", "email:test", "--since-time", "2026-09-01", "--no-embed", "--json"], withConfig)
 
@@ -849,11 +748,6 @@ describe("memo sync --only mail", () => {
     expect(await opened.mail.search("coupon")).toEqual([])
     const tagged = (await opened.tags.tags(KEY)).filter(({ tag }) => tag === "promo")
     expect(tagged).toHaveLength(2)
-    expect(await run(["mail", "rules", "list", "test", "protected:true"], withConfig)).toMatch(
-      /^PROTECTED\s+domain gov\.example\s/,
-    )
-    const dry = envelopeOf(await run(["mail", "rules", "apply", "test", "--json"], withConfig))
-    expect(dry.item).toMatchObject({ envelopes: 0, protected_kept: 1, tagged: 2 })
   })
 
   it("moves the config's rules into the store on first use, keeps a backup, and counts mail recorded before", async () => {
@@ -882,41 +776,22 @@ describe("memo sync --only mail", () => {
     ]
     writeFileSync(configFile, JSON.stringify(config))
 
-    const listed = answerOf(await run(["mail", "rules", "list", "test", "--json"], withConfig))
+    await run(["sync", "--source", "email:test", "--since-time", "2026-09-01", "--no-embed", "--json"], withConfig)
 
-    expect(listed.items).toMatchObject([
-      { action: "keep", match: { domain: "gov.example" }, protected: true },
-      { action: "envelope", match: { domain: "shop.example" }, recorded: { emails: 1 } },
-    ])
+    const opened = await store(env)
+    const accountId = await opened.accounts.saveAccount(KEY, { name: ME })
+    const stored = await opened.mail.rules.list(accountId)
+    expect(stored.map(({ conditions, protected: kept }) => ({ conditions, kept }))).toEqual(
+      expect.arrayContaining([
+        { conditions: { domain: "gov.example" }, kept: true },
+        { conditions: { domain: "shop.example" }, kept: false },
+      ]),
+    )
+    expect((await opened.mail.rules.counts(accountId)).map(({ emails }) => emails)).toContain(1)
     expect(JSON.parse(readFileSync(configFile, "utf8")).mail.accounts[0].rules).toBeUndefined()
     const backups = readdirSync(withConfig.MEMO_CONFIG_DIR).filter((name) => name.includes("before-rules-in-store"))
     expect(backups).toHaveLength(1)
     expect(statSync(join(withConfig.MEMO_CONFIG_DIR, backups[0] as string)).mode & 0o777).toBe(0o600)
-    expect(answerOf(await run(["mail", "rules", "list", "test", "--json"], withConfig)).items).toHaveLength(2)
-  })
-
-  it("exports an account's rules to a file and imports them into another account", async () => {
-    const { dir, env } = setup([mail(1)])
-    const withConfig = configured(dir, env)
-    await run(
-      ["mail", "rules", "add", "test", "--list-id", "news.shop.example", "--do", "skip", "--reason", "noise"],
-      withConfig,
-    )
-    await run(["mail", "rules", "add", "test", "--sender", "boss@work.example", "--do", "keep"], withConfig)
-
-    const file = join(dir, "rules.json")
-    writeFileSync(file, await run(["mail", "rules", "export", "test"], withConfig))
-    expect(JSON.parse(readFileSync(file, "utf8"))).toMatchObject({ version: 1, account: ME })
-    expect(await run(["mail", "rules", "import", "second", file], withConfig)).toBe("imported 2 rules into second\n")
-
-    expect(answerOf(await run(["mail", "rules", "list", "second", "--json"], withConfig)).items).toMatchObject([
-      { action: "skip", match: { list_id: "news.shop.example" }, reason: "noise" },
-      { action: "keep", match: { from: "boss@work.example" } },
-    ])
-    writeFileSync(file, JSON.stringify({ rules: [{ match: {}, action: "skip" }] }))
-    await expect(run(["mail", "rules", "import", "second", file], withConfig)).rejects.toMatchObject({
-      details: { reason: "mail.rules-file-invalid" },
-    })
   })
 
   describe("reading --since-time 2026-09-01 in Asia/Vladivostok", () => {
@@ -929,8 +804,6 @@ describe("memo sync --only mail", () => {
     it.each([
       ["sync", ["sync", "--source", "email:test", "--no-embed"]],
       ["mail inspect", ["mail", "inspect", "test"]],
-      ["mail delete", ["mail", "delete", "test"]],
-      ["mail rules apply", ["mail", "rules", "apply", "test"]],
     ])("%s names the zone and gives the window in UTC", async (_, args) => {
       process.env.TZ = "Asia/Vladivostok"
       const { dir, env } = setup([mail(1)])
@@ -941,20 +814,6 @@ describe("memo sync --only mail", () => {
         timezone: "Asia/Vladivostok",
         window: { since: "2026-08-31T14:00:00.000Z" },
       })
-    })
-  })
-
-  it("refuses memo mail rules apply while a sync holds the lock", async () => {
-    const { dir, env } = setup([mail(1)])
-    const withConfig = configured(dir, env)
-    mkdirSync(join(dir, "state"))
-    writeFileSync(
-      join(dir, "state", "import.lock"),
-      JSON.stringify({ pid: process.ppid, startedAt: new Date().toISOString() }),
-    )
-
-    await expect(run(["mail", "rules", "apply", "test", "--yes"], withConfig)).rejects.toMatchObject({
-      details: { reason: "sync.running" },
     })
   })
 })

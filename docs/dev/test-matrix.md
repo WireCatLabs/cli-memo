@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**584 ✅ · 0 ⛔ · 93 ❌** — 152 commands, 525 options.
+**565 ✅ · 0 ⛔ · 83 ❌** — 152 commands, 496 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -75,43 +75,14 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `mail inspect` | `--domain-age` | ❌ |  |
 | `mail inspect` | `--json` | ✅ |  |
 | `mail delete` |  | ✅ |  |
-| `mail delete` | `--limit` | ✅ |  |
-| `mail delete` | `--since-time` | ✅ |  |
-| `mail delete` | `--yes` | ❌ |  |
-| `mail delete` | `--json` | ✅ |  |
 | `mail restore` |  | ✅ |  |
-| `mail restore` | `--run` | ✅ |  |
-| `mail restore` | `--yes` | ❌ |  |
-| `mail restore` | `--json` | ❌ |  |
 | `mail runs list` |  | ✅ |  |
-| `mail runs list` | `--json` | ✅ |  |
 | `mail rules list` |  | ✅ |  |
-| `mail rules list` | `--json` | ✅ |  |
 | `mail rules add` |  | ✅ |  |
-| `mail rules add` | `--sender` | ✅ |  |
-| `mail rules add` | `--domain` | ✅ |  |
-| `mail rules add` | `--list-id` | ✅ |  |
-| `mail rules add` | `--filter` | ✅ |  |
-| `mail rules add` | `--kind` | ❌ |  |
-| `mail rules add` | `--do` | ✅ |  |
-| `mail rules add` | `--reason` | ✅ |  |
-| `mail rules add` | `--json` | ❌ |  |
 | `mail rules remove` |  | ✅ |  |
-| `mail rules remove` | `--sender` | ❌ |  |
-| `mail rules remove` | `--domain` | ✅ |  |
-| `mail rules remove` | `--list-id` | ❌ |  |
-| `mail rules remove` | `--filter` | ❌ |  |
-| `mail rules remove` | `--kind` | ❌ |  |
-| `mail rules remove` | `--json` | ❌ |  |
 | `mail rules apply` |  | ✅ |  |
-| `mail rules apply` | `--since-time` | ✅ |  |
-| `mail rules apply` | `--yes` | ✅ |  |
-| `mail rules apply` | `--json` | ✅ |  |
 | `mail rules export` |  | ✅ |  |
 | `mail rules import` |  | ✅ |  |
-| `mail rules import` | `--format` | ✅ |  |
-| `mail rules import` | `--yes` | ✅ |  |
-| `mail rules import` | `--json` | ✅ |  |
 | `people add` |  | ✅ |  |
 | `people add` | `--json` | ✅ |  |
 | `people list` |  | ✅ |  |

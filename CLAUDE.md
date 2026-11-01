@@ -21,8 +21,8 @@ vulnerabilities are reported as the
    `MESSAGING_STORE`, `HOME`, the XDG folders and `HIMALAYA_CONFIG` into a temp folder for every test
    file; do not weaken it.
 3. **Imports are read-only.** Mail is never sent or marked read; source notes are never changed.
-   Explicit `mail delete` and `mail restore` commands can move Gmail mail only with `--yes`;
-   no test may use the owner's mailbox, and the sync timer never runs cleanup.
+   memo never changes a mailbox: rules, cleanup and restore belong to the `mail` CLI, and memo's old
+   commands for them only name their replacement. No test may use the owner's mailbox.
 4. **Pin `@wirecat/cli-core` to an exact published version compatible with the other store consumers.**
    Compatible SDK updates may be adopted independently after reviewing intervening changelog entries
    and store compatibility. Changes that raise `minCompatible` or break shared consumer contracts
@@ -53,7 +53,7 @@ They state the current facts only
 
 ## Before a release that changes how mail is indexed
 
-A memo command that rewrites many stored emails (`mail rules apply`, a rule change, a re-import) queues their
+A change that rewrites many stored emails (a rule change, a re-import) queues their
 threads for the search index, and the next `memo sync`, often the timer's, works through that queue while it holds
 the import lock. Before releasing such a change, or a cli-core bump that touches indexing or vector cleanup, run
 cli-testing's [`performance/mail/indexing/run.sh`](https://github.com/WireCatLabs/cli-testing/tree/main/performance/mail/indexing)

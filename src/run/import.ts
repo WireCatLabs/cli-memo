@@ -34,7 +34,7 @@ const LARGE_IMPORT_HELP =
   "Resuming: a run lists only the mail no earlier run finished, so a large mailbox is not listed again each " +
   "time. A whole listing, which marks deleted mail and refreshes labels and read state, runs at least once a " +
   "day, after any change to the rules, and with --rescan.\n\n" +
-  "Rules: an email a skip rule of `memo mail rules` matches is never read or stored, and is counted as " +
+  "Rules: an email a skip rule (`mail <profile> rules`) matches is never read or stored, and is counted as " +
   "skipped; mail stored before the rule stays.\n\n" +
   "An mbox account (a Google Takeout file, mode mbox) syncs only when named with --source: each run reads " +
   "the whole file, its mail is old so it needs a --since-time far back, and a large --limit. It only adds " +

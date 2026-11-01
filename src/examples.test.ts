@@ -2,6 +2,7 @@ import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { beforeAll, describe, expect, it } from "vitest"
 import { EXAMPLES } from "./examples.js"
+import { MOVED_TO_MAIL } from "./mail/moved.js"
 import { createProgram } from "./program.js"
 
 /** Groups that also run on their own, so they keep examples of their own. */
@@ -43,7 +44,8 @@ describe("examples", () => {
   })
 
   it("gives every leaf one to three examples, and names no command memo lacks", () => {
-    const all = leaves(createProgram({ env: {} }))
+    const moved = MOVED_TO_MAIL.map(([from]) => `mail ${from}`)
+    const all = leaves(createProgram({ env: {} })).filter((path) => !moved.includes(path))
     expect(all.filter((path) => !EXAMPLES[path] || EXAMPLES[path].length > 3)).toEqual([])
     expect(Object.keys(EXAMPLES).filter((path) => !all.includes(path))).toEqual([])
   })

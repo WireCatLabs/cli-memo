@@ -1,10 +1,8 @@
 import { chmodSync, copyFileSync, existsSync } from "node:fs"
-import type { QueryAst } from "@wirecat/cli-base/query"
 import {
   ENVELOPE,
   envelopeBox,
   type MailRule,
-  type MailRuleMatch,
   ruleInput,
   storedMailRule,
   storedMailRuleSet,
@@ -13,7 +11,7 @@ import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
 import { configPath, loadConfig, updateConfig } from "../config.js"
 import type { MailAccountConfig } from "./accounts.js"
 
-export const accountKey = (address: string): AccountKey => ({ provider: "email", account: address.toLowerCase() })
+const accountKey = (address: string): AccountKey => ({ provider: "email", account: address.toLowerCase() })
 
 const accountIdOf = (store: MessageStore, address: string) =>
   store.accounts.saveAccount(accountKey(address), { name: address })
@@ -95,42 +93,20 @@ export const rulesOf = async (
   account: Pick<MailAccountConfig, "address">,
   env: NodeJS.ProcessEnv,
   say: (line: string) => void,
-  query?: QueryAst,
 ): Promise<MailRule[]> => {
   const key = account.address.toLowerCase()
   const byAccount = loaded.get(store) ?? new Map<string, MailRule[]>()
   loaded.set(store, byAccount)
   const cached = byAccount.get(key)
-  if (cached !== undefined && query === undefined) return cached
+  if (cached !== undefined) return cached
   await moveConfigRules(store, env, say)
-  const { rules, unreadable } = await storedMailRuleSet(store, account, query)
+  const { rules, unreadable } = await storedMailRuleSet(store, account)
   // mail reports these in its sync answer; a build that reads them would decide mail differently.
   if (unreadable.length)
     say(
       `memo: ${unreadable.length} stored mail rules of ${account.address} are left out, this memo does not know their ` +
         `${[...new Set(unreadable.map(({ why }) => why))].join(", ")}; update memo\n`,
     )
-  if (query === undefined) byAccount.set(key, rules)
+  byAccount.set(key, rules)
   return rules
 }
-
-export const saveRule = async (store: MessageStore, address: string, rule: MailRule): Promise<MailRule> => {
-  const stored = await store.mail.rules.upsert(await accountIdOf(store, address), ruleInput(rule), Date.now())
-  loaded.delete(store)
-  return storedMailRule(stored) ?? rule
-}
-
-export const removeRule = async (store: MessageStore, address: string, match: MailRuleMatch): Promise<boolean> => {
-  const { conditions } = ruleInput({ match, action: "skip", decided_at: new Date().toISOString() })
-  const removed = await store.mail.rules.remove(await accountIdOf(store, address), conditions)
-  loaded.delete(store)
-  return removed
-}
-
-export const ruleCounts = async (store: MessageStore, address: string) =>
-  new Map(
-    (await store.mail.rules.counts(await accountIdOf(store, address))).map(({ ruleId, emails, bytes }) => [
-      ruleId,
-      { emails, bytes },
-    ]),
-  )

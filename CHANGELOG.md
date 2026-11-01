@@ -6,6 +6,25 @@ the API.
 
 ## Unreleased
 
+### Removed
+
+- **Mail rules, Gmail cleanup and restore moved to the `mail` CLI; memo no longer changes a mailbox.** The old
+  commands stay, hidden from help, `memo commands` and MCP, only to answer `validation_error` with reason
+  `mail.moved-to-mail-cli`, the new command in the message and in `details.alternative`. They change nothing.
+  `<profile>` is the `mail` profile that holds the address; `mail session status` lists them.
+
+  | Old | Run instead |
+  |---|---|
+  | `memo mail delete <account>` | `mail <profile> messages delete --rules` (a preview; `--yes` moves the mail) |
+  | `memo mail restore <account> --run <id>` | `mail <profile> messages restore --run <id>`; memo's run ids work there |
+  | `memo mail runs list <account>` | `mail doctor` (the runs that stopped part way or whose Gmail Trash empties soon); every run is a file `<id>.jsonl` in memo's state folder under `mail-trash/<profile>/` |
+  | `memo mail rules list\|add\|remove\|apply\|export\|import <account> …` | `mail <profile> rules <same verb> …`, same options, no account |
+
+  The MCP tools for these commands go with them. `memo sync` still reads each account's rules from the store, and
+  `memo mail inspect` stays.
+- **`memo doctor` no longer reports Gmail cleanup** (`mail.cleanup` in `--json`: store backup, Takeout, cleanup runs
+  and their restore deadlines); cleanup is the `mail` CLI's now.
+
 ## 0.131.11 — 01.11.2026
 
 ### Added
