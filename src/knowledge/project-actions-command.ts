@@ -41,10 +41,12 @@ export const projectActionsCommand = (projects: Command, streams: Streams, env: 
     .argument("<file>", "JSON findings file, or - for stdin; at most 65536 UTF-8 bytes")
     .addHelpText(
       "after",
-      "\nInput: schema_version 1, key, extractor, findings. Every finding names id, kind, project and evidence: 1–8 msg: " +
-        "or document: references with the fingerprint projects evidence gives. Facts name type and statement; tasks " +
-        "name type, title, reason and commitment (explicit or inferred). A due_at or assignee needs due_evidence or " +
-        "assignee_evidence citing this finding's references. The same key and input returns the same batch.\n",
+      "\nInput: schema_version 1, key, extractor, findings. Every finding names id, kind and evidence: 1–8 msg:, " +
+        "document: or note: references with the fingerprint projects evidence or notes show gives. A fact may name a " +
+        "project and a subject (person:, organization:, task: or project:), or neither; a task names its project. " +
+        "Facts name type and statement; tasks name type, title, reason and commitment (explicit or inferred). A due_at " +
+        "or assignee needs due_evidence or assignee_evidence citing this finding's references. At most one project per " +
+        "batch. The same key and input returns the same batch; actions confirm and reject decide it by its id.\n",
     )
     .action(async (file: string, given: { json?: boolean }) => {
       const input = parseEvidenceFindingsJson(

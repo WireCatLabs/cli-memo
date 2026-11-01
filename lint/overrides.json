@@ -68,5 +68,12 @@
     "reason": "--sync-first runs another CLI (tg, max, wa) as one of its profiles, and the owner must name it when several are signed in to a chat's account (BUG-473, 2026-11-01); the vocabulary's --profile means this CLI's own profile and --profiles an MCP server's. Add --sync-profile there, then drop this.",
     "owner": "@leemour",
     "review_after": "2027-02-01"
+  },
+  {
+    "rule": "option-role",
+    "target": "tasks add --status",
+    "reason": "WireCat Desktop's Tasks page adds a task straight into a board column (owner's choice NEED-205 A, 2026-11-01); same flag as tasks update --status.",
+    "owner": "@leemour",
+    "review_after": "2027-02-01"
   }
 ]

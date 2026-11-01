@@ -8,8 +8,33 @@ the API.
 
 ### Fixed
 
-- **Built on cli-core 0.529.0 and cli-base 0.71.0.** cli-core 0.529.0 stops hiding a locked or broken store when it
-  scores mail senders; only a missing account counts as "nothing to score".
+- **Built on cli-base 0.71.0**, which cli-core 0.529.0 needs (its peer range is `>=0.71.0 <0.72.0`).
+
+## 0.131.9 — 01.11.2026
+
+### Added
+
+- **`people add <name...>`** adds a person by name, to assign a task to before any message names them.
+  `people list` lists everyone memo knows, the owner first, then by how many tasks name them, with `--limit`
+  (default 500); it listed only the owner and people with a task role.
+- **`tasks add --due <time> --status <state> --agent <name>`** sets them on a project task in one write.
+  `tasks update --description none` clears the description. `--priority` takes a score from `0.0` to `1.0` with its
+  decimal point; a bare `0` … `4` keeps the old scale.
+- **`when:` in the tasks query**: `when:overdue`, `when:today`, `when:upcoming` (the 7 days after today),
+  `when:later`, `when:none`. `tasks counts` counts them in `due` and counts `agent`, and each `project` count carries
+  `ref`; list items carry `project_key` and `project_name`, so the list and the counts name a project alike.
+- **Findings about anyone**: a fact finding in `projects actions add` may name a `subject` (`person:`,
+  `organization:`, `task:` or `project:`) and no project, and cite a `note:`; a task finding still names its project.
+  `notes show` gives the `fingerprint` to cite a note with. `actions show` and `list` carry `subject` and
+  `subject_name` for a findings batch.
+- **`actions confirm <id> [findings...] --fingerprint <hash>`** and **`actions reject <id> --fingerprint <hash>`**
+  decide a findings batch by its id, with no project. Confirm with no finding IDs creates every finding. An agent
+  decides for the owner only with `--reason`, as in `projects actions`. Facts the owner keeps are accepted at once.
+
+### Fixed
+
+- **`tasks list overdue:true` no longer matches a task due later today**: it is open work due before today.
+- **`tasks history` gives due dates as ISO**, as `tasks list` does, not epoch milliseconds.
 
 ## 0.131.8 — 01.11.2026
 
