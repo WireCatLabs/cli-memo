@@ -1,6 +1,6 @@
 import type { Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { LOCAL_READ, LOCAL_WRITE, overrideSharedContract, withQuery } from "@wirecat/cli-core/cli"
+import { dateOrNone, LOCAL_READ, LOCAL_WRITE, overrideSharedContract, withQuery } from "@wirecat/cli-core/cli"
 import { closedStateOf } from "@wirecat/cli-core/services"
 import {
   PRIORITY_LABELS,
@@ -62,6 +62,17 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     )
     .option("--project <project>", "a task without a source: the project's key or project:<id>")
     .option("--assignee <person...>", "who does it: a person's UID")
+    .option(
+      "--due <time>",
+      "a project task: when it must be done, an ISO 8601 time or 2h, 3d from now",
+      dateOrNone("--due"),
+    )
+    .option(
+      "--status <state>",
+      `a project task: its state from the start, ${TASK_STATES.join(", ")}`,
+      oneOf(TASK_STATES as readonly TaskState[]),
+    )
+    .option("--agent <agent>", "a project task: the agent working on it, apart from its assignees")
     .option("--into <id>", "link the source to this task instead of opening one that may be the same job")
     .option("--new", "open the task even when one like it is open or was closed in the last 14 days")
     .action(async (source: string | undefined, options: AddOptions & WriteOptions & { json?: boolean }) => {
@@ -199,6 +210,8 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
           `a project task's state: ${TASK_STATES.join(", ")}; a closed one reopens`,
           oneOf(TASK_STATES as readonly TaskState[]),
         )
+      const description = command.options.find((option) => option.long === "--description")
+      if (description) description.description = "the detail, in Markdown; none clears it"
       command.action(async (id: string, given: UpdateOptions & WriteOptions & { json?: boolean }) => {
         const raw = given as Omit<UpdateOptions, "parent" | "due" | "remindTime" | "priority"> &
           WriteOptions & {
@@ -210,6 +223,9 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
           }
         const options = {
           ...given,
+          ...(typeof given.description === "string" && given.description.trim().toLowerCase() === "none"
+            ? { description: null }
+            : {}),
           priority: raw.priority === "none" ? null : raw.priority,
           parent: raw.parent === null || raw.parent === "none" ? null : raw.parent,
           due: raw.due === "none" ? null : raw.due,

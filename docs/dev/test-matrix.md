@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**568 ✅ · 0 ⛔ · 91 ❌** — 149 commands, 510 options.
+**578 ✅ · 0 ⛔ · 93 ❌** — 150 commands, 521 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -112,7 +112,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `mail rules import` | `--format` | ✅ |  |
 | `mail rules import` | `--yes` | ✅ |  |
 | `mail rules import` | `--json` | ✅ |  |
+| `people add` |  | ✅ |  |
+| `people add` | `--json` | ✅ |  |
 | `people list` |  | ✅ |  |
+| `people list` | `--limit` | ✅ |  |
 | `people list` | `--json` | ✅ |  |
 | `tags add` |  | ✅ |  |
 | `tags add` | `--message` | ✅ |  |
@@ -159,10 +162,13 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tasks add` | `--title` | ✅ |  |
 | `tasks add` | `--priority` | ✅ |  |
 | `tasks add` | `--parent` | ✅ |  |
-| `tasks add` | `--description` | ❌ |  |
+| `tasks add` | `--description` | ✅ |  |
 | `tasks add` | `--type` | ✅ |  |
 | `tasks add` | `--project` | ✅ |  |
 | `tasks add` | `--assignee` | ✅ |  |
+| `tasks add` | `--due` | ✅ |  |
+| `tasks add` | `--status` | ✅ |  |
+| `tasks add` | `--agent` | ✅ |  |
 | `tasks add` | `--into` | ✅ |  |
 | `tasks add` | `--new` | ✅ |  |
 | `tasks list` |  | ✅ |  |
@@ -206,7 +212,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tasks update` | `--priority` | ✅ |  |
 | `tasks update` | `--parent` | ✅ |  |
 | `tasks update` | `--title` | ✅ |  |
-| `tasks update` | `--description` | ❌ |  |
+| `tasks update` | `--description` | ✅ |  |
 | `tasks update` | `--due` | ✅ |  |
 | `tasks update` | `--remind-time` | ❌ |  |
 | `tasks update` | `--assignee` | ✅ |  |
@@ -524,8 +530,14 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `actions show` |  | ✅ |  |
 | `actions show` | `--json` | ✅ |  |
 | `actions confirm` |  | ✅ |  |
+| `actions confirm` | `--as-owner` | ❌ |  |
+| `actions confirm` | `--fingerprint` | ✅ |  |
+| `actions confirm` | `--reason` | ❌ |  |
 | `actions confirm` | `--json` | ✅ |  |
 | `actions reject` |  | ✅ |  |
+| `actions reject` | `--as-owner` | ❌ |  |
+| `actions reject` | `--fingerprint` | ✅ |  |
+| `actions reject` | `--reason` | ❌ |  |
 | `actions reject` | `--json` | ✅ |  |
 | `agents list` |  | ✅ |  |
 | `agents list` | `--limit` | ✅ |  |

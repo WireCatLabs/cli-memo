@@ -649,11 +649,33 @@ memo mail rules import <account> <file> [options]
 
 ## `memo people`
 
-the people memo's tasks name
+the people memo knows, to assign tasks to
+
+### `memo people add`
+
+add a person by name, before any message names them
+
+This command changes the local store or your files.
+
+```sh
+memo people add <name> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | required | what to call them. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** add a person by name, before any message names them
+
+**Example:** `memo people add Lena Example`
 
 ### `memo people list`
 
-the owner and everyone who holds a role on a task, by name; search people finds anyone else
+everyone memo knows, by name: the owner first, then by how many tasks name them
 
 ```sh
 memo people list [query] [options]
@@ -665,9 +687,10 @@ memo people list [query] [options]
 
 | Option | What it does |
 |---|---|
+| `--limit <n>` | most people, up to 5000. Default: `500`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** the owner and everyone who holds a role on a task
+**Returns:** everyone memo knows, the owner first
 
 **Example:** `memo people list --json`
 
@@ -858,6 +881,9 @@ memo tasks add [source] [options]
 | `--type <type>` | question, request (default), mention or promise from a source; bug, feature or chore (default) in a project. |
 | `--project <project>` | a task without a source: the project's key or project:<id>. |
 | `--assignee <person...>` | who does it: a person's UID. |
+| `--due <time>` | a project task: when it must be done, an ISO 8601 time or 2h, 3d from now. |
+| `--status <state>` | a project task: its state from the start, open, todo, in_progress, done, dismissed. |
+| `--agent <agent>` | a project task: the agent working on it, apart from its assignees. |
 | `--into <id>` | link the source to this task instead of opening one that may be the same job. |
 | `--new` | open the task even when one like it is open or was closed in the last 14 days. |
 
@@ -886,7 +912,7 @@ memo tasks list [query] [options]
 | `--desc` | project tasks: the --sort order reversed. |
 | `--cursor <cursor>` | project tasks: the next page, from page.next_cursor, with the same query and order. |
 
-**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 21 more; every field: memo commands info tasks list
+**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 23 more; every field: memo commands info tasks list
 
 **Next usually:** `memo tasks links <task>`, `memo tasks status <task>`, `memo tasks show <task>`
 
@@ -908,7 +934,7 @@ memo tasks counts [query] [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 21 more; every field: memo commands info tasks counts
+**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 23 more; every field: memo commands info tasks counts
 
 **Next usually:** `memo tasks links <task>`, `memo tasks status <task>`, `memo tasks show <task>`
 
@@ -1058,7 +1084,7 @@ memo tasks update <task> [options]
 | `--priority <n>` | low, medium, high, critical or none; 0 (urgent) … 4 (low) still read as before. |
 | `--parent <id>` | parent task in the same project; none clears it. |
 | `--title <title>` | one line: the action and its object — send Alex the API token. |
-| `--description <text>` | the detail, in Markdown: who owes whom, done when, next step, keywords. |
+| `--description <text>` | the detail, in Markdown; none clears it. |
 | `--due <time>` | when it must be done: an ISO 8601 time or 2h, 3d from now; none clears it. |
 | `--remind-time <time>` | when to look at it again: an ISO 8601 time or 2h, 3d from now; none clears it. |
 | `--assignee <person...>` | who does it: sender (whoever sent the task's message) or person:<id>; none clears it. Leave it out when unsure: a task with no assignee is better than none. |
@@ -2819,29 +2845,33 @@ memo actions show <id> [options]
 
 ### `memo actions confirm`
 
-confirm it: it becomes a task in the account that would act; nothing is sent
+confirm it: it becomes a task in the account that would act, nothing is sent; for a findings batch, create the named findings (all when none is named) and reject the rest
 
 This command changes the local store or your files.
 
 ```sh
-memo actions confirm <id> [options]
+memo actions confirm <id> [findings] [options]
 ```
 
 | Argument | | What it is |
 |---|---|---|
 | `id` | required | the action's id, as actions list gives it. |
+| `findings` | optional | a findings batch: the finding IDs to create. |
 
 | Option | What it does |
 |---|---|
+| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+| `--fingerprint <hash>` | a findings batch: the fingerprint actions show gives. |
+| `--reason <text>` | a findings batch: why, in a few words; required when an agent decides for you. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** confirm it: it becomes a task in the account that would act; nothing is sent
+**Returns:** confirm it: a task to act on, or a findings batch's facts and tasks
 
 **Example:** `memo actions confirm 5`
 
 ### `memo actions reject`
 
-reject it; nothing is done
+reject it; nothing is done. For a findings batch, every new finding
 
 This command changes the local store or your files.
 
@@ -2855,9 +2885,12 @@ memo actions reject <id> [options]
 
 | Option | What it does |
 |---|---|
+| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+| `--fingerprint <hash>` | a findings batch: the fingerprint actions show gives. |
+| `--reason <text>` | a findings batch: why, in a few words; required when an agent decides for you. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** reject it; nothing is done
+**Returns:** reject it; nothing is done. For a findings batch, every new finding
 
 **Example:** `memo actions reject 5`
 

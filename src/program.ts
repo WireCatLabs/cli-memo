@@ -145,6 +145,8 @@ const OWN_ENTITIES = entityFields({
     "project",
     "project_name",
     "fingerprint",
+    "subject",
+    "subject_name",
     "sources",
   ],
   agent_action: ["id", "actor", "tool", "tier", "target", "status", "error", "started_at", "finished_at"],
