@@ -4,6 +4,13 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Changed
+
+- **Built on cli-core 0.529.0 and cli-base 0.71.0.** cli-core 0.529.0 stops hiding a locked or broken store when it
+  scores mail senders; only a missing account counts as "nothing to score".
+
 ## 0.131.8 — 01.11.2026
 
 ### Fixed

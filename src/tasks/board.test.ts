@@ -86,8 +86,8 @@ it("counts project tasks for the pickers, and keeps an account's list as it was"
   const counts = await run(["tasks", "counts", "project:HRB"])
   expect(counts.total).toBe(1)
   expect(counts.project).toEqual([
-    { value: "HRB", name: "Harbour launch", count: 1 },
-    { value: "OPS", name: "Operations", count: 1 },
+    { value: "HRB", name: "Harbour launch", count: 1, ref: "project:1" },
+    { value: "OPS", name: "Operations", count: 1, ref: "project:2" },
   ])
   expect(counts.state.find(({ value }: { value: string }) => value === "todo")).toEqual({ value: "todo", count: 0 })
   expect((await run(["tasks", "list"])).items).toEqual([])
