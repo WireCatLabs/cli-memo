@@ -4,6 +4,21 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Changed
+
+- **Mail ids and threads come from cli-core's `mailIds`, the function mail uses**, so memo and mail give one email one
+  id on every server. Ids already stored do not change; a reply whose In-Reply-To holds a name before the `<id>` now
+  joins its parent's thread, as in mail.
+
+### Fixed
+
+- **memo says when it leaves stored mail rules out**: a rule with a condition this memo does not know is named on
+  stderr with what it does not know, instead of being dropped silently.
+- **Rules are written by cli-core's `ruleInput`**, the one mail writes them with; memo's copy is gone.
+- On cli-core 0.526.0, the version mail pins too.
+
 ## 0.131.7 — 01.11.2026
 
 ### Added
@@ -21,19 +36,6 @@ the API.
 
 - **A findings batch rejected as a whole reads as `rejected`** in `actions list` and `actions show`, not `approved`,
   and `actions list status:rejected` finds it.
-
-### Changed
-
-- **Mail ids and threads come from cli-core's `mailIds`, the function mail uses**, so memo and mail give one email one
-  id on every server. Ids already stored do not change; a reply whose In-Reply-To holds a name before the `<id>` now
-  joins its parent's thread, as in mail.
-
-### Fixed
-
-- **memo says when it leaves stored mail rules out**: a rule with a condition this memo does not know is named on
-  stderr with what it does not know, instead of being dropped silently.
-- **Rules are written by cli-core's `ruleInput`**, the one mail writes them with; memo's copy is gone.
-- On cli-core 0.526.0, the version mail pins too.
 
 ## 0.131.6 — 01.11.2026
 
