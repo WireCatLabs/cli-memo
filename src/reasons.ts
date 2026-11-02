@@ -58,6 +58,12 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: ["account"],
   },
   {
+    reason: "mail.mailbox-needed",
+    code: "validation_error",
+    message: "the store holds several mailboxes, or none; --source names the one to read",
+    details: ["param"],
+  },
+  {
     reason: "mail.moved-to-mail-cli",
     code: "validation_error",
     message: "the command moved to the mail CLI; the message names the command to run there",

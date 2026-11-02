@@ -17,7 +17,9 @@ import { type Config, loadConfig } from "../config.js"
 import { positive } from "../options.js"
 import { type MailAccountConfig, mailAccounts, mailSource } from "./accounts.js"
 import { knownAges, lookUpAges } from "./domain-age.js"
+import { mailFindingsCommand } from "./findings-command.js"
 import { movedToMailCommands } from "./moved.js"
+import { mailReviewCommands } from "./review-command.js"
 import { mailSetupCommand } from "./setup-command.js"
 
 const accountOf = (config: Config, name: string): MailAccountConfig =>
@@ -65,7 +67,10 @@ const probeText = (probe: Probe & { seconds: number }): string => {
 
 export const mailCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
-  const mail = program.command("mail").description("look at a mail account before importing it")
+  const mail = program
+    .command("mail")
+    .description("mail accounts: look before importing, read new mail for an agent, stage what it found")
+    .summary("look at mail accounts, review new mail, stage findings")
   mailSetupCommand(mail, streams, env)
 
   annotate(mail.command("inspect"), { effects: REMOTE_READ })
@@ -115,5 +120,9 @@ export const mailCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       },
     )
 
+  mailFindingsCommand(program, mail, streams, env)
+  const messages = program.commands.find((command) => command.name() === "messages")
+  if (!messages) throw new Error("memo messages is mounted before memo mail")
+  mailReviewCommands(mail, messages, env)
   movedToMailCommands(mail)
 }

@@ -328,16 +328,21 @@ export const createProgram = ({
     "Memo installs its own stored-data instructions through its environment, prints the packaged primary skill without filesystem effects, and takes --json on each skill command because it has no global one.",
     () => {
       const out = answers(program, streams, env)
-      const skill = skillCommand(APP, new URL("../skills/cli-memo/SKILL.md", import.meta.url), (command) => {
-        const json = command.opts().json === true
-        const renderer = createRenderer({ format: json ? "json" : "pretty", color: false, streams })
-        // cli-base prints each answer bare; the { item, meta } envelope is ours, as in cli-core.
-        return {
-          renderer: json ? { ...renderer, result: (value: unknown) => out.print(true, itemAnswer(value)) } : renderer,
-          streams,
-          env,
-        }
-      })
+      const skill = skillCommand(
+        APP,
+        new URL("../skills/cli-memo/SKILL.md", import.meta.url),
+        (command) => {
+          const json = command.opts().json === true
+          const renderer = createRenderer({ format: json ? "json" : "pretty", color: false, streams })
+          // cli-base prints each answer bare; the { item, meta } envelope is ours, as in cli-core.
+          return {
+            renderer: json ? { ...renderer, result: (value: unknown) => out.print(true, itemAnswer(value)) } : renderer,
+            streams,
+            env,
+          }
+        },
+        { "mail-triage": new URL("../skills/mail-triage/SKILL.md", import.meta.url) },
+      )
       // memo has no global --json, so each skill command takes its own, as guide does.
       for (const command of skill.commands) command.option("--json", "print JSON")
       const show = skill.commands.find((command) => command.name() === "show")

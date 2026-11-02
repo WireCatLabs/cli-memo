@@ -274,5 +274,17 @@ export const reviewRegistry = (store: MessageStore, env: NodeJS.ProcessEnv): Pro
     } catch (error) {
       if (!(error instanceof CliError) || error.code !== "configuration_error") throw error
     }
-  return registry
+  // cli-core's own mail kind is owner only in `decide` alone; its rows must say so, and name their mailbox, here too.
+  const marked = async (row: ProposalRow): Promise<ProposalRow> =>
+    row.kind === MAIL_FINDINGS_KIND && (row as ReviewRow).ownerOnly !== true
+      ? ownerOnly(row, accountName(await store.proposedActions.get(row.id)))
+      : row
+  return {
+    ...registry,
+    list: async (filter) => {
+      const found = await registry.list(filter)
+      return { ...found, items: await Promise.all(found.items.map(marked)) }
+    },
+    get: async (id) => marked(await registry.get(id)),
+  }
 }
