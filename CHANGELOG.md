@@ -23,6 +23,14 @@ the API.
   schedule): `memo schedule command digest --at 08:30 -- review status`. An agent is allowed only `memo`, under
   `MEMO_READ_ONLY`. Not offered over MCP.
 - **`memo context <person>` and `memo projects context <project>` count the proposals waiting** about them.
+- **`invoices list|show|add` and `payments list|show|add|allocate`** manage money as typed rows (cli-core's finance
+  tables). Amounts are decimal strings and totals stay per currency, never converted. Your own `add` is confirmed at
+  once; an agent's, or one with nobody at the terminal, waits as a proposal. `payments allocate <payment> <invoice>
+  <amount>` settles part of an invoice and is refused beyond the payment or the invoice.
+- **`memo review` lists and decides invoice and payment proposals** (`kind:invoice,payment`); only you confirm money.
+- **`projects status` adds `finance`**: billed, paid and owed per direction and currency from the project's confirmed
+  invoices and payments, with their refs, beside the amounts found in chats.
+- **`invoices add` and `payments add` take `--evidence`**, up to 8 references the row was read from.
 
 ### Changed — may break callers
 
@@ -32,8 +40,12 @@ the API.
 
 ### Fixed
 
-- **Built on cli-core 0.556.0**, which adds per-reader processing marks for mail (`mail review --holder`); memo
-  shows them in `review status`.
+- **Built on cli-core 0.558.0** (store version 46). Money is no longer a fact: `facts add --kind payment` is gone, and
+  a confirmed payment finding writes a `payment:` row (paid), an `invoice:` (expected; it needs a `person:` or
+  `organization:` counterparty) or voids the invoice it supersedes (cancelled). A payment finding's `supersedes`
+  names an `invoice:`, and `paid_at` dates a paid one. `projects status` lists payments and open invoices with
+  status `confirmed` (was `accepted`); a proposed invoice does not count as owed. 0.556.0 added per-reader
+  processing marks for mail (`mail review --holder`); memo shows them in `review status`.
 
 ## 0.131.17 — 02.11.2026
 

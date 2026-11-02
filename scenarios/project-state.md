@@ -13,7 +13,7 @@ steps:
   - run: memo projects evidence HRB --source all --context-query "1 200"
     why: the fingerprint of each message you will cite, which staging needs
   - run: memo projects actions add -
-    why: stage the payments and promises you read, each citing its message, on stdin for the owner to confirm
+    why: stage the payments and promises you read, each citing its message, on stdin; a paid one names the invoice it settles in supersedes
 look:
   - money marked pattern is a word match; read the cited message before you stage it
   - a chat held in part; sync it with the line next gives before trusting "nothing open"

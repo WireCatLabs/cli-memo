@@ -72,7 +72,9 @@ export const reviewCommand = (program: Command, streams: Streams, env: NodeJS.Pr
   const { print } = answers(program, streams, env)
   const review = program
     .command("review")
-    .description("every proposal waiting for your decision, across projects: links, key documents, facts and more")
+    .description(
+      "every proposal waiting for your decision, across projects: links, key documents, facts, invoices, payments and more",
+    )
     .summary("every proposal waiting for your decision, across projects")
 
   json(
@@ -110,7 +112,10 @@ export const reviewCommand = (program: Command, streams: Streams, env: NodeJS.Pr
 
   json(annotate(review.command("show"), { effects: LOCAL_READ }))
     .description("one proposal with its titles, signals and the text around each piece of evidence")
-    .argument("<id>", "the proposal's id, as review lists it: 17070, fact:512, memory:88, link:17, close:Q-15")
+    .argument(
+      "<id>",
+      "the proposal's id, as review lists it: 17070, fact:512, memory:88, link:17, payment:4, close:Q-15",
+    )
     .option("--brief", "only references and their titles, without excerpts or nearby text")
     .option("--before-n <n>", "messages or document paragraphs before the evidence, at most 5", whole, 2)
     .option("--after-n <n>", "messages or document paragraphs after the evidence, at most 5", whole, 2)

@@ -258,6 +258,8 @@ export const REVIEW_KINDS = [
   MAIL_FINDINGS_KIND,
   "task_close",
   "action",
+  "invoice",
+  "payment",
 ] as const
 
 /**

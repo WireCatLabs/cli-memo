@@ -1305,7 +1305,7 @@ memo projects evidence <project> [options]
 
 ### `memo projects status`
 
-where a project stands, from the stored messages of every chat confirmed as the project's or its child projects', in every account those links name (meta.accounts lists them): the last message, who replies next, open questions both ways, promises, amounts with their direction, payments recorded, how long each --context-query has been quiet on their side, and how much of each chat is held. Amounts, directions and promises found by words are marked pattern: read the cited message before trusting one. next names at most two chats to read, with the messenger command that reads them. No model call; nothing leaves this machine
+where a project stands, from the stored messages of every chat confirmed as the project's or its child projects', in every account those links name (meta.accounts lists them): the last message, who replies next, open questions both ways, promises, amounts with their direction, payments recorded, billed, paid and owed per currency from confirmed invoices and payments (finance), how long each --context-query has been quiet on their side, and how much of each chat is held. Amounts, directions and promises found by words are marked pattern: read the cited message before trusting one. next names at most two chats to read, with the messenger command that reads them. No model call; nothing leaves this machine
 
 ```sh
 memo projects status <project> [options]
@@ -2358,7 +2358,7 @@ memo facts add <statement> [options]
 | Option | What it does |
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
-| `--kind <kind>` | fact, statement, question, decision, promise, payment. |
+| `--kind <kind>` | fact, statement, question, decision, promise. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
 | `--project <project>` | the project it belongs to: its key or project:<id>. |
 | `--subject <ref>` | what it is about, as a reference. |
@@ -2367,7 +2367,7 @@ memo facts add <statement> [options]
 | `--supersedes <ref>` | the proposed or accepted fact this one corrects; it stays, marked superseded once this one is accepted. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 14 more; every field: memo commands info facts add
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts add
 
 **Example:** `memo facts add 'We moved the launch to spring' --kind decision --evidence 'msg:telegram/1/77/42' --project HRB`
 
@@ -2388,7 +2388,7 @@ memo facts list [query] [options]
 | `--limit <n>` | most facts, up to 500. Default: `100`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 14 more; every field: memo commands info facts list
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts list
 
 **Example:** `memo facts list kind:decision project:HRB`
 
@@ -2409,7 +2409,7 @@ memo facts show <ref> [options]
 | `--sources` | read each piece of evidence back: who, when, a short excerpt, and whether it is gone. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 14 more; every field: memo commands info facts show
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts show
 
 **Example:** `memo facts show fact:4 --sources`
 
@@ -2433,7 +2433,7 @@ memo facts confirm <ref> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
-**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 14 more; every field: memo commands info facts confirm
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts confirm
 
 **Example:** `memo facts confirm fact:4`
 
@@ -2457,7 +2457,7 @@ memo facts reverse <ref> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
-**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 14 more; every field: memo commands info facts reverse
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts reverse
 
 **Example:** `memo facts reverse fact:4`
 
@@ -2481,7 +2481,7 @@ memo facts reject <ref> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
-**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 14 more; every field: memo commands info facts reject
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts reject
 
 **Example:** `memo facts reject fact:4`
 
@@ -2508,6 +2508,187 @@ memo facts remove <ref> [options]
 **Returns:** forget a fact: erase its text, its links to sources and its tags
 
 **Example:** `memo facts remove fact:4`
+
+## `memo invoices`
+
+invoices you issued or received, with their lines and what paid them; amounts per currency
+
+### `memo invoices list`
+
+invoices, newest first; review:proposed lists what waits for you
+
+```sh
+memo invoices list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+| `--limit <n>` | most invoices, up to 500. Default: `100`. |
+
+**Returns:** invoices, newest first; review:proposed lists what waits for you
+
+**Example:** `memo invoices list project:HRB open:true`, `memo invoices list review:proposed --json`
+
+### `memo invoices show`
+
+one invoice with its lines and the payments allocated to it
+
+```sh
+memo invoices show <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | invoice:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** one invoice with its lines and the payments allocated to it
+
+**Example:** `memo invoices show invoice:4`
+
+### `memo invoices add`
+
+record an invoice of one line; yours is confirmed at once; an agent's waits as proposed for you in memo review
+
+This command changes the local store or your files.
+
+```sh
+memo invoices add <amount> <currency> <description> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `amount` | required | a decimal, such as 50000.00. |
+| `currency` | required | ISO 4217, such as RUB. |
+| `description` | required | what it bills, in a few words. |
+
+| Option | What it does |
+|---|---|
+| `--person <uid>` | the person billed or billing: person:<id>. |
+| `--organization <organization>` | the organization billed or billing: organization:<id>. |
+| `--kind <kind>` | receivable (you bill them) or payable (they bill you). |
+| `--title <title>` | the invoice's number, as printed on it. |
+| `--occurred-time <time>` | the day it was issued, such as 2026-11-01. |
+| `--due <time>` | the day it is due, such as 2026-11-15. |
+| `--project <project>` | the project it belongs to: its key or project:<id>. |
+| `--reason <text>` | why an agent proposes it, for the owner who decides. |
+| `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** record an invoice; an agent's waits for your review
+
+**Example:** `memo invoices add 50000.00 RUB Bed rental, November --kind receivable --organization organization:3 --project HRB`, `memo invoices add 1200.50 EUR Hosting --kind payable --person person:7 --title 2026-118 --due 2026-11-15`
+
+## `memo payments`
+
+money paid to you or by you, and the invoices each payment settles; amounts per currency
+
+### `memo payments list`
+
+payments, newest first; review:proposed lists what waits for you
+
+```sh
+memo payments list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+| `--limit <n>` | most payments, up to 500. Default: `100`. |
+
+**Returns:** payments, newest first; review:proposed lists what waits for you
+
+**Example:** `memo payments list project:HRB direction:in`, `memo payments list review:proposed --json`
+
+### `memo payments show`
+
+one payment with the invoices it is allocated to
+
+```sh
+memo payments show <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | payment:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** one payment with the invoices it is allocated to
+
+**Example:** `memo payments show payment:9`
+
+### `memo payments add`
+
+record a payment; yours is confirmed at once; an agent's waits as proposed for you in memo review. payments allocate matches it to an invoice
+
+This command changes the local store or your files.
+
+```sh
+memo payments add <amount> <currency> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `amount` | required | a decimal, such as 50000.00. |
+| `currency` | required | ISO 4217, such as RUB. |
+
+| Option | What it does |
+|---|---|
+| `--person <uid>` | the person who paid or was paid: person:<id>. |
+| `--organization <organization>` | the organization who paid or was paid: organization:<id>. |
+| `--kind <kind>` | in (paid to you) or out (paid by you). |
+| `--title <title>` | the payment's reference, such as the bank's purpose line. |
+| `--occurred-time <time>` | the day it was paid, such as 2026-11-01; today when left out. |
+| `--project <project>` | the project it belongs to: its key or project:<id>. |
+| `--reason <text>` | why an agent proposes it, for the owner who decides. |
+| `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** record a payment; an agent's waits for your review
+
+**Example:** `memo payments add 25000.00 RUB --kind in --organization organization:3 --occurred-time 2026-11-01 --project HRB`
+
+### `memo payments allocate`
+
+settle part of an invoice with part of a payment, in their one currency, never beyond either; an agent allocates only a payment it proposed
+
+This command changes the local store or your files.
+
+```sh
+memo payments allocate <payment> <invoice> <amount> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `payment` | required | payment:<id>. |
+| `invoice` | required | invoice:<id>. |
+| `amount` | required | a decimal, such as 25000.00. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** settle part of an invoice with part of a payment
+
+**Example:** `memo payments allocate payment:9 invoice:4 25000.00`
 
 ## `memo meetings`
 
@@ -2822,7 +3003,7 @@ memo actions reject <id> [options]
 
 ## `memo review`
 
-every proposal waiting for your decision, across projects: links, key documents, facts and more
+every proposal waiting for your decision, across projects: links, key documents, facts, invoices, payments and more
 
 ### `memo review list`
 
@@ -2845,7 +3026,7 @@ memo review list [query] [options]
 
 **Returns:** memo proposal — id, kind, status, title, project, project_title, source, owner_only, and 11 more; every field: memo commands info review list
 
-**Example:** `memo review list project:HRB`, `memo review list kind:relationship,fact by:agent`
+**Example:** `memo review list project:HRB`, `memo review list kind:relationship,fact by:agent`, `memo review list kind:invoice,payment --compact`
 
 ### `memo review show`
 
@@ -2857,7 +3038,7 @@ memo review show <id> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `id` | required | the proposal's id, as review lists it: 17070, fact:512, memory:88, link:17, close:Q-15. |
+| `id` | required | the proposal's id, as review lists it: 17070, fact:512, memory:88, link:17, payment:4, close:Q-15. |
 
 | Option | What it does |
 |---|---|

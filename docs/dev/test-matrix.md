@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**613 ✅ · 0 ⛔ · 118 ❌** — 166 commands, 565 options.
+**638 ✅ · 0 ⛔ · 129 ❌** — 173 commands, 594 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -486,6 +486,42 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `facts remove` | `--as-owner` | ❌ |  |
 | `facts remove` | `--json` | ✅ |  |
 | `facts remove` | `--reason` | ❌ |  |
+| `invoices list` |  | ✅ |  |
+| `invoices list` | `--json` | ✅ |  |
+| `invoices list` | `--limit` | ❌ |  |
+| `invoices show` |  | ✅ |  |
+| `invoices show` | `--json` | ❌ |  |
+| `invoices add` |  | ✅ |  |
+| `invoices add` | `--person` | ✅ |  |
+| `invoices add` | `--organization` | ✅ |  |
+| `invoices add` | `--kind` | ✅ |  |
+| `invoices add` | `--title` | ✅ |  |
+| `invoices add` | `--occurred-time` | ❌ |  |
+| `invoices add` | `--due` | ✅ |  |
+| `invoices add` | `--project` | ✅ |  |
+| `invoices add` | `--reason` | ❌ |  |
+| `invoices add` | `--evidence` | ❌ |  |
+| `invoices add` | `--as-owner` | ❌ |  |
+| `invoices add` | `--json` | ✅ |  |
+| `payments list` |  | ✅ |  |
+| `payments list` | `--json` | ✅ |  |
+| `payments list` | `--limit` | ❌ |  |
+| `payments show` |  | ✅ |  |
+| `payments show` | `--json` | ✅ |  |
+| `payments add` |  | ✅ |  |
+| `payments add` | `--person` | ❌ |  |
+| `payments add` | `--organization` | ✅ |  |
+| `payments add` | `--kind` | ✅ |  |
+| `payments add` | `--title` | ❌ |  |
+| `payments add` | `--occurred-time` | ✅ |  |
+| `payments add` | `--project` | ✅ |  |
+| `payments add` | `--reason` | ✅ |  |
+| `payments add` | `--evidence` | ✅ |  |
+| `payments add` | `--as-owner` | ❌ |  |
+| `payments add` | `--json` | ✅ |  |
+| `payments allocate` |  | ✅ |  |
+| `payments allocate` | `--as-owner` | ❌ |  |
+| `payments allocate` | `--json` | ✅ |  |
 | `meetings actions add` |  | ✅ |  |
 | `meetings actions add` | `--account` | ✅ |  |
 | `meetings actions add` | `--json` | ✅ |  |
