@@ -148,10 +148,9 @@ set you want to accept before confirming; leave an undecided batch open. `projec
 rejects every new finding in a batch. After a decision, `memo projects context HRB` shows accepted facts,
 key documents and open numbered tasks; `projects actions list HRB status:reviewed` shows past batch decisions.
 
-By default an agent may decide project proposals with a recorded reason. The request above explicitly
-leaves that decision to you. To require owner decisions in this flow, set
-[`agent_decisions` to `false`](configuration.md#agent_decisions); this refuses agent confirmations and
-rejections through both CLI and MCP. It does not prevent reading or staging proposals. The separate
+By default only you decide project proposals: an agent's confirmations and rejections are refused through
+both CLI and MCP, and reading and staging proposals still work. To let an agent decide them with a recorded
+reason, set [`agent_decisions` to `true`](configuration.md#agent_decisions). The separate
 meeting review flow needs explicit owner permissions for MCP decisions.
 
 Next, [prepare an agenda using the project's accepted context](#prepare-for-a-meeting-with-someone).

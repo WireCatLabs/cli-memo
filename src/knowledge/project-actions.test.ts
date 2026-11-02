@@ -40,6 +40,8 @@ const setUp = async () => {
   delete base.CLAUDECODE
   const owner = base
   const agent = { ...base, AI_AGENT: "synthetic-agent_1_agent" }
+  mkdirSync(dirname(configPath(owner)), { recursive: true })
+  writeFileSync(configPath(owner), JSON.stringify({ agent_decisions: true }))
   const store = await openStore({ env: owner })
   await store.messages.saveMessages(
     telegram,

@@ -43,9 +43,9 @@ The named CLI-only exclusions are the `mcp` commands, `upgrade`, `skill install`
 start another server, replace the running program, install instructions in other apps, or manage a background timer.
 
 `memories add`, `facts add`, `actions add`, `meetings actions add` and `projects actions add` save proposals.
-By default, `projects actions confirm` and `projects actions reject` may decide project proposals with a recorded
-reason. Set [`agent_decisions: false`](configuration.md#agent_decisions) to require owner decisions for project
-proposals through the CLI and MCP. Memo never sends a message or mail.
+By default only the owner decides project proposals; `projects actions confirm` and `projects actions reject` refuse
+an agent. Set [`agent_decisions: true`](configuration.md#agent_decisions) to let them decide with a recorded reason
+through the CLI and MCP. Memo never sends a message or mail.
 
 ## Open a cited item
 
@@ -111,7 +111,7 @@ findings batches — each with its evidence: whether the text changed (`state`),
 it unless `brief`; cited documents include nearby paragraphs. A text changed since staging refuses only the
 findings that cite it. Decide the ones you are confident about with `projects actions confirm` (the finding IDs to
 create) or `projects actions reject`, always with a `reason`, which is kept with the decision; ask the owner about
-the rest. A batch needs its `fingerprint`. When the owner sets `agent_decisions: false`, decisions are refused and
+the rest. A batch needs its `fingerprint`. Unless the owner sets `agent_decisions: true`, decisions are refused and
 only the owner decides, through `memo projects actions confirm` or `reject`.
 
 Key-document suggestions have no saved text fingerprint and return `state: "untracked"`; reread them

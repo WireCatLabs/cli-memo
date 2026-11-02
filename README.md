@@ -310,9 +310,8 @@ It can open search references with `notes_show` and `messages_show`. Existing to
 An agent's new memories, directly recorded facts and outbound action proposals start as `proposed`.
 Permission keys limit reading, editing and decisions; writes without a saved level use `ask`, which runs over MCP
 without a terminal question. Source-folder and mail-rule changes need `mcp.authority`, off by default.
-Project proposals have a separate flow: by default an agent may decide them with a recorded reason, creating accepted
-facts and numbered tasks or confirming a key document. Set `agent_decisions: false` to require owner
-decisions on project proposals. Meeting decisions and annotation restore require explicit permissions. Memo never sends a message
+Project proposals have a separate flow: by default only you decide them. Set `agent_decisions: true` to let an agent
+decide them with a recorded reason, creating accepted facts and numbered tasks or confirming a key document. Meeting decisions and annotation restore require explicit permissions. Memo never sends a message
 or email. `memo agents list` lists each call, its result and time, without its arguments.
 
 More: [memories and facts](https://github.com/WireCatLabs/cli-memo/blob/main/docs/memories.md) · [the MCP server](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md) ·

@@ -137,7 +137,7 @@ export const projectActionsCommand = (projects: Command, streams: Streams, env: 
         .description(
           name === "confirm"
             ? "confirm a suggested key document, or create the named findings of a batch and reject its other new " +
-                "ones; an agent decides for you only with --reason, unless agent_decisions is false"
+                "ones; an agent decides for you only when agent_decisions is true, and with --reason"
             : "reject a suggested key document, or every new finding of a batch",
         )
         .summary(name === "confirm" ? "confirm a proposal, yours or an agent's with --reason" : "reject a proposal")

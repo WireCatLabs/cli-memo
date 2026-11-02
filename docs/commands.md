@@ -1383,7 +1383,7 @@ memo projects actions list <project> [query] [options]
 
 #### `memo projects actions confirm`
 
-confirm a suggested key document, or create the named findings of a batch and reject its other new ones; an agent decides for you only with --reason, unless agent_decisions is false
+confirm a suggested key document, or create the named findings of a batch and reject its other new ones; an agent decides for you only when agent_decisions is true, and with --reason
 
 This command changes the local store or your files.
 

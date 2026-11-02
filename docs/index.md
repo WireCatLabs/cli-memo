@@ -40,8 +40,8 @@ Three words appear on every page:
 3. **You or your agent ask.** Memo answers with the matching text and a reference to each source,
    so you can open the original and check it.
 4. **You control project decisions.** An agent's new memories, directly recorded facts and outbound action
-   proposals wait for review. By default an agent may decide project proposals with a recorded
-   reason; [require owner decisions](./configuration.md#agent_decisions) if you want to review each one.
+   proposals wait for review. By default only you decide project proposals;
+   [let an agent decide them](./configuration.md#agent_decisions) with a recorded reason if you want.
    Meeting findings decisions need explicit owner permissions. Memo never sends a message or an email.
 
 Memo keeps the store on your computer. Memo sends your text to an AI provider only when you set one up
