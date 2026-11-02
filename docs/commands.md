@@ -2505,6 +2505,30 @@ memo facts confirm <ref> [options]
 
 **Example:** `memo facts confirm fact:4`
 
+### `memo facts unconfirm`
+
+take back your approval of an agent's fact; it waits as proposed again. Not for a correction or your own fact
+
+This command changes the local store or your files.
+
+```sh
+memo facts unconfirm <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | fact:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--reason <text>` | why, in a few words; required when an agent decides for you. |
+
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts unconfirm
+
+**Example:** `memo facts unconfirm fact:4`
+
 ### `memo facts reverse`
 
 an accepted decision no longer holds, and nothing replaced it
