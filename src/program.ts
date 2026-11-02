@@ -50,6 +50,7 @@ import { REASONS } from "./reasons.js"
 import { reviewCommand } from "./review/command.js"
 import { autoCommand } from "./run/auto.js"
 import { syncCommand } from "./run/import.js"
+import { scheduleCommand } from "./schedule/command.js"
 import { searchCommand } from "./search/command.js"
 import { showCommand } from "./show/command.js"
 import { storeCommand } from "./store/info-command.js"
@@ -231,6 +232,7 @@ export const createProgram = ({
   configCommand(program, streams, env)
   doctorCommand(program, streams, env)
   program.addCommand(upgradeCommand(streams))
+  program.addCommand(scheduleCommand(env))
   commandsCommand(program, streams)
   const skill = customizeSharedCommand(
     sharedSkillCommand(APP, new URL("../skills/cli-memo/SKILL.md", import.meta.url)),

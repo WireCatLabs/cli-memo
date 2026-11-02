@@ -6,10 +6,34 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo review` shows everything that waits for you in one list**: besides facts, memories, links, key documents,
+  project findings and actions, it now lists meeting findings, task close suggestions (`close:<task key>`) and the
+  coming mail findings, grouped by the project or account they came from, newest first, each batch with its
+  findings under it. Each row says `source` and `owner_only`. `memo review confirm 17080/f1` accepts those findings
+  of the batch and rejects the rest; `memo review confirm close:Q-15` closes the task as suggested, `reject`
+  clears the suggestion.
+- **`memo review status`**: since yesterday (`--since-time`), per mail account the threads with new mail, the
+  threads you owe an answer and wait for, and how far each agent's processing mark has read; then what was proposed
+  and what waits, by kind. With nothing to say it says so. No model call.
+- **`memo review show`** marks every evidence item `untrusted`, and for an email gives the `sender`: its address,
+  score and signals, and whether the address is `known` (its person has another identity).
+- **`memo schedule command|agent|list|run|remove`** runs a memo command or an agent on a timer (cli-core's shared
+  schedule): `memo schedule command digest --at 08:30 -- review status`. An agent is allowed only `memo`, under
+  `MEMO_READ_ONLY`. Not offered over MCP.
+- **`memo context <person>` and `memo projects context <project>` count the proposals waiting** about them.
+
+### Changed — may break callers
+
+- Meeting findings, task close suggestions and mail findings are the owner's to decide: `memo review confirm` and
+  `reject` refuse an agent on them, with or without `--reason`. Mail findings cannot be decided by this build yet
+  (`proposal.kind-unsupported`); they are listed so nothing turns them into tasks by mistake.
+
 ### Fixed
 
 - **Built on cli-core 0.556.0**, which adds per-reader processing marks for mail (`mail review --holder`); memo
-  exposes no new command from it yet.
+  shows them in `review status`.
 
 ## 0.131.17 — 02.11.2026
 

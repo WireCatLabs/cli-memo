@@ -2843,7 +2843,7 @@ memo review list [query] [options]
 | `--page <n>` | which page, from 1. Default: `1`. |
 | `--compact` | one line per proposal. |
 
-**Returns:** memo proposal — id, kind, status, title, project, project_title, subject, object, and 9 more; every field: memo commands info review list
+**Returns:** memo proposal — id, kind, status, title, project, project_title, source, owner_only, and 11 more; every field: memo commands info review list
 
 **Example:** `memo review list project:HRB`, `memo review list kind:relationship,fact by:agent`
 
@@ -2857,7 +2857,7 @@ memo review show <id> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `id` | required | the proposal's id, as review lists it: 17070, fact:512, memory:88, link:17, key:9. |
+| `id` | required | the proposal's id, as review lists it: 17070, fact:512, memory:88, link:17, close:Q-15. |
 
 | Option | What it does |
 |---|---|
@@ -2869,7 +2869,7 @@ memo review show <id> [options]
 
 **Returns:** one proposal with its titles, signals and the text around each piece of evidence
 
-**Example:** `memo review show 17079`
+**Example:** `memo review show 17079`, `memo review show 17080 --brief --json`
 
 ### `memo review confirm`
 
@@ -2883,7 +2883,7 @@ memo review confirm <ids> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `ids` | required | ids or ranges as review lists them; a batch's findings as 17080/f1. |
+| `ids` | required | ids or ranges as review lists them; 17080/f1 accepts that finding and rejects the batch's others. |
 
 | Option | What it does |
 |---|---|
@@ -2894,7 +2894,7 @@ memo review confirm <ids> [options]
 
 **Returns:** confirm proposals by id or range; each on its own
 
-**Example:** `memo review confirm 17078-17081`, `memo review confirm 17080/f1,17080/f3`
+**Example:** `memo review confirm 17078-17081`, `memo review confirm 17080/f1,17080/f3`, `memo review confirm close:Q-15`
 
 ### `memo review reject`
 
@@ -2908,7 +2908,7 @@ memo review reject <ids> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `ids` | required | ids or ranges as review lists them; a batch's findings as 17080/f1. |
+| `ids` | required | ids or ranges as review lists them; a batch is turned down whole. |
 
 | Option | What it does |
 |---|---|
@@ -2919,7 +2919,24 @@ memo review reject <ids> [options]
 
 **Returns:** turn proposals down, with why
 
-**Example:** `memo review reject 17081 --reason "not this project"`
+**Example:** `memo review reject 17081 --reason "not this project"`, `memo review reject close:Q-15 --reason 'still open'`
+
+### `memo review status`
+
+the owner's daily look, with no model call: per mail account the threads with new mail, what you owe and wait for, and how far each agent's processing mark has read; then what was proposed and what waits
+
+```sh
+memo review status [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--since-time <time>` | how far back: hours or days (12h, 7d) or a start date (2026-11-01). Default: `1d`. |
+
+**Returns:** since yesterday: new mail, what is owed and waiting, what agents proposed
+
+**Example:** `memo review status`, `memo review status --since-time 7d --json`
 
 ## `memo agents`
 
@@ -3482,6 +3499,150 @@ memo upgrade [options]
 **Returns:** upgrade memo with the package manager that installed it; --check only looks
 
 **Example:** `memo upgrade --check`
+
+## `memo schedule`
+
+run a memo command or an agent later or on a timer (systemd, launchd, Task Scheduler); an agent cannot send
+
+### `memo schedule command`
+
+run memo <args…> on a timer — reads save what they read, so this is how a chat's history fills the store
+
+This command changes the local store or your files.
+
+```sh
+memo schedule command <name> <args> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | required | lowercase letters, digits and dashes. |
+| `args` | required | the memo command after its name, e.g. -- messages list <chat> --limit 50. |
+
+| Option | What it does |
+|---|---|
+| `--every <duration>` | repeat: 30m, 2h, 1d. |
+| `--at <HH:MM>` | every day at this local time. |
+| `--at-time <time>` | one run: 30m, 2d from now, or an ISO time; the schedule removes itself after it. |
+| `--json` | print JSON. |
+
+**Returns:** run memo <args…> on a timer — reads save what they read, so this is how a…
+
+**Example:** `memo schedule command digest --at 08:30 -- review status`, `memo schedule command mail-sync --every 1h -- sync --only mail`
+
+### `memo schedule agent`
+
+start an agent (claude or codex) with a prompt on a timer; it runs with MEMO_READ_ONLY=1, so it reads and drafts and cannot send — its answer is kept and you are notified
+
+This command changes the local store or your files.
+
+```sh
+memo schedule agent <name> <harness> <prompt> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | required | lowercase letters, digits and dashes. |
+| `harness` | required | the agent to start. One of: `claude`, `codex`. |
+| `prompt` | required | what to do, e.g. "summarize what came in during the last day: memo personal search messages 'date>1d' --newest --limit 20". |
+
+| Option | What it does |
+|---|---|
+| `--max-cost <usd>` | claude only: stop a run that costs more than this, in US dollars. |
+| `--every <duration>` | repeat: 30m, 2h, 1d. |
+| `--at <HH:MM>` | every day at this local time. |
+| `--at-time <time>` | one run: 30m, 2d from now, or an ISO time; the schedule removes itself after it. |
+| `--json` | print JSON. |
+
+**Returns:** start an agent (claude or codex) with a prompt on a timer; it runs with…
+
+**Example:** `memo schedule agent triage claude 'read memo review status and list what needs me today' --at 08:45 --max-cost 1`
+
+### `memo schedule list`
+
+the schedules, when they run and how their last run went
+
+```sh
+memo schedule list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** scheduled job — name, kind, when, last; every field: memo commands info schedule list
+
+**Example:** `memo schedule list`, `memo schedule list kind:agent --json`
+
+### `memo schedule run`
+
+run a schedule now, as its timer would, and wait for it
+
+This command changes the local store or your files.
+
+```sh
+memo schedule run <name> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | required | the schedule's name, as `schedule list` shows it. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** run a schedule now, as its timer would, and wait for it
+
+**Example:** `memo schedule run digest`
+
+### `memo schedule remove`
+
+stop a schedule and remove its timer; its past output stays
+
+This command changes the local store or your files.
+
+```sh
+memo schedule remove <name> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | required | the schedule's name, as `schedule list` shows it. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** stop a schedule and remove its timer; its past output stays
+
+**Example:** `memo schedule remove digest`
+
+### `memo schedule exec`
+
+what a timer runs, given the schedule's file; to run one by hand, use run
+
+This command changes the local store or your files.
+
+```sh
+memo schedule exec <file> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `file` | required | the schedule's schedule.json in the state folder, as the timer passes it. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** what a timer runs, given the schedule's file; to run one by hand, use run
+
+**Example:** `memo schedule exec ~/.local/state/cli-memo/schedules/digest/schedule.json`
 
 ## `memo commands`
 

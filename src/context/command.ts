@@ -7,6 +7,7 @@ import { answers, itemAnswer, withStore } from "../answer.js"
 import { boundFolders } from "../notes/bound.js"
 import { positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
+import { waitingAbout } from "../review/status.js"
 import { contextAccountOf, type MemoContext, memoContext } from "./context.js"
 
 const MAX_TEXT = 160
@@ -28,11 +29,28 @@ const noteLine = (note: { ref: string; path: string | null; title?: string | nul
 const fileLine = (file: MemoContext["files"][number]) =>
   `  ${file.ref}  ${file.role ?? ""}  ${file.title ?? ""}  ${file.modifiedAt?.slice(0, 16).replace("T", " ") ?? ""}  ${file.url ?? ""}`
 
-export const contextText = ({ messages, events, notes, notRead, tasks, yourNotes, files }: MemoContext): string => {
+type Waiting = { proposals: { count: number; complete: boolean } }
+
+export const contextText = ({
+  messages,
+  events,
+  notes,
+  notRead,
+  tasks,
+  yourNotes,
+  files,
+  proposals,
+}: MemoContext & Waiting): string => {
   const { person, last, recent, shared } = messages
   return [
     `${person.name ?? person.uid}  person:${person.uid}`,
     ...person.identities.map(({ provider, id, name }) => `  ${provider}:${id}  ${name ?? ""}`),
+    ...(proposals.count
+      ? [
+          `  ${proposals.count}${proposals.complete ? "" : "+"} proposal${proposals.count === 1 ? "" : "s"} ` +
+            "about them waiting — memo review",
+        ]
+      : []),
     "",
     `Last from them   ${one(last.fromThemAnywhere ?? last.fromThem)}`,
     `Last from me     ${one(last.fromMe)}`,
@@ -93,7 +111,13 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
         await importNotesMap(store, env, await boundFolders(store, env, { strict: false }))
         const source =
           options.source === undefined ? undefined : await contextAccountOf(store, env, person, options.source)
-        return memoContext(store, person, { limit: options.limit, ...(source === undefined ? {} : { source }) })
+        const found = await memoContext(store, person, {
+          limit: options.limit,
+          ...(source === undefined ? {} : { source }),
+        })
+        const { uid, identities } = found.messages.person
+        const refs = [`person:${uid}`, ...identities.map(({ provider, id }) => `${provider}:${id}`)]
+        return { ...found, proposals: await waitingAbout(store, env, refs) }
       })
       print(options.json, itemAnswer(answer), contextText(answer))
     })

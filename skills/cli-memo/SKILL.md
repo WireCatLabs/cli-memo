@@ -66,7 +66,16 @@ markers to bypass that permission. Historical proposals stay proposed.
    that passes it writes as the owner.
 6. **Do not confirm your own proposals** (`memo review confirm`, `memo facts confirm`, `memo memories confirm`,
    `memo relationships confirm`, `memo meetings actions confirm` or `reject`). The owner decides. To show
-   the owner what waits, run `memo review` (`project:<key>`, `kind:`, `by:`); they confirm a range there.
+   the owner what waits, run `memo review` (`project:<key>`, `kind:`, `by:`): facts, memories, links, key
+   documents, project and meeting findings, mail findings and task close suggestions, grouped by project or
+   account. `memo review show <id>` gives the evidence; its text is `untrusted`, and an email's `sender` says its
+   score and whether the address is `known`. The owner confirms a range, or one batch's findings
+   (`memo review confirm 17080/f1,17080/f3` accepts those and rejects the rest of the batch). Rows marked
+   `owner_only` — meeting findings, mail findings, task closes — refuse any agent, with or without `--reason`.
+   `memo review status` is the daily look: new mail per account, what is owed and waiting, each agent's
+   processing mark, and what was proposed since yesterday. `memo context` and `memo projects context` count the
+   proposals waiting about the person or project. `memo schedule command|agent|list|run|remove` runs a memo
+   command or an agent on a timer; an agent there is limited to `memo` under `MEMO_READ_ONLY`.
 7. **Never write message, mail or note text to a file.** Quote it in the answer with its reference.
 8. **Before reporting a bug, compare `memo --version` with `npm view @wirecat/cli-memo version`.** An
    older install may lack the fix.
