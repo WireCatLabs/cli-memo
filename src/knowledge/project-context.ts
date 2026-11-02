@@ -5,10 +5,11 @@ import { itemAnswer, plainText } from "../answer.js"
 import { factItem } from "../facts/fact.js"
 import { notesAbout } from "../notes/about.js"
 import { labelsFor, proposerName, reviewItem } from "../review/review.js"
+import { waitingAbout } from "../review/status.js"
 import { keyDocuments, projectOf } from "./key-documents.js"
 import { projectFindings } from "./project-findings.js"
 
-export const projectContext = async (store: MessageStore, reference: string) => {
+export const projectContext = async (store: MessageStore, env: NodeJS.ProcessEnv, reference: string) => {
   const project = await projectOf(store, reference)
   const relationships = (await store.notes.links({ to: project.ref }))
     .concat(await store.notes.links({ from: project.ref }))
@@ -16,12 +17,13 @@ export const projectContext = async (store: MessageStore, reference: string) => 
   const documents = await keyDocuments(store, project)
   const pending = (kind: string) =>
     proposalRegistry(store).list({ project: project.ref, kinds: [kind], status: "proposed", limit: 50, offset: 0 })
-  const [facts, tasks, findings, keys, links] = await Promise.all([
+  const [facts, tasks, findings, keys, links, waiting] = await Promise.all([
     store.facts.list({ project: project.ref, status: "proposed", limit: 21 }),
     store.tasks.find({ project: project.ref, status: "open", limit: 21 }),
     projectFindings(store, project.ref, relationships),
     pending("key_document"),
     pending("relationship"),
+    waitingAbout(store, env, [project.ref]),
   ])
   const label = await labelsFor(
     store,
@@ -34,6 +36,7 @@ export const projectContext = async (store: MessageStore, reference: string) => 
     notes: await notesAbout(store, { ref: project.ref }),
     tags: await store.knowledge.tags(null, { type: "project", id: project.id }),
     review: {
+      waiting: { ...waiting, next: { command: "review list", args: { query: `project:${project.ref}` } } },
       keyDocuments: keys.items.map((row) => ({
         id: row.id,
         ref: row.subject,
@@ -76,7 +79,9 @@ export const projectContextText = (context: Awaited<ReturnType<typeof projectCon
   const { review } = context
   return [
     plainText(itemAnswer(context)),
-    "Pending review (proposals; nothing confirmed):",
+    `Pending review: ${review.waiting.count}${review.waiting.complete ? "" : "+"} proposal${
+      review.waiting.count === 1 ? "" : "s"
+    } waiting — memo review project:${context.project.key ?? context.project.ref} (nothing confirmed):`,
     ...review.keyDocuments.map((document) => `  key document ${document.ref}: ${line(document.reason ?? "")}`),
     ...review.relationships.map((link) => `  relationship ${link.id}: ${link.title}`),
     ...review.facts.items.map((fact) => `  ${fact.ref} [${fact.kind}]: ${line(fact.text)}`),

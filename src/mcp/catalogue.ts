@@ -17,6 +17,7 @@ export const MCP_EXCLUSIONS = [
   { path: ["skill", "install"], reason: "installs instructions into other applications" },
   { path: ["jobs", "start"], reason: "installs a background timer" },
   { path: ["jobs", "stop"], reason: "removes a background timer" },
+  { path: ["schedule"], reason: "installs timers that start memo or an agent later" },
   { path: ["config", "unset"], reason: "can remove a saved permission the server enforces" },
   { path: ["memories", "remove"], reason: "erases what the owner reviews; only the owner forgets" },
   { path: ["facts", "remove"], reason: "erases what the owner reviews; only the owner forgets" },

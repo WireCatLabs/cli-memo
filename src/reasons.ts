@@ -21,6 +21,12 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: [],
   },
   {
+    reason: "proposal.kind-unsupported",
+    code: "validation_error",
+    message: "this memo cannot decide mail findings yet — memo upgrade",
+    details: [],
+  },
+  {
     reason: "sync.running",
     code: "rate_limited",
     message: "another memo sync is running (process {pid}); try again when it ends",

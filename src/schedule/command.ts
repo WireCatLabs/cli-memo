@@ -1,0 +1,32 @@
+import { annotate } from "@wirecat/cli-base/commands"
+import { LOCAL_WRITE, outputFor, overrideSharedContract, scheduleCommandFor } from "@wirecat/cli-core/cli"
+import type { Command } from "commander"
+import { APP } from "../app.js"
+
+/**
+ * cli-core's `schedule`: a memo command or an agent on a timer. memo has no profiles, and its `--json` is per
+ * command, as on `runs`. An agent's run is allowed `Bash(memo:*)` under MEMO_READ_ONLY.
+ */
+export const scheduleCommand = (env: NodeJS.ProcessEnv): Command => {
+  const schedule = scheduleCommandFor({
+    app: APP,
+    context: (command) => ({ ...outputFor(command), env, profile: "" }),
+  })
+  for (const one of schedule.commands)
+    overrideSharedContract(
+      one,
+      "Memo's output flag is command-local because this provider does not use the messenger program shell.",
+      (command) => {
+        command.option("--json", "print JSON")
+      },
+    )
+  for (const one of schedule.commands.filter((command) => ["run", "exec"].includes(command.name())))
+    overrideSharedContract(
+      one,
+      "A memo schedule runs memo, which writes to no remote service, or an agent allowed only memo under MEMO_READ_ONLY.",
+      (command) => {
+        annotate(command, { effects: LOCAL_WRITE })
+      },
+    )
+  return schedule
+}

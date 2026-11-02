@@ -115,7 +115,9 @@ it("lists every kind of pending proposal with titles, who proposed it and the st
   expect(shown).toMatchObject({ kind: "key_document", evidence: [{ ref: f.note.ref, state: "untracked" }] })
   expect(shown.evidence[0].title).toMatch(/^Note /)
   const brief = await f.item({}, OWNER, "review", "show", made.key.id, "--brief", "--before-n", "1", "--after-n", "1")
-  expect(brief.evidence).toEqual([{ ref: f.note.ref, title: shown.evidence[0].title }])
+  expect(brief.evidence).toEqual([
+    { ref: f.note.ref, title: shown.evidence[0].title, untrusted: shown.evidence[0].untrusted },
+  ])
 })
 
 it("decides each id on its own: one refusal leaves the rest decided and the exit code non-zero", async () => {
