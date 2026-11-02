@@ -10,6 +10,8 @@ export const OWNER_PERMISSIONS = [
   "meetings.actions.confirm",
   "meetings.actions.reject",
   "projects.annotations.restore",
+  "review.confirm",
+  "review.reject",
 ] as const
 
 const ORDER = { deny: 0, readonly: 1, ask: 2, allow: 3 }

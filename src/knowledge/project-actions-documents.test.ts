@@ -100,20 +100,7 @@ it("shows cited document paragraphs in CLI and MCP review, while brief and zero 
     await client.close()
     await server.close()
   }
-  const writer = await openStore({ env: owner })
-  try {
-    await writer.notes.addLink({
-      from: reference,
-      to: "project:1",
-      kind: "related-to",
-      role: "key",
-      origin: "suggested",
-      evidence: "Ledger",
-      confirmed: false,
-    })
-  } finally {
-    await writer.close()
-  }
+  await run(agent, "projects", "key-documents", "add", "SYP", reference, "--reason", "Ledger")
   const keys = await run(owner, "projects", "actions", "list", "SYP", "--before-n", "1", "--after-n", "1")
   expect(keys.items[0].kind).toBe("key_document")
   expect(keys.items[0].evidence[0]).toMatchObject({ reference, state: "untracked", around: evidence.around })

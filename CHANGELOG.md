@@ -11,6 +11,14 @@ the API.
 - **`--reason` on every decide command**: `facts confirm`, `reject`, `reverse` and `remove`, `memories confirm`,
   `invalidate` and `remove`, `relationships confirm` and `remove`, `actions reject` for any action. An agent
   decides only with one. `--as-owner` on these and on `projects key-documents remove` and `meetings actions`.
+- **`memo review`**: every pending proposal across projects in one list (relationships, key documents, facts,
+  memories, findings batches, actions), each with a readable title, who proposed it, the reason, score, signals and
+  evidence. Filters `project:`, `kind:`, `by:` (`agent`, `rule` or a bot), `status:`; `--compact` prints one line each.
+- **`memo review show <id>`**, **`review confirm <ids>`** and **`review reject <ids> --reason`**: ids and ranges such
+  as `17070-17079,fact:500-502,17080/f1`. Each id is decided on its own; a refusal is listed, the others stay
+  decided, and the exit code is not 0. Over MCP they are owner permissions `review.confirm` and `review.reject`.
+- **`relationships list confirmed:false`** lists the relationships waiting for you, as `review kind:relationship`
+  does; `confirmed:true` lists links only. Every row has `from_title` and `to_title`, and the text shows the purpose.
 
 ### Changed — may break callers
 
@@ -24,6 +32,12 @@ the API.
 - **`projects.agent-decisions-off` is now cli-core's `proposals.agent-decisions-off`**, and covers every decision.
 - **Words after `--` stay text** in `notes add`, `notes edit`, `facts add`, `memories add`, `tasks comments add`,
   `people add`, `organizations add`, `projects add` and `answers create`.
+- **An agent's `projects key-documents add` writes a `key_document` proposal**, decided in `memo review`; its `id` is
+  the proposal's. `projects actions list` and `projects context` list these, and `projects actions confirm` takes
+  the proposal number as well as `key:<id>`.
+- **Old decide commands go through the review's check**: `facts confirm` and `reject`, `memories confirm` and
+  `invalidate` on a proposed memory, `relationships confirm` and `remove` on a suggestion, `actions confirm` and
+  `reject`, `projects actions confirm` and `reject`. A decided proposal now refuses with `proposal.wrong-state`.
 
 ### Security
 
