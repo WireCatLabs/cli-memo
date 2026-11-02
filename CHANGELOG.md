@@ -24,7 +24,7 @@ the API.
   `MEMO_READ_ONLY`. Not offered over MCP.
 - **`memo context <person>` and `memo projects context <project>` count the proposals waiting** about them.
 
-### Changed
+### Changed — may break callers
 
 - Meeting findings, task close suggestions and mail findings are the owner's to decide: `memo review confirm` and
   `reject` refuse an agent on them, with or without `--reason`. Mail findings cannot be decided by this build yet
