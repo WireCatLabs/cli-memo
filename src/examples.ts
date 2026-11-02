@@ -104,6 +104,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "projects add": ["memo projects add 'Harbour' --key HRB --type client --organization 1"],
   "projects list": ["memo projects list"],
   "projects context": ["memo projects context HRB", "memo projects context project:2 --json"],
+  "projects status": ["memo projects status HRB --context-query 1C", "memo projects status HRB --compact"],
   "projects annotations show": ["memo projects annotations show HRB --max-read-bytes 1048576 --json"],
   "projects annotations export": ["memo projects annotations export HRB --output harbour-annotations.json --json"],
   "projects annotations check": [

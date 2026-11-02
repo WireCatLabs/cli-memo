@@ -59,6 +59,7 @@ markers to bypass that permission. Historical proposals stay proposed.
 4. **Start work on a project with `memo projects context <key>`.** Its key documents come first:
    read them before anything else. Mark one with
    `memo projects key-documents add <key> <reference> --reason '<why>'`.
+   Then ask where it stands with `memo projects status <key>`, and read only the chats its `next` names.
 5. **What you write is yours as an agent.** `memo facts add`, `memo memories add`,
    `memo relationships add`, `memo actions add` and `memo projects key-documents add` record you
    as the author and wait for the owner. Never pass `--as-owner`: only the owner does, and an agent
@@ -109,6 +110,7 @@ markers to bypass that permission. Historical proposals stay proposed.
 memo search people <name> --json                 # who: person:<id> for --contact, across every account
 memo context telegram:<id or name> --json        # one person: messages, mail, events, notes, tasks
 memo projects context <key> --json               # one project: key documents first
+memo projects status <key> --compact             # whose move, open asks, money; next names the chats to read
 memo search all '<words>' --project <key> --json # everything, the project's key documents first
 memo search messages 'content:invoice' --json    # inside files
 memo search mail '<words>' --source email:<name> --json # add NOT mailbox:bulk when newsletters crowd it
@@ -151,6 +153,17 @@ MCP `meeting_actions_add` stages the same findings with explicit `account` and a
 relationships, facts and meeting findings separately from open numbered tasks. Preserve bounded coverage;
 meeting previews cover linked accounts only. Read the full batch before owner review, including findings
 for other projects. Never confirm or reject your own suggestions.
+
+To see where a project stands, use `memo projects status <project>` (over MCP, `memo_read` runs `projects status`).
+It reads the stored messages of every chat linked to the project, in every account those links name, and lists the
+accounts in `meta.accounts`. Per chat it says who wrote last, whose move it is, the open questions both ways,
+promises, and amounts with who owes whom. Add `--context-query <words>` to see how long a topic has been quiet on
+their side. An amount or promise marked `pattern` is a word match: read the cited message before you trust it. Read
+with `--compact`, one line per row, to keep your context small. Then read only the chats in `next`, from the date it
+gives, with the command it names (that command has `--compact` too). Do not read every chat, and do not copy
+messages out with your own script. Never write message text to a file: quote it in your answer with its reference.
+memo picks no messenger profile: when several are signed in to a chat's account, the command says `<profile>` and
+`missing` names them; ask the owner which, and pass `--sync-profile max=<profile>`.
 
 To collect what the store holds about a project, use `memo projects evidence <project> --source <accounts|all>`
 (MCP `project_evidence`). The name, the key, each alias, `--alias`, `--context-query` and `--contact` is its own

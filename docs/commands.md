@@ -1301,6 +1301,31 @@ memo projects evidence <project> [options]
 
 **Example:** `memo projects evidence SYH --source telegram:1,email:personal --contact 'Alice Example'`, `memo projects evidence SYH --source all --context-query 'crane tender' --since-time 180d --json`
 
+### `memo projects status`
+
+where a project stands, from the stored messages of every chat confirmed as the project's or its child projects', in every account those links name (meta.accounts lists them): the last message, who replies next, open questions both ways, promises, amounts with their direction, payments recorded, how long each --context-query has been quiet on their side, and how much of each chat is held. Amounts, directions and promises found by words are marked pattern: read the cited message before trusting one. next names at most two chats to read, with the messenger command that reads them. No model call; nothing leaves this machine
+
+```sh
+memo projects status <project> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `project` | required | an existing project's id, project:<id>, key, exact name or alias. |
+
+| Option | What it does |
+|---|---|
+| `--since-time <time>` | how far back: days (60d, at most 730d) or a start date (2026-09-01). Default: `60d`. |
+| `--before-time <time>` | fixed exclusive end: ISO 8601 timestamp with UTC offset; days back count from it. |
+| `--context-query <words>` | words that all appear in one text; reports their last mention per side. Repeat for another. Default: ``. |
+| `--sync-profile <tool=profile>` | the messenger profile the next steps name when several are signed in to a chat's account, such as max=default; repeat for another tool. |
+| `--compact` | one line per signal, chat and next step, for an agent. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** project status — project, key, name, window, signals, money, chats, out_of_scope, and 10 more; every field: memo commands info projects status
+
+**Example:** `memo projects status HRB --context-query 1C`, `memo projects status HRB --compact`
+
 ### `memo projects actions`
 
 cited key documents and findings an agent proposed for a project, with the evidence to decide them

@@ -253,21 +253,39 @@ const isEvent = (line: string) => {
 
 type LinkedChat = { provider: string; account: string; chat: string }
 
+type ChatCommand = { command: string } | { command: null; line: string; why: string } | null
+
+const chatCommand = (
+  chat: LinkedChat,
+  words: string,
+  env: NodeJS.ProcessEnv,
+  chosen: Record<string, string>,
+): ChatCommand => {
+  const tool = messengerToolOf(chat.provider)
+  if (!tool) return null
+  const found = profileFor(chat.provider, chat.account, env, chosen)
+  const line = (profile: string) => `${tool.tool} ${profile} ${words}`
+  if (found && "profile" in found) return { command: line(found.profile) }
+  return { command: null, line: line("<profile>"), why: found?.why ?? "no profile" }
+}
+
 /** The command that syncs one chat here, or why there is none: no profile, or more than one, for its account. */
 export const chatSync = (
   chat: LinkedChat,
   since: string,
   env: NodeJS.ProcessEnv,
   chosen: Record<string, string> = {},
-): { command: string } | { command: null; line: string; why: string } | null => {
-  const tool = messengerToolOf(chat.provider)
-  if (!tool) return null
-  const found = profileFor(chat.provider, chat.account, env, chosen)
+): ChatCommand =>
   // A negative group id needs no `--`: no WireCat CLI has a digit short option.
-  const line = (profile: string) => `${tool.tool} ${profile} messages sync ${chat.chat} --since-time ${since}`
-  if (found && "profile" in found) return { command: line(found.profile) }
-  return { command: null, line: line("<profile>"), why: found?.why ?? "no profile" }
-}
+  chatCommand(chat, `messages sync ${chat.chat} --since-time ${since}`, env, chosen)
+
+/** The command that reads one chat's stored messages from `since` (`YYYY-MM-DD`), one line each. */
+export const chatRead = (
+  chat: LinkedChat,
+  since: string,
+  env: NodeJS.ProcessEnv,
+  chosen: Record<string, string> = {},
+): ChatCommand => chatCommand(chat, `messages list --compact ${chat.chat} "date>=${since}"`, env, chosen)
 
 /** `chatSync` as the plain text says it. */
 export const syncHint = (
