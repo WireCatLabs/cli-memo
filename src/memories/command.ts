@@ -6,6 +6,7 @@ import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { byOption, deciderOf, reasonOption, whoRuns } from "../author.js"
 import { oneOf, positive } from "../options.js"
+import { decideOne } from "../review/review.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { addMemory } from "./memories.js"
 import { listMemories, MEMORY_QUERY, memoryItem, searchMemories } from "./memory.js"
@@ -135,11 +136,18 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
       })
     })
 
+  // A proposed memory is decided through the review registry; a confirmed one is checked again or marked stale.
+  const decided = async (store: MessageStore, ref: string, by: Decider, confirm: boolean) => {
+    if ((await store.memories.get(ref)).status !== "proposed")
+      return confirm ? store.memories.confirm(ref, by) : store.memories.markStale(ref, by)
+    await decideOne(store, ref, { confirm, by })
+    return store.memories.get(ref)
+  }
   decide("confirm", "stand behind a memory: its evidence was checked now", (store, ref, by) =>
-    store.memories.confirm(ref, by),
+    decided(store, ref, by, true),
   )
   decide("invalidate", "mark a memory whose evidence no longer holds", (store, ref, by) =>
-    store.memories.markStale(ref, by),
+    decided(store, ref, by, false),
   )
   decide("remove", "forget a memory: erase its text, its links to sources and its search entry", (store, ref, by) =>
     store.memories.remove(ref, by),

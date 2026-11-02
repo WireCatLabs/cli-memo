@@ -1,7 +1,9 @@
+import { proposalRegistry } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import { itemAnswer, plainText } from "../answer.js"
 import { factItem } from "../facts/fact.js"
 import { notesAbout } from "../notes/about.js"
+import { labelsFor, proposerName, reviewItem } from "../review/review.js"
 import { keyDocuments, projectOf } from "./key-documents.js"
 import { projectFindings } from "./project-findings.js"
 
@@ -11,11 +13,19 @@ export const projectContext = async (store: MessageStore, reference: string) => 
     .concat(await store.notes.links({ from: project.ref }))
     .filter((link) => link.kind !== "about" && link.kind !== "links-to" && link.role !== "key")
   const documents = await keyDocuments(store, project)
-  const [facts, tasks, findings] = await Promise.all([
+  const pending = (kind: string) =>
+    proposalRegistry(store).list({ project: project.ref, kinds: [kind], status: "proposed", limit: 50, offset: 0 })
+  const [facts, tasks, findings, keys, links] = await Promise.all([
     store.facts.list({ project: project.ref, status: "proposed", limit: 21 }),
     store.tasks.find({ project: project.ref, status: "open", limit: 21 }),
     projectFindings(store, project.ref, relationships),
+    pending("key_document"),
+    pending("relationship"),
   ])
+  const label = await labelsFor(
+    store,
+    [...keys.items, ...links.items].flatMap((row) => [row.subject, row.object]),
+  )
   return {
     keyDocuments: documents,
     project,
@@ -23,8 +33,24 @@ export const projectContext = async (store: MessageStore, reference: string) => 
     notes: await notesAbout(store, { ref: project.ref }),
     tags: await store.knowledge.tags(null, { type: "project", id: project.id }),
     review: {
-      keyDocuments: documents.filter((document) => !document.confirmed),
-      relationships: relationships.filter((link) => !link.confirmed),
+      keyDocuments: keys.items.map((row) => ({
+        id: row.id,
+        ref: row.subject,
+        title: label(row.subject),
+        reason: row.reason,
+        confirmed: false,
+        proposer: proposerName(row.proposedBy),
+      })),
+      relationships: links.items.map((row) => ({
+        id: row.id,
+        from: row.subject,
+        to: row.object,
+        title: reviewItem(row, label).title,
+        role: row.summary,
+        reason: row.reason,
+        confirmed: false,
+        proposer: proposerName(row.proposedBy),
+      })),
       facts: {
         items: facts.slice(0, 20).map(factItem),
         hasMore: facts.length > 20,
@@ -51,7 +77,7 @@ export const projectContextText = (context: Awaited<ReturnType<typeof projectCon
     plainText(itemAnswer(context)),
     "Pending review (proposals; nothing confirmed):",
     ...review.keyDocuments.map((document) => `  key document ${document.ref}: ${line(document.reason ?? "")}`),
-    ...review.relationships.map((link) => `  relationship ${link.id}: ${link.from} → ${link.to}`),
+    ...review.relationships.map((link) => `  relationship ${link.id}: ${link.title}`),
     ...review.facts.items.map((fact) => `  ${fact.ref} [${fact.kind}]: ${line(fact.text)}`),
     ...review.meetingActions.items.flatMap((batch) =>
       batch.findings.map(

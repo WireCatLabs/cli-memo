@@ -1,6 +1,6 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { type QueryRegistry, timezoneOf } from "@wirecat/cli-base/query"
+import { timezoneOf } from "@wirecat/cli-base/query"
 import {
   answerEntity,
   type Body,
@@ -8,10 +8,10 @@ import {
   LOCAL_WRITE,
   listQuery,
   queryTerms,
-  termField,
   typedQuery,
   withQuery,
 } from "@wirecat/cli-core/cli"
+import { proposalRegistry } from "@wirecat/cli-core/services"
 import {
   type AccountKey,
   type KnowledgeRelation,
@@ -31,6 +31,7 @@ import { byOption, deciderOf, reasonOption, whoRuns } from "../author.js"
 import { notesAbout } from "../notes/about.js"
 import { oneOf, positive, readScope, writeScope } from "../options.js"
 import { withOwner } from "../people/owner.js"
+import { decideOne, decisionOf } from "../review/review.js"
 import {
   ACCOUNTS_HELP,
   accountName,
@@ -47,16 +48,17 @@ import { projectActionsCommand } from "./project-actions-command.js"
 import { projectContext, projectContextText } from "./project-context.js"
 import { projectGatherCommand } from "./project-gather-command.js"
 import { projectTransferCommand } from "./project-transfer-command.js"
+import { listRelationships, RELATIONSHIP_QUERY, relationshipsText } from "./relationships.js"
 
-const RELATIONSHIP_QUERY = {
-  entity: "relationship",
-  backend: "native",
-  fields: [
-    termField("about", "ref", 'about:"project:1"', {
-      relation: "the person, organization or project at either end",
-    }),
-  ],
-} as const satisfies QueryRegistry
+/** A suggested link the review lists as `link:<id>`; deciding it goes through the same registry as review. */
+const pendingLink = async (store: MessageStore, id: string) => {
+  try {
+    return await proposalRegistry(store).get(`link:${id}`)
+  } catch (error) {
+    if (error instanceof CliError && error.code === "not_found") return undefined
+    throw error
+  }
+}
 
 export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const { run, print } = answers(program, streams, env)
@@ -291,17 +293,23 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       },
     )
   withQuery(
-    annotate(relations.command("list"), { effects: LOCAL_READ }).description(
-      "relationships, all or those of one reference",
-    ),
+    annotate(relations.command("list"), { effects: LOCAL_READ })
+      .description(
+        "relationships, all or those of one reference, with titles; confirmed:false lists the proposals waiting for " +
+          "you, as memo review kind:relationship does",
+      )
+      .summary("relationships with titles; confirmed:false lists those waiting for you"),
     RELATIONSHIP_QUERY,
   )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((words: string[], options: { json?: boolean }) =>
-      ownedList("relationships list", options, (store) =>
-        store.knowledge.relations(null, queryTerms(words, RELATIONSHIP_QUERY, "relationships list").get("about")),
-      ),
-    )
+    .action(async (words: string[], options: { json?: boolean }) => {
+      const found = await withStore(env, (store) => listRelationships(store, words))
+      print(
+        options.json,
+        listAnswer("relationships list", { items: found.items, limit: found.limit, has_more: found.hasMore }),
+        relationshipsText(found.items),
+      )
+    })
   for (const [name, description] of [
     ["remove", "remove a relationship; removing a suggested one rejects it"],
     ["confirm", "confirm a suggested relationship"],
@@ -318,11 +326,16 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         ...options,
         question: `${name} relationship ${id} as you, the owner?`,
       })
-      await owned(options, (store) =>
-        name === "remove"
-          ? store.knowledge.removeRelation(null, id, by)
-          : store.knowledge.confirmRelation(null, id, by),
-      )
+      await owned(options, async (store) => {
+        const suggestion = await pendingLink(store, id)
+        if (suggestion === undefined)
+          return name === "remove"
+            ? store.knowledge.removeRelation(null, id, by)
+            : store.knowledge.confirmRelation(null, id, by)
+        await decideOne(store, suggestion.id, decisionOf(name === "confirm", by, options.reason))
+        if (name === "remove") return { id, removed: true }
+        return (await store.knowledge.relations(null, suggestion.subject)).find((one) => one.id === id)
+      })
     })
   readScope(
     annotate(relations.command("scan"), { effects: LOCAL_READ }).description(

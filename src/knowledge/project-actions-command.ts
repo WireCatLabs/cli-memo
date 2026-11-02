@@ -163,6 +163,7 @@ export const projectActionsCommand = (projects: Command, streams: Streams, env: 
             await decideAction(store, project, id, {
               confirm: name === "confirm",
               ...(given.fingerprint === undefined ? {} : { fingerprint: given.fingerprint }),
+              ...(given.reason === undefined ? {} : { reason: given.reason }),
               accept,
               by,
             }),

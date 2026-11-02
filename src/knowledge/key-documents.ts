@@ -98,16 +98,17 @@ export const markKey = async (
 ): Promise<KeyDocument> => {
   if (!KEYABLE.test(ref))
     throw new CliError("validation_error", "a key document is a note:, document: or msg: reference")
-  if ((await sourceOf(store, ref)) === undefined) throw new CliError("not_found", `the store holds no ${ref}`)
+  const source = await sourceOf(store, ref)
+  if (source === undefined) throw new CliError("not_found", `the store holds no ${ref}`)
+  if (author !== "owner") return proposeKey(store, project, ref, reason, author, source)
   const link = await store.notes.addLink({
     from: ref,
     to: project.ref,
     kind: "related-to",
     role: "key",
     evidence: reason,
-    ...(author === "owner"
-      ? { origin: "owner" as const, by: "owner" as const }
-      : { origin: "suggested" as const, confirmed: false, provenance: `agent:${author.bot}` }),
+    origin: "owner",
+    by: "owner",
   })
   if (!isKey(link))
     throw new CliError(
@@ -115,6 +116,43 @@ export const markKey = async (
       `${ref} already relates to ${project.ref} as something else; memo relationships remove ${link.id} first`,
     )
   return describe(store, link)
+}
+
+/** An agent's mark is a `key_document` proposal the owner decides in memo review; the same pending one is reused. */
+const proposeKey = async (
+  store: MessageStore,
+  project: Project,
+  ref: string,
+  reason: string,
+  author: Exclude<Author, "owner">,
+  source: { title: string | null; path: string | null },
+): Promise<KeyDocument> => {
+  const pending = await store.proposedActions.list({
+    kinds: ["key_document"],
+    status: "proposed",
+    project: project.ref,
+  })
+  const proposal =
+    pending.find((one) => (one.payload as { ref?: unknown } | null)?.ref === ref) ??
+    (await store.proposedActions.propose({
+      kind: "key_document",
+      by: author,
+      target: ref,
+      payload: { ref, project: project.ref, reason },
+      reason,
+    }))
+  return {
+    id: proposal.id,
+    ref,
+    title: source.title,
+    path: source.path,
+    reason: proposal.reason,
+    available: true,
+    confirmed: false,
+    origin: "suggested",
+    provenance: `agent:${proposal.proposedBy.name ?? author.bot}`,
+    markedAt: proposal.createdAt,
+  }
 }
 
 export const unmarkKey = async (store: MessageStore, project: Project, ref: string, by: Decider) => {

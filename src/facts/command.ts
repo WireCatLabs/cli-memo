@@ -7,6 +7,7 @@ import { answers, itemAnswer } from "../answer.js"
 import { byOption, deciderOf, reasonOption, whoRuns } from "../author.js"
 import { FORGET_HELP } from "../memories/command.js"
 import { oneOf, positive } from "../options.js"
+import { decideOne, decisionOf } from "../review/review.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { FACT_QUERY, factItem, listFacts } from "./fact.js"
 import { addFact } from "./facts.js"
@@ -115,15 +116,19 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
 
   decide(
     "confirm",
-    "stand behind a fact an agent proposed; a fact it supersedes stops holding",
-    (store, ref, by, why) => store.facts.accept(ref, by, why),
-  )
+    "stand behind a fact an agent proposed; a fact it supersedes stops holding. memo review confirm decides many",
+    async (store, ref, by, why) => {
+      await decideOne(store, ref, decisionOf(true, by, why))
+      return store.facts.get(ref)
+    },
+  ).summary("stand behind a fact an agent proposed")
   decide("reverse", "an accepted decision no longer holds, and nothing replaced it", (store, ref, by) =>
     store.facts.reverse(ref, by),
   )
-  decide("reject", "turn down a fact an agent proposed; it stays, marked rejected", (store, ref, by, why) =>
-    store.facts.reject(ref, by, why),
-  )
+  decide("reject", "turn down a fact an agent proposed; it stays, marked rejected", async (store, ref, by, why) => {
+    await decideOne(store, ref, decisionOf(false, by, why))
+    return store.facts.get(ref)
+  })
   decide("remove", "forget a fact: erase its text, its links to sources and its tags", (store, ref, by) =>
     store.facts.remove(ref, by),
   ).addHelpText("after", `\n${FORGET_HELP.replace("use invalidate", "use reject or reverse")}`)
