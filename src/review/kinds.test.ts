@@ -159,7 +159,7 @@ it("confirms exactly the findings named and rejects the rest of the batch", asyn
   expect((await f.run({}, OWNER, "review", "kind:task_close")).items).toEqual([])
 })
 
-it("refuses an agent on every owner-only kind, and refuses mail findings until cli-core can decide them", async () => {
+it("refuses an agent on every owner-only kind, and refuses the owner a mail findings batch that is not one", async () => {
   const f = await setUp()
   const ids = [f.batch, `close:${f.task.key}`, f.mail.id]
   const tried = await f.run(CLAUDE, NOBODY, "review", "confirm", ids.join(","), "--reason", "looks right")
@@ -174,7 +174,7 @@ it("refuses an agent on every owner-only kind, and refuses mail findings until c
   expect(rejected.item.refused).toMatchObject([{ reason: "proposal.owner-only" }])
   process.exitCode = 0
   const mail = await f.run({}, OWNER, "review", "confirm", f.mail.id)
-  expect(mail.item.refused).toMatchObject([{ reason: "proposal.kind-unsupported" }])
+  expect(mail.item.refused).toMatchObject([{ code: "validation_error" }])
   process.exitCode = 0
   expect((await f.run({}, OWNER, "review")).items).toHaveLength(4)
 })
