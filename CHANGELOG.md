@@ -4,7 +4,12 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
-## Unreleased
+## 0.131.15 — 02.11.2026
+
+### Added
+
+- **`messages show` gives each email a `ref`**, as it does each messenger message and as search hits do, so a
+  caller can match the emails of a thread to the hit it opened.
 
 ### Added
 
