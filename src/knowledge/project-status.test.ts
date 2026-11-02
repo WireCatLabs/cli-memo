@@ -164,3 +164,9 @@ it("answers over MCP with the same item", async () => {
   expect(body.item.key).toBe("HRB")
   expect(body.next.map((step) => step.kind)).toEqual(["user_action", "user_action"])
 })
+
+it("reads the linked chats of the purposes asked, and refuses one it does not know", async () => {
+  const { status } = await setUp()
+  expect(envelopeOf(await status("--purpose", "all", "--json")).item.purposes).toBe("all")
+  await expect(status("--purpose", "gossip", "--json")).rejects.toThrow(/work/)
+})

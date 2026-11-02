@@ -8,6 +8,10 @@ the API.
 
 ### Added
 
+- **`projects evidence --purpose` and `projects status --purpose`** read the linked chats of the purposes asked:
+  `work`, `sales`, `support`, `other`, or `all`. A chat left out is one `missing` row with its message count and the
+  command that reads it. **`projects evidence --include-proposed`** also reads chats and members proposed for the
+  project, after the confirmed ones, each marked `proposed`.
 - **`--reason` on every decide command**: `facts confirm`, `reject`, `reverse` and `remove`, `memories confirm`,
   `invalidate` and `remove`, `relationships confirm` and `remove`, `actions reject` for any action. An agent
   decides only with one. `--as-owner` on these and on `projects key-documents remove` and `meetings actions`.
@@ -35,7 +39,9 @@ the API.
 
 ### Changed — may break callers
 
-- **Built on `@wirecat/cli-core` 0.552.0 and `@wirecat/cli-base` 0.74.0.** Store version 44 moves an agent's or a
+- **`projects evidence` and `projects status` read only `work` chats unless `--purpose` asks for more.** A linked
+  chat with no purpose counts as `work`; one linked for `sales`, `support` or `other` is counted, not read.
+- **Built on `@wirecat/cli-core` 0.553.0 and `@wirecat/cli-base` 0.75.0.** Store version 44 moves an agent's or a
   rule's unconfirmed link into a proposal on first open; `relationships list` no longer shows those.
 - **An agent's `relationships add` answers a `relationship` proposal**, not an unconfirmed relationship.
 - **A run with no agent named and no terminal is not the owner**: its writes are proposals of the bot

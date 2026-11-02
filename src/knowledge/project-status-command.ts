@@ -15,7 +15,13 @@ import {
   projectStatusText,
   projectWindowOf,
 } from "@wirecat/cli-core/cli"
-import { type ProjectStatus, projectStatus, STATUS_SIGNALS, type StatusChatSummary } from "@wirecat/cli-core/services"
+import {
+  type ProjectStatus,
+  projectStatus,
+  purposeList,
+  STATUS_SIGNALS,
+  type StatusChatSummary,
+} from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import { type Command, Option } from "commander"
 import { withStore } from "../answer.js"
@@ -27,6 +33,7 @@ interface Options {
   beforeTime?: string
   contextQuery: string[]
   syncProfile?: Record<string, string>
+  purpose?: string[]
   compact?: boolean
   json?: boolean
 }
@@ -106,6 +113,11 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
         "max=default; repeat for another tool",
       syncProfileOf,
     )
+    .option(
+      "--purpose <list>",
+      "the linked chats' purposes to read: work, sales, support, other, or all; default work",
+      purposeList,
+    )
     .addOption(
       annotateOption(new Option("--compact", "one line per signal, chat and next step, for an agent"), { mcp: false }),
     )
@@ -125,6 +137,7 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
             ...projectWindowOf(options.sinceTime),
             ...(options.beforeTime === undefined ? {} : { asOf: projectCutoffTime(options.beforeTime) }),
             contextQueries: options.contextQuery,
+            ...(options.purpose ? { purposes: options.purpose } : {}),
           }),
         ),
       )

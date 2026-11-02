@@ -1295,6 +1295,8 @@ memo projects evidence <project> [options]
 | `--sync-first` | first sync the linked chats the store does not hold back to --since-time, through their messenger CLI; off by default. |
 | `--sync-time <duration>` | time for all of --sync-first's syncs together. Default: `3m`. |
 | `--sync-profile <tool=profile>` | the messenger profile to sync as when several are signed in to a chat's account, such as max=default; repeat for another tool. It must be signed in to that account. |
+| `--purpose <list>` | the linked chats' purposes to read: work, sales, support, other, or all; default work. |
+| `--include-proposed` | also read chats and members proposed for the project, after the confirmed ones. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** find what the store holds about a project: names, words, people, linked chats
@@ -1319,10 +1321,11 @@ memo projects status <project> [options]
 | `--before-time <time>` | fixed exclusive end: ISO 8601 timestamp with UTC offset; days back count from it. |
 | `--context-query <words>` | words that all appear in one text; reports their last mention per side. Repeat for another. Default: ``. |
 | `--sync-profile <tool=profile>` | the messenger profile the next steps name when several are signed in to a chat's account, such as max=default; repeat for another tool. |
+| `--purpose <list>` | the linked chats' purposes to read: work, sales, support, other, or all; default work. |
 | `--compact` | one line per signal, chat and next step, for an agent. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** project status — project, key, name, window, signals, money, chats, out_of_scope, and 10 more; every field: memo commands info projects status
+**Returns:** project status — project, key, name, window, signals, money, chats, purposes, and 11 more; every field: memo commands info projects status
 
 **Example:** `memo projects status HRB --context-query 1C`, `memo projects status HRB --compact`
 
