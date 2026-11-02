@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.19 — 02.11.2026
+
 ### Added
 
 - **`memo records import <file|-> --account <account> [--dry-run]`** brings a source's records into the store from a
