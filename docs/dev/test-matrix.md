@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**599 ✅ · 0 ⛔ · 110 ❌** — 159 commands, 550 options.
+**613 ✅ · 0 ⛔ · 118 ❌** — 166 commands, 565 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -576,6 +576,9 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `review reject` | `--as-owner` | ❌ |  |
 | `review reject` | `--reason` | ✅ |  |
 | `review reject` | `--compact` | ❌ |  |
+| `review status` |  | ✅ |  |
+| `review status` | `--json` | ✅ |  |
+| `review status` | `--since-time` | ✅ |  |
 | `agents list` |  | ✅ |  |
 | `agents list` | `--limit` | ✅ |  |
 | `agents list` | `--json` | ✅ |  |
@@ -690,6 +693,25 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `upgrade` |  | ✅ |  |
 | `upgrade` | `--check` | ✅ |  |
 | `upgrade` | `--json` | ❌ |  |
+| `schedule command` |  | ✅ |  |
+| `schedule command` | `--every` | ✅ |  |
+| `schedule command` | `--at` | ✅ |  |
+| `schedule command` | `--at-time` | ❌ |  |
+| `schedule command` | `--json` | ❌ |  |
+| `schedule agent` |  | ✅ |  |
+| `schedule agent` | `--max-cost` | ✅ |  |
+| `schedule agent` | `--every` | ❌ |  |
+| `schedule agent` | `--at` | ✅ |  |
+| `schedule agent` | `--at-time` | ❌ |  |
+| `schedule agent` | `--json` | ❌ |  |
+| `schedule list` |  | ✅ |  |
+| `schedule list` | `--json` | ✅ |  |
+| `schedule run` |  | ✅ |  |
+| `schedule run` | `--json` | ❌ |  |
+| `schedule remove` |  | ✅ |  |
+| `schedule remove` | `--json` | ❌ |  |
+| `schedule exec` |  | ✅ |  |
+| `schedule exec` | `--json` | ❌ |  |
 | `commands` |  | ✅ |  |
 | `commands` | `--json` | ✅ |  |
 | `commands info` |  | ✅ |  |
