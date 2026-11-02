@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.16 — 02.11.2026
+
 ### Added
 
 - **`relationships update <id> --role --purpose`** sets a relationship's role, or what a chat is for in a project.
