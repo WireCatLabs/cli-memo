@@ -43,7 +43,7 @@ memo tasks agenda --source telegram:1           # overdue, due, owed and waiting
 memo tasks update 1a2b3c4d --due 2d --remind-time 1d --title 'Send the revised budget' --account telegram:1
 memo tasks show 1a2b3c4d --source telegram:1
 memo stats tasks show --source telegram:1       # open tasks per chat
-memo stats tasks show --source email:work --by meeting -- created>=30d   # opened and closed in 30 days
+memo stats tasks show --source telegram:1 -- created>=30d   # opened and closed in the last 30 days
 memo tasks agenda --source notes                # tasks from your notes folder
 ```
 

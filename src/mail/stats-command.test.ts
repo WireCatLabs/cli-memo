@@ -43,7 +43,7 @@ it("**counts imported mail received and sent** by week and by sender, and record
     return JSON.parse(streams.stdout.join("")).item
   }
 
-  expect(await run("stats", "mail", "show", "--by", "week", "--timezone", "UTC", "--json")).toEqual({
+  expect(await run("stats", "mail", "show", "--by", "week", "--timezone", "UTC", "--no-record", "--json")).toEqual({
     by: "week",
     received: 2,
     sent: 1,
@@ -58,6 +58,7 @@ it("**counts imported mail received and sent** by week and by sender, and record
       "sender",
       "--source",
       "email:me@example.com",
+      "--no-record",
       "--json",
       "--",
       "from:ann@example.com",
