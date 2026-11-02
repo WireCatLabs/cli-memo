@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.17 — 02.11.2026
+
 ### Fixed
 
 - **`tasks agenda --source email:<address>` lists mail threads you owe an answer and wait for one.** `owed`,
