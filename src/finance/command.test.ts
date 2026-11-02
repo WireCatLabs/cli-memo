@@ -22,6 +22,7 @@ const setUp = async () => {
   const store = await openStore({ env })
   await store.knowledge.addProject({ name: "Synthetic Rental", key: "SYR" })
   const client = await store.knowledge.addOrganization({ name: "ООО Пример", kind: "company" })
+  const note = await store.notes.addNote({ text: "# Payment\n\nПример paid 1000 RUB." })
   await store.close()
   const run = async (who: Record<string, string>, ...args: string[]) => {
     const streams = captureStreams()
@@ -37,7 +38,7 @@ const setUp = async () => {
   }
   const item = async (who: Record<string, string>, ...args: string[]) =>
     (await run(who, ...args)).item as Record<string, unknown>
-  return { run, item, text, client: client.ref }
+  return { run, item, text, client: client.ref, note: note.ref }
 }
 
 it("confirms the owner's payment at once and keeps an agent's as a proposal for review", async () => {
@@ -47,9 +48,22 @@ it("confirms the owner's payment at once and keeps an agent's as a proposal for 
 
   const proposed = await f.item(
     AGENT,
-    ...["payments", "add", "1000.00", "RUB", "--kind", "in", "--organization", f.client, "--reason", "msg says paid"],
+    ...[
+      "payments",
+      "add",
+      "1000.00",
+      "RUB",
+      "--kind",
+      "in",
+      "--organization",
+      f.client,
+      "--reason",
+      "msg says paid",
+      "--evidence",
+      f.note,
+    ],
   )
-  expect(proposed).toMatchObject({ review: "proposed", reason: "msg says paid" })
+  expect(proposed).toMatchObject({ review: "proposed", reason: "msg says paid", evidence: [f.note] })
 
   const waiting = await f.run(OWNER, "review", "list", "kind:payment")
   expect((waiting.items as { id: string }[]).map((one) => one.id)).toEqual([proposed.ref])

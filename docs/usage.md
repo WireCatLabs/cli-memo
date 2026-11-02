@@ -78,6 +78,22 @@ By default an agent can decide them with a recorded reason and create accepted f
 tasks. Set [`agent_decisions: false`](configuration.md#agent_decisions) to require owner decisions
 for project proposals. Meeting findings still require the owner.
 
+## Keep track of money
+
+Invoices and payments are rows with an amount, a currency and a party, not facts. Amounts are decimals such as
+`50000.00`, and totals stay per currency: Memo never converts them.
+
+```sh
+memo invoices add 50000.00 RUB Bed rental, November --kind receivable --organization organization:3 --project HRB
+memo payments add 25000.00 RUB --kind in --organization organization:3 --occurred-time 2026-11-01 --project HRB
+memo payments allocate payment:9 invoice:4 25000.00
+memo projects status HRB
+```
+
+One you add yourself is confirmed at once. One your agent adds waits in `memo review kind:invoice,payment`, and only
+you confirm money. A payment the agent reads in a chat becomes a payment or an invoice when you confirm the finding.
+`projects status` shows what was billed, paid and is still owed, from confirmed rows only.
+
 ## Answers for scripts and agents
 
 Add `--json` to most commands to get an answer a program can read. The text answer is for people;

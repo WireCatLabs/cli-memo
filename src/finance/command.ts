@@ -18,6 +18,7 @@ interface Written {
   occurredTime?: string
   project?: string
   reason?: string
+  evidence?: string[]
   asOwner?: boolean
   json?: boolean
 }
@@ -37,6 +38,7 @@ const writtenBy = async (store: MessageStore, by: "owner" | { bot: string }, opt
   by,
   ...(options.project === undefined ? {} : { project: await canonicalProject(store, options.project) }),
   ...(by !== "owner" && options.reason !== undefined ? { reason: options.reason } : {}),
+  ...(options.evidence === undefined ? {} : { evidence: options.evidence }),
 })
 
 const party = (command: Command, what: string) =>
@@ -48,7 +50,8 @@ const writeMeta = (command: Command) =>
   byOption(
     command
       .option("--project <project>", "the project it belongs to: its key or project:<id>")
-      .option("--reason <text>", "why an agent proposes it, for the owner who decides"),
+      .option("--reason <text>", "why an agent proposes it, for the owner who decides")
+      .option("--evidence <ref...>", "what shows it, up to 8: msg:, note:, document: or another reference"),
   )
 
 export const financeCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {

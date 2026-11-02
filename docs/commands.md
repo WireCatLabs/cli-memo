@@ -2358,7 +2358,7 @@ memo facts add <statement> [options]
 | Option | What it does |
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
-| `--kind <kind>` | fact, statement, question, decision, promise, payment. |
+| `--kind <kind>` | fact, statement, question, decision, promise. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
 | `--project <project>` | the project it belongs to: its key or project:<id>. |
 | `--subject <ref>` | what it is about, as a reference. |
@@ -2367,7 +2367,7 @@ memo facts add <statement> [options]
 | `--supersedes <ref>` | the proposed or accepted fact this one corrects; it stays, marked superseded once this one is accepted. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 14 more; every field: memo commands info facts add
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts add
 
 **Example:** `memo facts add 'We moved the launch to spring' --kind decision --evidence 'msg:telegram/1/77/42' --project HRB`
 
@@ -2388,7 +2388,7 @@ memo facts list [query] [options]
 | `--limit <n>` | most facts, up to 500. Default: `100`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 14 more; every field: memo commands info facts list
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts list
 
 **Example:** `memo facts list kind:decision project:HRB`
 
@@ -2409,7 +2409,7 @@ memo facts show <ref> [options]
 | `--sources` | read each piece of evidence back: who, when, a short excerpt, and whether it is gone. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 14 more; every field: memo commands info facts show
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts show
 
 **Example:** `memo facts show fact:4 --sources`
 
@@ -2433,7 +2433,7 @@ memo facts confirm <ref> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
-**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 14 more; every field: memo commands info facts confirm
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts confirm
 
 **Example:** `memo facts confirm fact:4`
 
@@ -2457,7 +2457,7 @@ memo facts reverse <ref> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
-**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 14 more; every field: memo commands info facts reverse
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts reverse
 
 **Example:** `memo facts reverse fact:4`
 
@@ -2481,7 +2481,7 @@ memo facts reject <ref> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
-**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 14 more; every field: memo commands info facts reject
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts reject
 
 **Example:** `memo facts reject fact:4`
 
@@ -2580,6 +2580,7 @@ memo invoices add <amount> <currency> <description> [options]
 | `--due <time>` | the day it is due, such as 2026-11-15. |
 | `--project <project>` | the project it belongs to: its key or project:<id>. |
 | `--reason <text>` | why an agent proposes it, for the owner who decides. |
+| `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
@@ -2656,6 +2657,7 @@ memo payments add <amount> <currency> [options]
 | `--occurred-time <time>` | the day it was paid, such as 2026-11-01; today when left out. |
 | `--project <project>` | the project it belongs to: its key or project:<id>. |
 | `--reason <text>` | why an agent proposes it, for the owner who decides. |
+| `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
