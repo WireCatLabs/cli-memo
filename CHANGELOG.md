@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.15 — 02.11.2026
+
 ### Added
 
 - **`messages show` gives each email a `ref`**, as it does each messenger message and as search hits do, so a
