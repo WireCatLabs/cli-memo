@@ -167,6 +167,11 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "payments add": [
     "memo payments add 25000.00 RUB --kind in --organization organization:3 --occurred-time 2026-11-01 --project HRB",
   ],
+  "records import": [
+    "memo records import payments.jsonl --account prokat-med --dry-run",
+    "memo records import envelope.json --account prokat-med --json",
+  ],
+  "records check": ["memo records check - --account prokat-med"],
   "payments allocate": ["memo payments allocate payment:9 invoice:4 25000.00"],
   "facts show": ["memo facts show fact:4 --sources"],
   "facts confirm": ["memo facts confirm fact:4"],

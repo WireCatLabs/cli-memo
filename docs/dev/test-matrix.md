@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**638 ✅ · 0 ⛔ · 129 ❌** — 173 commands, 594 options.
+**645 ✅ · 0 ⛔ · 129 ❌** — 175 commands, 599 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -522,6 +522,13 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `payments allocate` |  | ✅ |  |
 | `payments allocate` | `--as-owner` | ❌ |  |
 | `payments allocate` | `--json` | ✅ |  |
+| `records import` |  | ✅ |  |
+| `records import` | `--dry-run` | ✅ |  |
+| `records import` | `--account` | ✅ |  |
+| `records import` | `--json` | ✅ |  |
+| `records check` |  | ✅ |  |
+| `records check` | `--account` | ✅ |  |
+| `records check` | `--json` | ✅ |  |
 | `meetings actions add` |  | ✅ |  |
 | `meetings actions add` | `--account` | ✅ |  |
 | `meetings actions add` | `--json` | ✅ |  |
