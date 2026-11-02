@@ -1,5 +1,5 @@
 import { CliError } from "@wirecat/cli-base"
-import type { FindingsInput } from "@wirecat/cli-core/meetings"
+import { type FindingsInput, paymentTitle } from "@wirecat/cli-core/meetings"
 import { contextEvidenceFingerprint, documentPassage, excerpt, storedNeighbours } from "@wirecat/cli-core/services"
 import type { Decider, EvidenceFindingsBatch, MessageStore, Project } from "@wirecat/cli-core/store"
 import { keyDocuments } from "./key-documents.js"
@@ -48,7 +48,11 @@ const evidenceContext = async (
 }
 
 const findingWords = (finding: FindingsInput["findings"][number]) =>
-  finding.kind === "fact" ? finding.statement : `${finding.title} ${finding.reason}`
+  finding.kind === "task"
+    ? `${finding.title} ${finding.reason}`
+    : finding.kind === "payment"
+      ? (finding.statement ?? paymentTitle(finding))
+      : finding.statement
 
 const findingsItem = async (store: MessageStore, batch: EvidenceFindingsBatch, window: ContextWindow) => ({
   kind: "findings" as const,

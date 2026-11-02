@@ -20,7 +20,7 @@ the API.
 
 ### Changed — may break callers
 
-- **Built on `@wirecat/cli-core` 0.550.0 and `@wirecat/cli-base` 0.74.0.** Store version 44 moves an agent's or a
+- **Built on `@wirecat/cli-core` 0.552.0 and `@wirecat/cli-base` 0.74.0.** Store version 44 moves an agent's or a
   rule's unconfirmed link into a proposal on first open; `relationships list` no longer shows those.
 - **An agent's `relationships add` answers a `relationship` proposal**, not an unconfirmed relationship.
 - **A run with no agent named and no terminal is not the owner**: its writes are proposals of the bot
@@ -28,6 +28,8 @@ the API.
 - **`--as-owner` in an agent's terminal asks y/N at the terminal**; without one, or under `--json`, it refuses
   with `confirmation_required` (`decision.owner-unconfirmed`, exit 7). Over MCP it is refused.
 - **`projects.agent-decisions-off` is now cli-core's `proposals.agent-decisions-off`**, and covers every decision.
+- **Words after `--` stay text** in `notes add`, `notes edit`, `facts add`, `memories add`, `tasks comments add`,
+  `people add`, `organizations add`, `projects add` and `answers create`.
 - **A bare number is refused where several kinds fit**: `notes show|edit|remove`, `projects key-documents
   add|remove`, `tasks add <source>` and `show` answer `"1473" is a bare number; did you mean note:1473?`
   (`ref.bare-number`), naming only references that exist. A file named `1473` is read as `./1473`.
@@ -35,18 +37,23 @@ the API.
 - **Text without `--json` is drawn by cli-core's generic row** where a command has no view of its own: `·` between
   columns, `# more: raise --limit` for more.
 - **The sync command memo prints and runs puts no `--` before a chat id**: a negative group id needs none.
-- **Words after `--` stay text** in `notes add`, `notes edit`, `facts add`, `memories add`, `tasks comments add`,
-  `people add`, `organizations add`, `projects add` and `answers create`.
 
 ### Security
 
-- **An agent can no longer decide its own proposal through memo (SEC-118).** Every confirm, reject and remove
+- **An agent can no longer decide its own proposal through memo.** Every confirm, reject and remove
   path, CLI and MCP, passes the real decider to cli-core, which refuses an agent's own bot's proposal
   (`proposal.own`), a rule's or an unconfirmed link's (`proposal.owner-only`), one without `--reason`
   (`proposal.reason-required`), and every agent decision when `agent_decisions` is `false`. Before, an agent over
   MCP could confirm a fact, memory, relationship or action it had proposed itself.
 - **A missing agent variable no longer proves the owner.** The owner decides only at a terminal (stdin and stdout),
   or with `--as-owner` after a y/N answer there; a saved meetings permission lets an MCP agent decide as itself.
+
+## 0.131.15 — 02.11.2026
+
+### Added
+
+- **`messages show` gives each email a `ref`**, as it does each messenger message and as search hits do, so a
+  caller can match the emails of a thread to the hit it opened.
 
 ## 0.131.14 — 01.11.2026
 

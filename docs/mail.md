@@ -276,6 +276,11 @@ read from each attachment, such as a bill's PDF: the first 4,000 characters of e
 attachment with no text says why, for example `needs-agent` for a scanned page. Mail synced by `mail` has no
 attachment text.
 
+With `--before-n` and `--after-n` it also prints that many earlier and later emails of the same thread, oldest
+first, with the email you asked for marked `anchor: true`. The thread is the one the mailbox gives (Gmail's own
+thread, or for other mailboxes the first email its `References` header names). An email alone in its thread, such
+as most newsletters, comes back alone.
+
 ## What is kept
 
 This list is for the Himalaya import. Mail that `mail` synced keeps its text and headers only: no attachments, so
