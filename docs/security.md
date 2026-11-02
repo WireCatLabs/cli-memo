@@ -40,11 +40,11 @@ nothing and tells you.
   document. Set [`agent_decisions: false`](configuration.md#agent_decisions) to require owner decisions
   for project proposals. Reading and proposing still work. Meeting decisions require explicit permissions.
 - A fact, memory or relationship added with the `memo` command records who wrote it.
-  When an agent's terminal runs it (`AI_AGENT` or `CLAUDECODE` is set), the agent is the author and the
-  directly recorded fact, memory or new relationship waits for review. An owner's memory or relationship
-  is confirmed and a fact accepted at once; in an agent's terminal, add `--as-owner`.
-  `--as-owner` is a label, not a lock: an agent can pass it
-  too, so tell your agent never to.
+  When an agent's terminal runs it (`AI_AGENT` or `CLAUDECODE` is set), or nothing shows a person at a
+  terminal, the agent is the author and it waits for review. Yours is confirmed or accepted at once.
+- Every decision names who decides. An agent never decides its own bot's proposal, needs `--reason`, and is
+  refused every decision when `agent_decisions` is `false`. In an agent's terminal, `--as-owner` asks y/N at
+  the terminal before it acts as you; without a terminal or under `--json` it refuses with exit 7.
 - Approving an action makes it a task for you. Memo never sends a message or an email.
 - Selected [project annotation export and preview](recipes.md#keep-selected-project-annotations) read
   sources and targets without restoring them. Export writes a new private file and refuses existing

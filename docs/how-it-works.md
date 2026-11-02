@@ -121,12 +121,18 @@ creating accepted facts and numbered tasks or confirming a key document. Set
 [`agent_decisions: false`](configuration.md#agent_decisions) to require owner decisions on project
 proposals; reading and proposing still work. Meeting findings decisions require explicit permissions.
 
-The `memo` command tells an agent's terminal by `AI_AGENT` or `CLAUDECODE`, the variables agents such
-as Claude Code set. There, a directly recorded fact, memory or relationship is recorded as the agent's
-and starts as proposed. Without them, or with `--as-owner`, it is yours: memories and relationships
-are confirmed and facts accepted at once. Proposed actions still wait for approval. The variables
-and `--as-owner` are labels, not a lock: an agent that sets or passes them can
-still write as you.
+The `memo` command tells who runs it. An [MCP](mcp.md) call is the agent's. An agent's terminal, told by
+`AI_AGENT` or `CLAUDECODE` (the variables agents such as Claude Code set), is the agent's. With neither, the run
+is yours only when its input and output are a terminal; a run with no terminal and no agent named is recorded
+as the unattended bot `unattended`, which proposes and never decides. What the agent writes there, a fact,
+memory or relationship, starts as proposed; yours is confirmed or accepted at once. Proposed actions still wait
+for approval. In an agent's terminal, `--as-owner` makes a command yours only after you answer y at the
+terminal; it never asks under `--json` or without a terminal, and refuses with exit 7.
+
+Every confirm, reject and remove path, CLI and MCP alike, checks who decides. An agent decides only with
+`--reason`, never a proposal of its own bot, never a rule's or an unconfirmed link's, and never when
+[`agent_decisions`](configuration.md#agent_decisions) is `false`. The y/N question is a speed bump, not a
+lock: an agent that drives a terminal of its own can still answer it.
 
 ## What can leave your computer
 
