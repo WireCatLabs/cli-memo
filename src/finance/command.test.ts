@@ -1,0 +1,135 @@
+import { mkdtempSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
+import { captureStreams } from "@wirecat/cli-base"
+import { openStore } from "@wirecat/cli-core/store"
+import { expect, it } from "vitest"
+
+import { envelopeOf } from "../../test/answer.js"
+import { createProgram } from "../program.js"
+import type { Terminal } from "../terminal.js"
+
+const AGENT = { AI_AGENT: "claude-code_2-1-296_agent" }
+const OWNER = {}
+const AT_TERMINAL: Terminal = { present: true }
+const NOBODY: Terminal = { present: false }
+
+const setUp = async () => {
+  const dir = mkdtempSync(join(tmpdir(), "memo-finance-"))
+  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), MEMO_CONFIG_DIR: dir }
+  delete env.AI_AGENT
+  delete env.CLAUDECODE
+  const store = await openStore({ env })
+  await store.knowledge.addProject({ name: "Synthetic Rental", key: "SYR" })
+  const client = await store.knowledge.addOrganization({ name: "ООО Пример", kind: "company" })
+  await store.close()
+  const run = async (who: Record<string, string>, ...args: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env: { ...env, ...who }, terminal: who === OWNER ? AT_TERMINAL : NOBODY })
+      .exitOverride()
+      .parseAsync([...args, "--json"], { from: "user" })
+    return envelopeOf(streams.stdout.join(""))
+  }
+  const text = async (...args: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env, terminal: AT_TERMINAL }).exitOverride().parseAsync(args, { from: "user" })
+    return streams.stdout.join("")
+  }
+  const item = async (who: Record<string, string>, ...args: string[]) =>
+    (await run(who, ...args)).item as Record<string, unknown>
+  return { run, item, text, client: client.ref }
+}
+
+it("confirms the owner's payment at once and keeps an agent's as a proposal for review", async () => {
+  const f = await setUp()
+  const own = await f.item(OWNER, "payments", "add", "25000.00", "RUB", "--kind", "in", "--organization", f.client)
+  expect(own).toMatchObject({ review: "confirmed", amount: "25000.00", payer: { ref: f.client } })
+
+  const proposed = await f.item(
+    AGENT,
+    ...["payments", "add", "1000.00", "RUB", "--kind", "in", "--organization", f.client, "--reason", "msg says paid"],
+  )
+  expect(proposed).toMatchObject({ review: "proposed", reason: "msg says paid" })
+
+  const waiting = await f.run(OWNER, "review", "list", "kind:payment")
+  expect((waiting.items as { id: string }[]).map((one) => one.id)).toEqual([proposed.ref])
+  const refused = await f.run(AGENT, "review", "confirm", proposed.ref as string, "--reason", "looks right")
+  expect(refused.item).toMatchObject({ decided: [], refused: [{ id: proposed.ref }] })
+  process.exitCode = 0
+
+  await f.run(OWNER, "review", "confirm", proposed.ref as string)
+  expect(await f.item(OWNER, "payments", "show", proposed.ref as string)).toMatchObject({ review: "confirmed" })
+})
+
+it("refuses an allocation beyond the payment and totals the project's confirmed books per currency", async () => {
+  const f = await setUp()
+  const invoice = await f.item(
+    OWNER,
+    ...["invoices", "add", "50000.00", "RUB", "Аренда", "кровати", "--kind", "receivable"],
+    ...["--organization", f.client, "--project", "SYR", "--due", "2026-11-15"],
+  )
+  expect(invoice).toMatchObject({ review: "confirmed", status: "issued", total: "50000.00" })
+  const payment = await f.item(
+    OWNER,
+    ...["payments", "add", "30000.00", "RUB", "--kind", "in", "--organization", f.client, "--project", "SYR"],
+  )
+  await expect(
+    f.run(OWNER, "payments", "allocate", payment.ref as string, invoice.ref as string, "30000.01"),
+  ).rejects.toMatchObject({ code: "validation_error" })
+  await f.run(OWNER, "payments", "allocate", payment.ref as string, invoice.ref as string, "30000.00")
+  await f.item(
+    OWNER,
+    "invoices",
+    "add",
+    "100",
+    "EUR",
+    "Hosting",
+    "--kind",
+    "payable",
+    "--organization",
+    f.client,
+    "--project",
+    "SYR",
+  )
+  await f.item(
+    AGENT,
+    "invoices",
+    "add",
+    "999.00",
+    "RUB",
+    "Guess",
+    "--kind",
+    "receivable",
+    "--organization",
+    f.client,
+    "--project",
+    "SYR",
+  )
+
+  const status = await f.item(OWNER, "projects", "status", "SYR")
+  expect(status.finance).toEqual([
+    {
+      direction: "payable",
+      currency: "EUR",
+      billed: "100.00",
+      paid: "0.00",
+      owed: "100.00",
+      unallocated: "0.00",
+      invoices: [expect.stringMatching(/^invoice:/)],
+      payments: [],
+    },
+    {
+      direction: "receivable",
+      currency: "RUB",
+      billed: "50000.00",
+      paid: "30000.00",
+      owed: "20000.00",
+      unallocated: "0.00",
+      invoices: [invoice.ref],
+      payments: [payment.ref],
+    },
+  ])
+  expect(await f.text("projects", "status", "SYR", "--compact")).toMatch(
+    /receivable · RUB · 50000\.00 · 30000\.00 · 20000\.00/,
+  )
+})

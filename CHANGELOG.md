@@ -6,6 +6,16 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`invoices list|show|add` and `payments list|show|add|allocate`** manage money as typed rows (cli-core's finance
+  tables). Amounts are decimal strings and totals stay per currency, never converted. Your own `add` is confirmed at
+  once; an agent's, or one with nobody at the terminal, waits as a proposal. `payments allocate <payment> <invoice>
+  <amount>` settles part of an invoice and is refused beyond the payment or the invoice.
+- **`memo review` lists and decides invoice and payment proposals** (`kind:invoice,payment`); only you confirm money.
+- **`projects status` adds `finance`**: billed, paid and owed per direction and currency from the project's confirmed
+  invoices and payments, with their refs, beside the amounts found in chats.
+
 ### Fixed
 
 - **Built on cli-core 0.556.0**, which adds per-reader processing marks for mail (`mail review --holder`); memo

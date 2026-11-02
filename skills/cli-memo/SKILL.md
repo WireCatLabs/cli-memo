@@ -61,8 +61,8 @@ markers to bypass that permission. Historical proposals stay proposed.
    `memo projects key-documents add <key> <reference> --reason '<why>'`.
    Then ask where it stands with `memo projects status <key>`, and read only the chats its `next` names.
 5. **What you write is yours as an agent.** `memo facts add`, `memo memories add`,
-   `memo relationships add`, `memo actions add` and `memo projects key-documents add` record you
-   as the author and wait for the owner. Never pass `--as-owner`: only the owner does, and an agent
+   `memo relationships add`, `memo actions add`, `memo projects key-documents add`, `memo invoices add` and
+   `memo payments add` record you as the author and wait for the owner. Never pass `--as-owner`: only the owner does, and an agent
    that passes it writes as the owner.
 6. **Do not confirm your own proposals** (`memo review confirm`, `memo facts confirm`, `memo memories confirm`,
    `memo relationships confirm`, `memo meetings actions confirm` or `reject`). The owner decides. To show
@@ -181,6 +181,14 @@ text refuses only the findings that cite it; confirm the others and stage a new 
 confident about with `confirm` or `reject` and `--reason` — the reason is kept with the decision — and ask the
 owner about anything uncertain: who did what, dates, commitments versus suggestions. If the owner set
 `agent_decisions: false`, every decision is theirs.
+
+Money is not a fact. A payment you read is a finding of kind `payment` with `amount` (a decimal string),
+`currency`, `direction` (`to_us`, `from_us`), `state` and `counterparty`. When the owner confirms it, a `paid` one
+becomes a `payment:` row (dated `paid_at` when you give it, else `due_at`), an `expected` one an `invoice:`, which
+needs a `person:` or `organization:` counterparty, and a `cancelled` one voids the invoice it `supersedes`. A paid
+one that settles an expected one names that `invoice:` in `supersedes`. `memo invoices list` and
+`memo payments list` show the rows; `memo projects status` sums the confirmed ones per currency under `finance`.
+Only the owner confirms money, in `memo review kind:invoice,payment`.
 Use `--before-time <ISO timestamp with UTC offset>` (MCP `before_time`) to repeat an exact exclusive end time;
 days back count from it. Keep it on continuation. The window is fixed, but archive contents, aliases
 and account scope may change: retain actual references, source fingerprints and coverage separately.

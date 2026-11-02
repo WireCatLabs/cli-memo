@@ -41,6 +41,14 @@ export const ROWS: Readonly<Record<string, RowShape>> = {
     text: ["text"],
   },
   "facts list": fact,
+  "invoices list": {
+    columns: [{ field: "ref" }, { field: "project_name" }, { field: ["issue_date", "created_at"], as: "day" }],
+    text: ["title"],
+  },
+  "payments list": {
+    columns: [{ field: "ref" }, { field: "project_name" }, { field: "date", as: "day" }],
+    text: ["title"],
+  },
   "memories list": fact,
   "people list": {
     columns: [
@@ -100,6 +108,17 @@ const SECTION_ROWS: Readonly<Record<string, RowShape>> = {
   memo_evidence_item: {
     columns: [{ field: "ref" }, { field: "context" }, { field: "kind" }, { field: "title" }],
     text: ["text"],
+  },
+  memo_finance: {
+    columns: [
+      { field: "direction" },
+      { field: "currency" },
+      { field: "billed" },
+      { field: "paid" },
+      { field: "owed" },
+      { field: "invoices", as: "count", tag: "invoices" },
+      { field: "payments", as: "count", tag: "payments" },
+    ],
   },
   memo_evidence_person: {
     columns: [{ field: "person" }, { field: "name" }, { field: "items", as: "count", tag: "items" }],

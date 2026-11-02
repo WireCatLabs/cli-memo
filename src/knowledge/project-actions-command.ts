@@ -45,7 +45,10 @@ export const projectActionsCommand = (projects: Command, streams: Streams, env: 
         "document: or note: references with the fingerprint projects evidence or notes show gives. A fact may name a " +
         "project and a subject (person:, organization:, task: or project:), or neither; a task names its project. " +
         "Facts name type and statement; tasks name type, title, reason and commitment (explicit or inferred). A due_at " +
-        "or assignee needs due_evidence or assignee_evidence citing this finding's references. At most one project per " +
+        "or assignee needs due_evidence or assignee_evidence citing this finding's references. A payment names payment " +
+        "{amount, currency, direction to_us|from_us, state paid|expected|cancelled, counterparty, paid_at}: an expected " +
+        "one becomes an invoice and needs a person: or organization: counterparty; a paid or cancelled one names in " +
+        "supersedes the invoice: it settles or voids. At most one project per " +
         "batch. The same key and input returns the same batch; actions confirm and reject decide it by its id.\n",
     )
     .action(async (file: string, given: { json?: boolean }, command: Command) => {

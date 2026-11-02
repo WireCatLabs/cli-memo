@@ -25,6 +25,7 @@ import {
 import type { MessageStore } from "@wirecat/cli-core/store"
 import { type Command, Option } from "commander"
 import { withStore } from "../answer.js"
+import { financeOf, financeText } from "../finance/finance.js"
 import { collect } from "../options.js"
 import { chatRead, chatSync, syncProfileOf } from "./messenger-sync.js"
 
@@ -37,6 +38,11 @@ interface Options {
   compact?: boolean
   json?: boolean
 }
+
+const withFinance = (row: ReturnType<typeof projectStatusRow>) => ({
+  ...row,
+  sections: { ...row.sections, finance: "memo_finance" },
+})
 
 type Print = (json: boolean | undefined, body: Body, text?: string, compact?: boolean) => void
 
@@ -87,12 +93,13 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
     annotate(projects.command("status"), { effects: LOCAL_READ, partial: true }),
     "project_status",
     projectStatusSchema,
-    { row: projectStatusRow(STATUS_SIGNALS) },
+    { row: withFinance(projectStatusRow(STATUS_SIGNALS)) },
   )
     .description(
       "where a project stands, from the stored messages of every chat confirmed as the project's or its child " +
         "projects', in every account those links name (meta.accounts lists them): the last message, who replies " +
-        "next, open questions both ways, promises, amounts with their direction, payments recorded, how long each " +
+        "next, open questions both ways, promises, amounts with their direction, payments recorded, billed, paid and " +
+        "owed per currency from confirmed invoices and payments (finance), how long each " +
         "--context-query has been quiet on their side, and how much of each chat is held. Amounts, directions and " +
         "promises found by words are marked pattern: read the cited message before trusting one. next names at most " +
         "two chats to read, with the messenger command that reads them. No model call; nothing leaves this machine",
@@ -129,18 +136,17 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
           param: "--compact",
         })
       const chosen = options.syncProfile ?? {}
-      const { found, titleOf } = await withStore(env, async (store) =>
-        titled(
-          store,
-          await projectStatus(store, {
-            project,
-            ...projectWindowOf(options.sinceTime),
-            ...(options.beforeTime === undefined ? {} : { asOf: projectCutoffTime(options.beforeTime) }),
-            contextQueries: options.contextQuery,
-            ...(options.purpose ? { purposes: options.purpose } : {}),
-          }),
-        ),
-      )
+      const { found, titleOf, finance } = await withStore(env, async (store) => {
+        const status = await projectStatus(store, {
+          project,
+          ...projectWindowOf(options.sinceTime),
+          ...(options.beforeTime === undefined ? {} : { asOf: projectCutoffTime(options.beforeTime) }),
+          contextQueries: options.contextQuery,
+          ...(options.purpose ? { purposes: options.purpose } : {}),
+        })
+        const books = await financeOf(store, [status.project.ref, ...status.children.map((child) => child.ref)])
+        return { ...(await titled(store, status)), finance: books }
+      })
       const blocked = new Set<string>()
       const step = outside(blocked)
       const hints: ProjectStatusHints = {
@@ -150,6 +156,7 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
       }
       const { item, next, missing, meta } = projectStatusAnswer(found, hints)
       const lists = item as Record<string, unknown>
+      lists.finance = finance
       for (const { id } of found.signals) {
         const name = id.replaceAll("-", "_")
         const list = lists[name] as { ref: string | null }[] | undefined
@@ -163,7 +170,7 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
           ...(gaps.length ? { missing: gaps } : {}),
           meta,
         }),
-        projectStatusText(found, hints),
+        [projectStatusText(found, hints), ...financeText(finance)].join("\n"),
         options.compact === true,
       )
     })

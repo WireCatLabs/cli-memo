@@ -20,6 +20,8 @@ export const REVIEW_KINDS = [
   "memory",
   "findings",
   "action",
+  "invoice",
+  "payment",
 ] as const
 
 const STATUSES = ["proposed", "confirmed", "rejected", "all"] as const
@@ -94,6 +96,9 @@ const titleOf = (row: ProposalRow, label: Labels) => {
       return `${row.summary ?? "findings"}${row.parts?.length ? `: ${row.parts.map((part) => part.kind).join(" · ")}` : ""}`
     case "action":
       return `${row.summary ?? "action"} ${subject}`
+    case "invoice":
+    case "payment":
+      return row.summary ?? subject
     default:
       return object === null ? subject : `${subject} → ${object}`
   }

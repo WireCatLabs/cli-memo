@@ -31,6 +31,7 @@ import { doctorCommand } from "./doctor/command.js"
 import { addExamples } from "./examples.js"
 import { factsCommand } from "./facts/command.js"
 import { recognisable } from "./failure.js"
+import { financeCommands } from "./finance/command.js"
 import { findingsCommand } from "./findings/command.js"
 import { jsonFields } from "./json-fields.js"
 import { knowledgeCommands } from "./knowledge/command.js"
@@ -160,6 +161,60 @@ const OWN_ENTITIES = entityFields({
   agent_action: ["id", "actor", "tool", "tier", "target", "status", "error", "started_at", "finished_at"],
   meeting_project: ["id", "meeting", "project", "confirmed", "provenance", "fingerprint"],
   notes_folder: ["id", "name", "path", "format", "kept_by"],
+  invoice: [
+    "id",
+    "ref",
+    "title",
+    "direction",
+    "number",
+    "issuer",
+    "counterparty",
+    "currency",
+    "total",
+    "paid",
+    "open",
+    "issue_date",
+    "due_date",
+    "status",
+    "review",
+    "author",
+    "model",
+    "confirmed_by",
+    "source",
+    "reason",
+    "project",
+    "project_name",
+    "created_at",
+    "updated_at",
+    "lines",
+    "allocations",
+  ],
+  payment: [
+    "id",
+    "ref",
+    "title",
+    "direction",
+    "payer",
+    "payee",
+    "amount",
+    "currency",
+    "date",
+    "reference",
+    "allocated",
+    "unallocated",
+    "review",
+    "author",
+    "model",
+    "confirmed_by",
+    "source",
+    "reason",
+    "project",
+    "project_name",
+    "created_at",
+    "updated_at",
+    "allocations",
+  ],
+  payment_allocation: ["payment", "invoice", "amount", "currency", "created_at"],
 })
 
 const FIRST_SCREEN = {
@@ -215,6 +270,7 @@ export const createProgram = ({
   memoriesCommand(program, streams, env)
   mentionsCommand(program, streams, env)
   factsCommand(program, streams, env)
+  financeCommands(program, streams, env)
   findingsCommand(program, streams, env)
   actionsCommand(program, streams, env)
   reviewCommand(program, streams, env)
