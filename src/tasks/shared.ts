@@ -11,6 +11,7 @@ import { type AccountKey, openStore } from "@wirecat/cli-core/store"
 import { Command } from "commander"
 import { APP, STORE_CLIENT } from "../app.js"
 import { decisionPolicy } from "../config.js"
+import { mailStatsCommand } from "../mail/stats-command.js"
 import {
   oneAccountOf,
   type SourceOptions,
@@ -121,4 +122,5 @@ export const sharedTaskCommands = (program: Command, tasks: Command, streams: St
     .addCommand(
       new Command("tasks").description("task statistics").addCommand(scoped(tasksStatsCommand(messenger), env, warn)),
     )
+    .addCommand(new Command("mail").description("mail statistics").addCommand(mailStatsCommand(program, streams, env)))
 }

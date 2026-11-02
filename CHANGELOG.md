@@ -8,6 +8,13 @@ the API.
 
 ### Added
 
+- **`memo stats mail show` counts imported mail received and sent** per day, week (from Monday) or sender:
+  `--by day|week|sender`, `--source email:<account>`, `--timezone`, `--limit`, and the query of `memo search mail`
+  after `--`. It answers `{ by, received, sent, rows: [{ key, name, received, sent }] }`; by sender a row is keyed by
+  the address and counts received mail only. It reads the store and records no search.
+- **`memo stats tasks show` counts by chat, meeting or project, over a period** (cli-core's builder): `--by`,
+  `--timezone` and `-- created>=30d`; the item and its rows gain `created`, `closed` and `mean_open_age_ms`, rows
+  `key` and `name`. **`created:`** joins the `tasks list` and `tasks counts` query.
 - **`wcat memo` runs memo, and `wcat --help` lists it.** The package installs `wcat-memo` beside `memo`, and
   `wcat-memo --wcat-describe` prints the tool's name, version and description for `wcat`. `memo` keeps working.
 

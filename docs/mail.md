@@ -41,6 +41,17 @@ memo messages show <ref>
 `<ref>` is the `ref` of a search hit. `memo search all` finds this mail together with your notes and messages. More
 search words are in [Find your mail](#find-your-mail) and [Search](search.md#search-mail).
 
+## How much mail comes and goes
+
+```sh
+memo stats mail show --by week --timezone Europe/Madrid -- date>=90d
+memo stats mail show --by sender --source email:work --limit 20 -- date>=30d
+```
+
+It counts mail received and sent per day, per week (a week starts on Monday) or per sender. The query after `--` is
+the one `memo search mail` takes. By sender it counts received mail only. It shows counts, never mail text, and it
+does not add to your search history.
+
 ## An agent that reads new mail and proposes tasks
 
 memo can run an agent after each sync that stored new mail. It reads only mail past its own mark, and only stages
