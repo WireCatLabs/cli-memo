@@ -149,6 +149,13 @@ Keep a fixed zoned window when continuing with `--context-source id=cursor`. Pre
 coverage, `restart_required` and unknown archive completeness. File documents are read separately.
 Preparation neither confirms decisions nor assigns tasks. A series ID is not a local meeting ID.
 
+For new mail, `memo mail review --holder <name> --source email:<account> --json` reads what is stored past that
+holder's mark, filtered, each email with the `fingerprint` to cite. `memo mail findings add <file|->` stages one
+mailbox's cited tasks, task updates, facts, memories, links and new contacts (`--help` has the JSON); then
+`memo messages acknowledge --holder <name> --cursor <cursor>` moves the mark. Never acknowledge before staging.
+Under `MEMO_READ_ONLY` these two are the only writes allowed. Mail findings are owner only. A scheduled agent
+follows `memo skill show mail-triage`. `memo messages show <ref>` gives an email's `fingerprint` too.
+
 For reviewed meeting findings, use `memo meetings actions add <file>` (`-` for stdin), then
 `show` or `list status:proposed`. This stages a batch without creating facts or tasks. Cite exact cue
 references and fingerprints from `memo meetings passage` or `zm meetings evidence`; confirmed project membership is required.

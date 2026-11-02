@@ -32,7 +32,7 @@ export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramF
   const keyOf = (path: readonly string[]) => path.join(".")
   const byPath = new Map(all.map((info) => [keyOf(info.path), info]))
   const stdin = (path: readonly string[]) =>
-    ["meetings.actions.add", "projects.actions.add"].includes(keyOf(path))
+    ["meetings.actions.add", "projects.actions.add", "mail.findings.add"].includes(keyOf(path))
       ? { name: "input", description: "the cited findings proposal as JSON", json: true as const }
       : undefined
   const tools = toolsFromCommands(commands, {

@@ -3,10 +3,18 @@ import { annotate } from "@wirecat/cli-base/commands"
 import { formatLocator, parseLocator } from "@wirecat/cli-core"
 import { LOCAL_READ } from "@wirecat/cli-core/cli"
 import { ATTACHMENT_CHARS, attachmentsText, hitText, showMail } from "@wirecat/cli-core/mail"
+import { contextEvidenceFingerprint } from "@wirecat/cli-core/services"
+import type { MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { whole } from "../options.js"
 import { atDetail } from "../output.js"
+
+/** The fingerprint a finding cites this email by, the one `mail review --holder` gives (FIND-2161). */
+const citedBy = async (store: MessageStore, ref: string): Promise<string | null> => {
+  const record = await store.contextRecords?.read(ref)
+  return record ? contextEvidenceFingerprint(record) : null
+}
 
 export const messagesCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
@@ -45,16 +53,36 @@ export const messagesCommand = (program: Command, streams: Streams, env: NodeJS.
         )
         return
       }
-      const shown = await withStore(env, (store) =>
-        showMail(store, reference, { before: options.beforeN, after: options.afterN, full: options.full === true }),
-      )
-      const emails = shown.map((email) => ({ ...email, ref: email.locator }))
+      const emails = await withStore(env, async (store) => {
+        const shown = await showMail(store, reference, {
+          before: options.beforeN,
+          after: options.afterN,
+          full: options.full === true,
+        })
+        return Promise.all(
+          shown.map(async (email) => ({
+            ...email,
+            ref: email.locator,
+            fingerprint: await citedBy(store, email.locator),
+          })),
+        )
+      })
       print(
         options.json,
         options.beforeN || options.afterN
           ? wholeList("messages show", atDetail(emails))
           : itemAnswer(atDetail(emails[0])),
-        emails.map((email) => [hitText(email, "full"), attachmentsText(email)].filter(Boolean).join("\n")).join("\n\n"),
+        emails
+          .map((email) =>
+            [
+              hitText(email, "full"),
+              attachmentsText(email),
+              email.fingerprint ? `fingerprint ${email.fingerprint}` : "",
+            ]
+              .filter(Boolean)
+              .join("\n"),
+          )
+          .join("\n\n"),
       )
     })
 }

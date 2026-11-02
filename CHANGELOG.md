@@ -6,6 +6,26 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **An agent can read new mail and propose what it asks of you.** `memo schedule agent mail-triage claude 'Run memo
+  skill show mail-triage and follow it.' --every 5m --on-new-mail mail-triage --max-cost 1` starts the agent only
+  when a sync stored mail past its mark. It stages cited tasks, closes and updates of open tasks, facts, memories,
+  links and new contacts for `memo review`; it never sends, changes mail or decides. `memo skill show mail-triage`
+  is its prompt.
+- **`memo mail review`**: cli-core's mail review over one mailbox (`--source email:<account>`): new threads,
+  `--unanswered`, `--waiting`, and `--holder <name>` for what is stored past that holder's mark.
+- **`memo messages acknowledge --holder <name> --cursor <cursor>`** moves a holder's mark after it processed what
+  review gave.
+- **`memo mail findings add|show|list`**: stage one mailbox's cited findings; only the owner confirms them in
+  `memo review`. `add` and `messages acknowledge` are the only writes `MEMO_READ_ONLY` allows.
+- **`memo messages show` gives an email's `fingerprint`**, the one a finding cites it by.
+
+### Fixed
+
+- **`memo actions confirm` on a mail findings batch** goes through the owner-only review: an agent's confirm is
+  refused instead of turning the batch into a task.
+
 ## 0.131.18 — 02.11.2026
 
 ### Added
