@@ -11,11 +11,19 @@ the API.
 - **`--reason` on every decide command**: `facts confirm`, `reject`, `reverse` and `remove`, `memories confirm`,
   `invalidate` and `remove`, `relationships confirm` and `remove`, `actions reject` for any action. An agent
   decides only with one. `--as-owner` on these and on `projects key-documents remove` and `meetings actions`.
+- **`projects status <project>`: where a project stands, from the store.** It reads every chat linked to the
+  project and its child projects, in every account those links name (`meta.accounts`), and says per chat who wrote
+  last, whose move it is, open questions, promises, and amounts with their direction. `--context-query`,
+  `--since-time`, `--before-time`, `--compact`, `--sync-profile`. Cited refs carry a title. `next` names at most two
+  chats to read, with the tg or max command, and never picks a profile for you. Over MCP too.
+- **A `project-state` guide scenario** (`memo guide project-state`): context, status, read the chats it names with
+  `--compact`, stage what you confirmed. The skill says the same.
 
 ### Changed — may break callers
 
 - **Built on `@wirecat/cli-core` 0.550.0 and `@wirecat/cli-base` 0.74.0.** Store version 44 moves an agent's or a
   rule's unconfirmed link into a proposal on first open; `relationships list` no longer shows those.
+- **Built on `@wirecat/cli-core` 0.551.0**, which brings the project status signals `projects status` reads.
 - **An agent's `relationships add` answers a `relationship` proposal**, not an unconfirmed relationship.
 - **A run with no agent named and no terminal is not the owner**: its writes are proposals of the bot
   `unattended`, and its decisions refuse with `confirmation_required` (`decision.decider-unknown`, exit 7).
