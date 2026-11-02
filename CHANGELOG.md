@@ -29,7 +29,11 @@ the API.
 - Meeting findings, task close suggestions and mail findings are the owner's to decide: `memo review confirm` and
   `reject` refuse an agent on them, with or without `--reason`. Mail findings cannot be decided by this build yet
   (`proposal.kind-unsupported`); they are listed so nothing turns them into tasks by mistake.
-- On cli-core 0.556.0.
+
+### Fixed
+
+- **Built on cli-core 0.556.0**, which adds per-reader processing marks for mail (`mail review --holder`); memo
+  shows them in `review status`.
 
 ## 0.131.17 — 02.11.2026
 
