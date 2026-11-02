@@ -31,7 +31,7 @@ interface Options {
   json?: boolean
 }
 
-type Print = (json: boolean | undefined, body: Body, text?: string, output?: { compact?: boolean }) => void
+type Print = (json: boolean | undefined, body: Body, text?: string, compact?: boolean) => void
 
 /** Chat titles the store knows better than the chat list did, and a title on every cited ref; one read per answer. */
 const titled = async (store: MessageStore, found: ProjectStatus) => {
@@ -151,6 +151,6 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
           meta,
         }),
         projectStatusText(found, hints),
-        { compact: options.compact === true },
+        options.compact === true,
       )
     })

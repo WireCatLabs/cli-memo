@@ -64,8 +64,9 @@ markers to bypass that permission. Historical proposals stay proposed.
    `memo relationships add`, `memo actions add` and `memo projects key-documents add` record you
    as the author and wait for the owner. Never pass `--as-owner`: only the owner does, and an agent
    that passes it writes as the owner.
-6. **Do not confirm your own proposals** (`memo facts confirm`, `memo memories confirm`,
-   `memo relationships confirm`, `memo meetings actions confirm` or `reject`). The owner decides.
+6. **Do not confirm your own proposals** (`memo review confirm`, `memo facts confirm`, `memo memories confirm`,
+   `memo relationships confirm`, `memo meetings actions confirm` or `reject`). The owner decides. To show
+   the owner what waits, run `memo review` (`project:<key>`, `kind:`, `by:`); they confirm a range there.
 7. **Never write message, mail or note text to a file.** Quote it in the answer with its reference.
 8. **Before reporting a bug, compare `memo --version` with `npm view @wirecat/cli-memo version`.** An
    older install may lack the fix.

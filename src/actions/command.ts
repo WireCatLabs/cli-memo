@@ -1,11 +1,13 @@
 import type { Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { LOCAL_READ, LOCAL_WRITE, withQuery } from "@wirecat/cli-core/cli"
-import { approveAsTask } from "@wirecat/cli-core/services"
+import { approveAsTask, proposalRegistry } from "@wirecat/cli-core/services"
+import { assertMayDecide } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { byOption, deciderOf, whoRuns } from "../author.js"
 import { positive } from "../options.js"
+import { decideOne, decisionOf } from "../review/review.js"
 import { type WriteOptions, writeAccount, writeOptions } from "../store/source-list.js"
 import {
   ACTION_QUERY,
@@ -89,7 +91,10 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
       const by = await deciderOf(command, env, { ...options, question: `confirm action ${id} as you, the owner?` })
       await run(options.json, async (store) => {
         const findingsAnswer = await decideFindings(store, id, { ...options, accept: findings, confirm: true, by })
-        return itemAnswer(findingsAnswer ?? (await approveAsTask(store, id, by)))
+        if (findingsAnswer) return itemAnswer(findingsAnswer)
+        // The task is made here to keep this command's answer; the check is the review registry's.
+        assertMayDecide(await proposalRegistry(store).get(id), by, store.decisionPolicy)
+        return itemAnswer(await approveAsTask(store, id, by))
       })
     })
 
@@ -103,7 +108,9 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
       const by = await deciderOf(command, env, { ...options, question: `reject action ${id} as you, the owner?` })
       await run(options.json, async (store) => {
         const findingsAnswer = await decideFindings(store, id, { ...options, accept: [], confirm: false, by })
-        return itemAnswer(findingsAnswer ?? (await store.proposedActions.reject(id, by, options.reason)))
+        if (findingsAnswer) return itemAnswer(findingsAnswer)
+        await decideOne(store, id, decisionOf(false, by, options.reason))
+        return itemAnswer(await store.proposedActions.get(id))
       })
     })
 }
