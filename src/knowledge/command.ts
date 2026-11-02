@@ -187,7 +187,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .argument("<project>", "its id, project:<id>, key, exact name or alias")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (reference: string, options: { json?: boolean }) => {
-      const context = await withStore(env, (store) => projectContext(store, reference))
+      const context = await withStore(env, (store) => projectContext(store, env, reference))
       print(options.json, itemAnswer(context), projectContextText(context))
     })
   projectGatherCommand(projects, print, env, warn)
