@@ -6,6 +6,11 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **Built on cli-core 0.556.0**, which adds per-reader processing marks for mail (`mail review --holder`); memo
+  exposes no new command from it yet.
+
 ## 0.131.17 — 02.11.2026
 
 ### Fixed
