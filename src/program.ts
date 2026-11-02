@@ -51,6 +51,7 @@ import { reviewCommand } from "./review/command.js"
 import { autoCommand } from "./run/auto.js"
 import { syncCommand } from "./run/import.js"
 import { searchCommand } from "./search/command.js"
+import { showCommand } from "./show/command.js"
 import { storeCommand } from "./store/info-command.js"
 import { tagsCommand } from "./tags/command.js"
 import { tasksCommand } from "./tasks/command.js"
@@ -200,6 +201,7 @@ export const createProgram = ({
   provideTerminal(program, terminal)
 
   contextCommand(program, streams, env)
+  showCommand(program, streams, env)
   notesCommand(program, streams, env)
   foldersCommand(program, streams, env)
   messagesCommand(program, streams, env)

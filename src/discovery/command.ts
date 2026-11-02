@@ -64,6 +64,7 @@ const same = (a: readonly string[], b: readonly string[] | undefined) => a.join(
 // cli-core places its own groups (search, tags, tasks, meetings, mcp, skill…); these are memo's.
 const SECTIONS: [string, HelpSection][] = [
   ["context", "read"],
+  ["show", "read"],
   ["notes", "read"],
   ["notes add", "write"],
   ["notes edit", "write"],

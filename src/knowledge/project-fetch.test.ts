@@ -126,7 +126,6 @@ it("with --sync-first runs the messenger CLI for each linked chat it does not ho
     "--timeout",
     expect.stringMatching(/^\d+s$/),
     "--json",
-    "--",
     "9",
   ])
   expect(stderr).toContain("tg: page 1 saved")
@@ -144,17 +143,21 @@ it("never picks a profile: none or several signed in to the account is a refusal
   expect(profileFor("telegram", "1", env)).toEqual({ profile: "work" })
   expect(profileFor("telegram", "3", env)).toEqual({
     why: "no tg profile here is signed in to account 3; profiles: personal, work",
+    profiles: [],
   })
   writeFileSync(join(root, "tg-state", "accounts", "spare.json"), JSON.stringify({ account: "1" }))
   expect(profileFor("telegram", "1", env)).toEqual({
     why: "2 tg profiles are signed in to account 1: spare, work — choose one with --sync-profile tg=<profile>",
+    profiles: ["spare", "work"],
   })
   expect(profileFor("telegram", "1", env, { tg: "spare" })).toEqual({ profile: "spare" })
   expect(profileFor("telegram", "1", env, { tg: "personal" })).toEqual({
     why: "tg profile personal is signed in to account 2, not 1",
+    profiles: [],
   })
   expect(profileFor("telegram", "1", env, { tg: "gone" })).toEqual({
     why: "tg profile gone is not signed in here; profiles: personal, spare, work",
+    profiles: ["personal", "spare", "work"],
   })
 })
 

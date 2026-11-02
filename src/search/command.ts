@@ -143,12 +143,14 @@ Calendar events come from every calendar gcal stored; an event's title, descript
 content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names — memo search messages
 'content:invoice'. Compare it with tg search messages 'content:invoice', a plain word with a plain word.
 has:voice, has:file or NOT has:attachment keeps voice messages, files or plain text — memo search messages 'friday has:voice'.
---json: the list is items, each a hit as in tg search messages: ref (msg:…), timestamp, sender_name, excerpt.`
+--json: the list is items, each a hit as in tg search messages: ref (msg:…), timestamp, sender_name, excerpt.
+For an agent: read with --compact, one line per hit with its reference. Never write message text to a file.`
         : `
 content: narrows a search to the text of attachments, filename: to their names — memo search mail 'content:invoice'.
 Mail sent to many is in the mailbox bulk; NOT mailbox:bulk leaves it out, and bills and bookings with it.
 Mail from senders with signs of fraud (memo mail inspect) comes after the rest of the page; --plain-order keeps it in place.
---json: the list is items, each a hit as in tg search mail: ref (msg:email/…), timestamp, email, excerpt.`,
+--json: the list is items, each a hit as in tg search mail: ref (msg:email/…), timestamp, email, excerpt.
+For an agent: read with --compact, one line per hit with its reference. Never write mail text to a file.`,
     )
     leaf.action(
       async (

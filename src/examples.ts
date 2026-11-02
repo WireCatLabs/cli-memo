@@ -4,6 +4,7 @@ import type { Command } from "commander"
 
 export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   context: ["memo context telegram:'Kai Sample'", "memo context email:kai@example.com --limit 5 --json"],
+  show: ["memo show chat:max/500/-1001 document:413", "memo show note:12 msg:telegram/1/77/42 --json"],
   "notes show": ["memo notes show note:12", "memo notes show ~/notes/People/Kai.md --json"],
   "notes list": [
     "memo notes list 'about:\"telegram:Kai Sample\"'",

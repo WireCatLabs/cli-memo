@@ -1,10 +1,22 @@
-import { createRenderer, type Streams } from "@wirecat/cli-base"
-import { type Body, currentRun, itemOf, type ListInput, listOf, renderAnswer, rootOf } from "@wirecat/cli-core/cli"
+import { CliError, createRenderer, type Streams } from "@wirecat/cli-base"
+import { COMPACT_FLAG } from "@wirecat/cli-base/standards"
+import {
+  type Body,
+  compactText,
+  currentRun,
+  itemOf,
+  type ListInput,
+  listOf,
+  renderAnswer,
+  rootOf,
+  sealed,
+} from "@wirecat/cli-core/cli"
 import { type MessageStore, openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { STORE_CLIENT } from "./app.js"
 import { decisionPolicy } from "./config.js"
 import { snakeKeys } from "./output.js"
+import { rowOf, sectionRowOf } from "./rows.js"
 
 export const itemAnswer = <T>(value: T, extra?: Parameters<typeof itemOf>[1]) => itemOf(snakeKeys(value), extra)
 
@@ -36,81 +48,68 @@ export const withStore = async <T>(env: NodeJS.ProcessEnv, work: (store: Message
 
 const running = new WeakMap<Command, Command>()
 
-type Fields = Record<string, unknown>
-const isFields = (value: unknown): value is Fields =>
-  typeof value === "object" && value !== null && !Array.isArray(value)
-const oneLine = (value: unknown, width = 100): string => {
-  const text = String(value).replace(/\s+/g, " ").trim()
-  return text.length > width ? `${text.slice(0, width - 1)}…` : text
-}
-const shown = (value: unknown) => value !== null && value !== undefined && value !== ""
-const firstOf = (fields: Fields, names: readonly string[]) =>
-  names.map((name) => fields[name]).find((value) => shown(value) && !isFields(value) && !Array.isArray(value))
+const timezone = () => Intl.DateTimeFormat().resolvedOptions().timeZone
 
-/** One line for a listed record: what names it, what it says, what state it is in. */
-const rowOf = (row: unknown): string => {
-  if (!isFields(row)) return oneLine(row)
-  const parts = [
-    firstOf(row, ["key", "ref", "id"]),
-    firstOf(row, ["title", "name", "text", "path", "excerpt"]),
-    firstOf(row, ["state", "status", "due_at"]),
-  ].filter(shown)
-  return parts.length ? parts.map((part) => oneLine(part)).join("  ") : blockOf(row).replace(/\n\s*/g, "  ")
+/** A command's answer as lines, drawn by cli-core from the command's row; `next` steps are left to the renderer. */
+export const plainText = (body: Body, command?: Command): string => {
+  const { next: _, ...rest } = body
+  return compactText(rest as Body, rowOf(command), { timezone: timezone() }, sectionRowOf)
 }
 
-/** A record as `field: value` lines; a nested record is indented under its field, a list counted or joined. */
-/** A person reads a priority by its label; the number behind it is for scripts and the board's order. */
-const blockOf = (fields: Fields, indent = ""): string =>
-  Object.entries(fields)
-    .filter(([name]) => !(name === "priority" && "priority_label" in fields))
-    .filter(([, value]) => shown(value) && !(Array.isArray(value) && value.length === 0))
-    .map(([name, value]) => {
-      if (isFields(value)) return `${indent}${name}:\n${blockOf(value, `${indent}  `)}`
-      if (Array.isArray(value))
-        return value.every((one) => !isFields(one) && !Array.isArray(one))
-          ? `${indent}${name}: ${oneLine(value.join(", "))}`
-          : `${indent}${name}: ${value.length} — --json shows them`
-      return `${indent}${name}: ${oneLine(value)}`
-    })
-    .join("\n")
-
-/** Text for a command with no view of its own; `--json` keeps the whole answer for scripts and agents. */
-export const plainText = (body: Body): string => {
-  if ("items" in body) {
-    const rows = (body.items as unknown[]).map(rowOf)
-    return [...(rows.length ? rows : ["nothing found"]), ...(body.page.has_more ? ["more: raise --limit"] : [])].join(
-      "\n",
-    )
-  }
-  return isFields(body.item) ? blockOf(body.item) : oneLine(body.item)
+/** `--compact`: the same lines, with each next step rerunning in the compact form, as cli-core draws them. */
+const compactView = (command: Command, full: boolean) => (kept: Body) => {
+  const whole = sealed(kept)
+  const next = whole.next?.map((step) =>
+    step.kind === "command" && step.line ? { ...step, line: `${step.line} ${COMPACT_FLAG}` } : step,
+  )
+  return compactText(
+    next ? { ...whole, next } : whole,
+    rowOf(command),
+    {
+      timezone: timezone(),
+      ...(full ? { textChars: 0 } : {}),
+    },
+    sectionRowOf,
+  )
 }
 
 /** The answer is judged by the command that ran — whether it may be partial — so the root remembers it. */
 export const trackAnswers = (program: Command): void => {
   currentRun()
-  program.hook("preAction", (root, leaf) => {
-    running.set(root, leaf)
-  })
+  program
+    .option(
+      COMPACT_FLAG,
+      "one line per item for an agent: reference first, text last, paging and next steps as # lines",
+    )
+    .hook("preAction", (root, leaf) => {
+      const { compact, json, brief } = leaf.optsWithGlobals()
+      if (compact && (json || brief))
+        throw new CliError(
+          "validation_error",
+          `${COMPACT_FLAG} and ${json ? "--json" : "--brief"} are two forms — pick one`,
+        )
+      running.set(root, leaf)
+    })
 }
 
 /**
- * Prints answers through cli-core's renderer: the whole envelope for `--json`, otherwise `text`, or plain lines
- * where a command has no text view.
+ * Prints answers through cli-core's renderer: the whole envelope for `--json`, one line per item for `--compact`,
+ * otherwise `text`, or plain lines where a command has no text view.
  */
 export const answers = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
-  const print = (json: boolean | undefined, body: Body, text?: string, compact?: boolean): void => {
+  const print = (json: boolean | undefined, body: Body, text?: string, asked?: boolean): void => {
     const format = json ? "json" : "pretty"
     const root = rootOf(program)
+    const leaf = running.get(root) ?? root
+    const { compact = asked, full } = leaf.optsWithGlobals<{ compact?: boolean; full?: boolean }>()
+    const renderer = createRenderer({ format, color: false, streams })
+    // In compact form the next steps are # lines on stdout; printing them again on stderr would say them twice.
+    const drawn = compact === true && !json
     renderAnswer(
-      running.get(root) ?? root,
-      {
-        renderer: createRenderer({ format, color: false, streams }),
-        format,
-        streams,
-        ...(compact && !json ? { compact: true } : {}),
-      },
+      leaf,
+      { renderer: drawn ? { ...renderer, note: () => undefined } : renderer, format, streams },
       body,
-      () => `${text ?? plainText(body)}\n`,
+      drawn ? compactView(leaf, full === true) : () => `${text ?? plainText(body, leaf)}\n`,
     )
   }
   return {

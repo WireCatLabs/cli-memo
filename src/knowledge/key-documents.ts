@@ -10,6 +10,7 @@ import {
   PROJECTS_QUERY,
   type Project,
 } from "@wirecat/cli-core/store"
+import { refuseBareNumber } from "../refs.js"
 import { heldMessage } from "../store/held.js"
 import { canonicalProject } from "../vocabulary/project.js"
 
@@ -96,6 +97,7 @@ export const markKey = async (
   reason: string,
   author: Author,
 ): Promise<KeyDocument> => {
+  await refuseBareNumber(store, ref, ["note", "document"])
   if (!KEYABLE.test(ref))
     throw new CliError("validation_error", "a key document is a note:, document: or msg: reference")
   const source = await sourceOf(store, ref)
@@ -156,6 +158,7 @@ const proposeKey = async (
 }
 
 export const unmarkKey = async (store: MessageStore, project: Project, ref: string, by: Decider) => {
+  await refuseBareNumber(store, ref, ["note", "document"])
   const link = (await keyLinks(store, project)).find((one) => one.from === ref)
   if (!link) throw new CliError("not_found", `${ref} is not a key document of ${project.ref}`)
   await store.notes.removeLink(link.id, by)

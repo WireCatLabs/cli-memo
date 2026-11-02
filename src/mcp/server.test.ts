@@ -628,3 +628,21 @@ it("adds and comments on a project task in the client's name, and lists who wrot
     await client.close()
   }
 })
+
+it("answers show over MCP as JSON, with no --compact for an agent to pass", async () => {
+  const { client, call } = await connected()
+  try {
+    const shown = await call("show", { ref: ["note:1"] })
+    const body = shown.structuredContent as { items: { ref: string; kind: string; open: { argv: string[] } }[] }
+    expect(body.items).toMatchObject([
+      { ref: "note:1", kind: "note", open: { argv: ["memo", "notes", "show", "note:1"] } },
+    ])
+    const search = await client.callTool({ name: "memo_tools_search", arguments: { query: "show" } })
+    const { items } = search.structuredContent as { items: { command: string; arguments: Record<string, unknown> }[] }
+    const tool = items.find((item) => item.command === "show")
+    expect(tool?.arguments).toBeDefined()
+    expect(Object.keys(tool?.arguments ?? {})).not.toContain("compact")
+  } finally {
+    await client.close()
+  }
+})

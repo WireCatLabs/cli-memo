@@ -116,7 +116,7 @@ it("reads every account the links name, says which, and points next at the chats
     }),
     expect.objectContaining({
       kind: "user_action",
-      why: expect.stringContaining(': max work messages list --compact -- -900 "date>=2026-10-19"'),
+      why: expect.stringContaining(': max work messages list --compact -900 "date>=2026-10-19"'),
     }),
   ])
   expect(body.missing).toContainEqual({
@@ -130,7 +130,7 @@ it("prints the status for a person, and one line per row with --compact", async 
   const text = await status()
   expect(text).toContain("HRB · Harbour site · 2 linked chats in 2 accounts")
   expect(text).toContain('"1C" quiet on their side since 2026-10-12')
-  expect(text).toContain('  2. max work messages list --compact -- -900 "date>=2026-10-19"')
+  expect(text).toContain('  2. max work messages list --compact -900 "date>=2026-10-19"')
   const compact = await status("--compact")
   expect(compact).not.toContain("{")
   expect(compact).toContain("msg:max/11/-900/3")

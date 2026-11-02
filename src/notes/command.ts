@@ -13,6 +13,7 @@ import { SHELL_OVERRIDES } from "../contract-overrides.js"
 import { collect, positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { subjectOf } from "../people/subject.js"
+import { refuseBareNumber } from "../refs.js"
 import { SAVE_HELP } from "../save-help.js"
 import { meetingReference } from "../store/scope.js"
 import { MEETING_WRITE_HELP, oneAccountOf, writeAccountOf, writeOptions } from "../store/source-list.js"
@@ -52,6 +53,7 @@ const textOf = (options: { text?: string; textFile?: string }, given?: string): 
 /** `note:<id>`, `document:<id>`, or a file inside a configured folder. */
 const noteOf = async (store: MessageStore, env: NodeJS.ProcessEnv, reference: string): Promise<Note> => {
   if (isNoteReference(reference)) return store.notes.note(reference)
+  await refuseBareNumber(store, reference, ["note", "document"], { path: true })
   const { folder, path } = folderOfFile(await boundFolders(store, env, { strict: false }), reference)
   const found = (await folderNotes(store, folder.id)).find((note) => note.path === path)
   if (!found)
@@ -222,13 +224,13 @@ const notesCommandDefinition = (program: Command, streams: Streams, env: NodeJS.
           const target = exportTarget(loadConfig(env), options.export, options.format)
           return { ...note, exportPath: exportedPath(await exportInternal(store, { ...target, notes: [note] })) }
         })
-        print(options.json, itemAnswer(answer), answer.id)
+        print(options.json, itemAnswer(answer), answer.ref)
       },
     )
 
   annotate(notes.command("edit"), { effects: LOCAL_WRITE, output: { entity: "note" }, literal_after_dashes: true })
     .description("change a note you wrote here; a file's note is edited in its file")
-    .argument("<id>", "note:<id> or its id")
+    .argument("<id>", "note:<id>")
     .requiredOption("--revision <n>", "its current revision, so an edit made meanwhile is not lost", positive)
     .option("--text <text>", "the new text")
     .option("--text-file <path>", "read the new text from a file; - reads stdin")
@@ -249,22 +251,26 @@ const notesCommandDefinition = (program: Command, streams: Streams, env: NodeJS.
       ) => {
         const body = textOf(options)
         const answer = await withNotes(async (store) => {
+          await refuseBareNumber(store, id, ["note"])
           const note = await store.notes.editNote(id.replace(/^note:/, ""), body, options.revision)
           if (options.export === undefined) return note
           const target = exportTarget(loadConfig(env), options.export, options.format)
           return { ...note, exportPath: exportedPath(await exportInternal(store, { ...target, notes: [note] })) }
         })
-        print(options.json, itemAnswer(answer), `${answer.id} revision ${answer.revision}`)
+        print(options.json, itemAnswer(answer), `${answer.ref} revision ${answer.revision}`)
       },
     )
 
   annotate(notes.command("remove"), { effects: LOCAL_WRITE })
     .description("delete a note you wrote here; a file it was exported to stays")
-    .argument("<id>", "note:<id> or its id")
+    .argument("<id>", "note:<id>")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (id: string, options: { json?: boolean }) => {
-      const answer = await withNotes((store) => store.notes.removeNote(id.replace(/^note:/, "")))
-      print(options.json, itemAnswer(answer), `${answer.id} removed`)
+      const answer = await withNotes(async (store) => {
+        await refuseBareNumber(store, id, ["note"])
+        return store.notes.removeNote(id.replace(/^note:/, ""))
+      })
+      print(options.json, itemAnswer(answer), `note:${answer.id} removed`)
     })
 
   annotate(notes.command("export"), { effects: LOCAL_WRITE })

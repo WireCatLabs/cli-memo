@@ -12,7 +12,7 @@ it("prints a list as one line per record and an item as field lines, never JSON"
     page: { mode: "page" as const, limit: 2, has_more: true },
     meta,
   }
-  expect(plainText(list)).toBe("SYN  Synthetic\n2\nmore: raise --limit")
+  expect(plainText(list)).toBe("SYN · Synthetic\n2\n# more: raise --limit")
 
   const item = {
     item: { task: { key: "REQ-1", title: "Send\nit", tags: ["a", "b"], links: [{ to: "x" }] }, created: true },

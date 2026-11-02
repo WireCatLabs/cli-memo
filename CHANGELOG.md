@@ -26,6 +26,12 @@ the API.
   chats to read, with the tg or max command, and never picks a profile for you. Over MCP too.
 - **A `project-state` guide scenario** (`memo guide project-state`): context, status, read the chats it names with
   `--compact`, stage what you confirmed. The skill says the same.
+- **`memo show <ref...>`** tells what 1 to 100 references name, in the order given: title, kind, where it is,
+  state and the command that opens it (`open.argv`, `open.line`). It never picks a profile: with none or several
+  signed in, the command keeps `<profile>` and `open.profiles` lists the choices. Also an MCP tool.
+- **`--compact`** prints one line per item, reference first and text last, with paging, missing data and next steps
+  as `#` lines. memo declares rows for search hits, notes, facts, memories, people, organizations, projects,
+  relationships, tasks, messages and `projects evidence`. Refused with `--json` or `--brief`; MCP stays JSON.
 
 ### Changed — may break callers
 
@@ -45,6 +51,13 @@ the API.
 - **Old decide commands go through the review's check**: `facts confirm` and `reject`, `memories confirm` and
   `invalidate` on a proposed memory, `relationships confirm` and `remove` on a suggestion, `actions confirm` and
   `reject`, `projects actions confirm` and `reject`. A decided proposal now refuses with `proposal.wrong-state`.
+- **A bare number is refused where several kinds fit**: `notes show|edit|remove`, `projects key-documents
+  add|remove`, `tasks add <source>` and `show` answer `"1473" is a bare number; did you mean note:1473?`
+  (`ref.bare-number`), naming only references that exist. A file named `1473` is read as `./1473`.
+- **`notes add`, `notes edit` and `notes remove` print the note's reference** (`note:12`), not its bare id.
+- **Text without `--json` is drawn by cli-core's generic row** where a command has no view of its own: `·` between
+  columns, `# more: raise --limit` for more.
+- **The sync command memo prints and runs puts no `--` before a chat id**: a negative group id needs none.
 
 ### Security
 

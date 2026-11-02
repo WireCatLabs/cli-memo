@@ -115,9 +115,15 @@ memo search all '<words>' --project <key> --json # everything, the project's key
 memo search messages 'content:invoice' --json    # inside files
 memo search mail '<words>' --source email:<name> --json # add NOT mailbox:bulk when newsletters crowd it
 memo commands search messages --json             # one command's contract, by its path
+memo show chat:max/<account>/<chat> note:<id>    # what any reference is, and the command that opens it
+memo search messages '<words>' --compact         # one line per hit, each with its reference
+memo projects evidence <project> --source all --compact # the evidence as rows, every reference kept
 ```
 
 Cite each result by its reference (`msg:…`, `note:…`, `document:…`) so the owner can open it.
+`memo show <ref>` tells what any reference is and the command that opens it; a bare number is refused with the
+reference it may mean. Read with `--compact`: one line per item, every reference kept, paging and next steps as `#`
+lines; `--json` when you need the fields. Never write message, mail or note text to a file.
 
 Stored meeting transcripts are read with `memo search meetings` and `memo meetings passage` using
 one explicit `--source provider:account`; `zm` also exposes these shared readers. Memo's `search all`
