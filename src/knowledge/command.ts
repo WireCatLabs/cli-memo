@@ -11,7 +11,7 @@ import {
   typedQuery,
   withQuery,
 } from "@wirecat/cli-core/cli"
-import { proposalRegistry } from "@wirecat/cli-core/services"
+import { proposalRegistry, purposesOf } from "@wirecat/cli-core/services"
 import {
   type AccountKey,
   type KnowledgeRelation,
@@ -312,6 +312,46 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         relationshipsText(found.items),
       )
     })
+  byOption(
+    annotate(relations.command("update"), { effects: LOCAL_WRITE })
+      .description(
+        "set what a relationship is: its role, or what a chat is for in a project (work, sales, support, other); " +
+          "an agent's change waits for you in memo review",
+      )
+      .summary("set a relationship's role or a chat's purpose in a project")
+      .argument("<id>", "the relationship's id, as relationships list gives it")
+      .option("--role <role>", "the role it has there, in a few words; an empty value clears it")
+      .option("--purpose <purpose>", "what the chat is for in the project: work, sales, support or other")
+      .option("--reason <text>", "why, in a sentence")
+      .option("--json", "print JSON; --json=id,title keeps only those fields"),
+  ).action(
+    async (
+      id: string,
+      options: { role?: string; purpose?: string; reason?: string; asOwner?: boolean; json?: boolean },
+      command: Command,
+    ) => {
+      const change = {
+        ...(options.role === undefined ? {} : { role: options.role === "" ? null : options.role }),
+        ...(options.purpose === undefined ? {} : { purpose: options.purpose }),
+      }
+      const by = await whoRuns(command, env, { asOwner: options.asOwner, question: `change relationship ${id}?` })
+      return owned(options, (store) => {
+        if (options.role === undefined && options.purpose === undefined)
+          throw new CliError("validation_error", "say what to change: --role, --purpose or both", {
+            reason: "input.invalid",
+            param: "--purpose",
+          })
+        if (options.purpose !== undefined) purposesOf([options.purpose])
+        return by === "owner"
+          ? store.knowledge.updateRelation(null, id, { ...change, by })
+          : store.knowledge.updateRelation(null, id, {
+              ...change,
+              by,
+              ...(options.reason === undefined ? {} : { reason: options.reason }),
+            })
+      })
+    },
+  )
   for (const [name, description] of [
     ["remove", "remove a relationship; removing a suggested one rejects it"],
     ["confirm", "confirm a suggested relationship"],

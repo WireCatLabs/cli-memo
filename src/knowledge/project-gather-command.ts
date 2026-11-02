@@ -8,7 +8,7 @@ import {
   projectEvidenceText,
   projectWindowOf,
 } from "@wirecat/cli-core/cli"
-import { gatherStoredProject } from "@wirecat/cli-core/services"
+import { gatherStoredProject, purposeList } from "@wirecat/cli-core/services"
 import { type Command, Option } from "commander"
 import { itemAnswer, withStore } from "../answer.js"
 import { collect, positive, whole } from "../options.js"
@@ -17,6 +17,8 @@ import { chatSync, messengerFetcher, syncHint, syncProfileOf } from "./messenger
 
 interface Options {
   source: string
+  purpose?: string[]
+  includeProposed?: boolean
   alias?: string[]
   contextQuery?: string[]
   contact?: string[]
@@ -97,6 +99,12 @@ export const projectGatherCommand = (
         ).argParser(syncProfileOf),
       ),
     )
+    .option(
+      "--purpose <purpose>",
+      "the linked chats' purposes to read, comma-separated: work, sales, support, other, or all; default work",
+      purposeList,
+    )
+    .option("--include-proposed", "also read chats and members proposed for the project, after the confirmed ones")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (project: string, options: Options) => {
       const maxFetchMs = parseDuration(options.syncTime, "--sync-time")
@@ -116,6 +124,8 @@ export const projectGatherCommand = (
           ...(options.contact ? { people: options.contact } : {}),
           ...(options.maxPages === undefined ? {} : { maxReads: options.maxPages }),
           ...(options.cursor === undefined ? {} : { checkpoint: options.cursor }),
+          ...(options.purpose ? { purposes: options.purpose } : {}),
+          ...(options.includeProposed ? { includeProposed: true } : {}),
           ...(options.syncFirst ? { fetcher: messengerFetcher({ env, note: warn, chosen }), maxFetchMs } : {}),
         }),
       )

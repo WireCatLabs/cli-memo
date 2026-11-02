@@ -1,1 +1,6 @@
-[]
+[
+  "projects evidence --include-proposed",
+  "projects evidence --purpose",
+  "projects status --purpose",
+  "relationships update --purpose"
+]

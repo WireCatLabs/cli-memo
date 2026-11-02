@@ -116,6 +116,10 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "projects key-documents add": ["memo projects key-documents add HRB note:12 --reason 'the brief'"],
   "projects key-documents remove": ["memo projects key-documents remove HRB note:12"],
   "projects key-documents list": ["memo projects key-documents list HRB"],
+  "relationships update": [
+    "memo relationships update 12 --purpose sales",
+    "memo relationships update 12 --role contractor --reason 'builds the site'",
+  ],
   "relationships add": [
     "memo relationships add person:3 organization:1 --role cto",
     "memo relationships add project:2 organization:1 --kind related-to --reason 'same client'",

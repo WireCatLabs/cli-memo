@@ -93,7 +93,7 @@ const setUp = async (profiles: Record<string, AccountKey["account"]> = { work: "
   }
   const status = (...args: string[]) =>
     run("projects", "status", "HRB", "--before-time", "2026-11-02T10:00:00Z", "--context-query", "1C", ...args)
-  return { env, status }
+  return { env, status, run }
 }
 
 it("reads every account the links name, says which, and points next at the chats to read", async () => {
@@ -163,4 +163,37 @@ it("answers over MCP with the same item", async () => {
   const body = result.structuredContent as { item: { key: string }; next: { kind: string; why: string }[] }
   expect(body.item.key).toBe("HRB")
   expect(body.next.map((step) => step.kind)).toEqual(["user_action", "user_action"])
+})
+
+it("reads the linked chats of the purposes asked, and refuses one it does not know", async () => {
+  const { status } = await setUp()
+  expect(envelopeOf(await status("--purpose", "all", "--json")).item.purposes).toBe("all")
+  await expect(status("--purpose", "gossip", "--json")).rejects.toThrow(/work/)
+})
+
+it("leaves a chat set to sales out of the status until --purpose asks for it; an agent's change waits for review", async () => {
+  const { env, status } = await setUp()
+  const as = async (who: Record<string, string>, present: boolean, ...args: string[]) => {
+    const streams = captureStreams()
+    const clean: NodeJS.ProcessEnv = { ...env, ...who }
+    if (!("AI_AGENT" in who)) delete clean.AI_AGENT
+    delete clean.CLAUDECODE
+    await createProgram({ streams, env: clean, terminal: { present } })
+      .exitOverride()
+      .parseAsync([...args, "--json"], { from: "user" })
+    return envelopeOf(streams.stdout.join(""))
+  }
+  const links = (await as({}, true, "relationships", "list")).items as { id: string; from: string }[]
+  const group = links.find((one) => one.from.endsWith("/-900"))
+  if (!group) throw new Error("no group link")
+
+  const proposed = await as({ AI_AGENT: "codex" }, false, "relationships", "update", group.id, "--purpose", "sales")
+  expect(proposed.item).toMatchObject({ kind: "relationship_update", status: "proposed" })
+  expect(envelopeOf(await status("--json")).item.chats).toHaveLength(2)
+
+  await as({}, true, "relationships", "update", group.id, "--purpose", "sales")
+  const after = envelopeOf(await status("--json")).item
+  expect(after.chats.map((chat: { title: string }) => chat.title)).toEqual(["Lev"])
+  expect(envelopeOf(await status("--purpose", "all", "--json")).item.chats).toHaveLength(2)
+  await expect(as({}, true, "relationships", "update", group.id, "--purpose", "gossip")).rejects.toThrow(/work/)
 })
