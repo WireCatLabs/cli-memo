@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.20 — 02.11.2026
+
 ### Added
 
 - **`memo records list --account <provider>:<account>`** lists a source's records; `waiting:true` shows those whose
