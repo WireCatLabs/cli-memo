@@ -200,6 +200,9 @@ one that settles an expected one names that `invoice:` in `supersedes`. `memo in
 Only the owner confirms money, in `memo review kind:invoice,payment`.
 A source's export (a payment sheet, a bank statement) comes in with `memo records check <file> --account <a>` first,
 which writes nothing, then `memo records import` once the owner agrees; its invoices and payments wait for the owner.
+An invoice or payment whose party is a record of the source (`organization:client`) waits until the owner says which
+entry it is: show `memo records list waiting:true --account <provider>:<account>` and leave
+`memo records link` to the owner.
 Use `--before-time <ISO timestamp with UTC offset>` (MCP `before_time`) to repeat an exact exclusive end time;
 days back count from it. Keep it on continuation. The window is fixed, but archive contents, aliases
 and account scope may change: retain actual references, source fingerprints and coverage separately.
