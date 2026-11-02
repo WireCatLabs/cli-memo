@@ -15,7 +15,8 @@
   },
   "packageManager": "pnpm@11.28.8",
   "bin": {
-    "memo": "dist/bin/memo.js"
+    "memo": "dist/bin/memo.js",
+    "wcat-memo": "dist/bin/memo.js"
   },
   "files": [
     "dist",

@@ -6,6 +6,11 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`wcat memo` runs memo, and `wcat --help` lists it.** The package installs `wcat-memo` beside `memo`, and
+  `wcat-memo --wcat-describe` prints the tool's name, version and description for `wcat`. `memo` keeps working.
+
 ### Changed — may break callers
 
 - **Agents no longer decide for you by default.** An agent's confirm or reject of a fact, a memory, an action, a link
