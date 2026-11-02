@@ -157,7 +157,9 @@ export const reviewCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       )
       .argument(
         "<ids...>",
-        "ids or ranges as review lists them; a batch's findings as 17080/f1, and the batch's other findings are rejected",
+        name === "confirm"
+          ? "ids or ranges as review lists them; 17080/f1 accepts that finding and rejects the batch's others"
+          : "ids or ranges as review lists them; a batch is turned down whole",
       )
     if (name === "confirm") command.option("--reason <text>", "why, in a few words; required when an agent decides")
     else command.requiredOption("--reason <text>", "why it is turned down, in a few words")

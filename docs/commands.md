@@ -2883,7 +2883,7 @@ memo review confirm <ids> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `ids` | required | ids or ranges as review lists them; a batch's findings as 17080/f1, and the batch's other findings are rejected. |
+| `ids` | required | ids or ranges as review lists them; 17080/f1 accepts that finding and rejects the batch's others. |
 
 | Option | What it does |
 |---|---|
@@ -2908,7 +2908,7 @@ memo review reject <ids> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `ids` | required | ids or ranges as review lists them; a batch's findings as 17080/f1, and the batch's other findings are rejected. |
+| `ids` | required | ids or ranges as review lists them; a batch is turned down whole. |
 
 | Option | What it does |
 |---|---|
