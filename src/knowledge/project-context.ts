@@ -1,3 +1,4 @@
+import { paymentTitle } from "@wirecat/cli-core/meetings"
 import { proposalRegistry } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import { itemAnswer, plainText } from "../answer.js"
@@ -82,7 +83,13 @@ export const projectContextText = (context: Awaited<ReturnType<typeof projectCon
     ...review.meetingActions.items.flatMap((batch) =>
       batch.findings.map(
         (finding) =>
-          `  batch ${batch.id}/${finding.id} [${finding.kind}]: ${line(finding.kind === "task" ? finding.title : finding.statement)}`,
+          `  batch ${batch.id}/${finding.id} [${finding.kind}]: ${line(
+            finding.kind === "task"
+              ? finding.title
+              : finding.kind === "payment"
+                ? (finding.statement ?? paymentTitle(finding))
+                : finding.statement,
+          )}`,
       ),
     ),
     "Open numbered tasks:",
