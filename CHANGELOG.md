@@ -8,6 +8,9 @@ the API.
 
 ### Added
 
+- **`relationships update <id> --role --purpose`** sets a relationship's role, or what a chat is for in a project.
+  Yours applies at once; an agent's waits for you in `memo review`. `projects evidence` names this command when one
+  chat with no purpose fills most of a run.
 - **`projects evidence --purpose` and `projects status --purpose`** read the linked chats of the purposes asked:
   `work`, `sales`, `support`, `other`, or `all`. A chat left out is one `missing` row with its message count and the
   command that reads it. **`projects evidence --include-proposed`** also reads chats and members proposed for the

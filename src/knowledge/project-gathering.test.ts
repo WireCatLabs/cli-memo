@@ -535,6 +535,7 @@ it("names a linked chat held in part and one not reached, and answers meta.compl
   expect(answer.meta.complete).toBe(false)
   expect(answer.missing).toEqual([
     expect.objectContaining({ field: "history", step: "messages.sync" }),
+    { field: "purpose", why: expect.stringContaining("memo relationships update 1 --purpose <purpose>") },
     { field: "sync_command", why: "no tg profile here is signed in to account 1; profiles: none" },
   ])
   expect(await run("projects", "evidence", "SYP", "--source", "telegram:1", "--limit", "20")).toMatch(

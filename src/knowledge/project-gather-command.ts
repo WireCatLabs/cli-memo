@@ -100,8 +100,8 @@ export const projectGatherCommand = (
       ),
     )
     .option(
-      "--purpose <list>",
-      "the linked chats' purposes to read: work, sales, support, other, or all; default work",
+      "--purpose <purpose>",
+      "the linked chats' purposes to read, comma-separated: work, sales, support, other, or all; default work",
       purposeList,
     )
     .option("--include-proposed", "also read chats and members proposed for the project, after the confirmed ones")

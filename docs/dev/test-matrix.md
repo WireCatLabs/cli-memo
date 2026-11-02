@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**593 ✅ · 0 ⛔ · 107 ❌** — 158 commands, 542 options.
+**599 ✅ · 0 ⛔ · 110 ❌** — 159 commands, 550 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -266,12 +266,15 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `projects evidence` | `--sync-first` | ✅ |  |
 | `projects evidence` | `--sync-time` | ✅ |  |
 | `projects evidence` | `--sync-profile` | ✅ |  |
+| `projects evidence` | `--purpose` | ❌ |  |
+| `projects evidence` | `--include-proposed` | ❌ |  |
 | `projects evidence` | `--json` | ✅ |  |
 | `projects status` |  | ✅ |  |
 | `projects status` | `--since-time` | ❌ |  |
 | `projects status` | `--before-time` | ✅ |  |
 | `projects status` | `--context-query` | ✅ |  |
 | `projects status` | `--sync-profile` | ✅ |  |
+| `projects status` | `--purpose` | ✅ |  |
 | `projects status` | `--compact` | ✅ |  |
 | `projects status` | `--json` | ✅ |  |
 | `projects actions add` |  | ✅ |  |
@@ -330,6 +333,12 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `relationships add` | `--reason` | ✅ |  |
 | `relationships list` |  | ✅ |  |
 | `relationships list` | `--json` | ✅ |  |
+| `relationships update` |  | ✅ |  |
+| `relationships update` | `--role` | ✅ |  |
+| `relationships update` | `--purpose` | ✅ |  |
+| `relationships update` | `--reason` | ✅ |  |
+| `relationships update` | `--json` | ✅ |  |
+| `relationships update` | `--as-owner` | ❌ |  |
 | `relationships remove` |  | ✅ |  |
 | `relationships remove` | `--json` | ✅ |  |
 | `relationships remove` | `--as-owner` | ❌ |  |

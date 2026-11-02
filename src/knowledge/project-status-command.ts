@@ -114,8 +114,8 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
       syncProfileOf,
     )
     .option(
-      "--purpose <list>",
-      "the linked chats' purposes to read: work, sales, support, other, or all; default work",
+      "--purpose <purpose>",
+      "the linked chats' purposes to read, comma-separated: work, sales, support, other, or all; default work",
       purposeList,
     )
     .addOption(

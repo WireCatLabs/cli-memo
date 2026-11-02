@@ -1295,7 +1295,7 @@ memo projects evidence <project> [options]
 | `--sync-first` | first sync the linked chats the store does not hold back to --since-time, through their messenger CLI; off by default. |
 | `--sync-time <duration>` | time for all of --sync-first's syncs together. Default: `3m`. |
 | `--sync-profile <tool=profile>` | the messenger profile to sync as when several are signed in to a chat's account, such as max=default; repeat for another tool. It must be signed in to that account. |
-| `--purpose <list>` | the linked chats' purposes to read: work, sales, support, other, or all; default work. |
+| `--purpose <purpose>` | the linked chats' purposes to read, comma-separated: work, sales, support, other, or all; default work. |
 | `--include-proposed` | also read chats and members proposed for the project, after the confirmed ones. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
@@ -1321,7 +1321,7 @@ memo projects status <project> [options]
 | `--before-time <time>` | fixed exclusive end: ISO 8601 timestamp with UTC offset; days back count from it. |
 | `--context-query <words>` | words that all appear in one text; reports their last mention per side. Repeat for another. Default: ``. |
 | `--sync-profile <tool=profile>` | the messenger profile the next steps name when several are signed in to a chat's account, such as max=default; repeat for another tool. |
-| `--purpose <list>` | the linked chats' purposes to read: work, sales, support, other, or all; default work. |
+| `--purpose <purpose>` | the linked chats' purposes to read, comma-separated: work, sales, support, other, or all; default work. |
 | `--compact` | one line per signal, chat and next step, for an agent. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
@@ -1658,6 +1658,32 @@ memo relationships list [query] [options]
 **Returns:** relationship — id, from, to, kind, role, purpose, evidence, confirmed, and 3 more; every field: memo commands info relationships list
 
 **Example:** `memo relationships list about:"person:3"`, `memo relationships list confirmed:false`
+
+### `memo relationships update`
+
+set what a relationship is: its role, or what a chat is for in a project (work, sales, support, other); an agent's change waits for you in memo review
+
+This command changes the local store or your files.
+
+```sh
+memo relationships update <id> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `id` | required | the relationship's id, as relationships list gives it. |
+
+| Option | What it does |
+|---|---|
+| `--role <role>` | the role it has there, in a few words; an empty value clears it. |
+| `--purpose <purpose>` | what the chat is for in the project: work, sales, support or other. |
+| `--reason <text>` | why, in a sentence. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+
+**Returns:** set a relationship's role or a chat's purpose in a project
+
+**Example:** `memo relationships update 12 --purpose sales`, `memo relationships update 12 --role contractor --reason 'builds the site'`
 
 ### `memo relationships remove`
 
