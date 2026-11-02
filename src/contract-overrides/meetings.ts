@@ -24,7 +24,7 @@ export const meetings: readonly SharedContractOverride[] = [
   {
     command: ["meetings"],
     field: "children",
-    before: ["list", "show", "transcript", "summary", "export", "people", "sync", "import"],
+    before: ["list", "show", "transcript", "summary", "export", "people", "sync", "import", "repair"],
     after: [],
     reason:
       "Memo exposes stored meeting evidence and preparation across explicitly named source accounts; provider import and sync commands are unsupported.",

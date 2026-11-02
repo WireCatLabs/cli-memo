@@ -45,9 +45,10 @@ export const messagesCommand = (program: Command, streams: Streams, env: NodeJS.
         )
         return
       }
-      const emails = await withStore(env, (store) =>
+      const shown = await withStore(env, (store) =>
         showMail(store, reference, { before: options.beforeN, after: options.afterN, full: options.full === true }),
       )
+      const emails = shown.map((email) => ({ ...email, ref: email.locator }))
       print(
         options.json,
         options.beforeN || options.afterN
