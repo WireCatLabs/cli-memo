@@ -95,13 +95,13 @@ you confirm money. A payment the agent reads in a chat becomes a payment or an i
 `projects status` shows what was billed, paid and is still owed, from confirmed rows only.
 
 A source's export, such as a payment sheet, comes in as a records envelope (JSON, or JSONL with a header line).
-`memo records check payments.jsonl --account prokat-med` says what an import would do and writes nothing;
+`memo records check payments.jsonl --account rentals` says what an import would do and writes nothing;
 `memo records import` writes it. The same file twice changes nothing, and its invoices and payments wait for you in
 `memo review`.
 
 When the file names a party by its own id, such as `organization:client`, its invoices and payments wait until you
-say which of your entries that is. `memo records list waiting:true --account sheet:prokat-med` shows what waits, and
-`memo records link organization:client organization:3 --account sheet:prokat-med` links it; only you can.
+say which of your entries that is. `memo records list waiting:true --account sheet:rentals` shows what waits, and
+`memo records link organization:client organization:3 --account sheet:rentals` links it; only you can.
 
 ## Answers for scripts and agents
 

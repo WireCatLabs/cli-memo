@@ -25,7 +25,7 @@ export const envelopeOf = (text: string): unknown => {
   return envelopeOfJsonl(text)
 }
 
-/** `sheet:prokat-med` names the envelope's provider and account, as records list and map take it. */
+/** `sheet:rentals` names the envelope's provider and account, as records list and map take it. */
 const accountIn = (envelope: unknown, given: string): string => {
   const provider = (envelope as { source?: { provider?: unknown } } | null)?.source?.provider
   return typeof provider === "string" && given.startsWith(`${provider}:`) ? given.slice(provider.length + 1) : given
@@ -56,7 +56,7 @@ export const recordsCommand = (program: Command, streams: Streams, env: NodeJS.P
       .argument("<file>", "a records envelope as JSON, or JSONL (a header line, then a record per line); - for stdin")
       .option(
         "--account <account>",
-        "the source the envelope is for: <provider>:<account> (sheet:prokat-med) or its source.account alone",
+        "the source the envelope is for: <provider>:<account> (sheet:rentals) or its source.account alone",
       )
       .option("--json", "print JSON; --json=created,errors keeps only those fields")
       .action(async (file: string, given: { account?: string; dryRun?: boolean; json?: boolean }) => {

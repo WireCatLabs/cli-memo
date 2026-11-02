@@ -2711,12 +2711,12 @@ memo records import <file> [options]
 | Option | What it does |
 |---|---|
 | `--dry-run` | check and plan the import; write nothing. |
-| `--account <account>` | the source the envelope is for: <provider>:<account> (sheet:prokat-med) or its source.account alone. |
+| `--account <account>` | the source the envelope is for: <provider>:<account> (sheet:rentals) or its source.account alone. |
 | `--json` | print JSON; --json=created,errors keeps only those fields. |
 
 **Returns:** import a source's records; money waits for your review
 
-**Example:** `memo records import payments.jsonl --account prokat-med --dry-run`, `memo records import envelope.json --account prokat-med --json`
+**Example:** `memo records import payments.jsonl --account rentals --dry-run`, `memo records import envelope.json --account rentals --json`
 
 ### `memo records check`
 
@@ -2732,12 +2732,12 @@ memo records check <file> [options]
 
 | Option | What it does |
 |---|---|
-| `--account <account>` | the source the envelope is for: <provider>:<account> (sheet:prokat-med) or its source.account alone. |
+| `--account <account>` | the source the envelope is for: <provider>:<account> (sheet:rentals) or its source.account alone. |
 | `--json` | print JSON; --json=created,errors keeps only those fields. |
 
 **Returns:** check a records file against the store; write nothing
 
-**Example:** `memo records check - --account prokat-med`
+**Example:** `memo records check - --account rentals`
 
 ### `memo records list`
 
@@ -2753,13 +2753,13 @@ memo records list [query] [options]
 
 | Option | What it does |
 |---|---|
-| `--account <account>` | the source, <provider>:<account> as the envelope's source names it, such as sheet:prokat-med. |
+| `--account <account>` | the source, <provider>:<account> as the envelope's source names it, such as sheet:rentals. |
 | `--limit <n>` | most records, up to 500. Default: `100`. |
 | `--json` | print JSON; --json=type,external_id,entity keeps only those fields. |
 
 **Returns:** a source's records; waiting:true lists what needs records link
 
-**Example:** `memo records list waiting:true --account sheet:prokat-med`, `memo records list type:organization --account sheet:prokat-med --json`
+**Example:** `memo records list waiting:true --account sheet:rentals`, `memo records list type:organization --account sheet:rentals --json`
 
 ### `memo records link`
 
@@ -2778,13 +2778,13 @@ memo records link <record> <ref> [options]
 
 | Option | What it does |
 |---|---|
-| `--account <account>` | the source, <provider>:<account> as the envelope's source names it, such as sheet:prokat-med. |
+| `--account <account>` | the source, <provider>:<account> as the envelope's source names it, such as sheet:rentals. |
 | `--json` | print JSON; --json=type,external_id,entity keeps only those fields. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 
 **Returns:** say which of your entries a source's record is
 
-**Example:** `memo records link organization:client organization:3 --account sheet:prokat-med`
+**Example:** `memo records link organization:client organization:3 --account sheet:rentals`
 
 ## `memo meetings`
 

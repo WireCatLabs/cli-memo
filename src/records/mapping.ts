@@ -18,18 +18,14 @@ export const RECORD_QUERY = {
   ],
 } as const satisfies QueryRegistry
 
-/** `sheet:prokat-med`: records are kept per source, so a read or a mapping names its provider and account. */
+/** `sheet:rentals`: records are kept per source, so a read or a mapping names its provider and account. */
 const sourceOf = (account: string | undefined) => {
   const [provider = "", ...rest] = (account ?? "").trim().split(":")
   const name = rest.join(":")
   if (!provider || !name)
-    throw new CliError(
-      "validation_error",
-      "name the source as --account <provider>:<account>, such as sheet:prokat-med",
-      {
-        param: "--account",
-      },
-    )
+    throw new CliError("validation_error", "name the source as --account <provider>:<account>, such as sheet:rentals", {
+      param: "--account",
+    })
   return { provider, account: name }
 }
 
@@ -43,7 +39,7 @@ const recordOf = (record: string) => {
   return { type: record.slice(0, at), externalId: record.slice(at + 1) }
 }
 
-const ACCOUNT_HELP = "the source, <provider>:<account> as the envelope's source names it, such as sheet:prokat-med"
+const ACCOUNT_HELP = "the source, <provider>:<account> as the envelope's source names it, such as sheet:rentals"
 
 export const recordMappingCommands = (
   records: Command,
