@@ -126,8 +126,10 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
         .argument("<ref>", "memory:<id>")
         .option("--json", "print JSON; --json=id,title keeps only those fields"),
     ).action(async (ref: string, options: { reason?: string; asOwner?: boolean; json?: boolean }, command: Command) => {
-      const by = await deciderOf(command, env, { ...options, question: `${name} ${ref} as you, the owner?` })
       await run(options.json, async (store) => {
+        // An unknown ref is not_found for anyone, before asking who decides.
+        await store.memories.get(ref)
+        const by = await deciderOf(command, env, { ...options, question: `${name} ${ref} as you, the owner?` })
         const done = await act(store, ref, by)
         return itemAnswer(name === "remove" ? done : memoryItem(done as Memory))
       })

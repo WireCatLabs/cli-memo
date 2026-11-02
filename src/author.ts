@@ -2,35 +2,16 @@ import { openSync } from "node:fs"
 import { createInterface } from "node:readline"
 import { ReadStream } from "node:tty"
 import { CliError } from "@wirecat/cli-base"
-import { environmentOf, rootOf } from "@wirecat/cli-core/cli"
+import { environmentOf } from "@wirecat/cli-core/cli"
 import type { Author, Decider } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
+import { terminalOf } from "./terminal.js"
 
 /**
  * The bot a run is recorded as when nothing names who runs it: no agent variable, and no person at a terminal. A
  * missing variable proves nothing; such a run proposes, and never decides.
  */
 export const UNATTENDED = "unattended"
-
-/** Whether a person is at the terminal, and how memo asks them; a test hands both in through `createProgram`. */
-export interface Terminal {
-  present: boolean
-  answer?: (question: string) => Promise<string | null> | string | null
-}
-
-const terminals = new WeakMap<Command, Terminal>()
-let processTerminal = (): Terminal => ({ present: Boolean(process.stdin.isTTY && process.stdout.isTTY) })
-
-/** The test sandbox's: a suite's runs stand for the owner at a terminal unless a test hands in another. */
-export const assumeTerminal = (terminal: Terminal): void => {
-  processTerminal = () => terminal
-}
-
-export const provideTerminal = (program: Command, terminal: Terminal | undefined): void => {
-  terminals.set(program, terminal ?? processTerminal())
-}
-
-const terminalOf = (command: Command): Terminal => terminals.get(rootOf(command)) ?? { present: false }
 
 /** Read from the terminal itself, not stdin, which may hold the command's input. */
 const fromTerminal = async (question: string): Promise<string | null> => {

@@ -1351,7 +1351,7 @@ memo projects actions confirm <project> <id> [findings] [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,status keeps only those fields. |
-| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--fingerprint <hash>` | a findings batch's fingerprint, as projects actions list gives it. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
@@ -1377,7 +1377,7 @@ memo projects actions reject <project> <id> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,status keeps only those fields. |
-| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--fingerprint <hash>` | a findings batch's fingerprint, as projects actions list gives it. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
@@ -1508,7 +1508,7 @@ memo projects key-documents add <project> <reference> [options]
 |---|---|
 | `--reason <text>` | why it is key, in a few words. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 
 **Returns:** mark a note:, document: or msg: reference as a key document of the project
 
@@ -1516,7 +1516,7 @@ memo projects key-documents add <project> <reference> [options]
 
 #### `memo projects key-documents remove`
 
-unmark a key document; the note, file or message stays
+unmark a key document; the note, file or message stays. Only you remove one
 
 This command changes the local store or your files.
 
@@ -1532,8 +1532,9 @@ memo projects key-documents remove <project> <reference> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 
-**Returns:** unmark a key document; the note, file or message stays
+**Returns:** unmark a key document; the note, file or message stays. Only you remove one
 
 **Example:** `memo projects key-documents remove HRB note:12`
 
@@ -1579,7 +1580,7 @@ memo relationships add <from> <to> [options]
 
 | Option | What it does |
 |---|---|
-| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--kind <kind>` | member-of or related-to. Default: `member-of`. |
 | `--role <role>` | the role it has there, in a few words, such as cto. |
@@ -1605,13 +1606,13 @@ memo relationships list [query] [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** relationship — id, from, to, kind, role, evidence, confirmed, provenance, and 2 more; every field: memo commands info relationships list
+**Returns:** relationship — id, from, to, kind, role, purpose, evidence, confirmed, and 3 more; every field: memo commands info relationships list
 
 **Example:** `memo relationships list about:"person:3"`
 
 ### `memo relationships remove`
 
-remove a relationship
+remove a relationship; removing a suggested one rejects it
 
 This command changes the local store or your files.
 
@@ -1626,8 +1627,10 @@ memo relationships remove <id> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
-**Returns:** remove a relationship
+**Returns:** remove a relationship; removing a suggested one rejects it
 
 **Example:** `memo relationships remove 4`
 
@@ -1648,6 +1651,8 @@ memo relationships confirm <id> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
 **Returns:** confirm a suggested relationship
 
@@ -2011,7 +2016,7 @@ memo memories add <text> [options]
 
 | Option | What it does |
 |---|---|
-| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--kind <kind>` | summary, digest, preference. |
 | `--scope <scope>` | personal or work. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
@@ -2105,7 +2110,9 @@ memo memories confirm <ref> [options]
 
 | Option | What it does |
 |---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
 **Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 12 more; every field: memo commands info memories confirm
 
@@ -2127,7 +2134,9 @@ memo memories invalidate <ref> [options]
 
 | Option | What it does |
 |---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
 **Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 12 more; every field: memo commands info memories invalidate
 
@@ -2149,7 +2158,9 @@ memo memories remove <ref> [options]
 
 | Option | What it does |
 |---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
 **Returns:** forget a memory: erase its text, its links to sources and its search entry
 
@@ -2221,7 +2232,7 @@ memo mentions confirm <id> [person] [options]
 |---|---|
 | `--source <accounts>` | the mailboxes a mail mention may be in: email:<account>, email or group:<name>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 
 **Returns:** say what a mention is, everywhere its value is written
 
@@ -2245,7 +2256,7 @@ memo mentions reject <id> [options]
 |---|---|
 | `--source <accounts>` | the mailboxes a mail mention may be in: email:<account>, email or group:<name>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 
 **Returns:** dismiss a mention's value everywhere, and on later imports
 
@@ -2271,7 +2282,7 @@ memo facts add <statement> [options]
 
 | Option | What it does |
 |---|---|
-| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--kind <kind>` | fact, statement, question, decision, promise. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
 | `--project <project>` | the project it belongs to: its key or project:<id>. |
@@ -2343,7 +2354,9 @@ memo facts confirm <ref> [options]
 
 | Option | What it does |
 |---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
 **Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts confirm
 
@@ -2365,7 +2378,9 @@ memo facts reverse <ref> [options]
 
 | Option | What it does |
 |---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
 **Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts reverse
 
@@ -2387,7 +2402,9 @@ memo facts reject <ref> [options]
 
 | Option | What it does |
 |---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
 **Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts reject
 
@@ -2409,7 +2426,9 @@ memo facts remove <ref> [options]
 
 | Option | What it does |
 |---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
 **Returns:** forget a fact: erase its text, its links to sources and its tags
 
@@ -2510,6 +2529,7 @@ memo meetings actions confirm <id> <ids> [options]
 | `--account <account>` | the meeting account it acts as: provider:account, such as zoom:me@example.com. |
 | `--json` | print JSON; --json=id,status keeps only those fields. |
 | `--fingerprint <hash>` | the exact fingerprint shown in the preview. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 
 **Returns:** meeting findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more; every field: memo commands info meetings actions confirm
 
@@ -2534,6 +2554,7 @@ memo meetings actions reject <id> [options]
 | `--account <account>` | the meeting account it acts as: provider:account, such as zoom:me@example.com. |
 | `--json` | print JSON; --json=id,status keeps only those fields. |
 | `--fingerprint <hash>` | the exact fingerprint shown in the preview. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 
 **Returns:** meeting findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more; every field: memo commands info meetings actions reject
 
@@ -2620,7 +2641,7 @@ memo actions add <kind> [options]
 
 | Option | What it does |
 |---|---|
-| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--reason <text>` | why it should be done. |
 | `--account <account>` | the account that would act: provider:account, such as telegram:1. |
 | `--target <ref>` | what it acts on: msg:, chat:, contact:, person:, task:, …. |
@@ -2690,9 +2711,9 @@ memo actions confirm <id> [findings] [options]
 
 | Option | What it does |
 |---|---|
-| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--fingerprint <hash>` | a findings batch: the fingerprint actions show gives. |
-| `--reason <text>` | a findings batch: why, in a few words; required when an agent decides for you. |
+| `--reason <text>` | why, in a few words; required when an agent decides for you. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** confirm it: a task to act on, or a findings batch's facts and tasks
@@ -2715,9 +2736,9 @@ memo actions reject <id> [options]
 
 | Option | What it does |
 |---|---|
-| `--as-owner` | record it as yours although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set). |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--fingerprint <hash>` | a findings batch: the fingerprint actions show gives. |
-| `--reason <text>` | a findings batch: why, in a few words; required when an agent decides for you. |
+| `--reason <text>` | why, in a few words; required when an agent decides for you. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** reject it; nothing is done. For a findings batch, every new finding

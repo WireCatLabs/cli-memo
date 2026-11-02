@@ -8,10 +8,10 @@ import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { answerOf } from "../test/answer.js"
 import { commandCaller } from "../test/mcp.js"
-import type { Terminal } from "./author.js"
 import { configPath } from "./config.js"
 import { createMemoServer } from "./mcp/server.js"
 import { createProgram } from "./program.js"
+import type { Terminal } from "./terminal.js"
 
 const CLAUDE = { AI_AGENT: "claude-code_2-1-296_agent" }
 const CODEX = { AI_AGENT: "codex" }
@@ -133,6 +133,29 @@ it("takes the owner only at a terminal, and --as-owner from an agent's terminal 
   await expect(decide("n")).resolves.toBe("proposed")
   await expect(decide("y")).resolves.toBe("accepted")
   expect(asked).toEqual(["confirm fact:1 as you, the owner? [y/N] ", "confirm fact:1 as you, the owner? [y/N] "])
+})
+
+it("leaves an unconfirmed link to the owner alone, whoever the agent", async () => {
+  const { env, run } = await setUp()
+  const store = await openStore({ env })
+  const project = await store.knowledge.addProject({ name: "Synthetic Harbour", key: "SYH" })
+  const team = await store.knowledge.addOrganization({ name: "Synthetic Studio", kind: "company" })
+  const link = await store.knowledge.relate(null, {
+    by: "owner",
+    from: project.ref,
+    to: team.ref,
+    kind: "related-to",
+    confirmed: false,
+    provenance: "agent:someone",
+  })
+  await store.close()
+  expect(await run(CODEX, NOBODY, "relationships", "confirm", link.id, "--reason", "looks right")).toMatchObject(
+    refused("proposal.owner-only"),
+  )
+  expect(await run(CODEX, NOBODY, "relationships", "remove", link.id, "--reason", "looks wrong")).toMatchObject(
+    refused("proposal.owner-only"),
+  )
+  expect(await run({}, { present: true }, "relationships", "confirm", link.id)).toMatchObject({ confirmed: true })
 })
 
 it("records a write from an unattended run as a proposal, not the owner's", async () => {

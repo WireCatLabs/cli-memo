@@ -104,8 +104,10 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         .argument("<ref>", "fact:<id>")
         .option("--json", "print JSON; --json=id,title keeps only those fields"),
     ).action(async (ref: string, options: Decision, command: Command) => {
-      const by = await deciderOf(command, env, { ...options, question: `${name} ${ref} as you, the owner?` })
       await run(options.json, async (store) => {
+        // An unknown ref is not_found for anyone, before asking who decides.
+        await store.facts.get(ref)
+        const by = await deciderOf(command, env, { ...options, question: `${name} ${ref} as you, the owner?` })
         const done = await act(store, ref, by, options.reason)
         return itemAnswer(name === "remove" ? done : factItem(done as Fact))
       })

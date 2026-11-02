@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**565 ✅ · 0 ⛔ · 83 ❌** — 152 commands, 496 options.
+**569 ✅ · 0 ⛔ · 100 ❌** — 152 commands, 517 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -276,12 +276,12 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `projects actions list` | `--after-n` | ✅ |  |
 | `projects actions confirm` |  | ✅ |  |
 | `projects actions confirm` | `--json` | ✅ |  |
-| `projects actions confirm` | `--as-owner` | ✅ |  |
+| `projects actions confirm` | `--as-owner` | ❌ |  |
 | `projects actions confirm` | `--fingerprint` | ✅ |  |
 | `projects actions confirm` | `--reason` | ✅ |  |
 | `projects actions reject` |  | ✅ |  |
 | `projects actions reject` | `--json` | ✅ |  |
-| `projects actions reject` | `--as-owner` | ✅ |  |
+| `projects actions reject` | `--as-owner` | ❌ |  |
 | `projects actions reject` | `--fingerprint` | ✅ |  |
 | `projects actions reject` | `--reason` | ✅ |  |
 | `projects annotations show` |  | ✅ |  |
@@ -310,6 +310,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `projects key-documents add` | `--as-owner` | ❌ |  |
 | `projects key-documents remove` |  | ✅ |  |
 | `projects key-documents remove` | `--json` | ✅ |  |
+| `projects key-documents remove` | `--as-owner` | ❌ |  |
 | `projects key-documents list` |  | ✅ |  |
 | `projects key-documents list` | `--json` | ✅ |  |
 | `relationships add` |  | ✅ |  |
@@ -321,9 +322,13 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `relationships list` |  | ✅ |  |
 | `relationships list` | `--json` | ✅ |  |
 | `relationships remove` |  | ✅ |  |
-| `relationships remove` | `--json` | ❌ |  |
+| `relationships remove` | `--json` | ✅ |  |
+| `relationships remove` | `--as-owner` | ❌ |  |
+| `relationships remove` | `--reason` | ✅ |  |
 | `relationships confirm` |  | ✅ |  |
-| `relationships confirm` | `--json` | ❌ |  |
+| `relationships confirm` | `--json` | ✅ |  |
+| `relationships confirm` | `--as-owner` | ❌ |  |
+| `relationships confirm` | `--reason` | ✅ |  |
 | `relationships scan` |  | ✅ |  |
 | `relationships scan` | `--source` | ✅ |  |
 | `relationships scan` | `--json` | ❌ |  |
@@ -387,7 +392,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `vocabulary aliases remove` | `--fingerprint` | ✅ |  |
 | `vocabulary aliases remove` | `--json` | ✅ |  |
 | `memories add` |  | ✅ |  |
-| `memories add` | `--as-owner` | ✅ |  |
+| `memories add` | `--as-owner` | ❌ |  |
 | `memories add` | `--kind` | ✅ |  |
 | `memories add` | `--scope` | ✅ |  |
 | `memories add` | `--evidence` | ✅ |  |
@@ -405,11 +410,17 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `memories update` | `--project` | ✅ |  |
 | `memories update` | `--json` | ✅ |  |
 | `memories confirm` |  | ✅ |  |
+| `memories confirm` | `--as-owner` | ❌ |  |
 | `memories confirm` | `--json` | ✅ |  |
+| `memories confirm` | `--reason` | ✅ |  |
 | `memories invalidate` |  | ✅ |  |
+| `memories invalidate` | `--as-owner` | ❌ |  |
 | `memories invalidate` | `--json` | ✅ |  |
+| `memories invalidate` | `--reason` | ❌ |  |
 | `memories remove` |  | ✅ |  |
+| `memories remove` | `--as-owner` | ❌ |  |
 | `memories remove` | `--json` | ✅ |  |
+| `memories remove` | `--reason` | ❌ |  |
 | `mentions list` |  | ✅ |  |
 | `mentions list` | `--source` | ✅ |  |
 | `mentions list` | `--limit` | ❌ |  |
@@ -426,7 +437,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `mentions reject` | `--json` | ✅ |  |
 | `mentions reject` | `--as-owner` | ✅ |  |
 | `facts add` |  | ✅ |  |
-| `facts add` | `--as-owner` | ✅ |  |
+| `facts add` | `--as-owner` | ❌ |  |
 | `facts add` | `--kind` | ✅ |  |
 | `facts add` | `--evidence` | ✅ |  |
 | `facts add` | `--project` | ✅ |  |
@@ -442,13 +453,21 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `facts show` | `--sources` | ✅ |  |
 | `facts show` | `--json` | ✅ |  |
 | `facts confirm` |  | ✅ |  |
+| `facts confirm` | `--as-owner` | ✅ |  |
 | `facts confirm` | `--json` | ✅ |  |
+| `facts confirm` | `--reason` | ✅ |  |
 | `facts reverse` |  | ✅ |  |
+| `facts reverse` | `--as-owner` | ❌ |  |
 | `facts reverse` | `--json` | ✅ |  |
+| `facts reverse` | `--reason` | ❌ |  |
 | `facts reject` |  | ✅ |  |
+| `facts reject` | `--as-owner` | ❌ |  |
 | `facts reject` | `--json` | ✅ |  |
+| `facts reject` | `--reason` | ✅ |  |
 | `facts remove` |  | ✅ |  |
+| `facts remove` | `--as-owner` | ❌ |  |
 | `facts remove` | `--json` | ✅ |  |
+| `facts remove` | `--reason` | ❌ |  |
 | `meetings actions add` |  | ✅ |  |
 | `meetings actions add` | `--account` | ✅ |  |
 | `meetings actions add` | `--json` | ✅ |  |
@@ -464,10 +483,12 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `meetings actions confirm` | `--account` | ✅ |  |
 | `meetings actions confirm` | `--json` | ✅ |  |
 | `meetings actions confirm` | `--fingerprint` | ✅ |  |
+| `meetings actions confirm` | `--as-owner` | ❌ |  |
 | `meetings actions reject` |  | ✅ |  |
 | `meetings actions reject` | `--account` | ✅ |  |
 | `meetings actions reject` | `--json` | ✅ |  |
 | `meetings actions reject` | `--fingerprint` | ✅ |  |
+| `meetings actions reject` | `--as-owner` | ❌ |  |
 | `meetings passage` |  | ✅ |  |
 | `meetings passage` | `--before-n` | ✅ |  |
 | `meetings passage` | `--after-n` | ✅ |  |
@@ -494,7 +515,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `meetings prepare` | `--source` | ✅ |  |
 | `meetings prepare` | `--json` | ✅ |  |
 | `actions add` |  | ✅ |  |
-| `actions add` | `--as-owner` | ✅ |  |
+| `actions add` | `--as-owner` | ❌ |  |
 | `actions add` | `--reason` | ✅ |  |
 | `actions add` | `--account` | ✅ |  |
 | `actions add` | `--target` | ✅ |  |
@@ -509,7 +530,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `actions confirm` |  | ✅ |  |
 | `actions confirm` | `--as-owner` | ❌ |  |
 | `actions confirm` | `--fingerprint` | ✅ |  |
-| `actions confirm` | `--reason` | ❌ |  |
+| `actions confirm` | `--reason` | ✅ |  |
 | `actions confirm` | `--json` | ✅ |  |
 | `actions reject` |  | ✅ |  |
 | `actions reject` | `--as-owner` | ❌ |  |

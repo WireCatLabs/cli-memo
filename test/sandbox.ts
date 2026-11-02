@@ -1,5 +1,5 @@
 import { join } from "node:path"
-import { assumeTerminal } from "../src/author.js"
+import { assumeTerminal } from "../src/terminal.js"
 
 // Runs after @wirecat/cli-base/testing/setup, which already points TMPDIR, HOME, XDG and the store into a sandbox.
 process.env.HIMALAYA_CONFIG = join(process.env.TMPDIR ?? "", "himalaya.toml")
