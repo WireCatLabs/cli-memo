@@ -396,7 +396,9 @@ it("opens a search hit in full and runs generated writes through the CLI as the 
       scope: "work",
       evidence: ["note:1"],
     })) as { ref: string }
-    expect(await answer("memories confirm", { ref: memory.ref })).toMatchObject({ status: "confirmed" })
+    expect((await call("memories confirm", { ref: memory.ref, reason: "checked" })).structuredContent).toMatchObject({
+      error: { reason: "proposal.own" },
+    })
     const created = await call("projects add", { name: "Synthetic project", key: "SYN" })
     expect(created.isError, JSON.stringify(created.structuredContent)).not.toBe(true)
     expect((await call("notes show", { note: "note:1", mistyped_filter: true })).structuredContent).toMatchObject({

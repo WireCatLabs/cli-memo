@@ -4,7 +4,7 @@ import { LOCAL_READ, LOCAL_WRITE, withQuery } from "@wirecat/cli-core/cli"
 import { approveAsTask } from "@wirecat/cli-core/services"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
-import { authorOf, byOption } from "../author.js"
+import { byOption, deciderOf, whoRuns } from "../author.js"
 import { positive } from "../options.js"
 import { type WriteOptions, writeAccount, writeOptions } from "../store/source-list.js"
 import {
@@ -44,10 +44,12 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
           account,
           ...options
         }: Omit<NewProposal, "kind" | "provider" | "account"> & WriteOptions & { asOwner?: boolean; json?: boolean },
+        command: Command,
       ) =>
         run(options.json, async (store) => {
+          const by = await whoRuns(command, env, { asOwner, question: "propose this action as yours?" })
           const key = await writeAccount(store, env, { account }, (text) => streams.diagnostic(text))
-          return itemAnswer(await propose(store, { ...options, ...key, kind }, authorOf(env, asOwner)))
+          return itemAnswer(await propose(store, { ...options, ...key, kind }, by))
         }),
     )
 
@@ -81,25 +83,27 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     .argument("<id>", "the action's id, as actions list gives it")
     .argument("[findings...]", "a findings batch: the finding IDs to create")
     .option("--fingerprint <hash>", "a findings batch: the fingerprint actions show gives")
-    .option("--reason <text>", "a findings batch: why, in a few words; required when an agent decides for you")
+    .option("--reason <text>", "why, in a few words; required when an agent decides for you")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((id: string, findings: string[], options: Decision & { json?: boolean }) =>
-      run(options.json, async (store) => {
-        const findingsAnswer = await decideFindings(store, env, id, { ...options, accept: findings, confirm: true })
-        return itemAnswer(findingsAnswer ?? (await approveAsTask(store, id)))
-      }),
-    )
+    .action(async (id: string, findings: string[], options: Decision & { json?: boolean }, command: Command) => {
+      const by = await deciderOf(command, env, { ...options, question: `confirm action ${id} as you, the owner?` })
+      await run(options.json, async (store) => {
+        const findingsAnswer = await decideFindings(store, id, { ...options, accept: findings, confirm: true, by })
+        return itemAnswer(findingsAnswer ?? (await approveAsTask(store, id, by)))
+      })
+    })
 
   byOption(annotate(actions.command("reject"), { effects: LOCAL_WRITE }))
     .description("reject it; nothing is done. For a findings batch, every new finding")
     .argument("<id>", "the action's id, as actions list gives it")
     .option("--fingerprint <hash>", "a findings batch: the fingerprint actions show gives")
-    .option("--reason <text>", "a findings batch: why, in a few words; required when an agent decides for you")
+    .option("--reason <text>", "why, in a few words; required when an agent decides for you")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((id: string, options: Decision & { json?: boolean }) =>
-      run(options.json, async (store) => {
-        const findingsAnswer = await decideFindings(store, env, id, { ...options, accept: [], confirm: false })
-        return itemAnswer(findingsAnswer ?? (await store.proposedActions.reject(id)))
-      }),
-    )
+    .action(async (id: string, options: Decision & { json?: boolean }, command: Command) => {
+      const by = await deciderOf(command, env, { ...options, question: `reject action ${id} as you, the owner?` })
+      await run(options.json, async (store) => {
+        const findingsAnswer = await decideFindings(store, id, { ...options, accept: [], confirm: false, by })
+        return itemAnswer(findingsAnswer ?? (await store.proposedActions.reject(id, by, options.reason)))
+      })
+    })
 }

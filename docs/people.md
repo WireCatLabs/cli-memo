@@ -139,8 +139,8 @@ memo relationships add chat:telegram/1/123 project:1
 Only `member-of` a project is allowed for a chat.
 
 Relationships are statements you make. They never link two accounts into one person. One an agent
-adds in its terminal waits unconfirmed, with `provenance` naming the agent (`agent:claude-code`), until
-you `memo relationships confirm` it; `--as-owner` makes it yours at once.
+adds in its terminal is a proposal for you, naming the agent, not a relationship; `--as-owner` makes it yours
+after you answer y at the terminal.
 
 Memo can suggest relationships from email: people who write to you from the same company domain.
 

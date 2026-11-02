@@ -4,6 +4,37 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- **`--reason` on every decide command**: `facts confirm`, `reject`, `reverse` and `remove`, `memories confirm`,
+  `invalidate` and `remove`, `relationships confirm` and `remove`, `actions reject` for any action. An agent
+  decides only with one. `--as-owner` on these and on `projects key-documents remove` and `meetings actions`.
+
+### Changed — may break callers
+
+- **Built on `@wirecat/cli-core` 0.552.0 and `@wirecat/cli-base` 0.74.0.** Store version 44 moves an agent's or a
+  rule's unconfirmed link into a proposal on first open; `relationships list` no longer shows those.
+- **An agent's `relationships add` answers a `relationship` proposal**, not an unconfirmed relationship.
+- **A run with no agent named and no terminal is not the owner**: its writes are proposals of the bot
+  `unattended`, and its decisions refuse with `confirmation_required` (`decision.decider-unknown`, exit 7).
+- **`--as-owner` in an agent's terminal asks y/N at the terminal**; without one, or under `--json`, it refuses
+  with `confirmation_required` (`decision.owner-unconfirmed`, exit 7). Over MCP it is refused.
+- **`projects.agent-decisions-off` is now cli-core's `proposals.agent-decisions-off`**, and covers every decision.
+- **Words after `--` stay text** in `notes add`, `notes edit`, `facts add`, `memories add`, `tasks comments add`,
+  `people add`, `organizations add`, `projects add` and `answers create`.
+
+### Security
+
+- **An agent can no longer decide its own proposal through memo.** Every confirm, reject and remove
+  path, CLI and MCP, passes the real decider to cli-core, which refuses an agent's own bot's proposal
+  (`proposal.own`), a rule's or an unconfirmed link's (`proposal.owner-only`), one without `--reason`
+  (`proposal.reason-required`), and every agent decision when `agent_decisions` is `false`. Before, an agent over
+  MCP could confirm a fact, memory, relationship or action it had proposed itself.
+- **A missing agent variable no longer proves the owner.** The owner decides only at a terminal (stdin and stdout),
+  or with `--as-owner` after a y/N answer there; a saved meetings permission lets an MCP agent decide as itself.
+
 ## 0.131.15 — 02.11.2026
 
 ### Added

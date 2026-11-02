@@ -161,7 +161,11 @@ const notesCommandDefinition = (program: Command, streams: Streams, env: NodeJS.
       )
     })
 
-  const noteAdd = annotate(notes.command("add"), { effects: LOCAL_WRITE, output: { entity: "note" } })
+  const noteAdd = annotate(notes.command("add"), {
+    effects: LOCAL_WRITE,
+    output: { entity: "note" },
+    literal_after_dashes: true,
+  })
     .description("write a note of your own about messages, people, projects or other notes")
     .argument("[text]", "the note; or --text, or --text-file")
     .option("--text <text>", "the note")
@@ -222,7 +226,7 @@ const notesCommandDefinition = (program: Command, streams: Streams, env: NodeJS.
       },
     )
 
-  annotate(notes.command("edit"), { effects: LOCAL_WRITE, output: { entity: "note" } })
+  annotate(notes.command("edit"), { effects: LOCAL_WRITE, output: { entity: "note" }, literal_after_dashes: true })
     .description("change a note you wrote here; a file's note is edited in its file")
     .argument("<id>", "note:<id> or its id")
     .requiredOption("--revision <n>", "its current revision, so an edit made meanwhile is not lost", positive)

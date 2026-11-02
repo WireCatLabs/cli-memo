@@ -35,8 +35,8 @@ decisions for project proposals. Meeting findings decisions require explicit per
 **What waits for you.** A proposed action always waits until you approve or reject it. A memory or
 directly recorded fact waits when an agent adds it: through [the MCP server](mcp.md), or with the `memo` command in an
 agent's terminal (`AI_AGENT` or `CLAUDECODE` set), where the agent is recorded as its author. One you
-add yourself is confirmed (memory) or accepted (fact) at once; in an agent's terminal, add `--as-owner` to make it yours. An agent
-can pass `--as-owner` too, so tell it not to.
+add yourself at a terminal is confirmed (memory) or accepted (fact) at once; in an agent's terminal, `--as-owner`
+makes it yours after you answer y at the terminal.
 
 ## Memories
 

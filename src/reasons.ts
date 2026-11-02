@@ -3,9 +3,15 @@ import { defineReasons, type ErrorReason } from "@wirecat/cli-base/standards"
 /** The reasons memo raises itself; cli-base's and cli-core's are merged in by `failureContext`. */
 export const REASONS: ErrorReason[] = defineReasons([
   {
-    reason: "projects.agent-decisions-off",
-    code: "permission_error",
-    message: "the owner turned agent decisions off (agent_decisions: false); ask the owner to decide",
+    reason: "decision.owner-unconfirmed",
+    code: "confirmation_required",
+    message: "--as-owner asks at a terminal, and nobody is at one to answer; the owner runs it there, without --json",
+    details: [],
+  },
+  {
+    reason: "decision.decider-unknown",
+    code: "confirmation_required",
+    message: "nothing shows who decides; the owner decides at a terminal, an agent from its own session with --reason",
     details: [],
   },
   {

@@ -137,9 +137,13 @@ it("lets an agent stage cited findings, shows each with its text and neighbours,
 
   await expect(
     run(agent, "projects", "actions", "confirm", "SYP", staged.id, "budget", "--fingerprint", batch.fingerprint),
-  ).rejects.toThrow("--reason")
+  ).rejects.toMatchObject({ details: { reason: "proposal.reason-required" } })
+  const decide = ["SYP", staged.id, "budget", "--fingerprint", batch.fingerprint, "--reason", "it is agreed"]
+  await expect(run(agent, "projects", "actions", "confirm", ...decide)).rejects.toMatchObject({
+    details: { reason: "proposal.own" },
+  })
   const decided = await run(
-    agent,
+    { ...agent, AI_AGENT: "reviewer-agent" },
     "projects",
     "actions",
     "confirm",
@@ -154,7 +158,7 @@ it("lets an agent stage cited findings, shows each with its text and neighbours,
   expect(decided).toMatchObject({
     status: "reviewed",
     receipt: {
-      decision: { by: "agent", bot: "synthetic-agent", reason: "the message says it is agreed" },
+      decision: { by: "agent", bot: "reviewer-agent", reason: "the message says it is agreed" },
       items: [
         { id: "budget", status: "accepted" },
         { id: "accountant", status: "rejected" },
@@ -188,8 +192,8 @@ it("lets the owner turn agent decisions off, and decides suggested key documents
   expect(suggestion.evidence[0]).toMatchObject({ state: "untracked", text: "Ok, I will send the bank tracker" })
   await expect(
     run(agent, "projects", "actions", "confirm", "SYP", suggestion.id, "--reason", "it is the tracker"),
-  ).rejects.toMatchObject({ details: { reason: "projects.agent-decisions-off" } })
-  expect(await run(agent, "projects", "actions", "confirm", "SYP", suggestion.id, "--as-owner")).toMatchObject({
+  ).rejects.toMatchObject({ details: { reason: "proposals.agent-decisions-off" } })
+  expect(await run(owner, "projects", "actions", "confirm", "SYP", suggestion.id)).toMatchObject({
     kind: "key_document",
     confirmed: true,
     decided_by: "owner",
@@ -227,10 +231,10 @@ it("offers the same over MCP, where every decision is the agent's and needs a re
 })
 
 it("lets the owner reject a whole batch without a reason", async () => {
-  const { agent, run, file } = await setUp()
+  const { owner, agent, run, file } = await setUp()
   const staged = await run(agent, "projects", "actions", "add", file)
   const rejected = await run(
-    agent,
+    owner,
     "projects",
     "actions",
     "reject",
@@ -238,7 +242,6 @@ it("lets the owner reject a whole batch without a reason", async () => {
     staged.id,
     "--fingerprint",
     staged.fingerprint,
-    "--as-owner",
   )
   expect(rejected).toMatchObject({
     decided_by: { type: "person" },

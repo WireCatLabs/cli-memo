@@ -5,7 +5,7 @@ import { LOCAL_READ, LOCAL_WRITE, queryHelp } from "@wirecat/cli-core/cli"
 import { MENTION_QUERY, type MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
-import { authorOf, byOption } from "../author.js"
+import { byOption, whoRuns } from "../author.js"
 import { positive } from "../options.js"
 import { withOwner } from "../people/owner.js"
 import { SOURCE_HELP, type SourceList, sourceListOf } from "../store/source-list.js"
@@ -37,9 +37,9 @@ interface Options {
 
 export const mentionsCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print, run } = answers(program, streams, env)
-  const decider = (options: Options) => {
-    const author = authorOf(env, options.asOwner)
-    return { by: author === "owner" ? "owner" : author.bot }
+  const decider = async (command: Command, options: Options) => {
+    const who = await whoRuns(command, env, { asOwner: options.asOwner, question: "decide this mention as you?" })
+    return { by: who === "owner" ? "owner" : who.bot }
   }
   const mentions = program
     .command("mentions")
@@ -130,18 +130,19 @@ export const mentionsCommand = (program: Command, streams: Streams, env: NodeJS.
     ),
   )
     .argument("[person]", "person:<uid> or organization:<id> that owns the phone or address, or a name means")
-    .action((id: number, person: string | undefined, options: Options) =>
-      run(options.json, async (store) =>
+    .action(async (id: number, person: string | undefined, options: Options, command: Command) => {
+      const by = await decider(command, options)
+      await run(options.json, async (store) =>
         itemAnswer(
           await store.sourceMentions.confirm(
             id,
             person === undefined ? person : await withOwner(store, person),
-            decider(options),
+            by,
             await mailOf(store, env, options.source),
           ),
         ),
-      ),
-    )
+      )
+    })
 
   byOption(
     idArgument(
@@ -154,9 +155,10 @@ export const mentionsCommand = (program: Command, streams: Streams, env: NodeJS.
         SCOPE,
       ),
     ),
-  ).action((id: number, options: Options) =>
-    run(options.json, async (store) =>
-      itemAnswer(await store.sourceMentions.reject(id, decider(options), await mailOf(store, env, options.source))),
-    ),
-  )
+  ).action(async (id: number, options: Options, command: Command) => {
+    const by = await decider(command, options)
+    await run(options.json, async (store) =>
+      itemAnswer(await store.sourceMentions.reject(id, by, await mailOf(store, env, options.source))),
+    )
+  })
 }

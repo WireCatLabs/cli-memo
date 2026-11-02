@@ -104,9 +104,10 @@ Add the keys to `config.json` by hand; `memo config unset <key>` removes one.
 
 ## `agent_decisions`
 
-By default an agent may confirm or reject [project proposals](recipes.md#review-project-facts-and-follow-ups)
-for you, with a reason recorded in the decision. Set the top-level `agent_decisions` key to `false`
-to require owner decisions in this flow:
+By default an agent may confirm or reject a proposal for you (a fact, a memory, an action, a
+[project proposal](recipes.md#review-project-facts-and-follow-ups)) with a reason recorded in the decision, but never
+one its own bot proposed. Set the top-level `agent_decisions` key to `false` to require owner decisions on all of
+them:
 
 ```json
 {
@@ -115,12 +116,10 @@ to require owner decisions in this flow:
 ```
 
 Add the key to your existing config rather than replacing your notes, mail and timer settings with
-this small example. Both CLI and MCP then refuse an agent's `projects actions confirm` and `reject`;
-reading and proposing still work. Owner decisions remain available in the terminal. The setting
-controls Memo's agent mode; terminal access retains the permissions of the terminal user.
-`--as-owner` labels a command as the owner's and must not be used by an agent to bypass this setting.
-This setting applies to project proposals; it does not change the separate permission for confirmation
-of meeting findings or replace the tool's other permission checks.
+this small example. Both CLI and MCP then refuse every decision an agent makes; reading and proposing still work.
+Owner decisions remain available in the terminal. In an agent's terminal, `--as-owner` asks y/N at the terminal
+before a decision counts as yours. The setting does not change the separate permission for confirmation of
+meeting findings or replace the tool's other permission checks.
 
 ## Environment variables
 

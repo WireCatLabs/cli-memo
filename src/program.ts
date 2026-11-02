@@ -53,6 +53,7 @@ import { searchCommand } from "./search/command.js"
 import { storeCommand } from "./store/info-command.js"
 import { tagsCommand } from "./tags/command.js"
 import { tasksCommand } from "./tasks/command.js"
+import { provideTerminal, type Terminal } from "./terminal.js"
 import { upgradeCommand } from "./update.js"
 import { VERSION } from "./version.js"
 import { vocabularyCommand } from "./vocabulary/command.js"
@@ -179,11 +180,14 @@ export const createProgram = ({
   streams: raw = processStreams,
   env = process.env,
   signal,
+  terminal,
 }: {
   streams?: Streams
   env?: NodeJS.ProcessEnv
   /** Ctrl-C or SIGTERM from `startCli`: a sync stops at its next safe point. */
   signal?: AbortSignal
+  /** Whether a person is at the terminal; the process's stdin and stdout unless a test hands one in. */
+  terminal?: Terminal
 } = {}): Command => {
   const fields = jsonFields(raw, OWN_ENTITIES)
   const { streams } = fields
@@ -192,6 +196,7 @@ export const createProgram = ({
     .version(VERSION)
     .option("--debug", "on failure, show the full error record: cause and stack")
   refuseWritesUnderLock(program, env)
+  provideTerminal(program, terminal)
 
   contextCommand(program, streams, env)
   notesCommand(program, streams, env)

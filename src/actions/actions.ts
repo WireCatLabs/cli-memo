@@ -5,13 +5,12 @@ import { queryTerms, termField } from "@wirecat/cli-core/cli"
 import { MEETING_FINDINGS_KIND } from "@wirecat/cli-core/meetings"
 import {
   type Author,
+  type Decider,
   EVIDENCE_FINDINGS_KIND,
   type MessageStore,
   PROPOSAL_STATUSES,
   type ProposedAction,
 } from "@wirecat/cli-core/store"
-import { authorOf } from "../author.js"
-import { deciderOf } from "../knowledge/project-actions.js"
 import { pageOf } from "../page.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 
@@ -187,9 +186,8 @@ export interface Decision {
  */
 export const decideFindings = async (
   store: MessageStore,
-  env: NodeJS.ProcessEnv,
   id: string,
-  decision: Decision & { accept: string[]; confirm: boolean },
+  decision: Decision & { accept: string[]; confirm: boolean; by: Decider },
 ) => {
   const action = await store.proposedActions.get(id)
   if (action.kind !== EVIDENCE_FINDINGS_KIND) {
@@ -201,7 +199,7 @@ export const decideFindings = async (
     throw new CliError("validation_error", "a findings batch needs the --fingerprint actions show gives", {
       param: "fingerprint",
     })
-  const by = deciderOf(env, authorOf(env, decision.asOwner), decision.reason)
+  const { by } = decision
   const batch = await store.evidenceFindings.get(id)
   const accept = !decision.confirm
     ? []

@@ -123,7 +123,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       })
     })
   const comments = group.command("comments").description("what people and agents wrote on a task")
-  annotate(comments.command("add"), { effects: LOCAL_WRITE })
+  annotate(comments.command("add"), { effects: LOCAL_WRITE, literal_after_dashes: true })
     .description("comment on a task, in your name or the agent's that runs memo")
     .argument("<id>", "the task's id or key")
     .argument("<text...>", "what to say, in Markdown")

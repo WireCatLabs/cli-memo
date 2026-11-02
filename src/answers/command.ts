@@ -90,7 +90,7 @@ export const askCommand = (program: Command, streams: Streams, env: NodeJS.Proce
   const { print } = answers(program, streams, env)
   const ask = annotate(
     program.command("answers").description("cited evidence and optional model answers").command("create"),
-    { effects: REMOTE_READ },
+    { effects: REMOTE_READ, literal_after_dashes: true },
   )
     .description("prepare cited evidence for your agent, or explicitly call a configured model")
     .argument("<question>", "the question, in your own words")

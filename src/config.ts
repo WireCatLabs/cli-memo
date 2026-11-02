@@ -8,6 +8,7 @@ import {
   settingPathOf,
   withoutSetting,
 } from "@wirecat/cli-core/cli"
+import { DEFAULT_DECISION_POLICY, type DecisionPolicy } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import * as v from "valibot"
 import { memoPermissionKeys } from "./config-issues.js"
@@ -108,6 +109,15 @@ export const loadConfig = (env: NodeJS.ProcessEnv = process.env): Config => {
   if (issues.length > 0 || config === undefined)
     throw new CliError("configuration_error", issueMessage(issues, "memo doctor"))
   return config
+}
+
+/** The owner's `agent_decisions` for every store check. A config that does not load keeps decisions with the owner. */
+export const decisionPolicy = (env: NodeJS.ProcessEnv): DecisionPolicy => {
+  let agentDecisions = false
+  try {
+    agentDecisions = loadConfig(env).agent_decisions !== false
+  } catch {}
+  return { ...DEFAULT_DECISION_POLICY, agentDecisions }
 }
 
 /** For `doctor`: every problem in the file, and what of it still loads, without refusing. */

@@ -49,6 +49,7 @@ const fixture = async () => {
       by: { bot: "synthetic" },
     })
     await store.knowledge.relate(null, {
+      by: "owner",
       from: foreign.ref,
       to: project.ref,
       kind: "related-to",
@@ -61,10 +62,10 @@ const fixture = async () => {
     await store.close()
   }
 }
-const connected = async (env: NodeJS.ProcessEnv) => {
+const connected = async (env: NodeJS.ProcessEnv, name = "synthetic") => {
   const [server, transport] = InMemoryTransport.createLinkedPair()
   await createMemoServer(env, createProgram).connect(server)
-  const client = new Client({ name: "synthetic", version: "1" })
+  const client = new Client({ name, version: "1" })
   await client.connect(transport)
   const command = await commandCaller(client)
   const call = async (name: string, args: Record<string, unknown>) => {
@@ -230,11 +231,20 @@ it("filters mixed-project batches in context while preserving the full preview f
 it("allows an explicitly delegated meeting decision and refuses it after permission revocation", async () => {
   const f = await fixture()
   f.env.MEMO_CONFIG_DIR = mkdtempSync(join(tmpdir(), "memo-decision-config-"))
-  updateConfig((config) => ({ ...config, permissions: { "meetings.actions.confirm": "allow" } }), f.env)
+  updateConfig(
+    (config) => ({
+      ...config,
+      permissions: { "meetings.actions.confirm": "allow", "meetings.actions.reject": "allow" },
+    }),
+    f.env,
+  )
   const { client, call } = await connected(f.env)
+  const stager = await connected(f.env, "stager")
   try {
     const input = await inputFor(call, f.project.ref)
-    const staged = await call("meetings actions add", { account: "example:synthetic", input })
+    const staged = await stager.call("meetings actions add", { account: "example:synthetic", input })
+    const own = { id: String(staged.item.id), account: "example:synthetic", fingerprint: staged.item.fingerprint }
+    expect((await stager.call("meetings actions reject", own)).error).toMatchObject({ reason: "proposal.own" })
     const reviewed = await call("meetings actions confirm", {
       id: String(staged.item.id),
       ids: ["followup"],
@@ -258,5 +268,6 @@ it("allows an explicitly delegated meeting decision and refuses it after permiss
     ).toMatchObject({ code: "permission_error" })
   } finally {
     await client.close()
+    await stager.client.close()
   }
 })

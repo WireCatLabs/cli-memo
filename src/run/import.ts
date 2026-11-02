@@ -6,7 +6,7 @@ import { openStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError, Option } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
 import { STORE_CLIENT } from "../app.js"
-import { loadConfig } from "../config.js"
+import { decisionPolicy, loadConfig } from "../config.js"
 import { errorObject } from "../failure.js"
 import { mailAccounts, mailSource } from "../mail/accounts.js"
 import { backfillHeaders } from "../mail/backfill-headers.js"
@@ -274,7 +274,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         },
       })
     const work = withImportLock(env, async () => {
-      const store = await openStore({ env, ...STORE_CLIENT })
+      const store = await openStore({ env, ...STORE_CLIENT, decisions: decisionPolicy(env) })
       const attempt = async (source: string, work: () => Promise<void>) => {
         halt()
         try {
