@@ -6,6 +6,7 @@ import { environmentOf, LOCAL_READ, LOCAL_WRITE } from "@wirecat/cli-core/cli"
 import { type IngestReceipt, ingest } from "@wirecat/cli-core/services"
 import type { Command } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
+import { recordMappingCommands } from "./mapping.js"
 
 const readAll = async (file: string, stdin: NodeJS.ReadableStream): Promise<string> => {
   if (file !== "-") return readFile(file, "utf8")
@@ -22,6 +23,12 @@ export const envelopeOf = (text: string): unknown => {
     if (whole && typeof whole === "object" && "records" in whole) return whole
   } catch {}
   return envelopeOfJsonl(text)
+}
+
+/** `sheet:prokat-med` names the envelope's provider and account, as records list and map take it. */
+const accountIn = (envelope: unknown, given: string): string => {
+  const provider = (envelope as { source?: { provider?: unknown } } | null)?.source?.provider
+  return typeof provider === "string" && given.startsWith(`${provider}:`) ? given.slice(provider.length + 1) : given
 }
 
 export const receiptText = (receipt: IngestReceipt): string =>
@@ -47,7 +54,10 @@ export const recordsCommand = (program: Command, streams: Streams, env: NodeJS.P
   const importing = (command: Command, dryRun: boolean | undefined) =>
     command
       .argument("<file>", "a records envelope as JSON, or JSONL (a header line, then a record per line); - for stdin")
-      .option("--account <account>", "the source account the envelope is for, as its source.account says")
+      .option(
+        "--account <account>",
+        "the source the envelope is for: <provider>:<account> (sheet:prokat-med) or its source.account alone",
+      )
       .option("--json", "print JSON; --json=created,errors keeps only those fields")
       .action(async (file: string, given: { account?: string; dryRun?: boolean; json?: boolean }) => {
         const account = given.account?.trim()
@@ -57,7 +67,7 @@ export const recordsCommand = (program: Command, streams: Streams, env: NodeJS.P
           })
         const envelope = envelopeOf(await readAll(file, environmentOf(program).stdin ?? process.stdin))
         const receipt = await withStore(env, (store) =>
-          ingest(store, envelope, { account, dryRun: dryRun ?? given.dryRun === true }),
+          ingest(store, envelope, { account: accountIn(envelope, account), dryRun: dryRun ?? given.dryRun === true }),
         )
         const issues = receipt.errors.map((one) => ({
           code: "validation_error" as const,
@@ -87,4 +97,5 @@ export const recordsCommand = (program: Command, streams: Streams, env: NodeJS.P
       .summary("check a records file against the store; write nothing"),
     true,
   )
+  recordMappingCommands(records, program, streams, env)
 }

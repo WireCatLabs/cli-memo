@@ -61,3 +61,54 @@ it("imports a JSONL file once as a proposal, never confirmed money, and a second
   const refused = await f.run("records", "import", f.file, "--account", "someone-else")
   expect(refused.errors).toEqual([expect.objectContaining({ code: "envelope.account-mismatch" })])
 })
+
+it("lists records waiting for a party, refuses an agent's mapping and turns the owner's into a proposal", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "memo-records-map-"))
+  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), MEMO_CONFIG_DIR: dir }
+  delete env.AI_AGENT
+  delete env.CLAUDECODE
+  const store = await openStore({ env })
+  const client = await store.knowledge.addOrganization({ name: "ООО Пример", kind: "company" })
+  await store.close()
+  const file = join(dir, "sheet.json")
+  writeFileSync(
+    file,
+    JSON.stringify({
+      schema_version: 1,
+      source: { provider: "sheet", account: "synthetic-rental", batch_id: "b1" },
+      records: [
+        { key: "c", type: "organization", external_id: "client", operation: "upsert", fields: { name: "ООО Пример" } },
+        {
+          key: "i",
+          type: "invoice",
+          external_id: "счёт-1",
+          operation: "upsert",
+          fields: { direction: "receivable", currency: "RUB", lines: [{ description: "Аренда", amount: "100.00" }] },
+          relations: [{ role: "counterparty", type: "organization", external_id: "client" }],
+        },
+      ],
+    }),
+  )
+  const run = async (who: Record<string, string>, terminal: Terminal, ...args: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env: { ...env, ...who }, terminal })
+      .exitOverride()
+      .parseAsync([...args, "--json"], { from: "user" })
+    return envelopeOf(streams.stdout.join(""))
+  }
+  const source = ["--account", "sheet:synthetic-rental"]
+  expect((await run({}, OWNER, "records", "import", file, ...source)).item).toMatchObject({ proposed: [] })
+  const waiting = await run({}, OWNER, "records", "list", "waiting:true", ...source)
+  expect((waiting.items as { external_id: string }[]).map((one) => one.external_id)).toEqual(["счёт-1"])
+
+  const agent = { AI_AGENT: "codex" }
+  await expect(
+    run(agent, { present: false }, "records", "link", "organization:client", client.ref, ...source),
+  ).rejects.toMatchObject({ code: "permission_error" })
+
+  const mapped = await run({}, OWNER, "records", "link", "organization:client", client.ref, ...source)
+  expect(mapped.item).toMatchObject({ entity: client.ref })
+  expect((await run({}, OWNER, "records", "list", "waiting:true", ...source)).items).toEqual([])
+  const inbox = await run({}, OWNER, "review", "list", "kind:invoice")
+  expect(inbox.items).toHaveLength(1)
+})

@@ -172,6 +172,11 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo records import envelope.json --account prokat-med --json",
   ],
   "records check": ["memo records check - --account prokat-med"],
+  "records list": [
+    "memo records list waiting:true --account sheet:prokat-med",
+    "memo records list type:organization --account sheet:prokat-med --json",
+  ],
+  "records link": ["memo records link organization:client organization:3 --account sheet:prokat-med"],
   "payments allocate": ["memo payments allocate payment:9 invoice:4 25000.00"],
   "facts show": ["memo facts show fact:4 --sources"],
   "facts confirm": ["memo facts confirm fact:4"],

@@ -99,6 +99,10 @@ A source's export, such as a payment sheet, comes in as a records envelope (JSON
 `memo records import` writes it. The same file twice changes nothing, and its invoices and payments wait for you in
 `memo review`.
 
+When the file names a party by its own id, such as `organization:client`, its invoices and payments wait until you
+say which of your entries that is. `memo records list waiting:true --account sheet:prokat-med` shows what waits, and
+`memo records link organization:client organization:3 --account sheet:prokat-med` links it; only you can.
+
 ## Answers for scripts and agents
 
 Add `--json` to most commands to get an answer a program can read. The text answer is for people;

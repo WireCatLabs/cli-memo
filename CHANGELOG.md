@@ -6,6 +6,16 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo records list --account <provider>:<account>`** lists a source's records; `waiting:true` shows those whose
+  invoice or payment waits for a party, `flagged:true` those changed at the source after their entry was made.
+- **`memo records link <type>:<external_id> <ref> --account <provider>:<account>`** says which of your entries a
+  source's record is (`organization:client` is `organization:3`). Never by name. Only you link; an agent is refused,
+  and MCP does not offer it. The invoices and payments that waited for it become proposals in `memo review`.
+- **`memo records import` and `check` take `--account <provider>:<account>`** too, as `list` and `link` do; the
+  account alone still works.
+
 ## 0.131.19 — 02.11.2026
 
 ### Added
