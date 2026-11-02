@@ -27,7 +27,7 @@ the API.
 
 ### Security
 
-- **An agent can no longer decide its own proposal through memo (SEC-118).** Every confirm, reject and remove
+- **An agent can no longer decide its own proposal through memo.** Every confirm, reject and remove
   path, CLI and MCP, passes the real decider to cli-core, which refuses an agent's own bot's proposal
   (`proposal.own`), a rule's or an unconfirmed link's (`proposal.owner-only`), one without `--reason`
   (`proposal.reason-required`), and every agent decision when `agent_decisions` is `false`. Before, an agent over
