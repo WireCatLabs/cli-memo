@@ -6,6 +6,20 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo records import <file|-> --account <account> [--dry-run]`** brings a source's records into the store from a
+  v1 records envelope, as JSON or JSONL (a header line, then a record per line), and prints the receipt: created,
+  updated, unchanged, deleted, refused, the proposals made, what waits for a mapping, and each error with its JSON
+  pointer and code. The same file twice changes nothing and a lower revision is refused. An invoice or a payment
+  becomes a proposal for `memo review`: an import never writes confirmed money.
+- **`memo records check`** gives the same receipt and writes nothing. It is a read, so MCP offers it without the
+  owner's permission; `records import` is a write and needs it.
+
+### Fixed
+
+- **Built on cli-core 0.559.0** (store version 47: source records and the import envelope).
+
 ## 0.131.18 — 02.11.2026
 
 ### Added

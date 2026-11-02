@@ -48,6 +48,7 @@ import { foldersCommand } from "./notes/folders-command.js"
 import { noteCommand, peopleCommand } from "./people/command.js"
 import { readOnlyAvailability, refuseWritesUnderLock } from "./read-only.js"
 import { REASONS } from "./reasons.js"
+import { recordsCommand } from "./records/import.js"
 import { reviewCommand } from "./review/command.js"
 import { autoCommand } from "./run/auto.js"
 import { syncCommand } from "./run/import.js"
@@ -217,6 +218,19 @@ const OWN_ENTITIES = entityFields({
     "updated_at",
     "allocations",
   ],
+  records_receipt: [
+    "dry_run",
+    "source",
+    "created",
+    "updated",
+    "unchanged",
+    "deleted",
+    "refused",
+    "proposed",
+    "waiting",
+    "flagged",
+    "errors",
+  ],
   payment_allocation: ["payment", "invoice", "amount", "currency", "created_at"],
 })
 
@@ -274,6 +288,7 @@ export const createProgram = ({
   mentionsCommand(program, streams, env)
   factsCommand(program, streams, env)
   financeCommands(program, streams, env)
+  recordsCommand(program, streams, env)
   findingsCommand(program, streams, env)
   actionsCommand(program, streams, env)
   reviewCommand(program, streams, env)

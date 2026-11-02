@@ -2690,6 +2690,55 @@ memo payments allocate <payment> <invoice> <amount> [options]
 
 **Example:** `memo payments allocate payment:9 invoice:4 25000.00`
 
+## `memo records`
+
+what a source said, kept per account; invoices and payments from it wait for your review
+
+### `memo records import`
+
+bring a source's records into the store, once: the same file twice changes nothing, a lower revision is refused, and an invoice or a payment becomes a proposal for you, never confirmed money
+
+This command changes the local store or your files.
+
+```sh
+memo records import <file> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `file` | required | a records envelope as JSON, or JSONL (a header line, then a record per line); - for stdin. |
+
+| Option | What it does |
+|---|---|
+| `--dry-run` | check and plan the import; write nothing. |
+| `--account <account>` | the source account the envelope is for, as its source.account says. |
+| `--json` | print JSON; --json=created,errors keeps only those fields. |
+
+**Returns:** import a source's records; money waits for your review
+
+**Example:** `memo records import payments.jsonl --account prokat-med --dry-run`, `memo records import envelope.json --account prokat-med --json`
+
+### `memo records check`
+
+what records import would do with the file, as its receipt, writing nothing
+
+```sh
+memo records check <file> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `file` | required | a records envelope as JSON, or JSONL (a header line, then a record per line); - for stdin. |
+
+| Option | What it does |
+|---|---|
+| `--account <account>` | the source account the envelope is for, as its source.account says. |
+| `--json` | print JSON; --json=created,errors keeps only those fields. |
+
+**Returns:** check a records file against the store; write nothing
+
+**Example:** `memo records check - --account prokat-med`
+
 ## `memo meetings`
 
 stored meeting evidence and reviewed findings

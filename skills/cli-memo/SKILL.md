@@ -198,6 +198,8 @@ needs a `person:` or `organization:` counterparty, and a `cancelled` one voids t
 one that settles an expected one names that `invoice:` in `supersedes`. `memo invoices list` and
 `memo payments list` show the rows; `memo projects status` sums the confirmed ones per currency under `finance`.
 Only the owner confirms money, in `memo review kind:invoice,payment`.
+A source's export (a payment sheet, a bank statement) comes in with `memo records check <file> --account <a>` first,
+which writes nothing, then `memo records import` once the owner agrees; its invoices and payments wait for the owner.
 Use `--before-time <ISO timestamp with UTC offset>` (MCP `before_time`) to repeat an exact exclusive end time;
 days back count from it. Keep it on continuation. The window is fixed, but archive contents, aliases
 and account scope may change: retain actual references, source fingerprints and coverage separately.
