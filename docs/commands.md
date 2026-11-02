@@ -376,9 +376,30 @@ memo messages show <message> [options]
 
 **Example:** `memo messages show 'msg:email/me%40example.com/thread/42' --before-n 2 --after-n 2`
 
+### `memo messages acknowledge`
+
+record that a holder — an agent or a pipeline — processed the mail `review --holder` gave it, with the cursor that review gave; the mark only moves forward, and mail still partial waits for the next review
+
+This command changes the local store or your files.
+
+```sh
+memo messages acknowledge [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--holder <name>` | whose mark: lower-case letters, digits and dashes, such as mail-triage. |
+| `--cursor <cursor>` | the cursor `review --holder` gave. |
+| `--source <accounts>` | the one mailbox: email:<account> (its name in mail.accounts or its address), email or group:<name>; may be left out when the store holds one mailbox. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** mail mark — holder, through_id, through_received_at, held, read, skipped, updated_at; every field: memo commands info messages acknowledge
+
+**Example:** `memo messages acknowledge --holder mail-triage --cursor 9123.1762090000000 --source email:work`, `memo messages acknowledge --holder mail-triage --cursor 9123.1762090000000 --source email:me@example.com --json`, `memo messages acknowledge --holder backfill --cursor 870.1762090000000 --source email:personal`
+
 ## `memo mail`
 
-look at a mail account before importing it
+mail accounts: look before importing, read new mail for an agent, stage what it found
 
 ### `memo mail add`
 
@@ -447,6 +468,103 @@ memo mail inspect <account> [options]
 **Returns:** group an account's mail by sender and list, to decide what to keep or skip
 
 **Example:** `memo mail inspect personal --limit 30`, `memo mail inspect work --since-time 365d --json`
+
+### `memo mail findings`
+
+cited tasks, task updates, facts, memories, links and contacts an agent read in new mail
+
+#### `memo mail findings add`
+
+stage one mailbox's findings for the owner; nothing is created until the owner confirms
+
+This command changes the local store or your files.
+
+```sh
+memo mail findings add <file> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `file` | required | JSON findings file, or - for stdin; at most 65536 UTF-8 bytes. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,status keeps only those fields. |
+| `--source <accounts>` | the one mailbox: email:<account> (its name in mail.accounts or its address), email or group:<name>; may be left out when the store holds one mailbox. |
+
+**Returns:** mail findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more; every field: memo commands info mail findings add
+
+**Example:** `memo mail findings add findings.json --source email:work`, `memo mail findings add - --source email:me@example.com --json`, `memo mail findings add run-2026-11-02.json --source email:personal --json=id,status`
+
+#### `memo mail findings show`
+
+one findings batch: its findings with their evidence, earlier decisions and the review receipt
+
+```sh
+memo mail findings show <id> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `id` | required | the batch id `mail findings add` or `list` gave. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,status keeps only those fields. |
+
+**Returns:** mail findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more; every field: memo commands info mail findings show
+
+**Example:** `memo mail findings show 41`, `memo mail findings show 41 --json`, `memo mail findings show 41 --json=id,input.findings`
+
+#### `memo mail findings list`
+
+mail findings batches, newest first; status:proposed is what waits for the owner
+
+```sh
+memo mail findings list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,status keeps only those fields. |
+| `--source <accounts>` | only this mailbox's batches: email:<account>, its name in mail.accounts or its address. |
+| `--limit <n>` | batches per page, at most 50. Default: `20`. |
+| `--page <n>` | which page, from 1. Default: `1`. |
+
+**Returns:** mail findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more; every field: memo commands info mail findings list
+
+**Example:** `memo mail findings list status:proposed`, `memo mail findings list --source email:work --json`, `memo mail findings list status:reviewed --limit 50 --page 2`
+
+### `memo mail review`
+
+every stored email, yours too, in threads that changed since a point — for reviewing who owes what. It reads what sync stored, so it asks the mail server nothing
+
+```sh
+memo mail review [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | where the last review ended: date>2h; 3 days ago if no date. |
+
+| Option | What it does |
+|---|---|
+| `--unanswered [duration]` | only threads whose newest email came to you, in To or Cc, with no answer for this long — 4h, 1d; 24h if not given. |
+| `--waiting [duration]` | only threads where you wrote last and nobody answered for this long — 3d; 7d if not given. |
+| `--holder <name>` | read for this holder — an agent or a pipeline — what is stored past its processing mark, by store order; bulk, envelopes, drafts, suspicious senders and partial mail left out; `messages acknowledge` moves the mark. |
+| `--new` | what changed since the last `review --new` of this mailbox, a point per thread — for scheduled runs. |
+| `--source <accounts>` | the one mailbox: email:<account> (its name in mail.accounts or its address), email or group:<name>; may be left out when the store holds one mailbox. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** message summary — ref, chat_id, timestamp, sender_name, sender_is_me, outgoing, text, attachments, and 3 more; every field: memo commands info mail review
+
+**Next usually:** `memo messages show <message>`
+
+**Example:** `memo mail review --holder mail-triage --source email:work --json`, `memo mail review --unanswered 1d --source email:personal`, `memo mail review 'date>2h' --source email:me@example.com`
 
 ## `memo people`
 
@@ -3829,11 +3947,12 @@ memo schedule agent <name> <harness> <prompt> [options]
 | `--every <duration>` | repeat: 30m, 2h, 1d. |
 | `--at <HH:MM>` | every day at this local time. |
 | `--at-time <time>` | one run: 30m, 2d from now, or an ISO time; the schedule removes itself after it. |
+| `--on-new-mail <holder>` | run only when mail is stored past this holder's mark — after a sync brought new mail; may check every 5m. |
 | `--json` | print JSON. |
 
 **Returns:** start an agent (claude or codex) with a prompt on a timer; it runs with…
 
-**Example:** `memo schedule agent triage claude 'read memo review status and list what needs me today' --at 08:45 --max-cost 1`
+**Example:** `memo schedule agent triage claude 'read memo review status and list what needs me today' --at 08:45 --max-cost 1`, `memo schedule agent mail-triage claude 'Run memo skill show mail-triage and follow it.' --every 5m --on-new-mail mail-triage --max-cost 1`
 
 ### `memo schedule list`
 
@@ -3966,8 +4085,12 @@ the instructions an agent is given for this tool
 print SKILL.md — `memo skill install` puts it where Claude Code, Codex, Gemini CLI and OpenClaw look for it, and where Hermes does on request; --for prints the copy already there
 
 ```sh
-memo skill show [options]
+memo skill show [name] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | optional | one of the skills shipped for a task: mail-triage. |
 
 | Option | What it does |
 |---|---|

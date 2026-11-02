@@ -57,6 +57,20 @@ export const skill: readonly SharedContractOverride[] = [
     reason: REASON,
   },
   {
+    command: ["skill", "show"],
+    field: "arguments",
+    before: [],
+    after: [
+      {
+        name: "name",
+        required: false,
+        variadic: false,
+        description: "one of the skills shipped for a task: mail-triage",
+      },
+    ],
+    reason: REASON,
+  },
+  {
     command: ["skill", "install"],
     field: "options",
     before: [INSTALL_FOR],
