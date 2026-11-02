@@ -6,21 +6,12 @@ the API.
 
 ## Unreleased
 
+## 0.131.21 — 03.11.2026
+
 ### Added
 
 - **`wcat memo` runs memo, and `wcat --help` lists it.** The package installs `wcat-memo` beside `memo`, and
   `wcat-memo --wcat-describe` prints the tool's name, version and description for `wcat`. `memo` keeps working.
-
-### Changed — may break callers
-
-- **Agents no longer decide for you by default.** An agent's confirm or reject of a fact, a memory, an action, a link
-  or a project proposal is now refused with `proposals.agent-decisions-off` unless your config says
-  `"agent_decisions": true`; before, a missing key let an agent decide with `--reason`. To restore the old behaviour,
-  add `"agent_decisions": true` to memo's `config.json`. Meeting findings keep their
-  own permissions.
-
-### Added
-
 - **An agent can read new mail and propose what it asks of you.** `memo schedule agent mail-triage claude 'Run memo
   skill show mail-triage and follow it.' --every 5m --on-new-mail mail-triage --max-cost 1` starts the agent only
   when a sync stored mail past its mark. It stages cited tasks, closes and updates of open tasks, facts, memories,
@@ -33,6 +24,14 @@ the API.
 - **`memo mail findings add|show|list`**: stage one mailbox's cited findings; only the owner confirms them in
   `memo review`. `add` and `messages acknowledge` are the only writes `MEMO_READ_ONLY` allows.
 - **`memo messages show` gives an email's `fingerprint`**, the one a finding cites it by.
+
+### Changed — may break callers
+
+- **Agents no longer decide for you by default.** An agent's confirm or reject of a fact, a memory, an action, a link
+  or a project proposal is now refused with `proposals.agent-decisions-off` unless your config says
+  `"agent_decisions": true`; before, a missing key let an agent decide with `--reason`. To restore the old behaviour,
+  add `"agent_decisions": true` to memo's `config.json`. Meeting findings keep their
+  own permissions.
 
 ### Fixed
 
