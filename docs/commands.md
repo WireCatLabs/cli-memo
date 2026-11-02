@@ -1613,7 +1613,7 @@ memo relationships add <from> <to> [options]
 
 ### `memo relationships list`
 
-relationships, all or those of one reference
+relationships, all or those of one reference, with titles; confirmed:false lists the proposals waiting for you, as memo review kind:relationship does
 
 ```sh
 memo relationships list [query] [options]
@@ -1629,7 +1629,7 @@ memo relationships list [query] [options]
 
 **Returns:** relationship — id, from, to, kind, role, purpose, evidence, confirmed, and 3 more; every field: memo commands info relationships list
 
-**Example:** `memo relationships list about:"person:3"`
+**Example:** `memo relationships list about:"person:3"`, `memo relationships list confirmed:false`
 
 ### `memo relationships remove`
 
@@ -2361,7 +2361,7 @@ memo facts show <ref> [options]
 
 ### `memo facts confirm`
 
-stand behind a fact an agent proposed; a fact it supersedes stops holding
+stand behind a fact an agent proposed; a fact it supersedes stops holding. memo review confirm decides many
 
 This command changes the local store or your files.
 
@@ -2765,6 +2765,107 @@ memo actions reject <id> [options]
 **Returns:** reject it; nothing is done. For a findings batch, every new finding
 
 **Example:** `memo actions reject 5`
+
+## `memo review`
+
+every proposal waiting for your decision, across projects: links, key documents, facts and more
+
+### `memo review list`
+
+what waits for the owner's decision, newest first, with titles, who proposed it, why and the evidence
+
+```sh
+memo review list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--limit <n>` | proposals per page, at most 50. Default: `20`. |
+| `--page <n>` | which page, from 1. Default: `1`. |
+| `--compact` | one line per proposal. |
+
+**Returns:** memo proposal — id, kind, status, title, project, project_title, subject, object, and 9 more; every field: memo commands info review list
+
+**Example:** `memo review list project:HRB`, `memo review list kind:relationship,fact by:agent`
+
+### `memo review show`
+
+one proposal with its titles, signals and the text around each piece of evidence
+
+```sh
+memo review show <id> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `id` | required | the proposal's id, as review lists it: 17070, fact:512, memory:88, link:17, key:9. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--brief` | only references and their titles, without excerpts or nearby text. |
+| `--before-n <n>` | messages or document paragraphs before the evidence, at most 5. Default: `2`. |
+| `--after-n <n>` | messages or document paragraphs after the evidence, at most 5. Default: `2`. |
+| `--compact` | one line, as review prints it. |
+
+**Returns:** one proposal with its titles, signals and the text around each piece of evidence
+
+**Example:** `memo review show 17079`
+
+### `memo review confirm`
+
+confirm proposals by id or range (17070-17079,fact:500-502,17080/f1); each is decided on its own, so a refusal leaves the others decided. An agent decides only with --reason, never its own or a scan's
+
+This command changes the local store or your files.
+
+```sh
+memo review confirm <ids> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ids` | required | ids or ranges as review lists them; a batch's findings as 17080/f1. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--reason <text>` | why, in a few words; required when an agent decides. |
+| `--compact` | one line per decision. |
+
+**Returns:** confirm proposals by id or range; each on its own
+
+**Example:** `memo review confirm 17078-17081`, `memo review confirm 17080/f1,17080/f3`
+
+### `memo review reject`
+
+turn proposals down by id or range, with why; each is decided on its own
+
+This command changes the local store or your files.
+
+```sh
+memo review reject <ids> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ids` | required | ids or ranges as review lists them; a batch's findings as 17080/f1. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--reason <text>` | why it is turned down, in a few words. |
+| `--compact` | one line per decision. |
+
+**Returns:** turn proposals down, with why
+
+**Example:** `memo review reject 17081 --reason "not this project"`
 
 ## `memo agents`
 

@@ -1,8 +1,15 @@
 import { CliError } from "@wirecat/cli-base"
 import { type FindingsInput, paymentTitle } from "@wirecat/cli-core/meetings"
-import { contextEvidenceFingerprint, documentPassage, excerpt, storedNeighbours } from "@wirecat/cli-core/services"
+import {
+  contextEvidenceFingerprint,
+  documentPassage,
+  excerpt,
+  proposalRegistry,
+  storedNeighbours,
+} from "@wirecat/cli-core/services"
 import type { Decider, EvidenceFindingsBatch, MessageStore, Project } from "@wirecat/cli-core/store"
-import { keyDocuments } from "./key-documents.js"
+import { decideBatch } from "../actions/actions.js"
+import { decideOne, decisionOf } from "../review/review.js"
 
 export interface ContextWindow {
   brief: boolean
@@ -11,7 +18,7 @@ export interface ContextWindow {
 }
 
 /** What a reviewer reads to decide one cited reference: the text now, whether it changed, and its neighbours. */
-const evidenceContext = async (
+export const evidenceContext = async (
   store: MessageStore,
   ref: string,
   fingerprint: string | null,
@@ -90,16 +97,22 @@ export const projectActions = async (
   const keys =
     options.page === 1 && options.status !== "reviewed"
       ? await Promise.all(
-          (await keyDocuments(store, project))
-            .filter((key) => !key.confirmed)
-            .map(async (key) => ({
-              kind: "key_document" as const,
-              id: `key:${key.id}`,
-              status: "proposed" as const,
-              reason: key.reason,
-              provenance: key.provenance,
-              evidence: [await evidenceContext(store, key.ref, null, key.reason ?? "", options)],
-            })),
+          (
+            await proposalRegistry(store).list({
+              project: project.ref,
+              kinds: ["key_document"],
+              status: "proposed",
+              limit: 50,
+              offset: 0,
+            })
+          ).items.map(async (row) => ({
+            kind: "key_document" as const,
+            id: row.id,
+            status: "proposed" as const,
+            reason: row.reason,
+            provenance: row.proposedBy.type === "bot" ? `${row.proposedBy.kind}:${row.proposedBy.name}` : null,
+            evidence: [await evidenceContext(store, row.subject, null, row.reason ?? "", options)],
+          })),
         )
       : []
   const found = await store.evidenceFindings.list({
@@ -114,30 +127,26 @@ export const projectActions = async (
   }
 }
 
-/** `key:<id>` is a suggested key document; a number is a findings batch. */
+/** A suggested key document (`key:<id>` or its proposal number) or a findings batch, through the review registry. */
 export const decideAction = async (
   store: MessageStore,
   project: Project,
   id: string,
-  decision: { confirm: boolean; fingerprint?: string; accept: string[]; by: Decider },
+  decision: { confirm: boolean; fingerprint?: string; accept: string[]; by: Decider; reason?: string },
 ) => {
-  const key = /^key:([1-9]\d*)$/.exec(id)?.[1]
-  if (key !== undefined) {
-    const held = (await keyDocuments(store, project)).find((one) => String(one.id) === key)
-    if (!held) throw new CliError("not_found", `no suggested key document ${id} in ${project.ref}`)
-    await store.knowledge.decideSuggestedLink(key, { confirm: decision.confirm, by: decision.by })
-    return { id, kind: "key_document", ref: held.ref, confirmed: decision.confirm, decided_by: decision.by }
+  if (!/^(key:)?[1-9]\d*$/.test(id))
+    throw new CliError("validation_error", "an action ID is a batch number or key:<id>")
+  const row = await proposalRegistry(store).get(id)
+  if (row.project !== project.ref || (row.kind !== "key_document" && row.kind !== "findings"))
+    throw new CliError("not_found", `no proposal ${id} in ${project.ref}; memo projects actions list shows them`)
+  if (row.kind === "key_document") {
+    await decideOne(store, id, decisionOf(decision.confirm, decision.by, decision.reason))
+    return { id, kind: "key_document", ref: row.subject, confirmed: decision.confirm, decided_by: decision.by }
   }
-  if (!/^[1-9]\d*$/.test(id)) throw new CliError("validation_error", "an action ID is a batch number or key:<id>")
-  const batch = await store.evidenceFindings.get(id)
-  if (batch.project !== project.ref) throw new CliError("not_found", `findings batch ${id} is about another project`)
   if (decision.fingerprint === undefined)
     throw new CliError("validation_error", "a findings batch needs the --fingerprint shown in projects actions list", {
       param: "fingerprint",
     })
-  return store.evidenceFindings.review(id, {
-    fingerprint: decision.fingerprint,
-    accept: decision.confirm ? decision.accept : [],
-    by: decision.by,
-  })
+  await decideBatch(store, id, { ...decision, fingerprint: decision.fingerprint })
+  return store.evidenceFindings.get(id)
 }

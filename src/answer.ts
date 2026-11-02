@@ -97,11 +97,11 @@ export const trackAnswers = (program: Command): void => {
  * otherwise `text`, or plain lines where a command has no text view.
  */
 export const answers = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
-  const print = (json: boolean | undefined, body: Body, text?: string): void => {
+  const print = (json: boolean | undefined, body: Body, text?: string, asked?: boolean): void => {
     const format = json ? "json" : "pretty"
     const root = rootOf(program)
     const leaf = running.get(root) ?? root
-    const { compact, full } = leaf.optsWithGlobals<{ compact?: boolean; full?: boolean }>()
+    const { compact = asked, full } = leaf.optsWithGlobals<{ compact?: boolean; full?: boolean }>()
     const renderer = createRenderer({ format, color: false, streams })
     // In compact form the next steps are # lines on stdout; printing them again on stderr would say them twice.
     const drawn = compact === true && !json

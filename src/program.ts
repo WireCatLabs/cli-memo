@@ -47,6 +47,7 @@ import { foldersCommand } from "./notes/folders-command.js"
 import { noteCommand, peopleCommand } from "./people/command.js"
 import { readOnlyAvailability, refuseWritesUnderLock } from "./read-only.js"
 import { REASONS } from "./reasons.js"
+import { reviewCommand } from "./review/command.js"
 import { autoCommand } from "./run/auto.js"
 import { syncCommand } from "./run/import.js"
 import { searchCommand } from "./search/command.js"
@@ -216,6 +217,7 @@ export const createProgram = ({
   factsCommand(program, streams, env)
   findingsCommand(program, streams, env)
   actionsCommand(program, streams, env)
+  reviewCommand(program, streams, env)
   agentsCommand(program, streams, env)
   mcpCommand(program, streams, env, createProgram)
   modelsCommand(program, streams, env)

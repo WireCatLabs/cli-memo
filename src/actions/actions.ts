@@ -3,6 +3,7 @@ import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { parseLocator } from "@wirecat/cli-core"
 import { queryTerms, termField } from "@wirecat/cli-core/cli"
 import { MEETING_FINDINGS_KIND } from "@wirecat/cli-core/meetings"
+import { proposalRegistry } from "@wirecat/cli-core/services"
 import {
   type Author,
   type Decider,
@@ -12,6 +13,7 @@ import {
   type ProposedAction,
 } from "@wirecat/cli-core/store"
 import { pageOf } from "../page.js"
+import { decisionOf } from "../review/review.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 
 export const ACTION_QUERY = {
@@ -199,15 +201,31 @@ export const decideFindings = async (
     throw new CliError("validation_error", "a findings batch needs the --fingerprint actions show gives", {
       param: "fingerprint",
     })
-  const { by } = decision
-  const batch = await store.evidenceFindings.get(id)
-  const accept = !decision.confirm
-    ? []
-    : decision.accept.length
-      ? decision.accept
-      : batch.input.findings.map((finding) => finding.id)
-  await store.evidenceFindings.review(id, { fingerprint: decision.fingerprint, accept, by })
+  await decideBatch(store, id, { ...decision, fingerprint: decision.fingerprint })
   return showAction(store, id)
+}
+
+/**
+ * A findings batch decided through the review registry. The fingerprint the reviewer read must still be the
+ * batch's: the registry takes the stored one, so a changed batch is refused here first.
+ */
+export const decideBatch = async (
+  store: MessageStore,
+  id: string,
+  decision: { fingerprint: string; accept: readonly string[]; confirm: boolean; by: Decider; reason?: string },
+) => {
+  if ((await store.evidenceFindings.get(id)).fingerprint !== decision.fingerprint)
+    throw new CliError("validation_error", "evidence findings changed since they were read; stage a new batch", {
+      reason: "evidence-findings.stale",
+    })
+  const parts = decision.confirm && decision.accept.length ? decision.accept.map((one) => `${id}/${one}`) : [id]
+  const { decided, refused } = await proposalRegistry(store).decide(
+    parts,
+    decisionOf(decision.confirm, decision.by, decision.reason),
+  )
+  const refusal = refused[0]
+  if (refusal) throw new CliError(refusal.code, refusal.message, { reason: refusal.reason })
+  return decided[0]
 }
 
 export interface NewProposal extends AccountScope {
