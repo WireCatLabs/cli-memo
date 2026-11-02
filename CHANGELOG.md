@@ -6,6 +6,14 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo config show` lists every setting with its value, its default and whether the file sets it, and `memo config
+  migrate` writes the missing ones into the file at their defaults.** You then find and edit every setting in
+  `config.json`, `"agent_decisions": false` included, without the docs. Your values, their order and keys memo does
+  not know stay. Every write memo already makes to the file (`folders add`, `mail add`, `jobs start`, mail rules) adds
+  the missing settings too; a plain read never rewrites the file.
+
 ### Changed — may break callers
 
 - **Agents no longer decide for you by default.** An agent's confirm or reject of a fact, a memory, an action, a link

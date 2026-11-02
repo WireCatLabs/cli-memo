@@ -3719,6 +3719,40 @@ memo jobs status [options]
 
 memo's settings file
 
+### `memo config show`
+
+every setting, its value, its default and whether the file sets it
+
+```sh
+memo config show [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** every setting, its value, its default and whether the file sets it
+
+**Example:** `memo config show`, `memo config show --json`
+
+### `memo config migrate`
+
+write each setting the file lacks at its default, keeping yours
+
+This command changes the local store or your files.
+
+```sh
+memo config migrate [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** write each setting the file lacks at its default, keeping yours
+
+**Example:** `memo config migrate`
+
 ### `memo config unset`
 
 remove one setting from the config file, even one memo does not know
