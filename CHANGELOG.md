@@ -4,12 +4,7 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
-## 0.131.15 — 02.11.2026
-
-### Added
-
-- **`messages show` gives each email a `ref`**, as it does each messenger message and as search hits do, so a
-  caller can match the emails of a thread to the hit it opened.
+## Unreleased
 
 ### Added
 
@@ -19,7 +14,7 @@ the API.
 
 ### Changed — may break callers
 
-- **Built on `@wirecat/cli-core` 0.550.0 and `@wirecat/cli-base` 0.74.0.** Store version 44 moves an agent's or a
+- **Built on `@wirecat/cli-core` 0.552.0 and `@wirecat/cli-base` 0.74.0.** Store version 44 moves an agent's or a
   rule's unconfirmed link into a proposal on first open; `relationships list` no longer shows those.
 - **An agent's `relationships add` answers a `relationship` proposal**, not an unconfirmed relationship.
 - **A run with no agent named and no terminal is not the owner**: its writes are proposals of the bot
@@ -39,6 +34,13 @@ the API.
   MCP could confirm a fact, memory, relationship or action it had proposed itself.
 - **A missing agent variable no longer proves the owner.** The owner decides only at a terminal (stdin and stdout),
   or with `--as-owner` after a y/N answer there; a saved meetings permission lets an MCP agent decide as itself.
+
+## 0.131.15 — 02.11.2026
+
+### Added
+
+- **`messages show` gives each email a `ref`**, as it does each messenger message and as search hits do, so a
+  caller can match the emails of a thread to the hit it opened.
 
 ## 0.131.14 — 01.11.2026
 
