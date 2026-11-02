@@ -46,6 +46,7 @@ import { meetingProjectsCommand } from "./meeting-projects-command.js"
 import { projectActionsCommand } from "./project-actions-command.js"
 import { projectContext, projectContextText } from "./project-context.js"
 import { projectGatherCommand } from "./project-gather-command.js"
+import { projectStatusCommand } from "./project-status-command.js"
 import { projectTransferCommand } from "./project-transfer-command.js"
 
 const RELATIONSHIP_QUERY = {
@@ -188,6 +189,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       print(options.json, itemAnswer(context), projectContextText(context))
     })
   projectGatherCommand(projects, print, env, warn)
+  projectStatusCommand(projects, print, env)
   projectActionsCommand(projects, streams, env)
   projectTransferCommand(projects, streams, env)
   const keys = projects

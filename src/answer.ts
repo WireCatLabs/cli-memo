@@ -98,12 +98,17 @@ export const trackAnswers = (program: Command): void => {
  * where a command has no text view.
  */
 export const answers = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
-  const print = (json: boolean | undefined, body: Body, text?: string): void => {
+  const print = (json: boolean | undefined, body: Body, text?: string, output: { compact?: boolean } = {}): void => {
     const format = json ? "json" : "pretty"
     const root = rootOf(program)
     renderAnswer(
       running.get(root) ?? root,
-      { renderer: createRenderer({ format, color: false, streams }), format, streams },
+      {
+        renderer: createRenderer({ format, color: false, streams }),
+        format,
+        streams,
+        compact: output.compact === true,
+      },
       body,
       () => `${text ?? plainText(body)}\n`,
     )
