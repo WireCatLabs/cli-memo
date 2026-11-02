@@ -116,10 +116,9 @@ Memories and directly recorded facts added through the [MCP server](mcp.md) star
 MCP command tools can confirm memories, accept facts or approve actions when their saved permissions allow it.
 Each command that reaches Memo’s executor is written to the agent log (`memo agents list`), without the details it sent.
 
-Project proposals have a separate flow. By default an agent can decide them with a recorded reason,
-creating accepted facts and numbered tasks or confirming a key document. Set
-[`agent_decisions: false`](configuration.md#agent_decisions) to require owner decisions on project
-proposals; reading and proposing still work. Meeting findings decisions require explicit permissions.
+Project proposals have a separate flow. By default only you decide them; reading and proposing still work.
+Set [`agent_decisions: true`](configuration.md#agent_decisions) to let an agent decide them with a recorded
+reason, creating accepted facts and numbered tasks or confirming a key document. Meeting findings decisions require explicit permissions.
 
 The `memo` command tells who runs it. An [MCP](mcp.md) call is the agent's. An agent's terminal, told by
 `AI_AGENT` or `CLAUDECODE` (the variables agents such as Claude Code set), is the agent's. With neither, the run
@@ -130,8 +129,8 @@ for approval. In an agent's terminal, `--as-owner` makes a command yours only af
 terminal; it never asks under `--json` or without a terminal, and refuses with exit 7.
 
 Every confirm, reject and remove path, CLI and MCP alike, checks who decides. An agent decides only with
-`--reason`, never a proposal of its own bot, never a rule's or an unconfirmed link's, and never when
-[`agent_decisions`](configuration.md#agent_decisions) is `false`. The y/N question is a speed bump, not a
+`--reason`, never a proposal of its own bot, never a rule's or an unconfirmed link's, and only when
+[`agent_decisions`](configuration.md#agent_decisions) is `true`. The y/N question is a speed bump, not a
 lock: an agent that drives a terminal of its own can still answer it.
 
 ## What can leave your computer

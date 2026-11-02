@@ -104,16 +104,18 @@ Add the keys to `config.json` by hand; `memo config unset <key>` removes one.
 
 ## `agent_decisions`
 
-By default an agent may confirm or reject a proposal for you (a fact, a memory, an action, a
-[project proposal](recipes.md#review-project-facts-and-follow-ups)) with a reason recorded in the decision, but never
-one its own bot proposed. Set the top-level `agent_decisions` key to `false` to require owner decisions on all of
-them:
+By default only you confirm or reject a proposal (a fact, a memory, an action, a
+[project proposal](recipes.md#review-project-facts-and-follow-ups)); an agent's attempt is refused. Set the top-level
+`agent_decisions` key to `true` to let an agent decide them for you with a reason recorded in the decision, but never
+one its own bot proposed:
 
 ```json
 {
-  "agent_decisions": false
+  "agent_decisions": true
 }
 ```
+
+Meeting findings keep their own permissions whatever this key says.
 
 Add the key to your existing config rather than replacing your notes, mail and timer settings with
 this small example. Both CLI and MCP then refuse every decision an agent makes; reading and proposing still work.
@@ -153,8 +155,8 @@ without a terminal question; approval prompts depend on the client app. Writes w
 
 `mcp.authority` defaults to `deny` for source-folder changes. `meetings.actions.confirm`,
 `meetings.actions.reject` and `projects.annotations.restore` default to `deny` too; explicitly set the relevant
-key to `ask` or `allow` to delegate one of these owner operations. `agent_decisions: false` continues to refuse
-project proposal decisions. The shared WireCat read ceiling and `MEMO_READ_ONLY` cap every permission.
+key to `ask` or `allow` to delegate one of these owner operations. Unless `agent_decisions` is `true`, project
+proposal decisions stay refused. The shared WireCat read ceiling and `MEMO_READ_ONLY` cap every permission.
 
 Supported commands stay visible with their current availability. Saved permission changes take effect
 on existing connections too. `memo mcp serve --permission notes.edit=deny` tightens one key for that server

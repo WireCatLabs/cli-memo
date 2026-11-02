@@ -25,7 +25,7 @@ export const INSTRUCTIONS = [
   "Look for existing facts and memories first. Save only what will matter later and cite the evidence you read.",
   "Project membership requires confirmed links; a mention is not membership. Preserve unknown speakers and archive coverage.",
   "Meeting preparation reads stored context; future times stay unverified. Select communications explicitly.",
-  "Project decisions follow agent_decisions. Meeting decisions and annotation restore require explicit saved permissions.",
+  "Project decisions are the owner's unless agent_decisions is true. Meeting decisions and annotation restore require explicit saved permissions.",
   "Every command call is logged without its arguments.",
   UNTRUSTED_INSTRUCTION,
 ].join("\n")

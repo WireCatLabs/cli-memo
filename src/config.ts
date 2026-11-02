@@ -111,11 +111,11 @@ export const loadConfig = (env: NodeJS.ProcessEnv = process.env): Config => {
   return config
 }
 
-/** The owner's `agent_decisions` for every store check. A config that does not load keeps decisions with the owner. */
+/** The owner's `agent_decisions` for every store check: off unless set to `true`, and off when the config does not load. */
 export const decisionPolicy = (env: NodeJS.ProcessEnv): DecisionPolicy => {
   let agentDecisions = false
   try {
-    agentDecisions = loadConfig(env).agent_decisions !== false
+    agentDecisions = loadConfig(env).agent_decisions === true
   } catch {}
   return { ...DEFAULT_DECISION_POLICY, agentDecisions }
 }

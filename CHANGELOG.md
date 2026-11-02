@@ -6,6 +6,14 @@ the API.
 
 ## Unreleased
 
+### Changed — may break callers
+
+- **Agents no longer decide for you by default.** An agent's confirm or reject of a fact, a memory, an action, a link
+  or a project proposal is now refused with `proposals.agent-decisions-off` unless your config says
+  `"agent_decisions": true`; before, a missing key let an agent decide with `--reason`. To restore the old behaviour,
+  add `"agent_decisions": true` to memo's `config.json`. Meeting findings keep their
+  own permissions.
+
 ## 0.131.20 — 02.11.2026
 
 ### Added

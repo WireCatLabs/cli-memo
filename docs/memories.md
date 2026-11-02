@@ -28,9 +28,8 @@ shows how.
 For a batch of cited meeting facts and tasks, use the [meeting findings review](#meeting-findings) below.
 
 For sources gathered across a project, use the [project proposal review](recipes.md#review-project-facts-and-follow-ups).
-By default an agent may decide those proposals with a recorded reason, creating accepted facts and
-numbered tasks. Set [`agent_decisions: false`](configuration.md#agent_decisions) to require owner
-decisions for project proposals. Meeting findings decisions require explicit permissions.
+By default only you decide those proposals. Set [`agent_decisions: true`](configuration.md#agent_decisions)
+to let an agent decide them with a recorded reason, creating accepted facts and numbered tasks. Meeting findings decisions require explicit permissions.
 
 **What waits for you.** A proposed action always waits until you approve or reject it. A memory or
 directly recorded fact waits when an agent adds it: through [the MCP server](mcp.md), or with the `memo` command in an

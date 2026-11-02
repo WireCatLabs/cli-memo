@@ -234,6 +234,7 @@ it("allows an explicitly delegated meeting decision and refuses it after permiss
   updateConfig(
     (config) => ({
       ...config,
+      agent_decisions: true,
       permissions: { "meetings.actions.confirm": "allow", "meetings.actions.reject": "allow" },
     }),
     f.env,

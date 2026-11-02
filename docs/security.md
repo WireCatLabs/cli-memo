@@ -35,15 +35,15 @@ nothing and tells you.
 
 - An agent's memories, directly recorded facts and outbound action proposals start as proposed. MCP exposes
   command tools for decisions too, limited by saved [permissions](configuration.md#permissions).
-- Project proposals have a separate review flow. By default an agent can confirm or reject them with
-  a recorded reason; confirmation can create accepted facts and numbered tasks or confirm a key
-  document. Set [`agent_decisions: false`](configuration.md#agent_decisions) to require owner decisions
-  for project proposals. Reading and proposing still work. Meeting decisions require explicit permissions.
+- Project proposals have a separate review flow. By default only you confirm or reject them; reading and
+  proposing still work. Set [`agent_decisions: true`](configuration.md#agent_decisions) to let an agent
+  decide them with a recorded reason; confirmation can create accepted facts and numbered tasks or confirm a
+  key document. Meeting decisions require explicit permissions.
 - A fact, memory or relationship added with the `memo` command records who wrote it.
   When an agent's terminal runs it (`AI_AGENT` or `CLAUDECODE` is set), or nothing shows a person at a
   terminal, the agent is the author and it waits for review. Yours is confirmed or accepted at once.
 - Every decision names who decides. An agent never decides its own bot's proposal, needs `--reason`, and is
-  refused every decision when `agent_decisions` is `false`. In an agent's terminal, `--as-owner` asks y/N at
+  refused every decision unless `agent_decisions` is `true`. In an agent's terminal, `--as-owner` asks y/N at
   the terminal before it acts as you; without a terminal or under `--json` it refuses with exit 7.
 - Approving an action makes it a task for you. Memo never sends a message or an email.
 - Selected [project annotation export and preview](recipes.md#keep-selected-project-annotations) read

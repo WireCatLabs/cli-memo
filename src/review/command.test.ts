@@ -7,6 +7,7 @@ import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { afterEach, expect, it } from "vitest"
 import { envelopeOf } from "../../test/answer.js"
+import { updateConfig } from "../config.js"
 import { createMemoServer } from "../mcp/server.js"
 import { createProgram } from "../program.js"
 import type { Terminal } from "../terminal.js"
@@ -29,6 +30,7 @@ const setUp = async () => {
   }
   delete env.AI_AGENT
   delete env.CLAUDECODE
+  updateConfig((config) => ({ ...config, agent_decisions: true }), env)
   const store = await openStore({ env })
   const project = await store.knowledge.addProject({ name: "Synthetic Harbour", key: "SYH" })
   const team = await store.knowledge.addOrganization({ name: "Synthetic Studio", kind: "company" })

@@ -384,6 +384,7 @@ it("never offers an agent forgetting, rejecting or correcting a memory", async (
 })
 
 it("opens a search hit in full and runs generated writes through the CLI as the MCP agent", async () => {
+  updateConfig((config) => ({ ...config, agent_decisions: true }), env)
   const { client, call, answer } = await connected()
   try {
     const hit = (await answer("search notes", { query: "Fridays", exact: true })) as { items: { ref: string }[] }

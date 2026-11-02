@@ -186,10 +186,11 @@ confirmed: cite the references, then stage findings with `memo projects actions 
 `project_actions_add`), each reference with the `fingerprint` from the evidence. Review with `memo projects actions
 list <project>`: it shows each cited text, whether it changed, and the messages or paragraphs around it.
 Suggested key documents have `state: "untracked"` because no source fingerprint was saved; reread them before deciding. A changed
-text refuses only the findings that cite it; confirm the others and stage a new batch for those. Decide what you are
-confident about with `confirm` or `reject` and `--reason` — the reason is kept with the decision — and ask the
-owner about anything uncertain: who did what, dates, commitments versus suggestions. If the owner set
-`agent_decisions: false`, every decision is theirs.
+text refuses only the findings that cite it; confirm the others and stage a new batch for those. Every decision is
+the owner's unless they set `agent_decisions: true`; a refusal with `proposals.agent-decisions-off` means hand the
+batch to them. When it is on, decide what you are confident about with `confirm` or `reject` and `--reason` — the
+reason is kept with the decision — and ask the owner about anything uncertain: who did what, dates, commitments
+versus suggestions.
 
 Money is not a fact. A payment you read is a finding of kind `payment` with `amount` (a decimal string),
 `currency`, `direction` (`to_us`, `from_us`), `state` and `counterparty`. When the owner confirms it, a `paid` one

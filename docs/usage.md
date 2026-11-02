@@ -74,9 +74,9 @@ waits for you too: memo records the agent as its author when `AI_AGENT` or `CLAU
 add yourself is confirmed (memory) or accepted (fact) at once.
 
 Project proposals use a separate [review flow](recipes.md#review-project-facts-and-follow-ups).
-By default an agent can decide them with a recorded reason and create accepted facts and numbered
-tasks. Set [`agent_decisions: false`](configuration.md#agent_decisions) to require owner decisions
-for project proposals. Meeting findings still require the owner.
+By default only you decide them. Set [`agent_decisions: true`](configuration.md#agent_decisions) to let
+an agent decide them with a recorded reason, creating accepted facts and numbered tasks. Meeting findings
+still require the owner.
 
 ## Keep track of money
 

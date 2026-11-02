@@ -8,7 +8,7 @@ import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { answerOf } from "../test/answer.js"
 import { commandCaller } from "../test/mcp.js"
-import { configPath } from "./config.js"
+import { configPath, updateConfig } from "./config.js"
 import { createMemoServer } from "./mcp/server.js"
 import { createProgram } from "./program.js"
 import type { Terminal } from "./terminal.js"
@@ -17,7 +17,7 @@ const CLAUDE = { AI_AGENT: "claude-code_2-1-296_agent" }
 const CODEX = { AI_AGENT: "codex" }
 const NOBODY: Terminal = { present: false }
 
-const setUp = async () => {
+const setUp = async (agentDecisions = true) => {
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-decide-")), "s.db"),
@@ -25,6 +25,7 @@ const setUp = async () => {
   }
   delete env.AI_AGENT
   delete env.CLAUDECODE
+  if (agentDecisions) updateConfig((config) => ({ ...config, agent_decisions: true }), env)
   const store = await openStore({ env })
   const note = await store.notes.addNote({ text: "Synthetic evidence" })
   await store.accounts.saveAccount({ provider: "telegram", account: "1" }, { name: null })
@@ -85,16 +86,21 @@ it("refuses an agent confirming or rejecting its own proposal through the CLI", 
   )
 })
 
-it("lets another agent decide with a reason, and refuses every agent when agent_decisions is false", async () => {
-  const { env, run, proposeFact } = await setUp()
+it("refuses every agent unless agent_decisions is true, and then wants a reason", async () => {
+  const { env, run, proposeFact } = await setUp(false)
   const first = await proposeFact(CLAUDE)
+  expect(await run(CODEX, NOBODY, "facts", "confirm", first, "--reason", "the thread says so")).toMatchObject(
+    refused("proposals.agent-decisions-off"),
+  )
+
+  mkdirSync(dirname(configPath(env)), { recursive: true })
+  writeFileSync(configPath(env), JSON.stringify({ agent_decisions: true }))
   expect(await run(CODEX, NOBODY, "facts", "confirm", first)).toMatchObject(refused("proposal.reason-required"))
   expect(await run(CODEX, NOBODY, "facts", "confirm", first, "--reason", "the thread says so")).toMatchObject({
     status: "accepted",
   })
 
   const second = await proposeFact(CLAUDE)
-  mkdirSync(dirname(configPath(env)), { recursive: true })
   writeFileSync(configPath(env), JSON.stringify({ agent_decisions: false }))
   expect(await run(CODEX, NOBODY, "facts", "confirm", second, "--reason", "the thread says so")).toMatchObject(
     refused("proposals.agent-decisions-off"),
