@@ -2,22 +2,28 @@ import { spawn } from "node:child_process"
 import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from "node:fs"
 import { delimiter, join } from "node:path"
 import { resolvePaths } from "@wirecat/cli-base"
+import { providerNamed } from "@wirecat/cli-core"
 import type { ProjectChatFetcher } from "@wirecat/cli-core/services"
 import { InvalidArgumentError } from "commander"
 
-/** The WireCat messenger CLI that holds each provider's connection: its command and where it keeps its state. */
-const TOOLS: Record<string, { tool: string; appName: string; envPrefix: string }> = {
-  telegram: { tool: "tg", appName: "tg-cli", envPrefix: "TG" },
-  max: { tool: "max", appName: "max-cli", envPrefix: "MAX" },
-  whatsapp: { tool: "wa", appName: "whatsapp-cli", envPrefix: "WA" },
+/** Where each WireCat messenger CLI keeps its state, by its command. Which CLI holds a provider is the registry's. */
+const STATE: Record<string, { appName: string; envPrefix: string }> = {
+  tg: { appName: "tg-cli", envPrefix: "TG" },
+  max: { appName: "max-cli", envPrefix: "MAX" },
+  wa: { appName: "whatsapp-cli", envPrefix: "WA" },
 }
 
-export const messengerToolOf = (provider: string) => TOOLS[provider]
+/** The WireCat messenger CLI that holds a provider's connection, as the provider registry names it. */
+export const messengerToolOf = (provider: string): { tool: string; appName: string; envPrefix: string } | undefined => {
+  const tool = providerNamed(provider)?.command
+  const state = tool === undefined ? undefined : STATE[tool]
+  return tool === undefined || state === undefined ? undefined : { tool, ...state }
+}
 
 /** `--sync-profile max=default`: the profile memo runs a messenger CLI as, one per tool. */
 export const syncProfileOf = (value: string, previous: Record<string, string> = {}): Record<string, string> => {
   const [tool, profile] = value.split("=", 2)
-  const tools = Object.values(TOOLS).map((one) => one.tool)
+  const tools = Object.keys(STATE)
   if (!tool || !profile || !tools.includes(tool))
     throw new InvalidArgumentError(`<tool>=<profile>, where the tool is ${tools.join(", ")}: max=default`)
   if (previous[tool] !== undefined && previous[tool] !== profile)
@@ -35,8 +41,8 @@ export const profileFor = (
   account: string,
   env: NodeJS.ProcessEnv,
   chosen: Record<string, string> = {},
-): { profile: string } | { why: string } | undefined => {
-  const tool = TOOLS[provider]
+): { profile: string } | { why: string; profiles: string[] } | undefined => {
+  const tool = messengerToolOf(provider)
   if (!tool) return undefined
   const dir = join(resolvePaths({ appName: tool.appName, prefix: tool.envPrefix, env }).state, "accounts")
   const profiles = existsSync(dir)
@@ -55,11 +61,12 @@ export const profileFor = (
   const all = profiles.join(", ") || "none"
   const pick = chosen[tool.tool]
   if (pick !== undefined) {
-    if (!profiles.includes(pick)) return { why: `${tool.tool} profile ${pick} is not signed in here; profiles: ${all}` }
+    if (!profiles.includes(pick))
+      return { why: `${tool.tool} profile ${pick} is not signed in here; profiles: ${all}`, profiles }
     const held = accountOf(pick)
     return held === account
       ? { profile: pick }
-      : { why: `${tool.tool} profile ${pick} is signed in to account ${String(held)}, not ${account}` }
+      : { why: `${tool.tool} profile ${pick} is signed in to account ${String(held)}, not ${account}`, profiles: [] }
   }
   const matching = profiles.filter((profile) => accountOf(profile) === account)
   if (matching.length === 1 && matching[0]) return { profile: matching[0] }
@@ -68,8 +75,9 @@ export const profileFor = (
       why:
         `${matching.length} ${tool.tool} profiles are signed in to account ${account}: ${matching.join(", ")}` +
         ` — choose one with --sync-profile ${tool.tool}=<profile>`,
+      profiles: matching,
     }
-  return { why: `no ${tool.tool} profile here is signed in to account ${account}; profiles: ${all}` }
+  return { why: `no ${tool.tool} profile here is signed in to account ${account}; profiles: ${all}`, profiles: [] }
 }
 
 const onPath = (name: string, env: NodeJS.ProcessEnv) =>
@@ -135,7 +143,7 @@ export const binaryOf = async (
   env: NodeJS.ProcessEnv,
   run: RunChild,
 ): Promise<string | undefined> => {
-  const tool = TOOLS[provider]
+  const tool = messengerToolOf(provider)
   if (!tool) return undefined
   const umbrella = onPath(`wcat-${tool.tool}`, env)
   if (umbrella) {
@@ -188,7 +196,7 @@ export const messengerFetcher = ({
   const binaries = new Map<string, Promise<string | undefined>>()
   return {
     fetch: async ({ account, chatId, after, until, signal }) => {
-      const tool = TOOLS[account.provider]
+      const tool = messengerToolOf(account.provider)
       if (!tool) return { state: "failed", reason: `no WireCat messenger CLI syncs ${account.provider}` }
       const found = profileFor(account.provider, account.account, env, chosen)
       if (!found || !("profile" in found)) return { state: "failed", reason: found?.why ?? "no profile" }
@@ -207,8 +215,6 @@ export const messengerFetcher = ({
         "--timeout",
         `${seconds}s`,
         "--json",
-        // A Telegram group id starts with a minus, which would read as an option.
-        "--",
         chatId,
       ]
       const done = await run(bin, args, {
@@ -254,13 +260,11 @@ export const chatSync = (
   env: NodeJS.ProcessEnv,
   chosen: Record<string, string> = {},
 ): { command: string } | { command: null; line: string; why: string } | null => {
-  const tool = TOOLS[chat.provider]
+  const tool = messengerToolOf(chat.provider)
   if (!tool) return null
   const found = profileFor(chat.provider, chat.account, env, chosen)
-  const target = chat.chat.startsWith("-")
-    ? `--since-time ${since} -- ${chat.chat}`
-    : `${chat.chat} --since-time ${since}`
-  const line = (profile: string) => `${tool.tool} ${profile} messages sync ${target}`
+  // A negative group id needs no `--`: no WireCat CLI has a digit short option.
+  const line = (profile: string) => `${tool.tool} ${profile} messages sync ${chat.chat} --since-time ${since}`
   if (found && "profile" in found) return { command: line(found.profile) }
   return { command: null, line: line("<profile>"), why: found?.why ?? "no profile" }
 }

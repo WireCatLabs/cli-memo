@@ -429,7 +429,7 @@ export const notes: readonly SharedContractOverride[] = [
         name: "id",
         required: true,
         variadic: false,
-        description: "note:<id> or its id",
+        description: "note:<id>",
       },
     ],
     reason:
@@ -504,7 +504,7 @@ export const notes: readonly SharedContractOverride[] = [
         name: "id",
         required: true,
         variadic: false,
-        description: "note:<id> or its id",
+        description: "note:<id>",
       },
     ],
     reason:

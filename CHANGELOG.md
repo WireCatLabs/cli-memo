@@ -11,6 +11,12 @@ the API.
 - **`--reason` on every decide command**: `facts confirm`, `reject`, `reverse` and `remove`, `memories confirm`,
   `invalidate` and `remove`, `relationships confirm` and `remove`, `actions reject` for any action. An agent
   decides only with one. `--as-owner` on these and on `projects key-documents remove` and `meetings actions`.
+- **`memo show <ref...>`** tells what 1 to 100 references name, in the order given: title, kind, where it is,
+  state and the command that opens it (`open.argv`, `open.line`). It never picks a profile: with none or several
+  signed in, the command keeps `<profile>` and `open.profiles` lists the choices. Also an MCP tool.
+- **`--compact`** prints one line per item, reference first and text last, with paging, missing data and next steps
+  as `#` lines. memo declares rows for search hits, notes, facts, memories, people, organizations, projects,
+  relationships, tasks, messages and `projects evidence`. Refused with `--json` or `--brief`; MCP stays JSON.
 
 ### Changed — may break callers
 
@@ -22,6 +28,13 @@ the API.
 - **`--as-owner` in an agent's terminal asks y/N at the terminal**; without one, or under `--json`, it refuses
   with `confirmation_required` (`decision.owner-unconfirmed`, exit 7). Over MCP it is refused.
 - **`projects.agent-decisions-off` is now cli-core's `proposals.agent-decisions-off`**, and covers every decision.
+- **A bare number is refused where several kinds fit**: `notes show|edit|remove`, `projects key-documents
+  add|remove`, `tasks add <source>` and `show` answer `"1473" is a bare number; did you mean note:1473?`
+  (`ref.bare-number`), naming only references that exist. A file named `1473` is read as `./1473`.
+- **`notes add`, `notes edit` and `notes remove` print the note's reference** (`note:12`), not its bare id.
+- **Text without `--json` is drawn by cli-core's generic row** where a command has no view of its own: `·` between
+  columns, `# more: raise --limit` for more.
+- **The sync command memo prints and runs puts no `--` before a chat id**: a negative group id needs none.
 - **Words after `--` stay text** in `notes add`, `notes edit`, `facts add`, `memories add`, `tasks comments add`,
   `people add`, `organizations add`, `projects add` and `answers create`.
 

@@ -373,7 +373,8 @@ describe("notes written in memo", () => {
   it("adds, edits, lists and removes a note about a person, and exports it once", async () => {
     await telegramPeople(["101", "Rin Example"])
     const out = join(root, "exported")
-    const id = (await run("notes", "add", "Prefers mornings", "--subject", "telegram:Rin Example")).trim()
+    const ref = (await run("notes", "add", "Prefers mornings", "--subject", "telegram:Rin Example")).trim()
+    const id = ref.slice("note:".length)
 
     expect((await json("notes", "list", `about:"telegram:101"`)).items.map((note: { id: string }) => note.id)).toEqual([
       id,
@@ -381,7 +382,7 @@ describe("notes written in memo", () => {
     const edited = await json(
       "notes",
       "edit",
-      id,
+      ref,
       "--revision",
       "1",
       "--text",
@@ -392,9 +393,9 @@ describe("notes written in memo", () => {
     expect(edited).toMatchObject({ id, revision: 2, text: "Prefers early mornings" })
     expect(edited.export_path).toMatch(new RegExp(`^${out}/`))
     expect((await json("notes", "export", "--output-dir", out)).unchanged).toHaveLength(1)
-    await expect(run("notes", "edit", id, "--revision", "1", "--text", "stale")).rejects.toThrow(/changed/)
+    await expect(run("notes", "edit", ref, "--revision", "1", "--text", "stale")).rejects.toThrow(/changed/)
 
-    await run("notes", "remove", id)
+    await run("notes", "remove", ref)
     expect((await json("notes", "list", `about:"telegram:101"`)).items).toEqual([])
   })
 

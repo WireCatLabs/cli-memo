@@ -3,6 +3,12 @@ import { defineReasons, type ErrorReason } from "@wirecat/cli-base/standards"
 /** The reasons memo raises itself; cli-base's and cli-core's are merged in by `failureContext`. */
 export const REASONS: ErrorReason[] = defineReasons([
   {
+    reason: "ref.bare-number",
+    code: "validation_error",
+    message: "{value} is a bare number, which names no one kind of record here; give a reference such as {suggestion}",
+    details: ["value", "suggestion"],
+  },
+  {
     reason: "decision.owner-unconfirmed",
     code: "confirmation_required",
     message: "--as-owner asks at a terminal, and nobody is at one to answer; the owner runs it there, without --json",

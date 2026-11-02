@@ -159,8 +159,8 @@ already be in the local store.
 
 ```sh
 memo notes show note:12
-memo notes edit 12 --revision 1 --text 'Prefers early morning meetings'
-memo notes remove 12
+memo notes edit note:12 --revision 1 --text 'Prefers early morning meetings'
+memo notes remove note:12
 ```
 
 Each note has a **revision** number that goes up with every edit. `memo notes edit` asks for the

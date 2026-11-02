@@ -14,6 +14,7 @@ These options work with the `memo` command itself.
 | `--debug` | on failure, show the full error record: cause and stack. |
 | `--record` | keep this run even where the config says record false; record_input false leaves the typed words out. |
 | `--no-record` | do not keep this run, even if it fails. |
+| `--compact` | one line per item for an agent: reference first, text last, paging and next steps as # lines. |
 
 ## `memo context`
 
@@ -36,6 +37,26 @@ memo context <person> [options]
 **Returns:** messages, mail, notes and events about a person, each with a link to its source
 
 **Example:** `memo context telegram:'Kai Sample'`, `memo context email:kai@example.com --limit 5 --json`
+
+## `memo show`
+
+what any reference names, and the command that opens it
+
+```sh
+memo show <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | 1 to 100 references any WireCat CLI printed: chat:, msg:, note:, document:, person:, task:…. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** what any reference names, and the command that opens it
+
+**Example:** `memo show chat:max/500/-1001 document:413`, `memo show note:12 msg:telegram/1/77/42 --json`
 
 ## `memo notes`
 
@@ -129,7 +150,7 @@ memo notes edit <id> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `id` | required | note:<id> or its id. |
+| `id` | required | note:<id>. |
 
 | Option | What it does |
 |---|---|
@@ -158,7 +179,7 @@ memo notes remove <id> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `id` | required | note:<id> or its id. |
+| `id` | required | note:<id>. |
 
 | Option | What it does |
 |---|---|

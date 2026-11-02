@@ -20,6 +20,7 @@ import {
 import { APP } from "../app.js"
 import { authorOf } from "../author.js"
 import { isNoteReference } from "../notes/about.js"
+import { refuseBareNumber } from "../refs.js"
 import { heldMessage } from "../store/held.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
 import { canonicalProject } from "../vocabulary/project.js"
@@ -142,13 +143,16 @@ const addFromSource = async (store: MessageStore, env: NodeJS.ProcessEnv, source
 }
 
 /** A task in a project when no source is given, otherwise one from the source in its account. */
-export const addTask = (
+export const addTask = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
   source: string | undefined,
   options: AddOptions,
-): Promise<Details | Added | (Added & { details: Details })> =>
-  source === undefined ? addToProject(store, env, options) : addFromSource(store, env, source, options)
+): Promise<Details | Added | (Added & { details: Details })> => {
+  if (source === undefined) return addToProject(store, env, options)
+  await refuseBareNumber(store, source, ["note", "document"])
+  return addFromSource(store, env, source, options)
+}
 
 const checkOf = (revision: number | undefined) => (revision === undefined ? {} : { revision })
 

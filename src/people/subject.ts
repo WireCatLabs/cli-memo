@@ -1,9 +1,7 @@
-import { formatReference } from "@wirecat/cli-core"
+import { formatReference, looksLikeReference } from "@wirecat/cli-core"
 import type { MessageStore, PersonRecord } from "@wirecat/cli-core/store"
 import { identityOf } from "./identity.js"
 import { withOwner } from "./owner.js"
-
-const TYPED = /^(person|organization|project|note|document|task|msg|chat|contact|folder|meeting):\S+$/
 
 export interface Subject {
   ref: string
@@ -17,7 +15,7 @@ export const subjectOf = async (store: MessageStore, text: string): Promise<Subj
     const person = await store.people.personByUid(typed.slice("person:".length))
     return person === undefined ? { ref: typed } : { ref: typed, person }
   }
-  if (TYPED.test(typed)) return { ref: typed }
+  if (looksLikeReference(typed)) return { ref: typed }
   const identity = await identityOf(store, text)
   const person = await store.people.personOf(identity)
   return person === undefined
