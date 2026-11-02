@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.18 — 02.11.2026
+
 ### Added
 
 - **`memo review` shows everything that waits for you in one list**: besides facts, memories, links, key documents,
