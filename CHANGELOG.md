@@ -11,12 +11,26 @@ the API.
 - **`--reason` on every decide command**: `facts confirm`, `reject`, `reverse` and `remove`, `memories confirm`,
   `invalidate` and `remove`, `relationships confirm` and `remove`, `actions reject` for any action. An agent
   decides only with one. `--as-owner` on these and on `projects key-documents remove` and `meetings actions`.
+- **`memo review`**: every pending proposal across projects in one list (relationships, key documents, facts,
+  memories, findings batches, actions), each with a readable title, who proposed it, the reason, score, signals and
+  evidence. Filters `project:`, `kind:`, `by:` (`agent`, `rule` or a bot), `status:`; `--compact` prints one line each.
+- **`memo review show <id>`**, **`review confirm <ids>`** and **`review reject <ids> --reason`**: ids and ranges such
+  as `17070-17079,fact:500-502,17080/f1`. Each id is decided on its own; a refusal is listed, the others stay
+  decided, and the exit code is not 0. Over MCP they are owner permissions `review.confirm` and `review.reject`.
+- **`relationships list confirmed:false`** lists the relationships waiting for you, as `review kind:relationship`
+  does; `confirmed:true` lists links only. Every row has `from_title` and `to_title`, and the text shows the purpose.
 
 ### Changed — may break callers
 
 - **Built on `@wirecat/cli-core` 0.550.0 and `@wirecat/cli-base` 0.74.0.** Store version 44 moves an agent's or a
   rule's unconfirmed link into a proposal on first open; `relationships list` no longer shows those.
 - **An agent's `relationships add` answers a `relationship` proposal**, not an unconfirmed relationship.
+- **An agent's `projects key-documents add` writes a `key_document` proposal**, decided in `memo review`; its `id` is
+  the proposal's. `projects actions list` and `projects context` list these, and `projects actions confirm` takes
+  the proposal number as well as `key:<id>`.
+- **Old decide commands go through the review's check**: `facts confirm` and `reject`, `memories confirm` and
+  `invalidate` on a proposed memory, `relationships confirm` and `remove` on a suggestion, `actions confirm` and
+  `reject`, `projects actions confirm` and `reject`. A decided proposal now refuses with `proposal.wrong-state`.
 - **A run with no agent named and no terminal is not the owner**: its writes are proposals of the bot
   `unattended`, and its decisions refuse with `confirmation_required` (`decision.decider-unknown`, exit 7).
 - **`--as-owner` in an agent's terminal asks y/N at the terminal**; without one, or under `--json`, it refuses

@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**569 ✅ · 0 ⛔ · 100 ❌** — 152 commands, 517 options.
+**584 ✅ · 0 ⛔ · 106 ❌** — 156 commands, 534 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -537,6 +537,27 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `actions reject` | `--fingerprint` | ✅ |  |
 | `actions reject` | `--reason` | ❌ |  |
 | `actions reject` | `--json` | ✅ |  |
+| `review list` |  | ✅ |  |
+| `review list` | `--json` | ✅ |  |
+| `review list` | `--limit` | ❌ |  |
+| `review list` | `--page` | ❌ |  |
+| `review list` | `--compact` | ✅ |  |
+| `review show` |  | ✅ |  |
+| `review show` | `--json` | ✅ |  |
+| `review show` | `--brief` | ✅ |  |
+| `review show` | `--before-n` | ✅ |  |
+| `review show` | `--after-n` | ✅ |  |
+| `review show` | `--compact` | ❌ |  |
+| `review confirm` |  | ✅ |  |
+| `review confirm` | `--json` | ✅ |  |
+| `review confirm` | `--as-owner` | ✅ |  |
+| `review confirm` | `--reason` | ✅ |  |
+| `review confirm` | `--compact` | ❌ |  |
+| `review reject` |  | ✅ |  |
+| `review reject` | `--json` | ✅ |  |
+| `review reject` | `--as-owner` | ❌ |  |
+| `review reject` | `--reason` | ✅ |  |
+| `review reject` | `--compact` | ❌ |  |
 | `agents list` |  | ✅ |  |
 | `agents list` | `--limit` | ✅ |  |
 | `agents list` | `--json` | ✅ |  |
