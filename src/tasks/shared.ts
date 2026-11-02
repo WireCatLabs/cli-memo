@@ -10,6 +10,7 @@ import {
 import { type AccountKey, openStore } from "@wirecat/cli-core/store"
 import { Command } from "commander"
 import { APP, STORE_CLIENT } from "../app.js"
+import { decisionPolicy } from "../config.js"
 import {
   oneAccountOf,
   type SourceOptions,
@@ -58,7 +59,7 @@ const requireAccount =
       : sourceOf(command.opts<SourceOptions>(), warn)
     const [first, ...targets] = command.args
     const chats = command.opts<{ chat?: string[] }>().chat ?? []
-    const store = await openStore({ env, ...STORE_CLIENT })
+    const store = await openStore({ env, ...STORE_CLIENT, decisions: decisionPolicy(env) })
     try {
       if (value !== undefined) {
         resolved.set(command, await oneAccountOf(store, env, value, option))

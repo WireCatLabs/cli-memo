@@ -15,10 +15,10 @@ import {
 import type { Command } from "commander"
 import * as v from "valibot"
 import { answers, itemAnswer, listAnswer } from "../answer.js"
-import { authorOf, byOption } from "../author.js"
+import { byOption, deciderOf, whoRuns } from "../author.js"
 import { positive, whole } from "../options.js"
 import { projectOf } from "./key-documents.js"
-import { decideAction, deciderOf, projectActions } from "./project-actions.js"
+import { decideAction, projectActions } from "./project-actions.js"
 
 const ACTIONS_QUERY = {
   entity: "project_action",
@@ -48,11 +48,11 @@ export const projectActionsCommand = (projects: Command, streams: Streams, env: 
         "or assignee needs due_evidence or assignee_evidence citing this finding's references. At most one project per " +
         "batch. The same key and input returns the same batch; actions confirm and reject decide it by its id.\n",
     )
-    .action(async (file: string, given: { json?: boolean }) => {
+    .action(async (file: string, given: { json?: boolean }, command: Command) => {
       const input = parseEvidenceFindingsJson(
         await readBatchInput(file === "-" ? (environmentOf(projects).stdin ?? process.stdin) : createReadStream(file)),
       )
-      const author = authorOf(env)
+      const author = await whoRuns(command, env, { question: "" })
       if (author === "owner")
         throw new CliError("validation_error", "findings are an agent's proposals; record your own with memo facts add")
       await run(given.json, async (store) => itemAnswer(await store.evidenceFindings.stage(input, author)))
@@ -156,8 +156,8 @@ export const projectActionsCommand = (projects: Command, streams: Streams, env: 
           reason?: string
           asOwner?: boolean
         }
+        const by = await deciderOf(command, env, { ...given, question: `${name} ${id} as you, the owner?` })
         await run(given.json, async (store) => {
-          const by = deciderOf(env, authorOf(env, given.asOwner), given.reason)
           const project = await projectOf(store, reference)
           return itemAnswer(
             await decideAction(store, project, id, {

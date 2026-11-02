@@ -11,10 +11,10 @@ import {
   termField,
   withQuery,
 } from "@wirecat/cli-core/cli"
-import type { MessageStore } from "@wirecat/cli-core/store"
+import type { Decider, MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer } from "../answer.js"
-import { authorOf } from "../author.js"
+import { byOption, whoRuns } from "../author.js"
 import { mcpOwnerAllowed } from "../mcp/permissions.js"
 import { positive } from "../options.js"
 import {
@@ -70,7 +70,7 @@ export const findingsCommand = (program: Command, streams: Streams, env: NodeJS.
         file === "-" ? (environmentOf(program).stdin ?? process.stdin) : createReadStream(file),
       )
       const input = parseMeetingFindingsJson(text)
-      const author = authorOf(env)
+      const author = await whoRuns(program, env, { question: "" })
       const agent = author === "owner" ? { bot: "memo-findings" } : author
       await run(given.json, async (store) =>
         itemAnswer(await store.meetingFindings.stage(await acting(store, given), input, agent)),
@@ -121,8 +121,18 @@ export const findingsCommand = (program: Command, streams: Streams, env: NodeJS.
       )
       .argument("<id>", "stored findings batch ID")
       .requiredOption("--fingerprint <hash>", "the exact fingerprint shown in the preview")
-    const review = (id: string, given: Options, accept: string[]) => {
-      if (authorOf(env) !== "owner" && !mcpOwnerAllowed(env, `meetings.actions.${name}`))
+    byOption(command)
+    const review = async (id: string, given: Options & { asOwner?: boolean }, accept: string[]) => {
+      const key = `meetings.actions.${name}`
+      const who = await whoRuns(command, env, { asOwner: given.asOwner, question: `${name} batch ${id} as you?` })
+      // A saved permission is the owner's standing answer; the agent still decides as itself, never its own batch.
+      const by: Decider | undefined =
+        who === "owner"
+          ? who
+          : mcpOwnerAllowed(env, key)
+            ? { bot: who.bot, reason: `the owner allows ${key}` }
+            : undefined
+      if (by === undefined)
         throw new CliError(
           "validation_error",
           "findings confirmation and rejection belong to the owner; agents must leave proposals for review",
@@ -132,6 +142,7 @@ export const findingsCommand = (program: Command, streams: Streams, env: NodeJS.
           await store.meetingFindings.review(await acting(store, given), id, {
             fingerprint: given.fingerprint,
             accept,
+            by,
           }),
         ),
       )

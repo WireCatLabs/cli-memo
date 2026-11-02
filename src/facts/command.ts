@@ -1,10 +1,10 @@
 import type { Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { LOCAL_READ, LOCAL_WRITE, withQuery } from "@wirecat/cli-core/cli"
-import { FACT_TYPES, type Fact, MEMORY_SCOPES } from "@wirecat/cli-core/store"
+import { type Decider, FACT_TYPES, type Fact, MEMORY_SCOPES, type MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
-import { authorOf, byOption } from "../author.js"
+import { byOption, deciderOf, reasonOption, whoRuns } from "../author.js"
 import { FORGET_HELP } from "../memories/command.js"
 import { oneOf, positive } from "../options.js"
 import { canonicalProject } from "../vocabulary/project.js"
@@ -28,9 +28,11 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   const facts = program.command("facts").description("what happened — said, asked, decided, promised — with evidence")
 
   byOption(
-    annotate(facts.command("add"), { effects: LOCAL_WRITE, output: { entity: "fact" } }).description(
-      "record a fact; an agent's waits as proposed until you confirm it",
-    ),
+    annotate(facts.command("add"), {
+      effects: LOCAL_WRITE,
+      output: { entity: "fact" },
+      literal_after_dashes: true,
+    }).description("record a fact; an agent's waits as proposed until you confirm it"),
   )
     .argument("<statement...>", "what happened, in one sentence")
     .requiredOption("--kind <kind>", FACT_TYPES.join(", "), oneOf(FACT_TYPES))
@@ -44,14 +46,15 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       "the proposed or accepted fact this one corrects; it stays, marked superseded once this one is accepted",
     )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((words: string[], options: AddOptions) =>
-      run(options.json, async (store) =>
+    .action(async (words: string[], options: AddOptions, command: Command) => {
+      const by = await whoRuns(command, env, { asOwner: options.asOwner, question: "record this fact as yours?" })
+      await run(options.json, async (store) =>
         itemAnswer(
           factItem(
             await addFact(store, {
               type: options.kind,
               statement: words.join(" "),
-              by: authorOf(env, options.asOwner),
+              by,
               ...(options.evidence === undefined ? {} : { evidence: options.evidence }),
               ...(options.project === undefined ? {} : { project: await canonicalProject(store, options.project) }),
               ...(options.subject === undefined ? {} : { subject: options.subject }),
@@ -61,8 +64,8 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
             }),
           ),
         ),
-      ),
-    )
+      )
+    })
 
   withQuery(annotate(facts.command("list"), { effects: LOCAL_READ }).description("facts, latest first"), FACT_QUERY)
     .option("--limit <n>", "most facts, up to 500", positive, 100)
@@ -85,36 +88,47 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       ),
     )
 
-  annotate(facts.command("confirm"), { effects: LOCAL_WRITE, output: { entity: "fact" } })
-    .description("stand behind a fact an agent proposed; a fact it supersedes stops holding")
-    .argument("<ref>", "fact:<id>")
-    .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(factItem(await store.facts.accept(ref)))),
-    )
+  const decide = (
+    name: "confirm" | "reverse" | "reject" | "remove",
+    description: string,
+    act: (store: MessageStore, ref: string, by: Decider, reason?: string) => Promise<unknown>,
+  ) =>
+    reasonOption(
+      byOption(
+        annotate(facts.command(name), {
+          effects: LOCAL_WRITE,
+          ...(name === "remove" ? {} : { output: { entity: "fact" } }),
+        }),
+      )
+        .description(description)
+        .argument("<ref>", "fact:<id>")
+        .option("--json", "print JSON; --json=id,title keeps only those fields"),
+    ).action(async (ref: string, options: Decision, command: Command) => {
+      const by = await deciderOf(command, env, { ...options, question: `${name} ${ref} as you, the owner?` })
+      await run(options.json, async (store) => {
+        const done = await act(store, ref, by, options.reason)
+        return itemAnswer(name === "remove" ? done : factItem(done as Fact))
+      })
+    })
 
-  annotate(facts.command("reverse"), { effects: LOCAL_WRITE, output: { entity: "fact" } })
-    .description("an accepted decision no longer holds, and nothing replaced it")
-    .argument("<ref>", "fact:<id>")
-    .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(factItem(await store.facts.reverse(ref)))),
-    )
+  decide(
+    "confirm",
+    "stand behind a fact an agent proposed; a fact it supersedes stops holding",
+    (store, ref, by, why) => store.facts.accept(ref, by, why),
+  )
+  decide("reverse", "an accepted decision no longer holds, and nothing replaced it", (store, ref, by) =>
+    store.facts.reverse(ref, by),
+  )
+  decide("reject", "turn down a fact an agent proposed; it stays, marked rejected", (store, ref, by, why) =>
+    store.facts.reject(ref, by, why),
+  )
+  decide("remove", "forget a fact: erase its text, its links to sources and its tags", (store, ref, by) =>
+    store.facts.remove(ref, by),
+  ).addHelpText("after", `\n${FORGET_HELP.replace("use invalidate", "use reject or reverse")}`)
+}
 
-  annotate(facts.command("reject"), { effects: LOCAL_WRITE, output: { entity: "fact" } })
-    .description("turn down a fact an agent proposed; it stays, marked rejected")
-    .argument("<ref>", "fact:<id>")
-    .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(factItem(await store.facts.reject(ref)))),
-    )
-
-  annotate(facts.command("remove"), { effects: LOCAL_WRITE })
-    .description("forget a fact: erase its text, its links to sources and its tags")
-    .argument("<ref>", "fact:<id>")
-    .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .addHelpText("after", `\n${FORGET_HELP.replace("use invalidate", "use reject or reverse")}`)
-    .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(await store.facts.remove(ref))),
-    )
+interface Decision {
+  reason?: string
+  asOwner?: boolean
+  json?: boolean
 }

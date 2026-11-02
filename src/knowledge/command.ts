@@ -27,7 +27,7 @@ import {
 } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, wholeList, withStore } from "../answer.js"
-import { authorOf, byOption } from "../author.js"
+import { byOption, deciderOf, reasonOption, whoRuns } from "../author.js"
 import { notesAbout } from "../notes/about.js"
 import { oneOf, positive, readScope, writeScope } from "../options.js"
 import { withOwner } from "../people/owner.js"
@@ -95,7 +95,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   const organizations = program
     .command("organizations")
     .description("companies, teams, families and communities of yours")
-  annotate(organizations.command("add"), { effects: LOCAL_WRITE })
+  annotate(organizations.command("add"), { effects: LOCAL_WRITE, literal_after_dashes: true })
     .description("add an organization of yours: a company, team, family or community")
     .argument("<name>", "the organization's name")
     .requiredOption("--kind <kind>", ORGANIZATION_KINDS.join(", "), oneOf(ORGANIZATION_KINDS))
@@ -137,7 +137,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     )
   const projects = program.command("projects").description("projects of yours, each with a short key")
   meetingProjectsCommand(projects, streams, env)
-  annotate(projects.command("add"), { effects: LOCAL_WRITE })
+  annotate(projects.command("add"), { effects: LOCAL_WRITE, literal_after_dashes: true })
     .description("add a project of yours, with a short key its tasks use")
     .argument("<name>", "the project's name")
     .option("--key <key>", "3–4 letters and digits; made from the name when left out")
@@ -200,19 +200,31 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       .argument("<reference>", "note:, document: or msg: reference")
       .requiredOption("--reason <text>", "why it is key, in a few words")
       .option("--json", "print JSON; --json=id,title keeps only those fields"),
-  ).action((project: string, reference: string, options: { reason: string; asOwner?: boolean; json?: boolean }) =>
-    owned(options, async (store) =>
-      markKey(store, await projectOf(store, project), reference, options.reason, authorOf(env, options.asOwner)),
-    ),
+  ).action(
+    async (
+      project: string,
+      reference: string,
+      options: { reason: string; asOwner?: boolean; json?: boolean },
+      command: Command,
+    ) => {
+      const by = await whoRuns(command, env, { asOwner: options.asOwner, question: "mark it key as you?" })
+      await owned(options, async (store) =>
+        markKey(store, await projectOf(store, project), reference, options.reason, by),
+      )
+    },
   )
-  annotate(keys.command("remove"), { effects: LOCAL_WRITE })
-    .description("unmark a key document; the note, file or message stays")
-    .argument("<project>", "id, project:<id>, key, exact name or alias")
-    .argument("<reference>", "the key document's note:, document: or msg: reference")
-    .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((project: string, reference: string, options: { json?: boolean }) =>
-      owned(options, async (store) => unmarkKey(store, await projectOf(store, project), reference)),
-    )
+  byOption(
+    annotate(keys.command("remove"), { effects: LOCAL_WRITE })
+      .description("unmark a key document; the note, file or message stays. Only you remove one")
+      .argument("<project>", "id, project:<id>, key, exact name or alias")
+      .argument("<reference>", "the key document's note:, document: or msg: reference")
+      .option("--json", "print JSON; --json=id,title keeps only those fields"),
+  ).action(
+    async (project: string, reference: string, options: { asOwner?: boolean; json?: boolean }, command: Command) => {
+      const by = await deciderOf(command, env, { ...options, question: `unmark ${reference} as you, the owner?` })
+      await owned(options, async (store) => unmarkKey(store, await projectOf(store, project), reference, by))
+    },
+  )
   answerEntity(
     withQuery(
       annotate(keys.command("list"), { effects: LOCAL_READ })
@@ -251,7 +263,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .option("--role <role>", "the role it has there, in a few words, such as cto")
     .option("--reason <text>", "why you think so, in a sentence")
     .action(
-      (
+      async (
         from: string,
         to: string,
         options: {
@@ -261,18 +273,21 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
           asOwner?: boolean
           json?: boolean
         },
+        command: Command,
       ) => {
-        const author = authorOf(env, options.asOwner)
-        return owned(options, async (store) =>
-          store.knowledge.relate(null, {
+        const by = await whoRuns(command, env, { asOwner: options.asOwner, question: "state it as yours?" })
+        return owned(options, async (store) => {
+          const input = {
             from: await withOwner(store, from),
             to: await withOwner(store, to),
             kind: options.kind,
-            ...(author === "owner" ? {} : { confirmed: false, provenance: `agent:${author.bot}` }),
             ...(options.role === undefined ? {} : { role: options.role }),
             ...(options.reason === undefined ? {} : { evidence: options.reason }),
-          }),
-        )
+          }
+          return by === "owner"
+            ? store.knowledge.relate(null, { ...input, by })
+            : store.knowledge.relate(null, { ...input, by })
+        })
       },
     )
   withQuery(
@@ -287,20 +302,28 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         store.knowledge.relations(null, queryTerms(words, RELATIONSHIP_QUERY, "relationships list").get("about")),
       ),
     )
-  annotate(relations.command("remove"), { effects: LOCAL_WRITE })
-    .description("remove a relationship")
-    .argument("<id>", "the relationship's id, as relationships list gives it")
-    .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((id: string, options: { json?: boolean }) =>
-      owned(options, (store) => store.knowledge.removeRelation(null, id)),
-    )
-  annotate(relations.command("confirm"), { effects: LOCAL_WRITE })
-    .description("confirm a suggested relationship")
-    .argument("<id>", "the relationship's id, as relationships list gives it")
-    .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((id: string, options: { json?: boolean }) =>
-      owned(options, (store) => store.knowledge.confirmRelation(null, id)),
-    )
+  for (const [name, description] of [
+    ["remove", "remove a relationship; removing a suggested one rejects it"],
+    ["confirm", "confirm a suggested relationship"],
+  ] as const)
+    reasonOption(
+      byOption(
+        annotate(relations.command(name), { effects: LOCAL_WRITE })
+          .description(description)
+          .argument("<id>", "the relationship's id, as relationships list gives it")
+          .option("--json", "print JSON; --json=id,title keeps only those fields"),
+      ),
+    ).action(async (id: string, options: { reason?: string; asOwner?: boolean; json?: boolean }, command: Command) => {
+      const by = await deciderOf(command, env, {
+        ...options,
+        question: `${name} relationship ${id} as you, the owner?`,
+      })
+      await owned(options, (store) =>
+        name === "remove"
+          ? store.knowledge.removeRelation(null, id, by)
+          : store.knowledge.confirmRelation(null, id, by),
+      )
+    })
   readScope(
     annotate(relations.command("scan"), { effects: LOCAL_READ }).description(
       "suggest relationships between email contacts of one domain; you confirm each",
@@ -335,7 +358,9 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
               if (suggestions.length >= options.limit)
                 return listAnswer("relationships scan", { items: suggestions, limit: options.limit, has_more: true })
               suggestions.push(
+                // An unconfirmed suggestion only the owner decides, as before scan writes rule proposals (D7).
                 await store.knowledge.relate(key, {
+                  by: "owner",
                   from: `person:${people[left]}`,
                   to: `person:${people[right]}`,
                   kind: "related-to",

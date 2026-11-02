@@ -236,7 +236,13 @@ it("queries organization, project and key-document fields through their native r
     type: "client",
   })
   const note = await store.notes.addNote({ text: "Synthetic source" })
-  const key = await store.notes.addLink({ from: note.ref, to: project.ref, kind: "related-to", role: "key" })
+  const key = await store.notes.addLink({
+    from: note.ref,
+    to: project.ref,
+    kind: "related-to",
+    role: "key",
+    by: "owner",
+  })
   await store.close()
   const run = async (...args: string[]) => {
     const streams = captureStreams()

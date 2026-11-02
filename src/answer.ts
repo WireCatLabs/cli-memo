@@ -3,6 +3,7 @@ import { type Body, currentRun, itemOf, type ListInput, listOf, renderAnswer, ro
 import { type MessageStore, openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { STORE_CLIENT } from "./app.js"
+import { decisionPolicy } from "./config.js"
 import { snakeKeys } from "./output.js"
 
 export const itemAnswer = <T>(value: T, extra?: Parameters<typeof itemOf>[1]) => itemOf(snakeKeys(value), extra)
@@ -25,7 +26,7 @@ export const wholeList = (command: string, items: unknown[]) =>
   listAnswer(command, { items, limit: Math.max(1, items.length), has_more: false })
 
 export const withStore = async <T>(env: NodeJS.ProcessEnv, work: (store: MessageStore) => Promise<T>): Promise<T> => {
-  const store = await openStore({ env, ...STORE_CLIENT })
+  const store = await openStore({ env, ...STORE_CLIENT, decisions: decisionPolicy(env) })
   try {
     return await work(store)
   } finally {

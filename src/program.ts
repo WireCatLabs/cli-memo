@@ -22,6 +22,7 @@ import { agentsCommand } from "./agents/command.js"
 import { answers, itemAnswer, trackAnswers } from "./answer.js"
 import { askCommand } from "./answers/command.js"
 import { APP } from "./app.js"
+import { provideTerminal, type Terminal } from "./author.js"
 import { loadConfig } from "./config.js"
 import { configCommand } from "./config-command.js"
 import { contextCommand } from "./context/command.js"
@@ -179,11 +180,14 @@ export const createProgram = ({
   streams: raw = processStreams,
   env = process.env,
   signal,
+  terminal,
 }: {
   streams?: Streams
   env?: NodeJS.ProcessEnv
   /** Ctrl-C or SIGTERM from `startCli`: a sync stops at its next safe point. */
   signal?: AbortSignal
+  /** Whether a person is at the terminal; the process's stdin and stdout unless a test hands one in. */
+  terminal?: Terminal
 } = {}): Command => {
   const fields = jsonFields(raw, OWN_ENTITIES)
   const { streams } = fields
@@ -192,6 +196,7 @@ export const createProgram = ({
     .version(VERSION)
     .option("--debug", "on failure, show the full error record: cause and stack")
   refuseWritesUnderLock(program, env)
+  provideTerminal(program, terminal)
 
   contextCommand(program, streams, env)
   notesCommand(program, streams, env)

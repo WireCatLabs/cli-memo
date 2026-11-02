@@ -1,10 +1,10 @@
 import type { Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { LOCAL_READ, LOCAL_WRITE, withQuery } from "@wirecat/cli-core/cli"
-import { MEMORY_KINDS, MEMORY_SCOPES, type Memory } from "@wirecat/cli-core/store"
+import { type Decider, MEMORY_KINDS, MEMORY_SCOPES, type Memory, type MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
-import { authorOf, byOption } from "../author.js"
+import { byOption, deciderOf, reasonOption, whoRuns } from "../author.js"
 import { oneOf, positive } from "../options.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { addMemory } from "./memories.js"
@@ -17,9 +17,11 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     .description("what agents and you concluded, with evidence; you confirm an agent's")
 
   byOption(
-    annotate(memories.command("add"), { effects: LOCAL_WRITE, output: { entity: "memory" } }).description(
-      "write a memory; an agent's waits as proposed until you confirm it",
-    ),
+    annotate(memories.command("add"), {
+      effects: LOCAL_WRITE,
+      output: { entity: "memory" },
+      literal_after_dashes: true,
+    }).description("write a memory; an agent's waits as proposed until you confirm it"),
   )
     .argument("<text...>", "what is true, in a sentence or two")
     .requiredOption("--kind <kind>", MEMORY_KINDS.join(", "), oneOf(MEMORY_KINDS))
@@ -42,8 +44,10 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
           asOwner?: boolean
           json?: boolean
         },
-      ) =>
-        run(options.json, async (store) =>
+        command: Command,
+      ) => {
+        const by = whoRuns(command, env, { asOwner: options.asOwner, question: "record this memory as yours?" })
+        return run(options.json, async (store) =>
           itemAnswer(
             memoryItem(
               await addMemory(
@@ -57,11 +61,12 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
                   ...(options.project === undefined ? {} : { project: options.project }),
                   ...(options.supersedes === undefined ? {} : { supersedes: options.supersedes }),
                 },
-                authorOf(env, options.asOwner),
+                await by,
               ),
             ),
           ),
-        ),
+        )
+      },
     )
 
   withQuery(
@@ -105,30 +110,38 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
       ),
     )
 
-  annotate(memories.command("confirm"), { effects: LOCAL_WRITE, output: { entity: "memory" } })
-    .description("stand behind a memory: its evidence was checked now")
-    .argument("<ref>", "memory:<id>")
-    .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(memoryItem(await store.memories.confirm(ref)))),
-    )
+  const decide = (
+    name: "confirm" | "invalidate" | "remove",
+    description: string,
+    act: (store: MessageStore, ref: string, by: Decider) => Promise<unknown>,
+  ) =>
+    reasonOption(
+      byOption(
+        annotate(memories.command(name), {
+          effects: LOCAL_WRITE,
+          ...(name === "remove" ? {} : { output: { entity: "memory" } }),
+        }),
+      )
+        .description(description)
+        .argument("<ref>", "memory:<id>")
+        .option("--json", "print JSON; --json=id,title keeps only those fields"),
+    ).action(async (ref: string, options: { reason?: string; asOwner?: boolean; json?: boolean }, command: Command) => {
+      const by = await deciderOf(command, env, { ...options, question: `${name} ${ref} as you, the owner?` })
+      await run(options.json, async (store) => {
+        const done = await act(store, ref, by)
+        return itemAnswer(name === "remove" ? done : memoryItem(done as Memory))
+      })
+    })
 
-  annotate(memories.command("invalidate"), { effects: LOCAL_WRITE, output: { entity: "memory" } })
-    .description("mark a memory whose evidence no longer holds")
-    .argument("<ref>", "memory:<id>")
-    .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(memoryItem(await store.memories.markStale(ref)))),
-    )
-
-  annotate(memories.command("remove"), { effects: LOCAL_WRITE })
-    .description("forget a memory: erase its text, its links to sources and its search entry")
-    .argument("<ref>", "memory:<id>")
-    .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .addHelpText("after", `\n${FORGET_HELP}`)
-    .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(await store.memories.remove(ref))),
-    )
+  decide("confirm", "stand behind a memory: its evidence was checked now", (store, ref, by) =>
+    store.memories.confirm(ref, by),
+  )
+  decide("invalidate", "mark a memory whose evidence no longer holds", (store, ref, by) =>
+    store.memories.markStale(ref, by),
+  )
+  decide("remove", "forget a memory: erase its text, its links to sources and its search entry", (store, ref, by) =>
+    store.memories.remove(ref, by),
+  ).addHelpText("after", `\n${FORGET_HELP}`)
 }
 
 /** What Forget leaves behind, said where the owner decides (NEED-169). */

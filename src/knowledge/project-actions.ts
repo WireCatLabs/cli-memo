@@ -1,8 +1,7 @@
 import { CliError } from "@wirecat/cli-base"
 import type { FindingsInput } from "@wirecat/cli-core/meetings"
 import { contextEvidenceFingerprint, documentPassage, excerpt, storedNeighbours } from "@wirecat/cli-core/services"
-import type { Author, EvidenceFindingsBatch, MessageStore, Project } from "@wirecat/cli-core/store"
-import { loadConfig } from "../config.js"
+import type { Decider, EvidenceFindingsBatch, MessageStore, Project } from "@wirecat/cli-core/store"
 import { keyDocuments } from "./key-documents.js"
 
 export interface ContextWindow {
@@ -111,50 +110,18 @@ export const projectActions = async (
   }
 }
 
-/** The owner decides; an agent decides for the owner only with a reason, and only while the owner allows it. */
-export const deciderOf = (env: NodeJS.ProcessEnv, author: Author, reason: string | undefined) => {
-  if (author === "owner") return "owner" as const
-  if (loadConfig(env).agent_decisions === false)
-    throw new CliError(
-      "permission_error",
-      "the owner turned agent decisions off (agent_decisions: false); ask the owner to decide",
-      { reason: "projects.agent-decisions-off" },
-    )
-  if (!reason?.trim())
-    throw new CliError("validation_error", "an agent deciding for the owner gives --reason", {
-      param: "reason",
-    })
-  return { bot: author.bot, ...(author.model === undefined ? {} : { model: author.model }), reason: reason.trim() }
-}
-
 /** `key:<id>` is a suggested key document; a number is a findings batch. */
 export const decideAction = async (
   store: MessageStore,
   project: Project,
   id: string,
-  decision: { confirm: boolean; fingerprint?: string; accept: string[]; by: ReturnType<typeof deciderOf> },
+  decision: { confirm: boolean; fingerprint?: string; accept: string[]; by: Decider },
 ) => {
   const key = /^key:([1-9]\d*)$/.exec(id)?.[1]
   if (key !== undefined) {
     const held = (await keyDocuments(store, project)).find((one) => String(one.id) === key)
     if (!held) throw new CliError("not_found", `no suggested key document ${id} in ${project.ref}`)
-    // Notes links have no confirm of their own: the suggestion is replaced by a confirmed link with the decider.
-    await store.notes.removeLink(key)
-    if (decision.confirm)
-      await store.notes.addLink({
-        from: held.ref,
-        to: project.ref,
-        kind: "related-to",
-        role: "key",
-        ...(held.reason === null ? {} : { evidence: held.reason }),
-        ...(decision.by === "owner"
-          ? { origin: "owner" as const }
-          : {
-              origin: "suggested" as const,
-              confirmed: true,
-              provenance: `agent:${decision.by.bot} for the owner: ${decision.by.reason}`,
-            }),
-      })
+    await store.knowledge.decideSuggestedLink(key, { confirm: decision.confirm, by: decision.by })
     return { id, kind: "key_document", ref: held.ref, confirmed: decision.confirm, decided_by: decision.by }
   }
   if (!/^[1-9]\d*$/.test(id)) throw new CliError("validation_error", "an action ID is a batch number or key:<id>")

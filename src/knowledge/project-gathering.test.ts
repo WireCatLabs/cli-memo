@@ -306,6 +306,7 @@ it("reads a project's confirmed linked chats whole, never a suggested one or one
   const other = { provider: "telegram", account: "2" }
   await store.messages.saveMessages(other, "5", [inChat("5", "1", "Quiet room")], { via: "test" })
   await store.knowledge.relate(null, {
+    by: "owner",
     from: "chat:telegram/1/6",
     to: "project:1",
     kind: "member-of",
@@ -444,7 +445,14 @@ it("reads a project's confirmed person members by sender, never a suggested one,
   const stefan = (await store.people.personOf({ provider: "telegram", id: "55" }))?.uid as string
   const bob = (await store.people.personOf({ provider: "telegram", id: "66" }))?.uid as string
   const member = (from: string, confirmed: boolean) =>
-    store.knowledge.relate(null, { from, to: "project:1", kind: "member-of", confirmed, provenance: "agent:test" })
+    store.knowledge.relate(null, {
+      by: "owner",
+      from,
+      to: "project:1",
+      kind: "member-of",
+      confirmed,
+      provenance: "agent:test",
+    })
   await member(`person:${stefan}`, true)
   await member(`person:${bob}`, false)
   await store.close()
@@ -476,6 +484,7 @@ it("says which members it left out when the lane limit is reached", async () => 
   }
   for (const uid of uids)
     await store.knowledge.relate(null, {
+      by: "owner",
       from: `person:${uid}`,
       to: "project:1",
       kind: "member-of",

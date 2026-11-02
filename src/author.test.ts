@@ -49,7 +49,7 @@ it("records a write made in an agent's terminal as the agent's, waiting for the 
 
   expect(fact).toMatchObject({ status: "proposed", author: { type: "bot" } })
   expect(memory).toMatchObject({ status: "proposed", author: { type: "bot" } })
-  expect(relation).toMatchObject({ confirmed: false, provenance: "agent:claude-code" })
+  expect(relation).toMatchObject({ kind: "relationship", status: "proposed", proposed_by: { type: "bot" } })
   expect(action).toMatchObject({ status: "proposed", proposed_by: { type: "bot" } })
   expect(fact.author.id).toBe(memory.author.id)
   expect(action.proposed_by.id).toBe(fact.author.id)
@@ -58,20 +58,15 @@ it("records a write made in an agent's terminal as the agent's, waiting for the 
 
 it("names Claude Code when only CLAUDECODE says an agent runs", async () => {
   const { writes } = await setUp({ CLAUDECODE: "1" })
-  const [, , relation] = await writes()
-  expect(relation).toMatchObject({ confirmed: false, provenance: "agent:claude-code" })
+  const [fact, , relation] = await writes()
+  expect(relation).toMatchObject({ status: "proposed", proposed_by: { id: fact.author.id } })
 })
 
-it("keeps a write the owner's when they say so in an agent's terminal, and when no agent runs", async () => {
-  for (const [agent, by] of [
-    [{ CLAUDECODE: "1" }, ["--as-owner"]],
-    [{}, []],
-  ] as const) {
-    const { writes } = await setUp(agent)
-    const [fact, memory, relation, action] = await writes(...by)
-    expect(fact).toMatchObject({ status: "accepted", author: { type: "person" } })
-    expect(memory).toMatchObject({ status: "confirmed", author: { type: "person" } })
-    expect(relation).toMatchObject({ confirmed: true, confidence_category: "owner-confirmed" })
-    expect(action.proposed_by).toMatchObject({ type: "person" })
-  }
+it("keeps a write the owner's when no agent runs and the owner is at the terminal", async () => {
+  const { writes } = await setUp({})
+  const [fact, memory, relation, action] = await writes()
+  expect(fact).toMatchObject({ status: "accepted", author: { type: "person" } })
+  expect(memory).toMatchObject({ status: "confirmed", author: { type: "person" } })
+  expect(relation).toMatchObject({ confirmed: true, confidence_category: "owner-confirmed" })
+  expect(action.proposed_by).toMatchObject({ type: "person" })
 })

@@ -72,6 +72,7 @@ const setUp = async () => {
   const project = await store.knowledge.addProject({ name: "Synthetic Port", key: "SYP" })
   for (const chat of ["8", "9"])
     await store.knowledge.relate(null, {
+      by: "owner",
       from: `chat:telegram/1/${chat}`,
       to: project.ref,
       kind: "member-of",

@@ -3,6 +3,7 @@ import { parseLucene, validateQuery } from "@wirecat/cli-base/query"
 import { parseLocator } from "@wirecat/cli-core"
 import {
   type Author,
+  type Decider,
   type Link,
   type LinkListFilter,
   type MessageStore,
@@ -105,7 +106,7 @@ export const markKey = async (
     role: "key",
     evidence: reason,
     ...(author === "owner"
-      ? { origin: "owner" as const }
+      ? { origin: "owner" as const, by: "owner" as const }
       : { origin: "suggested" as const, confirmed: false, provenance: `agent:${author.bot}` }),
   })
   if (!isKey(link))
@@ -116,10 +117,10 @@ export const markKey = async (
   return describe(store, link)
 }
 
-export const unmarkKey = async (store: MessageStore, project: Project, ref: string) => {
+export const unmarkKey = async (store: MessageStore, project: Project, ref: string, by: Decider) => {
   const link = (await keyLinks(store, project)).find((one) => one.from === ref)
   if (!link) throw new CliError("not_found", `${ref} is not a key document of ${project.ref}`)
-  await store.notes.removeLink(link.id)
+  await store.notes.removeLink(link.id, by)
   return { ref, project: project.ref, removed: true }
 }
 
