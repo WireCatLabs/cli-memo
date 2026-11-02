@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.21 — 03.11.2026
+
 ### Added
 
 - **`wcat memo` runs memo, and `wcat --help` lists it.** The package installs `wcat-memo` beside `memo`, and
