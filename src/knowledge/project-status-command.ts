@@ -1,0 +1,156 @@
+import { CliError } from "@wirecat/cli-base"
+import { annotate, annotateOption } from "@wirecat/cli-base/commands"
+import type { NextStep } from "@wirecat/cli-base/standards"
+import { parseReference } from "@wirecat/cli-core"
+import {
+  answerEntity,
+  type Body,
+  itemOf,
+  LOCAL_READ,
+  type ProjectStatusHints,
+  projectCutoffTime,
+  projectStatusAnswer,
+  projectStatusRow,
+  projectStatusSchema,
+  projectStatusText,
+  projectWindowOf,
+} from "@wirecat/cli-core/cli"
+import { type ProjectStatus, projectStatus, STATUS_SIGNALS, type StatusChatSummary } from "@wirecat/cli-core/services"
+import type { MessageStore } from "@wirecat/cli-core/store"
+import { type Command, Option } from "commander"
+import { withStore } from "../answer.js"
+import { collect } from "../options.js"
+import { chatRead, chatSync, syncProfileOf } from "./messenger-sync.js"
+
+interface Options {
+  sinceTime: string
+  beforeTime?: string
+  contextQuery: string[]
+  syncProfile?: Record<string, string>
+  compact?: boolean
+  json?: boolean
+}
+
+type Print = (json: boolean | undefined, body: Body, text?: string, compact?: boolean) => void
+
+/** Chat titles the store knows better than the chat list did, and a title on every cited ref; one read per answer. */
+const titled = async (store: MessageStore, found: ProjectStatus) => {
+  const refs = [
+    ...new Set([...found.chats.map((chat) => chat.ref), ...found.items.flatMap((one) => one.evidence[0]?.ref ?? [])]),
+  ]
+  const summaries = await store.refs.summaries(refs)
+  const chats = found.chats.map((chat) => ({ ...chat, title: summaries.get(chat.ref)?.title ?? chat.title }))
+  return { found: { ...found, chats }, titleOf: (ref: string | null) => (ref && summaries.get(ref)?.title) ?? null }
+}
+
+const linked = (chat: StatusChatSummary) => {
+  const reference = parseReference(chat.ref)
+  if (reference.type !== "chat") throw new Error(`${chat.ref} is not a chat reference`)
+  return { provider: reference.provider, account: reference.account, chat: reference.chat }
+}
+
+/**
+ * The chats to read are in tg, max or wa, which memo cannot run: a step names the command to type, with the profile
+ * signed in to that chat's account, or `<profile>` when there is none or more than one; `blocked` keeps why. It is a
+ * command step only while cli-core builds the answer, which keeps `line`; `asAction` hands it out as a user action.
+ */
+const outside =
+  (blocked: Set<string>) =>
+  (step: string, found: ReturnType<typeof chatSync>): NextStep | null => {
+    if (!found) return null
+    if (found.command === null) blocked.add(found.why)
+    return {
+      kind: "command",
+      step,
+      command: "projects status",
+      args: {},
+      line: found.command ?? found.line,
+      why: "",
+      safe_to_auto_execute: true,
+    }
+  }
+
+const asAction = (step: NextStep): NextStep =>
+  step.kind === "command"
+    ? { kind: "user_action", step: step.step, why: `${step.why}: ${step.line}`, safe_to_auto_execute: false }
+    : step
+
+export const projectStatusCommand = (projects: Command, print: Print, env: NodeJS.ProcessEnv) =>
+  answerEntity(
+    annotate(projects.command("status"), { effects: LOCAL_READ, partial: true }),
+    "project_status",
+    projectStatusSchema,
+    { row: projectStatusRow(STATUS_SIGNALS) },
+  )
+    .description(
+      "where a project stands, from the stored messages of every chat confirmed as the project's or its child " +
+        "projects', in every account those links name (meta.accounts lists them): the last message, who replies " +
+        "next, open questions both ways, promises, amounts with their direction, payments recorded, how long each " +
+        "--context-query has been quiet on their side, and how much of each chat is held. Amounts, directions and " +
+        "promises found by words are marked pattern: read the cited message before trusting one. next names at most " +
+        "two chats to read, with the messenger command that reads them. No model call; nothing leaves this machine",
+    )
+    .summary("where a project stands: whose move, open asks, money, chats to read next")
+    .argument("<project>", "an existing project's id, project:<id>, key, exact name or alias")
+    .option("--since-time <time>", "how far back: days (60d, at most 730d) or a start date (2026-09-01)", "60d")
+    .option("--before-time <time>", "fixed exclusive end: ISO 8601 timestamp with UTC offset; days back count from it")
+    .option(
+      "--context-query <words>",
+      "words that all appear in one text; reports their last mention per side. Repeat for another",
+      collect,
+      [],
+    )
+    .option(
+      "--sync-profile <tool=profile>",
+      "the messenger profile the next steps name when several are signed in to a chat's account, such as " +
+        "max=default; repeat for another tool",
+      syncProfileOf,
+    )
+    .addOption(
+      annotateOption(new Option("--compact", "one line per signal, chat and next step, for an agent"), { mcp: false }),
+    )
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .action(async (project: string, options: Options) => {
+      if (options.compact && options.json)
+        throw new CliError("validation_error", "--compact and --json ask for different output — pick one", {
+          reason: "output.conflict",
+          param: "--compact",
+        })
+      const chosen = options.syncProfile ?? {}
+      const { found, titleOf } = await withStore(env, async (store) =>
+        titled(
+          store,
+          await projectStatus(store, {
+            project,
+            ...projectWindowOf(options.sinceTime),
+            ...(options.beforeTime === undefined ? {} : { asOf: projectCutoffTime(options.beforeTime) }),
+            contextQueries: options.contextQuery,
+          }),
+        ),
+      )
+      const blocked = new Set<string>()
+      const step = outside(blocked)
+      const hints: ProjectStatusHints = {
+        sync: (chat, since) => step("messages.sync", chatSync(linked(chat), since, env, chosen)),
+        read: (chat, since) => step("messages.list", chatRead(linked(chat), since, env, chosen)),
+        line: (one) => (one.kind === "command" ? (one.line ?? one.command) : one.why),
+      }
+      const { item, next, missing, meta } = projectStatusAnswer(found, hints)
+      const lists = item as Record<string, unknown>
+      for (const { id } of found.signals) {
+        const name = id.replaceAll("-", "_")
+        const list = lists[name] as { ref: string | null }[] | undefined
+        if (list) lists[name] = list.map((one) => ({ ...one, title: titleOf(one.ref) }))
+      }
+      const gaps = [...missing, ...[...blocked].map((why) => ({ field: "next_command", why }))]
+      print(
+        options.json,
+        itemOf(item, {
+          ...(next.length ? { next: next.map(asAction) } : {}),
+          ...(gaps.length ? { missing: gaps } : {}),
+          meta,
+        }),
+        projectStatusText(found, hints),
+        options.compact === true,
+      )
+    })

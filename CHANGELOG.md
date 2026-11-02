@@ -19,6 +19,13 @@ the API.
   decided, and the exit code is not 0. Over MCP they are owner permissions `review.confirm` and `review.reject`.
 - **`relationships list confirmed:false`** lists the relationships waiting for you, as `review kind:relationship`
   does; `confirmed:true` lists links only. Every row has `from_title` and `to_title`, and the text shows the purpose.
+- **`projects status <project>`: where a project stands, from the store.** It reads every chat linked to the
+  project and its child projects, in every account those links name (`meta.accounts`), and says per chat who wrote
+  last, whose move it is, open questions, promises, and amounts with their direction. `--context-query`,
+  `--since-time`, `--before-time`, `--compact`, `--sync-profile`. Cited refs carry a title. `next` names at most two
+  chats to read, with the tg or max command, and never picks a profile for you. Over MCP too.
+- **A `project-state` guide scenario** (`memo guide project-state`): context, status, read the chats it names with
+  `--compact`, stage what you confirmed. The skill says the same.
 
 ### Changed — may break callers
 
