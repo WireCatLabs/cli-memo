@@ -6,6 +6,11 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`messages show` gives each email a `ref`**, as it does each messenger message and as search hits do, so a
+  caller can match the emails of a thread to the hit it opened.
+
 ## 0.131.14 — 01.11.2026
 
 ### Added
