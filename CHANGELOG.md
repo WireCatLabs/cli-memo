@@ -6,6 +6,12 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **`tasks agenda --source email:<address>` lists mail threads you owe an answer and wait for one.** `owed`,
+  `waiting` and `stale` were empty for mail; now a thread is owed when its newest email came to you in To or Cc and
+  you have not answered, waiting when you wrote last (cli-core 0.555.0). Scheduled runs keep their own `--new` points.
+
 ## 0.131.16 — 02.11.2026
 
 ### Added

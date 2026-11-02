@@ -129,3 +129,41 @@ it("**claims and releases a task** with tg's builders, one holder at a time, for
     message: expect.stringContaining("--account telegram:500"),
   })
 })
+
+it("**tasks agenda over a mail account lists threads owed an answer and waiting for one**", async () => {
+  const { env, run } = await setUp()
+  const mailbox = { provider: "email", account: "me@example.com" }
+  const store = await openStore({ env })
+  try {
+    const accountId = await store.accounts.saveAccount(mailbox, { name: null })
+    const hoursAgo = (hours: number) => Date.now() - hours * 3_600_000
+    const ann = { address: "ann@example.com", name: "Ann Example" }
+    const me = { address: mailbox.account, name: null }
+    const email = (id: string, hours: number, extra: Record<string, unknown> = {}) => ({
+      externalId: `<${id}@example.com>`,
+      subject: `Synthetic ${id}`,
+      from: ann,
+      to: [me],
+      sentAt: hoursAgo(hours),
+      receivedAt: hoursAgo(hours),
+      bodyText: `synthetic ${id}`,
+      ...extra,
+    })
+    await store.mail.saveThread({ accountId, externalId: "owed", now: Date.now(), emails: [email("ask", 48)] })
+    await store.mail.saveThread({
+      accountId,
+      externalId: "waiting",
+      now: Date.now(),
+      emails: [email("asked", 24 * 10), email("mine", 24 * 8, { from: me, to: [ann], outgoing: true })],
+    })
+    await store.sync.setSyncState(mailbox, "mail_coverage", JSON.stringify({ state: "window" }))
+  } finally {
+    await store.close()
+  }
+
+  const agenda = (await run("tasks", "agenda", "--source", "email:me@example.com", "--json")).json().item
+
+  expect(agenda.owed.map((one: { chat: string }) => one.chat)).toEqual(["chat:email/me%40example.com/owed"])
+  expect(agenda.waiting.map((one: { chat: string }) => one.chat)).toEqual(["chat:email/me%40example.com/waiting"])
+  expect(agenda.stale).toBe(false)
+})
