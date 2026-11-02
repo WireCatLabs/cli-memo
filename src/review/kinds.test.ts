@@ -181,7 +181,7 @@ it("refuses an agent on every owner-only kind, and refuses mail findings until c
 
 it("says when nothing happened, and counts what waits in the status and in the project's context", async () => {
   const empty = mkdtempSync(join(tmpdir(), "memo-review-status-"))
-  const env = { ...process.env, MESSAGING_STORE: join(empty, "s.db"), MEMO_CONFIG_DIR: empty }
+  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(empty, "s.db"), MEMO_CONFIG_DIR: empty }
   delete env.AI_AGENT
   delete env.CLAUDECODE
   const streams = captureStreams()
