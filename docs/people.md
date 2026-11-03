@@ -142,14 +142,18 @@ Relationships are statements you make. They never link two accounts into one per
 adds in its terminal is a proposal for you, naming the agent, not a relationship; `--as-owner` makes it yours
 after you answer y at the terminal.
 
-Memo can suggest relationships from email: people who write to you from the same company domain.
+Memo can propose the chats, mail threads and people that look like a project's: its name or aliases in chat titles
+and messages, groups and dialogs of its confirmed members, people who write in its confirmed chats. With no project,
+it proposes people who write to you from the same company domain.
 
 ```sh
-memo relationships scan --source email:you@example.com
-memo relationships confirm 4
+memo relationships scan HRB --source all        # lists them, writes nothing
+memo relationships scan HRB --source all --yes  # proposes them for review
+memo review kind:relationship
 ```
 
-Suggestions wait until you confirm them, and they do not appear in a person's context before that.
+Proposals wait until you confirm them in `memo review`, and they do not appear in a person's context before that. A
+pair you rejected is never proposed again. People are matched by the account that wrote, never by a name in a text.
 Common free mail domains, such as Gmail, are never used for suggestions.
 
 ## Meetings in a project

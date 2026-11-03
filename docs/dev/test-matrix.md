@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**674 ✅ · 0 ⛔ · 131 ❌** — 182 commands, 623 options.
+**675 ✅ · 0 ⛔ · 132 ❌** — 182 commands, 625 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -371,8 +371,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `relationships confirm` | `--reason` | ✅ |  |
 | `relationships scan` |  | ✅ |  |
 | `relationships scan` | `--source` | ✅ |  |
-| `relationships scan` | `--json` | ❌ |  |
-| `relationships scan` | `--limit` | ✅ |  |
+| `relationships scan` | `--since-time` | ❌ |  |
+| `relationships scan` | `--limit` | ❌ |  |
+| `relationships scan` | `--yes` | ✅ |  |
+| `relationships scan` | `--json` | ✅ |  |
 | `reminders add` |  | ✅ |  |
 | `reminders add` | `--account` | ✅ |  |
 | `reminders add` | `--json` | ✅ |  |
