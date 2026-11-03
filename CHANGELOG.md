@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.22 — 03.11.2026
+
 ### Added
 
 - **`memo relationships scan <project|all> --source <accounts|all>`** lists the chats, mail threads and people that
