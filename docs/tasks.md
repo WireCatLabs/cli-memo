@@ -74,6 +74,18 @@ A plain `memo tasks list` shows the tasks of your accounts only; a project's tas
 
 To create the project first, see [organizations and projects](people.md#organizations-and-projects).
 
+### Moving a task to another project
+
+```sh
+memo tasks update HRB-1 --project OPS
+```
+
+The task takes the next key in that project, and so does each of its subtasks, all the way down; they keep their
+parents. The answer names the subtasks that moved, old key and new, under `moved_subtasks`
+(`[{ "from": "HRB-2", "to": "OPS-4" }]`). The old keys still find them. A subtask moves alone only when you detach it
+in the same command: `memo tasks update HRB-2 --project OPS --parent none`; without `--parent none` it is refused
+with reason `task.is-subtask`.
+
 ## Priority and order
 
 A priority is a number from 0 to 1, higher first, and you see it as one of four labels by quarter: `low`
