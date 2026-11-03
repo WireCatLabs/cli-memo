@@ -136,7 +136,8 @@ many match. Each task carries its `assignments`, `ready` and `blocked_by`, and i
 ## Changed elsewhere
 
 An agent may edit a task while you look at it. Give the `revision` you read, and Memo refuses the write when the
-task changed since, with the reason `task.stale` and exit code 3:
+task changed since, with the code `conflict`, the reason `task.stale` and exit code 15. The error's
+`details.revision` is the task's revision now; read the task again and decide on the new copy:
 
 ```sh
 memo tasks update HRB-1 --title 'Book the hall' --revision 4

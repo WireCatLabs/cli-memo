@@ -200,7 +200,7 @@ it("moves a card between two others, says when its label changed, and refuses a 
   await expect(
     run(["tasks", "update", "OPS-1", "--title", "D", "--revision", String(c.revision)]),
   ).rejects.toMatchObject({
-    code: "configuration_error",
+    code: "conflict",
     details: { reason: "task.stale" },
   })
   expect(await run(["tasks", "update", "OPS-1", "--agent", "hermes"])).toMatchObject({ agent: "hermes" })
