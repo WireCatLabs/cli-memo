@@ -152,7 +152,11 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "relationships list": ['memo relationships list about:"person:3"', "memo relationships list confirmed:false"],
   "relationships remove": ["memo relationships remove 4"],
   "relationships confirm": ["memo relationships confirm 4"],
-  "relationships scan": ["memo relationships scan --source email:me@example.com --limit 10"],
+  "relationships scan": [
+    "memo relationships scan HRB --source all",
+    "memo relationships scan HRB --source telegram:1,email:personal --yes",
+    "memo relationships scan --source email:me@example.com",
+  ],
   "reminders add": [
     "memo reminders add 7 --at-time 2026-10-20T09:00:00+02:00 --timezone Europe/Madrid --account telegram:1",
   ],

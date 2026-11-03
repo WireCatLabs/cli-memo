@@ -1853,21 +1853,29 @@ memo relationships confirm <id> [options]
 
 ### `memo relationships scan`
 
-suggest relationships between email contacts of one domain; you confirm each
+chats, mail threads and people that look like a project's, scored from the store: its name and aliases in titles and messages, its confirmed members' chats and threads. With no project, people who share a company mail domain. Lists them and writes nothing; --yes writes them as proposals by memo-scan for you to decide in memo review. Never confirms, and never proposes again what you rejected
+
+This command changes the local store or your files.
 
 ```sh
-memo relationships scan [options]
+memo relationships scan [project] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `project` | optional | a project's id, key, exact name or alias, or all; left out, people by mail domain. |
 
 | Option | What it does |
 |---|---|
-| `--source <accounts>` | the one account: provider:account (telegram:500, email:personal), or a provider or group:<name> that holds only one. |
+| `--source <accounts>` | where to look, or all: which accounts, separated by commas: provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>. |
+| `--since-time <time>` | how far back messages count: days (90d, at most 730d) or a date. Default: `90d`. |
+| `--limit <n>` | new proposals per project at most, up to 50. Default: `20`. |
+| `--yes` | write the proposals; without it nothing is written. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--limit <n>` | most suggestions, at most 100. Default: `20`. |
 
-**Returns:** suggest relationships between email contacts of one domain; you confirm each
+**Returns:** propose chats and people for a project; nothing is written without --yes
 
-**Example:** `memo relationships scan --source email:me@example.com --limit 10`
+**Example:** `memo relationships scan HRB --source all`, `memo relationships scan HRB --source telegram:1,email:personal --yes`, `memo relationships scan --source email:me@example.com`
 
 ## `memo reminders`
 

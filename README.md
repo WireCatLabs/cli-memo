@@ -235,9 +235,9 @@ decided in messaging â€” `tg personal contacts link <person> email:<address>` â€
 `memo notes links add telegram:"Alice Example" /path/to/notes/people/Alice.md` names the note that is about her.
 
 Organizations and projects are yours, not one account's. Relationships (`member-of`, `related-to`) are
-manual statements; `relationships scan` only proposes shared-domain links for you to confirm. A project
-can hold meetings (`projects meetings link`), and `memo vocabulary` gives projects and topics reviewed
-aliases, so one name always means one project.
+manual statements; `relationships scan` only proposes a project's likely chats and people, or shared-domain links,
+for you to confirm. A project can hold meetings (`projects meetings link`), and `memo vocabulary` gives projects and
+topics reviewed aliases, so one name always means one project.
 
 Before adding a new tag or topic, run `memo vocabulary check <name> --json`. Reuse a
 canonical label or add an alias if it means the same thing. For a deliberately distinct label,

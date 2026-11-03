@@ -4,6 +4,24 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- **`memo relationships scan <project|all> --source <accounts|all>`** lists the chats, mail threads and people that
+  look like a project's, scored from the store by cli-core's link scorers (the name and aliases in chat titles and
+  messages, confirmed members' groups, dialogs and threads, who writes in its confirmed chats). It writes nothing;
+  `--yes` writes them as proposals by the rule bot `memo-scan`, which only you decide in `memo review`. A pair you
+  rejected is never proposed again. `meta.accounts` names the accounts read.
+- **`memo projects context` and `memo projects evidence` name the scan as a next step** while the project has fewer
+  than two confirmed chats.
+
+### Changed — may break callers
+
+- **`memo relationships scan` writes nothing without `--yes`**, and `--source` is required (`all` reads every
+  account). With no project it still proposes people who share a company mail domain, now as proposals in
+  `memo review` instead of unconfirmed relationships, and the answer is `{ written, scans }`, not a list.
+
 ## 0.131.21 — 03.11.2026
 
 ### Added
