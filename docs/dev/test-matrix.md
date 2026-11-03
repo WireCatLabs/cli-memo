@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**655 ✅ · 0 ⛔ · 131 ❌** — 179 commands, 607 options.
+**675 ✅ · 0 ⛔ · 132 ❌** — 182 commands, 625 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -65,6 +65,11 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `messages show` | `--after-n` | ✅ |  |
 | `messages show` | `--full` | ❌ |  |
 | `messages show` | `--json` | ✅ |  |
+| `messages acknowledge` |  | ✅ |  |
+| `messages acknowledge` | `--holder` | ✅ |  |
+| `messages acknowledge` | `--cursor` | ✅ |  |
+| `messages acknowledge` | `--source` | ✅ |  |
+| `messages acknowledge` | `--json` | ✅ |  |
 | `mail add` |  | ✅ |  |
 | `mail add` | `--kind` | ✅ |  |
 | `mail add` | `--folder` | ✅ |  |
@@ -76,6 +81,23 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `mail inspect` | `--limit` | ✅ |  |
 | `mail inspect` | `--domain-age` | ❌ |  |
 | `mail inspect` | `--json` | ✅ |  |
+| `mail findings add` |  | ✅ |  |
+| `mail findings add` | `--json` | ✅ |  |
+| `mail findings add` | `--source` | ✅ |  |
+| `mail findings show` |  | ✅ |  |
+| `mail findings show` | `--json` | ✅ |  |
+| `mail findings list` |  | ✅ |  |
+| `mail findings list` | `--json` | ✅ |  |
+| `mail findings list` | `--source` | ✅ |  |
+| `mail findings list` | `--limit` | ✅ |  |
+| `mail findings list` | `--page` | ✅ |  |
+| `mail review` |  | ✅ |  |
+| `mail review` | `--unanswered` | ✅ |  |
+| `mail review` | `--waiting` | ❌ |  |
+| `mail review` | `--holder` | ✅ |  |
+| `mail review` | `--new` | ❌ |  |
+| `mail review` | `--source` | ✅ |  |
+| `mail review` | `--json` | ✅ |  |
 | `mail delete` |  | ✅ |  |
 | `mail restore` |  | ✅ |  |
 | `mail runs list` |  | ✅ |  |
@@ -349,8 +371,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `relationships confirm` | `--reason` | ✅ |  |
 | `relationships scan` |  | ✅ |  |
 | `relationships scan` | `--source` | ✅ |  |
-| `relationships scan` | `--json` | ❌ |  |
-| `relationships scan` | `--limit` | ✅ |  |
+| `relationships scan` | `--since-time` | ❌ |  |
+| `relationships scan` | `--limit` | ❌ |  |
+| `relationships scan` | `--yes` | ✅ |  |
+| `relationships scan` | `--json` | ✅ |  |
 | `reminders add` |  | ✅ |  |
 | `reminders add` | `--account` | ✅ |  |
 | `reminders add` | `--json` | ✅ |  |
@@ -604,7 +628,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `actions reject` |  | ✅ |  |
 | `actions reject` | `--as-owner` | ❌ |  |
 | `actions reject` | `--fingerprint` | ✅ |  |
-| `actions reject` | `--reason` | ❌ |  |
+| `actions reject` | `--reason` | ✅ |  |
 | `actions reject` | `--json` | ✅ |  |
 | `review list` |  | ✅ |  |
 | `review list` | `--json` | ✅ |  |
@@ -736,10 +760,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `jobs stop` |  | ✅ |  |
 | `jobs status` |  | ✅ |  |
 | `jobs status` | `--json` | ✅ |  |
-| `config show` |  | ✅ |  |
-| `config show` | `--json` | ✅ |  |
-| `config migrate` |  | ✅ |  |
-| `config migrate` | `--json` | ✅ |  |
 | `config unset` |  | ✅ |  |
 | `config unset` | `--json` | ✅ |  |
 | `doctor` |  | ✅ |  |
@@ -755,9 +775,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `schedule command` | `--json` | ❌ |  |
 | `schedule agent` |  | ✅ |  |
 | `schedule agent` | `--max-cost` | ✅ |  |
-| `schedule agent` | `--every` | ❌ |  |
+| `schedule agent` | `--every` | ✅ |  |
 | `schedule agent` | `--at` | ✅ |  |
 | `schedule agent` | `--at-time` | ❌ |  |
+| `schedule agent` | `--on-new-mail` | ✅ |  |
 | `schedule agent` | `--json` | ❌ |  |
 | `schedule list` |  | ✅ |  |
 | `schedule list` | `--json` | ✅ |  |

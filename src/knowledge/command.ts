@@ -36,7 +36,6 @@ import {
   ACCOUNTS_HELP,
   accountName,
   type SourceOptions,
-  theAccount,
   theAccounts,
   type WriteOptions,
   writeAccount,
@@ -50,6 +49,7 @@ import { projectGatherCommand } from "./project-gather-command.js"
 import { projectStatusCommand } from "./project-status-command.js"
 import { projectTransferCommand } from "./project-transfer-command.js"
 import { listRelationships, RELATIONSHIP_QUERY, relationshipsText } from "./relationships.js"
+import { relationshipsScanCommand, scanStep } from "./relationships-scan.js"
 
 /** A suggested link the review lists as `link:<id>`; deciding it goes through the same registry as review. */
 const pendingLink = async (store: MessageStore, id: string) => {
@@ -64,10 +64,6 @@ const pendingLink = async (store: MessageStore, id: string) => {
 export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const { run, print } = answers(program, streams, env)
   const warn = (text: string) => streams.diagnostic(text)
-  const execute = (
-    options: SourceOptions & { json?: boolean },
-    work: (store: MessageStore, key: AccountKey) => Promise<Body>,
-  ) => run(options.json, async (store) => work(store, await theAccount(store, env, options, warn)))
   const act = (
     options: WriteOptions & { json?: boolean },
     work: (store: MessageStore, key: AccountKey) => Promise<Body>,
@@ -187,8 +183,11 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .argument("<project>", "its id, project:<id>, key, exact name or alias")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (reference: string, options: { json?: boolean }) => {
-      const context = await withStore(env, (store) => projectContext(store, env, reference))
-      print(options.json, itemAnswer(context), projectContextText(context))
+      const { context, next } = await withStore(env, async (store) => {
+        const context = await projectContext(store, env, reference)
+        return { context, next: await scanStep(store, context.project, "all") }
+      })
+      print(options.json, itemAnswer(context, next.length ? { next } : {}), projectContextText(context))
     })
   projectGatherCommand(projects, print, env, warn)
   projectStatusCommand(projects, print, env)
@@ -379,59 +378,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         return (await store.knowledge.relations(null, suggestion.subject)).find((one) => one.id === id)
       })
     })
-  readScope(
-    annotate(relations.command("scan"), { effects: LOCAL_READ }).description(
-      "suggest relationships between email contacts of one domain; you confirm each",
-    ),
-  )
-    .option("--limit <n>", "most suggestions, at most 100", positive, 20)
-    .action((options: SourceOptions & { limit: number; json?: boolean }) =>
-      execute(options, async (store, key) => {
-        if (key.provider !== "email" || options.limit > 100)
-          throw new CliError("validation_error", "suggestions require an email account and limit 1–100")
-        const contacts = await store.people.contacts(key, { order: "name", limit: 500, offset: 0 })
-        const domains = new Map<string, string[]>()
-        const free = new Set([
-          "gmail.com",
-          "outlook.com",
-          "hotmail.com",
-          "yahoo.com",
-          "icloud.com",
-          "proton.me",
-          "protonmail.com",
-        ])
-        for (const contact of contacts.items) {
-          const domain = contact.id.split("@")[1]?.toLowerCase()
-          if (!domain || free.has(domain)) continue
-          const person = await store.people.personOf({ provider: key.provider, id: contact.id })
-          if (person) domains.set(domain, [...new Set([...(domains.get(domain) ?? []), person.uid])])
-        }
-        const suggestions = []
-        for (const [domain, people] of domains)
-          for (let left = 0; left < people.length; left++)
-            for (let right = left + 1; right < people.length; right++) {
-              if (suggestions.length >= options.limit)
-                return listAnswer("relationships scan", { items: suggestions, limit: options.limit, has_more: true })
-              suggestions.push(
-                // An unconfirmed suggestion only the owner decides, as before scan writes rule proposals (D7).
-                await store.knowledge.relate(key, {
-                  by: "owner",
-                  from: `person:${people[left]}`,
-                  to: `person:${people[right]}`,
-                  kind: "related-to",
-                  confirmed: false,
-                  evidence: `Shared email domain ${domain}; this does not prove organization membership`,
-                  provenance: "rule:email-domain-v1;confidence:weak",
-                }),
-              )
-            }
-        return listAnswer("relationships scan", {
-          items: suggestions,
-          limit: options.limit,
-          has_more: contacts.hasMore,
-        })
-      }),
-    )
+  relationshipsScanCommand(relations, print, env, warn)
   const reminders = program
     .command("reminders")
     .description("durable local reminders; poll hands one out and ack confirms it was shown")

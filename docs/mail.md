@@ -41,6 +41,48 @@ memo messages show <ref>
 `<ref>` is the `ref` of a search hit. `memo search all` finds this mail together with your notes and messages. More
 search words are in [Find your mail](#find-your-mail) and [Search](search.md#search-mail).
 
+## An agent that reads new mail and proposes tasks
+
+memo can run an agent after each sync that stored new mail. It reads only mail past its own mark, and only stages
+proposals: tasks, closes and updates of open tasks, facts, memories, links and new contacts. Nothing is created until
+you confirm it in `memo review`. The agent never sends, drafts, moves or deletes mail, and never decides for you.
+
+Turn it on once:
+
+```sh
+memo schedule agent mail-triage claude 'Run memo skill show mail-triage and follow it.' --every 5m --on-new-mail mail-triage --max-cost 1
+```
+
+Every 5 minutes the schedule checks the store. With no mail past the `mail-triage` mark it does nothing: no model
+call, no notification. Otherwise it starts `claude` with only `memo` allowed, under `MEMO_READ_ONLY`. The prompt it
+follows is `memo skill show mail-triage`. Its first run starts from now; older mail is not read.
+
+What it does, per mailbox:
+
+1. `memo mail review --holder mail-triage --source email:<account> --json` gives the mail past its mark. Bulk mail,
+   lists, envelope rules, drafts, suspicious senders and mail not yet stored whole are left out, and counted. Each
+   email has the `fingerprint` a finding cites it by, and says whether its sender is new.
+2. It keeps the emails that ask something of you, carry a date, or answer a thread with an open task.
+3. It reads context for those only, through links the store already has: the thread, `memo context` of the sender.
+4. It stages one batch: `memo mail findings add - --source email:<account>`. New senders always get a link to a
+   known person or a new contact proposal.
+5. Then, and only then, `memo messages acknowledge --holder mail-triage --cursor <cursor> --source email:<account>`
+   moves its mark. A run that fails before this reads the same mail again; the same batch is not staged twice.
+
+| Command | What it does |
+|---|---|
+| `memo mail review --source email:<account>` | Threads with new mail, `--unanswered` what you owe, `--waiting` what waits for an answer; `--holder <name>` reads past that holder's mark |
+| `memo messages acknowledge --holder <name> --cursor <cursor>` | Moves a holder's mark to the cursor its review gave |
+| `memo mail findings add <file>` | Stages one mailbox's findings for you |
+| `memo mail findings list status:proposed` | Batches waiting for you |
+| `memo mail findings show <id>` | One batch with its evidence |
+
+`MEMO_READ_ONLY` refuses every store change except `mail findings add` and `messages acknowledge`. You decide in
+`memo review`: `memo review show <id>`, then `memo review confirm <id>/<finding>` or `memo review reject <id>`. No
+agent can confirm or reject mail findings. `memo review status` shows each mailbox's mark and what waits.
+
+Email bodies go to the model provider of the agent you schedule. Stop it with `memo schedule remove mail-triage`.
+
 ## The memo mail commands
 
 `memo mail inspect` stays. It takes an account from Memo's `mail.accounts` list, which `memo mail add` fills from a

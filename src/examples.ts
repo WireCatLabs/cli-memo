@@ -32,6 +32,31 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "mentions show": ["memo mentions show 12", "memo mentions show 40 --source email:personal --json"],
   "mentions confirm": ["memo mentions confirm 12 person:7", "memo mentions confirm 40 --source email:personal"],
   "mentions reject": ["memo mentions reject 12", "memo mentions reject 40 --source email:personal"],
+  "mail review": [
+    "memo mail review --holder mail-triage --source email:work --json",
+    "memo mail review --unanswered 1d --source email:personal",
+    "memo mail review 'date>2h' --source email:me@example.com",
+  ],
+  "messages acknowledge": [
+    "memo messages acknowledge --holder mail-triage --cursor 9123.1762090000000 --source email:work",
+    "memo messages acknowledge --holder mail-triage --cursor 9123.1762090000000 --source email:me@example.com --json",
+    "memo messages acknowledge --holder backfill --cursor 870.1762090000000 --source email:personal",
+  ],
+  "mail findings add": [
+    "memo mail findings add findings.json --source email:work",
+    "memo mail findings add - --source email:me@example.com --json",
+    "memo mail findings add run-2026-11-02.json --source email:personal --json=id,status",
+  ],
+  "mail findings show": [
+    "memo mail findings show 41",
+    "memo mail findings show 41 --json",
+    "memo mail findings show 41 --json=id,input.findings",
+  ],
+  "mail findings list": [
+    "memo mail findings list status:proposed",
+    "memo mail findings list --source email:work --json",
+    "memo mail findings list status:reviewed --limit 50 --page 2",
+  ],
   "messages show": ["memo messages show 'msg:email/me%40example.com/thread/42' --before-n 2 --after-n 2"],
   "projects actions add": ["memo projects actions add findings.json"],
   "projects actions list": [
@@ -129,7 +154,11 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "relationships list": ['memo relationships list about:"person:3"', "memo relationships list confirmed:false"],
   "relationships remove": ["memo relationships remove 4"],
   "relationships confirm": ["memo relationships confirm 4"],
-  "relationships scan": ["memo relationships scan --source email:me@example.com --limit 10"],
+  "relationships scan": [
+    "memo relationships scan HRB --source all",
+    "memo relationships scan HRB --source telegram:1,email:personal --yes",
+    "memo relationships scan --source email:me@example.com",
+  ],
   "reminders add": [
     "memo reminders add 7 --at-time 2026-10-20T09:00:00+02:00 --timezone Europe/Madrid --account telegram:1",
   ],
@@ -233,6 +262,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   ],
   "schedule agent": [
     "memo schedule agent triage claude 'read memo review status and list what needs me today' --at 08:45 --max-cost 1",
+    "memo schedule agent mail-triage claude 'Run memo skill show mail-triage and follow it.' --every 5m --on-new-mail mail-triage --max-cost 1",
   ],
   "schedule list": ["memo schedule list", "memo schedule list kind:agent --json"],
   "schedule run": ["memo schedule run digest"],

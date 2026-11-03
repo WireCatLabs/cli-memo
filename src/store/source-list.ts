@@ -286,6 +286,17 @@ export const theAccounts = async (
   return keys
 }
 
+/** Every account `--source` names, and the owner names them: none given is an error listing the choices. */
+export const namedAccounts = async (
+  store: MessageStore,
+  env: NodeJS.ProcessEnv,
+  options: SourceOptions,
+  warn: (text: string) => void,
+): Promise<AccountKey[]> => {
+  if (sourceOf(options, warn) === undefined) throw await unnamed(store)
+  return theAccounts(store, env, options, warn)
+}
+
 export const accountName = ({ provider, account }: AccountKey) => `${provider}:${account}`
 
 export const WRITE_HELP = "the account it acts as: provider:account, such as telegram:1 or email:personal"

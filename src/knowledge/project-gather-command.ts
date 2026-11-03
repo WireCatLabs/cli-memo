@@ -1,4 +1,6 @@
+import { CliError } from "@wirecat/cli-base"
 import { annotate, annotateOption } from "@wirecat/cli-base/commands"
+import { MAX_NEXT_STEPS } from "@wirecat/cli-base/standards"
 import {
   type Body,
   FETCH,
@@ -13,7 +15,9 @@ import { type Command, Option } from "commander"
 import { itemAnswer, withStore } from "../answer.js"
 import { collect, positive, whole } from "../options.js"
 import { ACCOUNTS_HELP, contextSourcesOf } from "../store/source-list.js"
+import { projectOf } from "./key-documents.js"
 import { chatSync, messengerFetcher, syncHint, syncProfileOf } from "./messenger-sync.js"
+import { scanStep } from "./relationships-scan.js"
 
 interface Options {
   source: string
@@ -109,8 +113,8 @@ export const projectGatherCommand = (
     .action(async (project: string, options: Options) => {
       const maxFetchMs = parseDuration(options.syncTime, "--sync-time")
       const chosen = options.syncProfile ?? {}
-      const found = await withStore(env, async (store) =>
-        gatherStoredProject(store, {
+      const { found, scan } = await withStore(env, async (store) => {
+        const found = await gatherStoredProject(store, {
           project,
           sources: await contextSourcesOf(store, env, options.source),
           ...projectWindowOf(options.sinceTime),
@@ -127,8 +131,13 @@ export const projectGatherCommand = (
           ...(options.purpose ? { purposes: options.purpose } : {}),
           ...(options.includeProposed ? { includeProposed: true } : {}),
           ...(options.syncFirst ? { fetcher: messengerFetcher({ env, note: warn, chosen }), maxFetchMs } : {}),
-        }),
-      )
+        })
+        const known = await projectOf(store, project).catch((error) => {
+          if (error instanceof CliError && error.code === "not_found") return undefined
+          throw error
+        })
+        return { found, scan: known ? await scanStep(store, known, options.source) : [] }
+      })
       const since = new Date(found.window.after).toISOString().slice(0, 10)
       const syncs = found.linkedChats.map((one) =>
         one.completeness === null || one.completeness.state === "complete" ? null : chatSync(one, since, env, chosen),
@@ -136,6 +145,7 @@ export const projectGatherCommand = (
       const parts = projectAnswerParts(options.sinceTime, found)
       const blocked = [...new Set(syncs.flatMap((one) => (one && one.command === null ? [one.why] : [])))]
       const missing = [...(parts.missing ?? []), ...blocked.map((why) => ({ field: "sync_command", why }))]
+      const next = [...(parts.next ?? []), ...scan].slice(0, MAX_NEXT_STEPS)
       print(
         options.json,
         itemAnswer(
@@ -143,7 +153,7 @@ export const projectGatherCommand = (
             ...found,
             linkedChats: found.linkedChats.map((one, i) => ({ ...one, syncCommand: syncs[i]?.command ?? null })),
           },
-          { ...parts, ...(missing.length ? { missing } : {}) },
+          { ...parts, ...(missing.length ? { missing } : {}), ...(next.length ? { next } : {}) },
         ),
         projectEvidenceText(found, {
           sync: (chat, at) => syncHint(chat, at, env, chosen),

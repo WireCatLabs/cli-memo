@@ -13,6 +13,38 @@ the API.
   `config.json`, `"agent_decisions": false` included, without the docs. Your values, their order and keys memo does
   not know stay. Every write memo already makes to the file (`folders add`, `mail add`, `jobs start`, mail rules) adds
   the missing settings too; a plain read never rewrites the file.
+- **`memo relationships scan <project|all> --source <accounts|all>`** lists the chats, mail threads and people that
+  look like a project's, scored from the store by cli-core's link scorers (the name and aliases in chat titles and
+  messages, confirmed members' groups, dialogs and threads, who writes in its confirmed chats). It writes nothing;
+  `--yes` writes them as proposals by the rule bot `memo-scan`, which only you decide in `memo review`. A pair you
+  rejected is never proposed again. `meta.accounts` names the accounts read.
+- **`memo projects context` and `memo projects evidence` name the scan as a next step** while the project has fewer
+  than two confirmed chats.
+
+### Changed — may break callers
+
+- **`memo relationships scan` writes nothing without `--yes`**, and `--source` is required (`all` reads every
+  account). With no project it still proposes people who share a company mail domain, now as proposals in
+  `memo review` instead of unconfirmed relationships, and the answer is `{ written, scans }`, not a list.
+
+## 0.131.21 — 03.11.2026
+
+### Added
+
+- **`wcat memo` runs memo, and `wcat --help` lists it.** The package installs `wcat-memo` beside `memo`, and
+  `wcat-memo --wcat-describe` prints the tool's name, version and description for `wcat`. `memo` keeps working.
+- **An agent can read new mail and propose what it asks of you.** `memo schedule agent mail-triage claude 'Run memo
+  skill show mail-triage and follow it.' --every 5m --on-new-mail mail-triage --max-cost 1` starts the agent only
+  when a sync stored mail past its mark. It stages cited tasks, closes and updates of open tasks, facts, memories,
+  links and new contacts for `memo review`; it never sends, changes mail or decides. `memo skill show mail-triage`
+  is its prompt.
+- **`memo mail review`**: cli-core's mail review over one mailbox (`--source email:<account>`): new threads,
+  `--unanswered`, `--waiting`, and `--holder <name>` for what is stored past that holder's mark.
+- **`memo messages acknowledge --holder <name> --cursor <cursor>`** moves a holder's mark after it processed what
+  review gave.
+- **`memo mail findings add|show|list`**: stage one mailbox's cited findings; only the owner confirms them in
+  `memo review`. `add` and `messages acknowledge` are the only writes `MEMO_READ_ONLY` allows.
+- **`memo messages show` gives an email's `fingerprint`**, the one a finding cites it by.
 
 ### Changed — may break callers
 
@@ -21,6 +53,13 @@ the API.
   `"agent_decisions": true`; before, a missing key let an agent decide with `--reason`. To restore the old behaviour,
   add `"agent_decisions": true` to memo's `config.json`. Meeting findings keep their
   own permissions.
+
+### Fixed
+
+- **`memo actions confirm` on a mail findings batch** goes through the owner-only review: an agent's confirm is
+  refused instead of turning the batch into a task.
+- **Built on cli-core 0.560.0** (the propose tier, mail findings, the new-mail gate; agents no longer decide for the
+  owner by default).
 
 ## 0.131.20 — 02.11.2026
 

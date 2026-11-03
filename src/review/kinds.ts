@@ -10,6 +10,7 @@ import {
   proposalRegistry,
 } from "@wirecat/cli-core/services"
 import {
+  MAIL_FINDINGS_KIND,
   type MeetingFindingsBatch,
   type MessageStore,
   type ProposedAction,
@@ -26,14 +27,6 @@ export type ReviewRow = ProposalRow & { source?: string | null; ownerOnly?: bool
 
 const ownerOnly = (row: ProposalRow, source: string | null): ReviewRow =>
   Object.assign(row, { source, ownerOnly: true })
-
-const STORED_STATUS: Record<ProposedAction["status"], ProposalRow["status"]> = {
-  proposed: "proposed",
-  approved: "confirmed",
-  executed: "confirmed",
-  failed: "confirmed",
-  rejected: "rejected",
-}
 
 const wanted = (row: ProposalRow, filter: ProposalFilter) =>
   ((filter.status ?? "proposed") === "all" || row.status === (filter.status ?? "proposed")) &&
@@ -204,48 +197,6 @@ export const taskCloseKind = (store: MessageStore, env: NodeJS.ProcessEnv): Prop
   }
 }
 
-/**
- * The kind M3's mail pipeline stages (`proposed_actions.kind = mail_findings`). Until cli-core ships its contract
- * the batch is listed and kept from the generic action kind, whose confirm would turn it into a task, and nobody
- * may decide it here yet. Once cli-core registers the kind itself, its registration wins: see `reviewRegistry`.
- */
-export const MAIL_FINDINGS_KIND = "mail_findings"
-
-const mailFindingsKind = (store: MessageStore): ProposalKind => {
-  const rowOf = (action: ProposedAction): ReviewRow =>
-    ownerOnly(
-      {
-        id: action.id,
-        kind: MAIL_FINDINGS_KIND,
-        status: STORED_STATUS[action.status],
-        project: null,
-        subject: action.target ?? `${MAIL_FINDINGS_KIND}:${action.id}`,
-        object: null,
-        summary: MAIL_FINDINGS_KIND,
-        proposedBy: proposerOfAction(action),
-        reason: action.reason,
-        evidence: [],
-        score: null,
-        signals: null,
-        parts: null,
-        createdAt: action.createdAt,
-      },
-      accountName(action),
-    )
-  return {
-    kind: MAIL_FINDINGS_KIND,
-    stored: [MAIL_FINDINGS_KIND],
-    list: async (filter) =>
-      (await storedActions(store, MAIL_FINDINGS_KIND, filter)).map(rowOf).filter((row) => wanted(row, filter)),
-    get: async (id) => rowOf(await store.proposedActions.get(id)),
-    decide: async () => {
-      throw new CliError("validation_error", "this memo cannot decide mail findings yet — memo upgrade", {
-        reason: "proposal.kind-unsupported",
-      })
-    },
-  }
-}
-
 /** Every kind `memo review` shows, as `kind:` takes them. */
 export const REVIEW_KINDS = [
   "relationship",
@@ -268,11 +219,23 @@ export const REVIEW_KINDS = [
  */
 export const reviewRegistry = (store: MessageStore, env: NodeJS.ProcessEnv): ProposalRegistry => {
   const registry = proposalRegistry(store)
-  for (const kind of [meetingFindingsKind(store), mailFindingsKind(store), taskCloseKind(store, env)])
+  for (const kind of [meetingFindingsKind(store), taskCloseKind(store, env)])
     try {
       registry.register(kind)
     } catch (error) {
       if (!(error instanceof CliError) || error.code !== "configuration_error") throw error
     }
-  return registry
+  // cli-core's own mail kind is owner only in `decide` alone; its rows must say so, and name their mailbox, here too.
+  const marked = async (row: ProposalRow): Promise<ProposalRow> =>
+    row.kind === MAIL_FINDINGS_KIND && (row as ReviewRow).ownerOnly !== true
+      ? ownerOnly(row, accountName(await store.proposedActions.get(row.id)))
+      : row
+  return {
+    ...registry,
+    list: async (filter) => {
+      const found = await registry.list(filter)
+      return { ...found, items: await Promise.all(found.items.map(marked)) }
+    },
+    get: async (id) => marked(await registry.get(id)),
+  }
 }
