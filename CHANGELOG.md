@@ -49,6 +49,25 @@ the API.
   new key there and the old keys still find them (cli-core 0.563.0). A subtask still moves alone only with
   `--parent none`.
 
+### Changed — may break callers
+
+- **memo no longer imports mail: the [mail](https://github.com/WireCatLabs/mail-cli) CLI does.** For each mailbox
+  memo used to import, run `mail <profile> session start --address <address>`, then `mail <profile> sync`; the mail
+  already in the store stays and is still found, and the sync goes on from it. `memo doctor` names the addresses your
+  config listed. The Himalaya import, `bin/mail-password` and the Google Takeout (`mode: "mbox"`) import are gone;
+  a Takeout file is `mail <profile> messages import <file.mbox>`.
+- **`memo mail add`, `memo mail check` and `memo mail inspect` moved to the mail CLI**: `mail <profile> session
+  start`, `mail <profile> account check` and `mail <profile> account inspect`. The old paths change nothing and name
+  the new command (`mail.moved-to-mail-cli`). Sender scoring with domain ages now runs in `mail <profile> sync`.
+- **`memo sync` and its timer read notes only, and embed the mail already stored for search by meaning.** Its mail
+  options `--source`, `--since-time`, `--limit`, `--retry-attachments` and `--rescan` are gone; `--only mail` now
+  only embeds stored mail. Its answer has `mailEmbedded` in place of `mail`.
+- **The config's `mail` section is retired.** An old config with `mail.accounts`, `"import": false` or the mail
+  limits still loads and nothing reads it; `memo doctor` reports it and `memo config unset mail` removes it, and
+  `memo sync` says so on stderr until then.
+- **`--source email:<name>` takes the mailbox's address only**, since names lived in `mail.accounts`. `memo doctor`
+  no longer reports mail accounts or Himalaya; the error reasons `mail.throttled` and `mail.invalid-imap` are gone.
+
 ## 0.131.22 — 03.11.2026
 
 ### Added

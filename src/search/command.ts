@@ -148,7 +148,7 @@ For an agent: read with --compact, one line per hit with its reference. Never wr
         : `
 content: narrows a search to the text of attachments, filename: to their names — memo search mail 'content:invoice'.
 Mail sent to many is in the mailbox bulk; NOT mailbox:bulk leaves it out, and bills and bookings with it.
-Mail from senders with signs of fraud (memo mail inspect) comes after the rest of the page; --plain-order keeps it in place.
+Mail from senders with signs of fraud (mail <profile> account inspect) comes after the rest of the page; --plain-order keeps it in place.
 --json: the list is items, each a hit as in tg search mail: ref (msg:email/…), timestamp, email, excerpt.
 For an agent: read with --compact, one line per hit with its reference. Never write mail text to a file.`,
     )

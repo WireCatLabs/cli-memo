@@ -2,7 +2,7 @@
 
 Use this reference to look up Memo's own configuration settings and environment variables. You
 rarely need to edit the file by hand. `memo folders add` adds a folder
-and `memo jobs start` turns the timer on for you. `memo mail add` adds an explicit account of the older Himalaya mail import. Edit the file yourself for files to skip and where
+and `memo jobs start` turns the timer on for you. Edit the file yourself for files to skip and where
 exported notes go.
 
 The file is `~/.config/cli-memo/config.json`. It is a JSON file: keep the quotes, commas and braces
@@ -16,7 +16,7 @@ file already has that section. Any write memo makes to the file, such as `memo f
 A file with a problem stops every command except `memo doctor` and `memo config unset`. The refusal names the first
 problem and the command that removes it; `memo doctor` lists them all, each with its line or its `memo config unset
 <key>`. `config unset` removes a setting by its dotted path, also one Memo does not know, such as
-`memo config unset mail.accounts.0.colour` or `memo config unset permissions.notes.edit`. A file that is not valid
+`memo config unset notes.colour` or `memo config unset permissions.notes.edit`. A file that is not valid
 JSON is fixed by hand at the line and column `memo doctor` names.
 
 ```json
@@ -50,29 +50,9 @@ The folder `id` is the same on every computer; the `path` is different on each. 
 
 ## `mail`
 
-`accounts` lists the mail accounts of the older Himalaya import, which will be removed in a later version. Mail synced
-by [mail](mail.md#bring-mail-in-with-mail) needs no entry here. Each account has:
-
-| Key | Meaning |
-|---|---|
-| `name` | The account's name in Himalaya, and the name `memo sync --source email:<name>` takes. |
-| `address` | The email address. |
-| `mode` | `gmail` (the default), `imap`, or `mbox` for a Google Takeout file. |
-| `path` | For `mbox`: the Takeout file, such as `~/Takeout/Mail/All mail Including Spam and Trash.mbox`. |
-| `folders` | For `imap`: the mail folders to read, such as `["INBOX", "Archive"]`. |
-| `embed` | `false` keeps this account's mail out of search by meaning. |
-| `rules` | Read only to move them into the store: rules live there, managed by the `mail` CLI (`mail <profile> rules`). See [Mail](mail.md#choose-what-to-import). |
-
-Next to `accounts`:
-
-| Key | Meaning |
-|---|---|
-| `max_body_chars` | How many characters of each email are kept. Default 1,000,000. |
-| `max_attachment_chars` | How many characters of each attachment's text are kept. Default 200,000. |
-
-Settings are named in snake_case; a camelCase name is refused.
-
-See [Mail](mail.md).
+Retired. Memo no longer imports mail: the [mail](mail.md#bring-mail-in-with-mail) CLI syncs each mailbox into the
+shared store, with its own settings. An old config that still has `mail` loads and nothing reads it; `memo doctor`
+names the mailboxes it lists, and `memo config unset mail` removes it.
 
 ## `auto`
 

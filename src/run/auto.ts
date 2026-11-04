@@ -74,12 +74,12 @@ export const placesOf = (env: NodeJS.ProcessEnv): Record<string, string> =>
 export const serviceUnit = (env: NodeJS.ProcessEnv, places: Record<string, string> = {}): string =>
   [
     "[Unit]",
-    "Description=memo: sync notes and mail into the shared store",
+    "Description=memo: sync notes into the shared store and embed stored mail",
     "",
     "[Service]",
     "Type=oneshot",
     `ExecStart=${[process.execPath, memoBin(), "sync"].map(quote).join(" ")}`,
-    // Himalaya and the keyring helper it calls are found on the PATH memo was set up with.
+    // The programs memo calls are found on the PATH memo was set up with.
     `Environment=${[`PATH=${env.PATH ?? ""}`, ...Object.entries(places).map(([name, value]) => `${name}=${value}`)]
       .map(quote)
       .join(" ")} MEMO_AUTO=1`,
@@ -90,7 +90,7 @@ export const serviceUnit = (env: NodeJS.ProcessEnv, places: Record<string, strin
 export const timerUnit = (every: string): string =>
   [
     "[Unit]",
-    `Description=memo: sync notes and mail every ${every}`,
+    `Description=memo: sync notes and embed stored mail every ${every}`,
     "",
     "[Timer]",
     "OnActiveSec=1min",

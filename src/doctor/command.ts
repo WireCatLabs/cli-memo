@@ -1,4 +1,3 @@
-import { execFile } from "node:child_process"
 import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { dirname, join } from "node:path"
@@ -34,12 +33,14 @@ interface Problem {
   fix: string
 }
 
-const himalayaVersion = (env: NodeJS.ProcessEnv): Promise<string | null> =>
-  new Promise((done) =>
-    execFile(env.MEMO_HIMALAYA ?? "himalaya", ["--version"], { env, timeout: 3000 }, (error, stdout) =>
-      done(error === null ? stdout.trim().split(/\r?\n/)[0] || "unknown" : null),
-    ),
-  )
+/** The addresses an old config's `mail.accounts` names, to say which mailboxes the `mail` CLI should sync. */
+const retiredMailAddresses = (mail: unknown): string[] => {
+  const accounts = (mail as { accounts?: unknown } | null)?.accounts
+  if (!Array.isArray(accounts)) return []
+  return accounts
+    .map((account) => (account as { address?: unknown } | null)?.address)
+    .filter((address): address is string => typeof address === "string")
+}
 
 const unitPaths = (unit: string): string[] =>
   [...(/^ExecStart=(.*)$/m.exec(unit)?.[1] ?? "").matchAll(/"((?:[^"\\]|\\.)*)"/g)]
@@ -82,21 +83,16 @@ export const diagnose = async (env: NodeJS.ProcessEnv, program: Command) => {
       })
   }
 
-  const accounts = (config.mail?.accounts ?? []).map(({ name, address, mode, path, rules }) => ({
-    name,
-    address,
-    mode: mode ?? "gmail",
-    ...(mode === "mbox" ? { path: path ?? null, exists: path !== undefined && existsSync(path) } : {}),
-    /** Rules still in config.json; the next mail command moves them into the store. */
-    rules_in_config: rules?.length ?? 0,
-  }))
-  const imap = accounts.some(({ mode }) => mode !== "mbox")
-  const himalaya = imap ? await himalayaVersion(env) : null
-  if (imap && himalaya === null)
-    problems.push({ what: "himalaya is not on PATH, so mail cannot be read", fix: "install Himalaya (docs/mail.md)" })
-  for (const account of accounts)
-    if ("exists" in account && !account.exists)
-      problems.push({ what: `the mbox file of mail account ${account.name} is missing`, fix: "check mail.accounts" })
+  if (config.mail !== undefined) {
+    const addresses = retiredMailAddresses(config.mail)
+    problems.push({
+      what:
+        "memo no longer imports mail, so the config's mail settings do nothing; the mail CLI syncs " +
+        `${addresses.length ? addresses.join(", ") : "each mailbox"} into the same store (mail <profile> session ` +
+        "start --address <address>, then mail <profile> sync), and the mail already stored stays",
+      fix: "memo config unset mail",
+    })
+  }
 
   const modelDir = join(sharedModelsDirectory("text", env), TEXT_MODEL)
   const model = existsSync(modelDir) && readdirSync(modelDir).length > 0
@@ -138,7 +134,6 @@ export const diagnose = async (env: NodeJS.ProcessEnv, program: Command) => {
     cache: paths.cache,
     store,
     notes: folders,
-    mail: { accounts, himalaya },
     search_model: { name: TEXT_MODEL, path: modelDir, present: model },
     timer: { enabled: state.enabled, every: state.every, unit: unit ? unitFile : null, runs, failing },
     skills,
@@ -185,14 +180,6 @@ export const doctorText = (d: Diagnosis, fixes: readonly string[] = [], online?:
           : ""
     }`,
     ...d.notes.map((f) => `notes      ${f.path} — exists ${yes(f.exists)}, folder id ${yes(f.bound)}`),
-    ...d.mail.accounts.map(
-      (a) =>
-        `mail       ${a.name} <${a.address}> ${a.mode}` +
-        (a.rules_in_config
-          ? `, ${a.rules_in_config} rules in the config, moved into the store by the next mail command`
-          : ""),
-    ),
-    ...(d.mail.accounts.some(({ mode }) => mode !== "mbox") ? [`himalaya   ${d.mail.himalaya ?? "not found"}`] : []),
     `search     ${d.search_model.name} ${d.search_model.present ? "present" : "not downloaded — search is by words"}`,
     `timer      ${d.timer.enabled ? `on, every ${d.timer.every}` : "off"}`,
     ...d.skills.map((s) => `skill      ${s.path} ${s.version === null ? "(not installed)" : `(${s.version})`}`),
@@ -230,7 +217,7 @@ const doctorCommandDefinition = (program: Command, streams: Streams, env: NodeJS
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText(
       "after",
-      "\nReads this computer only, unless --online: the config, the store, the notes folders, Himalaya, the search " +
+      "\nReads this computer only, unless --online: the config, the store, the notes folders, the search " +
         "model, the timer and the agent skill, each problem with the command that fixes it. --online also asks npm " +
         "whether a newer memo is published, and nothing else leaves this computer. Exits 1 when something other than " +
         "the config file or a file mode needs attention; problems in the config file are listed in config.issues, and " +

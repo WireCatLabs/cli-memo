@@ -1,4 +1,4 @@
-import { mkdtempSync, writeFileSync } from "node:fs"
+import { mkdtempSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
@@ -6,10 +6,8 @@ import { formatLocator } from "@wirecat/cli-core"
 import { openStore } from "@wirecat/cli-core/store"
 import { describe, expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
+import { storeMail } from "../../test/mail-store.js"
 import { createProgram } from "../program.js"
-import { himalaya } from "./himalaya.js"
-import { himalayaSource } from "./source.js"
-import { importMail } from "./sync.js"
 
 const ME = "owner@example.test"
 const KEY = { provider: "email", account: ME }
@@ -26,11 +24,17 @@ const run = async (args: string[], env: NodeJS.ProcessEnv) => {
 describe("mail imported into the mail tables reads back through memo", () => {
   it("is found by search, ask, context, tags and tasks", async () => {
     const dir = mkdtempSync(join(tmpdir(), "memo-mail-read-"))
-    const mailbox = join(dir, "mailbox.json")
-    writeFileSync(
-      mailbox,
-      JSON.stringify({
-        messages: [
+    const env = {
+      ...process.env,
+      MESSAGING_STORE: join(dir, "messages.db"),
+      MEMO_CONFIG_DIR: join(dir, "config"),
+    }
+    const store = await openStore({ env })
+    try {
+      await storeMail(
+        store,
+        ME,
+        [
           {
             uid: "101",
             messageId: "9001",
@@ -42,23 +46,8 @@ describe("mail imported into the mail tables reads back through memo", () => {
             text: "The roadmap review moves to Friday.",
           },
         ],
-      }),
-    )
-    const env = {
-      ...process.env,
-      MEMO_FAKE_MAILBOX: mailbox,
-      MESSAGING_STORE: join(dir, "messages.db"),
-      MEMO_CONFIG_DIR: join(dir, "config"),
-    }
-    const store = await openStore({ env })
-    try {
-      await importMail({
-        store,
-        source: himalayaSource(himalaya(env), { name: "test" }),
-        account: { name: "test", address: ME },
-        since: new Date("2026-09-01T00:00:00Z"),
-        now: () => Date.parse("2026-10-04T12:00:00Z"),
-      })
+        { since: new Date("2026-09-01T00:00:00Z"), now: () => Date.parse("2026-10-04T12:00:00Z") },
+      )
     } finally {
       await store.close()
     }

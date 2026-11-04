@@ -88,10 +88,7 @@ export const mailFindingsCommand = (
     FINDINGS_QUERY,
   )
     .description("mail findings batches, newest first; status:proposed is what waits for the owner")
-    .option(
-      "--source <accounts>",
-      "only this mailbox's batches: email:<account>, its name in mail.accounts or its address",
-    )
+    .option("--source <accounts>", "only this mailbox's batches: email:<address>")
     .option("--limit <n>", "batches per page, at most 50", positive, 20)
     .option("--page <n>", "which page, from 1", positive, 1)
     .action((words: string[], given: { source?: string; json?: boolean; limit: number; page: number }) =>

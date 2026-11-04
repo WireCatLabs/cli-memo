@@ -79,29 +79,21 @@ markers to bypass that permission. Historical proposals stay proposed.
 7. **Never write message, mail or note text to a file.** Quote it in the answer with its reference.
 8. **Before reporting a bug, compare `memo --version` with `npm view @wirecat/cli-memo version`.** An
    older install may lack the fix.
-9. **Mail imports resume.** Bound initial runs with `--limit`, then repeat; completed mail is skipped.
-   `--rescan` lists all mail again to detect
-   deletions sooner than the daily whole listing. Import throughput depends on the mailbox and server.
-   The owner adds a mailbox themselves (`mail <profile> session start`, then `mail <profile> sync`; the older way is Himalaya and `memo mail add`);
-   `mail <profile> status` shows how far a `mail` sync is. Never ask for a mail or app
-   password in the chat.
-10. **Inspect before a first large mail import.** `memo mail inspect <account> --json` groups mail by
-    sender and list from headers only; its `suggest` is a hint, not a decision. Its `score` and `signals`
-    flag likely spam, scams and robots; a high score is a reason to show the owner, not to add a rule.
-    Pass `--domain-age` only when the owner agrees: it tells domain registries the sender domains.
+9. **memo never reads a mailbox; the `mail` CLI does.** The owner adds and syncs a mailbox themselves
+   (`mail <profile> session start`, then `mail <profile> sync`); `mail <profile> status` shows how far it is, and
+   `memo sync` only prepares stored mail for search by meaning. Never ask for a mail or app password in the chat.
+10. **Look at a mailbox before a first large sync with `mail <profile> account inspect --json`**: it groups mail by
+    sender and list from headers only; its `suggest` is a hint, not a decision, and a high `score` is a reason to
+    show the owner, not to add a rule. Pass `--domain-age` only when the owner agrees: it tells domain registries the
+    sender domains. Old Gmail years come from a Google Takeout file: `mail <profile> messages import <file.mbox>`.
 11. **Mail rules, Gmail cleanup and restore are commands of the `mail` CLI, not memo.** Use
     `mail <profile> rules list|add|remove|apply|export|import …`, `mail <profile> messages delete --rules`,
-    `mail <profile> messages restore --run <id>` and `mail runs list`; `mail session status` lists the profiles and
-    their addresses. memo's old `memo mail rules|delete|restore|runs` commands only answer with that command. Rules
-    stay the owner's decision: never add a skip or envelope rule unasked, and never run a cleanup's `--yes` without
-    the owner's yes. `memo sync` still honours the rules stored for an account.
-12. **Old years come from a Google Takeout mbox**, an account with `"mode": "mbox"` and the Gmail
-    address; it syncs only when named. An incomplete import scans the file again, so use a generous
-    `--limit`; a completed snapshot is skipped until its size or modification time changes. `--rescan`
-    forces another scan:
-    `memo sync --source email:<name> --since-time 2000-01-01 --limit 5000`.
-    An account with `"import": false` is synced by `mail`: memo's sync skips it (naming it says so) while rules,
-    delete, restore and inspect still work.
+    `mail <profile> messages restore --run <id>` and `mail doctor`; `mail session list` lists the profiles and their
+    addresses. memo's old `memo mail add|check|inspect|rules|delete|restore|runs` commands only answer with that
+    command. Rules stay the owner's decision: never add a skip or envelope rule unasked, and never run a cleanup's
+    `--yes` without the owner's yes.
+12. **`memo: memo sync no longer imports mail` on stderr means the config still has memo's old `mail` settings.**
+    Tell the owner: `memo doctor` names the mailboxes to sync with `mail`, and `memo config unset mail` removes them.
 13. **A stderr line `memo: scheduled sync failing since …` means the owner's timer is broken** and their
     notes or mail are going stale. Tell the owner, quote its reason (an error code and reason id); the full
     message is in the journal `memo jobs status` names.
