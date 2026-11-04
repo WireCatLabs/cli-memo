@@ -2,7 +2,7 @@ import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { formatLocator, parseLocator } from "@wirecat/cli-core"
 import { LOCAL_READ } from "@wirecat/cli-core/cli"
-import { ATTACHMENT_CHARS, attachmentsText, hitText, showMail } from "@wirecat/cli-core/mail"
+import { ATTACHMENT_CHARS, attachmentsText, hitText, mailOwnText, showMail } from "@wirecat/cli-core/mail"
 import { contextEvidenceFingerprint } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
@@ -14,6 +14,14 @@ import { atDetail } from "../output.js"
 const citedBy = async (store: MessageStore, ref: string): Promise<string | null> => {
   const record = await store.contextRecords?.read(ref)
   return record ? contextEvidenceFingerprint(record) : null
+}
+
+interface ShowOptions {
+  json?: boolean
+  beforeN: number
+  afterN: number
+  full?: boolean
+  trimmed?: boolean
 }
 
 export const messagesCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
@@ -28,8 +36,13 @@ export const messagesCommand = (program: Command, streams: Streams, env: NodeJS.
       "--full",
       `whole attachment text, not the first ${ATTACHMENT_CHARS} characters of each, and the HTML and AMP versions of the body`,
     )
+    .option("--trimmed", "each email's own text, without quoted earlier mail or the signature — for an agent's reads")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action(async (reference: string, options: { json?: boolean; beforeN: number; afterN: number; full?: boolean }) => {
+    .action(async (reference: string, options: ShowOptions) => {
+      if (options.trimmed && options.full)
+        throw new CliError("validation_error", "--trimmed shows less of an email and --full more — give one", {
+          param: "trimmed",
+        })
       const locator = parseLocator(reference)
       if (locator.provider !== "email") {
         const key = { provider: locator.provider, account: locator.account }
@@ -62,6 +75,7 @@ export const messagesCommand = (program: Command, streams: Streams, env: NodeJS.
         return Promise.all(
           shown.map(async (email) => ({
             ...email,
+            ...(options.trimmed ? { text: mailOwnText(email.text) } : {}),
             ref: email.locator,
             fingerprint: await citedBy(store, email.locator),
           })),

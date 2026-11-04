@@ -82,5 +82,19 @@
     "reason": "WireCat Desktop's Tasks page adds a task straight into a board column (owner's choice NEED-205 A, 2026-11-01); same flag as tasks update --status.",
     "owner": "@leemour",
     "review_after": "2027-02-01"
+  },
+  {
+    "rule": "option-role",
+    "target": "messages show --trimmed",
+    "reason": "The mail-triage agent reads thread and sender context without quoted earlier mail or signatures (SEC-122, plan 2026-11-02-mail-review-and-agent-pipeline M3); the cli-base vocabulary has no output switch for an email's own text. Add --trimmed there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-05"
+  },
+  {
+    "rule": "option-role",
+    "target": "context --trimmed",
+    "reason": "The mail-triage agent reads thread and sender context without quoted earlier mail or signatures (SEC-122, plan 2026-11-02-mail-review-and-agent-pipeline M3); the cli-base vocabulary has no output switch for an email's own text. Add --trimmed there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-05"
   }
 ]

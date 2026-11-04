@@ -6,6 +6,17 @@ the API.
 
 ## Unreleased
 
+### Security
+
+- **The mail-triage agent reads each email's own text.** `memo mail review --holder` gives it without quoted earlier
+  mail or the signature (cli-core's `mailOwnText`), and `memo messages show --trimmed` and `memo context --trimmed` do
+  the same for the thread and the sender's earlier mail; the skill passes `--trimmed`. Fingerprints still cover the
+  stored email, and the owner's reads (`messages show`, `context`, `review show`) keep the whole text. `--trimmed` is
+  refused with `--full`.
+- **The mail-triage skill puts no sender text into a shell line unchecked.** A name or address goes in single quotes,
+  and only when it holds letters, digits, spaces and `. _ + - @`; new senders are looked up only for emails kept by
+  triage with `new_sender: true`, not for every sender seen once.
+
 ## 0.131.23 — 05.11.2026
 
 ### Added

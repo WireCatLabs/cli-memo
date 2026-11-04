@@ -8,7 +8,7 @@ import { boundFolders } from "../notes/bound.js"
 import { positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { waitingAbout } from "../review/status.js"
-import { contextAccountOf, type MemoContext, memoContext } from "./context.js"
+import { contextAccountOf, type MemoContext, memoContext, withOwnMailText } from "./context.js"
 
 const MAX_TEXT = 160
 
@@ -106,7 +106,8 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
       "--source <accounts>",
       "the account to read, as provider:account; required when the store holds several of that messenger",
     )
-    .action(async (person: string, options: { limit: number; json?: boolean; source?: string }) => {
+    .option("--trimmed", "each email's own text, without quoted earlier mail or the signature — for an agent's reads")
+    .action(async (person: string, options: { limit: number; json?: boolean; source?: string; trimmed?: boolean }) => {
       const answer = await withStore(env, async (store) => {
         await importNotesMap(store, env, await boundFolders(store, env, { strict: false }))
         const source =
@@ -117,7 +118,10 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
         })
         const { uid, identities } = found.messages.person
         const refs = [`person:${uid}`, ...identities.map(({ provider, id }) => `${provider}:${id}`)]
-        return { ...found, proposals: await waitingAbout(store, env, refs) }
+        return {
+          ...(options.trimmed ? withOwnMailText(found) : found),
+          proposals: await waitingAbout(store, env, refs),
+        }
       })
       print(options.json, itemAnswer(answer), contextText(answer))
     })
