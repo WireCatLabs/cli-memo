@@ -133,13 +133,13 @@ export const listReview = async (
   { limit, page }: { limit: number; page: number },
 ) => {
   const filter = await filterOf(store, words)
-  const found = await reviewRegistry(store, env).list({ ...filter, limit, offset: (page - 1) * limit })
+  const found = await reviewRegistry(store).list({ ...filter, limit, offset: (page - 1) * limit })
   const label = await labelsFor(store, found.items.flatMap(rowRefs))
   return { items: found.items.map((row) => reviewItem(row, label)), hasMore: found.hasMore }
 }
 
 export const showReview = async (store: MessageStore, env: NodeJS.ProcessEnv, id: string) => {
-  const row = await reviewRegistry(store, env).get(id)
+  const row = await reviewRegistry(store).get(id)
   const label = await labelsFor(store, [...rowRefs(row), ...row.evidence])
   return {
     ...reviewItem(row, label),
