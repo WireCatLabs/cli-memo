@@ -1,4 +1,4 @@
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, symlinkSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { delimiter, join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
@@ -29,10 +29,15 @@ if (args.at(-1) === "8") {
 console.log(JSON.stringify({ item: { complete: true } }))
 `
 
+/** The owner's own `tg` or `wcat-tg` on PATH would win over the stand-in, and run for real. */
+const withoutRealTg = (path: string) =>
+  path.split(delimiter).filter((dir) => dir !== "" && !["tg", "wcat-tg"].some((name) => existsSync(join(dir, name))))
+
 const setUp = async () => {
   const root = mkdtempSync(join(tmpdir(), "memo-fetch-"))
   const bin = join(root, "bin")
   mkdirSync(bin)
+  symlinkSync(process.execPath, join(bin, "node"))
   writeFileSync(join(bin, "tg"), FAKE_TG)
   chmodSync(join(bin, "tg"), 0o755)
   const accounts = join(root, "tg-state", "accounts")
@@ -43,7 +48,7 @@ const setUp = async () => {
     ...process.env,
     MESSAGING_STORE: join(root, "s.db"),
     TG_STATE_DIR: join(root, "tg-state"),
-    PATH: `${bin}${delimiter}${process.env.PATH ?? ""}`,
+    PATH: [bin, ...withoutRealTg(process.env.PATH ?? "")].join(delimiter),
     FAKE_TG_LOG: join(root, "tg.log"),
   }
   const store = await openStore({ env })
