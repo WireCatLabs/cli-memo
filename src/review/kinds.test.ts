@@ -13,6 +13,8 @@ const CLAUDE = { AI_AGENT: "claude-code_2-1-296_agent" }
 const NOBODY: Terminal = { present: false }
 const OWNER: Terminal = { present: true }
 const ACCOUNT = "example:synthetic"
+const ME = "me@example.com"
+const MAILBOX = `email:${ME}`
 
 afterEach(() => {
   process.exitCode = 0
@@ -39,12 +41,22 @@ const setUp = async () => {
   const [task] = await store.tasks.find({ project: project.ref, status: "open", limit: 1 })
   if (!task) throw new Error("no task")
   await store.tasks.suggestClose(task.id, { as: "done", certainty: 0.8, reason: "you replied" }, { bot: "claude-code" })
-  const mail = await store.proposedActions.propose({
-    kind: "mail_findings",
-    by: { bot: "mail-triage" },
-    account: key,
-    payload: { findings: [] },
-    reason: "synthetic",
+  const mailbox = await store.accounts.saveAccount({ provider: "email", account: ME }, { name: null })
+  await store.mail.saveThread({
+    accountId: mailbox,
+    externalId: "t-quote",
+    now: Date.now(),
+    emails: [
+      {
+        externalId: "<quote@example.com>",
+        subject: "Quote",
+        from: { address: "ann@example.com", name: "Ann" },
+        to: [{ address: ME, name: "Me" }],
+        sentAt: Date.now(),
+        receivedAt: Date.now(),
+        bodyText: "Could you send the harbour quote?",
+      },
+    ],
   })
   await store.close()
 
@@ -93,6 +105,29 @@ const setUp = async () => {
     }),
   )
   const batch = (await run(CLAUDE, NOBODY, "meetings", "actions", "add", file, "--account", ACCOUNT)).item
+  const quote = `msg:email/${encodeURIComponent(ME)}/t-quote/${encodeURIComponent("<quote@example.com>")}`
+  const shown = (await run({}, OWNER, "messages", "show", quote)).item
+  const mailFile = join(dir, "mail-findings.json")
+  writeFileSync(
+    mailFile,
+    JSON.stringify({
+      schema_version: 1,
+      key: "mail-triage:1",
+      extractor: "mail-triage/1",
+      findings: [
+        {
+          id: "quote",
+          kind: "task",
+          type: "chore",
+          title: "Send Ann the harbour quote",
+          reason: "Ann asks for it",
+          commitment: "explicit",
+          evidence: [{ reference: quote, fingerprint: shown.fingerprint }],
+        },
+      ],
+    }),
+  )
+  const mail = (await run(CLAUDE, NOBODY, "mail", "findings", "add", mailFile, "--source", MAILBOX)).item
   await run(
     CLAUDE,
     NOBODY,
@@ -127,12 +162,12 @@ it("lists each kind waiting for the owner once, grouped by where it came from", 
     parts: [{ id: "followup" }, { id: "budget" }],
   })
   expect(byKind("task_close")).toMatchObject({ id: `close:${f.task.key}`, owner_only: true, score: 0.8 })
-  expect(byKind("mail_findings")).toMatchObject({ id: f.mail.id, owner_only: true, source: ACCOUNT })
+  expect(byKind("mail_findings")).toMatchObject({ id: f.mail.id, owner_only: true, source: MAILBOX })
   expect(byKind("fact")).toMatchObject({ owner_only: false })
 
   const text = await f.raw({}, OWNER, "review")
   expect(text).toContain("Synthetic Harbour")
-  expect(text).toContain(ACCOUNT)
+  expect(text).toContain(MAILBOX)
   expect(text).toContain(`${f.batch}/followup  task  Check draft status`)
   expect((await f.run({}, OWNER, "review", "kind:task_close")).items).toHaveLength(1)
 })
@@ -159,7 +194,7 @@ it("confirms exactly the findings named and rejects the rest of the batch", asyn
   expect((await f.run({}, OWNER, "review", "kind:task_close")).items).toEqual([])
 })
 
-it("refuses an agent on every owner-only kind, and refuses the owner a mail findings batch that is not one", async () => {
+it("refuses an agent on every owner-only kind, and lets the owner decide a mail findings batch", async () => {
   const f = await setUp()
   const ids = [f.batch, `close:${f.task.key}`, f.mail.id]
   const tried = await f.run(CLAUDE, NOBODY, "review", "confirm", ids.join(","), "--reason", "looks right")
@@ -173,10 +208,11 @@ it("refuses an agent on every owner-only kind, and refuses the owner a mail find
   const rejected = await f.run(CLAUDE, NOBODY, "review", "reject", f.batch, "--reason", "noise")
   expect(rejected.item.refused).toMatchObject([{ reason: "proposal.owner-only" }])
   process.exitCode = 0
-  const mail = await f.run({}, OWNER, "review", "confirm", f.mail.id)
-  expect(mail.item.refused).toMatchObject([{ code: "validation_error" }])
-  process.exitCode = 0
   expect((await f.run({}, OWNER, "review")).items).toHaveLength(4)
+  const mail = (await f.run({}, OWNER, "review", "confirm", f.mail.id)).item
+  expect(mail.refused).toEqual([])
+  expect(mail.decided).toMatchObject([{ id: f.mail.id, kind: "mail_findings", status: "confirmed" }])
+  expect(kindsOf((await f.run({}, OWNER, "review")).items)).toEqual({ fact: 1, meeting_findings: 1, task_close: 1 })
 })
 
 it("says when nothing happened, and counts what waits in the status and in the project's context", async () => {

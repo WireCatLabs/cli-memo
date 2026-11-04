@@ -242,8 +242,8 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         .option("--agent <agent>", "a project task: the agent working on it, apart from its assignees; none clears it")
         .option(
           "--project <project>",
-          "a project task: move it to another project, by key or project:<id>; it takes a new key there, and the " +
-            "old key still finds it. A subtask moves only with --parent none",
+          "a project task: move it to another project, by key or project:<id>; it and its subtasks take new keys " +
+            "there, and the old keys still find them. A subtask moves alone only with --parent none",
         )
         .option("--type <type>", `a project task's kind: ${WORK_TASK_TYPES.join(", ")}`, oneOf(WORK_TASK_TYPES))
         .option("--revision <n>", REVISION_HELP, revisionOf)
