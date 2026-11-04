@@ -282,3 +282,18 @@ it("lets a read-only agent stage and acknowledge, and refuses every other change
     ),
   ).not.toBe("permission_error")
 })
+
+it("hands on review steps as memo's own commands, naming the mailbox", async () => {
+  const box = await mailbox()
+  await box.thread("t-quote", email("quote", 1))
+  await box.synced()
+  const read = await box.review()
+  expect(read.next).toEqual([
+    expect.objectContaining({
+      step: "mail-messages.acknowledge",
+      command: "messages acknowledge",
+      args: { holder: "mail-triage", cursor: read.cursor, source: MAILBOX },
+      line: `memo messages acknowledge --holder mail-triage --cursor ${read.cursor} --source ${MAILBOX}`,
+    }),
+  ])
+})
