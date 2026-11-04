@@ -1,21 +1,27 @@
 import { annotate } from "@wirecat/cli-base/commands"
 import { LOCAL_WRITE, outputFor, overrideSharedContract, scheduleCommandFor } from "@wirecat/cli-core/cli"
-import { holderHasMail } from "@wirecat/cli-core/mail"
+import { advancePastSkipped, mailWaiting } from "@wirecat/cli-core/mail"
 import type { Command } from "commander"
 import { withStore } from "../answer.js"
 import { APP } from "../app.js"
+import { scheduleLimits } from "../config.js"
 
 /**
  * cli-core's `schedule`: a memo command or an agent on a timer. memo has no profiles, and its `--json` is per
  * command, as on `runs`. An agent's run is allowed `Bash(memo:*)` under MEMO_READ_ONLY. `--on-new-mail <holder>`
- * starts the agent only when some mailbox holds mail past that holder's mark, so a quiet 5-minute check costs no
- * model call.
+ * starts the agent only when some mailbox holds mail past that holder's mark, and enough of it — the config file's
+ * `schedule_mail_wait` and `schedule_mail_batch` — so a quiet 5-minute check costs no model call.
  */
 export const scheduleCommand = (env: NodeJS.ProcessEnv): Command => {
   const schedule = scheduleCommandFor({
     app: APP,
     context: (command) => ({ ...outputFor(command), env, profile: "" }),
-    newMail: (_command, holder) => withStore(env, (store) => holderHasMail(store, holder)),
+    newMail: (_command, holder) =>
+      withStore(env, async (store) => {
+        await advancePastSkipped(store, holder)
+        return mailWaiting(store, holder)
+      }),
+    limits: () => scheduleLimits(env),
   })
   for (const one of schedule.commands)
     overrideSharedContract(

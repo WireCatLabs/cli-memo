@@ -5,7 +5,7 @@ import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { withStore } from "../answer.js"
 import { APP } from "../app.js"
-import { MAIL_SOURCES, mailboxesOf } from "../store/source-list.js"
+import { MAIL_SOURCES, oneAccountOf } from "../store/source-list.js"
 
 export const MAILBOX_HELP = `the one mailbox: ${MAIL_SOURCES}; may be left out when the store holds one mailbox`
 
@@ -15,16 +15,10 @@ export const oneMailboxOf = async (
   env: NodeJS.ProcessEnv,
   source: string | undefined,
 ): Promise<AccountKey> => {
-  const mailboxes = source
-    ? await mailboxesOf(store, env, source)
-    : (await store.accounts.accounts()).filter((key) => key.provider === "email")
-  if (mailboxes.length === 1) return mailboxes[0] as AccountKey
-  const names = mailboxes.map((key) => `email:${key.account}`).join(", ")
-  throw new CliError(
-    "validation_error",
-    names ? `give --source with one mailbox: ${names}` : "the store holds no mailbox yet; run memo sync first",
-    { reason: "mail.mailbox-needed", param: "source" },
-  )
+  const key = await oneAccountOf(store, env, source ?? "email")
+  if (key.provider !== "email")
+    throw new CliError("validation_error", `${source} is not a mailbox — ${MAIL_SOURCES}`, { param: "source" })
+  return key
 }
 
 const named = (commands: readonly Command[], name: string): Command => {

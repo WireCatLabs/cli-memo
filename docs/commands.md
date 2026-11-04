@@ -1173,20 +1173,28 @@ task statistics
 
 #### `memo stats tasks show`
 
-per chat: how many tasks are open, the oldest open one, the median time to close
+tasks per chat, meeting or project: open now, and opened and closed in the period (created: in the query), with the median time to close and the mean age of the open ones
 
 ```sh
-memo stats tasks show [options]
+memo stats tasks show [query] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
 
 | Option | What it does |
 |---|---|
+| `--by <group>` | chat (default) or meeting: this account's tasks; project: the owner's project tasks, every project. |
 | `--chat <chat>` | only this chat; a stored chat, by its id or title. |
 | `--type <type>` | only this type: question, request, mention or promise. |
+| `--timezone <zone>` | the IANA timezone for calendar days in the period, such as created>=today. |
 | `--source <accounts>` | the account: telegram:<account>, email:<account>, notes:<id>, or group:<name> of one. |
 | `--json` | print JSON. |
 
-**Returns:** task stats — open, rows; every field: memo commands info stats tasks show
+**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 24 more; every field: memo commands info stats tasks show
+
+**Next usually:** `memo tasks links <task>`, `memo tasks status <task>`, `memo tasks show <task>`
 
 **Example:** `memo stats tasks show --source telegram:1`, `memo stats tasks show --type question --source telegram:1 --json`
 
@@ -3986,15 +3994,18 @@ memo schedule agent <name> <harness> <prompt> [options]
 | Option | What it does |
 |---|---|
 | `--max-cost <usd>` | claude only: stop a run that costs more than this, in US dollars. |
+| `--max-cost-per-day <usd>` | claude only: start no run for the rest of the day once its runs cost this much, in US dollars; 0 for no cap (default 5, or the config file's). |
 | `--every <duration>` | repeat: 30m, 2h, 1d. |
 | `--at <HH:MM>` | every day at this local time. |
 | `--at-time <time>` | one run: 30m, 2d from now, or an ISO time; the schedule removes itself after it. |
 | `--on-new-mail <holder>` | run only when mail is stored past this holder's mark — after a sync brought new mail; may check every 5m. |
+| `--mail-wait <duration>` | with --on-new-mail: start once the oldest waiting email has waited this long (default 30m, or the config file's). |
+| `--mail-batch <n>` | with --on-new-mail: or once this many emails wait (default 10, or the config file's). |
 | `--json` | print JSON. |
 
 **Returns:** start an agent (claude or codex) with a prompt on a timer; it runs with…
 
-**Example:** `memo schedule agent triage claude 'read memo review status and list what needs me today' --at 08:45 --max-cost 1`, `memo schedule agent mail-triage claude 'Run memo skill show mail-triage and follow it.' --every 5m --on-new-mail mail-triage --max-cost 1`
+**Example:** `memo schedule agent triage claude 'read memo review status and list what needs me today' --at 08:45 --max-cost 1`, `memo schedule agent mail-triage claude 'Run memo skill show mail-triage and follow it.' --every 5m --on-new-mail mail-triage --max-cost 1 --max-cost-per-day 5`
 
 ### `memo schedule list`
 

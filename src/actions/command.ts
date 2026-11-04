@@ -1,13 +1,12 @@
-import { CliError, type Streams } from "@wirecat/cli-base"
+import type { Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { LOCAL_READ, LOCAL_WRITE, withQuery } from "@wirecat/cli-core/cli"
 import { approveAsTask, proposalRegistry } from "@wirecat/cli-core/services"
-import { assertMayDecide, MAIL_FINDINGS_KIND } from "@wirecat/cli-core/store"
+import { assertMayDecide } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { byOption, deciderOf, whoRuns } from "../author.js"
 import { positive } from "../options.js"
-import { reviewRegistry } from "../review/kinds.js"
 import { decideOne, decisionOf } from "../review/review.js"
 import { type WriteOptions, writeAccount, writeOptions } from "../store/source-list.js"
 import {
@@ -91,17 +90,6 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     .action(async (id: string, findings: string[], options: Decision & { json?: boolean }, command: Command) => {
       const by = await deciderOf(command, env, { ...options, question: `confirm action ${id} as you, the owner?` })
       await run(options.json, async (store) => {
-        if ((await store.proposedActions.get(id)).kind === MAIL_FINDINGS_KIND) {
-          // registry.get carries no owner-only mark: the generic path below would let an agent make the batch a task.
-          const parts = findings.length ? findings.map((finding) => `${id}/${finding}`) : [id]
-          const { decided, refused } = await reviewRegistry(store, env).decide(
-            parts,
-            decisionOf(true, by, options.reason),
-          )
-          const refusal = refused[0]
-          if (refusal) throw new CliError(refusal.code, refusal.message, { reason: refusal.reason })
-          return itemAnswer({ decided })
-        }
         const findingsAnswer = await decideFindings(store, id, { ...options, accept: findings, confirm: true, by })
         if (findingsAnswer) return itemAnswer(findingsAnswer)
         // The task is made here to keep this command's answer; the check is the review registry's.

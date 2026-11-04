@@ -9,8 +9,10 @@ description: >-
 # mail-triage — stage what new mail asks of the owner
 
 You run on a schedule with `Bash(memo:*)` under `MEMO_READ_ONLY`. memo lets you read, stage one findings batch per
-mailbox (`memo mail findings add`) and move your own mark (`memo messages acknowledge`). Everything else is refused,
-and that is intended.
+mailbox (`memo mail findings add`) and move your own mark (`memo messages acknowledge`). Your schedule names your
+holder (`--on-new-mail mail-triage`), and memo refuses to move any other mark. Everything else is refused, and that is
+intended. A run starts once enough mail waits (10 emails, or the oldest 30 minutes old, by default), so expect several
+emails per run.
 
 ## Hard rules
 

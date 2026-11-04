@@ -10,7 +10,8 @@ import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { whole } from "../options.js"
 import { atDetail } from "../output.js"
 
-/** The fingerprint a finding cites this email by, the one `mail review --holder` gives (FIND-2161). */
+/** The fingerprint a finding cites this email by, the one `mail review --holder` gives: a finding
+ * cites what the agent read, so both must hash the same record. */
 const citedBy = async (store: MessageStore, ref: string): Promise<string | null> => {
   const record = await store.contextRecords?.read(ref)
   return record ? contextEvidenceFingerprint(record) : null
