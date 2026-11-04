@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.22 — 03.11.2026
+
 ### Added
 
 - **`memo config show` lists every setting with its value, its default and whether the file sets it, and `memo config
