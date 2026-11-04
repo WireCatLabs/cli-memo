@@ -257,22 +257,30 @@ it("moves a task to another project, changes its kind and keeps comments with th
   expect((await run(["tasks", "list", "project:OPS", "due:tomorrow"])).items).toEqual([])
 })
 
-it("refuses to move a subtask alone unless it is detached in the same write, and finds subtasks by parent:", async () => {
+it("moves a task's subtasks with it, and moves a subtask alone only when it is detached", async () => {
   const { run } = await setUp()
   await run(["tasks", "add", "--project", "HRB", "--title", "Launch"])
   await run(["tasks", "add", "--project", "HRB", "--title", "Print badges", "--parent", "HRB-1"])
+  await run(["tasks", "add", "--project", "HRB", "--title", "Order lanyards", "--parent", "HRB-1"])
   expect(
     (await run(["tasks", "list", "project:HRB", "parent:HRB-1"])).items.map(({ key }: { key: string }) => key),
-  ).toEqual(["HRB-2"])
-  await expect(run(["tasks", "update", "HRB-1", "--project", "OPS"])).rejects.toMatchObject({
-    code: "validation_error",
-    details: { reason: "task.has-subtasks", subtasks: ["HRB-2"] },
-  })
-  await expect(run(["tasks", "update", "HRB-2", "--project", "OPS"])).rejects.toMatchObject({
-    details: { reason: "task.is-subtask", parent: "HRB-1" },
-  })
-  expect(await run(["tasks", "update", "HRB-2", "--project", "OPS", "--parent", "none"])).toMatchObject({
+  ).toEqual(["HRB-2", "HRB-3"])
+  expect(await run(["tasks", "update", "HRB-1", "--project", "OPS"])).toMatchObject({
     key: "OPS-1",
+    moved_subtasks: [
+      { from: "HRB-2", to: "OPS-2" },
+      { from: "HRB-3", to: "OPS-3" },
+    ],
+  })
+  expect(await run(["tasks", "show", "HRB-2"])).toMatchObject({ key: "OPS-2", parent: "task:OPS-1" })
+  expect(
+    (await run(["tasks", "list", "project:OPS", "parent:OPS-1"])).items.map(({ key }: { key: string }) => key),
+  ).toEqual(["OPS-2", "OPS-3"])
+  await expect(run(["tasks", "update", "OPS-2", "--project", "HRB"])).rejects.toMatchObject({
+    details: { reason: "task.is-subtask", parent: "OPS-1" },
+  })
+  expect(await run(["tasks", "update", "OPS-2", "--project", "HRB", "--parent", "none"])).toMatchObject({
+    key: "HRB-4",
     parent: null,
   })
 })

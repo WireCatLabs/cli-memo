@@ -1058,7 +1058,7 @@ memo tasks update <task> [options]
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
 | `--json` | print JSON. |
 | `--agent <agent>` | a project task: the agent working on it, apart from its assignees; none clears it. |
-| `--project <project>` | a project task: move it to another project, by key or project:<id>; it takes a new key there, and the old key still finds it. A subtask moves only with --parent none. |
+| `--project <project>` | a project task: move it to another project, by key or project:<id>; it and its subtasks take new keys there, and the old keys still find them. A subtask moves alone only with --parent none. |
 | `--type <type>` | a project task's kind: bug, feature, chore. |
 | `--revision <n>` | refuse the write unless the task is still at this revision (task.stale, exit 3). |
 | `--status <state>` | a project task's state: open, todo, in_progress, done, dismissed; a closed one reopens. |
@@ -3844,6 +3844,40 @@ memo jobs status [options]
 ## `memo config`
 
 memo's settings file
+
+### `memo config show`
+
+every setting, its value, its default and whether the file sets it
+
+```sh
+memo config show [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** every setting, its value, its default and whether the file sets it
+
+**Example:** `memo config show`, `memo config show --json`
+
+### `memo config migrate`
+
+write each setting the file lacks at its default, keeping yours
+
+This command changes the local store or your files.
+
+```sh
+memo config migrate [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** write each setting the file lacks at its default, keeping yours
+
+**Example:** `memo config migrate`
 
 ### `memo config unset`
 

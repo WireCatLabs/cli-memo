@@ -6,6 +6,28 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo config show` lists every setting with its value, its default and whether the file sets it, and `memo config
+  migrate` writes the missing ones into the file at their defaults.** You then find and edit every setting in
+  `config.json`, `"agent_decisions": false` included, without the docs. Your values, their order and keys memo does
+  not know stay. Every write memo already makes to the file (`folders add`, `mail add`, `jobs start`, mail rules) adds
+  the missing settings too; a plain read never rewrites the file.
+
+### Fixed
+
+- **`memo mail review` names memo's own commands in its next steps**: `memo messages acknowledge … --source
+  email:<account>`, so an agent runs the step as given. It offers no whole-thread read, which memo does not mount.
+
+### Changed — may break callers
+
+- **Only you decide meeting and mail findings, on every path, whatever `agent_decisions` and `permissions` say**
+  (cli-core 0.563.0). An agent's `meetings actions confirm` or `reject`, `review confirm` or `actions confirm` of a
+  batch is refused with `proposal.owner-only`, its own batch included.
+- **`memo tasks update <task> --project <key>` moves the task's subtasks with it** instead of refusing; each takes a
+  new key there and the old keys still find them (cli-core 0.563.0). A subtask still moves alone only with
+  `--parent none`.
+
 ## 0.131.22 — 03.11.2026
 
 ### Added

@@ -2,12 +2,18 @@ import { CliError, configFilePath, resolvePaths, saveConfigFile } from "@wirecat
 import {
   type ConfigIssue,
   checkConfigText,
+  type DeclaredSetting,
   issueMessage,
+  KEEP_RUNS_FOR_DAYS,
+  KEEP_SUCCESSFUL_RUNS_FOR_DAYS,
+  RUNS_SIZE_LIMIT_MB,
   readConfigFile,
   readConfigText,
   settingPathOf,
   withoutSetting,
+  withSettingDefaults,
 } from "@wirecat/cli-core/cli"
+import { MAX_ATTACHMENT_CHARS, MAX_BODY_CHARS } from "@wirecat/cli-core/mail"
 import { DEFAULT_DECISION_POLICY, type DecisionPolicy } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import * as v from "valibot"
@@ -97,6 +103,39 @@ const ConfigSchema = v.strictObject({
 
 export type Config = v.InferOutput<typeof ConfigSchema>
 
+/**
+ * Every setting written into the file with its default, so the owner sees and edits it there (WC-CMD-30). Each default
+ * is the one the code applies when the key is missing. Lists are left out, and so is `auto`: `memo jobs start` keeps it.
+ */
+export const MEMO_SETTINGS: readonly DeclaredSetting[] = [
+  {
+    key: "agent_decisions",
+    default: DEFAULT_DECISION_POLICY.agentDecisions,
+    description: "true lets an agent confirm or reject proposals for you; false keeps every decision yours",
+  },
+  { key: "update_check", default: true, description: "check once a day for a newer memo" },
+  { key: "record", default: true, description: "keep every run in memo runs list; false keeps failed runs only" },
+  {
+    key: "record_input",
+    default: true,
+    description: 'keep what was typed in a run\'s command line: true, false, or "failed" for failed runs only',
+  },
+  { key: "keep_runs_for_days", default: KEEP_RUNS_FOR_DAYS, description: "days a run is kept" },
+  {
+    key: "keep_successful_runs_for_days",
+    default: KEEP_SUCCESSFUL_RUNS_FOR_DAYS,
+    description: "days a successful run is kept",
+  },
+  { key: "runs_size_limit_mb", default: RUNS_SIZE_LIMIT_MB, description: "the most megabytes all runs may take" },
+  { key: "notes.embed", default: true, description: "false keeps notes out of search by meaning" },
+  { key: "mail.max_body_chars", default: MAX_BODY_CHARS, description: "the most characters of an email body kept" },
+  {
+    key: "mail.max_attachment_chars",
+    default: MAX_ATTACHMENT_CHARS,
+    description: "the most characters of one attachment's text kept",
+  },
+]
+
 export const configPath = (env: NodeJS.ProcessEnv = process.env): string =>
   configFilePath(resolvePaths({ appName: "cli-memo", prefix: "MEMO", env }).config)
 
@@ -150,9 +189,23 @@ export const unsetConfigKey = (key: string, env: NodeJS.ProcessEnv = process.env
   return removed
 }
 
-/** Changes one part of the config and keeps the rest as written. */
+/** Changes one part of the config and keeps the rest as written, adding any setting the file lacks at its default. */
 export const updateConfig = (change: (config: Config) => Config, env: NodeJS.ProcessEnv = process.env): Config => {
   const next = change(loadConfig(env))
-  saveConfigFile(configPath(env), next)
+  saveConfigFile(configPath(env), withSettingDefaults(next, MEMO_SETTINGS).config)
   return next
+}
+
+/** The file as written, for `config show` and `config migrate`. */
+export const rawConfig = (env: NodeJS.ProcessEnv = process.env): unknown => {
+  const read = readConfigFile(configPath(env))
+  if ("issue" in read) throw new CliError("configuration_error", issueMessage([read.issue], "memo doctor"))
+  return read.raw
+}
+
+/** Writes each setting the file lacks at its default, on the file as written: values, order and unknown keys stay. */
+export const migrateConfig = (env: NodeJS.ProcessEnv = process.env): string[] => {
+  const { config, added } = withSettingDefaults(rawConfig(env), MEMO_SETTINGS)
+  if (added.length > 0) saveConfigFile(configPath(env), config)
+  return added
 }

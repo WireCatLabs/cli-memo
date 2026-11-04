@@ -45,6 +45,12 @@ export const mailReviewCommands = (mail: Command, messages: Command, env: NodeJS
       withStore(env, async (store) =>
         work(store, await oneMailboxOf(store, env, command.opts<{ source?: string }>().source)),
       ),
+    mount: {
+      review: "mail review",
+      acknowledge: "messages acknowledge",
+      conversation: null,
+      mailbox: { option: "source", value: (mailbox) => `email:${mailbox.account}` },
+    },
   }
   const shared = mailReadCommands(reads)
   const review = named(shared, "review")

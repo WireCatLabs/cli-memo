@@ -228,7 +228,7 @@ it("filters mixed-project batches in context while preserving the full preview f
   }
 })
 
-it("allows an explicitly delegated meeting decision and refuses it after permission revocation", async () => {
+it("refuses an agent a meeting decision even when agent_decisions and the permission allow it", async () => {
   const f = await fixture()
   f.env.MEMO_CONFIG_DIR = mkdtempSync(join(tmpdir(), "memo-decision-config-"))
   updateConfig(
@@ -245,28 +245,12 @@ it("allows an explicitly delegated meeting decision and refuses it after permiss
     const input = await inputFor(call, f.project.ref)
     const staged = await stager.call("meetings actions add", { account: "example:synthetic", input })
     const own = { id: String(staged.item.id), account: "example:synthetic", fingerprint: staged.item.fingerprint }
-    expect((await stager.call("meetings actions reject", own)).error).toMatchObject({ reason: "proposal.own" })
-    const reviewed = await call("meetings actions confirm", {
-      id: String(staged.item.id),
-      ids: ["followup"],
-      account: "example:synthetic",
-      fingerprint: staged.item.fingerprint,
-    })
-    expect(reviewed.failed, JSON.stringify(reviewed)).not.toBe(true)
-    expect((await call("projects context", { project: f.project.ref })).item.open_tasks.items).toEqual(
+    expect((await stager.call("meetings actions reject", own)).error).toMatchObject({ reason: "proposal.owner-only" })
+    const reviewed = await call("meetings actions confirm", { ...own, ids: ["followup"] })
+    expect(reviewed.error).toMatchObject({ code: "permission_error", reason: "proposal.owner-only" })
+    expect((await call("projects context", { project: f.project.ref })).item.open_tasks.items).not.toEqual(
       expect.arrayContaining([expect.objectContaining({ title: "Check draft status" })]),
     )
-    updateConfig((config) => ({ ...config, permissions: { "meetings.actions.confirm": "deny" } }), f.env)
-    expect(
-      (
-        await call("meetings actions confirm", {
-          id: String(staged.item.id),
-          ids: ["followup"],
-          account: "example:synthetic",
-          fingerprint: staged.item.fingerprint,
-        })
-      ).error,
-    ).toMatchObject({ code: "permission_error" })
   } finally {
     await client.close()
     await stager.client.close()

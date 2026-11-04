@@ -8,6 +8,11 @@ exported notes go.
 The file is `~/.config/cli-memo/config.json`. It is a JSON file: keep the quotes, commas and braces
 as in the example.
 
+`memo config show` lists every setting with its value, its default, and whether the file sets it. `memo config
+migrate` writes each setting the file lacks at its default, so you see and edit them all in the file; your values,
+their order and keys memo does not know stay as they are. It adds `notes.embed` and the `mail` limits only when the
+file already has that section. Any write memo makes to the file, such as `memo folders add`, adds them as well.
+
 A file with a problem stops every command except `memo doctor` and `memo config unset`. The refusal names the first
 problem and the command that removes it; `memo doctor` lists them all, each with its line or its `memo config unset
 <key>`. `config unset` removes a setting by its dotted path, also one Memo does not know, such as
@@ -95,12 +100,12 @@ What the command read or wrote is never kept: no note, mail text or folder name 
 | Key | Meaning |
 |---|---|
 | `record` | `false` keeps only failed runs. Unset or `true`: every run. `--record` keeps one command's run anyway, `--no-record` keeps nothing for it. `memo mcp serve` and other commands that run until stopped keep a success only under `--record`. |
-| `record_input` | `false` writes every typed value that may be content as `[redacted]`, keeping only command words, option names, numbers, dates and choices. `"failed"` does that in a successful run and keeps the words in a failed one. Unset: the command is kept as typed, secrets hidden. |
+| `record_input` | `false` writes every typed value that may be content as `[redacted]`, keeping only command words, option names, numbers, dates and choices. `"failed"` does that in a successful run and keeps the words in a failed one. Default `true`: the command is kept as typed, secrets hidden. |
 | `keep_runs_for_days` | How many days a failed run is kept. Default 30. |
 | `keep_successful_runs_for_days` | How many days a successful run is kept. Default 7. |
 | `runs_size_limit_mb` | The most the runs folder may hold; the oldest successful runs go first. Default 200. |
 
-Add the keys to `config.json` by hand; `memo config unset <key>` removes one.
+Change the keys in `config.json` by hand (`memo config migrate` writes them in); `memo config unset <key>` removes one.
 
 ## `agent_decisions`
 
