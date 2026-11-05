@@ -61,7 +61,7 @@ memo schedule agent mail-triage claude 'Run memo skill show mail-triage and foll
 
 Every 5 minutes the schedule checks the store. With no mail past the `mail-triage` mark it does nothing: no model
 call, no notification. It waits until 10 emails wait for it, or the oldest has waited 30 minutes, so a day of
-scattered mail costs a few runs, not dozens. Bulk mail, suspicious senders and other mail it would skip do not count.
+scattered mail costs a few runs, not dozens. Newsletters, suspicious senders and other mail it would skip do not count.
 Once the day's runs have cost 5 US dollars, no run starts until the next day; `memo schedule list` shows the day's
 spend and why it skipped. Change these per schedule with `--mail-wait 1h`, `--mail-batch 20` and
 `--max-cost-per-day 2`, or for every schedule in the config file: `schedule_mail_wait`, `schedule_mail_batch` and
@@ -74,9 +74,15 @@ The prompt it follows is `memo skill show mail-triage`. Its first run starts fro
 
 What it does, per mailbox:
 
-1. `memo mail review --holder mail-triage --source email:<account> --json` gives the mail past its mark. Bulk mail,
-   lists, envelope rules, drafts, suspicious senders and mail not yet stored whole are left out, and counted. Each
-   email has the `fingerprint` a finding cites it by, and says whether its sender is new.
+1. `memo mail review --holder mail-triage --source email:<account> --json` gives the mail past its mark.
+   Newsletters, envelope rules, drafts, suspicious senders and mail not yet stored whole are left out, and counted.
+   Other mail sent to many — an order, an invoice or a site form with an unsubscribe link — comes last as its subject
+   and first lines (`excerpt_only`), at most 30 a read; the agent reads one whole when it looks like something for you.
+   A bulk email is a newsletter when words in its subject and first lines, its sender's address, an emoji or an
+   unsubscribe link say so, and no order word in the subject, order number or reply says otherwise; the
+   `mail_bulk_*` settings in `memo config show` hold the words, the score and the limits, and
+   `mail_bulk_excerpts: false` leaves all bulk mail out. Each email has the `fingerprint` a finding cites it by, and
+   says whether its sender is new.
 2. It keeps the emails that ask something of you, carry a date, or answer a thread with an open task.
 3. It reads context for those only, through links the store already has: the thread, `memo context` of the sender.
 4. It stages one batch: `memo mail findings add - --source email:<account>`. New senders always get a link to a
