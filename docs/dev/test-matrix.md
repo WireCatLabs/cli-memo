@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**675 ✅ · 0 ⛔ · 131 ❌** — 184 commands, 622 options.
+**678 ✅ · 0 ⛔ · 132 ❌** — 185 commands, 625 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -494,6 +494,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `facts confirm` | `--as-owner` | ✅ |  |
 | `facts confirm` | `--json` | ✅ |  |
 | `facts confirm` | `--reason` | ✅ |  |
+| `facts unconfirm` |  | ✅ |  |
+| `facts unconfirm` | `--as-owner` | ❌ |  |
+| `facts unconfirm` | `--json` | ✅ |  |
+| `facts unconfirm` | `--reason` | ✅ |  |
 | `facts reverse` |  | ✅ |  |
 | `facts reverse` | `--as-owner` | ❌ |  |
 | `facts reverse` | `--json` | ✅ |  |
