@@ -24,7 +24,11 @@ afterEach(() => {
 })
 
 type Item = { ref: string; chat_id: string; sender_is_me: boolean; email: Record<string, unknown> }
-type Review = { items: Item[]; next?: { step?: string; args?: { cursor?: string } }[]; missing?: { why: string }[] }
+type Review = {
+  items: Item[]
+  next?: { step?: string; args?: { cursor?: string; key?: string } }[]
+  missing?: { why: string }[]
+}
 
 const email = (id: string, hoursAgo: number, fields: Partial<EmailInput> = {}): EmailInput => ({
   externalId: `<${id}@example.com>`,
@@ -97,7 +101,7 @@ const mailbox = async () => {
     writeFileSync(path, JSON.stringify(value))
     return path
   }
-  const review = async (): Promise<Review & { cursor: string }> => {
+  const review = async (): Promise<Review & { cursor: string; key: string | undefined }> => {
     const answer = (await memo(
       LOCKED,
       NOBODY,
@@ -110,7 +114,7 @@ const mailbox = async () => {
     )) as Review
     const cursor = answer.next?.find((one) => one.step === "mail-messages.acknowledge")?.args?.cursor
     if (!cursor) throw new Error("review gave no cursor")
-    return { ...answer, cursor }
+    return { ...answer, cursor, key: answer.next?.find((one) => one.step === "mail-findings.add")?.args?.key }
   }
   const acknowledge = (cursor: string) =>
     memo(LOCKED, NOBODY, "messages", "acknowledge", "--holder", "mail-triage", "--cursor", cursor, "--source", MAILBOX)
@@ -353,6 +357,11 @@ it("hands on review steps as memo's own commands, naming the mailbox", async () 
   const read = await box.review()
   expect(read.next).toEqual([
     expect.objectContaining({
+      step: "mail-findings.add",
+      command: "mail findings add",
+      args: { key: read.key, source: MAILBOX },
+    }),
+    expect.objectContaining({
       step: "mail-messages.acknowledge",
       command: "messages acknowledge",
       args: { holder: "mail-triage", cursor: read.cursor, source: MAILBOX },
@@ -377,6 +386,61 @@ it("lets only the owner move the agent's mark back, and says how many emails it 
 
   expect((await box.memo({}, OWNER, ...reset, "--last", "1")).item).toMatchObject({ again: 1, dry_run: false })
   expect((await box.review()).items.map((item) => item.chat_id)).toEqual(["t-ask"])
+})
+
+it("stages a run after the owner moved the mark back, while the batch staged before the reset still waits", async () => {
+  const box = await triaged()
+  await box.thread("t-lease", email("lease", 30), email("signed", 1, { from: { address: ME, name: "Me" } }))
+  await box.thread("t-new", email("quote", 1, { from: { address: "bob@example.org", name: "Bob" } }))
+  await box.synced()
+  const stage = (key: string, findings: unknown, ...extra: string[]) =>
+    box.memo(
+      LOCKED,
+      NOBODY,
+      "mail",
+      "findings",
+      "add",
+      JSON.stringify(findings),
+      "--key",
+      key,
+      ...extra,
+      "--source",
+      MAILBOX,
+    )
+  const first = await box.review()
+  const { key: _, ...batch } = scriptedAgent(first.items, box.task, "1")
+  const before = (await stage(first.key as string, batch)).item
+  expect(before.status).toBe("proposed")
+  await box.acknowledge(first.cursor)
+
+  const reset = ["messages", "reset", "--holder", "mail-triage", "--source", MAILBOX, "--last", "2"]
+  expect((await box.memo({}, OWNER, ...reset)).item).toMatchObject({ again: 2, dry_run: false })
+  const again = await box.review()
+  expect(again.key).toBe(`${first.key}-r1`)
+  const { key: __, ...rerun } = scriptedAgent(again.items, box.task, "1")
+  const other = { ...rerun, findings: rerun.findings.slice(1) }
+  const checked = (await stage(again.key as string, other, "--dry-run")).item
+  expect(checked).toMatchObject({ valid: true, problems: [] })
+  const after = (await stage(again.key as string, other)).item
+  expect(after).toMatchObject({ status: "proposed" })
+  expect(after.id).not.toBe(before.id)
+  expect((await stage(again.key as string, other)).item.id).toBe(after.id)
+  expect(
+    await box.refusal(
+      LOCKED,
+      "mail",
+      "findings",
+      "add",
+      JSON.stringify({ ...other, key: first.key }),
+      "--key",
+      again.key as string,
+      "--source",
+      MAILBOX,
+    ),
+  ).toBe("findings.key-mismatch")
+  expect((await box.memo({}, NOBODY, "mail", "findings", "list", "status:proposed")).items).toHaveLength(2)
+  await box.acknowledge(again.cursor)
+  expect((await box.review()).items).toEqual([])
 })
 
 it("answers a findings file that is not there as not found, not as a crash", async () => {

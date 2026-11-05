@@ -53,9 +53,10 @@ many). Other mail sent to many — orders, invoices, site forms and notification
 comes after the rest, with `email.bulk: true` and `email.excerpt_only: true`: its `text` is only the subject and the
 first lines. Each item is one email: `ref` (`msg:email/…`), `chat_id` (the thread), `sender_is_me`, `text`, and
 `email` with `fingerprint`, `from`, `new_sender`, `sender_identities`. `text` is the email's own text: quoted earlier
-mail and the signature are left out, and the fingerprint still covers the whole stored email. `next` holds the
-`memo messages acknowledge` step with your `cursor`. A first run has no mark yet: no items, only the cursor — go
-straight to step 6.
+mail and the signature are left out, and the fingerprint still covers the whole stored email. `next` holds two
+steps: `mail-findings.add`, whose `args.key` is the findings key of this review, and `mail-messages.acknowledge`,
+whose `args.cursor` is your cursor. Keep both exactly as given. A first run has no mark yet: no items, only the
+cursor — go straight to step 6.
 
 No items: go to step 6 with the cursor.
 
@@ -133,7 +134,8 @@ plainly.
   fine), and `number`, `issue_date`, `due_date` (`YYYY-MM-DD`) and `total` when the mail gives them.
 - `payment` — money that moved: a receipt or a bank confirmation. `direction: out` when the owner paid, `in` when he
   was paid; `amount`, `currency`, `date`; `payee` or `payer` as a `person:` or `organization:`, or `payee_name` or
-  `payer_name` (with an optional `_email`) as for an invoice; `reference` for the receipt number. `allocations` (`invoice`, `amount`) only for an invoice already stored (`memo invoices list`).
+  `payer_name` (with an optional `_email`) as for an invoice; `reference` for the receipt number. `allocations`
+  (`invoice`, `amount`) only for an invoice already stored: `memo invoices list number:<number> --json`.
 - `order` — an order confirmation. `purpose`: `personal` (for the owner himself), `business`, `client` (bought for a
   client) or `other`. `supplier_name` is the shop as the mail names it; `supplier` its `organization:` or `person:`
   when linked; `customer` (or `customer_name`) only when it is for someone else than the owner; `number`, `total`
@@ -151,6 +153,25 @@ plainly.
   date, such as "E-signature certificate 12-345 from <issuer>, expires 2027-03-01". `subject` is the organization
   or person it belongs to when linked.
 
+A finding takes only its kind's fields; any other field refuses it. `title` is a task's field alone: an invoice,
+payment, order or fact has none, and a fact has no `reason` either. Every kind takes `id`, `kind` and `evidence`:
+
+| kind | its other fields |
+|---|---|
+| `task` | `type`, `title`, `reason`, `commitment`, `project`, `due_at`, `due_evidence`, `assignee`, `assignee_evidence`, `external_id`, `source_url` |
+| `task_update` | `task`, `change`, `due_at`, `detail`, `reason` |
+| `fact` | `type`, `statement`, `subject`, `project` |
+| `memory` | `memory_kind`, `scope`, `body`, `subject`, `project` |
+| `link` | `from`, `to`, `reason` |
+| `new_contact` | `address`, `name`, `reason` |
+| `invoice` | `direction`, `counterparty`, `counterparty_name`, `counterparty_email`, `currency`, `lines`, `total`, `number`, `issue_date`, `due_date`, `project`, `reason` |
+| `payment` | `direction`, `payer`, `payer_name`, `payer_email`, `payee`, `payee_name`, `payee_email`, `amount`, `currency`, `date`, `reference`, `allocations`, `project`, `reason` |
+| `order` | `purpose`, `customer`, `customer_name`, `customer_email`, `supplier`, `supplier_name`, `number`, `total`, `currency`, `status`, `order_date`, `fulfilled_date`, `invoice`, `payment`, `project`, `source_url`, `reason` |
+| `order_update` | `supplier_name`, `number`, `status`, `date`, `reason` |
+
+A list command takes `field:value` terms, never a bare word: `memo invoices list number:FACT-2026-00012 --json`,
+`memo orders list number:<number> --json`. A bare word is refused (`query.bare-word`).
+
 ### 5. New senders, among kept emails
 
 For every email you kept in step 2 whose item has `new_sender: true`:
@@ -163,20 +184,22 @@ For every email you kept in step 2 whose item has `new_sender: true`:
 
 ### 6. Check, stage once, then acknowledge
 
-`key` is `mail-triage:<through id>` — the number before the dot in the cursor. Every finding cites 1–8 emails with
-the exact `ref` and `fingerprint` from step 1; at most 30 findings and 5 per sender.
+The batch's key is the `args.key` of review's `mail-findings.add` step, such as `mail-triage:9123` or
+`mail-triage:9123-r1`: pass it as `--key`, copied exactly, and leave `key` out of the JSON. Never build a key from
+the cursor. Every finding cites 1–8 emails with the exact `ref` and `fingerprint` from step 1; at most 30 findings
+and 5 per sender.
 
 A key takes one input only: once a batch is staged, nothing can be added to it. So build the whole batch for the
 mailbox first, every finding in it, and check it with `--dry-run`, which stages nothing:
 
 ```sh
-memo mail findings add '{"schema_version":1,"key":"mail-triage:9123","extractor":"mail-triage/1","findings":[{"id":"t1","kind":"task","type":"chore","title":"Send the signed lease","reason":"Ann’s email asks for it by Friday","commitment":"explicit","evidence":[{"reference":"msg:email/…","fingerprint":"<64 hex from review>"}]}]}' --source email:<address> --dry-run --json
+memo mail findings add '{"schema_version":1,"extractor":"mail-triage/1","findings":[{"id":"t1","kind":"task","type":"chore","title":"Send the signed lease","reason":"Ann’s email asks for it by Friday","commitment":"explicit","evidence":[{"reference":"msg:email/…","fingerprint":"<64 hex from review>"}]}]}' --key <key> --source email:<address> --dry-run --json
 ```
 
 The answer's `item.valid` says whether staging would take it; `item.problems` lists every finding that would be
 refused, with its `finding` id, `kind` and `message` (an unknown field names the fields that kind takes in
-`details.allowed`). Fix every problem, or drop that finding, and check again. When `valid` is true, stage the same
-JSON once, the same command without `--dry-run`.
+`details.allowed`: keep only those). Fix every problem, or drop that finding, and check again. When `valid` is
+true, stage the same JSON once, the same command without `--dry-run`.
 
 The whole JSON is the one argument between single quotes, on one line. A double quote inside a value is `\"`. A
 marketplace task adds its link and id to the task's fields:
@@ -190,8 +213,8 @@ memo messages acknowledge --holder mail-triage --cursor <cursor> --source email:
 ```
 
 A refused batch stages nothing. `mail-findings.stale` means an email changed since review: read that mailbox again
-from step 1. `mail-findings.key-used` means a batch with other input is already staged under this key: stage nothing
-more and say so in the report. Other refusals name the finding at fault: fix or drop it, check again and stage. If it
+from step 1. `mail-findings.key-used` means a batch with other input is already staged under this key — by this run, or
+by one that stopped before acknowledging: stage nothing more and say so in the report. Other refusals name the finding at fault: fix or drop it, check again and stage. If it
 still fails, leave the mark where it is and say so in the report.
 
 When the review's `meta.complete` was false, more mail waits past the cursor: after acknowledging, run step 1 again

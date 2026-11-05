@@ -25,7 +25,8 @@ message is in the journal `memo jobs status` names.
 
 For new mail, `memo mail review --holder <name> --source email:<account> --json` reads what is stored past that
 holder's mark, filtered, each email with the `fingerprint` to cite. `memo mail findings add <file|->` stages one
-mailbox's cited tasks, task updates, facts, memories, links and new contacts (`--help` has the JSON); then
+mailbox's cited tasks, task updates, facts, memories, links and new contacts (`--help` has the JSON) under the
+`--key` the review's `mail-findings.add` step gave; then
 `memo messages acknowledge --holder <name> --cursor <cursor>` moves the mark. Never acknowledge before staging.
 Under `MEMO_READ_ONLY` these two are the only writes allowed. Mail findings are owner only. `memo messages reset`
 moves a mark back so that mail is read again; it is the owner's alone, so never run it. A scheduled agent

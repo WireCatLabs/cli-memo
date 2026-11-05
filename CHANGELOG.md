@@ -6,6 +6,21 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo mail findings add --key <key>`** stages the batch under the key `memo mail review --holder` gave in its
+  `mail-findings.add` step; the JSON may leave `key` out, and a different one there is refused
+  (`findings.key-mismatch`). The review now hands on that step before the acknowledge step.
+
+### Fixed
+
+- **A mail-triage run after `memo messages reset` stages its findings.** The key of a mark moved back ends in
+  `-r<n>` (cli-core 0.581.0), so the run no longer reaches the key of a batch staged before the reset and still
+  waiting (`mail-findings.key-used`), and its mark moves on.
+- **The mail-triage skill gives the key, the fields and the list terms.** It passes `--key` from the review's step
+  instead of building the key from the cursor, lists the fields each finding kind takes (`title` is a task's alone),
+  and looks up invoices with `field:value` terms, such as `memo invoices list number:FACT-2026-00012`.
+
 ## 0.131.36 — 05.11.2026
 
 ### Added

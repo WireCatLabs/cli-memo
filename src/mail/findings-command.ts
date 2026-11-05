@@ -1,4 +1,4 @@
-import type { ErrorCode as CliErrorCode, Streams } from "@wirecat/cli-base"
+import { CliError, type ErrorCode as CliErrorCode, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import {
@@ -26,9 +26,9 @@ const FINDINGS_QUERY = {
 } as const satisfies QueryRegistry
 
 const INPUT_HELP = `
-Input: schema_version 1, key, extractor, findings. key is <holder>:<through id>, the id in the cursor
-\`mail review --holder\` gave (mail-triage:9123456); the same key and input give the same batch, the same key with
-another input is refused. 1–30 findings, at most 5 from one sender; each cites 1–8 msg:email/… references with the
+Input: schema_version 1, key, extractor, findings. key is the one \`mail review --holder\` gave in its
+mail-findings.add step (mail-triage:9123456, or mail-triage:9123456-r1 after the owner moved the mark back); pass it
+as --key or in the JSON. The same key and input give the same batch, the same key with another input is refused. 1–30 findings, at most 5 from one sender; each cites 1–8 msg:email/… references with the
 fingerprint review gave, and at least one email of this mailbox.
 Kinds: task (type bug|feature|chore, title, reason, commitment explicit|inferred, optional project, due_at with
 due_evidence, assignee with assignee_evidence; no project means the mailbox's inbox project) · task_update (task,
@@ -52,6 +52,26 @@ stored (order.duplicate) or already wait in a proposed batch (order.proposed) is
 --dry-run checks it all and stages nothing: valid, and problems with each refused finding's id, kind and message.
 Build the whole batch, check it, fix every problem, then stage it once: a staged key takes no other input.
 `
+
+/** The batch with `--key` as its key; the JSON may leave key out, and may not name another. */
+const keyed = (text: string, key: string | undefined): string => {
+  if (key === undefined) return text
+  let raw: unknown
+  try {
+    raw = JSON.parse(text)
+  } catch {
+    return text
+  }
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return text
+  const named = (raw as { key?: unknown }).key
+  if (named !== undefined && named !== key)
+    throw new CliError("validation_error", `the batch's key ${String(named)} is not --key ${key}; give the key once`, {
+      reason: "findings.key-mismatch",
+      key: String(named),
+      given: key,
+    })
+  return JSON.stringify({ ...raw, key })
+}
 
 const json = (command: Command) => command.option("--json", "print JSON; --json=id,status keeps only those fields")
 
@@ -78,14 +98,16 @@ export const mailFindingsCommand = (
     .summary("stage one mailbox's findings; the owner confirms them")
     .argument("<file>", FINDINGS_INPUT_HELP)
     .option("--source <accounts>", MAILBOX_HELP)
+    .option("--key <key>", "the findings key `mail review --holder` gave in its mail-findings.add step")
     .option(
       "--dry-run",
       "check the batch as staging would, invoices, payments and orders tried and rolled back, and stage nothing; " +
         "answers valid and every finding's problem at once",
     )
     .addHelpText("after", INPUT_HELP)
-    .action(async (file: string, given: { source?: string; json?: boolean; dryRun?: boolean }) => {
-      const text = await readFindingsInput(file, environmentOf(program).stdin ?? process.stdin)
+    .action(async (file: string, given: { source?: string; key?: string; json?: boolean; dryRun?: boolean }) => {
+      const read = await readFindingsInput(file, environmentOf(program).stdin ?? process.stdin)
+      const text = keyed(read, given.key)
       const input = given.dryRun ? readMailFindingsJson(text) : parseMailFindingsJson(text)
       const author = await whoRuns(program, env, { question: "" })
       const agent = author === "owner" ? { bot: "memo-mail-findings" } : author

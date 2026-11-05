@@ -27,6 +27,12 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: ["path"],
   },
   {
+    reason: "findings.key-mismatch",
+    code: "validation_error",
+    message: "the batch's key {key} is not --key {given}; give the key once, as --key",
+    details: ["key", "given"],
+  },
+  {
     reason: "sync.running",
     code: "rate_limited",
     message: "another memo sync is running (process {pid}); try again when it ends",
