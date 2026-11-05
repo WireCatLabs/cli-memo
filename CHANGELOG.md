@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.30 — 05.11.2026
+
 ### Added
 
 - **`memo orders list|show|add`.** An order says for whom (you, or `--person`/`--organization`) and why
