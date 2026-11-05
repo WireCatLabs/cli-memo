@@ -89,5 +89,19 @@
     "reason": "Mounted from cli-core 0.564.0, which keeps --chat beside the query until tg and max move to -- chat:<chat> (cli-core lint/overrides.json); drop it here when cli-core does",
     "owner": "@leemour",
     "review_after": "2026-12-01"
+  },
+  {
+    "rule": "option-role",
+    "target": "tasks add --external-id",
+    "reason": "NEED-2245 A (owner's ruling, mail-cli journal, 2026-11-05): a task keeps its id in an outside service (avito:4512345678) and the page it is about; the shared flag vocabulary in cli-base 0.77 has no flag for either. Add --external-id and --source-url there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-05"
+  },
+  {
+    "rule": "option-role",
+    "target": "tasks add --source-url",
+    "reason": "NEED-2245 A, with tasks add --external-id: the http or https page a task is about, such as an Avito ad; no vocabulary flag takes a web address. Add --source-url there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-05"
   }
 ]

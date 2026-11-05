@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**691 ✅ · 0 ⛔ · 138 ❌** — 189 commands, 640 options.
+**700 ✅ · 0 ⛔ · 138 ❌** — 190 commands, 648 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -72,6 +72,13 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `messages acknowledge` | `--cursor` | ✅ |  |
 | `messages acknowledge` | `--source` | ✅ |  |
 | `messages acknowledge` | `--json` | ✅ |  |
+| `messages reset` |  | ✅ |  |
+| `messages reset` | `--holder` | ✅ |  |
+| `messages reset` | `--since-time` | ✅ |  |
+| `messages reset` | `--last` | ✅ |  |
+| `messages reset` | `--dry-run` | ✅ |  |
+| `messages reset` | `--source` | ✅ |  |
+| `messages reset` | `--json` | ✅ |  |
 | `mail findings add` |  | ✅ |  |
 | `mail findings add` | `--json` | ✅ |  |
 | `mail findings add` | `--source` | ✅ |  |
@@ -158,6 +165,8 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tasks add` | `--due` | ✅ |  |
 | `tasks add` | `--status` | ✅ |  |
 | `tasks add` | `--agent` | ✅ |  |
+| `tasks add` | `--external-id` | ✅ |  |
+| `tasks add` | `--source-url` | ✅ |  |
 | `tasks add` | `--into` | ✅ |  |
 | `tasks add` | `--new` | ✅ |  |
 | `tasks list` |  | ✅ |  |

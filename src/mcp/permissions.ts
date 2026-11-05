@@ -9,6 +9,7 @@ import { readOnly } from "../read-only.js"
 export const OWNER_PERMISSIONS = [
   "meetings.actions.confirm",
   "meetings.actions.reject",
+  "messages.reset",
   "projects.annotations.restore",
   "review.confirm",
   "review.reject",

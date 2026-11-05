@@ -160,3 +160,32 @@ it("adds a bug to a project with its fields and assignee, updates, lists and clo
   expect((await run("tasks", "list", "kind:chore", "project:LHT")).items).toMatchObject([{ id: "LHT-2" }])
   await expect(run("tasks", "list", "kind:chore")).rejects.toMatchObject({ code: "validation_error" })
 })
+
+it("keeps a task's id in an outside service and its page through add, show and list", async () => {
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-task-links-")), "store.db") }
+  const run = async (...args: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env })
+      .exitOverride()
+      .parseAsync([...args, "--json"], { from: "user" })
+    return answerOf(streams.stdout.join(""))
+  }
+  await run("projects", "add", "Café sale", "--key", "CAF")
+  const page = "https://www.avito.ru/moskva/gotoviy_biznes/kafe_4512345678"
+  const add = (...links: string[]) => run("tasks", "add", "--project", "CAF", "--title", "Reply on Avito", ...links)
+
+  const task = await add("--external-id", "Avito:4512345678", "--source-url", page)
+  expect(task).toMatchObject({ external_id: "avito:4512345678", source_url: page })
+  expect(await run("tasks", "show", task.id)).toMatchObject({ external_id: "avito:4512345678", source_url: page })
+  expect((await run("tasks", "list", "project:CAF")).items[0]).toMatchObject({
+    external_id: "avito:4512345678",
+    source_url: page,
+  })
+  await expect(add("--source-url", "javascript:alert(1)")).rejects.toMatchObject({
+    code: "validation_error",
+    details: { reason: "task.source-url" },
+  })
+  await expect(add("--external-id", "4512345678")).rejects.toMatchObject({
+    details: { reason: "task.external-id" },
+  })
+})

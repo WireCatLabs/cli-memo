@@ -21,6 +21,12 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: [],
   },
   {
+    reason: "findings.file-missing",
+    code: "not_found",
+    message: "no findings file {path}: give the findings JSON itself, a file that exists, or - for stdin",
+    details: ["path"],
+  },
+  {
     reason: "sync.running",
     code: "rate_limited",
     message: "another memo sync is running (process {pid}); try again when it ends",

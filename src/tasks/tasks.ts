@@ -33,6 +33,10 @@ export interface FieldOptions {
   parent?: string | null
   /** `null` clears it. */
   description?: string | null
+  /** `<service>:<id>` in an outside service, such as `avito:4512345678`. */
+  externalId?: string
+  /** The http or https page the task is about, such as an Avito ad. */
+  sourceUrl?: string
 }
 
 export type AddOptions = AccountScope &
@@ -58,6 +62,8 @@ export const fieldsOf = (options: FieldOptions): TaskFields => ({
   ...(options.priority === undefined ? {} : { priority: options.priority }),
   ...(options.parent === undefined ? {} : { parent: options.parent }),
   ...(options.description === undefined ? {} : { description: options.description }),
+  ...(options.externalId === undefined ? {} : { externalId: options.externalId }),
+  ...(options.sourceUrl === undefined ? {} : { sourceUrl: options.sourceUrl }),
 })
 
 const assignAll = async (store: MessageStore, env: NodeJS.ProcessEnv, id: string, people: string[] | undefined) => {

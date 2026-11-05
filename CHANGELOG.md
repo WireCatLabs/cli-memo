@@ -6,8 +6,30 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **A task keeps its id in an outside service and the page it is about.** `memo tasks add --external-id
+  avito:4512345678 --source-url https://www.avito.ru/…`; `tasks show`, `tasks list` and `tasks add` answer
+  `external_id` and `source_url`. The id is `<service>:<id>`, so ids of two services never collide; the page is an
+  http or https address only (`task.external-id`, `task.source-url`). Mail findings take both on a `task` and
+  `source_url` on an `order` (the order's page at the shop), and `memo review confirm` keeps them. Needs cli-core's
+  store version 51.
+- **`memo messages reset` moves the mail agent's mark back, for the owner only.** `--holder mail-triage --last 8` or
+  `--since-time 2026-11-04T00:00:00Z`, with `--source email:<account>`; `--dry-run` only counts. The answer says how
+  many emails the agent reads whole again, how many bulk ones come again as excerpts and how many are skipped again.
+  An agent, a scheduled run and `MEMO_READ_ONLY` are refused, and MCP lists it as unavailable (`messages.reset` is
+  `deny`, like the other owner operations).
+- **The `mail-triage` skill turns marketplace messages into tasks.** An email saying a person wrote to the owner or
+  asks him to call back (Avito, Cian, Yandex Go, auto.ru, hh.ru) is always a task "Reply on <platform> to <name>",
+  one per counterpart per day, with `source_url` set to the conversation or listing link and `external_id` to the
+  platform's id when the email shows one. Pure listing alerts and ads stay dropped. A new hard rule: copy every
+  `msg:` ref whole, never shortened.
+
 ### Fixed
 
+- **`memo mail findings add <path>` with no such file answers `not_found` (`findings.file-missing`)**, not
+  `command.crashed`; `meetings actions add` and `projects actions add` too. A path that is a folder is a
+  `validation_error`.
 - **The mail page names the example profile `personal`, not `ya`**, as the mail CLI's own docs do. No behaviour
   changes.
 
