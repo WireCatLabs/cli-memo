@@ -71,6 +71,11 @@ const ConfigSchema = v.strictObject({
   schedule_mail_batch: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
   /** US dollars a day of an agent schedule's runs may cost; 0 turns the cap off. */
   schedule_max_cost_per_day: v.optional(v.pipe(v.number(), v.minValue(0))),
+  /** The model a new agent schedule runs on unless `--model` names one; empty for the harness's own default. */
+  schedule_model_claude: v.optional(v.string()),
+  schedule_model_codex: v.optional(v.string()),
+  /** `false` lets a new claude agent schedule load your MCP servers, skills, settings and CLAUDE.md. */
+  schedule_lean_start: v.optional(v.boolean()),
   mail: v.optional(
     v.strictObject({
       accounts: v.array(

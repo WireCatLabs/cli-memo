@@ -56,10 +56,31 @@ describe("memo config show and migrate", () => {
       schedule_mail_wait: "30m",
       schedule_mail_batch: 10,
       schedule_max_cost_per_day: 5,
+      schedule_model_claude: "sonnet",
+      schedule_model_codex: "",
+      schedule_lean_start: true,
     })
-    expect(scheduleLimits(env)).toEqual({ mailWaitMinutes: 30, mailBatch: 10, maxCostPerDay: 5 })
-    write({ schedule_mail_wait: "2h", schedule_mail_batch: 3, schedule_max_cost_per_day: 0 })
-    expect(scheduleLimits(env)).toEqual({ mailWaitMinutes: 120, mailBatch: 3, maxCostPerDay: 0 })
+    expect(scheduleLimits(env)).toEqual({
+      mailWaitMinutes: 30,
+      mailBatch: 10,
+      maxCostPerDay: 5,
+      models: { claude: "sonnet", codex: "" },
+      leanStart: true,
+    })
+    write({
+      schedule_mail_wait: "2h",
+      schedule_mail_batch: 3,
+      schedule_max_cost_per_day: 0,
+      schedule_model_claude: "opus",
+      schedule_lean_start: false,
+    })
+    expect(scheduleLimits(env)).toEqual({
+      mailWaitMinutes: 120,
+      mailBatch: 3,
+      maxCostPerDay: 0,
+      models: { claude: "opus" },
+      leanStart: false,
+    })
   })
 
   it("a write memo makes anyway adds the missing settings too", () => {
