@@ -34,7 +34,12 @@ due_evidence, assignee with assignee_evidence; no project means the mailbox's in
 change close|due|detail, reason; due needs due_at, detail needs detail) · fact (type, statement, subject or project)
 · memory (memory_kind, scope, body, subject or project) · link (from, to, reason: contact:email/<address> → person:N,
 person:N → organization:N, chat:email/… → project:N) · new_contact (address of a cited email's sender or recipient,
-name, reason).
+name, reason) · invoice (direction receivable|payable, counterparty person:N|organization:N, currency, lines of
+description and amount, optional total, number, issue_date, due_date, project) · payment (direction in|out, amount,
+currency, date, optional payer, payee, reference, allocations of stored invoices) · order (purpose
+personal|business|client|other, supplier_name, optional customer, supplier, number, total with currency, status,
+order_date, invoice, payment) · order_update (supplier_name and number of a stored order, status, date when delivered).
+An invoice, payment or order is checked as memo invoices|payments|orders add checks yours; a refusal names why.
 A cited email that changed since review refuses the batch (mail-findings.stale), one still partial too
 (mail-findings.partial). Nothing is created until the owner confirms: memo review confirm <batch>/<finding>.
 `
@@ -54,7 +59,9 @@ export const mailFindingsCommand = (
   const { run } = answers(program, streams, env)
   const findings = mail
     .command("findings")
-    .description("cited tasks, task updates, facts, memories, links and contacts an agent read in new mail")
+    .description(
+      "cited tasks, task updates, facts, memories, links, contacts, invoices, payments and orders an agent read in new mail",
+    )
     .summary("what an agent read in new mail, cited, waiting for the owner")
 
   json(proposesOnly(annotate(findings.command("add"), { effects: LOCAL_WRITE, output: { entity: "mail_findings" } })))
