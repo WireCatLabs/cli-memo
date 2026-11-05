@@ -208,6 +208,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "payments allocate": ["memo payments allocate payment:9 invoice:4 25000.00"],
   "facts show": ["memo facts show fact:4 --sources"],
   "facts confirm": ["memo facts confirm fact:4"],
+  "facts revoke": ["memo facts revoke fact:4"],
   "facts reverse": ["memo facts reverse fact:4"],
   "facts reject": ["memo facts reject fact:4"],
   "facts remove": ["memo facts remove fact:4"],
