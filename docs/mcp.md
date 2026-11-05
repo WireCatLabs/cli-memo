@@ -51,7 +51,7 @@ through the CLI and MCP. Memo never sends a message or mail.
 
 Pass a search hit's `ref` to `notes show` as `note`, or a message or email reference to `messages show` as `message`.
 `notes show` returns the whole note; `messages show` returns the stored message or email and takes `full: true` for whole
-attachment text. `memo mail inspect` reads mailbox headers for an explicit account. `tags list` lists tags.
+attachment text. `tags list` lists tags.
 Messenger reads use the explicit account and chat encoded in the reference; nothing is fetched from a provider.
 
 ## Connect an app

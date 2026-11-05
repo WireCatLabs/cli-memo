@@ -3,7 +3,6 @@ import { isFolderProvider } from "@wirecat/cli-core"
 import { type ContextSource, entriesOfList } from "@wirecat/cli-core/services"
 import type { AccountKey, MessageStore, StoredAccount } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
-import { loadConfig } from "../config.js"
 
 /** What a `--source` list names among the texts outside a chat: mailboxes, memo's notes, imported documents. */
 export interface SourceList {
@@ -16,18 +15,12 @@ const MAIL = new Set(["mail", "email"])
 const MESSENGERS = new Set(["messages", "telegram", "tg", "max", "whatsapp", "wa", "personal", "bots"])
 const SHAPES = "provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>"
 
-const mailboxOf = async (store: MessageStore, env: NodeJS.ProcessEnv, name: string): Promise<AccountKey> => {
-  const configured = loadConfig(env).mail?.accounts ?? []
-  const named = configured.find(
-    (account) => account.name === name || account.address.toLowerCase() === name.toLowerCase(),
-  )
-  if (named) return { provider: "email", account: named.address.toLowerCase() }
+const mailboxOf = async (store: MessageStore, name: string): Promise<AccountKey> => {
   const held = (await store.accounts.accounts()).filter((key) => key.provider === "email")
   const stored = held.find((key) => key.account === name.toLowerCase())
   if (stored) return stored
-  const choices =
-    [...new Set([...configured.map((one) => one.name), ...held.map((one) => one.account)])].join(", ") || "none"
-  throw new CliError("not_found", `no mail account "${name}" — configured or stored mail accounts: ${choices}`, {
+  const choices = held.map((one) => one.account).join(", ") || "none"
+  throw new CliError("not_found", `no mail account "${name}" — stored mail accounts: ${choices}`, {
     reason: "mail.account-unknown",
     account: name,
   })
@@ -45,11 +38,10 @@ const messengers = (entry: string) =>
   new CliError("validation_error", `${entry}: mentions in chats are the messenger's — tg <profile> mentions list`)
 
 /**
- * cli-core's four `--source` shapes through its own reader. memo also knows a mailbox by its name in mail.accounts,
- * which the store does not hold, so `email:<name>` becomes `email:<address>` first; notes and documents are memo's
- * own texts and count even before the store holds an account of them.
+ * cli-core's four `--source` shapes through its own reader. A mailbox not in the store is refused with the ones it
+ * holds; notes and documents are memo's own texts and count even before the store holds an account of them.
  */
-const listedOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: string) => {
+const listedOf = async (store: MessageStore, value: string) => {
   const held = await store.accounts.storedAccounts()
   const holdsFiles = await filesAccounts(store)
   const named = async (entry: string) => {
@@ -65,7 +57,7 @@ const listedOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: stri
       return `notes:${folder.id}`
     }
     if (!MAIL.has(provider) || !account) return entry.trim()
-    return `email:${(await mailboxOf(store, env, account)).account}`
+    return `email:${(await mailboxOf(store, account)).account}`
   }
   const each = (entries: readonly string[]) => Promise.all(entries.filter((one) => one.trim()).map(named))
   const groups = Object.fromEntries(
@@ -82,7 +74,7 @@ const listedOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: stri
 }
 
 export const sourceListOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: string): Promise<SourceList> => {
-  const listed = await listedOf(store, env, value)
+  const listed = await listedOf(store, value)
   const list: SourceList = { mail: [], notes: false, documents: false }
   for (const { entry, accounts } of listed) {
     const word = entry.split(":")[0] ?? ""
@@ -102,30 +94,7 @@ export const sourceListOf = async (store: MessageStore, env: NodeJS.ProcessEnv, 
 
 export const SOURCE_HELP = `which texts, separated by commas: ${SHAPES}`
 
-export const MAIL_SOURCES = "email:<account> (its name in mail.accounts or its address), email or group:<name>"
-
-/**
- * The configured mailboxes `sync` reads: the store holds no account before its first sync, so names are looked up in
- * mail.accounts, and a group's other members are left out. `undefined` is every one.
- */
-export const syncedMailboxesOf = async (store: MessageStore, value: string): Promise<string[] | undefined> => {
-  const groups = await store.accounts.accountGroups()
-  const names: string[] = []
-  const add = (entry: string, group?: string) => {
-    const [provider = "", ...rest] = entry.trim().split(":")
-    if (provider === "group") {
-      const members = groups[rest.join(":")]
-      if (members === undefined) throw new CliError("not_found", `no account group "${rest.join(":")}"`)
-      for (const member of members) add(member, rest.join(":"))
-    } else if (!MAIL.has(provider)) {
-      if (group === undefined)
-        throw new CliError("validation_error", `${entry}: sync reads mail only — ${MAIL_SOURCES}`)
-    } else if (rest.length === 0) names.push("*")
-    else names.push(rest.join(":"))
-  }
-  for (const entry of value.split(",").filter((one) => one.trim())) add(entry)
-  return names.includes("*") ? undefined : [...new Set(names)]
-}
+export const MAIL_SOURCES = "email:<address>, email or group:<name>"
 
 /** The mailboxes a mail-only command reads; a list that names notes or documents is refused, not cut. */
 export const mailboxesOf = async (
@@ -152,7 +121,7 @@ export const ONE_ACCOUNT_HELP =
 /** Every stored account a `--source` value names, of any kind, each once. */
 export const accountsOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: string): Promise<AccountKey[]> => {
   const keys: AccountKey[] = []
-  for (const { accounts } of await listedOf(store, env, value))
+  for (const { accounts } of await listedOf(store, value))
     for (const { provider, account } of accounts)
       if (!keys.some((one) => one.provider === provider && one.account === account)) keys.push({ provider, account })
   return keys
@@ -220,7 +189,7 @@ export const contextSourcesOf = async (store: MessageStore, env: NodeJS.ProcessE
   const holdsFiles = await filesAccounts(store)
   const sources: ContextSource[] = []
   const unread: { source: string; kind: string; reason?: "unknown-provider" }[] = []
-  for (const { entry, accounts } of await listedOf(store, env, value)) {
+  for (const { entry, accounts } of await listedOf(store, value)) {
     let read = 0
     for (const { provider, account, kind } of accounts) {
       const stored =

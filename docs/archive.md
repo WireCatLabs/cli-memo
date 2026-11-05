@@ -20,7 +20,7 @@ notes /path/to/notes: 24 notes, 2 changed, 0 moved, 0 gone
 | Option | What it does |
 |---|---|
 | `--only notes` | Only note folders |
-| `--only mail` | Only mail accounts |
+| `--only mail` | Only the preparation of stored mail for search by meaning; `mail <profile> sync` brings the mail in |
 | `--no-embed` | Skip the preparation for search by meaning |
 
 Telegram, MAX and WhatsApp messages are kept current by tg, max and wa, not by `memo sync`.
@@ -43,8 +43,7 @@ never the error's text, which can name a folder or a subject; the full message i
 service manager of most Linux systems. On macOS and Windows, run `memo sync` yourself or from your
 own scheduler.
 
-The timer runs `memo sync` with the settings of the terminal you turned it on from, so it finds
-Himalaya and your passwords the same way. `memo jobs start` and `stop` write `auto` in the config file;
+The timer runs `memo sync` with the settings of the terminal you turned it on from. `memo jobs start` and `stop` write `auto` in the config file;
 if you edit it there, the timer follows at its next run.
 
 ## What an import reads
