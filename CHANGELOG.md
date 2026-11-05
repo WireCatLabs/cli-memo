@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.25 — 05.11.2026
+
 ### Changed — may break callers
 
 - **A write on a task that changed since you read it fails with `conflict`, exit 15.** It was
