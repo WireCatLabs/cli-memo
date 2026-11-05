@@ -49,7 +49,7 @@ const revisionOf = (value: string): number => {
   if (!Number.isSafeInteger(number) || number < 1) throw new InvalidArgumentError("the revision a read gave")
   return number
 }
-const REVISION_HELP = "refuse the write unless the task is still at this revision (task.stale, exit 3)"
+const REVISION_HELP = "refuse the write unless the task is still at this revision (conflict, task.stale, exit 15)"
 
 const fieldOptions = (command: Command) =>
   command
