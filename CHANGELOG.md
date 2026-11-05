@@ -6,9 +6,13 @@ the API.
 
 ## Unreleased
 
+## 0.131.25 — 05.11.2026
+
 ### Changed — may break callers
 
-- **memo runs on cli-base 0.77.1 and cli-core 0.566.0.** A failure can now be `conflict` (exit 15): a write refused
+- **A write on a task that changed since you read it fails with `conflict`, exit 15.** It was
+  `configuration_error`, exit 3. The reason is still `task.stale`, with the task's current `revision` in `details`.
+- **memo runs on cli-base 0.77.1 and cli-core 0.567.0.** A failure can now be `conflict` (exit 15): a write refused
   because what it would change moved on since you read it; read it again and decide on the new copy. The MCP tools'
   error codes list it.
 - **memo no longer imports mail: the [mail](https://github.com/WireCatLabs/mail-cli) CLI does.** For each mailbox
