@@ -8,11 +8,18 @@ the API.
 
 ### Changed — may break callers
 
+- **memo runs on cli-core 0.573.0.**
 - **The skill an agent reads every session is 3 KB, not 22 KB.** It opens with how to answer a question (`memo search
   all '<key words>' --limit 10 --compact`, search again in other words, cite each reference) and the rules every
   agent keeps. The rest is unchanged and printed on request: `memo skill show search`, `projects`, `meetings`,
   `mail`, `proposals`, `money`, `mcp` or `vocabulary`. On the 50-question benchmark this was most of what an agent
   paid for using memo.
+
+### Added
+
+- **`memo payments unlink <payment> <invoice>` takes back what a payment settles of an invoice**, so a payment split
+  wrongly across invoices is set right: unlink, then `payments allocate` the right amounts. You correct a confirmed
+  payment's split too; an agent's run is refused there, and an agent unlinks only a still-proposed payment it proposed.
 
 ## 0.131.27 — 05.11.2026
 

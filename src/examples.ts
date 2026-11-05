@@ -206,6 +206,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   ],
   "records link": ["memo records link organization:client organization:3 --account sheet:rentals"],
   "payments allocate": ["memo payments allocate payment:9 invoice:4 25000.00"],
+  "payments unlink": ["memo payments unlink payment:9 invoice:4"],
   "facts show": ["memo facts show fact:4 --sources"],
   "facts confirm": ["memo facts confirm fact:4"],
   "facts reverse": ["memo facts reverse fact:4"],

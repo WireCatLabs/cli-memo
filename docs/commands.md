@@ -2758,6 +2758,30 @@ memo payments allocate <payment> <invoice> <amount> [options]
 
 **Example:** `memo payments allocate payment:9 invoice:4 25000.00`
 
+### `memo payments unlink`
+
+take back what a payment settles of an invoice, to allocate it again; you set right a confirmed payment's wrong split, and an agent unlinks only a still-proposed payment it proposed
+
+This command changes the local store or your files.
+
+```sh
+memo payments unlink <payment> <invoice> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `payment` | required | payment:<id>. |
+| `invoice` | required | invoice:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** take back a payment's allocation to an invoice
+
+**Example:** `memo payments unlink payment:9 invoice:4`
+
 ## `memo records`
 
 what a source said, kept per account; invoices and payments from it wait for your review

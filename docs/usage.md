@@ -94,6 +94,10 @@ One you add yourself is confirmed at once. One your agent adds waits in `memo re
 you confirm money. A payment the agent reads in a chat becomes a payment or an invoice when you confirm the finding.
 `projects status` shows what was billed, paid and is still owed, from confirmed rows only.
 
+A payment allocated to the wrong invoice, or with the wrong amount, is set right with
+`memo payments unlink payment:9 invoice:4`, which takes that allocation back, and `payments allocate`, which makes
+the right one. A confirmed payment's split is yours to correct: an agent's run is refused.
+
 A source's export, such as a payment sheet, comes in as a records envelope (JSON, or JSONL with a header line).
 `memo records check payments.jsonl --account rentals` says what an import would do and writes nothing;
 `memo records import` writes it. The same file twice changes nothing, and its invoices and payments wait for you in

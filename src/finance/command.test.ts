@@ -147,3 +147,47 @@ it("refuses an allocation beyond the payment and totals the project's confirmed 
     /receivable · RUB · 50000\.00 · 30000\.00 · 20000\.00/,
   )
 })
+
+it("takes back a proposed payment's allocation so the owner allocates it again", async () => {
+  const f = await setUp()
+  const invoice = await f.item(
+    OWNER,
+    ...["invoices", "add", "75000.00", "RUB", "SEO", "--kind", "receivable", "--organization", f.client],
+  )
+  const payment = await f.item(
+    AGENT,
+    ...["payments", "add", "15000.00", "RUB", "--kind", "in", "--organization", f.client, "--reason", "the sheet"],
+  )
+  await f.run(AGENT, "payments", "allocate", payment.ref as string, invoice.ref as string, "15000.00")
+
+  const back = await f.item(OWNER, "payments", "unlink", payment.ref as string, invoice.ref as string)
+  expect(back).toMatchObject({ review: "proposed", allocated: "0.00", allocations: [] })
+  await f.run(OWNER, "payments", "allocate", payment.ref as string, invoice.ref as string, "13000.00")
+  expect(await f.item(OWNER, "payments", "show", payment.ref as string)).toMatchObject({ allocated: "13000.00" })
+})
+
+it("lets only you move money between the invoices of a confirmed payment", async () => {
+  const f = await setUp()
+  const add = (amount: string) =>
+    f.item(OWNER, ...["invoices", "add", amount, "RUB", "SEO", "--kind", "receivable", "--organization", f.client])
+  const [seo, support] = [await add("23000.00"), await add("12000.00")]
+  const payment = await f.item(
+    OWNER,
+    ...["payments", "add", "35000.00", "RUB", "--kind", "in", "--organization", f.client],
+  )
+  const [pay, seoRef, supportRef] = [payment.ref as string, seo.ref as string, support.ref as string]
+  await f.run(OWNER, "payments", "allocate", pay, seoRef, "23000.00")
+  await f.run(OWNER, "payments", "allocate", pay, supportRef, "10000.00")
+
+  await expect(f.run(AGENT, "payments", "unlink", pay, seoRef)).rejects.toMatchObject({
+    code: "permission_error",
+  })
+  await f.run(OWNER, "payments", "unlink", pay, seoRef)
+  await f.run(OWNER, "payments", "allocate", pay, seoRef, "21000.00")
+  await f.run(OWNER, "payments", "allocate", pay, supportRef, "2000.00")
+  expect(await f.item(OWNER, "invoices", "show", supportRef)).toMatchObject({ status: "paid", paid: "12000.00" })
+  expect(await f.item(OWNER, "payments", "show", pay)).toMatchObject({ review: "confirmed", allocated: "33000.00" })
+  await expect(f.run(OWNER, "payments", "allocate", pay, supportRef, "0.01")).rejects.toMatchObject({
+    details: { reason: "finance.over-invoice" },
+  })
+})

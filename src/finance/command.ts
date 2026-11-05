@@ -217,4 +217,22 @@ export const financeCommands = (program: Command, streams: Streams, env: NodeJS.
         )
       },
     )
+
+  json(byOption(annotate(payments.command("unlink"), { effects: LOCAL_WRITE, output: { entity: "payment" } })))
+    .description(
+      "take back what a payment settles of an invoice, to allocate it again; you set right a confirmed payment's " +
+        "wrong split, and an agent unlinks only a still-proposed payment it proposed",
+    )
+    .summary("take back a payment's allocation to an invoice")
+    .argument("<payment>", "payment:<id>")
+    .argument("<invoice>", "invoice:<id>")
+    .action(
+      async (payment: string, invoice: string, options: { asOwner?: boolean; json?: boolean }, command: Command) => {
+        const by = await whoRuns(command, env, {
+          asOwner: options.asOwner,
+          question: `unlink ${payment} as yours?`,
+        })
+        await run(options.json, async (store) => itemAnswer(await store.finance.unallocate({ payment, invoice, by })))
+      },
+    )
 }
