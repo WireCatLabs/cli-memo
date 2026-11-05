@@ -1163,7 +1163,7 @@ companies, teams, families and communities of yours
 
 ### `memo organizations add`
 
-add an organization of yours: a company, team, family or community
+add an organization of yours: a company, team, family or community; an agent's waits for you in memo review
 
 This command changes the local store or your files.
 
@@ -1179,11 +1179,33 @@ memo organizations add <name> [options]
 |---|---|
 | `--kind <kind>` | company, team, family, community. |
 | `--scope <scope>` | personal, work. |
+| `--reason <text>` | why the organization belongs in the store, in a sentence. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+
+**Returns:** add an organization; an agent's waits for your review
+
+**Example:** `memo organizations add 'Harbour Studio' --kind company --scope work`, `memo organizations add 'Harbour Dairy' --kind company --reason 'named in the March invoice'`
+
+### `memo organizations show`
+
+one organization by its id or organization:<id>, without its relationships, notes and tags
+
+```sh
+memo organizations show <organization> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `organization` | required | its id or organization:<id>. |
+
+| Option | What it does |
+|---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** add an organization of yours: a company, team, family or community
+**Returns:** one organization
 
-**Example:** `memo organizations add 'Harbour Studio' --kind company --scope work`
+**Example:** `memo organizations show organization:1`
 
 ### `memo organizations list`
 

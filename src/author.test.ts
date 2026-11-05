@@ -83,7 +83,9 @@ it("proposes an organization from an agent's terminal and adds it directly for t
     "new client",
   )
   expect(proposal).toMatchObject({ kind: "organization_add", status: "proposed", proposed_by: { type: "bot" } })
-  expect((await agent.run("organizations", "list", "name:Dairy")).items).toEqual([])
+  expect((await agent.run("organizations", "list")).items.map((row: { name: string }) => row.name)).not.toContain(
+    "Synthetic Dairy",
+  )
 
   const owner = await setUp({})
   expect(await owner.run("organizations", "add", "Synthetic Dairy", "--kind", "company")).toMatchObject({
