@@ -26,6 +26,16 @@ the API.
 - **`memo mail review`, `messages acknowledge` and `mail findings` name a missing or ambiguous mailbox** the way every
   other one-account option does.
 
+### Security
+
+- **The mail-triage agent reads each email's own text in the thread and the sender's earlier mail too.** `memo
+  messages show --trimmed` and `memo context --trimmed` leave out quoted earlier mail and the signature, as `memo mail
+  review --holder` does; the skill passes `--trimmed`. Fingerprints still cover the stored email, and the owner's
+  reads (`messages show`, `context`, `review show`) keep the whole text. `--trimmed` is refused with `--full`.
+- **The mail-triage skill puts no sender text into a shell line unchecked.** A name or address goes in single quotes,
+  and only when it holds letters, digits, spaces and `. _ + - @`; new senders are looked up only for emails kept by
+  triage with `new_sender: true`, not for every sender seen once.
+
 ## 0.131.25 — 05.11.2026
 
 ### Changed — may break callers
