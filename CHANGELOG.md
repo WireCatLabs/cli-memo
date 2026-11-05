@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.26 — 05.11.2026
+
 ### Changed — may break callers
 
 - **memo runs on cli-core 0.569.0.**
