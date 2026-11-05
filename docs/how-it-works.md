@@ -14,34 +14,32 @@ notes together.
 | Where it comes from | Who puts it in the local store |
 |---|---|
 | Telegram, MAX and WhatsApp messages | tg, max and wa, when they download your chats |
-| Email | The [mail](https://github.com/WireCatLabs/mail-cli) CLI, with `mail <profile> sync`. The older Himalaya import runs with `memo sync --only mail` and will be removed in a later version |
+| Email | The [mail](https://github.com/WireCatLabs/mail-cli) CLI, with `mail <profile> sync` |
 | Files in your note folders | `memo sync --only notes` or `memo sync` |
 | Your own notes, tags, tasks, memories and facts | Memo, when you or your agent add them |
 
-Imports leave the originals unchanged: your files stay as they are, and your mailbox is opened read-only.
-The local store holds a copy of their text. Memo never changes a mailbox: [Gmail cleanup](mail.md#clean-up-gmail)
-is a command of the separate `mail` program.
+Imports leave the originals unchanged: your files stay as they are. The local store holds a copy of their text.
+Memo never opens a mailbox: reading it, and cleaning it up, are commands of the separate `mail` program.
 
 ## What an import does
 
-An import reads your folders and mail accounts and brings the local store up to date.
+An import reads your note folders and brings the local store up to date.
 
 - **Only what changed is read.** A file that has the same size and change time as last time is
-  skipped. Mail that is already stored is skipped. A second import is quick.
+  skipped. A second import is quick.
 - **Edits keep history.** When you edit a note file, the local store keeps the old text as an
   earlier version.
 - **Moves keep everything.** A file moved inside its folder keeps its links and tags.
-- **Deletions are respected.** When you delete a file or an email, its text leaves the local store
-  on the next import.
-- **A safety stop.** If an import finds that most of a folder or mailbox is suddenly missing (for
+- **Deletions are respected.** When you delete a file, its text leaves the local store on the next import; a
+  deleted email leaves it on the next `mail <profile> sync`.
+- **A safety stop.** If an import finds that most of a folder is suddenly missing (for
   example, a disk that is not connected), it deletes nothing and tells you.
 - **Search by meaning is prepared.** If the search model is on your computer, the import also
-  prepares the new text for search by meaning. `--no-embed` skips this step.
+  prepares the new text for search by meaning, the mail `mail` stored included. `--no-embed` skips this step.
 
 Two Memo imports never run at the same time, and one source that fails does not stop the others.
 
-An import can be stopped at any time with Ctrl-C or `kill <pid>` (SIGTERM). It stops at the next batch of
-emails or the next folder, keeps what it read, and the next `memo sync` continues from there. `--timeout 10m`
+An import can be stopped at any time with Ctrl-C or `kill <pid>` (SIGTERM). It stops at the next folder, keeps what it read, and the next `memo sync` continues from there. `--timeout 10m`
 stops it the same way after ten minutes; with no `--timeout` it has no time limit.
 
 ## Folders on more than one computer

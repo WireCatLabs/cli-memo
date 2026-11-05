@@ -8,6 +8,25 @@ the API.
 
 ### Changed — may break callers
 
+- **memo runs on cli-base 0.77.1 and cli-core 0.566.0.** A failure can now be `conflict` (exit 15): a write refused
+  because what it would change moved on since you read it; read it again and decide on the new copy. The MCP tools'
+  error codes list it.
+- **memo no longer imports mail: the [mail](https://github.com/WireCatLabs/mail-cli) CLI does.** For each mailbox
+  memo used to import, run `mail <profile> session start --address <address>`, then `mail <profile> sync`; the mail
+  already in the store stays and is still found, and the sync goes on from it. `memo doctor` names the addresses your
+  config listed. The Himalaya import, `bin/mail-password` and the Google Takeout (`mode: "mbox"`) import are gone;
+  a Takeout file is `mail <profile> messages import <file.mbox>`.
+- **`memo mail add`, `memo mail check` and `memo mail inspect` moved to the mail CLI**: `mail <profile> session
+  start`, `mail <profile> account check` and `mail <profile> account inspect`. The old paths change nothing and name
+  the new command (`mail.moved-to-mail-cli`). Sender scoring with domain ages now runs in `mail <profile> sync`.
+- **`memo sync` and its timer read notes only, and embed the mail already stored for search by meaning.** Its mail
+  options `--source`, `--since-time`, `--limit`, `--retry-attachments` and `--rescan` are gone; `--only mail` now
+  only embeds stored mail. Its answer has `mailEmbedded` in place of `mail`.
+- **The config's `mail` section is retired.** An old config with `mail.accounts`, `"import": false` or the mail
+  limits still loads and nothing reads it; `memo doctor` reports it and `memo config unset mail` removes it, and
+  `memo sync` says so on stderr until then. `config migrate` no longer writes the mail limits.
+- **`--source email:<name>` takes the mailbox's address only**, since names lived in `mail.accounts`. `memo doctor`
+  no longer reports mail accounts or Himalaya; the error reasons `mail.throttled` and `mail.invalid-imap` are gone.
 - **The mail-triage schedule waits for a batch of mail and stops for the day at a cost cap.** `memo schedule agent
   --on-new-mail` starts the agent once 10 emails wait or the oldest has waited 30 minutes, and no run starts for the
   rest of the day once the day's runs cost 5 US dollars. Change them per schedule with `--mail-wait`, `--mail-batch`
@@ -24,6 +43,27 @@ the API.
   reject refused it as not a findings batch. A fingerprint other than the batch's is refused as stale.
 - **`memo mail review`, `messages acknowledge` and `mail findings` name a missing or ambiguous mailbox** the way every
   other one-account option does.
+
+## 0.131.24 — 05.11.2026
+
+### Changed — may break callers
+
+- **`memo search all` finds records for a question typed as a sentence** (cli-core 0.564.0). A question in plain
+  language, without `--exact`, finds messages, mail, notes and events that hold some of its words, where before every
+  word had to be in one record and a question found nothing. Mail is searched by meaning too once its threads have
+  vectors, and hits from different sources at the same rank are ordered by how close their meaning is to the
+  question. Plain words, query syntax and `--exact` are searched strictly, as before.
+
+### Added
+
+- **`memo stats tasks show` counts by chat, meeting or project over a period** (cli-core 0.564.0). It takes a query
+  (`created>=30d`), `--by chat|meeting|project` and `--timezone`, and answers what is open now, what was opened and
+  closed in the period, the median time to close and the mean age of the open tasks.
+
+### Security
+
+- **`memo mail review --holder` gives each email's own text**, without quoted earlier mail or the signature
+  (cli-core 0.564.0), so an agent reading the queue does not read earlier mail as if it were new.
 
 ## 0.131.23 — 05.11.2026
 

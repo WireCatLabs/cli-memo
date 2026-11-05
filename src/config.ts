@@ -16,7 +16,6 @@ import {
   withoutSetting,
   withSettingDefaults,
 } from "@wirecat/cli-core/cli"
-import { MAX_ATTACHMENT_CHARS, MAX_BODY_CHARS } from "@wirecat/cli-core/mail"
 import { DEFAULT_DECISION_POLICY, type DecisionPolicy } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import * as v from "valibot"
@@ -71,42 +70,8 @@ const ConfigSchema = v.strictObject({
   schedule_mail_batch: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
   /** US dollars a day of an agent schedule's runs may cost; 0 turns the cap off. */
   schedule_max_cost_per_day: v.optional(v.pipe(v.number(), v.minValue(0))),
-  mail: v.optional(
-    v.strictObject({
-      accounts: v.array(
-        v.strictObject({
-          name: v.string(),
-          address: v.string(),
-          /** `mbox` reads a Google Takeout file at `path`; give it the Gmail account's address, so both are one set. */
-          mode: v.optional(v.picklist(["gmail", "imap", "mbox"])),
-          path: v.optional(v.pipe(v.string(), v.minLength(1))),
-          folders: v.optional(v.array(v.string())),
-          embed: v.optional(v.boolean()),
-          /** `false` hands the account's import to the `mail` CLI: memo's sync skips it; memo still reads its rules and inspect keeps working. */
-          import: v.optional(v.boolean()),
-          /** The owner's keep, envelope and skip decisions per sender, domain or list; rules here move into the store on the next sync; the `mail` CLI writes them now. */
-          rules: v.optional(
-            v.array(
-              v.strictObject({
-                match: v.strictObject({
-                  from: v.optional(v.string()),
-                  domain: v.optional(v.string()),
-                  list_id: v.optional(v.string()),
-                }),
-                action: v.picklist(["skip", "envelope", "keep"]),
-                reason: v.optional(v.string()),
-                decided_at: v.string(),
-              }),
-            ),
-          ),
-        }),
-      ),
-      /** The most characters of an email body kept; 1,000,000 by default. */
-      max_body_chars: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
-      /** The most characters of one attachment's extracted text kept; 200,000 by default. */
-      max_attachment_chars: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
-    }),
-  ),
+  /** Retired: memo no longer imports mail, the `mail` CLI does. Still loads so an old config works; doctor names it. */
+  mail: v.optional(v.unknown()),
 })
 
 export type Config = v.InferOutput<typeof ConfigSchema>
@@ -136,12 +101,6 @@ export const MEMO_SETTINGS: readonly DeclaredSetting[] = [
   },
   { key: "runs_size_limit_mb", default: RUNS_SIZE_LIMIT_MB, description: "the most megabytes all runs may take" },
   { key: "notes.embed", default: true, description: "false keeps notes out of search by meaning" },
-  { key: "mail.max_body_chars", default: MAX_BODY_CHARS, description: "the most characters of an email body kept" },
-  {
-    key: "mail.max_attachment_chars",
-    default: MAX_ATTACHMENT_CHARS,
-    description: "the most characters of one attachment's text kept",
-  },
   ...SCHEDULE_SETTINGS,
 ]
 

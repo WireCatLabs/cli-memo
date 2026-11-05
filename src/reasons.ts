@@ -48,7 +48,7 @@ export const REASONS: ErrorReason[] = defineReasons([
   {
     reason: "mail.account-unknown",
     code: "not_found",
-    message: "no mail account by that name in mail.accounts",
+    message: "no stored mailbox by that address; the mail CLI syncs one",
     details: ["account"],
   },
   {
@@ -56,18 +56,6 @@ export const REASONS: ErrorReason[] = defineReasons([
     code: "validation_error",
     message: "the command moved to the mail CLI; the message names the command to run there",
     details: ["cli", "alternative"],
-  },
-  {
-    reason: "mail.throttled",
-    code: "rate_limited",
-    message: "Gmail is limiting this account's IMAP traffic; try again in an hour or more",
-    details: [],
-  },
-  {
-    reason: "mail.invalid-imap",
-    code: "invalid_response",
-    message: "the mail server's answer could not be read",
-    details: [],
   },
   {
     reason: "project.not-found",

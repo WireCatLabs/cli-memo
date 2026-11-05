@@ -130,7 +130,7 @@ More: [connect your AI agent](https://wirecat.dev/en/docs/agents) ·
    page, an email, a message.
 3. **Links, not guesses.** Notes link to people and records; identities are never merged because a name
    matches.
-4. **Imports leave your sources untouched.** Memo never changes a mailbox; [Gmail cleanup](docs/mail.md#clean-up-gmail)
+4. **Imports leave your sources untouched.** Memo never changes a mailbox; [Gmail cleanup](docs/mail.md#commands-that-moved-to-mail)
    is a command of the separate `mail` program. Tags and your own notes live in the store.
 5. **Review and delegation are recorded.** Memories and outbound actions an agent suggests wait for
    your confirmation. Project decisions can be delegated or left to the owner. Memo never sends anything.
@@ -146,7 +146,7 @@ More: [security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security
 - **Folders of notes:** Obsidian or plain Markdown, with links, aliases and tags.
 - **Documents in them:** TXT, CSV/TSV, text-layer PDF, DOCX, XLSX, ODT/ODS, PPTX and EPUB, with the page,
   row or cell each passage came from.
-- **Mail:** Gmail or another IMAP account, synced by the [mail](https://github.com/WireCatLabs/mail-cli) CLI, text and headers only. The older Himalaya import still reads attachments and will be removed in a later version.
+- **Mail:** Gmail or another IMAP account, synced by the [mail](https://github.com/WireCatLabs/mail-cli) CLI, text and headers only.
 - **Messages:** the tg, max and wa store, with the people linked across messengers and mail.
 
 You add your own notes about messages, people and projects, tags, tasks and reminders, organizations and
@@ -269,11 +269,9 @@ memo search mail 'mailbox:important budget'
 memo messages show <ref>
 ```
 
-Memo can still import mail itself through [Himalaya](https://github.com/pimalaya/himalaya). That older path works for
-now and will be removed in a later version. It reads attachments' text, and `memo sync` and the timer read every
-account in `mail.accounts` (`--source email:<name>` narrows it). `memo mail inspect`, `rules`, `delete` and `restore`
-work on those accounts. Set `"import": false` on an account that `mail` now syncs: memo's sync skips it and keeps
-its rules, delete, restore and inspect commands. To see how far a mailbox synced by `mail` is, run `mail <profile> status`.
+Memo never opens a mailbox. Looking at a mailbox before a sync (`mail <profile> account inspect`), a Google Takeout
+archive (`mail <profile> messages import`), rules and cleanup are commands of `mail`; `memo sync` and its timer only
+prepare the stored mail for search by meaning. To see how far a mailbox synced, run `mail <profile> status`.
 
 More: [mail](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mail.md) ·
 [mail on wirecat.dev](https://wirecat.dev/en/docs/memo/mail)
@@ -330,12 +328,11 @@ More: [keeping memo up to date](https://github.com/WireCatLabs/cli-memo/blob/mai
 ## Configuration
 
 `memo folders add` and `memo jobs start` write `~/.config/cli-memo/config.json` for you. By hand you set what
-to skip and where exported notes go; `memo mail add` adds an explicit Himalaya account (the older mail import):
+to skip and where exported notes go:
 
 ```json
 {
-  "notes": { "ignore": ["Journal/Private.md", "Archive"], "export": { "dir": "/path/to/vault/memo" } },
-  "mail": { "accounts": [{ "name": "work", "address": "you@example.com" }] }
+  "notes": { "ignore": ["Journal/Private.md", "Archive"], "export": { "dir": "/path/to/vault/memo" } }
 }
 ```
 
@@ -344,7 +341,7 @@ More: [configuration](https://github.com/WireCatLabs/cli-memo/blob/main/docs/con
 
 ## Security
 
-- Imports read note folders and mailboxes without changing them or marking mail as read. Memo never sends mail or changes a mailbox; Gmail cleanup is a command of `mail`.
+- Imports read note folders without changing them. Memo never opens a mailbox, sends mail or changes one; reading and cleaning up mail are commands of `mail`.
 - What memo adds — your notes, links, tags, tasks, memories — stays in the local store.
 - A note or mail deleted at the source loses its text in the store on the next import; a run that finds an
   unusually large share missing deletes nothing and says so.
@@ -406,7 +403,7 @@ repository's issues.
 | [Tags](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tags.md) | Labels on any source |
 | [Search](https://github.com/WireCatLabs/cli-memo/blob/main/docs/search.md) | Search words, `search all`, `answers create` |
 | [People and projects](https://github.com/WireCatLabs/cli-memo/blob/main/docs/people.md) | Person context, linking, organizations, relationships |
-| [Mail](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mail.md) | Bring mail in with `mail`, search it in memo, and the older Himalaya import |
+| [Mail](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mail.md) | Bring mail in with `mail`, search it in memo, an agent that proposes tasks from new mail |
 | [Tasks and reminders](https://github.com/WireCatLabs/cli-memo/blob/main/docs/tasks.md) | Tasks, dependencies and local reminders |
 | [Memories and facts](https://github.com/WireCatLabs/cli-memo/blob/main/docs/memories.md) | What agents and you record, and proposed actions |
 | [The MCP server](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md) | Apps without a terminal, the agent log |

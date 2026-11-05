@@ -6,7 +6,6 @@ import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { beforeAll, expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
-import { updateConfig } from "../config.js"
 import { createProgram } from "../program.js"
 
 const ME = "owner@example.test"
@@ -31,17 +30,6 @@ const values = async (...args: string[]) =>
   (await run("mentions", "list", ...args)).items.map(({ value }: { value: string }) => value)
 
 beforeAll(async () => {
-  updateConfig(
-    () => ({
-      mail: {
-        accounts: [
-          { name: "personal", address: ME },
-          { name: "work", address: OTHER },
-        ],
-      },
-    }),
-    env,
-  )
   const store = await openStore({ env })
   await store.notes.addNote({ text: "Call the plumber on +34 600 000 001" })
   const folder = await store.notes.addFolder({ name: "Synthetic folder" })
@@ -79,9 +67,9 @@ beforeAll(async () => {
 it("lists the mentions of the texts --source names, mail only of the mailboxes named", async () => {
   expect(await values("kind:phone", "--source", "notes")).toEqual(["+34600000001"])
   expect(await values("--source", "documents")).toEqual(expect.arrayContaining(["https://example.org/plan"]))
-  expect(await values("kind:phone", "--source", "email:personal")).toEqual(["+34600000002"])
-  expect(await values("kind:phone", "--source", `email:personal,email:${OTHER}`)).toHaveLength(2)
-  expect(await values("kind:phone", "--source", "email:work,notes")).toHaveLength(2)
+  expect(await values("kind:phone", "--source", `email:${ME}`)).toEqual(["+34600000002"])
+  expect(await values("kind:phone", "--source", `email:${ME},email:${OTHER}`)).toHaveLength(2)
+  expect(await values("kind:phone", "--source", `email:${OTHER},notes`)).toHaveLength(2)
   await expect(run("mentions", "list", "--source", "email:nobody")).rejects.toMatchObject({ code: "not_found" })
   await expect(run("mentions", "list", "--source", "telegram")).rejects.toMatchObject({ code: "validation_error" })
 })
@@ -94,7 +82,7 @@ it("says which mailboxes a read across all of them covered", async () => {
 
 it("reads a saved account group", async () => {
   const store = await openStore({ env })
-  await store.accounts.saveAccountGroup("home", ["email:personal", "notes"])
+  await store.accounts.saveAccountGroup("home", [`email:${ME}`, "notes"])
   await store.close()
   expect(await values("kind:phone", "--source", "group:home")).toEqual(
     expect.arrayContaining(["+34600000001", "+34600000002"]),
@@ -102,8 +90,8 @@ it("reads a saved account group", async () => {
 })
 
 it("shows a mail mention with its sender as a candidate, then rejects it", async () => {
-  const [found] = (await run("mentions", "list", "kind:phone", "--source", "email:personal")).items
-  const shown = await run("mentions", "show", String(found.id), "--source", "email:personal")
+  const [found] = (await run("mentions", "list", "kind:phone", "--source", `email:${ME}`)).items
+  const shown = await run("mentions", "show", String(found.id), "--source", `email:${ME}`)
   expect(shown).toMatchObject({
     written: "+34 600 000 002",
     candidates: expect.any(Array),
@@ -114,8 +102,8 @@ it("shows a mail mention with its sender as a candidate, then rejects it", async
     code: "not_found",
   })
 
-  await run("mentions", "reject", String(found.id), "--source", "email:personal", "--as-owner")
-  expect(await values("status:dismissed", "--source", "email:personal")).toEqual(["+34600000002"])
+  await run("mentions", "reject", String(found.id), "--source", `email:${ME}`, "--as-owner")
+  expect(await values("status:dismissed", "--source", `email:${ME}`)).toEqual(["+34600000002"])
 })
 
 it("confirms a note's phone as a person's", async () => {

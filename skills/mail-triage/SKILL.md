@@ -24,15 +24,19 @@ emails per run.
 - Never write email text to a file. Pass the findings JSON on stdin (`-`).
 - Read only through existing links (below). No broad search over all mail or all chats.
 - Stage first, acknowledge after. If staging fails, do not acknowledge: the next run reads the same mail again.
+- The mailbox itself belongs to the `mail` CLI, which this run cannot call: its sync, rules and cleanup are the
+  owner's. When a sender should be skipped or kept as an envelope, put the command in the report for the owner, such
+  as `mail <profile> rules add --domain <domain> --do envelope`; `mail session list` names the profile of an address.
 
 ## One run
 
-Find the mailboxes: `memo review status --json` lists each mail account. For each mailbox `email:<account>`:
+Find the mailboxes: `memo review status --json` lists each mailbox the `mail` CLI stored, by its address. For each
+mailbox `email:<address>`:
 
 ### 1. Filter — memo does it, no judgement
 
 ```sh
-memo mail review --holder mail-triage --source email:<account> --json
+memo mail review --holder mail-triage --source email:<address> --json
 ```
 
 Bulk mail, lists, envelope rules, drafts, suspicious senders and partial mail are already left out (`missing` says
@@ -50,7 +54,7 @@ Keep an email only when it carries one of:
 - a request or question to the owner, or a decision he must make;
 - a date, deadline, appointment or amount due;
 - a promise someone made to the owner, or the owner made (his own sent mail counts);
-- a reply in a thread where the owner has an open task (`memo tasks list --source email:<account> --json`, match by
+- a reply in a thread where the owner has an open task (`memo tasks list --source email:<address> --json`, match by
   the thread's `chat:email/…` or the task's `source`).
 
 Drop the rest: notifications, receipts with nothing due, newsletters that slipped through, thank-yous.
@@ -94,7 +98,7 @@ For every item with `new_sender: true` or `sender_identities: 1`, kept or not:
 the exact `ref` and `fingerprint` from step 1; at most 30 findings and 5 per sender.
 
 ```sh
-memo mail findings add - --source email:<account> --json <<'JSON'
+memo mail findings add - --source email:<address> --json <<'JSON'
 {"schema_version": 1, "key": "mail-triage:9123", "extractor": "mail-triage/1", "findings": [
   {"id": "t1", "kind": "task", "type": "chore", "title": "Send the signed lease", "reason": "Asks for it by Friday",
    "commitment": "explicit",
@@ -106,7 +110,7 @@ JSON
 Nothing worth proposing: stage nothing. Then, and only then:
 
 ```sh
-memo messages acknowledge --holder mail-triage --cursor <cursor> --source email:<account>
+memo messages acknowledge --holder mail-triage --cursor <cursor> --source email:<address>
 ```
 
 A refused batch stages nothing. `mail-findings.stale` means an email changed since review: read that mailbox again

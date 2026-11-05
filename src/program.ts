@@ -258,7 +258,7 @@ const FIRST_SCREEN = {
     { command: 'answers create "…" --all', does: "evidence with sources, ready for your agent" },
     { command: "tasks agenda", does: "overdue tasks, replies you owe and wait for" },
     { command: "meetings prepare <series-id>", does: "a briefing with sources for a meeting" },
-    { command: "jobs start", does: "sync notes and mail every 5 minutes" },
+    { command: "jobs start", does: "sync notes and embed new mail every 5 minutes" },
     { command: "agents list", does: "every agent tool call, without its arguments" },
     { command: "mcp", does: "search, people, memories and facts for any MCP agent" },
   ],
