@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**678 ✅ · 0 ⛔ · 132 ❌** — 185 commands, 625 options.
+**681 ✅ · 0 ⛔ · 132 ❌** — 186 commands, 627 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -514,7 +514,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `invoices list` | `--json` | ✅ |  |
 | `invoices list` | `--limit` | ❌ |  |
 | `invoices show` |  | ✅ |  |
-| `invoices show` | `--json` | ❌ |  |
+| `invoices show` | `--json` | ✅ |  |
 | `invoices add` |  | ✅ |  |
 | `invoices add` | `--person` | ✅ |  |
 | `invoices add` | `--organization` | ✅ |  |
@@ -546,6 +546,9 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `payments allocate` |  | ✅ |  |
 | `payments allocate` | `--as-owner` | ❌ |  |
 | `payments allocate` | `--json` | ✅ |  |
+| `payments unlink` |  | ✅ |  |
+| `payments unlink` | `--as-owner` | ❌ |  |
+| `payments unlink` | `--json` | ✅ |  |
 | `records import` |  | ✅ |  |
 | `records import` | `--dry-run` | ✅ |  |
 | `records import` | `--account` | ✅ |  |

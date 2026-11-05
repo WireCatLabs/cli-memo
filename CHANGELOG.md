@@ -4,6 +4,18 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Changed — may break callers
+
+- **memo runs on cli-core 0.573.0.**
+
+### Added
+
+- **`memo payments unlink <payment> <invoice>` takes back what a payment settles of an invoice**, so a payment split
+  wrongly across invoices is set right: unlink, then `payments allocate` the right amounts. You correct a confirmed
+  payment's split too; an agent's run is refused there, and an agent unlinks only a still-proposed payment it proposed.
+
 ## 0.131.28 — 05.11.2026
 
 ### Changed — may break callers
