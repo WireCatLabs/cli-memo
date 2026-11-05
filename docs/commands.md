@@ -405,7 +405,7 @@ mail the mail CLI stored: review new mail for an agent, stage what it found
 
 ### `memo mail findings`
 
-cited tasks, task updates, facts, memories, links and contacts an agent read in new mail
+cited tasks, task updates, facts, memories, links, contacts, invoices, payments and orders an agent read in new mail
 
 #### `memo mail findings add`
 
@@ -2805,6 +2805,84 @@ memo payments unlink <payment> <invoice> [options]
 **Returns:** take back a payment's allocation to an invoice
 
 **Example:** `memo payments unlink payment:9 invoice:4`
+
+## `memo orders`
+
+orders you placed or took, for whom, from which shop, and how far delivery got
+
+### `memo orders list`
+
+orders, newest first; review:proposed is what waits for you
+
+```sh
+memo orders list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+| `--limit <n>` | most orders, up to 500. Default: `100`. |
+
+**Returns:** orders, newest first; review:proposed is what waits for you
+
+**Example:** `memo orders list status:shipped`, `memo orders list number:A-1042 'supplier:"Shop One"' --json`
+
+### `memo orders show`
+
+one order with its customer, shop, amount, status and the mail it was read from
+
+```sh
+memo orders show <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | order:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** one order with its customer, shop, amount, status and the mail it was read from
+
+**Example:** `memo orders show order:3`
+
+### `memo orders add`
+
+record a placed order; yours is confirmed at once, an agent's waits as proposed for you in memo review
+
+This command changes the local store or your files.
+
+```sh
+memo orders add <shop> [amount] [currency] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `shop` | required | the shop or supplier, as its mail names it. |
+| `amount` | optional | the order's amount, a decimal such as 2499.00. |
+| `currency` | optional | ISO 4217, such as RUB; given with the amount. |
+
+| Option | What it does |
+|---|---|
+| `--kind <kind>` | why it was ordered: personal, business, client, other. |
+| `--person <uid>` | whom it is for, when not you: person:<id>. |
+| `--organization <organization>` | whom it is for, when not you: organization:<id>. |
+| `--title <title>` | the shop's order number. |
+| `--occurred-time <time>` | the day it was ordered, such as 2026-11-01. |
+| `--project <project>` | the project it belongs to: its key or project:<id>. |
+| `--reason <text>` | why an agent proposes it, for the owner who decides. |
+| `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** record an order; an agent's waits for your review
+
+**Example:** `memo orders add 'Shop One' 2499.00 RUB --kind personal --title A-1042`, `memo orders add 'Office Supply' --kind client --organization organization:3`
 
 ## `memo records`
 
