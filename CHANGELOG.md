@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.36 — 05.11.2026
+
 ### Added
 
 - **`memo mail findings add --dry-run` checks a batch and stages nothing.** It makes every check staging makes,
