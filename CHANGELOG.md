@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.38 — 05.11.2026
+
 ### Fixed
 
 - **A scheduled mail-triage agent reads the whole skill again.** 0.131.37 grew `memo skill show mail-triage` to
