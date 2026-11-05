@@ -13,7 +13,6 @@ import {
   withoutSetting,
   withSettingDefaults,
 } from "@wirecat/cli-core/cli"
-import { MAX_ATTACHMENT_CHARS, MAX_BODY_CHARS } from "@wirecat/cli-core/mail"
 import { DEFAULT_DECISION_POLICY, type DecisionPolicy } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import * as v from "valibot"
@@ -94,12 +93,6 @@ export const MEMO_SETTINGS: readonly DeclaredSetting[] = [
   },
   { key: "runs_size_limit_mb", default: RUNS_SIZE_LIMIT_MB, description: "the most megabytes all runs may take" },
   { key: "notes.embed", default: true, description: "false keeps notes out of search by meaning" },
-  { key: "mail.max_body_chars", default: MAX_BODY_CHARS, description: "the most characters of an email body kept" },
-  {
-    key: "mail.max_attachment_chars",
-    default: MAX_ATTACHMENT_CHARS,
-    description: "the most characters of one attachment's text kept",
-  },
 ]
 
 export const configPath = (env: NodeJS.ProcessEnv = process.env): string =>

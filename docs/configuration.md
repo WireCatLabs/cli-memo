@@ -10,8 +10,8 @@ as in the example.
 
 `memo config show` lists every setting with its value, its default, and whether the file sets it. `memo config
 migrate` writes each setting the file lacks at its default, so you see and edit them all in the file; your values,
-their order and keys memo does not know stay as they are. It adds `notes.embed` and the `mail` limits only when the
-file already has that section. Any write memo makes to the file, such as `memo folders add`, adds them as well.
+their order and keys memo does not know stay as they are. It adds `notes.embed` only when the
+file already has `notes`. Any write memo makes to the file, such as `memo folders add`, adds them as well.
 
 A file with a problem stops every command except `memo doctor` and `memo config unset`. The refusal names the first
 problem and the command that removes it; `memo doctor` lists them all, each with its line or its `memo config unset
@@ -26,11 +26,6 @@ JSON is fixed by hand at the line and column `memo doctor` names.
     "ignore": ["Journal/Private.md", "Archive", "**/Private*"],
     "embed": true,
     "export": { "dir": "/path/to/vault/memo", "format": "obsidian" }
-  },
-  "mail": {
-    "accounts": [{ "name": "work", "address": "you@example.com" }],
-    "max_body_chars": 1000000,
-    "max_attachment_chars": 200000
   },
   "auto": { "enabled": true, "every": "5m" }
 }
@@ -71,8 +66,8 @@ next run. See [importing on a timer](archive.md#import-on-a-timer-linux).
 
 ## `record`, `record_input` and `keep_runs_for_days`
 
-Memo keeps a run of every command: the command as typed, how it ended, and the mail and RDAP requests it made,
-with their timings, status codes and, for a mail read tried again, the attempt and the wait before it. A secret in the command (an option named for a token,
+Memo keeps a run of every command: the command as typed, how it ended, and the requests it made, with their
+timings and status codes. A secret in the command (an option named for a token,
 password or API key, a password in a URL, a long opaque string) and a phone number are written `[redacted]`.
 What the command read or wrote is never kept: no note, mail text or folder name it reached.
 `memo runs list` shows them, `memo runs show <run-id>` shows one.
@@ -102,7 +97,7 @@ one its own bot proposed:
 
 Meeting findings keep their own permissions whatever this key says.
 
-Add the key to your existing config rather than replacing your notes, mail and timer settings with
+Add the key to your existing config rather than replacing your notes and timer settings with
 this small example. Both CLI and MCP then refuse every decision an agent makes; reading and proposing still work.
 Owner decisions remain available in the terminal. In an agent's terminal, `--as-owner` asks y/N at the terminal
 before a decision counts as yours. The setting does not change the separate permission for confirmation of
