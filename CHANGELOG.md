@@ -4,6 +4,25 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- **`memo organizations show organization:<id>` prints one organization.** `organizations context` still adds its
+  relationships, notes and tags. Together with `organizations list [query]` the owner finds the id that `memo records
+  link <external> organization:<id>` needs without reading the store.
+
+### Changed — may break callers
+
+- **An agent's `memo organizations add` is a proposal, not an organization.** It answers the proposal (`status:
+  proposed`) and the organization exists once you confirm it in `memo review`; `--reason` says why. Run by the
+  owner it still writes directly, and `--as-owner` follows the same rule as the other writes (cli-core 0.579.0).
+
+### Fixed
+
+- **The lint baseline no longer lists `invoices`, `orders`, `payments`, `records` and `payments allocate`:** cli-base
+  0.78.0 has the words.
+
 ## 0.131.34 — 05.11.2026
 
 ### Changed — may break callers

@@ -199,6 +199,11 @@ describe("project context", () => {
     await run("organizations", "add", "Synthetic Studio", "--kind", "company", "--json")
     for (const reference of ["organization:1", "1"])
       expect((await run("organizations", "context", reference, "--json")).organization).toMatchObject({ id: "1" })
+    for (const reference of ["organization:1", "1"])
+      expect(await run("organizations", "show", reference, "--json")).toMatchObject({
+        ref: "organization:1",
+        name: "Synthetic Studio",
+      })
   })
 
   it("refuses a project or organization the store does not hold", async () => {
