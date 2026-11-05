@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**706 ✅ · 0 ⛔ · 138 ❌** — 191 commands, 653 options.
+**709 ✅ · 0 ⛔ · 139 ❌** — 192 commands, 656 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -257,6 +257,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `organizations add` | `--reason` | ✅ |  |
 | `organizations add` | `--json` | ✅ |  |
 | `organizations add` | `--as-owner` | ✅ |  |
+| `organizations rename` |  | ✅ |  |
+| `organizations rename` | `--reason` | ✅ |  |
+| `organizations rename` | `--json` | ✅ |  |
+| `organizations rename` | `--as-owner` | ❌ |  |
 | `organizations show` |  | ✅ |  |
 | `organizations show` | `--json` | ✅ |  |
 | `organizations list` |  | ✅ |  |

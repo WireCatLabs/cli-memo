@@ -79,15 +79,17 @@ Organizations and projects are yours, not tied to one messenger account.
 
 ```sh
 memo organizations add 'Synthetic Studio' --kind company
-memo organizations list Synthetic
+memo organizations list 'name:*studio*'
 memo organizations show organization:1
+memo organizations rename organization:1 'Synthetic Studio Ltd'
 memo projects add 'Harbour' --key HRB --scope work --organization organization:1
 memo projects list
 memo projects context HRB
 ```
 
-`--scope` is `personal` or `work`. An agent's `organizations add` is not added: it waits in `memo review`
-(`--reason` says why) until you confirm it. `projects context` takes a key, number, `project:<id>`, exact name or alias.
+`--scope` is `personal` or `work`. `name:` ignores case and takes `*` as any text, so `name:*studio*` finds every name
+that holds the word. An agent's `organizations add` and `organizations rename` are not applied: each waits in
+`memo review` (`--reason` says why) until you confirm it. `projects context` takes a key, number, `project:<id>`, exact name or alias.
 `projects context` and `organizations context` show the people linked to the project or
 organization, the notes about it or linking to it, and its tags. For a project, the view also groups pending key documents, relationships, facts and meeting follow-ups
 under `review`, separate from existing open numbered tasks. It confirms nothing. The text view shows

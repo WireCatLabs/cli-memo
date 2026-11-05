@@ -1189,6 +1189,31 @@ memo organizations add <name> [options]
 
 **Example:** `memo organizations add 'Harbour Studio' --kind company --scope work`, `memo organizations add 'Harbour Dairy' --kind company --reason 'named in the March invoice'`
 
+### `memo organizations rename`
+
+rename an organization of yours; an agent's rename waits for you in memo review
+
+This command changes the local store or your files.
+
+```sh
+memo organizations rename <organization> <name> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `organization` | required | its id or organization:<id>. |
+| `name` | required | the new name. |
+
+| Option | What it does |
+|---|---|
+| `--reason <text>` | why the name changes, in a sentence. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+
+**Returns:** rename an organization; an agent's waits for your review
+
+**Example:** `memo organizations rename organization:1 'Harbour Studio Ltd'`, `memo organizations rename organization:1 'Harbour Studio Ltd' --reason 'renamed in the 2026 invoice'`
+
 ### `memo organizations show`
 
 one organization by its id or organization:<id>, without its relationships, notes and tags
@@ -1227,7 +1252,7 @@ memo organizations list [query] [options]
 
 **Returns:** organization — id, ref, kind, name, scope, created_at; every field: memo commands info organizations list
 
-**Example:** `memo organizations list --json`
+**Example:** `memo organizations list name:*harbour*`, `memo organizations list --json`
 
 ### `memo organizations context`
 

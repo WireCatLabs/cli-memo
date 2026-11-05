@@ -266,5 +266,8 @@ it("queries organization, project and key-document fields through their native r
     { id: key.id, ref: note.ref },
   ])
   expect((await run("projects", "key-documents", "list", project.ref, "id:999999")).items).toEqual([])
-  await expect(run("organizations", "list", "name:Synthetic")).rejects.toThrow()
+  expect((await run("organizations", "list", "name:*STUDIO*")).items.map((row: { id: string }) => row.id)).toEqual([
+    org.id,
+  ])
+  expect((await run("organizations", "list", "name:*synthetic*")).items).toHaveLength(2)
 })

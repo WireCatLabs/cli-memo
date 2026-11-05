@@ -6,6 +6,17 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo organizations rename <organization> <name>` renames an organization.** Run by you it renames at once. An
+  agent's rename is a proposal (`status: proposed`): the organization keeps its name until you confirm it in
+  `memo review`; `--reason` says why (cli-core 0.582.0).
+
+### Fixed
+
+- **`memo organizations list name:*acme*` works.** The help listed `name`, but the list failed on it. It ignores
+  case in any script, and `*` stands for any text (cli-core 0.582.0).
+
 ## 0.131.38 — 05.11.2026
 
 ### Fixed
