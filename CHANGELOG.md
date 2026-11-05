@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.39 — 05.11.2026
+
 ### Added
 
 - **`memo organizations rename <organization> <name>` renames an organization.** Run by you it renames at once. An
