@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**679 ✅ · 0 ⛔ · 134 ❌** — 184 commands, 629 options.
+**669 ✅ · 0 ⛔ · 131 ❌** — 184 commands, 616 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -70,17 +70,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `messages acknowledge` | `--cursor` | ✅ |  |
 | `messages acknowledge` | `--source` | ✅ |  |
 | `messages acknowledge` | `--json` | ✅ |  |
-| `mail add` |  | ✅ |  |
-| `mail add` | `--kind` | ✅ |  |
-| `mail add` | `--folder` | ✅ |  |
-| `mail add` | `--json` | ✅ |  |
-| `mail check` |  | ✅ |  |
-| `mail check` | `--json` | ✅ |  |
-| `mail inspect` |  | ✅ |  |
-| `mail inspect` | `--since-time` | ✅ |  |
-| `mail inspect` | `--limit` | ✅ |  |
-| `mail inspect` | `--domain-age` | ❌ |  |
-| `mail inspect` | `--json` | ✅ |  |
 | `mail findings add` |  | ✅ |  |
 | `mail findings add` | `--json` | ✅ |  |
 | `mail findings add` | `--source` | ✅ |  |
@@ -98,6 +87,9 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `mail review` | `--new` | ❌ |  |
 | `mail review` | `--source` | ✅ |  |
 | `mail review` | `--json` | ✅ |  |
+| `mail add` |  | ✅ |  |
+| `mail check` |  | ✅ |  |
+| `mail inspect` |  | ✅ |  |
 | `mail delete` |  | ✅ |  |
 | `mail restore` |  | ✅ |  |
 | `mail runs list` |  | ✅ |  |
@@ -747,11 +739,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `sync` | `--only` | ✅ |  |
 | `sync` | `--folder` | ✅ |  |
 | `sync` | `--ignore` | ✅ |  |
-| `sync` | `--source` | ✅ |  |
-| `sync` | `--since-time` | ✅ |  |
-| `sync` | `--limit` | ✅ |  |
-| `sync` | `--retry-attachments` | ❌ |  |
-| `sync` | `--rescan` | ❌ |  |
 | `sync` | `--no-embed` | ✅ |  |
 | `sync` | `--timeout` | ✅ |  |
 | `sync` | `--json` | ✅ |  |
