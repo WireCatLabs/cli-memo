@@ -494,10 +494,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `facts confirm` | `--as-owner` | ✅ |  |
 | `facts confirm` | `--json` | ✅ |  |
 | `facts confirm` | `--reason` | ✅ |  |
-| `facts unconfirm` |  | ✅ |  |
-| `facts unconfirm` | `--as-owner` | ❌ |  |
-| `facts unconfirm` | `--json` | ✅ |  |
-| `facts unconfirm` | `--reason` | ✅ |  |
+| `facts revoke` |  | ✅ |  |
+| `facts revoke` | `--as-owner` | ❌ |  |
+| `facts revoke` | `--json` | ✅ |  |
+| `facts revoke` | `--reason` | ✅ |  |
 | `facts reverse` |  | ✅ |  |
 | `facts reverse` | `--as-owner` | ❌ |  |
 | `facts reverse` | `--json` | ✅ |  |

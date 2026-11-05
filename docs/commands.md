@@ -2505,14 +2505,14 @@ memo facts confirm <ref> [options]
 
 **Example:** `memo facts confirm fact:4`
 
-### `memo facts unconfirm`
+### `memo facts revoke`
 
 take back your approval of an agent's fact; it waits as proposed again. Not for a correction or your own fact
 
 This command changes the local store or your files.
 
 ```sh
-memo facts unconfirm <ref> [options]
+memo facts revoke <ref> [options]
 ```
 
 | Argument | | What it is |
@@ -2525,9 +2525,9 @@ memo facts unconfirm <ref> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
-**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts unconfirm
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts revoke
 
-**Example:** `memo facts unconfirm fact:4`
+**Example:** `memo facts revoke fact:4`
 
 ### `memo facts reverse`
 
