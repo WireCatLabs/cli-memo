@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.31 — 05.11.2026
+
 ### Added
 
 - **The mail-triage agent sees orders, invoices and site lead forms that carry an unsubscribe link.**
