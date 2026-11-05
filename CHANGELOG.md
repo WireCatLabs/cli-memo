@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.24 — 05.11.2026
+
 ### Changed — may break callers
 
 - **`memo search all` finds records for a question typed as a sentence** (cli-core 0.564.0). A question in plain
