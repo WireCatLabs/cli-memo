@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **memo runs on cli-core 0.571.0: an imported payment split across invoices settles each by its own amount.**
+  `memo records import` reads an optional `amount` on a `settles` relation, refuses amounts that add up to more than
+  the payment (`record.over-payment`), and no longer lets one import cover an invoice twice. A changed import updates
+  the split of a payment the owner has not decided yet.
+
 ## 0.131.26 — 05.11.2026
 
 ### Changed — may break callers
