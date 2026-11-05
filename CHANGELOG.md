@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.28 — 05.11.2026
+
 ### Changed — may break callers
 
 - **memo runs on cli-core 0.572.0.** `memo commands --json` gives every command its permission `level` and key under
