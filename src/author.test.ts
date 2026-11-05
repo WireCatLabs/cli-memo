@@ -93,3 +93,12 @@ it("proposes an organization from an agent's terminal and adds it directly for t
     name: "Synthetic Dairy",
   })
 })
+
+it("asks for a terminal before --as-owner adds an organization from an agent's terminal", async () => {
+  const { run } = await setUp({ AI_AGENT: "claude-code_2-1-296_agent" })
+  await expect(run("organizations", "add", "Synthetic Dairy", "--kind", "company", "--as-owner")).rejects.toMatchObject(
+    {
+      code: "confirmation_required",
+    },
+  )
+})
