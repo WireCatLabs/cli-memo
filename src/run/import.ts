@@ -1,44 +1,20 @@
 import { createDeadline, type ErrorCode, errorCodes, isCliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { dateWindow, FETCH, parseDuration } from "@wirecat/cli-core/cli"
-import { scoreSenders } from "@wirecat/cli-core/mail"
+import { FETCH, parseDuration } from "@wirecat/cli-core/cli"
 import { openStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError, Option } from "commander"
-import { answers, itemAnswer, withStore } from "../answer.js"
+import { answers, itemAnswer } from "../answer.js"
 import { STORE_CLIENT } from "../app.js"
 import { decisionPolicy, loadConfig } from "../config.js"
 import { errorObject } from "../failure.js"
-import { mailAccounts, mailSource } from "../mail/accounts.js"
-import { backfillHeaders } from "../mail/backfill-headers.js"
-import { knownAges, lookUpAges } from "../mail/domain-age.js"
-import { repairHtmlText } from "../mail/repair.js"
-import { rulesOf } from "../mail/rule-store.js"
-import { type ImportResult, importMail } from "../mail/sync.js"
 import { boundFolders, UNBOUND, unboundReason } from "../notes/bound.js"
 import { embedMailChunks, embedNoteChunks, type NoteChunksEmbedded } from "../notes/embed.js"
 import { noteFolders } from "../notes/folders.js"
 import { importNotes, type NotesImport } from "../notes/import.js"
-import { collect, positive } from "../options.js"
+import { collect } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
-import { MAIL_SOURCES, syncedMailboxesOf } from "../store/source-list.js"
 import { applyAuto, autoState, recordAutoRun } from "./auto.js"
 import { withImportLock } from "./lock.js"
-
-const DAY = 86_400_000
-const MAIL_WINDOW_DAYS = 30
-const LARGE_IMPORT_HELP =
-  "Large first import: mail is read at about 10 emails (~1 MB) a second, and Gmail caps IMAP downloads " +
-  "(2,500 MB a day for Workspace, https://knowledge.workspace.google.com/admin/gmail/gmail-bandwidth-limits; " +
-  "the consumer limit is not published), so a mailbox of many GB takes days: raise --limit gradually and let " +
-  "each run continue where the last stopped.\n\n" +
-  "Resuming: a run lists only the mail no earlier run finished, so a large mailbox is not listed again each " +
-  "time. A whole listing, which marks deleted mail and refreshes labels and read state, runs at least once a " +
-  "day, after any change to the rules, and with --rescan.\n\n" +
-  "Rules: an email a skip rule (`mail <profile> rules`) matches is never read or stored, and is counted as " +
-  "skipped; mail stored before the rule stays.\n\n" +
-  "An mbox account (a Google Takeout file, mode mbox) syncs only when named with --source: each run reads " +
-  "the whole file, its mail is old so it needs a --since-time far back, and a large --limit. It only adds " +
-  "mail; nothing missing from the file is marked deleted."
 
 // An unexpected crash has no standard code to name it by; it still leaves the answer incomplete.
 const issuesOf = (failed: ImportRun["failed"]) =>
@@ -50,7 +26,8 @@ export interface ImportRun {
   notes: NotesImport[]
   /** The notes' chunks embedded for search by meaning this run. */
   notesEmbedded?: NoteChunksEmbedded
-  mail: ImportResult[]
+  /** The chunks of mail already in the store, which the `mail` CLI syncs, embedded for search by meaning this run. */
+  mailEmbedded?: NoteChunksEmbedded
   /** A source that failed; the others still ran. `reasonId` names the failure from a fixed list, `reason` says it. */
   failed: { source: string; code: ErrorCode | "internal_error"; reasonId: string; reason: string }[]
   /** Why a timer run did nothing: another sync held the lock. */
@@ -80,23 +57,18 @@ const text = (run: ImportRun): string =>
                 ? " — more next run"
                 : ""),
         ]),
-    ...run.mail.map(
-      (m) =>
-        `mail ${m.account}: ${m.listed} listed${m.pass === "resumed" ? " (resumed)" : ""}, ${m.saved} new, ` +
-        `${m.deleted} gone` +
-        (m.envelopes ? `, ${m.envelopes} recorded as envelopes` : "") +
-        (m.skipped ? `, ${m.skipped} skipped by rule` : "") +
-        (m.complete ? "" : " — more to read next run") +
-        (m.unreadable === undefined ? "" : ` — ${m.unreadable.length} unreadable, tried again next run`) +
-        (m.retried === undefined
-          ? ""
-          : ` — attachments read again in ${m.retried.emails} emails: ${m.retried.extracted} read, ` +
-            `${m.retried.stillFailed} still unread` +
-            (m.retried.missing ? `, ${m.retried.missing} emails no longer in the mailbox` : "")) +
-        (m.deletionsSkipped === undefined ? "" : ` — deletions skipped: ${m.deletionsSkipped}`),
-    ),
+    ...(run.mailEmbedded === undefined
+      ? []
+      : [
+          `mail by meaning: ${run.mailEmbedded.chunks} chunks embedded` +
+            (run.mailEmbedded.notEmbedded !== undefined
+              ? ` — ${run.mailEmbedded.notEmbedded}`
+              : run.mailEmbedded.left
+                ? " — more next run"
+                : ""),
+        ]),
     ...run.failed.map(({ source, reason }) => `failed ${source}: ${reason}`),
-  ].join("\n") || "Nothing to sync: set notes.folders or mail.accounts in the config."
+  ].join("\n") || "Nothing to sync: add a notes folder with memo folders add."
 
 const NOT_READ_SHOWN = 10
 
@@ -116,11 +88,6 @@ interface SyncOptions {
   only?: Synced[]
   folder?: string[]
   ignore?: string[]
-  source?: string
-  sinceTime?: string
-  limit?: number
-  retryAttachments?: boolean
-  rescan?: boolean
   embed: boolean
   json?: boolean
   timeout?: number
@@ -137,14 +104,6 @@ const onlyOf = (value: string): Synced[] => {
 const syncedOf = (options: SyncOptions): Set<Synced> => {
   const synced = new Set(options.only)
   if (options.folder || options.ignore) synced.add("notes")
-  if (
-    options.source !== undefined ||
-    options.sinceTime !== undefined ||
-    options.limit !== undefined ||
-    options.retryAttachments ||
-    options.rescan
-  )
-    synced.add("mail")
   return synced.size ? synced : new Set(["notes", "mail"])
 }
 
@@ -175,12 +134,12 @@ export const failureReason = (error: unknown, failure: { reason: string; message
 export const syncCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv, signal?: AbortSignal): void => {
   const { print } = answers(program, streams, env)
   annotate(program.command("sync"), { effects: FETCH })
-    .summary("bring notes and mail up to date in the store, only what changed")
+    .summary("bring notes up to date in the store, and make stored mail searchable by meaning")
     .description(
-      "bring notes and mail up to date in the store, only what changed. Every configured folder and mail account " +
-        "unless narrowed; a notes option syncs notes only, a mail option mail only, unless both are given",
+      "bring notes up to date in the store, only what changed, and embed the mail already stored for search by " +
+        "meaning; the mail CLI syncs the mail itself (mail <profile> sync). Every configured folder unless narrowed",
     )
-    .option("--only <resources>", "notes,mail, separated by commas", onlyOf)
+    .option("--only <resources>", "notes,mail, separated by commas; mail embeds stored mail only", onlyOf)
     .addOption(
       new Option(
         "--folder <folder>",
@@ -193,30 +152,6 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         "notes: leave this file or folder alone this run, a path or a glob; repeat for more",
       ).argParser(collect),
     )
-    .option("--source <accounts>", `mail: only these mailboxes: ${MAIL_SOURCES}`)
-    .addOption(
-      new Option(
-        "--since-time <time>",
-        `mail: read from this time, ISO 8601 or 30d ago (default: ${MAIL_WINDOW_DAYS}d)`,
-      ),
-    )
-    .addOption(
-      new Option("--limit <n>", "mail: most new emails to read per account this run (default: 200)").argParser(
-        positive,
-      ),
-    )
-    .addOption(
-      new Option(
-        "--retry-attachments",
-        "mail: reread stored emails' attachments that an older memo or a broken install left unread",
-      ),
-    )
-    .addOption(
-      new Option(
-        "--rescan",
-        "mail: list every message again, not only mail an earlier run left; also checks deletions",
-      ),
-    )
     .option("--no-embed", "skip embedding notes and mail for search by meaning this run")
     .option(
       "--timeout <duration>",
@@ -224,7 +159,6 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       (raw) => parseDuration(raw, "--timeout"),
     )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .addHelpText("after", `\n${LARGE_IMPORT_HELP}`)
     .action(async (options: SyncOptions, command: Command) => {
       const deadline = createDeadline({
         ...(options.timeout === undefined ? {} : { timeoutMs: options.timeout }),
@@ -243,32 +177,20 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     const debug = command.optsWithGlobals().debug === true
     const synced = syncedOf(options)
     const config = loadConfig(env)
-    const named =
-      options.source === undefined
-        ? undefined
-        : await withStore(env, (store) => syncedMailboxesOf(store, options.source as string))
+    if (config.mail !== undefined)
+      streams.diagnostic(
+        "memo sync no longer imports mail: the mail CLI does (mail <profile> sync); memo config unset mail removes " +
+          "the old settings, and memo doctor names the mailboxes\n",
+      )
     if (env.MEMO_AUTO === "1") {
       await applyAuto(env, autoState(config))
       if (!autoState(config).enabled) return
     }
-    const window = dateWindow({ sinceTime: options.sinceTime })
-    const since = new Date(window.since ?? Date.now() - MAIL_WINDOW_DAYS * DAY)
-    // An archive file is read whole each run, so only a sync that names it reads it.
-    const wanted = synced.has("mail")
-      ? mailAccounts(config.mail?.accounts ?? [], named).filter(
-          (account) => account.mode !== "mbox" || named !== undefined,
-        )
-      : []
-    const accounts = wanted.filter((account) => account.import !== false)
-    const handed = wanted.filter((account) => account.import === false)
-    const run: ImportRun = { notes: [], mail: [], failed: [] }
+    const run: ImportRun = { notes: [], failed: [] }
     const startedAt = Date.now()
     const answer = () =>
       itemAnswer(run, {
         meta: {
-          ...(accounts.length ? { accounts: accounts.map(({ name }) => name) } : {}),
-          ...(named !== undefined && handed.length ? { handed_to_mail: handed.map(({ name }) => name) } : {}),
-          ...window.meta,
           complete: run.failed.length === 0,
           ...(run.failed.length ? { issues: issuesOf(run.failed) } : {}),
         },
@@ -318,76 +240,9 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
             await importNotesMap(store, env, folders)
           })
         }
-        for (const account of accounts)
-          await attempt(`mail ${account.name}`, async () => {
-            const rules = await rulesOf(store, account, env, streams.diagnostic)
-            const repaired = await repairHtmlText(store, account.address)
-            if (repaired) streams.diagnostic(`mail ${account.name}: ${repaired} emails' HTML text read again as text`)
-            run.mail.push(
-              await importMail({
-                store,
-                source: mailSource(account, env, stop),
-                account: { ...account, rules },
-                since,
-                env,
-                embed: options.embed,
-                ...(options.limit === undefined ? {} : { max: options.limit }),
-                ...(config.mail?.max_body_chars === undefined ? {} : { maxBodyChars: config.mail.max_body_chars }),
-                ...(config.mail?.max_attachment_chars === undefined
-                  ? {}
-                  : { maxAttachmentChars: config.mail.max_attachment_chars }),
-                retryAttachments: options.retryAttachments ?? false,
-                rescan: options.rescan ?? false,
-                signal: stop,
-              }),
-            )
-            halt()
-            const filled = await backfillHeaders(store, mailSource(account, env, stop), account.address)
-            if (filled) streams.diagnostic(`mail ${account.name}: ${filled} older emails' headers read`)
-            halt()
-            const scored = await scoreSenders(
-              store,
-              account.address,
-              { known: () => knownAges(env), lookUp: (domains) => lookUpAges(env, domains) },
-              Date.now(),
-              rules,
-            )
-            if (scored)
-              streams.diagnostic(
-                `mail ${account.name}: ${scored.scored} senders scored, ${scored.demoted} ranked lower, ` +
-                  `${scored.looked} domain ages looked up` +
-                  (scored.failed ? `, ${scored.failed} failed` : ""),
-              )
-          })
-        // Needs no Himalaya, only the mail already in the store, which the `mail` CLI fills. Header backfill needs it.
-        for (const account of handed) {
-          if (named !== undefined)
-            streams.diagnostic(
-              `mail ${account.name}: import is handed to the mail CLI (import: false in mail.accounts), memo did not read it`,
-            )
-          await attempt(`mail ${account.name}`, async () => {
-            const rules = await rulesOf(store, account, env, streams.diagnostic)
-            const repaired = await repairHtmlText(store, account.address)
-            if (repaired) streams.diagnostic(`mail ${account.name}: ${repaired} emails' HTML text read again as text`)
-            halt()
-            const scored = await scoreSenders(
-              store,
-              account.address,
-              { known: () => knownAges(env), lookUp: (domains) => lookUpAges(env, domains) },
-              Date.now(),
-              rules,
-            )
-            if (scored)
-              streams.diagnostic(
-                `mail ${account.name}: ${scored.scored} senders scored, ${scored.demoted} ranked lower, ` +
-                  `${scored.looked} domain ages looked up` +
-                  (scored.failed ? `, ${scored.failed} failed` : ""),
-              )
-          })
-        }
-        if (handed.some((account) => account.embed !== false))
+        if (synced.has("mail"))
           await attempt("mail by meaning", async () => {
-            await embedMailChunks(store, { embed: options.embed, env })
+            run.mailEmbedded = await embedMailChunks(store, { embed: options.embed, env })
           })
       } finally {
         await store.close()

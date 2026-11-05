@@ -390,7 +390,7 @@ memo messages acknowledge [options]
 |---|---|
 | `--holder <name>` | whose mark: lower-case letters, digits and dashes, such as mail-triage. |
 | `--cursor <cursor>` | the cursor `review --holder` gave. |
-| `--source <accounts>` | the one mailbox: email:<account> (its name in mail.accounts or its address), email or group:<name>; may be left out when the store holds one mailbox. |
+| `--source <accounts>` | the one mailbox: email:<address>, email or group:<name>; may be left out when the store holds one mailbox. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** mail mark — holder, through_id, through_received_at, held, read, skipped, updated_at; every field: memo commands info messages acknowledge
@@ -399,75 +399,7 @@ memo messages acknowledge [options]
 
 ## `memo mail`
 
-mail accounts: look before importing, read new mail for an agent, stage what it found
-
-### `memo mail add`
-
-add an explicit account after matching its Himalaya email
-
-This command changes the local store or your files.
-
-```sh
-memo mail add [account] [address] [options]
-```
-
-| Argument | | What it is |
-|---|---|---|
-| `account` | optional | one Himalaya account name; omission lists choices and changes nothing. |
-| `address` | optional | must match the email configured for this Himalaya account. |
-
-| Option | What it does |
-|---|---|
-| `--kind <kind>` | gmail or imap. Default: `gmail`. |
-| `--folder <folder>` | mail folder to import; repeat for several. |
-| `--json` | print the added account as JSON. |
-
-**Returns:** add an explicit account after matching its Himalaya email
-
-**Example:** `memo mail add work you@example.test --kind imap`
-
-### `memo mail check`
-
-check one Memo account against Himalaya's configured identity
-
-```sh
-memo mail check [account] [options]
-```
-
-| Argument | | What it is |
-|---|---|---|
-| `account` | optional | one Memo account name; omission lists choices and changes nothing. |
-
-| Option | What it does |
-|---|---|
-| `--json` | print the checked account as JSON. |
-
-**Returns:** check one Memo account against Himalaya's configured identity
-
-**Example:** `memo mail check work`
-
-### `memo mail inspect`
-
-group an account's mail by sender and list, to decide what to keep or skip
-
-```sh
-memo mail inspect <account> [options]
-```
-
-| Argument | | What it is |
-|---|---|---|
-| `account` | required | the account's name in mail.accounts, or its address. |
-
-| Option | What it does |
-|---|---|
-| `--since-time <time>` | only mail from this time, ISO 8601 or 30d ago (default: all mail). |
-| `--limit <n>` | show this many of the largest groups. Default: `50`. |
-| `--domain-age` | ask each shown sender domain's registry when it was registered (RDAP); tells each registry its domain. |
-| `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** group an account's mail by sender and list, to decide what to keep or skip
-
-**Example:** `memo mail inspect personal --limit 30`, `memo mail inspect work --since-time 365d --json`
+mail the mail CLI stored: review new mail for an agent, stage what it found
 
 ### `memo mail findings`
 
@@ -490,7 +422,7 @@ memo mail findings add <file> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,status keeps only those fields. |
-| `--source <accounts>` | the one mailbox: email:<account> (its name in mail.accounts or its address), email or group:<name>; may be left out when the store holds one mailbox. |
+| `--source <accounts>` | the one mailbox: email:<address>, email or group:<name>; may be left out when the store holds one mailbox. |
 
 **Returns:** mail findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more; every field: memo commands info mail findings add
 
@@ -531,7 +463,7 @@ memo mail findings list [query] [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,status keeps only those fields. |
-| `--source <accounts>` | only this mailbox's batches: email:<account>, its name in mail.accounts or its address. |
+| `--source <accounts>` | only this mailbox's batches: email:<address>. |
 | `--limit <n>` | batches per page, at most 50. Default: `20`. |
 | `--page <n>` | which page, from 1. Default: `1`. |
 
@@ -555,12 +487,12 @@ memo mail review [query] [options]
 |---|---|
 | `--unanswered [duration]` | only threads whose newest email came to you, in To or Cc, with no answer for this long — 4h, 1d; 24h if not given. |
 | `--waiting [duration]` | only threads where you wrote last and nobody answered for this long — 3d; 7d if not given. |
-| `--holder <name>` | read for this holder — an agent or a pipeline — what is stored past its processing mark, by store order; bulk, envelopes, drafts, suspicious senders and partial mail left out; `messages acknowledge` moves the mark. |
+| `--holder <name>` | read for this holder — an agent or a pipeline — what is stored past its processing mark, by store order; bulk, envelopes, drafts, suspicious senders and partial mail left out; each text without quoted earlier mail or the signature; `messages acknowledge` moves the mark. |
 | `--new` | what changed since the last `review --new` of this mailbox, a point per thread — for scheduled runs. |
-| `--source <accounts>` | the one mailbox: email:<account> (its name in mail.accounts or its address), email or group:<name>; may be left out when the store holds one mailbox. |
+| `--source <accounts>` | the one mailbox: email:<address>, email or group:<name>; may be left out when the store holds one mailbox. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** message summary — ref, chat_id, timestamp, sender_name, sender_is_me, outgoing, text, attachments, and 3 more; every field: memo commands info mail review
+**Returns:** message summary — ref, chat_id, timestamp, sender_name, sender_is_me, outgoing, text, attachments, and 4 more; every field: memo commands info mail review
 
 **Next usually:** `memo messages show <message>`
 
@@ -3603,7 +3535,7 @@ memo search mail <query> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--brief` | each email as reference, time, sender and excerpt only. |
 | `--full` | each email with its whole text; --json still gives the excerpt. |
-| `--source <accounts>` | the mailboxes to search (default: every one): email:<account> (its name in mail.accounts or its address), email or group:<name>. |
+| `--source <accounts>` | the mailboxes to search (default: every one): email:<address>, email or group:<name>. |
 | `--plain-order` | best first by the words alone, without moving mail from suspicious senders down. |
 
 **Returns:** message hit — ref, timestamp, sender_name, sender_is_me, chat_title, excerpt, matched_in, score, and 9 more; every field: memo commands info search mail
@@ -3751,7 +3683,7 @@ memo answers create <question> [query] [options]
 
 ## `memo sync`
 
-bring notes and mail up to date in the store, only what changed. Every configured folder and mail account unless narrowed; a notes option syncs notes only, a mail option mail only, unless both are given
+bring notes up to date in the store, only what changed, and embed the mail already stored for search by meaning; the mail CLI syncs the mail itself (mail <profile> sync). Every configured folder unless narrowed
 
 This command changes the local store or your files.
 
@@ -3761,21 +3693,16 @@ memo sync [options]
 
 | Option | What it does |
 |---|---|
-| `--only <resources>` | notes,mail, separated by commas. |
+| `--only <resources>` | notes,mail, separated by commas; mail embeds stored mail only. |
 | `--folder <folder>` | notes: only this configured folder, by its id or path; repeat for more. |
 | `--ignore <path>` | notes: leave this file or folder alone this run, a path or a glob; repeat for more. |
-| `--source <accounts>` | mail: only these mailboxes: email:<account> (its name in mail.accounts or its address), email or group:<name>. |
-| `--since-time <time>` | mail: read from this time, ISO 8601 or 30d ago (default: 30d). |
-| `--limit <n>` | mail: most new emails to read per account this run (default: 200). |
-| `--retry-attachments` | mail: reread stored emails' attachments that an older memo or a broken install left unread. |
-| `--rescan` | mail: list every message again, not only mail an earlier run left; also checks deletions. |
 | `--no-embed` | skip embedding notes and mail for search by meaning this run. |
 | `--timeout <duration>` | stop after this long, e.g. 10m; progress so far is kept (default: no limit). |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** bring notes and mail up to date in the store, only what changed
+**Returns:** bring notes up to date in the store, and make stored mail searchable by meaning
 
-**Example:** `memo sync`, `memo sync --source email:work --since-time 2026-09-01`, `memo sync --only notes --folder ~/notes --no-embed`
+**Example:** `memo sync`, `memo sync --only mail`, `memo sync --only notes --folder ~/notes --no-embed`
 
 ## `memo store`
 
@@ -4296,5 +4223,6 @@ Failures use the shared WireCat error contract.
 | `12` | `provider_unavailable` |
 | `13` | `invalid_response` |
 | `14` | `outcome_unknown` |
+| `15` | `conflict` |
 | `130` | `cancelled` |
 | `1` | anything else |

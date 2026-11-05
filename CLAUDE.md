@@ -2,7 +2,7 @@
 
 `memo` joins what the owner knows about a person across tg, MAX, notes and mail. Messages live in the
 shared store of [`@wirecat/cli-core`](https://github.com/WireCatLabs/cli-core); this repository
-reads notes, imports mail into that store, and answers.
+reads notes, reads the mail the `mail` CLI stores there, and answers.
 
 The [WireCat CLI standards](https://github.com/WireCatLabs/cli-base/blob/main/docs/standards/README.md)
 apply here and win over this file; it keeps only memo's own rules.
@@ -18,11 +18,12 @@ vulnerabilities are reported as the
    message in a fixture, test name, commit, issue or document — synthetic data only. Plans and the
    session journal live in the private `cli-private` repository, never here.
 2. **No test reaches the owner's store, vault, mailbox or config.** `test/sandbox.ts` points
-   `MESSAGING_STORE`, `HOME`, the XDG folders and `HIMALAYA_CONFIG` into a temp folder for every test
+   `MESSAGING_STORE`, `HOME` and the XDG folders into a temp folder for every test
    file; do not weaken it.
-3. **Imports are read-only.** Mail is never sent or marked read; source notes are never changed.
-   memo never changes a mailbox: rules, cleanup and restore belong to the `mail` CLI, and memo's old
-   commands for them only name their replacement. No test may use the owner's mailbox.
+3. **memo never opens a mailbox.** Everything mail-specific (adding a mailbox, sign-in, sync, import, inspect,
+   sender scoring, rules, cleanup) belongs to the `mail` CLI, and memo's old commands for it only name their
+   replacement; memo keeps what spans sources (search, `messages show`, linking, mail findings, the mail-triage
+   skill). Source notes are never changed. No test may use the owner's mailbox.
 4. **Pin `@wirecat/cli-core` to an exact published version compatible with the other store consumers.**
    Compatible SDK updates may be adopted independently after reviewing intervening changelog entries
    and store compatibility. Changes that raise `minCompatible` or break shared consumer contracts
@@ -30,7 +31,7 @@ vulnerabilities are reported as the
 5. **Shared chunking and embedding live in `cli-core` and are changed there**, through its own
    worktree, pull request and release rules. Mail transport and Google sign-in stay out of it; only
    its public `./store` export is used for storage.
-6. **Deletions are honoured.** A mail deleted at the source loses its text in the store on the next
+6. **Deletions are honoured.** A note deleted at the source loses its text in the store on the next
    import.
 
 ## Comments
