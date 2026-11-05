@@ -56,16 +56,6 @@ const ROW: RowShape = {
   text: ["reason"],
 }
 
-/** A task's key has letters, which cli-core's id parser does not take: `close:Q-15` is read here. */
-const CLOSE_ID = /^close:[A-Za-z][A-Za-z0-9]*-[1-9]\d*$/
-
-export const reviewIds = (words: readonly string[]) => {
-  const tokens = words.flatMap((word) => word.split(",")).map((one) => one.trim())
-  const closes = tokens.filter((one) => CLOSE_ID.test(one))
-  const rest = tokens.filter((one) => one !== "" && !CLOSE_ID.test(one))
-  return [...new Set([...(rest.length || !closes.length ? parseProposalIds(rest) : []), ...closes])]
-}
-
 const json = (command: Command) => command.option("--json", "print JSON; --json=id,title keeps only those fields")
 
 export const reviewCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
@@ -171,13 +161,13 @@ export const reviewCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     command.option("--compact", "one line per decision")
     command.action(
       async (words: string[], given: { reason?: string; asOwner?: boolean; json?: boolean; compact?: boolean }) => {
-        const ids = reviewIds(words)
+        const ids = parseProposalIds(words)
         const by = await deciderOf(command, env, {
           ...given,
           question: `${name} ${ids.length} proposal${ids.length === 1 ? "" : "s"} as you, the owner?`,
         })
         const result = await withStore(env, (store) =>
-          reviewRegistry(store, env).decide(ids, decisionOf(name === "confirm", by, given.reason)),
+          reviewRegistry(store).decide(ids, decisionOf(name === "confirm", by, given.reason)),
         )
         const issues = result.refused.map((one) => ({
           code: one.code,
