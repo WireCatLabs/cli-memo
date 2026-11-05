@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.27 — 05.11.2026
+
 ### Fixed
 
 - **memo runs on cli-core 0.571.0: an imported payment split across invoices settles each by its own amount.**
