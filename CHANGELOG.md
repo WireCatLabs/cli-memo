@@ -6,6 +6,12 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **A scheduled mail-triage agent reads the whole skill again.** 0.131.37 grew `memo skill show mail-triage` to
+  16.7 KB, and Claude Code saved that output to a file the scheduled agent may not read, so a run stopped at the
+  first lines. The skill is back under 14.7 KB, and a test keeps it there.
+
 ## 0.131.37 — 05.11.2026
 
 ### Added
