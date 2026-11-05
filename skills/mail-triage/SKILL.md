@@ -12,8 +12,7 @@ description: >-
 You run on a schedule with `Bash(memo:*)` under `MEMO_READ_ONLY`. memo lets you read, stage one findings batch per
 mailbox (`memo mail findings add`) and move your own mark (`memo messages acknowledge`). Your schedule names your
 holder (`--on-new-mail mail-triage`), and memo refuses to move any other mark. Everything else is refused, and that is
-intended. A run starts once enough mail waits (10 emails, or the oldest 30 minutes old, by default), so expect several
-emails per run.
+intended. Expect several emails per run.
 
 ## Hard rules
 
@@ -29,13 +28,12 @@ emails per run.
   shorten, abbreviate, re-encode or retype a ref, not even its middle: a cut ref is refused or cites another email.
 - Every Bash call is one memo command and nothing else: it starts with `memo`, with no `cd`, `ls`, `cat` or `jq`,
   no variable set before it, nothing after it and no output sent to a file or another command. Anything more is
-  refused before it runs, so work through mailboxes one call at a time. Replace every `<…>` placeholder below with
+  refused. Replace every `<…>` placeholder below with
   its value: the angle brackets never reach the command.
 - Read only through existing links (below). No broad search over all mail or all chats.
 - Stage first, acknowledge after. If staging fails, do not acknowledge: the next run reads the same mail again.
-- The mailbox itself belongs to the `mail` CLI, which this run cannot call: its sync, rules and cleanup are the
-  owner's. When a sender should be skipped or kept as an envelope, put the command in the report for the owner, such
-  as `mail <profile> rules add --domain <domain> --do envelope`; `mail session list` names the profile of an address.
+- The mailbox's sync and rules are the owner's `mail` CLI, which you cannot call. When a sender should be skipped
+  or kept as an envelope, put the command in the report: `mail <profile> rules add --domain <domain> --do envelope`.
 
 ## One run
 
@@ -53,9 +51,8 @@ many). Other mail sent to many — orders, invoices, site forms and notification
 comes after the rest, with `email.bulk: true` and `email.excerpt_only: true`: its `text` is only the subject and the
 first lines. Each item is one email: `ref` (`msg:email/…`), `chat_id` (the thread), `sender_is_me`, `text`, and
 `email` with `fingerprint`, `from`, `new_sender`, `sender_identities`. `text` is the email's own text: quoted earlier
-mail and the signature are left out, and the fingerprint still covers the whole stored email. `next` holds two
-steps: `mail-findings.add`, whose `args.key` is the findings key of this review, and `mail-messages.acknowledge`,
-whose `args.cursor` is your cursor. Keep both exactly as given. A first run has no mark yet: no items, only the
+mail and the signature are left out, and the fingerprint still covers the whole stored email. `next` gives your
+`key` (step `mail-findings.add`) and `cursor` (step `mail-messages.acknowledge`). A first run has no mark yet: no items, only the
 cursor — go straight to step 6.
 
 No items: go to step 6 with the cursor.
@@ -95,12 +92,11 @@ inside double quotes runs. Put an address or name in single quotes, and only whe
 and `. _ + - @` alone; otherwise skip that read and say so in the report.
 
 - The thread: `memo messages show <ref> --before-n 3 --trimmed`.
-- The sender: `memo context 'email:<address>' --limit 5 --trimmed` — earlier mail from them, their facts and
-  memories, and messages in Telegram, MAX and other tools reached through identity links the store already has.
+- The sender: `memo context 'email:<address>' --limit 5 --trimmed` — their earlier mail, facts, memories and
+  messages in other tools.
 - A known person or project the email names: `memo context person:<id> --trimmed`, `memo tasks show <task>`.
 
-Always pass `--trimmed` to these reads: it keeps quoted earlier mail and signatures out of what you read. Do not
-search everything for a name. If the links do not reach it, it stays out of context.
+Always pass `--trimmed`. Do not search everything for a name: what the links do not reach stays out.
 
 ### 4. Propose
 
@@ -153,24 +149,8 @@ plainly.
   date, such as "E-signature certificate 12-345 from <issuer>, expires 2027-03-01". `subject` is the organization
   or person it belongs to when linked.
 
-A finding takes only its kind's fields; any other field refuses it. `title` is a task's field alone: an invoice,
-payment, order or fact has none, and a fact has no `reason` either. Every kind takes `id`, `kind` and `evidence`:
-
-| kind | its other fields |
-|---|---|
-| `task` | `type`, `title`, `reason`, `commitment`, `project`, `due_at`, `due_evidence`, `assignee`, `assignee_evidence`, `external_id`, `source_url` |
-| `task_update` | `task`, `change`, `due_at`, `detail`, `reason` |
-| `fact` | `type`, `statement`, `subject`, `project` |
-| `memory` | `memory_kind`, `scope`, `body`, `subject`, `project` |
-| `link` | `from`, `to`, `reason` |
-| `new_contact` | `address`, `name`, `reason` |
-| `invoice` | `direction`, `counterparty`, `counterparty_name`, `counterparty_email`, `currency`, `lines`, `total`, `number`, `issue_date`, `due_date`, `project`, `reason` |
-| `payment` | `direction`, `payer`, `payer_name`, `payer_email`, `payee`, `payee_name`, `payee_email`, `amount`, `currency`, `date`, `reference`, `allocations`, `project`, `reason` |
-| `order` | `purpose`, `customer`, `customer_name`, `customer_email`, `supplier`, `supplier_name`, `number`, `total`, `currency`, `status`, `order_date`, `fulfilled_date`, `invoice`, `payment`, `project`, `source_url`, `reason` |
-| `order_update` | `supplier_name`, `number`, `status`, `date`, `reason` |
-
-A list command takes `field:value` terms, never a bare word: `memo invoices list number:FACT-2026-00012 --json`,
-`memo orders list number:<number> --json`. A bare word is refused (`query.bare-word`).
+A finding takes only its kind's fields above, plus `id`, `kind`, `evidence`: no `title` on an invoice, payment,
+order or fact, no `reason` on a fact. A list takes `field:value` terms, never a bare word: `number:FACT-2026-00012`.
 
 ### 5. New senders, among kept emails
 
@@ -184,9 +164,8 @@ For every email you kept in step 2 whose item has `new_sender: true`:
 
 ### 6. Check, stage once, then acknowledge
 
-The batch's key is the `args.key` of review's `mail-findings.add` step, such as `mail-triage:9123` or
-`mail-triage:9123-r1`: pass it as `--key`, copied exactly, and leave `key` out of the JSON. Never build a key from
-the cursor. Every finding cites 1–8 emails with the exact `ref` and `fingerprint` from step 1; at most 30 findings
+Pass review's `key` as `--key`, exactly (`mail-triage:9123`, `mail-triage:9123-r1`); never build one, and leave
+`key` out of the JSON. Every finding cites 1–8 emails with the exact `ref` and `fingerprint` from step 1; at most 30 findings
 and 5 per sender.
 
 A key takes one input only: once a batch is staged, nothing can be added to it. So build the whole batch for the
@@ -198,7 +177,7 @@ memo mail findings add '{"schema_version":1,"extractor":"mail-triage/1","finding
 
 The answer's `item.valid` says whether staging would take it; `item.problems` lists every finding that would be
 refused, with its `finding` id, `kind` and `message` (an unknown field names the fields that kind takes in
-`details.allowed`: keep only those). Fix every problem, or drop that finding, and check again. When `valid` is
+`details.allowed`). Fix every problem, or drop that finding, and check again. When `valid` is
 true, stage the same JSON once, the same command without `--dry-run`.
 
 The whole JSON is the one argument between single quotes, on one line. A double quote inside a value is `\"`. A
@@ -213,8 +192,8 @@ memo messages acknowledge --holder mail-triage --cursor <cursor> --source email:
 ```
 
 A refused batch stages nothing. `mail-findings.stale` means an email changed since review: read that mailbox again
-from step 1. `mail-findings.key-used` means a batch with other input is already staged under this key — by this run, or
-by one that stopped before acknowledging: stage nothing more and say so in the report. Other refusals name the finding at fault: fix or drop it, check again and stage. If it
+from step 1. `mail-findings.key-used` means a batch with other input is already staged under this key: stage nothing
+more and say so in the report. Other refusals name the finding at fault: fix or drop it, check again and stage. If it
 still fails, leave the mark where it is and say so in the report.
 
 When the review's `meta.complete` was false, more mail waits past the cursor: after acknowledging, run step 1 again

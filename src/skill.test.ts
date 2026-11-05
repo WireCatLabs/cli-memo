@@ -27,6 +27,11 @@ it("keeps the skill every session reads short, the rest in topics it names", asy
   }
 })
 
+// Claude Code saves a longer Bash output to a file a scheduled agent may not read: 16.7 KB was cut off, 14.7 KB was not.
+it("keeps the mail-triage skill short enough that a scheduled agent reads it whole from one memo call", () => {
+  expect(readFileSync(new URL("../skills/mail-triage/SKILL.md", import.meta.url), "utf8").length).toBeLessThan(14_700)
+})
+
 const subcommand = (parent: Command, word: string) =>
   parent.commands.find((command) => command.name() === word || command.aliases().includes(word))
 
