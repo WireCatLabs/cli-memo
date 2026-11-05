@@ -23,7 +23,7 @@ describe("a config that still has memo's old mail settings", () => {
 
     await createProgram({ streams, env })
       .exitOverride()
-      .parseAsync(["sync", "--only", "mail", "--no-embed", "--json"], { from: "user" })
+      .parseAsync(["sync", "--only", "mail", "--no-embed", "--timeout", "1m", "--json"], { from: "user" })
 
     expect(JSON.parse(streams.stdout.join("")).item).toMatchObject({ notes: [], failed: [] })
     expect(streams.stderr.join("")).toContain("memo sync no longer imports mail")

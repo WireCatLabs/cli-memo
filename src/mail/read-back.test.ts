@@ -52,9 +52,9 @@ describe("mail imported into the mail tables reads back through memo", () => {
       await store.close()
     }
 
-    expect((await run(["search", "mail", "roadmap"], env)).items.map(({ ref }: { ref: string }) => ref)).toEqual([
-      LOCATOR,
-    ])
+    expect(
+      (await run(["search", "mail", "roadmap", "--exact"], env)).items.map(({ ref }: { ref: string }) => ref),
+    ).toEqual([LOCATOR])
     const all = await run(["search", "all", "roadmap"], env)
     expect(all.items.find(({ kind }: { kind: string }) => kind === "mail")?.ref).toBe(LOCATOR)
 
