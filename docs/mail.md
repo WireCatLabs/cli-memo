@@ -94,11 +94,13 @@ What it does, per mailbox:
 |---|---|
 | `memo mail review --source email:<account>` | Threads with new mail, `--unanswered` what you owe, `--waiting` what waits for an answer; `--holder <name>` reads past that holder's mark |
 | `memo messages acknowledge --holder <name> --cursor <cursor>` | Moves a holder's mark to the cursor its review gave |
+| `memo messages reset --holder <name> --last <n>` or `--since-time <time>` | You only: moves a holder's mark back, so it reads that mail again; says how many emails; `--dry-run` only counts |
 | `memo mail findings add <file>` | Stages one mailbox's findings for you |
 | `memo mail findings list status:proposed` | Batches waiting for you |
 | `memo mail findings show <id>` | One batch with its evidence |
 
-`MEMO_READ_ONLY` refuses every store change except `mail findings add` and `messages acknowledge`. You decide in
+`MEMO_READ_ONLY` refuses every store change except `mail findings add` and `messages acknowledge`. `messages reset`
+is yours alone: it refuses an agent and a scheduled run, and MCP lists it as unavailable (`messages.reset` is `deny`). You decide in
 `memo review`: `memo review show <id>`, then `memo review confirm <id>/<finding>` or `memo review reject <id>`. No
 agent can confirm or reject mail findings. `memo review status` shows each mailbox's mark and what waits.
 

@@ -24,6 +24,8 @@ emails per run.
   `--as-owner`. Never run `memo actions confirm|reject` or `memo review confirm|reject`: the owner decides.
 - Never write email text to a file. Pass the findings JSON as one single-quoted argument on one line: no heredoc,
   no pipe, no file. Inside the JSON write every single quote as ’ (U+2019), never ', or the call is refused.
+- Copy every `ref` (`msg:email/…`) and `fingerprint` exactly as review gave it, whole, character for character. Never
+  shorten, abbreviate, re-encode or retype a ref, not even its middle: a cut ref is refused or cites another email.
 - Run one memo command per Bash call. Loops, pipes, `&&` chains and command substitution are refused, so a loop over
   mailboxes is one call per mailbox.
 - Read only through existing links (below). No broad search over all mail or all chats.
@@ -65,11 +67,16 @@ Keep every email that carries one of these. They always become findings, even wi
 - a request or question to the owner, or a decision he must make;
 - a date, deadline, appointment or amount due;
 - a promise someone made to the owner, or the owner made (his own sent mail counts);
+- a marketplace or service email saying that a person wrote to the owner or asks him to call back: a buyer's or
+  seller's message on Avito, a question from a Cian (Циан) manager or client, a callback request from Yandex Go, a
+  message on auto.ru, a reply or an invitation on hh.ru, and the like (step 4, marketplace messages);
 - a reply in a thread where the owner has an open task (`memo tasks list --source email:<address> --json`, match by
   the thread's `chat:email/…` or the task's `source`).
 
 Drop only advertising, news and newsletters, and pure social notifications (a like, a follow, "someone viewed your
-profile"). A thank-you with nothing else in it is dropped too. When unsure, keep it.
+profile"). Pure listing alerts from a marketplace stay dropped too: new ads matching a saved search, price drops,
+"your ad got 20 views", promotions of the platform itself. Only a message from a person, or a callback request, is
+kept. A thank-you with nothing else in it is dropped too. When unsure, keep it.
 
 An `excerpt_only` item is judged by its subject and first lines. When it may be an order, an invoice, a payment, a
 delivery, a request from a site form or anything else above, read it whole before you keep it:
@@ -99,6 +106,17 @@ plainly.
 - `task` — the owner must do something, or someone promised him something. `commitment: explicit` when the email
   says it, `inferred` otherwise. `due_at` only with a date the email gives (`due_evidence`). No `project` → the
   mailbox's inbox project.
+- Marketplace messages (step 2) — always a `task` "Reply on <platform> to <name>" (such as "Reply on Avito to Ivan
+  about the café ad"), `type: chore`, `commitment: explicit`. One per counterpart per day: several emails from the
+  same person on the same platform that day are one task citing them all (up to 8), and when
+  `memo tasks list --source email:<address> --json` already shows an open task with the same `external_id` made
+  today, stage none for them, or a `task_update` `detail` when the new message adds something. Set:
+  - `source_url` — the conversation or listing link the email gives, http or https, copied exactly; leave it out
+    when the email has none.
+  - `external_id` — `<platform>:<id>` when the email shows the platform's own id, such as the Avito ad number
+    (`avito:4512345678`), the Cian listing id (`cian:301234567`) or the hh.ru vacancy or response id
+    (`hh:98765432`). The platform part is lower case: `avito`, `cian`, `yandex-go`, `autoru`, `hh`. Leave it out when
+    the email shows no id; never make one up.
 - `task_update` — on an open task: `change: close` when the owner answered or the thing is done ("you replied on
   <date>"); `due` for a new date; `detail` for new facts the task needs.
 - `fact` — a decision, agreement or stated detail about a person, organization or project (`subject` or `project`).
@@ -114,7 +132,8 @@ plainly.
 - `order` — an order confirmation. `purpose`: `personal` (for the owner himself), `business`, `client` (bought for a
   client) or `other`. `supplier_name` is the shop as the mail names it; `supplier` its `organization:` or `person:`
   when linked; `customer` only when it is for someone else than the owner; `number`, `total` with `currency`,
-  `order_date`, and `status` (`placed` by default).
+  `order_date`, and `status` (`placed` by default). `source_url` is the order's page at the shop when the mail links
+  it (http or https, copied exactly).
 - `order_update` — a later mail about an order: `status` `shipped`, `delivered` (with `date`), `cancelled` or
   `returned`, with the order's `supplier_name` and `number`. Check it is stored first:
   `memo orders list number:<number> --json`. Not stored yet → an `order` with the newest status instead.
@@ -141,7 +160,9 @@ the exact `ref` and `fingerprint` from step 1; at most 30 findings and 5 per sen
 memo mail findings add '{"schema_version":1,"key":"mail-triage:9123","extractor":"mail-triage/1","findings":[{"id":"t1","kind":"task","type":"chore","title":"Send the signed lease","reason":"Ann’s email asks for it by Friday","commitment":"explicit","evidence":[{"reference":"msg:email/…","fingerprint":"<64 hex from review>"}]}]}' --source email:<address> --json
 ```
 
-The whole JSON is the one argument between single quotes, on one line. A double quote inside a value is `\"`.
+The whole JSON is the one argument between single quotes, on one line. A double quote inside a value is `\"`. A
+marketplace task adds its link and id to the task's fields:
+`"kind":"task",…,"external_id":"avito:4512345678","source_url":"https://www.avito.ru/…"`.
 
 An invoice, a payment and an order from one email are three findings, each citing it. Nothing worth proposing:
 stage nothing. Then, and only then:

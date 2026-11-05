@@ -399,6 +399,29 @@ memo messages acknowledge [options]
 
 **Example:** `memo messages acknowledge --holder mail-triage --cursor 9123.1762090000000 --source email:work`, `memo messages acknowledge --holder mail-triage --cursor 9123.1762090000000 --source email:me@example.com --json`, `memo messages acknowledge --holder backfill --cursor 870.1762090000000 --source email:personal`
 
+### `memo messages reset`
+
+the owner moves a holder's mark back past the mail received since --since-time, or past the last --last emails it was given; its next reviews give that mail again. The answer says how many emails it reads again. An agent cannot: a holder only moves its own mark forward, with `messages acknowledge`
+
+This command changes the local store or your files.
+
+```sh
+memo messages reset [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--holder <name>` | whose mark: lower-case letters, digits and dashes, such as mail-triage. |
+| `--since-time <time>` | read again what was received since this ISO 8601 time, or 2d ago. |
+| `--last <n>` | read again the last n emails the holder was given. |
+| `--dry-run` | count what would be read again, and move nothing. |
+| `--source <accounts>` | the one mailbox: email:<address>, email or group:<name>; may be left out when the store holds one mailbox. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** mail mark reset — mark, from_id, again, bulk, skipped, dry_run; every field: memo commands info messages reset
+
+**Example:** `memo messages reset --holder mail-triage --last 8 --dry-run --source email:me@example.com`, `memo messages reset --holder mail-triage --since-time 2026-11-04T00:00:00Z --source email:work --json`
+
 ## `memo mail`
 
 mail the mail CLI stored: review new mail for an agent, stage what it found
@@ -737,12 +760,14 @@ memo tasks add [source] [options]
 | `--due <time>` | a project task: when it must be done, an ISO 8601 time or 2h, 3d from now. |
 | `--status <state>` | a project task: its state from the start, open, todo, in_progress, done, dismissed. |
 | `--agent <agent>` | a project task: the agent working on it, apart from its assignees. |
+| `--external-id <service:id>` | its id in an outside service, such as avito:4512345678 for an Avito chat. |
+| `--source-url <url>` | the http or https page it is about, such as the Avito ad or conversation. |
 | `--into <id>` | link the source to this task instead of opening one that may be the same job. |
 | `--new` | open the task even when one like it is open or was closed in the last 14 days. |
 
 **Returns:** add a task from a message, note or document, or one of your own in a project
 
-**Example:** `memo tasks add 'msg:telegram/1/77/42' --account telegram:1 --type request`, `memo tasks add --project HRB --title 'Draft the budget' --type feature`
+**Example:** `memo tasks add 'msg:telegram/1/77/42' --account telegram:1 --type request`, `memo tasks add --project HRB --title 'Draft the budget' --type feature`, `memo tasks add --project INBOX --title 'Reply on Avito to Ivan' --external-id avito:4512345678 --source-url https://www.avito.ru/4512345678`
 
 ### `memo tasks list`
 
@@ -765,7 +790,7 @@ memo tasks list [query] [options]
 | `--desc` | project tasks: the --sort order reversed. |
 | `--cursor <cursor>` | project tasks: the next page, from page.next_cursor, with the same query and order. |
 
-**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 24 more; every field: memo commands info tasks list
+**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 26 more; every field: memo commands info tasks list
 
 **Next usually:** `memo tasks links <task>`, `memo tasks status <task>`, `memo tasks show <task>`
 
@@ -787,7 +812,7 @@ memo tasks counts [query] [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 24 more; every field: memo commands info tasks counts
+**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 26 more; every field: memo commands info tasks counts
 
 **Next usually:** `memo tasks links <task>`, `memo tasks status <task>`, `memo tasks show <task>`
 
@@ -997,7 +1022,7 @@ memo tasks update <task> [options]
 | `--revision <n>` | refuse the write unless the task is still at this revision (conflict, task.stale, exit 15). |
 | `--status <state>` | a project task's state: open, todo, in_progress, done, dismissed; a closed one reopens. |
 
-**Returns:** task card — id, ref, key, project, project_key, project_name, created_by, title, and 24 more; every field: memo commands info tasks update
+**Returns:** task card — id, ref, key, project, project_key, project_name, created_by, title, and 26 more; every field: memo commands info tasks update
 
 **Example:** `memo tasks update HRB-1 --title 'Send the budget' --priority high --account telegram:1`, `memo tasks update 1a2b3c4d --due 2d --title 'Send the revised budget' --account telegram:1`
 
@@ -1018,7 +1043,7 @@ memo tasks show <task> [options]
 | `--source <accounts>` | the account: telegram:<account>, email:<account>, notes:<id>, or group:<name> of one. |
 | `--json` | print JSON. |
 
-**Returns:** task card — id, ref, key, project, project_key, project_name, created_by, title, and 24 more; every field: memo commands info tasks show
+**Returns:** task card — id, ref, key, project, project_key, project_name, created_by, title, and 26 more; every field: memo commands info tasks show
 
 **Example:** `memo tasks show 1a2b3c4d --source telegram:1 --json`
 
@@ -1044,7 +1069,7 @@ memo tasks link <task> [targets] [options]
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
 | `--json` | print JSON. |
 
-**Returns:** task links — id, ref, key, project, project_key, project_name, created_by, title, and 26 more; every field: memo commands info tasks link
+**Returns:** task links — id, ref, key, project, project_key, project_name, created_by, title, and 28 more; every field: memo commands info tasks link
 
 **Example:** `memo tasks link HRB-2 HRB-1 --kind blocked-by`
 
@@ -1069,7 +1094,7 @@ memo tasks claim <task> [options]
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
 | `--json` | print JSON. |
 
-**Returns:** task card — id, ref, key, project, project_key, project_name, created_by, title, and 24 more; every field: memo commands info tasks claim
+**Returns:** task card — id, ref, key, project, project_key, project_name, created_by, title, and 26 more; every field: memo commands info tasks claim
 
 **Example:** `memo tasks claim HRB-1 --lease 2h --account telegram:1`
 
@@ -1093,7 +1118,7 @@ memo tasks release <task> [options]
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
 | `--json` | print JSON. |
 
-**Returns:** task card — id, ref, key, project, project_key, project_name, created_by, title, and 24 more; every field: memo commands info tasks release
+**Returns:** task card — id, ref, key, project, project_key, project_name, created_by, title, and 26 more; every field: memo commands info tasks release
 
 **Example:** `memo tasks release HRB-1 --account telegram:1`
 
@@ -1126,7 +1151,7 @@ memo stats tasks show [query] [options]
 | `--source <accounts>` | the account: telegram:<account>, email:<account>, notes:<id>, or group:<name> of one. |
 | `--json` | print JSON. |
 
-**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 24 more; every field: memo commands info stats tasks show
+**Returns:** task — ref, id, title, kind, state, created_at, key, description, and 26 more; every field: memo commands info stats tasks show
 
 **Next usually:** `memo tasks links <task>`, `memo tasks status <task>`, `memo tasks show <task>`
 

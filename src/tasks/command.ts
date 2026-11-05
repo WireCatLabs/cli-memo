@@ -84,6 +84,8 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
       oneOf(TASK_STATES as readonly TaskState[]),
     )
     .option("--agent <agent>", "a project task: the agent working on it, apart from its assignees")
+    .option("--external-id <service:id>", "its id in an outside service, such as avito:4512345678 for an Avito chat")
+    .option("--source-url <url>", "the http or https page it is about, such as the Avito ad or conversation")
     .option("--into <id>", "link the source to this task instead of opening one that may be the same job")
     .option("--new", "open the task even when one like it is open or was closed in the last 14 days")
     .action(async (source: string | undefined, options: AddOptions & WriteOptions & { json?: boolean }) => {

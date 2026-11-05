@@ -42,6 +42,10 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo messages acknowledge --holder mail-triage --cursor 9123.1762090000000 --source email:me@example.com --json",
     "memo messages acknowledge --holder backfill --cursor 870.1762090000000 --source email:personal",
   ],
+  "messages reset": [
+    "memo messages reset --holder mail-triage --last 8 --dry-run --source email:me@example.com",
+    "memo messages reset --holder mail-triage --since-time 2026-11-04T00:00:00Z --source email:work --json",
+  ],
   "mail findings add": [
     "memo mail findings add findings.json --source email:work",
     'memo mail findings add \'{"schema_version":1,"key":"mail-triage:9123","extractor":"mail-triage/1","findings":[…]}\' --source email:me@example.com --json',
@@ -90,6 +94,8 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "tasks add": [
     "memo tasks add 'msg:telegram/1/77/42' --account telegram:1 --type request",
     "memo tasks add --project HRB --title 'Draft the budget' --type feature",
+    "memo tasks add --project INBOX --title 'Reply on Avito to Ivan' --external-id avito:4512345678 " +
+      "--source-url https://www.avito.ru/4512345678",
   ],
   "tasks list": [
     "memo tasks list state:done --source telegram:1",

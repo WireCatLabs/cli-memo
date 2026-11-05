@@ -29,9 +29,10 @@ const named = (commands: readonly Command[], name: string): Command => {
 }
 
 /**
- * `memo mail review` and `memo messages acknowledge`: cli-core's, over the mailbox `--source` names. The holder read
- * and the acknowledge are what the mail-triage agent runs; acknowledge is of cli-core's propose tier, the one store
- * change MEMO_READ_ONLY lets through besides `mail findings add`.
+ * `memo mail review`, `memo messages acknowledge` and `memo messages reset`: cli-core's, over the mailbox `--source`
+ * names. The holder read and the acknowledge are what the mail-triage agent runs; acknowledge is of cli-core's propose
+ * tier, the one store change MEMO_READ_ONLY lets through besides `mail findings add`. Reset, which moves a mark back,
+ * is the owner's alone.
  */
 export const mailReviewCommands = (mail: Command, messages: Command, env: NodeJS.ProcessEnv): void => {
   const reads: MailReads = {
@@ -50,8 +51,10 @@ export const mailReviewCommands = (mail: Command, messages: Command, env: NodeJS
   }
   const shared = mailReadCommands(reads)
   const review = named(shared, "review")
-  const acknowledge = named(named(shared, "messages").commands, "acknowledge")
-  for (const command of [review, acknowledge])
+  const sharedMessages = named(shared, "messages").commands
+  const acknowledge = named(sharedMessages, "acknowledge")
+  const reset = named(sharedMessages, "reset")
+  for (const command of [review, acknowledge, reset])
     overrideSharedContract(
       command,
       "memo holds several mailboxes and no profile, so --source names the one mailbox; its --json is per command.",
@@ -63,4 +66,5 @@ export const mailReviewCommands = (mail: Command, messages: Command, env: NodeJS
     )
   mail.addCommand(review)
   messages.addCommand(acknowledge)
+  messages.addCommand(reset)
 }

@@ -69,6 +69,8 @@ const taskItem = (task: TaskDetails, extra: { held?: HeldTask; readiness?: Readi
         }
       : {}),
     source_message: task.source,
+    external_id: task.externalId,
+    source_url: task.sourceUrl,
     priority: task.priority,
     priority_label: task.priorityLabel,
     agent: task.agent,

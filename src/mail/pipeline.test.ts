@@ -360,3 +360,29 @@ it("hands on review steps as memo's own commands, naming the mailbox", async () 
     }),
   ])
 })
+
+it("lets only the owner move the agent's mark back, and says how many emails it reads again", async () => {
+  const box = await triaged()
+  await box.thread("t-ask", email("ask", 2))
+  await box.synced()
+  await box.acknowledge((await box.review()).cursor)
+  expect((await box.review()).items).toEqual([])
+  const reset = ["messages", "reset", "--holder", "mail-triage", "--source", MAILBOX]
+
+  expect(await box.refusal(LOCKED, ...reset, "--last", "1")).toBe("permission_error")
+  expect(await box.refusal(AGENT, ...reset, "--last", "1")).toBe("mail.reset-owner-only")
+  const dry = (await box.memo({}, OWNER, ...reset, "--last", "1", "--dry-run")).item
+  expect(dry).toMatchObject({ again: 1, dry_run: true })
+  expect((await box.review()).items).toEqual([])
+
+  expect((await box.memo({}, OWNER, ...reset, "--last", "1")).item).toMatchObject({ again: 1, dry_run: false })
+  expect((await box.review()).items.map((item) => item.chat_id)).toEqual(["t-ask"])
+})
+
+it("answers a findings file that is not there as not found, not as a crash", async () => {
+  const box = await triaged()
+  const missing = join(box.dir, "nowhere.json")
+  expect(await box.refusal(LOCKED, "mail", "findings", "add", missing, "--source", MAILBOX)).toBe(
+    "findings.file-missing",
+  )
+})

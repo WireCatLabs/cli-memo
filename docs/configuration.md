@@ -134,7 +134,7 @@ without a terminal question; approval prompts depend on the client app. Writes w
 ```
 
 `mcp.authority` defaults to `deny` for source-folder changes. `meetings.actions.confirm`,
-`meetings.actions.reject` and `projects.annotations.restore` default to `deny` too; explicitly set the relevant
+`meetings.actions.reject`, `messages.reset` and `projects.annotations.restore` default to `deny` too; explicitly set the relevant
 key to `ask` or `allow` to delegate one of these owner operations. Unless `agent_decisions` is `true`, project
 proposal decisions stay refused. The shared WireCat read ceiling and `MEMO_READ_ONLY` cap every permission.
 

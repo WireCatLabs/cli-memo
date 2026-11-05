@@ -3,6 +3,7 @@
   "files": ["README.md", "docs/*.md"],
   "import": ["./config/wirecat/cspell.json"],
   "words": [
+    "avito",
     "CLAUDECODE",
     "Cognee",
     "DMARC",
