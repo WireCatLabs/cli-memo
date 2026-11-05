@@ -108,7 +108,8 @@ it("reads every account the links name, says which, and points next at the chats
     ["Harbour group", "client"],
     ["Lev", "contractor"],
   ])
-  expect(body.item.last_message[0]).toMatchObject({ ref: "msg:max/11/-900/4", title: "Owner · 2026-10-26 09:00" })
+  expect(body.item.chats[0]).toMatchObject({ last: { ref: "msg:max/11/-900/4", who: { owner: true } } })
+  expect(body.item.finance).toBeUndefined()
   expect(body.next).toEqual([
     expect.objectContaining({
       kind: "user_action",

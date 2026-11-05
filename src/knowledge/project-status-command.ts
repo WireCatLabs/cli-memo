@@ -46,14 +46,13 @@ const withFinance = (row: ReturnType<typeof projectStatusRow>) => ({
 
 type Print = (json: boolean | undefined, body: Body, text?: string, compact?: boolean) => void
 
-/** Chat titles the store knows better than the chat list did, and a title on every cited ref; one read per answer. */
+/** Chat titles the store knows better than the chat list did; one read per answer. */
 const titled = async (store: MessageStore, found: ProjectStatus) => {
-  const refs = [
-    ...new Set([...found.chats.map((chat) => chat.ref), ...found.items.flatMap((one) => one.evidence[0]?.ref ?? [])]),
-  ]
-  const summaries = await store.refs.summaries(refs)
-  const chats = found.chats.map((chat) => ({ ...chat, title: summaries.get(chat.ref)?.title ?? chat.title }))
-  return { found: { ...found, chats }, titleOf: (ref: string | null) => (ref && summaries.get(ref)?.title) ?? null }
+  const summaries = await store.refs.summaries(found.chats.map((chat) => chat.ref))
+  return {
+    ...found,
+    chats: found.chats.map((chat) => ({ ...chat, title: summaries.get(chat.ref)?.title ?? chat.title })),
+  }
 }
 
 const linked = (chat: StatusChatSummary) => {
@@ -101,7 +100,9 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
         "next, open questions both ways, promises, amounts with their direction, payments recorded, billed, paid and " +
         "owed per currency from confirmed invoices and payments (finance), how long each " +
         "--context-query has been quiet on their side, and how much of each chat is held. Amounts, directions and " +
-        "promises found by words are marked pattern: read the cited message before trusting one. next names at most " +
+        "promises found by words are marked pattern: read the cited message before trusting one. Others' questions " +
+        "in a group with no role, and others' word-found promises in a group, are counted on the chat's row as " +
+        "unlisted, not listed. next names at most " +
         "two chats to read, with the messenger command that reads them. No model call; nothing leaves this machine",
     )
     .summary("where a project stands: whose move, open asks, money, chats to read next")
@@ -136,7 +137,7 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
           param: "--compact",
         })
       const chosen = options.syncProfile ?? {}
-      const { found, titleOf, finance } = await withStore(env, async (store) => {
+      const { found, finance } = await withStore(env, async (store) => {
         const status = await projectStatus(store, {
           project,
           ...projectWindowOf(options.sinceTime),
@@ -145,7 +146,7 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
           ...(options.purpose ? { purposes: options.purpose } : {}),
         })
         const books = await financeOf(store, [status.project.ref, ...status.children.map((child) => child.ref)])
-        return { ...(await titled(store, status)), finance: books }
+        return { found: await titled(store, status), finance: books }
       })
       const blocked = new Set<string>()
       const step = outside(blocked)
@@ -155,21 +156,17 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
         line: (one) => (one.kind === "command" ? (one.line ?? one.command) : one.why),
       }
       const { item, next, missing, meta } = projectStatusAnswer(found, hints)
-      const lists = item as Record<string, unknown>
-      lists.finance = finance
-      for (const { id } of found.signals) {
-        const name = id.replaceAll("-", "_")
-        const list = lists[name] as { ref: string | null }[] | undefined
-        if (list) lists[name] = list.map((one) => ({ ...one, title: titleOf(one.ref) }))
-      }
       const gaps = [...missing, ...[...blocked].map((why) => ({ field: "next_command", why }))]
       print(
         options.json,
-        itemOf(item, {
-          ...(next.length ? { next: next.map(asAction) } : {}),
-          ...(gaps.length ? { missing: gaps } : {}),
-          meta,
-        }),
+        itemOf(
+          { ...item, ...(finance.length ? { finance } : {}) },
+          {
+            ...(next.length ? { next: next.map(asAction) } : {}),
+            ...(gaps.length ? { missing: gaps } : {}),
+            meta,
+          },
+        ),
         [projectStatusText(found, hints), ...financeText(finance)].join("\n"),
         options.compact === true,
       )
