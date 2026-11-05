@@ -6,6 +6,15 @@ the API.
 
 ## Unreleased
 
+### Changed — may break callers
+
+- **`memo projects status --json` fits in 4 KB again, and `--compact` in 1.5 KB (cli-core 0.578.0).** The
+  `last_message`, `reply_next` and `coverage` lists are gone: each chat row carries `last`, `next`, `waiting_since`,
+  `addressed`, `overdue` and, for a chat held in part, `held` and `sync_command`. Others' questions in a group with no
+  role, and others' word-found promises in a group, are counted on the row as `unlisted` instead of listed. Items no
+  longer carry a `title`; `finance` is left out when empty. "Your move since" counts from their first unanswered
+  message. The text form is unchanged.
+
 ## 0.131.33 — 05.11.2026
 
 ### Added
