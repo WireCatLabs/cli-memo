@@ -4220,5 +4220,6 @@ Failures use the shared WireCat error contract.
 | `12` | `provider_unavailable` |
 | `13` | `invalid_response` |
 | `14` | `outcome_unknown` |
+| `15` | `conflict` |
 | `130` | `cancelled` |
 | `1` | anything else |
