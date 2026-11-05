@@ -74,6 +74,18 @@ A plain `memo tasks list` shows the tasks of your accounts only; a project's tas
 
 To create the project first, see [organizations and projects](people.md#organizations-and-projects).
 
+### Moving a task to another project
+
+```sh
+memo tasks update HRB-1 --project OPS
+```
+
+The task takes the next key in that project, and so does each of its subtasks, all the way down; they keep their
+parents. The answer names the subtasks that moved, old key and new, under `moved_subtasks`
+(`[{ "from": "HRB-2", "to": "OPS-4" }]`). The old keys still find them. A subtask moves alone only when you detach it
+in the same command: `memo tasks update HRB-2 --project OPS --parent none`; without `--parent none` it is refused
+with reason `task.is-subtask`.
+
 ## Priority and order
 
 A priority is a number from 0 to 1, higher first, and you see it as one of four labels by quarter: `low`
@@ -136,7 +148,8 @@ many match. Each task carries its `assignments`, `ready` and `blocked_by`, and i
 ## Changed elsewhere
 
 An agent may edit a task while you look at it. Give the `revision` you read, and Memo refuses the write when the
-task changed since, with the reason `task.stale` and exit code 3:
+task changed since, with the code `conflict`, the reason `task.stale` and exit code 15. The error's
+`details.revision` is the task's revision now; read the task again and decide on the new copy:
 
 ```sh
 memo tasks update HRB-1 --title 'Book the hall' --revision 4

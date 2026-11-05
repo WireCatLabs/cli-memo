@@ -879,7 +879,7 @@ memo tasks close <id> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as <state>` | done or dismissed. Default: `done`. |
 | `--reason <text>` | why it is closed. |
-| `--revision <n>` | refuse the write unless the task is still at this revision (task.stale, exit 3). |
+| `--revision <n>` | refuse the write unless the task is still at this revision (conflict, task.stale, exit 15). |
 
 **Returns:** close a task as done or dismissed
 
@@ -904,7 +904,7 @@ memo tasks assign <id> <person> [options]
 |---|---|
 | `--role <role>` | assignee, reviewer, watcher. Default: `assignee`. |
 | `--clear` | take the person off the task in that role, instead of adding them. |
-| `--revision <n>` | refuse the write unless the task is still at this revision (task.stale, exit 3). |
+| `--revision <n>` | refuse the write unless the task is still at this revision (conflict, task.stale, exit 15). |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** name who works on a task, or with --clear take them off it
@@ -930,7 +930,7 @@ memo tasks move <id> [options]
 | `--status <state>` | move it to this column too: open, todo, in_progress, done, dismissed; with --before or --after it must be that task's column. |
 | `--before <id>` | the task it goes just above. |
 | `--after <id>` | the task it goes just below. |
-| `--revision <n>` | refuse the write unless the task is still at this revision (task.stale, exit 3). |
+| `--revision <n>` | refuse the write unless the task is still at this revision (conflict, task.stale, exit 15). |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** put a project task before or after another in its board column
@@ -992,7 +992,7 @@ memo tasks update <task> [options]
 | `--agent <agent>` | a project task: the agent working on it, apart from its assignees; none clears it. |
 | `--project <project>` | a project task: move it to another project, by key or project:<id>; it and its subtasks take new keys there, and the old keys still find them. A subtask moves alone only with --parent none. |
 | `--type <type>` | a project task's kind: bug, feature, chore. |
-| `--revision <n>` | refuse the write unless the task is still at this revision (task.stale, exit 3). |
+| `--revision <n>` | refuse the write unless the task is still at this revision (conflict, task.stale, exit 15). |
 | `--status <state>` | a project task's state: open, todo, in_progress, done, dismissed; a closed one reopens. |
 
 **Returns:** task card — id, ref, key, project, project_key, project_name, created_by, title, and 24 more; every field: memo commands info tasks update
