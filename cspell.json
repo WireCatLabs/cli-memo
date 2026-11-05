@@ -18,7 +18,6 @@
     "mbox",
     "notmuch",
     "Screenpipe",
-    "UIDVALIDITY",
-    "unconfirm"
+    "UIDVALIDITY"
   ]
 }

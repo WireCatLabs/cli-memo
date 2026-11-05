@@ -120,7 +120,7 @@ it("lets the owner correct a fact of any kind, and an agent only one the owner h
   expect(await run(agent, ...args, again.ref)).toMatchObject({ status: "proposed", supersedes: again.ref })
 })
 
-it("lets only the owner unconfirm an agent's accepted fact, which waits as proposed again", async () => {
+it("lets only the owner revoke an agent's accepted fact, which waits as proposed again", async () => {
   const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-facts-")), "store.db") }
   const run = async (as: NodeJS.ProcessEnv, ...args: string[]) => {
     const streams = captureStreams()
@@ -145,17 +145,17 @@ it("lets only the owner unconfirm an agent's accepted fact, which waits as propo
   expect(await run(owner, "facts", "confirm", promised.ref)).toMatchObject({ status: "accepted" })
 
   await expect(
-    run({ AI_AGENT: "reviewer" }, "facts", "unconfirm", promised.ref, "--reason", "not sure"),
+    run({ AI_AGENT: "reviewer" }, "facts", "revoke", promised.ref, "--reason", "not sure"),
   ).rejects.toMatchObject({ code: "permission_error" })
-  expect(await run(owner, "facts", "unconfirm", promised.ref)).toMatchObject({
+  expect(await run(owner, "facts", "revoke", promised.ref)).toMatchObject({
     ref: promised.ref,
     status: "proposed",
     confirmed_by: null,
   })
   expect((await run(owner, "facts", "list", "status:proposed")).items).toMatchObject([{ ref: promised.ref }])
-  await expect(run(owner, "facts", "unconfirm", promised.ref)).rejects.toMatchObject({ code: "validation_error" })
+  await expect(run(owner, "facts", "revoke", promised.ref)).rejects.toMatchObject({ code: "validation_error" })
 
   const own = await run(owner, "facts", "add", "The draft is due Monday", "--kind", "fact")
-  await expect(run(owner, "facts", "unconfirm", own.ref)).rejects.toMatchObject({ code: "validation_error" })
-  await expect(run(owner, "facts", "unconfirm", "fact:999")).rejects.toMatchObject({ code: "not_found" })
+  await expect(run(owner, "facts", "revoke", own.ref)).rejects.toMatchObject({ code: "validation_error" })
+  await expect(run(owner, "facts", "revoke", "fact:999")).rejects.toMatchObject({ code: "not_found" })
 })

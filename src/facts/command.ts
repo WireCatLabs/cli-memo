@@ -90,7 +90,7 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     )
 
   const decide = (
-    name: "confirm" | "unconfirm" | "reverse" | "reject" | "remove",
+    name: "confirm" | "revoke" | "reverse" | "reject" | "remove",
     description: string,
     act: (store: MessageStore, ref: string, by: Decider, reason?: string) => Promise<unknown>,
   ) =>
@@ -123,9 +123,9 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     },
   ).summary("stand behind a fact an agent proposed")
   decide(
-    "unconfirm",
+    "revoke",
     "take back your approval of an agent's fact; it waits as proposed again. Not for a correction or your own fact",
-    (store, ref, by, why) => store.facts.unconfirm(ref, by, why),
+    (store, ref, by, why) => store.facts.revoke(ref, by, why),
   ).summary("take back your approval of a fact an agent proposed")
   decide("reverse", "an accepted decision no longer holds, and nothing replaced it", (store, ref, by) =>
     store.facts.reverse(ref, by),
