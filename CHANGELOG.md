@@ -6,15 +6,8 @@ the API.
 
 ## Unreleased
 
-## 0.131.24 — 05.11.2026
-
 ### Changed — may break callers
 
-- **`memo search all` finds records for a question typed as a sentence** (cli-core 0.564.0). A question in plain
-  language, without `--exact`, finds messages, mail, notes and events that hold some of its words, where before every
-  word had to be in one record and a question found nothing. Mail is searched by meaning too once its threads have
-  vectors, and hits from different sources at the same rank are ordered by how close their meaning is to the
-  question. Plain words, query syntax and `--exact` are searched strictly, as before.
 - **memo no longer imports mail: the [mail](https://github.com/WireCatLabs/mail-cli) CLI does.** For each mailbox
   memo used to import, run `mail <profile> session start --address <address>`, then `mail <profile> sync`; the mail
   already in the store stays and is still found, and the sync goes on from it. `memo doctor` names the addresses your
@@ -31,6 +24,16 @@ the API.
   `memo sync` says so on stderr until then. `config migrate` no longer writes the mail limits.
 - **`--source email:<name>` takes the mailbox's address only**, since names lived in `mail.accounts`. `memo doctor`
   no longer reports mail accounts or Himalaya; the error reasons `mail.throttled` and `mail.invalid-imap` are gone.
+
+## 0.131.24 — 05.11.2026
+
+### Changed — may break callers
+
+- **`memo search all` finds records for a question typed as a sentence** (cli-core 0.564.0). A question in plain
+  language, without `--exact`, finds messages, mail, notes and events that hold some of its words, where before every
+  word had to be in one record and a question found nothing. Mail is searched by meaning too once its threads have
+  vectors, and hits from different sources at the same rank are ordered by how close their meaning is to the
+  question. Plain words, query syntax and `--exact` are searched strictly, as before.
 
 ### Added
 
