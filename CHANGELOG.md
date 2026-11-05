@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.28 — 05.11.2026
+
 ### Changed — may break callers
 
 - **The skill an agent reads every session is 3 KB, not 22 KB.** It opens with how to answer a question (`memo search
