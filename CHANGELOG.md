@@ -9,6 +9,19 @@ the API.
 ### Changed — may break callers
 
 - **memo runs on cli-core 0.573.0.**
+
+### Added
+
+- **`memo payments unlink <payment> <invoice>` takes back what a payment settles of an invoice**, so a payment split
+  wrongly across invoices is set right: unlink, then `payments allocate` the right amounts. You correct a confirmed
+  payment's split too; an agent's run is refused there, and an agent unlinks only a still-proposed payment it proposed.
+
+## 0.131.28 — 05.11.2026
+
+### Changed — may break callers
+
+- **memo runs on cli-core 0.572.0.** `memo commands --json` gives every command its permission `level` and key under
+  a named profile, not only the denied ones.
 - **The skill an agent reads every session is 3 KB, not 22 KB.** It opens with how to answer a question (`memo search
   all '<key words>' --limit 10 --compact`, search again in other words, cite each reference) and the rules every
   agent keeps. The rest is unchanged and printed on request: `memo skill show search`, `projects`, `meetings`,
@@ -17,9 +30,11 @@ the API.
 
 ### Added
 
-- **`memo payments unlink <payment> <invoice>` takes back what a payment settles of an invoice**, so a payment split
-  wrongly across invoices is set right: unlink, then `payments allocate` the right amounts. You correct a confirmed
-  payment's split too; an agent's run is refused there, and an agent unlinks only a still-proposed payment it proposed.
+- **`memo facts revoke <ref>`** takes back your approval of a fact an agent proposed, of any kind: it waits as
+  proposed again, for `memo review` or `facts confirm`. Only you can run it, as with `facts reverse`; an agent is
+  refused. It refuses a fact that is not accepted, a fact you wrote yourself (correct it with `facts add --supersedes`
+  or remove it), and an accepted correction, because the fact it replaced cannot be put back as it was. The fact keeps
+  a note of the approval it took back. `--json` prints the fact.
 
 ## 0.131.27 — 05.11.2026
 

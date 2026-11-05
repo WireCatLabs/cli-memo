@@ -119,3 +119,43 @@ it("lets the owner correct a fact of any kind, and an agent only one the owner h
   const again = await run(agent, "facts", "add", "A promise", "--kind", "promise", "--evidence", note.ref)
   expect(await run(agent, ...args, again.ref)).toMatchObject({ status: "proposed", supersedes: again.ref })
 })
+
+it("lets only the owner revoke an agent's accepted fact, which waits as proposed again", async () => {
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-facts-")), "store.db") }
+  const run = async (as: NodeJS.ProcessEnv, ...args: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env: { ...env, ...as } })
+      .exitOverride()
+      .parseAsync([...args, "--json"], { from: "user" })
+    return answerOf(streams.stdout.join(""))
+  }
+  const owner = { AI_AGENT: "", CLAUDECODE: "" }
+  const agent = { AI_AGENT: "hermes" }
+  const note = await run(owner, "notes", "add", "Alice Example: the draft comes on Monday")
+  const promised = await run(
+    agent,
+    "facts",
+    "add",
+    "Alice sends the draft",
+    "--kind",
+    "promise",
+    "--evidence",
+    note.ref,
+  )
+  expect(await run(owner, "facts", "confirm", promised.ref)).toMatchObject({ status: "accepted" })
+
+  await expect(
+    run({ AI_AGENT: "reviewer" }, "facts", "revoke", promised.ref, "--reason", "not sure"),
+  ).rejects.toMatchObject({ code: "permission_error" })
+  expect(await run(owner, "facts", "revoke", promised.ref)).toMatchObject({
+    ref: promised.ref,
+    status: "proposed",
+    confirmed_by: null,
+  })
+  expect((await run(owner, "facts", "list", "status:proposed")).items).toMatchObject([{ ref: promised.ref }])
+  await expect(run(owner, "facts", "revoke", promised.ref)).rejects.toMatchObject({ code: "validation_error" })
+
+  const own = await run(owner, "facts", "add", "The draft is due Monday", "--kind", "fact")
+  await expect(run(owner, "facts", "revoke", own.ref)).rejects.toMatchObject({ code: "validation_error" })
+  await expect(run(owner, "facts", "revoke", "fact:999")).rejects.toMatchObject({ code: "not_found" })
+})
