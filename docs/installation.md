@@ -37,7 +37,7 @@ Each source needs one more thing, and only when you use it:
 | Notes and documents | Nothing: [files Memo can read](notes.md#files-memo-can-read) |
 | Telegram or MAX messages | [tg](https://github.com/WireCatLabs/tg-cli) or [max](https://github.com/WireCatLabs/max-cli). They save your chats in the local store; Memo does not log in to a messenger |
 | Search by meaning | A search model on your computer, about 135 MB. Download it once: `memo models download e5-small`. Without it, Memo searches by words |
-| Mail | The [mail](https://github.com/WireCatLabs/mail-cli) CLI. It copies your mailbox into the local store, and Memo searches it ([mail](mail.md#bring-mail-in-with-mail)). The older import needs [Himalaya](https://github.com/pimalaya/himalaya) 2.x and will be removed in a later version ([mail](mail.md#before-you-start)) |
+| Mail | The [mail](https://github.com/WireCatLabs/mail-cli) CLI. It copies your mailbox into the local store, and Memo searches it ([mail](mail.md#bring-mail-in-with-mail)). |
 | Syncing on a timer (`memo jobs`) | Linux with systemd. On macOS and Windows, run `memo sync` yourself or from your own scheduler ([keeping Memo up to date](archive.md)) |
 
 ## Install
@@ -80,7 +80,7 @@ memo doctor            # the state this installation is in; --online also asks n
 memo commands --json   # every command and option, for agents and scripts
 ```
 
-`memo doctor` lists the settings file, the store, your notes folders, the mail accounts of the older Himalaya import, the search
+`memo doctor` lists the settings file, the store, your notes folders, the search
 model, the timer and the agent skill. Each problem comes with the command that fixes it, and the command exits 1
 while something needs attention. Problems in the settings file are listed too, in `config.issues` of
 `memo doctor --json`, the same shape every WireCat tool's doctor uses. The settings file, its folder, the store and
@@ -157,8 +157,7 @@ node dist/bin/memo.js --help
 | Shared search models | `~/.local/share/WireCat/models/` | `%LOCALAPPDATA%\WireCat\Data\models\` |
 | The timer, after `memo jobs start` | `~/.config/systemd/user/memo-import.timer` and `.service` | — |
 
-- **Settings**: `config.json` ([configuration](configuration.md)): your folders, mail accounts, mail rules and the
-  timer.
+- **Settings**: `config.json` ([configuration](configuration.md)): your folders and the timer.
 - **State**: what this computer imported last from each folder (`folders/`), the lock that stops two syncs at once
   (`import.lock`), and how the last timer run ended (`auto/`).
 - **The local store** holds your notes, mail, messages, tags, tasks and memories. Your note files and your mailbox

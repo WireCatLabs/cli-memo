@@ -1,7 +1,5 @@
 [
   "invoices",
-  "mail findings",
   "payments",
-  "records",
-  "schedule"
+  "records"
 ]

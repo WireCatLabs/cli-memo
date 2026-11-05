@@ -5,6 +5,9 @@ import type { Command } from "commander"
 
 /** memo's old mail-writing commands and what the `mail` CLI runs instead; `<profile>` is the mailbox's profile. */
 export const MOVED_TO_MAIL = [
+  ["add", "mail <profile> session start --address <email>", "then mail <profile> sync"],
+  ["check", "mail <profile> account check", ""],
+  ["inspect", "mail <profile> account inspect", "same options, no account argument"],
   ["delete", "mail <profile> messages delete --rules", "previews; --yes moves the mail to Trash"],
   ["restore", "mail <profile> messages restore --run <id>", "memo's run ids work there"],
   [

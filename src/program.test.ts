@@ -52,7 +52,7 @@ describe("memo", () => {
     const scoped = captureStreams()
     await createProgram({ streams: scoped }).parseAsync(["commands", "mail"], { from: "user" })
     expect(scoped.stdout.join("")).toMatch(
-      /^memo mail commands, by section\.[\s\S]*\nRead\n(?: {2}.*\n)* {2}memo mail inspect /,
+      /^memo mail commands, by section\.[\s\S]*\nRead\n(?: {2}.*\n)* {2}memo mail review /,
     )
   })
 
