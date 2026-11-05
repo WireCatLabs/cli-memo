@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.33 — 05.11.2026
+
 ### Added
 
 - **A task keeps its id in an outside service and the page it is about.** `memo tasks add --external-id
