@@ -15,13 +15,13 @@ which you can revoke at any time).
 
 ```sh
 npm install -g @wirecat/mail-cli
-mail ya session start --address me@example.com
-mail ya sync
-mail ya status
+mail personal session start --address me@example.com
+mail personal sync
+mail personal status
 ```
 
 `ya` is a profile name you choose for one mailbox. `session start` signs in, `sync` reads the last 30 days into the
-shared store, and `status` shows how far a large mailbox is. Run `mail ya sync` again to bring in new mail. Memo needs
+shared store, and `status` shows how far a large mailbox is. Run `mail personal sync` again to bring in new mail. Memo needs
 no setting for this mail: it reads the same store.
 
 `mail` keeps the text and the headers of each message, not the attachments. See its
