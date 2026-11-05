@@ -5,6 +5,7 @@ import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { withStore } from "../answer.js"
 import { APP } from "../app.js"
+import { bulkTriage } from "../config.js"
 import { MAIL_SOURCES, oneAccountOf } from "../store/source-list.js"
 
 export const MAILBOX_HELP = `the one mailbox: ${MAIL_SOURCES}; may be left out when the store holds one mailbox`
@@ -39,6 +40,7 @@ export const mailReviewCommands = (mail: Command, messages: Command, env: NodeJS
       withStore(env, async (store) =>
         work(store, await oneMailboxOf(store, env, command.opts<{ source?: string }>().source)),
       ),
+    bulkTriage: () => bulkTriage(env),
     mount: {
       review: "mail review",
       acknowledge: "messages acknowledge",

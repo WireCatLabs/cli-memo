@@ -4,7 +4,7 @@ import { advancePastSkipped, mailWaiting } from "@wirecat/cli-core/mail"
 import type { Command } from "commander"
 import { withStore } from "../answer.js"
 import { APP } from "../app.js"
-import { scheduleLimits } from "../config.js"
+import { bulkTriage, scheduleLimits } from "../config.js"
 
 /**
  * cli-core's `schedule`: a memo command or an agent on a timer. memo has no profiles, and its `--json` is per
@@ -18,8 +18,9 @@ export const scheduleCommand = (env: NodeJS.ProcessEnv): Command => {
     context: (command) => ({ ...outputFor(command), env, profile: "" }),
     newMail: (_command, holder) =>
       withStore(env, async (store) => {
-        await advancePastSkipped(store, holder)
-        return mailWaiting(store, holder)
+        const triage = bulkTriage(env)
+        await advancePastSkipped(store, holder, Date.now(), triage)
+        return mailWaiting(store, holder, Date.now(), triage)
       }),
     limits: () => scheduleLimits(env),
   })

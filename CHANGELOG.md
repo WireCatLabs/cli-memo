@@ -6,6 +6,17 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **The mail-triage agent sees orders, invoices and site lead forms that carry an unsubscribe link.**
+  `memo mail review --holder` left out every email sent to many; now only surely-newsletters stay out, counted under
+  `missing`, and the rest comes after the other mail as its subject and first lines (`email.excerpt_only`). The
+  agent reads one whole with `memo messages show <ref> --trimmed` when it looks like an order, an invoice or a
+  request; the `mail-triage` skill says how. The config file gets the settings, with their defaults:
+  `mail_bulk_excerpts`, `mail_bulk_excerpts_per_read`, `mail_bulk_excerpt_chars`, `mail_bulk_newsletter_score`,
+  `mail_bulk_newsletter_words`, `mail_bulk_newsletter_senders`, `mail_bulk_order_words`. The `--on-new-mail`
+  schedule counts these excerpts as waiting mail.
+
 ## 0.131.29 — 05.11.2026
 
 ### Changed — may break callers

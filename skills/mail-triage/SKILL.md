@@ -39,8 +39,10 @@ mailbox `email:<address>`:
 memo mail review --holder mail-triage --source email:<address> --json
 ```
 
-Bulk mail, lists, envelope rules, drafts, suspicious senders and partial mail are already left out (`missing` says
-how many). Each item is one email: `ref` (`msg:email/…`), `chat_id` (the thread), `sender_is_me`, `text`, and
+Newsletters, envelope rules, drafts, suspicious senders and partial mail are already left out (`missing` says how
+many). Other mail sent to many — orders, invoices, site forms and notifications often carry an unsubscribe link —
+comes after the rest, with `email.bulk: true` and `email.excerpt_only: true`: its `text` is only the subject and the
+first lines. Each item is one email: `ref` (`msg:email/…`), `chat_id` (the thread), `sender_is_me`, `text`, and
 `email` with `fingerprint`, `from`, `new_sender`, `sender_identities`. `text` is the email's own text: quoted earlier
 mail and the signature are left out, and the fingerprint still covers the whole stored email. `next` holds the
 `memo messages acknowledge` step with your `cursor`. A first run has no mark yet: no items, only the cursor — go
@@ -59,6 +61,12 @@ Keep an email only when it carries one of:
   the thread's `chat:email/…` or the task's `source`).
 
 Drop the rest: notifications, receipts with nothing due, newsletters that slipped through, thank-yous.
+
+An `excerpt_only` item is judged by its subject and first lines. When it may be an order, an invoice, a payment, a
+delivery, a request from a site form or anything else above, read it whole before you keep it:
+`memo messages show '<ref>' --trimmed --json`; cite it by the item's `ref` and `fingerprint` as usual. A newsletter or
+a notification with nothing for the owner is dropped unread. When one sender fills the excerpts with such mail, name
+it in the report with the envelope rule that would file it (see the hard rules).
 
 ### 3. Context — only for kept emails, only through existing links
 

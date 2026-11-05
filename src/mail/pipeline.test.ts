@@ -178,6 +178,14 @@ it("gives the agent only mail worth reading, stages its batch once, and moves th
     email("quote", 1, { from: { address: "bob@example.org", name: "Bob" }, bodyText: BOB_ASKS }),
   )
   await box.thread("t-news", email("news", 1, { from: { address: "news@example.net", name: null }, mailboxes: [BULK] }))
+  await box.thread(
+    "t-form",
+    email("Форма: «Бизнес покажет»", 1, {
+      from: { address: "info@site.example", name: null },
+      mailboxes: [BULK],
+      bodyText: "Имя: Иван\nТелефон: +7 900 000-00-00\nНомер заявки: 4512",
+    }),
+  )
   await box.thread("t-scam", email("prize", 1, { from: { address: "scam@example.net", name: null } }))
   await box.thread("t-big", email("big", 1, { metadata: { partial: { bytes: 100 } } }))
   await box.withStore(async (store) => {
@@ -192,10 +200,15 @@ it("gives the agent only mail worth reading, stages its batch once, and moves th
 
   const read = await box.review()
 
-  expect(read.items.map((item) => item.chat_id).sort()).toEqual(["t-lease", "t-new"])
-  expect(read.missing?.map((one) => one.why).join("; ")).toMatch(/1 partial emails held.*1 bulk.*1 suspicious/)
+  expect(read.items.map((item) => item.chat_id).at(-1)).toBe("t-form")
+  expect(read.items.map((item) => item.chat_id).sort()).toEqual(["t-form", "t-lease", "t-new"])
+  expect(read.items.at(-1)?.email).toMatchObject({ bulk: true, excerpt_only: true })
+  expect(read.missing?.map((one) => one.why).join("; ")).toMatch(/1 partial emails held.*1 newsletter.*1 suspicious/)
   const ask = read.items.find((item) => item.chat_id === "t-new") as Item
   expect(ask.email).toMatchObject({ new_sender: true, sender_identities: 1 })
+  const form = read.items.at(-1) as Item & { text: string }
+  const whole = (await box.memo(LOCKED, NOBODY, "messages", "show", form.ref, "--trimmed")).item
+  expect(whole).toMatchObject({ fingerprint: form.email.fingerprint })
   const shown = (await box.memo(LOCKED, NOBODY, "messages", "show", ask.ref)).item
   expect(shown.fingerprint).toBe(ask.email.fingerprint)
   expect(shown.text).toContain("> earlier")
@@ -210,7 +223,7 @@ it("gives the agent only mail worth reading, stages its batch once, and moves th
   const findings = box.file("findings.json", scriptedAgent(read.items, box.task, through))
   const staged = (await box.memo(LOCKED, NOBODY, "mail", "findings", "add", findings, "--source", MAILBOX)).item
   expect(staged).toMatchObject({ status: "proposed", author: { type: "bot", name: "claude-code" } })
-  expect((await box.review()).items).toHaveLength(2)
+  expect((await box.review()).items).toHaveLength(3)
 
   await box.acknowledge(read.cursor)
   expect((await box.review()).items).toEqual([])

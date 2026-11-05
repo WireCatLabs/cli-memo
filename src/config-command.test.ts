@@ -3,7 +3,7 @@ import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { beforeEach, describe, expect, it } from "vitest"
-import { configPath, scheduleLimits, updateConfig } from "./config.js"
+import { bulkTriage, configPath, scheduleLimits, updateConfig } from "./config.js"
 import { createProgram } from "./program.js"
 
 let env: NodeJS.ProcessEnv
@@ -81,6 +81,17 @@ describe("memo config show and migrate", () => {
       models: { claude: "opus" },
       leanStart: false,
     })
+  })
+
+  it("gives the mail-triage read the owner's bulk-mail words and limits", () => {
+    write({ mail_bulk_excerpts_per_read: 10, mail_bulk_newsletter_words: "акция, promo" })
+    expect(bulkTriage(env)).toMatchObject({
+      excerpts: true,
+      perRead: 10,
+      cues: { newsletterWords: ["акция", "promo"] },
+    })
+    write({ mail_bulk_excerpts: false })
+    expect(bulkTriage(env).excerpts).toBe(false)
   })
 
   it("a write memo makes anyway adds the missing settings too", () => {

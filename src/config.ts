@@ -16,6 +16,8 @@ import {
   withoutSetting,
   withSettingDefaults,
 } from "@wirecat/cli-core/cli"
+import type { BulkTriage } from "@wirecat/cli-core/mail"
+import { bulkTriageOf, MAIL_BULK_SETTINGS } from "@wirecat/cli-core/mail/cli"
 import { DEFAULT_DECISION_POLICY, type DecisionPolicy } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import * as v from "valibot"
@@ -75,6 +77,14 @@ const ConfigSchema = v.strictObject({
   schedule_model_codex: v.optional(v.string()),
   /** `false` lets a new claude agent schedule load your MCP servers, skills, settings and CLAUDE.md. */
   schedule_lean_start: v.optional(v.boolean()),
+  /** How the mail-triage agent's `mail review --holder` treats bulk mail: newsletters out, the rest as excerpts. */
+  mail_bulk_excerpts: v.optional(v.boolean()),
+  mail_bulk_excerpts_per_read: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
+  mail_bulk_excerpt_chars: v.optional(v.pipe(v.number(), v.integer(), v.minValue(40))),
+  mail_bulk_newsletter_score: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
+  mail_bulk_newsletter_words: v.optional(v.string()),
+  mail_bulk_newsletter_senders: v.optional(v.string()),
+  mail_bulk_order_words: v.optional(v.string()),
   /** Retired: memo no longer imports mail, the `mail` CLI does. Still loads so an old config works; doctor names it. */
   mail: v.optional(v.unknown()),
 })
@@ -107,6 +117,7 @@ export const MEMO_SETTINGS: readonly DeclaredSetting[] = [
   { key: "runs_size_limit_mb", default: RUNS_SIZE_LIMIT_MB, description: "the most megabytes all runs may take" },
   { key: "notes.embed", default: true, description: "false keeps notes out of search by meaning" },
   ...SCHEDULE_SETTINGS,
+  ...MAIL_BULK_SETTINGS,
 ]
 
 export const configPath = (env: NodeJS.ProcessEnv = process.env): string =>
@@ -138,6 +149,15 @@ export const scheduleLimits = (env: NodeJS.ProcessEnv): ScheduleLimits => {
     return scheduleLimitsOf(loadConfig(env))
   } catch {
     return {}
+  }
+}
+
+/** The config file's bulk-mail triage for the holder read and the schedule's check; a file that does not load gives the defaults. */
+export const bulkTriage = (env: NodeJS.ProcessEnv): BulkTriage => {
+  try {
+    return bulkTriageOf(loadConfig(env))
+  } catch {
+    return bulkTriageOf({})
   }
 }
 
