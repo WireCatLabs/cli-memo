@@ -156,7 +156,7 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
         line: (one) => (one.kind === "command" ? (one.line ?? one.command) : one.why),
       }
       const { item, next, missing, meta } = projectStatusAnswer(found, hints)
-      const gaps = [...missing, ...[...blocked].map((why) => ({ field: "next_command", why }))]
+      const gaps = [...missing, ...(blocked.size ? [{ field: "next_command", why: [...blocked].join("; ") }] : [])]
       print(
         options.json,
         itemOf(

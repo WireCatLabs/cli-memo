@@ -142,10 +142,14 @@ it("names every profile signed in to a chat's account and picks none", async () 
   const { status } = await setUp({ work: "11", spare: "11" })
   const body = envelopeOf(await status("--json"))
   expect(body.next[1].why).toContain("max <profile> messages list")
-  expect(body.missing).toContainEqual({
-    field: "next_command",
-    why: "2 max profiles are signed in to account 11: spare, work — choose one with --sync-profile max=<profile>",
-  })
+  expect(body.missing.filter((one: { field: string }) => one.field === "next_command")).toEqual([
+    {
+      field: "next_command",
+      why:
+        "no tg profile here is signed in to account 22; profiles: none; " +
+        "2 max profiles are signed in to account 11: spare, work — choose one with --sync-profile max=<profile>",
+    },
+  ])
   const chosen = envelopeOf(await status("--json", "--sync-profile", "max=spare"))
   expect(chosen.next[1].why).toContain("max spare messages list")
 })
