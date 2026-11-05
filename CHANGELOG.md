@@ -4,6 +4,27 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Changed — may break callers
+
+- **`memo search all` finds records for a question typed as a sentence** (cli-core 0.564.0). A question in plain
+  language, without `--exact`, finds messages, mail, notes and events that hold some of its words, where before every
+  word had to be in one record and a question found nothing. Mail is searched by meaning too once its threads have
+  vectors, and hits from different sources at the same rank are ordered by how close their meaning is to the
+  question. Plain words, query syntax and `--exact` are searched strictly, as before.
+
+### Added
+
+- **`memo stats tasks show` counts by chat, meeting or project over a period** (cli-core 0.564.0). It takes a query
+  (`created>=30d`), `--by chat|meeting|project` and `--timezone`, and answers what is open now, what was opened and
+  closed in the period, the median time to close and the mean age of the open tasks.
+
+### Security
+
+- **`memo mail review --holder` gives each email's own text**, without quoted earlier mail or the signature
+  (cli-core 0.564.0), so an agent reading the queue does not read earlier mail as if it were new.
+
 ## 0.131.23 — 05.11.2026
 
 ### Added
