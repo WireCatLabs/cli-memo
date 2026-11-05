@@ -6,6 +6,14 @@ the API.
 
 ## Unreleased
 
+### Changed — may break callers
+
+- **The skill an agent reads every session is 3 KB, not 22 KB.** It opens with how to answer a question (`memo search
+  all '<key words>' --limit 10 --compact`, search again in other words, cite each reference) and the rules every
+  agent keeps. The rest is unchanged and printed on request: `memo skill show search`, `projects`, `meetings`,
+  `mail`, `proposals`, `money`, `mcp` or `vocabulary`. On the 50-question benchmark this was most of what an agent
+  paid for using memo.
+
 ## 0.131.27 — 05.11.2026
 
 ### Fixed
