@@ -11,7 +11,7 @@ import {
   typedQuery,
   withQuery,
 } from "@wirecat/cli-core/cli"
-import { proposalRegistry, purposesOf } from "@wirecat/cli-core/services"
+import { proposalRegistry, proposeOrganization, purposesOf } from "@wirecat/cli-core/services"
 import {
   type AccountKey,
   type KnowledgeRelation,
@@ -94,20 +94,51 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   const organizations = program
     .command("organizations")
     .description("companies, teams, families and communities of yours")
-  annotate(organizations.command("add"), { effects: LOCAL_WRITE, literal_after_dashes: true })
-    .description("add an organization of yours: a company, team, family or community")
-    .argument("<name>", "the organization's name")
-    .requiredOption("--kind <kind>", ORGANIZATION_KINDS.join(", "), oneOf(ORGANIZATION_KINDS))
-    .option("--scope <scope>", SCOPES.join(", "), oneOf(SCOPES))
+  byOption(
+    annotate(organizations.command("add"), { effects: LOCAL_WRITE, literal_after_dashes: true })
+      .description(
+        "add an organization of yours: a company, team, family or community; an agent's waits for you in memo review",
+      )
+      .summary("add an organization; an agent's waits for your review")
+      .argument("<name>", "the organization's name")
+      .requiredOption("--kind <kind>", ORGANIZATION_KINDS.join(", "), oneOf(ORGANIZATION_KINDS))
+      .option("--scope <scope>", SCOPES.join(", "), oneOf(SCOPES))
+      .option("--reason <text>", "why the organization belongs in the store, in a sentence")
+      .option("--json", "print JSON; --json=id,title keeps only those fields"),
+  ).action(
+    async (
+      name: string,
+      options: {
+        kind: Organization["kind"]
+        scope?: Organization["scope"]
+        reason?: string
+        asOwner?: boolean
+        json?: boolean
+      },
+      command: Command,
+    ) => {
+      const by = await whoRuns(command, env, { asOwner: options.asOwner, question: `add ${name} as you, the owner?` })
+      const input = { kind: options.kind, name, ...(options.scope === undefined ? {} : { scope: options.scope }) }
+      return owned(options, (store) =>
+        by === "owner"
+          ? store.knowledge.addOrganization(input)
+          : proposeOrganization(store, input, { bot: by.bot }, options.reason),
+      )
+    },
+  )
+  annotate(organizations.command("show"), { effects: LOCAL_READ })
+    .description("one organization by its id or organization:<id>, without its relationships, notes and tags")
+    .summary("one organization")
+    .argument("<organization>", "its id or organization:<id>")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((name: string, options: { kind: Organization["kind"]; scope?: Organization["scope"]; json?: boolean }) =>
-      owned(options, (store) =>
-        store.knowledge.addOrganization({
-          kind: options.kind,
-          name,
-          ...(options.scope === undefined ? {} : { scope: options.scope }),
-        }),
-      ),
+    .action((reference: string, options: { json?: boolean }) =>
+      owned(options, async (store) => {
+        const wanted = reference.replace(/^organization:/, "")
+        const found = (await store.knowledge.organizations()).find((organization) => organization.id === wanted)
+        if (found === undefined)
+          throw new CliError("not_found", `no organization ${reference}; memo organizations list shows them`)
+        return found
+      }),
     )
   withQuery(annotate(organizations.command("list"), { effects: LOCAL_READ }), ORGANIZATIONS_QUERY)
     .description("your organizations")

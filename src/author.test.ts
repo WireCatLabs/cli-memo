@@ -11,6 +11,7 @@ const setUp = async (agent: Record<string, string>) => {
   const env = { ...process.env, ...agent, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-author-")), "s.db") }
   const store = await openStore({ env })
   await store.accounts.saveAccount({ provider: "telegram", account: "1" }, { name: null })
+  const organization = await store.knowledge.addOrganization({ kind: "company", name: "Synthetic Studio" })
   await store.close()
   const run = async (...args: string[]) => {
     const streams = captureStreams()
@@ -21,7 +22,6 @@ const setUp = async (agent: Record<string, string>) => {
   }
   const note = await run("notes", "add", "Synthetic note")
   const project = await run("projects", "add", "Synthetic Harbour", "--key", "SYH")
-  const organization = await run("organizations", "add", "Synthetic Studio", "--kind", "company")
   const writes = (...by: string[]) =>
     Promise.all([
       run("facts", "add", "Releases go out on Fridays", "--kind", "decision", "--evidence", note.ref, ...by),
@@ -69,4 +69,25 @@ it("keeps a write the owner's when no agent runs and the owner is at the termina
   expect(memory).toMatchObject({ status: "confirmed", author: { type: "person" } })
   expect(relation).toMatchObject({ confirmed: true, confidence_category: "owner-confirmed" })
   expect(action.proposed_by).toMatchObject({ type: "person" })
+})
+
+it("proposes an organization from an agent's terminal and adds it directly for the owner", async () => {
+  const agent = await setUp({ AI_AGENT: "claude-code_2-1-296_agent" })
+  const proposal = await agent.run(
+    "organizations",
+    "add",
+    "Synthetic Dairy",
+    "--kind",
+    "company",
+    "--reason",
+    "new client",
+  )
+  expect(proposal).toMatchObject({ kind: "organization_add", status: "proposed", proposed_by: { type: "bot" } })
+  expect((await agent.run("organizations", "list", "name:Dairy")).items).toEqual([])
+
+  const owner = await setUp({})
+  expect(await owner.run("organizations", "add", "Synthetic Dairy", "--kind", "company")).toMatchObject({
+    ref: expect.stringMatching(/^organization:/),
+    name: "Synthetic Dairy",
+  })
 })

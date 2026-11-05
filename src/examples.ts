@@ -126,7 +126,11 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo tasks update 1a2b3c4d --due 2d --title 'Send the revised budget' --account telegram:1",
   ],
   "tasks assign": ["memo tasks assign 7 person:3", "memo tasks assign HRB-1 person:3 --clear --revision 4"],
-  "organizations add": ["memo organizations add 'Harbour Studio' --kind company --scope work"],
+  "organizations add": [
+    "memo organizations add 'Harbour Studio' --kind company --scope work",
+    "memo organizations add 'Harbour Dairy' --kind company --reason 'named in the March invoice'",
+  ],
+  "organizations show": ["memo organizations show organization:1"],
   "organizations list": ["memo organizations list --json"],
   "organizations context": ["memo organizations context organization:1"],
   "projects meetings list": ["memo projects meetings list HRB --source zoom:me@example.com"],
