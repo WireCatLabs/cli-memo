@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.34 — 05.11.2026
+
 ### Changed — may break callers
 
 - **`memo projects status --json` fits in 4 KB again, and `--compact` in 1.5 KB (cli-core 0.578.0).** The
