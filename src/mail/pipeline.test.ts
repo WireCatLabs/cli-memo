@@ -202,7 +202,7 @@ it("gives the agent only mail worth reading, stages its batch once, and moves th
   const trimmed = (await box.memo(LOCKED, NOBODY, "messages", "show", ask.ref, "--trimmed")).item
   expect(trimmed).toMatchObject({ text: own, fingerprint: ask.email.fingerprint })
   const context = (await box.memo(LOCKED, NOBODY, "context", "email:bob@example.org", "--trimmed")).item
-  expect(context.messages.last.fromThemAnywhere.text).toBe(own)
+  expect(context.messages.last.from_them_anywhere.text).toBe(own)
 
   const through = read.cursor.split(".")[0] as string
   const findings = box.file("findings.json", scriptedAgent(read.items, box.task, through))
