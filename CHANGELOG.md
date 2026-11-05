@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.37 — 05.11.2026
+
 ### Added
 
 - **`memo mail findings add --key <key>`** stages the batch under the key `memo mail review --holder` gave in its
