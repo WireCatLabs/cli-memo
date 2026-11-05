@@ -2,7 +2,8 @@
 name: mail-triage
 description: >-
   Read the owner's new mail past the mail-triage mark, one mailbox at a time, and stage cited proposals for him:
-  tasks, closes and updates of open tasks, facts, memories, links and new contacts. Use for the scheduled
+  tasks, closes and updates of open tasks, invoices, payments, orders and deliveries, facts (account and certificate
+  data among them), memories, links and new contacts. Use for the scheduled
   mail-triage run; it proposes only and never sends, changes mail or decides.
 ---
 
@@ -22,6 +23,8 @@ emails per run.
 - Never send, draft, reply, forward, move, delete, label, change rules, confirm or reject anything. Never use
   `--as-owner`. Never run `memo actions confirm|reject` or `memo review confirm|reject`: the owner decides.
 - Never write email text to a file. Pass the findings JSON on stdin (`-`).
+- Run one memo command per Bash call. Loops, pipes, `&&` chains and command substitution are refused, so a loop over
+  mailboxes is one call per mailbox.
 - Read only through existing links (below). No broad search over all mail or all chats.
 - Stage first, acknowledge after. If staging fails, do not acknowledge: the next run reads the same mail again.
 - The mailbox itself belongs to the `mail` CLI, which this run cannot call: its sync, rules and cleanup are the
@@ -50,15 +53,20 @@ No items: go to step 6 with the cursor.
 
 ### 2. Triage — which emails need a look
 
-Keep an email only when it carries one of:
+Keep every email that carries one of these. They always become findings, even with nothing due:
 
+- an invoice, a bill or a payment request, and a receipt or payment confirmation;
+- an order confirmation, a shipping or delivery notice, a cancellation or a return;
+- account or certificate data: an account id, a login name (never a password or a code), a certificate, licence or
+  policy number, a contract number, an expiry or renewal date;
 - a request or question to the owner, or a decision he must make;
 - a date, deadline, appointment or amount due;
 - a promise someone made to the owner, or the owner made (his own sent mail counts);
 - a reply in a thread where the owner has an open task (`memo tasks list --source email:<address> --json`, match by
   the thread's `chat:email/…` or the task's `source`).
 
-Drop the rest: notifications, receipts with nothing due, newsletters that slipped through, thank-yous.
+Drop only advertising, news and newsletters, and pure social notifications (a like, a follow, "someone viewed your
+profile"). A thank-you with nothing else in it is dropped too. When unsure, keep it.
 
 ### 3. Context — only for kept emails, only through existing links
 
@@ -87,6 +95,23 @@ plainly.
 - `fact` — a decision, agreement or stated detail about a person, organization or project (`subject` or `project`).
 - `memory` — a longer summary worth keeping about a person or project.
 - `link` — address → person, person → organization, thread → project; only when the mail shows it.
+- `invoice` — a bill the owner must pay (`direction: payable`) or one he sent (`receivable`). `counterparty` is a
+  `person:` or `organization:`: the sender's `from.ref` when nothing better is linked. `currency` (ISO 4217, such as
+  RUB), `lines` (`description` and `amount`; one line with the total is fine), and `number`, `issue_date`, `due_date`
+  (`YYYY-MM-DD`) and `total` when the mail gives them.
+- `payment` — money that moved: a receipt or a bank confirmation. `direction: out` when the owner paid, `in` when he
+  was paid; `amount`, `currency`, `date`; `payee` or `payer` as a `person:` or `organization:`; `reference` for the
+  receipt number. `allocations` (`invoice`, `amount`) only for an invoice already stored (`memo invoices list`).
+- `order` — an order confirmation. `purpose`: `personal` (for the owner himself), `business`, `client` (bought for a
+  client) or `other`. `supplier_name` is the shop as the mail names it; `supplier` its `organization:` or `person:`
+  when linked; `customer` only when it is for someone else than the owner; `number`, `total` with `currency`,
+  `order_date`, and `status` (`placed` by default).
+- `order_update` — a later mail about an order: `status` `shipped`, `delivered` (with `date`), `cancelled` or
+  `returned`, with the order's `supplier_name` and `number`. Check it is stored first:
+  `memo orders list number:<number> --json`. Not stored yet → an `order` with the newest status instead.
+- Account and certificate data → a `fact` (`type: fact`): the statement names what it is, the number and the expiry
+  date, such as "E-signature certificate 12-345 from <issuer>, expires 2027-03-01". `subject` is the organization
+  or person it belongs to when linked.
 
 ### 5. New senders, among kept emails
 
@@ -113,7 +138,8 @@ memo mail findings add - --source email:<address> --json <<'JSON'
 JSON
 ```
 
-Nothing worth proposing: stage nothing. Then, and only then:
+An invoice, a payment and an order from one email are three findings, each citing it. Nothing worth proposing:
+stage nothing. Then, and only then:
 
 ```sh
 memo messages acknowledge --holder mail-triage --cursor <cursor> --source email:<address>

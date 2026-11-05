@@ -6,6 +6,22 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo orders list|show|add`.** An order says for whom (you, or `--person`/`--organization`) and why
+  (`--kind personal|business|client|other`), the shop, its number (`--title`), amount and currency, and its status
+  (`placed`, `shipped`, `delivered`, `cancelled`, `returned`; a later mail moves it on). Yours is confirmed at once;
+  an agent's waits in `memo review` (`kind:order`). `orders list number:<n> supplier:<shop>` finds one shop's order.
+- **Mail findings carry invoices, payments and orders.** `memo mail findings add` takes the kinds `invoice`,
+  `payment`, `order` and `order_update` (a later mail's status for a stored order). Accepting one records it as yours,
+  citing the mail.
+
+### Fixed
+
+- **The mail-triage agent keeps invoices, receipts, orders, deliveries and account or certificate data.** Its skill
+  turns them into findings (certificate and account data as facts) and drops only ads, news and pure social
+  notifications. It runs one memo command per call.
+
 ## 0.131.29 — 05.11.2026
 
 ### Changed — may break callers

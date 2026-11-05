@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**681 ✅ · 0 ⛔ · 132 ❌** — 186 commands, 627 options.
+**691 ✅ · 0 ⛔ · 138 ❌** — 189 commands, 640 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -549,6 +549,22 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `payments unlink` |  | ✅ |  |
 | `payments unlink` | `--as-owner` | ❌ |  |
 | `payments unlink` | `--json` | ✅ |  |
+| `orders list` |  | ✅ |  |
+| `orders list` | `--json` | ✅ |  |
+| `orders list` | `--limit` | ❌ |  |
+| `orders show` |  | ✅ |  |
+| `orders show` | `--json` | ✅ |  |
+| `orders add` |  | ✅ |  |
+| `orders add` | `--kind` | ✅ |  |
+| `orders add` | `--person` | ❌ |  |
+| `orders add` | `--organization` | ✅ |  |
+| `orders add` | `--title` | ✅ |  |
+| `orders add` | `--occurred-time` | ❌ |  |
+| `orders add` | `--project` | ❌ |  |
+| `orders add` | `--reason` | ✅ |  |
+| `orders add` | `--evidence` | ❌ |  |
+| `orders add` | `--as-owner` | ❌ |  |
+| `orders add` | `--json` | ✅ |  |
 | `records import` |  | ✅ |  |
 | `records import` | `--dry-run` | ✅ |  |
 | `records import` | `--account` | ✅ |  |

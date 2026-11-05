@@ -32,6 +32,7 @@ import { addExamples } from "./examples.js"
 import { factsCommand } from "./facts/command.js"
 import { recognisable } from "./failure.js"
 import { financeCommands } from "./finance/command.js"
+import { orderCommands } from "./finance/orders-command.js"
 import { findingsCommand } from "./findings/command.js"
 import { jsonFields } from "./json-fields.js"
 import { knowledgeCommands } from "./knowledge/command.js"
@@ -163,6 +164,34 @@ const OWN_ENTITIES = entityFields({
   agent_action: ["id", "actor", "tool", "tier", "target", "status", "error", "started_at", "finished_at"],
   meeting_project: ["id", "meeting", "project", "confirmed", "provenance", "fingerprint"],
   notes_folder: ["id", "name", "path", "format", "kept_by"],
+  order: [
+    "id",
+    "ref",
+    "title",
+    "customer",
+    "purpose",
+    "supplier",
+    "supplier_name",
+    "number",
+    "currency",
+    "total",
+    "status",
+    "order_date",
+    "fulfilled_date",
+    "invoice",
+    "payment",
+    "review",
+    "author",
+    "model",
+    "confirmed_by",
+    "source",
+    "reason",
+    "project",
+    "project_name",
+    "created_at",
+    "updated_at",
+    "evidence",
+  ],
   invoice: [
     "id",
     "ref",
@@ -316,6 +345,7 @@ export const createProgram = ({
   mentionsCommand(program, streams, env)
   factsCommand(program, streams, env)
   financeCommands(program, streams, env)
+  orderCommands(program, streams, env)
   recordsCommand(program, streams, env)
   findingsCommand(program, streams, env)
   actionsCommand(program, streams, env)

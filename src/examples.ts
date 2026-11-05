@@ -184,6 +184,12 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo facts add 'We moved the launch to spring' --kind decision --evidence 'msg:telegram/1/77/42' --project HRB",
   ],
   "facts list": ["memo facts list kind:decision project:HRB"],
+  "orders list": ["memo orders list status:shipped", `memo orders list number:A-1042 'supplier:"Shop One"' --json`],
+  "orders show": ["memo orders show order:3"],
+  "orders add": [
+    "memo orders add 'Shop One' 2499.00 RUB --kind personal --title A-1042",
+    "memo orders add 'Office Supply' --kind client --organization organization:3",
+  ],
   "invoices list": ["memo invoices list project:HRB open:true", "memo invoices list review:proposed --json"],
   "invoices show": ["memo invoices show invoice:4"],
   "invoices add": [
