@@ -85,8 +85,8 @@ What it does, per mailbox:
    says whether its sender is new.
 2. It keeps the emails that ask something of you, carry a date, or answer a thread with an open task.
 3. It reads context for those only, through links the store already has: the thread, `memo context` of the sender.
-4. It stages one batch: `memo mail findings add - --source email:<account>`. New senders always get a link to a
-   known person or a new contact proposal.
+4. It stages one batch: `memo mail findings add '<json>' --source email:<account>`, the JSON as one argument (a file
+   or `-` for stdin work too). New senders always get a link to a known person or a new contact proposal.
 5. Then, and only then, `memo messages acknowledge --holder mail-triage --cursor <cursor> --source email:<account>`
    moves its mark. A run that fails before this reads the same mail again; the same batch is not staged twice.
 

@@ -1,5 +1,4 @@
-import { createReadStream } from "node:fs"
-import { readBatchInput, type Streams } from "@wirecat/cli-base"
+import type { Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import {
@@ -15,6 +14,7 @@ import {
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer } from "../answer.js"
 import { whoRuns } from "../author.js"
+import { FINDINGS_INPUT_HELP, readFindingsInput } from "../findings-input.js"
 import { positive } from "../options.js"
 import { MAILBOX_HELP, oneMailboxOf } from "./review-command.js"
 
@@ -26,8 +26,8 @@ const FINDINGS_QUERY = {
 
 const INPUT_HELP = `
 Input: schema_version 1, key, extractor, findings. key is <holder>:<through id>, the id in the cursor
-\`mail review --holder\` gave (mail-triage:9123456); the same key and file give the same batch, the same key with
-another file is refused. 1–30 findings, at most 5 from one sender; each cites 1–8 msg:email/… references with the
+\`mail review --holder\` gave (mail-triage:9123456); the same key and input give the same batch, the same key with
+another input is refused. 1–30 findings, at most 5 from one sender; each cites 1–8 msg:email/… references with the
 fingerprint review gave, and at least one email of this mailbox.
 Kinds: task (type bug|feature|chore, title, reason, commitment explicit|inferred, optional project, due_at with
 due_evidence, assignee with assignee_evidence; no project means the mailbox's inbox project) · task_update (task,
@@ -67,13 +67,11 @@ export const mailFindingsCommand = (
   json(proposesOnly(annotate(findings.command("add"), { effects: LOCAL_WRITE, output: { entity: "mail_findings" } })))
     .description("stage one mailbox's findings for the owner; nothing is created until the owner confirms")
     .summary("stage one mailbox's findings; the owner confirms them")
-    .argument("<file>", "JSON findings file, or - for stdin; at most 65536 UTF-8 bytes")
+    .argument("<file>", FINDINGS_INPUT_HELP)
     .option("--source <accounts>", MAILBOX_HELP)
     .addHelpText("after", INPUT_HELP)
     .action(async (file: string, given: { source?: string; json?: boolean }) => {
-      const text = await readBatchInput(
-        file === "-" ? (environmentOf(program).stdin ?? process.stdin) : createReadStream(file),
-      )
+      const text = await readFindingsInput(file, environmentOf(program).stdin ?? process.stdin)
       const input = parseMailFindingsJson(text)
       const author = await whoRuns(program, env, { question: "" })
       const agent = author === "owner" ? { bot: "memo-mail-findings" } : author

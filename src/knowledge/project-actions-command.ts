@@ -1,5 +1,4 @@
-import { createReadStream } from "node:fs"
-import { CliError, readBatchInput, type Streams } from "@wirecat/cli-base"
+import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import {
@@ -16,6 +15,7 @@ import type { Command } from "commander"
 import * as v from "valibot"
 import { answers, itemAnswer, listAnswer } from "../answer.js"
 import { byOption, deciderOf, whoRuns } from "../author.js"
+import { FINDINGS_INPUT_HELP, readFindingsInput } from "../findings-input.js"
 import { positive, whole } from "../options.js"
 import { projectOf } from "./key-documents.js"
 import { decideAction, projectActions } from "./project-actions.js"
@@ -38,7 +38,7 @@ export const projectActionsCommand = (projects: Command, streams: Streams, env: 
 
   json(annotate(group.command("add"), { effects: LOCAL_WRITE }))
     .description("stage an agent's cited facts and follow-ups about one project for review")
-    .argument("<file>", "JSON findings file, or - for stdin; at most 65536 UTF-8 bytes")
+    .argument("<file>", FINDINGS_INPUT_HELP)
     .addHelpText(
       "after",
       "\nInput: schema_version 1, key, extractor, findings. Every finding names id, kind and evidence: 1–8 msg:, " +
@@ -53,7 +53,7 @@ export const projectActionsCommand = (projects: Command, streams: Streams, env: 
     )
     .action(async (file: string, given: { json?: boolean }, command: Command) => {
       const input = parseEvidenceFindingsJson(
-        await readBatchInput(file === "-" ? (environmentOf(projects).stdin ?? process.stdin) : createReadStream(file)),
+        await readFindingsInput(file, environmentOf(projects).stdin ?? process.stdin),
       )
       const author = await whoRuns(command, env, { question: "" })
       if (author === "owner")
