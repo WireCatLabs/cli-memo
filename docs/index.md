@@ -35,7 +35,7 @@ Three words appear on every page:
 1. **You choose your sources.** You add a folder of notes, connect a mail account, or use tg, max and wa
    to save your chats. Nothing is read until you choose it.
 2. **Memo copies the text into the local store.** Imports leave your files and mail
-   unchanged. On Linux, a timer can repeat the import. [Gmail cleanup](./mail.md#clean-up-gmail) is a command of the
+   unchanged. On Linux, a timer can repeat the import. [Gmail cleanup](./mail.md#commands-that-moved-to-mail) is a command of the
    separate `mail` program.
 3. **You or your agent ask.** Memo answers with the matching text and a reference to each source,
    so you can open the original and check it.

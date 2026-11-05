@@ -7,16 +7,13 @@ import { messagesService, storeOnlyDeps } from "@wirecat/cli-core/services"
 import { openStore } from "@wirecat/cli-core/store"
 import { beforeEach, describe, expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
+import { storeMail } from "../../test/mail-store.js"
 import { APP } from "../app.js"
 import { throwParseFailures } from "../failure.js"
-import { himalaya } from "../mail/himalaya.js"
-import { himalayaSource } from "../mail/source.js"
-import { importMail } from "../mail/sync.js"
 import { createProgram } from "../program.js"
 
 let env: NodeJS.ProcessEnv
 let vault: string
-let mailbox: string
 const path = "Projects/Lighthouse.md"
 const mail = { provider: "email", account: "owner@example.test" }
 const otherMail = { provider: "email", account: "other@example.test" }
@@ -36,11 +33,9 @@ const json = async (...args: string[]) => answerOf(await run(...args, "--json"))
 beforeEach(async () => {
   const dir = mkdtempSync(join(tmpdir(), "memo-tags-"))
   vault = join(dir, "vault one")
-  mailbox = join(dir, "mailbox.json")
   env = {
     ...process.env,
     MESSAGING_STORE: join(dir, "messages.db"),
-    MEMO_FAKE_MAILBOX: mailbox,
     MEMO_CONFIG_DIR: join(dir, "config"),
     MEMO_STATE_DIR: join(dir, "state"),
   }
@@ -48,32 +43,26 @@ beforeEach(async () => {
   writeFileSync(join(vault, path), "Lighthouse budget.\n")
   writeFileSync(join(vault, "Projects/Harbour.md"), "Harbour budget.\n")
   await run("folders", "add", vault)
-  writeFileSync(
-    mailbox,
-    JSON.stringify({
-      messages: [
-        {
-          uid: "1",
-          messageId: "42",
-          threadId: "7",
-          receivedAt: "2026-09-11T08:00:00Z",
-          subject: "Lighthouse budget",
-          from: ["Rin Example", "rin@example.test"],
-          to: [[null, mail.account]],
-          text: "Synthetic budget email.",
-        },
-      ],
-    }),
-  )
   const store = await openStore({ env })
   try {
     for (const key of [mail, otherMail])
-      await importMail({
+      await storeMail(
         store,
-        source: himalayaSource(himalaya(env), { name: "test" }),
-        account: { name: "test", address: key.account },
-        since: new Date("2026-09-01"),
-      })
+        key.account,
+        [
+          {
+            uid: "1",
+            messageId: "42",
+            threadId: "7",
+            receivedAt: "2026-09-11T08:00:00Z",
+            subject: "Lighthouse budget",
+            from: ["Rin Example", "rin@example.test"],
+            to: [[null, mail.account]],
+            text: "Synthetic budget email.",
+          },
+        ],
+        { since: new Date("2026-09-01") },
+      )
     const message: Message = {
       id: "42",
       chatId: "7",
@@ -92,7 +81,6 @@ beforeEach(async () => {
   } finally {
     await store.close()
   }
-  env.MEMO_HIMALAYA = "/not-a-mail-command"
   await run("sync", "--only", "notes")
 })
 
@@ -111,7 +99,6 @@ describe("memo source tags", () => {
   })
 
   it("isolates identical email message and thread ids by account and provider, and shared search finds the label", async () => {
-    const before = readFileSync(mailbox)
     await json("tags", "add", "follow-up", "--message", mailLocator())
     const store = await openStore({ env })
     try {
@@ -125,7 +112,6 @@ describe("memo source tags", () => {
     } finally {
       await store.close()
     }
-    expect(readFileSync(mailbox)).toEqual(before)
     expect((await json("tags", "list", "--source", `email:${otherMail.account}`)).items).toEqual([])
   })
 

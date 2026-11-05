@@ -43,18 +43,20 @@ folder was added on another computer, connect it instead: `memo folders list` sh
 
 ## An import deleted nothing and printed a warning
 
-The import found that most of a folder or mailbox was missing at once and stopped, to protect your
-data. Check that the folder or disk is there and that the mail account works, then import again.
+The import found that most of a folder was missing at once and stopped, to protect your
+data. Check that the folder or disk is there, then import again.
 
-## "no mail account" or mail import asks for an account
+## "no mail account"
 
-`no mail account` means the config file has no accounts for the older Himalaya import. To bring mail in, use
-[mail](mail.md#bring-mail-in-with-mail): `mail <profile> sync` fills the store and `memo search mail` finds it, with
-no account in Memo's config. Only for the older import, run `memo mail add <account> <address>` after setting up
-Himalaya, or add one under `mail.accounts` ([mail](mail.md#add-the-account-to-memo)).
+`no mail account` means the store holds no mail of that address. Memo does not import mail: the
+[mail](mail.md#bring-mail-in-with-mail) CLI does, with `mail <profile> sync`, and `memo search mail` then finds it.
+`--source email:<address>` takes the mailbox's address; Memo lists the ones the store holds when it is wrong.
 
-`memo sync --source email:work` takes the account's name: the `name` in `mail.accounts` of the config file. Memo
-lists the names it knows when the name is wrong. Without `--source`, it reads every account.
+## "memo sync no longer imports mail"
+
+The config still has Memo's old `mail` settings, which nothing reads. `memo doctor` names the mailboxes they list:
+sync each with `mail <profile> session start --address <address>`, then `mail <profile> sync`. The mail Memo
+imported stays in the store. `memo config unset mail` removes the old settings and the message.
 
 ## A note edit is refused
 

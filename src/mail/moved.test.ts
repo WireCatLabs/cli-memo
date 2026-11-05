@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest"
 import { createProgram } from "../program.js"
 import { MOVED_TO_MAIL } from "./moved.js"
 
-describe("memo's mail-writing commands moved to the mail CLI", () => {
+describe("memo's mail commands moved to the mail CLI", () => {
   it.each(MOVED_TO_MAIL)("memo mail %s fails, names %s and touches nothing", async (from, to) => {
     const root = mkdtempSync(join(tmpdir(), "memo-moved-"))
     const env = { ...process.env, MEMO_CONFIG_DIR: join(root, "config"), MESSAGING_STORE: join(root, "store.db") }
@@ -31,7 +31,7 @@ describe("memo's mail-writing commands moved to the mail CLI", () => {
   it("are hidden from discovery, so nothing offers them", () => {
     const paths = flatten(describeProgram(createProgram())).map(({ path }) => path.join(" "))
 
-    expect(paths).toContain("mail inspect")
+    expect(paths).toContain("mail findings add")
     for (const [from] of MOVED_TO_MAIL) expect(paths).not.toContain(`mail ${from}`)
   })
 })

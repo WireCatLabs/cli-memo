@@ -33,7 +33,6 @@ beforeEach(() => {
     MEMO_STATE_DIR: join(dir, "state"),
     MESSAGING_STORE: join(dir, "messages.db"),
     WIRECAT_STATE_DIR: join(dir, "wirecat"),
-    MEMO_HIMALAYA: join(dir, "no-himalaya"),
   }
   // cli-base's notice stays silent under CI and the opt-out variables; the release check runs with CI set.
   for (const name of ["CI", "NO_UPDATE_NOTIFIER", "MEMO_NO_UPDATE_CHECK"]) delete env[name]
@@ -54,7 +53,6 @@ describe("memo doctor", () => {
       store: { path: join(dir, "messages.db") },
       search_model: { name: "e5-small", present: false },
       timer: { enabled: false, failing: null },
-      mail: { accounts: [], himalaya: null },
     })
     expect(report.meta.run_id).toEqual(expect.any(String))
   })
@@ -74,7 +72,10 @@ describe("memo doctor", () => {
     expect(text).toContain(
       `! the notes folder ${join(dir, "gone")} is missing — connect its disk; if it moved, memo folders update <id> <new path>`,
     )
-    expect(text).toContain("! himalaya is not on PATH, so mail cannot be read")
+    expect(text).toContain(
+      "the mail CLI syncs alice@example.test into the same store (mail <profile> session start --address " +
+        "<address>, then mail <profile> sync), and the mail already stored stays — memo config unset mail",
+    )
     expect(text).toContain("! the timer is on in the config but not installed — memo jobs start")
     expect(process.exitCode).toBe(1)
   })
@@ -108,7 +109,7 @@ describe("memo doctor on a config file with problems", () => {
       JSON.stringify({
         update_check: "sometimes-secret",
         default_profile: "work",
-        mail: { accounts: [{ name: "home", address: "a@example.test", colour: "blue" }] },
+        notes: { folders: [], colour: "blue" },
         permissions: { "auto.start": "deny", "notes.edit": "deny" },
       }),
     )
@@ -134,9 +135,9 @@ describe("memo doctor on a config file with problems", () => {
         {
           kind: "unknown_setting",
           file: configPath(env),
-          key: "mail.accounts.0.colour",
-          what: "setting mail.accounts.0.colour is not a setting of memo",
-          fix: "memo config unset mail.accounts.0.colour",
+          key: "notes.colour",
+          what: "setting notes.colour is not a setting of memo",
+          fix: "memo config unset notes.colour",
         },
         {
           kind: "unknown_permission",
@@ -150,14 +151,14 @@ describe("memo doctor on a config file with problems", () => {
     expect(issues).toHaveLength(4)
     expect(JSON.stringify(issues)).not.toContain("sometimes-secret")
     expect(() => loadConfig(env)).toThrow(
-      "remove it with `memo config unset update_check` (and 2 more problems — `memo doctor` lists them all)",
+      "remove it with `memo config unset notes.colour` (and 2 more problems — `memo doctor` lists them all)",
     )
 
     for (const { fix } of issues) await memo(...fix.split(" ").slice(1))
 
     expect(JSON.parse(await doctor("--json")).item.config.issues).toEqual([])
     expect(JSON.parse(readFileSync(configPath(env), "utf8"))).toEqual({
-      mail: { accounts: [{ name: "home", address: "a@example.test" }] },
+      notes: { folders: [] },
       permissions: { "notes.edit": "deny" },
     })
     expect(JSON.parse(await memo("config", "unset", "default_profile", "--json")).item).toMatchObject({
