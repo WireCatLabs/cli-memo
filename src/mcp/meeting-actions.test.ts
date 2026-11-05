@@ -143,13 +143,16 @@ it("rejects unknown nested fields, changed retry input and stale evidence withou
     const input = await inputFor(call, f.project.ref)
     const args = { account: "example:synthetic", input }
     const unknown = await call("meetings actions add", { ...args, input: { ...input, confirm: true } })
-    expect(unknown.error).toMatchObject({ code: "validation_error", message: "unknown meeting finding field" })
+    expect(unknown.error).toMatchObject({
+      code: "validation_error",
+      message: expect.stringMatching(/^unknown meeting finding field confirm; it takes schema_version, key/),
+    })
     const nested = await call("meetings actions add", {
       ...args,
       input: { ...input, findings: [{ ...input.findings[0], owner: true }] },
     })
     expect(nested.error.code).toBe("validation_error")
-    expect(nested.error.message).toBe("unknown meeting finding field")
+    expect(nested.error.message).toMatch(/^unknown meeting finding field owner in \S+ \(\w+\); it takes id/)
     await call("meetings actions add", args)
     expect((await call("meetings actions add", { ...args, account: "example:other" })).failed).toBe(true)
     expect((await call("meetings actions add", { ...args, input: { ...input, extractor: "changed" } })).failed).toBe(

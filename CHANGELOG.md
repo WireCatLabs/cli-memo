@@ -4,6 +4,26 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- **`memo mail findings add --dry-run` checks a batch and stages nothing.** It makes every check staging makes,
+  invoices, payments and orders tried and rolled back, and answers `valid` with `problems`: each refused finding's
+  id, kind and message, and the batch's own (`mail-findings.key-used`). It runs under `MEMO_READ_ONLY`. The
+  mail-triage skill builds the whole batch, checks it, fixes every problem and then stages it once.
+- **Mail findings name a party the store does not hold yet.** An invoice takes `counterparty_name`, a payment
+  `payer_name` and `payee_name`, an order `customer_name`, each with an optional `<party>_email` from the cited mail;
+  your accept finds the organization or makes one (cli-core 0.580.0).
+
+### Fixed
+
+- **An unknown finding field is named**, with its finding's id and kind and the fields that kind takes.
+- **An order is not proposed twice**: one already waiting in a proposed batch is refused (`order.proposed`), and the
+  skill sends an `order_update` only when the stored order's status changed.
+- **The mail-triage skill no longer shows a `|` inside a command** and says that each Bash call is one memo command
+  with nothing before or after it, which is all `Bash(memo:*)` allows.
+
 ## 0.131.35 — 05.11.2026
 
 ### Added
