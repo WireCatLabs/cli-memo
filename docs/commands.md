@@ -419,7 +419,7 @@ memo mail findings add <file> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `file` | required | JSON findings file, or - for stdin; at most 65536 UTF-8 bytes. |
+| `file` | required | the findings JSON itself (starts with {), a JSON file, or - for stdin; at most 65536 UTF-8 bytes. |
 
 | Option | What it does |
 |---|---|
@@ -428,7 +428,7 @@ memo mail findings add <file> [options]
 
 **Returns:** mail findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more; every field: memo commands info mail findings add
 
-**Example:** `memo mail findings add findings.json --source email:work`, `memo mail findings add - --source email:me@example.com --json`, `memo mail findings add run-2026-11-02.json --source email:personal --json=id,status`
+**Example:** `memo mail findings add findings.json --source email:work`, `memo mail findings add '{"schema_version":1,"key":"mail-triage:9123","extractor":"mail-triage/1","findings":[…]}' --source email:me@example.com --json`, `memo mail findings add run-2026-11-02.json --source email:personal --json=id,status`
 
 #### `memo mail findings show`
 
@@ -1405,7 +1405,7 @@ memo projects actions add <file> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `file` | required | JSON findings file, or - for stdin; at most 65536 UTF-8 bytes. |
+| `file` | required | the findings JSON itself (starts with {), a JSON file, or - for stdin; at most 65536 UTF-8 bytes. |
 
 | Option | What it does |
 |---|---|
@@ -3000,7 +3000,7 @@ memo meetings actions add <file> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `file` | required | JSON proposal file, or - for stdin; at most 65536 UTF-8 bytes. |
+| `file` | required | the findings JSON itself (starts with {), a JSON file, or - for stdin; at most 65536 UTF-8 bytes. |
 
 | Option | What it does |
 |---|---|

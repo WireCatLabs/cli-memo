@@ -6,6 +6,14 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **The scheduled mail-triage agent can stage its findings again.** Claude Code refused its
+  `memo mail findings add - … <<'JSON'` call in `dontAsk` mode once the JSON held real mail text. `mail findings add`,
+  `meetings actions add` and `projects actions add` now also take the findings JSON itself as the argument: one
+  that starts with `{` is the JSON, `-` is stdin and anything else a file, as before; the 65536-byte limit is the same.
+  The `mail-triage` skill passes the JSON as one single-quoted argument and writes an apostrophe inside it as ’.
+
 ## 0.131.31 — 05.11.2026
 
 ### Added

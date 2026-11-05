@@ -1,5 +1,4 @@
-import { createReadStream } from "node:fs"
-import { CliError, readBatchInput, type Streams } from "@wirecat/cli-base"
+import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import {
@@ -15,6 +14,7 @@ import type { Decider, MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer } from "../answer.js"
 import { byOption, whoRuns } from "../author.js"
+import { FINDINGS_INPUT_HELP, readFindingsInput } from "../findings-input.js"
 import { mcpOwnerAllowed } from "../mcp/permissions.js"
 import { positive } from "../options.js"
 import {
@@ -60,15 +60,13 @@ export const findingsCommand = (program: Command, streams: Streams, env: NodeJS.
     writeOptions(command, MEETING_WRITE_HELP).option("--json", "print JSON; --json=id,status keeps only those fields")
   writes(annotate(group.command("add"), { effects: LOCAL_WRITE, output: { entity: "meeting_findings" } }))
     .description("stage cited findings; facts and tasks wait for owner confirmation")
-    .argument("<file>", "JSON proposal file, or - for stdin; at most 65536 UTF-8 bytes")
+    .argument("<file>", FINDINGS_INPUT_HELP)
     .addHelpText(
       "after",
       "\nInput: schema_version 1, key, extractor, findings. Every finding names id, kind, project and evidence (reference and fingerprint). Facts name type and statement; tasks name type, title, reason and commitment (explicit or inferred). At most 16 findings, each with 1–8 exact cues from Zoom evidence. Optional due_at is a real ISO timestamp with timezone and requires due_evidence; optional assignee is a person reference and requires assignee_evidence. Both support lists cite this finding's cue references.\n",
     )
     .action(async (file: string, given: Options) => {
-      const text = await readBatchInput(
-        file === "-" ? (environmentOf(program).stdin ?? process.stdin) : createReadStream(file),
-      )
+      const text = await readFindingsInput(file, environmentOf(program).stdin ?? process.stdin)
       const input = parseMeetingFindingsJson(text)
       const author = await whoRuns(program, env, { question: "" })
       const agent = author === "owner" ? { bot: "memo-findings" } : author
