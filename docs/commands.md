@@ -33,6 +33,7 @@ memo context <person> [options]
 | `--limit <n>` | most messages, notes and events of each kind. Default: `20`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--source <accounts>` | the account to read, as provider:account; required when the store holds several of that messenger. |
+| `--trimmed` | each email's own text, without quoted earlier mail or the signature — for an agent's reads. |
 
 **Returns:** messages, mail, notes and events about a person, each with a link to its source
 
@@ -370,6 +371,7 @@ memo messages show <message> [options]
 | `--before-n <n>` | also this many earlier emails of its thread. Default: `0`. |
 | `--after-n <n>` | also this many later emails of its thread. Default: `0`. |
 | `--full` | whole attachment text, not the first 4000 characters of each, and the HTML and AMP versions of the body. |
+| `--trimmed` | each email's own text, without quoted earlier mail or the signature — for an agent's reads. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** one stored message or email whole, with optional stored neighbours
@@ -879,7 +881,7 @@ memo tasks close <id> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as <state>` | done or dismissed. Default: `done`. |
 | `--reason <text>` | why it is closed. |
-| `--revision <n>` | refuse the write unless the task is still at this revision (task.stale, exit 3). |
+| `--revision <n>` | refuse the write unless the task is still at this revision (conflict, task.stale, exit 15). |
 
 **Returns:** close a task as done or dismissed
 
@@ -904,7 +906,7 @@ memo tasks assign <id> <person> [options]
 |---|---|
 | `--role <role>` | assignee, reviewer, watcher. Default: `assignee`. |
 | `--clear` | take the person off the task in that role, instead of adding them. |
-| `--revision <n>` | refuse the write unless the task is still at this revision (task.stale, exit 3). |
+| `--revision <n>` | refuse the write unless the task is still at this revision (conflict, task.stale, exit 15). |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** name who works on a task, or with --clear take them off it
@@ -930,7 +932,7 @@ memo tasks move <id> [options]
 | `--status <state>` | move it to this column too: open, todo, in_progress, done, dismissed; with --before or --after it must be that task's column. |
 | `--before <id>` | the task it goes just above. |
 | `--after <id>` | the task it goes just below. |
-| `--revision <n>` | refuse the write unless the task is still at this revision (task.stale, exit 3). |
+| `--revision <n>` | refuse the write unless the task is still at this revision (conflict, task.stale, exit 15). |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** put a project task before or after another in its board column
@@ -992,7 +994,7 @@ memo tasks update <task> [options]
 | `--agent <agent>` | a project task: the agent working on it, apart from its assignees; none clears it. |
 | `--project <project>` | a project task: move it to another project, by key or project:<id>; it and its subtasks take new keys there, and the old keys still find them. A subtask moves alone only with --parent none. |
 | `--type <type>` | a project task's kind: bug, feature, chore. |
-| `--revision <n>` | refuse the write unless the task is still at this revision (task.stale, exit 3). |
+| `--revision <n>` | refuse the write unless the task is still at this revision (conflict, task.stale, exit 15). |
 | `--status <state>` | a project task's state: open, todo, in_progress, done, dismissed; a closed one reopens. |
 
 **Returns:** task card — id, ref, key, project, project_key, project_name, created_by, title, and 24 more; every field: memo commands info tasks update
@@ -3920,6 +3922,7 @@ memo schedule agent <name> <harness> <prompt> [options]
 
 | Option | What it does |
 |---|---|
+| `--model <model>` | the model it runs on: an alias such as sonnet, or a model id; "" for the harness's default (default sonnet for claude, codex's own for codex, or the config file's). |
 | `--max-cost <usd>` | claude only: stop a run that costs more than this, in US dollars. |
 | `--max-cost-per-day <usd>` | claude only: start no run for the rest of the day once its runs cost this much, in US dollars; 0 for no cap (default 5, or the config file's). |
 | `--every <duration>` | repeat: 30m, 2h, 1d. |
@@ -3932,7 +3935,7 @@ memo schedule agent <name> <harness> <prompt> [options]
 
 **Returns:** start an agent (claude or codex) with a prompt on a timer; it runs with…
 
-**Example:** `memo schedule agent triage claude 'read memo review status and list what needs me today' --at 08:45 --max-cost 1`, `memo schedule agent mail-triage claude 'Run memo skill show mail-triage and follow it.' --every 5m --on-new-mail mail-triage --max-cost 1 --max-cost-per-day 5`
+**Example:** `memo schedule agent triage claude 'read memo review status and list what needs me today' --at 08:45 --max-cost 1`, `memo schedule agent mail-triage claude 'Run memo skill show mail-triage and follow it.' --every 5m --on-new-mail mail-triage --mail-wait 1h --mail-batch 20 --max-cost 1 --max-cost-per-day 5`, `memo schedule agent weekly claude 'read memo review status and sum up the week' --at 09:00 --model opus`
 
 ### `memo schedule list`
 

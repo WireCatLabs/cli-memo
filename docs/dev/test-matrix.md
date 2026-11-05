@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**669 ✅ · 0 ⛔ · 131 ❌** — 184 commands, 616 options.
+**675 ✅ · 0 ⛔ · 131 ❌** — 184 commands, 622 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -15,6 +15,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `context` | `--limit` | ✅ |  |
 | `context` | `--json` | ✅ |  |
 | `context` | `--source` | ✅ |  |
+| `context` | `--trimmed` | ✅ |  |
 | `show` |  | ✅ |  |
 | `show` | `--json` | ✅ |  |
 | `notes show` |  | ✅ |  |
@@ -64,6 +65,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `messages show` | `--before-n` | ✅ |  |
 | `messages show` | `--after-n` | ✅ |  |
 | `messages show` | `--full` | ❌ |  |
+| `messages show` | `--trimmed` | ✅ |  |
 | `messages show` | `--json` | ✅ |  |
 | `messages acknowledge` |  | ✅ |  |
 | `messages acknowledge` | `--holder` | ✅ |  |
@@ -767,11 +769,15 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `schedule command` | `--at-time` | ❌ |  |
 | `schedule command` | `--json` | ❌ |  |
 | `schedule agent` |  | ✅ |  |
+| `schedule agent` | `--model` | ✅ |  |
 | `schedule agent` | `--max-cost` | ✅ |  |
+| `schedule agent` | `--max-cost-per-day` | ✅ |  |
 | `schedule agent` | `--every` | ✅ |  |
 | `schedule agent` | `--at` | ✅ |  |
 | `schedule agent` | `--at-time` | ❌ |  |
 | `schedule agent` | `--on-new-mail` | ✅ |  |
+| `schedule agent` | `--mail-wait` | ✅ |  |
+| `schedule agent` | `--mail-batch` | ✅ |  |
 | `schedule agent` | `--json` | ❌ |  |
 | `schedule list` |  | ✅ |  |
 | `schedule list` | `--json` | ✅ |  |

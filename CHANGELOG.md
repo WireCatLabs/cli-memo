@@ -8,25 +8,7 @@ the API.
 
 ### Changed — may break callers
 
-- **memo runs on cli-base 0.77.1 and cli-core 0.566.0.** A failure can now be `conflict` (exit 15): a write refused
-  because what it would change moved on since you read it; read it again and decide on the new copy. The MCP tools'
-  error codes list it.
-- **memo no longer imports mail: the [mail](https://github.com/WireCatLabs/mail-cli) CLI does.** For each mailbox
-  memo used to import, run `mail <profile> session start --address <address>`, then `mail <profile> sync`; the mail
-  already in the store stays and is still found, and the sync goes on from it. `memo doctor` names the addresses your
-  config listed. The Himalaya import, `bin/mail-password` and the Google Takeout (`mode: "mbox"`) import are gone;
-  a Takeout file is `mail <profile> messages import <file.mbox>`.
-- **`memo mail add`, `memo mail check` and `memo mail inspect` moved to the mail CLI**: `mail <profile> session
-  start`, `mail <profile> account check` and `mail <profile> account inspect`. The old paths change nothing and name
-  the new command (`mail.moved-to-mail-cli`). Sender scoring with domain ages now runs in `mail <profile> sync`.
-- **`memo sync` and its timer read notes only, and embed the mail already stored for search by meaning.** Its mail
-  options `--source`, `--since-time`, `--limit`, `--retry-attachments` and `--rescan` are gone; `--only mail` now
-  only embeds stored mail. Its answer has `mailEmbedded` in place of `mail`.
-- **The config's `mail` section is retired.** An old config with `mail.accounts`, `"import": false` or the mail
-  limits still loads and nothing reads it; `memo doctor` reports it and `memo config unset mail` removes it, and
-  `memo sync` says so on stderr until then. `config migrate` no longer writes the mail limits.
-- **`--source email:<name>` takes the mailbox's address only**, since names lived in `mail.accounts`. `memo doctor`
-  no longer reports mail accounts or Himalaya; the error reasons `mail.throttled` and `mail.invalid-imap` are gone.
+- **memo runs on cli-core 0.569.0.**
 - **The mail-triage schedule waits for a batch of mail and stops for the day at a cost cap.** `memo schedule agent
   --on-new-mail` starts the agent once 10 emails wait or the oldest has waited 30 minutes, and no run starts for the
   rest of the day once the day's runs cost 5 US dollars. Change them per schedule with `--mail-wait`, `--mail-batch`
@@ -47,6 +29,42 @@ the API.
   reject refused it as not a findings batch. A fingerprint other than the batch's is refused as stale.
 - **`memo mail review`, `messages acknowledge` and `mail findings` name a missing or ambiguous mailbox** the way every
   other one-account option does.
+
+### Security
+
+- **The mail-triage agent reads each email's own text in the thread and the sender's earlier mail too.** `memo
+  messages show --trimmed` and `memo context --trimmed` leave out quoted earlier mail and the signature, as `memo mail
+  review --holder` does; the skill passes `--trimmed`. Fingerprints still cover the stored email, and the owner's
+  reads (`messages show`, `context`, `review show`) keep the whole text. `--trimmed` is refused with `--full`.
+- **The mail-triage skill puts no sender text into a shell line unchecked.** A name or address goes in single quotes,
+  and only when it holds letters, digits, spaces and `. _ + - @`; new senders are looked up only for emails kept by
+  triage with `new_sender: true`, not for every sender seen once.
+
+## 0.131.25 — 05.11.2026
+
+### Changed — may break callers
+
+- **A write on a task that changed since you read it fails with `conflict`, exit 15.** It was
+  `configuration_error`, exit 3. The reason is still `task.stale`, with the task's current `revision` in `details`.
+- **memo runs on cli-base 0.77.1 and cli-core 0.567.0.** A failure can now be `conflict` (exit 15): a write refused
+  because what it would change moved on since you read it; read it again and decide on the new copy. The MCP tools'
+  error codes list it.
+- **memo no longer imports mail: the [mail](https://github.com/WireCatLabs/mail-cli) CLI does.** For each mailbox
+  memo used to import, run `mail <profile> session start --address <address>`, then `mail <profile> sync`; the mail
+  already in the store stays and is still found, and the sync goes on from it. `memo doctor` names the addresses your
+  config listed. The Himalaya import, `bin/mail-password` and the Google Takeout (`mode: "mbox"`) import are gone;
+  a Takeout file is `mail <profile> messages import <file.mbox>`.
+- **`memo mail add`, `memo mail check` and `memo mail inspect` moved to the mail CLI**: `mail <profile> session
+  start`, `mail <profile> account check` and `mail <profile> account inspect`. The old paths change nothing and name
+  the new command (`mail.moved-to-mail-cli`). Sender scoring with domain ages now runs in `mail <profile> sync`.
+- **`memo sync` and its timer read notes only, and embed the mail already stored for search by meaning.** Its mail
+  options `--source`, `--since-time`, `--limit`, `--retry-attachments` and `--rescan` are gone; `--only mail` now
+  only embeds stored mail. Its answer has `mailEmbedded` in place of `mail`.
+- **The config's `mail` section is retired.** An old config with `mail.accounts`, `"import": false` or the mail
+  limits still loads and nothing reads it; `memo doctor` reports it and `memo config unset mail` removes it, and
+  `memo sync` says so on stderr until then. `config migrate` no longer writes the mail limits.
+- **`--source email:<name>` takes the mailbox's address only**, since names lived in `mail.accounts`. `memo doctor`
+  no longer reports mail accounts or Himalaya; the error reasons `mail.throttled` and `mail.invalid-imap` are gone.
 
 ## 0.131.24 — 05.11.2026
 
