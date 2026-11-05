@@ -51,7 +51,10 @@ search words are in [Find your mail](#find-your-mail) and [Search](search.md#sea
 
 memo can run an agent after each sync that stored new mail. It reads only mail past its own mark, and only stages
 proposals: tasks, closes and updates of open tasks, facts, memories, links and new contacts. Nothing is created until
-you confirm it in `memo review`. The agent never sends, drafts, moves or deletes mail, and never decides for you.
+you confirm it in `memo review`. The one thing it does itself is file a sender it is sure only sends newsletters,
+promotions or notices as envelopes (`mail <profile> rules add`): the next sync keeps that sender's mail without its
+text. The agent never sends, drafts, moves or deletes mail, never changes or removes a rule, and never decides for
+you.
 
 Turn it on once:
 
@@ -66,11 +69,12 @@ Once the day's runs have cost 5 US dollars, no run starts until the next day; `m
 spend and why it skipped. Change these per schedule with `--mail-wait 1h`, `--mail-batch 20` and
 `--max-cost-per-day 2`, or for every schedule in the config file: `schedule_mail_wait`, `schedule_mail_batch` and
 `schedule_max_cost_per_day` (`memo config show` lists them; a flag wins over the file). When enough mail waits and
-the day's budget allows, it starts `claude` on Sonnet with only `memo` allowed, under `MEMO_READ_ONLY`, and without your MCP servers, skills, settings and
+the day's budget allows, it starts `claude` on Sonnet with only `memo` and `mail` allowed, under `MEMO_READ_ONLY` and `MAIL_READ_ONLY`, and without your MCP servers, skills, settings and
 CLAUDE.md: a run starts on about 4,700 tokens instead of 38,000. `--model opus` picks another model for one schedule,
 and `schedule_model_claude` in the config file for every new one; `schedule_lean_start: false` loads your setup. Both
 apply when the schedule is added, so add it again after changing them. That run may move only the `mail-triage` mark.
-The prompt it follows is `memo skill show mail-triage`. Its first run starts from now; older mail is not read.
+The prompt it follows is `memo skill show mail-triage`. Its first run starts from now; older mail is not read. A
+schedule saved by an older memo allows only `memo`: run the line above again to replace it.
 
 What it does, per mailbox:
 
@@ -91,6 +95,12 @@ What it does, per mailbox:
    `-r<n>`, so a run over mail read again stages beside a batch still waiting for you.
 5. Then, and only then, `memo messages acknowledge --holder mail-triage --cursor <cursor> --source email:<account>`
    moves its mark. A run that fails before this reads the same mail again; the same batch is not staged twice.
+6. For a sender not linked to a person, with no open task, whose every email in the run was a newsletter, promotion
+   or notice, it adds `mail <profile> rules add --sender <address> --do envelope` (or `--list-id`), at most 5 per
+   run, with the address taken from the review's fields, never from the email's text. Under `MAIL_READ_ONLY` mail
+   takes only that: `--sender` or `--list-id` with `--do envelope`, never a rule that replaces one, recorded with
+   `source: agent` (`mail <profile> rules list source:agent`). The report lists the rules it added and the ones it
+   was unsure about, for you to run.
 
 | Command | What it does |
 |---|---|

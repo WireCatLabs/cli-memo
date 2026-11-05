@@ -6,6 +6,15 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **The scheduled mail triage files a sender as envelopes itself.** A `memo schedule agent` run may now run `mail`
+  too, under `MAIL_READ_ONLY`: it reads mail and adds `mail <profile> rules add --sender|--list-id … --do envelope`
+  for a sender it is sure only sends newsletters, promotions or notices, at most 5 per run, and lists the others for
+  you. mail refuses it any other rule and any other change; this needs a mail release that has the narrowed
+  `rules add`, and until then the triage only lists the rules. A schedule saved by an older memo allows only `memo`;
+  add it again to replace it.
+
 ## 0.131.67 — 09.11.2026
 
 ### Added
