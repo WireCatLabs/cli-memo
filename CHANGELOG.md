@@ -6,6 +6,11 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **The mail page names the example profile `personal`, not `ya`**, as the mail CLI's own docs do. No behaviour
+  changes.
+
 ## 0.131.32 — 05.11.2026
 
 ### Fixed
