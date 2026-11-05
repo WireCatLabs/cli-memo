@@ -51,7 +51,9 @@ search words are in [Find your mail](#find-your-mail) and [Search](search.md#sea
 
 memo can run an agent after each sync that stored new mail. It reads only mail past its own mark, and only stages
 proposals: tasks, closes and updates of open tasks, facts, memories, links and new contacts. Nothing is created until
-you confirm it in `memo review`. The agent never sends, drafts, moves or deletes mail, and never decides for you.
+you confirm it in `memo review`. The one thing it does itself is add an envelope rule for a sender it is sure only
+sends newsletters, promotions or notices (`mail <profile> rules add`); the next sync keeps that sender's mail as
+envelopes. The agent never sends, drafts, moves or deletes mail, and never changes or removes a rule.
 
 Turn it on once:
 
@@ -60,8 +62,9 @@ memo schedule agent mail-triage claude 'Run memo skill show mail-triage and foll
 ```
 
 Every 5 minutes the schedule checks the store. With no mail past the `mail-triage` mark it does nothing: no model
-call, no notification. Otherwise it starts `claude` with only `memo` allowed, under `MEMO_READ_ONLY`. The prompt it
-follows is `memo skill show mail-triage`. Its first run starts from now; older mail is not read.
+call, no notification. Otherwise it starts `claude` with only `memo` and `mail` allowed, under `MEMO_READ_ONLY` and
+`MAIL_READ_ONLY`. The prompt it follows is `memo skill show mail-triage`. Its first run starts from now; older mail is
+not read. A schedule saved by an older memo allows only `memo`: run the line above again to replace it.
 
 What it does, per mailbox:
 
@@ -74,6 +77,12 @@ What it does, per mailbox:
    known person or a new contact proposal.
 5. Then, and only then, `memo messages acknowledge --holder mail-triage --cursor <cursor> --source email:<account>`
    moves its mark. A run that fails before this reads the same mail again; the same batch is not staged twice.
+6. For a sender whose every email in the run was a newsletter, promotion or notice, not linked to a person and with
+   no open task, it adds `mail <profile> rules add --sender <address> --do envelope`, at most 5 per run, with the
+   address taken from the review's fields, never from the email's text. Under `MAIL_READ_ONLY` mail takes only
+   `--sender`, `--domain` or `--list-id`, never replaces a rule, and records it with `source: agent`
+   (`mail <profile> rules list source:agent`). The report names the rules it added and lists the ones it was unsure
+   about for you to run.
 
 | Command | What it does |
 |---|---|

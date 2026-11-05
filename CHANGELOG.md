@@ -28,6 +28,14 @@ the API.
 - **`--source email:<name>` takes the mailbox's address only**, since names lived in `mail.accounts`. `memo doctor`
   no longer reports mail accounts or Himalaya; the error reasons `mail.throttled` and `mail.invalid-imap` are gone.
 
+### Added
+
+- **The scheduled mail triage adds envelope rules itself.** A `memo schedule agent` run may now run `mail` too, under
+  `MAIL_READ_ONLY`: it reads mail and adds `mail <profile> rules add --sender|--domain|--list-id … --do envelope` for
+  a sender it is sure only sends newsletters, promotions or notices, at most 5 per run, and lists the others for you.
+  mail refuses it any other change. A schedule saved by an older memo allows only `memo`; add it again to replace it.
+  memo now runs on cli-core 0.567.0.
+
 ## 0.131.24 — 05.11.2026
 
 ### Changed — may break callers
