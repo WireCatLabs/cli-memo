@@ -448,10 +448,11 @@ memo mail findings add <file> [options]
 |---|---|
 | `--json` | print JSON; --json=id,status keeps only those fields. |
 | `--source <accounts>` | the one mailbox: email:<address>, email or group:<name>; may be left out when the store holds one mailbox. |
+| `--dry-run` | check the batch as staging would, invoices, payments and orders tried and rolled back, and stage nothing; answers valid and every finding's problem at once. |
 
 **Returns:** mail findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more; every field: memo commands info mail findings add
 
-**Example:** `memo mail findings add findings.json --source email:work`, `memo mail findings add '{"schema_version":1,"key":"mail-triage:9123","extractor":"mail-triage/1","findings":[…]}' --source email:me@example.com --json`, `memo mail findings add run-2026-11-02.json --source email:personal --json=id,status`
+**Example:** `memo mail findings add findings.json --source email:work`, `memo mail findings add findings.json --source email:work --dry-run --json`, `memo mail findings add '{"schema_version":1,"key":"mail-triage:9123","extractor":"mail-triage/1","findings":[…]}' --source email:me@example.com --json`
 
 #### `memo mail findings show`
 

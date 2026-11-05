@@ -386,3 +386,53 @@ it("answers a findings file that is not there as not found, not as a crash", asy
     "findings.file-missing",
   )
 })
+
+it("checks a whole batch with --dry-run under the read-only lock, and stages nothing until it is fixed", async () => {
+  const box = await triaged()
+  await box.thread(
+    "t-lease",
+    email("lease", 30),
+    email("signed", 1, { from: { address: ME, name: "Me" }, to: [{ address: "ann@example.com", name: "Ann" }] }),
+  )
+  await box.thread("t-new", email("quote", 1, { from: { address: "bob@example.org", name: "Bob" } }))
+  await box.synced()
+  const read = await box.review()
+  const agent = scriptedAgent(read.items, box.task, read.cursor.split(".")[0] as string)
+  const ask = agent.findings[1]?.evidence
+  const invoice = {
+    id: "i1",
+    kind: "invoice",
+    direction: "payable",
+    counterparty_name: "Bob Example GmbH",
+    counterparty_email: "bob@example.org",
+    currency: "EUR",
+    lines: [{ description: "Quote", amount: "10.00" }],
+    reason: "Bob bills the quote",
+    evidence: ask,
+  }
+  const broken = {
+    ...agent,
+    findings: [...agent.findings, { ...invoice, id: "f1", kind: "fact", type: "fact" }, invoice],
+  }
+  const check = async (input: unknown) =>
+    box.memo(LOCKED, NOBODY, "mail", "findings", "add", JSON.stringify(input), "--source", MAILBOX, "--dry-run")
+
+  const refused = await check(broken)
+  expect(refused.item).toMatchObject({ dry_run: true, valid: false, batch: null })
+  expect(refused.item.problems).toEqual([
+    expect.objectContaining({
+      finding: "f1",
+      kind: "fact",
+      message: expect.stringMatching(/unknown mail finding fields direction, counterparty_name/),
+    }),
+  ])
+  expect(refused.meta).toMatchObject({ complete: false })
+  expect((await box.memo({}, NOBODY, "mail", "findings", "list")).items).toEqual([])
+
+  const fixed = { ...agent, findings: [...agent.findings, invoice] }
+  expect((await check(fixed)).item).toMatchObject({ valid: true, findings: 4, problems: [] })
+  const staged = (await box.memo(LOCKED, NOBODY, "mail", "findings", "add", JSON.stringify(fixed), "--source", MAILBOX))
+    .item
+  expect(staged.input.findings.at(-1)).toMatchObject({ counterparty_name: "Bob Example GmbH" })
+  expect((await check(fixed)).item).toMatchObject({ valid: true, batch: staged.id })
+})

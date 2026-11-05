@@ -48,8 +48,8 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   ],
   "mail findings add": [
     "memo mail findings add findings.json --source email:work",
+    "memo mail findings add findings.json --source email:work --dry-run --json",
     'memo mail findings add \'{"schema_version":1,"key":"mail-triage:9123","extractor":"mail-triage/1","findings":[…]}\' --source email:me@example.com --json',
-    "memo mail findings add run-2026-11-02.json --source email:personal --json=id,status",
   ],
   "mail findings show": [
     "memo mail findings show 41",

@@ -1,4 +1,4 @@
-import type { Streams } from "@wirecat/cli-base"
+import type { ErrorCode as CliErrorCode, Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import {
@@ -8,6 +8,7 @@ import {
   parseMailFindingsJson,
   proposesOnly,
   queryTerms,
+  readMailFindingsJson,
   termField,
   withQuery,
 } from "@wirecat/cli-core/cli"
@@ -34,14 +35,22 @@ due_evidence, assignee with assignee_evidence; no project means the mailbox's in
 change close|due|detail, reason; due needs due_at, detail needs detail) · fact (type, statement, subject or project)
 · memory (memory_kind, scope, body, subject or project) · link (from, to, reason: contact:email/<address> → person:N,
 person:N → organization:N, chat:email/… → project:N) · new_contact (address of a cited email's sender or recipient,
-name, reason) · invoice (direction receivable|payable, counterparty person:N|organization:N, currency, lines of
-description and amount, optional total, number, issue_date, due_date, project) · payment (direction in|out, amount,
-currency, date, optional payer, payee, reference, allocations of stored invoices) · order (purpose
-personal|business|client|other, supplier_name, optional customer, supplier, number, total with currency, status,
-order_date, invoice, payment) · order_update (supplier_name and number of a stored order, status, date when delivered).
+name, reason) · invoice (direction receivable|payable, counterparty person:N|organization:N or counterparty_name with
+optional counterparty_email, currency, lines of description and amount, optional total, number, issue_date,
+due_date, project) · payment (direction in|out, amount,
+currency, date, optional payer or payer_name, payee or payee_name, reference, allocations of stored invoices) ·
+order (purpose personal|business|client|other, supplier_name, optional customer or customer_name, supplier, number,
+total with currency, status, order_date, invoice, payment, source_url) · order_update (supplier_name and number of
+a stored order, status, date when delivered).
 An invoice, payment or order is checked as memo invoices|payments|orders add checks yours; a refusal names why.
 A cited email that changed since review refuses the batch (mail-findings.stale), one still partial too
 (mail-findings.partial). Nothing is created until the owner confirms: memo review confirm <batch>/<finding>.
+A party the store does not hold yet goes by name: counterparty_name, payer_name, payee_name or customer_name in
+place of the reference, with an optional <party>_email that sent or received a cited email; the owner's accept finds
+its organization by that address, its domain or the exact name, or makes one. An order whose shop and number are
+stored (order.duplicate) or already wait in a proposed batch (order.proposed) is refused.
+--dry-run checks it all and stages nothing: valid, and problems with each refused finding's id, kind and message.
+Build the whole batch, check it, fix every problem, then stage it once: a staged key takes no other input.
 `
 
 const json = (command: Command) => command.option("--json", "print JSON; --json=id,status keeps only those fields")
@@ -69,15 +78,31 @@ export const mailFindingsCommand = (
     .summary("stage one mailbox's findings; the owner confirms them")
     .argument("<file>", FINDINGS_INPUT_HELP)
     .option("--source <accounts>", MAILBOX_HELP)
+    .option(
+      "--dry-run",
+      "check the batch as staging would, invoices, payments and orders tried and rolled back, and stage nothing; " +
+        "answers valid and every finding's problem at once",
+    )
     .addHelpText("after", INPUT_HELP)
-    .action(async (file: string, given: { source?: string; json?: boolean }) => {
+    .action(async (file: string, given: { source?: string; json?: boolean; dryRun?: boolean }) => {
       const text = await readFindingsInput(file, environmentOf(program).stdin ?? process.stdin)
-      const input = parseMailFindingsJson(text)
+      const input = given.dryRun ? readMailFindingsJson(text) : parseMailFindingsJson(text)
       const author = await whoRuns(program, env, { question: "" })
       const agent = author === "owner" ? { bot: "memo-mail-findings" } : author
-      await run(given.json, async (store) =>
-        itemAnswer(await store.mailFindings.stage(await oneMailboxOf(store, env, given.source), input, agent)),
-      )
+      await run(given.json, async (store) => {
+        const mailbox = await oneMailboxOf(store, env, given.source)
+        if (!given.dryRun) return itemAnswer(await store.mailFindings.stage(mailbox, input, agent))
+        const checked = await store.mailFindings.check(mailbox, input, agent)
+        const issues = checked.problems.map((one) => ({
+          code: one.code as CliErrorCode,
+          source: one.finding ?? "batch",
+          reason: (one.details?.reason as string | undefined) ?? one.message,
+        }))
+        return itemAnswer(
+          { dryRun: true, ...checked },
+          issues.length ? { meta: { complete: false, issues } } : undefined,
+        )
+      })
     })
 
   json(annotate(findings.command("show"), { effects: LOCAL_READ, output: { entity: "mail_findings" } }))
