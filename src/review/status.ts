@@ -13,7 +13,7 @@ const counted = async (
   filter: Omit<ProposalFilter, "limit" | "offset">,
   since?: number,
 ) => {
-  const registry = reviewRegistry(store, env)
+  const registry = reviewRegistry(store)
   const byKind: Record<string, number> = {}
   let total = 0
   for (let page = 0; page < MOST_PAGES; page++) {
@@ -29,7 +29,7 @@ const counted = async (
 /** How many proposals wait for the owner about these references: as subject, linked object or project. */
 export const waitingAbout = async (store: MessageStore, env: NodeJS.ProcessEnv, refs: readonly string[]) => {
   const wanted = new Set(refs)
-  const registry = reviewRegistry(store, env)
+  const registry = reviewRegistry(store)
   let count = 0
   for (let page = 0; page < MOST_PAGES; page++) {
     const found = await registry.list({ status: "proposed", limit: 50, offset: page * 50 })

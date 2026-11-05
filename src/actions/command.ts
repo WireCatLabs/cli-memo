@@ -94,10 +94,7 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
         if ((await store.proposedActions.get(id)).kind === MAIL_FINDINGS_KIND) {
           // registry.get carries no owner-only mark: the generic path below would let an agent make the batch a task.
           const parts = findings.length ? findings.map((finding) => `${id}/${finding}`) : [id]
-          const { decided, refused } = await reviewRegistry(store, env).decide(
-            parts,
-            decisionOf(true, by, options.reason),
-          )
+          const { decided, refused } = await reviewRegistry(store).decide(parts, decisionOf(true, by, options.reason))
           const refusal = refused[0]
           if (refusal) throw new CliError(refusal.code, refusal.message, { reason: refusal.reason })
           return itemAnswer({ decided })
