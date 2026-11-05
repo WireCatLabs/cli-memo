@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.32 — 05.11.2026
+
 ### Fixed
 
 - **The scheduled mail-triage agent can stage its findings again.** Claude Code refused its
