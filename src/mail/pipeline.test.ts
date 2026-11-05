@@ -161,6 +161,9 @@ const scriptedAgent = (items: Item[], task: { ref: string }, through: string) =>
   }
 }
 
+const BOB_ASKS =
+  "Could you send the quote?\n-- \nBob Example\n\nOn Mon, 3 Nov 2026, Ann <ann@example.com> wrote:\n> earlier"
+
 it("gives the agent only mail worth reading, stages its batch once, and moves the mark only after staging", async () => {
   const box = await triaged()
   await box.thread(
@@ -168,7 +171,10 @@ it("gives the agent only mail worth reading, stages its batch once, and moves th
     email("lease", 30),
     email("signed", 1, { from: { address: ME, name: "Me" }, to: [{ address: "ann@example.com", name: "Ann" }] }),
   )
-  await box.thread("t-new", email("quote", 1, { from: { address: "bob@example.org", name: "Bob" } }))
+  await box.thread(
+    "t-new",
+    email("quote", 1, { from: { address: "bob@example.org", name: "Bob" }, bodyText: BOB_ASKS }),
+  )
   await box.thread("t-news", email("news", 1, { from: { address: "news@example.net", name: null }, mailboxes: [BULK] }))
   await box.thread("t-scam", email("prize", 1, { from: { address: "scam@example.net", name: null } }))
   await box.thread("t-big", email("big", 1, { metadata: { partial: { bytes: 100 } } }))
@@ -190,6 +196,13 @@ it("gives the agent only mail worth reading, stages its batch once, and moves th
   expect(ask.email).toMatchObject({ new_sender: true, sender_identities: 1 })
   const shown = (await box.memo(LOCKED, NOBODY, "messages", "show", ask.ref)).item
   expect(shown.fingerprint).toBe(ask.email.fingerprint)
+  expect(shown.text).toContain("> earlier")
+  const own = "quote\n\nCould you send the quote?"
+  expect((ask as Item & { text: string }).text).toBe(own)
+  const trimmed = (await box.memo(LOCKED, NOBODY, "messages", "show", ask.ref, "--trimmed")).item
+  expect(trimmed).toMatchObject({ text: own, fingerprint: ask.email.fingerprint })
+  const context = (await box.memo(LOCKED, NOBODY, "context", "email:bob@example.org", "--trimmed")).item
+  expect(context.messages.last.from_them_anywhere.text).toBe(own)
 
   const through = read.cursor.split(".")[0] as string
   const findings = box.file("findings.json", scriptedAgent(read.items, box.task, through))

@@ -1,5 +1,6 @@
 import { CliError } from "@wirecat/cli-base"
-import { calendarAccounts, type PersonContext, personContext } from "@wirecat/cli-core/services"
+import { mailOwnText } from "@wirecat/cli-core/mail"
+import { type ContextMessage, calendarAccounts, type PersonContext, personContext } from "@wirecat/cli-core/services"
 import type { AccountKey, Link, MessageStore, Note } from "@wirecat/cli-core/store"
 import { type NotesAbout, notesAbout } from "../notes/about.js"
 import { withOwner } from "../people/owner.js"
@@ -180,5 +181,21 @@ export const memoContext = async (
     relationships,
     files,
     untrusted: UNTRUSTED_EVENT_FIELDS,
+  }
+}
+
+/** The context with each email's own text (`mailOwnText`): no earlier mail quoted in it, no signature. */
+export const withOwnMailText = (context: MemoContext): MemoContext => {
+  const own = <T extends ContextMessage | null>(message: T): T =>
+    message?.provider === "email" ? { ...message, text: mailOwnText(message.text) } : message
+  const { last, recent, mentions } = context.messages
+  return {
+    ...context,
+    messages: {
+      ...context.messages,
+      last: { fromThem: own(last.fromThem), fromMe: own(last.fromMe), fromThemAnywhere: own(last.fromThemAnywhere) },
+      recent: { direct: recent.direct.map(own), groups: recent.groups.map(own) },
+      mentions: mentions.map(own),
+    },
   }
 }

@@ -33,6 +33,7 @@ memo context <person> [options]
 | `--limit <n>` | most messages, notes and events of each kind. Default: `20`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--source <accounts>` | the account to read, as provider:account; required when the store holds several of that messenger. |
+| `--trimmed` | each email's own text, without quoted earlier mail or the signature — for an agent's reads. |
 
 **Returns:** messages, mail, notes and events about a person, each with a link to its source
 
@@ -370,6 +371,7 @@ memo messages show <message> [options]
 | `--before-n <n>` | also this many earlier emails of its thread. Default: `0`. |
 | `--after-n <n>` | also this many later emails of its thread. Default: `0`. |
 | `--full` | whole attachment text, not the first 4000 characters of each, and the HTML and AMP versions of the body. |
+| `--trimmed` | each email's own text, without quoted earlier mail or the signature — for an agent's reads. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** one stored message or email whole, with optional stored neighbours

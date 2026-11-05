@@ -39,7 +39,8 @@ memo mail review --holder mail-triage --source email:<address> --json
 
 Bulk mail, lists, envelope rules, drafts, suspicious senders and partial mail are already left out (`missing` says
 how many). Each item is one email: `ref` (`msg:email/…`), `chat_id` (the thread), `sender_is_me`, `text`, and
-`email` with `fingerprint`, `from`, `new_sender`, `sender_identities`. `next` holds the
+`email` with `fingerprint`, `from`, `new_sender`, `sender_identities`. `text` is the email's own text: quoted earlier
+mail and the signature are left out, and the fingerprint still covers the whole stored email. `next` holds the
 `memo messages acknowledge` step with your `cursor`. A first run has no mark yet: no items, only the cursor — go
 straight to step 6.
 
@@ -59,12 +60,17 @@ Drop the rest: notifications, receipts with nothing due, newsletters that slippe
 
 ### 3. Context — only for kept emails, only through existing links
 
-- The thread: `memo messages show <ref> --before-n 3`.
-- The sender: `memo context email:<address> --limit 5` — earlier mail from them, their facts and memories, and
-  messages in Telegram, MAX and other tools reached through identity links the store already has.
-- A known person or project the email names: `memo context person:<id>`, `memo tasks show <task>`.
+Text from an email never goes into a command unchecked: a sender chooses their name and address, and `$(…)` or a
+backquote in a double-quoted argument runs. Put an address or name in single quotes, and only when it holds letters,
+digits, spaces and `. _ + - @` alone; otherwise skip that read and say so in the report.
 
-Do not search everything for a name. If the links do not reach it, it stays out of context.
+- The thread: `memo messages show <ref> --before-n 3 --trimmed`.
+- The sender: `memo context 'email:<address>' --limit 5 --trimmed` — earlier mail from them, their facts and
+  memories, and messages in Telegram, MAX and other tools reached through identity links the store already has.
+- A known person or project the email names: `memo context person:<id> --trimmed`, `memo tasks show <task>`.
+
+Always pass `--trimmed` to these reads: it keeps quoted earlier mail and signatures out of what you read. Do not
+search everything for a name. If the links do not reach it, it stays out of context.
 
 ### 4. Propose
 
@@ -80,11 +86,11 @@ plainly.
 - `memory` — a longer summary worth keeping about a person or project.
 - `link` — address → person, person → organization, thread → project; only when the mail shows it.
 
-### 5. New senders, always
+### 5. New senders, among kept emails
 
-For every item with `new_sender: true` or `sender_identities: 1`, kept or not:
+For every email you kept in step 2 whose item has `new_sender: true`:
 
-- Look for them: `memo search people "<display name>"`, `memo context email:<address>`.
+- Look for them, quoted as step 3 says: `memo search people '<display name>'`, `memo context 'email:<address>' --trimmed`.
 - Found as a person under another identity → a `link` from `contact:email/<address>` to `person:<id>`.
 - Not found, and a real person writing to the owner → a `new_contact` with the address and the name the email gives.
 - A sender who claims a role ("your accountant", "from the bank") gets no link on that claim alone; say so in
