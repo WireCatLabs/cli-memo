@@ -6,6 +6,26 @@ the API.
 
 ## Unreleased
 
+### Changed — may break callers
+
+- **memo runs on cli-core 0.568.0.**
+- **The mail-triage schedule waits for a batch of mail and stops for the day at a cost cap.** `memo schedule agent
+  --on-new-mail` starts the agent once 10 emails wait or the oldest has waited 30 minutes, and no run starts for the
+  rest of the day once the day's runs cost 5 US dollars. Change them per schedule with `--mail-wait`, `--mail-batch`
+  and `--max-cost-per-day`, or for every schedule with `schedule_mail_wait`, `schedule_mail_batch` and
+  `schedule_max_cost_per_day` in the config file; `memo config migrate` writes them. `memo schedule list` shows the
+  day's spend and why a run was skipped.
+- **`memo messages acknowledge` moves only the mark of the holder a scheduled run was started for.** An agent's run,
+  or one under `MEMO_READ_ONLY`, without `--on-new-mail` is refused; you move any. A cursor past the newest stored
+  email is refused.
+
+### Fixed
+
+- **`memo actions confirm` and `reject` honour `--fingerprint` for a mail findings batch.** Confirm ignored it, and
+  reject refused it as not a findings batch. A fingerprint other than the batch's is refused as stale.
+- **`memo mail review`, `messages acknowledge` and `mail findings` name a missing or ambiguous mailbox** the way every
+  other one-account option does.
+
 ### Security
 
 - **The mail-triage agent reads each email's own text in the thread and the sender's earlier mail too.** `memo

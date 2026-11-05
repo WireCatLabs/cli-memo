@@ -12,7 +12,8 @@ const ME = "me@example.com"
 const MAILBOX = `email:${ME}`
 const AGENT = { AI_AGENT: "claude-code_2-1-296_agent" }
 const ANOTHER_AGENT = { AI_AGENT: "codex_synthetic" }
-const LOCKED = { ...AGENT, MEMO_READ_ONLY: "1" }
+/** A run `schedule agent --on-new-mail mail-triage` started: under the lock, and naming the holder it may move. */
+const LOCKED = { ...AGENT, MEMO_READ_ONLY: "1", MEMO_MAIL_HOLDER: "mail-triage" }
 const NOBODY: Terminal = { present: false }
 const OWNER: Terminal = { present: true }
 const BULK: MailboxInput = { externalId: "memo:bulk", name: "bulk", kind: "bulk" }
@@ -75,11 +76,11 @@ const mailbox = async () => {
     return envelopeOf(streams.stdout.join(""))
   }
   /** The reason a command was refused for, however memo reports it: thrown, or printed with an exit code. */
-  const refusal = async (as: Record<string, string>, ...args: string[]) => {
+  const refusalAt = async (terminal: Terminal, as: Record<string, string>, ...args: string[]) => {
     const streams = captureStreams()
     process.exitCode = 0
     try {
-      await createProgram({ streams, env: { ...env, ...as }, terminal: NOBODY })
+      await createProgram({ streams, env: { ...env, ...as }, terminal })
         .exitOverride()
         .parseAsync([...args, "--json"], { from: "user" })
     } catch (error) {
@@ -90,6 +91,7 @@ const mailbox = async () => {
     if (!process.exitCode) return "ran"
     return /"reason":"([^"]+)"/.exec(printed)?.[1] ?? printed
   }
+  const refusal = (as: Record<string, string>, ...args: string[]) => refusalAt(NOBODY, as, ...args)
   const file = (name: string, value: unknown) => {
     const path = join(dir, name)
     writeFileSync(path, JSON.stringify(value))
@@ -112,7 +114,7 @@ const mailbox = async () => {
   }
   const acknowledge = (cursor: string) =>
     memo(LOCKED, NOBODY, "messages", "acknowledge", "--holder", "mail-triage", "--cursor", cursor, "--source", MAILBOX)
-  return { dir, env, withStore, thread, synced, memo, refusal, file, review, acknowledge }
+  return { dir, env, withStore, thread, synced, memo, refusal, refusalAt, file, review, acknowledge }
 }
 
 /** A mailbox past its first run, with an open task the owner opened from Ann's request. */
@@ -245,6 +247,39 @@ it("leaves every decision to the owner, and the owner's confirm closes the task 
     .item
   expect(card).toMatchObject({ status: "done", reason: "you replied" })
   expect((await box.memo({}, NOBODY, "mail", "findings", "show", batch.id)).item.status).toBe("reviewed")
+})
+
+it("lets the owner confirm or reject a mail batch with the fingerprint it read, and refuses another", async () => {
+  const box = await triaged()
+  await box.thread(
+    "t-lease",
+    email("lease", 30),
+    email("signed", 1, { from: { address: ME, name: "Me" }, to: [{ address: "ann@example.com", name: "Ann" }] }),
+  )
+  await box.thread("t-new", email("quote", 1, { from: { address: "bob@example.org", name: "Bob" } }))
+  await box.synced()
+  const read = await box.review()
+  const stage = async (key: string) => {
+    const agent = { ...scriptedAgent(read.items, box.task, read.cursor.split(".")[0] as string), key }
+    return (
+      await box.memo(LOCKED, NOBODY, "mail", "findings", "add", box.file(`${key}.json`, agent), "--source", MAILBOX)
+    ).item
+  }
+  const first = await stage("mail-triage:1")
+  const second = await stage("mail-triage:2")
+  const wrong = "0".repeat(64)
+
+  for (const [verb, id] of [
+    ["confirm", first.id],
+    ["reject", second.id],
+  ])
+    expect(await box.refusalAt(OWNER, {}, "actions", verb, id, "--fingerprint", wrong)).toBe("mail-findings.stale")
+  await box.memo({}, OWNER, "actions", "confirm", first.id, "t1", "--fingerprint", first.fingerprint)
+  await box.memo({}, OWNER, "actions", "reject", second.id, "--fingerprint", second.fingerprint)
+
+  const shown = async (id: string) => (await box.memo({}, NOBODY, "mail", "findings", "show", id)).item.receipt
+  expect((await shown(first.id)).accepted).toEqual(["t1"])
+  expect((await shown(second.id)).accepted).toEqual([])
 })
 
 it("refuses a batch that cites mail changed since review, and stages nothing", async () => {

@@ -3,7 +3,7 @@ import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { beforeEach, describe, expect, it } from "vitest"
-import { configPath, updateConfig } from "./config.js"
+import { configPath, scheduleLimits, updateConfig } from "./config.js"
 import { createProgram } from "./program.js"
 
 let env: NodeJS.ProcessEnv
@@ -47,6 +47,19 @@ describe("memo config show and migrate", () => {
     expect(saved.mail).toBeUndefined()
     expect(Object.keys(saved).slice(0, 3)).toEqual(["agent_decisions", "future_key", "notes"])
     expect(JSON.parse(await memo("config", "migrate", "--json")).item.added).toEqual([])
+  })
+
+  it("writes the agent schedule limits at their defaults, and a value the owner sets reaches the schedule", async () => {
+    write({})
+    await memo("config", "migrate", "--json")
+    expect(JSON.parse(file())).toMatchObject({
+      schedule_mail_wait: "30m",
+      schedule_mail_batch: 10,
+      schedule_max_cost_per_day: 5,
+    })
+    expect(scheduleLimits(env)).toEqual({ mailWaitMinutes: 30, mailBatch: 10, maxCostPerDay: 5 })
+    write({ schedule_mail_wait: "2h", schedule_mail_batch: 3, schedule_max_cost_per_day: 0 })
+    expect(scheduleLimits(env)).toEqual({ mailWaitMinutes: 120, mailBatch: 3, maxCostPerDay: 0 })
   })
 
   it("a write memo makes anyway adds the missing settings too", () => {

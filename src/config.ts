@@ -9,6 +9,9 @@ import {
   RUNS_SIZE_LIMIT_MB,
   readConfigFile,
   readConfigText,
+  SCHEDULE_SETTINGS,
+  type ScheduleLimits,
+  scheduleLimitsOf,
   settingPathOf,
   withoutSetting,
   withSettingDefaults,
@@ -62,6 +65,11 @@ const ConfigSchema = v.strictObject({
   update_check: v.optional(v.boolean()),
   /** `false` stops an agent deciding proposals for you: `projects actions confirm` and `reject` then need you. */
   agent_decisions: v.optional(v.boolean()),
+  /** An agent gated on new mail starts once the oldest waiting email waited this long (`30m`), or this many wait. */
+  schedule_mail_wait: v.optional(v.pipe(v.string(), v.regex(/^\d+[mhd]$/, "has to be a duration such as 30m or 2h"))),
+  schedule_mail_batch: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
+  /** US dollars a day of an agent schedule's runs may cost; 0 turns the cap off. */
+  schedule_max_cost_per_day: v.optional(v.pipe(v.number(), v.minValue(0))),
   /** Retired: memo no longer imports mail, the `mail` CLI does. Still loads so an old config works; doctor names it. */
   mail: v.optional(v.unknown()),
 })
@@ -93,6 +101,7 @@ export const MEMO_SETTINGS: readonly DeclaredSetting[] = [
   },
   { key: "runs_size_limit_mb", default: RUNS_SIZE_LIMIT_MB, description: "the most megabytes all runs may take" },
   { key: "notes.embed", default: true, description: "false keeps notes out of search by meaning" },
+  ...SCHEDULE_SETTINGS,
 ]
 
 export const configPath = (env: NodeJS.ProcessEnv = process.env): string =>
@@ -116,6 +125,15 @@ export const decisionPolicy = (env: NodeJS.ProcessEnv): DecisionPolicy => {
     agentDecisions = loadConfig(env).agent_decisions === true
   } catch {}
   return { ...DEFAULT_DECISION_POLICY, agentDecisions }
+}
+
+/** The config file's limits for agent schedules; a file that does not load leaves them at their defaults. */
+export const scheduleLimits = (env: NodeJS.ProcessEnv): ScheduleLimits => {
+  try {
+    return scheduleLimitsOf(loadConfig(env))
+  } catch {
+    return {}
+  }
 }
 
 /** For `doctor`: every problem in the file, and what of it still loads, without refusing. */

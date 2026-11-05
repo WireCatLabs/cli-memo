@@ -21,12 +21,6 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: [],
   },
   {
-    reason: "proposal.kind-unsupported",
-    code: "validation_error",
-    message: "this memo cannot decide mail findings yet — memo upgrade",
-    details: [],
-  },
-  {
     reason: "sync.running",
     code: "rate_limited",
     message: "another memo sync is running (process {pid}); try again when it ends",
@@ -56,12 +50,6 @@ export const REASONS: ErrorReason[] = defineReasons([
     code: "not_found",
     message: "no stored mailbox by that address; the mail CLI syncs one",
     details: ["account"],
-  },
-  {
-    reason: "mail.mailbox-needed",
-    code: "validation_error",
-    message: "the store holds several mailboxes, or none; --source names the one to read",
-    details: ["param"],
   },
   {
     reason: "mail.moved-to-mail-cli",

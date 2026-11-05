@@ -259,7 +259,8 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   ],
   "schedule agent": [
     "memo schedule agent triage claude 'read memo review status and list what needs me today' --at 08:45 --max-cost 1",
-    "memo schedule agent mail-triage claude 'Run memo skill show mail-triage and follow it.' --every 5m --on-new-mail mail-triage --max-cost 1",
+    "memo schedule agent mail-triage claude 'Run memo skill show mail-triage and follow it.' --every 5m --on-new-mail mail-triage --max-cost 1 --max-cost-per-day 5",
+    "memo schedule agent mail-triage claude 'Run memo skill show mail-triage and follow it.' --every 5m --on-new-mail mail-triage --mail-wait 1h --mail-batch 20",
   ],
   "schedule list": ["memo schedule list", "memo schedule list kind:agent --json"],
   "schedule run": ["memo schedule run digest"],

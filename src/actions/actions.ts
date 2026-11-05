@@ -8,6 +8,7 @@ import {
   type Author,
   type Decider,
   EVIDENCE_FINDINGS_KIND,
+  MAIL_FINDINGS_KIND,
   type MessageStore,
   PROPOSAL_STATUSES,
   type ProposedAction,
@@ -183,6 +184,26 @@ export interface Decision {
 }
 
 /**
+ * The batches `actions confirm` and `reject` decide part by part. An evidence batch needs the fingerprint its reader
+ * saw; a mail batch checks one when given, since the owner may decide it from `review` without one.
+ */
+const BATCHES: Record<
+  string,
+  { fingerprint: (store: MessageStore, id: string) => Promise<string>; stale: string; required: boolean }
+> = {
+  [EVIDENCE_FINDINGS_KIND]: {
+    fingerprint: async (store, id) => (await store.evidenceFindings.get(id)).fingerprint,
+    stale: "evidence-findings.stale",
+    required: true,
+  },
+  [MAIL_FINDINGS_KIND]: {
+    fingerprint: async (store, id) => (await store.mailFindings.get(id)).fingerprint,
+    stale: "mail-findings.stale",
+    required: false,
+  },
+}
+
+/**
  * A findings batch decided by its id alone, whatever it is about; `undefined` for any other action, which the generic
  * confirm and reject handle.
  */
@@ -191,17 +212,17 @@ export const decideFindings = async (
   id: string,
   decision: Decision & { accept: string[]; confirm: boolean; by: Decider },
 ) => {
-  const action = await store.proposedActions.get(id)
-  if (action.kind !== EVIDENCE_FINDINGS_KIND) {
+  const batch = BATCHES[(await store.proposedActions.get(id)).kind]
+  if (!batch) {
     if (decision.accept.length || decision.fingerprint !== undefined)
       throw new CliError("validation_error", "finding IDs and --fingerprint are for a findings batch")
     return undefined
   }
-  if (decision.fingerprint === undefined)
+  if (decision.fingerprint === undefined && batch.required)
     throw new CliError("validation_error", "a findings batch needs the --fingerprint actions show gives", {
       param: "fingerprint",
     })
-  await decideBatch(store, id, { ...decision, fingerprint: decision.fingerprint })
+  await decideBatch(store, id, decision)
   return showAction(store, id)
 }
 
@@ -212,11 +233,13 @@ export const decideFindings = async (
 export const decideBatch = async (
   store: MessageStore,
   id: string,
-  decision: { fingerprint: string; accept: readonly string[]; confirm: boolean; by: Decider; reason?: string },
+  decision: { fingerprint?: string; accept: readonly string[]; confirm: boolean; by: Decider; reason?: string },
 ) => {
-  if ((await store.evidenceFindings.get(id)).fingerprint !== decision.fingerprint)
-    throw new CliError("validation_error", "evidence findings changed since they were read; stage a new batch", {
-      reason: "evidence-findings.stale",
+  const batch = BATCHES[(await store.proposedActions.get(id)).kind]
+  if (!batch) throw new CliError("validation_error", "not a findings batch")
+  if (decision.fingerprint !== undefined && (await batch.fingerprint(store, id)) !== decision.fingerprint)
+    throw new CliError("validation_error", "the findings changed since they were read; stage a new batch", {
+      reason: batch.stale,
     })
   const parts = decision.confirm && decision.accept.length ? decision.accept.map((one) => `${id}/${one}`) : [id]
   const { decided, refused } = await proposalRegistry(store).decide(
