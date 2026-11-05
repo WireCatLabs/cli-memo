@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**674 ✅ · 0 ⛔ · 131 ❌** — 184 commands, 621 options.
+**675 ✅ · 0 ⛔ · 131 ❌** — 184 commands, 622 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -769,6 +769,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `schedule command` | `--at-time` | ❌ |  |
 | `schedule command` | `--json` | ❌ |  |
 | `schedule agent` |  | ✅ |  |
+| `schedule agent` | `--model` | ✅ |  |
 | `schedule agent` | `--max-cost` | ✅ |  |
 | `schedule agent` | `--max-cost-per-day` | ✅ |  |
 | `schedule agent` | `--every` | ✅ |  |

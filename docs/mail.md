@@ -60,14 +60,17 @@ memo schedule agent mail-triage claude 'Run memo skill show mail-triage and foll
 ```
 
 Every 5 minutes the schedule checks the store. With no mail past the `mail-triage` mark it does nothing: no model
-call, no notification. It waits until 10 emails wait for it, or the oldest has waited 30 minutes, so a day of scattered
-mail costs a few runs, not dozens. Bulk mail, suspicious senders and other mail it would skip do not count. Once the
-day's runs have cost 5 US dollars, no run starts until the next day; `memo schedule list` shows the day's spend and
-why it skipped. Change these per schedule with `--mail-wait 1h`, `--mail-batch 20` and `--max-cost-per-day 2`, or for
-every schedule in the config file: `schedule_mail_wait`, `schedule_mail_batch` and `schedule_max_cost_per_day`
-(`memo config show` lists them; a flag wins over the file). Otherwise it starts `claude` with only `memo` allowed,
-under `MEMO_READ_ONLY`. That run may move only the `mail-triage` mark. The prompt it
-follows is `memo skill show mail-triage`. Its first run starts from now; older mail is not read.
+call, no notification. It waits until 10 emails wait for it, or the oldest has waited 30 minutes, so a day of
+scattered mail costs a few runs, not dozens. Bulk mail, suspicious senders and other mail it would skip do not count.
+Once the day's runs have cost 5 US dollars, no run starts until the next day; `memo schedule list` shows the day's
+spend and why it skipped. Change these per schedule with `--mail-wait 1h`, `--mail-batch 20` and
+`--max-cost-per-day 2`, or for every schedule in the config file: `schedule_mail_wait`, `schedule_mail_batch` and
+`schedule_max_cost_per_day` (`memo config show` lists them; a flag wins over the file). Otherwise it starts `claude`
+on Sonnet with only `memo` allowed, under `MEMO_READ_ONLY`, and without your MCP servers, skills, settings and
+CLAUDE.md: a run starts on about 4,700 tokens instead of 38,000. `--model opus` picks another model for one schedule,
+and `schedule_model_claude` in the config file for every new one; `schedule_lean_start: false` loads your setup. Both
+apply when the schedule is added, so add it again after changing them. That run may move only the `mail-triage` mark.
+The prompt it follows is `memo skill show mail-triage`. Its first run starts from now; older mail is not read.
 
 What it does, per mailbox:
 

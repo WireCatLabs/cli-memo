@@ -3922,6 +3922,7 @@ memo schedule agent <name> <harness> <prompt> [options]
 
 | Option | What it does |
 |---|---|
+| `--model <model>` | the model it runs on: an alias such as sonnet, or a model id; "" for the harness's default (default sonnet for claude, codex's own for codex, or the config file's). |
 | `--max-cost <usd>` | claude only: stop a run that costs more than this, in US dollars. |
 | `--max-cost-per-day <usd>` | claude only: start no run for the rest of the day once its runs cost this much, in US dollars; 0 for no cap (default 5, or the config file's). |
 | `--every <duration>` | repeat: 30m, 2h, 1d. |
@@ -3934,7 +3935,7 @@ memo schedule agent <name> <harness> <prompt> [options]
 
 **Returns:** start an agent (claude or codex) with a prompt on a timer; it runs with…
 
-**Example:** `memo schedule agent triage claude 'read memo review status and list what needs me today' --at 08:45 --max-cost 1`, `memo schedule agent mail-triage claude 'Run memo skill show mail-triage and follow it.' --every 5m --on-new-mail mail-triage --max-cost 1 --max-cost-per-day 5`, `memo schedule agent mail-triage claude 'Run memo skill show mail-triage and follow it.' --every 5m --on-new-mail mail-triage --mail-wait 1h --mail-batch 20`
+**Example:** `memo schedule agent triage claude 'read memo review status and list what needs me today' --at 08:45 --max-cost 1`, `memo schedule agent mail-triage claude 'Run memo skill show mail-triage and follow it.' --every 5m --on-new-mail mail-triage --mail-wait 1h --mail-batch 20 --max-cost 1 --max-cost-per-day 5`, `memo schedule agent weekly claude 'read memo review status and sum up the week' --at 09:00 --model opus`
 
 ### `memo schedule list`
 
