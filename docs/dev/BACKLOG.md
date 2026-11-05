@@ -24,10 +24,6 @@ None.
 
 ## Next (P2)
 
-- **MEMO-39** · P2 · An agent pays about 16 % more tokens and 20 % more time with memo than with plain files on the same
-  50 questions (OpenClaw, Sonnet): it reads the whole skill on every question and memo's answers are long. Shorter
-  first-steps in the skill and compact search output by default for agents; measure tokens before and after.
-  [cli-testing #287](https://github.com/WireCatLabs/cli-testing/pull/287).
 - **MEMO-34** · P2 · 🟡 `memo deals` over cli-core's personal CRM tables (slice B2), once CORE-45 ships. Records,
   invoices, payments and the money block in `projects status` shipped in #584, #586 and #588. The commands live in
   memo (owner, NEED-2161 A). cli-private `plans/2026-11-02-business-ingestion.md` (TASK-886) §4.7.
@@ -36,7 +32,7 @@ None.
   cites changes (today `memories invalidate` is manual). Proposals go through the proposal registry and `memo review`
   (#574). Plan: cli-private `plans/2026-11-02-context-direction.md` §7.
 - **MEMO-7** · P2 · `search all` and `context` do not read meetings; meetings need `search meetings` with one
-  explicit `--source` (`skills/cli-memo/SKILL.md:104`). Add stored meetings to `search all` with coverage.
+  explicit `--source` (`skills/cli-memo/topics/meetings.md`). Add stored meetings to `search all` with coverage.
 - **MEMO-8** · P2 · Project gathering, next slices: source readiness (slice 1), context expansion with the
   merged Core #1700 (slice 2), optional semantic lane (slice 3). Core-led; memo hosts
   `projects evidence`. Plan: cli-private `plans/projects/2026-10-21-project-semantic-gathering.md`.

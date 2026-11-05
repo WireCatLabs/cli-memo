@@ -250,6 +250,18 @@ const OWN_ENTITIES = entityFields({
   payment_allocation: ["payment", "invoice", "amount", "currency", "created_at"],
 })
 
+/** The parts of the skill an agent reads only when a task needs them; the primary SKILL.md is read every session. */
+export const SKILL_TOPICS = [
+  "search",
+  "projects",
+  "meetings",
+  "mail",
+  "proposals",
+  "money",
+  "mcp",
+  "vocabulary",
+] as const
+
 const FIRST_SCREEN = {
   pitch: "your notes, mail and messages in one local store, linked to people; every answer cites its source.",
   can: [
@@ -341,7 +353,12 @@ export const createProgram = ({
             env,
           }
         },
-        { "mail-triage": new URL("../skills/mail-triage/SKILL.md", import.meta.url) },
+        {
+          ...Object.fromEntries(
+            SKILL_TOPICS.map((topic) => [topic, new URL(`../skills/cli-memo/topics/${topic}.md`, import.meta.url)]),
+          ),
+          "mail-triage": new URL("../skills/mail-triage/SKILL.md", import.meta.url),
+        },
       )
       // memo has no global --json, so each skill command takes its own, as guide does.
       for (const command of skill.commands) command.option("--json", "print JSON")

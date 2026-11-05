@@ -4073,7 +4073,7 @@ memo skill show [name] [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `name` | optional | one of the skills shipped for a task: mail-triage. |
+| `name` | optional | one of the skills shipped for a task: search, projects, meetings, mail, proposals, money, mcp, vocabulary, mail-triage. |
 
 | Option | What it does |
 |---|---|

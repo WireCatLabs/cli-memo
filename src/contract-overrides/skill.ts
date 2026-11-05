@@ -65,7 +65,8 @@ export const skill: readonly SharedContractOverride[] = [
         name: "name",
         required: false,
         variadic: false,
-        description: "one of the skills shipped for a task: mail-triage",
+        description:
+          "one of the skills shipped for a task: search, projects, meetings, mail, proposals, money, mcp, vocabulary, mail-triage",
       },
     ],
     reason: REASON,

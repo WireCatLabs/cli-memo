@@ -6,13 +6,25 @@ import { validateSkill } from "@wirecat/cli-core/skill-validation"
 import type { Command } from "commander"
 import { expect, it } from "vitest"
 import { completeGlobalInstall } from "./install/postinstall.js"
-import { createProgram } from "./program.js"
+import { createProgram, SKILL_TOPICS } from "./program.js"
 import { VERSION } from "./version.js"
 
 const skill = new URL("../skills/cli-memo/SKILL.md", import.meta.url)
+const topics = SKILL_TOPICS.map((topic) => new URL(`../skills/cli-memo/topics/${topic}.md`, import.meta.url))
 
 it("ships a skill whose frontmatter and every memo command it names are valid", () => {
   expect(validateSkill(readFileSync(skill, "utf8"), { folder: "cli-memo", program: createProgram() })).toEqual([])
+})
+
+it("keeps the skill every session reads short, the rest in topics it names", async () => {
+  const text = readFileSync(skill, "utf8")
+  expect(text.length).toBeLessThan(4000)
+  for (const topic of SKILL_TOPICS) {
+    expect(text).toContain(`\`${topic}\``)
+    const streams = captureStreams()
+    await createProgram({ streams }).parseAsync(["skill", "show", topic], { from: "user" })
+    expect(streams.stdout.join("")).toMatch(/^# memo — /)
+  }
 })
 
 const subcommand = (parent: Command, word: string) =>
@@ -47,7 +59,7 @@ const memoLines = (text: string): string[][] => {
 
 it("names only commands that exist, and `memo commands` only with a path that exists", () => {
   const program = createProgram()
-  const lines = memoLines(readFileSync(skill, "utf8"))
+  const lines = [skill, ...topics].flatMap((file) => memoLines(readFileSync(file, "utf8")))
   expect(lines.length).toBeGreaterThan(10)
   for (const words of lines.filter((line) => line.length > 0)) {
     const { path } = commandPath(program, words)
