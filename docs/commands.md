@@ -489,7 +489,7 @@ memo mail review [query] [options]
 |---|---|
 | `--unanswered [duration]` | only threads whose newest email came to you, in To or Cc, with no answer for this long — 4h, 1d; 24h if not given. |
 | `--waiting [duration]` | only threads where you wrote last and nobody answered for this long — 3d; 7d if not given. |
-| `--holder <name>` | read for this holder — an agent or a pipeline — what is stored past its processing mark, by store order; bulk, envelopes, drafts, suspicious senders and partial mail left out; each text without quoted earlier mail or the signature; `messages acknowledge` moves the mark. |
+| `--holder <name>` | read for this holder — an agent or a pipeline — what is stored past its processing mark, by store order; newsletters, envelopes, drafts, suspicious senders and partial mail left out; other bulk mail after the rest, as its subject and first lines (excerpt_only); each text without quoted earlier mail or the signature; `messages acknowledge` moves the mark. |
 | `--new` | what changed since the last `review --new` of this mailbox, a point per thread — for scheduled runs. |
 | `--source <accounts>` | the one mailbox: email:<address>, email or group:<name>; may be left out when the store holds one mailbox. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
