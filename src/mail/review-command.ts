@@ -45,6 +45,7 @@ export const mailReviewCommands = (mail: Command, messages: Command, env: NodeJS
     mount: {
       review: "mail review",
       acknowledge: "messages acknowledge",
+      findings: "mail findings add",
       conversation: null,
       mailbox: { option: "source", value: (mailbox) => `email:${mailbox.account}` },
     },
