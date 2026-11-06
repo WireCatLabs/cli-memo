@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.40 — 06.11.2026
+
 ### Changed — may break callers
 
 - **`memo projects status` has room under its size limits again (cli-core 0.583.0).** On the E7 fixture JSON
