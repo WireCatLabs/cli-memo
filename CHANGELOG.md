@@ -8,7 +8,7 @@ the API.
 
 ### Added
 
-- **`memo deals`, `memo leads` and `memo pipelines`: sales pipelines and what is in them (cli-core 0.587.0, store
+- **`memo deals`, `memo leads` and `memo pipelines`: sales pipelines and what is in them (cli-core 0.588.0, store
   version 52).** `memo deals add <title> <stage> [amount] [currency]` and `memo leads add <title> [stage]` record one
   with `--organization`, `--person` and `--role` (owner, contact, decision-maker), `--due` and `--project`; `list`,
   `show`, `move <ref> <stage>` and `close <ref> won|lost [--reason]` follow. Memo starts with one lead pipeline,
