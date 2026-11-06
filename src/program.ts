@@ -453,6 +453,7 @@ export const createProgram = ({
             SKILL_TOPICS.map((topic) => [topic, new URL(`../skills/cli-memo/topics/${topic}.md`, import.meta.url)]),
           ),
           "mail-triage": new URL("../skills/mail-triage/SKILL.md", import.meta.url),
+          "morning-digest": new URL("../skills/morning-digest/SKILL.md", import.meta.url),
         },
       )
       // memo has no global --json, so each skill command takes its own, as guide does.

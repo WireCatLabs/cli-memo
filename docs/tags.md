@@ -66,6 +66,19 @@ memo tags list                              # every tag, up to 100
 `memo tags list` shows 100 tags at a time; add `--limit 500` to see more. `type:note` or
 `type:person` shows only one kind.
 
+## The watch list
+
+The tag `watch` marks what the morning digest must never miss. `memo review agenda` shows everything new in a
+watched chat or mail thread, every chat a watched person wrote in, each watched project even when it was quiet, and
+the meetings of a watched meeting's series.
+
+```sh
+memo tags add watch --chat 12345 --account telegram:1   # a chat or a mail thread
+memo tags add watch --person 01J8…                      # a person, in every account
+memo tags add watch --project HRB                       # a project
+memo review agenda --compact                            # the digest an agent reads
+```
+
 ## Remove a tag
 
 ```sh

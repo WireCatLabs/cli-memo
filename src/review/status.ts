@@ -7,7 +7,7 @@ import { reviewRegistry } from "./kinds.js"
 /** Pages read to count proposals; past them the count says "at least". */
 const MOST_PAGES = 10
 
-const counted = async (
+export const counted = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
   filter: Omit<ProposalFilter, "limit" | "offset">,
