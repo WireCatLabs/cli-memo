@@ -205,7 +205,8 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   annotate(projects.command("context"), { effects: LOCAL_READ })
     .description(
       "one project by its id, project:<id>, key, exact name or alias: its key documents first, then its " +
-        "relationships, notes, tags, pending findings and open tasks. Review proposals together; nothing is confirmed",
+        "relationships, notes, tags, pending findings and open tasks. Review proposals together; nothing is confirmed. `review.waiting` counts what waits for you, by kind, " +
+        "and `next` names the command that lists them",
     )
     .summary("one project: key documents, pending findings and open tasks; start work here")
     .argument("<project>", "its id, project:<id>, key, exact name or alias")

@@ -235,5 +235,7 @@ it("says when nothing happened, and counts what waits in the status and in the p
   expect(status.proposed.kinds).toMatchObject({ meeting_findings: 1, mail_findings: 1, task_close: 1, fact: 1 })
   const context = (await f.run({}, OWNER, "projects", "context", "SYH")).item
   expect(context.review.waiting).toMatchObject({ count: 3, complete: true })
+  expect(context.review.waiting.next.args.query).toBe("project:SYH")
+  expect(Object.values(context.review.waiting.kinds).reduce((a: number, b) => a + (b as number), 0)).toBe(3)
   expect(await f.raw({}, OWNER, "projects", "context", "SYH")).toContain("Pending review: 3 proposals waiting")
 })
