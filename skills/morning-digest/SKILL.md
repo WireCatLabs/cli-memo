@@ -38,11 +38,12 @@ You run on a schedule with `Bash(memo:*)` under `MEMO_READ_ONLY`. Every write is
 
 ## Report
 
-Short, scannable, in the owner's language (Russian unless he wrote in English):
+Short, scannable, addressed to the owner as "you". Write all of it, the headings included, in one language: the
+language of the owner's recent messages, Russian if unsure. Translate the headings below; never mix languages:
 
-1. **Today** — at most 7 lines: what he must answer, decide or do, each with its reference and who.
+1. **Today** — at most 7 lines: what you must answer, decide or do, each with its reference and who.
 2. **Moving** — projects and meetings in one line each.
-3. **Waiting on him** — proposals by kind with the count, and `memo review list` as the place to decide.
+3. **Waiting on you** — proposals by kind with the count, and `memo review list` as the place to decide.
 4. **Gaps** — what the agenda missed, one line each, as above; "none" when there were none.
 5. **Coverage** — stale accounts, by name; nothing when all are fresh.
 
