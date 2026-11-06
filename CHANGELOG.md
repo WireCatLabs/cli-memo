@@ -6,6 +6,16 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo mail findings add` (and `--dry-run`) leaves out duplicates and stages the rest.** A finding whose order,
+  invoice, payment, task or fact is stored, already waits in a proposed batch or came earlier in the same batch is not
+  staged. The answer lists it in `duplicates` with `duplicate_of` (the reference that holds it, such as `order:7` or
+  `<batch>/<finding>`) and reason `findings.duplicate`. Same means: order by shop and number or `source_url`; invoice
+  by counterparty and number; payment by amount, currency, date and party; task by `external_id` or `source_url`; fact
+  by its text and subject. A batch of only duplicates stages nothing (`staged: false`). A rejected record holds
+  nothing.
+
 ### Changed — may break callers
 
 - **`memo review agenda` lists owed mail only from senders you know.** A known sender is linked to a person with
