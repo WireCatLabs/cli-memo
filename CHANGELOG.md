@@ -6,6 +6,19 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo search all` also finds deals and leads (cli-core 0.589.0)**, yours and every CRM account's copies, by the
+  words of their title; `meta.accounts` names `crm:internal` among the accounts read.
+
+### Changed — may break callers
+
+- **`memo projects status` states money only from the books (cli-core 0.589.0).** `money` sums what confirmed open
+  invoices still owe and never an amount found by words in messages, so a project with no confirmed invoices answers
+  `money: []`. When the project or a child has a confirmed invoice or payment, `amounts` is left out: its word match
+  also found your own quotes, product prices and deposits and called them open. Billed, paid and owed stay in
+  `finance`. A project with no books still lists `amounts`, marked `basis: pattern`.
+
 ## 0.131.42 — 06.11.2026
 
 ### Added
