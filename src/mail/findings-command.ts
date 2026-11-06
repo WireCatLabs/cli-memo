@@ -5,6 +5,7 @@ import {
   environmentOf,
   LOCAL_READ,
   LOCAL_WRITE,
+  mailFindingFieldsHelp,
   parseMailFindingsJson,
   proposesOnly,
   queryTerms,
@@ -30,18 +31,14 @@ Input: schema_version 1, key, extractor, findings. key is the one \`mail review 
 mail-findings.add step (mail-triage:9123456, or mail-triage:9123456-r1 after the owner moved the mark back); pass it
 as --key or in the JSON. The same key and input give the same batch, the same key with another input is refused. 1–30 findings, at most 5 from one sender; each cites 1–8 msg:email/… references with the
 fingerprint review gave, and at least one email of this mailbox.
-Kinds: task (type bug|feature|chore, title, reason, commitment explicit|inferred, optional project, due_at with
-due_evidence, assignee with assignee_evidence; no project means the mailbox's inbox project) · task_update (task,
-change close|due|detail, reason; due needs due_at, detail needs detail) · fact (type, statement, subject or project)
-· memory (memory_kind, scope, body, subject or project) · link (from, to, reason: contact:email/<address> → person:N,
-person:N → organization:N, chat:email/… → project:N) · new_contact (address of a cited email's sender or recipient,
-name, reason) · invoice (direction receivable|payable, counterparty person:N|organization:N or counterparty_name with
-optional counterparty_email, currency, lines of description and amount, optional total, number, issue_date,
-due_date, project) · payment (direction in|out, amount,
-currency, date, optional payer or payer_name, payee or payee_name, reference, allocations of stored invoices) ·
-order (purpose personal|business|client|other, supplier_name, optional customer or customer_name, supplier, number,
-total with currency, status, order_date, invoice, payment, source_url) · order_update (supplier_name and number of
-a stored order, status, date when delivered).
+Every finding gives id, kind, evidence and the fields its kind needs, reason among them; the others are optional:
+${mailFindingFieldsHelp()}
+A task's due_at is a timestamp with a timezone and comes with due_evidence, the cited refs that give the date:
+"due_at":"2026-11-09T09:00:00Z","due_evidence":["msg:email/…"]; assignee comes with assignee_evidence the same way.
+An invoice names counterparty (person:N or organization:N) or counterparty_name. A task_update's due change gives
+due_at, its detail change gives detail; a link goes contact:email/<address> → person:N, person:N → organization:N or
+chat:email/… → project:N; a memory is about a subject or a project; an order_update names a stored order, with date
+only when delivered.
 An invoice, payment or order is checked as memo invoices|payments|orders add checks yours; a refusal names why.
 A cited email that changed since review refuses the batch (mail-findings.stale), one still partial too
 (mail-findings.partial). Nothing is created until the owner confirms: memo review confirm <batch>/<finding>.

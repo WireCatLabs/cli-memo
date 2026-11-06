@@ -12,7 +12,7 @@ description: >-
 You run on a schedule with `Bash(memo:*)` under `MEMO_READ_ONLY`. memo lets you read, stage one findings batch per
 mailbox (`memo mail findings add`) and move your own mark (`memo messages acknowledge`). Your schedule names your
 holder (`--on-new-mail mail-triage`), and memo refuses to move any other mark. Everything else is refused, and that is
-intended. Expect several emails per run.
+intended.
 
 ## Hard rules
 
@@ -52,10 +52,8 @@ comes after the rest, with `email.bulk: true` and `email.excerpt_only: true`: it
 first lines. Each item is one email: `ref` (`msg:email/…`), `chat_id` (the thread), `sender_is_me`, `text`, and
 `email` with `fingerprint`, `from`, `new_sender`, `sender_identities`. `text` is the email's own text: quoted earlier
 mail and the signature are left out, and the fingerprint still covers the whole stored email. `next` gives your
-`key` (step `mail-findings.add`) and `cursor` (step `mail-messages.acknowledge`). A first run has no mark yet: no items, only the
-cursor — go straight to step 6.
-
-No items: go to step 6 with the cursor.
+`key` (step `mail-findings.add`) and `cursor` (step `mail-messages.acknowledge`). No items (a first run has none):
+go straight to step 6 with the cursor.
 
 ### 2. Triage — which emails need a look
 
@@ -104,8 +102,8 @@ Prefer few, sure findings. Tasks and closes come first; facts, memories and link
 plainly.
 
 - `task` — the owner must do something, or someone promised him something. `commitment: explicit` when the email
-  says it, `inferred` otherwise. `due_at` only with a date the email gives (`due_evidence`). No `project` → the
-  mailbox's inbox project.
+  says it, `inferred` otherwise. A date the email gives: `"due_at":"2026-11-09T09:00:00Z"` with
+  `"due_evidence":["<ref>"]`, the refs as plain strings. No `project` → the mailbox's inbox project.
 - Marketplace messages (step 2) — always a `task` "Reply on <platform> to <name>" (such as "Reply on Avito to Ivan
   about the café ad"), `type: chore`, `commitment: explicit`. One per counterpart per day: several emails from the
   same person on the same platform that day are one task citing them all (up to 8), and when
@@ -149,8 +147,9 @@ plainly.
   date, such as "E-signature certificate 12-345 from <issuer>, expires 2027-03-01". `subject` is the organization
   or person it belongs to when linked.
 
-A finding takes only its kind's fields above, plus `id`, `kind`, `evidence`: no `title` on an invoice, payment,
-order or fact, no `reason` on a fact. A list takes `field:value` terms, never a bare word: `number:FACT-2026-00012`.
+Every finding gives a one-line `reason`. Only a `task` has a `title`.
+`memo mail findings add --help` lists each kind's fields. A list takes `field:value` terms, never a bare word:
+`number:FACT-2026-00012`.
 
 ### 5. New senders, among kept emails
 

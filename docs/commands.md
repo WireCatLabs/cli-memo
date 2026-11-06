@@ -401,7 +401,7 @@ memo messages acknowledge [options]
 
 ### `memo messages reset`
 
-the owner moves a holder's mark back past the mail received since --since-time, or past the last --last emails it was given; its next reviews give that mail again. The answer says how many emails it reads again. An agent cannot: a holder only moves its own mark forward, with `messages acknowledge`
+the owner moves a holder's mark back past the mail received since --since-time, or past the last --last emails it was given; its next reviews give that mail again. The answer says how many emails it reads again. Every reset counts, even one that leaves the mark where it is, so the holder's next findings key is new. An agent cannot: a holder only moves its own mark forward, with `messages acknowledge`
 
 This command changes the local store or your files.
 
@@ -418,7 +418,7 @@ memo messages reset [options]
 | `--source <accounts>` | the one mailbox: email:<address>, email or group:<name>; may be left out when the store holds one mailbox. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** mail mark reset — mark, from_id, again, bulk, skipped, dry_run; every field: memo commands info messages reset
+**Returns:** mail mark reset — mark, from_id, again, bulk, skipped, resets, dry_run; every field: memo commands info messages reset
 
 **Example:** `memo messages reset --holder mail-triage --last 8 --dry-run --source email:me@example.com`, `memo messages reset --holder mail-triage --since-time 2026-11-04T00:00:00Z --source email:work --json`
 
@@ -1459,7 +1459,7 @@ memo projects status <project> [options]
 | `--compact` | one line per signal, chat and next step, for an agent. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** project status — project, key, name, window, signals, money, chats, purposes, and 8 more; every field: memo commands info projects status
+**Returns:** project status — project, key, name, signals, money, chats, purposes, out_of_scope, and 7 more; every field: memo commands info projects status
 
 **Example:** `memo projects status HRB --context-query 1C`, `memo projects status HRB --compact`
 
@@ -3479,7 +3479,7 @@ memo review status [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--since-time <time>` | how far back: hours or days (12h, 7d) or a start date (2026-11-01). Default: `1d`. |
 
-**Returns:** since yesterday: new mail, what is owed and waiting, what agents proposed
+**Returns:** review status — since, at, mail, proposed, waiting, quiet; every field: memo commands info review status
 
 **Example:** `memo review status`, `memo review status --since-time 7d --json`
 
@@ -4153,7 +4153,7 @@ memo schedule list [query] [options]
 |---|---|
 | `--json` | print JSON. |
 
-**Returns:** scheduled job — name, kind, when, last; every field: memo commands info schedule list
+**Returns:** scheduled job — name, kind, when, last, spent_today_usd, max_cost_usd, max_cost_per_day_usd; every field: memo commands info schedule list
 
 **Example:** `memo schedule list`, `memo schedule list kind:agent --json`
 

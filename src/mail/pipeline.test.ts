@@ -162,7 +162,14 @@ const scriptedAgent = (items: Item[], task: { ref: string }, through: string) =>
         commitment: "explicit",
         evidence: evidenceOf(ask),
       },
-      { id: "c1", kind: "new_contact", address: "bob@example.org", name: "Bob", evidence: evidenceOf(ask) },
+      {
+        id: "c1",
+        kind: "new_contact",
+        address: "bob@example.org",
+        name: "Bob",
+        reason: "Bob wrote",
+        evidence: evidenceOf(ask),
+      },
     ],
   }
 }
@@ -316,6 +323,7 @@ it("refuses a batch that cites mail changed since review, and stages nothing", a
         kind: "new_contact",
         address: "bob@example.org",
         name: "Bob",
+        reason: "Bob wrote",
         evidence: [{ reference: item.ref, fingerprint: "0".repeat(64) }],
       },
     ],
@@ -350,8 +358,9 @@ it("lets a read-only agent stage and acknowledge, and refuses every other change
   ).not.toBe("permission_error")
 })
 
-it("hands on review steps as memo's own commands, naming the mailbox", async () => {
-  const box = await mailbox()
+it("hands on review steps as memo's own commands, naming the mailbox, and no findings step without mail", async () => {
+  const box = await triaged()
+  expect((await box.review()).next?.map((one) => one.step)).toEqual(["mail-messages.acknowledge"])
   await box.thread("t-quote", email("quote", 1))
   await box.synced()
   const read = await box.review()
