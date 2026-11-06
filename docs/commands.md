@@ -18,7 +18,7 @@ These options work with the `memo` command itself.
 
 ## `memo context`
 
-messages, mail, notes and events about a person, each with a link to its source
+messages, mail, notes and events about a person, each with a link to its source; `proposals` counts what waits for you about them, by kind (`complete: false` means at least), and `next` names the command that lists them
 
 ```sh
 memo context <person> [options]
@@ -1380,7 +1380,7 @@ memo projects list [query] [options]
 
 ### `memo projects context`
 
-one project by its id, project:<id>, key, exact name or alias: its key documents first, then its relationships, notes, tags, pending findings and open tasks. Review proposals together; nothing is confirmed
+one project by its id, project:<id>, key, exact name or alias: its key documents first, then its relationships, notes, tags, pending findings and open tasks. Review proposals together; nothing is confirmed. `review.waiting` counts what waits for you, by kind, and `next` names the command that lists them
 
 ```sh
 memo projects context <project> [options]

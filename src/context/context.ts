@@ -111,9 +111,10 @@ const anchorOf = async (
   const matches = seen.filter(
     (one) => source === undefined || (one.provider === source.provider && one.account === source.account),
   )
-  const [only] = matches
-  if (matches.length === 1 && only) return only
   const accounts = [...new Set(matches.map((one) => `${one.provider}:${one.account}`))]
+  const [first] = matches
+  // Several identities of one person on one account all resolve to the same person context.
+  if (accounts.length === 1 && first) return first
   throw new CliError(
     matches.length === 0 ? "not_found" : "validation_error",
     matches.length === 0

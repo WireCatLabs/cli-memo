@@ -7,7 +7,7 @@ import { answers, itemAnswer, withStore } from "../answer.js"
 import { boundFolders } from "../notes/bound.js"
 import { positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
-import { waitingAbout } from "../review/status.js"
+import { atLeast, kindsText, waitingAbout } from "../review/status.js"
 import { contextAccountOf, type MemoContext, memoContext, withOwnMailText } from "./context.js"
 
 const MAX_TEXT = 160
@@ -29,7 +29,9 @@ const noteLine = (note: { ref: string; path: string | null; title?: string | nul
 const fileLine = (file: MemoContext["files"][number]) =>
   `  ${file.ref}  ${file.role ?? ""}  ${file.title ?? ""}  ${file.modifiedAt?.slice(0, 16).replace("T", " ") ?? ""}  ${file.url ?? ""}`
 
-type Waiting = { proposals: { count: number; complete: boolean } }
+type Waiting = {
+  proposals: { count: number; kinds: Record<string, number>; complete: boolean; next: { command: string } }
+}
 
 export const contextText = ({
   messages,
@@ -47,8 +49,8 @@ export const contextText = ({
     ...person.identities.map(({ provider, id, name }) => `  ${provider}:${id}  ${name ?? ""}`),
     ...(proposals.count
       ? [
-          `  ${proposals.count}${proposals.complete ? "" : "+"} proposal${proposals.count === 1 ? "" : "s"} ` +
-            "about them waiting — memo review",
+          `  ${atLeast(proposals.count, proposals.complete)} proposal${proposals.count === 1 ? "" : "s"} ` +
+            `about them waiting (${kindsText(proposals.kinds)}) — memo ${proposals.next.command}`,
         ]
       : []),
     "",
@@ -95,7 +97,11 @@ export const contextText = ({
 export const contextCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
   annotate(program.command("context"), { effects: LOCAL_READ })
-    .description("messages, mail, notes and events about a person, each with a link to its source")
+    .description(
+      "messages, mail, notes and events about a person, each with a link to its source; `proposals` counts what " +
+        "waits for you about them, by kind (`complete: false` means at least), and `next` names the command that lists them",
+    )
+    .summary("messages, mail, notes and events about a person, each with a link to its source")
     .argument(
       "<person>",
       "<messenger>:<name or id>, e.g. telegram:Ana or email:ana@example.com, person:<id>, or person:me for you",
@@ -120,7 +126,7 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
         const refs = [`person:${uid}`, ...identities.map(({ provider, id }) => `${provider}:${id}`)]
         return {
           ...(options.trimmed ? withOwnMailText(found) : found),
-          proposals: await waitingAbout(store, env, refs),
+          proposals: { ...(await waitingAbout(store, env, refs)), next: { command: "review list" } },
         }
       })
       print(options.json, itemAnswer(answer), contextText(answer))

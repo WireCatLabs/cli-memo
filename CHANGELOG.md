@@ -6,8 +6,16 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **`memo context person:<id> --source <account>` no longer rejects the account it suggests** when the person has
+  several identities on that one account (the owner with two Telegram ids). The waiting proposals' `next` and text
+  name `project:<key>`, not `project:project:<id>`.
+
 ### Added
 
+- **`memo context` and `memo projects context` break the waiting proposals down by kind.** `proposals` (person) and
+  `review.waiting` (project) carry `kinds` next to `count`, and the person's answer names `next`: `review list`.
 - **`memo review agenda`: the morning digest in one read, no model call.** In a fixed order it lists everything new
   in what you tagged `watch` (chats, mail threads, people, projects, a meeting's series: `memo tags add watch …`),
   replies you owe in messengers and personal mail over the last 7 days, new personal mail, meetings that ended,

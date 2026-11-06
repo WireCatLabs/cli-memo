@@ -30,15 +30,18 @@ export const counted = async (
 export const waitingAbout = async (store: MessageStore, env: NodeJS.ProcessEnv, refs: readonly string[]) => {
   const wanted = new Set(refs)
   const registry = reviewRegistry(store)
+  const kinds: Record<string, number> = {}
   let count = 0
   for (let page = 0; page < MOST_PAGES; page++) {
     const found = await registry.list({ status: "proposed", limit: 50, offset: page * 50 })
-    count += found.items.filter((row) =>
-      [row.subject, row.object, row.project].some((ref) => ref !== null && wanted.has(ref)),
-    ).length
-    if (!found.hasMore) return { count, complete: true }
+    for (const row of found.items)
+      if ([row.subject, row.object, row.project].some((ref) => ref !== null && wanted.has(ref))) {
+        kinds[row.kind] = (kinds[row.kind] ?? 0) + 1
+        count++
+      }
+    if (!found.hasMore) return { count, kinds, complete: true }
   }
-  return { count, complete: false }
+  return { count, kinds, complete: false }
 }
 
 /**
@@ -78,13 +81,13 @@ export const reviewStatus = async (store: MessageStore, env: NodeJS.ProcessEnv, 
 
 export type ReviewStatus = Awaited<ReturnType<typeof reviewStatus>>
 
-const kindsText = (kinds: Record<string, number>) =>
+export const kindsText = (kinds: Record<string, number>) =>
   Object.entries(kinds)
     .sort(([, a], [, b]) => b - a)
     .map(([kind, count]) => `${kind} ${count}`)
     .join(", ")
 
-const atLeast = (count: number, complete: boolean) => `${count}${complete ? "" : "+"}`
+export const atLeast = (count: number, complete: boolean) => `${count}${complete ? "" : "+"}`
 
 export const reviewStatusText = (status: ReviewStatus): string => {
   const since = status.since.slice(0, 16).replace("T", " ")
