@@ -80,7 +80,7 @@ it("refuses an allocation beyond the payment and totals the project's confirmed 
   const invoice = await f.item(
     OWNER,
     ...["invoices", "add", "50000.00", "RUB", "Аренда", "кровати", "--kind", "receivable"],
-    ...["--organization", f.client, "--project", "SYR", "--due", "2026-11-15"],
+    ...["--organization", f.client, "--project", "SYR", "--due", "2026-11-15", "--title", "FACT-2026-00012"],
   )
   expect(invoice).toMatchObject({ review: "confirmed", status: "issued", total: "50000.00" })
   const payment = await f.item(
@@ -119,6 +119,9 @@ it("refuses an allocation beyond the payment and totals the project's confirmed 
     "--project",
     "SYR",
   )
+
+  const numbered = await f.run(OWNER, "invoices", "list", "number:FACT-2026-00012")
+  expect((numbered.items as { ref: string }[]).map((one) => one.ref)).toEqual([invoice.ref])
 
   const status = await f.item(OWNER, "projects", "status", "SYR")
   expect(status.finance).toEqual([

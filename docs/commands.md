@@ -3655,7 +3655,7 @@ memo review status [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--since-time <time>` | how far back: hours or days (12h, 7d) or a start date (2026-11-01). Default: `1d`. |
 
-**Returns:** since yesterday: new mail, what is owed and waiting, what agents proposed
+**Returns:** review status — since, at, mail, proposed, waiting, quiet; every field: memo commands info review status
 
 **Example:** `memo review status`, `memo review status --since-time 7d --json`
 

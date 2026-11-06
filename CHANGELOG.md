@@ -6,15 +6,34 @@ the API.
 
 ## Unreleased
 
+## 0.131.41 — 06.11.2026
+
 ### Added
 
-- **`memo deals` and `memo pipelines`: deals in your sales pipelines (cli-core 0.585.0, store version 52).**
-  `memo pipelines add <name> <stage...>` makes a pipeline (only you), `memo pipelines list` shows its stages and the
-  open deals in each. `memo deals add <title> <stage> [amount] [currency]` records a deal with `--organization`,
-  `--person` and `--role` (owner, contact, decision-maker), `--due` and `--project`; yours is confirmed at once, an
-  agent's waits in `memo review kind:deal`. `memo deals list`, `show`, `move <ref> <stage>` and
-  `close <ref> won|lost [--reason]`; only you move or close a deal. `memo projects status` lists up to five open
-  confirmed deals of the project (`deals`).
+- **`memo invoices list number:<number>`** lists the invoice with that printed number, as `memo orders list
+  number:` does for orders. Before, `number:` was refused as an unknown field.
+
+### Changed — may break callers
+
+- **Every mail finding needs `reason`, a fact, a memory and a new contact too.** The mail-triage skill said invoices
+  and orders take none while the check refused them without one. `memo mail findings add --help` now lists each
+  kind's fields from the check itself, and a missing one is refused by name (`finding.missing-field`).
+
+### Fixed
+
+- **A mail task with a due date stages.** The skill and `--help` show the form the check takes,
+  `"due_at":"2026-11-09T09:00:00Z","due_evidence":["<ref>"]`, and each refusal names what is wrong.
+- **`memo messages reset` to where the mark already is counts as a reset.** It says "mark unchanged … counted as a
+  reset" and gives `resets`, and the next mail-triage run gets a new findings key instead of being refused.
+- **`memo mail review --holder` gives no findings step when there is no new mail.**
+- **`memo review status --json` has a real output schema.** `memo commands info review status` described a generic
+  list; it now describes the answer: `item.mail[]` (account, threads, owed, waiting, the agents' marks),
+  `item.proposed` and `item.waiting` (count, kinds, complete), `item.quiet`.
+- **`memo schedule list` gives an agent schedule's cost caps, and its schema lists what it prints.** `max_cost_usd`
+  (one run's cap, null when none) and `max_cost_per_day_usd` (the daily cap in force) join `spent_today_usd`, which
+  the strict output schema refused before; the text says `today $0.84 of $5.00`.
+
+## 0.131.40 — 06.11.2026
 
 ### Changed — may break callers
 

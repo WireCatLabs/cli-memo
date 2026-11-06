@@ -1,6 +1,7 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { answerEntity, LOCAL_READ, LOCAL_WRITE, parseDuration, type RowShape, withQuery } from "@wirecat/cli-core/cli"
+import { mailMark } from "@wirecat/cli-core/mail/cli"
 import { parseProposalIds } from "@wirecat/cli-core/services"
 import type { Command } from "commander"
 import * as v from "valibot"
@@ -21,6 +22,32 @@ import {
   showReview,
 } from "./review.js"
 import { reviewStatus, reviewStatusText } from "./status.js"
+
+/** Proposals counted by kind; `complete` false means at least `count`, past the pages read. */
+const COUNTED = v.strictObject({
+  count: v.number(),
+  kinds: v.record(v.string(), v.number()),
+  complete: v.boolean(),
+})
+export const REVIEW_STATUS = v.strictObject({
+  since: v.string(),
+  at: v.string(),
+  /** Per mail account, `email:<address>`: threads with new mail since, owed and waiting ones, the agents' marks. */
+  mail: v.array(
+    v.strictObject({
+      account: v.string(),
+      threads: v.number(),
+      owed: v.number(),
+      waiting: v.number(),
+      coverage: v.array(mailMark),
+    }),
+  ),
+  /** Proposed since `since`, whatever became of them. */
+  proposed: COUNTED,
+  /** Waiting for the owner now. */
+  waiting: COUNTED,
+  quiet: v.boolean(),
+})
 
 const PROPOSAL = v.strictObject({
   id: v.string(),
@@ -184,7 +211,7 @@ export const reviewCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     )
   }
 
-  json(annotate(review.command("status"), { effects: LOCAL_READ, output: { entity: "review_status" } }))
+  json(answerEntity(annotate(review.command("status"), { effects: LOCAL_READ }), "review_status", REVIEW_STATUS))
     .summary("since yesterday: new mail, what is owed and waiting, what agents proposed")
     .description(
       "the owner's daily look, with no model call: per mail account the threads with new mail, what you owe and " +

@@ -4,10 +4,12 @@ import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { sampleMeeting } from "@wirecat/cli-core/meetings/testing"
 import { openStore } from "@wirecat/cli-core/store"
+import * as v from "valibot"
 import { afterEach, expect, it } from "vitest"
 import { envelopeOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
 import type { Terminal } from "../terminal.js"
+import { REVIEW_STATUS } from "./command.js"
 
 const CLAUDE = { AI_AGENT: "claude-code_2-1-296_agent" }
 const NOBODY: Terminal = { present: false }
@@ -229,6 +231,7 @@ it("says when nothing happened, and counts what waits in the status and in the p
   const f = await setUp()
   const status = (await f.run({}, OWNER, "review", "status")).item
   expect(status).toMatchObject({ quiet: false, waiting: { count: 4, complete: true } })
+  expect(v.safeParse(REVIEW_STATUS, status).success).toBe(true)
   expect(status.proposed.kinds).toMatchObject({ meeting_findings: 1, mail_findings: 1, task_close: 1, fact: 1 })
   const context = (await f.run({}, OWNER, "projects", "context", "SYH")).item
   expect(context.review.waiting).toMatchObject({ count: 3, complete: true })
