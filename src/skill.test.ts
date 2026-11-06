@@ -11,6 +11,7 @@ import { VERSION } from "./version.js"
 
 const skill = new URL("../skills/cli-memo/SKILL.md", import.meta.url)
 const topics = SKILL_TOPICS.map((topic) => new URL(`../skills/cli-memo/topics/${topic}.md`, import.meta.url))
+const morning = new URL("../skills/morning-digest/SKILL.md", import.meta.url)
 
 it("ships a skill whose frontmatter and every memo command it names are valid", () => {
   expect(validateSkill(readFileSync(skill, "utf8"), { folder: "cli-memo", program: createProgram() })).toEqual([])
@@ -64,7 +65,7 @@ const memoLines = (text: string): string[][] => {
 
 it("names only commands that exist, and `memo commands` only with a path that exists", () => {
   const program = createProgram()
-  const lines = [skill, ...topics].flatMap((file) => memoLines(readFileSync(file, "utf8")))
+  const lines = [skill, ...topics, morning].flatMap((file) => memoLines(readFileSync(file, "utf8")))
   expect(lines.length).toBeGreaterThan(10)
   for (const words of lines.filter((line) => line.length > 0)) {
     const { path } = commandPath(program, words)

@@ -1,12 +1,13 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { answerEntity, LOCAL_READ, LOCAL_WRITE, parseDuration, type RowShape, withQuery } from "@wirecat/cli-core/cli"
+import { answerEntity, LOCAL_READ, LOCAL_WRITE, type RowShape, withQuery } from "@wirecat/cli-core/cli"
 import { mailMark } from "@wirecat/cli-core/mail/cli"
 import { parseProposalIds } from "@wirecat/cli-core/services"
 import type { Command } from "commander"
 import * as v from "valibot"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
 import { byOption, deciderOf } from "../author.js"
+import { reviewAgendaCommand, sinceOf } from "../digest/command.js"
 import { evidenceContext } from "../knowledge/project-actions.js"
 import { positive, whole } from "../options.js"
 import { reviewRegistry } from "./kinds.js"
@@ -211,6 +212,8 @@ export const reviewCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     )
   }
 
+  reviewAgendaCommand(review, print, streams, env)
+
   json(answerEntity(annotate(review.command("status"), { effects: LOCAL_READ }), "review_status", REVIEW_STATUS))
     .summary("since yesterday: new mail, what is owed and waiting, what agents proposed")
     .description(
@@ -219,13 +222,7 @@ export const reviewCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     )
     .option("--since-time <time>", "how far back: hours or days (12h, 7d) or a start date (2026-11-01)", "1d")
     .action(async (given: { sinceTime: string; json?: boolean }) => {
-      const since = /^\d{4}-\d{2}-\d{2}/.test(given.sinceTime)
-        ? Date.parse(given.sinceTime)
-        : Date.now() - parseDuration(given.sinceTime, "--since-time")
-      if (Number.isNaN(since))
-        throw new CliError("validation_error", `--since-time takes 12h, 7d or a date, not "${given.sinceTime}"`, {
-          param: "since-time",
-        })
+      const since = sinceOf(given.sinceTime)
       const status = await withStore(env, (store) => reviewStatus(store, env, since))
       print(given.json, itemAnswer(status), reviewStatusText(status))
     })

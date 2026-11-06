@@ -293,6 +293,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     'memo review reject 17081 --reason "not this project"',
     "memo review reject close:Q-15 --reason 'still open'",
   ],
+  "review agenda": ["memo review agenda --compact", "memo review agenda --since-time 3d --json"],
   "review status": ["memo review status", "memo review status --since-time 7d --json"],
   "schedule command": [
     "memo schedule command digest --at 08:30 -- review status",

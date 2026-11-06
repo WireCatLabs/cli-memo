@@ -3781,6 +3781,26 @@ memo review reject <ids> [options]
 
 **Example:** `memo review reject 17081 --reason "not this project"`, `memo review reject close:Q-15 --reason 'still open'`
 
+### `memo review agenda`
+
+the morning digest, from the store alone with no model call: everything new in what you tagged watch (chats, mail threads, people, projects, a meeting's series), replies you owe in messengers and personal mail, new personal mail, meetings that ended, tasks due or overdue, projects that moved, proposals waiting. Replies owed reach back 7 days. Each item has its reference, who, when, one line of text and why it is there; a section cut by --limit or --max-output-bytes says how many it left out and the command that reads them. Coverage says how fresh each account is, so a quiet account that was not synced does not read as a quiet day
+
+```sh
+memo review agenda [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--since-time <time>` | how far back: hours or days (12h, 7d) or a start date (2026-11-01). Default: `1d`. |
+| `--limit <n>` | items per section before the size budget. Default: `25`. |
+| `--max-output-bytes <bytes>` | the text answer's size budget in bytes; 40000 with --compact, else 80000. |
+| `--compact` | one line per item, shorter excerpts, the smaller budget: for an agent. |
+| `--json` | print JSON. |
+
+**Returns:** the morning digest: watch list, owed replies, mail, meetings, tasks, projects
+
+**Example:** `memo review agenda --compact`, `memo review agenda --since-time 3d --json`
+
 ### `memo review status`
 
 the owner's daily look, with no model call: per mail account the threads with new mail, what you owe and wait for, and how far each agent's processing mark has read; then what was proposed and what waits
@@ -4588,7 +4608,7 @@ memo skill show [name] [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `name` | optional | one of the skills shipped for a task: search, projects, meetings, mail, proposals, money, mcp, vocabulary, mail-triage. |
+| `name` | optional | one of the skills shipped for a task: search, projects, meetings, mail, proposals, money, mcp, vocabulary, mail-triage, morning-digest. |
 
 | Option | What it does |
 |---|---|

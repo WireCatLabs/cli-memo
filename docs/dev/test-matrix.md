@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**738 ✅ · 0 ⛔ · 154 ❌** — 205 commands, 687 options.
+**747 ✅ · 0 ⛔ · 155 ❌** — 206 commands, 696 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -733,6 +733,12 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `review reject` | `--as-owner` | ❌ |  |
 | `review reject` | `--reason` | ✅ |  |
 | `review reject` | `--compact` | ❌ |  |
+| `review agenda` |  | ✅ |  |
+| `review agenda` | `--since-time` | ✅ |  |
+| `review agenda` | `--limit` | ✅ |  |
+| `review agenda` | `--max-output-bytes` | ✅ |  |
+| `review agenda` | `--compact` | ✅ |  |
+| `review agenda` | `--json` | ✅ |  |
 | `review status` |  | ✅ |  |
 | `review status` | `--json` | ✅ |  |
 | `review status` | `--since-time` | ✅ |  |

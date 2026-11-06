@@ -26,6 +26,14 @@ the API.
 
 - **`memo context` and `memo projects context` break the waiting proposals down by kind.** `proposals` (person) and
   `review.waiting` (project) carry `kinds` next to `count`, and the person's answer names `next`: `review list`.
+- **`memo review agenda`: the morning digest in one read, no model call.** In a fixed order it lists everything new
+  in what you tagged `watch` (chats, mail threads, people, projects, a meeting's series: `memo tags add watch …`),
+  replies you owe in messengers and personal mail over the last 7 days, new personal mail, meetings that ended,
+  tasks due or overdue, projects that moved and proposals waiting. Each item has its reference, who, when, one line
+  of text and why; a section cut by `--limit` or `--max-output-bytes` counts what it left out and names the command
+  that reads it. `coverage` says how fresh each account is. `--compact` is the agent's form.
+- **The `morning-digest` skill** (`memo skill show morning-digest`) reads the agenda, follows only what it points at
+  and reports as gaps what it found that the agenda missed. It is not scheduled for you.
 
 ## 0.131.43 — 06.11.2026
 
