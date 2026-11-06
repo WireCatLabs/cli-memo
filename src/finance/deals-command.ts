@@ -1,47 +1,55 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
-import { DEAL_ROLES, DEAL_STATUSES, type DealRole, FINANCE_REVIEWS } from "@wirecat/cli-core"
+import { DEAL_KINDS, DEAL_ROLES, DEAL_STATUSES, type DealKind, type DealRole } from "@wirecat/cli-core"
 import { LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
 import type { DealFilter, MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, wholeList } from "../answer.js"
-import { byOption, whoRuns } from "../author.js"
+import { authorOf } from "../author.js"
 import { collect, positive } from "../options.js"
 import { pageOf } from "../page.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { dayOf } from "./finance.js"
 
-export const DEAL_QUERY = {
-  entity: "deal",
-  backend: "native",
-  fields: [
-    termField("project", "kw", "project:PMED"),
-    termField("status", "enum", "status:open", { values: DEAL_STATUSES }),
-    termField("stage", "kw", 'stage:"Quote sent"'),
-    termField("pipeline", "kw", "pipeline:Sales"),
-    termField("organization", "ref", 'organization:"organization:3"'),
-    termField("review", "enum", "review:proposed", { values: FINANCE_REVIEWS }),
-  ],
-} as const satisfies QueryRegistry
+const queryOf = (entity: DealKind) =>
+  ({
+    entity,
+    backend: "native",
+    fields: [
+      termField("project", "kw", "project:PMED"),
+      termField("status", "enum", "status:open", { values: DEAL_STATUSES }),
+      termField("stage", "kw", 'stage:"Quote sent"'),
+      termField("pipeline", "kw", "pipeline:Sales"),
+      termField("organization", "ref", 'organization:"organization:3"'),
+    ],
+  }) as const satisfies QueryRegistry
+
+const QUERIES = { deal: queryOf("deal"), lead: queryOf("lead") }
 
 const PIPELINE_QUERY = {
   entity: "pipeline",
   backend: "native",
-  fields: [termField("name", "kw", "name:Sales")],
+  fields: [termField("kind", "enum", "kind:lead", { values: DEAL_KINDS }), termField("name", "kw", "name:Sales")],
 } as const satisfies QueryRegistry
 
-export const listDeals = async (store: MessageStore, words: readonly string[] | string | undefined, limit?: number) => {
-  const terms = queryTerms(words, DEAL_QUERY, "deals list")
+export const listDeals = async (
+  store: MessageStore,
+  kind: DealKind,
+  words: readonly string[] | string | undefined,
+  limit?: number,
+) => {
+  const command = `${kind}s list`
+  const terms = queryTerms(words, QUERIES[kind], command)
   const filter: DealFilter = {
+    kind,
     ...(terms.has("project") ? { project: await canonicalProject(store, terms.get("project") as string) } : {}),
     ...(terms.has("status") ? { status: terms.get("status") as DealFilter["status"] } : {}),
     ...(terms.has("stage") ? { stage: terms.get("stage") as string } : {}),
     ...(terms.has("pipeline") ? { pipeline: terms.get("pipeline") as string } : {}),
     ...(terms.has("organization") ? { organization: terms.get("organization") as string } : {}),
-    ...(terms.has("review") ? { review: terms.get("review") as DealFilter["review"] } : {}),
   }
-  return pageOf("deals list", limit, (most) => store.deals.list({ ...filter, limit: most }))
+  return pageOf(command, limit, (most) => store.deals.list({ ...filter, limit: most }))
 }
 
 const roleOf = (role: string | undefined): DealRole => {
@@ -54,6 +62,13 @@ const roleOf = (role: string | undefined): DealRole => {
 const referenceOf = (kind: "person" | "organization", value: string) =>
   /^\d+$/.test(value.trim()) ? `${kind}:${value.trim()}` : value.trim()
 
+/** `Sales/Quote` or `pipeline:3/Quote` names the pipeline too; a bare `Quote` is found in the only one that has it. */
+const stageOf = (stage: string | undefined) => {
+  if (stage === undefined) return {}
+  const at = stage.lastIndexOf("/")
+  return at <= 0 ? { stage } : { pipeline: stage.slice(0, at), stage: stage.slice(at + 1) }
+}
+
 interface AddOptions {
   organization?: string
   person?: string[]
@@ -62,114 +77,91 @@ interface AddOptions {
   project?: string
   reason?: string
   evidence?: string[]
-  asOwner?: boolean
   json?: boolean
 }
 
 const json = (command: Command) => command.option("--json", "print JSON; --json=ref,title keeps only those fields")
 
-/** `memo deals` and `memo pipelines`: the owner's sales pipelines and the deals in them. */
-export const dealCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
-  const { run } = answers(program, streams, env)
+const WHAT = {
+  deal: { one: "deal", hope: "what you hope to sell, such as 'Site for the clinic'" },
+  lead: { one: "lead", hope: "who or what came in, such as 'Call from the site'" },
+}
 
-  const pipelines = program
-    .command("pipelines")
-    .description("your sales pipelines: the stages a deal goes through, in order")
-    .summary("your sales pipelines and their stages")
-
-  withQuery(
-    json(annotate(pipelines.command("list"), { effects: LOCAL_READ })).description(
-      "every pipeline with its stages in order and how many open deals stand in each",
-    ),
-    PIPELINE_QUERY,
-  ).action((words: string[], options: { json?: boolean }) =>
-    run(options.json, async (store) => {
-      const name = queryTerms(words, PIPELINE_QUERY, "pipelines list").get("name")?.toLocaleLowerCase()
-      const all = await store.deals.pipelines()
-      return wholeList(
-        "pipelines list",
-        name === undefined ? all : all.filter((one) => one.name.toLocaleLowerCase() === name),
-      )
-    }),
-  )
-
-  json(byOption(annotate(pipelines.command("add"), { effects: LOCAL_WRITE, literal_after_dashes: true })))
-    .description("make a pipeline with its stages in order; only you make one, an agent asks you to")
-    .summary("make a pipeline with its stages")
-    .argument("<name>", "the pipeline's name, such as Sales")
-    .argument("<stage...>", "its stages in order, such as Call Quote Contract")
-    .action(
-      async (name: string, stages: string[], options: { asOwner?: boolean; json?: boolean }, command: Command) => {
-        const by = await whoRuns(command, env, { asOwner: options.asOwner, question: `make pipeline ${name}?` })
-        await run(options.json, async (store) => itemAnswer(await store.deals.addPipeline({ name, stages, by })))
-      },
+const itemCommands = (
+  program: Command,
+  kind: DealKind,
+  run: ReturnType<typeof answers>["run"],
+  env: NodeJS.ProcessEnv,
+) => {
+  const { one, hope } = WHAT[kind]
+  const group = program
+    .command(`${kind}s`)
+    .description(
+      kind === "deal"
+        ? "deals you hope to win: the client, the expected amount, the stage and whether it was won or lost"
+        : "leads: first contacts in a lead pipeline, before they are deals",
     )
-
-  const deals = program
-    .command("deals")
-    .description("deals you hope to win: the client, the expected amount, the stage and whether it was won or lost")
-    .summary("deals in your pipelines, open, won or lost")
+    .summary(kind === "deal" ? "deals in your pipelines, open, won or lost" : "leads in your lead pipelines")
 
   withQuery(
-    json(annotate(deals.command("list"), { effects: LOCAL_READ })).description(
-      "deals, newest first; status:open is what is still in play, review:proposed what waits for you",
+    json(annotate(group.command("list"), { effects: LOCAL_READ })).description(
+      `${one}s, newest first; status:open is what is still in play`,
     ),
-    DEAL_QUERY,
+    QUERIES[kind],
   )
-    .summary("deals, newest first; status:open is what is still in play")
-    .option("--limit <n>", "most deals, up to 500", positive, 100)
+    .summary(`${one}s, newest first`)
+    .option("--limit <n>", `most ${one}s, up to 500`, positive, 100)
     .action((words: string[], { json, limit }: { limit: number; json?: boolean }) =>
-      run(json, (store) => listDeals(store, words, limit)),
+      run(json, (store) => listDeals(store, kind, words, limit)),
     )
 
-  json(annotate(deals.command("show"), { effects: LOCAL_READ, output: { entity: "deal" } }))
-    .description("one deal with its pipeline, stage, status, amount, the people on it and what it was read from")
-    .summary("one deal with its stage, status, amount and people")
-    .argument("<ref>", "deal:<id>")
+  json(annotate(group.command("show"), { effects: LOCAL_READ, output: { entity: kind } }))
+    .description(`one ${one} with its pipeline, stage, status, amount, the people on it and what it was read from`)
+    .summary(`one ${one} with its stage, status, amount and people`)
+    .argument("<ref>", `${kind}:<id>`)
     .action((ref: string, options: { json?: boolean }) =>
       run(options.json, async (store) => itemAnswer(await store.deals.get(ref))),
     )
 
   json(
-    byOption(
-      annotate(deals.command("add"), { effects: LOCAL_WRITE, output: { entity: "deal" }, literal_after_dashes: true })
-        .option("--organization <organization>", "the client: organization:<id>")
-        .option("--person <uid>", "a person on the deal: person:<id>; repeat for another, up to 20", collect)
-        .option("--role <role>", `what those people are on it: ${DEAL_ROLES.join(", ")}; contact by default`)
-        .option("--due <time>", "the day you expect it to close, such as 2026-12-01")
-        .option("--project <project>", "the project it belongs to: its key or project:<id>")
-        .option("--reason <text>", "why an agent proposes it, for the owner who decides")
-        .option("--evidence <ref...>", "what shows it, up to 8: msg:, note:, document: or another reference"),
-    ),
+    annotate(group.command("add"), { effects: LOCAL_WRITE, output: { entity: kind }, literal_after_dashes: true })
+      .option("--organization <organization>", "the client: organization:<id>")
+      .option("--person <uid>", `a person on the ${one}: person:<id>; repeat for another, up to 20`, collect)
+      .option("--role <role>", `what those people are on it: ${DEAL_ROLES.join(", ")}; contact by default`)
+      .option("--due <time>", "the day you expect it to close, such as 2026-12-01")
+      .option("--project <project>", "the project it belongs to: its key or project:<id>")
+      .option("--reason <text>", "why an agent records it, kept with it")
+      .option("--evidence <ref...>", "what shows it, up to 8: msg:, note:, document: or another reference"),
   )
-    .description(
-      "record a deal in a stage; yours is confirmed at once, an agent's waits as proposed for you in memo review",
+    .description(`record a ${one} in a stage; it is written at once, whoever runs it`)
+    .summary(`record a ${one} in a stage`)
+    .argument("<title>", hope)
+    .argument(
+      kind === "deal" ? "<stage>" : "[stage]",
+      kind === "deal"
+        ? "the stage it is in; Sales/Quote or pipeline:3/Quote names the pipeline when two have that stage"
+        : "the stage it is in; the first stage of the only lead pipeline when left out",
     )
-    .summary("record a deal; an agent's waits for your review")
-    .argument("<title>", "what you hope to sell, such as 'Site for the clinic'")
-    .argument("<stage>", "the stage it is in; Sales/Quote names the pipeline when two have that stage")
     .argument("[amount]", "the expected amount, a decimal such as 500000.00")
     .argument("[currency]", "ISO 4217, such as RUB; given with the amount")
     .action(
       async (
         title: string,
-        stage: string,
+        stage: string | undefined,
         amount: string | undefined,
         currency: string | undefined,
         options: AddOptions,
-        command: Command,
       ) => {
-        const by = await whoRuns(command, env, { asOwner: options.asOwner, question: "record this deal as yours?" })
+        const by = authorOf(env)
         const role = roleOf(options.role)
-        const [pipeline, named] = stage.includes("/") ? stage.split("/", 2) : [undefined, stage]
         await run(options.json, async (store) => {
           const closeDate = dayOf(options.due)
           return itemAnswer(
             await store.deals.add({
               by,
+              kind,
               title,
-              stage: named as string,
-              ...(pipeline === undefined ? {} : { pipeline }),
+              ...stageOf(stage),
               ...(options.organization === undefined
                 ? {}
                 : { organization: referenceOf("organization", options.organization) }),
@@ -180,7 +172,7 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
               ...(currency === undefined ? {} : { currency }),
               ...(closeDate === undefined ? {} : { closeDate }),
               ...(options.project === undefined ? {} : { project: await canonicalProject(store, options.project) }),
-              ...(by !== "owner" && options.reason !== undefined ? { reason: options.reason } : {}),
+              ...(options.reason === undefined ? {} : { reason: options.reason }),
               ...(options.evidence === undefined ? {} : { evidence: options.evidence }),
             }),
           )
@@ -188,37 +180,32 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
       },
     )
 
-  json(byOption(annotate(deals.command("move"), { effects: LOCAL_WRITE, output: { entity: "deal" } })))
-    .description("move an open deal to another stage of its pipeline; only you move one, an agent asks you to")
-    .summary("move a deal to another stage")
-    .argument("<ref>", "deal:<id>")
-    .argument("<stage>", "a stage of the deal's pipeline")
-    .action(async (ref: string, stage: string, options: { asOwner?: boolean; json?: boolean }, command: Command) => {
-      const by = await whoRuns(command, env, { asOwner: options.asOwner, question: `move ${ref} to ${stage}?` })
+  json(annotate(group.command("move"), { effects: LOCAL_WRITE, output: { entity: kind } }))
+    .description(
+      `move a ${one} to another stage of its pipeline; a won or lost stage closes it, an open one reopens it`,
+    )
+    .summary(`move a ${one} to another stage`)
+    .argument("<ref>", `${kind}:<id>`)
+    .argument("<stage>", `a stage of the ${one}'s pipeline`)
+    .action(async (ref: string, stage: string, options: { json?: boolean }) => {
+      const by = authorOf(env)
       await run(options.json, async (store) => itemAnswer(await store.deals.move(ref, { stage, by })))
     })
 
   json(
-    byOption(
-      annotate(deals.command("close"), { effects: LOCAL_WRITE, output: { entity: "deal" } })
-        .option("--occurred-time <time>", "the day it closed, such as 2026-11-20; today when left out")
-        .option("--reason <text>", "why it was won or lost, kept with the deal"),
-    ),
+    annotate(group.command("close"), { effects: LOCAL_WRITE, output: { entity: kind } })
+      .option("--occurred-time <time>", "the day it closed, such as 2026-11-20; today when left out")
+      .option("--reason <text>", "why it was won or lost, kept with it"),
   )
-    .description("close an open deal as won or lost; it keeps its last stage; only you close one, an agent asks you to")
-    .summary("close a deal as won or lost")
-    .argument("<ref>", "deal:<id>")
+    .description(`close a ${one} as won or lost; it moves to its pipeline's won or lost stage when there is one`)
+    .summary(`close a ${one} as won or lost`)
+    .argument("<ref>", `${kind}:<id>`)
     .argument("<outcome>", "won or lost")
     .action(
-      async (
-        ref: string,
-        outcome: string,
-        options: { occurredTime?: string; reason?: string; asOwner?: boolean; json?: boolean },
-        command: Command,
-      ) => {
+      async (ref: string, outcome: string, options: { occurredTime?: string; reason?: string; json?: boolean }) => {
         if (outcome !== "won" && outcome !== "lost")
-          throw new CliError("validation_error", "a deal closes as won or lost", { param: "outcome" })
-        const by = await whoRuns(command, env, { asOwner: options.asOwner, question: `close ${ref} as ${outcome}?` })
+          throw new CliError("validation_error", `a ${one} closes as won or lost`, { param: "outcome" })
+        const by = authorOf(env)
         const date = dayOf(options.occurredTime)
         await run(options.json, async (store) =>
           itemAnswer(
@@ -234,14 +221,97 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
     )
 }
 
+/** `memo deals`, `memo leads` and `memo pipelines`: sales pipelines and what is in them. */
+export const dealCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
+  const { run } = answers(program, streams, env)
+
+  const pipelines = program
+    .command("pipelines")
+    .description("sales pipelines: the stages a deal or a lead goes through, in order, and how many get through each")
+    .summary("sales pipelines, their stages and conversion")
+
+  withQuery(
+    json(annotate(pipelines.command("list"), { effects: LOCAL_READ })).description(
+      "every pipeline with its stages in order and how many open deals or leads stand in each",
+    ),
+    PIPELINE_QUERY,
+  )
+    .summary("every pipeline with its stages")
+    .action((words: string[], options: { json?: boolean }) =>
+      run(options.json, async (store) => {
+        const terms = queryTerms(words, PIPELINE_QUERY, "pipelines list")
+        const name = terms.get("name")?.toLocaleLowerCase()
+        const kind = terms.get("kind") as DealKind | undefined
+        const all = await store.deals.pipelines(kind === undefined ? {} : { kind })
+        return wholeList(
+          "pipelines list",
+          name === undefined ? all : all.filter((one) => one.name.toLocaleLowerCase() === name),
+        )
+      }),
+    )
+
+  json(
+    annotate(pipelines.command("show"), { effects: LOCAL_READ, output: { entity: "pipeline" } }).option(
+      "--since-time <time>",
+      "count only deals or leads made since this day, such as 2026-09-01",
+    ),
+  )
+    .description(
+      "one pipeline's funnel: per stage the open deals or leads in it, how many reached it, and the share that " +
+        "went on to the next stage; then won, lost and the win rate",
+    )
+    .summary("one pipeline's stages with counts and conversion")
+    .argument("<pipeline>", "pipeline:<id>, or a name only one pipeline has")
+    .action((pipeline: string, options: { sinceTime?: string; json?: boolean }) =>
+      run(options.json, async (store) => {
+        const since = dayOf(options.sinceTime)
+        return itemAnswer(await store.deals.pipeline(pipeline, since === undefined ? {} : { since }))
+      }),
+    )
+
+  json(
+    annotate(pipelines.command("add"), { effects: LOCAL_WRITE, literal_after_dashes: true }).option(
+      "--kind <kind>",
+      "what it holds: deal or lead; deal by default",
+    ),
+  )
+    .description(
+      "make a pipeline with its stages in order; a stage named won or lost (any letter case) ends a deal or lead " +
+        "as that",
+    )
+    .summary("make a pipeline with its stages")
+    .argument("<name>", "the pipeline's name, such as Sales")
+    .argument("<stage...>", "its stages in order, such as Call Quote Contract won lost")
+    .action(async (name: string, stages: string[], options: { kind?: string; json?: boolean }) => {
+      const kind = options.kind ?? "deal"
+      if (!(DEAL_KINDS as readonly string[]).includes(kind))
+        throw new CliError("validation_error", "--kind is deal or lead", { param: "--kind" })
+      const by = authorOf(env)
+      await run(options.json, async (store) =>
+        itemAnswer(
+          await store.deals.addPipeline({
+            name,
+            kind: kind as DealKind,
+            stages: stages.map((stage) => {
+              const word = stage.trim().toLocaleLowerCase()
+              return word === "won" || word === "lost" ? { name: stage, outcome: word } : stage
+            }),
+            by,
+          }),
+        ),
+      )
+    })
+
+  itemCommands(program, "deal", run, env)
+  itemCommands(program, "lead", run, env)
+}
+
 /** Open deals `projects status` shows, soonest expected close first; more than this is a count. */
 const STATUS_DEALS = 5
 
-/** The open deals the owner stands behind in these projects; an agent's proposed deal counts for nothing yet. */
+/** The open deals of these projects. */
 export const openDealsOf = async (store: MessageStore, projects: readonly string[]) => {
-  const found = (
-    await Promise.all(projects.map((project) => store.deals.list({ project, status: "open", review: "confirmed" })))
-  ).flat()
+  const found = (await Promise.all(projects.map((project) => store.deals.list({ project, status: "open" })))).flat()
   const sorted = found.sort(
     (a, b) => (a.closeDate ?? "9999").localeCompare(b.closeDate ?? "9999") || b.createdAt.localeCompare(a.createdAt),
   )

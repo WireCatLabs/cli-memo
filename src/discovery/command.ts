@@ -82,6 +82,7 @@ const SECTIONS: [string, HelpSection][] = [
   ["invoices", "organise"],
   ["orders", "organise"],
   ["deals", "organise"],
+  ["leads", "organise"],
   ["pipelines", "organise"],
   ["payments", "organise"],
   ["records", "organise"],

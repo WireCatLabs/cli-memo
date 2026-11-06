@@ -6,6 +6,18 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo deals`, `memo leads` and `memo pipelines`: sales pipelines and what is in them (cli-core 0.587.0, store
+  version 52).** `memo deals add <title> <stage> [amount] [currency]` and `memo leads add <title> [stage]` record one
+  with `--organization`, `--person` and `--role` (owner, contact, decision-maker), `--due` and `--project`; `list`,
+  `show`, `move <ref> <stage>` and `close <ref> won|lost [--reason]` follow. Memo starts with one lead pipeline,
+  `Leads` (new, contacted, qualified, won, lost). `memo pipelines add <name> <stage...> [--kind lead]` makes one
+  (stages named won or lost end a deal), `memo pipelines list` lists them, and `memo pipelines show <pipeline>` gives
+  per stage the open rows, how many reached it and the conversion to the next, with won, lost and the win rate. A
+  pipeline is named by `pipeline:<id>` or by a name only one has. An agent writes all of this as you do, at once; the
+  `permissions` keys limit it over MCP. `memo projects status` lists up to five open deals of the project (`deals`).
+
 ## 0.131.41 — 06.11.2026
 
 ### Added

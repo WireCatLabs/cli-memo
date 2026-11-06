@@ -13,6 +13,8 @@ An invoice or payment whose party is a record of the source (`organization:clien
 entry it is: show `memo records list waiting:true --account <provider>:<account>` and leave
 `memo records link` to the owner.
 
-Deals: `memo deals list status:open` and `memo deals show deal:<id>` read the owner's pipelines. A deal you add
-(`memo deals add <title> <stage> [amount] [currency] --reason ...`) waits for the owner in `memo review kind:deal`.
-Moving or closing a deal and making a pipeline are the owner's: tell him the command, do not pass `--as-owner`.
+Deals and leads: `memo deals list status:open`, `memo leads list`, `memo deals show deal:<id>`. You may add, move and
+close them and make pipelines yourself (`memo deals add <title> <stage> [amount] [currency] --reason ...`,
+`memo leads add <title>`, `memo deals move deal:<id> <stage>`, `memo deals close deal:<id> won|lost`); they are
+written at once, no review. Name a pipeline by `pipeline:<id>` when two share a name. `memo pipelines show <pipeline>`
+gives the counts and conversion per stage.

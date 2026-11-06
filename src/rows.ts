@@ -53,6 +53,10 @@ export const ROWS: Readonly<Record<string, RowShape>> = {
     columns: [{ field: "ref" }, { field: "project_name" }, { field: "close_date", as: "day" }],
     text: ["summary"],
   },
+  "leads list": {
+    columns: [{ field: "ref" }, { field: "project_name" }, { field: "created_at", as: "day" }],
+    text: ["summary"],
+  },
   "memories list": fact,
   "people list": {
     columns: [

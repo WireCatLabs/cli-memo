@@ -200,8 +200,12 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "facts list": ["memo facts list kind:decision project:HRB"],
   "orders list": ["memo orders list status:shipped", `memo orders list number:A-1042 'supplier:"Shop One"' --json`],
   "orders show": ["memo orders show order:3"],
-  "pipelines list": ["memo pipelines list"],
-  "pipelines add": ["memo pipelines add Sales Call Quote Contract"],
+  "pipelines list": ["memo pipelines list", "memo pipelines list kind:lead --json"],
+  "pipelines show": ["memo pipelines show pipeline:2", "memo pipelines show Sales --since-time 2026-09-01"],
+  "pipelines add": [
+    "memo pipelines add Sales Call Quote Contract won lost",
+    "memo pipelines add Inbound new called --kind lead",
+  ],
   "deals list": ["memo deals list status:open project:HRB", "memo deals list stage:Quote --json"],
   "deals show": ["memo deals show deal:5"],
   "deals add": [
@@ -210,6 +214,11 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   ],
   "deals move": ["memo deals move deal:5 Quote"],
   "deals close": ["memo deals close deal:5 won", "memo deals close deal:6 lost --reason 'chose a cheaper studio'"],
+  "leads list": ["memo leads list status:open"],
+  "leads show": ["memo leads show lead:3"],
+  "leads add": ["memo leads add 'Call from the site'", "memo leads add 'Clinic in Kazan' contacted --person person:9"],
+  "leads move": ["memo leads move lead:3 qualified"],
+  "leads close": ["memo leads close lead:3 lost --reason 'no budget'"],
   "orders add": [
     "memo orders add 'Shop One' 2499.00 RUB --kind personal --title A-1042",
     "memo orders add 'Office Supply' --kind client --organization organization:3",

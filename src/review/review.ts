@@ -95,7 +95,6 @@ const titleOf = (row: ProposalRow, label: Labels) => {
     case "invoice":
     case "payment":
     case "order":
-    case "deal":
       return row.summary ?? subject
     default:
       return object === null ? subject : `${subject} → ${object}`
