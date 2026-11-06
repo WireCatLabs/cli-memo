@@ -3479,7 +3479,7 @@ memo review status [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--since-time <time>` | how far back: hours or days (12h, 7d) or a start date (2026-11-01). Default: `1d`. |
 
-**Returns:** since yesterday: new mail, what is owed and waiting, what agents proposed
+**Returns:** review status — since, at, mail, proposed, waiting, quiet; every field: memo commands info review status
 
 **Example:** `memo review status`, `memo review status --since-time 7d --json`
 
@@ -4153,7 +4153,7 @@ memo schedule list [query] [options]
 |---|---|
 | `--json` | print JSON. |
 
-**Returns:** scheduled job — name, kind, when, last; every field: memo commands info schedule list
+**Returns:** scheduled job — name, kind, when, last, spent_today_usd, max_cost_usd, max_cost_per_day_usd; every field: memo commands info schedule list
 
 **Example:** `memo schedule list`, `memo schedule list kind:agent --json`
 
