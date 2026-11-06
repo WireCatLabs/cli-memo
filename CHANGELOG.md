@@ -59,7 +59,6 @@ the API.
 
 - **`memo organizations list name:*acme*` works.** The help listed `name`, but the list failed on it. It ignores
   case in any script, and `*` stands for any text (cli-core 0.582.0).
-||||||| Stash base
 
 ## 0.131.38 — 05.11.2026
 
