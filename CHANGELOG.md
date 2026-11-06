@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.43 — 06.11.2026
+
 ### Added
 
 - **`memo search all` also finds deals and leads (cli-core 0.589.0)**, yours and every CRM account's copies, by the
