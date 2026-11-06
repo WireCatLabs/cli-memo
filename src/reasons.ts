@@ -33,6 +33,12 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: ["key", "given"],
   },
   {
+    reason: "findings.duplicate",
+    code: "validation_error",
+    message: "the order, invoice, payment, task or fact is stored or waits for the owner already; the answer names it",
+    details: [],
+  },
+  {
     reason: "sync.running",
     code: "rate_limited",
     message: "another memo sync is running (process {pid}); try again when it ends",

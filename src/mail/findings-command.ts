@@ -18,6 +18,7 @@ import { answers, itemAnswer, listAnswer } from "../answer.js"
 import { whoRuns } from "../author.js"
 import { FINDINGS_INPUT_HELP, readFindingsInput } from "../findings-input.js"
 import { positive } from "../options.js"
+import { withoutDuplicates } from "./findings-duplicates.js"
 import { MAILBOX_HELP, oneMailboxOf } from "./review-command.js"
 
 const FINDINGS_QUERY = {
@@ -39,6 +40,11 @@ An invoice names counterparty (person:N or organization:N) or counterparty_name.
 due_at, its detail change gives detail; a link goes contact:email/<address> → person:N, person:N → organization:N or
 chat:email/… → project:N; a memory is about a subject or a project; an order_update names a stored order, with date
 only when delivered.
+A finding whose order, invoice, payment, task or fact is stored, already waits in a proposed batch or came earlier in
+the batch is a duplicate: it is not staged and the answer lists it in duplicates with duplicate_of, the reference that
+holds it, and reason findings.duplicate. The rest of the batch stages. An order is the same by shop and number or
+source_url, an invoice by counterparty and number, a payment by amount, currency, date and party, a task by external_id
+or source_url, a fact by its text and subject.
 An invoice, payment or order is checked as memo invoices|payments|orders add checks yours; a refusal names why.
 A cited email that changed since review refuses the batch (mail-findings.stale), one still partial too
 (mail-findings.partial). Nothing is created until the owner confirms: memo review confirm <batch>/<finding>.
@@ -110,15 +116,26 @@ export const mailFindingsCommand = (
       const agent = author === "owner" ? { bot: "memo-mail-findings" } : author
       await run(given.json, async (store) => {
         const mailbox = await oneMailboxOf(store, env, given.source)
-        if (!given.dryRun) return itemAnswer(await store.mailFindings.stage(mailbox, input, agent))
-        const checked = await store.mailFindings.check(mailbox, input, agent)
+        const { input: kept, duplicates } = await withoutDuplicates(store, input)
+        const noted = duplicates.length ? { duplicates } : {}
+        if (duplicates.length > 0 && kept.findings.length === 0)
+          return itemAnswer({
+            dryRun: Boolean(given.dryRun),
+            valid: true,
+            staged: false,
+            findings: 0,
+            problems: [],
+            ...noted,
+          })
+        if (!given.dryRun) return itemAnswer({ ...(await store.mailFindings.stage(mailbox, kept, agent)), ...noted })
+        const checked = await store.mailFindings.check(mailbox, kept, agent)
         const issues = checked.problems.map((one) => ({
           code: one.code as CliErrorCode,
           source: one.finding ?? "batch",
           reason: (one.details?.reason as string | undefined) ?? one.message,
         }))
         return itemAnswer(
-          { dryRun: true, ...checked },
+          { dryRun: true, ...checked, ...noted },
           issues.length ? { meta: { complete: false, issues } } : undefined,
         )
       })
