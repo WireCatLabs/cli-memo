@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.41 — 06.11.2026
+
 ### Added
 
 - **`memo invoices list number:<number>`** lists the invoice with that printed number, as `memo orders list
