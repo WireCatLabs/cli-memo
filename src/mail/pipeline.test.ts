@@ -162,7 +162,14 @@ const scriptedAgent = (items: Item[], task: { ref: string }, through: string) =>
         commitment: "explicit",
         evidence: evidenceOf(ask),
       },
-      { id: "c1", kind: "new_contact", address: "bob@example.org", name: "Bob", evidence: evidenceOf(ask) },
+      {
+        id: "c1",
+        kind: "new_contact",
+        address: "bob@example.org",
+        name: "Bob",
+        reason: "Bob wrote first",
+        evidence: evidenceOf(ask),
+      },
     ],
   }
 }
@@ -316,6 +323,7 @@ it("refuses a batch that cites mail changed since review, and stages nothing", a
         kind: "new_contact",
         address: "bob@example.org",
         name: "Bob",
+        reason: "Bob wrote first",
         evidence: [{ reference: item.ref, fingerprint: "0".repeat(64) }],
       },
     ],
@@ -355,12 +363,8 @@ it("hands on review steps as memo's own commands, naming the mailbox", async () 
   await box.thread("t-quote", email("quote", 1))
   await box.synced()
   const read = await box.review()
+  expect(read.items).toEqual([])
   expect(read.next).toEqual([
-    expect.objectContaining({
-      step: "mail-findings.add",
-      command: "mail findings add",
-      args: { key: read.key, source: MAILBOX },
-    }),
     expect.objectContaining({
       step: "mail-messages.acknowledge",
       command: "messages acknowledge",

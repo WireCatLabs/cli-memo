@@ -149,8 +149,8 @@ plainly.
   date, such as "E-signature certificate 12-345 from <issuer>, expires 2027-03-01". `subject` is the organization
   or person it belongs to when linked.
 
-A finding takes only its kind's fields above, plus `id`, `kind`, `evidence`: no `title` on an invoice, payment,
-order or fact, no `reason` on a fact. A list takes `field:value` terms, never a bare word: `number:FACT-2026-00012`.
+A finding takes only its kind's fields above, plus `id`, `kind`, `evidence` and `reason` (every kind needs one): no
+`title` on an invoice, payment, order or fact. A list takes `field:value` terms, never a bare word: `number:FACT-2026-00012`.
 
 ### 5. New senders, among kept emails
 

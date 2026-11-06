@@ -6,6 +6,20 @@ the API.
 
 ## Unreleased
 
+### Changed — may break callers
+
+- **`memo projects status` has room under its size limits again (cli-core 0.583.0).** On the E7 fixture JSON
+  goes from 3,998 to 3,644 bytes (limit 4,096) and `--compact` from 1,511 to 1,363 (limit 1,536). `item.window` is
+  gone (read `meta.window`); a listed item leaves out `chat` when its `ref` is a message of that chat, `basis` when
+  it is `store`, and a promise's `data.source`; `who.name` and a chat's `role` are left out instead of `null`. The
+  `next_command` gaps are one `missing` entry, their reasons joined by `; `. Compact prints the days and zone once
+  above the first section. The text form is unchanged.
+- **Every mail finding needs `reason` (cli-core 0.583.0).** A `new_contact`, a `fact` or a `memory` without one is
+  refused (`finding.missing-field`); the mail-triage skill says so. `memo mail review --holder` gives no
+  `mail-findings.add` step when it gives no emails.
+- **A `--compact` list in time order says each day once (cli-core 0.583.0).** When its days hold three rows on
+  average, a `# YYYY-MM-DD` line opens each day and its rows print only `HH:MM`.
+
 ## 0.131.39 — 05.11.2026
 
 ### Added
