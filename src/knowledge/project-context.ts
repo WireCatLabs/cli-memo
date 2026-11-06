@@ -36,7 +36,10 @@ export const projectContext = async (store: MessageStore, env: NodeJS.ProcessEnv
     notes: await notesAbout(store, { ref: project.ref }),
     tags: await store.knowledge.tags(null, { type: "project", id: project.id }),
     review: {
-      waiting: { ...waiting, next: { command: "review list", args: { query: `project:${project.ref}` } } },
+      waiting: {
+        ...waiting,
+        next: { command: "review list", args: { query: `project:${project.key ?? project.id}` } },
+      },
       keyDocuments: keys.items.map((row) => ({
         id: row.id,
         ref: row.subject,
@@ -81,7 +84,7 @@ export const projectContextText = (context: Awaited<ReturnType<typeof projectCon
     plainText(itemAnswer(context)),
     `Pending review: ${atLeast(review.waiting.count, review.waiting.complete)} proposal${
       review.waiting.count === 1 ? "" : "s"
-    } waiting${review.waiting.count ? ` (${kindsText(review.waiting.kinds)})` : ""} — memo review list project:${context.project.key ?? context.project.ref} (nothing confirmed):`,
+    } waiting${review.waiting.count ? ` (${kindsText(review.waiting.kinds)})` : ""} — memo review list project:${context.project.key ?? context.project.id} (nothing confirmed):`,
     ...review.keyDocuments.map((document) => `  key document ${document.ref}: ${line(document.reason ?? "")}`),
     ...review.relationships.map((link) => `  relationship ${link.id}: ${link.title}`),
     ...review.facts.items.map((fact) => `  ${fact.ref} [${fact.kind}]: ${line(fact.text)}`),

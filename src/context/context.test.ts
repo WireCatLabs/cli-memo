@@ -153,6 +153,22 @@ describe("memo context", () => {
     await expect(run("context", "person:99999", "--json")).rejects.toThrow(/no person:99999/)
   })
 
+  it("reads a person with two identities seen by one account through that account", async () => {
+    const store = await openStore({ env })
+    await store.sync.applyDelta(tg, { people: [{ id: "102", name: "Rin Example" }] })
+    await store.people.linkIdentities(
+      { provider: "telegram", id: "101" },
+      { provider: "telegram", id: "102" },
+      { method: "manual", by: "owner" },
+    )
+    const uid = (await store.people.personOf({ provider: "telegram", id: "101" }))?.uid as string
+    await store.close()
+
+    const answer = answerOf(await run("context", `person:${uid}`, "--source", "telegram:1", "--json"))
+
+    expect(answer.messages.person.uid).toBe(uid)
+  })
+
   it("says which sources gave nothing, and why", async () => {
     const answer = answerOf(await run("context", "telegram:101", "--json"))
 

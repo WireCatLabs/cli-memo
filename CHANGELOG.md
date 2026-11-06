@@ -6,6 +6,12 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **`memo context person:<id> --source <account>` no longer rejects the account it suggests** when the person has
+  several identities on that one account (the owner with two Telegram ids). The waiting proposals' `next` and text
+  name `project:<key>`, not `project:project:<id>`.
+
 ### Added
 
 - **`memo context` and `memo projects context` break the waiting proposals down by kind.** `proposals` (person) and
