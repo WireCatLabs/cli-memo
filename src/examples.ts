@@ -128,11 +128,11 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "tasks assign": ["memo tasks assign 7 person:3", "memo tasks assign HRB-1 person:3 --clear --revision 4"],
   "organizations add": [
     "memo organizations add 'Harbour Studio' --kind company --scope work",
-    "memo organizations add 'Harbour Dairy' --kind company --reason 'named in the March invoice'",
+    "memo organizations add 'Harbour Family' --kind family",
   ],
   "organizations rename": [
     "memo organizations rename organization:1 'Harbour Studio Ltd'",
-    "memo organizations rename organization:1 'Harbour Studio Ltd' --reason 'renamed in the 2026 invoice'",
+    "memo organizations rename 1 'Harbour Studio Ltd' --json",
   ],
   "organizations show": ["memo organizations show organization:1"],
   "organizations list": ["memo organizations list name:*harbour*", "memo organizations list --json"],

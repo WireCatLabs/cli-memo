@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Changed — may break callers
+
+- **An agent's `memo organizations add` and `memo organizations rename` write at once**, as the owner's do and as deals
+  do. They no longer leave an `organization_add` or `organization_rename` proposal in `memo review`; only memo's
+  `permissions` settings limit them. `--reason` and `--as-owner` are gone from both commands. Proposals already in a
+  store stay listed and decidable in `memo review`.
+
 ## 0.131.43 — 06.11.2026
 
 ### Added

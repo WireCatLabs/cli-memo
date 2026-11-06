@@ -1165,7 +1165,7 @@ companies, teams, families and communities of yours
 
 ### `memo organizations add`
 
-add an organization of yours: a company, team, family or community; an agent's waits for you in memo review
+add an organization of yours: a company, team, family or community; it is written at once, whoever runs it
 
 This command changes the local store or your files.
 
@@ -1181,17 +1181,15 @@ memo organizations add <name> [options]
 |---|---|
 | `--kind <kind>` | company, team, family, community. |
 | `--scope <scope>` | personal, work. |
-| `--reason <text>` | why the organization belongs in the store, in a sentence. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 
-**Returns:** add an organization; an agent's waits for your review
+**Returns:** add an organization
 
-**Example:** `memo organizations add 'Harbour Studio' --kind company --scope work`, `memo organizations add 'Harbour Dairy' --kind company --reason 'named in the March invoice'`
+**Example:** `memo organizations add 'Harbour Studio' --kind company --scope work`, `memo organizations add 'Harbour Family' --kind family`
 
 ### `memo organizations rename`
 
-rename an organization of yours; an agent's rename waits for you in memo review
+rename an organization of yours; it is written at once, whoever runs it
 
 This command changes the local store or your files.
 
@@ -1206,13 +1204,11 @@ memo organizations rename <organization> <name> [options]
 
 | Option | What it does |
 |---|---|
-| `--reason <text>` | why the name changes, in a sentence. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 
-**Returns:** rename an organization; an agent's waits for your review
+**Returns:** rename an organization
 
-**Example:** `memo organizations rename organization:1 'Harbour Studio Ltd'`, `memo organizations rename organization:1 'Harbour Studio Ltd' --reason 'renamed in the 2026 invoice'`
+**Example:** `memo organizations rename organization:1 'Harbour Studio Ltd'`, `memo organizations rename 1 'Harbour Studio Ltd' --json`
 
 ### `memo organizations show`
 
