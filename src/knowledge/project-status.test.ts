@@ -100,10 +100,10 @@ it("reads every account the links name, says which, and points next at the chats
   const { status } = await setUp()
   const body = envelopeOf(await status("--json"))
   expect(body.meta).toMatchObject({ complete: false, accounts: ["max/11", "telegram/22"] })
-  expect(body.item.money).toEqual([
-    { direction: "to_us", currency: "EUR", amount: "1200.00", rows: 1 },
-    { direction: "from_us", currency: "EUR", amount: "300.00", rows: 1 },
-  ])
+  expect(body.item.money).toEqual([])
+  expect(body.item.amounts.map((one: { data: { amount: string; state: string } }) => one.data)).toEqual(
+    expect.arrayContaining([expect.objectContaining({ amount: "1200.00", state: "open" })]),
+  )
   expect(body.item.chats.map((chat: { title: string; role: string }) => [chat.title, chat.role])).toEqual([
     ["Harbour group", "client"],
     ["Lev", "contractor"],

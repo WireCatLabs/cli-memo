@@ -8,7 +8,8 @@ Then ask where it stands with `memo projects status <key>`, and read only the ch
 To see where a project stands, use `memo projects status <project>` (over MCP, `memo_read` runs `projects status`).
 It reads the stored messages of every chat linked to the project, in every account those links name, and lists the
 accounts in `meta.accounts`. Per chat it says who wrote last, whose move it is, the open questions both ways,
-promises, and amounts with who owes whom. Add `--context-query <words>` to see how long a topic has been quiet on
+promises, and amounts with who owes whom. Money owed comes from confirmed invoices and payments (`finance`); when a
+project has them, amounts found by words are left out. Add `--context-query <words>` to see how long a topic has been quiet on
 their side. An amount or promise marked `pattern` is a word match: read the cited message before you trust it. Read
 with `--compact`, one line per row, to keep your context small. Then read only the chats in `next`, from the date it
 gives, with the command it names (that command has `--compact` too). Do not read every chat, and do not copy

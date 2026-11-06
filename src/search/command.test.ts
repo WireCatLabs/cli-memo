@@ -308,7 +308,15 @@ it("search all runs as no stored account and names every account it read", async
     "msg:telegram/1/7/1",
   ])
   expect(answer.meta.accounts.sort()).toEqual(
-    ["max:2", "telegram:1", "email:a@example.com", "notes:internal", `notes:${folder.id}`, `notes:${drive?.id}`].sort(),
+    [
+      "crm:internal",
+      "max:2",
+      "telegram:1",
+      "email:a@example.com",
+      "notes:internal",
+      `notes:${folder.id}`,
+      `notes:${drive?.id}`,
+    ].sort(),
   )
 
   const text = captureStreams()
