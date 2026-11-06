@@ -269,7 +269,6 @@ export const gatherDigest = async (
     }
     const known = await knownSenders(
       store,
-      env,
       stored.id,
       owedMail.map((one) => one.externalId),
     )

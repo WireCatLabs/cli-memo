@@ -2974,7 +2974,7 @@ memo pipelines list [query] [options]
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** every pipeline with its stages
+**Returns:** pipeline — id, ref, name, kind, account, external_id, stages, created_at, and 3 more; every field: memo commands info pipelines list
 
 **Example:** `memo pipelines list`, `memo pipelines list kind:lead --json`
 
@@ -2995,7 +2995,7 @@ memo pipelines show <pipeline> [options]
 | `--since-time <time>` | count only deals or leads made since this day, such as 2026-09-01. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** one pipeline's stages with counts and conversion
+**Returns:** pipeline — id, ref, name, kind, account, external_id, stages, created_at, and 3 more; every field: memo commands info pipelines show
 
 **Example:** `memo pipelines show pipeline:2`, `memo pipelines show Sales --since-time 2026-09-01`
 
@@ -3044,7 +3044,7 @@ memo deals list [query] [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--limit <n>` | most deals, up to 500. Default: `100`. |
 
-**Returns:** deals, newest first
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 22 more; every field: memo commands info deals list
 
 **Example:** `memo deals list status:open project:HRB`, `memo deals list stage:Quote --json`
 
@@ -3064,7 +3064,7 @@ memo deals show <ref> [options]
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** one deal with its stage, status, amount and people
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 22 more; every field: memo commands info deals show
 
 **Example:** `memo deals show deal:5`
 
@@ -3096,7 +3096,7 @@ memo deals add <title> <stage> [amount] [currency] [options]
 | `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** record a deal in a stage
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 22 more; every field: memo commands info deals add
 
 **Example:** `memo deals add 'Site for the clinic' Call 500000.00 RUB --organization organization:3 --project HRB`, `memo deals add 'Support contract' Sales/Quote --person person:7 --role decision-maker --due 2026-12-01`
 
@@ -3119,7 +3119,7 @@ memo deals move <ref> <stage> [options]
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** move a deal to another stage
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 22 more; every field: memo commands info deals move
 
 **Example:** `memo deals move deal:5 Quote`
 
@@ -3144,7 +3144,7 @@ memo deals close <ref> <outcome> [options]
 | `--reason <text>` | why it was won or lost, kept with it. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** close a deal as won or lost
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 22 more; every field: memo commands info deals close
 
 **Example:** `memo deals close deal:5 won`, `memo deals close deal:6 lost --reason 'chose a cheaper studio'`
 
@@ -3169,7 +3169,7 @@ memo leads list [query] [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--limit <n>` | most leads, up to 500. Default: `100`. |
 
-**Returns:** leads, newest first
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 22 more; every field: memo commands info leads list
 
 **Example:** `memo leads list status:open`
 
@@ -3189,7 +3189,7 @@ memo leads show <ref> [options]
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** one lead with its stage, status, amount and people
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 22 more; every field: memo commands info leads show
 
 **Example:** `memo leads show lead:3`
 
@@ -3221,7 +3221,7 @@ memo leads add <title> [stage] [amount] [currency] [options]
 | `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** record a lead in a stage
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 22 more; every field: memo commands info leads add
 
 **Example:** `memo leads add 'Call from the site'`, `memo leads add 'Clinic in Kazan' contacted --person person:9`
 
@@ -3244,7 +3244,7 @@ memo leads move <ref> <stage> [options]
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** move a lead to another stage
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 22 more; every field: memo commands info leads move
 
 **Example:** `memo leads move lead:3 qualified`
 
@@ -3269,7 +3269,7 @@ memo leads close <ref> <outcome> [options]
 | `--reason <text>` | why it was won or lost, kept with it. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** close a lead as won or lost
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 22 more; every field: memo commands info leads close
 
 **Example:** `memo leads close lead:3 lost --reason 'no budget'`
 
@@ -4433,6 +4433,8 @@ memo schedule command <name> <args> [options]
 | `--every <duration>` | repeat: 30m, 2h, 1d. |
 | `--at <HH:MM>` | every day at this local time. |
 | `--at-time <time>` | one run: 30m, 2d from now, or an ISO time; the schedule removes itself after it. |
+| `--notify-on <when>` | desktop notice after a run (default failures for an agent that repeats with --every, else always). One of: `always`, `failures`, `never`. |
+| `--to <route>` | also send the result, when --notify-on says so, by the owner's own tg or mail: telegram-bot:<profile>/<chat id or user:id>, or email:<profile>/<address>; repeat it for more. |
 | `--json` | print JSON. |
 
 **Returns:** run memo <args…> on a timer — reads save what they read, so this is how a…
@@ -4463,6 +4465,8 @@ memo schedule agent <name> <harness> <prompt> [options]
 | `--every <duration>` | repeat: 30m, 2h, 1d. |
 | `--at <HH:MM>` | every day at this local time. |
 | `--at-time <time>` | one run: 30m, 2d from now, or an ISO time; the schedule removes itself after it. |
+| `--notify-on <when>` | desktop notice after a run (default failures for an agent that repeats with --every, else always). One of: `always`, `failures`, `never`. |
+| `--to <route>` | also send the result, when --notify-on says so, by the owner's own tg or mail: telegram-bot:<profile>/<chat id or user:id>, or email:<profile>/<address>; repeat it for more. |
 | `--on-new-mail <holder>` | run only when mail is stored past this holder's mark — after a sync brought new mail; may check every 5m. |
 | `--mail-wait <duration>` | with --on-new-mail: start once the oldest waiting email has waited this long (default 30m, or the config file's). |
 | `--mail-batch <n>` | with --on-new-mail: or once this many emails wait (default 10, or the config file's). |
@@ -4488,7 +4492,7 @@ memo schedule list [query] [options]
 |---|---|
 | `--json` | print JSON. |
 
-**Returns:** scheduled job — name, kind, when, last, spent_today_usd, max_cost_usd, max_cost_per_day_usd; every field: memo commands info schedule list
+**Returns:** scheduled job — name, kind, when, last, notify, to, spent_today_usd, max_cost_usd, and 1 more; every field: memo commands info schedule list
 
 **Example:** `memo schedule list`, `memo schedule list kind:agent --json`
 
