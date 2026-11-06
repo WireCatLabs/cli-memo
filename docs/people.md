@@ -88,8 +88,8 @@ memo projects context HRB
 ```
 
 `--scope` is `personal` or `work`. `name:` ignores case and takes `*` as any text, so `name:*studio*` finds every name
-that holds the word. An agent's `organizations add` and `organizations rename` are not applied: each waits in
-`memo review` (`--reason` says why) until you confirm it. `projects context` takes a key, number, `project:<id>`, exact name or alias.
+that holds the word. An agent's `organizations add` and `organizations rename` are written at once, as yours are;
+memo's `permissions` settings are what limit them. `projects context` takes a key, number, `project:<id>`, exact name or alias.
 `projects context` and `organizations context` show the people linked to the project or
 organization, the notes about it or linking to it, and its tags. For a project, the view also groups pending key documents, relationships, facts and meeting follow-ups
 under `review`, separate from existing open numbered tasks. It confirms nothing. The text view shows

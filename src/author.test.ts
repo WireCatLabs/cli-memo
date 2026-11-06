@@ -71,36 +71,22 @@ it("keeps a write the owner's when no agent runs and the owner is at the termina
   expect(action.proposed_by).toMatchObject({ type: "person" })
 })
 
-it("proposes an organization from an agent's terminal and adds it directly for the owner", async () => {
+it("adds an organization from an agent's terminal at once, as for the owner", async () => {
   const agent = await setUp({ AI_AGENT: "claude-code_2-1-296_agent" })
-  const proposal = await agent.run(
-    "organizations",
-    "add",
-    "Synthetic Dairy",
-    "--kind",
-    "company",
-    "--reason",
-    "new client",
-  )
-  expect(proposal).toMatchObject({ kind: "organization_add", status: "proposed", proposed_by: { type: "bot" } })
-  expect((await agent.run("organizations", "list")).items.map((row: { name: string }) => row.name)).not.toContain(
-    "Synthetic Dairy",
-  )
-
-  const owner = await setUp({})
-  expect(await owner.run("organizations", "add", "Synthetic Dairy", "--kind", "company")).toMatchObject({
+  expect(await agent.run("organizations", "add", "Synthetic Dairy", "--kind", "company")).toMatchObject({
     ref: expect.stringMatching(/^organization:/),
     name: "Synthetic Dairy",
   })
+  expect((await agent.run("organizations", "list")).items.map((row: { name: string }) => row.name)).toContain(
+    "Synthetic Dairy",
+  )
 })
 
-it("proposes an organization's rename from an agent's terminal and renames it directly for the owner", async () => {
+it("renames an organization from an agent's terminal at once, as for the owner", async () => {
   const agent = await setUp({ AI_AGENT: "claude-code_2-1-296_agent" })
-  const proposal = await agent.run("organizations", "rename", "organization:1", "Synthetic Farm", "--reason", "brand")
-  expect(proposal).toMatchObject({ kind: "organization_rename", status: "proposed", proposed_by: { type: "bot" } })
-  expect((await agent.run("organizations", "list")).items.map((row: { name: string }) => row.name)).toEqual([
-    "Synthetic Studio",
-  ])
+  expect(await agent.run("organizations", "rename", "organization:1", "Synthetic Farm")).toMatchObject({
+    name: "Synthetic Farm",
+  })
   await expect(agent.run("organizations", "rename", "organization:999", "X")).rejects.toMatchObject({
     code: "not_found",
   })
@@ -109,13 +95,4 @@ it("proposes an organization's rename from an agent's terminal and renames it di
   expect(await owner.run("organizations", "rename", "1", "Тартус")).toMatchObject({ name: "Тартус" })
   expect((await owner.run("organizations", "list", "name:*ТАРТ*")).items).toHaveLength(1)
   expect((await owner.run("organizations", "list", "name:*studio*")).items).toHaveLength(0)
-})
-
-it("asks for a terminal before --as-owner adds an organization from an agent's terminal", async () => {
-  const { run } = await setUp({ AI_AGENT: "claude-code_2-1-296_agent" })
-  await expect(run("organizations", "add", "Synthetic Dairy", "--kind", "company", "--as-owner")).rejects.toMatchObject(
-    {
-      code: "confirmation_required",
-    },
-  )
 })

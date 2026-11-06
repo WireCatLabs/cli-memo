@@ -11,12 +11,7 @@ import {
   typedQuery,
   withQuery,
 } from "@wirecat/cli-core/cli"
-import {
-  proposalRegistry,
-  proposeOrganization,
-  proposeOrganizationRename,
-  purposesOf,
-} from "@wirecat/cli-core/services"
+import { proposalRegistry, purposesOf } from "@wirecat/cli-core/services"
 import {
   type AccountKey,
   type KnowledgeRelation,
@@ -99,67 +94,35 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   const organizations = program
     .command("organizations")
     .description("companies, teams, families and communities of yours")
-  byOption(
-    annotate(organizations.command("add"), { effects: LOCAL_WRITE, literal_after_dashes: true })
-      .description(
-        "add an organization of yours: a company, team, family or community; an agent's waits for you in memo review",
-      )
-      .summary("add an organization; an agent's waits for your review")
-      .argument("<name>", "the organization's name")
-      .requiredOption("--kind <kind>", ORGANIZATION_KINDS.join(", "), oneOf(ORGANIZATION_KINDS))
-      .option("--scope <scope>", SCOPES.join(", "), oneOf(SCOPES))
-      .option("--reason <text>", "why the organization belongs in the store, in a sentence")
-      .option("--json", "print JSON; --json=id,title keeps only those fields"),
-  ).action(
-    async (
-      name: string,
-      options: {
-        kind: Organization["kind"]
-        scope?: Organization["scope"]
-        reason?: string
-        asOwner?: boolean
-        json?: boolean
-      },
-      command: Command,
-    ) => {
-      const by = await whoRuns(command, env, { asOwner: options.asOwner, question: `add ${name} as you, the owner?` })
-      const input = { kind: options.kind, name, ...(options.scope === undefined ? {} : { scope: options.scope }) }
-      return owned(options, (store) =>
-        by === "owner"
-          ? store.knowledge.addOrganization(input)
-          : proposeOrganization(store, input, { bot: by.bot }, options.reason),
-      )
-    },
-  )
-  byOption(
-    annotate(organizations.command("rename"), { effects: LOCAL_WRITE, literal_after_dashes: true })
-      .description("rename an organization of yours; an agent's rename waits for you in memo review")
-      .summary("rename an organization; an agent's waits for your review")
-      .argument("<organization>", "its id or organization:<id>")
-      .argument("<name>", "the new name")
-      .option("--reason <text>", "why the name changes, in a sentence")
-      .option("--json", "print JSON; --json=id,title keeps only those fields"),
-  ).action(
-    async (
-      reference: string,
-      name: string,
-      options: { reason?: string; asOwner?: boolean; json?: boolean },
-      command: Command,
-    ) => {
-      const organization = `organization:${reference.replace(/^organization:/, "")}`
-      const by = await whoRuns(command, env, {
-        asOwner: options.asOwner,
-        question: `rename ${organization} to ${name} as you, the owner?`,
-      })
-      return owned(options, async (store) => {
-        if (by === "owner") return store.knowledge.updateOrganization(organization, { name })
-        if (!name.trim()) throw new CliError("validation_error", "the new name is empty")
-        if (!(await store.knowledge.organizations()).some((one) => one.ref === organization))
-          throw new CliError("not_found", `no organization ${reference}; memo organizations list shows them`)
-        return proposeOrganizationRename(store, { organization, name: name.trim() }, { bot: by.bot }, options.reason)
-      })
-    },
-  )
+  annotate(organizations.command("add"), { effects: LOCAL_WRITE, literal_after_dashes: true })
+    .description(
+      "add an organization of yours: a company, team, family or community; it is written at once, whoever runs it",
+    )
+    .summary("add an organization")
+    .argument("<name>", "the organization's name")
+    .requiredOption("--kind <kind>", ORGANIZATION_KINDS.join(", "), oneOf(ORGANIZATION_KINDS))
+    .option("--scope <scope>", SCOPES.join(", "), oneOf(SCOPES))
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .action((name: string, options: { kind: Organization["kind"]; scope?: Organization["scope"]; json?: boolean }) =>
+      owned(options, (store) =>
+        store.knowledge.addOrganization({
+          kind: options.kind,
+          name,
+          ...(options.scope === undefined ? {} : { scope: options.scope }),
+        }),
+      ),
+    )
+  annotate(organizations.command("rename"), { effects: LOCAL_WRITE, literal_after_dashes: true })
+    .description("rename an organization of yours; it is written at once, whoever runs it")
+    .summary("rename an organization")
+    .argument("<organization>", "its id or organization:<id>")
+    .argument("<name>", "the new name")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .action((reference: string, name: string, options: { json?: boolean }) =>
+      owned(options, (store) =>
+        store.knowledge.updateOrganization(`organization:${reference.replace(/^organization:/, "")}`, { name }),
+      ),
+    )
   annotate(organizations.command("show"), { effects: LOCAL_READ })
     .description("one organization by its id or organization:<id>, without its relationships, notes and tags")
     .summary("one organization")
