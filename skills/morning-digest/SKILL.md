@@ -24,7 +24,7 @@ You run on a schedule with `Bash(memo:*)` under `MEMO_READ_ONLY`. Every write is
 ## One run
 
 1. `memo review agenda --compact`. Its sections come in this order: `watch` (what the owner tagged `watch`), `owed`
-   (replies he owes), `mail` (new personal mail), `meetings` (ended, with or without a transcript), `tasks` (due,
+   (replies he owes; mail from new senders is one counted line, run its `next:` only if a new client is plausible), `mail` (new personal mail), `meetings` (ended, with or without a transcript), `tasks` (due,
    overdue, to check), `projects` (what moved), `proposals` (waiting for his decision). The `coverage` line says how
    fresh each account is: an account marked STALE was not synced for a day, so say so instead of calling it quiet.
 2. Follow only where it points, in this order, and only while calls remain:

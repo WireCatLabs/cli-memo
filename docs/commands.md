@@ -3783,7 +3783,7 @@ memo review reject <ids> [options]
 
 ### `memo review agenda`
 
-the morning digest, from the store alone with no model call: everything new in what you tagged watch (chats, mail threads, people, projects, a meeting's series), replies you owe in messengers and personal mail, new personal mail, meetings that ended, tasks due or overdue, projects that moved, proposals waiting. Replies owed reach back 7 days. Each item has its reference, who, when, one line of text and why it is there; a section cut by --limit or --max-output-bytes says how many it left out and the command that reads them. Coverage says how fresh each account is, so a quiet account that was not synced does not read as a quiet day
+the morning digest, from the store alone with no model call: everything new in what you tagged watch (chats, mail threads, people, projects, a meeting's series), replies you owe in messengers and personal mail, new personal mail, meetings that ended, tasks due or overdue, projects that moved, proposals waiting. Replies owed reach back 7 days; owed mail lists only senders you know (linked to a person with other identities, or written to before), and mail from new senders is one count with the command that lists it. Each item has its reference, who, when, one line of text and why it is there; a section cut by --limit or --max-output-bytes says how many it left out and the command that reads them. Coverage says how fresh each account is, so a quiet account that was not synced does not read as a quiet day
 
 ```sh
 memo review agenda [options]

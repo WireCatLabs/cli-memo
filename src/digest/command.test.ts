@@ -59,13 +59,19 @@ const setUp = async () => {
     [message("4", "12", 2, "Crew meets at the pier"), message("5", "12", 40, "Old crew news")],
     { via: "test" },
   )
-  const email = (uid: string, hours: number, subject: string, listId?: string) => ({
+  const email = (
+    uid: string,
+    hours: number,
+    subject: string,
+    listId?: string,
+    from = ["Rin Example", "rin@example.test"],
+  ) => ({
     uid,
     messageId: `m${uid}`,
     threadId: `t${uid}`,
     receivedAt: ago(hours),
     subject,
-    from: ["Rin Example", "rin@example.test"] as [string, string],
+    from: from as [string, string],
     to: [[null, MAILBOX]] as [string | null, string][],
     text: "Synthetic mail.",
     ...(listId ? { listId } : {}),
@@ -73,7 +79,16 @@ const setUp = async () => {
   await storeMail(
     store,
     MAILBOX,
-    [email("1", 2, "Quote for the pier"), email("2", 1, "Weekly news", "news.example.test")],
+    [
+      email("1", 2, "Quote for the pier"),
+      email("2", 1, "Weekly news", "news.example.test"),
+      email("3", 3, "Can we talk about a pier?", undefined, ["Nova Stranger", "nova@stranger.test"]),
+      {
+        ...email("4", 30, "Earlier quote", undefined, ["Owner", MAILBOX]),
+        threadId: "t4",
+        to: [["Rin Example", "rin@example.test"]] as [string | null, string][],
+      },
+    ],
     {
       since: new Date(Date.now() - 3 * 86_400_000),
     },
@@ -116,12 +131,21 @@ it("puts the watch list first, then replies owed in messengers and personal mail
     [`chat:email/${encodeURIComponent(MAILBOX)}/t1`, "Rin Example", "Quote for the pier"],
     ["chat:telegram/1/10", "Kai Sample", "Can you send the harbour plan?"],
   ])
+  expect(section(body, "owed")).toMatchObject({ total: 2, unknown: { count: 1 } })
   expect(section(body, "mail").total).toBe(0)
   expect(section(body, "projects").items).toEqual([
     expect.objectContaining({ ref: "project:1", why: "watched project, quiet" }),
   ])
   expect(body.item.coverage.map((one: { account: string }) => one.account)).toEqual(["telegram:1", `email:${MAILBOX}`])
   expect(body.item.coverage[0]).toMatchObject({ waiting: 1, stale: false })
+})
+
+it("counts owed mail from senders the owner does not know, and says how to list them", async () => {
+  const { run } = await setUp()
+  const text = await run("review", "agenda", "--compact")
+  expect(text).toContain("+ 1 owed mail from new senders, not listed")
+  expect(text).toContain(`next: memo mail review --source email:${MAILBOX} --unanswered 1m bulk:false`)
+  expect(text).not.toContain("Can we talk about a pier?")
 })
 
 it("keeps to the size budget, counting what it cut and naming the command that reads it", async () => {
