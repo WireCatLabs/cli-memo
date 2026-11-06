@@ -22,6 +22,7 @@ export const INVOICE_QUERY = {
     termField("status", "enum", "status:partly_paid", { values: INVOICE_STATUSES }),
     termField("review", "enum", "review:proposed", { values: FINANCE_REVIEWS }),
     termField("counterparty", "ref", 'counterparty:"organization:3"'),
+    termField("number", "kw", "number:FACT-2026-00012"),
     termField("open", "bool", "open:true"),
   ],
 } as const satisfies QueryRegistry
@@ -55,6 +56,7 @@ export const listInvoices = async (
     ...(terms.has("direction") ? { direction: terms.get("direction") as Invoice["direction"] } : {}),
     ...(terms.has("status") ? { status: terms.get("status") as Invoice["status"] } : {}),
     ...(terms.has("counterparty") ? { counterparty: terms.get("counterparty") as string } : {}),
+    ...(terms.has("number") ? { number: terms.get("number") as string } : {}),
     ...(terms.has("open") ? { open: terms.get("open") === "true" } : {}),
   }
   return pageOf("invoices list", limit, (most) => store.finance.invoices({ ...filter, limit: most }))
