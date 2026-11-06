@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.42 — 06.11.2026
+
 ### Added
 
 - **`memo deals`, `memo leads` and `memo pipelines`: sales pipelines and what is in them (cli-core 0.588.0, store
