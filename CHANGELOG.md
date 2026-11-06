@@ -14,9 +14,18 @@ the API.
 
 ### Changed
 
-- **memo runs on cli-core 0.592.0.** `deal`, `lead` and `pipeline` answers use cli-core's shared entities, so
+- **memo runs on cli-core 0.593.0.** `deal`, `lead` and `pipeline` answers use cli-core's shared entities, so
   `--json=<field>` is checked against them. `memo review agenda` asks cli-core which senders you have written to
   instead of reading the store with its own SQL.
+
+### Fixed
+
+- **`memo search messages` finds a short reply by a question about it.** A question typed as a sentence now searches
+  as `memo search all` does: records holding some of its words, and a direct reply by the message it answers, so
+  "let us leave it until summer" is found by "when will the price sync be done?". Plain words still must all be in
+  the message. `search all` finds mail by meaning through the vector index (cli-core 0.593.0): 3.9 s instead of
+  9.5 s warm, and far less on a cold disk, on a large mailbox.
+- **`memo search all` names a source it skipped** instead of printing `undefined not searched`.
 
 ### Changed — may break callers
 
