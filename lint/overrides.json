@@ -103,5 +103,26 @@
     "reason": "NEED-2245 A, with tasks add --external-id: the http or https page a task is about, such as an Avito ad; no vocabulary flag takes a web address. Add --source-url there, then drop this.",
     "owner": "@leemour",
     "review_after": "2027-02-05"
+  },
+  {
+    "rule": "option-role",
+    "target": "schedule agent --notify-on",
+    "reason": "the owner chose when a schedule's run shows a desktop notice on 2026-11-06 (always, failures or never; plan 2026-11-02 section 9.1); the word goes into cli-base's vocabulary in its next release",
+    "owner": "@leemour",
+    "review_after": "2026-12-06"
+  },
+  {
+    "rule": "option-role",
+    "target": "schedule command --notify-on",
+    "reason": "the owner chose when a schedule's run shows a desktop notice on 2026-11-06 (always, failures or never; plan 2026-11-02 section 9.1); the word goes into cli-base's vocabulary in its next release",
+    "owner": "@leemour",
+    "review_after": "2026-12-06"
+  },
+  {
+    "rule": "flag-two-meanings",
+    "target": "--to",
+    "reason": "a schedule's --to takes a delivery route (telegram-bot:<profile>/<chat>, email:<profile>/<address>), the owner's choice of 2026-11-06 (NEED-2296 = C, plan 2026-11-02 section 10); --to keeps its vocabulary meaning, who it goes to, and cli-base adds route to its other values in its next release",
+    "owner": "@leemour",
+    "review_after": "2026-12-06"
   }
 ]
