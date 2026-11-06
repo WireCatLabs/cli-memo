@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.45 — 06.11.2026
+
 ### Added
 
 - **`memo schedule agent` and `memo schedule command` take `--notify-on always|failures|never` and `--to <route>`**
