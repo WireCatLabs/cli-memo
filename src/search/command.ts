@@ -106,7 +106,7 @@ Calendar events come from every calendar gcal stored; an event's title, descript
             `searched: ${answer.accounts.map(({ provider, account }) => `${provider}:${account}`).join(", ") || "nothing"}\n`,
           )
           for (const skipped of answer.skipped)
-            streams.diagnostic(`${skipped.resource} not searched: ${skipped.reason}\n`)
+            streams.diagnostic(`${skipped.resource ?? skipped.source} not searched: ${skipped.reason}\n`)
           if (answer.notes?.meaningSkipped) streams.diagnostic(`Notes by words only: ${answer.notes.meaningSkipped}\n`)
           if (answer.events?.meaningSkipped) streams.diagnostic(`${eventsMeaningNote(answer.events.meaningSkipped)}\n`)
           if (answer.messages?.meaningSkipped)
@@ -143,6 +143,8 @@ Calendar events come from every calendar gcal stored; an event's title, descript
 content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names — memo search messages
 'content:invoice'. Compare it with tg search messages 'content:invoice', a plain word with a plain word.
 has:voice, has:file or NOT has:attachment keeps voice messages, files or plain text — memo search messages 'friday has:voice'.
+A question finds messages holding some of its words, and a short reply by the message it answers — memo search messages
+'when is the price sync?'. Plain words must all be in the message; --exact keeps a question to that too.
 --json: the list is items, each a hit as in tg search messages: ref (msg:…), timestamp, sender_name, excerpt.
 For an agent: read with --compact, one line per hit with its reference. Never write message text to a file.`
         : `
