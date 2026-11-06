@@ -3,9 +3,9 @@ import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { DEAL_KINDS, DEAL_ROLES, DEAL_STATUSES, type DealKind, type DealRole } from "@wirecat/cli-core"
 import { LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
-import type { DealFilter, MessageStore } from "@wirecat/cli-core/store"
+import type { DealFilter, MessageStore, PipelineReport } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
-import { answers, itemAnswer, wholeList } from "../answer.js"
+import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { authorOf } from "../author.js"
 import { collect, positive } from "../options.js"
 import { pageOf } from "../page.js"
@@ -221,9 +221,24 @@ const itemCommands = (
     )
 }
 
+const percent = (share: number | null) => (share === null ? "" : `, ${Math.round(share * 100)}% go on`)
+
+/** "Sales (deal), pipeline:2" then a line per stage: open now, reached, and the share that goes on. */
+const funnelText = (report: PipelineReport): string =>
+  [
+    `${report.name} (${report.kind}), ${report.ref}${report.since === null ? "" : `, made since ${report.since}`}`,
+    ...report.stages.map(
+      (stage) =>
+        `  ${stage.position}. ${stage.name}${stage.outcome === "open" ? "" : ` [${stage.outcome}]`}: ` +
+        `${stage.open} open, ${stage.reached} reached${percent(stage.conversion)}`,
+    ),
+    `  ${report.totals.items} in all: ${report.totals.open} open, ${report.totals.won} won, ${report.totals.lost} lost` +
+      (report.totals.winRate === null ? "" : `, win rate ${Math.round(report.totals.winRate * 100)}%`),
+  ].join("\n")
+
 /** `memo deals`, `memo leads` and `memo pipelines`: sales pipelines and what is in them. */
 export const dealCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
-  const { run } = answers(program, streams, env)
+  const { run, print } = answers(program, streams, env)
 
   const pipelines = program
     .command("pipelines")
@@ -262,12 +277,13 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
     )
     .summary("one pipeline's stages with counts and conversion")
     .argument("<pipeline>", "pipeline:<id>, or a name only one pipeline has")
-    .action((pipeline: string, options: { sinceTime?: string; json?: boolean }) =>
-      run(options.json, async (store) => {
-        const since = dayOf(options.sinceTime)
-        return itemAnswer(await store.deals.pipeline(pipeline, since === undefined ? {} : { since }))
-      }),
-    )
+    .action(async (pipeline: string, options: { sinceTime?: string; json?: boolean }) => {
+      const since = dayOf(options.sinceTime)
+      const report = await withStore(env, (store) =>
+        store.deals.pipeline(pipeline, since === undefined ? {} : { since }),
+      )
+      print(options.json, itemAnswer(report), funnelText(report))
+    })
 
   json(
     annotate(pipelines.command("add"), { effects: LOCAL_WRITE, literal_after_dashes: true }).option(
