@@ -5,7 +5,7 @@ import { itemAnswer, plainText } from "../answer.js"
 import { factItem } from "../facts/fact.js"
 import { notesAbout } from "../notes/about.js"
 import { labelsFor, proposerName, reviewItem } from "../review/review.js"
-import { waitingAbout } from "../review/status.js"
+import { atLeast, kindsText, waitingAbout } from "../review/status.js"
 import { keyDocuments, projectOf } from "./key-documents.js"
 import { projectFindings } from "./project-findings.js"
 
@@ -79,9 +79,9 @@ export const projectContextText = (context: Awaited<ReturnType<typeof projectCon
   const { review } = context
   return [
     plainText(itemAnswer(context)),
-    `Pending review: ${review.waiting.count}${review.waiting.complete ? "" : "+"} proposal${
+    `Pending review: ${atLeast(review.waiting.count, review.waiting.complete)} proposal${
       review.waiting.count === 1 ? "" : "s"
-    } waiting — memo review project:${context.project.key ?? context.project.ref} (nothing confirmed):`,
+    } waiting${review.waiting.count ? ` (${kindsText(review.waiting.kinds)})` : ""} — memo review list project:${context.project.key ?? context.project.ref} (nothing confirmed):`,
     ...review.keyDocuments.map((document) => `  key document ${document.ref}: ${line(document.reason ?? "")}`),
     ...review.relationships.map((link) => `  relationship ${link.id}: ${link.title}`),
     ...review.facts.items.map((fact) => `  ${fact.ref} [${fact.kind}]: ${line(fact.text)}`),

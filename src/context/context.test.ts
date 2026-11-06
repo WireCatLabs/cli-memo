@@ -96,6 +96,7 @@ describe("memo context", () => {
     const answer = answerOf(await run("context", "telegram:101", "--json"))
 
     expect(answer.messages.last.from_them?.id).toBe("1")
+    expect(answer.proposals).toEqual({ count: 0, kinds: {}, complete: true, next: { command: "review list" } })
     expect(answer.messages.last.from_me?.id).toBe("2")
     expect(answer.messages.recent.direct.map(({ id }: { id: string }) => id)).toEqual(["2", "1"])
   })

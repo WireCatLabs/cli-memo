@@ -6,6 +6,11 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo context` and `memo projects context` break the waiting proposals down by kind.** `proposals` (person) and
+  `review.waiting` (project) carry `kinds` next to `count`, and the person's answer names `next`: `review list`.
+
 ## 0.131.43 — 06.11.2026
 
 ### Added
