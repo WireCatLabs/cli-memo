@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.44 — 06.11.2026
+
 ### Changed — may break callers
 
 - **memo runs on cli-core 0.590.0: `projects status` calls a money request found by words `asked`, not `open`.** The
