@@ -1439,7 +1439,7 @@ memo projects evidence <project> [options]
 
 ### `memo projects status`
 
-where a project stands, from the stored messages of every chat confirmed as the project's or its child projects', in every account those links name (meta.accounts lists them): the last message, who replies next, open questions both ways, promises, amounts with their direction, payments recorded, billed, paid and owed per currency from confirmed invoices and payments (finance), how long each --context-query has been quiet on their side, and how much of each chat is held. Amounts, directions and promises found by words are marked pattern: read the cited message before trusting one. Others' questions in a group with no role, and others' word-found promises in a group, are counted on the chat's row as unlisted, not listed. next names at most two chats to read, with the messenger command that reads them. No model call; nothing leaves this machine
+where a project stands, from the stored messages of every chat confirmed as the project's or its child projects', in every account those links name (meta.accounts lists them): the last message, who replies next, open questions both ways, promises, amounts with their direction, payments recorded, billed, paid and owed per currency from confirmed invoices and payments (finance), up to five open confirmed deals (deals), how long each --context-query has been quiet on their side, and how much of each chat is held. Amounts, directions and promises found by words are marked pattern: read the cited message before trusting one. Others' questions in a group with no role, and others' word-found promises in a group, are counted on the chat's row as unlisted, not listed. next names at most two chats to read, with the messenger command that reads them. No model call; nothing leaves this machine
 
 ```sh
 memo projects status <project> [options]
@@ -2957,6 +2957,325 @@ memo orders add <shop> [amount] [currency] [options]
 **Returns:** record an order; an agent's waits for your review
 
 **Example:** `memo orders add 'Shop One' 2499.00 RUB --kind personal --title A-1042`, `memo orders add 'Office Supply' --kind client --organization organization:3`
+
+## `memo pipelines`
+
+sales pipelines: the stages a deal or a lead goes through, in order, and how many get through each
+
+### `memo pipelines list`
+
+every pipeline with its stages in order and how many open deals or leads stand in each
+
+```sh
+memo pipelines list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** every pipeline with its stages
+
+**Example:** `memo pipelines list`, `memo pipelines list kind:lead --json`
+
+### `memo pipelines show`
+
+one pipeline's funnel: per stage the open deals or leads in it, how many reached it, and the share that went on to the next stage; then won, lost and the win rate
+
+```sh
+memo pipelines show <pipeline> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `pipeline` | required | pipeline:<id>, or a name only one pipeline has. |
+
+| Option | What it does |
+|---|---|
+| `--since-time <time>` | count only deals or leads made since this day, such as 2026-09-01. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** one pipeline's stages with counts and conversion
+
+**Example:** `memo pipelines show pipeline:2`, `memo pipelines show Sales --since-time 2026-09-01`
+
+### `memo pipelines add`
+
+make a pipeline with its stages in order; a stage named won or lost (any letter case) ends a deal or lead as that
+
+This command changes the local store or your files.
+
+```sh
+memo pipelines add <name> <stage> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | required | the pipeline's name, such as Sales. |
+| `stage` | required | its stages in order, such as Call Quote Contract won lost. |
+
+| Option | What it does |
+|---|---|
+| `--kind <kind>` | what it holds: deal or lead; deal by default. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** make a pipeline with its stages
+
+**Example:** `memo pipelines add Sales Call Quote Contract won lost`, `memo pipelines add Inbound new called --kind lead`
+
+## `memo deals`
+
+deals you hope to win: the client, the expected amount, the stage and whether it was won or lost
+
+### `memo deals list`
+
+deals, newest first; status:open is what is still in play
+
+```sh
+memo deals list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+| `--limit <n>` | most deals, up to 500. Default: `100`. |
+
+**Returns:** deals, newest first
+
+**Example:** `memo deals list status:open project:HRB`, `memo deals list stage:Quote --json`
+
+### `memo deals show`
+
+one deal with its pipeline, stage, status, amount, the people on it and what it was read from
+
+```sh
+memo deals show <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | deal:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** one deal with its stage, status, amount and people
+
+**Example:** `memo deals show deal:5`
+
+### `memo deals add`
+
+record a deal in a stage; it is written at once, whoever runs it
+
+This command changes the local store or your files.
+
+```sh
+memo deals add <title> <stage> [amount] [currency] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `title` | required | what you hope to sell, such as 'Site for the clinic'. |
+| `stage` | required | the stage it is in; Sales/Quote or pipeline:3/Quote names the pipeline when two have that stage. |
+| `amount` | optional | the expected amount, a decimal such as 500000.00. |
+| `currency` | optional | ISO 4217, such as RUB; given with the amount. |
+
+| Option | What it does |
+|---|---|
+| `--organization <organization>` | the client: organization:<id>. |
+| `--person <uid>` | a person on the deal: person:<id>; repeat for another, up to 20. |
+| `--role <role>` | what those people are on it: owner, contact, decision-maker; contact by default. |
+| `--due <time>` | the day you expect it to close, such as 2026-12-01. |
+| `--project <project>` | the project it belongs to: its key or project:<id>. |
+| `--reason <text>` | why an agent records it, kept with it. |
+| `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** record a deal in a stage
+
+**Example:** `memo deals add 'Site for the clinic' Call 500000.00 RUB --organization organization:3 --project HRB`, `memo deals add 'Support contract' Sales/Quote --person person:7 --role decision-maker --due 2026-12-01`
+
+### `memo deals move`
+
+move a deal to another stage of its pipeline; a won or lost stage closes it, an open one reopens it
+
+This command changes the local store or your files.
+
+```sh
+memo deals move <ref> <stage> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | deal:<id>. |
+| `stage` | required | a stage of the deal's pipeline. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** move a deal to another stage
+
+**Example:** `memo deals move deal:5 Quote`
+
+### `memo deals close`
+
+close a deal as won or lost; it moves to its pipeline's won or lost stage when there is one
+
+This command changes the local store or your files.
+
+```sh
+memo deals close <ref> <outcome> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | deal:<id>. |
+| `outcome` | required | won or lost. |
+
+| Option | What it does |
+|---|---|
+| `--occurred-time <time>` | the day it closed, such as 2026-11-20; today when left out. |
+| `--reason <text>` | why it was won or lost, kept with it. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** close a deal as won or lost
+
+**Example:** `memo deals close deal:5 won`, `memo deals close deal:6 lost --reason 'chose a cheaper studio'`
+
+## `memo leads`
+
+leads: first contacts in a lead pipeline, before they are deals
+
+### `memo leads list`
+
+leads, newest first; status:open is what is still in play
+
+```sh
+memo leads list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+| `--limit <n>` | most leads, up to 500. Default: `100`. |
+
+**Returns:** leads, newest first
+
+**Example:** `memo leads list status:open`
+
+### `memo leads show`
+
+one lead with its pipeline, stage, status, amount, the people on it and what it was read from
+
+```sh
+memo leads show <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | lead:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** one lead with its stage, status, amount and people
+
+**Example:** `memo leads show lead:3`
+
+### `memo leads add`
+
+record a lead in a stage; it is written at once, whoever runs it
+
+This command changes the local store or your files.
+
+```sh
+memo leads add <title> [stage] [amount] [currency] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `title` | required | who or what came in, such as 'Call from the site'. |
+| `stage` | optional | the stage it is in; the first stage of the only lead pipeline when left out. |
+| `amount` | optional | the expected amount, a decimal such as 500000.00. |
+| `currency` | optional | ISO 4217, such as RUB; given with the amount. |
+
+| Option | What it does |
+|---|---|
+| `--organization <organization>` | the client: organization:<id>. |
+| `--person <uid>` | a person on the lead: person:<id>; repeat for another, up to 20. |
+| `--role <role>` | what those people are on it: owner, contact, decision-maker; contact by default. |
+| `--due <time>` | the day you expect it to close, such as 2026-12-01. |
+| `--project <project>` | the project it belongs to: its key or project:<id>. |
+| `--reason <text>` | why an agent records it, kept with it. |
+| `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** record a lead in a stage
+
+**Example:** `memo leads add 'Call from the site'`, `memo leads add 'Clinic in Kazan' contacted --person person:9`
+
+### `memo leads move`
+
+move a lead to another stage of its pipeline; a won or lost stage closes it, an open one reopens it
+
+This command changes the local store or your files.
+
+```sh
+memo leads move <ref> <stage> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | lead:<id>. |
+| `stage` | required | a stage of the lead's pipeline. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** move a lead to another stage
+
+**Example:** `memo leads move lead:3 qualified`
+
+### `memo leads close`
+
+close a lead as won or lost; it moves to its pipeline's won or lost stage when there is one
+
+This command changes the local store or your files.
+
+```sh
+memo leads close <ref> <outcome> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | lead:<id>. |
+| `outcome` | required | won or lost. |
+
+| Option | What it does |
+|---|---|
+| `--occurred-time <time>` | the day it closed, such as 2026-11-20; today when left out. |
+| `--reason <text>` | why it was won or lost, kept with it. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** close a lead as won or lost
+
+**Example:** `memo leads close lead:3 lost --reason 'no budget'`
 
 ## `memo records`
 

@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**709 ✅ · 0 ⛔ · 139 ❌** — 192 commands, 656 options.
+**741 ✅ · 0 ⛔ · 155 ❌** — 205 commands, 691 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -584,6 +584,54 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `orders add` | `--evidence` | ❌ |  |
 | `orders add` | `--as-owner` | ❌ |  |
 | `orders add` | `--json` | ✅ |  |
+| `pipelines list` |  | ✅ |  |
+| `pipelines list` | `--json` | ✅ |  |
+| `pipelines show` |  | ✅ |  |
+| `pipelines show` | `--since-time` | ✅ |  |
+| `pipelines show` | `--json` | ✅ |  |
+| `pipelines add` |  | ✅ |  |
+| `pipelines add` | `--kind` | ✅ |  |
+| `pipelines add` | `--json` | ✅ |  |
+| `deals list` |  | ✅ |  |
+| `deals list` | `--json` | ✅ |  |
+| `deals list` | `--limit` | ❌ |  |
+| `deals show` |  | ✅ |  |
+| `deals show` | `--json` | ❌ |  |
+| `deals add` |  | ✅ |  |
+| `deals add` | `--organization` | ✅ |  |
+| `deals add` | `--person` | ✅ |  |
+| `deals add` | `--role` | ✅ |  |
+| `deals add` | `--due` | ✅ |  |
+| `deals add` | `--project` | ✅ |  |
+| `deals add` | `--reason` | ❌ |  |
+| `deals add` | `--evidence` | ❌ |  |
+| `deals add` | `--json` | ✅ |  |
+| `deals move` |  | ✅ |  |
+| `deals move` | `--json` | ✅ |  |
+| `deals close` |  | ✅ |  |
+| `deals close` | `--occurred-time` | ❌ |  |
+| `deals close` | `--reason` | ✅ |  |
+| `deals close` | `--json` | ✅ |  |
+| `leads list` |  | ✅ |  |
+| `leads list` | `--json` | ✅ |  |
+| `leads list` | `--limit` | ❌ |  |
+| `leads show` |  | ✅ |  |
+| `leads show` | `--json` | ❌ |  |
+| `leads add` |  | ✅ |  |
+| `leads add` | `--organization` | ❌ |  |
+| `leads add` | `--person` | ✅ |  |
+| `leads add` | `--role` | ❌ |  |
+| `leads add` | `--due` | ❌ |  |
+| `leads add` | `--project` | ❌ |  |
+| `leads add` | `--reason` | ❌ |  |
+| `leads add` | `--evidence` | ❌ |  |
+| `leads add` | `--json` | ✅ |  |
+| `leads move` |  | ✅ |  |
+| `leads move` | `--json` | ❌ |  |
+| `leads close` |  | ✅ |  |
+| `leads close` | `--occurred-time` | ❌ |  |
+| `leads close` | `--reason` | ✅ |  |
+| `leads close` | `--json` | ❌ |  |
 | `records import` |  | ✅ |  |
 | `records import` | `--dry-run` | ✅ |  |
 | `records import` | `--account` | ✅ |  |

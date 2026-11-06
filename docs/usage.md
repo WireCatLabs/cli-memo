@@ -107,6 +107,26 @@ When the file names a party by its own id, such as `organization:client`, its in
 say which of your entries that is. `memo records list waiting:true --account sheet:rentals` shows what waits, and
 `memo records link organization:client organization:3 --account sheet:rentals` links it; only you can.
 
+## Track deals and leads
+
+A deal is what you hope to sell: a title, the client, the expected amount and the stage it is in. A lead is a first
+contact, before it is a deal. Each stands in a pipeline, a list of stages in order; its status (open, won or lost) is
+kept apart from the stage. Memo starts with one lead pipeline, `Leads` (new, contacted, qualified, won, lost).
+
+```sh
+memo pipelines add Sales Call Quote Contract won lost
+memo deals add 'Site for the clinic' Call 500000.00 RUB --organization organization:3 --project HRB
+memo deals move deal:5 Quote
+memo deals close deal:5 won
+memo leads add 'Call from the site'
+memo pipelines show Sales
+```
+
+Your agent writes deals, leads and pipelines as you do, at once. To limit what it may do over MCP, set the
+[`permissions`](configuration.md#permissions) keys, such as `"deals": "readonly"`. Two CRM accounts may each have a
+pipeline named Sales: name one by its reference, `pipeline:3`. `pipelines show` counts, per stage, how many deals
+reached it and the share that went on to the next. `projects status` lists up to five open deals of the project.
+
 ## Answers for scripts and agents
 
 Add `--json` to most commands to get an answer a program can read. The text answer is for people;

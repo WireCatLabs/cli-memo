@@ -12,3 +12,9 @@ which writes nothing, then `memo records import` once the owner agrees; its invo
 An invoice or payment whose party is a record of the source (`organization:client`) waits until the owner says which
 entry it is: show `memo records list waiting:true --account <provider>:<account>` and leave
 `memo records link` to the owner.
+
+Deals and leads: `memo deals list status:open`, `memo leads list`, `memo deals show deal:<id>`. You may add, move and
+close them and make pipelines yourself (`memo deals add <title> <stage> [amount] [currency] --reason ...`,
+`memo leads add <title>`, `memo deals move deal:<id> <stage>`, `memo deals close deal:<id> won|lost`); they are
+written at once, no review. Name a pipeline by `pipeline:<id>` when two share a name. `memo pipelines show <pipeline>`
+gives the counts and conversion per stage.

@@ -25,6 +25,7 @@ import {
 import type { MessageStore } from "@wirecat/cli-core/store"
 import { type Command, Option } from "commander"
 import { withStore } from "../answer.js"
+import { dealsText, openDealsOf } from "../finance/deals-command.js"
 import { financeOf, financeText } from "../finance/finance.js"
 import { collect } from "../options.js"
 import { chatRead, chatSync, syncProfileOf } from "./messenger-sync.js"
@@ -41,7 +42,7 @@ interface Options {
 
 const withFinance = (row: ReturnType<typeof projectStatusRow>) => ({
   ...row,
-  sections: { ...row.sections, finance: "memo_finance" },
+  sections: { ...row.sections, finance: "memo_finance", deals: "memo_deal" },
 })
 
 type Print = (json: boolean | undefined, body: Body, text?: string, compact?: boolean) => void
@@ -98,7 +99,7 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
       "where a project stands, from the stored messages of every chat confirmed as the project's or its child " +
         "projects', in every account those links name (meta.accounts lists them): the last message, who replies " +
         "next, open questions both ways, promises, amounts with their direction, payments recorded, billed, paid and " +
-        "owed per currency from confirmed invoices and payments (finance), how long each " +
+        "owed per currency from confirmed invoices and payments (finance), up to five open confirmed deals (deals), how long each " +
         "--context-query has been quiet on their side, and how much of each chat is held. Amounts, directions and " +
         "promises found by words are marked pattern: read the cited message before trusting one. Others' questions " +
         "in a group with no role, and others' word-found promises in a group, are counted on the chat's row as " +
@@ -137,7 +138,7 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
           param: "--compact",
         })
       const chosen = options.syncProfile ?? {}
-      const { found, finance } = await withStore(env, async (store) => {
+      const { found, finance, open } = await withStore(env, async (store) => {
         const status = await projectStatus(store, {
           project,
           ...projectWindowOf(options.sinceTime),
@@ -145,8 +146,9 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
           contextQueries: options.contextQuery,
           ...(options.purpose ? { purposes: options.purpose } : {}),
         })
-        const books = await financeOf(store, [status.project.ref, ...status.children.map((child) => child.ref)])
-        return { found: await titled(store, status), finance: books }
+        const projects = [status.project.ref, ...status.children.map((child) => child.ref)]
+        const books = await financeOf(store, projects)
+        return { found: await titled(store, status), finance: books, open: await openDealsOf(store, projects) }
       })
       const blocked = new Set<string>()
       const step = outside(blocked)
@@ -160,14 +162,19 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
       print(
         options.json,
         itemOf(
-          { ...item, ...(finance.length ? { finance } : {}) },
+          {
+            ...item,
+            ...(finance.length ? { finance } : {}),
+            ...(open.deals.length ? { deals: open.deals } : {}),
+            ...(open.more ? { deals_more: open.more } : {}),
+          },
           {
             ...(next.length ? { next: next.map(asAction) } : {}),
             ...(gaps.length ? { missing: gaps } : {}),
             meta,
           },
         ),
-        [projectStatusText(found, hints), ...financeText(finance)].join("\n"),
+        [projectStatusText(found, hints), ...financeText(finance), ...dealsText(open)].join("\n"),
         options.compact === true,
       )
     })

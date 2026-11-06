@@ -32,6 +32,7 @@ import { addExamples } from "./examples.js"
 import { factsCommand } from "./facts/command.js"
 import { recognisable } from "./failure.js"
 import { financeCommands } from "./finance/command.js"
+import { dealCommands } from "./finance/deals-command.js"
 import { orderCommands } from "./finance/orders-command.js"
 import { findingsCommand } from "./findings/command.js"
 import { jsonFields } from "./json-fields.js"
@@ -164,6 +165,69 @@ const OWN_ENTITIES = entityFields({
   agent_action: ["id", "actor", "tool", "tier", "target", "status", "error", "started_at", "finished_at"],
   meeting_project: ["id", "meeting", "project", "confirmed", "provenance", "fingerprint"],
   notes_folder: ["id", "name", "path", "format", "kept_by"],
+  deal: [
+    "id",
+    "ref",
+    "kind",
+    "title",
+    "summary",
+    "pipeline",
+    "pipeline_name",
+    "stage",
+    "status",
+    "organization",
+    "currency",
+    "amount",
+    "close_date",
+    "closed_date",
+    "closed_reason",
+    "rank",
+    "deal",
+    "account",
+    "external_id",
+    "people",
+    "author",
+    "model",
+    "source",
+    "reason",
+    "project",
+    "project_name",
+    "created_at",
+    "updated_at",
+    "evidence",
+  ],
+  lead: [
+    "id",
+    "ref",
+    "kind",
+    "title",
+    "summary",
+    "pipeline",
+    "pipeline_name",
+    "stage",
+    "status",
+    "organization",
+    "currency",
+    "amount",
+    "close_date",
+    "closed_date",
+    "closed_reason",
+    "rank",
+    "deal",
+    "account",
+    "external_id",
+    "people",
+    "author",
+    "model",
+    "source",
+    "reason",
+    "project",
+    "project_name",
+    "created_at",
+    "updated_at",
+    "evidence",
+  ],
+  pipeline: ["id", "ref", "name", "kind", "account", "external_id", "stages", "totals", "since", "created_at"],
   order: [
     "id",
     "ref",
@@ -346,6 +410,7 @@ export const createProgram = ({
   factsCommand(program, streams, env)
   financeCommands(program, streams, env)
   orderCommands(program, streams, env)
+  dealCommands(program, streams, env)
   recordsCommand(program, streams, env)
   findingsCommand(program, streams, env)
   actionsCommand(program, streams, env)
