@@ -11,15 +11,19 @@ the API.
 - **`memo schedule agent` and `memo schedule command` take `--notify-on always|failures|never` and `--to <route>`**
   (cli-core 0.592.0). `--notify-on` says when a run shows a desktop notice; `--to` also sends the result, when
   `--notify-on` says so, to `telegram-bot:<profile>/<chat>` or `email:<profile>/<address>`; repeat it for more.
+- **`memo mail findings add` (and `--dry-run`) leaves out duplicates and stages the rest.** A finding whose order,
+  invoice, payment, task or fact is stored, already waits in a proposed batch or came earlier in the same batch is not
+  staged. The answer lists it in `duplicates` with `duplicate_of` (the reference that holds it, such as `order:7` or
+  `<batch>/<finding>`) and reason `findings.duplicate`. Same means: order by shop and number or `source_url`; invoice
+  by counterparty and number; payment by amount, currency, date and party; task by `external_id` or `source_url`; fact
+  by its text and subject. A batch of only duplicates stages nothing (`staged: false`). A rejected record holds
+  nothing.
 
-### Changed
+### Changed — may break callers
 
 - **memo runs on cli-core 0.592.0.** `deal`, `lead` and `pipeline` answers use cli-core's shared entities, so
   `--json=<field>` is checked against them. `memo review agenda` asks cli-core which senders you have written to
   instead of reading the store with its own SQL.
-
-### Changed — may break callers
-
 - **`memo review agenda` lists owed mail only from senders you know.** A known sender is linked to a person with
   other identities, or an address you have written to before (any mailbox). Owed mail from other senders, mostly
   automated, is one line: how many, with a `next:` command that lists them. Owed messenger chats are unchanged. JSON
