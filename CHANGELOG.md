@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Changed — may break callers
+
+- **`memo review agenda` lists owed mail only from senders you know.** A known sender is linked to a person with
+  other identities, or an address you have written to before (any mailbox). Owed mail from other senders, mostly
+  automated, is one line: how many, with a `next:` command that lists them. Owed messenger chats are unchanged. JSON
+  `owed` gains `unknown: { count, next[] }` when any were counted, and its `total` counts the listed items only.
+
 ## 0.131.44 — 06.11.2026
 
 ### Changed — may break callers

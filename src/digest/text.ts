@@ -10,7 +10,19 @@ const sectionText = (section: DigestSection) => {
   const head = `## ${section.name} ${section.total}${more > 0 ? ` (${more} not shown)` : ""}`
   const notes = section.next.filter((line) => line.startsWith("#"))
   const steps = more > 0 ? section.next.filter((line) => !line.startsWith("#")).map((line) => `next: ${line}`) : []
-  return [section.total === 0 ? `${head}: nothing` : head, ...section.items.map(itemLine), ...notes, ...steps]
+  const strangers = section.unknown
+    ? [
+        `+ ${section.unknown.count} owed mail from new senders, not listed`,
+        ...section.unknown.next.map((line) => `next: ${line}`),
+      ]
+    : []
+  return [
+    section.total === 0 ? `${head}: nothing` : head,
+    ...section.items.map(itemLine),
+    ...strangers,
+    ...notes,
+    ...steps,
+  ]
 }
 
 export const digestText = (digest: Digest): string =>

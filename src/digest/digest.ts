@@ -6,6 +6,7 @@ import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
 import { APP } from "../app.js"
 import { listReview } from "../review/review.js"
 import { counted } from "../review/status.js"
+import { knownSenders } from "./known.js"
 
 /** The tag that puts a chat, mail thread, person, project or meeting series on the owner's watch list. */
 export const WATCH_TAG = "watch"
@@ -26,6 +27,8 @@ export interface DigestSection {
   total: number
   /** Commands that read what was cut, kept only when something was; a line starting with # is a note, kept always. */
   next: string[]
+  /** `owed` only: owed mail from senders the owner does not know yet, counted and not listed. */
+  unknown?: { count: number; next: string[] }
 }
 
 export const SECTIONS = ["watch", "owed", "mail", "meetings", "tasks", "projects", "proposals"] as const
@@ -173,6 +176,7 @@ export const gatherDigest = async (
   const mailNext: string[] = []
   let bulk = 0
   let olderMail = 0
+  const unknown = { count: 0, next: [] as string[] }
 
   for (const key of messengers) {
     const { chats, storedAt } = await store.chats.chatActivity(key, owedSince)
@@ -232,6 +236,7 @@ export const gatherDigest = async (
     })
     let owedHere = 0
     let newHere = 0
+    const owedMail: { pending: Pending; externalId: string }[] = []
     for (const thread of threads) {
       const last = thread.newest
       if (last === null) continue
@@ -254,7 +259,7 @@ export const gatherDigest = async (
         if (inWindow) watch.push(pending("watched thread"))
       } else if (mailTurn(last) === "owed") {
         // Mail owed from before the window was in an earlier digest; repeating hundreds of it hides today's.
-        if (inWindow) owed.push(pending("owed reply"))
+        if (inWindow) owedMail.push({ pending: pending("owed reply"), externalId: last.externalId })
         else if (thread.lastEmailAt >= owedSince) olderMail++
         owedHere++
       } else if (inWindow && !last.outgoing) {
@@ -262,7 +267,17 @@ export const gatherDigest = async (
         newHere++
       }
     }
+    const known = await knownSenders(
+      store,
+      env,
+      stored.id,
+      owedMail.map((one) => one.externalId),
+    )
+    const strangers = owedMail.filter((one) => !known.has(one.externalId))
+    for (const one of owedMail) if (known.has(one.externalId)) owed.push(one.pending)
+    unknown.count += strangers.length
     if (owedHere) owedNext.push(`memo mail review --source ${name(key)} --unanswered 1m bulk:false`)
+    if (strangers.length) unknown.next.push(`memo mail review --source ${name(key)} --unanswered 1m bulk:false`)
     if (newHere) mailNext.push(`memo mail review --source ${name(key)} date>${days} bulk:false`)
   }
 
@@ -386,10 +401,13 @@ export const gatherDigest = async (
       "memo tags list tag:watch",
       ...[...watched.people].map((uid) => `memo context person:${uid}`),
     ]),
-    await section("owed", owed, limit, [
-      ...owedNext,
-      ...(olderMail ? [`# ${olderMail} mail threads owed from before the window left out`] : []),
-    ]),
+    {
+      ...(await section("owed", owed, limit, [
+        ...owedNext,
+        ...(olderMail ? [`# ${olderMail} mail threads owed from before the window left out`] : []),
+      ])),
+      ...(unknown.count ? { unknown } : {}),
+    },
     await section("mail", mail, limit, [...mailNext, ...(bulk ? [`# ${bulk} bulk or list threads left out`] : [])]),
     await section("meetings", meetings, limit, ["memo search meetings <words>"]),
     await section("tasks", [...tasks.values()], limit, [
