@@ -107,6 +107,22 @@ When the file names a party by its own id, such as `organization:client`, its in
 say which of your entries that is. `memo records list waiting:true --account sheet:rentals` shows what waits, and
 `memo records link organization:client organization:3 --account sheet:rentals` links it; only you can.
 
+## Track deals
+
+A deal is what you hope to sell: a title, the client, the expected amount and the stage it is in. Its status (open,
+won or lost) is kept apart from the stage. Make a pipeline with its stages first; only you make one.
+
+```sh
+memo pipelines add Sales Call Quote Contract
+memo deals add 'Site for the clinic' Call 500000.00 RUB --organization organization:3 --project HRB
+memo deals move deal:5 Quote
+memo deals close deal:5 won
+memo deals list status:open
+```
+
+A deal your agent adds waits in `memo review kind:deal`. Only you move or close a deal. `projects status` lists up
+to five open deals of the project, soonest expected close first.
+
 ## Answers for scripts and agents
 
 Add `--json` to most commands to get an answer a program can read. The text answer is for people;

@@ -1439,7 +1439,7 @@ memo projects evidence <project> [options]
 
 ### `memo projects status`
 
-where a project stands, from the stored messages of every chat confirmed as the project's or its child projects', in every account those links name (meta.accounts lists them): the last message, who replies next, open questions both ways, promises, amounts with their direction, payments recorded, billed, paid and owed per currency from confirmed invoices and payments (finance), how long each --context-query has been quiet on their side, and how much of each chat is held. Amounts, directions and promises found by words are marked pattern: read the cited message before trusting one. Others' questions in a group with no role, and others' word-found promises in a group, are counted on the chat's row as unlisted, not listed. next names at most two chats to read, with the messenger command that reads them. No model call; nothing leaves this machine
+where a project stands, from the stored messages of every chat confirmed as the project's or its child projects', in every account those links name (meta.accounts lists them): the last message, who replies next, open questions both ways, promises, amounts with their direction, payments recorded, billed, paid and owed per currency from confirmed invoices and payments (finance), up to five open confirmed deals (deals), how long each --context-query has been quiet on their side, and how much of each chat is held. Amounts, directions and promises found by words are marked pattern: read the cited message before trusting one. Others' questions in a group with no role, and others' word-found promises in a group, are counted on the chat's row as unlisted, not listed. next names at most two chats to read, with the messenger command that reads them. No model call; nothing leaves this machine
 
 ```sh
 memo projects status <project> [options]
@@ -2958,6 +2958,182 @@ memo orders add <shop> [amount] [currency] [options]
 
 **Example:** `memo orders add 'Shop One' 2499.00 RUB --kind personal --title A-1042`, `memo orders add 'Office Supply' --kind client --organization organization:3`
 
+## `memo pipelines`
+
+your sales pipelines: the stages a deal goes through, in order
+
+### `memo pipelines list`
+
+every pipeline with its stages in order and how many open deals stand in each
+
+```sh
+memo pipelines list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** every pipeline with its stages in order and how many open deals stand in each
+
+**Example:** `memo pipelines list`
+
+### `memo pipelines add`
+
+make a pipeline with its stages in order; only you make one, an agent asks you to
+
+This command changes the local store or your files.
+
+```sh
+memo pipelines add <name> <stage> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | required | the pipeline's name, such as Sales. |
+| `stage` | required | its stages in order, such as Call Quote Contract. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** make a pipeline with its stages
+
+**Example:** `memo pipelines add Sales Call Quote Contract`
+
+## `memo deals`
+
+deals you hope to win: the client, the expected amount, the stage and whether it was won or lost
+
+### `memo deals list`
+
+deals, newest first; status:open is what is still in play, review:proposed what waits for you
+
+```sh
+memo deals list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+| `--limit <n>` | most deals, up to 500. Default: `100`. |
+
+**Returns:** deals, newest first; status:open is what is still in play
+
+**Example:** `memo deals list status:open project:HRB`, `memo deals list stage:Quote --json`
+
+### `memo deals show`
+
+one deal with its pipeline, stage, status, amount, the people on it and what it was read from
+
+```sh
+memo deals show <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | deal:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** one deal with its stage, status, amount and people
+
+**Example:** `memo deals show deal:5`
+
+### `memo deals add`
+
+record a deal in a stage; yours is confirmed at once, an agent's waits as proposed for you in memo review
+
+This command changes the local store or your files.
+
+```sh
+memo deals add <title> <stage> [amount] [currency] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `title` | required | what you hope to sell, such as 'Site for the clinic'. |
+| `stage` | required | the stage it is in; Sales/Quote names the pipeline when two have that stage. |
+| `amount` | optional | the expected amount, a decimal such as 500000.00. |
+| `currency` | optional | ISO 4217, such as RUB; given with the amount. |
+
+| Option | What it does |
+|---|---|
+| `--organization <organization>` | the client: organization:<id>. |
+| `--person <uid>` | a person on the deal: person:<id>; repeat for another, up to 20. |
+| `--role <role>` | what those people are on it: owner, contact, decision-maker; contact by default. |
+| `--due <time>` | the day you expect it to close, such as 2026-12-01. |
+| `--project <project>` | the project it belongs to: its key or project:<id>. |
+| `--reason <text>` | why an agent proposes it, for the owner who decides. |
+| `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** record a deal; an agent's waits for your review
+
+**Example:** `memo deals add 'Site for the clinic' Call 500000.00 RUB --organization organization:3 --project HRB`, `memo deals add 'Support contract' Sales/Quote --person person:7 --role decision-maker --due 2026-12-01`
+
+### `memo deals move`
+
+move an open deal to another stage of its pipeline; only you move one, an agent asks you to
+
+This command changes the local store or your files.
+
+```sh
+memo deals move <ref> <stage> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | deal:<id>. |
+| `stage` | required | a stage of the deal's pipeline. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** move a deal to another stage
+
+**Example:** `memo deals move deal:5 Quote`
+
+### `memo deals close`
+
+close an open deal as won or lost; it keeps its last stage; only you close one, an agent asks you to
+
+This command changes the local store or your files.
+
+```sh
+memo deals close <ref> <outcome> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | deal:<id>. |
+| `outcome` | required | won or lost. |
+
+| Option | What it does |
+|---|---|
+| `--occurred-time <time>` | the day it closed, such as 2026-11-20; today when left out. |
+| `--reason <text>` | why it was won or lost, kept with the deal. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** close a deal as won or lost
+
+**Example:** `memo deals close deal:5 won`, `memo deals close deal:6 lost --reason 'chose a cheaper studio'`
+
 ## `memo records`
 
 what a source said, kept per account; invoices and payments from it wait for your review
@@ -4153,7 +4329,7 @@ memo schedule list [query] [options]
 |---|---|
 | `--json` | print JSON. |
 
-**Returns:** scheduled job — name, kind, when, last; every field: memo commands info schedule list
+**Returns:** scheduled job — name, kind, when, last, spent_today_usd, max_cost_usd, max_cost_per_day_usd; every field: memo commands info schedule list
 
 **Example:** `memo schedule list`, `memo schedule list kind:agent --json`
 

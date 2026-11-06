@@ -6,6 +6,16 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo deals` and `memo pipelines`: deals in your sales pipelines (cli-core 0.585.0, store version 52).**
+  `memo pipelines add <name> <stage...>` makes a pipeline (only you), `memo pipelines list` shows its stages and the
+  open deals in each. `memo deals add <title> <stage> [amount] [currency]` records a deal with `--organization`,
+  `--person` and `--role` (owner, contact, decision-maker), `--due` and `--project`; yours is confirmed at once, an
+  agent's waits in `memo review kind:deal`. `memo deals list`, `show`, `move <ref> <stage>` and
+  `close <ref> won|lost [--reason]`; only you move or close a deal. `memo projects status` lists up to five open
+  confirmed deals of the project (`deals`).
+
 ### Changed — may break callers
 
 - **`memo projects status` has room under its size limits again (cli-core 0.583.0).** On the E7 fixture JSON

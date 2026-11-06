@@ -12,3 +12,7 @@ which writes nothing, then `memo records import` once the owner agrees; its invo
 An invoice or payment whose party is a record of the source (`organization:client`) waits until the owner says which
 entry it is: show `memo records list waiting:true --account <provider>:<account>` and leave
 `memo records link` to the owner.
+
+Deals: `memo deals list status:open` and `memo deals show deal:<id>` read the owner's pipelines. A deal you add
+(`memo deals add <title> <stage> [amount] [currency] --reason ...`) waits for the owner in `memo review kind:deal`.
+Moving or closing a deal and making a pipeline are the owner's: tell him the command, do not pass `--as-owner`.

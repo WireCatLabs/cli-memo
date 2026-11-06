@@ -200,6 +200,16 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "facts list": ["memo facts list kind:decision project:HRB"],
   "orders list": ["memo orders list status:shipped", `memo orders list number:A-1042 'supplier:"Shop One"' --json`],
   "orders show": ["memo orders show order:3"],
+  "pipelines list": ["memo pipelines list"],
+  "pipelines add": ["memo pipelines add Sales Call Quote Contract"],
+  "deals list": ["memo deals list status:open project:HRB", "memo deals list stage:Quote --json"],
+  "deals show": ["memo deals show deal:5"],
+  "deals add": [
+    "memo deals add 'Site for the clinic' Call 500000.00 RUB --organization organization:3 --project HRB",
+    "memo deals add 'Support contract' Sales/Quote --person person:7 --role decision-maker --due 2026-12-01",
+  ],
+  "deals move": ["memo deals move deal:5 Quote"],
+  "deals close": ["memo deals close deal:5 won", "memo deals close deal:6 lost --reason 'chose a cheaper studio'"],
   "orders add": [
     "memo orders add 'Shop One' 2499.00 RUB --kind personal --title A-1042",
     "memo orders add 'Office Supply' --kind client --organization organization:3",
