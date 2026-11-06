@@ -96,6 +96,7 @@ describe("memo context", () => {
     const answer = answerOf(await run("context", "telegram:101", "--json"))
 
     expect(answer.messages.last.from_them?.id).toBe("1")
+    expect(answer.proposals).toEqual({ count: 0, kinds: {}, complete: true, next: { command: "review list" } })
     expect(answer.messages.last.from_me?.id).toBe("2")
     expect(answer.messages.recent.direct.map(({ id }: { id: string }) => id)).toEqual(["2", "1"])
   })
@@ -150,6 +151,22 @@ describe("memo context", () => {
     expect(answer.messages.person.uid).toBe(uid)
     expect(answer.messages.last.from_them.text).toBe("Are we still on for Friday?")
     await expect(run("context", "person:99999", "--json")).rejects.toThrow(/no person:99999/)
+  })
+
+  it("reads a person with two identities seen by one account through that account", async () => {
+    const store = await openStore({ env })
+    await store.sync.applyDelta(tg, { people: [{ id: "102", name: "Rin Example" }] })
+    await store.people.linkIdentities(
+      { provider: "telegram", id: "101" },
+      { provider: "telegram", id: "102" },
+      { method: "manual", by: "owner" },
+    )
+    const uid = (await store.people.personOf({ provider: "telegram", id: "101" }))?.uid as string
+    await store.close()
+
+    const answer = answerOf(await run("context", `person:${uid}`, "--source", "telegram:1", "--json"))
+
+    expect(answer.messages.person.uid).toBe(uid)
   })
 
   it("says which sources gave nothing, and why", async () => {
