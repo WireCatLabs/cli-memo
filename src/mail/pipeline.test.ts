@@ -504,3 +504,56 @@ it("checks a whole batch with --dry-run under the read-only lock, and stages not
   expect(staged.input.findings.at(-1)).toMatchObject({ counterparty_name: "Bob Example GmbH" })
   expect((await check(fixed)).item).toMatchObject({ valid: true, batch: staged.id })
 })
+
+it("leaves out a finding the store or a waiting batch already holds, and stages the rest", async () => {
+  const box = await triaged()
+  await box.thread("t-new", email("quote", 1, { from: { address: "bob@example.org", name: "Bob" } }))
+  await box.synced()
+  const [item] = (await box.review()).items as [Item]
+  const order = (id: string, shop: string) => ({
+    id,
+    kind: "order",
+    purpose: "personal",
+    supplier_name: shop,
+    number: "114-0001",
+    reason: "the shop confirms it",
+    evidence: evidenceOf(item),
+  })
+  const contact = {
+    id: "c1",
+    kind: "new_contact",
+    address: "bob@example.org",
+    name: "Bob",
+    reason: "Bob wrote first",
+    evidence: evidenceOf(item),
+  }
+  const add = (key: string, findings: unknown[], ...extra: string[]) =>
+    box.memo(
+      LOCKED,
+      NOBODY,
+      "mail",
+      "findings",
+      "add",
+      JSON.stringify({ schema_version: 1, key, extractor: "mail-triage/1", findings }),
+      ...extra,
+      "--source",
+      MAILBOX,
+    )
+  const first = (await add("mail-triage:1", [order("o1", "Shop")])).item
+  const again = [order("o2", " shop "), contact]
+
+  const checked = (await add("mail-triage:2", again, "--dry-run")).item
+  expect(checked).toMatchObject({
+    valid: true,
+    findings: 1,
+    duplicates: [{ finding: "o2", kind: "order", duplicate_of: `${first.id}/o1`, reason: "findings.duplicate" }],
+  })
+  const staged = (await add("mail-triage:2", again)).item
+  expect(staged.input.findings.map((one: { id: string }) => one.id)).toEqual(["c1"])
+  expect(staged.duplicates).toEqual(checked.duplicates)
+  expect((await add("mail-triage:2", again)).item.id).toBe(staged.id)
+
+  const only = (await add("mail-triage:3", [order("o3", "SHOP")])).item
+  expect(only).toMatchObject({ staged: false, findings: 0 })
+  expect(only.duplicates).toHaveLength(1)
+})
