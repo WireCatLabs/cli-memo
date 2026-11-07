@@ -6,6 +6,14 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **Any memo command, a read too, no longer starts or enables the sync timer.** After each command memo points the
+  timer at the memo that just ran, and it rewrote the whole unit with the caller's PATH, then ran
+  `systemctl --user enable --now`. A program with another PATH, like the WireCat app reading a status, so started a
+  timer the owner had stopped by hand. Now memo changes only the program line, when the install moved, and reloads
+  systemd without starting anything.
+
 ## 0.131.47 — 07.11.2026
 
 ### Added
