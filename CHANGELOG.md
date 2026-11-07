@@ -4,6 +4,14 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Changed
+
+- **The morning digest is written in Russian, without references, commands or Gaps and Coverage sections.** The
+  `morning-digest` skill now asks for plain text in the sections and line shapes of the digest format; the agent
+  keeps what the agenda missed out of the report. One line says a source has not synced for over 24 hours.
+
 ## 0.131.48 — 07.11.2026
 
 ### Fixed
