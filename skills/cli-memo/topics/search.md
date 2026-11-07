@@ -12,7 +12,7 @@ pagination, coverage, next steps, missing data and execution metadata remain. St
 `group:<name>`. A write names the one account it acts as with `--account telegram:1`. Reuse the owner's selected
 account; if memo refuses an ambiguous selection and lists candidates, ask which one. Cross-account reads state their
 coverage in `meta.accounts`. A group word first (`memo <group> search all …`) reads only that group's accounts;
-`group:personal` is the group, bare `personal` is the owner's own messenger accounts.
+`all` is every account; bare `--source personal` is the owner's own messenger accounts, not a group.
 
 **`content:` narrows a search to the text of files, `filename:` to their names.** Whether a plain word
 also reads file text and voice transcripts depends on the version. Compare like with like:

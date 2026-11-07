@@ -2,7 +2,7 @@ import { CliError } from "@wirecat/cli-base"
 import { mailOwnText } from "@wirecat/cli-core/mail"
 import { type ContextMessage, calendarAccounts, type PersonContext, personContext } from "@wirecat/cli-core/services"
 import type { AccountKey, Link, MessageStore, Note, RelationListItem } from "@wirecat/cli-core/store"
-import { type NotesAbout, notesAboutInGroup } from "../notes/about.js"
+import { type NotesAbout, notesAbout } from "../notes/about.js"
 import { withOwner } from "../people/owner.js"
 import { groupScopeOf, inGroup, scopedAccounts } from "../store/group.js"
 import { selectAccount } from "../store/scope.js"
@@ -163,7 +163,7 @@ export const memoContext = async (
     ...(calendarIds === undefined ? {} : { calendarIds }),
   })
   const person = `person:${messages.person.uid}`
-  const linked = await notesAboutInGroup(store, env, { ref: person, person: messages.person }, limit)
+  const linked = await notesAbout(store, { ref: person, person: messages.person }, limit)
   const yourNotes = []
   for (const ref of linked.about.filter((note) => note.source === "internal")) {
     const note = await store.notes.note(ref.ref)

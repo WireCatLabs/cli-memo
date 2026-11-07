@@ -55,23 +55,21 @@ describe("account groups", () => {
     vi.unstubAllEnvs()
   })
 
-  it("lists each group with why each account is in it, and highlights a duplicate", async () => {
-    const row = async (group: string) =>
-      (await memo("groups", "list")).items.find((one: { group: string }) => one.group === group)
-    expect((await row("work")).members).toEqual([expect.objectContaining({ ...WORK, reason: "setting", also_in: [] })])
-    expect((await row("personal")).members).toEqual([
-      expect.objectContaining({ ...PERSONAL, reason: "in no other group" }),
-    ])
+  it("lists the saved groups, then all with every account, and highlights a duplicate", async () => {
+    const listed = await memo("groups", "list")
+    expect(listed.items.map(({ group }: { group: string }) => group)).toEqual(["work", "all"])
+    expect(rowOf(listed, "work")?.members).toEqual([expect.objectContaining({ ...WORK, reason: "setting" })])
+    expect(
+      ((rowOf(listed, "all")?.members ?? []) as { account: string }[]).map(({ account }) => account).sort(),
+    ).toEqual(["1", "2"])
     const doubled = await memo("groups", "add", "personal", "telegram:2")
     expect(rowOf(doubled, "personal")?.duplicates).toEqual([{ member: "telegram:2", groups: ["work", "personal"] }])
     expect(rowOf(doubled, "work")?.members).toEqual([expect.objectContaining({ also_in: ["personal"] })])
-    expect((await row("work")).duplicates).toEqual([{ member: "telegram:2", groups: ["work", "personal"] }])
   })
 
   it("adds, moves and removes a member, and never takes a command word as a group name", async () => {
     const added = await memo("groups", "add", "family", "telegram:1")
     expect(rowOf(added, "family")?.members).toEqual([expect.objectContaining(PERSONAL)])
-    expect(rowOf(added, "personal")?.members).toEqual([])
     const moved = await memo("groups", "move", "telegram:1", "family", "work")
     expect(((rowOf(moved, "work")?.members ?? []) as { account: string }[]).map((one) => one.account).sort()).toEqual([
       "1",
@@ -79,15 +77,19 @@ describe("account groups", () => {
     ])
     expect(rowOf(moved, "family")?.members).toEqual([])
     const removed = await memo("groups", "remove", "work", "telegram:1")
-    expect(rowOf(removed, "personal")?.members).toEqual([expect.objectContaining(PERSONAL)])
+    expect(rowOf(removed, "work")?.members).toEqual([expect.objectContaining(WORK)])
     await expect(memo("groups", "add", "search", "telegram:1")).rejects.toMatchObject({ code: "validation_error" })
+    await expect(memo("groups", "add", "all", "telegram:1")).rejects.toMatchObject({ code: "validation_error" })
   })
 
-  it("reads only the group's accounts after the group word, and refuses a --source outside it", async () => {
+  it("reads only the group's accounts after the group word, every account with all, and refuses an outside --source", async () => {
     expect(refs(await memo("search", "messages", "Groupsignal"))).toEqual(["msg:telegram/1/7/1", "msg:telegram/2/7/1"])
+    expect(refs(await memo("all", "search", "messages", "Groupsignal"))).toEqual([
+      "msg:telegram/1/7/1",
+      "msg:telegram/2/7/1",
+    ])
     expect(refs(await memo("work", "search", "messages", "Groupsignal"))).toEqual(["msg:telegram/2/7/1"])
     expect(refs(await memo("work", "search", "all", "Groupsignal", "--exact"))).toEqual(["msg:telegram/2/7/1"])
-    expect(refs(await memo("personal", "search", "all", "Groupsignal", "--exact"))).toEqual(["msg:telegram/1/7/1"])
     await expect(memo("work", "search", "people", "x", "--source", "telegram:1")).rejects.toMatchObject({
       code: "validation_error",
     })
@@ -105,7 +107,7 @@ describe("account groups", () => {
     ])
       await expect(memo(...args)).rejects.toMatchObject({
         code: "validation_error",
-        message: expect.stringMatching(/unknown command or group — groups here: work, personal/),
+        message: expect.stringMatching(/unknown command or group — groups here: work/),
       })
     await expect(memo("work")).rejects.toMatchObject({ message: expect.stringContaining("a command follows it") })
   })

@@ -173,23 +173,21 @@ Reads use `--source`; account-scoped writes use `--account provider:account`. Re
 
 ### Groups of accounts
 
-A group keeps work apart from the rest. Put an account in one with `memo groups add work bitrix24:acme`, and
-read only that group by naming it first: `memo work search all "renewal"`, `memo work context person:5`.
-`MEMO_GROUP=work` does the same for every command. In a group, a read takes only the group's accounts; an explicit
-`--source` narrows inside it, and an account outside it is refused, as is a write's `--account`. A command that
-reads one kind, such as `search mail`, takes the group's accounts of that kind. Without the lock, references
-(`msg:…`, `deal:5`) are not checked: only the lock refuses one outside the group.
+Memo reads every account by default: that is `all`, and `memo all …` says it out loud. A group is an opt-in list of
+accounts you save, mostly to keep an agent to work data. Put an account in one with `memo groups add work
+bitrix24:acme`, and read only that group by naming it first: `memo work search all "renewal"`, `memo work context
+person:5`. `MEMO_GROUP=work` does the same for every command. In a group, a read takes only the group's accounts; an
+explicit `--source` narrows inside it, and an account outside it is refused, as is a write's `--account`. A command
+that reads one kind, such as `search mail`, takes the group's accounts of that kind. What you made yourself (your
+notes, projects, tasks, invoices, memories and facts) belongs to no account, so every group shows it.
 
-`memo groups list` shows each group with its accounts, every app's profile names for each (`tg work`, `b24 work`),
-why each is in, and the other groups that hold it too. An account may be in several groups; the list names those
-duplicates. A profile named like a group is only a suggestion; it never puts an account in a group.
+`memo groups list` shows each saved group, then `all`, with its accounts, every app's profile names for each
+(`tg work`, `b24 work`), and the other groups that hold an account too: an account may be in several, and the list
+names those duplicates. A profile named like a group is only a suggestion; it never puts an account in a group.
+`personal` is a group like any other, empty until you save it. `--source personal` is not that group: it means your
+own messenger accounts, not bots.
 
-`personal` always exists: every account in no other group, plus any you add to it, and the notes you write with
-`memo notes add`. With no group saved, `personal` is every account. `--source personal` is not this group: it means
-your own messenger accounts, not bots. The group is `memo personal …` or `--source group:personal`, and every answer
-names the accounts it read.
-
-`memo groups remove work telegram:102` takes an account out. `memo groups move telegram:102 personal work` moves it in
-one write: the account, then the group it leaves, then the group it joins. Without a lock, a group is a convenience, not
-a boundary: any run without the word still reads every account. To pin a process to one group, see
-[the MCP lock](mcp.md#lock-an-agent-to-a-group).
+`memo groups remove work telegram:102` takes an account out; `all` still reads it. `memo groups move telegram:102
+personal work` moves it in one write: the account, then the group it leaves, then the group it joins. Without a lock
+a group is a convenience, not a boundary: references (`msg:…`, `deal:5`) are not checked, and a run without the word
+reads every account. To pin a process to one group, see [the MCP lock](mcp.md#lock-an-agent-to-a-group).

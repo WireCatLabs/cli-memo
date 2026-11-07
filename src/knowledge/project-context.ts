@@ -6,14 +6,19 @@ import { factItem } from "../facts/fact.js"
 import { notesAbout } from "../notes/about.js"
 import { labelsFor, proposerName, reviewItem } from "../review/review.js"
 import { atLeast, kindsText, waitingAbout } from "../review/status.js"
+import { keepInGroup } from "../store/group.js"
 import { keyDocuments, projectOf } from "./key-documents.js"
 import { projectFindings } from "./project-findings.js"
 
 export const projectContext = async (store: MessageStore, env: NodeJS.ProcessEnv, reference: string) => {
   const project = await projectOf(store, reference)
-  const relationships = (await store.notes.links({ to: project.ref }))
+  const linked = (await store.notes.links({ to: project.ref }))
     .concat(await store.notes.links({ from: project.ref }))
     .filter((link) => link.kind !== "about" && link.kind !== "links-to" && link.role !== "key")
+  // A chat or meeting of an account outside the run's group stays out, with what it would bring in.
+  const relationships = await keepInGroup(store, env, linked, (link) =>
+    link.from === project.ref ? String(link.to) : link.from,
+  )
   const documents = await keyDocuments(store, project)
   const pending = (kind: string) =>
     proposalRegistry(store).list({ project: project.ref, kinds: [kind], status: "proposed", limit: 50, offset: 0 })

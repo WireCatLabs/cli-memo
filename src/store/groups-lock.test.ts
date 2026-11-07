@@ -4,7 +4,7 @@ import { join } from "node:path"
 import { ACME_PORTAL, type AcmeScenario, acmeScenario } from "@wirecat/cli-core/crm/testing"
 import { openStore } from "@wirecat/cli-core/store"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { memoIn } from "../../test/memo.js"
+import { memoEnvelope, memoIn } from "../../test/memo.js"
 
 const HOME = { provider: "telegram", account: "1" }
 const WORK = { provider: "telegram", account: "2" }
@@ -46,6 +46,7 @@ beforeEach(async () => {
     await store.notes.addNote({ text: "Lockcase private thought" })
     homeOnly = `person:${(await store.people.personOf({ provider: "telegram", id: "301" }))?.uid}`
     await store.accounts.saveAccountGroup("work", ["telegram:2", PORTAL])
+    await store.accounts.saveAccountGroup("personal", ["telegram:1"])
   } finally {
     await store.close()
   }
@@ -71,13 +72,10 @@ describe("MEMO_GROUP_LOCK fails closed", () => {
     await expect(memo("relationships", "add", homeOnly, refs.acme)).rejects.toMatchObject(refused)
   })
 
-  it("keeps the owner's own notes out of a work run, and names no --source nobody typed", async () => {
+  it("shows the owner's own notes in a work run: owner-made data is in every group", async () => {
     const memo = lockedTo("work")
-    const searched = memo("search", "notes", "Lockcase")
-    await expect(searched).rejects.toMatchObject({ code: "not_found", message: "group work holds no notes" })
-    expect((await memo("notes", "list", "source:internal")).items).toEqual([])
-    const home = lockedTo("personal")
-    expect((await home("notes", "list", "source:internal")).items).toEqual([
+    expect((await memo("search", "notes", "Lockcase")).items).toEqual([expect.objectContaining({ ref: "note:1" })])
+    expect((await memo("notes", "list", "source:internal")).items).toEqual([
       expect.objectContaining({ text: "Lockcase private thought" }),
     ])
   })
@@ -101,7 +99,7 @@ describe("MEMO_GROUP_LOCK fails closed", () => {
     expect((await memo("people", "list")).items.map(({ ref }: { ref: string }) => ref)).not.toContain(refs.emma)
   })
 
-  it("checks a bare id as the thing it names (NEW-1)", async () => {
+  it("checks a bare id as the thing it names, and lets the owner's own note through (NEW-1)", async () => {
     const memo = lockedTo("personal")
     const id = refs.acme.split(":")[1] as string
     for (const args of [
@@ -113,7 +111,8 @@ describe("MEMO_GROUP_LOCK fails closed", () => {
       await expect(memo(...args)).rejects.toMatchObject(refused)
     const work = lockedTo("work")
     const note = await memoIn(env)("notes", "add", "Lockcase home note")
-    await expect(work("tags", "add", "x", "--note", note.id)).rejects.toMatchObject(refused)
+    await expect(work("tags", "add", "x", "--note", note.id)).resolves.toBeDefined()
+    await expect(work("tags", "add", "x", "--person", homeOnly.split(":")[1] as string)).rejects.toMatchObject(refused)
   })
 
   it("refuses a calendar event of an account outside the group (NEW-5)", async () => {
@@ -167,5 +166,37 @@ describe("MEMO_GROUP_LOCK fails closed", () => {
         code: "permission_error",
         message: expect.stringContaining("locked to group work"),
       })
+  })
+
+  it("runs memories, facts, tasks and a work project's context and status under the lock", async () => {
+    const owner = memoIn(env)
+    const project = await owner("projects", "add", "Lockwork", "--key", "LKW")
+    await owner("relationships", "add", "chat:telegram/2/401", project.ref)
+    await owner("relationships", "add", "chat:telegram/1/301", project.ref)
+    const memo = lockedTo("work")
+    for (const args of [
+      ["memories", "list"],
+      ["facts", "list"],
+      ["tasks", "list"],
+      ["actions", "list"],
+    ])
+      await expect(memo(...args), args.join(" ")).resolves.toBeDefined()
+    const context = await memo("projects", "context", "LKW")
+    const chats = context.relationships.map(({ from }: { from: string }) => from)
+    expect(chats).toContain("chat:telegram/2/401")
+    expect(chats).not.toContain("chat:telegram/1/301")
+    const status = JSON.stringify(await memo("projects", "status", "LKW"))
+    expect(status).not.toContain("Lockcase at home")
+    expect(status).not.toContain("telegram/1/")
+    expect(status).not.toContain("Kin Example")
+    expect(await memoEnvelope({ ...env, MEMO_GROUP_LOCK: "work" })("projects", "status", "LKW")).toMatchObject({
+      missing: expect.arrayContaining([
+        { field: "out_of_scope", why: "1 of the project's chats are outside group work" },
+      ]),
+    })
+    vi.unstubAllEnvs()
+    expect((await owner("work", "projects", "status", "LKW")).out_of_scope).toEqual([
+      { chat: "chat:telegram/1/301", reason: "other-account" },
+    ])
   })
 })

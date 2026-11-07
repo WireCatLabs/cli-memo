@@ -6,7 +6,6 @@ import {
   inGroupOf,
   keyOf,
   listContextOf,
-  PERSONAL,
   type RunGroup,
   scopeToGroup,
 } from "@wirecat/cli-core/services"
@@ -58,17 +57,16 @@ export const groupScopeOf = async (store: MessageStore, env: NodeJS.ProcessEnv):
 export type GroupKind = "messages" | "mail" | "notes" | "events" | "crm"
 
 /**
- * The group's accounts of each kind `search all` reads. The owner's own notes (`memo notes add`) belong to no
- * account: `personal`, the group of everything not set apart, holds them; any other group does not.
+ * The group's accounts of each kind `search all` reads, and the owner's own notes (`memo notes add`): they belong to
+ * no account, so every group reads them (WC-ACCT-13).
  */
 export const accountsByKind = (scope: GroupScope): Record<GroupKind, AccountKey[]> => {
-  const kinds: Record<GroupKind, AccountKey[]> = { messages: [], mail: [], notes: [], events: [], crm: [] }
+  const kinds: Record<GroupKind, AccountKey[]> = { messages: [], mail: [], notes: [MEMO_ACCOUNT], events: [], crm: [] }
   for (const key of scope.accounts) {
     const kind = kindIn(key.provider)
     if (kind === "documents") kinds.notes.push(key)
     else if (kind !== undefined && kind !== "meetings" && kind in kinds) kinds[kind as GroupKind].push(key)
   }
-  if (scope.run.name === PERSONAL) kinds.notes.push(MEMO_ACCOUNT)
   return kinds
 }
 
