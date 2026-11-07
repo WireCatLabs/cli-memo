@@ -340,7 +340,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (words: string[], options: { json?: boolean }) => {
-      const found = await withStore(env, (store) => listRelationships(store, words))
+      const found = await withStore(env, (store) => listRelationships(store, env, words))
       print(
         options.json,
         listAnswer("relationships list", { items: found.items, limit: found.limit, has_more: found.hasMore }),

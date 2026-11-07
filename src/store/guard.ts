@@ -26,9 +26,14 @@ export const stripped = async <T>(store: MessageStore, env: NodeJS.ProcessEnv, v
   const guard = await guardOf(store, env)
   if (guard === undefined) return value
   const { value: kept, out_of_scope } = await guard.strip(value)
-  return out_of_scope > 0 && kept !== null && typeof kept === "object" && !Array.isArray(kept)
-    ? ({ ...kept, out_of_scope } as T)
-    : kept
+  if (out_of_scope === 0 || kept === null || typeof kept !== "object" || Array.isArray(kept)) return kept
+  // A list answer is an envelope with no room for a field of its own: what it left out goes in `missing`.
+  if ("items" in kept) {
+    const missing = (kept as { missing?: unknown[] }).missing ?? []
+    const why = `${out_of_scope} evidence references outside group ${guard.group} left out`
+    return { ...kept, missing: [...missing, { field: "out_of_scope", why }] } as T
+  }
+  return { ...kept, out_of_scope } as T
 }
 
 /** The sources read back for a memory or a fact, under the lock only the group's, and how many were left out. */
