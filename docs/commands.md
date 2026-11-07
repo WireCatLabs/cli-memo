@@ -4465,7 +4465,7 @@ memo schedule command <name> <args> [options]
 | `--at <HH:MM>` | every day at this local time. |
 | `--at-time <time>` | one run: 30m, 2d from now, or an ISO time; the schedule removes itself after it. |
 | `--notify-on <when>` | desktop notice after a run (default failures for an agent that repeats with --every, else always). One of: `always`, `failures`, `never`. |
-| `--to <route>` | also send the result, when --notify-on says so, by the owner's own tg or mail: telegram-bot:<profile>/<chat id or user:id>, or email:<profile>/<address>; repeat it for more. |
+| `--deliver-to <route>` | also send the result, when --notify-on says so, by the owner's own tg or mail: telegram-bot:<profile>/<chat id or user:id>, or email:<profile>/<address>; repeat it for more. |
 | `--json` | print JSON. |
 
 **Returns:** run memo <args…> on a timer — reads save what they read, so this is how a…
@@ -4497,7 +4497,7 @@ memo schedule agent <name> <harness> <prompt> [options]
 | `--at <HH:MM>` | every day at this local time. |
 | `--at-time <time>` | one run: 30m, 2d from now, or an ISO time; the schedule removes itself after it. |
 | `--notify-on <when>` | desktop notice after a run (default failures for an agent that repeats with --every, else always). One of: `always`, `failures`, `never`. |
-| `--to <route>` | also send the result, when --notify-on says so, by the owner's own tg or mail: telegram-bot:<profile>/<chat id or user:id>, or email:<profile>/<address>; repeat it for more. |
+| `--deliver-to <route>` | also send the result, when --notify-on says so, by the owner's own tg or mail: telegram-bot:<profile>/<chat id or user:id>, or email:<profile>/<address>; repeat it for more. |
 | `--on-new-mail <holder>` | run only when mail is stored past this holder's mark — after a sync brought new mail; may check every 5m. |
 | `--mail-wait <duration>` | with --on-new-mail: start once the oldest waiting email has waited this long (default 30m, or the config file's). |
 | `--mail-batch <n>` | with --on-new-mail: or once this many emails wait (default 10, or the config file's). |
@@ -4523,7 +4523,7 @@ memo schedule list [query] [options]
 |---|---|
 | `--json` | print JSON. |
 
-**Returns:** scheduled job — name, kind, when, last, notify, to, spent_today_usd, max_cost_usd, and 1 more; every field: memo commands info schedule list
+**Returns:** scheduled job — name, kind, when, last, notify, deliver_to, spent_today_usd, max_cost_usd, and 1 more; every field: memo commands info schedule list
 
 **Example:** `memo schedule list`, `memo schedule list kind:agent --json`
 

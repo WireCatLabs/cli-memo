@@ -6,6 +6,15 @@ the API.
 
 ## Unreleased
 
+### Changed — may break callers
+
+- **`memo schedule agent` and `memo schedule command` take `--deliver-to <route>`, no longer `--to <route>`**
+  (cli-core 0.600.0, cli-base 0.80.8). `--to` names who a message is for in every CLI, so the route flag got its own
+  name. `memo schedule list` names the routes `deliver_to`. A schedule saved with `--to` goes on delivering. memo's
+  command lint now takes `--notify-on`, `--deliver-to`, `--max-cost-per-day`, the deal, lead and pipeline groups and
+  `store recover` from the shared vocabulary: four overrides and four baseline entries are gone, and the override
+  budget is 16, down from 20.
+
 ## 0.131.47 — 07.11.2026
 
 ### Added

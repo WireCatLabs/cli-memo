@@ -865,7 +865,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `schedule command` | `--at` | ✅ |  |
 | `schedule command` | `--at-time` | ❌ |  |
 | `schedule command` | `--notify-on` | ❌ |  |
-| `schedule command` | `--to` | ❌ |  |
+| `schedule command` | `--deliver-to` | ❌ |  |
 | `schedule command` | `--json` | ❌ |  |
 | `schedule agent` |  | ✅ |  |
 | `schedule agent` | `--model` | ✅ |  |
@@ -875,7 +875,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `schedule agent` | `--at` | ✅ |  |
 | `schedule agent` | `--at-time` | ❌ |  |
 | `schedule agent` | `--notify-on` | ❌ |  |
-| `schedule agent` | `--to` | ❌ |  |
+| `schedule agent` | `--deliver-to` | ❌ |  |
 | `schedule agent` | `--on-new-mail` | ✅ |  |
 | `schedule agent` | `--mail-wait` | ✅ |  |
 | `schedule agent` | `--mail-batch` | ✅ |  |

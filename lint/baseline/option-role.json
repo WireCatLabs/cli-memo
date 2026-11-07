@@ -5,6 +5,5 @@
   "relationships update --purpose",
   "schedule agent --mail-batch",
   "schedule agent --mail-wait",
-  "schedule agent --max-cost-per-day",
   "schedule agent --on-new-mail"
 ]
