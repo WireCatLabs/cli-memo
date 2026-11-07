@@ -28,7 +28,7 @@ export const recognisable = (error: unknown): unknown => {
       ...(param ? { param } : {}),
     })
   }
-  return storeDamaged(error, APP.command)
+  return storeDamaged(error, `${APP.command} store recover`)
 }
 
 export const errorObject = (error: unknown) => errorObjectOf(recognisable(error), context)
