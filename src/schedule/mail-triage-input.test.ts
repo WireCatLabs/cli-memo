@@ -90,7 +90,30 @@ it("shortens an email too long for any input rather than leaving it out on every
 })
 
 it("leaves a mailbox out whole, unacknowledged, when even its first email has no room", async () => {
-  const block = mailboxBlock("email:a@x.org", { items: [email(1, "y".repeat(5_000))] }, 1_000)
+  const block = mailboxBlock("email:a@x.org", { items: [email(1, "y".repeat(5_000))] }, 50, true)
   expect(block).toContain("do not acknowledge this mailbox")
   expect(block).not.toContain("cursor:")
+})
+
+it("shortens every email of a held group that shares one cursor, in any mailbox, so the group fits", async () => {
+  const held = [1, 2, 3].map((id) => ({ ...email(id, "h".repeat(20_000)), email: { ...email(9, "").email } }))
+  const block = mailboxBlock("email:b@x.org", { items: [...held, email(10, "n")] }, 12_000)
+  expect(block.length).toBeLessThanOrEqual(12_000)
+  expect(block).toContain("cursor: 9.5")
+  expect(block.match(/"text_cut":true/g)).toHaveLength(3)
+  expect(block).toContain("memo messages show")
+  expect(block).not.toContain("msg:email/10")
+})
+
+it("leaves a later mailbox out rather than shorten its emails below a useful length", async () => {
+  const block = mailboxBlock("email:b@x.org", { items: [email(1, "y".repeat(5_000))] }, 400)
+  expect(block).toContain("do not acknowledge this mailbox")
+})
+
+it("never cuts a text inside a surrogate pair", async () => {
+  const block = mailboxBlock("email:a@x.org", { items: [email(1, "😀".repeat(30_000))] }, 20_001, true)
+  const [line] = block.split("\n").filter((one) => one.startsWith('{"ref"'))
+  const text = (JSON.parse(line ?? "{}") as { text: string }).text
+  expect(text.length % 2).toBe(0)
+  expect(text.endsWith("😀")).toBe(true)
 })

@@ -84,26 +84,45 @@ const lines = (
         "do not review this mailbox again now"
       : `more mail waits past the cursor: ${review.meta?.complete === false}`,
     ...(left.length ? [`left out: ${left.join("; ")}`] : []),
+    ...(items.some((item) => item.text_cut)
+      ? [
+          "text_cut: only the start of that email's text fits here; read it whole with " +
+            "`memo messages show '<ref>' --trimmed --json` before you stage a finding from it",
+        ]
+      : []),
     items.length ? "emails, one JSON per line:" : "no emails; acknowledge the cursor.",
     ...items.map(shown),
   ].join("\n")
 }
 
-const shortened = (item: Item, room: number, block: (item: Item) => string): Item => {
-  let text = item.text ?? ""
-  let one: Item = item
-  for (let over = block(one).length - room; over > 0 && text.length > 0; over = block(one).length - room) {
-    text = text.slice(0, Math.max(0, text.length - over))
-    one = { ...item, text, text_cut: true }
+/** Text shorter than this tells the agent too little to act on; past the first mailbox it waits for a run with room. */
+const LEAST_TEXT = 300
+
+const startOf = (text: string, length: number) => {
+  const end = /[\uD800-\uDBFF]/.test(text.charAt(length - 1)) ? length - 1 : length
+  return text.slice(0, Math.max(0, end))
+}
+
+/** The group with every text cut to one share of the room, or `undefined` when a share is under `least`. */
+const shortened = (items: Item[], room: number, least: number, block: (items: Item[]) => string) => {
+  const longest = items.reduce((most, item) => Math.max(most, item.text?.length ?? 0), 0)
+  const cut = (share: number) =>
+    items.map((item) =>
+      (item.text?.length ?? 0) <= share ? item : { ...item, text: startOf(item.text ?? "", share), text_cut: true },
+    )
+  let share = longest
+  for (let over = block(cut(share)).length - room; over > 0; over = block(cut(share)).length - room) {
+    if (share === 0) return undefined
+    share = Math.max(0, share - Math.ceil(over / items.length))
   }
-  return one
+  return share < Math.min(least, longest) ? undefined : cut(share)
 }
 
 /**
  * One mailbox, compactly: the key and cursor the skill's steps 1 and 6 name, then one JSON line per email. Past
  * `room` it keeps the emails up to a cut in store order and gives that cut's cursor and key, so acknowledging them
- * never moves the mark past an email left out. `alone`: nothing else is shown yet, so an email too long for any room
- * is shortened rather than left out on every run.
+ * never moves the mark past an email left out. When even the first cut does not fit, its texts are shortened to fit;
+ * `alone` (nothing else shown yet) lets them go below `LEAST_TEXT`, so some mailbox always moves on.
  */
 export const mailboxBlock = (source: string, review: Review, room = Number.POSITIVE_INFINITY, alone = false) => {
   const items = review.items ?? []
@@ -127,10 +146,16 @@ export const mailboxBlock = (source: string, review: Review, room = Number.POSIT
   }
   if (fit) return fit
   const [first] = cuts
-  if (alone && first?.items.length === 1 && first.items[0]) {
-    const block = (item: Item) =>
-      lines(source, review, { key: first.key, cursor: first.cursor, items: [item], waiting: items.length - 1 })
-    return block(shortened(first.items[0], room, block))
+  if (first) {
+    const block = (group: Item[]) =>
+      lines(source, review, {
+        key: first.key,
+        cursor: first.cursor,
+        items: group,
+        waiting: items.length - group.length,
+      })
+    const group = shortened(first.items, room, alone ? 0 : LEAST_TEXT, block)
+    if (group) return block(group)
   }
   return `## ${source}\nno room in this input: do not acknowledge this mailbox and do not review it now; the next run reads it.`
 }
@@ -139,7 +164,7 @@ const PREAMBLE =
   "Your first reads are below, already done: the mail-triage skill and each mailbox's review. Do not run " +
   "`memo skill show` or `memo mail review`. Start at step 2 of the skill. Stage each mailbox's findings in ONE " +
   "`memo mail findings add` call, all mailboxes in the same turn, without `--dry-run`. Then acknowledge each " +
-  "mailbox's cursor (also a mailbox with nothing to stage), then write the report."
+  'mailbox\'s cursor (also a mailbox with nothing to stage) except one marked "do not acknowledge", then write the report.'
 
 /**
  * What the scheduled mail-triage agent gets on its stdin: the skill and each mailbox's review, so it starts at the
@@ -163,7 +188,7 @@ export const mailTriageInput =
       const block = mailboxBlock(source, review, INPUT_BUDGET - used - separator.length, alone)
       parts.push(block)
       used += block.length + separator.length
-      if (review.items?.length) alone = false
+      if (block.includes("\nemails, one JSON per line:")) alone = false
     }
     return [...parts, ""].join(separator)
   }
