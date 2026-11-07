@@ -2,7 +2,7 @@ import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { DEAL_KINDS, DEAL_ROLES, DEAL_STATUSES, type DealKind, type DealRole } from "@wirecat/cli-core"
-import { LOCAL_READ, LOCAL_WRITE, queryTerms, refKinds, termField, withQuery } from "@wirecat/cli-core/cli"
+import { LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
 import { dealBrief, dealContext } from "@wirecat/cli-core/services"
 import type { DealFilter, MessageStore, Pipeline, PipelineReport } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
@@ -401,10 +401,6 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
 
   itemCommands(program, "deal", { run, print }, env)
   itemCommands(program, "lead", { run, print }, env)
-  // `<ref>` takes a bare id too: under the group lock it is checked as the deal or lead it names.
-  for (const kind of ["deal", "lead"] as const)
-    for (const leaf of program.commands.find((one) => one.name() === `${kind}s`)?.commands ?? [])
-      if (leaf.registeredArguments.some((argument) => argument.name() === "ref")) refKinds(leaf, { ref: kind })
 }
 
 /** Open deals `projects status` shows, soonest expected close first; more than this is a count. */
