@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.47 — 07.11.2026
+
 ### Added
 
 - **`memo store recover`** says whether the shared store is damaged, what that means and what to run;
