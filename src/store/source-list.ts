@@ -73,20 +73,34 @@ const listedOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: stri
   })
 }
 
-export const sourceListOf = async (store: MessageStore, env: NodeJS.ProcessEnv, value: string): Promise<SourceList> => {
+/**
+ * A group holds accounts of every kind, so a command that reads one kind takes the group's accounts of that kind
+ * (`mail` keeps its mailboxes); an entry typed as another kind is still refused.
+ */
+export const sourceListOf = async (
+  store: MessageStore,
+  env: NodeJS.ProcessEnv,
+  value: string,
+  only?: "mail",
+): Promise<SourceList> => {
   const listed = await listedOf(store, env, value)
+  const typed = new Set(value.split(",").map((item) => item.trim()))
   const list: SourceList = { mail: [], notes: false, documents: false }
   for (const { entry, accounts } of listed) {
     const word = entry.split(":")[0] ?? ""
+    // A group's members come back as entries of their own; only a typed entry of the wrong kind is refused.
+    const group = word === "group" || !typed.has(entry.trim())
+    if (only !== undefined && group && accounts.every(({ kind }) => kind !== only)) continue
     if (MESSENGERS.has(word)) throw messengers(entry)
     if (word === "notes" || word === "all") list.notes = true
     if (word === "documents" || word === "drive" || word === "all") list.documents = true
     for (const { provider, account, kind } of accounts) {
       if (kind === "mail") {
         if (!list.mail.some((one) => one.account === account)) list.mail.push({ provider, account })
-      } else if (kind === "notes") list.notes = true
+      } else if (group && only !== undefined) continue
+      else if (kind === "notes") list.notes = true
       else if (kind === "documents") list.documents = true
-      else if (word !== "all") throw messengers(entry)
+      else if (word !== "all" && !group) throw messengers(entry)
     }
   }
   return list
@@ -102,9 +116,11 @@ export const mailboxesOf = async (
   env: NodeJS.ProcessEnv,
   value: string,
 ): Promise<AccountKey[]> => {
-  const list = await sourceListOf(store, env, value)
+  const list = await sourceListOf(store, env, value, "mail")
   if (list.notes || list.documents)
     throw new CliError("validation_error", `${value}: this reads mail only — ${MAIL_SOURCES}`)
+  if (list.mail.length === 0 && value.split(",").some((entry) => entry.trim().startsWith("group:")))
+    throw new CliError("not_found", `${value} holds no mailbox`)
   return list.mail
 }
 

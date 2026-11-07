@@ -1,6 +1,7 @@
 import { formatReference } from "@wirecat/cli-core"
 import type { Link, MessageStore, Note } from "@wirecat/cli-core/store"
 import type { Subject } from "../people/subject.js"
+import { keepInGroup } from "../store/group.js"
 
 /** A file in a notes folder is a `document:`, a written note a `note:`. */
 export const isNoteReference = (reference: string): boolean => /^(note|document):/.test(reference)
@@ -121,5 +122,23 @@ export const notesAbout = async (store: MessageStore, subject: Subject, limit = 
     throughNotes: (through ?? []).slice(0, limit).map(({ note, anchor }) => refOf(note, anchor)),
     waiting: (waiting ?? []).slice(0, limit).map(({ note, text }) => ({ ...refOf(note), text: text ?? "" })),
     hasMore: [about, linking, through, waiting].some((list) => (list ?? []).length > limit),
+  }
+}
+
+/** `notesAbout` with only the notes of the run's group: memo's own notes are `personal`'s (WC-ACCT-13). */
+export const notesAboutInGroup = async (
+  store: MessageStore,
+  env: NodeJS.ProcessEnv,
+  subject: Subject,
+  limit = 20,
+): Promise<NotesAbout> => {
+  const found = await notesAbout(store, subject, limit)
+  const kept = <T extends NoteRef>(notes: T[]) => keepInGroup(store, env, notes, ({ ref }) => ref)
+  return {
+    ...found,
+    about: await kept(found.about),
+    linking: await kept(found.linking),
+    throughNotes: await kept(found.throughNotes),
+    waiting: await kept(found.waiting),
   }
 }

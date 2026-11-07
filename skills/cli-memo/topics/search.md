@@ -8,11 +8,11 @@ Use `--json=ref,excerpt` for compact search hits. Dotted paths select nested obj
 pagination, coverage, next steps, missing data and execution metadata remain. Start with a bounded
 `--limit` and expand when coverage requires it. Projection reduces output, not the work scanned.
 
-**Honor account scope.** A read names accounts with `--source`: `telegram:1`, `email:work`, a provider,
-a kind or `group:<name>`. A write names the one account it acts as with `--account telegram:1`.
-Reuse the owner's selected account; if memo refuses an ambiguous selection and lists candidates, ask
-which one. Cross-account reads state their coverage in `meta.accounts`. A group word first (`memo <group> search all …`) reads only that
-group's accounts; `group:personal` is the group, bare `personal` is the owner's own messenger accounts.
+**Honor account scope.** A read names accounts with `--source`: `telegram:1`, `email:work`, a provider, a kind or
+`group:<name>`. A write names the one account it acts as with `--account telegram:1`. Reuse the owner's selected
+account; if memo refuses an ambiguous selection and lists candidates, ask which one. Cross-account reads state their
+coverage in `meta.accounts`. A group word first (`memo <group> search all …`) reads only that group's accounts;
+`group:personal` is the group, bare `personal` is the owner's own messenger accounts.
 
 **`content:` narrows a search to the text of files, `filename:` to their names.** Whether a plain word
 also reads file text and voice transcripts depends on the version. Compare like with like:

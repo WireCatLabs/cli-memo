@@ -28,11 +28,11 @@ import {
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, wholeList, withStore } from "../answer.js"
 import { byOption, deciderOf, reasonOption, whoRuns } from "../author.js"
-import { notesAbout } from "../notes/about.js"
+import { notesAboutInGroup } from "../notes/about.js"
 import { oneOf, positive, readScope, writeScope } from "../options.js"
 import { withOwner } from "../people/owner.js"
 import { decideOne, decisionOf } from "../review/review.js"
-import { keepInGroup, refuseOutsideRelation } from "../store/group.js"
+import { keepInGroup } from "../store/group.js"
 import {
   ACCOUNTS_HELP,
   accountName,
@@ -88,7 +88,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       relationships: (await store.notes.links({ to: `${type}:${id}` }))
         .concat(await store.notes.links({ from: `${type}:${id}` }))
         .filter((link) => link.kind !== "about" && link.kind !== "links-to" && link.role !== "key"),
-      notes: await notesAbout(store, { ref: `${type}:${id}` }),
+      notes: await notesAboutInGroup(store, env, { ref: `${type}:${id}` }),
       tags: await store.knowledge.tags(null, { type, id }),
     }
   }
@@ -370,7 +370,6 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       }
       const by = await whoRuns(command, env, { asOwner: options.asOwner, question: `change relationship ${id}?` })
       return owned(options, async (store) => {
-        await refuseOutsideRelation(store, env, id)
         if (options.role === undefined && options.purpose === undefined)
           throw new CliError("validation_error", "say what to change: --role, --purpose or both", {
             reason: "input.invalid",
@@ -404,7 +403,6 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         question: `${name} relationship ${id} as you, the owner?`,
       })
       await owned(options, async (store) => {
-        await refuseOutsideRelation(store, env, id)
         const suggestion = await pendingLink(store, id)
         if (suggestion === undefined)
           return name === "remove"
