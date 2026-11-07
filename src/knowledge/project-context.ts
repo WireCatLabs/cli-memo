@@ -1,3 +1,4 @@
+import { standingOf } from "@wirecat/cli-core"
 import { paymentTitle } from "@wirecat/cli-core/meetings"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import { itemAnswer, plainText } from "../answer.js"
@@ -15,10 +16,7 @@ export const projectContext = async (store: MessageStore, env: NodeJS.ProcessEnv
   const linked = (await store.notes.links({ to: project.ref }))
     .concat(await store.notes.links({ from: project.ref }))
     .filter((link) => link.kind !== "about" && link.kind !== "links-to" && link.role !== "key")
-  // A chat or meeting of an account outside the run's group stays out, with what it would bring in.
-  const relationships = await keepInGroup(store, env, linked, (link) =>
-    link.from === project.ref ? String(link.to) : link.from,
-  )
+    .map((link) => ({ ...link, standing: standingOf(link, Date.now()) }))
   const documents = await keyDocuments(store, project)
   const proposals = await proposalsOf(store, env)
   const pending = (kind: string) =>

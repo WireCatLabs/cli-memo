@@ -123,7 +123,12 @@ export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramF
     authority,
     keyOf,
     program,
-    run: async (path: readonly string[], input: Record<string, unknown>, levels: Record<string, Level>) =>
+    run: async (
+      path: readonly string[],
+      input: Record<string, unknown>,
+      levels: Record<string, Level>,
+      overrides: readonly string[] = [],
+    ) =>
       inRun({ runId: randomUUID(), command: path.join(" "), startedAt: Date.now() }, () =>
         runCommandForAgent(runnerFor(levels), path, stdin(path) ? { ...input, file: "-" } : input, {
           stdin,
@@ -131,6 +136,8 @@ export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramF
           profile: "",
           env: { ...env, AI_AGENT: "memo-mcp", MEMO_MCP_CLIENT: callingAgent("memo-mcp") },
           levels: () => levels,
+          // The server's own stricter levels reach the command too, so a read that leaves out denied kinds sees them.
+          ...(overrides.length ? { overrides } : {}),
           keyOf,
         }),
       ),

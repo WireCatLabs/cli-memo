@@ -47,6 +47,9 @@ the API.
   `business` (organizations, reporting lines, deals, projects and categories, each relationship with its `standing`);
   `person:` answers carry `coverage`. `relationships` now holds a CRM's `reported` links beside yours, each with its
   `standing`, where before it held confirmed links only.
+- **`memo relationships list` gives each row's `status` as its standing**: `confirmed`, `reported`, `proposed` or
+  `ended`. A CRM's link said `proposed` before, though no proposal waited for it. `projects context` gives each
+  relationship its `standing` too.
 - **`memo organizations context` answers cli-core's organization context**: `people`, `customers` and the other
   sections replace `relationships`; `notes` and `tags` stay.
 - **A role is one from the registry's lists** (cli-core#2629): `--role cto` is refused with the list.
