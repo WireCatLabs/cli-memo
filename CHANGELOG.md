@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.49 — 07.11.2026
+
 ### Added
 
 - **`memo folders remove <id|path>`** stops reading a notes folder on this computer; its notes stay in the store.
