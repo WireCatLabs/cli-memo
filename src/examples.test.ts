@@ -6,7 +6,7 @@ import { MOVED_TO_MAIL } from "./mail/moved.js"
 import { createProgram } from "./program.js"
 
 /** Groups that also run on their own, so they keep examples of their own. */
-const RUNNABLE_GROUPS = ["commands"]
+const RUNNABLE_GROUPS = ["commands", "recover"]
 
 const leaves = (command: Command, path: string[] = []): string[] =>
   command.commands.flatMap((child) =>

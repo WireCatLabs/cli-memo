@@ -6,6 +6,7 @@ import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
 import { SKILL_TARGETS, skillPath, skillVersion } from "@wirecat/cli-base/skill"
 import { isNewer } from "@wirecat/cli-base/update"
 import {
+  DOCTOR_DEEP_OPTION,
   privateFiles,
   REMOTE_READ,
   runsDirFor,
@@ -48,7 +49,7 @@ const unitPaths = (unit: string): string[] =>
     .filter((path) => path.startsWith("/"))
 
 /** Everything memo needs, read from this computer only: no mail server, no messenger, no npm. */
-export const diagnose = async (env: NodeJS.ProcessEnv, program: Command) => {
+export const diagnose = async (env: NodeJS.ProcessEnv, program: Command, { deep = false }: { deep?: boolean } = {}) => {
   const problems: Problem[] = []
   const paths = resolvePaths({ appName: APP.appName, prefix: APP.envPrefix, env })
   // Config problems go to `config.issues`, the shape every WireCat doctor shares, not to `problems`.
@@ -60,8 +61,9 @@ export const diagnose = async (env: NodeJS.ProcessEnv, program: Command) => {
     dirs: [dirname(configReport.path), ...(env.MESSAGING_STORE ? [] : [dirname(storePath(env))]), runsDirFor(APP, env)],
   })
 
-  const store = await storeSummary(env)
-  if ("error" in store && store.error) problems.push({ what: `the store cannot be read: ${store.error}`, fix: "" })
+  const store = await storeSummary(env, { deep, command: "memo" })
+  if ("damage" in store && store.damage) problems.push({ what: store.damage.what, fix: "memo store recover" })
+  else if ("error" in store && store.error) problems.push({ what: `the store cannot be read: ${store.error}`, fix: "" })
   if ("writable" in store && store.writable === false)
     problems.push({ what: "the store is from a newer version than this memo", fix: "memo upgrade" })
 
@@ -179,6 +181,13 @@ export const doctorText = (d: Diagnosis, fixes: readonly string[] = [], online?:
           ? ` (schema ${d.store.schema}, memo speaks ${d.store.speaks})`
           : ""
     }`,
+    ...("health" in d.store && d.store.health
+      ? [
+          `health     ${d.store.health.ok ? "ok" : "DAMAGED"}, checked ${d.store.health.covers}${
+            d.store.health.checked === "quick" ? " (memo doctor --deep reads every page)" : ""
+          }`,
+        ]
+      : []),
     ...d.notes.map((f) => `notes      ${f.path} — exists ${yes(f.exists)}, folder id ${yes(f.bound)}`),
     `search     ${d.search_model.name} ${d.search_model.present ? "present" : "not downloaded — search is by words"}`,
     `timer      ${d.timer.enabled ? `on, every ${d.timer.every}` : "off"}`,
@@ -214,6 +223,7 @@ const doctorCommandDefinition = (program: Command, streams: Streams, env: NodeJS
   annotate(program.command("doctor"), { effects: REMOTE_READ })
     .description(sharedDoctor.description())
     .option(ONLINE_FLAGS, onlineText)
+    .option("--deep", DOCTOR_DEEP_OPTION)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .addHelpText(
       "after",
@@ -223,8 +233,8 @@ const doctorCommandDefinition = (program: Command, streams: Streams, env: NodeJS
         "the config file or a file mode needs attention; problems in the config file are listed in config.issues, and " +
         "files or folders other users can read in files.problems, and neither changes the exit code.",
     )
-    .action(async (options: { json?: boolean; online?: boolean }) => {
-      const { fixes, ...diagnosis } = await diagnose(env, program)
+    .action(async (options: { json?: boolean; online?: boolean; deep?: boolean }) => {
+      const { fixes, ...diagnosis } = await diagnose(env, program, { deep: options.deep === true })
       const online = options.online ? await onlineCheck() : undefined
       print(
         options.json,
