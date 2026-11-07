@@ -5,10 +5,12 @@ import { skillCommand } from "@wirecat/cli-base/skill"
 import {
   addContractInfo,
   assertSharedContracts,
+  commandWords,
   entityFields,
   environmentOf,
   guideCommand,
   installHelp,
+  liftProfile,
   NO_EFFECTS,
   overrideSharedContract,
   provide,
@@ -57,6 +59,8 @@ import { syncCommand } from "./run/import.js"
 import { scheduleCommand } from "./schedule/command.js"
 import { searchCommand } from "./search/command.js"
 import { showCommand } from "./show/command.js"
+import { scopeRunsToGroup } from "./store/group.js"
+import { groupsCommand } from "./store/groups-command.js"
 import { storeCommand } from "./store/info-command.js"
 import { tagsCommand } from "./tags/command.js"
 import { tasksCommand } from "./tasks/command.js"
@@ -165,6 +169,7 @@ const OWN_ENTITIES = entityFields({
   agent_action: ["id", "actor", "tool", "tier", "target", "status", "error", "started_at", "finished_at"],
   meeting_project: ["id", "meeting", "project", "confirmed", "provenance", "fingerprint"],
   notes_folder: ["id", "name", "path", "format", "kept_by"],
+  account_group: ["group", "members", "duplicates", "suggested"],
   order: [
     "id",
     "ref",
@@ -310,10 +315,11 @@ const FIRST_SCREEN = {
 
 export const createProgram = ({
   streams: raw = processStreams,
-  env = process.env,
+  env: given = process.env,
   signal,
   terminal,
   keyring,
+  group,
 }: {
   streams?: Streams
   env?: NodeJS.ProcessEnv
@@ -323,7 +329,11 @@ export const createProgram = ({
   signal?: AbortSignal
   /** Whether a person is at the terminal; the process's stdin and stdout unless a test hands one in. */
   terminal?: Terminal
+  /** The account group the first word named (`memo work …`), as `liftGroup` took it off the command line. */
+  group?: string
 } = {}): Command => {
+  // Every reader of the run's group reads MEMO_GROUP, so the first word is that, said shorter (WC-ACCT-13).
+  const env = group === undefined ? given : { ...given, MEMO_GROUP: group }
   const fields = jsonFields(raw, OWN_ENTITIES)
   const { streams } = fields
   const program = new Command("memo")
@@ -331,6 +341,7 @@ export const createProgram = ({
     .version(VERSION)
     .option("--debug", "on failure, show the full error record: cause and stack")
   refuseWritesUnderLock(program, env)
+  scopeRunsToGroup(program, env, group)
   provideTerminal(program, terminal)
 
   contextCommand(program, streams, env)
@@ -364,6 +375,7 @@ export const createProgram = ({
   askCommand(program, streams, env)
   syncCommand(program, streams, env, signal, keyring)
   storeCommand(program, streams, env)
+  groupsCommand(program, streams, env)
   autoCommand(program, streams, env)
   configCommand(program, streams, env)
   doctorCommand(program, streams, env)
@@ -462,6 +474,25 @@ export const createProgram = ({
   })
   assertSharedContracts(program)
   return program
+}
+
+/**
+ * `memo work search all …`: a first word that is no command is an account group (WC-ACCT-13), lifted off before
+ * parsing, as `liftProfile` lifts a profile. A group word must be followed by a command.
+ */
+export const liftGroup = (program: Command, args: readonly string[]): { group?: string; rest: string[] } => {
+  const words = commandWords(program)
+  // memo's root options (--debug, --version) take no value, so none can hide the first word.
+  const { profile: group, rest } = liftProfile([...args], words)
+  if (group === undefined) return { rest }
+  const next = rest.find((arg) => !arg.startsWith("-"))
+  if (next !== undefined && !words.has(next))
+    throw new CliError(
+      "validation_error",
+      `"${group}" and "${next}" are neither of them a command — memo commands lists them; a group goes first: ` +
+        "memo work search all …",
+    )
+  return { group, rest }
 }
 
 /**

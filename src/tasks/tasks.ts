@@ -122,7 +122,7 @@ const addFromSource = async (store: MessageStore, env: NodeJS.ProcessEnv, source
   const key = parsed
     ? { provider: parsed.provider, account: parsed.account }
     : ((options.provider === undefined ? await folderOf(store, source) : undefined) ??
-      (await selectAccount(store, options)))
+      (await selectAccount(store, env, options)))
   if (
     parsed &&
     parsed.provider !== "notes" &&
@@ -174,7 +174,7 @@ export const closeTask = async (
   }
   if (options.revision !== undefined)
     throw new CliError("validation_error", "--revision checks a project task; a task from a message has none")
-  const key = await selectAccount(store, options)
+  const key = await selectAccount(store, env, options)
   return tasksService(storeOnlyDeps(store, key, { app: APP, env })).close(id, {
     as: options.as,
     by: "owner",
@@ -256,7 +256,7 @@ export const updateTask = async (store: MessageStore, env: NodeJS.ProcessEnv, id
   if (options.priority !== undefined || options.parent !== undefined)
     throw new CliError("validation_error", "--priority and --parent are for a task in a project")
   const assignees = options.assignee?.map((one) => (one === "sender" || one === "none" ? one : personRef(one)))
-  const key = await selectAccount(store, options)
+  const key = await selectAccount(store, env, options)
   return tasksService(storeOnlyDeps(store, key, { app: APP, env })).plan(
     id,
     {

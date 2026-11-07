@@ -259,7 +259,12 @@ export interface NewProposal extends AccountScope {
 }
 
 /** The account is the one that would act, and the task the proposal becomes on approval lands in its inbox. */
-export const propose = async (store: MessageStore, proposal: NewProposal, by: Author): Promise<ProposedAction> => {
+export const propose = async (
+  store: MessageStore,
+  env: NodeJS.ProcessEnv,
+  proposal: NewProposal,
+  by: Author,
+): Promise<ProposedAction> => {
   let payload: unknown
   if (proposal.payload !== undefined) {
     try {
@@ -271,7 +276,7 @@ export const propose = async (store: MessageStore, proposal: NewProposal, by: Au
   return store.proposedActions.propose({
     kind: proposal.kind,
     by,
-    account: await selectAccount(store, proposal),
+    account: await selectAccount(store, env, proposal),
     reason: proposal.reason,
     ...(proposal.target === undefined ? {} : { target: proposal.target }),
     ...(payload === undefined ? {} : { payload }),

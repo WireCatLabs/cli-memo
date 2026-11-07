@@ -2,6 +2,7 @@ import { CliError } from "@wirecat/cli-base"
 import { formatReference, isFolderProvider } from "@wirecat/cli-core"
 import type { AccountKey, MessageStore, PersonRecord } from "@wirecat/cli-core/store"
 import { listAnswer } from "../answer.js"
+import { scopedAccounts } from "../store/group.js"
 import { accountsOf } from "../store/source-list.js"
 
 export interface PersonIdentity {
@@ -33,7 +34,7 @@ const holdsNoPeople = (provider: string) => provider === "notes" || isFolderProv
 export const fold = (text: string) => text.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase()
 
 const scopeOf = async (store: MessageStore, env: NodeJS.ProcessEnv, source: string | undefined) => {
-  const keys = source === undefined ? await store.accounts.accounts() : await accountsOf(store, env, source)
+  const keys = source === undefined ? await scopedAccounts(store, env) : await accountsOf(store, env, source)
   const held = keys.filter((key) => !holdsNoPeople(key.provider))
   if (source !== undefined && held.length === 0)
     throw new CliError("validation_error", `${source} names no messenger, mail or meeting account that holds people`, {

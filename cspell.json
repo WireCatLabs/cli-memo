@@ -4,6 +4,7 @@
   "import": ["./config/wirecat/cspell.json"],
   "words": [
     "avito",
+    "bitrix",
     "CLAUDECODE",
     "Cognee",
     "DMARC",

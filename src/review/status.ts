@@ -2,6 +2,7 @@ import { mailTurn, marksOf, OWED_DAYS } from "@wirecat/cli-core/mail"
 import { markItem } from "@wirecat/cli-core/mail/cli"
 import type { ProposalFilter } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
+import { scopedAccounts } from "../store/group.js"
 import { reviewRegistry } from "./kinds.js"
 
 /** Pages read to count proposals; past them the count says "at least". */
@@ -50,7 +51,7 @@ export const waitingAbout = async (store: MessageStore, env: NodeJS.ProcessEnv, 
  */
 export const reviewStatus = async (store: MessageStore, env: NodeJS.ProcessEnv, since: number, now = Date.now()) => {
   const mail = []
-  for (const key of (await store.accounts.accounts()).filter((one) => one.provider === "email")) {
+  for (const key of (await scopedAccounts(store, env)).filter((one) => one.provider === "email")) {
     const stored = await store.accounts.storedAccount(key)
     const turns = (await store.mail.threadActivity(stored.id, now - OWED_DAYS * 86_400_000)).map((thread) => ({
       at: thread.lastEmailAt,

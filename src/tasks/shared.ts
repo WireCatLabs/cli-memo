@@ -11,6 +11,7 @@ import { type AccountKey, openStore } from "@wirecat/cli-core/store"
 import { Command } from "commander"
 import { APP, STORE_CLIENT } from "../app.js"
 import { decisionPolicy } from "../config.js"
+import { scopedAccounts } from "../store/group.js"
 import {
   oneAccountOf,
   type SourceOptions,
@@ -78,7 +79,7 @@ const requireAccount =
         (await store.tasks.projectTask(first))
       )
         return
-      const listed = (await store.accounts.accounts())
+      const listed = (await scopedAccounts(store, env))
         .map((key) => `${option} ${key.provider}:${key.account}`)
         .join("; ")
       throw new CliError("validation_error", `give ${option} — the stored accounts: ${listed || "none yet"}`)

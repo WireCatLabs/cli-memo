@@ -6,6 +6,24 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **Account groups: `memo <group> …`, `MEMO_GROUP` and `MEMO_GROUP_LOCK` (WC-ACCT-13).** A first word that is no
+  command is a group: `memo work search all "renewal"` reads only the group's accounts. Without `--source` a read
+  takes the group; a given one is narrowed to it; an account, a `--account` or a `msg:`/`chat:` reference outside it is
+  refused. `MEMO_GROUP_LOCK=work` pins the process, `memo mcp serve` included: another group, `all`, an outside account
+  or reference and group changes are `permission_error`. `personal` is every account in no other group, plus your own
+  notes. Needs cli-core with the group word (cli-core#2632).
+- **`memo groups list | add <group> <source> | remove <group> <source> | move <source> <from> <to>`.** The
+  list shows each account with its profiles in every app, why it is in, `also_in`, the duplicates and the
+  profile-name suggestions. `memo groups add work <provider>:<account>` is the command a CRM sync's `group_hint`
+  names.
+
+### Changed — may break callers
+
+- **`--source group:personal` now also holds every account in no other group** (cli-core#2632): a `personal` group
+  saved before held only what it listed.
+
 ## 0.131.63 — 08.11.2026
 
 ### Added

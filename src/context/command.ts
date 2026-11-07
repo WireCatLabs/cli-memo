@@ -8,7 +8,7 @@ import { boundFolders } from "../notes/bound.js"
 import { positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { atLeast, kindsText, waitingAbout } from "../review/status.js"
-import { contextAccountOf, type MemoContext, memoContext, withOwnMailText } from "./context.js"
+import { contextAccountsOf, type MemoContext, memoContext, withOwnMailText } from "./context.js"
 
 const MAX_TEXT = 160
 
@@ -116,11 +116,11 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
     .action(async (person: string, options: { limit: number; json?: boolean; source?: string; trimmed?: boolean }) => {
       const answer = await withStore(env, async (store) => {
         await importNotesMap(store, env, await boundFolders(store, env, { strict: false }))
-        const source =
-          options.source === undefined ? undefined : await contextAccountOf(store, env, person, options.source)
-        const found = await memoContext(store, person, {
+        const sources =
+          options.source === undefined ? undefined : await contextAccountsOf(store, env, person, options.source)
+        const found = await memoContext(store, env, person, {
           limit: options.limit,
-          ...(source === undefined ? {} : { source }),
+          ...(sources === undefined ? {} : { sources }),
         })
         const { uid, identities } = found.messages.person
         const refs = [`person:${uid}`, ...identities.map(({ provider, id }) => `${provider}:${id}`)]
