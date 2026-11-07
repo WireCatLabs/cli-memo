@@ -6,6 +6,7 @@ import { normalizeTag } from "@wirecat/cli-core"
 import { extractText, importEngine, type LoadEngine, MAX_FILE_BYTES } from "@wirecat/cli-core/documents"
 import type { MessageStore, Note } from "@wirecat/cli-core/store"
 import type { BoundFolder } from "./bound.js"
+import { noteFileTime } from "./dates.js"
 import { dialectOf, type ParsedNote } from "./dialects/index.js"
 import { matcher, NOTE_EXTENSIONS, noteFiles, readMemoId } from "./files.js"
 import { documentOf, fileLinks } from "./links.js"
@@ -103,6 +104,7 @@ export const importNotes = async (
   const truncated: string[] = []
   const unreadable: string[] = []
   const read: { id: string; path: string; bytes: Buffer; hash: string }[] = []
+  const mtimes = new Map<string, number>()
   const notReadAs = (path: string, status: string, engine?: string) => {
     const entry = { status, ...(engine === undefined ? {} : { engine }) }
     notRead.push({ path, ...entry })
@@ -124,6 +126,7 @@ export const importNotes = async (
       continue
     }
     const stat = statSync(path)
+    mtimes.set(id, stat.mtimeMs)
     const stamp = `${stat.mtimeMs}:${stat.size}:`
     const exported = previous?.startsWith(`${MEMO}${stamp}`)
     // A missing reader may have been installed since, so that file is read again; so is an unstored file an older
@@ -225,6 +228,15 @@ export const importNotes = async (
     deleted += await store.notes.deleteFileNotes(folder.id, dropped)
     for (const id of dropped) stored.delete(id)
   }
+
+  // Every run, not only for changed files: a note imported before notes were dated, or a file only touched, is fixed
+  // without being read or embedded again.
+  const dates = [...stored].flatMap(([id, note]) => {
+    const mtime = mtimes.get(id)
+    const modifiedAt = mtime === undefined ? undefined : noteFileTime(note.frontMatter, mtime)
+    return modifiedAt === undefined || modifiedAt === note.modifiedAt ? [] : [{ path: id, modifiedAt }]
+  })
+  if (dates.length) await store.notes.dateFileNotes(folder.id, dates)
 
   const documents = [...stored.values()].map(documentOf)
   const relink = new Map(parsed)

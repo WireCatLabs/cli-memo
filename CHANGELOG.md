@@ -6,6 +6,14 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **A note is dated by its file, not by the moment memo imported it.** `search all`'s `timestamp`, `search notes`'
+  `updated_at`, `date:` and the order of notes about a person read the note's front matter `date` (a bare day is
+  midnight where you are), else the file's modification time. An agent asked when "9 days from today" falls counted
+  from the import day. The next `memo sync` dates the notes already stored, without reading or embedding them again
+  (cli-core 0.604.0, `dateFileNotes`).
+
 ## 0.131.49 — 07.11.2026
 
 ### Added
