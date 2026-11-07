@@ -13,6 +13,7 @@ import { noteFolders } from "../notes/folders.js"
 import { importNotes, type NotesImport } from "../notes/import.js"
 import { collect } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
+import { progressLine } from "../progress.js"
 import { applyAuto, autoState, recordAutoRun } from "./auto.js"
 import { withImportLock } from "./lock.js"
 
@@ -228,7 +229,12 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           const skip = options.ignore ?? []
           for (const folder of folders)
             await attempt(`notes ${folder.path}`, async () => {
-              run.notes.push(await importNotes(store, folder, { ignore, skip, env }))
+              const onFile = progressLine(streams.diagnostic, Boolean(options.json), {
+                step: "notes",
+                unit: "files",
+                label: folder.id,
+              })
+              run.notes.push(await importNotes(store, folder, { ignore, skip, env, onFile }))
             })
           if (folders.length > 0)
             await attempt("notes by meaning", async () => {

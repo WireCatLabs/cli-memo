@@ -20,6 +20,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "notes export": ["memo notes export --output-dir ~/notes/memo --format obsidian"],
   "folders add": ["memo folders add ~/notes"],
   "folders update": ["memo folders update 1 ~/notes"],
+  "folders remove": ["memo folders remove 1", "memo folders remove 1 --allow-delete --yes"],
   "folders list": ["memo folders list --json"],
   "config show": ["memo config show", "memo config show --json"],
   "config migrate": ["memo config migrate"],

@@ -8,8 +8,11 @@ import type { MessageStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { loadConfig, updateConfig } from "../config.js"
+import { withImportLock } from "../run/lock.js"
 import { DIALECTS, type DialectName } from "./dialects/index.js"
-import { attachFolder, bindFolder, type NoteFolder, noteFolders } from "./folders.js"
+import { attachFolder, bindFolder, type NoteFolder, noteFolders, unbindFolder } from "./folders.js"
+import { folderNotes } from "./import.js"
+import { dropFolderState } from "./state.js"
 
 const formatOf = (value: string): DialectName => {
   if (!(DIALECTS as readonly string[]).includes(value)) throw new InvalidArgumentError(`choose ${DIALECTS.join(", ")}`)
@@ -107,6 +110,69 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
         return bound as NoteFolder
       })
       print(options.json, itemAnswer(folder), line(folder))
+    })
+
+  grantsAuthority(
+    annotate(folders.command("remove"), {
+      effects: LOCAL_WRITE,
+      examples: ["memo folders remove ~/notes", "memo folders remove 3 --allow-delete --yes --json"],
+    }),
+  )
+    .description("stop reading a notes folder here; its notes stay unless --allow-delete")
+    .argument("<folder>", "the folder's id or its path, as memo folders list prints them")
+    .option("--allow-delete", "also delete the folder's notes from the store, their text included")
+    .option("--yes", "confirm --allow-delete")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .action(async (target: string, options: { allowDelete?: boolean; yes?: boolean; json?: boolean }) => {
+      const here = noteFolders(loadConfig(env).notes)
+      const bound =
+        here.find(({ id }) => id !== null && id === target) ?? here.find(({ path }) => path === resolve(target))
+      const removed = await withImportLock(env, () =>
+        withStore(env, async (store) => {
+          // A folder kept for another computer has no path here; only its notes can go.
+          const elsewhere = bound
+            ? undefined
+            : (await store.notes.folders()).find(({ id, name }) => id === target && !keptByDrive(name))
+          if (!bound && !(elsewhere && options.allowDelete))
+            throw new CliError(
+              "not_found",
+              elsewhere
+                ? `folder ${target} is not on this computer; memo folders remove ${target} --allow-delete --yes deletes its notes`
+                : `no notes folder ${target} on this computer — memo folders list shows them`,
+              { reason: "folder.not-found" },
+            )
+          const id = bound ? bound.id : target
+          let notesDeleted = 0
+          if (options.allowDelete && id !== null) {
+            const paths = (await folderNotes(store, id)).map((note) => note.path as string)
+            if (options.yes !== true)
+              throw new CliError(
+                "confirmation_required",
+                `this deletes ${paths.length} notes of folder ${id} from the store, their text included; ` +
+                  "nothing was changed — add --yes",
+                { reason: "folder.delete-notes", notes: paths.length },
+              )
+            if (paths.length) notesDeleted = await store.notes.deleteFileNotes(id, paths)
+            dropFolderState(env, id)
+          }
+          if (bound) updateConfig((config) => unbindFolder(config, bound.path), env)
+          return {
+            id,
+            path: bound?.path ?? null,
+            format: bound?.format ?? elsewhere?.format ?? "obsidian",
+            removed: true,
+            notesDeleted,
+          }
+        }),
+      )
+      const kept = removed.id === null ? "" : ` (memo folders remove ${removed.id} --allow-delete --yes deletes them)`
+      print(
+        options.json,
+        itemAnswer(removed),
+        options.allowDelete
+          ? `${removed.path ?? `folder ${removed.id}`}: ${removed.notesDeleted} notes deleted from the store`
+          : `${removed.path} removed from this computer; its notes stay in the store${kept}`,
+      )
     })
 
   withQuery(
