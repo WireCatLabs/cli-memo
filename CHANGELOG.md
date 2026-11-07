@@ -12,6 +12,9 @@ the API.
   forget from its Memory page with `decision.decider-unknown`. Every command that decides or writes as you now takes
   `--from-app`, which Desktop passes: the run is recorded as yours with no question. It is the app's word that you
   acted there, not a security check; it is not offered over MCP.
+- **cli-base 0.82.0.** Its shared flag vocabulary knows `--from-app` and `--status`, so memo's command lint takes
+  them from there: the three `--status` overrides on `tasks add`, `update` and `move` are gone, and the override
+  budget is 13, down from 16.
 
 ## 0.131.50 — 07.11.2026
 
