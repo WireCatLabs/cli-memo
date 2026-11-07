@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.46 — 07.11.2026
+
 ### Changed — may break callers
 
 - **The scheduled mail-triage agent starts with its skill and each mailbox's review on its stdin** (cli-core 0.597.0
