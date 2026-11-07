@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**744 ✅ · 0 ⛔ · 158 ❌** — 206 commands, 696 options.
+**748 ✅ · 0 ⛔ · 159 ❌** — 208 commands, 699 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -838,6 +838,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `sync` | `--json` | ✅ |  |
 | `store info` |  | ✅ |  |
 | `store info` | `--json` | ✅ |  |
+| `store recover` |  | ✅ |  |
+| `store recover` | `--json` | ✅ |  |
+| `store recover run` |  | ✅ |  |
+| `store recover run` | `--json` | ❌ |  |
 | `jobs start` |  | ✅ |  |
 | `jobs start` | `--every` | ✅ |  |
 | `jobs stop` |  | ✅ |  |
@@ -851,6 +855,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `config unset` | `--json` | ✅ |  |
 | `doctor` |  | ✅ |  |
 | `doctor` | `--online` | ✅ |  |
+| `doctor` | `--deep` | ✅ |  |
 | `doctor` | `--json` | ✅ |  |
 | `upgrade` |  | ✅ |  |
 | `upgrade` | `--check` | ✅ |  |

@@ -275,3 +275,15 @@ describe("the update notice", () => {
     expect(await updateNotice(["search", "budget"], { tty: true, env, environment })).toBeUndefined()
   })
 })
+
+describe("memo doctor --deep", () => {
+  it("reads every page of the store and every search index, and says the store is whole", async () => {
+    const { openStore } = await import("@wirecat/cli-core/store")
+    await (await openStore({ env })).close()
+    const report = JSON.parse(await doctor("--deep", "--json"))
+    expect(report.item.store.health).toMatchObject({ checked: "deep", ok: true })
+    expect(report.item.store.damage).toBeUndefined()
+    const recover = JSON.parse(await memo("store", "recover", "--json"))
+    expect(recover.item).toMatchObject({ exists: true, ok: true, next: [] })
+  })
+})
