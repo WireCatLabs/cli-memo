@@ -33,8 +33,7 @@ if (wcat.code !== undefined) {
       const { createProgram, liftGroup, refuseJoinedPath } = await import("../program.js")
       const { autoNotice, followInstall } = await import("../run/auto.js")
       program = createProgram({ signal: entry.signal })
-      // `memo work search all …`: the group word comes off first, and the program is made for that group.
-      const { group, rest: args } = liftGroup(program, entry.args)
+      const { group, rest: args } = await liftGroup(program, entry.args, entry.env)
       if (group !== undefined) program = createProgram({ signal: entry.signal, group })
       // `memo jobs status` says it in full; everywhere else one line, until a timer run passes again.
       if (args[0] !== "jobs") {

@@ -41,7 +41,6 @@ export interface GroupScope {
   has: (key: AccountKey) => boolean
 }
 
-/** The accounts of the run's group, or `undefined` when the run reads every account. */
 const scopeIn = (run: RunGroup, context: GroupContext): GroupScope => {
   // Refuses an unknown or empty group the same way a `--source` would.
   scopeToGroup(run, {}, context)
