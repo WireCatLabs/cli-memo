@@ -308,6 +308,26 @@ it("lets the owner confirm or reject a mail batch with the fingerprint it read, 
   expect((await shown(second.id)).accepted).toEqual([])
 })
 
+it("lets the app confirm a mail batch as the owner under --from-app, and refuses it without", async () => {
+  const box = await triaged()
+  await box.thread(
+    "t-lease",
+    email("lease", 30),
+    email("signed", 1, { from: { address: ME, name: "Me" }, to: [{ address: "ann@example.com", name: "Ann" }] }),
+  )
+  await box.thread("t-new", email("quote", 1, { from: { address: "bob@example.org", name: "Bob" } }))
+  await box.synced()
+  const read = await box.review()
+  const findings = box.file("findings.json", scriptedAgent(read.items, box.task, read.cursor.split(".")[0] as string))
+  const batch = (await box.memo(LOCKED, NOBODY, "mail", "findings", "add", findings, "--source", MAILBOX)).item
+  const desktop = { WIRECAT_CALLER: "desktop" }
+  const decide = ["actions", "confirm", batch.id, "t1", "--fingerprint", batch.fingerprint]
+  expect(await box.refusal(desktop, ...decide)).toBe("decision.decider-unknown")
+  await box.memo(desktop, NOBODY, ...decide, "--from-app")
+  const shown = (await box.memo({}, NOBODY, "mail", "findings", "show", batch.id)).item
+  expect(shown).toMatchObject({ status: "reviewed", receipt: { accepted: ["t1"] } })
+})
+
 it("refuses a batch that cites mail changed since review, and stages nothing", async () => {
   const box = await triaged()
   await box.thread("t-new", email("quote", 1, { from: { address: "bob@example.org", name: "Bob" } }))
