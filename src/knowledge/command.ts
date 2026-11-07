@@ -28,7 +28,7 @@ import {
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, wholeList, withStore } from "../answer.js"
 import { byOption, deciderOf, reasonOption, whoRuns } from "../author.js"
-import { notesAboutInGroup } from "../notes/about.js"
+import { notesAbout } from "../notes/about.js"
 import { oneOf, positive, readScope, writeScope } from "../options.js"
 import { withOwner } from "../people/owner.js"
 import { decideOne, decisionOf } from "../review/review.js"
@@ -88,7 +88,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       relationships: (await store.notes.links({ to: `${type}:${id}` }))
         .concat(await store.notes.links({ from: `${type}:${id}` }))
         .filter((link) => link.kind !== "about" && link.kind !== "links-to" && link.role !== "key"),
-      notes: await notesAboutInGroup(store, env, { ref: `${type}:${id}` }),
+      notes: await notesAbout(store, { ref: `${type}:${id}` }),
       tags: await store.knowledge.tags(null, { type, id }),
     }
   }

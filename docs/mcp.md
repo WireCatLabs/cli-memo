@@ -50,19 +50,21 @@ the lock fails closed. These commands run under it:
 | groups | `groups list`; `groups add`, `remove` and `move` are refused |
 | CRM | every `deals` and `leads` command, every `organizations` command |
 | people and notes | `people list`, `people add`, `notes list`, `notes show` |
+| your own | every `memories`, `facts`, `actions`, `review` and `tasks` command; `projects list`, `add`, `context`, `status` and `key-documents` |
 | labels and links | `tags add`, `tags remove`, `relationships list`, `relationships add` |
 | server | `mcp serve` |
 
-Every other command is refused with `permission_error`, memories, facts, actions, tasks and projects included. So are
-`relationships update`, `end`, `remove` and `confirm`: they take a bare relationship id, which the lock cannot tie to
-an account.
+Every other command is refused with `permission_error`, among them `projects gather`, `evidence`, `annotations` and
+`actions`, which read linked chats without the group yet. So are `relationships update`, `end`, `remove` and
+`confirm`: they take a bare relationship id, which the lock cannot tie to an account.
 
 In the commands that run, reads take only the group's accounts, and a list leaves out what belongs to an account
-outside it. Your own notes written in Memo belong to `personal`. A reference outside the group is refused with
-`permission_error`, in an argument or an option, and so is a bare id of one (`organizations show 3`). That covers a
-message, a chat, a calendar event, a deal or organization a CRM outside the group brought, and a person none of
-whose accounts is in it. Another group, `--source all`, and a `--source` or `--account` outside the group are
-refused too.
+outside it. What you made yourself (notes, projects, tasks, invoices, memories, facts) belongs to no account and shows
+in every group. A reference outside the group is refused with `permission_error`, in an argument or an option, and so
+is a bare id of one (`organizations show 3`). That covers a message, a chat, a calendar event, a deal or organization
+a CRM outside the group brought, and a person none of whose accounts is in it. Another group, `--source all`, and a
+`--source` or `--account` outside the group are refused too. `projects status` counts a linked chat outside the group
+in `missing`, and names none.
 
 Set the lock in the environment of the process the app starts; the agent cannot lift it.
 

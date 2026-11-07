@@ -71,7 +71,7 @@ export const groupsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
         has_more: false,
         missing: unresolved.map((entry) => ({
           field: entry,
-          why: "a saved group entry that names no account; personal may hold what it meant",
+          why: "a saved group entry that names no account",
         })),
       }),
       membershipText(membership),
@@ -84,10 +84,10 @@ export const groupsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     GROUPS_QUERY,
   )
     .description(
-      "every group with its accounts, each with its profiles in every app, why it is in, and the other groups that " +
+      "every saved group, then all, with its accounts, each with its profiles in every app and the other groups that " +
         "hold it too; duplicates and profile-name suggestions last",
     )
-    .summary("every group with its accounts, profiles, duplicates and suggestions")
+    .summary("the saved groups, then all, with accounts, profiles and duplicates")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (words: string[], options: { json?: boolean }) => {
       queryTerms(words, GROUPS_QUERY, "groups list")
@@ -107,9 +107,7 @@ export const groupsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     )
 
   grantsAuthority(annotate(groups.command("remove"), { effects: LOCAL_WRITE, output: { entity: "account_group" } }))
-    .description(
-      "take an account out of a group; one in no group left is in personal again. The account and its data stay",
-    )
+    .description("take an account out of a group; the account and its data stay, and `all` still reads it")
     .summary("take an account out of a group")
     .argument("<group>", "the group")
     .argument("<source>", MEMBER_HELP)

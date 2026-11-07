@@ -319,18 +319,40 @@ const GROUP_AWARE = [
   "relationships remove",
   "relationships confirm",
   "mcp serve",
+  "memories",
+  "facts",
+  "actions",
+  "review",
+  "tasks",
+  "projects list",
+  "projects add",
+  "projects context",
+  "projects status",
+  "projects key-documents",
 ]
 
 const isSimpleKind = (name: string) => REF_KINDS.some(({ type }) => type === name)
 
+/** What a `<ref>` or `<id>` argument names in each top-level group; ids of owner-only queues name no account. */
+const REF_KINDS_OF: Record<string, Record<string, string>> = {
+  deals: { ref: "deal" },
+  leads: { ref: "lead" },
+  memories: { ref: "memory" },
+  facts: { ref: "fact" },
+  tasks: { id: "task", "other-task": "task" },
+}
+const OWNER_QUEUES = new Set(["actions", "review"])
 /** Argument names that are ids of something cli-core's lock cannot map yet: such a command stays refused under it. */
-const UNMAPPED_IDS = new Set(["id"])
-
-/** `deals <verb> <ref>` and `leads <verb> <ref>` take a `deal:` or `lead:` reference, or its bare id. */
-const DEAL_GROUPS = new Set(["deals", "leads"])
+const UNMAPPED_IDS = new Set(["id", "ids", "ref", "meeting-id"])
 
 const leaves = (command: Command): Command[] =>
   command.commands.length === 0 ? [command] : command.commands.flatMap(leaves)
+
+const topOf = (command: Command): string => {
+  let at = command
+  while (at.parent?.parent) at = at.parent
+  return at.name()
+}
 
 const markGroupAware = (program: Command) => {
   for (const path of GROUP_AWARE) {
@@ -338,17 +360,18 @@ const markGroupAware = (program: Command) => {
     for (const name of path.split(" ")) command = command?.commands.find((child) => child.name() === name)
     if (!command) throw new Error(`no command to mark group-aware: ${path}`)
     groupAware(command)
-    // Every argument is declared: a kind-named one, `<ref>` of a deal or lead, or none, so free text passes the lock
-    // while an id is checked as what it names. One whose id no reference maps stays undeclared, so it is refused.
+    // Every argument is declared: an id as what it names, free text as none, so a search word or an amount passes
+    // the lock while an id is checked. An id no reference maps stays undeclared, and the lock refuses its command.
     for (const leaf of leaves(command)) {
-      const names = leaf.registeredArguments.map((argument) => argument.name())
-      if (names.some((name) => UNMAPPED_IDS.has(name))) continue
+      const top = topOf(leaf)
       const kinds: Record<string, string> = {}
-      for (const name of names)
-        if (isSimpleKind(name)) kinds[name] = name
-        else if (name === "ref" && DEAL_GROUPS.has(leaf.parent?.name() ?? ""))
-          kinds[name] = (leaf.parent?.name() ?? "").replace(/s$/, "")
-      refKinds(leaf, kinds as Parameters<typeof refKinds>[1])
+      let mapped = true
+      for (const name of leaf.registeredArguments.map((argument) => argument.name())) {
+        const kind = REF_KINDS_OF[top]?.[name] ?? (isSimpleKind(name) ? name : undefined)
+        if (kind !== undefined) kinds[name] = kind
+        else if (UNMAPPED_IDS.has(name) && !OWNER_QUEUES.has(top)) mapped = false
+      }
+      if (mapped) refKinds(leaf, kinds as Parameters<typeof refKinds>[1])
     }
   }
 }
@@ -560,7 +583,8 @@ export const liftGroup = async (
   if (group === undefined) return { rest }
   const next = rest.find((arg) => !arg.startsWith("-"))
   const groups = await withStore(env, async (store) => Object.keys((await memoListContext(store, env)).groups))
-  const known = groups.includes(group)
+  // `all`, every account, is no saved group but always a word.
+  const known = group === "all" || groups.includes(group)
   // Under the lock another group is a permission_error, which the run's own check gives.
   if ((known || groupLockOf(APP, env) !== undefined) && next !== undefined && words.has(next)) return { group, rest }
   throw new CliError(

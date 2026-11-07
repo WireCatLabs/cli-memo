@@ -4471,7 +4471,7 @@ account groups: memo <group> … reads only the group's accounts
 
 ### `memo groups list`
 
-every group with its accounts, each with its profiles in every app, why it is in, and the other groups that hold it too; duplicates and profile-name suggestions last
+every saved group, then all, with its accounts, each with its profiles in every app and the other groups that hold it too; duplicates and profile-name suggestions last
 
 ```sh
 memo groups list [query] [options]
@@ -4485,7 +4485,7 @@ memo groups list [query] [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** every group with its accounts, profiles, duplicates and suggestions
+**Returns:** the saved groups, then all, with accounts, profiles and duplicates
 
 **Example:** `memo groups list`, `memo groups list --json`
 
@@ -4514,7 +4514,7 @@ memo groups add <group> <source> [options]
 
 ### `memo groups remove`
 
-take an account out of a group; one in no group left is in personal again. The account and its data stay
+take an account out of a group; the account and its data stay, and `all` still reads it
 
 This command changes the local store or your files.
 

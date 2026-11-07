@@ -8,23 +8,19 @@ the API.
 
 ### Added
 
-- **Account groups: `memo <group> …`, `MEMO_GROUP` and `MEMO_GROUP_LOCK` (WC-ACCT-13).** A first word that is no
-  command is a group: `memo work search all "renewal"` reads only the group's accounts. Without `--source` a read
-  takes the group; a given one is narrowed to it, and an outside `--account` is refused. A word that is neither a
-  command nor a group names the groups. `MEMO_GROUP_LOCK=work` pins the process, `memo mcp serve` included, and fails
-  closed: only the commands that keep to a group run, every list and note section leaves out what belongs outside it,
-  and a reference or a bare id of anything outside it, another group, `all` and every group change are
-  `permission_error`. A command that reads one kind, such as `search mail`, takes the group's accounts of that kind. `personal` is every
-  account in no other group, plus your own notes. Needs cli-core with the group lock (cli-core#2632).
+- **Account groups: `memo <group> …`, `MEMO_GROUP` and `MEMO_GROUP_LOCK` (WC-ACCT-13).** Memo reads every account
+  by default (`all`, also `memo all …`); a group is an opt-in list you save. A first word that is no command is a
+  group: `memo work search all "renewal"` reads only its accounts. Without `--source` a read takes the group; a given
+  one is narrowed to it, and an outside `--account` is refused. A command that reads one kind, such as `search mail`,
+  takes the group's accounts of that kind. A word that is neither a command nor a group names the groups. What you
+  made yourself (notes, projects, tasks, invoices, memories, facts) shows in every group. `MEMO_GROUP_LOCK=work` pins
+  the process, `memo mcp serve` included, and fails closed: only the commands that keep to a group run, and a
+  reference or a bare id of account data outside it, another group, `all` and every group change are
+  `permission_error`. Needs cli-core with the group lock (cli-core#2632).
 - **`memo groups list | add <group> <source> | remove <group> <source> | move <source> <from> <to>`.** The
   list shows each account with its profiles in every app, why it is in, `also_in`, the duplicates and the
   profile-name suggestions. `memo groups add work <provider>:<account>` is the command a CRM sync's `group_hint`
   names.
-
-### Changed — may break callers
-
-- **`--source group:personal` now also holds every account in no other group** (cli-core#2632): a `personal` group
-  saved before held only what it listed.
 
 ## 0.131.63 — 08.11.2026
 
