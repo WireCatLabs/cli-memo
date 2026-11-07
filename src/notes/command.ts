@@ -211,6 +211,7 @@ const notesCommandDefinition = (program: Command, streams: Streams, env: NodeJS.
             about.push(
               await meetingReference(
                 store,
+                env,
                 options.meeting,
                 value === undefined ? {} : await oneAccountOf(store, env, value, "--account"),
               ),

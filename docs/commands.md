@@ -1809,7 +1809,7 @@ memo relationships list [query] [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** relationship — id, from, to, kind, role, purpose, evidence, confirmed, and 3 more; every field: memo commands info relationships list
+**Returns:** relationship — id, from, to, kind, role, purpose, evidence, confirmed, and 9 more; every field: memo commands info relationships list
 
 **Example:** `memo relationships list about:"person:3"`, `memo relationships list confirmed:false`
 
@@ -3113,7 +3113,7 @@ memo deals add <title> <stage> [amount] [currency] [options]
 |---|---|
 | `--organization <organization>` | the client: organization:<id>. |
 | `--person <uid>` | a person on the deal: person:<id>; repeat for another, up to 20. |
-| `--role <role>` | what those people are on it: owner, contact, decision-maker; contact by default. |
+| `--role <role>` | what those people are on it: owner, contact, decision-maker, influencer; contact by default. |
 | `--due <time>` | the day you expect it to close, such as 2026-12-01. |
 | `--project <project>` | the project it belongs to: its key or project:<id>. |
 | `--reason <text>` | why an agent records it, kept with it. |
@@ -3238,7 +3238,7 @@ memo leads add <title> [stage] [amount] [currency] [options]
 |---|---|
 | `--organization <organization>` | the client: organization:<id>. |
 | `--person <uid>` | a person on the lead: person:<id>; repeat for another, up to 20. |
-| `--role <role>` | what those people are on it: owner, contact, decision-maker; contact by default. |
+| `--role <role>` | what those people are on it: owner, contact, decision-maker, influencer; contact by default. |
 | `--due <time>` | the day you expect it to close, such as 2026-12-01. |
 | `--project <project>` | the project it belongs to: its key or project:<id>. |
 | `--reason <text>` | why an agent records it, kept with it. |
@@ -4314,6 +4314,100 @@ memo store recover run [options]
 **Returns:** rebuild a damaged store from every row it can read
 
 **Example:** `memo store recover run`
+
+## `memo groups`
+
+account groups: memo <group> … reads only the group's accounts
+
+### `memo groups list`
+
+every group with its accounts, each with its profiles in every app, why it is in, and the other groups that hold it too; duplicates and profile-name suggestions last
+
+```sh
+memo groups list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms; this list filters by none yet. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** every group with its accounts, profiles, duplicates and suggestions
+
+**Example:** `memo groups list`, `memo groups list --json`
+
+### `memo groups add`
+
+put an account in a group, which is made when it does not exist; it may stay in others too
+
+This command changes the local store or your files.
+
+```sh
+memo groups add <group> <source> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `group` | required | the group: letters, digits, - and _, not a memo command word. |
+| `source` | required | one account, as --source names it: telegram:102, tg:work, email:me@work.example, bitrix24:<portal>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** put an account in a group
+
+**Example:** `memo groups add work bitrix24:acme`, `memo groups add personal telegram:102`
+
+### `memo groups remove`
+
+take an account out of a group; one in no group left is in personal again. The account and its data stay
+
+This command changes the local store or your files.
+
+```sh
+memo groups remove <group> <source> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `group` | required | the group. |
+| `source` | required | one account, as --source names it: telegram:102, tg:work, email:me@work.example, bitrix24:<portal>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** take an account out of a group
+
+**Example:** `memo groups remove work telegram:102`
+
+### `memo groups move`
+
+move an account from one group to another in one write; the other group is made when it is new
+
+This command changes the local store or your files.
+
+```sh
+memo groups move <source> <from> <to> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `source` | required | one account, as --source names it: telegram:102, tg:work, email:me@work.example, bitrix24:<portal>. |
+| `from` | required | the group it leaves. |
+| `to` | required | the group it joins. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** move an account between groups
+
+**Example:** `memo groups move telegram:102 personal work`
 
 ## `memo jobs`
 

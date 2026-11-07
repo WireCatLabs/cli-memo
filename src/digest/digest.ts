@@ -6,6 +6,7 @@ import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
 import { APP } from "../app.js"
 import { listReview } from "../review/review.js"
 import { counted } from "../review/status.js"
+import { scopedAccounts } from "../store/group.js"
 import { knownSenders } from "./known.js"
 
 /** The tag that puts a chat, mail thread, person, project or meeting series on the owner's watch list. */
@@ -136,7 +137,7 @@ export const gatherDigest = async (
 ): Promise<Digest> => {
   const window = (now - since) / DAY
   const days = `${Math.max(1, Math.ceil(window))}d`
-  const accounts = await store.accounts.accounts()
+  const accounts = await scopedAccounts(store, env)
   const messengers = accounts.filter((key) => MESSENGERS.has(key.provider))
   const mailboxes = accounts.filter((key) => key.provider === "email")
   const owedSince = Math.min(since, now - owedWithin)

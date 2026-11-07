@@ -1,6 +1,7 @@
 import { CliError } from "@wirecat/cli-base"
 import { parseLocator } from "@wirecat/cli-core"
 import type { AccountKey, KnowledgeTarget, MessageStore } from "@wirecat/cli-core/store"
+import { scopedAccounts } from "./group.js"
 import { oneAccountOf, type WriteOptions, writeAccountOf } from "./source-list.js"
 
 export interface AccountScope {
@@ -21,8 +22,12 @@ export interface TargetInput extends AccountScope {
 const choices = (keys: AccountKey[]) =>
   keys.length ? `; choose one of ${keys.map(({ provider, account }) => `${provider}:${account}`).join(", ")}` : ""
 
-export const selectAccount = async (store: MessageStore, scope: AccountScope): Promise<AccountKey> => {
-  const held = await store.accounts.accounts()
+export const selectAccount = async (
+  store: MessageStore,
+  env: NodeJS.ProcessEnv,
+  scope: AccountScope,
+): Promise<AccountKey> => {
+  const held = await scopedAccounts(store, env)
   if (!scope.provider) throw new CliError("validation_error", `give --account <provider>:<account>${choices(held)}`)
   const matches = held.filter(
     (key) => key.provider === scope.provider && (scope.account === undefined || key.account === scope.account),
@@ -38,9 +43,14 @@ export const selectAccount = async (store: MessageStore, scope: AccountScope): P
 }
 
 /** The `meeting:<account id>/<meeting id>` reference for a meeting the selected account holds. */
-export const meetingReference = async (store: MessageStore, id: string, scope: AccountScope): Promise<string> => {
+export const meetingReference = async (
+  store: MessageStore,
+  env: NodeJS.ProcessEnv,
+  id: string,
+  scope: AccountScope,
+): Promise<string> => {
   if (!/^\d+$/.test(id)) throw new CliError("validation_error", "--meeting takes the meeting's id in the store")
-  const account = await store.accounts.storedAccount(await selectAccount(store, scope))
+  const account = await store.accounts.storedAccount(await selectAccount(store, env, scope))
   const found = await store.meetings.meeting(Number(id))
   if (found === null || found.meeting.accountId !== account.id)
     throw new CliError("not_found", `the ${account.provider} account ${account.account} holds no meeting ${id}`)
@@ -49,6 +59,7 @@ export const meetingReference = async (store: MessageStore, id: string, scope: A
 
 export const selectTarget = async (
   store: MessageStore,
+  env: NodeJS.ProcessEnv,
   input: TargetInput,
 ): Promise<{ key: AccountKey; target: KnowledgeTarget }> => {
   const choices = ["message", "chat", "contact", "person", "task", "organization", "project", "meeting"] as const
@@ -71,7 +82,7 @@ export const selectTarget = async (
       throw new CliError("validation_error", "locator and selected account disagree")
     return { key: { provider: parsed.provider, account: parsed.account }, target: { type, locator } }
   }
-  return { key: await selectAccount(store, input), target: { type, id: input[type] as string } }
+  return { key: await selectAccount(store, env, input), target: { type, id: input[type] as string } }
 }
 
 /** A write's `--account` as the scope the helpers above take, resolved only when given: a locator may name it. */

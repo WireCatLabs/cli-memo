@@ -51,7 +51,7 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
         run(options.json, async (store) => {
           const by = await whoRuns(command, env, { asOwner, question: "propose this action as yours?" })
           const key = await writeAccount(store, env, { account }, (text) => streams.diagnostic(text))
-          return itemAnswer(await propose(store, { ...options, ...key, kind }, by))
+          return itemAnswer(await propose(store, env, { ...options, ...key, kind }, by))
         }),
     )
 

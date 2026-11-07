@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**752 ✅ · 0 ⛔ · 159 ❌** — 209 commands, 702 options.
+**759 ✅ · 0 ⛔ · 160 ❌** — 213 commands, 706 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -772,7 +772,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `models download` | `--accept-terms` | ✅ |  |
 | `models download` | `--json` | ✅ |  |
 | `search all` |  | ✅ |  |
-| `search all` | `--limit` | ✅ |  |
+| `search all` | `--limit` | ❌ |  |
 | `search all` | `--exact` | ✅ |  |
 | `search all` | `--timezone` | ❌ |  |
 | `search all` | `--json` | ✅ |  |
@@ -846,6 +846,14 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `store recover` | `--json` | ✅ |  |
 | `store recover run` |  | ✅ |  |
 | `store recover run` | `--json` | ❌ |  |
+| `groups list` |  | ✅ |  |
+| `groups list` | `--json` | ✅ |  |
+| `groups add` |  | ✅ |  |
+| `groups add` | `--json` | ✅ |  |
+| `groups remove` |  | ✅ |  |
+| `groups remove` | `--json` | ✅ |  |
+| `groups move` |  | ✅ |  |
+| `groups move` | `--json` | ✅ |  |
 | `jobs start` |  | ✅ |  |
 | `jobs start` | `--every` | ✅ |  |
 | `jobs stop` |  | ✅ |  |

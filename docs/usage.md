@@ -170,3 +170,24 @@ A command that changes something, such as adding a task or a reminder, acts as o
 Memo tells you which accounts exist.
 
 Reads use `--source`; account-scoped writes use `--account provider:account`. Retired selection flags are refused.
+
+### Groups of accounts
+
+A group keeps work apart from the rest. Put an account in one with `memo groups add work bitrix24:acme`, and
+read only that group by naming it first: `memo work search all "renewal"`, `memo work context person:5`.
+`MEMO_GROUP=work` does the same for every command. In a group, a read takes only the group's accounts; an explicit
+`--source` narrows inside it, and an account outside it is refused, as is a write's `--account` or a reference
+(`msg:…`, `chat:…`) to an account outside it.
+
+`memo groups list` shows each group with its accounts, every app's profile names for each (`tg work`, `b24 work`),
+why each is in, and the other groups that hold it too. An account may be in several groups; the list names those
+duplicates. A profile named like a group is only a suggestion; it never puts an account in a group.
+
+`personal` always exists: every account in no other group, plus any you add to it, and the notes you write with
+`memo notes add`. With no group saved, `personal` is every account. `--source personal` is not this group: it means
+your own messenger accounts, not bots. The group is `memo personal …` or `--source group:personal`, and every answer
+names the accounts it read.
+
+`memo groups remove work telegram:102` takes an account out, and `memo groups move telegram:102 personal work`
+moves it in one write. Without a lock, a group is a convenience, not a boundary: any run without the word still
+reads every account. To pin a process to one group, see [the MCP lock](mcp.md#lock-an-agent-to-a-group).

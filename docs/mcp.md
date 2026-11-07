@@ -39,6 +39,14 @@ for more keys. It cannot loosen the saved permissions, including more specific k
 `MEMO_READ_ONLY=1` marks every writing command unavailable and refuses writes on an existing connection.
 Discovery retains blocked commands with current `availability` and the reason, as cli-core does.
 
+## Lock an agent to a group
+
+`MEMO_GROUP_LOCK=work memo mcp serve` serves only the accounts of the group `work` (see
+[groups](usage.md#groups-of-accounts)). Every read takes only them: a search with no `--source`, a `--source` that
+names `all` or an account outside the group, another group, a write's `--account` and a `msg:` or `chat:` reference
+to an outside account are refused with `permission_error`. Group changes (`groups add`, `remove`, `move`) are refused
+too. Set the lock in the environment of the process the app starts; the agent cannot lift it.
+
 The named CLI-only exclusions are the `mcp` commands, `upgrade`, `skill install`, `jobs start` and `jobs stop`: they
 start another server, replace the running program, install instructions in other apps, or manage a background timer.
 
