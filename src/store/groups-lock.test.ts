@@ -188,9 +188,17 @@ describe("MEMO_GROUP_LOCK fails closed", () => {
     expect(chats).not.toContain("chat:telegram/1/301")
     const status = JSON.stringify(await memo("projects", "status", "LKW"))
     expect(status).not.toContain("Lockcase at home")
-    expect(status).not.toContain("msg:telegram/1/")
-    const read = await memo("projects", "status", "LKW")
-    expect(read.out_of_scope).toEqual([{ chat: "chat:telegram/1/301", reason: "other-account" }])
+    expect(status).not.toContain("telegram/1/")
+    expect(status).not.toContain("Kin Example")
+    expect(await memoEnvelope({ ...env, MEMO_GROUP_LOCK: "work" })("projects", "status", "LKW")).toMatchObject({
+      missing: expect.arrayContaining([
+        { field: "out_of_scope", why: "1 of the project's chats are outside group work" },
+      ]),
+    })
+    vi.unstubAllEnvs()
+    expect((await owner("work", "projects", "status", "LKW")).out_of_scope).toEqual([
+      { chat: "chat:telegram/1/301", reason: "other-account" },
+    ])
   })
 })
 
