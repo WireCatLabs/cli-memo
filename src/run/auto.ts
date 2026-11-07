@@ -71,6 +71,8 @@ export const PLACE_VARIABLES = [
 export const placesOf = (env: NodeJS.ProcessEnv): Record<string, string> =>
   Object.fromEntries(PLACE_VARIABLES.flatMap((name) => (env[name] ? [[name, env[name]]] : [])))
 
+const execStart = (): string => `ExecStart=${[process.execPath, memoBin(), "sync"].map(quote).join(" ")}`
+
 export const serviceUnit = (env: NodeJS.ProcessEnv, places: Record<string, string> = {}): string =>
   [
     "[Unit]",
@@ -78,7 +80,7 @@ export const serviceUnit = (env: NodeJS.ProcessEnv, places: Record<string, strin
     "",
     "[Service]",
     "Type=oneshot",
-    `ExecStart=${[process.execPath, memoBin(), "sync"].map(quote).join(" ")}`,
+    execStart(),
     // The programs memo calls are found on the PATH memo was set up with.
     `Environment=${[`PATH=${env.PATH ?? ""}`, ...Object.entries(places).map(([name, value]) => `${name}=${value}`)]
       .map(quote)
@@ -187,6 +189,9 @@ const isGlobal = (scriptPath: string, roots: string[]): boolean =>
  * first memo command points the unit at it, so removing the old Node does not leave the timer broken.
  * Only a global install moves it: a checkout, `npx` or another tool's private install would point it at a
  * folder that goes away.
+ *
+ * Any command runs this, a read too, from any caller's environment. So it changes the program line only, keeps the
+ * PATH the timer was set up with, and never enables, starts or restarts the timer: one stopped by hand stays stopped.
  */
 export const followInstall = async (
   env: NodeJS.ProcessEnv,
@@ -197,8 +202,14 @@ export const followInstall = async (
   scriptPath ??= realpathSync(memoBin())
   if (!["npm", "pnpm", "bun"].includes(installerOf(scriptPath))) return
   if (!isGlobal(scriptPath, roots)) return
-  const state = autoState(loadConfig(env))
-  if (state.enabled) await applyAuto(env, state)
+  if (!autoState(loadConfig(env)).enabled) return
+  const servicePath = join(unitDir(env), `${UNIT}.service`)
+  if (!existsSync(servicePath)) return
+  const current = readFileSync(servicePath, "utf8")
+  const moved = current.replace(/^ExecStart=.*$/m, execStart())
+  if (moved === current) return
+  writeFileSync(servicePath, moved)
+  await systemctl(env)("daemon-reload")
 }
 
 const failingOf = (last: LastRun | undefined) =>
