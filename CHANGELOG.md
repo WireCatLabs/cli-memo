@@ -6,6 +6,22 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo models set <id>` chooses the search model**, for memo and every other WireCat tool: `memo sync` embeds
+  notes and mail with it, and every search by meaning uses it. It says how many pieces of text the new model still
+  has to read and about how long. **`e5-large`** joins `e5-small` and `embeddinggemma` as the large one, and
+  **`memo models add`** adds a Hugging Face ONNX model of your own (cli-core with `models set`).
+
+### Fixed
+
+- **A downloaded EmbeddingGemma is used once it is chosen.** memo embedded and searched with e5-small whatever was
+  downloaded, and `embedding_model` was not a memo setting.
+- **The missing-model message names the model that is missing** and the exact download, with `--accept-terms` for a
+  model that needs it; it always named e5-small.
+- **A sync with a slower model embeds fewer chunks a run**, so a timer run still ends within its five minutes.
+- `memo doctor` reports the search model in use, not always e5-small.
+
 ## 0.131.47 — 07.11.2026
 
 ### Added

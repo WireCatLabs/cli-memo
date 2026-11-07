@@ -14,6 +14,7 @@ import {
   storeSummary,
   withSqliteSidecars,
 } from "@wirecat/cli-core/cli"
+import { chosenTextModel, DEFAULT_TEXT_MODEL, textModelsFile } from "@wirecat/cli-core/services"
 import { sharedModelsDirectory } from "@wirecat/cli-core/speech"
 import { storePath } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
@@ -25,8 +26,6 @@ import { noteFolders } from "../notes/folders.js"
 import { autoState, lastAutoRun } from "../run/auto.js"
 import { installer, latest } from "../update.js"
 import { VERSION } from "../version.js"
-
-const TEXT_MODEL = "e5-small"
 
 /** Something a person should do, with the command that does it. */
 interface Problem {
@@ -96,7 +95,16 @@ export const diagnose = async (env: NodeJS.ProcessEnv, program: Command, { deep 
     })
   }
 
-  const modelDir = join(sharedModelsDirectory("text", env), TEXT_MODEL)
+  let textModel = DEFAULT_TEXT_MODEL
+  try {
+    textModel = chosenTextModel(env).id
+  } catch (error) {
+    problems.push({
+      what: `the embedding model choice cannot be read: ${error instanceof Error ? error.message : String(error)}`,
+      fix: `fix text_models in ${textModelsFile(env)}, or remove it to go back to ${DEFAULT_TEXT_MODEL}`,
+    })
+  }
+  const modelDir = join(sharedModelsDirectory("text", env), textModel)
   const model = existsSync(modelDir) && readdirSync(modelDir).length > 0
 
   const state = autoState(config)
@@ -136,7 +144,7 @@ export const diagnose = async (env: NodeJS.ProcessEnv, program: Command, { deep 
     cache: paths.cache,
     store,
     notes: folders,
-    search_model: { name: TEXT_MODEL, path: modelDir, present: model },
+    search_model: { name: textModel, path: modelDir, present: model },
     timer: { enabled: state.enabled, every: state.every, unit: unit ? unitFile : null, runs, failing },
     skills,
     files: files.checked

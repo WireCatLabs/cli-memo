@@ -1,16 +1,30 @@
 import { isCliError } from "@wirecat/cli-base"
 import {
+  chosenTextModel,
   conversationsService,
+  DEFAULT_TEXT_MODEL,
   embeddingsService,
   embedMail as embedMailChunksOf,
   embedNotes as embedNoteChunksOf,
   storeOnlyDeps,
+  textModels,
 } from "@wirecat/cli-core/services"
 import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
 import { APP } from "../app.js"
 
 /** About three chunks a second with e5-small on this laptop (2026-10-06): a run stays near three minutes, under a five-minute timer, and the next resumes. */
 export const EMBED_PER_RUN = 600
+
+/** A model of unknown speed is taken to be as slow as EmbeddingGemma, so a timer run still ends in time. */
+const SLOWEST_KNOWN = 2
+
+/** The run's bound for the chosen model: a slower model embeds fewer chunks in the same three minutes. */
+export const embedPerRun = (env: NodeJS.ProcessEnv = process.env): number => {
+  const models = textModels(env)
+  const speed = (id: string) => models.find((model) => model.id === id)?.chunksPerSecond ?? SLOWEST_KNOWN
+  const ratio = speed(chosenTextModel(env).id) / speed(DEFAULT_TEXT_MODEL)
+  return Math.max(8, Math.min(EMBED_PER_RUN, Math.round(EMBED_PER_RUN * ratio)))
+}
 
 export interface NotesEmbedded {
   chats: number
@@ -22,9 +36,13 @@ export interface NotesEmbedded {
   pendingChats?: string[]
 }
 
-const download = (model: string) => `the ${model} model is not downloaded — memo models download ${model}`
-
-const MISSING_MODEL = download("e5-small")
+/** The model the error names, and the exact command that downloads it. */
+const missingModel = (error: unknown, env: NodeJS.ProcessEnv | undefined): string => {
+  const named = isCliError(error) ? error.details.model : undefined
+  const id = typeof named === "string" ? named : chosenTextModel(env).id
+  const terms = textModels(env).find((model) => model.id === id)?.terms
+  return `the ${id} model is not downloaded — memo models download ${id}${terms ? " --accept-terms" : ""}`
+}
 
 const isMissingModel = (error: unknown): boolean => isCliError(error) && error.details.reason === "model.not-downloaded"
 
@@ -39,9 +57,9 @@ export const embedNotes = async (
   key: AccountKey,
   chats: string[],
   {
-    maxChunks = EMBED_PER_RUN,
     embed = true,
     env,
+    maxChunks = embedPerRun(env),
   }: { maxChunks?: number; embed?: boolean; env?: NodeJS.ProcessEnv } = {},
 ): Promise<NotesEmbedded> => {
   const deps = storeOnlyDeps(store, key, { app: APP, ...(env === undefined ? {} : { env }) })
@@ -75,7 +93,7 @@ export const embedNotes = async (
         chats: chats.length,
         chunks,
         left: true,
-        notEmbedded: MISSING_MODEL,
+        notEmbedded: missingModel(error, env),
         pendingChats: [...pendingChats, ...chats.slice(index)],
       }
     }
@@ -138,9 +156,9 @@ export interface NoteChunksEmbedded {
 export const embedNoteChunks = async (
   store: MessageStore,
   {
-    maxChunks = EMBED_PER_RUN,
     embed = true,
     env,
+    maxChunks = embedPerRun(env),
   }: { maxChunks?: number; embed?: boolean; env?: NodeJS.ProcessEnv } = {},
 ): Promise<NoteChunksEmbedded> => {
   if (!embed) return { chunks: 0, left: true, notEmbedded: "embedding is off" }
@@ -152,7 +170,7 @@ export const embedNoteChunks = async (
     return {
       chunks: 0,
       left: true,
-      notEmbedded: MISSING_MODEL,
+      notEmbedded: missingModel(error, env),
     }
   }
 }
@@ -161,9 +179,9 @@ export const embedNoteChunks = async (
 export const embedMailChunks = async (
   store: MessageStore,
   {
-    maxChunks = EMBED_PER_RUN,
     embed = true,
     env,
+    maxChunks = embedPerRun(env),
   }: { maxChunks?: number; embed?: boolean; env?: NodeJS.ProcessEnv } = {},
 ): Promise<NoteChunksEmbedded> => {
   if (!embed) return { chunks: 0, left: true, notEmbedded: "embedding is off" }
@@ -175,7 +193,7 @@ export const embedMailChunks = async (
     return {
       chunks: 0,
       left: true,
-      notEmbedded: MISSING_MODEL,
+      notEmbedded: missingModel(error, env),
     }
   }
 }
