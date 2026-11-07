@@ -1,5 +1,5 @@
 import { CliError } from "@wirecat/cli-base"
-import { type DealKind, isUsable, RELATION_KINDS, standingOf } from "@wirecat/cli-core"
+import { type DealKind, isUsable } from "@wirecat/cli-core"
 import { mailOwnText } from "@wirecat/cli-core/mail"
 import {
   type CanonicalPersonContext,
@@ -12,8 +12,8 @@ import {
   personBusiness,
   personContext,
 } from "@wirecat/cli-core/services"
-import type { AccountKey, Link, MessageStore, Note, PersonRecord } from "@wirecat/cli-core/store"
-import { type NotesAbout, notesAbout } from "../notes/about.js"
+import type { AccountKey, Link, MessageStore, Note, PersonRecord, RelationListItem } from "@wirecat/cli-core/store"
+import { type NotesAbout, notesAboutInGroup } from "../notes/about.js"
 import { withOwner } from "../people/owner.js"
 import { groupScopeOf, inGroup, scopedAccounts } from "../store/group.js"
 import { selectAccount } from "../store/scope.js"
@@ -41,7 +41,7 @@ export interface MemoContext {
   notRead: { source: string; reason: string }[]
   tasks: Awaited<ReturnType<typeof personTasks>>
   /** Their relationships an answer may lean on: the owner's (`confirmed`) and a source's (`reported`, CRM). */
-  relationships: (Link & { standing: string })[]
+  relationships: RelationListItem[]
   /** What they are in the owner's business, each relationship with its standing (cli-core's person context). */
   business: PersonBusiness
   /** For `person:<id>`: every account read and every source not read, as cli-core's person context says. */
@@ -61,9 +61,6 @@ export interface ReportedFile {
   provenance: string
   confirmed: boolean
 }
-
-/** An assignment shows under tasks, not here. */
-const RELATIONS: ReadonlySet<string> = new Set(RELATION_KINDS)
 
 /** Drive copies these from Google's own file record, so they are facts as Google states them, not guesses. */
 const SOURCE_REPORTS = new Set(["google-drive:files.get"])
@@ -148,8 +145,9 @@ export const memoContext = async (
     )
     return withNotesAndTasks(
       store,
+      env,
       { messages, events, business, coverage },
-      { accounts: read, calendars, ...(accounts === undefined ? {} : { scope: accounts }) },
+      { accounts: read, calendars, deniedKinds, ...(accounts === undefined ? {} : { scope: accounts }) },
       limit,
     )
   }
@@ -186,8 +184,9 @@ export const memoContext = async (
         ).business
   return withNotesAndTasks(
     store,
+    env,
     { messages, events, business },
-    { accounts, calendars, ...(scope === undefined ? {} : { scope: scope.accounts }) },
+    { accounts, calendars, deniedKinds, ...(scope === undefined ? {} : { scope: scope.accounts }) },
     limit,
   )
 }
@@ -202,16 +201,19 @@ interface Read {
 /** What memo adds to cli-core's context of a person: the notes, tasks and files linked to them. */
 const withNotesAndTasks = async (
   store: MessageStore,
+  env: NodeJS.ProcessEnv,
   { messages, events, business, coverage }: Read,
   {
     accounts,
     calendars,
     scope,
+    deniedKinds = [],
   }: {
     accounts: AccountKey[]
     calendars: AccountKey[]
-    /** The run's accounts: a source's relationship from any other is left out, the owner's always shown. */
+    /** The run's accounts: a relationship with an end outside them is left out. */
     scope?: AccountKey[]
+    deniedKinds?: readonly DealKind[]
   },
   limit: number,
 ): Promise<MemoContext> => {
@@ -240,17 +242,15 @@ const withNotesAndTasks = async (
 
   const tasks = await personTasks(store, messages.person, accounts, limit)
   const incoming = await store.notes.links({ to: person })
-  const now = Date.now()
-  const relationships = [...(await store.notes.links({ from: person })), ...incoming]
-    .filter((link) => RELATIONS.has(link.kind))
-    .map((link) => ({ ...link, standing: standingOf(link, now) }))
-    .filter((link) => isUsable(link.standing))
-    .filter(
-      (link) =>
-        link.account === undefined ||
-        scope === undefined ||
-        scope.some((key) => link.account === `${key.provider}:${key.account}`),
-    )
+  // cli-core leaves out a link with an end outside the scope, the owner's too, and an end of a denied kind.
+  const relationships = (
+    await store.knowledge.listRelations({
+      about: person,
+      ...(scope === undefined ? {} : { accounts: scope }),
+      ...(deniedKinds.length ? { deniedKinds: [...deniedKinds] } : {}),
+      limit: 500,
+    })
+  ).items.filter((one) => isUsable(one.standing))
   const files = await reportedFiles(store, incoming, limit)
   const { subject: _, name: __, ...notes } = linked
   return {

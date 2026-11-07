@@ -8,8 +8,8 @@ the API.
 
 ### Added
 
-- **`memo relationships add --kind reports-to|customer-of|partner-of`, `--title` (the job title), `--start-date`,
-  `--end-date`**, and `relationships update --title --start-date`. `memo relationships end <id> --end-date <date>` says
+- **`memo relationships add --kind reports-to|customer-of|partner-of`, `--position` (the job title), `--start-date`,
+  `--end-date`**, and `relationships update --position --start-date`. `memo relationships end <id> --end-date <date>` says
   a relationship ended; it stays, as `ended`.
 - **`memo organizations context <ref>` is the organization's whole picture** (cli-core's `organizationContext`): its
   people by role, customers, suppliers and partners, projects, open deals and leads, invoices, payments and orders as

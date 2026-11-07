@@ -273,7 +273,7 @@ describe("relationships: the owner's dates, position and end", () => {
       refs.acme,
       "--role",
       "employee",
-      "--title",
+      "--position",
       "CEO",
       "--start-date",
       "2026-01-01",
@@ -308,5 +308,40 @@ describe("relationships: the owner's dates, position and end", () => {
     } finally {
       await store.close()
     }
+  })
+})
+
+describe("a personal run of a work CRM (NEW-1 to NEW-4)", () => {
+  it("refuses the work deal by its bare id", async () => {
+    await memo("groups", "add", "work", PORTAL)
+    vi.stubEnv("MEMO_GROUP_LOCK", "personal")
+    const locked = memoIn({ ...env, MEMO_GROUP_LOCK: "personal" })
+    await expect(locked("deals", "update", refs.deal.split(":")[1] as string, "--project", "")).rejects.toMatchObject({
+      code: "permission_error",
+    })
+  })
+
+  it("shows no relationship of the work deal, the owner's own included", async () => {
+    await memo("groups", "add", "work", PORTAL)
+    const bob = await memo("personal", "context", refs.bob)
+    expect(JSON.stringify(bob.relationships)).not.toContain(refs.deal)
+    expect(JSON.stringify(bob.business)).not.toContain(refs.deal)
+  })
+
+  it("keeps the owner's own notes about a person out of a work run", async () => {
+    await memo("groups", "add", "work", PORTAL)
+    await memo("notes", "add", "Alice prefers mornings", "--subject", refs.alice)
+    expect((await memo("context", refs.alice)).your_notes).toHaveLength(1)
+    vi.stubEnv("MEMO_GROUP_LOCK", "work")
+    const work = memoIn({ ...env, MEMO_GROUP_LOCK: "work" })
+    expect((await work("context", refs.alice)).your_notes).toEqual([])
+    await memo("notes", "add", "Acme pays late", "--subject", refs.acme)
+    expect((await work("organizations", "context", refs.acme)).notes.about).toEqual([])
+  })
+
+  it("names no denied deal in a person's relationships", async () => {
+    updateConfig((config) => ({ ...config, permissions: { deals: "deny" } }), env)
+    const bob = await memo("context", refs.bob)
+    expect(JSON.stringify(bob.relationships)).not.toContain(refs.deal)
   })
 })

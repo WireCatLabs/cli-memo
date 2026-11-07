@@ -141,7 +141,7 @@ A **relationship** says that a person belongs to an organization or works on a p
 one organization is a customer or partner of another:
 
 ```sh
-memo relationships add person:PERSON_UID organization:1 --role employee --title CTO --start-date 2026-01-01
+memo relationships add person:PERSON_UID organization:1 --role employee --position CTO --start-date 2026-01-01
 memo relationships add person:PERSON_UID project:1 --role contributor
 memo relationships add person:PERSON_UID person:OTHER_UID --kind reports-to
 memo relationships add organization:2 organization:1 --kind customer-of
@@ -152,13 +152,13 @@ memo relationships end 4 --end-date 2026-09-30
 memo relationships remove 4
 ```
 
-`--title` keeps a job title apart from the role (as its `position`), and `--start-date` and `--end-date` (the last
+`--position` keeps a job title apart from the role, and `--start-date` and `--end-date` (the last
 day) say when it held. `memo relationships end <id> --end-date <date>` says it no longer holds: it stays, as `ended`.
 
 Kinds: `member-of`, `reports-to`, `customer-of` (read backwards: supplier of), `partner-of` and `related-to`. A role
 is one from a list: in an organization `employee`, `contractor`, `founder`, `owner`, `manager`, `adviser`, `contact`;
 in a project `owner`, `manager`, `contributor`, `client-contact`, `approver`; on a deal or lead `owner`, `contact`,
-`decision-maker`, `influencer`. A job title is not a role: give it with `--title`. A role saved before these lists stays as written, and
+`decision-maker`, `influencer`. A job title is not a role: give it with `--position`. A role saved before these lists stays as written, and
 `relationships list` marks it `custom`.
 
 `relationships list` filters by `kind:`, `role:`, `standing:`, `from:`, `to:` and `at:<day>` (held on that day), and

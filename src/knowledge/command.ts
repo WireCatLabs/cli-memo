@@ -42,7 +42,7 @@ import { oneOf, positive, readScope, writeScope } from "../options.js"
 import { withOwner } from "../people/owner.js"
 import { decideOne, decisionOf } from "../review/review.js"
 import { deniedCrmKinds } from "../search/denied.js"
-import { groupScopeOf, keepInGroup, refuseOutsideRelation } from "../store/group.js"
+import { groupScopeOf, keepInGroup } from "../store/group.js"
 import {
   ACCOUNTS_HELP,
   accountName,
@@ -207,7 +207,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         const ref = found.organization.ref
         return {
           ...found,
-          notes: await notesAbout(store, { ref }),
+          notes: await notesAboutInGroup(store, env, { ref }),
           tags: await store.knowledge.tags(null, { type: "organization", id: ref.slice("organization:".length) }),
         }
       })
@@ -344,9 +344,9 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .option("--kind <kind>", RELATION_KINDS.join(", "), oneOf(RELATION_KINDS), "member-of")
     .option("--role <role>", ROLE_HELP)
-    .option("--title <title>", "the job title, such as 'Procurement manager'; kept apart from the role as its position")
+    .option("--position <position>", "the job title, such as 'Procurement manager'; kept apart from the role")
     .option("--start-date <date>", "the first day it held, such as 2026-01-01", dayOption)
-    .option("--end-date <date>", "the last day it held", lastDayOption)
+    .option("--end-date <date>", "the last day it held, included; it ends at the start of the day after", lastDayOption)
     .option("--reason <text>", "why you think so, in a sentence")
     .action(
       async (
@@ -355,7 +355,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         options: {
           kind: KnowledgeRelation["kind"]
           role?: string
-          title?: string
+          position?: string
           startDate?: number
           endDate?: number
           reason?: string
@@ -371,7 +371,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
             to: await withOwner(store, to),
             kind: options.kind,
             ...(options.role === undefined ? {} : { role: options.role }),
-            ...(options.title === undefined ? {} : { position: options.title }),
+            ...(options.position === undefined ? {} : { position: options.position }),
             ...(options.startDate === undefined ? {} : { startsAt: options.startDate }),
             ...(options.endDate === undefined ? {} : { endsAt: options.endDate }),
             ...(options.reason === undefined ? {} : { evidence: options.reason }),
@@ -425,7 +425,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       .summary("set a relationship's role or a chat's purpose in a project")
       .argument("<id>", "the relationship's id, as relationships list gives it")
       .option("--role <role>", `${ROLE_HELP}; an empty value clears it`)
-      .option("--title <title>", "the job title, kept as its position; an empty value clears it")
+      .option("--position <position>", "the job title; an empty value clears it")
       .option("--start-date <date>", "the first day it held, such as 2026-01-01", dayOption)
       .option("--purpose <purpose>", "what the chat is for in the project: work, sales, support or other")
       .option("--reason <text>", "why, in a sentence")
@@ -435,7 +435,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       id: string,
       options: {
         role?: string
-        title?: string
+        position?: string
         startDate?: number
         purpose?: string
         reason?: string
@@ -446,15 +446,14 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     ) => {
       const change = {
         ...(options.role === undefined ? {} : { role: options.role === "" ? null : options.role }),
-        ...(options.title === undefined ? {} : { position: options.title === "" ? null : options.title }),
+        ...(options.position === undefined ? {} : { position: options.position === "" ? null : options.position }),
         ...(options.startDate === undefined ? {} : { startsAt: options.startDate }),
         ...(options.purpose === undefined ? {} : { purpose: options.purpose }),
       }
       const by = await whoRuns(command, env, { asOwner: options.asOwner, question: `change relationship ${id}?` })
       return owned(options, async (store) => {
-        await refuseOutsideRelation(store, env, id)
         if (Object.keys(change).length === 0)
-          throw new CliError("validation_error", "say what to change: --role, --title, --start-date or --purpose", {
+          throw new CliError("validation_error", "say what to change: --role, --position, --start-date or --purpose", {
             reason: "input.invalid",
             param: "--purpose",
           })
@@ -504,13 +503,16 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       )
       .summary("say that a relationship ended")
       .argument("<id>", "the relationship's id, as relationships list gives it")
-      .option("--end-date <date>", "the last day it held; today when left out", lastDayOption)
+      .option(
+        "--end-date <date>",
+        "the last day it held, included; it ends at the start of the day after. Today when left out",
+        lastDayOption,
+      )
       .option("--json", "print JSON; --json=id,title keeps only those fields"),
   ).action(async (id: string, options: { endDate?: number; asOwner?: boolean; json?: boolean }, command: Command) => {
     const by = await whoRuns(command, env, { asOwner: options.asOwner, question: `end relationship ${id}?` })
     const at = options.endDate ?? Date.now()
     return owned(options, async (store) => {
-      await refuseOutsideRelation(store, env, id)
       return by === "owner"
         ? store.knowledge.endRelation(null, id, at, by)
         : store.knowledge.endRelation(null, id, at, by)

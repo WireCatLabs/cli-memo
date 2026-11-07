@@ -2,6 +2,8 @@
   "projects evidence --include-proposed",
   "projects evidence --purpose",
   "projects status --purpose",
+  "relationships add --position",
+  "relationships update --position",
   "relationships update --purpose",
   "schedule agent --mail-batch",
   "schedule agent --mail-wait",
