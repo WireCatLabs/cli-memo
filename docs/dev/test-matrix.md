@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**782 ✅ · 0 ⛔ · 163 ❌** — 218 commands, 727 options.
+**789 ✅ · 0 ⛔ · 165 ❌** — 221 commands, 733 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -396,6 +396,15 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `relationships end` | `--end-date` | ✅ |  |
 | `relationships end` | `--json` | ✅ |  |
 | `relationships end` | `--as-owner` | ❌ |  |
+| `relationships roles list` |  | ✅ |  |
+| `relationships roles list` | `--json` | ✅ |  |
+| `relationships roles add` |  | ✅ |  |
+| `relationships roles add` | `--label` | ✅ |  |
+| `relationships roles add` | `--json` | ✅ |  |
+| `relationships roles add` | `--as-owner` | ❌ |  |
+| `relationships roles remove` |  | ✅ |  |
+| `relationships roles remove` | `--json` | ✅ |  |
+| `relationships roles remove` | `--as-owner` | ❌ |  |
 | `relationships scan` |  | ✅ |  |
 | `relationships scan` | `--source` | ✅ |  |
 | `relationships scan` | `--since-time` | ❌ |  |

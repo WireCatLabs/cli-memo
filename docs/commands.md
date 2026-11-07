@@ -1919,6 +1919,79 @@ memo relationships end <id> [options]
 
 **Example:** `memo relationships end 4 --end-date 2026-09-30`
 
+### `memo relationships roles`
+
+the roles a relationship may take: built in and your own
+
+#### `memo relationships roles list`
+
+the roles of every list, or of one with list:organization, list:project or list:deal; each built in or yours
+
+```sh
+memo relationships roles list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** the roles a relationship may take
+
+**Example:** `memo relationships roles list`, `memo relationships roles list list:deal --json`
+
+#### `memo relationships roles add`
+
+add a role of your own to a list; relationships may then take it. Only you change the lists
+
+This command changes the local store or your files.
+
+```sh
+memo relationships roles add <list> <role> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `list` | required | organization (roles in an organization), project or deal (a deal's or a lead's). |
+| `role` | required | the role's id: lowercase letters, digits and -, such as board-member. |
+
+| Option | What it does |
+|---|---|
+| `--label <text>` | how it reads, such as 'Board member'. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+
+**Returns:** add a role of your own
+
+**Example:** `memo relationships roles add organization board-member --label 'Board member'`
+
+#### `memo relationships roles remove`
+
+remove a role of your own; a built-in one stays, and one a relationship still holds is refused
+
+This command changes the local store or your files.
+
+```sh
+memo relationships roles remove <list> <role> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `list` | required | organization (roles in an organization), project or deal (a deal's or a lead's). |
+| `role` | required | the role's id. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+
+**Returns:** remove a role of your own
+
+**Example:** `memo relationships roles remove organization board-member`
+
 ### `memo relationships scan`
 
 chats, mail threads and people that look like a project's, scored from the store: its name and aliases in titles and messages, its confirmed members' chats and threads. With no project, people who share a company mail domain. Lists them and writes nothing; --yes writes them as proposals by memo-scan for you to decide in memo review. Never confirms, and never proposes again what you rejected

@@ -3,6 +3,12 @@ import { defineReasons, type ErrorReason } from "@wirecat/cli-base/standards"
 /** The reasons memo raises itself; cli-base's and cli-core's are merged in by `failureContext`. */
 export const REASONS: ErrorReason[] = defineReasons([
   {
+    reason: "roles.owner-only",
+    code: "permission_error",
+    message: "only the owner changes the role lists; an agent uses the roles they hold",
+    details: [],
+  },
+  {
     reason: "ref.bare-number",
     code: "validation_error",
     message: "{value} is a bare number, which names no one kind of record here; give a reference such as {suggestion}",

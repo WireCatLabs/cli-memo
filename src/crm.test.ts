@@ -4,7 +4,15 @@ import { join } from "node:path"
 import { Client } from "@modelcontextprotocol/client"
 import { InMemoryTransport } from "@modelcontextprotocol/server"
 import { syncCrm } from "@wirecat/cli-core/crm"
-import { ACME_PORTAL, type AcmeScenario, acmeScenario, fakeCrmSource } from "@wirecat/cli-core/crm/testing"
+import {
+  ACME_CALENDAR,
+  ACME_MAIL,
+  ACME_PORTAL,
+  ACME_TELEGRAM,
+  type AcmeScenario,
+  acmeScenario,
+  fakeCrmSource,
+} from "@wirecat/cli-core/crm/testing"
 import { openStore } from "@wirecat/cli-core/store"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { answerOf } from "../test/answer.js"
@@ -28,6 +36,11 @@ beforeEach(async () => {
     // A real CRM CLI registers its provider on every run; the scenario's fake portal does not.
     await store.accounts.registerProvider({ name: ACME_PORTAL.provider, kind: "crm", aliases: [] })
     refs = (await acmeScenario(store)).refs
+    // A group is only what the owner saves: the scenario's own accounts as `personal`.
+    await store.accounts.saveAccountGroup(
+      "personal",
+      [ACME_TELEGRAM, ACME_MAIL, ACME_CALENDAR].map(({ provider, account }) => `${provider}:${account}`),
+    )
   } finally {
     await store.close()
   }
@@ -77,6 +90,9 @@ describe("a person's context (plan §8 rows 1 and 5)", () => {
     expect(emma.messages.person).toMatchObject({ name: "Emma" })
     expect(emma.business.deals.items.map(({ ref }: { ref: string }) => ref)).toEqual([refs.deal])
     const dana = await memo("people", "add", "Dana Example")
+    expect((await memo("search", "people", "dana")).items).toEqual([
+      expect.objectContaining({ ref: dana.ref ?? `person:${dana.uid}`, name: "Dana Example", identities: [] }),
+    ])
     const named = await memo("context", dana.ref ?? `person:${dana.uid}`)
     expect(named.messages.person).toMatchObject({ name: "Dana Example" })
     expect(named.business.organizations.items).toEqual([])
@@ -328,20 +344,59 @@ describe("a personal run of a work CRM (NEW-1 to NEW-4)", () => {
     expect(JSON.stringify(bob.business)).not.toContain(refs.deal)
   })
 
-  it("keeps the owner's own notes about a person out of a work run", async () => {
+  it("shows the owner's own notes about a person and an organization in a work run", async () => {
     await memo("groups", "add", "work", PORTAL)
     await memo("notes", "add", "Alice prefers mornings", "--subject", refs.alice)
-    expect((await memo("context", refs.alice)).your_notes).toHaveLength(1)
+    await memo("notes", "add", "Acme pays late", "--subject", refs.acme)
     vi.stubEnv("MEMO_GROUP_LOCK", "work")
     const work = memoIn({ ...env, MEMO_GROUP_LOCK: "work" })
-    expect((await work("context", refs.alice)).your_notes).toEqual([])
-    await memo("notes", "add", "Acme pays late", "--subject", refs.acme)
-    expect((await work("organizations", "context", refs.acme)).notes.about).toEqual([])
+    expect((await work("context", refs.alice)).your_notes).toHaveLength(1)
+    expect((await work("organizations", "context", refs.acme)).notes.about).toHaveLength(1)
   })
 
   it("names no denied deal in a person's relationships", async () => {
     updateConfig((config) => ({ ...config, permissions: { deals: "deny" } }), env)
     const bob = await memo("context", refs.bob)
     expect(JSON.stringify(bob.relationships)).not.toContain(refs.deal)
+  })
+})
+
+describe("relationship roles: built in and the owner's own", () => {
+  it("lists, adds and removes an owner role, and refuses a built-in or one in use", async () => {
+    const listed = await memo("relationships", "roles", "list", "list:organization")
+    expect(listed.items).toEqual(expect.arrayContaining([expect.objectContaining({ id: "employee", built_in: true })]))
+    const added = await memo("relationships", "roles", "add", "organization", "board-member", "--label", "Board member")
+    expect(added.items).toEqual(
+      expect.arrayContaining([{ list: "organization", id: "board-member", label: "Board member", built_in: false }]),
+    )
+    const link = await memo("relationships", "add", refs.bob, refs.acme, "--role", "board-member")
+    expect(link).toMatchObject({ role: "board-member" })
+    expect((await memo("relationships", "list", `from:"${refs.bob}"`, "role:board-member")).items[0].custom).toBe(false)
+    await expect(memo("relationships", "roles", "remove", "organization", "board-member")).rejects.toMatchObject({
+      details: { reason: "relationship.role-in-use" },
+    })
+    await expect(memo("relationships", "roles", "remove", "organization", "employee")).rejects.toMatchObject({
+      code: "validation_error",
+    })
+    await memo("relationships", "remove", link.id)
+    await memo("relationships", "roles", "remove", "organization", "board-member")
+    expect(
+      (await memo("relationships", "roles", "list", "list:organization")).items.map(({ id }: { id: string }) => id),
+    ).not.toContain("board-member")
+  })
+
+  it("lets an agent read the role lists and change none", async () => {
+    const agent = memoIn({ ...env, AI_AGENT: "test-agent" })
+    expect((await agent("relationships", "roles", "list")).items.length).toBeGreaterThan(0)
+    await expect(agent("relationships", "roles", "add", "project", "sponsor")).rejects.toMatchObject({
+      code: "permission_error",
+    })
+  })
+
+  it("lists the roles under the lock", async () => {
+    vi.stubEnv("MEMO_GROUP_LOCK", "personal")
+    expect(
+      (await memoIn({ ...env, MEMO_GROUP_LOCK: "personal" })("relationships", "roles", "list", "list:deal")).items,
+    ).toEqual(expect.arrayContaining([expect.objectContaining({ id: "decision-maker" })]))
   })
 })

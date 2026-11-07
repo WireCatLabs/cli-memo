@@ -51,12 +51,13 @@ the lock fails closed. These commands run under it:
 | CRM | every `deals` and `leads` command, every `organizations` command, `pipelines list` and `pipelines show` |
 | people and notes | `people list`, `people add`, `notes list`, `notes show` |
 | your own | every `memories`, `facts`, `actions`, `review` and `tasks` command; `projects list`, `add`, `context`, `status` and `key-documents` |
-| labels and links | `tags add`, `tags remove`, `relationships list`, `relationships add` |
+| labels and links | `tags add`, `tags remove`, `relationships list`, `relationships add`, `relationships roles list` |
 | server | `mcp serve` |
 
 Every other command is refused with `permission_error`, among them `projects gather`, `evidence`, `annotations` and
 `actions`, which read linked chats without the group yet. So are `relationships update`, `end`, `remove` and
-`confirm`: they take a bare relationship id, which the lock cannot tie to an account.
+`confirm`: they take a bare relationship id, which the lock cannot tie to an account. `relationships roles add` and
+`remove` are the owner's alone.
 
 In the commands that run, reads take only the group's accounts, and a list leaves out what belongs to an account
 outside it. What you made yourself (notes, projects, tasks, invoices, memories, facts) belongs to no account and shows
