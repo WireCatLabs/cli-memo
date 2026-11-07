@@ -42,17 +42,27 @@ Discovery retains blocked commands with current `availability` and the reason, a
 ## Lock an agent to a group
 
 `MEMO_GROUP_LOCK=work memo mcp serve` serves only the group `work` (see [groups](usage.md#groups-of-accounts)), and
-the lock fails closed:
+the lock fails closed. These commands run under it:
 
-- Only the commands that keep to a group run: `context`, `show`, `messages show`, `search all`, `messages`, `mail`,
-  `notes` and `people`, `groups`, `tags add` and `remove`, `deals`, `leads`, `organizations`, `people list` and `add`,
-  `notes list` and `show`, and `relationships list`, `add`, `update`, `end`, `remove` and `confirm`. Every other
-  command, memories and facts included, is refused with `permission_error`.
-- Their reads take only the group's accounts. A list leaves out what belongs to an account outside it; your own notes
-  written in Memo belong to `personal`.
-- A reference to anything outside the group is refused with `permission_error`, in an argument or an option. That
-  covers a message or a chat, a deal or an organization a CRM outside it brought, and a person none of whose accounts
-  is in it. So are another group, `--source all`, a `--source` or `--account` outside it, and every group change.
+| Group | Commands |
+|---|---|
+| reads | `context`, `show`, `messages show`, `search all`, `messages`, `mail`, `notes` and `people` |
+| groups | `groups list`; `groups add`, `remove` and `move` are refused |
+| CRM | every `deals` and `leads` command, every `organizations` command |
+| people and notes | `people list`, `people add`, `notes list`, `notes show` |
+| labels and links | `tags add`, `tags remove`, `relationships list`, `relationships add` |
+| server | `mcp serve` |
+
+Every other command is refused with `permission_error`, memories, facts, actions, tasks and projects included. So are
+`relationships update`, `end`, `remove` and `confirm`: they take a bare relationship id, which the lock cannot tie to
+an account.
+
+In the commands that run, reads take only the group's accounts, and a list leaves out what belongs to an account
+outside it. Your own notes written in Memo belong to `personal`. A reference outside the group is refused with
+`permission_error`, in an argument or an option, and so is a bare id of one (`organizations show 3`). That covers a
+message, a chat, a calendar event, a deal or organization a CRM outside the group brought, and a person none of
+whose accounts is in it. Another group, `--source all`, and a `--source` or `--account` outside the group are
+refused too.
 
 Set the lock in the environment of the process the app starts; the agent cannot lift it.
 

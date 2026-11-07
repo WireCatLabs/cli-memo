@@ -176,8 +176,9 @@ Reads use `--source`; account-scoped writes use `--account provider:account`. Re
 A group keeps work apart from the rest. Put an account in one with `memo groups add work bitrix24:acme`, and
 read only that group by naming it first: `memo work search all "renewal"`, `memo work context person:5`.
 `MEMO_GROUP=work` does the same for every command. In a group, a read takes only the group's accounts; an explicit
-`--source` narrows inside it, and an account outside it is refused, as is a write's `--account`. References are
-checked only under the lock.
+`--source` narrows inside it, and an account outside it is refused, as is a write's `--account`. A command that
+reads one kind, such as `search mail`, takes the group's accounts of that kind. Without the lock, references
+(`msg:…`, `deal:5`) are not checked: only the lock refuses one outside the group.
 
 `memo groups list` shows each group with its accounts, every app's profile names for each (`tg work`, `b24 work`),
 why each is in, and the other groups that hold it too. An account may be in several groups; the list names those
@@ -188,6 +189,7 @@ duplicates. A profile named like a group is only a suggestion; it never puts an 
 your own messenger accounts, not bots. The group is `memo personal …` or `--source group:personal`, and every answer
 names the accounts it read.
 
-`memo groups remove work telegram:102` takes an account out. `memo groups move telegram:102 personal work` moves it
-in one write: the account, then the group it leaves, then the group it joins. Without a lock, a group is a convenience, not a boundary: any run without the word still
-reads every account. To pin a process to one group, see [the MCP lock](mcp.md#lock-an-agent-to-a-group).
+`memo groups remove work telegram:102` takes an account out. `memo groups move telegram:102 personal work` moves it in
+one write: the account, then the group it leaves, then the group it joins. Without a lock, a group is a convenience, not
+a boundary: any run without the word still reads every account. To pin a process to one group, see
+[the MCP lock](mcp.md#lock-an-agent-to-a-group).

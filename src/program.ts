@@ -2,6 +2,7 @@ import { fileURLToPath } from "node:url"
 import { CliError, createRenderer, type KeyringStore, processStreams, type Streams } from "@wirecat/cli-base"
 import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
 import { skillCommand } from "@wirecat/cli-base/skill"
+import { REF_KINDS } from "@wirecat/cli-core"
 import {
   addContractInfo,
   assertSharedContracts,
@@ -16,6 +17,7 @@ import {
   overrideSharedContract,
   provide,
   recordRuns,
+  refKinds,
   runsCommand,
   skillCommand as sharedSkillCommand,
 } from "@wirecat/cli-core/cli"
@@ -319,12 +321,26 @@ const GROUP_AWARE = [
   "mcp serve",
 ]
 
+const isSimpleKind = (name: string) => REF_KINDS.some(({ type }) => type === name)
+
+/** Argument names that are ids of something cli-core's lock cannot map yet: such a command stays refused under it. */
+const UNMAPPED_IDS = new Set(["id"])
+
+const leaves = (command: Command): Command[] =>
+  command.commands.length === 0 ? [command] : command.commands.flatMap(leaves)
+
 const markGroupAware = (program: Command) => {
   for (const path of GROUP_AWARE) {
     let command: Command | undefined = program
     for (const name of path.split(" ")) command = command?.commands.find((child) => child.name() === name)
     if (!command) throw new Error(`no command to mark group-aware: ${path}`)
     groupAware(command)
+    // A bare number in an argument that names no id, a query word or an amount, must not read as an unknown id.
+    for (const leaf of leaves(command)) {
+      const names = leaf.registeredArguments.map((argument) => argument.name())
+      const ids = names.filter((name) => name === "ref" || UNMAPPED_IDS.has(name) || isSimpleKind(name))
+      if (ids.length === 0) refKinds(leaf, {})
+    }
   }
 }
 

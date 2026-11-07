@@ -1,15 +1,14 @@
-import { CliError } from "@wirecat/cli-base"
 import { kindIn } from "@wirecat/cli-core"
 import { refuseOutsideGroup, runGroup } from "@wirecat/cli-core/cli"
 import {
   entriesOfList,
   type GroupContext,
+  inGroupOf,
   keyOf,
   listContextOf,
   PERSONAL,
   type RunGroup,
   scopeToGroup,
-  sourceOf,
 } from "@wirecat/cli-core/services"
 import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
@@ -48,8 +47,7 @@ const scopeIn = (run: RunGroup, context: GroupContext): GroupScope => {
   const accounts = entriesOfList(`group:${run.name}`, context).flatMap((entry) =>
     entry.accounts.map(({ provider, account }) => ({ provider, account })),
   )
-  const keys = new Set(accounts.map(keyOf))
-  return { run, accounts, has: (key) => keys.has(keyOf(key)) }
+  return { run, accounts, has: inGroupOf(context, run.name) }
 }
 
 export const groupScopeOf = async (store: MessageStore, env: NodeJS.ProcessEnv): Promise<GroupScope | undefined> => {
@@ -91,33 +89,10 @@ export const inGroup = async <T extends AccountKey>(
   return scope === undefined ? [...keys] : keys.filter(scope.has)
 }
 
-/**
- * Whether a thing belongs to the run's group, as cli-core's lock judges a reference: a thing no account brought is
- * the owner's and passes, a note written in memo is `personal`'s, and a person passes when one identity is in it.
- */
-export const refInGroup = async (store: MessageStore, scope: GroupScope, ref: string): Promise<boolean> => {
+/** Whether a thing belongs to the run's group as cli-core's lock judges a reference: no account means the owner's. */
+const refInGroup = async (store: MessageStore, scope: GroupScope, ref: string): Promise<boolean> => {
   const accounts = await store.refs.accounts(ref)
-  if (!accounts?.length) return true
-  return accounts.some((key) => scope.has(key) || (scope.run.name === PERSONAL && keyOf(key) === keyOf(MEMO_ACCOUNT)))
-}
-
-/**
- * A relationship named by its bare id carries no reference cli-core's lock can map, so its ends and the account that
- * reported it are checked here.
- */
-export const refuseOutsideRelation = async (store: MessageStore, env: NodeJS.ProcessEnv, id: string): Promise<void> => {
-  const scope = await groupScopeOf(store, env)
-  if (scope === undefined) return
-  const relation = (await store.knowledge.relations(null)).find((one) => one.id === id)
-  if (relation === undefined) return
-  const reported = relation.account === undefined || scope.accounts.some((key) => sourceOf(key) === relation.account)
-  if (reported && (await refInGroup(store, scope, relation.from)) && (await refInGroup(store, scope, relation.to)))
-    return
-  throw new CliError(
-    scope.run.locked ? "permission_error" : "validation_error",
-    `${scope.run.locked ? "this process is locked to" : "this run is in"} group ${scope.run.name} — relationship ${id} ` +
-      "joins a thing outside it",
-  )
+  return !accounts?.length || accounts.some(scope.has)
 }
 
 /** The items of a list that belong to the run's group; every one when the run is in no group. */

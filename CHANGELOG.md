@@ -12,8 +12,9 @@ the API.
   command is a group: `memo work search all "renewal"` reads only the group's accounts. Without `--source` a read
   takes the group; a given one is narrowed to it, and an outside `--account` is refused. A word that is neither a
   command nor a group names the groups. `MEMO_GROUP_LOCK=work` pins the process, `memo mcp serve` included, and fails
-  closed: only the commands that keep to a group run, every list leaves out what belongs outside it, and a reference
-  to anything outside it, another group, `all` and every group change are `permission_error`. `personal` is every
+  closed: only the commands that keep to a group run, every list and note section leaves out what belongs outside it,
+  and a reference or a bare id of anything outside it, another group, `all` and every group change are
+  `permission_error`. A command that reads one kind, such as `search mail`, takes the group's accounts of that kind. `personal` is every
   account in no other group, plus your own notes. Needs cli-core with the group lock (cli-core#2632).
 - **`memo groups list | add <group> <source> | remove <group> <source> | move <source> <from> <to>`.** The
   list shows each account with its profiles in every app, why it is in, `also_in`, the duplicates and the

@@ -2,14 +2,14 @@ import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { DEAL_KINDS, DEAL_ROLES, DEAL_STATUSES, type DealKind, type DealRole } from "@wirecat/cli-core"
-import { LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
+import { LOCAL_READ, LOCAL_WRITE, queryTerms, refKinds, termField, withQuery } from "@wirecat/cli-core/cli"
 import type { DealFilter, MessageStore, PipelineReport } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { authorOf } from "../author.js"
 import { collect, positive } from "../options.js"
 import { pageOf } from "../page.js"
-import { keepInGroup } from "../store/group.js"
+import { groupScopeOf } from "../store/group.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { dayOf } from "./finance.js"
 
@@ -51,9 +51,9 @@ export const listDeals = async (
     ...(terms.has("pipeline") ? { pipeline: terms.get("pipeline") as string } : {}),
     ...(terms.has("organization") ? { organization: terms.get("organization") as string } : {}),
   }
-  // A CRM copy outside the run's group is left out; a page may then hold fewer than asked.
-  return pageOf(command, limit, async (most) =>
-    keepInGroup(store, env, await store.deals.list({ ...filter, limit: most }), ({ ref }) => ref),
+  const scope = await groupScopeOf(store, env)
+  return pageOf(command, limit, (most) =>
+    store.deals.list({ ...filter, ...(scope === undefined ? {} : { accounts: scope.accounts }), limit: most }),
   )
 }
 
@@ -325,6 +325,10 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
 
   itemCommands(program, "deal", run, env)
   itemCommands(program, "lead", run, env)
+  // `<ref>` takes a bare id too: under the group lock it is checked as the deal or lead it names.
+  for (const kind of ["deal", "lead"] as const)
+    for (const leaf of program.commands.find((one) => one.name() === `${kind}s`)?.commands ?? [])
+      if (leaf.registeredArguments.some((argument) => argument.name() === "ref")) refKinds(leaf, { ref: kind })
 }
 
 /** Open deals `projects status` shows, soonest expected close first; more than this is a count. */

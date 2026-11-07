@@ -100,4 +100,34 @@ describe("MEMO_GROUP_LOCK fails closed", () => {
     expect((await memo("organizations", "list")).items.map(({ ref }: { ref: string }) => ref)).not.toContain(refs.acme)
     expect((await memo("people", "list")).items.map(({ ref }: { ref: string }) => ref)).not.toContain(refs.emma)
   })
+
+  it("checks a bare id as the thing it names (NEW-1)", async () => {
+    const memo = lockedTo("personal")
+    const id = refs.acme.split(":")[1] as string
+    for (const args of [
+      ["organizations", "show", id],
+      ["organizations", "context", id],
+      ["organizations", "rename", id, "Renamed"],
+      ["deals", "show", refs.deal.split(":")[1] as string],
+    ])
+      await expect(memo(...args)).rejects.toMatchObject(refused)
+    const work = lockedTo("work")
+    const note = await memoIn(env)("notes", "add", "Lockcase home note")
+    await expect(work("tags", "add", "x", "--note", note.id)).rejects.toMatchObject(refused)
+  })
+
+  it("refuses a calendar event of an account outside the group (NEW-5)", async () => {
+    const memo = lockedTo("work")
+    await expect(memo("show", refs.event)).rejects.toMatchObject(refused)
+  })
+
+  it("narrows a group to the mailboxes a mail search reads (NEW-7)", async () => {
+    await expect(memoIn(env)("work", "search", "mail", "renewal")).rejects.toMatchObject({
+      code: "not_found",
+      message: "group:work holds no mailbox",
+    })
+    await memoIn(env)("groups", "add", "work", "email:owner@northstar.example")
+    const found = await memoIn(env)("work", "search", "mail", "renewal")
+    expect(found.items.length).toBeGreaterThan(0)
+  })
 })

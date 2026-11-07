@@ -1,8 +1,8 @@
 import { CliError } from "@wirecat/cli-base"
 import { mailOwnText } from "@wirecat/cli-core/mail"
 import { type ContextMessage, calendarAccounts, type PersonContext, personContext } from "@wirecat/cli-core/services"
-import type { AccountKey, Link, MessageStore, Note } from "@wirecat/cli-core/store"
-import { type NotesAbout, notesAbout } from "../notes/about.js"
+import type { AccountKey, Link, MessageStore, Note, RelationListItem } from "@wirecat/cli-core/store"
+import { type NotesAbout, notesAboutInGroup } from "../notes/about.js"
 import { withOwner } from "../people/owner.js"
 import { groupScopeOf, inGroup, scopedAccounts } from "../store/group.js"
 import { selectAccount } from "../store/scope.js"
@@ -29,7 +29,7 @@ export interface MemoContext {
   /** Sources that gave nothing, and why. */
   notRead: { source: string; reason: string }[]
   tasks: Awaited<ReturnType<typeof personTasks>>
-  relationships: Link[]
+  relationships: RelationListItem[]
   /** Files a source says they own or last edited, as the source reports it: not reviewed by you. */
   files: ReportedFile[]
   /** Fields other people wrote that an agent reads as data, never as instructions. */
@@ -45,9 +45,6 @@ export interface ReportedFile {
   provenance: string
   confirmed: boolean
 }
-
-/** An assignment shows under tasks, not here. */
-const RELATIONS = new Set(["member-of", "related-to"])
 
 /** Drive copies these from Google's own file record, so they are facts as Google states them, not guesses. */
 const SOURCE_REPORTS = new Set(["google-drive:files.get"])
@@ -166,7 +163,7 @@ export const memoContext = async (
     ...(calendarIds === undefined ? {} : { calendarIds }),
   })
   const person = `person:${messages.person.uid}`
-  const linked = await notesAbout(store, { ref: person, person: messages.person }, limit)
+  const linked = await notesAboutInGroup(store, env, { ref: person, person: messages.person }, limit)
   const yourNotes = []
   for (const ref of linked.about.filter((note) => note.source === "internal")) {
     const note = await store.notes.note(ref.ref)
@@ -189,9 +186,15 @@ export const memoContext = async (
 
   const tasks = await personTasks(store, messages.person, accounts, limit)
   const incoming = await store.notes.links({ to: person })
-  const relationships = [...(await store.notes.links({ from: person })), ...incoming].filter(
-    (link) => RELATIONS.has(link.kind) && link.confirmed,
-  )
+  // cli-core leaves out a link with an end outside the group, the owner's own too.
+  const relationships = (
+    await store.knowledge.listRelations({
+      about: person,
+      standing: "confirmed",
+      ...(scope === undefined ? {} : { accounts: scope.accounts }),
+      limit: 500,
+    })
+  ).items
   const files = await reportedFiles(store, incoming, limit)
   const { subject: _, name: __, ...notes } = linked
   return {
