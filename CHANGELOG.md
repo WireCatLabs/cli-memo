@@ -4,6 +4,19 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- **memo embeds and searches with the model chosen by `memo models set`.** A downloaded EmbeddingGemma or
+  e5-large was never used: memo embedded and searched with e5-small whatever was chosen, and `embedding_model` was
+  not a memo setting. The next `memo sync` runs give your notes and mail vectors from the new model a part at a time;
+  the old model's vectors are kept, so going back is instant.
+- **The missing-model message names the model that is missing** and the exact download, with `--accept-terms` for a
+  model that needs it; it always named e5-small.
+- **A sync with a slower model embeds fewer chunks a run**, so a timer run still ends within its five minutes.
+- `memo doctor` reports the search model in use, not always e5-small.
+
 ## 0.131.56 — 08.11.2026
 
 ### Fixed

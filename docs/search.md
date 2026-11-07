@@ -210,6 +210,32 @@ The model runs on your computer. After the download, run `memo sync` so your not
 for it. Each result says whether it was found by words, by meaning or both. Without the model,
 Memo says "Searched by words only" and searches stored notes by words.
 
+### Choosing a larger model
+
+There are three search models. `memo models list` shows them, their size on disk and which one is in use:
+
+| Model | Size | On disk | Licence | Speed |
+| --- | --- | --- | --- | --- |
+| `e5-small` | small, the default | 135 MB | MIT | fast |
+| `embeddinggemma` | medium | 218 MB | Gemma Terms of Use | about 15 times slower, reads chats best |
+| `e5-large` | large | 579 MB | MIT | about 8 times slower |
+
+To use another one, download it, then choose it:
+
+```sh
+memo models download e5-large
+memo models set e5-large
+```
+
+The choice is shared: tg, max and the other WireCat tools use the same model. Memo then says how many
+pieces of text the new model still has to read and about how long that takes. The next `memo sync`
+runs do that work a part at a time. Until they finish, search by meaning finds only what the new
+model has read, and search by words finds the rest. The old model's work is kept, so going back to
+it with `memo models set e5-small` is instant.
+
+`memo models add` adds a model of your own from Hugging Face; `memo models add --help` shows what it
+needs.
+
 ## What a result shows
 
 For a note, a result shows the file and the first matching line. Below the results, Memo lists the

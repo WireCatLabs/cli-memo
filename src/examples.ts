@@ -81,7 +81,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   ],
   "models list": ["memo models list kind:text --json"],
   "commands info": ["memo commands info --json"],
-  "models download": ["memo models download e5-small"],
+  "models download": ["memo models download e5-small", "memo models download e5-large"],
   "models set": ["memo models set e5-large"],
   "models add": [
     `memo models add e5-base --payload '{"repository":"Xenova/multilingual-e5-base","onnx":"onnx/model_quantized.onnx","dims":768,"pooling":"mean","prefix":{"query":"query: ","passage":"passage: "}}'`,
