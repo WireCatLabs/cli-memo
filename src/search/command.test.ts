@@ -298,6 +298,7 @@ it("search all runs as no stored account and names every account it read", async
     await store.messages.saveMessages(key, "7", [message], { via: "test" })
   const folder = await store.notes.addFolder({ name: "Synthetic folder" })
   const drive = await store.notes.documentsAccount({ provider: "google-drive", account: "u1" }, true)
+  await store.accounts.saveAccount({ provider: "google-sheets", account: "synthetic-sheet" }, { name: null })
   await store.close()
   const streams = captureStreams()
   await createProgram({ streams, env }).parseAsync(["search", "all", "Beaconword", "--json"], { from: "user" })
@@ -323,6 +324,8 @@ it("search all runs as no stored account and names every account it read", async
   await createProgram({ streams: text, env }).parseAsync(["search", "all", "Beaconword"], { from: "user" })
   expect(text.stderr.join("")).toContain("searched: ")
   expect(text.stderr.join("")).toContain("telegram:1")
+  expect(text.stderr.join("")).toContain("google-sheets:synthetic-sheet not searched")
+  expect(text.stderr.join("")).not.toContain("undefined")
 })
 
 it("search all finds calendar events in every calendar, names each one read, and --only events reads them alone", async () => {
@@ -456,4 +459,42 @@ it("search messages and search all answer meta.complete false and name the histo
     expect(found.meta.complete).toBe(false)
     expect(found.missing).toEqual(expect.arrayContaining([expect.objectContaining({ step: "messages.sync" })]))
   }
+})
+
+it("search messages finds a reply that does not name its topic when asked a question, and stays strict for words", async () => {
+  const root = mkdtempSync(join(tmpdir(), "memo-reply-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const store = await openStore({ env })
+  const message = (id: string, text: string, extra: object = {}) => ({
+    id,
+    chatId: "7",
+    senderId: "9",
+    senderName: null,
+    timestamp: `2026-10-0${id}T00:00:00Z`,
+    editedAt: null,
+    text,
+    outgoing: false,
+    attachments: [],
+    replyTo: null,
+    forwardedFrom: null,
+    reactions: null,
+    ...extra,
+  })
+  await store.messages.saveMessages(
+    { provider: "max", account: "2" },
+    "7",
+    [
+      message("1", "Can you sync the Quillmark price list every night?"),
+      message("2", "Let us leave that until summer", { replyToId: "1" }),
+    ],
+    { via: "test" },
+  )
+  await store.close()
+  const refs = async (...args: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env }).parseAsync(["search", "messages", ...args, "--json"], { from: "user" })
+    return answerOf(streams.stdout.join("")).items.map((item: { ref: string }) => item.ref)
+  }
+  expect(await refs("when will the Quillmark price sync happen?")).toContain("msg:max/2/7/2")
+  expect(await refs("Quillmark")).toEqual(["msg:max/2/7/1"])
 })

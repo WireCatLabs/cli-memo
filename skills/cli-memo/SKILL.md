@@ -23,7 +23,9 @@ memo reads the local store tg and max write, plus the owner's notes and imported
    in one list, best first. Each line is one hit: reference, kind, time, title, sender, then the text. The right
    record is nearly always in the first five; ask for more only when `# more` says there is more and nothing fits.
 2. Not found? Search again in other words: a title, the sender's term, one or two key words, a synonym, the other
-   language. After two or three tries, say what you searched for. `# missing` lines are coverage, not absence.
+   language, or the question itself as a sentence (`'when will the price sync be done?'`): a question also finds a
+   short reply by the message it answers. After two or three tries, say what you searched for. `# missing` lines
+   are coverage, not absence.
 3. Read the dates: a later message can replace an earlier one, and a suggestion is not a decision.
 4. Cite each record by its reference exactly as printed (`msg:…`, `note:…`, `document:…`, `meeting:…`).
    A line cut short opens with `memo show <ref>`, which names the command that reads it whole.

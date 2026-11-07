@@ -1,26 +1,4 @@
-import { type MessageStore, openCache, storePath } from "@wirecat/cli-core/store"
-
-/**
- * Of these addresses, the ones the owner has written to (To or Cc of an outgoing email, any mailbox). One indexed
- * read of the store file: asking `emails({ participant })` per address scanned every email each time (~70 ms each on
- * a 260k mailbox), so a morning with 20 senders took a second longer. It belongs in cli-core as a store read.
- */
-const writtenTo = async (env: NodeJS.ProcessEnv, addresses: string[]): Promise<Set<string>> => {
-  if (addresses.length === 0) return new Set()
-  const database = await openCache(storePath(env))
-  try {
-    const rows = database
-      .prepare(
-        `SELECT DISTINCT lower(r.address) AS address FROM emails e JOIN email_recipients r ON r.email_id = e.id
-         WHERE e.outgoing = 1 AND e.deleted_at IS NULL AND r.role IN ('to', 'cc')
-           AND lower(r.address) IN (SELECT value FROM json_each(?))`,
-      )
-      .all(JSON.stringify(addresses))
-    return new Set(rows.map((row) => String(row.address)))
-  } finally {
-    database.close()
-  }
-}
+import type { MessageStore } from "@wirecat/cli-core/store"
 
 /**
  * Which of a mailbox's emails come from a known sender: one whose person has other identities, or an address the
@@ -28,7 +6,6 @@ const writtenTo = async (env: NodeJS.ProcessEnv, addresses: string[]): Promise<S
  */
 export const knownSenders = async (
   store: MessageStore,
-  env: NodeJS.ProcessEnv,
   accountId: number,
   externalIds: readonly string[],
 ): Promise<Set<string>> => {
@@ -45,7 +22,7 @@ export const knownSenders = async (
     if ((marks.get(fact.externalId)?.senderIdentities ?? 0) > 1) known.add(fact.externalId)
     else unlinked.set(address, [...(unlinked.get(address) ?? []), fact.externalId])
   }
-  for (const address of await writtenTo(env, [...unlinked.keys()]))
+  for (const address of await store.mail.writtenTo([...unlinked.keys()]))
     for (const id of unlinked.get(address) ?? []) known.add(id)
   return known
 }

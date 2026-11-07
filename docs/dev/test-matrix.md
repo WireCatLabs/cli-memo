@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**744 ✅ · 0 ⛔ · 154 ❌** — 206 commands, 692 options.
+**744 ✅ · 0 ⛔ · 158 ❌** — 206 commands, 696 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -859,6 +859,8 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `schedule command` | `--every` | ✅ |  |
 | `schedule command` | `--at` | ✅ |  |
 | `schedule command` | `--at-time` | ❌ |  |
+| `schedule command` | `--notify-on` | ❌ |  |
+| `schedule command` | `--to` | ❌ |  |
 | `schedule command` | `--json` | ❌ |  |
 | `schedule agent` |  | ✅ |  |
 | `schedule agent` | `--model` | ✅ |  |
@@ -867,6 +869,8 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `schedule agent` | `--every` | ✅ |  |
 | `schedule agent` | `--at` | ✅ |  |
 | `schedule agent` | `--at-time` | ❌ |  |
+| `schedule agent` | `--notify-on` | ❌ |  |
+| `schedule agent` | `--to` | ❌ |  |
 | `schedule agent` | `--on-new-mail` | ✅ |  |
 | `schedule agent` | `--mail-wait` | ✅ |  |
 | `schedule agent` | `--mail-batch` | ✅ |  |
