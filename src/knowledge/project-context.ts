@@ -17,6 +17,10 @@ export const projectContext = async (store: MessageStore, env: NodeJS.ProcessEnv
     .concat(await store.notes.links({ from: project.ref }))
     .filter((link) => link.kind !== "about" && link.kind !== "links-to" && link.role !== "key")
     .map((link) => ({ ...link, standing: standingOf(link, Date.now()) }))
+  // A chat or meeting of an account outside the run's group stays out, with what it would bring in.
+  const relationships = await keepInGroup(store, env, linked, (link) =>
+    link.from === project.ref ? String(link.to) : link.from,
+  )
   const documents = await keyDocuments(store, project)
   const proposals = await proposalsOf(store, env)
   const pending = (kind: string) =>
