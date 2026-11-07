@@ -9,6 +9,7 @@ import { boundFolders } from "../notes/bound.js"
 import { positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { atLeast, kindsText, waitingAbout } from "../review/status.js"
+import { deniedCrmKinds } from "../search/denied.js"
 import { contextAccountsOf, type MemoContext, memoContext, withOwnMailText } from "./context.js"
 
 const MAX_TEXT = 160
@@ -114,7 +115,7 @@ export const contextText = ({
 
 export const contextCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
-  annotate(program.command("context"), { effects: LOCAL_READ })
+  annotate(program.command("context"), { effects: LOCAL_READ, output: { entity: "person_context_memo" } })
     .description(
       "messages, mail, notes and events about a person, each with a link to its source, and `business`: their " +
         "organizations, reporting lines, deals and projects, each relationship with its standing (`reported` is a " +
@@ -131,25 +132,33 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .option(
       "--source <accounts>",
-      "the accounts to read (default: every one); for <messenger>:<name>, the one account of that messenger",
+      "the accounts to read: every one when left out, or the group's in a group run; for <messenger>:<name>, " +
+        "the one account of that messenger",
     )
     .option("--trimmed", "each email's own text, without quoted earlier mail or the signature — for an agent's reads")
-    .action(async (person: string, options: { limit: number; json?: boolean; source?: string; trimmed?: boolean }) => {
-      const answer = await withStore(env, async (store) => {
-        await importNotesMap(store, env, await boundFolders(store, env, { strict: false }))
-        const sources =
-          options.source === undefined ? undefined : await contextAccountsOf(store, env, person, options.source)
-        const found = await memoContext(store, env, person, {
-          limit: options.limit,
-          ...(sources === undefined ? {} : { sources }),
+    .action(
+      async (
+        person: string,
+        options: { limit: number; json?: boolean; source?: string; trimmed?: boolean },
+        command: Command,
+      ) => {
+        const answer = await withStore(env, async (store) => {
+          await importNotesMap(store, env, await boundFolders(store, env, { strict: false }))
+          const sources =
+            options.source === undefined ? undefined : await contextAccountsOf(store, env, person, options.source)
+          const found = await memoContext(store, env, person, {
+            limit: options.limit,
+            deniedKinds: deniedCrmKinds(command, env),
+            ...(sources === undefined ? {} : { sources }),
+          })
+          const { uid, identities } = found.messages.person
+          const refs = [`person:${uid}`, ...identities.map(({ provider, id }) => `${provider}:${id}`)]
+          return {
+            ...(options.trimmed ? withOwnMailText(found) : found),
+            proposals: { ...(await waitingAbout(store, env, refs)), next: { command: "review list" } },
+          }
         })
-        const { uid, identities } = found.messages.person
-        const refs = [`person:${uid}`, ...identities.map(({ provider, id }) => `${provider}:${id}`)]
-        return {
-          ...(options.trimmed ? withOwnMailText(found) : found),
-          proposals: { ...(await waitingAbout(store, env, refs)), next: { command: "review list" } },
-        }
-      })
-      print(options.json, itemAnswer(answer), contextText(answer))
-    })
+        print(options.json, itemAnswer(answer), contextText(answer))
+      },
+    )
 }

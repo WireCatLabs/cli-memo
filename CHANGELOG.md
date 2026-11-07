@@ -8,6 +8,9 @@ the API.
 
 ### Added
 
+- **`memo relationships add --kind reports-to|customer-of|partner-of`, `--title` (the job title), `--start-date`,
+  `--end-date`**, and `relationships update --title --start-date`. `memo relationships end <id> --end-date <date>` says
+  a relationship ended; it stays, as `ended`.
 - **`memo organizations context <ref>` is the organization's whole picture** (cli-core's `organizationContext`): its
   people by role, customers, suppliers and partners, projects, open deals and leads, invoices, payments and orders as
   stored, how much its people wrote, open tasks, categories and `coverage`, then its notes and tags.
@@ -18,10 +21,9 @@ the API.
   too; an empty value clears it.
 - **`memo organizations list category:client`**, and `supplier`, `partner`, `employer`: read from relationships.
 - **`memo relationships list` filters `kind:`, `role:`, `standing:`, `from:`, `to:`, `at:<day>`, `include:ended`**
-  and pages with `--limit` and `--page`. `about:` gives each row its `direction` and its `label` from that end
-  (`manages` for `reports-to` read backwards). Every row shows its `standing` and the account that reported it; a role
+  and pages with `--limit` and `--page`, the pending proposals with them (cli-core's `listRelations`). `about:` gives
+  each row its `direction` (`outgoing` or `incoming`) and an incoming one its `inverse` (`manages` for `reports-to`). Every row shows its `standing` and the account that reported it; a role
   saved before the role lists is kept and marked `custom`.
-- **`memo relationships add --kind reports-to|customer-of|partner-of`**.
 - **`memo search all --only crm`** searches deals and leads alone; `search all` names them in its help.
 - **Account groups: `memo <group> …`, `MEMO_GROUP` and `MEMO_GROUP_LOCK` (WC-ACCT-13).** Memo reads every account
   by default (`all`, also `memo all …`); a group is an opt-in list you save. A first word that is no command is a

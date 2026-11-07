@@ -10,7 +10,8 @@ import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { authorOf } from "../author.js"
 import { collect, positive } from "../options.js"
 import { pageOf } from "../page.js"
-import { type GroupScope, groupScopeOf } from "../store/group.js"
+import { deniedCrmKinds } from "../search/denied.js"
+import { type GroupScope, groupScopeOf, keepInGroup } from "../store/group.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { dealBriefText, dealText } from "./deal-text.js"
 import { dayOf } from "./finance.js"
@@ -130,7 +131,7 @@ const itemCommands = (
       run(options.json, async (store) => itemAnswer(await store.deals.get(ref))),
     )
 
-  json(annotate(group.command("context"), { effects: LOCAL_READ }))
+  json(annotate(group.command("context"), { effects: LOCAL_READ, output: { entity: "deal_context" } }))
     .description(
       `one ${one} whole: its stages, client, people with their roles and standing, owner, project, invoices and ` +
         `payments as stored, its people's messages, mail and meetings in its lifetime (\`proposed\`: they share ` +
@@ -140,12 +141,13 @@ const itemCommands = (
     .argument("<ref>", `${kind}:<id>`)
     .option("--brief", "the compact form for a model's context: names, roles, totals and counts")
     .option("--limit <n>", "most items in each section", positive, 20)
-    .action(async (ref: string, options: { brief?: boolean; limit: number; json?: boolean }) => {
+    .action(async (ref: string, options: { brief?: boolean; limit: number; json?: boolean }, command: Command) => {
       const answer = await withStore(env, async (store) => {
         const scope = await groupScopeOf(store, env)
         return dealContext(store, ref, {
           limit: options.limit,
           ...(scope === undefined ? {} : { accounts: scope.accounts }),
+          deniedKinds: deniedCrmKinds(command, env),
         })
       })
       if (answer.deal.kind !== kind)
@@ -159,7 +161,8 @@ const itemCommands = (
 
   json(annotate(group.command("update"), { effects: LOCAL_WRITE, output: { entity: kind } }))
     .description(
-      `set the project a ${one} belongs to; a CRM's copy takes it too, and its sync leaves it. An empty value clears it`,
+      `set the project a ${one} belongs to; a CRM's copy takes it too, and the next sync keeps it. An empty value ` +
+        "clears it",
     )
     .summary(`set the project a ${one} belongs to`)
     .argument("<ref>", `${kind}:<id>`)

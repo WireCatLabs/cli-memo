@@ -18,7 +18,6 @@ import {
   CATEGORIES,
   type Category,
   organizationContext,
-  organizationsInCategory,
   proposalRegistry,
   purposesOf,
 } from "@wirecat/cli-core/services"
@@ -35,14 +34,15 @@ import {
   REMINDERS_QUERY,
   SCOPES,
 } from "@wirecat/cli-core/store"
-import type { Command } from "commander"
+import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, listAnswer, wholeList, withStore } from "../answer.js"
 import { byOption, deciderOf, reasonOption, whoRuns } from "../author.js"
 import { notesAbout } from "../notes/about.js"
 import { oneOf, positive, readScope, writeScope } from "../options.js"
 import { withOwner } from "../people/owner.js"
 import { decideOne, decisionOf } from "../review/review.js"
-import { groupScopeOf } from "../store/group.js"
+import { deniedCrmKinds } from "../search/denied.js"
+import { groupScopeOf, keepInGroup, refuseOutsideRelation } from "../store/group.js"
 import {
   ACCOUNTS_HELP,
   accountName,
@@ -78,21 +78,23 @@ const ORGANIZATIONS_LIST_QUERY = {
   ],
 } satisfies QueryRegistry
 
-/** `category:` is read from relationships at query time, so it is taken out before the store's own filter. */
+/** `category:` is read from relationships in the store's own query, so it is taken out of the list's words first. */
 const categoryOf = (words: readonly string[]): { category?: Category; rest: string[] } => {
-  const rest: string[] = []
-  let category: Category | undefined
-  for (const word of words) {
-    const match = /^category:(.+)$/.exec(word)
-    if (match === null) rest.push(word)
-    else if ((CATEGORIES as readonly string[]).includes(match[1] as string)) category = match[1] as Category
-    else
-      throw new CliError("validation_error", `category: is one of ${CATEGORIES.join(", ")}`, {
-        reason: "input.invalid",
-      })
-  }
-  return { ...(category === undefined ? {} : { category }), rest }
+  const named = words.map((word) => /^category:(.+)$/.exec(word)?.[1])
+  const category = named.find((one) => one !== undefined) as Category | undefined
+  return { ...(category === undefined ? {} : { category }), rest: words.filter((_, at) => named[at] === undefined) }
 }
+
+/** A day as `--start-date 2026-01-01` gives it: its start, UTC ms. */
+const dayOption = (value: string): number => {
+  const at = Date.parse(`${value}T00:00:00Z`)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || Number.isNaN(at))
+    throw new InvalidArgumentError("a day, such as 2026-01-01")
+  return at
+}
+
+/** `--end-date` is the last day it held; cli-core's end is the moment after it. */
+const lastDayOption = (value: string): number => dayOption(value) + 86_400_000
 
 /** A suggested link the review lists as `link:<id>`; deciding it goes through the same registry as review. */
 const pendingLink = async (store: MessageStore, id: string) => {
@@ -172,14 +174,18 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       const { category, rest } = categoryOf(words)
       const query = listQuery(typedQuery(rest), ORGANIZATIONS_QUERY, "organizations list")
       return ownedList("organizations list", options, async (store) => {
-        const found = await store.knowledge.organizations(query)
-        if (category === undefined) return found
         const scope = await groupScopeOf(store, env)
-        const kept = new Set((await organizationsInCategory(store, category, scope?.accounts)).map(({ ref }) => ref))
-        return found.filter(({ ref }) => kept.has(ref))
+        const found = await store.knowledge.organizations(query, {
+          ...(category === undefined ? {} : { category }),
+          ...(scope === undefined ? {} : { accounts: scope.accounts }),
+        })
+        return keepInGroup(store, env, found, ({ ref }) => ref)
       })
     })
-  annotate(organizations.command("context"), { effects: LOCAL_READ })
+  annotate(organizations.command("context"), {
+    effects: LOCAL_READ,
+    output: { entity: "organization_context_memo" },
+  })
     .description(
       "one organization by its id or organization:<id>: its people by role, customers, suppliers and partners, " +
         "projects, open deals and leads, invoices, payments and orders, how much its people wrote, open tasks and " +
@@ -190,12 +196,13 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .argument("<organization>", "its id or organization:<id>")
     .option("--limit <n>", "most items in each section", positive, 20)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action(async (reference: string, options: { limit: number; json?: boolean }) => {
+    .action(async (reference: string, options: { limit: number; json?: boolean }, command: Command) => {
       const answer = await withStore(env, async (store) => {
         const scope = await groupScopeOf(store, env)
         const found = await organizationContext(store, reference, {
           limit: options.limit,
           ...(scope === undefined ? {} : { accounts: scope.accounts }),
+          deniedKinds: deniedCrmKinds(command, env),
         })
         const ref = found.organization.ref
         return {
@@ -337,6 +344,9 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .option("--kind <kind>", RELATION_KINDS.join(", "), oneOf(RELATION_KINDS), "member-of")
     .option("--role <role>", ROLE_HELP)
+    .option("--title <title>", "the job title, such as 'Procurement manager'; kept apart from the role as its position")
+    .option("--start-date <date>", "the first day it held, such as 2026-01-01", dayOption)
+    .option("--end-date <date>", "the last day it held", lastDayOption)
     .option("--reason <text>", "why you think so, in a sentence")
     .action(
       async (
@@ -345,6 +355,9 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         options: {
           kind: KnowledgeRelation["kind"]
           role?: string
+          title?: string
+          startDate?: number
+          endDate?: number
           reason?: string
           asOwner?: boolean
           json?: boolean
@@ -358,6 +371,9 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
             to: await withOwner(store, to),
             kind: options.kind,
             ...(options.role === undefined ? {} : { role: options.role }),
+            ...(options.title === undefined ? {} : { position: options.title }),
+            ...(options.startDate === undefined ? {} : { startsAt: options.startDate }),
+            ...(options.endDate === undefined ? {} : { endsAt: options.endDate }),
             ...(options.reason === undefined ? {} : { evidence: options.reason }),
           }
           return by === "owner"
@@ -378,13 +394,14 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .option("--limit <n>", "most relationships, up to 500", (value: string) => Math.min(positive(value), 500), 100)
     .option("--page <n>", "which page, from 1", positive, 1)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action(async (words: string[], options: { limit: number; page: number; json?: boolean }) => {
+    .action(async (words: string[], options: { limit: number; page: number; json?: boolean }, command: Command) => {
       const found = await withStore(env, async (store) => {
         const scope = await groupScopeOf(store, env)
         return listRelationships(store, words, {
           limit: options.limit,
           page: options.page,
-          ...(scope === undefined ? {} : { accounts: scope.accounts.map(accountName) }),
+          ...(scope === undefined ? {} : { accounts: scope.accounts }),
+          deniedKinds: deniedCrmKinds(command, env),
         })
       })
       print(
@@ -393,7 +410,8 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
           items: found.items,
           limit: found.limit,
           has_more: found.hasMore,
-          ...("page" in found ? { page: found.page, args: { query: words.join(" ") } } : {}),
+          page: found.page,
+          args: { query: words.join(" ") },
         }),
         relationshipsText(found.items),
       )
@@ -407,23 +425,36 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       .summary("set a relationship's role or a chat's purpose in a project")
       .argument("<id>", "the relationship's id, as relationships list gives it")
       .option("--role <role>", `${ROLE_HELP}; an empty value clears it`)
+      .option("--title <title>", "the job title, kept as its position; an empty value clears it")
+      .option("--start-date <date>", "the first day it held, such as 2026-01-01", dayOption)
       .option("--purpose <purpose>", "what the chat is for in the project: work, sales, support or other")
       .option("--reason <text>", "why, in a sentence")
       .option("--json", "print JSON; --json=id,title keeps only those fields"),
   ).action(
     async (
       id: string,
-      options: { role?: string; purpose?: string; reason?: string; asOwner?: boolean; json?: boolean },
+      options: {
+        role?: string
+        title?: string
+        startDate?: number
+        purpose?: string
+        reason?: string
+        asOwner?: boolean
+        json?: boolean
+      },
       command: Command,
     ) => {
       const change = {
         ...(options.role === undefined ? {} : { role: options.role === "" ? null : options.role }),
+        ...(options.title === undefined ? {} : { position: options.title === "" ? null : options.title }),
+        ...(options.startDate === undefined ? {} : { startsAt: options.startDate }),
         ...(options.purpose === undefined ? {} : { purpose: options.purpose }),
       }
       const by = await whoRuns(command, env, { asOwner: options.asOwner, question: `change relationship ${id}?` })
       return owned(options, async (store) => {
-        if (options.role === undefined && options.purpose === undefined)
-          throw new CliError("validation_error", "say what to change: --role, --purpose or both", {
+        await refuseOutsideRelation(store, env, id)
+        if (Object.keys(change).length === 0)
+          throw new CliError("validation_error", "say what to change: --role, --title, --start-date or --purpose", {
             reason: "input.invalid",
             param: "--purpose",
           })
@@ -465,6 +496,26 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         return (await store.knowledge.relations(null, suggestion.subject)).find((one) => one.id === id)
       })
     })
+  byOption(
+    annotate(relations.command("end"), { effects: LOCAL_WRITE })
+      .description(
+        "say that a relationship no longer holds, from a day on; it stays, as ended, and relationships list " +
+          "include:ended shows it. An agent's waits for you in memo review",
+      )
+      .summary("say that a relationship ended")
+      .argument("<id>", "the relationship's id, as relationships list gives it")
+      .option("--end-date <date>", "the last day it held; today when left out", lastDayOption)
+      .option("--json", "print JSON; --json=id,title keeps only those fields"),
+  ).action(async (id: string, options: { endDate?: number; asOwner?: boolean; json?: boolean }, command: Command) => {
+    const by = await whoRuns(command, env, { asOwner: options.asOwner, question: `end relationship ${id}?` })
+    const at = options.endDate ?? Date.now()
+    return owned(options, async (store) => {
+      await refuseOutsideRelation(store, env, id)
+      return by === "owner"
+        ? store.knowledge.endRelation(null, id, at, by)
+        : store.knowledge.endRelation(null, id, at, by)
+    })
+  })
   relationshipsScanCommand(relations, print, env, warn)
   const reminders = program
     .command("reminders")

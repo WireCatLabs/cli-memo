@@ -1,5 +1,5 @@
 import { CliError } from "@wirecat/cli-base"
-import { isUsable, RELATION_KINDS, standingOf } from "@wirecat/cli-core"
+import { type DealKind, isUsable, RELATION_KINDS, standingOf } from "@wirecat/cli-core"
 import { mailOwnText } from "@wirecat/cli-core/mail"
 import {
   type CanonicalPersonContext,
@@ -120,7 +120,11 @@ export const memoContext = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
   reference: string,
-  { limit = 20, sources }: { limit?: number; sources?: readonly AccountKey[] } = {},
+  {
+    limit = 20,
+    sources,
+    deniedKinds = [],
+  }: { limit?: number; sources?: readonly AccountKey[]; deniedKinds?: readonly DealKind[] } = {},
 ): Promise<MemoContext> => {
   const named = (await withOwner(store, reference)).trim()
   const scope = await groupScopeOf(store, env)
@@ -130,6 +134,7 @@ export const memoContext = async (
     const { events, business, coverage, ...messages } = await canonicalPersonContext(store, named, {
       messages: limit,
       limit,
+      deniedKinds,
       ...(accounts === undefined ? {} : { accounts }),
     })
     const same = (one: AccountKey) => (key: AccountKey) => key.provider === one.provider && key.account === one.account
@@ -167,13 +172,14 @@ export const memoContext = async (
     messages: limit,
     ...(calendarIds === undefined ? {} : { calendarIds }),
   })
-  // In a group a CRM's relationships outside it stay out; cli-core scopes them in its canonical person context only.
+  // cli-core keeps a scope and denied kinds out of `business` in its canonical context only (`scopeOf` is internal).
   const business =
-    scope === undefined
+    scope === undefined && deniedKinds.length === 0
       ? await personBusiness(store, messages.person.uid, { limit })
       : (
           await canonicalPersonContext(store, `person:${messages.person.uid}`, {
-            accounts: scope.accounts,
+            ...(scope === undefined ? {} : { accounts: scope.accounts }),
+            deniedKinds,
             limit,
             messages: 1,
           })
