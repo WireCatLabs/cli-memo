@@ -330,6 +330,30 @@ memo folders update <id> <path> [options]
 
 **Example:** `memo folders update 1 ~/notes`
 
+### `memo folders remove`
+
+stop reading a notes folder here; its notes stay unless --allow-delete
+
+This command changes the local store or your files.
+
+```sh
+memo folders remove <folder> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `folder` | required | the folder's id or its path, as memo folders list prints them. |
+
+| Option | What it does |
+|---|---|
+| `--allow-delete` | also delete the folder's notes from the store, their text included. |
+| `--yes` | confirm --allow-delete. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** stop reading a notes folder here; its notes stay unless --allow-delete
+
+**Example:** `memo folders remove ~/notes`, `memo folders remove 3 --allow-delete --yes --json`
+
 ### `memo folders list`
 
 folders of notes on this computer, and those the store knows from another

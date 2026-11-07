@@ -12,10 +12,30 @@ import { attachFolder, bindFolder, folderPaths, noteFolders } from "./folders.js
 let root: string
 let env: NodeJS.ProcessEnv
 
+let stderr: string[] = []
+
 const run = async (...args: string[]) => {
   const streams = captureStreams()
+  stderr = streams.stderr
   await createProgram({ streams, env }).exitOverride().parseAsync(args, { from: "user" })
   return streams.stdout.join("").trim()
+}
+
+const storedNotes = async (folderId: string) => {
+  const store = await openStore({ env })
+  try {
+    return (await store.notes.notes({ folderId, source: "file" })).items
+  } finally {
+    await store.close()
+  }
+}
+
+const withNotes = async () => {
+  writeFileSync(join(root, "vault", "one.md"), "# One\n\nfirst synthetic note")
+  writeFileSync(join(root, "vault", "two.md"), "# Two\n\nsecond synthetic note")
+  const id = await run("folders", "add", join(root, "vault"))
+  await run("sync", "--only", "notes", "--no-embed")
+  return id
 }
 
 const writeConfig = (value: unknown) => {
@@ -91,5 +111,55 @@ describe("memo folders", () => {
 
   it("refuses a path that is not a folder", async () => {
     await expect(run("folders", "add", join(root, "missing"))).rejects.toThrow(/is not a folder/)
+  })
+
+  it("removes a folder from this computer and keeps its notes in the store", async () => {
+    const id = await withNotes()
+    const removed = answerOf(await run("folders", "remove", join(root, "vault"), "--json"))
+    expect(removed).toEqual({ id, path: join(root, "vault"), format: "obsidian", removed: true, notes_deleted: 0 })
+    expect(noteFolders(loadConfig(env).notes)).toEqual([])
+    expect(answerOf(await run("folders", "list", "--json")).items).toEqual([
+      { id, name: "vault", format: "obsidian", path: null },
+    ])
+    expect(await storedNotes(id)).toHaveLength(2)
+  })
+
+  it("deletes the folder's notes only with --yes", async () => {
+    const id = await withNotes()
+    await expect(run("folders", "remove", id, "--allow-delete", "--json")).rejects.toMatchObject({
+      code: "confirmation_required",
+      message: expect.stringMatching(/deletes 2 notes/),
+    })
+    expect(noteFolders(loadConfig(env).notes)).toHaveLength(1)
+    expect(await storedNotes(id)).toHaveLength(2)
+
+    const removed = answerOf(await run("folders", "remove", id, "--allow-delete", "--yes", "--json"))
+    expect(removed).toMatchObject({ id, removed: true, notes_deleted: 2 })
+    expect(noteFolders(loadConfig(env).notes)).toEqual([])
+    expect(await storedNotes(id)).toEqual([])
+  })
+
+  it("deletes the notes of a folder kept for another computer", async () => {
+    const id = await withNotes()
+    await run("folders", "remove", id)
+    await expect(run("folders", "remove", id)).rejects.toThrow(/not on this computer/)
+    const removed = answerOf(await run("folders", "remove", id, "--allow-delete", "--yes", "--json"))
+    expect(removed).toEqual({ id, path: null, format: "obsidian", removed: true, notes_deleted: 2 })
+    expect(await storedNotes(id)).toEqual([])
+  })
+
+  it("refuses a folder it does not know", async () => {
+    await expect(run("folders", "remove", "999")).rejects.toMatchObject({ code: "not_found" })
+  })
+
+  it("prints counts-only progress lines while sync reads the notes, with --json only", async () => {
+    const id = await withNotes()
+    expect(stderr.filter((line) => line.includes('"progress"'))).toEqual([])
+    writeFileSync(join(root, "vault", "three.md"), "# Three\n\nthird synthetic note")
+    await run("sync", "--only", "notes", "--no-embed", "--json")
+    const lines = stderr.filter((line) => line.startsWith("{")).map((line) => JSON.parse(line))
+    expect(lines[0]).toEqual({ event: "progress", step: "notes", done: 0, total: 3, unit: "files", label: id })
+    expect(lines.at(-1)).toEqual({ event: "progress", step: "notes", done: 3, total: 3, unit: "files", label: id })
+    expect(stderr.join("")).not.toMatch(/three|Three/)
   })
 })

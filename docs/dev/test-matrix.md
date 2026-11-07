@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**748 ✅ · 0 ⛔ · 159 ❌** — 208 commands, 699 options.
+**752 ✅ · 0 ⛔ · 159 ❌** — 209 commands, 702 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -59,6 +59,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `folders update` |  | ✅ |  |
 | `folders update` | `--format` | ✅ |  |
 | `folders update` | `--json` | ❌ |  |
+| `folders remove` |  | ✅ |  |
+| `folders remove` | `--allow-delete` | ✅ |  |
+| `folders remove` | `--yes` | ✅ |  |
+| `folders remove` | `--json` | ✅ |  |
 | `folders list` |  | ✅ |  |
 | `folders list` | `--json` | ✅ |  |
 | `messages show` |  | ✅ |  |

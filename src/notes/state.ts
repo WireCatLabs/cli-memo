@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
+import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { resolvePaths } from "@wirecat/cli-base"
 
@@ -35,3 +35,6 @@ export const saveFolderState = (env: NodeJS.ProcessEnv, id: string, state: Folde
   writeFileSync(`${file}.tmp`, JSON.stringify(state))
   renameSync(`${file}.tmp`, file)
 }
+
+/** Forgets what this computer saw of the folder, so a folder added again is read in full. */
+export const dropFolderState = (env: NodeJS.ProcessEnv, id: string): void => rmSync(fileOf(env, id), { force: true })
