@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**748 ✅ · 0 ⛔ · 159 ❌** — 208 commands, 699 options.
+**757 ✅ · 0 ⛔ · 189 ❌** — 209 commands, 737 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -51,14 +51,20 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `notes links show` | `--json` | ✅ |  |
 | `notes links add` |  | ✅ |  |
 | `notes links add` | `--json` | ✅ |  |
+| `notes links add` | `--from-app` | ❌ |  |
 | `notes links clear` |  | ✅ |  |
 | `notes links clear` | `--json` | ✅ |  |
+| `notes links clear` | `--from-app` | ❌ |  |
 | `folders add` |  | ✅ |  |
 | `folders add` | `--format` | ❌ |  |
 | `folders add` | `--json` | ✅ |  |
 | `folders update` |  | ✅ |  |
 | `folders update` | `--format` | ✅ |  |
 | `folders update` | `--json` | ❌ |  |
+| `folders remove` |  | ✅ |  |
+| `folders remove` | `--allow-delete` | ✅ |  |
+| `folders remove` | `--yes` | ✅ |  |
+| `folders remove` | `--json` | ✅ |  |
 | `folders list` |  | ✅ |  |
 | `folders list` | `--json` | ✅ |  |
 | `messages show` |  | ✅ |  |
@@ -322,11 +328,13 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `projects actions confirm` |  | ✅ |  |
 | `projects actions confirm` | `--json` | ✅ |  |
 | `projects actions confirm` | `--as-owner` | ❌ |  |
+| `projects actions confirm` | `--from-app` | ❌ |  |
 | `projects actions confirm` | `--fingerprint` | ✅ |  |
 | `projects actions confirm` | `--reason` | ✅ |  |
 | `projects actions reject` |  | ✅ |  |
 | `projects actions reject` | `--json` | ✅ |  |
 | `projects actions reject` | `--as-owner` | ❌ |  |
+| `projects actions reject` | `--from-app` | ❌ |  |
 | `projects actions reject` | `--fingerprint` | ✅ |  |
 | `projects actions reject` | `--reason` | ✅ |  |
 | `projects annotations show` |  | ✅ |  |
@@ -353,13 +361,16 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `projects key-documents add` | `--reason` | ✅ |  |
 | `projects key-documents add` | `--json` | ✅ |  |
 | `projects key-documents add` | `--as-owner` | ❌ |  |
+| `projects key-documents add` | `--from-app` | ❌ |  |
 | `projects key-documents remove` |  | ✅ |  |
 | `projects key-documents remove` | `--json` | ✅ |  |
 | `projects key-documents remove` | `--as-owner` | ❌ |  |
+| `projects key-documents remove` | `--from-app` | ❌ |  |
 | `projects key-documents list` |  | ✅ |  |
 | `projects key-documents list` | `--json` | ✅ |  |
 | `relationships add` |  | ✅ |  |
 | `relationships add` | `--as-owner` | ✅ |  |
+| `relationships add` | `--from-app` | ❌ |  |
 | `relationships add` | `--json` | ✅ |  |
 | `relationships add` | `--kind` | ✅ |  |
 | `relationships add` | `--role` | ✅ |  |
@@ -372,13 +383,16 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `relationships update` | `--reason` | ✅ |  |
 | `relationships update` | `--json` | ✅ |  |
 | `relationships update` | `--as-owner` | ❌ |  |
+| `relationships update` | `--from-app` | ❌ |  |
 | `relationships remove` |  | ✅ |  |
 | `relationships remove` | `--json` | ✅ |  |
 | `relationships remove` | `--as-owner` | ❌ |  |
+| `relationships remove` | `--from-app` | ❌ |  |
 | `relationships remove` | `--reason` | ✅ |  |
 | `relationships confirm` |  | ✅ |  |
 | `relationships confirm` | `--json` | ✅ |  |
 | `relationships confirm` | `--as-owner` | ❌ |  |
+| `relationships confirm` | `--from-app` | ❌ |  |
 | `relationships confirm` | `--reason` | ✅ |  |
 | `relationships scan` |  | ✅ |  |
 | `relationships scan` | `--source` | ✅ |  |
@@ -446,6 +460,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `vocabulary aliases remove` | `--json` | ✅ |  |
 | `memories add` |  | ✅ |  |
 | `memories add` | `--as-owner` | ❌ |  |
+| `memories add` | `--from-app` | ❌ |  |
 | `memories add` | `--kind` | ✅ |  |
 | `memories add` | `--scope` | ✅ |  |
 | `memories add` | `--evidence` | ✅ |  |
@@ -464,14 +479,17 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `memories update` | `--json` | ✅ |  |
 | `memories confirm` |  | ✅ |  |
 | `memories confirm` | `--as-owner` | ❌ |  |
+| `memories confirm` | `--from-app` | ✅ |  |
 | `memories confirm` | `--json` | ✅ |  |
 | `memories confirm` | `--reason` | ✅ |  |
 | `memories invalidate` |  | ✅ |  |
 | `memories invalidate` | `--as-owner` | ❌ |  |
+| `memories invalidate` | `--from-app` | ❌ |  |
 | `memories invalidate` | `--json` | ✅ |  |
 | `memories invalidate` | `--reason` | ❌ |  |
 | `memories remove` |  | ✅ |  |
 | `memories remove` | `--as-owner` | ❌ |  |
+| `memories remove` | `--from-app` | ❌ |  |
 | `memories remove` | `--json` | ✅ |  |
 | `memories remove` | `--reason` | ❌ |  |
 | `mentions list` |  | ✅ |  |
@@ -485,12 +503,15 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `mentions confirm` | `--source` | ✅ |  |
 | `mentions confirm` | `--json` | ✅ |  |
 | `mentions confirm` | `--as-owner` | ✅ |  |
+| `mentions confirm` | `--from-app` | ❌ |  |
 | `mentions reject` |  | ✅ |  |
 | `mentions reject` | `--source` | ✅ |  |
 | `mentions reject` | `--json` | ✅ |  |
 | `mentions reject` | `--as-owner` | ✅ |  |
+| `mentions reject` | `--from-app` | ❌ |  |
 | `facts add` |  | ✅ |  |
 | `facts add` | `--as-owner` | ❌ |  |
+| `facts add` | `--from-app` | ✅ |  |
 | `facts add` | `--kind` | ✅ |  |
 | `facts add` | `--evidence` | ✅ |  |
 | `facts add` | `--project` | ✅ |  |
@@ -507,22 +528,27 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `facts show` | `--json` | ✅ |  |
 | `facts confirm` |  | ✅ |  |
 | `facts confirm` | `--as-owner` | ✅ |  |
+| `facts confirm` | `--from-app` | ✅ |  |
 | `facts confirm` | `--json` | ✅ |  |
 | `facts confirm` | `--reason` | ✅ |  |
 | `facts revoke` |  | ✅ |  |
 | `facts revoke` | `--as-owner` | ❌ |  |
+| `facts revoke` | `--from-app` | ❌ |  |
 | `facts revoke` | `--json` | ✅ |  |
 | `facts revoke` | `--reason` | ✅ |  |
 | `facts reverse` |  | ✅ |  |
 | `facts reverse` | `--as-owner` | ❌ |  |
+| `facts reverse` | `--from-app` | ❌ |  |
 | `facts reverse` | `--json` | ✅ |  |
 | `facts reverse` | `--reason` | ❌ |  |
 | `facts reject` |  | ✅ |  |
 | `facts reject` | `--as-owner` | ❌ |  |
+| `facts reject` | `--from-app` | ✅ |  |
 | `facts reject` | `--json` | ✅ |  |
 | `facts reject` | `--reason` | ✅ |  |
 | `facts remove` |  | ✅ |  |
 | `facts remove` | `--as-owner` | ❌ |  |
+| `facts remove` | `--from-app` | ❌ |  |
 | `facts remove` | `--json` | ✅ |  |
 | `facts remove` | `--reason` | ❌ |  |
 | `invoices list` |  | ✅ |  |
@@ -541,6 +567,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `invoices add` | `--reason` | ❌ |  |
 | `invoices add` | `--evidence` | ❌ |  |
 | `invoices add` | `--as-owner` | ❌ |  |
+| `invoices add` | `--from-app` | ❌ |  |
 | `invoices add` | `--json` | ✅ |  |
 | `payments list` |  | ✅ |  |
 | `payments list` | `--json` | ✅ |  |
@@ -557,12 +584,15 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `payments add` | `--reason` | ✅ |  |
 | `payments add` | `--evidence` | ✅ |  |
 | `payments add` | `--as-owner` | ❌ |  |
+| `payments add` | `--from-app` | ❌ |  |
 | `payments add` | `--json` | ✅ |  |
 | `payments allocate` |  | ✅ |  |
 | `payments allocate` | `--as-owner` | ❌ |  |
+| `payments allocate` | `--from-app` | ❌ |  |
 | `payments allocate` | `--json` | ✅ |  |
 | `payments unlink` |  | ✅ |  |
 | `payments unlink` | `--as-owner` | ❌ |  |
+| `payments unlink` | `--from-app` | ❌ |  |
 | `payments unlink` | `--json` | ✅ |  |
 | `orders list` |  | ✅ |  |
 | `orders list` | `--json` | ✅ |  |
@@ -579,6 +609,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `orders add` | `--reason` | ✅ |  |
 | `orders add` | `--evidence` | ❌ |  |
 | `orders add` | `--as-owner` | ❌ |  |
+| `orders add` | `--from-app` | ❌ |  |
 | `orders add` | `--json` | ✅ |  |
 | `pipelines list` |  | ✅ |  |
 | `pipelines list` | `--json` | ✅ |  |
@@ -643,6 +674,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `records link` | `--account` | ✅ |  |
 | `records link` | `--json` | ✅ |  |
 | `records link` | `--as-owner` | ❌ |  |
+| `records link` | `--from-app` | ❌ |  |
 | `meetings actions add` |  | ✅ |  |
 | `meetings actions add` | `--account` | ✅ |  |
 | `meetings actions add` | `--json` | ✅ |  |
@@ -659,11 +691,13 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `meetings actions confirm` | `--json` | ✅ |  |
 | `meetings actions confirm` | `--fingerprint` | ✅ |  |
 | `meetings actions confirm` | `--as-owner` | ❌ |  |
+| `meetings actions confirm` | `--from-app` | ❌ |  |
 | `meetings actions reject` |  | ✅ |  |
 | `meetings actions reject` | `--account` | ✅ |  |
 | `meetings actions reject` | `--json` | ✅ |  |
 | `meetings actions reject` | `--fingerprint` | ✅ |  |
 | `meetings actions reject` | `--as-owner` | ❌ |  |
+| `meetings actions reject` | `--from-app` | ❌ |  |
 | `meetings passage` |  | ✅ |  |
 | `meetings passage` | `--before-n` | ✅ |  |
 | `meetings passage` | `--after-n` | ✅ |  |
@@ -691,6 +725,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `meetings prepare` | `--json` | ✅ |  |
 | `actions add` |  | ✅ |  |
 | `actions add` | `--as-owner` | ❌ |  |
+| `actions add` | `--from-app` | ❌ |  |
 | `actions add` | `--reason` | ✅ |  |
 | `actions add` | `--account` | ✅ |  |
 | `actions add` | `--target` | ✅ |  |
@@ -704,11 +739,13 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `actions show` | `--json` | ✅ |  |
 | `actions confirm` |  | ✅ |  |
 | `actions confirm` | `--as-owner` | ❌ |  |
+| `actions confirm` | `--from-app` | ✅ |  |
 | `actions confirm` | `--fingerprint` | ✅ |  |
 | `actions confirm` | `--reason` | ✅ |  |
 | `actions confirm` | `--json` | ✅ |  |
 | `actions reject` |  | ✅ |  |
 | `actions reject` | `--as-owner` | ❌ |  |
+| `actions reject` | `--from-app` | ❌ |  |
 | `actions reject` | `--fingerprint` | ✅ |  |
 | `actions reject` | `--reason` | ✅ |  |
 | `actions reject` | `--json` | ✅ |  |
@@ -726,11 +763,13 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `review confirm` |  | ✅ |  |
 | `review confirm` | `--json` | ✅ |  |
 | `review confirm` | `--as-owner` | ✅ |  |
+| `review confirm` | `--from-app` | ❌ |  |
 | `review confirm` | `--reason` | ✅ |  |
 | `review confirm` | `--compact` | ❌ |  |
 | `review reject` |  | ✅ |  |
 | `review reject` | `--json` | ✅ |  |
 | `review reject` | `--as-owner` | ❌ |  |
+| `review reject` | `--from-app` | ❌ |  |
 | `review reject` | `--reason` | ✅ |  |
 | `review reject` | `--compact` | ❌ |  |
 | `review agenda` |  | ✅ |  |

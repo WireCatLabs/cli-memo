@@ -47,7 +47,7 @@ export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramF
   const tools = toolsFromCommands(commands, {
     stdin,
     exclude: MCP_EXCLUSIONS.map(({ path }) => path),
-    omit: ["as_owner", "compact", "debug", "json", "jsonl", "no_input", "record"],
+    omit: ["as_owner", "compact", "debug", "from_app", "json", "jsonl", "no_input", "record"],
   })
   for (const tool of tools)
     if (stdin(tool.path)) {

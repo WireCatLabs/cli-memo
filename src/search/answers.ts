@@ -15,13 +15,18 @@ const named = (accounts: readonly Account[]) => [
   ...new Set(accounts.map(({ provider, account }) => `${provider}:${account}`)),
 ]
 
-/** A source the search could not read is an issue, as in cli-core's searches; the reason goes to a person. */
+/** A source the search could not read is an issue, as in cli-core's searches; the sentence goes to a person. */
 const metaOf = (
   accounts: readonly Account[],
-  skipped: readonly { code: ErrorCode; source?: string; resource?: string }[] = [],
+  skipped: readonly { code: ErrorCode; source?: string; resource?: string; why?: string }[] = [],
   heldInPart = false,
 ) => {
-  const issues = skipped.map((one) => ({ code: one.code, source: one.source ?? one.resource ?? "" }))
+  const issues = skipped.map((one) => ({
+    code: one.code,
+    // The output standard takes a dotted reason only, as cli-core's search all does.
+    ...(one.why && /^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$/u.test(one.why) ? { reason: one.why } : {}),
+    source: one.source ?? one.resource ?? "",
+  }))
   return {
     accounts: named(accounts),
     ...(heldInPart ? { complete: false } : {}),
