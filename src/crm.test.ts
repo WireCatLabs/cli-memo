@@ -7,6 +7,8 @@ import { syncCrm } from "@wirecat/cli-core/crm"
 import { ACME_PORTAL, type AcmeScenario, acmeScenario, fakeCrmSource } from "@wirecat/cli-core/crm/testing"
 import { openStore } from "@wirecat/cli-core/store"
 import { beforeEach, describe, expect, it } from "vitest"
+import { answerOf } from "../test/answer.js"
+import { commandCaller } from "../test/mcp.js"
 import { memoIn } from "../test/memo.js"
 import { updateConfig } from "./config.js"
 import { createMemoServer } from "./mcp/server.js"
@@ -116,6 +118,31 @@ describe("organization, deal and relationships", () => {
   })
 })
 
+/** Every `next` a context gives: the memo command that lists the rest of a section it cut. */
+const nextsOf = (value: unknown): string[] =>
+  value === null || typeof value !== "object"
+    ? []
+    : Object.entries(value).flatMap(([key, inner]) =>
+        key === "next" && typeof inner === "string" ? [inner] : nextsOf(inner),
+      )
+
+const wordsOf = (command: string) =>
+  [...command.matchAll(/(?:[^\s"]+|"[^"]*")+/g)].map(([word]) => word.replaceAll('"', ""))
+
+it("runs every next command the contexts give, as written", async () => {
+  const answers = [
+    await memo("context", refs.alice, "--limit", "1"),
+    await memo("organizations", "context", refs.acme, "--limit", "1"),
+    await memo("deals", "context", refs.deal, "--limit", "1"),
+  ]
+  const nexts = [...new Set(answers.flatMap(nextsOf))].filter((next) => next !== "review list")
+  expect(nexts.length).toBeGreaterThan(0)
+  for (const next of nexts) {
+    const answer = await memo(...wordsOf(next))
+    expect(answer.items.length, next).toBeGreaterThan(0)
+  }
+})
+
 describe("groups and the CRM (plan §8 row 11)", () => {
   it("runs the command a first CRM sync's group hint names, as written", async () => {
     const root = mkdtempSync(join(tmpdir(), "memo-crm-hint-"))
@@ -135,13 +162,35 @@ describe("groups and the CRM (plan §8 row 11)", () => {
     expect(row).toEqual([expect.objectContaining(ACME_PORTAL)])
   })
 
-  it("keeps a work CRM's deals out of a personal run", async () => {
+  it("keeps a work CRM's deals, people and relationships out of a personal run", async () => {
     await memo("groups", "add", "work", PORTAL)
+    const alice = await memo("personal", "context", refs.alice)
+    expect(alice.business.organizations.items).toEqual([])
+    expect(alice.relationships.filter(({ standing }: { standing: string }) => standing === "reported")).toEqual([])
+    expect((await memo("personal", "relationships", "list", "standing:reported")).items).toEqual([])
+    expect((await memo("personal", "organizations", "context", refs.acme)).people.items).toEqual([])
     const personal = await memo("personal", "search", "all", "renewal", "--exact")
     expect(kinds(personal)).not.toContain("deal")
     await expect(memo("personal", "deals", "context", refs.deal)).rejects.toMatchObject({ code: "not_found" })
     expect(kinds(await memo("work", "search", "all", "renewal", "--exact", "--only", "crm"))).toEqual(["deal"])
   })
+})
+
+it("leaves deals out of search all over MCP when the server denies them (SEC-151)", async () => {
+  const [serverSide, clientSide] = InMemoryTransport.createLinkedPair()
+  await createMemoServer(env, createProgram, ["deals=deny"]).connect(serverSide)
+  const client = new Client({ name: "deny", version: "0" })
+  await client.connect(clientSide)
+  try {
+    const call = await commandCaller(client)
+    const found = answerOf(
+      JSON.stringify((await call("search all", { query: "renewal", exact: true })).structuredContent),
+    )
+    expect(kinds(found)).not.toContain("deal")
+    expect(kinds(found)).toContain("mail")
+  } finally {
+    await client.close()
+  }
 })
 
 it("finds every new command with memo_tools_search (plan §8 row 12)", async () => {

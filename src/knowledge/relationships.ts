@@ -185,7 +185,8 @@ export const listRelationships = async (
     page,
     items: shown.map((one) => ({
       ...one,
-      status: one.confirmed ? ("confirmed" as const) : ("proposed" as const),
+      // A CRM's link is unconfirmed but no proposal: its status is its standing, `reported`.
+      status: one.standing,
       ...(isCustom(one) ? { custom: true } : {}),
       ...(about === undefined
         ? {}

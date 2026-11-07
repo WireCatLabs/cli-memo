@@ -132,12 +132,21 @@ export const memoContext = async (
       limit,
       ...(accounts === undefined ? {} : { accounts }),
     })
-    const read = accounts ?? (await scopedAccounts(store, env))
+    const same = (one: AccountKey) => (key: AccountKey) => key.provider === one.provider && key.account === one.account
+    // A group's list also names notes folders, which hold no tasks of their own: the stored accounts it names.
+    const read =
+      accounts === undefined
+        ? await scopedAccounts(store, env)
+        : (await store.accounts.accounts()).filter((one) => accounts.some(same(one)))
     const calendars = (await calendarAccounts(store)).filter(
-      (one) =>
-        accounts === undefined || accounts.some((key) => key.provider === one.provider && key.account === one.account),
+      (one) => accounts === undefined || accounts.some(same(one)),
     )
-    return withNotesAndTasks(store, { messages, events, business, coverage }, { accounts: read, calendars }, limit)
+    return withNotesAndTasks(
+      store,
+      { messages, events, business, coverage },
+      { accounts: read, calendars, ...(accounts === undefined ? {} : { scope: accounts }) },
+      limit,
+    )
   }
   const [, provider, who] = /^([a-z][a-z0-9-]*):(.+)$/.exec(reference.trim()) ?? []
   if (provider === undefined || who === undefined)
@@ -169,7 +178,12 @@ export const memoContext = async (
             messages: 1,
           })
         ).business
-  return withNotesAndTasks(store, { messages, events, business }, { accounts, calendars }, limit)
+  return withNotesAndTasks(
+    store,
+    { messages, events, business },
+    { accounts, calendars, ...(scope === undefined ? {} : { scope: scope.accounts }) },
+    limit,
+  )
 }
 
 interface Read {
@@ -183,7 +197,16 @@ interface Read {
 const withNotesAndTasks = async (
   store: MessageStore,
   { messages, events, business, coverage }: Read,
-  { accounts, calendars }: { accounts: AccountKey[]; calendars: AccountKey[] },
+  {
+    accounts,
+    calendars,
+    scope,
+  }: {
+    accounts: AccountKey[]
+    calendars: AccountKey[]
+    /** The run's accounts: a source's relationship from any other is left out, the owner's always shown. */
+    scope?: AccountKey[]
+  },
   limit: number,
 ): Promise<MemoContext> => {
   const person = `person:${messages.person.uid}`
@@ -216,6 +239,12 @@ const withNotesAndTasks = async (
     .filter((link) => RELATIONS.has(link.kind))
     .map((link) => ({ ...link, standing: standingOf(link, now) }))
     .filter((link) => isUsable(link.standing))
+    .filter(
+      (link) =>
+        link.account === undefined ||
+        scope === undefined ||
+        scope.some((key) => link.account === `${key.provider}:${key.account}`),
+    )
   const files = await reportedFiles(store, incoming, limit)
   const { subject: _, name: __, ...notes } = linked
   return {

@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**772 ✅ · 0 ⛔ · 164 ❌** — 217 commands, 719 options.
+**774 ✅ · 0 ⛔ · 162 ❌** — 217 commands, 719 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -266,7 +266,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `organizations list` |  | ✅ |  |
 | `organizations list` | `--json` | ✅ |  |
 | `organizations context` |  | ✅ |  |
-| `organizations context` | `--limit` | ❌ |  |
+| `organizations context` | `--limit` | ✅ |  |
 | `organizations context` | `--json` | ✅ |  |
 | `projects meetings list` |  | ✅ |  |
 | `projects meetings list` | `--source` | ✅ |  |
@@ -603,7 +603,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `deals context` |  | ✅ |  |
 | `deals context` | `--json` | ✅ |  |
 | `deals context` | `--brief` | ✅ |  |
-| `deals context` | `--limit` | ❌ |  |
+| `deals context` | `--limit` | ✅ |  |
 | `deals update` |  | ✅ |  |
 | `deals update` | `--json` | ✅ |  |
 | `deals update` | `--project` | ✅ |  |
