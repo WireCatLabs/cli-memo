@@ -326,6 +326,9 @@ const isSimpleKind = (name: string) => REF_KINDS.some(({ type }) => type === nam
 /** Argument names that are ids of something cli-core's lock cannot map yet: such a command stays refused under it. */
 const UNMAPPED_IDS = new Set(["id"])
 
+/** `deals <verb> <ref>` and `leads <verb> <ref>` take a `deal:` or `lead:` reference, or its bare id. */
+const DEAL_GROUPS = new Set(["deals", "leads"])
+
 const leaves = (command: Command): Command[] =>
   command.commands.length === 0 ? [command] : command.commands.flatMap(leaves)
 
@@ -335,11 +338,17 @@ const markGroupAware = (program: Command) => {
     for (const name of path.split(" ")) command = command?.commands.find((child) => child.name() === name)
     if (!command) throw new Error(`no command to mark group-aware: ${path}`)
     groupAware(command)
-    // A bare number in an argument that names no id, a query word or an amount, must not read as an unknown id.
+    // Every argument is declared: a kind-named one, `<ref>` of a deal or lead, or none, so free text passes the lock
+    // while an id is checked as what it names. One whose id no reference maps stays undeclared, so it is refused.
     for (const leaf of leaves(command)) {
       const names = leaf.registeredArguments.map((argument) => argument.name())
-      const ids = names.filter((name) => name === "ref" || UNMAPPED_IDS.has(name) || isSimpleKind(name))
-      if (ids.length === 0) refKinds(leaf, {})
+      if (names.some((name) => UNMAPPED_IDS.has(name))) continue
+      const kinds: Record<string, string> = {}
+      for (const name of names)
+        if (isSimpleKind(name)) kinds[name] = name
+        else if (name === "ref" && DEAL_GROUPS.has(leaf.parent?.name() ?? ""))
+          kinds[name] = (leaf.parent?.name() ?? "").replace(/s$/, "")
+      refKinds(leaf, kinds as Parameters<typeof refKinds>[1])
     }
   }
 }

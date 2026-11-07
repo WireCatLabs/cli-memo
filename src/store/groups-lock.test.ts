@@ -130,4 +130,42 @@ describe("MEMO_GROUP_LOCK fails closed", () => {
     const found = await memoIn(env)("work", "search", "mail", "renewal")
     expect(found.items.length).toBeGreaterThan(0)
   })
+
+  it("runs every group-aware command whose arguments are free text, numbers included", async () => {
+    await memoIn(env)("pipelines", "add", "Lockflow", "Call", "Quote", "won", "lost")
+    const memo = lockedTo("work")
+    const acme = refs.acme.split(":")[1] as string
+    for (const args of [
+      ["search", "all", "Lockcase", "2026", "--exact"],
+      ["search", "messages", "Lockcase", "2026"],
+      ["search", "people", "Emma"],
+      ["groups", "list"],
+      ["tags", "add", "lock-2026", "--message", "msg:telegram/2/401/1"],
+      ["tags", "remove", "lock-2026", "--message", "msg:telegram/2/401/1"],
+      ["deals", "list", "status:open"],
+      ["deals", "add", "Lock deal", "Lockflow/Call", "100.00", "EUR"],
+      ["leads", "list"],
+      ["organizations", "list", "name:*acme*"],
+      ["organizations", "add", "Lock 2026", "--kind", "company"],
+      ["organizations", "rename", acme, "Acme 2026"],
+      ["people", "list"],
+      ["people", "add", "Lock Person 2026"],
+      ["notes", "list"],
+      ["relationships", "list", "confirmed:true"],
+    ])
+      await expect(memo(...args), args.join(" ")).resolves.toBeDefined()
+  })
+
+  it("refuses a relationship id in any spelling, by the lock itself", async () => {
+    const memo = lockedTo("work")
+    for (const args of [
+      ["relationships", "confirm", "link:1"],
+      ["relationships", "remove", "1e0"],
+      ["relationships", "update", "1", "--role", "contact"],
+    ])
+      await expect(memo(...args), args.join(" ")).rejects.toMatchObject({
+        code: "permission_error",
+        message: expect.stringContaining("locked to group work"),
+      })
+  })
 })
