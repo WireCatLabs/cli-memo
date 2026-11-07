@@ -6,6 +6,11 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **cli-core 0.602.0.** A search with a colon, a URL or other syntax characters in plain text is read as words
+  (#2607), a recovery refuses while another runs and clears invalid JSON values (#2619), and `foldName` folds ё into е.
+
 ### Changed — may break callers
 
 - **`memo schedule agent` and `memo schedule command` take `--deliver-to <route>`, no longer `--to <route>`**
