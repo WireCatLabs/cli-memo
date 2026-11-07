@@ -54,12 +54,7 @@ describe("structured note retrieval and saved links", () => {
     expect(second.items).toHaveLength(1)
     expect(second.page.has_more).toBe(false)
     expect(new Set([...first.items, ...second.items].map((hit: { ref: string }) => hit.ref)).size).toBe(3)
-    // cli-core 0.602.0 searches an unbalanced quote as a word; earlier versions refuse it. #675 makes this strict.
-    const unbalanced = await run("search", "notes", '"unfinished').then(
-      (answer) => answer.items,
-      (error: { code?: string }) => error.code,
-    )
-    expect([[], "validation_error"]).toContainEqual(unbalanced)
+    expect((await run("search", "notes", '"unfinished')).items).toEqual([])
   })
 
   it("links relative paths and aliases to the note, and keeps an ambiguous or unknown name as written", async () => {
