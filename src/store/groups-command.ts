@@ -12,7 +12,7 @@ import {
 } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
-import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
+import { answers, listAnswer, withStore } from "../answer.js"
 import { APP } from "../app.js"
 import { MEMO_ACCOUNT } from "./group.js"
 
@@ -61,23 +61,54 @@ export const membershipText = ({ groups, duplicates, suggested, unresolved }: Gr
 export const groupsCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
   const groups = program.command("groups").description("account groups: memo <group> … reads only the group's accounts")
-  const show = async (json: boolean | undefined, work: (store: MessageStore) => Promise<GroupMembership>) => {
+  /** Every answer, a read's or an edit's, is the groups as `groups list` gives them: one row per group. */
+  const show = async (
+    command: string,
+    json: boolean | undefined,
+    work: (store: MessageStore) => Promise<GroupMembership>,
+  ) => {
     const membership = withoutMemo(await withStore(env, work))
-    print(json, itemAnswer(membership), membershipText(membership))
+    const { groups: named, duplicates, suggested, unresolved } = membership
+    const items = Object.entries(named).map(([group, members]) => ({
+      group,
+      members,
+      duplicates: duplicates.filter(({ groups: names }) => names.includes(group)),
+      suggested: suggested.filter((one) => one.group === group),
+    }))
+    print(
+      json,
+      listAnswer(command, {
+        items,
+        limit: Math.max(1, items.length),
+        has_more: false,
+        missing: unresolved.map((entry) => ({
+          field: entry,
+          why: "a saved group entry that names no account; personal may hold what it meant",
+        })),
+      }),
+      membershipText(membership),
+    )
   }
   const reserved = () => commandWords(program)
   // A run locked to a group must not widen the group it is locked to, nor any other.
-  const change = (json: boolean | undefined, work: (store: MessageStore) => Promise<GroupMembership>) => {
+  const change = (
+    command: string,
+    json: boolean | undefined,
+    work: (store: MessageStore) => Promise<GroupMembership>,
+  ) => {
     const lock = groupLockOf(APP, env)
     if (lock !== undefined)
       throw new CliError(
         "permission_error",
         `this process is locked to group ${lock} (MEMO_GROUP_LOCK) — only the owner changes groups`,
       )
-    return show(json, work)
+    return show(command, json, work)
   }
 
-  withQuery(annotate(groups.command("list"), { effects: LOCAL_READ }), GROUPS_QUERY)
+  withQuery(
+    annotate(groups.command("list"), { effects: LOCAL_READ, output: { entity: "account_group" } }),
+    GROUPS_QUERY,
+  )
     .description(
       "every group with its accounts, each with its profiles in every app, why it is in, and the other groups that " +
         "hold it too; duplicates and profile-name suggestions last",
@@ -86,44 +117,20 @@ export const groupsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (words: string[], options: { json?: boolean }) => {
       queryTerms(words, GROUPS_QUERY, "groups list")
-      const {
-        groups: named,
-        duplicates,
-        suggested,
-        unresolved,
-      } = withoutMemo(await withStore(env, (store) => listAccountGroups(at(store))))
-      const items = Object.entries(named).map(([group, members]) => ({
-        group,
-        members,
-        duplicates: duplicates.filter(({ groups: names }) => names.includes(group)),
-        suggested: suggested.filter((one) => one.group === group),
-      }))
-      print(
-        options.json,
-        listAnswer("groups list", {
-          items,
-          limit: Math.max(1, items.length),
-          has_more: false,
-          missing: unresolved.map((entry) => ({
-            field: entry,
-            why: "a saved group entry that names no account; personal may hold what it meant",
-          })),
-        }),
-        membershipText({ groups: named, duplicates, suggested, unresolved }),
-      )
+      await show("groups list", options.json, (store) => listAccountGroups(at(store)))
     })
 
-  grantsAuthority(annotate(groups.command("add"), { effects: LOCAL_WRITE }))
+  grantsAuthority(annotate(groups.command("add"), { effects: LOCAL_WRITE, output: { entity: "account_group" } }))
     .description("put an account in a group, which is made when it does not exist; it may stay in others too")
     .summary("put an account in a group")
     .argument("<group>", "the group: letters, digits, - and _, not a memo command word")
     .argument("<source>", MEMBER_HELP)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((group: string, member: string, options: { json?: boolean }) =>
-      change(options.json, (store) => addGroupMember(at(store), { group, member, reserved: reserved() })),
+      change("groups add", options.json, (store) => addGroupMember(at(store), { group, member, reserved: reserved() })),
     )
 
-  grantsAuthority(annotate(groups.command("remove"), { effects: LOCAL_WRITE }))
+  grantsAuthority(annotate(groups.command("remove"), { effects: LOCAL_WRITE, output: { entity: "account_group" } }))
     .description(
       "take an account out of a group; one in no group left is in personal again. The account and its data stay",
     )
@@ -132,11 +139,11 @@ export const groupsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     .argument("<source>", MEMBER_HELP)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((group: string, member: string, options: { json?: boolean }) =>
-      change(options.json, (store) => removeGroupMember(at(store), { group, member })),
+      change("groups remove", options.json, (store) => removeGroupMember(at(store), { group, member })),
     )
 
   // The words, not --from/--to: the shared vocabulary gives --to to a message's recipient.
-  grantsAuthority(annotate(groups.command("move"), { effects: LOCAL_WRITE }))
+  grantsAuthority(annotate(groups.command("move"), { effects: LOCAL_WRITE, output: { entity: "account_group" } }))
     .description("move an account from one group to another in one write; the other group is made when it is new")
     .summary("move an account between groups")
     .argument("<source>", MEMBER_HELP)
@@ -144,6 +151,8 @@ export const groupsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     .argument("<to>", "the group it joins")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((member: string, from: string, to: string, options: { json?: boolean }) =>
-      change(options.json, (store) => moveGroupMember(at(store), { member, from, to, reserved: reserved() })),
+      change("groups move", options.json, (store) =>
+        moveGroupMember(at(store), { member, from, to, reserved: reserved() }),
+      ),
     )
 }

@@ -188,6 +188,6 @@ duplicates. A profile named like a group is only a suggestion; it never puts an 
 your own messenger accounts, not bots. The group is `memo personal …` or `--source group:personal`, and every answer
 names the accounts it read.
 
-`memo groups remove work telegram:102` takes an account out, and `memo groups move telegram:102 personal work`
-moves it in one write. Without a lock, a group is a convenience, not a boundary: any run without the word still
+`memo groups remove work telegram:102` takes an account out. `memo groups move telegram:102 personal work` moves it
+in one write: the account, then the group it leaves, then the group it joins. Without a lock, a group is a convenience, not a boundary: any run without the word still
 reads every account. To pin a process to one group, see [the MCP lock](mcp.md#lock-an-agent-to-a-group).

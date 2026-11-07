@@ -15,7 +15,7 @@ export const memoIn =
   (env: NodeJS.ProcessEnv) =>
   async (...args: string[]) => {
     const streams = captureStreams()
-    const { group, rest } = liftGroup(createProgram({ streams, env }), args)
+    const { group, rest } = await liftGroup(createProgram({ streams, env }), args, env)
     const program = quiet(createProgram({ streams, env, ...(group === undefined ? {} : { group }) }))
     await program.parseAsync([...rest, "--json"], { from: "user" })
     return answerOf(streams.stdout.join(""))

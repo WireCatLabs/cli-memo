@@ -18,10 +18,11 @@ import {
   runsCommand,
   skillCommand as sharedSkillCommand,
 } from "@wirecat/cli-core/cli"
+import { groupLockOf } from "@wirecat/cli-core/services"
 import { Command } from "commander"
 import { actionsCommand } from "./actions/command.js"
 import { agentsCommand } from "./agents/command.js"
-import { answers, itemAnswer, trackAnswers } from "./answer.js"
+import { answers, itemAnswer, trackAnswers, withStore } from "./answer.js"
 import { askCommand } from "./answers/command.js"
 import { APP } from "./app.js"
 import { loadConfig } from "./config.js"
@@ -59,7 +60,7 @@ import { syncCommand } from "./run/import.js"
 import { scheduleCommand } from "./schedule/command.js"
 import { searchCommand } from "./search/command.js"
 import { showCommand } from "./show/command.js"
-import { scopeRunsToGroup } from "./store/group.js"
+import { memoListContext, scopeRunsToGroup } from "./store/group.js"
 import { groupsCommand } from "./store/groups-command.js"
 import { storeCommand } from "./store/info-command.js"
 import { tagsCommand } from "./tags/command.js"
@@ -478,21 +479,29 @@ export const createProgram = ({
 
 /**
  * `memo work search all …`: a first word that is no command is an account group (WC-ACCT-13), lifted off before
- * parsing, as `liftProfile` lifts a profile. A group word must be followed by a command.
+ * parsing, as `liftProfile` lifts a profile. A command must follow it; a word that is neither names the groups.
  */
-export const liftGroup = (program: Command, args: readonly string[]): { group?: string; rest: string[] } => {
+export const liftGroup = async (
+  program: Command,
+  args: readonly string[],
+  env: NodeJS.ProcessEnv,
+): Promise<{ group?: string; rest: string[] }> => {
   const words = commandWords(program)
   // memo's root options (--debug, --version) take no value, so none can hide the first word.
   const { profile: group, rest } = liftProfile([...args], words)
   if (group === undefined) return { rest }
   const next = rest.find((arg) => !arg.startsWith("-"))
-  if (next !== undefined && !words.has(next))
-    throw new CliError(
-      "validation_error",
-      `"${group}" and "${next}" are neither of them a command — memo commands lists them; a group goes first: ` +
-        "memo work search all …",
-    )
-  return { group, rest }
+  const groups = await withStore(env, async (store) => Object.keys((await memoListContext(store, env)).groups))
+  const known = groups.includes(group)
+  // Under the lock another group is a permission_error, which the run's own check gives.
+  if ((known || groupLockOf(APP, env) !== undefined) && next !== undefined && words.has(next)) return { group, rest }
+  throw new CliError(
+    "validation_error",
+    known
+      ? `"${group}" is a group, and a command follows it: memo ${group} search all …`
+      : `"${group}": unknown command or group — groups here: ${groups.join(", ")}; memo commands lists the commands`,
+    { reason: "input.invalid", groups },
+  )
 }
 
 /**

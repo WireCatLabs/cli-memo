@@ -29,6 +29,9 @@ const message = (id: string, text: string) => ({
   reactions: null,
 })
 
+const rowOf = (answer: { items: { group: string; members: unknown[]; duplicates: unknown[] }[] }, group: string) =>
+  answer.items.find((one) => one.group === group)
+
 const refs = (answer: { items: { ref: string }[] }) => answer.items.map((item) => item.ref).sort()
 
 describe("account groups", () => {
@@ -60,20 +63,23 @@ describe("account groups", () => {
       expect.objectContaining({ ...PERSONAL, reason: "in no other group" }),
     ])
     const doubled = await memo("groups", "add", "personal", "telegram:2")
-    expect(doubled.duplicates).toEqual([{ member: "telegram:2", groups: ["work", "personal"] }])
-    expect(doubled.groups.work[0].also_in).toEqual(["personal"])
+    expect(rowOf(doubled, "personal")?.duplicates).toEqual([{ member: "telegram:2", groups: ["work", "personal"] }])
+    expect(rowOf(doubled, "work")?.members).toEqual([expect.objectContaining({ also_in: ["personal"] })])
     expect((await row("work")).duplicates).toEqual([{ member: "telegram:2", groups: ["work", "personal"] }])
   })
 
   it("adds, moves and removes a member, and never takes a command word as a group name", async () => {
     const added = await memo("groups", "add", "family", "telegram:1")
-    expect(added.groups.family).toEqual([expect.objectContaining(PERSONAL)])
-    expect(added.groups.personal).toEqual([])
+    expect(rowOf(added, "family")?.members).toEqual([expect.objectContaining(PERSONAL)])
+    expect(rowOf(added, "personal")?.members).toEqual([])
     const moved = await memo("groups", "move", "telegram:1", "family", "work")
-    expect(moved.groups.work.map((one: { account: string }) => one.account).sort()).toEqual(["1", "2"])
-    expect(moved.groups.family).toEqual([])
+    expect(((rowOf(moved, "work")?.members ?? []) as { account: string }[]).map((one) => one.account).sort()).toEqual([
+      "1",
+      "2",
+    ])
+    expect(rowOf(moved, "family")?.members).toEqual([])
     const removed = await memo("groups", "remove", "work", "telegram:1")
-    expect(removed.groups.personal).toEqual([expect.objectContaining(PERSONAL)])
+    expect(rowOf(removed, "personal")?.members).toEqual([expect.objectContaining(PERSONAL)])
     await expect(memo("groups", "add", "search", "telegram:1")).rejects.toMatchObject({ code: "validation_error" })
   })
 
@@ -96,12 +102,16 @@ describe("account groups", () => {
     expect(refs(await scoped("search", "messages", "Groupsignal"))).toEqual(["msg:telegram/2/7/1"])
   })
 
-  it("refuses a first word that is neither a command nor a group", async () => {
-    await expect(memo("serch", "all", "x")).rejects.toMatchObject({ code: "validation_error" })
-    await expect(memo("nogroup", "search", "all", "x")).rejects.toMatchObject({
-      code: "validation_error",
-      message: expect.stringContaining("neither a command nor a group"),
-    })
+  it("refuses a first word that is neither a command nor a group, naming the groups", async () => {
+    for (const args of [
+      ["serch", "all", "x"],
+      ["nogroup", "search", "all", "x"],
+    ])
+      await expect(memo(...args)).rejects.toMatchObject({
+        code: "validation_error",
+        message: expect.stringMatching(/unknown command or group — groups here: work, personal/),
+      })
+    await expect(memo("work")).rejects.toMatchObject({ message: expect.stringContaining("a command follows it") })
   })
 
   it("under MEMO_GROUP_LOCK reads only the group, with or without the word, and refuses everything else", async () => {
