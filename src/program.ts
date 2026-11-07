@@ -340,8 +340,9 @@ const REF_KINDS_OF: Record<string, Record<string, string>> = {
   memories: { ref: "memory" },
   facts: { ref: "fact" },
   tasks: { id: "task", "other-task": "task" },
+  actions: { id: "action" },
+  review: { id: "proposal", ids: "proposal" },
 }
-const OWNER_QUEUES = new Set(["actions", "review"])
 /** Argument names that are ids of something cli-core's lock cannot map yet: such a command stays refused under it. */
 const UNMAPPED_IDS = new Set(["id", "ids", "ref", "meeting-id"])
 
@@ -369,7 +370,7 @@ const markGroupAware = (program: Command) => {
       for (const name of leaf.registeredArguments.map((argument) => argument.name())) {
         const kind = REF_KINDS_OF[top]?.[name] ?? (isSimpleKind(name) ? name : undefined)
         if (kind !== undefined) kinds[name] = kind
-        else if (UNMAPPED_IDS.has(name) && !OWNER_QUEUES.has(top)) mapped = false
+        else if (UNMAPPED_IDS.has(name)) mapped = false
       }
       if (mapped) refKinds(leaf, kinds as Parameters<typeof refKinds>[1])
     }

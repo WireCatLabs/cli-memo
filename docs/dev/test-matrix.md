@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**761 ✅ · 0 ⛔ · 158 ❌** — 213 commands, 706 options.
+**763 ✅ · 0 ⛔ · 156 ❌** — 213 commands, 706 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -596,7 +596,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `deals list` | `--json` | ✅ |  |
 | `deals list` | `--limit` | ❌ |  |
 | `deals show` |  | ✅ |  |
-| `deals show` | `--json` | ❌ |  |
+| `deals show` | `--json` | ✅ |  |
 | `deals add` |  | ✅ |  |
 | `deals add` | `--organization` | ✅ |  |
 | `deals add` | `--person` | ✅ |  |
@@ -616,7 +616,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `leads list` | `--json` | ✅ |  |
 | `leads list` | `--limit` | ❌ |  |
 | `leads show` |  | ✅ |  |
-| `leads show` | `--json` | ❌ |  |
+| `leads show` | `--json` | ✅ |  |
 | `leads add` |  | ✅ |  |
 | `leads add` | `--organization` | ❌ |  |
 | `leads add` | `--person` | ✅ |  |

@@ -130,6 +130,7 @@ export const projectActions = async (
 /** A suggested key document (`key:<id>` or its proposal number) or a findings batch, through the review registry. */
 export const decideAction = async (
   store: MessageStore,
+  env: NodeJS.ProcessEnv,
   project: Project,
   id: string,
   decision: { confirm: boolean; fingerprint?: string; accept: string[]; by: Decider; reason?: string },
@@ -140,7 +141,7 @@ export const decideAction = async (
   if (row.project !== project.ref || (row.kind !== "key_document" && row.kind !== "findings"))
     throw new CliError("not_found", `no proposal ${id} in ${project.ref}; memo projects actions list shows them`)
   if (row.kind === "key_document") {
-    await decideOne(store, id, decisionOf(decision.confirm, decision.by, decision.reason))
+    await decideOne(store, env, id, decisionOf(decision.confirm, decision.by, decision.reason))
     return { id, kind: "key_document", ref: row.subject, confirmed: decision.confirm, decided_by: decision.by }
   }
   if (decision.fingerprint === undefined)
