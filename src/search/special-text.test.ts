@@ -34,7 +34,8 @@ const CASES: [label: string, query: string, record: string | null][] = [
   ["Boolean words in lower case", "black and white", "black and white photos"],
   ["an emoji", "party 🎉", "the party 🎉 starts"],
   ["a backslash", "back\\slash", null],
-  ["a question mark", "ready?", null],
+  ["a question mark that ends a word", "ready?", "we are ready to ship"],
+  ["a question mark inside a word", "inv?ice", null],
   ["a leading minus", "-budget", null],
   ["a leading plus", "+budget", null],
   ["an asterisk", "budg*", null],
@@ -128,5 +129,11 @@ describe("special characters in free-text search", () => {
     expect(texts(await run("search", "messages", "draft NOT late"))).not.toContain("budget draft")
     expect(texts(await run("search", "mail", '"room four" AND in:email'))).toContain("Steering meeting")
     await expect(run("search", "messages", "kind:nonsense")).rejects.toMatchObject({ code: "validation_error" })
+  })
+
+  it("names why search all skipped a source in meta.issues", async () => {
+    const { issues } = (await run("search", "all", "kind:nonsense")).meta as { issues: Record<string, string>[] }
+    expect(issues.length).toBeGreaterThan(0)
+    expect(issues).toContainEqual(expect.objectContaining({ code: "validation_error", reason: "query.unknown-value" }))
   })
 })
