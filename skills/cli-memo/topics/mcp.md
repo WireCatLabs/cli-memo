@@ -12,6 +12,7 @@ changes. `MEMO_READ_ONLY=1` marks writing commands unavailable and refuses calls
 Find command arguments before calling them. Through `memo_read`, open a cited note with `notes show`
 (`note: ref`) or a message/email with `messages show` (`message: ref`, `full: true` for whole attachment text).
 
-`MEMO_GROUP_LOCK=<group>` pins the server to one account group: reads take only its accounts, and another group,
-`--source all`, an outside account or reference, and group changes are `permission_error`. Do not try to read around
+`MEMO_GROUP_LOCK=<group>` pins the server to one account group, and it fails closed. Only the commands that keep to
+a group run; the rest (memories and facts included) are `permission_error`. Reads take only the group's accounts, and
+a reference, another group, `--source all` or an account outside it is `permission_error`. Do not try to read around
 it; say which group you were given when a question needs more.

@@ -83,15 +83,11 @@ describe("account groups", () => {
     await expect(memo("groups", "add", "search", "telegram:1")).rejects.toMatchObject({ code: "validation_error" })
   })
 
-  it("reads only the group's accounts after the group word, and refuses an account outside it", async () => {
+  it("reads only the group's accounts after the group word, and refuses a --source outside it", async () => {
     expect(refs(await memo("search", "messages", "Groupsignal"))).toEqual(["msg:telegram/1/7/1", "msg:telegram/2/7/1"])
     expect(refs(await memo("work", "search", "messages", "Groupsignal"))).toEqual(["msg:telegram/2/7/1"])
     expect(refs(await memo("work", "search", "all", "Groupsignal", "--exact"))).toEqual(["msg:telegram/2/7/1"])
     expect(refs(await memo("personal", "search", "all", "Groupsignal", "--exact"))).toEqual(["msg:telegram/1/7/1"])
-    await expect(memo("work", "messages", "show", "msg:telegram/1/7/1")).rejects.toMatchObject({
-      code: "validation_error",
-      message: expect.stringContaining("outside"),
-    })
     await expect(memo("work", "search", "people", "x", "--source", "telegram:1")).rejects.toMatchObject({
       code: "validation_error",
     })

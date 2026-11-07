@@ -47,7 +47,7 @@ it("reads person:me as the person marked as the owner, in context and in a relat
   const project = await run("projects", "add", "Research Example", "--key", "RES")
 
   expect((await run("context", "person:me")).messages.person.uid).toBe(uid)
-  expect(await run("relationships", "add", "person:me", project.ref, "--role", "lead")).toMatchObject({
+  expect(await run("relationships", "add", "person:me", project.ref, "--role", "manager")).toMatchObject({
     from: `person:${uid}`,
     to: project.ref,
   })

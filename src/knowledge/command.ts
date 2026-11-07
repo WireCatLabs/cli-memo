@@ -32,6 +32,7 @@ import { notesAbout } from "../notes/about.js"
 import { oneOf, positive, readScope, writeScope } from "../options.js"
 import { withOwner } from "../people/owner.js"
 import { decideOne, decisionOf } from "../review/review.js"
+import { keepInGroup, refuseOutsideRelation } from "../store/group.js"
 import {
   ACCOUNTS_HELP,
   accountName,
@@ -142,7 +143,9 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((words: string[], options: { json?: boolean }) => {
       const query = listQuery(typedQuery(words), ORGANIZATIONS_QUERY, "organizations list")
-      return ownedList("organizations list", options, (store) => store.knowledge.organizations(query))
+      return ownedList("organizations list", options, async (store) =>
+        keepInGroup(store, env, await store.knowledge.organizations(query), ({ ref }) => ref),
+      )
     })
   annotate(organizations.command("context"), { effects: LOCAL_READ })
     .description(
@@ -292,7 +295,10 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .argument("<to>", "the person:, organization: or project: it belongs or relates to")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .option("--kind <kind>", "member-of or related-to", "member-of")
-    .option("--role <role>", "the role it has there, in a few words, such as cto")
+    .option(
+      "--role <role>",
+      "its role, one from the lists: employee, contributor, decision-maker and the like; a job title is not one",
+    )
     .option("--reason <text>", "why you think so, in a sentence")
     .action(
       async (
@@ -363,7 +369,8 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         ...(options.purpose === undefined ? {} : { purpose: options.purpose }),
       }
       const by = await whoRuns(command, env, { asOwner: options.asOwner, question: `change relationship ${id}?` })
-      return owned(options, (store) => {
+      return owned(options, async (store) => {
+        await refuseOutsideRelation(store, env, id)
         if (options.role === undefined && options.purpose === undefined)
           throw new CliError("validation_error", "say what to change: --role, --purpose or both", {
             reason: "input.invalid",
@@ -397,6 +404,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         question: `${name} relationship ${id} as you, the owner?`,
       })
       await owned(options, async (store) => {
+        await refuseOutsideRelation(store, env, id)
         const suggestion = await pendingLink(store, id)
         if (suggestion === undefined)
           return name === "remove"

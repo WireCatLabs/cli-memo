@@ -1,11 +1,10 @@
-import { CliError, type Streams } from "@wirecat/cli-base"
+import type { Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { commandWords, grantsAuthority, LOCAL_READ, LOCAL_WRITE, queryTerms, withQuery } from "@wirecat/cli-core/cli"
 import {
   addGroupMember,
   type GroupMembership,
-  groupLockOf,
   listAccountGroups,
   moveGroupMember,
   removeGroupMember,
@@ -21,18 +20,7 @@ const MEMBER_HELP = "one account, as --source names it: telegram:102, tg:work, e
 /** memo's own entity: one group and its accounts. */
 const GROUPS_QUERY = { entity: "account_group", backend: "native", fields: [] } as const satisfies QueryRegistry
 
-const at = (store: MessageStore) => ({ store, account: MEMO_ACCOUNT, app: APP })
-
-const isMemo = (key: { provider: string; account: string }) =>
-  key.provider === MEMO_ACCOUNT.provider && key.account === MEMO_ACCOUNT.account
-
-/** cli-core lists the account a run is as, and memo runs as none: its own notes are no stored account. */
-const withoutMemo = (membership: GroupMembership): GroupMembership => ({
-  ...membership,
-  groups: Object.fromEntries(
-    Object.entries(membership.groups).map(([name, members]) => [name, members.filter((one) => !isMemo(one))]),
-  ),
-})
+const at = (store: MessageStore, env: NodeJS.ProcessEnv) => ({ store, account: MEMO_ACCOUNT, app: APP, env })
 
 export const membershipText = ({ groups, duplicates, suggested, unresolved }: GroupMembership): string =>
   [
@@ -67,7 +55,7 @@ export const groupsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     json: boolean | undefined,
     work: (store: MessageStore) => Promise<GroupMembership>,
   ) => {
-    const membership = withoutMemo(await withStore(env, work))
+    const membership = await withStore(env, work)
     const { groups: named, duplicates, suggested, unresolved } = membership
     const items = Object.entries(named).map(([group, members]) => ({
       group,
@@ -90,20 +78,6 @@ export const groupsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     )
   }
   const reserved = () => commandWords(program)
-  // A run locked to a group must not widen the group it is locked to, nor any other.
-  const change = (
-    command: string,
-    json: boolean | undefined,
-    work: (store: MessageStore) => Promise<GroupMembership>,
-  ) => {
-    const lock = groupLockOf(APP, env)
-    if (lock !== undefined)
-      throw new CliError(
-        "permission_error",
-        `this process is locked to group ${lock} (MEMO_GROUP_LOCK) — only the owner changes groups`,
-      )
-    return show(command, json, work)
-  }
 
   withQuery(
     annotate(groups.command("list"), { effects: LOCAL_READ, output: { entity: "account_group" } }),
@@ -117,7 +91,7 @@ export const groupsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (words: string[], options: { json?: boolean }) => {
       queryTerms(words, GROUPS_QUERY, "groups list")
-      await show("groups list", options.json, (store) => listAccountGroups(at(store)))
+      await show("groups list", options.json, (store) => listAccountGroups(at(store, env)))
     })
 
   grantsAuthority(annotate(groups.command("add"), { effects: LOCAL_WRITE, output: { entity: "account_group" } }))
@@ -127,7 +101,9 @@ export const groupsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     .argument("<source>", MEMBER_HELP)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((group: string, member: string, options: { json?: boolean }) =>
-      change("groups add", options.json, (store) => addGroupMember(at(store), { group, member, reserved: reserved() })),
+      show("groups add", options.json, (store) =>
+        addGroupMember(at(store, env), { group, member, reserved: reserved() }),
+      ),
     )
 
   grantsAuthority(annotate(groups.command("remove"), { effects: LOCAL_WRITE, output: { entity: "account_group" } }))
@@ -139,7 +115,7 @@ export const groupsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     .argument("<source>", MEMBER_HELP)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((group: string, member: string, options: { json?: boolean }) =>
-      change("groups remove", options.json, (store) => removeGroupMember(at(store), { group, member })),
+      show("groups remove", options.json, (store) => removeGroupMember(at(store, env), { group, member })),
     )
 
   // The words, not --from/--to: the shared vocabulary gives --to to a message's recipient.
@@ -151,8 +127,8 @@ export const groupsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     .argument("<to>", "the group it joins")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((member: string, from: string, to: string, options: { json?: boolean }) =>
-      change("groups move", options.json, (store) =>
-        moveGroupMember(at(store), { member, from, to, reserved: reserved() }),
+      show("groups move", options.json, (store) =>
+        moveGroupMember(at(store, env), { member, from, to, reserved: reserved() }),
       ),
     )
 }

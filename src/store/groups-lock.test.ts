@@ -71,12 +71,15 @@ describe("MEMO_GROUP_LOCK fails closed", () => {
     await expect(memo("relationships", "add", homeOnly, refs.acme)).rejects.toMatchObject(refused)
   })
 
-  it("keeps the owner's own notes out of a work run", async () => {
+  it("keeps the owner's own notes out of a work run, and names no --source nobody typed", async () => {
     const memo = lockedTo("work")
-    const found = await memo("search", "notes", "Lockcase").catch((error: { code: string }) => error)
-    if ("items" in found) expect(found.items).toEqual([])
-    else expect(found).toMatchObject(refused)
-    await expect(memo("notes", "list", "source:internal")).rejects.toMatchObject(refused)
+    const searched = memo("search", "notes", "Lockcase")
+    await expect(searched).rejects.toMatchObject({ code: "not_found", message: "group work holds no notes" })
+    expect((await memo("notes", "list", "source:internal")).items).toEqual([])
+    const home = lockedTo("personal")
+    expect((await home("notes", "list", "source:internal")).items).toEqual([
+      expect.objectContaining({ text: "Lockcase private thought" }),
+    ])
   })
 
   it("refuses the context and the reference of a person only an outside account saw", async () => {
