@@ -15,11 +15,6 @@ the API.
 
 ## 0.131.48 — 07.11.2026
 
-### Fixed
-
-- **cli-core 0.602.0.** A search with a colon, a URL or other syntax characters in plain text is read as words
-  (#2607), a recovery refuses while another runs and clears invalid JSON values (#2619), and `foldName` folds ё into е.
-
 ### Changed — may break callers
 
 - **`memo schedule agent` and `memo schedule command` take `--deliver-to <route>`, no longer `--to <route>`**
@@ -31,6 +26,8 @@ the API.
 
 ### Fixed
 
+- **cli-core 0.602.0.** A search with a colon, a URL or other syntax characters in plain text is read as words
+  (#2607), a recovery refuses while another runs and clears invalid JSON values (#2619), and `foldName` folds ё into е.
 - **Any memo command, a read too, no longer starts or enables the sync timer.** After each command memo points the
   timer at the memo that just ran, and it rewrote the whole unit with the caller's PATH, then ran
   `systemctl --user enable --now`. A program with another PATH, like the WireCat app reading a status, so started a
