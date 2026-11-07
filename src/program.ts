@@ -174,6 +174,7 @@ const OWN_ENTITIES = entityFields({
   meeting_project: ["id", "meeting", "project", "confirmed", "provenance", "fingerprint"],
   notes_folder: ["id", "name", "path", "format", "kept_by"],
   account_group: ["group", "members", "duplicates", "suggested"],
+  relationship_role: ["list", "id", "label", "built_in"],
   person_context_memo: [
     "messages",
     "events",
@@ -351,6 +352,7 @@ const GROUP_AWARE = [
   "relationships end",
   "relationships remove",
   "relationships confirm",
+  "relationships roles",
   "mcp serve",
   "memories",
   "facts",

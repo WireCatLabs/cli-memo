@@ -136,7 +136,7 @@ lead. `memo deals update deal:5 --project HRB` sets the project a deal belongs t
 changes it.
 
 A deal copied from a CRM account (`b24 <profile> sync`) and the people on it are `reported`: the CRM says so, and you
-did not confirm it. Put the CRM account in a group (`memo groups add work bitrix24:<portal>`), and a `personal` run
+did not confirm it. Put the CRM account in a group (`memo groups add work bitrix24:<portal>`), and a run of another group
 reads none of its deals, people or relationships.
 
 ## Answers for scripts and agents

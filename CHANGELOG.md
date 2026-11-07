@@ -8,6 +8,9 @@ the API.
 
 ### Added
 
+- **`memo relationships roles list [list:<list>] | add <list> <role> [--label] | remove <list> <role>`**: the roles a
+  relationship may take, built in and your own (cli-core's role lists). Only you change them; one still held is kept.
+- **`memo search people` finds a person you added by name only.**
 - **`memo relationships add --kind reports-to|customer-of|partner-of`, `--position` (the job title), `--start-date`,
   `--end-date`**, and `relationships update --position --start-date`. `memo relationships end <id> --end-date <date>` says
   a relationship ended; it stays, as `ended`.
@@ -56,8 +59,6 @@ the API.
   sections replace `relationships`; `notes` and `tags` stay.
 - **A role is one from the registry's lists** (cli-core#2629): `--role cto` is refused with the list.
   memo's own examples and tests now use list roles.
-- **`--source group:personal` now also holds every account in no other group** (cli-core#2632): a `personal` group
-  saved before held only what it listed.
 
 ### Fixed
 

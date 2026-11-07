@@ -3,6 +3,7 @@
   "projects evidence --purpose",
   "projects status --purpose",
   "relationships add --position",
+  "relationships roles add --label",
   "relationships update --position",
   "relationships update --purpose",
   "schedule agent --mail-batch",

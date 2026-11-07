@@ -79,6 +79,13 @@ export const searchPeople = async (
       hits.set(ref, hit)
     }
   }
+  // A person added by name alone has no identity in any account, so no account above lists them; they are the owner's.
+  // `--source` names accounts, which such a person is in none of.
+  for (const { person, name } of source === undefined ? await store.tasks.taskPeople({ limit: 5000 }) : []) {
+    if (hits.has(person) || name === null || !wanted.every((word) => fold(name).includes(word))) continue
+    const known = await store.people.personByUid(person.slice("person:".length))
+    if (known && known.identities.length === 0) hits.set(person, { ref: person, name, identities: [], aliases: [] })
+  }
   const first = wanted.join(" ")
   const rank = (hit: PersonHit) => (fold(hit.name ?? "").startsWith(first) ? 0 : 1)
   const sorted = [...hits.values()].sort(

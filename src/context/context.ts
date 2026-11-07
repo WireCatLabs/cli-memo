@@ -13,7 +13,7 @@ import {
   personContext,
 } from "@wirecat/cli-core/services"
 import type { AccountKey, Link, MessageStore, Note, PersonRecord, RelationListItem } from "@wirecat/cli-core/store"
-import { type NotesAbout, notesAboutInGroup } from "../notes/about.js"
+import { type NotesAbout, notesAbout } from "../notes/about.js"
 import { withOwner } from "../people/owner.js"
 import { groupScopeOf, inGroup, scopedAccounts } from "../store/group.js"
 import { selectAccount } from "../store/scope.js"

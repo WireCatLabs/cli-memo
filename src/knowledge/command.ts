@@ -62,6 +62,7 @@ import { projectStatusCommand } from "./project-status-command.js"
 import { projectTransferCommand } from "./project-transfer-command.js"
 import { listRelationships, RELATIONSHIP_QUERY, relationshipsText } from "./relationships.js"
 import { relationshipsScanCommand, scanStep } from "./relationships-scan.js"
+import { relationshipRolesCommand } from "./roles-command.js"
 
 const ROLE_HELP =
   `its role: in an organization ${ORGANIZATION_ROLES.join(", ")}; in a project ${PROJECT_ROLES.join(", ")}; ` +
@@ -207,7 +208,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         const ref = found.organization.ref
         return {
           ...found,
-          notes: await notesAboutInGroup(store, env, { ref }),
+          notes: await notesAbout(store, { ref }),
           tags: await store.knowledge.tags(null, { type: "organization", id: ref.slice("organization:".length) }),
         }
       })
@@ -518,6 +519,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         : store.knowledge.endRelation(null, id, at, by)
     })
   })
+  relationshipRolesCommand(relations, { print }, env)
   relationshipsScanCommand(relations, print, env, warn)
   const reminders = program
     .command("reminders")

@@ -192,6 +192,9 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo relationships list standing:reported include:ended --limit 50",
   ],
   "relationships remove": ["memo relationships remove 4"],
+  "relationships roles list": ["memo relationships roles list", "memo relationships roles list list:deal --json"],
+  "relationships roles add": ["memo relationships roles add organization board-member --label 'Board member'"],
+  "relationships roles remove": ["memo relationships roles remove organization board-member"],
   "relationships end": ["memo relationships end 4 --end-date 2026-09-30"],
   "relationships confirm": ["memo relationships confirm 4"],
   "relationships scan": [
