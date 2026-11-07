@@ -1788,14 +1788,14 @@ memo relationships add <from> <to> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--kind <kind>` | member-of, reports-to, customer-of, partner-of, related-to. Default: `member-of`. |
 | `--role <role>` | its role: in an organization employee, contractor, founder, owner, manager, adviser, contact; in a project owner, manager, contributor, client-contact, approver; on a deal or lead owner, contact, decision-maker, influencer. A job title is not a role. |
-| `--title <title>` | the job title, such as 'Procurement manager'; kept apart from the role as its position. |
+| `--position <position>` | the job title, such as 'Procurement manager'; kept apart from the role. |
 | `--start-date <date>` | the first day it held, such as 2026-01-01. |
-| `--end-date <date>` | the last day it held. |
+| `--end-date <date>` | the last day it held, included; it ends at the start of the day after. |
 | `--reason <text>` | why you think so, in a sentence. |
 
 **Returns:** state that a person, organization, project or chat belongs or relates to another
 
-**Example:** `memo relationships add person:3 organization:1 --role employee --title CTO --start-date 2026-01-01`, `memo relationships add person:3 person:5 --kind reports-to`, `memo relationships add organization:1 organization:2 --kind customer-of --reason 'signed in October'`
+**Example:** `memo relationships add person:3 organization:1 --role employee --position CTO --start-date 2026-01-01`, `memo relationships add person:3 person:5 --kind reports-to`, `memo relationships add organization:1 organization:2 --kind customer-of --reason 'signed in October'`
 
 ### `memo relationships list`
 
@@ -1836,7 +1836,7 @@ memo relationships update <id> [options]
 | Option | What it does |
 |---|---|
 | `--role <role>` | its role: in an organization employee, contractor, founder, owner, manager, adviser, contact; in a project owner, manager, contributor, client-contact, approver; on a deal or lead owner, contact, decision-maker, influencer. A job title is not a role; an empty value clears it. |
-| `--title <title>` | the job title, kept as its position; an empty value clears it. |
+| `--position <position>` | the job title; an empty value clears it. |
 | `--start-date <date>` | the first day it held, such as 2026-01-01. |
 | `--purpose <purpose>` | what the chat is for in the project: work, sales, support or other. |
 | `--reason <text>` | why, in a sentence. |
@@ -1911,7 +1911,7 @@ memo relationships end <id> [options]
 
 | Option | What it does |
 |---|---|
-| `--end-date <date>` | the last day it held; today when left out. |
+| `--end-date <date>` | the last day it held, included; it ends at the start of the day after. Today when left out. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 

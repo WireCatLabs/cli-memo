@@ -368,7 +368,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `relationships add` | `--json` | ✅ |  |
 | `relationships add` | `--kind` | ✅ |  |
 | `relationships add` | `--role` | ✅ |  |
-| `relationships add` | `--title` | ✅ |  |
+| `relationships add` | `--position` | ✅ |  |
 | `relationships add` | `--start-date` | ✅ |  |
 | `relationships add` | `--end-date` | ❌ |  |
 | `relationships add` | `--reason` | ✅ |  |
@@ -378,7 +378,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `relationships list` | `--json` | ✅ |  |
 | `relationships update` |  | ✅ |  |
 | `relationships update` | `--role` | ✅ |  |
-| `relationships update` | `--title` | ❌ |  |
+| `relationships update` | `--position` | ❌ |  |
 | `relationships update` | `--start-date` | ❌ |  |
 | `relationships update` | `--purpose` | ✅ |  |
 | `relationships update` | `--reason` | ✅ |  |

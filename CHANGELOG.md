@@ -43,8 +43,8 @@ the API.
   and pages with `--limit` and `--page`, the pending proposals with them (cli-core's `listRelations`). `about:` gives
   each row its `direction` (`outgoing` or `incoming`) and an incoming one its `inverse` (`manages` for `reports-to`). Every row shows its `standing` and the account that reported it; a role
   saved before the role lists is kept and marked `custom`.
-- **`memo relationships add --kind reports-to|customer-of|partner-of`, `--title` (the job title), `--start-date`,
-  `--end-date`**, and `relationships update --title --start-date`. `memo relationships end <id> --end-date <date>` says
+- **`memo relationships add --kind reports-to|customer-of|partner-of`, `--position` (the job title), `--start-date`,
+  `--end-date`**, and `relationships update --position --start-date`. `memo relationships end <id> --end-date <date>` says
   a relationship ended; it stays, as `ended`.
 - **`memo search all --only crm`** searches deals and leads alone; `search all` names them in its help.
 
