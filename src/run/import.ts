@@ -1,10 +1,10 @@
 import { createDeadline, type ErrorCode, errorCodes, isCliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { FETCH, parseDuration } from "@wirecat/cli-core/cli"
-import { openStore } from "@wirecat/cli-core/store"
+import { markStoreDamaged, openStore, storePath } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError, Option } from "commander"
 import { answers, itemAnswer } from "../answer.js"
-import { STORE_CLIENT } from "../app.js"
+import { APP, STORE_CLIENT } from "../app.js"
 import { decisionPolicy, loadConfig } from "../config.js"
 import { errorObject } from "../failure.js"
 import { boundFolders, UNBOUND, unboundReason } from "../notes/bound.js"
@@ -203,6 +203,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           await work()
         } catch (error) {
           halt()
+          markStoreDamaged(error, { store: storePath(env), command: "memo sync", version: APP.version })
           const { error: failure } = await errorObject(error)
           const reason = failureReason(error, failure, debug)
           run.failed.push({ source, code: failure.code, reasonId: failure.reason, reason })

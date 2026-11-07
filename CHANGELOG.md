@@ -8,6 +8,14 @@ the API.
 
 ### Fixed
 
+- **`memo sync` names a damaged store instead of a bug.** "database disk image is malformed" or "file is not a
+  database" from the shared store was `internal_error (command.crashed)`, "the command failed; this is a bug", in the
+  sync's summary and the scheduled sync's failure banner. It is now `configuration_error (store.damaged)`: the store
+  file is damaged, and `memo store recover` says what is lost and how to recover it (cli-core <next>).
+- **A `memo sync` source that finds the store damaged stops later writes.** Its failure leaves the damage mark beside
+  the store, as a failed command already does, so the next sync and every other tool's write refuse with
+  `store.damaged` until `memo store recover` (cli-core <next>). `memo doctor --deep` records memo's version in the
+  store's health mark.
 - **Any memo command, a read too, no longer starts or enables the sync timer.** After each command memo points the
   timer at the memo that just ran, and it rewrote the whole unit with the caller's PATH, then ran
   `systemctl --user enable --now`. A program with another PATH, like the WireCat app reading a status, so started a
@@ -20,13 +28,6 @@ the API.
 
 - **cli-core 0.602.0.** A search with a colon, a URL or other syntax characters in plain text is read as words
   (#2607), a recovery refuses while another runs and clears invalid JSON values (#2619), and `foldName` folds ё into е.
-
-### Fixed
-
-- **`memo sync` names a damaged store instead of a bug.** "database disk image is malformed" or "file is not a
-  database" from the shared store was `internal_error (command.crashed)`, "the command failed; this is a bug", in the
-  sync's summary and the scheduled sync's failure banner. It is now `configuration_error (store.damaged)`: the store
-  file is damaged, and `memo store recover` says what is lost and how to recover it (cli-core <next>).
 
 ### Changed — may break callers
 
