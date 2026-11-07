@@ -21,6 +21,13 @@ the API.
 - **cli-core 0.602.0.** A search with a colon, a URL or other syntax characters in plain text is read as words
   (#2607), a recovery refuses while another runs and clears invalid JSON values (#2619), and `foldName` folds ё into е.
 
+### Fixed
+
+- **`memo sync` names a damaged store instead of a bug.** "database disk image is malformed" or "file is not a
+  database" from the shared store was `internal_error (command.crashed)`, "the command failed; this is a bug", in the
+  sync's summary and the scheduled sync's failure banner. It is now `configuration_error (store.damaged)`: the store
+  file is damaged, and `memo store recover` says what is lost and how to recover it (cli-core <next>).
+
 ### Changed — may break callers
 
 - **`memo schedule agent` and `memo schedule command` take `--deliver-to <route>`, no longer `--to <route>`**

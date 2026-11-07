@@ -9,7 +9,7 @@ import {
   type Streams,
 } from "@wirecat/cli-base"
 import { metaOf } from "@wirecat/cli-base/commands"
-import { agentResult, failureContext, judgedEffects } from "@wirecat/cli-core/cli"
+import { agentResult, failureContext, judgedEffects, storeDamaged } from "@wirecat/cli-core/cli"
 import { type Command, CommanderError } from "commander"
 import { ValiError } from "valibot"
 import { APP } from "./app.js"
@@ -28,7 +28,7 @@ export const recognisable = (error: unknown): unknown => {
       ...(param ? { param } : {}),
     })
   }
-  return error
+  return storeDamaged(error, APP.command)
 }
 
 export const errorObject = (error: unknown) => errorObjectOf(recognisable(error), context)
