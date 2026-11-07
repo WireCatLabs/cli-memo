@@ -26,6 +26,12 @@ the API.
 
 ### Fixed
 
+- **The scheduled mail triage no longer acknowledges mail its input left out.** The input was cut at 60,000
+  characters mid-text while the cursor printed with it covered the whole batch, so the mark could move past emails
+  the agent never saw. memo now builds the input under that cap, leaves whole emails out in store order, and gives
+  each mailbox the cursor and findings key of the last email shown; the next run starts at the first one left out.
+  An email too long for any input is shortened (`text_cut: true`) instead of blocking its mailbox (needs the
+  unreleased cli-core with `email.cursor`).
 - **Opening the shared store twice in one memo process no longer drops the first connection's locks** (cli-core
   0.599.0). Another process could then delete the write-ahead log under a writer still using it, which can damage
   the store.
