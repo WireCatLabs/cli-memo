@@ -4261,6 +4261,36 @@ memo store info [options]
 
 **Example:** `memo store info`, `memo store info --json`
 
+### `memo store recover`
+
+check every page and search index of the store, say what is damaged, what it means and the commands that recover it; changes nothing
+
+```sh
+memo store recover [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+#### `memo store recover run`
+
+copy every readable row into a new file with the sqlite3 program, rebuild the search indexes, mentions and vector index, check it, and put it in place of the store; the damaged file is kept beside it. Refuses while a WireCat timer or process has the store
+
+This command changes the local store or your files.
+
+```sh
+memo store recover run [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** rebuild a damaged store from every row it can read
+
+**Example:** `memo store recover run`
+
 ## `memo jobs`
 
 run memo sync on a systemd user timer, set in the config
@@ -4384,6 +4414,7 @@ memo doctor [options]
 | Option | What it does |
 |---|---|
 | `--online` | also connect once and read the account; sends nothing. |
+| `--deep` | also read every page of the store and check every search index (about 30 s for 6 GB); without it, only the file header and schema. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** the state this installation is in, without connecting unless --online
