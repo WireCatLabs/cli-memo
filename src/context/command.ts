@@ -10,6 +10,7 @@ import { positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { atLeast, kindsText, waitingAbout } from "../review/status.js"
 import { deniedCrmKinds } from "../search/denied.js"
+import { lockedCoverage } from "../store/guard.js"
 import { contextAccountsOf, type MemoContext, memoContext, withOwnMailText } from "./context.js"
 
 const MAX_TEXT = 160
@@ -153,10 +154,10 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
           })
           const { uid, identities } = found.messages.person
           const refs = [`person:${uid}`, ...identities.map(({ provider, id }) => `${provider}:${id}`)]
-          return {
+          return lockedCoverage(store, env, {
             ...(options.trimmed ? withOwnMailText(found) : found),
             proposals: { ...(await waitingAbout(store, env, refs)), next: { command: "review list" } },
-          }
+          })
         })
         print(options.json, itemAnswer(answer), contextText(answer))
       },
