@@ -124,7 +124,9 @@ is yours only when its input and output are a terminal; a run with no terminal a
 as the unattended bot `unattended`, which proposes and never decides. What the agent writes there, a fact,
 memory or relationship, starts as proposed; yours is confirmed or accepted at once. Proposed actions still wait
 for approval. In an agent's terminal, `--as-owner` makes a command yours only after you answer y at the
-terminal; it never asks under `--json` or without a terminal, and refuses with exit 7.
+terminal; it never asks under `--json` or without a terminal, and refuses with exit 7. WireCat Desktop passes
+`--from-app` on every decision you make in the app: the run is then yours with no question. It is the app's word
+that you clicked, not a check (see [Security](security.md)).
 
 Every confirm, reject and remove path, CLI and MCP alike, checks who decides. An agent decides only with
 `--reason`, never a proposal of its own bot, never a rule's or an unconfirmed link's, and only when

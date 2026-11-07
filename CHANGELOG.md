@@ -4,12 +4,16 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
-## 0.131.48 — 07.11.2026
+## Unreleased
 
 ### Fixed
 
-- **cli-core 0.602.0.** A search with a colon, a URL or other syntax characters in plain text is read as words
-  (#2607), a recovery refuses while another runs and clears invalid JSON values (#2619), and `foldName` folds ё into е.
+- **WireCat Desktop can decide as you.** Desktop runs memo with no terminal, so memo refused every confirm, reject and
+  forget from its Memory page with `decision.decider-unknown`. Every command that decides or writes as you now takes
+  `--from-app`, which Desktop passes: the run is recorded as yours with no question. It is the app's word that you
+  acted there, not a security check; it is not offered over MCP.
+
+## 0.131.48 — 07.11.2026
 
 ### Changed — may break callers
 
@@ -22,6 +26,8 @@ the API.
 
 ### Fixed
 
+- **cli-core 0.602.0.** A search with a colon, a URL or other syntax characters in plain text is read as words
+  (#2607), a recovery refuses while another runs and clears invalid JSON values (#2619), and `foldName` folds ё into е.
 - **Any memo command, a read too, no longer starts or enables the sync timer.** After each command memo points the
   timer at the memo that just ran, and it rewrote the whole unit with the caller's PATH, then ran
   `systemctl --user enable --now`. A program with another PATH, like the WireCat app reading a status, so started a

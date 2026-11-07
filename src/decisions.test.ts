@@ -182,7 +182,7 @@ it("records a write from an unattended run as a proposal, not the owner's", asyn
   expect(owned).toMatchObject({ status: "accepted", author: { type: "person" } })
 })
 
-it("refuses an MCP client confirming its own proposal, and --as-owner is not offered over MCP", async () => {
+it("refuses an MCP client confirming its own proposal, and neither --as-owner nor --from-app is offered over MCP", async () => {
   const { env, note } = await setUp()
   const [server, transport] = InMemoryTransport.createLinkedPair()
   await createMemoServer(env, createProgram).connect(server)
@@ -202,7 +202,49 @@ it("refuses an MCP client confirming its own proposal, and --as-owner is not off
     expect(confirmed.structuredContent).toMatchObject({ error: { reason: "proposal.own" } })
     const schema = await client.callTool({ name: "memo_tools_search", arguments: { query: "facts confirm" } })
     expect(JSON.stringify(schema.structuredContent)).not.toContain("as_owner")
+    expect(JSON.stringify(schema.structuredContent)).not.toContain("from_app")
   } finally {
     await client.close()
   }
+})
+
+const DESKTOP = { WIRECAT_CALLER: "desktop" }
+
+it("decides as the owner under --from-app with no terminal, and without it knows no decider", async () => {
+  const { run, note } = await setUp(false)
+  const propose = async () =>
+    (
+      await run(
+        CLAUDE,
+        NOBODY,
+        ...["memories", "add", "Prefers short replies", "--kind", "preference", "--scope", "work"],
+        ...["--evidence", note.ref],
+      )
+    ).ref as string
+  const memory = await propose()
+  expect(await run(DESKTOP, NOBODY, "memories", "confirm", memory)).toMatchObject(refused("decision.decider-unknown"))
+  expect(await run(DESKTOP, NOBODY, "memories", "confirm", memory, "--from-app")).toMatchObject({
+    status: "confirmed",
+  })
+  const fact = await run(DESKTOP, NOBODY, "facts", "add", "Kickoff moved", "--kind", "decision", "--evidence", note.ref)
+  expect(fact).toMatchObject({ status: "proposed", author: { type: "bot", name: "unattended" } })
+  expect(await run(DESKTOP, NOBODY, "facts", "reject", fact.ref, "--from-app")).toMatchObject({ status: "rejected" })
+})
+
+it("takes --from-app as the owner even with an agent variable set", async () => {
+  const { run, note } = await setUp(false)
+  const own = await run(
+    { ...DESKTOP, ...CLAUDE },
+    NOBODY,
+    ...["facts", "add", "Kickoff moved", "--kind", "decision", "--evidence", note.ref, "--from-app"],
+  )
+  expect(own).toMatchObject({ status: "accepted", author: { type: "person" } })
+  const proposed = await run(
+    CLAUDE,
+    NOBODY,
+    ...["facts", "add", "Ships Fridays", "--kind", "decision", "--evidence", note.ref],
+  )
+  expect(await run(CLAUDE, NOBODY, "facts", "confirm", proposed.ref, "--from-app")).toMatchObject({
+    status: "accepted",
+  })
 })

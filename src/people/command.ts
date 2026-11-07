@@ -5,7 +5,7 @@ import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { LOCAL_READ, LOCAL_WRITE, listQuery, typedQuery, withQuery } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
-import { deciderOf } from "../author.js"
+import { deciderOf, fromAppOption } from "../author.js"
 import { boundFolders, folderOfFile } from "../notes/bound.js"
 import { folderNotes } from "../notes/import.js"
 import { positive } from "../options.js"
@@ -32,6 +32,7 @@ export const noteCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       .argument("<identity>", "<messenger>:<name or id> of an identity of the person")
       .option("--json", "print the standard JSON answer")
     if (operation === "add") command.argument("<path>", "the imported note file in a configured folder")
+    if (operation !== "show") fromAppOption(command)
     command.action(async (identity: string, value: unknown) => {
       const by = await deciderOf(command, env, { question: `change ${identity}'s note files as you, the owner?` })
       const result = await withStore(env, async (store) => {

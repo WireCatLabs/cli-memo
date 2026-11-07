@@ -252,6 +252,7 @@ memo notes links add <identity> <path> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print the standard JSON answer. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
 **Returns:** link an imported note file to a person
 
@@ -274,6 +275,7 @@ memo notes links clear <identity> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print the standard JSON answer. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
 **Returns:** remove the owner's note-file links for a person
 
@@ -1531,6 +1533,7 @@ memo projects actions confirm <project> <id> [findings] [options]
 |---|---|
 | `--json` | print JSON; --json=id,status keeps only those fields. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--fingerprint <hash>` | a findings batch's fingerprint, as projects actions list gives it. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
@@ -1557,6 +1560,7 @@ memo projects actions reject <project> <id> [options]
 |---|---|
 | `--json` | print JSON; --json=id,status keeps only those fields. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--fingerprint <hash>` | a findings batch's fingerprint, as projects actions list gives it. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
@@ -1688,6 +1692,7 @@ memo projects key-documents add <project> <reference> [options]
 | `--reason <text>` | why it is key, in a few words. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
 **Returns:** mark a note:, document: or msg: reference as a key document of the project
 
@@ -1712,6 +1717,7 @@ memo projects key-documents remove <project> <reference> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
 **Returns:** unmark a key document; the note, file or message stays. Only you remove one
 
@@ -1760,6 +1766,7 @@ memo relationships add <from> <to> [options]
 | Option | What it does |
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--kind <kind>` | member-of or related-to. Default: `member-of`. |
 | `--role <role>` | the role it has there, in a few words, such as cto. |
@@ -1810,6 +1817,7 @@ memo relationships update <id> [options]
 | `--reason <text>` | why, in a sentence. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
 **Returns:** set a relationship's role or a chat's purpose in a project
 
@@ -1833,6 +1841,7 @@ memo relationships remove <id> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
 **Returns:** remove a relationship; removing a suggested one rejects it
@@ -1857,6 +1866,7 @@ memo relationships confirm <id> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
 **Returns:** confirm a suggested relationship
@@ -2230,6 +2240,7 @@ memo memories add <text> [options]
 | Option | What it does |
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--kind <kind>` | summary, digest, preference. |
 | `--scope <scope>` | personal or work. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
@@ -2324,6 +2335,7 @@ memo memories confirm <ref> [options]
 | Option | What it does |
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
@@ -2348,6 +2360,7 @@ memo memories invalidate <ref> [options]
 | Option | What it does |
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
@@ -2372,6 +2385,7 @@ memo memories remove <ref> [options]
 | Option | What it does |
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
@@ -2446,6 +2460,7 @@ memo mentions confirm <id> [person] [options]
 | `--source <accounts>` | the mailboxes a mail mention may be in: email:<account>, email or group:<name>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
 **Returns:** say what a mention is, everywhere its value is written
 
@@ -2470,6 +2485,7 @@ memo mentions reject <id> [options]
 | `--source <accounts>` | the mailboxes a mail mention may be in: email:<account>, email or group:<name>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
 **Returns:** dismiss a mention's value everywhere, and on later imports
 
@@ -2496,6 +2512,7 @@ memo facts add <statement> [options]
 | Option | What it does |
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--kind <kind>` | fact, statement, question, decision, promise. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
 | `--project <project>` | the project it belongs to: its key or project:<id>. |
@@ -2568,6 +2585,7 @@ memo facts confirm <ref> [options]
 | Option | What it does |
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
@@ -2592,6 +2610,7 @@ memo facts revoke <ref> [options]
 | Option | What it does |
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
@@ -2616,6 +2635,7 @@ memo facts reverse <ref> [options]
 | Option | What it does |
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
@@ -2640,6 +2660,7 @@ memo facts reject <ref> [options]
 | Option | What it does |
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
@@ -2664,6 +2685,7 @@ memo facts remove <ref> [options]
 | Option | What it does |
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
@@ -2744,6 +2766,7 @@ memo invoices add <amount> <currency> <description> [options]
 | `--reason <text>` | why an agent proposes it, for the owner who decides. |
 | `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
 **Returns:** record an invoice; an agent's waits for your review
@@ -2821,6 +2844,7 @@ memo payments add <amount> <currency> [options]
 | `--reason <text>` | why an agent proposes it, for the owner who decides. |
 | `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
 **Returns:** record a payment; an agent's waits for your review
@@ -2846,6 +2870,7 @@ memo payments allocate <payment> <invoice> <amount> [options]
 | Option | What it does |
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
 **Returns:** settle part of an invoice with part of a payment
@@ -2870,6 +2895,7 @@ memo payments unlink <payment> <invoice> [options]
 | Option | What it does |
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
 **Returns:** take back a payment's allocation to an invoice
@@ -2948,6 +2974,7 @@ memo orders add <shop> [amount] [currency] [options]
 | `--reason <text>` | why an agent proposes it, for the owner who decides. |
 | `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
 **Returns:** record an order; an agent's waits for your review
@@ -3364,6 +3391,7 @@ memo records link <record> <ref> [options]
 | `--account <account>` | the source, <provider>:<account> as the envelope's source names it, such as sheet:rentals. |
 | `--json` | print JSON; --json=type,external_id,entity keeps only those fields. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
 **Returns:** say which of your entries a source's record is
 
@@ -3465,6 +3493,7 @@ memo meetings actions confirm <id> <ids> [options]
 | `--json` | print JSON; --json=id,status keeps only those fields. |
 | `--fingerprint <hash>` | the exact fingerprint shown in the preview. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
 **Returns:** meeting findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more; every field: memo commands info meetings actions confirm
 
@@ -3490,6 +3519,7 @@ memo meetings actions reject <id> [options]
 | `--json` | print JSON; --json=id,status keeps only those fields. |
 | `--fingerprint <hash>` | the exact fingerprint shown in the preview. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
 **Returns:** meeting findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more; every field: memo commands info meetings actions reject
 
@@ -3577,6 +3607,7 @@ memo actions add <kind> [options]
 | Option | What it does |
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--reason <text>` | why it should be done. |
 | `--account <account>` | the account that would act: provider:account, such as telegram:1. |
 | `--target <ref>` | what it acts on: msg:, chat:, contact:, person:, task:, …. |
@@ -3647,6 +3678,7 @@ memo actions confirm <id> [findings] [options]
 | Option | What it does |
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--fingerprint <hash>` | a findings batch: the fingerprint actions show gives. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
@@ -3672,6 +3704,7 @@ memo actions reject <id> [options]
 | Option | What it does |
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--fingerprint <hash>` | a findings batch: the fingerprint actions show gives. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
@@ -3749,6 +3782,7 @@ memo review confirm <ids> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--reason <text>` | why, in a few words; required when an agent decides. |
 | `--compact` | one line per decision. |
 
@@ -3774,6 +3808,7 @@ memo review reject <ids> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--reason <text>` | why it is turned down, in a few words. |
 | `--compact` | one line per decision. |
 
