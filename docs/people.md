@@ -141,26 +141,31 @@ A **relationship** says that a person belongs to an organization or works on a p
 one organization is a customer or partner of another:
 
 ```sh
-memo relationships add person:PERSON_UID organization:1 --kind member-of --role employee
+memo relationships add person:PERSON_UID organization:1 --role employee --title CTO --start-date 2026-01-01
 memo relationships add person:PERSON_UID project:1 --role contributor
 memo relationships add person:PERSON_UID person:OTHER_UID --kind reports-to
 memo relationships add organization:2 organization:1 --kind customer-of
 memo relationships list 'about:"project:1"'
 memo relationships list kind:reports-to 'to:"person:5"'
 memo relationships list standing:reported include:ended --limit 50
+memo relationships end 4 --end-date 2026-09-30
 memo relationships remove 4
 ```
+
+`--title` keeps a job title apart from the role (as its `position`), and `--start-date` and `--end-date` (the last
+day) say when it held. `memo relationships end <id> --end-date <date>` says it no longer holds: it stays, as `ended`.
 
 Kinds: `member-of`, `reports-to`, `customer-of` (read backwards: supplier of), `partner-of` and `related-to`. A role
 is one from a list: in an organization `employee`, `contractor`, `founder`, `owner`, `manager`, `adviser`, `contact`;
 in a project `owner`, `manager`, `contributor`, `client-contact`, `approver`; on a deal or lead `owner`, `contact`,
-`decision-maker`, `influencer`. A job title is not a role. A role saved before these lists stays as written, and
+`decision-maker`, `influencer`. A job title is not a role: give it with `--title`. A role saved before these lists stays as written, and
 `relationships list` marks it `custom`.
 
 `relationships list` filters by `kind:`, `role:`, `standing:`, `from:`, `to:` and `at:<day>` (held on that day), and
-pages with `--limit` and `--page`. It leaves out the ones that ended unless you add `include:ended`. With
-`about:<ref>` each row says its `direction` and its `label` from that end, such as `manages` for `reports-to` read
-backwards. Every row shows its standing and, for a CRM's, the account that reported it.
+pages with `--limit` and `--page`; `at:<day>` means held at the start of that UTC day. It leaves out the ones that
+ended unless you add `include:ended`, and lists the proposals waiting for you with `standing:proposed`. With
+`about:<ref>` each row says its `direction` (`outgoing` or `incoming`) and, incoming, its `inverse`, such as `manages`
+for `reports-to` read backwards. Every row shows its standing and, for a CRM's, the account that reported it.
 
 A chat can be a project's too, so `memo projects evidence` reads all of it, not only messages that name the
 project. The reference names the chat's account, so no account is guessed:

@@ -16,7 +16,7 @@ import { SAVE_HELP } from "../save-help.js"
 import { accountsByKind, groupScopeOf } from "../store/group.js"
 import { ACCOUNTS_HELP, MAIL_SOURCES, mailboxesOf } from "../store/source-list.js"
 import { allAnswer, eventsMeaningNote, kindAnswer, messagesMeaningNote, notesAnswer } from "./answers.js"
-import { deniedCrmKinds } from "./denied.js"
+import { deniedCrm } from "./denied.js"
 import { peopleAnswer, peopleText, searchPeople } from "./people.js"
 import { hasSource, keyDocumentsFirst, searchEverywhere, searchKind, searchNotes } from "./search.js"
 
@@ -113,7 +113,7 @@ Calendar events come from every calendar gcal stored; an event's title, descript
         },
         command: Command,
       ) => {
-        const denied = deniedCrmKinds(command, env)
+        const denied = deniedCrm(command, env)
         const answer = await withStore(env, async (store) => {
           const found = await searchEverywhere(store, env, {
             text: words.join(" "),

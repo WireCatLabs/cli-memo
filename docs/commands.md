@@ -32,7 +32,7 @@ memo context <person> [options]
 |---|---|
 | `--limit <n>` | most messages, notes and events of each kind. Default: `20`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--source <accounts>` | the accounts to read (default: every one); for <messenger>:<name>, the one account of that messenger. |
+| `--source <accounts>` | the accounts to read: every one when left out, or the group's in a group run; for <messenger>:<name>, the one account of that messenger. |
 | `--trimmed` | each email's own text, without quoted earlier mail or the signature — for an agent's reads. |
 
 **Returns:** messages, mail, notes and events about a person, each with a link to its source
@@ -1788,11 +1788,14 @@ memo relationships add <from> <to> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--kind <kind>` | member-of, reports-to, customer-of, partner-of, related-to. Default: `member-of`. |
 | `--role <role>` | its role: in an organization employee, contractor, founder, owner, manager, adviser, contact; in a project owner, manager, contributor, client-contact, approver; on a deal or lead owner, contact, decision-maker, influencer. A job title is not a role. |
+| `--title <title>` | the job title, such as 'Procurement manager'; kept apart from the role as its position. |
+| `--start-date <date>` | the first day it held, such as 2026-01-01. |
+| `--end-date <date>` | the last day it held. |
 | `--reason <text>` | why you think so, in a sentence. |
 
 **Returns:** state that a person, organization, project or chat belongs or relates to another
 
-**Example:** `memo relationships add person:3 organization:1 --role employee`, `memo relationships add person:3 person:5 --kind reports-to`, `memo relationships add organization:1 organization:2 --kind customer-of --reason 'signed in October'`
+**Example:** `memo relationships add person:3 organization:1 --role employee --title CTO --start-date 2026-01-01`, `memo relationships add person:3 person:5 --kind reports-to`, `memo relationships add organization:1 organization:2 --kind customer-of --reason 'signed in October'`
 
 ### `memo relationships list`
 
@@ -1833,6 +1836,8 @@ memo relationships update <id> [options]
 | Option | What it does |
 |---|---|
 | `--role <role>` | its role: in an organization employee, contractor, founder, owner, manager, adviser, contact; in a project owner, manager, contributor, client-contact, approver; on a deal or lead owner, contact, decision-maker, influencer. A job title is not a role; an empty value clears it. |
+| `--title <title>` | the job title, kept as its position; an empty value clears it. |
+| `--start-date <date>` | the first day it held, such as 2026-01-01. |
 | `--purpose <purpose>` | what the chat is for in the project: work, sales, support or other. |
 | `--reason <text>` | why, in a sentence. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
@@ -1889,6 +1894,30 @@ memo relationships confirm <id> [options]
 **Returns:** confirm a suggested relationship
 
 **Example:** `memo relationships confirm 4`
+
+### `memo relationships end`
+
+say that a relationship no longer holds, from a day on; it stays, as ended, and relationships list include:ended shows it. An agent's waits for you in memo review
+
+This command changes the local store or your files.
+
+```sh
+memo relationships end <id> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `id` | required | the relationship's id, as relationships list gives it. |
+
+| Option | What it does |
+|---|---|
+| `--end-date <date>` | the last day it held; today when left out. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+
+**Returns:** say that a relationship ended
+
+**Example:** `memo relationships end 4 --end-date 2026-09-30`
 
 ### `memo relationships scan`
 
@@ -3113,13 +3142,13 @@ memo deals context <ref> [options]
 | `--brief` | the compact form for a model's context: names, roles, totals and counts. |
 | `--limit <n>` | most items in each section. Default: `20`. |
 
-**Returns:** one deal: stages, people, project, money, messages and tasks
+**Returns:** deal context — deal, stages, organization, participants, owner, project, money, window, and 3 more; every field: memo commands info deals context
 
 **Example:** `memo deals context deal:5`, `memo deals context deal:5 --brief --json`
 
 ### `memo deals update`
 
-set the project a deal belongs to; a CRM's copy takes it too, and its sync leaves it. An empty value clears it
+set the project a deal belongs to; a CRM's copy takes it too, and the next sync keeps it. An empty value clears it
 
 This command changes the local store or your files.
 
@@ -3283,13 +3312,13 @@ memo leads context <ref> [options]
 | `--brief` | the compact form for a model's context: names, roles, totals and counts. |
 | `--limit <n>` | most items in each section. Default: `20`. |
 
-**Returns:** one lead: stages, people, project, money, messages and tasks
+**Returns:** deal context — deal, stages, organization, participants, owner, project, money, window, and 3 more; every field: memo commands info leads context
 
 **Example:** `memo leads context lead:3 --brief`
 
 ### `memo leads update`
 
-set the project a lead belongs to; a CRM's copy takes it too, and its sync leaves it. An empty value clears it
+set the project a lead belongs to; a CRM's copy takes it too, and the next sync keeps it. An empty value clears it
 
 This command changes the local store or your files.
 

@@ -6,7 +6,7 @@ import { InMemoryTransport } from "@modelcontextprotocol/server"
 import { syncCrm } from "@wirecat/cli-core/crm"
 import { ACME_PORTAL, type AcmeScenario, acmeScenario, fakeCrmSource } from "@wirecat/cli-core/crm/testing"
 import { openStore } from "@wirecat/cli-core/store"
-import { beforeEach, describe, expect, it } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { answerOf } from "../test/answer.js"
 import { commandCaller } from "../test/mcp.js"
 import { memoIn } from "../test/memo.js"
@@ -32,6 +32,10 @@ beforeEach(async () => {
     await store.close()
   }
   memo = memoIn(env)
+})
+
+afterEach(() => {
+  vi.unstubAllEnvs()
 })
 
 const kinds = (answer: { items: { kind: string }[] }) => answer.items.map((item) => item.kind)
@@ -110,7 +114,7 @@ describe("organization, deal and relationships", () => {
     await memo("relationships", "add", refs.alice, refs.bob, "--kind", "reports-to")
     const bob = await memo("relationships", "list", `about:"${refs.bob}"`, "kind:reports-to")
     expect(bob.items).toEqual([
-      expect.objectContaining({ from: refs.alice, direction: "to", label: "manages", standing: "confirmed" }),
+      expect.objectContaining({ from: refs.alice, direction: "incoming", inverse: "manages", standing: "confirmed" }),
     ])
     await expect(
       memo("relationships", "add", refs.alice, refs.acme, "--role", "procurement-manager"),
@@ -221,4 +225,88 @@ it("finds every new command with memo_tools_search (plan §8 row 12)", async () 
   } finally {
     await client.close()
   }
+})
+
+describe("deals denied (SEC-151)", () => {
+  it("leaves deals out of the person and organization contexts and of relationships", async () => {
+    updateConfig((config) => ({ ...config, permissions: { deals: "deny" } }), env)
+    expect((await memo("context", refs.alice)).business.deals.items).toEqual([])
+    const acme = await memo("organizations", "context", refs.acme)
+    expect(acme.deals.items).toEqual([])
+    expect(JSON.stringify(acme)).not.toContain(`"${refs.deal}"`)
+    expect(
+      (await memo("relationships", "list", `about:"${refs.alice}"`)).items.map(({ from }: { from: string }) => from),
+    ).not.toContain(refs.deal)
+    await expect(memo("deals", "context", refs.deal)).rejects.toMatchObject({
+      code: "permission_error",
+      details: { reason: "deal.denied" },
+    })
+  })
+})
+
+describe("a work CRM under MEMO_GROUP_LOCK=personal", () => {
+  it("refuses its deal's context and a change to its project", async () => {
+    await memo("groups", "add", "work", PORTAL)
+    vi.stubEnv("MEMO_GROUP_LOCK", "personal")
+    const locked = memoIn({ ...env, MEMO_GROUP_LOCK: "personal" })
+    await expect(locked("deals", "context", refs.deal)).rejects.toMatchObject({ code: "permission_error" })
+    await expect(locked("deals", "update", refs.deal, "--project", "")).rejects.toMatchObject({
+      code: "permission_error",
+    })
+  })
+})
+
+describe("relationships: the owner's dates, position and end", () => {
+  it("pages, filters by role, day and ending, and refuses a bad category", async () => {
+    const rows = await memo("relationships", "list", "--limit", "1")
+    expect(rows.items).toHaveLength(1)
+    const second = await memo("relationships", "list", "--limit", "1", "--page", "2")
+    expect(second.items).toHaveLength(1)
+    expect(second.items[0].id).not.toBe(rows.items[0].id)
+    expect(
+      (await memo("relationships", "list", "role:decision-maker")).items.map(({ to }: { to: string }) => to),
+    ).toEqual([refs.bob])
+    const added = await memo(
+      "relationships",
+      "add",
+      refs.bob,
+      refs.acme,
+      "--role",
+      "employee",
+      "--title",
+      "CEO",
+      "--start-date",
+      "2026-01-01",
+    )
+    expect(added).toMatchObject({ position: "CEO", starts_at: "2026-01-01T00:00:00.000Z" })
+    expect((await memo("relationships", "list", "at:2025-06-01", "role:employee", `from:"${refs.bob}"`)).items).toEqual(
+      [],
+    )
+    expect(
+      (await memo("relationships", "list", "at:2026-06-01", "role:employee", `from:"${refs.bob}"`)).items,
+    ).toHaveLength(1)
+    await memo("relationships", "end", added.id, "--end-date", "2026-09-30")
+    expect((await memo("relationships", "list", "role:employee", `from:"${refs.bob}"`)).items).toEqual([])
+    expect((await memo("relationships", "list", "role:employee", `from:"${refs.bob}"`, "include:ended")).items).toEqual(
+      [expect.objectContaining({ id: added.id, standing: "ended" })],
+    )
+    await expect(memo("organizations", "list", "category:friend")).rejects.toMatchObject({ code: "validation_error" })
+  })
+
+  it("keeps the owner's project on a CRM deal across the next sync", async () => {
+    const root = mkdtempSync(join(tmpdir(), "memo-crm-sync-"))
+    const fresh = { ...env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+    const store = await openStore({ env: fresh })
+    try {
+      await store.accounts.registerProvider({ name: ACME_PORTAL.provider, kind: "crm", aliases: [] })
+      const scenario = await acmeScenario(store)
+      const run = memoIn(fresh)
+      const beacon = await run("projects", "add", "Beacon", "--key", "BCN")
+      await run("deals", "update", scenario.refs.deal, "--project", "BCN")
+      await scenario.sync()
+      expect((await run("deals", "show", scenario.refs.deal)).project).toBe(beacon.ref)
+    } finally {
+      await store.close()
+    }
+  })
 })
