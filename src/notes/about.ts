@@ -38,7 +38,7 @@ const refOf = (note: Note, anchor: string | null = null): NoteRef => ({
   folderId: note.folderId,
   path: note.path,
   title: note.title,
-  modifiedAt: note.updatedAt,
+  modifiedAt: note.modifiedAt ?? note.updatedAt,
   ...(anchor === null ? {} : { anchor }),
 })
 
@@ -111,7 +111,7 @@ export const notesAbout = async (store: MessageStore, subject: Subject, limit = 
       ...new Map(
         found.filter((item) => item.via === via).map((item) => [`${item.note.ref}#${item.anchor ?? ""}`, item]),
       ).values(),
-    ].sort((a, b) => b.note.updatedAt.localeCompare(a.note.updatedAt))
+    ].sort((a, b) => refOf(b.note).modifiedAt.localeCompare(refOf(a.note).modifiedAt))
   const [about, linking, through, waiting] = (["about", "link", "through", "name"] as const).map(unique)
   return {
     subject: subject.ref,

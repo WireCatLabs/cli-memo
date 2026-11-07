@@ -73,7 +73,9 @@ shows the next page, and the answer's `page.next_page` says which page that is.
 
 A field in the query works like `--filter`: `memo search notes 'budget tag:work'` finds by meaning only notes tagged
 `work`. Only the words are searched by meaning, so `memo search notes 'date:today'` lists just today's notes, newest
-first. For a Google Drive document, `date:` and the date a result shows are its last edit on Drive.
+first. For a Google Drive document, `date:` and the date a result shows are its last edit on Drive. For a note file
+they are its front matter `date` (a bare day is midnight where you are), else the file's modification time; the next
+`memo sync` dates a note imported before this.
 
 ## Search mail
 
