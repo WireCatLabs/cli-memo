@@ -89,9 +89,12 @@ const meetingsMissed = (found: SearchAllFound): Missing[] => [
       why: `${provider}:${account}: meetings saved since its search index was last built are not found yet`,
       step: "search.meetings",
     })),
+  // A kind `--source` named no account of was left out on purpose: `meta.issues` lists it, `missing` does not.
   ...found.skipped
-    .filter(({ resource, source }) =>
-      resource === undefined ? kindIn(source.split(":")[0] ?? "") === "meetings" : resource === "meetings",
+    .filter(({ resource, source, code }) =>
+      resource === undefined
+        ? kindIn(source.split(":")[0] ?? "") === "meetings"
+        : resource === "meetings" && code !== "not_found",
     )
     .map(({ resource, source, reason }) => ({ field: "items", why: `${source ?? resource} not searched: ${reason}` })),
 ]

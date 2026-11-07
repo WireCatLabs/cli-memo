@@ -138,6 +138,9 @@ it("reads only the accounts --source names, a meeting account and the notes", as
   expect(found.items.find(({ kind }: { kind: string }) => kind === "meeting").account).toBe(work.account)
   expect(found.meta.accounts).toEqual(expect.arrayContaining([`zoom:${work.account}`]))
   expect(found.meta.accounts).not.toContain(`zoom:${home.account}`)
+  const notesOnly = await memo(env, "search", "all", "Harbourlight", "--source", "notes")
+  expect(notesOnly.items.map(({ kind }: { kind: string }) => kind)).toEqual(["note"])
+  expect(notesOnly.missing.filter(({ why }: { why: string }) => why.includes("meetings"))).toEqual([])
 })
 
 it("names a meeting account whose index is not built yet, with the command that builds it", async () => {
