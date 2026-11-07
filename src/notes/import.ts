@@ -77,7 +77,15 @@ export const importNotes = async (
     skip = [],
     env = process.env,
     loadEngine = importEngine,
-  }: { ignore?: string[]; skip?: string[]; env?: NodeJS.ProcessEnv; loadEngine?: LoadEngine } = {},
+    onFile = () => {},
+  }: {
+    ignore?: string[]
+    skip?: string[]
+    env?: NodeJS.ProcessEnv
+    loadEngine?: LoadEngine
+    /** Files done so far, of how many the folder has; a changed file counts once its text is stored. */
+    onFile?: (done: number, total: number) => void
+  } = {},
 ): Promise<NotesImport> => {
   if (!existsSync(folder.path))
     throw new CliError("not_found", missingFolder(folder.path), {
@@ -103,7 +111,9 @@ export const importNotes = async (
   }
 
   const files = noteFiles(folder.path, ignore, NOTE_EXTENSIONS, { skipExported: false })
-  for (const path of files) {
+  onFile(0, files.length)
+  for (const [index, path] of files.entries()) {
+    if (index > 0) onFile(index - read.length, files.length)
     const id = inside(folder.path, path)
     const previous = before?.files[id]
     const wasNotRead = before?.notRead?.[id]
@@ -163,7 +173,8 @@ export const importNotes = async (
   const parsed = new Map<string, ParsedNote>()
   let changed = 0
   let added = 0
-  for (const { id, path, bytes, hash } of read) {
+  for (const [index, { id, path, bytes, hash }] of read.entries()) {
+    onFile(files.length - read.length + index, files.length)
     if (stored.get(id)?.contentHash === hash) continue
     const extraction = await extractText(bytes, { kind: "file", name: basename(path), mime: null, path }, loadEngine)
     if (extraction.status !== "extracted") {
@@ -194,6 +205,8 @@ export const importNotes = async (
     }
     if (saved.changed) changed++
   }
+
+  onFile(files.length, files.length)
 
   const gone = [...stored.keys()].filter((id) => !listed.has(id))
   let deleted = 0

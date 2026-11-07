@@ -49,7 +49,28 @@ reports how many it found:
 `--no-embed` skips the preparation for search by meaning, so you do not need the search model to
 start. Run `memo sync --only notes` again after you add or edit files; only the changes are read.
 
+With `--json`, `memo sync` also writes one progress line at a time to stderr while it reads each folder, at most two a
+second. It holds counts only, never a file name:
+
+```json
+{"event":"progress","step":"notes","done":120,"total":480,"unit":"files","label":"1"}
+```
+
+`label` is the folder's ID.
+
 You can add more than one folder. `memo folders list` shows them all.
+
+### Remove a folder
+
+```sh
+memo folders remove /path/to/notes               # memo stops reading it; its notes stay searchable
+memo folders remove 1 --allow-delete --yes       # also deletes its notes from the store
+```
+
+Without `--allow-delete`, the notes stay in the store and `memo folders list` shows the folder as not on this
+computer. With it, memo deletes the folder's notes and their text from the store. Your files are never touched, so
+`memo folders add` reads them again. Without `--yes`, memo says how many notes it would delete and changes nothing.
+The store keeps the folder's ID, so `memo folders update` can connect it again.
 
 ### Markdown or Obsidian
 

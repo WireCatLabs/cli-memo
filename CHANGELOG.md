@@ -6,6 +6,15 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo folders remove <id|path>`** stops reading a notes folder on this computer; its notes stay in the store.
+  With `--allow-delete --yes` it also deletes the folder's notes and their text from the store; without `--yes` it
+  says how many it would delete (`confirmation_required`). The files are never touched.
+- **`memo sync --json` writes progress lines to stderr** while it reads a notes folder:
+  `{"event":"progress","step":"notes","done","total","unit":"files","label":<folder id>}`, counts only, at most two a
+  second, so an app can draw a bar.
+
 ### Fixed
 
 - **Any memo command, a read too, no longer starts or enables the sync timer.** After each command memo points the

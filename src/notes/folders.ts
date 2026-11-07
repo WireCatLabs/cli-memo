@@ -74,3 +74,9 @@ export const attachFolder = (
   const kept = folders.filter((other) => other.id !== id && other.path !== at)
   return { config: withFolders(config, [...kept, folder]), folder }
 }
+
+export const unbindFolder = (config: Config, path: string): Config =>
+  withFolders(
+    config,
+    noteFolders(config.notes).filter((folder) => folder.path !== resolve(path)),
+  )
