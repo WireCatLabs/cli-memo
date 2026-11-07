@@ -80,15 +80,27 @@ const MEETING_PASSAGE: StepDefinition = {
   why: "read the lines around this meeting hit before citing it",
 }
 
+const MEETINGS_INDEX: StepDefinition = {
+  id: "meetings.index",
+  kind: "command",
+  command: "search meetings",
+  args: [
+    { name: "query", required: true },
+    { name: "source", required: true },
+  ],
+  why: "builds {source}'s meeting search index, then finds what search all could not yet",
+}
+
+const pendingMeetings = (found: SearchAllFound) =>
+  (found.meetings ?? []).filter(({ indexing }) => indexing === "pending")
+
 /** Meeting accounts search all could not read, and those whose index is behind: `search meetings` builds it. */
 const meetingsMissed = (found: SearchAllFound): Missing[] => [
-  ...(found.meetings ?? [])
-    .filter(({ indexing }) => indexing === "pending")
-    .map(({ provider, account }) => ({
-      field: "items",
-      why: `${provider}:${account}: meetings saved since its search index was last built are not found yet`,
-      step: "search.meetings",
-    })),
+  ...pendingMeetings(found).map(({ provider, account }) => ({
+    field: "items",
+    why: `${provider}:${account}: meetings saved since its search index was last built are not found yet`,
+    step: MEETINGS_INDEX.id,
+  })),
   // A kind `--source` named no account of was left out on purpose: `meta.issues` lists it, `missing` does not.
   ...found.skipped
     .filter(({ resource, source, code }) =>
@@ -131,7 +143,14 @@ export const allAnswer = (
       ...passage,
     ]
   })
-  const steps = [...next, ...archive.next].slice(0, MAX_NEXT_STEPS)
+  const indexing = pendingMeetings(found).map(({ provider, account }) =>
+    stepOf(MEETINGS_INDEX, {
+      args: { query: found.query, source: `${provider}:${account}` },
+      values: { source: `${provider}:${account}` },
+    }),
+  )
+  // What fills a gap in the answer goes before what reads one hit further.
+  const steps = [...archive.next, ...indexing, ...next].slice(0, MAX_NEXT_STEPS)
   return listAnswer("search all", {
     items: found.items.map(allHitItem),
     limit,

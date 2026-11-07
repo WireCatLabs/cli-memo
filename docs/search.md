@@ -33,10 +33,10 @@ fields in the hit's `untrusted`. Memo cannot open an `event:` reference; `gcal <
 
 Meetings come from every stored meeting account, through each account's search index. A meeting gives at most 3
 hits. A transcript hit has `cue_ref`, and the answer's `next` names the `memo meetings passage` command that opens
-it. Search all never builds the index: when `missing` names an account, `memo search meetings --source
-<provider>:<account>` builds it. `--source zoom:work,notes` reads only the accounts it names; a kind it names none
-of is left out. `--only meetings,crm` reads only those kinds. When your permissions deny `search.meetings` or
-`meetings.passage`, search all leaves meetings out and says so in `missing`.
+it. Search all never builds the index: when `missing` names an account, `next` gives `memo search meetings
+<query> --source <provider>:<account>`, which builds it. `--source zoom:work,notes` reads only the accounts it names; a kind it names none
+of is left out. `--only meetings,crm` reads only those kinds. When your permissions set `search.meetings` or
+`meetings.passage` to `deny` or `ask`, search all leaves meetings out and says so in `missing`.
 
 It does not search people, memories, projects or tasks; use `memo search people`, `memo context`, `memo search
 memories` and `memo tasks list` for those.

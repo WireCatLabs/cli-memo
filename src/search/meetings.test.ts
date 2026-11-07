@@ -12,8 +12,9 @@ import { callCommand } from "../../test/mcp.js"
 import { updateConfig } from "../config.js"
 import { createMemoServer } from "../mcp/server.js"
 import { createProgram } from "../program.js"
+import { allAnswer } from "./answers.js"
 
-const work = { provider: "zoom", account: "zm-profile:work" }
+const work = { provider: "zoom", account: "zm-profile:work", scope: "work" as const }
 const home = { provider: "zoom", account: "zm-profile:home" }
 
 const saveMeeting = async (store: MessageStore, account: AccountKey, externalId: string, text: string) => {
@@ -92,7 +93,7 @@ const memo = async (env: NodeJS.ProcessEnv, ...args: string[]) => {
   return answerOf(streams.stdout.join(""))
 }
 
-it("finds meetings of every meeting account with --only meetings, each hit with a step that opens its passage", async () => {
+it("finds meetings of every meeting account, personal and work, with --only meetings, each hit with a step that opens its passage", async () => {
   const { env, atWork } = await fixture()
   const found = await memo(env, "search", "all", "Harbourlight", "--only", "meetings")
   expect(found.items.map(({ account }: { account: string }) => account).sort()).toEqual([home.account, work.account])
@@ -150,17 +151,70 @@ it("names a meeting account whose index is not built yet, with the command that 
   expect(found.missing).toContainEqual({
     field: "items",
     why: `zoom:${home.account}: meetings saved since its search index was last built are not found yet`,
-    step: "search.meetings",
+    step: "meetings.index",
+  })
+  expect(found.next[0]).toMatchObject({
+    step: "meetings.index",
+    command: "search meetings",
+    args: { query: "Harbourlight", source: `zoom:${home.account}` },
+    line: `memo search meetings Harbourlight --source zoom:${home.account}`,
   })
 })
 
-it("leaves meetings out and says so when the permissions deny opening them", async () => {
-  for (const key of ["search.meetings", "meetings.passage"]) {
+it("puts the step that syncs a chat held in part before the steps that open meeting hits", () => {
+  const hit = (cue: number) => ({
+    kind: "meeting" as const,
+    ref: "meeting:1/1",
+    provider: "zoom",
+    account: "zm-profile:work",
+    accountId: 1,
+    title: null,
+    timestamp: null,
+    text: "Harbourlight",
+    meetingId: 1,
+    scope: "transcript" as const,
+    id: cue,
+    startMs: 0,
+    cueRef: `meeting:1/1/1/${cue}`,
+    foundBy: ["words" as const],
+  })
+  const answer = allAnswer(
+    {
+      query: "Harbourlight",
+      items: [hit(0), hit(1)],
+      hasMore: false,
+      searched: ["messages", "meetings"],
+      skipped: [],
+      accounts: [],
+      coverage: {
+        next: true,
+        chat: "7",
+        messages: 1,
+        coveredChats: 1,
+        chats: { neverFetched: 0, behind: 1, withGaps: 0 },
+      } as never,
+      tasks: [],
+      tasksIncomplete: false,
+    },
+    10,
+  )
+  expect(answer.next?.map(({ step }) => step)).toEqual(["messages.sync", "hit.passage"])
+})
+
+it("leaves meetings out and says so unless the permissions let searching and opening them go ahead", async () => {
+  for (const [key, level] of [
+    ["search.meetings", "deny"],
+    ["meetings.passage", "deny"],
+    ["meetings.passage", "ask"],
+  ] as const) {
     const { env } = await fixture()
-    updateConfig((config) => ({ ...config, permissions: { [key]: "deny" } }), env)
+    updateConfig((config) => ({ ...config, permissions: { [key]: level } }), env)
     const found = await memo(env, "search", "all", "Harbourlight")
     expect(found.items.map(({ kind }: { kind: string }) => kind).sort()).toEqual(["message", "note"])
-    expect(found.missing).toContainEqual({ field: "items", why: `meetings left out: the permissions deny ${key}` })
+    expect(found.missing).toContainEqual({
+      field: "items",
+      why: `meetings left out: the permissions set ${key} to ${level}`,
+    })
     await expect(memo(env, "search", "all", "Harbourlight", "--only", "meetings")).rejects.toMatchObject({
       code: "permission_error",
     })
@@ -188,6 +242,6 @@ it("answers an MCP search all with a meeting hit's passage step, and leaves meet
   expect(denied.items.some(({ kind }: { kind: string }) => kind === "meeting")).toBe(false)
   expect(denied.missing).toContainEqual({
     field: "items",
-    why: "meetings left out: the permissions deny meetings.passage",
+    why: "meetings left out: the permissions set meetings.passage to deny",
   })
 })

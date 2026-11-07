@@ -25,13 +25,20 @@ const onlyOf = (value: string): SearchedResource[] => {
   return [...new Set(selected)] as SearchedResource[]
 }
 
-/** A meeting hit is only useful opened, so a denied search or passage keeps meetings out of search all too. */
+/**
+ * A meeting hit is only useful opened, so search all reads meetings only where searching and opening them both go
+ * ahead unasked: `ask` would have stopped either command, so it keeps them out too.
+ */
 const MEETING_KEYS = ["search.meetings", "meetings.passage"] as const
+const READS = new Set(["allow", "readonly"])
 
 const meetingsDenied = (command: Command, env: NodeJS.ProcessEnv): { why: string } | undefined => {
   const levels = memoLevels(env, environmentOf(command).agent?.overrides ?? [])
-  const key = MEETING_KEYS.find((one) => levelFor(levels, one).level === "deny")
-  return key === undefined ? undefined : { why: `meetings left out: the permissions deny ${key}` }
+  for (const key of MEETING_KEYS) {
+    const { level } = levelFor(levels, key)
+    if (!READS.has(level)) return { why: `meetings left out: the permissions set ${key} to ${level}` }
+  }
+  return undefined
 }
 
 export type Level = "brief" | "full"

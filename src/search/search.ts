@@ -240,6 +240,8 @@ export const searchEverywhere = async (
       env,
       ...(only === undefined ? {} : { only }),
       ...(source === undefined ? {} : { source }),
+      // memo is the owner's own view of every account, personal and work alike.
+      meetingScopes: ["personal", "work"],
       ...(exact ? { exact: true } : {}),
       ...(timezone === undefined ? {} : { timezone }),
     },

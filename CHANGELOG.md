@@ -8,13 +8,15 @@ the API.
 
 ### Added
 
-- **`memo search all` finds meetings, from every meeting account.** It reads each account's search index and ranks
-  meeting passages with messages, mail, notes, events and CRM, at most 3 per meeting. A transcript hit's `next`
-  step is `memo meetings passage <cue_ref> --source <provider>:<account>`. `missing` names an account whose index
-  is not built yet (`memo search meetings` builds it) and an account that could not be read. `--source
-  zoom:work,notes` reads only the accounts it names; `--only` takes `crm` and `meetings` too. When the permissions
-  deny `search.meetings` or `meetings.passage`, meetings are left out and `missing` says so. Needs the cli-core
-  release with meetings in `searchAll`.
+- **`memo search all` finds meetings, from every meeting account, personal and work.** It reads each account's
+  search index and ranks meeting passages with messages, mail, notes, events and CRM, at most 3 per meeting. A
+  transcript hit's `next` step is `memo meetings passage <cue_ref> --source <provider>:<account>`. `missing` names an
+  account whose index is not built yet, and `next` gives `memo search meetings <query> --source <provider>:<account>`,
+  which builds it; a step that syncs a chat held in part comes first. `missing` also names a meeting account that
+  could not be read. `--source zoom:work,notes` reads only the accounts it names; `--only` takes `crm` and `meetings`
+  too. Unless the permissions let `search.meetings` and `meetings.passage` go ahead (`allow` or `readonly`), meetings
+  are left out and `missing` says so; `ask` leaves them out too. Needs the cli-core release with meetings in
+  `searchAll`.
 
 ## 0.131.60 — 08.11.2026
 
