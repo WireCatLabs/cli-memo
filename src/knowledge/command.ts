@@ -399,7 +399,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .action(async (words: string[], options: { limit: number; page: number; json?: boolean }, command: Command) => {
       const found = await withStore(env, async (store) => {
         const scope = await groupScopeOf(store, env)
-        return listRelationships(store, words, {
+        return listRelationships(store, env, words, {
           limit: options.limit,
           page: options.page,
           ...(scope === undefined ? {} : { accounts: scope.accounts }),

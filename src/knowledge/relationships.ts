@@ -48,6 +48,7 @@ export interface RelationshipPage {
 /** `relationships list`: cli-core filters and pages the links and the pending proposals together. */
 export const listRelationships = async (
   store: MessageStore,
+  env: NodeJS.ProcessEnv,
   words: readonly string[],
   { limit, page, accounts, deniedKinds }: RelationshipPage = { limit: 100, page: 1 },
 ) => {
@@ -70,16 +71,21 @@ export const listRelationships = async (
     limit,
     page,
   })
+  // Under the lock a row whose end the group cannot show, a person only an outside account saw, is left out.
+  const guard = await guardOf(store, env)
+  const rows = []
+  for (const one of found.items)
+    if (guard === undefined || ((await guard.visible(one.from)) && (await guard.visible(one.to)))) rows.push(one)
   const label = await labelsFor(
     store,
-    found.items.flatMap((one) => [one.from, one.to]),
+    rows.flatMap((one) => [one.from, one.to]),
   )
   return {
     hasMore: found.hasMore,
     limit,
     page,
     items: await Promise.all(
-      found.items.map(async (one) => ({
+      rows.map(async (one) => ({
         ...one,
         status: one.standing,
         // Who proposed it is the review's to name; the list says it beside the proposal.
