@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.51 — 07.11.2026
+
 ### Fixed
 
 - **WireCat Desktop can decide as you.** Desktop runs memo with no terminal, so memo refused every confirm, reject and
