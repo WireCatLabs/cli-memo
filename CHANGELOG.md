@@ -4,6 +4,15 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- **WireCat Desktop can decide as you.** Desktop runs memo with no terminal, so memo refused every confirm, reject and
+  forget from its Memory page with `decision.decider-unknown`. Every command that decides or writes as you now takes
+  `--from-app`, which Desktop passes: the run is recorded as yours with no question. It is the app's word that you
+  acted there, not a security check; it is not offered over MCP.
+
 ## 0.131.48 — 07.11.2026
 
 ### Fixed

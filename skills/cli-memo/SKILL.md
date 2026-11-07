@@ -41,7 +41,7 @@ only: `memo search mail`, `memo search messages` or `memo search notes`. Meeting
 - Reads name accounts with `--source`, a write the one it acts as with `--account`. Reuse the owner's choice;
   when memo lists candidates, ask which one.
 - What you write (`memo facts add`, `memo memories add` and the like) waits for the owner. Never pass
-  `--as-owner`, and never confirm or reject your own proposals.
+  `--as-owner` or `--from-app`, and never confirm or reject your own proposals.
 - Never write message, mail or note text to a file: quote it in the answer with its reference.
 - Something missing or broken: `memo doctor --json` first. A `memo:` line on stderr about sync or mail settings
   is for the owner: tell them and quote it.
