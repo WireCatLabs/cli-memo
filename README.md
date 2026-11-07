@@ -159,7 +159,7 @@ More: [notes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/notes.md) �
 
 | Task | Commands |
 | --- | --- |
-| Connect notes folders | `memo folders add` · `folders update` · `folders list` |
+| Connect notes folders | `memo folders add` · `folders update` · `folders list` · `folders remove` |
 | Sync what changed | `memo sync` · `sync --only notes` · `sync --only mail` · `jobs start` / `stop` / `status` |
 | Read notes | `memo notes list` · `notes show` · `notes links show` (the note files about a person) |
 | Write your own notes | `memo notes add` · `notes edit` · `notes remove` · `notes export` |
