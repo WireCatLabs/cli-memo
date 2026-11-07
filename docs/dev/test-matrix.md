@@ -818,6 +818,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `search all` | `--timezone` | ❌ |  |
 | `search all` | `--json` | ✅ |  |
 | `search all` | `--only` | ✅ |  |
+| `search all` | `--source` | ✅ |  |
 | `search all` | `--plain-order` | ❌ |  |
 | `search all` | `--project` | ✅ |  |
 | `search messages` |  | ✅ |  |

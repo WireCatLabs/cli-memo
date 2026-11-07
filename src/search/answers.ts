@@ -1,5 +1,6 @@
 import type { ErrorCode } from "@wirecat/cli-base"
-import { type Missing, type StepDefinition, stepOf } from "@wirecat/cli-base/standards"
+import { MAX_NEXT_STEPS, type Missing, type StepDefinition, stepOf } from "@wirecat/cli-base/standards"
+import { kindIn } from "@wirecat/cli-core"
 import { allHitItem, coverageGaps, messageHitItem, noteHitItem } from "@wirecat/cli-core/cli"
 import type { NotesFound, SearchAllFound, SearchFound } from "@wirecat/cli-core/services"
 import type { AccountKey } from "@wirecat/cli-core/store"
@@ -68,7 +69,37 @@ const TASKS_OF_HIT: StepDefinition = {
   why: "{count} open tasks point at this result",
 }
 
-/** `search all`, CLI and MCP alike: a hit that open tasks point at gets a step listing them, at most two. */
+const MEETING_PASSAGE: StepDefinition = {
+  id: "hit.passage",
+  kind: "command",
+  command: "meetings passage",
+  args: [
+    { name: "reference", required: true },
+    { name: "source", required: true },
+  ],
+  why: "read the lines around this meeting hit before citing it",
+}
+
+/** Meeting accounts search all could not read, and those whose index is behind: `search meetings` builds it. */
+const meetingsMissed = (found: SearchAllFound): Missing[] => [
+  ...(found.meetings ?? [])
+    .filter(({ indexing }) => indexing === "pending")
+    .map(({ provider, account }) => ({
+      field: "items",
+      why: `${provider}:${account}: meetings saved since its search index was last built are not found yet`,
+      step: "search.meetings",
+    })),
+  ...found.skipped
+    .filter(({ resource, source }) =>
+      resource === undefined ? kindIn(source.split(":")[0] ?? "") === "meetings" : resource === "meetings",
+    )
+    .map(({ resource, source, reason }) => ({ field: "items", why: `${source ?? resource} not searched: ${reason}` })),
+]
+
+/**
+ * `search all`, CLI and MCP alike. A hit that open tasks point at gets a step listing them, and a meeting transcript
+ * hit one opening its passage; the answer keeps the first two.
+ */
 export const allAnswer = (
   found: SearchAllFound & {
     tasks: { source: string; heldBy: AccountKey }[]
@@ -76,25 +107,36 @@ export const allAnswer = (
   },
   limit: number,
   exact = false,
+  /** Kinds the permissions kept out of the search, each with why. */
+  leftOut: readonly { why: string }[] = [],
 ) => {
   const archive = coverageGaps({ coverage: found.coverage }, found.items.length)
   const next = found.items.flatMap((item) => {
+    // `meetings passage` opens a transcript cue only; a chat or summary hit's excerpt is all there is to open.
+    const passage =
+      item.kind === "meeting" && item.cueRef !== undefined
+        ? [stepOf(MEETING_PASSAGE, { args: { reference: item.cueRef, source: `${item.provider}:${item.account}` } })]
+        : []
     const tasks = found.tasks.filter((task) => task.source === item.ref)
     const held = tasks[0]?.heldBy
-    if (held === undefined) return []
+    if (held === undefined) return passage
     return [
       stepOf(TASKS_OF_HIT, {
         args: { query: `source:"${item.ref}"`, source: `${held.provider}:${held.account}` },
         values: { count: tasks.length },
       }),
+      ...passage,
     ]
   })
+  const steps = [...next, ...archive.next].slice(0, MAX_NEXT_STEPS)
   return listAnswer("search all", {
     items: found.items.map(allHitItem),
     limit,
     has_more: found.hasMore,
-    ...(next.length + archive.next.length ? { next: [...next.slice(0, 2), ...archive.next] } : {}),
+    ...(steps.length ? { next: steps } : {}),
     missing: [
+      ...meetingsMissed(found),
+      ...leftOut.map(({ why }) => ({ field: "items", why })),
       ...archive.missing,
       ...meaningMissed(found.notes?.meaningSkipped, exact),
       ...messagesMeaningMissed(found.messages?.meaningSkipped),

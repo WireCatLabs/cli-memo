@@ -25,7 +25,12 @@ export const MCP_EXCLUSIONS = [
   { path: ["records", "link"], reason: "only the owner says which entity a source's record is" },
 ] as const
 
-export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramFactory) => {
+export const commandCatalogue = (
+  env: NodeJS.ProcessEnv,
+  createProgram: ProgramFactory,
+  /** The server's `--permission` entries, so a command that checks a level itself sees them as the server does. */
+  overrides: readonly string[] = [],
+) => {
   const program = createProgram({ env, streams: captureStreams() })
   const commands = describeProgram(program)
   const all = flatten(commands)
@@ -129,6 +134,7 @@ export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramF
           profile: "",
           env: { ...env, AI_AGENT: "memo-mcp", MEMO_MCP_CLIENT: callingAgent("memo-mcp") },
           levels: () => levels,
+          ...(overrides.length ? { overrides } : {}),
           keyOf,
         }),
       ),

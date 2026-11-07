@@ -1,12 +1,14 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
-import { LOCAL_READ, sharedCommandTemplate, shownOf } from "@wirecat/cli-core/cli"
+import { environmentOf, LOCAL_READ, sharedCommandTemplate, shownOf } from "@wirecat/cli-core/cli"
 import { hitText } from "@wirecat/cli-core/mail"
-import type { SearchedResource } from "@wirecat/cli-core/services"
+import { levelFor } from "@wirecat/cli-core/sends"
+import { RESOURCES_SEARCHED, type SearchedResource } from "@wirecat/cli-core/services"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, withStore } from "../answer.js"
 import { APP } from "../app.js"
 import { SHELL_OVERRIDES } from "../contract-overrides.js"
+import { memoLevels } from "../mcp/permissions.js"
 import { searchMemoriesCommand } from "../memories/command.js"
 import { searchText } from "../notes/search.js"
 import { positive } from "../options.js"
@@ -18,9 +20,18 @@ import { keyDocumentsFirst, searchEverywhere, searchKind, searchNotes } from "./
 
 const onlyOf = (value: string): SearchedResource[] => {
   const selected = value.split(",").map((part) => part.trim())
-  if (!selected.length || selected.some((part) => !["messages", "mail", "notes", "events"].includes(part)))
-    throw new InvalidArgumentError("choose messages,mail,notes,events, separated by commas")
+  if (!selected.length || selected.some((part) => !(RESOURCES_SEARCHED as readonly string[]).includes(part)))
+    throw new InvalidArgumentError(`choose ${RESOURCES_SEARCHED.join(",")}, separated by commas`)
   return [...new Set(selected)] as SearchedResource[]
+}
+
+/** A meeting hit is only useful opened, so a denied search or passage keeps meetings out of search all too. */
+const MEETING_KEYS = ["search.meetings", "meetings.passage"] as const
+
+const meetingsDenied = (command: Command, env: NodeJS.ProcessEnv): { why: string } | undefined => {
+  const levels = memoLevels(env, environmentOf(command).agent?.overrides ?? [])
+  const key = MEETING_KEYS.find((one) => levelFor(levels, one).level === "deny")
+  return key === undefined ? undefined : { why: `meetings left out: the permissions deny ${key}` }
 }
 
 export type Level = "brief" | "full"
@@ -62,12 +73,18 @@ const searchCommandDefinition = (program: Command, streams: Streams, env: NodeJS
   queryOptions(
     annotate(group.command("all"), { effects: LOCAL_READ, output: { entity: "hit" } })
       .description(
-        "messages, mail, notes and calendar events ranked together; not people, memories, projects or decisions. " +
-          "A kind you know reads better with its own search, with all its fields",
+        "messages, mail, notes, calendar events, CRM deals and leads and meeting passages from every meeting " +
+          "account, ranked together; not people, memories, projects or decisions. A kind you know reads better " +
+          "with its own search, with all its fields",
       )
-      .summary("messages, mail, notes and calendar events ranked together"),
+      .summary("messages, mail, notes, events, CRM and meetings ranked together"),
   )
-    .option("--only <resources>", "messages,mail,notes,events, separated by commas", onlyOf)
+    .option("--only <resources>", `${RESOURCES_SEARCHED.join(",")}, separated by commas`, onlyOf)
+    .option(
+      "--source <accounts>",
+      "only these accounts, separated by commas: provider:account as a hit shows it, a provider, a kind or " +
+        "group:<name>; each resource reads the ones of its kind, and one it names none of is left out",
+    )
     .option("--plain-order", "best first by the words alone, without moving mail from suspicious senders down")
     .option("--project <project>", PROJECT_ORDER_HELP)
     .addHelpText(
@@ -83,18 +100,29 @@ Calendar events come from every calendar gcal stored; an event's title, descript
         options: {
           limit: number
           only?: SearchedResource[]
+          source?: string
           exact?: boolean
           timezone?: string
           project?: string
           json?: boolean
           plainOrder?: boolean
         },
+        leaf: Command,
       ) => {
+        const denied = meetingsDenied(leaf, env)
+        const asked = options.only ?? RESOURCES_SEARCHED
+        const only = denied ? asked.filter((one) => one !== "meetings") : options.only
+        if (only?.length === 0)
+          throw new CliError("permission_error", `search all has nothing it may read: ${denied?.why}`, {
+            reason: "search.all-denied",
+          })
+        const leftOut = denied ? [denied] : []
         const answer = await withStore(env, async (store) => {
           const found = await searchEverywhere(store, env, {
             text: words.join(" "),
             limit: options.limit,
-            ...(options.only === undefined ? {} : { only: options.only }),
+            ...(only === undefined ? {} : { only }),
+            ...(options.source === undefined ? {} : { source: options.source }),
             ...(options.exact ? { exact: true } : {}),
             ...(options.plainOrder ? { plainOrder: true } : {}),
             ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
@@ -102,6 +130,7 @@ Calendar events come from every calendar gcal stored; an event's title, descript
           return { ...found, items: await keyDocumentsFirst(store, found.items, options.project) }
         })
         if (!options.json) {
+          for (const { why } of leftOut) streams.diagnostic(`${why}\n`)
           streams.diagnostic(
             `searched: ${answer.accounts.map(({ provider, account }) => `${provider}:${account}`).join(", ") || "nothing"}\n`,
           )
@@ -114,7 +143,7 @@ Calendar events come from every calendar gcal stored; an event's title, descript
         }
         print(
           options.json,
-          allAnswer(answer, options.limit, options.exact),
+          allAnswer(answer, options.limit, options.exact, leftOut),
           [
             ...answer.items.map((item) => `${"key" in item ? "key  " : ""}${item.kind}  ${item.ref}\n  ${item.text}`),
             ...answer.tasks.map((task) => `task  task:${task.id}  ${task.kind}  ${task.source}`),

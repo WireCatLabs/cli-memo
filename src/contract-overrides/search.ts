@@ -30,8 +30,8 @@ export const search: readonly SharedContractOverride[] = [
   {
     command: ["search", "all"],
     field: "summary",
-    before: "search stored messages, notes, calendar events and selected meeting transcripts",
-    after: "messages, mail, notes and calendar events ranked together",
+    before: "search stored messages, notes, calendar events and meetings",
+    after: "messages, mail, notes, events, CRM and meetings ranked together",
     reason:
       "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
@@ -39,9 +39,9 @@ export const search: readonly SharedContractOverride[] = [
     command: ["search", "all"],
     field: "description",
     before:
-      "search messenger messages and notes in the local store, calendar events when the store holds a calendar, and a meeting account's transcripts when --source names one — best match first; not mail (the separate memo CLI searches it: memo search mail), tasks, people, memories or projects. Use it when you do not know where something was written; search messages or notes reads one kind with all its fields",
+      "search messenger messages and notes in the local store, calendar events when the store holds a calendar, and meeting transcripts, chat and summaries when it holds a meeting account — best match first; not mail (the separate memo CLI searches it: memo search mail), tasks, people, memories or projects. Use it when you do not know where something was written; search messages or notes reads one kind with all its fields",
     after:
-      "messages, mail, notes and calendar events ranked together; not people, memories, projects or decisions. A kind you know reads better with its own search, with all its fields",
+      "messages, mail, notes, calendar events, CRM deals and leads and meeting passages from every meeting account, ranked together; not people, memories, projects or decisions. A kind you know reads better with its own search, with all its fields",
     reason:
       "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
@@ -95,22 +95,14 @@ export const search: readonly SharedContractOverride[] = [
     before: [
       {
         flags: "--only <resources>",
-        description:
-          "only these resources, separated by commas: messages, notes, events; meetings when --source names a meeting account",
+        description: "only these resources, separated by commas: messages, notes, events, meetings",
         takes_value: true,
         mandatory: false,
       },
       {
         flags: "--source <accounts>",
         description:
-          "only these accounts, separated by commas: provider:account as a hit shows it, a provider, a kind or group:<name>; each resource reads the ones of its kind, and meetings only when it names one",
-        takes_value: true,
-        mandatory: false,
-      },
-      {
-        flags: "--max-meetings <n>",
-        description:
-          "how many of the meeting account's meetings to look through, newest first, or all for every one (default 100)",
+          "only these accounts, separated by commas: provider:account as a hit shows it, a provider, a kind or group:<name>; each resource reads the ones of its kind",
         takes_value: true,
         mandatory: false,
       },
@@ -167,7 +159,14 @@ export const search: readonly SharedContractOverride[] = [
       },
       {
         flags: "--only <resources>",
-        description: "messages,mail,notes,events, separated by commas",
+        description: "messages,mail,notes,events,crm,meetings, separated by commas",
+        takes_value: true,
+        mandatory: false,
+      },
+      {
+        flags: "--source <accounts>",
+        description:
+          "only these accounts, separated by commas: provider:account as a hit shows it, a provider, a kind or group:<name>; each resource reads the ones of its kind, and one it names none of is left out",
         takes_value: true,
         mandatory: false,
       },

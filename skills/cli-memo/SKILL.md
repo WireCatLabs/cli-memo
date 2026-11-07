@@ -19,8 +19,8 @@ memo reads the local store tg and max write, plus the owner's notes and imported
 
 ## Answer a question
 
-1. `memo search all '<a few key words>' --limit 10 --compact` searches messages, mail, notes and calendar events
-   in one list, best first. Each line is one hit: reference, kind, time, title, sender, then the text. The right
+1. `memo search all '<a few key words>' --limit 10 --compact` searches messages, mail, notes, calendar events,
+   CRM and meetings in one list, best first. Each line is one hit: reference, kind, time, title, sender, then the text. The right
    record is nearly always in the first five; ask for more only when `# more` says there is more and nothing fits.
 2. Not found? Search again in other words: a title, the sender's term, one or two key words, a synonym, the other
    language, or the question itself as a sentence (`'when will the price sync be done?'`): a question also finds a
@@ -32,8 +32,8 @@ memo reads the local store tg and max write, plus the owner's notes and imported
 
 A person: `memo search people <name>` gives `person:<id>`, then `memo context <person>`. A project:
 `memo projects context <key>` (key documents first), then `memo projects status <key> --compact`. One kind
-only: `memo search mail`, `memo search messages` or `memo search notes`. Meetings are not in `search all`:
-`memo search meetings '<words>' --source <provider>:<account>`.
+only: `memo search mail`, `memo search messages` or `memo search notes`. `search all` reads every meeting
+account; open a meeting hit with the `meetings passage` step it gives before citing it.
 
 ## Rules
 

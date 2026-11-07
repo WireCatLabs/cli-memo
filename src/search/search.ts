@@ -211,11 +211,22 @@ interface EverywhereExtras {
   tasksIncomplete: boolean
 }
 
-/** Messages, mail, notes and calendar events ranked together, with the open tasks that point at a hit. */
+/**
+ * Messages, mail, notes, calendar events, CRM deals and leads and meeting passages ranked together, with the open
+ * tasks that point at a hit. Meetings come from every meeting account, through each one's search index.
+ */
 export const searchEverywhere = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
-  { text, limit, only, exact, timezone, plainOrder }: QueryInput & { only?: SearchedResource[] },
+  {
+    text,
+    limit,
+    only,
+    source,
+    exact,
+    timezone,
+    plainOrder,
+  }: QueryInput & { only?: SearchedResource[]; source?: string },
 ): Promise<SearchAllFound & EverywhereExtras> => {
   const accounts = await store.accounts.accounts()
   // Group lists belong to tg; model downloads belong to memo.
@@ -228,6 +239,7 @@ export const searchEverywhere = async (
       limit,
       env,
       ...(only === undefined ? {} : { only }),
+      ...(source === undefined ? {} : { source }),
       ...(exact ? { exact: true } : {}),
       ...(timezone === undefined ? {} : { timezone }),
     },

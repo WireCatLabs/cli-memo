@@ -319,7 +319,11 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "mcp server start": ["memo mcp server start --public-url https://laptop.example.ts.net"],
   "mcp server status": ["memo mcp server status --json"],
   "mcp server stop": ["memo mcp server stop"],
-  "search all": ["memo search all 'budget harbour'", "memo search all 'content:invoice' --only mail,notes --json"],
+  "search all": [
+    "memo search all 'budget harbour'",
+    "memo search all 'content:invoice' --only mail,notes --json",
+    "memo search all 'release date' --source zoom:work,notes --json",
+  ],
   "search messages": ["memo search messages 'friday meeting has:voice'"],
   "search mail": ["memo search mail 'mailbox:important budget' --source email:me@example.com"],
   "search notes": ["memo search notes budget notes:2", "memo search notes kickoff --project HRB --json"],
