@@ -22,7 +22,7 @@ the API.
   the query, and the answer was empty. `search all`, `search messages`, `search mail`, `search notes`,
   `search memories` and `meetings search` now read such a word as text, and the same for a URL, an unbalanced
   quote or bracket, `^`, `~`, `[]`, `{}` and `<>`. A lone emoji beside other words no longer empties the answer. Field
-  queries (`content:invoice`, `from:`) and Boolean operators keep their meaning. Needs cli-core with `plainQuery`.
+  queries (`content:invoice`, `from:`) and Boolean operators keep their meaning (cli-core 0.602.0).
 
 ## 0.131.47 — 07.11.2026
 
