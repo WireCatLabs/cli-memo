@@ -64,7 +64,7 @@ in every group. A reference outside the group is refused with `permission_error`
 is a bare id of one (`organizations show 3`). That covers a message, a chat, a calendar event, a deal or organization
 a CRM outside the group brought, and a person none of whose accounts is in it. Another group, `--source all`, and a
 `--source` or `--account` outside the group are refused too. `projects status` counts a linked chat outside the group
-in `missing`, and names none. Evidence and sources outside it are left out and counted in `out_of_scope`; a context's
+in `missing`, and names none. Evidence and sources outside it are left out and counted in `out_of_scope` (a list says so in `missing`); a context's
 `coverage` counts the accounts it kept out instead of naming them. A proposal or an action outside the group is not
 listed, shown or decided.
 

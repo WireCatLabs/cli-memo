@@ -9,6 +9,7 @@ import { ACME_PORTAL, type AcmeScenario, acmeScenario } from "@wirecat/cli-core/
 import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest"
+import { answerOf } from "../../test/answer.js"
 import { commandCaller } from "../../test/mcp.js"
 import { memoIn } from "../../test/memo.js"
 import { createMemoServer } from "../mcp/server.js"
@@ -130,6 +131,41 @@ afterAll(() => {
   vi.unstubAllEnvs()
 })
 
+describe("locked lists with items keep the group's evidence and count the rest", () => {
+  it("lists memories and facts whose evidence is both in and outside the group, over the CLI and MCP", async () => {
+    const owner = memoIn(env)
+    const both = ["--evidence", "msg:telegram/2/401/1", "--evidence", "msg:telegram/1/301/1"]
+    await owner("memories", "add", "Mixed memory", "--kind", "summary", "--scope", "work", ...both)
+    await owner("facts", "add", "Mixed fact", "--kind", "statement", ...both)
+    const check = (answer: { items: { text?: string; statement?: string; evidence?: unknown }[] }, text: string) => {
+      const item = answer.items.find((one) => (one.text ?? one.statement) === text)
+      expect(item, text).toBeDefined()
+      expect(JSON.stringify(item?.evidence)).toContain("msg:telegram/2/401/1")
+      expect(leaked(JSON.stringify(answer))).toEqual([])
+      expect(JSON.stringify(answer)).toContain("out_of_scope")
+    }
+    check(await locked("memories", "list"), "Mixed memory")
+    check(await locked("facts", "list"), "Mixed fact")
+    const [serverSide, clientSide] = InMemoryTransport.createLinkedPair()
+    await createMemoServer({ ...env, MEMO_GROUP_LOCK: "work" }, createProgram).connect(serverSide)
+    const client = new Client({ name: "lists", version: "0" })
+    await client.connect(clientSide)
+    try {
+      const call = await commandCaller(client)
+      for (const [command, text] of [
+        ["memories list", "Mixed memory"],
+        ["facts list", "Mixed fact"],
+      ] as const) {
+        const result = await call(command, {})
+        expect(result.isError, command).toBeFalsy()
+        check(answerOf(JSON.stringify(result.structuredContent)), text)
+      }
+    } finally {
+      await client.close()
+    }
+  })
+})
+
 describe("a work run shows nothing of the home account (final review cases)", () => {
   it("strips home evidence and sources from memories and facts", async () => {
     for (const args of [
@@ -202,7 +238,7 @@ const SAMPLES = (top: string): Record<string, string> => ({
   message: "msg:telegram/2/401/1",
   task: "LKW-1",
   ref: top === "memories" ? "memory:1" : top === "facts" ? "fact:1" : top === "leads" ? "lead:1" : refs.deal,
-  id: top === "actions" ? homeAction : top === "review" ? homeProposal : "1",
+  id: top === "actions" ? homeAction : top === "review" ? homeProposal : top === "tasks" ? "LKW-1" : "1",
   ids: homeProposal,
   list: "list:organization",
 })
@@ -223,15 +259,15 @@ describe("a generic leak scan of every group-aware read under the lock", () => {
     const found: string[] = []
     for (const { path, command } of reads(program)) {
       const samples = SAMPLES(path[0] as string)
+      // A list's query narrows it; the scan reads each list whole.
       const args = command.registeredArguments.flatMap((argument) => {
-        const value = samples[argument.name()]
+        const value = argument.name() === "query" && path.at(-1) === "list" ? undefined : samples[argument.name()]
         return value === undefined ? [] : [value]
       })
       const answer = await outputOf(locked(...path, ...args))
-      for (const one of leaked(answer))
-        found.push(
-          `${path.join(" ")}: ${one} … ${answer.slice(Math.max(0, answer.indexOf(one) - 120), answer.indexOf(one) + 40)}`,
-        )
+      for (const one of leaked(answer)) found.push(`${path.join(" ")}: ${one}`)
+      // A list runs with items in this fixture: it answers, it does not fail.
+      if (path.at(-1) === "list" && !answer.startsWith("{")) found.push(`${path.join(" ")}: failed ${answer}`)
     }
     expect(found).toEqual([])
   })

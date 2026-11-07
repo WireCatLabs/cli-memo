@@ -3,6 +3,7 @@ import { queryTerms, termField } from "@wirecat/cli-core/cli"
 import { proposalRegistry } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import { labelsFor, proposerName } from "../review/review.js"
+import { guardOf } from "../store/guard.js"
 
 export const RELATIONSHIP_QUERY = {
   entity: "relationship",
@@ -57,7 +58,7 @@ const pending = async (store: MessageStore, about: string | undefined) => {
   }
 }
 
-export const listRelationships = async (store: MessageStore, words: readonly string[]) => {
+export const listRelationships = async (store: MessageStore, env: NodeJS.ProcessEnv, words: readonly string[]) => {
   const terms = queryTerms(words, RELATIONSHIP_QUERY, "relationships list")
   const about = terms.get("about")
   const confirmed = terms.get("confirmed")
@@ -70,14 +71,23 @@ export const listRelationships = async (store: MessageStore, words: readonly str
             .filter((one) => confirmed === undefined || one.confirmed)
             .map((one) => ({ ...one, status: one.confirmed ? ("confirmed" as const) : ("proposed" as const) })),
         }
+  // Under the lock a row whose end the group cannot show, a person only an outside account saw, is left out.
+  const guard = await guardOf(store, env)
+  const shown = await Promise.all(
+    found.items.map(
+      async (one) =>
+        guard === undefined || ((await guard.visible(one.from)) && (one.to === null || (await guard.visible(one.to)))),
+    ),
+  )
+  const rows = found.items.filter((_, at) => shown[at])
   const label = await labelsFor(
     store,
-    found.items.flatMap((one) => [one.from, one.to]),
+    rows.flatMap((one) => [one.from, one.to]),
   )
   return {
     hasMore: found.hasMore,
-    limit: confirmed === "false" ? PENDING_LIMIT : Math.max(1, found.items.length),
-    items: found.items.map((one) => ({ ...one, fromTitle: label(one.from), toTitle: label(one.to) })),
+    limit: confirmed === "false" ? PENDING_LIMIT : Math.max(1, rows.length),
+    items: rows.map((one) => ({ ...one, fromTitle: label(one.from), toTitle: label(one.to) })),
   }
 }
 
