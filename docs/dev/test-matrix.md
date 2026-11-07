@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**760 ✅ · 0 ⛔ · 159 ❌** — 213 commands, 706 options.
+**761 ✅ · 0 ⛔ · 158 ❌** — 213 commands, 706 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -134,7 +134,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tags add` | `--account` | ✅ |  |
 | `tags add` | `--json` | ✅ |  |
 | `tags remove` |  | ✅ |  |
-| `tags remove` | `--message` | ❌ |  |
+| `tags remove` | `--message` | ✅ |  |
 | `tags remove` | `--note` | ✅ |  |
 | `tags remove` | `--chat` | ✅ |  |
 | `tags remove` | `--task` | ❌ |  |
