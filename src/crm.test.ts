@@ -158,7 +158,7 @@ describe("groups and the CRM (plan §8 row 11)", () => {
     }
     expect(hint).toBe(`add it to a work group: \`memo groups add work ${PORTAL}\``)
     const words = /`memo (.+)`/.exec(hint as string)?.[1]?.split(" ") ?? []
-    const row = (await memoIn(fresh)(...words)).groups.work
+    const row = (await memoIn(fresh)(...words)).items.find(({ group }: { group: string }) => group === "work")?.members
     expect(row).toEqual([expect.objectContaining(ACME_PORTAL)])
   })
 
