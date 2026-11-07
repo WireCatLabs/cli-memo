@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.48 — 07.11.2026
+
 ### Fixed
 
 - **cli-core 0.602.0.** A search with a colon, a URL or other syntax characters in plain text is read as words
