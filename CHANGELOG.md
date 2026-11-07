@@ -6,7 +6,7 @@ the API.
 
 ## Unreleased
 
-### Changed
+### Fixed
 
 - **The morning digest is written in the owner's language, without references, commands or Gaps and Coverage
   sections.** The `morning-digest` skill now asks for plain text in the sections and line shapes of the digest
