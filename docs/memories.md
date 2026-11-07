@@ -35,7 +35,8 @@ to let an agent decide them with a recorded reason, creating accepted facts and 
 directly recorded fact waits when an agent adds it: through [the MCP server](mcp.md), or with the `memo` command in an
 agent's terminal (`AI_AGENT` or `CLAUDECODE` set), where the agent is recorded as its author. One you
 add yourself at a terminal is confirmed (memory) or accepted (fact) at once; in an agent's terminal, `--as-owner`
-makes it yours after you answer y at the terminal.
+makes it yours after you answer y at the terminal. WireCat Desktop passes `--from-app`, which records what you
+do in the app as yours.
 
 ## Memories
 
