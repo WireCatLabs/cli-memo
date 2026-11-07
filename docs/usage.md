@@ -176,8 +176,8 @@ Reads use `--source`; account-scoped writes use `--account provider:account`. Re
 A group keeps work apart from the rest. Put an account in one with `memo groups add work bitrix24:acme`, and
 read only that group by naming it first: `memo work search all "renewal"`, `memo work context person:5`.
 `MEMO_GROUP=work` does the same for every command. In a group, a read takes only the group's accounts; an explicit
-`--source` narrows inside it, and an account outside it is refused, as is a write's `--account` or a reference
-(`msg:…`, `chat:…`) to an account outside it.
+`--source` narrows inside it, and an account outside it is refused, as is a write's `--account`. References are
+checked only under the lock.
 
 `memo groups list` shows each group with its accounts, every app's profile names for each (`tg work`, `b24 work`),
 why each is in, and the other groups that hold it too. An account may be in several groups; the list names those

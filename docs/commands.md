@@ -1793,12 +1793,12 @@ memo relationships add <from> <to> [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--kind <kind>` | member-of or related-to. Default: `member-of`. |
-| `--role <role>` | the role it has there, in a few words, such as cto. |
+| `--role <role>` | its role, one from the lists: employee, contributor, decision-maker and the like; a job title is not one. |
 | `--reason <text>` | why you think so, in a sentence. |
 
 **Returns:** state that a person, organization, project or chat belongs or relates to another
 
-**Example:** `memo relationships add person:3 organization:1 --role cto`, `memo relationships add project:2 organization:1 --kind related-to --reason 'same client'`
+**Example:** `memo relationships add person:3 organization:1 --role employee`, `memo relationships add project:2 organization:1 --kind related-to --reason 'same client'`
 
 ### `memo relationships list`
 

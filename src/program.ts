@@ -8,6 +8,7 @@ import {
   commandWords,
   entityFields,
   environmentOf,
+  groupAware,
   guideCommand,
   installHelp,
   liftProfile,
@@ -286,6 +287,47 @@ const OWN_ENTITIES = entityFields({
   payment_allocation: ["payment", "invoice", "amount", "currency", "created_at"],
 })
 
+/**
+ * The commands that keep to the run's account group (WC-ACCT-13): each reads only the group's accounts and its
+ * references are checked, so under MEMO_GROUP_LOCK these run and every other command is refused. Add a command only
+ * once its reads are scoped.
+ */
+const GROUP_AWARE = [
+  "context",
+  "show",
+  "messages show",
+  "search all",
+  "search messages",
+  "search mail",
+  "search notes",
+  "search people",
+  "groups",
+  "tags add",
+  "tags remove",
+  "deals",
+  "leads",
+  "organizations",
+  "people list",
+  "people add",
+  "notes list",
+  "notes show",
+  "relationships list",
+  "relationships add",
+  "relationships update",
+  "relationships remove",
+  "relationships confirm",
+  "mcp serve",
+]
+
+const markGroupAware = (program: Command) => {
+  for (const path of GROUP_AWARE) {
+    let command: Command | undefined = program
+    for (const name of path.split(" ")) command = command?.commands.find((child) => child.name() === name)
+    if (!command) throw new Error(`no command to mark group-aware: ${path}`)
+    groupAware(command)
+  }
+}
+
 /** The parts of the skill an agent reads only when a task needs them; the primary SKILL.md is read every session. */
 export const SKILL_TOPICS = [
   "search",
@@ -458,6 +500,7 @@ export const createProgram = ({
   })
   trackAnswers(program)
   placeInSections(program)
+  markGroupAware(program)
   installHelp(program, FIRST_SCREEN)
   provide(program, {
     ...environmentOf(program),

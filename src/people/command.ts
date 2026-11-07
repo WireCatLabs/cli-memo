@@ -9,6 +9,7 @@ import { deciderOf, fromAppOption } from "../author.js"
 import { boundFolders, folderOfFile } from "../notes/bound.js"
 import { folderNotes } from "../notes/import.js"
 import { positive } from "../options.js"
+import { keepInGroup } from "../store/group.js"
 import { identityOf } from "./identity.js"
 import { importNotesMap } from "./notes-map.js"
 
@@ -99,7 +100,12 @@ export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     .action(async (words: string[], options: { limit: number; json?: boolean }) => {
       listQuery(typedQuery(words), query, "people list")
       await withStore(env, async (store) => {
-        const found = await store.tasks.taskPeople({ limit: options.limit })
+        const found = await keepInGroup(
+          store,
+          env,
+          await store.tasks.taskPeople({ limit: options.limit }),
+          ({ person }) => person,
+        )
         print(
           options.json,
           wholeList(

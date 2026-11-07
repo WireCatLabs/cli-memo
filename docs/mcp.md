@@ -41,11 +41,20 @@ Discovery retains blocked commands with current `availability` and the reason, a
 
 ## Lock an agent to a group
 
-`MEMO_GROUP_LOCK=work memo mcp serve` serves only the accounts of the group `work` (see
-[groups](usage.md#groups-of-accounts)). Every read takes only them: a search with no `--source`, a `--source` that
-names `all` or an account outside the group, another group, a write's `--account` and a `msg:` or `chat:` reference
-to an outside account are refused with `permission_error`. Group changes (`groups add`, `remove`, `move`) are refused
-too. Set the lock in the environment of the process the app starts; the agent cannot lift it.
+`MEMO_GROUP_LOCK=work memo mcp serve` serves only the group `work` (see [groups](usage.md#groups-of-accounts)), and
+the lock fails closed:
+
+- Only the commands that keep to a group run: `context`, `show`, `messages show`, `search all`, `messages`, `mail`,
+  `notes` and `people`, `groups`, `tags add` and `remove`, `deals`, `leads`, `organizations`, `people list` and `add`,
+  `notes list` and `show`, and `relationships list`, `add`, `update`, `end`, `remove` and `confirm`. Every other
+  command, memories and facts included, is refused with `permission_error`.
+- Their reads take only the group's accounts. A list leaves out what belongs to an account outside it; your own notes
+  written in Memo belong to `personal`.
+- A reference to anything outside the group is refused with `permission_error`, in an argument or an option. That
+  covers a message or a chat, a deal or an organization a CRM outside it brought, and a person none of whose accounts
+  is in it. So are another group, `--source all`, a `--source` or `--account` outside it, and every group change.
+
+Set the lock in the environment of the process the app starts; the agent cannot lift it.
 
 The named CLI-only exclusions are the `mcp` commands, `upgrade`, `skill install`, `jobs start` and `jobs stop`: they
 start another server, replace the running program, install instructions in other apps, or manage a background timer.

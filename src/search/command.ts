@@ -36,6 +36,18 @@ const groupMessengers = async (store: MessageStore, env: NodeJS.ProcessEnv, text
 
 const ONLY = ["messages", "mail", "notes", "events", "crm", "business"]
 
+/**
+ * In a group, `search notes` with no `--source` reads the group's notes: memo's own (`notes:internal`) are
+ * `personal`'s. A group with none says so, never pointing at a `--source` nobody typed.
+ */
+const groupNotes = async (store: MessageStore, env: NodeJS.ProcessEnv) => {
+  const scope = await groupScopeOf(store, env)
+  if (scope === undefined) return undefined
+  const { notes } = accountsByKind(scope)
+  if (notes.length === 0) throw new CliError("not_found", `group ${scope.run.name} holds no notes`)
+  return notes.map(({ account }) => `notes:${account}`).join(",")
+}
+
 const onlyOf = (value: string): SearchedResource[] => {
   const selected = value.split(",").map((part) => part.trim())
   if (!selected.length || selected.some((part) => !ONLY.includes(part)))
@@ -263,8 +275,16 @@ For an agent: read with --compact, one line per hit with its reference. Never wr
           timezone?: string
           json?: boolean
         },
+        command: Command,
       ) => {
-        const answer = await withStore(env, (store) => searchNotes(store, env, words.join(" "), options))
+        const answer = await withStore(env, async (store) => {
+          const typed = command.getOptionValueSource("source") === "cli"
+          const source = typed ? options.source : await groupNotes(store, env)
+          return searchNotes(store, env, words.join(" "), {
+            ...options,
+            ...(source === undefined ? {} : { source }),
+          })
+        })
         if (answer.meaning_skipped && !options.json)
           streams.diagnostic(`Searched by words only: ${answer.meaning_skipped}\n`)
         for (const { source, reason } of answer.skipped) streams.diagnostic(`${source} not searched: ${reason}\n`)

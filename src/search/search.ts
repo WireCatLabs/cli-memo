@@ -18,7 +18,7 @@ import {
 import type { AccountKey, MessageStore, Note } from "@wirecat/cli-core/store"
 import { APP } from "../app.js"
 import { keyDocuments, keyFirst, projectOf } from "../knowledge/key-documents.js"
-import { accountsByKind, groupScopeOf, scopedAccounts } from "../store/group.js"
+import { accountsByKind, groupScopeOf, MEMO_ACCOUNT, scopedAccounts } from "../store/group.js"
 import { accountsOf } from "../store/source-list.js"
 import { taskPage } from "../tasks/context.js"
 
@@ -35,11 +35,8 @@ export interface EvidenceItem {
 
 const CHATS_CHECKED = 500
 
-/**
- * The account memo's searches run as: its own notes, never a stored account picked for the owner. The scope comes
- * from the query alone, and every account it covers is named in the answer.
- */
-const MEMO: AccountKey = { provider: "notes", account: "internal" }
+/** memo's searches run as its own notes, never a stored account picked for the owner; the query sets the scope. */
+const MEMO = MEMO_ACCOUNT
 
 export const unifiedSearch = async (
   store: MessageStore,

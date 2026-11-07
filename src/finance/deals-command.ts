@@ -9,6 +9,7 @@ import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { authorOf } from "../author.js"
 import { collect, positive } from "../options.js"
 import { pageOf } from "../page.js"
+import { keepInGroup } from "../store/group.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { dayOf } from "./finance.js"
 
@@ -35,6 +36,7 @@ const PIPELINE_QUERY = {
 
 export const listDeals = async (
   store: MessageStore,
+  env: NodeJS.ProcessEnv,
   kind: DealKind,
   words: readonly string[] | string | undefined,
   limit?: number,
@@ -49,7 +51,10 @@ export const listDeals = async (
     ...(terms.has("pipeline") ? { pipeline: terms.get("pipeline") as string } : {}),
     ...(terms.has("organization") ? { organization: terms.get("organization") as string } : {}),
   }
-  return pageOf(command, limit, (most) => store.deals.list({ ...filter, limit: most }))
+  // A CRM copy outside the run's group is left out; a page may then hold fewer than asked.
+  return pageOf(command, limit, async (most) =>
+    keepInGroup(store, env, await store.deals.list({ ...filter, limit: most }), ({ ref }) => ref),
+  )
 }
 
 const roleOf = (role: string | undefined): DealRole => {
@@ -112,7 +117,7 @@ const itemCommands = (
     .summary(`${one}s, newest first`)
     .option("--limit <n>", `most ${one}s, up to 500`, positive, 100)
     .action((words: string[], { json, limit }: { limit: number; json?: boolean }) =>
-      run(json, (store) => listDeals(store, kind, words, limit)),
+      run(json, (store) => listDeals(store, env, kind, words, limit)),
     )
 
   json(annotate(group.command("show"), { effects: LOCAL_READ, output: { entity: kind } }))
