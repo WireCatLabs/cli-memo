@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**774 ✅ · 0 ⛔ · 162 ❌** — 217 commands, 719 options.
+**781 ✅ · 0 ⛔ · 164 ❌** — 218 commands, 727 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -368,13 +368,18 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `relationships add` | `--json` | ✅ |  |
 | `relationships add` | `--kind` | ✅ |  |
 | `relationships add` | `--role` | ✅ |  |
+| `relationships add` | `--title` | ✅ |  |
+| `relationships add` | `--start-date` | ✅ |  |
+| `relationships add` | `--end-date` | ❌ |  |
 | `relationships add` | `--reason` | ✅ |  |
 | `relationships list` |  | ✅ |  |
 | `relationships list` | `--limit` | ✅ |  |
-| `relationships list` | `--page` | ❌ |  |
+| `relationships list` | `--page` | ✅ |  |
 | `relationships list` | `--json` | ✅ |  |
 | `relationships update` |  | ✅ |  |
 | `relationships update` | `--role` | ✅ |  |
+| `relationships update` | `--title` | ❌ |  |
+| `relationships update` | `--start-date` | ❌ |  |
 | `relationships update` | `--purpose` | ✅ |  |
 | `relationships update` | `--reason` | ✅ |  |
 | `relationships update` | `--json` | ✅ |  |
@@ -387,6 +392,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `relationships confirm` | `--json` | ✅ |  |
 | `relationships confirm` | `--as-owner` | ❌ |  |
 | `relationships confirm` | `--reason` | ✅ |  |
+| `relationships end` |  | ✅ |  |
+| `relationships end` | `--end-date` | ✅ |  |
+| `relationships end` | `--json` | ✅ |  |
+| `relationships end` | `--as-owner` | ❌ |  |
 | `relationships scan` |  | ✅ |  |
 | `relationships scan` | `--source` | ✅ |  |
 | `relationships scan` | `--since-time` | ❌ |  |
@@ -599,7 +608,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `deals list` | `--json` | ✅ |  |
 | `deals list` | `--limit` | ❌ |  |
 | `deals show` |  | ✅ |  |
-| `deals show` | `--json` | ❌ |  |
+| `deals show` | `--json` | ✅ |  |
 | `deals context` |  | ✅ |  |
 | `deals context` | `--json` | ✅ |  |
 | `deals context` | `--brief` | ✅ |  |
