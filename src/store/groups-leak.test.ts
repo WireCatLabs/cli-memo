@@ -18,8 +18,8 @@ import { createProgram } from "../program.js"
 const HOME = { provider: "telegram", account: "1" }
 const WORK = { provider: "telegram", account: "2" }
 const PORTAL = `${ACME_PORTAL.provider}:${ACME_PORTAL.account}`
-/** Anything of the home account a work run must never print; `telegram/100` is the scenario's own, not it. */
-const LEAKS = [/telegram\/1(?!\d)/, /telegram:1(?!\d)/, /Lockcase at home/, /Kin Example/]
+/** Anything of the home account a work run must never print. */
+const LEAKS = ["telegram/1", "telegram:1", "Lockcase at home", "Kin Example"]
 
 const message = (id: string, sender: string, text: string) => ({
   id,
@@ -51,7 +51,7 @@ const homePerson = async () => {
   }
 }
 
-const leaked = (text: string) => LEAKS.filter((one) => one.test(text)).map(String)
+const leaked = (text: string) => LEAKS.filter((one) => text.includes(one))
 
 const outputOf = async (run: Promise<unknown>) => {
   try {

@@ -43,6 +43,7 @@ import { withOwner } from "../people/owner.js"
 import { decideOne, decisionOf } from "../review/review.js"
 import { deniedCrmKinds } from "../search/denied.js"
 import { groupScopeOf, keepInGroup } from "../store/group.js"
+import { lockedCoverage, stripped } from "../store/guard.js"
 import {
   ACCOUNTS_HELP,
   accountName,
@@ -206,11 +207,11 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
           deniedKinds: deniedCrmKinds(command, env),
         })
         const ref = found.organization.ref
-        return {
+        return lockedCoverage(store, env, {
           ...found,
           notes: await notesAbout(store, { ref }),
           tags: await store.knowledge.tags(null, { type: "organization", id: ref.slice("organization:".length) }),
-        }
+        })
       })
       print(options.json, itemAnswer(answer), organizationText(answer))
     })

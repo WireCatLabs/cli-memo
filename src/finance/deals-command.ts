@@ -12,6 +12,7 @@ import { collect, positive } from "../options.js"
 import { pageOf } from "../page.js"
 import { deniedCrmKinds } from "../search/denied.js"
 import { type GroupScope, groupScopeOf } from "../store/group.js"
+import { lockedCoverage } from "../store/guard.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { dealBriefText, dealText } from "./deal-text.js"
 import { dayOf } from "./finance.js"
@@ -144,11 +145,15 @@ const itemCommands = (
     .action(async (ref: string, options: { brief?: boolean; limit: number; json?: boolean }, command: Command) => {
       const answer = await withStore(env, async (store) => {
         const scope = await groupScopeOf(store, env)
-        return dealContext(store, ref, {
-          limit: options.limit,
-          ...(scope === undefined ? {} : { accounts: scope.accounts }),
-          deniedKinds: deniedCrmKinds(command, env),
-        })
+        return lockedCoverage(
+          store,
+          env,
+          await dealContext(store, ref, {
+            limit: options.limit,
+            ...(scope === undefined ? {} : { accounts: scope.accounts }),
+            deniedKinds: deniedCrmKinds(command, env),
+          }),
+        )
       })
       if (answer.deal.kind !== kind)
         throw new CliError("validation_error", `${ref} is a ${answer.deal.kind} — memo ${answer.deal.kind}s context`)

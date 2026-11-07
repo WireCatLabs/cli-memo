@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**789 ✅ · 0 ⛔ · 165 ❌** — 221 commands, 733 options.
+**790 ✅ · 0 ⛔ · 164 ❌** — 221 commands, 733 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -644,7 +644,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `leads list` | `--json` | ✅ |  |
 | `leads list` | `--limit` | ❌ |  |
 | `leads show` |  | ✅ |  |
-| `leads show` | `--json` | ❌ |  |
+| `leads show` | `--json` | ✅ |  |
 | `leads context` |  | ✅ |  |
 | `leads context` | `--json` | ✅ |  |
 | `leads context` | `--brief` | ✅ |  |
