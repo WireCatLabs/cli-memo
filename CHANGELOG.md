@@ -4,6 +4,19 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- **`memo sync` names a damaged store instead of a bug.** "database disk image is malformed" or "file is not a
+  database" from the shared store was `internal_error (command.crashed)`, "the command failed; this is a bug", in the
+  sync's summary and the scheduled sync's failure banner. It is now `configuration_error (store.damaged)`: the store
+  file is damaged, and `memo store recover` says what is lost and how to recover it (cli-core 0.605.0).
+- **A `memo sync` source that finds the store damaged stops later writes.** Its failure leaves the damage mark beside
+  the store, as a failed command already does, so the next sync and every other tool's write refuse with
+  `store.damaged` until `memo store recover` (cli-core 0.605.0). `memo doctor --deep` records memo's version in the
+  store's health mark.
+
 ## 0.131.51 — 07.11.2026
 
 ### Fixed

@@ -61,7 +61,7 @@ export const diagnose = async (env: NodeJS.ProcessEnv, program: Command, { deep 
     dirs: [dirname(configReport.path), ...(env.MESSAGING_STORE ? [] : [dirname(storePath(env))]), runsDirFor(APP, env)],
   })
 
-  const store = await storeSummary(env, { deep, command: "memo" })
+  const store = await storeSummary(env, { deep, command: "memo", version: APP.version })
   if ("damage" in store && store.damage) problems.push({ what: store.damage.what, fix: "memo store recover" })
   else if ("error" in store && store.error) problems.push({ what: `the store cannot be read: ${store.error}`, fix: "" })
   if ("writable" in store && store.writable === false)
