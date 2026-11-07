@@ -58,16 +58,16 @@ Each section is a heading line (emoji, then the words below), then one item per 
 7. 🛠 Синхронизация — only when a source has saved nothing for more than 24 hours: one line per source, such as
    `🛠 MAX не обновлялся 2 дня`. Name the messenger or mailbox, never an account id. Say nothing when all are fresh.
 
-Each item is one line, starting with its emoji, saying who, what about and what to do:
+Each item is one line, starting with its type emoji (never a section emoji), saying who, what about and what to do:
 
 - 💬 Анна Котова · аренда склада — ответить, подходит ли подписание в пятницу (ждёт 2 дня, почта)
 - ❓ Игорь Лапин спрашивает: какой срок поставки плитки (Telegram)
 - 📌 Подписать акт — срок сегодня (⏰ when overdue)
 - ℹ️ Проект «Склад»: договор согласован
 - ⚠️ Проект «Склад»: риск сорвать срок → уточнить у подрядчика (🔴 when serious)
-- 💰 +120 000 ₽ · ООО «Вектор» · счёт за март (💸 for money out) — сверить оплату
-- 🗳 Три предложения связать контакты — решить
-- 📅 15:00 · созвон по проекту «Склад» · Игорь Лапин
+- 📥 +120 000 ₽ · ООО «Вектор» · счёт за март (📤 for money out) — сверить оплату
+- ☑️ Три предложения связать контакты — решить
+- 👥 15:00 · созвон по проекту «Склад» · Игорь Лапин
 
 If the day has no items and every source is fresh, write one line: `Тихое утро: ничего срочного.` If a source is stale, it
 is `Новых дел нет, но MAX не обновлялся 2 дня.`
