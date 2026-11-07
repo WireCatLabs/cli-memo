@@ -106,7 +106,11 @@ describe("combined evidence, relationships and local reminders", () => {
     expect(searched.items.some((item: { ref: string }) => item.ref === analysis.ref)).toBe(true)
     const messagesOnly = await run("search", "all", "budget AND chat:77")
     expect(messagesOnly.items.length).toBeGreaterThan(0)
-    expect(messagesOnly.meta.issues).toContainEqual({ code: expect.any(String), source: "notes" })
+    expect(messagesOnly.meta.issues).toContainEqual({
+      code: "validation_error",
+      reason: "query.unsupported-field",
+      source: "notes",
+    })
     const bundle = await run("answers", "create", "What is pending?", "budget", "--all")
     expect(bundle.evidence.length).toBeGreaterThan(0)
     expect(bundle.coverage.find(({ provider }: { provider: string }) => provider === "telegram")).toEqual({

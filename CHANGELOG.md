@@ -14,6 +14,14 @@ the API.
 - **`memo sync --json` writes progress lines to stderr** while it reads a notes folder:
   `{"event":"progress","step":"notes","done","total","unit":"files","label":<folder id>}`, counts only, at most two a
   second, so an app can draw a bar.
+- **`memo search all --json` says why it skipped a source.** Each entry of `meta.issues` carries `reason`, a dotted
+  id such as `query.unknown-value` for `kind:nonsense`, as cli-core's `search all` does (cli-core 0.604.0).
+
+### Changed — may break callers
+
+- **A `?` that ends a word in a search is a question mark, not a wildcard.** `memo search all 'ready?'` and
+  `'что с бюджетом?'` find "ready" and "бюджет"; before, `?` asked for one more character, so the word itself was
+  missed. A `?` inside a word (`inv?ice`) is still one character (cli-core 0.604.0).
 
 ### Fixed
 
@@ -22,6 +30,16 @@ the API.
   `systemctl --user enable --now`. A program with another PATH, like the WireCat app reading a status, so started a
   timer the owner had stopped by hand. Now memo changes only the program line, when the install moved, and reloads
   systemd without starting anything.
+
+- **A search for text with a colon or another special character finds what holds it** (#674). `memo search all
+  'meeting at 10:30'`, `'Answer as HH:MM'` and `'a:b'` read the word before the colon as a field, every source refused
+  the query, and the answer was empty. `search all`, `search messages`, `search mail`, `search notes`,
+  `search memories` and `meetings search` now read such a word as text, and the same for a URL, an unbalanced
+  quote or bracket, `^`, `~`, `[]`, `{}` and `<>`. A lone emoji beside other words no longer empties the answer. Field
+  queries (`content:invoice`, `from:`) and Boolean operators keep their meaning (cli-core 0.602.0).
+
+- **cli-core 0.604.0.** In `search all`, a question's hit that both the words and the meaning found keeps the better
+  of its two ranks (#2620).
 
 ## 0.131.48 — 07.11.2026
 

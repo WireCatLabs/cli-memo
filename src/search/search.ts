@@ -4,6 +4,7 @@ import { parseLocator } from "@wirecat/cli-core"
 import { demotedSenders, lowerSuspicious, searchMail } from "@wirecat/cli-core/mail"
 import {
   meaningLane,
+  plainQuery,
   questionLookup,
   type SearchAllFound,
   type SearchedResource,
@@ -309,17 +310,18 @@ export const searchKind = async (
       },
       { app: APP },
     )
+  const plain = plainQuery(text)
   return searchStore(
     store,
     MEMO,
     {
       text,
       kind,
-      ...(hasSource(parseLucene(text).root) ? {} : { source: "all" as const }),
+      ...(hasSource(parseLucene(plain).root) ? {} : { source: "all" as const }),
       limit,
       ...scope,
       // As search all does: a question finds a short reply by the message it answers, and records holding some words.
-      ...(!exact && questionLookup(text) !== undefined ? { discover: true } : {}),
+      ...(!exact && questionLookup(plain) !== undefined ? { discover: true } : {}),
     },
     { app: APP },
   )
