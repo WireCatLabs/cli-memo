@@ -352,7 +352,7 @@ memo folders remove <folder> [options]
 
 **Returns:** stop reading a notes folder here; its notes stay unless --allow-delete
 
-**Example:** `memo folders remove ~/notes`, `memo folders remove 3 --allow-delete --yes --json`
+**Example:** `memo folders remove 1`, `memo folders remove 1 --allow-delete --yes`
 
 ### `memo folders list`
 
