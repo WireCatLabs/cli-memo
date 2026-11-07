@@ -84,7 +84,7 @@ export const unifiedSearch = async (
     locator: note.ref,
     provider: "notes",
     account: note.folderId ?? "internal",
-    timestamp: note.updatedAt,
+    timestamp: note.modifiedAt ?? note.updatedAt,
     text: note.text.slice(0, 2000),
     match,
   })
