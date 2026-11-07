@@ -3,7 +3,7 @@ import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
 import { parseLucene } from "@wirecat/cli-base/query"
 import { LOCAL_READ, sharedCommandTemplate, shownOf } from "@wirecat/cli-core/cli"
 import { hitText } from "@wirecat/cli-core/mail"
-import type { SearchedResource } from "@wirecat/cli-core/services"
+import { RESOURCES_SEARCHED, type SearchedResource } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, withStore } from "../answer.js"
@@ -16,6 +16,7 @@ import { SAVE_HELP } from "../save-help.js"
 import { accountsByKind, groupScopeOf } from "../store/group.js"
 import { ACCOUNTS_HELP, MAIL_SOURCES, mailboxesOf } from "../store/source-list.js"
 import { allAnswer, eventsMeaningNote, kindAnswer, messagesMeaningNote, notesAnswer } from "./answers.js"
+import { deniedCrmKinds } from "./denied.js"
 import { peopleAnswer, peopleText, searchPeople } from "./people.js"
 import { hasSource, keyDocumentsFirst, searchEverywhere, searchKind, searchNotes } from "./search.js"
 
@@ -35,8 +36,8 @@ const groupMessengers = async (store: MessageStore, env: NodeJS.ProcessEnv, text
 
 const onlyOf = (value: string): SearchedResource[] => {
   const selected = value.split(",").map((part) => part.trim())
-  if (!selected.length || selected.some((part) => !["messages", "mail", "notes", "events"].includes(part)))
-    throw new InvalidArgumentError("choose messages,mail,notes,events, separated by commas")
+  if (!selected.length || selected.some((part) => !(RESOURCES_SEARCHED as readonly string[]).includes(part)))
+    throw new InvalidArgumentError(`choose ${RESOURCES_SEARCHED.join(",")}, separated by commas`)
   return [...new Set(selected)] as SearchedResource[]
 }
 
@@ -79,12 +80,16 @@ const searchCommandDefinition = (program: Command, streams: Streams, env: NodeJS
   queryOptions(
     annotate(group.command("all"), { effects: LOCAL_READ, output: { entity: "hit" } })
       .description(
-        "messages, mail, notes and calendar events ranked together; not people, memories, projects or decisions. " +
-          "A kind you know reads better with its own search, with all its fields",
+        "messages, mail, notes, calendar events and CRM deals and leads ranked together; not people, memories, " +
+          "projects or decisions. A kind you know reads better with its own search, with all its fields",
       )
-      .summary("messages, mail, notes and calendar events ranked together"),
+      .summary("messages, mail, notes, events and deals ranked together"),
   )
-    .option("--only <resources>", "messages,mail,notes,events, separated by commas", onlyOf)
+    .option(
+      "--only <resources>",
+      `${RESOURCES_SEARCHED.join(",")}, separated by commas; crm is deals and leads`,
+      onlyOf,
+    )
     .option("--plain-order", "best first by the words alone, without moving mail from suspicious senders down")
     .option("--project <project>", PROJECT_ORDER_HELP)
     .addHelpText(
@@ -106,12 +111,15 @@ Calendar events come from every calendar gcal stored; an event's title, descript
           json?: boolean
           plainOrder?: boolean
         },
+        command: Command,
       ) => {
+        const denied = deniedCrmKinds(command, env)
         const answer = await withStore(env, async (store) => {
           const found = await searchEverywhere(store, env, {
             text: words.join(" "),
             limit: options.limit,
             ...(options.only === undefined ? {} : { only: options.only }),
+            ...(denied.length ? { denied } : {}),
             ...(options.exact ? { exact: true } : {}),
             ...(options.plainOrder ? { plainOrder: true } : {}),
             ...(options.timezone === undefined ? {} : { timezone: options.timezone }),

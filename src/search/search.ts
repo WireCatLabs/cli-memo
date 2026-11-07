@@ -1,6 +1,6 @@
 import { CliError, isCliError } from "@wirecat/cli-base"
 import { parseLucene, type QueryNode } from "@wirecat/cli-base/query"
-import { parseLocator } from "@wirecat/cli-core"
+import { DEAL_KINDS, type DealKind, parseLocator } from "@wirecat/cli-core"
 import { demotedSenders, lowerSuspicious, searchMail } from "@wirecat/cli-core/mail"
 import {
   meaningLane,
@@ -244,9 +244,25 @@ const groupScoped = async (
 export const searchEverywhere = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
-  { text, limit, only, exact, timezone, plainOrder }: QueryInput & { only?: SearchedResource[] },
+  {
+    text,
+    limit,
+    only: asked,
+    exact,
+    timezone,
+    plainOrder,
+    denied = [],
+  }: QueryInput & { only?: SearchedResource[]; denied?: { kind: DealKind; why: string }[] },
 ): Promise<SearchAllFound & EverywhereExtras> => {
   const accounts = await scopedAccounts(store, env)
+  const crmKinds = DEAL_KINDS.filter((kind) => !denied.some((one) => one.kind === kind))
+  const wanted = asked ?? RESOURCES_SEARCHED
+  const only = crmKinds.length ? asked : wanted.filter((one) => one !== "crm")
+  if (only?.length === 0)
+    throw new CliError(
+      "permission_error",
+      `search all has nothing it may read: ${denied.map(({ why }) => why).join("; ")}`,
+    )
   const group = await groupScoped(store, env, only)
   // Group lists belong to tg; model downloads belong to memo.
   const messenger = { app: { ...APP, command: "tg" }, hintCommand: "memo" }
@@ -258,6 +274,7 @@ export const searchEverywhere = async (
       limit,
       env,
       ...(group === undefined ? (only === undefined ? {} : { only }) : { only: group.only, scope: group.scope }),
+      ...(denied.length ? { crmKinds } : {}),
       ...(exact ? { exact: true } : {}),
       ...(timezone === undefined ? {} : { timezone }),
     },
@@ -265,7 +282,12 @@ export const searchEverywhere = async (
     (query) => searchStore(store, MEMO, query, messenger),
     meaningLane({ env, store: async () => store, messenger: { app: { command: "memo" } } }),
   )
-  const found = group === undefined ? searched : { ...searched, skipped: [...group.skipped, ...searched.skipped] }
+  const leftOut = denied.map(({ why }) => ({
+    resource: "crm" as const,
+    code: "permission_error" as const,
+    reason: why,
+  }))
+  const found = { ...searched, skipped: [...(group?.skipped ?? []), ...leftOut, ...searched.skipped] }
   const tasks: EverywhereExtras["tasks"] = []
   let tasksIncomplete = false
   const sources = found.items.map((item) => item.ref)

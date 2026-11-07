@@ -1,6 +1,7 @@
 # memo — Projects: context, status, evidence, chat links and annotations
 
-**Start work on a project with `memo projects context <key>`.** Its key documents come first:
+**Start work on a project with `memo projects context <key>`.** Its client is `memo organizations context
+<organization>`, a deal on it `memo deals context deal:<id> --brief`. Its key documents come first:
 read them before anything else. Mark one with
 `memo projects key-documents add <key> <reference> --reason '<why>'`.
 Then ask where it stands with `memo projects status <key>`, and read only the chats its `next` names.

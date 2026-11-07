@@ -103,7 +103,7 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
         "projects', in every account those links name (meta.accounts lists them): the last message, who replies " +
         "next, open questions both ways, promises, amounts found by words with their direction (only when the project " +
         "has no confirmed invoice or payment), payments recorded, billed, paid and " +
-        "owed per currency from confirmed invoices and payments (finance), up to five open confirmed deals (deals), how long each " +
+        "owed per currency from confirmed invoices and payments (finance), up to five open deals (deals), how long each " +
         "--context-query has been quiet on their side, and how much of each chat is held. Amounts, directions and " +
         "promises found by words are marked pattern: read the cited message before trusting one. Others' questions " +
         "in a group with no role, and others' word-found promises in a group, are counted on the chat's row as " +

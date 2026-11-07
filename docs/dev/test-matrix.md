@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**763 ✅ · 0 ⛔ · 156 ❌** — 213 commands, 706 options.
+**772 ✅ · 0 ⛔ · 164 ❌** — 217 commands, 719 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -266,6 +266,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `organizations list` |  | ✅ |  |
 | `organizations list` | `--json` | ✅ |  |
 | `organizations context` |  | ✅ |  |
+| `organizations context` | `--limit` | ❌ |  |
 | `organizations context` | `--json` | ✅ |  |
 | `projects meetings list` |  | ✅ |  |
 | `projects meetings list` | `--source` | ✅ |  |
@@ -369,6 +370,8 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `relationships add` | `--role` | ✅ |  |
 | `relationships add` | `--reason` | ✅ |  |
 | `relationships list` |  | ✅ |  |
+| `relationships list` | `--limit` | ✅ |  |
+| `relationships list` | `--page` | ❌ |  |
 | `relationships list` | `--json` | ✅ |  |
 | `relationships update` |  | ✅ |  |
 | `relationships update` | `--role` | ✅ |  |
@@ -596,7 +599,14 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `deals list` | `--json` | ✅ |  |
 | `deals list` | `--limit` | ❌ |  |
 | `deals show` |  | ✅ |  |
-| `deals show` | `--json` | ✅ |  |
+| `deals show` | `--json` | ❌ |  |
+| `deals context` |  | ✅ |  |
+| `deals context` | `--json` | ✅ |  |
+| `deals context` | `--brief` | ✅ |  |
+| `deals context` | `--limit` | ❌ |  |
+| `deals update` |  | ✅ |  |
+| `deals update` | `--json` | ✅ |  |
+| `deals update` | `--project` | ✅ |  |
 | `deals add` |  | ✅ |  |
 | `deals add` | `--organization` | ✅ |  |
 | `deals add` | `--person` | ✅ |  |
@@ -616,7 +626,14 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `leads list` | `--json` | ✅ |  |
 | `leads list` | `--limit` | ❌ |  |
 | `leads show` |  | ✅ |  |
-| `leads show` | `--json` | ✅ |  |
+| `leads show` | `--json` | ❌ |  |
+| `leads context` |  | ✅ |  |
+| `leads context` | `--json` | ✅ |  |
+| `leads context` | `--brief` | ✅ |  |
+| `leads context` | `--limit` | ❌ |  |
+| `leads update` |  | ✅ |  |
+| `leads update` | `--json` | ❌ |  |
+| `leads update` | `--project` | ✅ |  |
 | `leads add` |  | ✅ |  |
 | `leads add` | `--organization` | ❌ |  |
 | `leads add` | `--person` | ✅ |  |

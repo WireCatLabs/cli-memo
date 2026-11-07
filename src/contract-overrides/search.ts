@@ -31,7 +31,7 @@ export const search: readonly SharedContractOverride[] = [
     command: ["search", "all"],
     field: "summary",
     before: "search stored messages, notes, calendar events and selected meeting transcripts",
-    after: "messages, mail, notes and calendar events ranked together",
+    after: "messages, mail, notes, events and deals ranked together",
     reason:
       "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
@@ -41,7 +41,7 @@ export const search: readonly SharedContractOverride[] = [
     before:
       "search messenger messages and notes in the local store, calendar events when the store holds a calendar, and a meeting account's transcripts when --source names one — best match first; not mail (the separate memo CLI searches it: memo search mail), tasks, people, memories or projects. Use it when you do not know where something was written; search messages or notes reads one kind with all its fields",
     after:
-      "messages, mail, notes and calendar events ranked together; not people, memories, projects or decisions. A kind you know reads better with its own search, with all its fields",
+      "messages, mail, notes, calendar events and CRM deals and leads ranked together; not people, memories, projects or decisions. A kind you know reads better with its own search, with all its fields",
     reason:
       "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
@@ -167,7 +167,7 @@ export const search: readonly SharedContractOverride[] = [
       },
       {
         flags: "--only <resources>",
-        description: "messages,mail,notes,events, separated by commas",
+        description: "messages,mail,notes,events,crm, separated by commas; crm is deals and leads",
         takes_value: true,
         mandatory: false,
       },

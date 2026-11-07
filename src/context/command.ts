@@ -4,6 +4,7 @@ import { LOCAL_READ } from "@wirecat/cli-core/cli"
 import type { ContextEvent, ContextMessage } from "@wirecat/cli-core/services"
 import type { Command } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
+import { sectionLines } from "../knowledge/business-text.js"
 import { boundFolders } from "../notes/bound.js"
 import { positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
@@ -29,6 +30,18 @@ const noteLine = (note: { ref: string; path: string | null; title?: string | nul
 const fileLine = (file: MemoContext["files"][number]) =>
   `  ${file.ref}  ${file.role ?? ""}  ${file.title ?? ""}  ${file.modifiedAt?.slice(0, 16).replace("T", " ") ?? ""}  ${file.url ?? ""}`
 
+export const businessLines = (business: MemoContext["business"]): string[] => {
+  const lines = [
+    ...sectionLines("Organizations", business.organizations),
+    ...sectionLines("Reports to", business.reportsTo),
+    ...sectionLines("Direct reports", business.directReports),
+    ...sectionLines("Deals and leads", business.deals),
+    ...sectionLines("Projects", business.projects),
+    ...(business.categories.length ? [`Categories  ${business.categories.join(", ")}`] : []),
+  ]
+  return lines.length ? ["", "Business", ...lines] : []
+}
+
 type Waiting = {
   proposals: { count: number; kinds: Record<string, number>; complete: boolean; next: { command: string } }
 }
@@ -42,6 +55,8 @@ export const contextText = ({
   yourNotes,
   files,
   proposals,
+  business,
+  coverage,
 }: MemoContext & Waiting): string => {
   const { person, last, recent, shared } = messages
   return [
@@ -61,6 +76,7 @@ export const contextText = ({
     ...(recent.groups.length === 0 ? [] : ["", "Recent, in groups", ...recent.groups.map((m) => `  ${one(m)}`)]),
     ...(events.upcoming.length === 0 ? [] : ["", "Upcoming events", ...events.upcoming.map(eventLine)]),
     ...(events.recent.length === 0 ? [] : ["", "Recent events", ...events.recent.map(eventLine)]),
+    ...businessLines(business),
     "",
     "",
     ...(notes.about.length === 0
@@ -74,6 +90,8 @@ export const contextText = ({
     ...(files.length === 0 ? [] : ["", "Files, as Google reports", ...files.map(fileLine)]),
     ...(messages.complete ? [] : ["", `Not read in full: ${messages.notRead.length} chats — messages sync <chat>`]),
     ...notRead.map(({ source, reason }) => `Not read: ${source} — ${reason}`),
+    ...(coverage?.notRead ?? []).map(({ source, reason }) => `Not read: ${source} — ${reason}`),
+    ...(coverage ? [`Read: ${coverage.accounts.join(", ") || "no account"}`] : []),
     ...(tasks.items.length
       ? [
           "",
@@ -98,8 +116,11 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
   const { print } = answers(program, streams, env)
   annotate(program.command("context"), { effects: LOCAL_READ })
     .description(
-      "messages, mail, notes and events about a person, each with a link to its source; `proposals` counts what " +
-        "waits for you about them, by kind (`complete: false` means at least), and `next` names the command that lists them",
+      "messages, mail, notes and events about a person, each with a link to its source, and `business`: their " +
+        "organizations, reporting lines, deals and projects, each relationship with its standing (`reported` is a " +
+        "CRM's word only). person:<id> reads every account; `coverage` names what was read and what was not. " +
+        "`proposals` counts what waits for you about them, by kind (`complete: false` means at least), and `next` " +
+        "names the command that lists them",
     )
     .summary("messages, mail, notes and events about a person, each with a link to its source")
     .argument(
@@ -110,7 +131,7 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .option(
       "--source <accounts>",
-      "the account to read, as provider:account; required when the store holds several of that messenger",
+      "the accounts to read (default: every one); for <messenger>:<name>, the one account of that messenger",
     )
     .option("--trimmed", "each email's own text, without quoted earlier mail or the signature — for an agent's reads")
     .action(async (person: string, options: { limit: number; json?: boolean; source?: string; trimmed?: boolean }) => {

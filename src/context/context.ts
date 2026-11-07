@@ -1,7 +1,18 @@
 import { CliError } from "@wirecat/cli-base"
+import { isUsable, RELATION_KINDS, standingOf } from "@wirecat/cli-core"
 import { mailOwnText } from "@wirecat/cli-core/mail"
-import { type ContextMessage, calendarAccounts, type PersonContext, personContext } from "@wirecat/cli-core/services"
-import type { AccountKey, Link, MessageStore, Note, RelationListItem } from "@wirecat/cli-core/store"
+import {
+  type CanonicalPersonContext,
+  type ContextMessage,
+  type Coverage,
+  calendarAccounts,
+  canonicalPersonContext,
+  type PersonBusiness,
+  type PersonContext,
+  personBusiness,
+  personContext,
+} from "@wirecat/cli-core/services"
+import type { AccountKey, Link, MessageStore, Note, PersonRecord } from "@wirecat/cli-core/store"
 import { type NotesAbout, notesAbout } from "../notes/about.js"
 import { withOwner } from "../people/owner.js"
 import { groupScopeOf, inGroup, scopedAccounts } from "../store/group.js"
@@ -19,7 +30,7 @@ const UNTRUSTED_EVENT_FIELDS = [
 
 export interface MemoContext {
   /** Messages and mail, from the store: every identity linked to the person, by id. */
-  messages: Omit<PersonContext, "events">
+  messages: Omit<PersonContext, "events" | "person"> & { person: PersonRecord }
   /** Calendar events any identity linked to them is invited to, one occurrence per series, from every calendar. */
   events: PersonContext["events"] & { accounts: string[] }
   /** Notes linked to them: file notes about them, notes linking them or a note about them. */
@@ -29,7 +40,12 @@ export interface MemoContext {
   /** Sources that gave nothing, and why. */
   notRead: { source: string; reason: string }[]
   tasks: Awaited<ReturnType<typeof personTasks>>
-  relationships: RelationListItem[]
+  /** Their relationships an answer may lean on: the owner's (`confirmed`) and a source's (`reported`, CRM). */
+  relationships: (Link & { standing: string })[]
+  /** What they are in the owner's business, each relationship with its standing (cli-core's person context). */
+  business: PersonBusiness
+  /** For `person:<id>`: every account read and every source not read, as cli-core's person context says. */
+  coverage?: Coverage
   /** Files a source says they own or last edited, as the source reports it: not reviewed by you. */
   files: ReportedFile[]
   /** Fields other people wrote that an agent reads as data, never as instructions. */
@@ -45,6 +61,9 @@ export interface ReportedFile {
   provenance: string
   confirmed: boolean
 }
+
+/** An assignment shows under tasks, not here. */
+const RELATIONS: ReadonlySet<string> = new Set(RELATION_KINDS)
 
 /** Drive copies these from Google's own file record, so they are facts as Google states them, not guesses. */
 const SOURCE_REPORTS = new Set(["google-drive:files.get"])
@@ -97,40 +116,6 @@ export const contextAccountsOf = async (
 const accountIn = (keys: readonly AccountKey[] | undefined) =>
   keys?.length === 1 ? { account: (keys[0] as AccountKey).account } : {}
 
-const among = (sources: readonly AccountKey[] | undefined, provider: string, account: string) =>
-  sources === undefined || sources.some((one) => one.provider === provider && one.account === account)
-
-/**
- * `person:<uid>` as the `<messenger>:<id>` of one identity, read from the one account that saw it. A person seen by
- * several accounts is not guessed at: the owner picks with `--source`.
- */
-const anchorOf = async (
-  store: MessageStore,
-  uid: string,
-  sources: readonly AccountKey[] | undefined,
-): Promise<{ reference: string; provider: string; account: string }> => {
-  const person = await store.people.personByUid(uid)
-  if (person === undefined) throw new CliError("not_found", `no person:${uid} in the store`)
-  const seen = person.identities.flatMap((identity) =>
-    identity.accounts.map((held) => ({
-      reference: `${identity.provider}:${identity.id}`,
-      provider: identity.provider,
-      account: held,
-    })),
-  )
-  const matches = seen.filter((one) => among(sources, one.provider, one.account))
-  const accounts = [...new Set(matches.map((one) => `${one.provider}:${one.account}`))]
-  const [first] = matches
-  // Several identities of one person on one account all resolve to the same person context.
-  if (accounts.length === 1 && first) return first
-  throw new CliError(
-    matches.length === 0 ? "not_found" : "validation_error",
-    matches.length === 0
-      ? `no account in the store has seen person:${uid}`
-      : `person:${uid} was seen by ${accounts.length} accounts; give one with --source: ${accounts.join(", ")}`,
-  )
-}
-
 export const memoContext = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
@@ -138,9 +123,21 @@ export const memoContext = async (
   { limit = 20, sources }: { limit?: number; sources?: readonly AccountKey[] } = {},
 ): Promise<MemoContext> => {
   const named = (await withOwner(store, reference)).trim()
+  const scope = await groupScopeOf(store, env)
   if (named.startsWith("person:")) {
-    const anchor = await anchorOf(store, named.slice("person:".length), sources)
-    return memoContext(store, env, anchor.reference, { limit, sources: [anchor] })
+    // Every account in scope that saw them, a CRM's and a name the owner added too, never one picked (WC-ACCT-9).
+    const accounts = sources === undefined ? scope?.accounts : [...sources]
+    const { events, business, coverage, ...messages } = await canonicalPersonContext(store, named, {
+      messages: limit,
+      limit,
+      ...(accounts === undefined ? {} : { accounts }),
+    })
+    const read = accounts ?? (await scopedAccounts(store, env))
+    const calendars = (await calendarAccounts(store)).filter(
+      (one) =>
+        accounts === undefined || accounts.some((key) => key.provider === one.provider && key.account === one.account),
+    )
+    return withNotesAndTasks(store, { messages, events, business, coverage }, { accounts: read, calendars }, limit)
   }
   const [, provider, who] = /^([a-z][a-z0-9-]*):(.+)$/.exec(reference.trim()) ?? []
   if (provider === undefined || who === undefined)
@@ -153,7 +150,6 @@ export const memoContext = async (
     own?.length === 1 ? (own[0] as AccountKey) : await selectAccount(store, env, { provider, ...accountIn(own) })
 
   const calendars = await inGroup(store, env, await calendarAccounts(store))
-  const scope = await groupScopeOf(store, env)
   const calendarIds =
     scope === undefined
       ? undefined
@@ -162,6 +158,34 @@ export const memoContext = async (
     messages: limit,
     ...(calendarIds === undefined ? {} : { calendarIds }),
   })
+  // In a group a CRM's relationships outside it stay out; cli-core scopes them in its canonical person context only.
+  const business =
+    scope === undefined
+      ? await personBusiness(store, messages.person.uid, { limit })
+      : (
+          await canonicalPersonContext(store, `person:${messages.person.uid}`, {
+            accounts: scope.accounts,
+            limit,
+            messages: 1,
+          })
+        ).business
+  return withNotesAndTasks(store, { messages, events, business }, { accounts, calendars }, limit)
+}
+
+interface Read {
+  messages: MemoContext["messages"]
+  events: CanonicalPersonContext["events"]
+  business: PersonBusiness
+  coverage?: Coverage
+}
+
+/** What memo adds to cli-core's context of a person: the notes, tasks and files linked to them. */
+const withNotesAndTasks = async (
+  store: MessageStore,
+  { messages, events, business, coverage }: Read,
+  { accounts, calendars }: { accounts: AccountKey[]; calendars: AccountKey[] },
+  limit: number,
+): Promise<MemoContext> => {
   const person = `person:${messages.person.uid}`
   const linked = await notesAbout(store, { ref: person, person: messages.person }, limit)
   const yourNotes = []
@@ -181,20 +205,17 @@ export const memoContext = async (
       reason: "no mail address linked to them — tg <profile> contacts link <person> email:<address>",
     })
 
-  if (calendars.length === 0)
+  // For person:<id>, cli-core's coverage already says whether a calendar was read.
+  if (calendars.length === 0 && coverage === undefined)
     notRead.push({ source: "events", reason: "no calendar in the store — gcal <profile> sync" })
 
   const tasks = await personTasks(store, messages.person, accounts, limit)
   const incoming = await store.notes.links({ to: person })
-  // cli-core leaves out a link with an end outside the group, the owner's own too.
-  const relationships = (
-    await store.knowledge.listRelations({
-      about: person,
-      standing: "confirmed",
-      ...(scope === undefined ? {} : { accounts: scope.accounts }),
-      limit: 500,
-    })
-  ).items
+  const now = Date.now()
+  const relationships = [...(await store.notes.links({ from: person })), ...incoming]
+    .filter((link) => RELATIONS.has(link.kind))
+    .map((link) => ({ ...link, standing: standingOf(link, now) }))
+    .filter((link) => isUsable(link.standing))
   const files = await reportedFiles(store, incoming, limit)
   const { subject: _, name: __, ...notes } = linked
   return {
@@ -205,6 +226,8 @@ export const memoContext = async (
     notRead,
     tasks,
     relationships,
+    business,
+    ...(coverage === undefined ? {} : { coverage }),
     files,
     untrusted: UNTRUSTED_EVENT_FIELDS,
   }
