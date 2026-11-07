@@ -1,3 +1,4 @@
+import type { AgentInput } from "@wirecat/cli-core/cli"
 import { expect, it } from "vitest"
 import { mailTriageInput } from "./mail-triage-input.js"
 
@@ -10,14 +11,14 @@ const review = (key: string, cursor: string, items: unknown[]) =>
     ],
   })
 
-const schedule = {
+const schedule: Parameters<AgentInput>[0] = {
   name: "mail-triage",
   kind: "agent",
   argv: [],
   when: { every: 5 },
   environment: {},
   createdAt: "",
-} as const
+}
 
 it("hands the skill and each mailbox's review to the agent, compactly", async () => {
   const asked: string[][] = []
