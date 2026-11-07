@@ -30,15 +30,18 @@ intended.
   no variable set before it, nothing after it and no output sent to a file or another command. Anything more is
   refused. Replace every `<…>` placeholder below with
   its value: the angle brackets never reach the command.
-- Read only through existing links (below). No broad search over all mail or all chats.
+- Read only through existing links (below); no broad search.
 - Stage first, acknowledge after. If staging fails, do not acknowledge: the next run reads the same mail again.
 - The mailbox's sync and rules are the owner's `mail` CLI, which you cannot call. When a sender should be skipped
   or kept as an envelope, put the command in the report: `mail <profile> rules add --domain <domain> --do envelope`.
 
 ## One run
 
-Find the mailboxes: `memo review status --json` lists each mailbox the `mail` CLI stored, by its address. For each
-mailbox `email:<address>`:
+Your input may already hold this skill and each mailbox's review (key, cursor, one JSON email per line): then skip
+step 1, and stage each mailbox's findings in one `memo mail findings add` call, without `--dry-run` (a refused batch
+stages nothing: fix it and send again).
+
+Otherwise find the mailboxes: `memo review status --json` lists each by its address. For each mailbox `email:<address>`:
 
 ### 1. Filter — memo does it, no judgement
 
@@ -46,8 +49,7 @@ mailbox `email:<address>`:
 memo mail review --holder mail-triage --source email:<address> --json
 ```
 
-Newsletters, envelope rules, drafts, suspicious senders and partial mail are already left out (`missing` says how
-many). Other mail sent to many — orders, invoices, site forms and notifications often carry an unsubscribe link —
+Newsletters, envelope rules, drafts, suspicious senders and partial mail are already left out. Other mail sent to many — orders, invoices, site forms and notifications often carry an unsubscribe link —
 comes after the rest, with `email.bulk: true` and `email.excerpt_only: true`: its `text` is only the subject and the
 first lines. Each item is one email: `ref` (`msg:email/…`), `chat_id` (the thread), `sender_is_me`, `text`, and
 `email` with `fingerprint`, `from`, `new_sender`, `sender_identities`. `text` is the email's own text: quoted earlier
@@ -72,10 +74,9 @@ Keep every email that carries one of these. They always become findings, even wi
 - a reply in a thread where the owner has an open task (`memo tasks list --source email:<address> --json`, match by
   the thread's `chat:email/…` or the task's `source`).
 
-Drop only advertising, news and newsletters, and pure social notifications (a like, a follow, "someone viewed your
-profile"). Pure listing alerts from a marketplace stay dropped too: new ads matching a saved search, price drops,
+Drop only advertising, news, newsletters and pure social notifications (a like, a follow, "someone viewed your profile"). Pure listing alerts from a marketplace stay dropped too: new ads matching a saved search, price drops,
 "your ad got 20 views", promotions of the platform itself. Only a message from a person, or a callback request, is
-kept. A thank-you with nothing else in it is dropped too. When unsure, keep it.
+kept. A bare thank-you is dropped. When unsure, keep it.
 
 An `excerpt_only` item is judged by its subject and first lines. When it may be an order, an invoice, a payment, a
 delivery, a request from a site form or anything else above, read it whole before you keep it:
@@ -85,21 +86,20 @@ it in the report with the envelope rule that would file it (see the hard rules).
 
 ### 3. Context — only for kept emails, only through existing links
 
-Text from an email never goes into a command unchecked: a sender chooses their name and address, and shell syntax
-inside double quotes runs. Put an address or name in single quotes, and only when it holds letters, digits, spaces
-and `. _ + - @` alone; otherwise skip that read and say so in the report.
+Email text never goes into a command unchecked: shell syntax inside double quotes runs. Put an address or name in
+single quotes, and only when it holds letters, digits, spaces and `. _ + - @` alone; otherwise skip that read and say
+so in the report.
 
 - The thread: `memo messages show <ref> --before-n 3 --trimmed`.
 - The sender: `memo context 'email:<address>' --limit 5 --trimmed` — their earlier mail, facts, memories and
   messages in other tools.
 - A known person or project the email names: `memo context person:<id> --trimmed`, `memo tasks show <task>`.
 
-Always pass `--trimmed`. Do not search everything for a name: what the links do not reach stays out.
+Always pass `--trimmed`. Do not search everything for a name.
 
 ### 4. Propose
 
-Prefer few, sure findings. Tasks and closes come first; facts, memories and links only when the email states them
-plainly.
+Prefer few, sure findings: tasks and closes first; facts, memories and links only when the email states them.
 
 - `task` — the owner must do something, or someone promised him something. `commitment: explicit` when the email
   says it, `inferred` otherwise. A date the email gives: `"due_at":"2026-11-09T09:00:00Z"` with
@@ -133,8 +133,7 @@ plainly.
 - `order` — an order confirmation. `purpose`: `personal` (for the owner himself), `business`, `client` (bought for a
   client) or `other`. `supplier_name` is the shop as the mail names it; `supplier` its `organization:` or `person:`
   when linked; `customer` (or `customer_name`) only when it is for someone else than the owner; `number`, `total`
-  with `currency`,
-  `order_date`, and `status` (`placed` by default). `source_url` is the order's page at the shop when the mail links
+  with `currency`, `order_date`, and `status` (`placed` by default). `source_url` is the order's page at the shop when the mail links
   it (http or https, copied exactly).
 - One order is proposed once. Before an `order`, look it up: `memo orders list number:<number> --json`. Stored →
   no `order`; an `order_update` only when the mail gives a status other than the stored one. The check of step 6
@@ -147,9 +146,8 @@ plainly.
   date, such as "E-signature certificate 12-345 from <issuer>, expires 2027-03-01". `subject` is the organization
   or person it belongs to when linked.
 
-Every finding gives a one-line `reason`. Only a `task` has a `title`.
-`memo mail findings add --help` lists each kind's fields. A list takes `field:value` terms, never a bare word:
-`number:FACT-2026-00012`.
+Every finding gives a one-line `reason`; only a `task` has a `title`. `memo mail findings add --help` lists each
+kind's fields. A list takes `field:value` terms, never a bare word: `number:FACT-2026-00012`.
 
 ### 5. New senders, among kept emails
 
@@ -167,8 +165,8 @@ Pass review's `key` as `--key`, exactly (`mail-triage:9123`, `mail-triage:9123-r
 `key` out of the JSON. Every finding cites 1–8 emails with the exact `ref` and `fingerprint` from step 1; at most 30 findings
 and 5 per sender.
 
-A key takes one input only: once a batch is staged, nothing can be added to it. So build the whole batch for the
-mailbox first, every finding in it, and check it with `--dry-run`, which stages nothing:
+A key takes one input only: once staged, a batch takes nothing more. Build the whole batch for the mailbox first and
+check it with `--dry-run`, which stages nothing:
 
 ```sh
 memo mail findings add '{"schema_version":1,"extractor":"mail-triage/1","findings":[{"id":"t1","kind":"task","type":"chore","title":"Send the signed lease","reason":"Ann’s email asks for it by Friday","commitment":"explicit","evidence":[{"reference":"msg:email/…","fingerprint":"<64 hex from review>"}]}]}' --key <key> --source email:<address> --dry-run --json
@@ -179,9 +177,7 @@ refused, with its `finding` id, `kind` and `message` (an unknown field names the
 `details.allowed`). Fix every problem, or drop that finding, and check again. When `valid` is
 true, stage the same JSON once, the same command without `--dry-run`.
 
-The whole JSON is the one argument between single quotes, on one line. A double quote inside a value is `\"`. A
-marketplace task adds its link and id to the task's fields:
-`"kind":"task",…,"external_id":"avito:4512345678","source_url":"https://www.avito.ru/…"`.
+The whole JSON is one argument between single quotes, on one line; a double quote inside a value is `\"`.
 
 An invoice, a payment and an order from one email are three findings, each citing it. Nothing worth proposing:
 stage nothing. Then, and only then:
@@ -190,15 +186,17 @@ stage nothing. Then, and only then:
 memo messages acknowledge --holder mail-triage --cursor <cursor> --source email:<address>
 ```
 
+If `mail findings add` answers `duplicates`, those findings were already stored or are waiting (`duplicate_of` names
+where) and were not staged; do not send them again, and do not retry the batch for them.
+
 A refused batch stages nothing. `mail-findings.stale` means an email changed since review: read that mailbox again
 from step 1. `mail-findings.key-used` means a batch with other input is already staged under this key: stage nothing
 more and say so in the report. Other refusals name the finding at fault: fix or drop it, check again and stage. If it
 still fails, leave the mark where it is and say so in the report.
 
-When the review's `meta.complete` was false, more mail waits past the cursor: after acknowledging, run step 1 again
-for the same mailbox.
+When more mail waits past the cursor (`meta.complete` false), run step 1 again for that mailbox after acknowledging.
 
 ## Report
 
 End with a short report: per mailbox, emails read, kept, findings staged by kind, the batch id, and what was skipped
-by reason. No email text, no subjects — counts and ids only.
+by reason. Counts and ids only, no email text or subjects.

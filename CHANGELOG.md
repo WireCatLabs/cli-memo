@@ -6,6 +6,14 @@ the API.
 
 ## Unreleased
 
+### Changed — may break callers
+
+- **The scheduled mail-triage agent starts with its skill and each mailbox's review on its stdin** (cli-core 0.597.0
+  `agentInput`). It no longer spends model turns on `memo skill show` and `memo mail review`; on the real store a dry
+  run took 5 turns and 0.04 USD instead of 11 turns and 0.08 USD. The skill tells it to stage a mailbox in one
+  `memo mail findings add` call and what a `duplicates` answer means. Recreate the schedule with the prompt
+  `Follow the input above.`; `memo skill show mail-triage` works as before.
+
 ## 0.131.45 — 06.11.2026
 
 ### Added

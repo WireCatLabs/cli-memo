@@ -5,6 +5,7 @@ import type { Command } from "commander"
 import { withStore } from "../answer.js"
 import { APP } from "../app.js"
 import { bulkTriage, scheduleLimits } from "../config.js"
+import { mailTriageInput } from "./mail-triage-input.js"
 
 /**
  * cli-core's `schedule`: a memo command or an agent on a timer. memo has no profiles, and its `--json` is per
@@ -22,6 +23,11 @@ export const scheduleCommand = (env: NodeJS.ProcessEnv): Command => {
         await advancePastSkipped(store, holder, Date.now(), triage)
         return mailWaiting(store, holder, Date.now(), triage)
       }),
+    agentInput: mailTriageInput(() =>
+      withStore(env, async (store) =>
+        (await store.accounts.accounts()).filter((key) => key.provider === "email").map((key) => key.account),
+      ),
+    ),
     limits: () => scheduleLimits(env),
   })
   for (const one of schedule.commands)
