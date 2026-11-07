@@ -40,9 +40,10 @@ You run on a schedule with `Bash(memo:*)` under `MEMO_READ_ONLY`. Every write is
 
 ## Report
 
-Plain text in Russian, every word of it, headings and status words included; keep names of people and companies as
-written. No Markdown: no `**`, no backticks, no tables. It must read the same raw in an email and in Telegram. Address
-the owner as "вы".
+Plain text in one language, the owner's: the language of their own recent messages, Russian when unclear. Every word is
+in it, headings and status words included; translate the Russian headings below when the language differs. Keep names
+of people and companies as written. No Markdown: no `**`, no backticks, no tables. It must read the same raw in an
+email and in Telegram. Address the owner politely ("вы" in Russian).
 
 Start with the title line `☀️ Сводка на <weekday>, <day month>`. Then these sections, in this order. Leave out a
 section with no items, heading included. An item sits in the first matching section only. Order items by importance.
