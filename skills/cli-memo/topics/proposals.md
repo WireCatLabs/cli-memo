@@ -3,7 +3,9 @@
 **What you write is yours as an agent.** `memo facts add`, `memo memories add`,
 `memo relationships add`, `memo actions add`, `memo projects key-documents add`, `memo invoices add`,
 `memo payments add`, `memo orders add`, `memo contracts add` with an amount, `memo subscriptions add`,
-`subscriptions prices add` and `memo transactions add` record you as the author and wait for the owner. Products,
+`subscriptions prices add` and `memo transactions add` record you as the author and wait for the owner. A correction
+(`memo memories add --supersedes memory:<id>`) waits too: the memory it corrects stays until the owner confirms yours.
+Products,
 wallets, deals and leads are written at once; only the owner sets a wallet's opening balance. Never pass `--as-owner`
 or `--from-app`: only the owner does, and an agent that passes either writes as the owner. `--from-app` belongs to
 WireCat Desktop alone.

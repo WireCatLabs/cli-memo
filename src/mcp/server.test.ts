@@ -355,7 +355,7 @@ it("covers every runnable command with a tool or a named exclusion", async () =>
   }
 })
 
-it("never offers an agent forgetting, rejecting or correcting a memory", async () => {
+it("never offers an agent forgetting or rejecting a memory, and keeps its correction proposed", async () => {
   const { client, call } = await connected()
   try {
     const catalogue = await client.callTool({ name: "memo_tools_search", arguments: {} })
@@ -377,7 +377,10 @@ it("never offers an agent forgetting, rejecting or correcting a memory", async (
       evidence: ["note:1"],
       supersedes: ref,
     })
-    expect(correction.isError).toBe(true)
+    expect(answerOf(JSON.stringify(correction.structuredContent))).toMatchObject({
+      status: "proposed",
+      supersedes: ref,
+    })
   } finally {
     await client.close()
   }

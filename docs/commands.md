@@ -2270,7 +2270,7 @@ memo memories add <text> [options]
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
 | `--subject <ref>` | what it is about, as a reference. |
 | `--project <project>` | the project it belongs to: its key or project:<id>. |
-| `--supersedes <ref>` | yours only: the memory this one corrects; it stays, marked superseded. |
+| `--supersedes <ref>` | the memory this one corrects, superseded once this one is confirmed; an agent's waits until you confirm it. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 12 more; every field: memo commands info memories add

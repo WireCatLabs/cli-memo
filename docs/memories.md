@@ -80,13 +80,15 @@ memo facts remove fact:4
 ```
 
 - **Correct**: add the right memory with `--supersedes`. The old one stays, marked `superseded`, so you keep a
-  record of the mistake. Only you correct a memory; an agent's `--supersedes` is refused.
+  record of the mistake. Yours applies at once. An agent's correction waits as proposed until you confirm it, and
+  the memory it corrects stays as it is until then; rejecting or removing the correction leaves it. A memory is
+  superseded once only.
 - **No longer true**: `invalidate` marks a memory `stale`; `facts reverse` does it for an accepted decision, and
   `facts reject` turns down a fact an agent proposed. Each keeps the record.
 - **Forget**: `remove` erases the record: its text, its links to its sources and its entry in Memo's search. The
   messages, notes and meetings it cites stay. A store backup made before keeps it, until that backup is deleted.
 
-An agent cannot forget or reject through the MCP server, and cannot correct a memory there.
+An agent cannot forget or reject through the MCP server; a correction it proposes there waits for you like any other.
 
 ## Facts
 

@@ -30,7 +30,10 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     .requiredOption("--evidence <ref...>", "what shows it: msg:, note:, meeting:, person: or another reference")
     .option("--subject <ref>", "what it is about, as a reference")
     .option("--project <project>", "the project it belongs to: its key or project:<id>")
-    .option("--supersedes <ref>", "yours only: the memory this one corrects; it stays, marked superseded")
+    .option(
+      "--supersedes <ref>",
+      "the memory this one corrects, superseded once this one is confirmed; an agent's waits until you confirm it",
+    )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(
       (
