@@ -1,5 +1,6 @@
 import { type Predicate, parseLucene, type QueryRegistry, queryError } from "@wirecat/cli-base/query"
 import { LIST_QUERY_GUIDE, queryTerms, termField, typedQuery } from "@wirecat/cli-core/cli"
+import { plainQuery } from "@wirecat/cli-core/services"
 import { MEMORY_KINDS, MEMORY_SCOPES, MEMORY_STATUSES, type Memory, type MessageStore } from "@wirecat/cli-core/store"
 import { pageOf } from "../page.js"
 import { canonicalProject } from "../vocabulary/project.js"
@@ -60,13 +61,14 @@ export const listMemories = async (
 }
 
 const SEARCH = { command: "search memories", guide: LIST_QUERY_GUIDE }
+const MEMORY_FIELDS = new Set(["text", ...MEMORY_QUERY.fields.map(({ name }) => name)])
 
 /**
  * The store matches every word and narrows by scope in SQL, so the query is words and at most one `scope:`, all
  * joined by AND; anything the store cannot ask is refused rather than filtered afterwards.
  */
 export const searchMemories = (store: MessageStore, query: readonly string[] | string, limit?: number) => {
-  const { root } = parseLucene(typedQuery(query), { ...SEARCH, defaultField: "text" })
+  const { root } = parseLucene(plainQuery(typedQuery(query), MEMORY_FIELDS), { ...SEARCH, defaultField: "text" })
   const clauses: Predicate[] = []
   if (root.kind === "predicate") clauses.push(root)
   else

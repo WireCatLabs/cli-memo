@@ -15,6 +15,15 @@ the API.
   `store recover` from the shared vocabulary: four overrides and four baseline entries are gone, and the override
   budget is 16, down from 20.
 
+### Fixed
+
+- **A search for text with a colon or another special character finds what holds it** (#674). `memo search all
+  'meeting at 10:30'`, `'Answer as HH:MM'` and `'a:b'` read the word before the colon as a field, every source refused
+  the query, and the answer was empty. `search all`, `search messages`, `search mail`, `search notes`,
+  `search memories` and `meetings search` now read such a word as text, and the same for a URL, an unbalanced
+  quote or bracket, `^`, `~`, `[]`, `{}` and `<>`. A lone emoji beside other words no longer empties the answer. Field
+  queries (`content:invoice`, `from:`) and Boolean operators keep their meaning (cli-core 0.602.0).
+
 ## 0.131.47 — 07.11.2026
 
 ### Added
