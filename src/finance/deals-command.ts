@@ -3,6 +3,7 @@ import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { DEAL_KINDS, DEAL_ROLES, DEAL_STATUSES, type DealKind, type DealRole } from "@wirecat/cli-core"
 import { LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
+import { dealBrief, dealContext } from "@wirecat/cli-core/services"
 import type { DealFilter, MessageStore, Pipeline, PipelineReport } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
@@ -11,6 +12,7 @@ import { collect, positive } from "../options.js"
 import { pageOf } from "../page.js"
 import { type GroupScope, groupScopeOf } from "../store/group.js"
 import { canonicalProject } from "../vocabulary/project.js"
+import { dealBriefText, dealText } from "./deal-text.js"
 import { dayOf } from "./finance.js"
 
 const queryOf = (entity: DealKind) =>
@@ -95,7 +97,7 @@ const WHAT = {
 const itemCommands = (
   program: Command,
   kind: DealKind,
-  run: ReturnType<typeof answers>["run"],
+  { run, print }: Pick<ReturnType<typeof answers>, "run" | "print">,
   env: NodeJS.ProcessEnv,
 ) => {
   const { one, hope } = WHAT[kind]
@@ -127,6 +129,52 @@ const itemCommands = (
     .action((ref: string, options: { json?: boolean }) =>
       run(options.json, async (store) => itemAnswer(await store.deals.get(ref))),
     )
+
+  json(annotate(group.command("context"), { effects: LOCAL_READ }))
+    .description(
+      `one ${one} whole: its stages, client, people with their roles and standing, owner, project, invoices and ` +
+        `payments as stored, its people's messages, mail and meetings in its lifetime (\`proposed\`: they share ` +
+        "people, nothing links them), open tasks and `coverage`. A stage named Won is not a payment",
+    )
+    .summary(`one ${one}: stages, people, project, money, messages and tasks`)
+    .argument("<ref>", `${kind}:<id>`)
+    .option("--brief", "the compact form for a model's context: names, roles, totals and counts")
+    .option("--limit <n>", "most items in each section", positive, 20)
+    .action(async (ref: string, options: { brief?: boolean; limit: number; json?: boolean }) => {
+      const answer = await withStore(env, async (store) => {
+        const scope = await groupScopeOf(store, env)
+        return dealContext(store, ref, {
+          limit: options.limit,
+          ...(scope === undefined ? {} : { accounts: scope.accounts }),
+        })
+      })
+      if (answer.deal.kind !== kind)
+        throw new CliError("validation_error", `${ref} is a ${answer.deal.kind} — memo ${answer.deal.kind}s context`)
+      print(
+        options.json,
+        itemAnswer(options.brief ? dealBrief(answer) : answer),
+        options.brief ? dealBriefText(dealBrief(answer)) : dealText(answer),
+      )
+    })
+
+  json(annotate(group.command("update"), { effects: LOCAL_WRITE, output: { entity: kind } }))
+    .description(
+      `set the project a ${one} belongs to; a CRM's copy takes it too, and its sync leaves it. An empty value clears it`,
+    )
+    .summary(`set the project a ${one} belongs to`)
+    .argument("<ref>", `${kind}:<id>`)
+    .requiredOption("--project <project>", "the project: its key or project:<id>")
+    .action(async (ref: string, options: { project: string; json?: boolean }) => {
+      const by = authorOf(env)
+      await run(options.json, async (store) =>
+        itemAnswer(
+          await store.deals.setProject(ref, {
+            project: options.project === "" ? null : await canonicalProject(store, options.project),
+            by,
+          }),
+        ),
+      )
+    })
 
   json(
     annotate(group.command("add"), { effects: LOCAL_WRITE, output: { entity: kind }, literal_after_dashes: true })
@@ -348,8 +396,8 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
       )
     })
 
-  itemCommands(program, "deal", run, env)
-  itemCommands(program, "lead", run, env)
+  itemCommands(program, "deal", { run, print }, env)
+  itemCommands(program, "lead", { run, print }, env)
 }
 
 /** Open deals `projects status` shows, soonest expected close first; more than this is a count. */

@@ -30,8 +30,15 @@ memo reads the local store tg and max write, plus the owner's notes and imported
 4. Cite each record by its reference exactly as printed (`msg:…`, `note:…`, `document:…`, `meeting:…`).
    A line cut short opens with `memo show <ref>`, which names the command that reads it whole.
 
-A person: `memo search people <name>` gives `person:<id>`, then `memo context <person>`. A project:
-`memo projects context <key>` (key documents first), then `memo projects status <key> --compact`. One kind
+## A client, a person or a deal
+
+1. Resolve one ref: `memo search people <name>`, `memo organizations list`, `memo deals list`.
+2. Its context: `memo context person:<id>`, `memo organizations context <ref>`, `memo deals context <ref> --brief`.
+3. Follow only the relationships the question needs: `memo relationships list kind:reports-to to:<ref>`.
+4. Then search for evidence: `memo search all '<words>'` (in the owner's group: `memo <group> search all …`).
+5. Cite the refs and name each gap in `coverage`. `reported` is a CRM's word only: say so. Never guess a gap.
+
+A project: `memo projects context <key>` (key documents first), then `memo projects status <key> --compact`. One kind
 only: `memo search mail`, `memo search messages` or `memo search notes`. Meetings are not in `search all`:
 `memo search meetings '<words>' --source <provider>:<account>`.
 

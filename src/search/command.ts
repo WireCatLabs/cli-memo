@@ -3,7 +3,7 @@ import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
 import { parseLucene } from "@wirecat/cli-base/query"
 import { LOCAL_READ, sharedCommandTemplate, shownOf } from "@wirecat/cli-core/cli"
 import { hitText } from "@wirecat/cli-core/mail"
-import type { SearchedResource } from "@wirecat/cli-core/services"
+import { RESOURCES_SEARCHED, type SearchedResource } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, withStore } from "../answer.js"
@@ -86,7 +86,7 @@ const searchCommandDefinition = (program: Command, streams: Streams, env: NodeJS
           "projects or decisions. " +
           "A kind you know reads better with its own search, with all its fields",
       )
-      .summary("messages, mail, notes and calendar events ranked together"),
+      .summary("messages, mail, notes, events and deals ranked together"),
   )
     .option("--only <resources>", `${ONLY.join(",")}, separated by commas`, onlyOf)
     .option("--plain-order", "best first by the words alone, without moving mail from suspicious senders down")

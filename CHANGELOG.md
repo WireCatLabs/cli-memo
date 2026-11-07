@@ -8,6 +8,21 @@ the API.
 
 ### Added
 
+- **`memo organizations context <ref>` is the organization's whole picture** (cli-core's `organizationContext`): its
+  people by role, customers, suppliers and partners, projects, open deals and leads, invoices, payments and orders as
+  stored, how much its people wrote, open tasks, categories and `coverage`, then its notes and tags.
+- **`memo deals context <ref>` and `memo leads context <ref>`, `--brief` for an agent** (cli-core's `dealContext`):
+  stages, client, people with roles and standing, owner, project, money reached by project or client, its people's
+  messages, mail and meetings in its lifetime marked `proposed`, open tasks and `coverage`.
+- **`memo deals update <ref> --project <key>`** (and `leads update`) sets the project a deal belongs to, a CRM's copy
+  too; an empty value clears it.
+- **`memo organizations list category:client`**, and `supplier`, `partner`, `employer`: read from relationships.
+- **`memo relationships list` filters `kind:`, `role:`, `standing:`, `from:`, `to:`, `at:<day>`, `include:ended`**
+  and pages with `--limit` and `--page`. `about:` gives each row its `direction` and its `label` from that end
+  (`manages` for `reports-to` read backwards). Every row shows its `standing` and the account that reported it; a role
+  saved before the role lists is kept and marked `custom`.
+- **`memo relationships add --kind reports-to|customer-of|partner-of`**.
+- **`memo search all --only crm`** searches deals and leads alone; `search all` names them in its help.
 - **Account groups: `memo <group> …`, `MEMO_GROUP` and `MEMO_GROUP_LOCK` (WC-ACCT-13).** Memo reads every account
   by default (`all`, also `memo all …`); a group is an opt-in list you save. A first word that is no command is a
   group: `memo work search all "renewal"` reads only its accounts. Without `--source` a read takes the group; a given
@@ -24,6 +39,26 @@ the API.
   list shows each account with its profiles in every app, why it is in, `also_in`, the duplicates and the
   profile-name suggestions. `memo groups add work <provider>:<account>` is the command a CRM sync's `group_hint`
   names.
+
+### Changed — may break callers
+
+- **`memo context person:<id>` reads every account that saw the person** (cli-core's `canonicalPersonContext`): two
+  accounts no longer ask for `--source`, and a CRM-only or name-only person answers too. Every context has
+  `business` (organizations, reporting lines, deals, projects and categories, each relationship with its `standing`);
+  `person:` answers carry `coverage`. `relationships` now holds a CRM's `reported` links beside yours, each with its
+  `standing`, where before it held confirmed links only.
+- **`memo organizations context` answers cli-core's organization context**: `people`, `customers` and the other
+  sections replace `relationships`; `notes` and `tags` stay.
+- **A role is one from the registry's lists** (cli-core#2629): `--role cto` is refused with the list.
+  memo's own examples and tests now use list roles.
+- **`--source group:personal` now also holds every account in no other group** (cli-core#2632): a `personal` group
+  saved before held only what it listed.
+
+### Fixed
+
+- **`memo search all` leaves deals and leads out when memo's permissions deny them**. It showed their
+  titles under `search all`; now it names what it left out.
+- **`memo projects status` help no longer promises "confirmed" deals**: a deal has no confirmation.
 
 ## 0.131.63 — 08.11.2026
 

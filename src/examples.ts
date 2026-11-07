@@ -3,7 +3,11 @@ import { hasSharedContract, overrideSharedContract } from "@wirecat/cli-core/cli
 import type { Command } from "commander"
 
 export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
-  context: ["memo context telegram:'Kai Sample'", "memo context email:kai@example.com --limit 5 --json"],
+  context: [
+    "memo context telegram:'Kai Sample'",
+    "memo context person:7 --json",
+    "memo context email:kai@example.com --limit 5 --json",
+  ],
   show: ["memo show chat:max/500/-1001 document:413", "memo show note:12 msg:telegram/1/77/42 --json"],
   "notes show": ["memo notes show note:12", "memo notes show ~/notes/People/Kai.md --json"],
   "notes list": [
@@ -150,8 +154,12 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo organizations rename 1 'Harbour Studio Ltd' --json",
   ],
   "organizations show": ["memo organizations show organization:1"],
-  "organizations list": ["memo organizations list name:*harbour*", "memo organizations list --json"],
-  "organizations context": ["memo organizations context organization:1"],
+  "organizations list": [
+    "memo organizations list name:*harbour*",
+    "memo organizations list category:client",
+    "memo organizations list --json",
+  ],
+  "organizations context": ["memo organizations context organization:1", "memo organizations context 1 --json"],
   "projects meetings list": ["memo projects meetings list HRB --source zoom:me@example.com"],
   "projects meetings link": ["memo projects meetings link HRB 31 --account zoom:me@example.com"],
   "projects add": ["memo projects add 'Harbour' --key HRB --type client --organization 1"],
@@ -175,9 +183,14 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   ],
   "relationships add": [
     "memo relationships add person:3 organization:1 --role employee",
-    "memo relationships add project:2 organization:1 --kind related-to --reason 'same client'",
+    "memo relationships add person:3 person:5 --kind reports-to",
+    "memo relationships add organization:1 organization:2 --kind customer-of --reason 'signed in October'",
   ],
-  "relationships list": ['memo relationships list about:"person:3"', "memo relationships list confirmed:false"],
+  "relationships list": [
+    'memo relationships list about:"person:3"',
+    'memo relationships list kind:reports-to to:"person:5"',
+    "memo relationships list standing:reported include:ended --limit 50",
+  ],
   "relationships remove": ["memo relationships remove 4"],
   "relationships confirm": ["memo relationships confirm 4"],
   "relationships scan": [
@@ -223,6 +236,8 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   ],
   "deals list": ["memo deals list status:open project:HRB", "memo deals list stage:Quote --json"],
   "deals show": ["memo deals show deal:5"],
+  "deals context": ["memo deals context deal:5", "memo deals context deal:5 --brief --json"],
+  "deals update": ["memo deals update deal:5 --project HRB"],
   "deals add": [
     "memo deals add 'Site for the clinic' Call 500000.00 RUB --organization organization:3 --project HRB",
     "memo deals add 'Support contract' Sales/Quote --person person:7 --role decision-maker --due 2026-12-01",
@@ -231,6 +246,8 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "deals close": ["memo deals close deal:5 won", "memo deals close deal:6 lost --reason 'chose a cheaper studio'"],
   "leads list": ["memo leads list status:open"],
   "leads show": ["memo leads show lead:3"],
+  "leads context": ["memo leads context lead:3 --brief"],
+  "leads update": ["memo leads update lead:3 --project HRB"],
   "leads add": ["memo leads add 'Call from the site'", "memo leads add 'Clinic in Kazan' contacted --person person:9"],
   "leads move": ["memo leads move lead:3 qualified"],
   "leads close": ["memo leads close lead:3 lost --reason 'no budget'"],

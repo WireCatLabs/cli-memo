@@ -18,3 +18,10 @@ close them and make pipelines yourself (`memo deals add <title> <stage> [amount]
 `memo leads add <title>`, `memo deals move deal:<id> <stage>`, `memo deals close deal:<id> won|lost`); they are
 written at once, no review. Name a pipeline by `pipeline:<id>` when two share a name. `memo pipelines show <pipeline>`
 gives the counts and conversion per stage.
+
+One deal whole: `memo deals context deal:<id> --brief` (people with roles and standing, client, project, money
+totals, counts); without `--brief` the detailed form. Its messages, mail and meetings are `proposed`: they share
+people with the deal, nothing links them. A stage named Won is not a payment: money is what invoices and payments
+say. A client's whole picture: `memo organizations context organization:<id>`; clients only:
+`memo organizations list category:client`. A deal or a person on it copied from a CRM is `reported`: say so when only
+the CRM says it. Set the project of a deal with `memo deals update deal:<id> --project <key>`.
