@@ -1,5 +1,4 @@
 import { paymentTitle } from "@wirecat/cli-core/meetings"
-import { proposalRegistry } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import { itemAnswer, plainText } from "../answer.js"
 import { factItem } from "../facts/fact.js"
@@ -7,6 +6,7 @@ import { notesAbout } from "../notes/about.js"
 import { labelsFor, proposerName, reviewItem } from "../review/review.js"
 import { atLeast, kindsText, waitingAbout } from "../review/status.js"
 import { keepInGroup } from "../store/group.js"
+import { proposalsOf } from "../store/guard.js"
 import { keyDocuments, projectOf } from "./key-documents.js"
 import { projectFindings } from "./project-findings.js"
 
@@ -20,8 +20,9 @@ export const projectContext = async (store: MessageStore, env: NodeJS.ProcessEnv
     link.from === project.ref ? String(link.to) : link.from,
   )
   const documents = await keyDocuments(store, project)
+  const proposals = await proposalsOf(store, env)
   const pending = (kind: string) =>
-    proposalRegistry(store).list({ project: project.ref, kinds: [kind], status: "proposed", limit: 50, offset: 0 })
+    proposals.list({ project: project.ref, kinds: [kind], status: "proposed", limit: 50, offset: 0 })
   const [facts, tasks, findings, keys, links, waiting] = await Promise.all([
     store.facts.list({ project: project.ref, status: "proposed", limit: 21 }),
     store.tasks.find({ project: project.ref, status: "open", limit: 21 }),

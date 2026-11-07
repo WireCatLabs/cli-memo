@@ -162,14 +162,16 @@ export const listActions = (
   store: MessageStore,
   query: readonly string[] | string | undefined,
   limit?: number,
-  options: { brief?: boolean } = {},
+  options: { brief?: boolean; keep?: (rows: ProposedAction[]) => Promise<ProposedAction[]> } = {},
 ) => {
   const status = queryTerms(query, ACTION_QUERY, "actions list").get("status") as ProposedAction["status"] | undefined
+  const { keep = async (rows) => rows, ...shown } = options
+  // Under the group lock only the group's actions are listed; a page may then hold fewer than asked.
   return pageOf("actions list", limit, async (most) =>
     actionItems(
       store,
-      await store.proposedActions.list({ limit: most, ...(status === undefined ? {} : { status }) }),
-      options,
+      await keep(await store.proposedActions.list({ limit: most, ...(status === undefined ? {} : { status }) })),
+      shown,
     ),
   )
 }

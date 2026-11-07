@@ -3,7 +3,7 @@ import { markItem } from "@wirecat/cli-core/mail/cli"
 import type { ProposalFilter } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import { scopedAccounts } from "../store/group.js"
-import { reviewRegistry } from "./kinds.js"
+import { reviewOf } from "../store/guard.js"
 
 /** Pages read to count proposals; past them the count says "at least". */
 const MOST_PAGES = 10
@@ -14,7 +14,7 @@ export const counted = async (
   filter: Omit<ProposalFilter, "limit" | "offset">,
   since?: number,
 ) => {
-  const registry = reviewRegistry(store)
+  const registry = await reviewOf(store, env)
   const byKind: Record<string, number> = {}
   let total = 0
   for (let page = 0; page < MOST_PAGES; page++) {
@@ -30,7 +30,7 @@ export const counted = async (
 /** How many proposals wait for the owner about these references: as subject, linked object or project. */
 export const waitingAbout = async (store: MessageStore, env: NodeJS.ProcessEnv, refs: readonly string[]) => {
   const wanted = new Set(refs)
-  const registry = reviewRegistry(store)
+  const registry = await reviewOf(store, env)
   const kinds: Record<string, number> = {}
   let count = 0
   for (let page = 0; page < MOST_PAGES; page++) {

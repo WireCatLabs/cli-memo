@@ -7,6 +7,7 @@ import { answers, itemAnswer } from "../answer.js"
 import { byOption, deciderOf, reasonOption, whoRuns } from "../author.js"
 import { oneOf, positive } from "../options.js"
 import { decideOne } from "../review/review.js"
+import { sourcesIn, stripped } from "../store/guard.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { addMemory } from "./memories.js"
 import { listMemories, MEMORY_QUERY, memoryItem, searchMemories } from "./memory.js"
@@ -77,7 +78,7 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     .option("--limit <n>", "most memories, up to 500", positive, 100)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((words: string[], { json, limit }: { limit: number; json?: boolean }) =>
-      run(json, (store) => listMemories(store, words, limit)),
+      run(json, async (store) => stripped(store, env, await listMemories(store, words, limit))),
     )
 
   annotate(memories.command("show"), { effects: LOCAL_READ, output: { entity: "memory" } })
@@ -87,10 +88,12 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((ref: string, options: { sources?: boolean; json?: boolean }) =>
       run(options.json, async (store) =>
-        itemAnswer({
-          ...memoryItem(await store.memories.get(ref)),
-          ...(options.sources ? { sources: await store.memories.sources(ref) } : {}),
-        }),
+        itemAnswer(
+          await stripped(store, env, {
+            ...memoryItem(await store.memories.get(ref)),
+            ...(options.sources ? await sourcesIn(store, env, await store.memories.sources(ref)) : {}),
+          }),
+        ),
       ),
     )
 
@@ -140,7 +143,7 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
   const decided = async (store: MessageStore, ref: string, by: Decider, confirm: boolean) => {
     if ((await store.memories.get(ref)).status !== "proposed")
       return confirm ? store.memories.confirm(ref, by) : store.memories.markStale(ref, by)
-    await decideOne(store, ref, { confirm, by })
+    await decideOne(store, env, ref, { confirm, by })
     return store.memories.get(ref)
   }
   decide("confirm", "stand behind a memory: its evidence was checked now", (store, ref, by) =>

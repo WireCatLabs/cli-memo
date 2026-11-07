@@ -1,13 +1,14 @@
 import type { Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { LOCAL_READ, LOCAL_WRITE, withQuery } from "@wirecat/cli-core/cli"
-import { approveAsTask, proposalRegistry } from "@wirecat/cli-core/services"
+import { approveAsTask } from "@wirecat/cli-core/services"
 import { assertMayDecide } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { byOption, deciderOf, whoRuns } from "../author.js"
 import { positive } from "../options.js"
 import { decideOne, decisionOf } from "../review/review.js"
+import { actionsIn, proposalsOf, refuseOutsideAction, stripped } from "../store/guard.js"
 import { type WriteOptions, writeAccount, writeOptions } from "../store/source-list.js"
 import {
   ACTION_QUERY,
@@ -65,7 +66,16 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     .option("--brief", "without each findings batch's cited sources")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((words: string[], options: { limit: number; brief?: boolean; json?: boolean }) =>
-      run(options.json, (store) => listActions(store, words, options.limit, { brief: options.brief === true })),
+      run(options.json, async (store) =>
+        stripped(
+          store,
+          env,
+          await listActions(store, words, options.limit, {
+            brief: options.brief === true,
+            keep: (rows) => actionsIn(store, env, rows),
+          }),
+        ),
+      ),
     )
 
   annotate(actions.command("show"), { effects: LOCAL_READ })
@@ -73,7 +83,10 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     .argument("<id>", "the action's id, as actions list gives it")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((id: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(await showAction(store, id))),
+      run(options.json, async (store) => {
+        await refuseOutsideAction(store, env, id)
+        return itemAnswer(await stripped(store, env, await showAction(store, id)))
+      }),
     )
 
   byOption(annotate(actions.command("confirm"), { effects: LOCAL_WRITE }))
@@ -90,10 +103,11 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     .action(async (id: string, findings: string[], options: Decision & { json?: boolean }, command: Command) => {
       const by = await deciderOf(command, env, { ...options, question: `confirm action ${id} as you, the owner?` })
       await run(options.json, async (store) => {
+        await refuseOutsideAction(store, env, id)
         const findingsAnswer = await decideFindings(store, id, { ...options, accept: findings, confirm: true, by })
         if (findingsAnswer) return itemAnswer(findingsAnswer)
         // The task is made here to keep this command's answer; the check is the review registry's.
-        assertMayDecide(await proposalRegistry(store).get(id), by, store.decisionPolicy)
+        assertMayDecide(await (await proposalsOf(store, env)).get(id), by, store.decisionPolicy)
         return itemAnswer(await approveAsTask(store, id, by))
       })
     })
@@ -107,9 +121,10 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     .action(async (id: string, options: Decision & { json?: boolean }, command: Command) => {
       const by = await deciderOf(command, env, { ...options, question: `reject action ${id} as you, the owner?` })
       await run(options.json, async (store) => {
+        await refuseOutsideAction(store, env, id)
         const findingsAnswer = await decideFindings(store, id, { ...options, accept: [], confirm: false, by })
         if (findingsAnswer) return itemAnswer(findingsAnswer)
-        await decideOne(store, id, decisionOf(false, by, options.reason))
+        await decideOne(store, env, id, decisionOf(false, by, options.reason))
         return itemAnswer(await store.proposedActions.get(id))
       })
     })
