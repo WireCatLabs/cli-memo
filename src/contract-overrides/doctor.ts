@@ -29,6 +29,13 @@ export const doctor: readonly SharedContractOverride[] = [
         mandatory: false,
       },
       {
+        flags: "--deep",
+        description:
+          "also read every page of the store and check every search index (about 30 s for 6 GB); without it, only the file header and schema",
+        takes_value: false,
+        mandatory: false,
+      },
+      {
         flags: "--json",
         description: "print JSON; --json=id,title keeps only those fields",
         takes_value: false,

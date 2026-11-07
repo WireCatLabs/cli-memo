@@ -333,6 +333,8 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "runs show": ["memo runs show 20261025T090000Z-mail-sync-a81f2c --json"],
   "runs path": ["memo runs path 20261025T090000Z-mail-sync-a81f2c"],
   "store info": ["memo store info", "memo store info --json"],
+  "store recover": ["memo store recover", "memo store recover --json"],
+  "store recover run": ["memo store recover run"],
   upgrade: ["memo upgrade --check"],
   commands: ["memo commands --json", "memo commands tags add --json"],
   "skill show": ["memo skill show"],

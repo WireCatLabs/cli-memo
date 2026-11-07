@@ -4,6 +4,21 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- **`memo store recover`** says whether the shared store is damaged, what that means and what to run;
+  **`memo store recover run`** rebuilds a damaged store from every row it can read and keeps the damaged file beside
+  it. **`memo doctor --deep`** reads every page of the store; without it doctor checks the header and schema, and a
+  damaged store is a problem with its fix (cli-core 0.599.0).
+
+### Fixed
+
+- **Opening the shared store twice in one memo process no longer drops the first connection's locks** (cli-core
+  0.599.0). Another process could then delete the write-ahead log under a writer still using it, which can damage
+  the store.
+
 ## 0.131.46 — 07.11.2026
 
 ### Changed — may break callers
