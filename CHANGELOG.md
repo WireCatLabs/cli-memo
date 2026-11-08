@@ -14,6 +14,9 @@ the API.
   the group under `groups`, with the command to review them: `memo review list via:<chat>` lists the proposals whose
   evidence holds that reference, and its `next` step confirms them all in one `memo review confirm`. A pending
   proposal takes the new reason on the next scan (cli-core 0.610.0's `chat-senders@3`).
+- **`search all` also finds invoices, payments, orders, contracts, subscriptions, products and wallets** by the words
+  of their numbers and names, as the `business` source (cli-core 0.610.0). Like deals, it reads title words only, so
+  a query with `?`, `-` or `*` leaves it out with the reason.
 
 ## 0.131.58 — 08.11.2026
 
