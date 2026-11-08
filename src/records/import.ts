@@ -61,8 +61,12 @@ export const recordsCommand = (program: Command, streams: Streams, env: NodeJS.P
         "the source the envelope is for: <provider>:<account> (sheet:rentals) or its source.account alone; " +
           "phone:<device> for a vCard file",
       )
+      .option(
+        "--region <country>",
+        "a vCard file's country for phone numbers without +, such as ru or gb; without it they are kept, not matched",
+      )
       .option("--json", "print JSON; --json=created,errors keeps only those fields")
-      .action(async (file: string, given: { account?: string; dryRun?: boolean; json?: boolean }) => {
+      .action(async (file: string, given: { account?: string; dryRun?: boolean; json?: boolean; region?: string }) => {
         const account = given.account?.trim()
         if (!account)
           throw new CliError("validation_error", "name the source account the envelope is for: --account <account>", {
@@ -75,6 +79,7 @@ export const recordsCommand = (program: Command, streams: Streams, env: NodeJS.P
             account,
             dryRun: dryRun ?? given.dryRun === true,
             onIssue: (issue) => streams.diagnostic(`${refusedLine(issue)}\n`),
+            ...(given.region === undefined ? {} : { region: given.region }),
           }),
         )
         const issues = receipt.errors.map((one) => ({

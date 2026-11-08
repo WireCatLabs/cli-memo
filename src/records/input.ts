@@ -1,7 +1,14 @@
 import { open } from "node:fs/promises"
 import { CliError } from "@wirecat/cli-base"
 import { envelopeOfText, type IngestError, isVcard, type VcardIssue } from "@wirecat/cli-core"
-import { type IngestReceipt, ingest, ingestLines, ingestVcard, jsonlLines } from "@wirecat/cli-core/services"
+import {
+  type IngestReceipt,
+  type IngestVcardOptions,
+  ingest,
+  ingestLines,
+  ingestVcard,
+  jsonlLines,
+} from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
 
 /** `vcard` holds the converter's notices, each `card` counted from 1. */
@@ -82,12 +89,15 @@ export const importRecords = async (
     account,
     dryRun,
     onIssue,
+    region,
   }: {
     file: string
     stdin: NodeJS.ReadableStream
     account: string
     dryRun: boolean
     onIssue: (issue: IngestError) => void
+    /** A vCard's country for numbers without `+`, in any case. */
+    region?: string
   },
 ): Promise<Receipt> => {
   const iterator = (await linesOf(file, stdin))[Symbol.asyncIterator]()
@@ -114,9 +124,21 @@ export const importRecords = async (
       batchId: `vcard-${new Date().toISOString()}`,
       dryRun,
       onIssue,
+      // cli-core checks the code against its phone plans; its list is lower case.
+      ...(region === undefined ? {} : { region: region.trim().toLowerCase() as IngestVcardOptions["region"] }),
     })
+    const badRegion = receipt.errors.find((one) => one.pointer === "/options/phone_region")
+    if (badRegion)
+      throw new CliError("validation_error", badRegion.message.replace("options.phone_region", "--region"), {
+        param: "--region",
+        reason: badRegion.code,
+      })
     return { ...receipt, vcard: vcard.map((one) => ({ ...one, card: one.card + 1 })) }
   }
+  if (region !== undefined)
+    throw new CliError("validation_error", "--region is for a vCard file; an envelope names options.phone_region", {
+      param: "--region",
+    })
   const header = headerOf(first)
   if (header !== undefined) {
     async function* all(): AsyncIterable<string> {

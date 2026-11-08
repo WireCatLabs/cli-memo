@@ -6,6 +6,12 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo records import` and `records check` take `--region <country>` for a vCard file** (`ru`, `gb`, in any
+  case): a phone number written without `+` is read in that country, so the contact matches the person the number
+  already names instead of becoming a second one. An envelope names its region in `options.phone_region` instead.
+
 ## 0.131.65 — 08.11.2026
 
 ### Fixed
