@@ -11,8 +11,16 @@ the API.
 - **`relationships add --role` help no longer suggests `cto`.** A person's role in an organization or a project
   comes from that relationship's list, so the help, the example and `docs/people.md` now name valid roles
   (employee, contributor).
-
-## 0.131.63 — 08.11.2026
+- **`memo records link custom:quote:Q-7` reads the type `custom:quote`.** A record key was split at its first colon,
+  so a custom type was read as `custom`.
+- **`memo records import` streams JSONL** from a file or stdin a record at a time instead of reading the whole file
+  first, and its text receipt names the review kinds of what it proposed, the records left unmatched, the values kept
+  as data only, and when a list stopped at 1000 entries. Every refusal is also printed on stderr as it happens, one
+  line each, including those past the receipt's 1000.
+- **`memo records import --json` gives a valid answer for an empty file, a JSON array or a refusal with no place in
+  the file**: its issue names `/`, the envelope's root, where it named an empty pointer the answer schema refuses.
+- **A missing or unreadable records file is `not_found` (`records.file-missing`) or `validation_error`
+  (`records.file-unreadable`)**, not a system error.
 
 ### Added
 
@@ -56,6 +64,13 @@ the API.
   `memo records link`. A record that waited for `records link` before is matched or made on its next import, so its
   invoice or payment becomes a proposal at once. Run `memo records check` on a file before its next import to see it.
 
+## 0.131.63 — 08.11.2026
+
+### Added
+
+- **`memo show` opens invoices, payments, orders, deals, leads and pipelines** with memo's own `show`: its `open`
+  names `memo invoices show invoice:4` and the like, where it said nothing opens them.
+
 ### Security
 
 - **`memo show` over MCP refuses a reference whose own command the server denies.** A server whose permissions denied
@@ -66,19 +81,6 @@ the API.
   `leads.list` refused those lists but still showed deal and lead titles in `search all`; those hits are now left out,
   with a `permission_error` issue for source `crm`. `crm.list` leaves the whole CRM lane out. `--only crm` and
   `--only business` name those lanes, and are refused when the lane may not be read.
-
-### Fixed
-
-- **`memo records link custom:quote:Q-7` reads the type `custom:quote`.** A record key was split at its first colon,
-  so a custom type was read as `custom`.
-- **`memo records import` streams JSONL** from a file or stdin a record at a time instead of reading the whole file
-  first, and its text receipt names the review kinds of what it proposed, the records left unmatched, the values kept
-  as data only, and when a list stopped at 1000 entries. Every refusal is also printed on stderr as it happens, one
-  line each, including those past the receipt's 1000.
-- **`memo records import --json` gives a valid answer for an empty file, a JSON array or a refusal with no place in
-  the file**: its issue names `/`, the envelope's root, where it named an empty pointer the answer schema refuses.
-- **A missing or unreadable records file is `not_found` (`records.file-missing`) or `validation_error`
-  (`records.file-unreadable`)**, not a system error.
 
 ## 0.131.62 — 08.11.2026
 
