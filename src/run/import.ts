@@ -39,9 +39,9 @@ const issuesOf = (failed: ImportRun["failed"]) =>
 export interface ImportRun {
   notes: NotesImport[]
   /** The notes' chunks embedded for search by meaning this run. */
-  notesEmbedded?: NoteChunksEmbedded
+  notesEmbedded?: Omit<NoteChunksEmbedded, "enrichment">
   /** The chunks of mail already in the store, which the `mail` CLI syncs, embedded for search by meaning this run. */
-  mailEmbedded?: NoteChunksEmbedded
+  mailEmbedded?: Omit<NoteChunksEmbedded, "enrichment">
   /** What enrichment sent to the owner's chosen provider this run, notes and mail together; absent when it is off. */
   enrichment?: EnrichmentReport
   /** A source that failed; the others still ran. `reasonId` names the failure from a fixed list, `reason` says it. */
@@ -226,6 +226,7 @@ export const syncCommand = (
       })
     const work = withImportLock(env, async () => {
       const store = await openStore({ env, ...STORE_CLIENT, decisions: decisionPolicy(env) })
+      const enriched: (EnrichmentReport | undefined)[] = []
       const attempt = async (source: string, work: () => Promise<void>) => {
         halt()
         try {
@@ -266,11 +267,13 @@ export const syncCommand = (
             })
           if (folders.length > 0)
             await attempt("notes by meaning", async () => {
-              run.notesEmbedded = await embedNoteChunks(store, {
+              const { enrichment, ...embedded } = await embedNoteChunks(store, {
                 embed: options.embed && config.notes?.embed !== false,
                 env,
                 ...(keyring ? { keyring } : {}),
               })
+              run.notesEmbedded = embedded
+              enriched.push(enrichment)
             })
           await attempt("people-notes.json", async () => {
             await importNotesMap(store, env, folders)
@@ -278,13 +281,16 @@ export const syncCommand = (
         }
         if (synced.has("mail"))
           await attempt("mail by meaning", async () => {
-            run.mailEmbedded = await embedMailChunks(store, {
+            const { enrichment, ...embedded } = await embedMailChunks(store, {
               embed: options.embed,
               env,
               ...(keyring ? { keyring } : {}),
             })
+            run.mailEmbedded = embedded
+            enriched.push(enrichment)
           })
-        const enrichment = combinedEnrichment(run.notesEmbedded?.enrichment, run.mailEmbedded?.enrichment)
+        // Reported once, as item.enrichment, notes and mail together.
+        const enrichment = combinedEnrichment(...enriched)
         if (enrichment) run.enrichment = enrichment
       } finally {
         await store.close()

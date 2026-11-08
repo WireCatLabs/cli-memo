@@ -8,6 +8,11 @@ the API.
 
 ### Added
 
+- **`memo models keys set|remove <provider>`**: the key write-time enrichment sends, read from stdin or a hidden
+  prompt (never an argument) into memo's keyring entry `embeddings:<provider>`. `--json` answers
+  `{ provider, stored: true, source: "keyring" | "file" }` and `{ provider, removed, from }`; the key is never printed.
+- **`reason_id` beside `reason` in `item.enrichment`** of `memo sync --json`: `enrichment.no-key`, `key-rejected`,
+  `unreachable`, `rate-limited`, `bad-replies`, `cancelled` or `error`, so a window can word it itself.
 - **`memo review agenda` says what it read and which accounts need a sync.** `scope` gives the window, each source
   with its number of accounts, and how many chats, personal mail threads, tasks and meetings it read; `tasks` counts
   the overdue, today, tomorrow and new tasks and gives `new_since`; `health` names each account whose sync needs a
@@ -18,6 +23,10 @@ the API.
 
 ### Changed — may break callers
 
+- **`item.enrichment` is the only enrichment report of `memo sync --json`**: `notes_embedded.enrichment` and
+  `mail_embedded.enrichment`, which repeated its parts, are gone.
+- **A sync that sent records and got none back enriched says `failed`**, with its reason, not `done`. Notes failed
+  beside mail enriched reads `stopped`.
 - **The agenda's `tasks` section is the open tasks created since the last morning-digest run** (a day back when it
   never ran; the start of the failures while it fails) **and those overdue, due today or due tomorrow**, by the local
   day, project tasks included. Each says which of these it is, who asked, who does it and its due date. Tasks only to

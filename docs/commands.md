@@ -4169,6 +4169,54 @@ memo models consents revoke [options]
 
 **Example:** `memo models consents revoke`
 
+### `memo models keys`
+
+the API key write-time enrichment sends with each request
+
+#### `memo models keys set`
+
+store a key, typed at a hidden prompt or piped on stdin — never as an argument
+
+This command changes the local store or your files.
+
+```sh
+memo models keys set <provider> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `provider` | required | openai, anthropic, or the host of a --base-url server that wants a key. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** model key stored — provider, stored; every field: memo commands info models keys set
+
+**Example:** `memo models keys set openai`, `memo models keys set anthropic`
+
+#### `memo models keys remove`
+
+forget the stored key; a key in the environment stays
+
+This command changes the local store or your files.
+
+```sh
+memo models keys remove <provider> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `provider` | required | openai, anthropic, or a server's host. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** model key removed — provider, removed; every field: memo commands info models keys remove
+
+**Example:** `memo models keys remove openai`
+
 ## `memo search`
 
 search messages, mail, notes, memories and people; search all when unsure where

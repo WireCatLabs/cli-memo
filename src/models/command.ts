@@ -9,6 +9,7 @@ export const modelsCommand = (
   streams: Streams,
   env: NodeJS.ProcessEnv,
   keyring?: KeyringStore,
+  stdin?: NodeJS.ReadableStream,
 ): void => {
   const { print } = answers(program, streams, env)
   program.addCommand(
@@ -19,6 +20,7 @@ export const modelsCommand = (
       jsonOption: true,
       env: () => env,
       ...(keyring ? { keyring } : {}),
+      ...(stdin ? { stdin: () => stdin } : {}),
       output: (body, command) => print(command.optsWithGlobals<{ json?: boolean }>().json, body),
       diagnostic: (line) => streams.diagnostic(line),
       offline: () => program.opts().offline === true,

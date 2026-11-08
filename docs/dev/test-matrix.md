@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**768 ✅ · 0 ⛔ · 193 ❌** — 214 commands, 747 options.
+**772 ✅ · 0 ⛔ · 193 ❌** — 216 commands, 749 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -821,6 +821,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `models consents set` | `--json` | ❌ |  |
 | `models consents revoke` |  | ✅ |  |
 | `models consents revoke` | `--json` | ❌ |  |
+| `models keys set` |  | ✅ |  |
+| `models keys set` | `--json` | ✅ |  |
+| `models keys remove` |  | ✅ |  |
+| `models keys remove` | `--json` | ✅ |  |
 | `search all` |  | ✅ |  |
 | `search all` | `--limit` | ✅ |  |
 | `search all` | `--exact` | ✅ |  |
