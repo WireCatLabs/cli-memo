@@ -22,20 +22,6 @@
   },
   {
     "rule": "option-role",
-    "target": "tasks update --status",
-    "reason": "WireCat Desktop's Tasks page (plan 2026-10-31-tasks-page, owner's choices NEED-175 and NEED-176, 2026-11-01) moves a project task between its five work states; the vocabulary has only --as, which means how a task is closed. Add --status there, then drop this.",
-    "owner": "@leemour",
-    "review_after": "2027-02-01"
-  },
-  {
-    "rule": "option-role",
-    "target": "tasks move --status",
-    "reason": "WireCat Desktop's Tasks page (plan 2026-10-31-tasks-page, owner's choices NEED-175 and NEED-176, 2026-11-01) moves a card to another column; same flag as tasks update --status.",
-    "owner": "@leemour",
-    "review_after": "2027-02-01"
-  },
-  {
-    "rule": "option-role",
     "target": "tasks move --before",
     "reason": "WireCat Desktop's Tasks page (plan 2026-10-31-tasks-page, owner's choices NEED-175 and NEED-176, 2026-11-01) drops a card above another; --before-id in the vocabulary pages messages, a different meaning.",
     "owner": "@leemour",
@@ -73,13 +59,6 @@
     "rule": "option-role",
     "target": "projects status --sync-profile",
     "reason": "The same as projects evidence --sync-profile: the next steps name another CLI (tg, max, wa) and one of its profiles, and the owner names it when several are signed in to a chat's account. Add --sync-profile to the vocabulary, then drop this.",
-    "owner": "@leemour",
-    "review_after": "2027-02-01"
-  },
-  {
-    "rule": "option-role",
-    "target": "tasks add --status",
-    "reason": "WireCat Desktop's Tasks page adds a task straight into a board column (owner's choice NEED-205 A, 2026-11-01); same flag as tasks update --status.",
     "owner": "@leemour",
     "review_after": "2027-02-01"
   },

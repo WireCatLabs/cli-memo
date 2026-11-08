@@ -97,9 +97,10 @@ export const relationshipsScanCommand = (
   annotate(relations.command("scan"), { effects: LOCAL_WRITE })
     .description(
       "chats, mail threads and people that look like a project's, scored from the store: its name and aliases in " +
-        "titles and messages, its confirmed members' chats and threads. With no project, people who share a company " +
-        "mail domain. Lists them and writes nothing; --yes writes them as proposals by memo-scan for you to decide in " +
-        "memo review. Never confirms, and never proposes again what you rejected",
+        "titles and messages, the chats and threads of its members in every messenger, spreading from what it finds. " +
+        "With no project, people who share a company mail domain. Lists them and writes nothing; --yes writes them " +
+        "as proposals by memo-scan for you to decide in memo review. Never confirms, and never proposes again what " +
+        "you rejected",
     )
     .summary("propose chats and people for a project; nothing is written without --yes")
     .argument("[project]", "a project's id, key, exact name or alias, or all; left out, people by mail domain")

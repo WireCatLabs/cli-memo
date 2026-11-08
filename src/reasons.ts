@@ -52,6 +52,12 @@ export const REASONS: ErrorReason[] = defineReasons([
   },
   { reason: "folder.not-found", code: "not_found", message: "the store has no such folder of notes", details: [] },
   {
+    reason: "folder.delete-notes",
+    code: "confirmation_required",
+    message: "removing the folder deletes {notes} of its notes from the store; nothing was changed — add --yes",
+    details: ["notes"],
+  },
+  {
     reason: "notes.folder-missing",
     code: "not_found",
     message: "the notes folder {path} is missing — connect its disk; if it moved, memo folders update <id> <new path>",

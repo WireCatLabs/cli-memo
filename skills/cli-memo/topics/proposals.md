@@ -2,8 +2,8 @@
 
 **What you write is yours as an agent.** `memo facts add`, `memo memories add`,
 `memo relationships add`, `memo actions add`, `memo projects key-documents add`, `memo invoices add` and
-`memo payments add` record you as the author and wait for the owner. Never pass `--as-owner`: only the owner does, and an agent
-that passes it writes as the owner.
+`memo payments add` record you as the author and wait for the owner. Never pass `--as-owner` or `--from-app`: only the owner
+does, and an agent that passes either writes as the owner. `--from-app` belongs to WireCat Desktop alone.
 
 **Do not confirm your own proposals** (`memo review confirm`, `memo facts confirm`, `memo memories confirm`,
 `memo relationships confirm`, `memo meetings actions confirm` or `reject`). The owner decides. To show

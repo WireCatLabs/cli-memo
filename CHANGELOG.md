@@ -6,6 +6,98 @@ the API.
 
 ## Unreleased
 
+## 0.131.53 — 08.11.2026
+
+### Fixed
+
+- **The morning digest is written in the owner's language, without references, commands or Gaps and Coverage
+  sections.** The `morning-digest` skill now asks for plain text in the sections and line shapes of the digest
+  format; the agent keeps what the agenda missed out of the report. One line says a source has not synced for over
+  24 hours.
+- **cli-core 0.606.0: the mail triage agent no longer repeats the same batch all day.** A batch of held emails only
+  reused the findings key of the run that set the mark, so staging was refused (`mail-findings.key-used`), the mark
+  never moved and every scheduled run paid for the same emails again. It now takes a key of its own. Each email in
+  `review --holder` also carries the cursor that ends the batch at it.
+
+## 0.131.52 — 08.11.2026
+
+### Fixed
+
+- **`memo sync` names a damaged store instead of a bug.** "database disk image is malformed" or "file is not a
+  database" from the shared store was `internal_error (command.crashed)`, "the command failed; this is a bug", in the
+  sync's summary and the scheduled sync's failure banner. It is now `configuration_error (store.damaged)`: the store
+  file is damaged, and `memo store recover` says what is lost and how to recover it (cli-core 0.605.0).
+- **A `memo sync` source that finds the store damaged stops later writes.** Its failure leaves the damage mark beside
+  the store, as a failed command already does, so the next sync and every other tool's write refuse with
+  `store.damaged` until `memo store recover` (cli-core 0.605.0). `memo doctor --deep` records memo's version in the
+  store's health mark.
+
+## 0.131.51 — 07.11.2026
+
+### Fixed
+
+- **WireCat Desktop can decide as you.** Desktop runs memo with no terminal, so memo refused every confirm, reject and
+  forget from its Memory page with `decision.decider-unknown`. Every command that decides or writes as you now takes
+  `--from-app`, which Desktop passes: the run is recorded as yours with no question. It is the app's word that you
+  acted there, not a security check; it is not offered over MCP.
+- **cli-base 0.82.0.** Its shared flag vocabulary knows `--from-app` and `--status`, so memo's command lint takes
+  them from there: the three `--status` overrides on `tasks add`, `update` and `move` are gone, and the override
+  budget is 13, down from 16.
+
+## 0.131.50 — 07.11.2026
+
+### Fixed
+
+- **A note is dated by its file, not by the moment memo imported it.** `search all`'s `timestamp`, `search notes`'
+  `updated_at`, `date:` and the order of notes about a person read the note's front matter `date` (a bare day is
+  midnight where you are), else the file's modification time. An agent asked when "9 days from today" falls counted
+  from the import day. The next `memo sync` dates the notes already stored, without reading or embedding them again
+  (cli-core 0.604.0, `dateFileNotes`).
+
+## 0.131.49 — 07.11.2026
+
+### Added
+
+- **`memo folders remove <id|path>`** stops reading a notes folder on this computer; its notes stay in the store.
+  With `--allow-delete --yes` it also deletes the folder's notes and their text from the store; without `--yes` it
+  says how many it would delete (`confirmation_required`). The files are never touched.
+- **`memo sync --json` writes progress lines to stderr** while it reads a notes folder:
+  `{"event":"progress","step":"notes","done","total","unit":"files","label":<folder id>}`, counts only, at most two a
+  second, so an app can draw a bar.
+- **`memo search all --json` says why it skipped a source.** Each entry of `meta.issues` carries `reason`, a dotted
+  id such as `query.unknown-value` for `kind:nonsense`, as cli-core's `search all` does (cli-core 0.604.0).
+
+### Changed — may break callers
+
+- **A `?` that ends a word in a search is a question mark, not a wildcard.** `memo search all 'ready?'` and
+  `'что с бюджетом?'` find "ready" and "бюджет"; before, `?` asked for one more character, so the word itself was
+  missed. A `?` inside a word (`inv?ice`) is still one character (cli-core 0.604.0).
+
+### Fixed
+
+- **Any memo command, a read too, no longer starts or enables the sync timer.** After each command memo points the
+  timer at the memo that just ran, and it rewrote the whole unit with the caller's PATH, then ran
+  `systemctl --user enable --now`. A program with another PATH, like the WireCat app reading a status, so started a
+  timer the owner had stopped by hand. Now memo changes only the program line, when the install moved, and reloads
+  systemd without starting anything.
+
+- **A search for text with a colon or another special character finds what holds it** (#674). `memo search all
+  'meeting at 10:30'`, `'Answer as HH:MM'` and `'a:b'` read the word before the colon as a field, every source refused
+  the query, and the answer was empty. `search all`, `search messages`, `search mail`, `search notes`,
+  `search memories` and `meetings search` now read such a word as text, and the same for a URL, an unbalanced
+  quote or bracket, `^`, `~`, `[]`, `{}` and `<>`. A lone emoji beside other words no longer empties the answer. Field
+  queries (`content:invoice`, `from:`) and Boolean operators keep their meaning (cli-core 0.602.0).
+
+- **cli-core 0.604.0.** In `search all`, a question's hit that both the words and the meaning found keeps the better
+  of its two ranks (#2620).
+
+## 0.131.48 — 07.11.2026
+
+### Fixed
+
+- **cli-core 0.602.0.** A search with a colon, a URL or other syntax characters in plain text is read as words
+  (#2607), a recovery refuses while another runs and clears invalid JSON values (#2619), and `foldName` folds ё into е.
+
 ### Changed — may break callers
 
 - **`memo schedule agent` and `memo schedule command` take `--deliver-to <route>`, no longer `--to <route>`**

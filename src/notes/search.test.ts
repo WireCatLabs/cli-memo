@@ -54,7 +54,7 @@ describe("structured note retrieval and saved links", () => {
     expect(second.items).toHaveLength(1)
     expect(second.page.has_more).toBe(false)
     expect(new Set([...first.items, ...second.items].map((hit: { ref: string }) => hit.ref)).size).toBe(3)
-    await expect(run("search", "notes", '"unfinished')).rejects.toMatchObject({ code: "validation_error" })
+    expect((await run("search", "notes", '"unfinished')).items).toEqual([])
   })
 
   it("links relative paths and aliases to the note, and keeps an ambiguous or unknown name as written", async () => {

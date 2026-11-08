@@ -45,7 +45,8 @@ start another server, replace the running program, install instructions in other
 `memories add`, `facts add`, `actions add`, `meetings actions add` and `projects actions add` save proposals.
 By default only the owner decides project proposals; `projects actions confirm` and `projects actions reject` refuse
 an agent. Set [`agent_decisions: true`](configuration.md#agent_decisions) to let them decide with a recorded reason
-through the CLI and MCP. Memo never sends a message or mail.
+through the CLI and MCP. Memo never sends a message or mail. `--as-owner` and `--from-app` are not offered over
+MCP: a call through it is always the agent's.
 
 ## Open a cited item
 

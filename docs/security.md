@@ -45,6 +45,10 @@ nothing and tells you.
 - Every decision names who decides. An agent never decides its own bot's proposal, needs `--reason`, and is
   refused every decision unless `agent_decisions` is `true`. In an agent's terminal, `--as-owner` asks y/N at
   the terminal before it acts as you; without a terminal or under `--json` it refuses with exit 7.
+- WireCat Desktop runs memo with no terminal, so on every decision you make in the app it passes `--from-app`,
+  and memo records the decision as yours. The flag says you acted in the app; it is not a security check. Memo takes
+  its word every time, even with `AI_AGENT` or `CLAUDECODE` set, so anything that can run memo as you can pass it.
+  Desktop removes the agent variables from its runs. Over MCP the flag is not offered.
 - Approving an action makes it a task for you. Memo never sends a message or an email.
 - Selected [project annotation export and preview](recipes.md#keep-selected-project-annotations) read
   sources and targets without restoring them. Export writes a new private file and refuses existing

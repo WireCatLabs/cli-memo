@@ -132,6 +132,41 @@ describe("memo auto", () => {
     expect(readFileSync(service, "utf8")).toContain(process.execPath)
   })
 
+  it("never starts, enables or rewrites the PATH of a timer stopped by hand when an install moves", async () => {
+    await run("jobs", "start")
+    const service = join(units(), "memo-import.service")
+    writeFileSync(
+      service,
+      readFileSync(service, "utf8")
+        .replace(/ExecStart=.*/, 'ExecStart="/gone/node" "/gone/memo.js" "sync"')
+        .replace(/PATH=[^"]*/, "PATH=/the/shell/path"),
+    )
+    writeFileSync(join(dir, "systemctl.log"), "")
+
+    await followInstall(
+      { ...env, PATH: `/the/app/path:${env.PATH}` },
+      "/usr/lib/node_modules/@wirecat/cli-memo/dist/bin/memo.js",
+    )
+
+    const unit = readFileSync(service, "utf8")
+    expect(unit).toContain(process.execPath)
+    expect(unit).toContain("PATH=/the/shell/path")
+    expect(calls()).toBe("--user daemon-reload\n")
+  })
+
+  it("leaves the timer alone on a read when the install did not move", async () => {
+    await run("jobs", "start")
+    writeFileSync(join(dir, "systemctl.log"), "")
+
+    await followInstall(
+      { ...env, PATH: `/the/app/path:${env.PATH}` },
+      "/usr/lib/node_modules/@wirecat/cli-memo/dist/bin/memo.js",
+    )
+    await run("jobs", "status", "--json")
+
+    expect(calls()).not.toMatch(/daemon-reload|enable|start|restart/)
+  })
+
   it("shows whether the timer is on and when it runs next", async () => {
     await run("jobs", "start")
 

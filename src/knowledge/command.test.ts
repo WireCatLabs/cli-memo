@@ -88,7 +88,7 @@ describe("combined evidence, relationships and local reminders", () => {
     expect((await run("organizations", "context", studio.id)).relationships).toHaveLength(1)
     const harbour = await run("projects", "add", "Synthetic Harbour", "--organization", studio.ref)
     expect(harbour).toMatchObject({ organization_id: studio.id })
-    await run("relationships", "add", `person:${person?.uid}`, harbour.ref, "--role", "author")
+    await run("relationships", "add", `person:${person?.uid}`, harbour.ref, "--role", "contributor")
     expect((await run("projects", "context", harbour.id)).relationships).toHaveLength(1)
     expect((await run("relationships", "list", `about:"${harbour.ref}"`)).items).toMatchObject([{ to: harbour.ref }])
     expect((await run("relationships", "list")).items).toHaveLength(2)
@@ -106,7 +106,11 @@ describe("combined evidence, relationships and local reminders", () => {
     expect(searched.items.some((item: { ref: string }) => item.ref === analysis.ref)).toBe(true)
     const messagesOnly = await run("search", "all", "budget AND chat:77")
     expect(messagesOnly.items.length).toBeGreaterThan(0)
-    expect(messagesOnly.meta.issues).toContainEqual({ code: expect.any(String), source: "notes" })
+    expect(messagesOnly.meta.issues).toContainEqual({
+      code: "validation_error",
+      reason: "query.unsupported-field",
+      source: "notes",
+    })
     const bundle = await run("answers", "create", "What is pending?", "budget", "--all")
     expect(bundle.evidence.length).toBeGreaterThan(0)
     expect(bundle.coverage.find(({ provider }: { provider: string }) => provider === "telegram")).toEqual({

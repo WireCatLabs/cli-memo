@@ -71,9 +71,10 @@ const ownerSays = async (command: Command, question: string): Promise<void> => {
 }
 
 /**
- * Who runs this command. An MCP call is the agent's. An agent's terminal is the agent's; `--as-owner` there makes it
- * the owner's only after a yes at a real terminal. With no agent named, the owner only when stdin and stdout are a
- * terminal: anything else is an unattended run, recorded as one.
+ * Who runs this command. An MCP call is the agent's. `--from-app` is the owner's: the app says the owner clicked, and
+ * memo takes its word, even with an agent variable set (NEED-2403). An agent's terminal is the agent's; `--as-owner`
+ * there makes it the owner's only after a yes at a real terminal. With no agent named, the owner only when stdin and
+ * stdout are a terminal: anything else is an unattended run, recorded as one.
  */
 export const whoRuns = async (
   command: Command,
@@ -84,6 +85,7 @@ export const whoRuns = async (
     if (asOwner) throw new CliError("permission_error", "an agent cannot act as the owner; the owner runs this command")
     return { bot: agentIn(env) ?? "memo-mcp" }
   }
+  if (command.opts<{ fromApp?: boolean }>().fromApp) return "owner"
   const agent = agentIn(env)
   if (agent === undefined && terminalOf(command).present) return "owner"
   if (!asOwner) return { bot: agent ?? UNATTENDED }
@@ -114,10 +116,16 @@ export const deciderOf = async (
   return { bot: who.bot, reason: reason.trim() }
 }
 
+/** An app's claim, not a check: anything that runs memo can pass it, so it is no security boundary. */
+export const fromAppOption = (command: Command) =>
+  command.option("--from-app", "you did this in WireCat Desktop: record it as yours, with no terminal question")
+
 export const byOption = (command: Command) =>
-  command.option(
-    "--as-owner",
-    "act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal",
+  fromAppOption(
+    command.option(
+      "--as-owner",
+      "act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal",
+    ),
   )
 
 export const reasonOption = (command: Command) =>
