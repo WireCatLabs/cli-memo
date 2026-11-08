@@ -4,6 +4,31 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Added
+
+- **`memo review agenda` says what it read and which accounts need a sync.** `scope` gives the window, each source
+  with its number of accounts, and how many chats, personal mail threads, tasks and meetings it read; `tasks` counts
+  the overdue, today, tomorrow and new tasks and gives `new_since`; `health` names each account whose sync needs a
+  look: `sync-failed` (its scheduled sync fails: since when and the failure's reason id), `no-schedule` (no schedule
+  and no running `serve` syncs it) or `quiet` (it syncs, but nothing new for longer than three of its usual gaps,
+  and at least three days). Each account is named by its name, username or address, never its id. `--compact` prints
+  the three as JSON lines that the morning-digest skill copies into the report.
+
+### Changed — may break callers
+
+- **The agenda's `tasks` section is the open tasks created since the last morning-digest run** (a day back when it
+  never ran; the start of the failures while it fails) **and those overdue, due today or due tomorrow**, by the local
+  day, project tasks included. Each says which of these it is, who asked, who does it and its due date. Tasks only to
+  check, and the "open tasks without a date left out" note, are gone.
+- **`owed` lists people only.** Dialogs the messenger marks as a bot, and Telegram's service notifications, are left
+  out.
+- **`coverage[].stale` is gone**, and the `coverage:` line no longer prints STALE: when the store last saved
+  something says nothing about the sync. `health` says it instead.
+- The morning-digest skill copies `scope`, `tasks` and `health` from the agenda into the report, writes one `task`
+  item per agenda task with its `task:` reference, and lists only people as owed replies.
+
 ## 0.131.58 — 08.11.2026
 
 ### Changed — may break callers
