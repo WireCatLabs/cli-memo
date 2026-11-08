@@ -27,10 +27,6 @@ None.
 - **MEMO-34** · P2 · 🟡 `memo deals` over cli-core's personal CRM tables (slice B2), once CORE-45 ships. Records,
   invoices, payments and the money block in `projects status` shipped in #584, #586 and #588. The commands live in
   memo (owner, NEED-2161 A). cli-private `plans/2026-11-02-business-ingestion.md` (TASK-886) §4.7.
-- **MEMO-35** · P2 · Memory that follows its sources: propose evidence-backed facts and memories from new source
-  records, merge an equivalent one instead of adding a twin, and mark a confirmed memory for review when a source it
-  cites changes (today `memories invalidate` is manual). Proposals go through the proposal registry and `memo review`
-  (#574). Plan: cli-private `plans/2026-11-02-context-direction.md` §7.
 - **MEMO-7** · P2 · `search all` and `context` do not read meetings; meetings need `search meetings` with one
   explicit `--source` (`skills/cli-memo/topics/meetings.md`). Add stored meetings to `search all` with coverage.
 - **MEMO-8** · P2 · Project gathering, next slices: source readiness (slice 1), context expansion with the

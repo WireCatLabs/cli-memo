@@ -36,6 +36,7 @@ export const memoryItem = ({ body, ...memory }: Memory) => ({
   supersedes: memory.supersedes,
   evidence: memory.evidence,
   lastVerifiedAt: memory.lastVerifiedAt,
+  sourceReview: memory.sourceReview,
   createdAt: memory.createdAt,
   updatedAt: memory.updatedAt,
 })

@@ -2,8 +2,9 @@ import { formatReference } from "@wirecat/cli-core"
 import { mailTurn, OWED_DAYS } from "@wirecat/cli-core/mail"
 import { formatMeetingReference } from "@wirecat/cli-core/meetings"
 import { projectStatus, servicesFor, storeOnlyDeps } from "@wirecat/cli-core/services"
-import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
+import { type AccountKey, type MessageStore, SOURCE_REVIEW_KIND } from "@wirecat/cli-core/store"
 import { APP } from "../app.js"
+import { REVIEW_SOURCES } from "../memories/sources.js"
 import { listReview } from "../review/review.js"
 import { counted } from "../review/status.js"
 import { knownSenders } from "./known.js"
@@ -31,7 +32,7 @@ export interface DigestSection {
   unknown?: { count: number; next: string[] }
 }
 
-export const SECTIONS = ["watch", "owed", "mail", "meetings", "tasks", "projects", "proposals"] as const
+export const SECTIONS = ["watch", "owed", "mail", "meetings", "tasks", "projects", "sources", "proposals"] as const
 export type SectionName = (typeof SECTIONS)[number]
 
 export interface Coverage {
@@ -383,6 +384,20 @@ export const gatherDigest = async (
       })
   }
 
+  // A review refreshed in place keeps its raise time, so it is listed once, when it was raised or grew graver.
+  const reviews = await listReview(store, env, [`kind:${SOURCE_REVIEW_KIND}`], { limit: 50, page: 1 })
+  const sources: Pending[] = reviews.items
+    .filter((row) => Date.parse(row.createdAt) >= since)
+    .map((row) => ({
+      item: {
+        ref: row.subject,
+        who: row.proposer,
+        at: row.createdAt,
+        excerpt: oneLine(row.title, excerpt),
+        why: `review ${row.id}: ${row.summary ?? "sources changed"}`,
+      },
+    }))
+
   const waiting = await counted(store, env, { status: "proposed" })
   const proposed = await listReview(store, env, [], { limit, page: 1 })
   const proposals: Pending[] = proposed.items.map((row) => ({
@@ -414,6 +429,10 @@ export const gatherDigest = async (
       ...(unplanned ? [`# ${unplanned} open tasks without a date left out`] : []),
     ]),
     await section("projects", projects, limit, projectNext),
+    await section("sources", sources, limit, [
+      REVIEW_SOURCES,
+      ...(sources.length ? [`# decide them: ${REVIEW_SOURCES}`] : []),
+    ]),
     await section("proposals", proposals, limit, ["memo review list"], waiting.total),
   ]
   return {

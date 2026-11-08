@@ -34,6 +34,7 @@ export const factItem = ({ type, statement, source, confirmedBy, ...fact }: Fact
   scope: fact.scope,
   origin: source,
   evidence: fact.evidence,
+  source_review: fact.sourceReview,
   created_at: fact.createdAt,
   updated_at: fact.updatedAt,
   confirmed_by: confirmedBy,

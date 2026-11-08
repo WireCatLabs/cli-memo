@@ -1,12 +1,12 @@
 import { CliError } from "@wirecat/cli-base"
-import type { Author, Memory, MessageStore } from "@wirecat/cli-core/store"
+import type { Author, EvidenceInput, Memory, MessageStore } from "@wirecat/cli-core/store"
 import { canonicalProject } from "../vocabulary/project.js"
 
 export interface NewMemory {
   text: string
   kind: Memory["kind"]
   scope: Memory["scope"]
-  evidence: string[]
+  evidence: EvidenceInput[]
   subject?: string
   project?: string
   supersedes?: string
