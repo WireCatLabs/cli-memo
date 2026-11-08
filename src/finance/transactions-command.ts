@@ -9,6 +9,7 @@ import { answers, itemAnswer } from "../answer.js"
 import { byOption, whoRuns } from "../author.js"
 import { positive } from "../options.js"
 import { pageOf } from "../page.js"
+import { withSources } from "../records/sources.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { dayOf, today } from "./finance.js"
 import { choice, given, json, optionalChoice, PROPOSES, type Written, writeMeta, writtenBy } from "./written.js"
@@ -79,8 +80,10 @@ export const transactionCommands = (program: Command, streams: Streams, env: Nod
   json(annotate(transactions.command("show"), { effects: LOCAL_READ, output: { entity: "transaction" } }))
     .description("one transaction with its wallet, payment, splits and what is not categorized")
     .argument("<transaction>", "transaction:<id>")
-    .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(await store.transactions.get(ref))),
+    .action((ref: string, options: { json?: boolean }, command: Command) =>
+      run(options.json, async (store) =>
+        itemAnswer(await withSources(command, store, await store.transactions.get(ref))),
+      ),
     )
 
   json(

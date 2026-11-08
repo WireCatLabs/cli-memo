@@ -4,7 +4,11 @@ import type { Command } from "commander"
 
 export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   context: ["memo context telegram:'Kai Sample'", "memo context email:kai@example.com --limit 5 --json"],
-  show: ["memo show chat:max/500/-1001 document:413", "memo show note:12 msg:telegram/1/77/42 --json"],
+  show: [
+    "memo show chat:max/500/-1001 document:413",
+    "memo show note:12 msg:telegram/1/77/42 --json",
+    "memo show contract:2 invoice:4 --json",
+  ],
   "notes show": ["memo notes show note:12", "memo notes show ~/notes/People/Kai.md --json"],
   "notes list": [
     "memo notes list 'about:\"telegram:Kai Sample\"'",
@@ -404,7 +408,11 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "mcp server start": ["memo mcp server start --public-url https://laptop.example.ts.net"],
   "mcp server status": ["memo mcp server status --json"],
   "mcp server stop": ["memo mcp server stop"],
-  "search all": ["memo search all 'budget harbour'", "memo search all 'content:invoice' --only mail,notes --json"],
+  "search all": [
+    "memo search all 'budget harbour'",
+    "memo search all 'content:invoice' --only mail,notes --json",
+    "memo search all 'Rental agreement' --only business",
+  ],
   "search messages": ["memo search messages 'friday meeting has:voice'"],
   "search mail": ["memo search mail 'mailbox:important budget' --source email:me@example.com"],
   "search notes": ["memo search notes budget notes:2", "memo search notes kickoff --project HRB --json"],

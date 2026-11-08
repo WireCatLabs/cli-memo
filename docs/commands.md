@@ -57,7 +57,7 @@ memo show <ref> [options]
 
 **Returns:** what any reference names, and the command that opens it
 
-**Example:** `memo show chat:max/500/-1001 document:413`, `memo show note:12 msg:telegram/1/77/42 --json`
+**Example:** `memo show chat:max/500/-1001 document:413`, `memo show note:12 msg:telegram/1/77/42 --json`, `memo show contract:2 invoice:4 --json`
 
 ## `memo notes`
 
@@ -5026,7 +5026,7 @@ memo search all <query> [options]
 
 **Returns:** hit — kind, ref, provider, account, title, timestamp, excerpt, url, and 15 more; every field: memo commands info search all
 
-**Example:** `memo search all 'budget harbour'`, `memo search all 'content:invoice' --only mail,notes --json`
+**Example:** `memo search all 'budget harbour'`, `memo search all 'content:invoice' --only mail,notes --json`, `memo search all 'Rental agreement' --only business`
 
 ### `memo search messages`
 

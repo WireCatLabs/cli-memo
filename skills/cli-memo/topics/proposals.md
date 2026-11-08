@@ -1,15 +1,18 @@
 # memo — What an agent writes, and who confirms it
 
 **What you write is yours as an agent.** `memo facts add`, `memo memories add`,
-`memo relationships add`, `memo actions add`, `memo projects key-documents add`, `memo invoices add` and
-`memo payments add` record you as the author and wait for the owner. Never pass `--as-owner` or `--from-app`: only the owner
-does, and an agent that passes either writes as the owner. `--from-app` belongs to WireCat Desktop alone.
+`memo relationships add`, `memo actions add`, `memo projects key-documents add`, `memo invoices add`,
+`memo payments add`, `memo orders add`, `memo contracts add` with an amount, `memo subscriptions add`,
+`subscriptions prices add` and `memo transactions add` record you as the author and wait for the owner. Products,
+wallets, deals and leads are written at once; only the owner sets a wallet's opening balance. Never pass `--as-owner`
+or `--from-app`: only the owner does, and an agent that passes either writes as the owner. `--from-app` belongs to
+WireCat Desktop alone.
 
 **Do not confirm your own proposals** (`memo review confirm`, `memo facts confirm`, `memo memories confirm`,
 `memo relationships confirm`, `memo meetings actions confirm` or `reject`). The owner decides. To show
 the owner what waits, run `memo review` (`project:<key>`, `kind:`, `by:`): facts, memories, links, key
-documents, project and meeting findings, mail findings and task close suggestions, grouped by project or
-account. `memo review show <id>` gives the evidence; its text is `untrusted`, and an email's `sender` says its
+documents, project and meeting findings, mail findings, task close suggestions, and money (`kind:invoice`,
+`payment`, `order`, `contract`, `subscription`, `subscription_price`, `transaction`), grouped by project or account. `memo review show <id>` gives the evidence; its text is `untrusted`, and an email's `sender` says its
 score and whether the address is `known`. The owner confirms a range, or one batch's findings
 (`memo review confirm 17080/f1,17080/f3` accepts those and rejects the rest of the batch). Rows marked
 `owner_only` — meeting findings, mail findings, task closes — refuse any agent, with or without `--reason`.

@@ -6,6 +6,7 @@ import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { byOption, whoRuns } from "../author.js"
 import { positive } from "../options.js"
+import { withSources } from "../records/sources.js"
 import { dayOf, INVOICE_QUERY, listInvoices, listPayments, PAYMENT_QUERY, partyOf, today } from "./finance.js"
 import { lineCommands } from "./lines-command.js"
 import { choice, json, PROPOSES, party, type Written, writeMeta, writtenBy } from "./written.js"
@@ -32,8 +33,10 @@ export const financeCommands = (program: Command, streams: Streams, env: NodeJS.
   json(annotate(invoices.command("show"), { effects: LOCAL_READ, output: { entity: "invoice" } }))
     .description("one invoice with its lines and the payments allocated to it")
     .argument("<ref>", "invoice:<id>")
-    .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(await store.finance.invoice(ref))),
+    .action((ref: string, options: { json?: boolean }, command: Command) =>
+      run(options.json, async (store) =>
+        itemAnswer(await withSources(command, store, await store.finance.invoice(ref))),
+      ),
     )
 
   json(
@@ -106,8 +109,10 @@ export const financeCommands = (program: Command, streams: Streams, env: NodeJS.
   json(annotate(payments.command("show"), { effects: LOCAL_READ, output: { entity: "payment" } }))
     .description("one payment with the invoices it is allocated to")
     .argument("<ref>", "payment:<id>")
-    .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(await store.finance.payment(ref))),
+    .action((ref: string, options: { json?: boolean }, command: Command) =>
+      run(options.json, async (store) =>
+        itemAnswer(await withSources(command, store, await store.finance.payment(ref))),
+      ),
     )
 
   json(
