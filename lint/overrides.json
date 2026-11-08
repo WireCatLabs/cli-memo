@@ -89,47 +89,5 @@
     "reason": "the owner chose `doctor --deep` on 2026-11-06 for the slow whole-file check of the store, a switch; cli-base's vocabulary knows --deep only as a depth, and adds the switch meaning in its next release",
     "owner": "@leemour",
     "review_after": "2026-12-07"
-  },
-  {
-    "rule": "unknown-verb",
-    "target": "memories challenge",
-    "reason": "Temporary: WireCatLabs/cli-base#524 adds this word to the shared vocabulary; drop this override and lower the budget back to 13 once memo pins a cli-base release with it.",
-    "owner": "@leemour",
-    "review_after": "2026-12-08"
-  },
-  {
-    "rule": "unknown-verb",
-    "target": "facts challenge",
-    "reason": "Temporary: WireCatLabs/cli-base#524 adds this word to the shared vocabulary; drop this override and lower the budget back to 13 once memo pins a cli-base release with it.",
-    "owner": "@leemour",
-    "review_after": "2026-12-08"
-  },
-  {
-    "rule": "option-role",
-    "target": "memories challenge --suggest",
-    "reason": "Temporary: WireCatLabs/cli-base#524 adds this word to the shared vocabulary; drop this override and lower the budget back to 13 once memo pins a cli-base release with it.",
-    "owner": "@leemour",
-    "review_after": "2026-12-08"
-  },
-  {
-    "rule": "option-role",
-    "target": "facts challenge --suggest",
-    "reason": "Temporary: WireCatLabs/cli-base#524 adds this word to the shared vocabulary; drop this override and lower the budget back to 13 once memo pins a cli-base release with it.",
-    "owner": "@leemour",
-    "review_after": "2026-12-08"
-  },
-  {
-    "rule": "option-role",
-    "target": "memories add --quote",
-    "reason": "Temporary: WireCatLabs/cli-base#524 adds this word to the shared vocabulary; drop this override and lower the budget back to 13 once memo pins a cli-base release with it.",
-    "owner": "@leemour",
-    "review_after": "2026-12-08"
-  },
-  {
-    "rule": "option-role",
-    "target": "facts add --quote",
-    "reason": "Temporary: WireCatLabs/cli-base#524 adds this word to the shared vocabulary; drop this override and lower the budget back to 13 once memo pins a cli-base release with it.",
-    "owner": "@leemour",
-    "review_after": "2026-12-08"
   }
 ]

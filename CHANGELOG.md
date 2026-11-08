@@ -28,7 +28,7 @@ the API.
   - `memo review agenda` has a `sources` section: the source reviews raised since `--since-time`, and the sources
     found changed since then that no review or findings batch names. A review that only grew in place is not listed
     again.
-  - Needs a cli-core release with source reviews, `sourceReviewTexts` and `changedSources`.
+  - cli-core 0.616.0.
 
 ## 0.131.66 — 08.11.2026
 
