@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**891 ✅ · 0 ⛔ · 255 ❌** — 247 commands, 899 options.
+**893 ✅ · 0 ⛔ · 255 ❌** — 247 commands, 901 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -833,9 +833,11 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `records import` |  | ✅ |  |
 | `records import` | `--dry-run` | ✅ |  |
 | `records import` | `--account` | ✅ |  |
+| `records import` | `--region` | ✅ |  |
 | `records import` | `--json` | ✅ |  |
 | `records check` |  | ✅ |  |
 | `records check` | `--account` | ✅ |  |
+| `records check` | `--region` | ✅ |  |
 | `records check` | `--json` | ✅ |  |
 | `records list` |  | ✅ |  |
 | `records list` | `--account` | ✅ |  |
