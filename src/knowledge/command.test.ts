@@ -88,7 +88,7 @@ describe("combined evidence, relationships and local reminders", () => {
     expect((await run("organizations", "context", studio.id)).relationships).toHaveLength(1)
     const harbour = await run("projects", "add", "Synthetic Harbour", "--organization", studio.ref)
     expect(harbour).toMatchObject({ organization_id: studio.id })
-    await run("relationships", "add", `person:${person?.uid}`, harbour.ref, "--role", "author")
+    await run("relationships", "add", `person:${person?.uid}`, harbour.ref, "--role", "contributor")
     expect((await run("projects", "context", harbour.id)).relationships).toHaveLength(1)
     expect((await run("relationships", "list", `about:"${harbour.ref}"`)).items).toMatchObject([{ to: harbour.ref }])
     expect((await run("relationships", "list")).items).toHaveLength(2)

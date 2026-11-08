@@ -10,3 +10,13 @@ it("keeps the first line of an unexpected error, and only the message of a known
   const known = { reason: "mail.source-failed", message: "Gmail is limiting this account" }
   expect(failureReason(new Error("raw"), known, false)).toBe("Gmail is limiting this account")
 })
+
+it("names a damaged store and its recovery, not a bug", async () => {
+  const malformed = Object.assign(new Error("database disk image is malformed"), {
+    code: "ERR_SQLITE_ERROR",
+    errcode: 11,
+  })
+  const { error: failure } = await errorObject(malformed)
+  expect(failure).toMatchObject({ code: "configuration_error", reason: "store.damaged" })
+  expect(failureReason(malformed, failure, false)).toContain("memo store recover")
+})
