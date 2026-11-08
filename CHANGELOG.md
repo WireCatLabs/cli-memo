@@ -17,12 +17,6 @@ the API.
 - **A role note beside the role.** `--role-note <text>` on `relationships add` and `relationships update` keeps what
   the role means here in your words (`role_note`), while `--role` stays one of its list.
 
-### Fixed
-
-- **A relationship with a free-text role can be updated again.** On first open the store moves a person's role on a
-  project or an organization that is not on its list, such as «клиент, принимает решения», into the role note and
-  leaves the role unset (cli-core store version 59); nothing is lost, and the old role stays in its history.
-
 ## 0.131.61 — 08.11.2026
 
 ### Added

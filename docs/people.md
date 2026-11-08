@@ -137,7 +137,8 @@ memo relationships remove 4
 A role comes from its list: `owner`, `manager`, `contributor`, `client-contact` or `approver` on a project, and
 `employee`, `contractor`, `founder`, `owner`, `manager`, `adviser` or `contact` on an organization, or a role
 added to that list. What the role means here goes beside it, in your words, with `--role-note`.
-A free-text role from before the lists was moved into the note when the store was upgraded, and the role left unset.
+A free-text role from before the lists still reads; to change it, set a listed role and keep the old words as
+the note: `memo relationships update 4 --role client-contact --role-note '<the old words>'`.
 
 A person on a project also takes an **engagement level**: how much you deal with them yourself, not how active
 they are. It is `none`, `low`, `medium` or `high`; without one it is unknown. Someone who writes in the client
