@@ -3762,7 +3762,7 @@ memo review list [query] [options]
 
 **Returns:** memo proposal — id, kind, status, title, project, project_title, source, owner_only, and 11 more; every field: memo commands info review list
 
-**Example:** `memo review list project:HRB`, `memo review list kind:relationship,fact by:agent`, `memo review list kind:invoice,payment --compact`
+**Example:** `memo review list project:HRB`, `memo review list kind:relationship,fact by:agent`, `memo review list via:chat:max/1/-100`
 
 ### `memo review show`
 
@@ -4132,7 +4132,7 @@ memo search all <query> [options]
 | `--plain-order` | best first by the words alone, without moving mail from suspicious senders down. |
 | `--project <project>` | rank the key documents of this project (id, project:<id>, key, exact name or alias) first; nothing is left out. |
 
-**Returns:** hit — kind, ref, provider, account, title, timestamp, excerpt, url, and 13 more; every field: memo commands info search all
+**Returns:** hit — kind, ref, provider, account, title, timestamp, excerpt, url, and 15 more; every field: memo commands info search all
 
 **Example:** `memo search all 'budget harbour'`, `memo search all 'content:invoice' --only mail,notes --json`
 
