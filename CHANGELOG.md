@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.63 — 08.11.2026
+
 ### Added
 
 - **`memo show` opens invoices, payments, orders, deals, leads and pipelines** with memo's own `show`: its `open`
