@@ -71,6 +71,7 @@ const SECTIONS: [string, HelpSection][] = [
   ["notes remove", "write"],
   ["notes export", "write"],
   ["mail", "read"],
+  ["events", "read"],
   ["agents", "read"],
   ["answers", "read"],
   ["memories", "write"],

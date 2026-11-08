@@ -88,6 +88,12 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: [],
   },
   {
+    reason: "events.account-unknown",
+    code: "not_found",
+    message: "account: names no calendar account in the store; the message lists the ones it holds",
+    details: [],
+  },
+  {
     reason: "mail.account-unknown",
     code: "not_found",
     message: "no stored mailbox by that address; the mail CLI syncs one",

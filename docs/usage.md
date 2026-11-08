@@ -36,6 +36,19 @@ memo search mail 'from:kai invoice'   # mail only
 
 [Search](search.md) explains the search words and how to give your agent the sources.
 
+## See your calendar and calls
+
+`memo events list` lists the events of every calendar account in the store, latest first: the calendars gcal stored
+and the calls imported from a phone with `memo records import`. It says which accounts it read. Without a time it
+shows the last 30 days and the next 7.
+
+```sh
+memo events list                                   # every account, the last 30 days and the next 7
+memo events list event_type:call                   # phone calls only
+memo events list account:phone:pixel starts_at>=2026-10-01
+memo events show event:42                          # one event, and the accounts and calendars that hold it
+```
+
 ## Prepare for a conversation
 
 ```text prompt

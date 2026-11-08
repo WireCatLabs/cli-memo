@@ -1056,6 +1056,11 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `search meetings` | `--max-read-bytes` | ✅ |  |
 | `search meetings` | `--source` | ✅ |  |
 | `search meetings` | `--json` | ✅ |  |
+| `events list` |  | ✅ |  |
+| `events list` | `--limit` | ❌ |  |
+| `events list` | `--json` | ✅ |  |
+| `events show` |  | ✅ |  |
+| `events show` | `--json` | ✅ |  |
 | `answers create` |  | ✅ |  |
 | `answers create` | `--all` | ✅ |  |
 | `answers create` | `--source` | ✅ |  |

@@ -29,6 +29,7 @@ export const LANE_GATES: readonly LaneGate[] = [
     },
   },
   { lane: "crm", key: "crm.list", kinds: { deal: "deals.list", lead: "leads.list" } },
+  { lane: "events", key: "events.list", kinds: { event: "events.list" } },
 ]
 
 /** The lane keys no command path carries, which memo still accepts from `--permission` and the config file. */
