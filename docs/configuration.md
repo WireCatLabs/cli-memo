@@ -98,7 +98,8 @@ one its own bot proposed:
 Meeting findings keep their own permissions whatever this key says.
 
 Add the key to your existing config rather than replacing your notes and timer settings with
-this small example. Both CLI and MCP then refuse every decision an agent makes; reading and proposing still work.
+this small example. When the key is missing or `false`, the CLI and MCP refuse every decision an agent makes; reading
+and proposing still work.
 Owner decisions remain available in the terminal. In an agent's terminal, `--as-owner` asks y/N at the terminal
 before a decision counts as yours. The setting does not change the separate permission for confirmation of
 meeting findings or replace the tool's other permission checks.
