@@ -99,8 +99,10 @@ describe("special characters in free-text search", () => {
   it.each(CASES)("search all reads %s (%s) and no source refuses it", async (_, query, record) => {
     const all = await run("search", "all", query)
     const meta = all.meta as { issues?: { code: string; source: string }[] }
-    // Deals are found by title words only, so a query with an operator leaves them out, with the reason.
-    expect((meta.issues ?? []).filter(({ source }) => record !== null || source !== "crm")).toEqual([])
+    // Deals and business records are found by title words only, so a query with an operator leaves them out, with the
+    // reason.
+    const wordsOnly = (source: string) => source === "crm" || source === "business"
+    expect((meta.issues ?? []).filter(({ source }) => record !== null || !wordsOnly(source))).toEqual([])
     if (record === null) return
     const found = all.items.filter((item) => texts({ items: [item] }).includes(record.slice(0, 12)))
     expect(new Set(found.map(({ kind }) => kind))).toEqual(new Set(["message", "mail", "note"]))

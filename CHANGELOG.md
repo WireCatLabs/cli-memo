@@ -4,7 +4,14 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
-## Unreleased
+## 0.131.58 — 08.11.2026
+
+### Changed — may break callers
+
+- **The morning digest answers with one `wirecat.report/1` JSON document** instead of text: sections and typed
+  items (reply, question, task, fact, risk, money, decision, meeting) with who, topic and what to do, and a list of
+  stale sources. WireCat renders it per channel with the owner's headings, emoji and layout (cli-core's report
+  renderer, 0.609.0), so the agent no longer writes any of them.
 
 ### Added
 
