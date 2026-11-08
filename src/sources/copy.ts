@@ -8,7 +8,7 @@ import { APP } from "../app.js"
 export const copiesDir = (env: NodeJS.ProcessEnv) =>
   join(resolvePaths({ appName: APP.appName, prefix: APP.envPrefix, env }).state, "sources")
 
-export const copyPath = (env: NodeJS.ProcessEnv, hash: string) => join(copiesDir(env), hash)
+const copyPath = (env: NodeJS.ProcessEnv, hash: string) => join(copiesDir(env), hash)
 
 /** Writes the copy unless it is there; answers whether this call wrote it, so a failed save can take it back. */
 export const keepCopy = (env: NodeJS.ProcessEnv, hash: string, bytes: Uint8Array): { path: string; wrote: boolean } => {

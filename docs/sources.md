@@ -62,8 +62,10 @@ memo sources show document:42 --bytes 65536 --json
 memo sources mentions document:42
 ```
 
-`sources show` gives the text (16 KiB by default, `--bytes` for more), whether a copy is kept, the subjects with
-whether each is confirmed, and what cites it: `facts`, `memories` and the findings `batches` whose evidence names it.
+`sources show` gives the text (16 KiB by default, `--bytes` for more), what it is (`kind`, the `url` you gave,
+`file_name`, `mime`, `bytes`), whether a copy is kept, the subjects with whether each is confirmed, and what cites it:
+`facts`, `memories` and the findings `batches` whose evidence names it. `kept` is `copy` only while the copy is
+still in Memo's data folder. Any other document shows with `added: false` and these fields `null`.
 
 `sources mentions` lists the people and organizations Memo already knows whose names appear in the text, read on
 this computer. A person is found by a name Memo has seen in a messenger or a meeting, or by an e-mail address or
@@ -77,8 +79,9 @@ memo sources remove document:42
 ```
 
 Only you remove a source you added. Its text goes, the copy Memo kept is deleted, and the answer lists the facts and
-memories that cite it as `facts` and `memories`. They keep their status; check each one with `memo facts show` or
-`memo memories show`. A file on your disk is never touched.
+memories that cite it as `facts` and `memories`. Removing changes none of them: they keep their status, and the next
+source check of `memo sync` opens a review of each, citing a source that is gone, for you to decide. A file on your
+disk is never touched.
 
 ## For an agent
 

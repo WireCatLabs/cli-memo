@@ -12,7 +12,7 @@ import { searchModelPresent } from "../notes/embed.js"
 import { collect } from "../options.js"
 import { subjectOf } from "../people/subject.js"
 import { refuseBareNumber } from "../refs.js"
-import { copyPath, dropCopy, keepCopy } from "./copy.js"
+import { dropCopy, keepCopy } from "./copy.js"
 import { namedIn } from "./mentions.js"
 import { argumentKind, readFile, readPage, readText, SOURCE_TEXT_CHARS, withNextStep } from "./read.js"
 
@@ -217,8 +217,8 @@ export const sourcesCommand = (
     .action((reference: string, options: { bytes?: number; json?: boolean }) =>
       run(options.json, async (store) => {
         const ref = await documentRef(store, reference)
-        const note = await store.notes.note(ref)
-        const added = (await store.notes.addedAccount())?.id === note.folderId
+        const source = await store.notes.addedSource(ref)
+        const note = source?.note ?? (await store.notes.note(ref))
         const { text, truncated } = boundedText(note.text, options.bytes ?? TEXT_BYTES)
         const subjects = (await store.notes.links({ from: ref, kind: "about" })).flatMap(({ to, confirmed }) =>
           to === null ? [] : [{ ref: to, confirmed }],
@@ -226,14 +226,14 @@ export const sourcesCommand = (
         return itemAnswer({
           ref,
           title: note.title,
-          added,
-          // A copy is named by the hash of the file's bytes, so its presence is what says it is kept.
-          kept:
-            added && note.contentHash !== null && existsSync(copyPath(env, note.contentHash))
-              ? "copy"
-              : added
-                ? "text"
-                : null,
+          added: source !== undefined,
+          kind: source?.kind ?? null,
+          url: source?.url ?? null,
+          fileName: source?.fileName ?? null,
+          mime: source?.mime ?? null,
+          bytes: source?.size ?? null,
+          // The row says a copy was kept; only the file itself says it still is.
+          kept: source === undefined ? null : source.copy !== null && existsSync(source.copy) ? "copy" : "text",
           chars: note.text.length,
           text,
           textTruncated: truncated,
@@ -277,7 +277,7 @@ export const sourcesCommand = (
     annotate(sources.command("remove"), { effects: LOCAL_WRITE, output: { entity: "source_removal" } })
       .summary("remove a source you added, and its kept copy")
       .description(
-        "remove a source you added, and its copy if one was kept; facts and memories citing it keep their status",
+        "remove a source you added, and its copy if one was kept; the next source check reviews what cites it",
       ),
   )
     .argument("<ref>", "document:<id> of a source you added")
