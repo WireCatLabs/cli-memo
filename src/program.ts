@@ -308,6 +308,8 @@ const GROUP_AWARE = [
   "tags remove",
   "deals",
   "leads",
+  "pipelines list",
+  "pipelines show",
   "organizations",
   "people list",
   "people add",
