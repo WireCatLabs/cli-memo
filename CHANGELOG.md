@@ -6,6 +6,17 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **The scheduled mail triage no longer acknowledges mail its input left out.** The input was cut at 60,000
+  characters mid-text while the cursor printed with it covered the whole batch, so the mark could move past emails
+  the agent never saw. memo now builds the input under that cap, leaves whole emails out in store order, and gives
+  each mailbox the cursor and findings key of the last email shown; the next run starts at the first one left out.
+  When even the first email, or a group of held emails that share one cursor, does not fit, their texts are
+  shortened to fit (`text_cut: true`, with a hint to read them whole), in any mailbox; past the first mailbox not
+  below 300 characters, else the mailbox waits unacknowledged for the next run (cli-core 0.606.0's
+  `email.cursor`).
+
 ## 0.131.53 — 08.11.2026
 
 ### Fixed
