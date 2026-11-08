@@ -8,6 +8,15 @@ the API.
 
 ### Added
 
+- **Base stages: `memo stages show|create|rename|move|remove|list|set|confirm` (TASK-947).** The owner's own stages
+  of deals and of leads, the columns of a board across every pipeline and CRM, and every other stage mapped onto
+  them, suggested by memo and confirmed by the owner. Each command takes `--json`. In a group they count and list only
+  the group's pipelines and the owner's own. Editing the base set and `confirm` are the owner's own
+  (`stage.owner-only`). An agent's `stages set` stays a suggestion. `deals move` and `leads move` take a base stage's
+  `stage:<id>`: the owner's deal moves to the one stage of its pipeline mapped there. Several give
+  `stage.choice-required` with `candidates`, none gives `stage.unmapped`, and a CRM's copy gives `stage.crm-copy`
+  with its `writes_with`. Rows of `deals list` and `leads list` gain `base_stage`, `null` until confirmed. Needs the
+  cli-core release with base stages (store version 60).
 - **`writes_with` on CRM rows of `deals list`, `leads list` and `pipelines list`**: the CLI that changes the row on
   its CRM (`tool`), the row's `account`, and the `profile`, named only when exactly one profile of that CLI is on the
   account; otherwise `null`, with `profiles` and `why`. In a group, a profile on an account outside it is never named.

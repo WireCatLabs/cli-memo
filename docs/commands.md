@@ -3317,7 +3317,7 @@ memo deals move <ref> <stage> [options]
 | Argument | | What it is |
 |---|---|---|
 | `ref` | required | deal:<id>. |
-| `stage` | required | a stage of the deal's pipeline. |
+| `stage` | required | a stage of the deal's pipeline by its name or stage:<id>; or a base stage's stage:<id>, which moves it to the one stage of its pipeline mapped there, and refuses several (with the candidates) or none. |
 
 | Option | What it does |
 |---|---|
@@ -3325,7 +3325,7 @@ memo deals move <ref> <stage> [options]
 
 **Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info deals move
 
-**Example:** `memo deals move deal:5 Quote`
+**Example:** `memo deals move deal:5 Quote`, `memo deals move deal:5 stage:5`
 
 ### `memo deals close`
 
@@ -3487,7 +3487,7 @@ memo leads move <ref> <stage> [options]
 | Argument | | What it is |
 |---|---|---|
 | `ref` | required | lead:<id>. |
-| `stage` | required | a stage of the lead's pipeline. |
+| `stage` | required | a stage of the lead's pipeline by its name or stage:<id>; or a base stage's stage:<id>, which moves it to the one stage of its pipeline mapped there, and refuses several (with the candidates) or none. |
 
 | Option | What it does |
 |---|---|
@@ -3495,7 +3495,7 @@ memo leads move <ref> <stage> [options]
 
 **Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info leads move
 
-**Example:** `memo leads move lead:3 qualified`
+**Example:** `memo leads move lead:3 qualified`, `memo leads move lead:3 stage:5`
 
 ### `memo leads close`
 
@@ -3521,6 +3521,189 @@ memo leads close <ref> <outcome> [options]
 **Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info leads close
 
 **Example:** `memo leads close lead:3 lost --reason 'no budget'`
+
+## `memo stages`
+
+the owner's base stages of deals and of leads, the columns of a board across every pipeline and CRM, and how each other pipeline's stage maps onto them
+
+### `memo stages show`
+
+the base set in order, with the open rows and mapped stages each column holds, and what is unsorted (unmapped or only suggested); the first use takes the owner's only own pipeline of the kind, or makes the default set in the owner's language; a read-only store shows that set without making it
+
+```sh
+memo stages show <kind> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `kind` | required | deal or lead: which base set. One of: `deal`, `lead`. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** base stage set — kind, pipeline, stages, unsorted; every field: memo commands info stages show
+
+**Example:** `memo stages show deal`, `memo stages show lead --json`
+
+### `memo stages create`
+
+add a stage to the base set: an open one goes before the first won or lost stage, a won or lost one last; move puts it elsewhere
+
+This command changes the local store or your files.
+
+```sh
+memo stages create <kind> <name> [outcome] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `kind` | required | deal or lead: which base set. One of: `deal`, `lead`. |
+| `name` | required | the stage's name, once in its set. |
+| `outcome` | optional | open, won or lost; open by default. One of: `open`, `won`, `lost`. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** base stage set — kind, pipeline, stages, unsorted; every field: memo commands info stages create
+
+**Example:** `memo stages create deal Demo`, `memo stages create lead Spam lost`
+
+### `memo stages rename`
+
+rename a base stage; what maps to it stays mapped
+
+This command changes the local store or your files.
+
+```sh
+memo stages rename <kind> <stage> <name> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `kind` | required | deal or lead: which base set. One of: `deal`, `lead`. |
+| `stage` | required | the base stage, by its stage:<id> or its name. |
+| `name` | required | its new name. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** base stage set — kind, pipeline, stages, unsorted; every field: memo commands info stages rename
+
+**Example:** `memo stages rename deal Proposal 'Quote sent'`
+
+### `memo stages move`
+
+put a base stage at another place in its set; unconfirmed suggestions follow the new order
+
+This command changes the local store or your files.
+
+```sh
+memo stages move <kind> <stage> <position> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `kind` | required | deal or lead: which base set. One of: `deal`, `lead`. |
+| `stage` | required | the base stage, by its stage:<id> or its name. |
+| `position` | required | its new place, from 1. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** base stage set — kind, pipeline, stages, unsorted; every field: memo commands info stages move
+
+**Example:** `memo stages move deal Negotiation 2`
+
+### `memo stages remove`
+
+take a stage out of the base set: refused for the last of its outcome and for one the owner's own rows stood in; what was mapped to it waits for a new confirm
+
+This command changes the local store or your files.
+
+```sh
+memo stages remove <kind> <stage> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `kind` | required | deal or lead: which base set. One of: `deal`, `lead`. |
+| `stage` | required | the base stage, by its stage:<id> or its name. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** base stage set — kind, pipeline, stages, unsorted; every field: memo commands info stages remove
+
+**Example:** `memo stages remove deal Negotiation`
+
+### `memo stages list`
+
+every stage outside the base sets in scope, a CRM's or an own pipeline's, with the base stage it maps to, and whether the owner confirmed that or it is the store's suggestion
+
+```sh
+memo stages list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** stage mapping — ref, name, position, outcome, kind, pipeline, pipeline_name, account, and 4 more; every field: memo commands info stages list
+
+**Example:** `memo stages list confirmed:false`, `memo stages list kind:deal pipeline:pipeline:3 --json`
+
+### `memo stages set`
+
+map one stage of a CRM or own pipeline onto a base stage of its kind, confirmed, so a later sync keeps it; an agent's run records it as a suggestion the owner confirms
+
+This command changes the local store or your files.
+
+```sh
+memo stages set <stage> <base-stage> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `stage` | required | the stage, by its stage:<id> as stages list shows it. |
+| `base-stage` | required | the base stage, by its stage:<id> or its name. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** stage mapping — ref, name, position, outcome, kind, pipeline, pipeline_name, account, and 4 more; every field: memo commands info stages set
+
+**Example:** `memo stages set stage:41 Proposal`
+
+### `memo stages confirm`
+
+confirm every suggestion of one pipeline, or of all of them in scope, as it stands
+
+This command changes the local store or your files.
+
+```sh
+memo stages confirm [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--pipeline <pipeline>` | pipeline:<id>, or a name only one pipeline has. |
+| `--all` | every pipeline in scope. |
+| `--kind <kind>` | with --all: only deal or only lead stages. One of: `deal`, `lead`. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** stage mapping confirm — confirmed; every field: memo commands info stages confirm
+
+**Example:** `memo stages confirm --pipeline pipeline:3`, `memo stages confirm --all`
 
 ## `memo records`
 

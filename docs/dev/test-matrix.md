@@ -659,6 +659,25 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `leads close` | `--occurred-time` | ❌ |  |
 | `leads close` | `--reason` | ✅ |  |
 | `leads close` | `--json` | ❌ |  |
+| `stages show` |  | ✅ |  |
+| `stages show` | `--json` | ✅ |  |
+| `stages create` |  | ✅ |  |
+| `stages create` | `--json` | ✅ |  |
+| `stages rename` |  | ✅ |  |
+| `stages rename` | `--json` | ✅ |  |
+| `stages move` |  | ✅ |  |
+| `stages move` | `--json` | ❌ |  |
+| `stages remove` |  | ✅ |  |
+| `stages remove` | `--json` | ❌ |  |
+| `stages list` |  | ✅ |  |
+| `stages list` | `--json` | ✅ |  |
+| `stages set` |  | ✅ |  |
+| `stages set` | `--json` | ✅ |  |
+| `stages confirm` |  | ✅ |  |
+| `stages confirm` | `--pipeline` | ✅ |  |
+| `stages confirm` | `--all` | ✅ |  |
+| `stages confirm` | `--kind` | ❌ |  |
+| `stages confirm` | `--json` | ✅ |  |
 | `records import` |  | ✅ |  |
 | `records import` | `--dry-run` | ✅ |  |
 | `records import` | `--account` | ✅ |  |

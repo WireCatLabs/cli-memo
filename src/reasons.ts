@@ -101,4 +101,10 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: [],
   },
   { reason: "auto.systemctl-failed", code: "provider_error", message: "systemctl failed", details: [] },
+  {
+    reason: "stage.crm-copy",
+    code: "validation_error",
+    message: "the row is a CRM's copy: its CRM's CLI moves it to a base stage, as writes_with names it",
+    details: ["writes_with"],
+  },
 ])
