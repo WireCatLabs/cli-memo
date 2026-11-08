@@ -55,6 +55,24 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `notes links clear` |  | ✅ |  |
 | `notes links clear` | `--json` | ✅ |  |
 | `notes links clear` | `--from-app` | ❌ |  |
+| `sources add` |  | ✅ |  |
+| `sources add` | `--reason` | ✅ |  |
+| `sources add` | `--as-owner` | ❌ |  |
+| `sources add` | `--from-app` | ✅ |  |
+| `sources add` | `--title` | ✅ |  |
+| `sources add` | `--subject` | ✅ |  |
+| `sources add` | `--keep-copy` | ✅ |  |
+| `sources add` | `--max-chars` | ✅ |  |
+| `sources add` | `--json` | ✅ |  |
+| `sources show` |  | ✅ |  |
+| `sources show` | `--bytes` | ✅ |  |
+| `sources show` | `--json` | ✅ |  |
+| `sources mentions` |  | ✅ |  |
+| `sources mentions` | `--json` | ✅ |  |
+| `sources remove` |  | ✅ |  |
+| `sources remove` | `--as-owner` | ❌ |  |
+| `sources remove` | `--from-app` | ❌ |  |
+| `sources remove` | `--json` | ✅ |  |
 | `folders add` |  | ✅ |  |
 | `folders add` | `--format` | ✅ |  |
 | `folders add` | `--json` | ✅ |  |

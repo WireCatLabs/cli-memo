@@ -89,5 +89,33 @@
     "reason": "the owner chose `doctor --deep` on 2026-11-06 for the slow whole-file check of the store, a switch; cli-base's vocabulary knows --deep only as a depth, and adds the switch meaning in its next release",
     "owner": "@leemour",
     "review_after": "2026-12-07"
+  },
+  {
+    "rule": "unknown-resource",
+    "target": "sources",
+    "reason": "WireCat Desktop's Add to memory panel (desktop plan 2026-11-01-memory-add) calls memo sources add, show, mentions and remove by these names; the cli-base vocabulary has documents (a folder's files) but no resource for a source the owner hands over. Add sources there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-08"
+  },
+  {
+    "rule": "unknown-verb",
+    "target": "sources mentions",
+    "reason": "WireCat Desktop's Add to memory panel (desktop plan 2026-11-01-memory-add) calls memo sources add, show, mentions and remove by these names; mentions is a collection in the vocabulary, not a view noun; the command lists the known people and organizations named in one source. Add the view noun there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-08"
+  },
+  {
+    "rule": "option-role",
+    "target": "sources add --keep-copy",
+    "reason": "WireCat Desktop's Add to memory panel (desktop plan 2026-11-01-memory-add) calls memo sources add, show, mentions and remove by these names; no vocabulary flag says to keep a copy of the file besides its text. Add --keep-copy there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-08"
+  },
+  {
+    "rule": "option-role",
+    "target": "sources add --max-chars",
+    "reason": "WireCat Desktop's Add to memory panel (desktop plan 2026-11-01-memory-add) calls memo sources add, show, mentions and remove by these names; the limit is in characters, as the store and the folder import count text; --max-text-bytes counts transcript bytes. Add --max-chars there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-08"
   }
 ]

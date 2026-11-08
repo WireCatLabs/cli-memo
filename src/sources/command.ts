@@ -91,13 +91,16 @@ export const sourcesCommand = (
   const { print, run } = answers(program, streams, env)
   const sources = program
     .command("sources")
+    .summary("files, web pages and text you add by hand")
     .description("sources you add by hand: pasted text, a file or a web page, kept as searchable documents")
 
   byOption(
     reasonOption(
-      annotate(sources.command("add"), { effects: FETCH, output: { entity: "added_source" } }).description(
-        "keep a file, a web page or pasted text as a document of its own; only its text is kept unless --keep-copy",
-      ),
+      annotate(sources.command("add"), { effects: FETCH, output: { entity: "added_source" } })
+        .summary("keep a file, a web page or pasted text as a document")
+        .description(
+          "keep a file, a web page or pasted text as a document of its own; only its text is kept unless --keep-copy",
+        ),
     ),
   )
     .argument("<source>", "a file's path, an http(s) address, or - to read the text from stdin")
@@ -200,10 +203,11 @@ export const sourcesCommand = (
     })
 
   annotate(sources.command("show"), { effects: LOCAL_READ, output: { entity: "source_detail" } })
+    .summary("one source: its text, what is kept, and what cites it")
     .description("one source: its text, what is kept, what it is about, and the facts, memories and batches citing it")
     .argument("<ref>", "document:<id>, as sources add answered")
     .option(
-      "--bytes <n>",
+      "--bytes <bytes>",
       `most UTF-8 bytes of its text, up to ${MAX_TEXT_BYTES} (default ${TEXT_BYTES})`,
       between(1, MAX_TEXT_BYTES, "--bytes"),
     )
@@ -241,6 +245,7 @@ export const sourcesCommand = (
     )
 
   annotate(sources.command("mentions"), { effects: LOCAL_READ, output: { entity: "source_mention" } })
+    .summary("known people and organizations named in a source")
     .description("people and organizations memo knows whose names appear in a source's text; nothing leaves")
     .argument("<ref>", "document:<id>")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
@@ -267,9 +272,11 @@ export const sourcesCommand = (
     )
 
   byOption(
-    annotate(sources.command("remove"), { effects: LOCAL_WRITE, output: { entity: "source_removal" } }).description(
-      "remove a source you added, and its copy if one was kept; facts and memories citing it are flagged for review",
-    ),
+    annotate(sources.command("remove"), { effects: LOCAL_WRITE, output: { entity: "source_removal" } })
+      .summary("remove a source you added, and its kept copy")
+      .description(
+        "remove a source you added, and its copy if one was kept; facts and memories citing it are flagged for review",
+      ),
   )
     .argument("<ref>", "document:<id> of a source you added")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
