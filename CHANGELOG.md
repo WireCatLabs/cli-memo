@@ -6,6 +6,12 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **`relationships add --role` help no longer suggests `cto`.** A person's role in an organization or a project
+  comes from that relationship's list, so the help, the example and `docs/people.md` now name valid roles
+  (employee, contributor).
+
 ## 0.131.63 — 08.11.2026
 
 ### Added
