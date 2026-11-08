@@ -4,6 +4,23 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- **A question with a time in it finds what its words hold again, with no search model downloaded.** "When is the
+  steering committee meeting? Answer as HH:MM" and `steering committee 10:30` found nothing: the time made the
+  question look like syntax, so every word had to be in one record. When nothing holds every word of a short search,
+  `search all` now names the word no record holds (cli-core 0.609.0).
+- **`search all` gives the page to the best hits of every source.** Mail and notes took turns, five each, however
+  weak one source's hits were, and mail asked the search model a different question than notes did. A hit only words
+  found keeps its place among its source's hits (cli-core 0.609.0).
+
+### Added
+
+- **`memo models set` and `memo models add`** come with cli-core 0.609.0; memo itself still embeds and searches with
+  e5-small until it follows the chosen model.
+
 ## 0.131.55 — 08.11.2026
 
 ### Fixed
