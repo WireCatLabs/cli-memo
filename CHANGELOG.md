@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.67 — 09.11.2026
+
 ### Added
 
 - **`memo templates`: the owner's own templates of the morning digest, per channel and language.**
