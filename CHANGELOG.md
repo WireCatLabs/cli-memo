@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.62 — 08.11.2026
+
 ### Added
 
 - **`memo review agenda` says what it read and which accounts need a sync.** `scope` gives the window, each source
