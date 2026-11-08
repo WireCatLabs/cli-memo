@@ -70,6 +70,10 @@ const ownerSays = async (command: Command, question: string): Promise<void> => {
   if (!/^\s*y(es)?\s*$/i.test(answer)) throw new CliError("cancelled", "not done — the answer was no")
 }
 
+/** A run for an agent through memo's MCP server: its stdin is the server's, and its files are this computer's. */
+export const isMcpRun = (command: Command, env: NodeJS.ProcessEnv): boolean =>
+  environmentOf(command).agent !== undefined || env.AI_AGENT === "memo-mcp"
+
 /**
  * Who runs this command. An MCP call is the agent's. `--from-app` is the owner's: the app says the owner clicked, and
  * memo takes its word, even with an agent variable set (NEED-2403). An agent's terminal is the agent's; `--as-owner`
@@ -81,7 +85,7 @@ export const whoRuns = async (
   env: NodeJS.ProcessEnv,
   { asOwner = false, question }: { asOwner?: boolean | undefined; question: string },
 ): Promise<"owner" | { bot: string }> => {
-  if (environmentOf(command).agent || env.AI_AGENT === "memo-mcp") {
+  if (isMcpRun(command, env)) {
     if (asOwner) throw new CliError("permission_error", "an agent cannot act as the owner; the owner runs this command")
     return { bot: agentIn(env) ?? "memo-mcp" }
   }

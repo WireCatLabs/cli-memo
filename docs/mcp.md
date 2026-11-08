@@ -42,6 +42,9 @@ Discovery retains blocked commands with current `availability` and the reason, a
 The named CLI-only exclusions are the `mcp` commands, `upgrade`, `skill install`, `jobs start` and `jobs stop`: they
 start another server, replace the running program, install instructions in other apps, or manage a background timer.
 
+`notes add` and `notes edit` take the note as `text`; `--text-file` is not offered, and a run over MCP refuses it, so
+an agent cannot make Memo read a file on this computer or the server's own input.
+
 `memories add`, `facts add`, `actions add`, `meetings actions add` and `projects actions add` save proposals.
 By default only the owner decides project proposals; `projects actions confirm` and `projects actions reject` refuse
 an agent. Set [`agent_decisions: true`](configuration.md#agent_decisions) to let them decide with a recorded reason

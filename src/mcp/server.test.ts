@@ -10,7 +10,7 @@ import { openStore } from "@wirecat/cli-core/store"
 import * as v from "valibot"
 import { beforeEach, expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
-import { commandCaller } from "../../test/mcp.js"
+import { commandCaller, commandSchema } from "../../test/mcp.js"
 import { updateConfig } from "../config.js"
 import { createProgram } from "../program.js"
 import { commandCatalogue, MCP_EXCLUSIONS } from "./catalogue.js"
@@ -646,4 +646,28 @@ it("answers show over MCP as JSON, with no --compact for an agent to pass", asyn
   } finally {
     await client.close()
   }
+})
+
+it("never reads a note's text from a file or the server's stdin for an agent", async () => {
+  const { client, call, answer } = await connected()
+  try {
+    for (const command of ["notes add", "notes edit"])
+      expect(JSON.stringify(await commandSchema(client, command))).not.toContain("text_file")
+    for (const file of ["-", "/etc/hostname"]) {
+      const refused = await call("notes add", { text_file: file })
+      expect(refused.isError).toBe(true)
+    }
+    expect(await answer("notes add", { text: "An agent's note" })).toMatchObject({ text: "An agent's note" })
+  } finally {
+    await client.close()
+  }
+})
+
+it("refuses --text-file in an MCP run even when it reaches the command", async () => {
+  const streams = captureStreams()
+  const program = createProgram({ streams, env: { ...env, AI_AGENT: "memo-mcp" } })
+  program.exitOverride()
+  await expect(
+    program.parseAsync(["notes", "add", "--text-file", "-", "--json"], { from: "user" }),
+  ).rejects.toMatchObject({ code: "permission_error", details: { param: "text_file" } })
 })
