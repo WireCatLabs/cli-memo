@@ -8,6 +8,7 @@ the API.
 
 ### Added
 
+- cli-core 0.616.0.
 - **`memo sources add <path|url|->` keeps one file, web page or pasted text as a document of its own**, searchable
   and citable like a folder document, with `--title`, `--subject` (repeatable), `--keep-copy` and `--max-chars`. A
   file is read by cli-core's readers, a link once from this computer as a public page (no cookies, no private
