@@ -29,6 +29,27 @@ the API.
   and no running `serve` syncs it) or `quiet` (it syncs, but nothing new for longer than three of its usual gaps,
   and at least three days). Each account is named by its name, username or address, never its id. `--compact` prints
   the three as JSON lines that the morning-digest skill copies into the report.
+- **Products, contracts, subscriptions, wallets and transactions.** `memo products` (list, show, add, update) keeps
+  the goods and services you sell or buy with their prices, written directly by anyone. `memo contracts` (list, show,
+  add, update) keeps their dates, renewal and notice, and `show` gives the last day to give notice; one with an amount
+  from an agent waits for your review. `memo subscriptions` (list, show, add, update, cancel, and `prices add`) keeps
+  who supplies and who pays, how often (`--every 1-month`) and every price it had; a new price is a row of its own and
+  an agent's is a proposal of its own. `memo wallets` (list, show, add, update) keeps bank accounts, cards and cash in
+  one currency each; `show` computes the balance from the opening balance and the confirmed, booked transactions, with
+  what is pending beside it, and only you set the opening balance. `memo transactions` (list, show, add, update, and
+  `splits add`/`remove`) keeps what a statement shows moving, the payment it settles and its categories. Every list
+  filters with query words, and every write from an agent that feeds money totals waits as a proposal; `memo review`
+  lists and decides `contract`, `subscription`, `subscription_price` and `transaction`.
+- **`memo orders lines add` and `remove`.** An order is made of lines, each a quantity at a price, and its total is
+  their sum; `--product` copies the product's name and price, so a later price change leaves the line as it is.
+- **`memo payments add --refund-of <payment>`** records a refund: a payment going the other way, never more than the
+  payment it gives back for.
+- **`memo records show`, `records delete` and `records match`.** `show` prints one record as its source said it;
+  `delete` marks it deleted as an import's delete does, keeping the entry made from it flagged for you; `match` links
+  every waiting person, organization and project of a source to the one entry its identifiers name, or makes one.
+  `records list unmatched:true` lists those whose identifiers fit more than one of your entries.
+- **`memo records import` and `records check` take a vCard address book** (`.vcf`, `BEGIN:VCARD`) as a phone's
+  contacts, under `--account phone:<device>`; what the converter kept without matching is printed as a notice.
 
 ### Changed — may break callers
 
@@ -42,6 +63,10 @@ the API.
   something says nothing about the sync. `health` says it instead.
 - The morning-digest skill copies `scope`, `tasks` and `health` from the agenda into the report, writes one `task`
   item per agenda task with its `task:` reference, and lists only people as owed replies.
+- **A person, organization or project a records file names is matched or made on import** (cli-core's records
+  envelope): one exact e-mail, phone or other identifier links it, none makes it, two or more leave it waiting for
+  `memo records link`. A record that waited for `records link` before is matched or made on its next import, so its
+  invoice or payment becomes a proposal at once. Run `memo records check` on a file before its next import to see it.
 
 ### Security
 
@@ -54,6 +79,14 @@ the API.
   `leads.list` refused those lists but still showed deal and lead titles in `search all`; those hits are now left out,
   with a `permission_error` issue for source `crm`. `crm.list` leaves the whole CRM lane out. `--only crm` and
   `--only business` name those lanes, and are refused when the lane may not be read.
+
+### Fixed
+
+- **`memo records link custom:quote:Q-7` reads the type `custom:quote`.** A record key was split at its first colon,
+  so a custom type was read as `custom`.
+- **`memo records import` streams JSONL** from a file or stdin a record at a time instead of reading the whole file
+  first, and its text receipt names the review kinds of what it proposed, the records left unmatched, the values kept
+  as data only, and when a list stopped at 1000 entries.
 
 ## 0.131.61 — 08.11.2026
 
