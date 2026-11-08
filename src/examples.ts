@@ -244,10 +244,12 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "payments show": ["memo payments show payment:9"],
   "payments add": [
     "memo payments add 25000.00 RUB --kind in --organization organization:3 --occurred-time 2026-11-01 --project HRB",
+    "memo payments add 5000.00 RUB --kind out --organization organization:3 --refund-of payment:9",
   ],
   "records import": [
     "memo records import payments.jsonl --account rentals --dry-run",
     "memo records import envelope.json --account rentals --json",
+    "memo records import contacts.vcf --account phone:pixel",
   ],
   "records check": ["memo records check - --account rentals"],
   "records list": [
@@ -256,6 +258,71 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   ],
   "records link": ["memo records link organization:client organization:3 --account sheet:rentals"],
   "payments allocate": ["memo payments allocate payment:9 invoice:4 25000.00"],
+  "products list": ["memo products list kind:service", "memo products list archived:true --json"],
+  "products show": ["memo products show product:4"],
+  "products add": [
+    "memo products add 'Bike rental, month' 10000.00 RUB --kind service --unit month",
+    "memo products add 'Helmet' 2500.00 RUB --sku H-12 --supplier organization:3",
+  ],
+  "products update": [
+    "memo products update product:4 --amount 12000.00 --currency RUB",
+    "memo products update product:4 --archived on",
+  ],
+  "orders lines add": [
+    "memo orders lines add order:3 12 --product product:4",
+    "memo orders lines add order:3 2 2500.00 Helmet",
+  ],
+  "orders lines remove": ["memo orders lines remove order:3 2"],
+  "contracts list": ["memo contracts list status:active", "memo contracts list expires:2026-12-31 --json"],
+  "contracts show": ["memo contracts show contract:2"],
+  "contracts add": [
+    "memo contracts add 'Rental agreement' --kind service --start-date 2026-11-01 --end-date 2027-10-31 --auto-renew on --notice-days 30 --amount 120000.00 --currency RUB",
+    "memo contracts add 'NDA with the studio' --kind nda --project HRB",
+  ],
+  "contracts update": [
+    "memo contracts update contract:2 --status terminated",
+    "memo contracts update contract:2 --end-date 2027-12-31",
+  ],
+  "subscriptions list": [
+    "memo subscriptions list status:active direction:payable",
+    "memo subscriptions list renews:2026-12-01 --json",
+  ],
+  "subscriptions show": ["memo subscriptions show subscription:5"],
+  "subscriptions add": [
+    "memo subscriptions add Hosting 990.00 RUB --kind payable --supplier organization:3 --every 1-month --start-date 2026-11-01",
+    "memo subscriptions add 'Bike rental' 10000.00 RUB --kind receivable --customer organization:3 --every 1-month --trial-end-date 2026-11-14 --status trial",
+  ],
+  "subscriptions update": [
+    "memo subscriptions update subscription:5 --status paused",
+    "memo subscriptions update subscription:5 --every 1-year",
+  ],
+  "subscriptions cancel": ["memo subscriptions cancel subscription:5 --occurred-time 2026-11-30"],
+  "subscriptions prices add": ["memo subscriptions prices add subscription:5 1190.00 RUB --start-date 2027-01-01"],
+  "wallets list": ["memo wallets list", "memo wallets list kind:card closed:false --json"],
+  "wallets show": ["memo wallets show wallet:2", "memo wallets show wallet:2 --until-time 2026-10-31"],
+  "wallets add": ["memo wallets add 'Main card' RUB --kind card --institution 'Bank One'"],
+  "wallets update": ["memo wallets update wallet:2 --opening-balance 15000.00 --opening-date 2026-01-01"],
+  "transactions list": [
+    `memo transactions list 'wallet:"wallet:2"' status:pending`,
+    "memo transactions list uncategorized:true --json",
+  ],
+  "transactions show": ["memo transactions show transaction:12"],
+  "transactions add": [
+    "memo transactions add wallet:2 500.00 --kind out --occurred-time 2026-11-14 --description 'Coffee shop'",
+    "memo transactions add wallet:2 10000.00 --kind in --payment payment:9",
+  ],
+  "transactions update": [
+    "memo transactions update transaction:12 --status booked",
+    "memo transactions update transaction:12 --payment payment:9",
+  ],
+  "transactions splits add": ["memo transactions splits add transaction:12 300.00 Rent --project HRB"],
+  "transactions splits remove": ["memo transactions splits remove transaction:12 1"],
+  "records show": [
+    "memo records show custom:quote:Q-7 --account example-erp:demo",
+    "memo records show organization:client --account sheet:rentals --json",
+  ],
+  "records delete": ["memo records delete payment:sheet-12 --account sheet:rentals"],
+  "records match": ["memo records match --account sheet:rentals"],
   "payments unlink": ["memo payments unlink payment:9 invoice:4"],
   "facts show": ["memo facts show fact:4 --sources"],
   "facts confirm": ["memo facts confirm fact:4"],

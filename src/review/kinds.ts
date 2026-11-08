@@ -20,6 +20,10 @@ export const REVIEW_KINDS = [
   "invoice",
   "payment",
   "order",
+  "contract",
+  "subscription",
+  "subscription_price",
+  "transaction",
 ] as const
 
 const BY_ACCOUNT: readonly string[] = [MEETING_FINDINGS_KIND, MAIL_FINDINGS_KIND]
