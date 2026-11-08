@@ -1,4 +1,4 @@
-import { isCliError } from "@wirecat/cli-base"
+import { isCliError, type KeyringStore } from "@wirecat/cli-base"
 import {
   chosenTextModel,
   conversationsService,
@@ -141,12 +141,87 @@ export const embedChanged = async (
   return result
 }
 
+/** What the owner's enrichment sent before the chunks were embedded; absent when enrichment is off. */
+export interface EnrichmentReport {
+  status: "done" | "stopped" | "failed"
+  provider?: string
+  model?: string
+  /** Records sent to the provider this run; `enriched` came back, `failed` stay for the next sync. */
+  sent: number
+  enriched: number
+  failed: number
+  /** Records still without an enrichment of their current text. */
+  left: number
+  inputTokens: number
+  outputTokens: number
+  /** `null` when the model has no known price. */
+  costUsd: number | null
+  reason?: string
+}
+
 export interface NoteChunksEmbedded {
   chunks: number
   /** Chunks left for the next run, when the run's bound stopped it. */
   left: boolean
   /** Why nothing was embedded, when nothing could be. */
   notEmbedded?: string
+  enrichment?: EnrichmentReport
+}
+
+type Enriched = Awaited<ReturnType<typeof embedNoteChunksOf>>["enrichment"]
+
+const reportOf = (run: Enriched): EnrichmentReport | undefined => {
+  if (run === undefined) return undefined
+  if (run.status === "failed")
+    return {
+      status: "failed",
+      sent: 0,
+      enriched: 0,
+      failed: 0,
+      left: 0,
+      inputTokens: 0,
+      outputTokens: 0,
+      costUsd: 0,
+      reason: run.reason,
+    }
+  return {
+    status: run.status,
+    provider: run.provider,
+    model: run.model,
+    sent: run.enriched + run.failed,
+    enriched: run.enriched,
+    failed: run.failed,
+    left: run.left,
+    inputTokens: run.usage.input,
+    outputTokens: run.usage.output,
+    costUsd: run.cost_usd,
+    ...(run.reason === undefined ? {} : { reason: run.reason }),
+  }
+}
+
+/** One sync's notes and mail enrichment as one block: sums, and the worse status with its reason. */
+export const combinedEnrichment = (...parts: (EnrichmentReport | undefined)[]): EnrichmentReport | undefined => {
+  const present = parts.filter((part): part is EnrichmentReport => part !== undefined)
+  if (present.length === 0) return undefined
+  const rank = { done: 0, stopped: 1, failed: 2 } as const
+  const worst = present.reduce((a, b) => (rank[b.status] > rank[a.status] ? b : a))
+  const named = present.find((part) => part.provider !== undefined)
+  const costs = present.map((part) => part.costUsd)
+  return {
+    status: worst.status,
+    ...(named?.provider === undefined ? {} : { provider: named.provider }),
+    ...(named?.model === undefined ? {} : { model: named.model }),
+    sent: present.reduce((sum, part) => sum + part.sent, 0),
+    enriched: present.reduce((sum, part) => sum + part.enriched, 0),
+    failed: present.reduce((sum, part) => sum + part.failed, 0),
+    left: present.reduce((sum, part) => sum + part.left, 0),
+    inputTokens: present.reduce((sum, part) => sum + part.inputTokens, 0),
+    outputTokens: present.reduce((sum, part) => sum + part.outputTokens, 0),
+    costUsd: costs.includes(null)
+      ? null
+      : Math.round(costs.reduce<number>((sum, cost) => sum + (cost ?? 0), 0) * 1_000_000) / 1_000_000,
+    ...(worst.reason === undefined ? {} : { reason: worst.reason }),
+  }
 }
 
 /**
@@ -159,18 +234,29 @@ export const embedNoteChunks = async (
     embed = true,
     env,
     maxChunks = embedPerRun(env),
-  }: { maxChunks?: number; embed?: boolean; env?: NodeJS.ProcessEnv } = {},
+    keyring,
+  }: { maxChunks?: number; embed?: boolean; env?: NodeJS.ProcessEnv; keyring?: KeyringStore } = {},
 ): Promise<NoteChunksEmbedded> => {
   if (!embed) return { chunks: 0, left: true, notEmbedded: "embedding is off" }
   try {
-    const done = await embedNoteChunksOf(store, { maxChunks, command: "memo", ...(env === undefined ? {} : { env }) })
-    return { chunks: done.embedded, left: done.left }
+    // memo's identity lets enrichment read the key memo's keyring entry holds.
+    const done = await embedNoteChunksOf(store, {
+      maxChunks,
+      command: "memo",
+      app: APP,
+      ...(env === undefined ? {} : { env }),
+      ...(keyring ? { keyring } : {}),
+    })
+    const enrichment = reportOf(done.enrichment)
+    return { chunks: done.embedded, left: done.left, ...(enrichment ? { enrichment } : {}) }
   } catch (error) {
     if (!isMissingModel(error)) throw error
+    const enrichment = isCliError(error) ? reportOf(error.details.enrichment as Enriched) : undefined
     return {
       chunks: 0,
       left: true,
       notEmbedded: missingModel(error, env),
+      ...(enrichment ? { enrichment } : {}),
     }
   }
 }
@@ -182,18 +268,29 @@ export const embedMailChunks = async (
     embed = true,
     env,
     maxChunks = embedPerRun(env),
-  }: { maxChunks?: number; embed?: boolean; env?: NodeJS.ProcessEnv } = {},
+    keyring,
+  }: { maxChunks?: number; embed?: boolean; env?: NodeJS.ProcessEnv; keyring?: KeyringStore } = {},
 ): Promise<NoteChunksEmbedded> => {
   if (!embed) return { chunks: 0, left: true, notEmbedded: "embedding is off" }
   try {
-    const done = await embedMailChunksOf(store, { maxChunks, command: "memo", ...(env === undefined ? {} : { env }) })
-    return { chunks: done.embedded, left: done.left }
+    // memo's identity lets enrichment read the key memo's keyring entry holds.
+    const done = await embedMailChunksOf(store, {
+      maxChunks,
+      command: "memo",
+      app: APP,
+      ...(env === undefined ? {} : { env }),
+      ...(keyring ? { keyring } : {}),
+    })
+    const enrichment = reportOf(done.enrichment)
+    return { chunks: done.embedded, left: done.left, ...(enrichment ? { enrichment } : {}) }
   } catch (error) {
     if (!isMissingModel(error)) throw error
+    const enrichment = isCliError(error) ? reportOf(error.details.enrichment as Enriched) : undefined
     return {
       chunks: 0,
       left: true,
       notEmbedded: missingModel(error, env),
+      ...(enrichment ? { enrichment } : {}),
     }
   }
 }

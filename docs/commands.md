@@ -4106,6 +4106,69 @@ memo models add <id> [options]
 
 **Example:** `memo models add e5-base --payload '{"repository":"Xenova/multilingual-e5-base","onnx":"onnx/model_quantized.onnx","dims":768,"pooling":"mean","prefix":{"query":"query: ","passage":"passage: "}}'`
 
+### `memo models consents`
+
+consent to send stored notes, documents and mail to a hosted model that rewrites them for search; off by default
+
+#### `memo models consents show`
+
+whether enrichment is on, with which provider and model, how many records it covers and the cost
+
+```sh
+memo models consents show [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** whether enrichment is on, with which provider and model, how many records it…
+
+**Example:** `memo models consents show --json`
+
+#### `memo models consents set`
+
+turn enrichment on for one provider and model; without --yes, say what would be sent and change nothing
+
+This command changes the local store or your files.
+
+```sh
+memo models consents set <provider> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `provider` | required | the provider that receives the records: openai or anthropic. |
+
+| Option | What it does |
+|---|---|
+| `--model <model>` | the provider's model name, such as gpt-4o-mini or claude-haiku-5-5. |
+| `--base-url <url>` | the address of an OpenAI-compatible model API, or the Anthropic API root. |
+| `--yes` | agree that the records go to this provider, and turn enrichment on. |
+| `--json` | print JSON. |
+
+**Returns:** turn enrichment on for one provider and model; without --yes, say what would…
+
+**Example:** `memo models consents set openai --model gpt-4o-mini`, `memo models consents set openai --model gpt-4o-mini --yes`
+
+#### `memo models consents revoke`
+
+turn enrichment off and delete what the model wrote; search reads only the records' own text again
+
+This command changes the local store or your files.
+
+```sh
+memo models consents revoke [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** turn enrichment off and delete what the model wrote; search reads only the…
+
+**Example:** `memo models consents revoke`
+
 ## `memo search`
 
 search messages, mail, notes, memories and people; search all when unsure where
