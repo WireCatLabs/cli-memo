@@ -54,11 +54,11 @@ afterEach(() => {
 const kinds = (answer: { items: { kind: string }[] }) => answer.items.map((item) => item.kind)
 
 describe("search all and the CRM", () => {
-  it("leaves deals out of search all when the owner denies deals (SEC-151)", async () => {
+  // Permissions guard an MCP client only (#739); the MCP case is below.
+  it("finds deals in search all at the owner's terminal, whatever the permissions say", async () => {
     expect(kinds(await memo("search", "all", "renewal", "--exact"))).toContain("deal")
     updateConfig((config) => ({ ...config, permissions: { deals: "deny" } }), env)
-    const answer = await memo("search", "all", "renewal", "--exact")
-    expect(kinds(answer)).not.toContain("deal")
+    expect(kinds(await memo("search", "all", "renewal", "--exact"))).toContain("deal")
   })
 })
 
