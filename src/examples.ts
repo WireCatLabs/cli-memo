@@ -234,6 +234,11 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo orders add 'Shop One' 2499.00 RUB --kind personal --title A-1042",
     "memo orders add 'Office Supply' --kind client --organization organization:3",
   ],
+  "events list": [
+    "memo events list event_type:call",
+    "memo events list account:phone:pixel 'starts_at:[2026-11-02 TO 2026-11-07}' --json",
+  ],
+  "events show": ["memo events show event:42"],
   "invoices list": ["memo invoices list project:HRB open:true", "memo invoices list review:proposed --json"],
   "invoices show": ["memo invoices show invoice:4"],
   "invoices add": [

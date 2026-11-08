@@ -33,7 +33,8 @@ memo reads the local store tg and max write, plus the owner's notes and imported
 A person: `memo search people <name>` gives `person:<id>`, then `memo context <person>`. A project:
 `memo projects context <key>` (key documents first), then `memo projects status <key> --compact`. One kind
 only: `memo search mail`, `memo search messages` or `memo search notes`. Meetings are not in `search all`:
-`memo search meetings '<words>' --source <provider>:<account>`.
+`memo search meetings '<words>' --source <provider>:<account>`. Calendar events and phone calls of every account,
+latest first: `memo events list --compact` (`event_type:call` for calls only).
 
 ## Rules
 

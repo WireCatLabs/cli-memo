@@ -5191,6 +5191,51 @@ memo search meetings <query> [options]
 
 **Example:** `memo search meetings budget --source zoom:me@example.com --project Harbour --since-time 2026-10-01 --limit 10 --json`
 
+## `memo events`
+
+calendar events of every account in the store, phone calls included
+
+### `memo events list`
+
+events of every calendar account in the store, latest start first: calendars and imported phone calls
+
+```sh
+memo events list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--limit <n>` | events at most, 1–1000. Default: `100`. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** event — id, event_series_id, title, description, location, starts_at, ends_at, timezone, and 13 more; every field: memo commands info events list
+
+**Example:** `memo events list event_type:call`, `memo events list account:phone:pixel 'starts_at:[2026-11-02 TO 2026-11-07}' --json`
+
+### `memo events show`
+
+one event: its time, the accounts and calendars that hold it, and its attendees
+
+```sh
+memo events show <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | event:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** event — id, event_series_id, title, description, location, starts_at, ends_at, timezone, and 13 more; every field: memo commands info events show
+
+**Example:** `memo events show event:42`
+
 ## `memo answers`
 
 cited evidence and optional model answers

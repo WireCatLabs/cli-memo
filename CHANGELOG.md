@@ -54,6 +54,12 @@ the API.
   and `records show` lists the records that name the record (`incoming`).
 - **`memo records import` and `records check` take a vCard address book** (`.vcf`, `BEGIN:VCARD`) as a phone's
   contacts, under `--account phone:<device>`; what the converter kept without matching is printed as a notice.
+- **`memo events list` lists the calendar events of every account in the store, phone calls included.** A call
+  imported with `memo records import` showed only in `search all`; it is now listed with no query, beside the
+  calendars gcal stored. Without `starts_at` the list covers the last 30 days and the next 7, latest first, and names
+  each account it read. `account:`, `calendar:`, `event_type:` and `starts_at` narrow it. `memo events show event:42`
+  opens one, and `memo show event:42` now names it. Over MCP, `events.list` set to `deny` also leaves events out of
+  `search all`, and `events.show` refuses `memo show` of an event.
 
 ### Changed — may break callers
 

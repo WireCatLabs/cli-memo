@@ -72,6 +72,16 @@ export const ROWS: Readonly<Record<string, RowShape>> = {
       { field: "tasks", as: "count", tag: "tasks" },
     ],
   },
+  "events list": {
+    columns: [
+      { field: "ref" },
+      { field: ["starts_at", "ends_at"], as: "time" },
+      { field: "event_type" },
+      { field: "in" },
+      { field: "title" },
+    ],
+    text: ["description"],
+  },
   "organizations list": { columns: [{ field: "ref" }, { field: "name" }, { field: "kind" }] },
   "projects list": { columns: [{ field: "ref" }, { field: "key" }, { field: "name" }, { field: "kind" }] },
   "relationships list": {
