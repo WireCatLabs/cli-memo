@@ -70,7 +70,8 @@ const NEXT: Record<string, string> = {
   "source.url-timeout": "try again later, or save the page as a file and add it",
   "source.url-redirects": "open the address in a browser and add the address it ends at",
   "source.url-unreachable": "check the address and the connection, or save the page as a file and add it",
-  "source.needs-sign-in": "save it as a file first (in Google Docs: File → Download), then add that file",
+  "source.needs-sign-in":
+    "add it through your signed-in Google account: drive documents add <url> --profiles <names|all> (or drive <profile> documents add <url>)",
 }
 
 /** cli-core's refusal, with the plain next step memo knows for it; its code and reason stay as they were. */

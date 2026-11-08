@@ -341,7 +341,7 @@ it("says where to go for a private Google document", async () => {
   const failure = add(["https://docs.google.com/document/d/abc/edit"], {
     fetchPage: web(page(401, {})),
   }).catch((error: Error) => error)
-  expect((await failure).message).toMatch(/save it as a file first/)
+  expect((await failure).message).toMatch(/drive documents add <url> --profiles <names\|all>/)
 })
 
 it("removes an added source and its copy, naming the facts that cite it", async () => {

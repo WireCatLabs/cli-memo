@@ -75,7 +75,7 @@ when it refuses.
 | `source.url-timeout` | The page did not arrive within 30 seconds | Try again later, or save the page as a file and add it |
 | `source.url-redirects` | The site sent the request on more than 5 times | Open the address in a browser and add the address it ends at |
 | `source.url-unreachable` | The site could not be found or reached | Check the address and the connection, or save the page as a file |
-| `source.needs-sign-in` | The page asks you to sign in, such as a private Google Doc | Save it as a file first (in Google Docs: File → Download), then add that file |
+| `source.needs-sign-in` | The page asks you to sign in, such as a private Google Doc | Add it through your signed-in Google account: `drive documents add <url> --profiles <names\|all>` (or `drive <profile> documents add <url>`) |
 
 A scanned PDF or a picture is not refused: it is kept by its title and subjects, with `read: "no-text"`.
 
