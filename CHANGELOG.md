@@ -8,6 +8,7 @@ the API.
 
 ### Added
 
+- cli-core 0.612.0.
 - **Write-time enrichment, off by default** (cli-core's `models consents`): `memo models consents show`,
   `set <openai|anthropic> --model <m>` (a preview until `--yes`) and `revoke`. With it on, `memo sync` sends the notes,
   documents and mail not yet enriched to the chosen provider, up to 600 of each a run, before it embeds.
