@@ -4,7 +4,15 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
-## Unreleased
+## 0.131.55 — 08.11.2026
+
+### Fixed
+
+- **Over MCP, `notes add` and `notes edit` no longer read `--text-file` or write `--export`.** `-` read the MCP
+  server's own stdin, a path read any file of the computer memo runs on into a note an agent could read back (a
+  remote client's included), and `--export` wrote a file into any folder the agent named. Both options are left out
+  of the MCP catalogue, and a run over MCP refuses them with `permission_error` before the note is saved; an agent
+  gives the note as `text`.
 
 ### Added
 

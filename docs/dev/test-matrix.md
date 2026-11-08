@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**756 ✅ · 0 ⛔ · 190 ❌** — 209 commands, 737 options.
+**757 ✅ · 0 ⛔ · 189 ❌** — 209 commands, 737 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -31,7 +31,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `notes add` | `--subject` | ✅ |  |
 | `notes add` | `--meeting` | ✅ |  |
 | `notes add` | `--account` | ✅ |  |
-| `notes add` | `--export` | ❌ |  |
+| `notes add` | `--export` | ✅ |  |
 | `notes add` | `--format` | ❌ |  |
 | `notes add` | `--json` | ✅ |  |
 | `notes edit` |  | ✅ |  |
