@@ -1,4 +1,11 @@
-import { createDeadline, type ErrorCode, errorCodes, isCliError, type Streams } from "@wirecat/cli-base"
+import {
+  createDeadline,
+  type ErrorCode,
+  errorCodes,
+  isCliError,
+  type KeyringStore,
+  type Streams,
+} from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { FETCH, parseDuration } from "@wirecat/cli-core/cli"
 import { markStoreDamaged, openStore, storePath } from "@wirecat/cli-core/store"
@@ -8,7 +15,13 @@ import { APP, STORE_CLIENT } from "../app.js"
 import { decisionPolicy, loadConfig } from "../config.js"
 import { errorObject } from "../failure.js"
 import { boundFolders, UNBOUND, unboundReason } from "../notes/bound.js"
-import { embedMailChunks, embedNoteChunks, type NoteChunksEmbedded } from "../notes/embed.js"
+import {
+  combinedEnrichment,
+  type EnrichmentReport,
+  embedMailChunks,
+  embedNoteChunks,
+  type NoteChunksEmbedded,
+} from "../notes/embed.js"
 import { noteFolders } from "../notes/folders.js"
 import { importNotes, type NotesImport } from "../notes/import.js"
 import { collect } from "../options.js"
@@ -29,6 +42,8 @@ export interface ImportRun {
   notesEmbedded?: NoteChunksEmbedded
   /** The chunks of mail already in the store, which the `mail` CLI syncs, embedded for search by meaning this run. */
   mailEmbedded?: NoteChunksEmbedded
+  /** What enrichment sent to the owner's chosen provider this run, notes and mail together; absent when it is off. */
+  enrichment?: EnrichmentReport
   /** A source that failed; the others still ran. `reasonId` names the failure from a fixed list, `reason` says it. */
   failed: { source: string; code: ErrorCode | "internal_error"; reasonId: string; reason: string }[]
   /** Why a timer run did nothing: another sync held the lock. */
@@ -68,8 +83,15 @@ const text = (run: ImportRun): string =>
                 ? " — more next run"
                 : ""),
         ]),
+    ...(run.enrichment === undefined ? [] : [enrichmentLine(run.enrichment)]),
     ...run.failed.map(({ source, reason }) => `failed ${source}: ${reason}`),
   ].join("\n") || "Nothing to sync: add a notes folder with memo folders add."
+
+const enrichmentLine = (run: EnrichmentReport): string =>
+  `enrichment: ${run.enriched} of ${run.sent} records sent${run.provider ? ` to ${run.provider} ${run.model}` : ""}` +
+  (run.costUsd === null ? "" : `, $${run.costUsd}`) +
+  (run.left > 0 ? `, ${run.left} left` : "") +
+  (run.status === "done" ? "" : ` — ${run.status}: ${run.reason ?? "no reason given"}`)
 
 const NOT_READ_SHOWN = 10
 
@@ -132,7 +154,13 @@ export const failureReason = (error: unknown, failure: { reason: string; message
   return `${failure.message} (${error.name}: ${error.message.split("\n")[0]?.slice(0, 160)})`
 }
 
-export const syncCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv, signal?: AbortSignal): void => {
+export const syncCommand = (
+  program: Command,
+  streams: Streams,
+  env: NodeJS.ProcessEnv,
+  signal?: AbortSignal,
+  keyring?: KeyringStore,
+): void => {
   const { print } = answers(program, streams, env)
   annotate(program.command("sync"), { effects: FETCH })
     .summary("bring notes up to date in the store, and make stored mail searchable by meaning")
@@ -241,6 +269,7 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
               run.notesEmbedded = await embedNoteChunks(store, {
                 embed: options.embed && config.notes?.embed !== false,
                 env,
+                ...(keyring ? { keyring } : {}),
               })
             })
           await attempt("people-notes.json", async () => {
@@ -249,8 +278,14 @@ export const syncCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         }
         if (synced.has("mail"))
           await attempt("mail by meaning", async () => {
-            run.mailEmbedded = await embedMailChunks(store, { embed: options.embed, env })
+            run.mailEmbedded = await embedMailChunks(store, {
+              embed: options.embed,
+              env,
+              ...(keyring ? { keyring } : {}),
+            })
           })
+        const enrichment = combinedEnrichment(run.notesEmbedded?.enrichment, run.mailEmbedded?.enrichment)
+        if (enrichment) run.enrichment = enrichment
       } finally {
         await store.close()
       }

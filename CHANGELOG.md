@@ -6,6 +6,18 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **Write-time enrichment, off by default** (cli-core's `models consents`): `memo models consents show`,
+  `set <openai|anthropic> --model <m>` (a preview until `--yes`) and `revoke`. With it on, `memo sync` sends the notes,
+  documents and mail not yet enriched to the chosen provider, up to 600 of each a run, before it embeds.
+- **`memo sync` reports what enrichment sent**, notes and mail together, so a failure is not silent:
+  `enrichment: {status, provider, model, sent, enriched, failed, left, input_tokens, output_tokens, cost_usd,
+  reason}` in `--json`, and a line in the text. It is there even when the embedding model is missing. Absent while
+  enrichment is off.
+- memo reads the provider key from its keyring entry (`cli-memo` / `embeddings:<provider>`, then `cli-memo` /
+  `<provider>`) after `OPENAI_API_KEY` / `ANTHROPIC_API_KEY`, so a desktop started from the launcher finds it.
+
 ## 0.131.60 — 08.11.2026
 
 ### Fixed

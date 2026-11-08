@@ -83,6 +83,12 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "commands info": ["memo commands info --json"],
   "models download": ["memo models download e5-small", "memo models download e5-large"],
   "models set": ["memo models set e5-large"],
+  "models consents show": ["memo models consents show --json"],
+  "models consents set": [
+    "memo models consents set openai --model gpt-4o-mini",
+    "memo models consents set openai --model gpt-4o-mini --yes",
+  ],
+  "models consents revoke": ["memo models consents revoke"],
   "models add": [
     `memo models add e5-base --payload '{"repository":"Xenova/multilingual-e5-base","onnx":"onnx/model_quantized.onnx","dims":768,"pooling":"mean","prefix":{"query":"query: ","passage":"passage: "}}'`,
   ],
