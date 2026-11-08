@@ -12,6 +12,13 @@ the API.
   case): a phone number written without `+` is read in that country, so the contact matches the person the number
   already names instead of becoming a second one. An envelope names its region in `options.phone_region` instead.
 
+### Changed — may break callers
+
+- **`memo subscriptions add` and `subscriptions update` take `--period <count-unit>` (`1-month`, `1-year`) instead of
+  `--every`**, which shipped in 0.131.64. `--every` in every WireCat tool is a timer's `<duration>`, such as `5m`, and
+  one flag with two kinds of value failed the shared audit. `--every` on subscriptions is now an unknown option, with
+  no alias: rename it in scripts and agents' prompts. The JSON answer's `interval` is unchanged.
+
 ## 0.131.65 — 08.11.2026
 
 ### Fixed

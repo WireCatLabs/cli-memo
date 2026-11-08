@@ -53,7 +53,7 @@ interface SubscriptionOptions extends Written {
   customer?: string
   product?: string
   contract?: string
-  every?: string
+  period?: string
   startDate?: string
   trialEndDate?: string
   endDate?: string
@@ -69,7 +69,7 @@ const parts = (command: Command) =>
     )
     .option("--product <product>", "the product or service it is for: product:<id>")
     .option("--contract <contract>", "the contract it runs under: contract:<id>")
-    .option("--every <count-unit>", "how often it is charged: a count and a unit, such as 1-month or 1-year")
+    .option("--period <count-unit>", "how often it is charged: a count and a unit, such as 1-month or 1-year")
     .option("--start-date <date>", "the first day it runs, YYYY-MM-DD")
     .option("--trial-end-date <date>", "the day its free trial ends, YYYY-MM-DD")
 
@@ -80,7 +80,7 @@ const fieldsOf = (options: SubscriptionOptions) =>
     customer: options.customer,
     product: options.product,
     contract: options.contract,
-    every: options.every,
+    every: options.period,
     startDate: dayOf(options.startDate),
     trialEndDate: dayOf(options.trialEndDate),
     endDate: dayOf(options.endDate),
@@ -146,7 +146,7 @@ export const subscriptionCommands = (program: Command, streams: Streams, env: No
             ...fieldsOf(options),
             name,
             direction: choice(options.kind, INVOICE_DIRECTIONS, "--kind"),
-            every: needed(options.every, "--every", "how often it is charged, such as 1-month"),
+            every: needed(options.period, "--period", "how often it is charged, such as 1-month"),
             startDate,
             prices: [{ amount, currency, effectiveFrom: startDate }],
           }),

@@ -305,12 +305,12 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   ],
   "subscriptions show": ["memo subscriptions show subscription:5"],
   "subscriptions add": [
-    "memo subscriptions add Hosting 990.00 RUB --kind payable --supplier organization:3 --every 1-month --start-date 2026-11-01",
-    "memo subscriptions add 'Bike rental' 10000.00 RUB --kind receivable --customer organization:3 --every 1-month --trial-end-date 2026-11-14 --status trial",
+    "memo subscriptions add Hosting 990.00 RUB --kind payable --supplier organization:3 --period 1-month --start-date 2026-11-01",
+    "memo subscriptions add 'Bike rental' 10000.00 RUB --kind receivable --customer organization:3 --period 1-month --trial-end-date 2026-11-14 --status trial",
   ],
   "subscriptions update": [
     "memo subscriptions update subscription:5 --status paused",
-    "memo subscriptions update subscription:5 --every 1-year",
+    "memo subscriptions update subscription:5 --period 1-year",
   ],
   "subscriptions cancel": ["memo subscriptions cancel subscription:5 --occurred-time 2026-11-30"],
   "subscriptions prices add": ["memo subscriptions prices add subscription:5 1190.00 RUB --start-date 2027-01-01"],

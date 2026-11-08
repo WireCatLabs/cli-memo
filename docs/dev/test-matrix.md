@@ -744,7 +744,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `subscriptions add` | `--customer` | ✅ |  |
 | `subscriptions add` | `--product` | ❌ |  |
 | `subscriptions add` | `--contract` | ❌ |  |
-| `subscriptions add` | `--every` | ✅ |  |
+| `subscriptions add` | `--period` | ✅ |  |
 | `subscriptions add` | `--start-date` | ✅ |  |
 | `subscriptions add` | `--trial-end-date` | ✅ |  |
 | `subscriptions add` | `--kind` | ✅ |  |
@@ -760,7 +760,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `subscriptions update` | `--customer` | ❌ |  |
 | `subscriptions update` | `--product` | ❌ |  |
 | `subscriptions update` | `--contract` | ❌ |  |
-| `subscriptions update` | `--every` | ✅ |  |
+| `subscriptions update` | `--period` | ✅ |  |
 | `subscriptions update` | `--start-date` | ❌ |  |
 | `subscriptions update` | `--trial-end-date` | ❌ |  |
 | `subscriptions update` | `--title` | ❌ |  |
