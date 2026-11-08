@@ -8,6 +8,10 @@ the API.
 
 ### Added
 
+- **`writes_with` on CRM rows of `deals list`, `leads list` and `pipelines list`**: the CLI that changes the row on
+  its CRM (`tool`), the row's `account`, and the `profile`, named only when exactly one profile of that CLI is on the
+  account; otherwise `null`, with `profiles` and `why`. In a group, a profile on an account outside it is never named.
+  The owner's own rows have `null`. WireCat Desktop's Clients board reads it to move a card's stage through b24.
 - **`memo relationships roles list [list:<list>] | add <list> <role> [--label] | remove <list> <role>`**: the roles a
   relationship may take, built in and your own (cli-core's role lists). Only you change them; one still held is kept.
 - **`memo search people` finds a person you added by name only.**

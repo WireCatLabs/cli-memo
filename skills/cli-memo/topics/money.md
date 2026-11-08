@@ -17,7 +17,8 @@ Deals and leads: `memo deals list status:open`, `memo leads list`, `memo deals s
 close them and make pipelines yourself (`memo deals add <title> <stage> [amount] [currency] --reason ...`,
 `memo leads add <title>`, `memo deals move deal:<id> <stage>`, `memo deals close deal:<id> won|lost`); they are
 written at once, no review. Name a pipeline by `pipeline:<id>` when two share a name. `memo pipelines show <pipeline>`
-gives the counts and conversion per stage.
+gives the counts and conversion per stage. To change a CRM copy on its server, run the CLI in its `writes_with`
+(`tool` and `profile`); when `profile` is `null`, ask the owner which of `profiles` to use, never pick one.
 
 One deal whole: `memo deals context deal:<id> --brief` (people with roles and standing, client, project, money
 totals, counts); without `--brief` the detailed form. Its messages, mail and meetings are `proposed`: they share
