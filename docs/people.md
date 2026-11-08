@@ -187,7 +187,7 @@ memo review reject 17070-17074 --reason "not this project"
 
 Proposals wait until you confirm them in `memo review`, and they do not appear in a person's context before that. A
 pair you rejected is never proposed again. People are matched by the account that wrote, never by a name in a text.
-Common free mail domains, such as Gmail, are never used for suggestions.
+Common free mail domains, such as Gmail, are never used for proposals.
 
 ## Meetings in a project
 
@@ -198,7 +198,7 @@ memo projects meetings link HRB 5 --account zoom:ACCOUNT
 memo projects meetings list HRB --source zoom:ACCOUNT
 ```
 
-Name the meeting's account exactly. `confirmed:false` lists the links an agent suggested; to confirm one,
+Name the meeting's account exactly. `confirmed:false` lists the links an agent proposed; to confirm one,
 repeat `link` with the `--fingerprint` value shown in that list.
 
 ## Other names for projects and tags

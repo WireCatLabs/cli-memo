@@ -25,9 +25,9 @@ or a mailbox.
 
 ## Deletions are respected
 
-When you delete a note file or an email, its text leaves the local store on the next import. If an
-import finds that an unusually large part of a folder or mailbox is missing at once, it deletes
-nothing and tells you.
+When you delete a note file, its text leaves the local store on the next import. When you delete an email, its text
+leaves the store when `mail <profile> sync` next checks the mailbox for deletions. If an import or a sync finds that an
+unusually large part of a folder or mailbox is missing at once, it deletes nothing and tells you.
 
 <a id="agents-suggest-you-decide"></a>
 
