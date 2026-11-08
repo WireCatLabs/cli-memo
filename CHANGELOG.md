@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.58 — 08.11.2026
+
 ### Changed — may break callers
 
 - **The morning digest answers with one `wirecat.report/1` JSON document** instead of text: sections and typed
