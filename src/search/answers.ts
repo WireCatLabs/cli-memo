@@ -101,6 +101,14 @@ export const allAnswer = (
       ...(found.events?.meaningSkipped === undefined || exact
         ? []
         : [{ field: "found_by", why: eventsMeaningNote(found.events.meaningSkipped) }]),
+      ...(found.unmatched && !found.items.length
+        ? [
+            {
+              field: "items",
+              why: `every word must be in one record, and nothing in ${found.searched.join(", ")} holds ${found.unmatched.map((word) => `"${word}"`).join(", ")}`,
+            },
+          ]
+        : []),
     ],
     meta: metaOf(found.accounts, found.skipped, archive.missing.length > 0),
   })
