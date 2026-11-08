@@ -1,4 +1,5 @@
 import { CliError } from "@wirecat/cli-base"
+import { DEAL_KINDS, type DealKind } from "@wirecat/cli-core"
 import { RESOURCES_SEARCHED, type SearchAllFound, type SearchedResource } from "@wirecat/cli-core/services"
 import type { Command } from "commander"
 import { grantedLevel } from "../mcp/granted.js"
@@ -28,6 +29,7 @@ export const LANE_GATES: readonly LaneGate[] = [
       wallet: "wallets.list",
     },
   },
+  { lane: "crm", key: "crm.list", kinds: { deal: "deals.list", lead: "leads.list" } },
 ]
 
 /** The lane keys no command path carries, which memo still accepts from `--permission` and the config file. */
@@ -37,6 +39,8 @@ type Skipped = SearchAllFound["skipped"][number]
 
 export interface LanesAllowed {
   only: SearchedResource[] | undefined
+  /** The CRM kinds the lane reads, when a list denies the others: cli-core then leaves them out before it ranks. */
+  crmKinds?: DealKind[]
   skipped: Skipped[]
   /** Absent when no kind is hidden. */
   shows?: (item: { kind: string }) => boolean
@@ -70,9 +74,12 @@ export const lanesFor = (command: Command, asked: SearchedResource[] | undefined
         hidden.add(kind)
         skipped.push(leftOut(gate.lane, kind, key))
       }
+    if (Object.keys(gate.kinds).every((kind) => hidden.has(kind))) off.add(gate.lane)
   }
   const shows = hidden.size ? { shows: (item: { kind: string }) => !hidden.has(item.kind) } : {}
-  if (!off.size) return { only: asked, skipped, ...shows }
+  const crmKinds = DEAL_KINDS.filter((kind) => !hidden.has(kind))
+  const narrowed = crmKinds.length < DEAL_KINDS.length && !off.has("crm") ? { crmKinds } : {}
+  if (!off.size) return { only: asked, ...narrowed, skipped, ...shows }
   const only = lanes.filter((lane) => !off.has(lane))
   if (!only.length)
     throw new CliError(
@@ -80,5 +87,5 @@ export const lanesFor = (command: Command, asked: SearchedResource[] | undefined
       `search all has nothing it may read: ${skipped.map(({ reason }) => reason).join("; ")}`,
       { reason: "search.all-denied" },
     )
-  return { only, skipped, ...shows }
+  return { only, ...narrowed, skipped, ...shows }
 }

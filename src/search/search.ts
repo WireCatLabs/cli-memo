@@ -1,6 +1,6 @@
 import { CliError, isCliError } from "@wirecat/cli-base"
 import { parseLucene, type QueryNode } from "@wirecat/cli-base/query"
-import { parseLocator } from "@wirecat/cli-core"
+import { type DealKind, parseLocator } from "@wirecat/cli-core"
 import { demotedSenders, lowerSuspicious, searchMail } from "@wirecat/cli-core/mail"
 import {
   meaningLane,
@@ -244,11 +244,16 @@ export const searchEverywhere = async (
     text,
     limit,
     only,
+    crmKinds,
     exact,
     timezone,
     plainOrder,
     shows,
-  }: QueryInput & { only?: SearchedResource[]; shows?: (item: SearchAllItem) => boolean },
+  }: QueryInput & {
+    only?: SearchedResource[]
+    crmKinds?: readonly DealKind[]
+    shows?: (item: SearchAllItem) => boolean
+  },
 ): Promise<SearchAllFound & EverywhereExtras> => {
   const accounts = await store.accounts.accounts()
   // Group lists belong to tg; model downloads belong to memo.
@@ -263,6 +268,7 @@ export const searchEverywhere = async (
         env,
         ...(offset === undefined ? {} : { offset }),
         ...(only === undefined ? {} : { only }),
+        ...(crmKinds === undefined ? {} : { crmKinds }),
         ...(exact ? { exact: true } : {}),
         ...(timezone === undefined ? {} : { timezone }),
       },

@@ -140,8 +140,10 @@ proposal decisions stay refused. The shared WireCat read ceiling and `MEMO_READ_
 
 `search all` shows an agent business data only as far as its lists are allowed: with `"invoices": "deny"` (or
 `invoices.list`, `payments.list`, `orders.list`) it leaves those hits out and says so in its issues.
-`business.list`, the one key that names no command, set to `deny` leaves all of it out: invoices, payments, orders,
+`business.list`, a key that names no command, set to `deny` leaves all of it out: invoices, payments, orders,
 contracts, subscriptions, products and wallets.
+Deals and leads follow `deals.list` and `leads.list` the same way, and `crm.list` set to `deny` leaves the whole CRM
+lane out.
 
 Supported commands stay visible with their current availability. Saved permission changes take effect
 on existing connections too. `memo mcp serve --permission notes.edit=deny` tightens one key for that server

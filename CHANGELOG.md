@@ -38,6 +38,10 @@ the API.
   titles in `search all`; those hits are now left out, with a `permission_error` issue for source `business`. The new
   key `business.list` leaves the whole business lane out, and `--permission` and the config file accept it. A page
   of `--limit` hits reads on past the hidden ones, up to five more pages, so it is not cut short by them.
+- **`search all` over MCP no longer shows deals or leads an agent may not list.** A server denying `deals.list` or
+  `leads.list` refused those lists but still showed deal and lead titles in `search all`; those hits are now left out,
+  with a `permission_error` issue for source `crm`. `crm.list` leaves the whole CRM lane out. `--only crm` and
+  `--only business` name those lanes, and are refused when the lane may not be read.
 
 ## 0.131.61 — 08.11.2026
 
