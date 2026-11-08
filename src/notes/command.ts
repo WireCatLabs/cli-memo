@@ -8,6 +8,7 @@ import type { MessageStore, Note } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
 import { APP } from "../app.js"
+import { isMcpRun } from "../author.js"
 import { loadConfig } from "../config.js"
 import { SHELL_OVERRIDES } from "../contract-overrides.js"
 import { collect, positive } from "../options.js"
@@ -41,6 +42,19 @@ const NOTES_LIST_QUERY = {
     termField("text", "txt", "text:budget"),
   ],
 } as const satisfies QueryRegistry
+
+/** Over MCP `-` would read the server's own stdin, a path a file of this computer, and `--export` write anywhere. */
+const refuseOverMcp = (options: { textFile?: string; export?: string | true }, mcp: boolean) => {
+  if (!mcp) return
+  if (options.textFile !== undefined)
+    throw new CliError("permission_error", "over MCP a note's text is given as text, never read from a file", {
+      param: "text_file",
+    })
+  if (options.export !== undefined)
+    throw new CliError("permission_error", "over MCP a note is not written as a file; the owner exports it", {
+      param: "export",
+    })
+}
 
 const textOf = (options: { text?: string; textFile?: string }, given?: string): string => {
   const sources = [given, options.text, options.textFile].filter((value) => value !== undefined)
@@ -198,7 +212,9 @@ const notesCommandDefinition = (program: Command, streams: Streams, env: NodeJS.
           format?: DialectName
           json?: boolean
         },
+        command: Command,
       ) => {
+        refuseOverMcp(options, isMcpRun(command, env))
         const body = textOf(options, given)
         const value = writeAccountOf(options, (text) => streams.diagnostic(text))
         if (options.meeting === undefined && value !== undefined)
@@ -248,7 +264,9 @@ const notesCommandDefinition = (program: Command, streams: Streams, env: NodeJS.
           format?: DialectName
           json?: boolean
         },
+        command: Command,
       ) => {
+        refuseOverMcp(options, isMcpRun(command, env))
         const body = textOf(options)
         const answer = await withNotes(async (store) => {
           await refuseBareNumber(store, id, ["note"])
