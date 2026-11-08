@@ -41,7 +41,8 @@ export const reviewAgendaCommand = (review: Command, print: Print, streams: Stre
       "the morning digest, from the store alone with no model call: everything new in what you tagged " +
         `${WATCH_TAG} (chats, mail threads, people, projects, a meeting's series), replies you owe to people in ` +
         "messengers and personal mail (not bots or service chats), new personal mail, meetings that ended, tasks, " +
-        "projects that moved, proposals waiting. Tasks are the open ones created since the last morning-digest run (a " +
+        "projects that moved, memories and facts whose sources changed (source reviews raised since), proposals " +
+        "waiting. Tasks are the open ones created since the last morning-digest run (a " +
         "day back when none ran) and those overdue, due today or due tomorrow, each with who asked and who does it. " +
         "Replies owed reach back 7 days; owed mail lists only senders you know (linked to a person with other " +
         "identities, or written to before), and mail from new senders is one count with the command that lists it. " +

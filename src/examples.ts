@@ -22,6 +22,14 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "notes edit": ["memo notes edit note:12 --revision 2 --text 'Prefers calls after ten'"],
   "notes remove": ["memo notes remove note:12"],
   "notes export": ["memo notes export --output-dir ~/notes/memo --format obsidian"],
+  "sources add": [
+    "memo sources add ~/Downloads/runner-notes.pdf --subject project:3 --keep-copy",
+    "memo sources add https://example.org/release-notes --title 'Release notes' --json",
+    "memo sources add - --title 'Call with Kai' --subject person:12",
+  ],
+  "sources show": ["memo sources show document:42", "memo sources show document:42 --bytes 65536 --json"],
+  "sources mentions": ["memo sources mentions document:42 --json"],
+  "sources remove": ["memo sources remove document:42"],
   "folders add": ["memo folders add ~/notes"],
   "folders update": ["memo folders update 1 ~/notes"],
   "folders remove": ["memo folders remove 1", "memo folders remove 1 --allow-delete --yes"],
@@ -209,6 +217,11 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "memories confirm": ["memo memories confirm memory:4"],
   "memories invalidate": ["memo memories invalidate memory:4"],
   "memories remove": ["memo memories remove memory:4"],
+  "memories check": ["memo memories check", "memo memories check --limit 2000 --json"],
+  "memories challenge": [
+    "memo memories challenge memory:4 --evidence note:15 --reason 'the later note moves delivery to the 30th'",
+    "memo memories challenge memory:4 --evidence note:15 --reason 'moved' --suggest 'Delivery is on the 30th' --json",
+  ],
   "facts add": [
     "memo facts add 'We moved the launch to spring' --kind decision --evidence 'msg:telegram/1/77/42' --project HRB",
   ],
@@ -346,6 +359,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "facts reverse": ["memo facts reverse fact:4"],
   "facts reject": ["memo facts reject fact:4"],
   "facts remove": ["memo facts remove fact:4"],
+  "facts challenge": ["memo facts challenge fact:4 --evidence 'msg:telegram/1/77/50' --reason 'reversed in chat'"],
   "actions add": [
     "memo actions add reply --reason 'Kai asked twice' --account telegram:1 --target 'msg:telegram/1/77/42' --payload '{\"text\":\"Friday works\"}'",
   ],

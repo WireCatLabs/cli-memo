@@ -58,6 +58,27 @@ The config still has Memo's old `mail` settings, which nothing reads. `memo doct
 sync each with `mail <profile> session start --address <address>`, then `mail <profile> sync`. The mail Memo
 imported stays in the store. `memo config unset mail` removes the old settings and the message.
 
+## Adding a source
+
+`memo sources add` refuses with a reason in `--json` (`error.reason`) and says what to do next. Nothing is stored
+when it refuses.
+
+| Reason | What happened | What to do |
+|---|---|---|
+| `source.unsupported` | No reader takes this kind of file or page | Save it as PDF, Word or plain text and add that file |
+| `source.no-text` | The file, page or pasted text holds no text | Add a file that holds text, or paste the text with `memo sources add -` |
+| `source.unreadable` | The reader could not read it: damaged or locked | Open it, save it again or as PDF or plain text, and add that |
+| `source.engine-missing` | The reader for this kind of file is not installed | Reinstall Memo: `npm install -g @wirecat/cli-memo` |
+| `source.too-large` | Over 50 MiB, or larger than its reader reads | Add a smaller part, or save only its text and add that |
+| `source.url-refused` | Not an `http` or `https` address on the public internet: `localhost`, a home network address, a `file:` link, a link with a user name or password, or a redirect from `https` to plain `http` | Give the address of a public page |
+| `source.url-status` | The site answered with an error, such as 404 | Check the address in a browser; if it opens only for you, save the page as a file and add it |
+| `source.url-timeout` | The page did not arrive within 30 seconds | Try again later, or save the page as a file and add it |
+| `source.url-redirects` | The site sent the request on more than 5 times | Open the address in a browser and add the address it ends at |
+| `source.url-unreachable` | The site could not be found or reached | Check the address and the connection, or save the page as a file |
+| `source.needs-sign-in` | The page asks you to sign in, such as a private Google Doc | Add it through your signed-in Google account: `drive documents add <url> --profiles <names\|all>` (or `drive <profile> documents add <url>`) |
+
+A scanned PDF or a picture is not refused: it is kept by its title and subjects, with `read: "no-text"`.
+
 ## A note edit is refused
 
 The revision you gave is not the current one: the note changed after you read it. Run

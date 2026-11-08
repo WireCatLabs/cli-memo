@@ -1,6 +1,6 @@
 import { MEETING_FINDINGS_KIND } from "@wirecat/cli-core/meetings"
 import { type ProposalRegistry, type ProposalRow, proposalRegistry } from "@wirecat/cli-core/services"
-import { MAIL_FINDINGS_KIND, type MessageStore } from "@wirecat/cli-core/store"
+import { MAIL_FINDINGS_KIND, type MessageStore, SOURCE_REVIEW_KIND } from "@wirecat/cli-core/store"
 
 /** What a row adds beyond cli-core's `ProposalRow`: where it came from, for grouping. */
 export type ReviewRow = ProposalRow & { source?: string | null }
@@ -12,6 +12,7 @@ export const REVIEW_KINDS = [
   "key_document",
   "fact",
   "memory",
+  SOURCE_REVIEW_KIND,
   "findings",
   "meeting_findings",
   MAIL_FINDINGS_KIND,

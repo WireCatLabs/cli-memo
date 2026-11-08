@@ -103,6 +103,7 @@ hidden folders such as `.obsidian`.
 | Tables | `.csv`, `.tsv`, `.xlsx`, `.ods` | Cell values, with the sheet, row and column |
 | Documents, slides and e-books | `.odt`, `.pptx`, `.epub` | The text, without the layout |
 | PDF and Word | `.pdf`, `.docx`, `.doc` | The text, with PDF page numbers |
+| Web pages saved as files | `.html`, `.htm` | The page's main text and title |
 
 Some files cannot be read: scanned PDFs (pictures of pages, with no text in them), old `.xls` files,
 and files larger than 50 MiB. Memo keeps up to 200,000 characters of each file. The import report
@@ -142,6 +143,9 @@ memo notes show document:3
 Each result shows the file and the first matching line. `memo notes show` shows one note with its
 tags, the notes it links to and the notes that link to it. See [Search](search.md) for more search
 words.
+
+To keep one file, a web page or pasted text that is not in a folder, add it as a source:
+[Sources you add by hand](sources.md).
 
 ## Write your own notes
 

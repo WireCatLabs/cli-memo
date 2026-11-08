@@ -6,6 +6,7 @@ import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { byOption, deciderOf, reasonOption, whoRuns } from "../author.js"
 import { FORGET_HELP } from "../memories/command.js"
+import { challengeCommand, explainQuote, quotedEvidence, quoteOption } from "../memories/sources.js"
 import { oneOf, positive } from "../options.js"
 import { decideOne, decisionOf } from "../review/review.js"
 import { canonicalProject } from "../vocabulary/project.js"
@@ -20,6 +21,7 @@ interface AddOptions {
   occurredTime?: string
   scope?: (typeof MEMORY_SCOPES)[number]
   supersedes?: string
+  quote?: string[]
   asOwner?: boolean
   json?: boolean
 }
@@ -28,12 +30,14 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   const { run } = answers(program, streams, env)
   const facts = program.command("facts").description("what happened — said, asked, decided, promised — with evidence")
 
-  byOption(
-    annotate(facts.command("add"), {
-      effects: LOCAL_WRITE,
-      output: { entity: "fact" },
-      literal_after_dashes: true,
-    }).description("record a fact; an agent's waits as proposed until you confirm it"),
+  quoteOption(
+    byOption(
+      annotate(facts.command("add"), {
+        effects: LOCAL_WRITE,
+        output: { entity: "fact" },
+        literal_after_dashes: true,
+      }).description("record a fact; an agent's waits as proposed until you confirm it"),
+    ),
   )
     .argument("<statement...>", "what happened, in one sentence")
     .requiredOption("--kind <kind>", FACT_TYPES.join(", "), oneOf(FACT_TYPES))
@@ -48,6 +52,7 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (words: string[], options: AddOptions, command: Command) => {
+      const evidence = options.quote?.length ? quotedEvidence(options.evidence ?? [], options.quote) : options.evidence
       const by = await whoRuns(command, env, { asOwner: options.asOwner, question: "record this fact as yours?" })
       await run(options.json, async (store) =>
         itemAnswer(
@@ -56,13 +61,13 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
               type: options.kind,
               statement: words.join(" "),
               by,
-              ...(options.evidence === undefined ? {} : { evidence: options.evidence }),
+              ...(evidence === undefined ? {} : { evidence }),
               ...(options.project === undefined ? {} : { project: await canonicalProject(store, options.project) }),
               ...(options.subject === undefined ? {} : { subject: options.subject }),
               ...(options.occurredTime === undefined ? {} : { occurredAt: options.occurredTime }),
               ...(options.scope === undefined ? {} : { scope: options.scope }),
               ...(options.supersedes === undefined ? {} : { supersedes: options.supersedes }),
-            }),
+            }).catch(explainQuote),
           ),
         ),
       )
@@ -137,6 +142,8 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   decide("remove", "forget a fact: erase its text, its links to sources and its tags", (store, ref, by) =>
     store.facts.remove(ref, by),
   ).addHelpText("after", `\n${FORGET_HELP.replace("use invalidate", "use reject or reverse")}`)
+
+  challengeCommand(facts, "fact", streams, env)
 }
 
 interface Decision {

@@ -8,7 +8,7 @@ import {
 } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { FETCH, parseDuration } from "@wirecat/cli-core/cli"
-import { markStoreDamaged, openStore, storePath } from "@wirecat/cli-core/store"
+import { markStoreDamaged, openStore, type SourceCheck, storePath } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError, Option } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { APP, STORE_CLIENT } from "../app.js"
@@ -48,6 +48,10 @@ export interface ImportRun {
   failed: { source: string; code: ErrorCode | "internal_error"; reasonId: string; reason: string }[]
   /** Why a timer run did nothing: another sync held the lock. */
   skipped?: string
+  /** The last step, "memories follow sources": what `memories check` answers. */
+  sourceCheck?: SourceCheck
+  /** Why that step failed; it is reported here and never fails the sync. */
+  sourceCheckFailed?: { code: ErrorCode | "internal_error"; reasonId: string; reason: string }
 }
 
 const text = (run: ImportRun): string =>
@@ -85,6 +89,12 @@ const text = (run: ImportRun): string =>
         ]),
     ...(run.enrichment === undefined ? [] : [enrichmentLine(run.enrichment)]),
     ...run.failed.map(({ source, reason }) => `failed ${source}: ${reason}`),
+    ...(run.sourceCheck?.raised
+      ? [
+          `memories follow sources: ${run.sourceCheck.raised} raised for review — memo review list kind:memory_source_review`,
+        ]
+      : []),
+    ...(run.sourceCheckFailed ? [`memories follow sources not checked: ${run.sourceCheckFailed.reason}`] : []),
   ].join("\n") || "Nothing to sync: add a notes folder with memo folders add."
 
 const enrichmentLine = (run: EnrichmentReport): string =>
@@ -286,6 +296,19 @@ export const syncCommand = (
           })
         const enrichment = combinedEnrichment(run.notesEmbedded?.enrichment, run.mailEmbedded?.enrichment)
         if (enrichment) run.enrichment = enrichment
+        halt()
+        try {
+          run.sourceCheck = await store.knowledge.checkSources()
+        } catch (error) {
+          halt()
+          markStoreDamaged(error, { store: storePath(env), command: "memo sync", version: APP.version })
+          const { error: failure } = await errorObject(error)
+          run.sourceCheckFailed = {
+            code: failure.code,
+            reasonId: failure.reason,
+            reason: failureReason(error, failure, debug),
+          }
+        }
       } finally {
         await store.close()
       }

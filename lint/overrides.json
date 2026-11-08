@@ -89,5 +89,12 @@
     "reason": "the owner chose `doctor --deep` on 2026-11-06 for the slow whole-file check of the store, a switch; cli-base's vocabulary knows --deep only as a depth, and adds the switch meaning in its next release",
     "owner": "@leemour",
     "review_after": "2026-12-07"
+  },
+  {
+    "rule": "unknown-verb",
+    "target": "sources mentions",
+    "reason": "WireCat Desktop's Add to memory panel (desktop plan 2026-11-01-memory-add) calls memo sources mentions; cli-base 0.84.0 added sources, --keep-copy and --max-chars but mentions is still a collection there, not a view noun. Add the view noun there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-08"
   }
 ]

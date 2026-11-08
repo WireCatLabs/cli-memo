@@ -16,6 +16,45 @@ the API.
   anything; `edit --undo` puts back the body the last change replaced, and `reset` returns to the shipped template.
   `edit` and `reset` are the owner's alone: `MEMO_READ_ONLY` and an agent's run are refused. `memo commands` lists
   the group under Automate. The digest's task line gains "без срока: N · открыть" for open tasks with no due date.
+- cli-core 0.616.0.
+- **`memo sources add <path|url|->` keeps one file, web page or pasted text as a document of its own**, searchable
+  and citable like a folder document, with `--title`, `--subject` (repeatable), `--keep-copy` and `--max-chars`. A
+  file is read by cli-core's readers, a link once from this computer as a public page (no cookies, no private
+  addresses, 50 MiB, 30 s, 5 redirects), and `-` reads stdin. Only the text is kept unless `--keep-copy` copies the
+  file into memo's data folder. Adding the same source again changes only its subjects; content already in a folder
+  or Drive is answered as `duplicate_of`. The answer says what was read and kept, and whether it is searchable by
+  meaning; refusals keep cli-core's `source.*` reasons with what to do next. An agent's subjects wait unconfirmed.
+- **`memo sources show`, `memo sources mentions` and `memo sources remove`.** Show gives a source's text (bounded by
+  `--bytes`), what it is (kind, address, type, size), its subjects and the facts, memories and findings batches citing it; mentions lists the known people
+  and organizations named in it; remove (yours only) deletes the source and its kept copy and names what cites it.
+- **Folder import reads web pages saved as `.html` and `.htm`.** A watched folder that holds them imports them on
+  the next `memo sync`.
+- **Over MCP, `sources add` takes text only**, so an agent cannot make memo read a file or open an address;
+  `sources remove` is not offered.
+- **Memories and facts follow their sources.** When a cited source changes, goes, is replaced or is contradicted,
+  memo opens a source review (`memory_source_review`) and marks the record; its status never changes on its own.
+  - `memo memories check [--limit N]` looks again, and `memo sync` does it as its last step, "memories follow
+    sources"; a failure there is reported as `source_check_failed` and never fails the sync. `check --json` answers
+    `checked`, `baselined`, `raised`, `refreshed`, `closed` and `changed_refs`, the changed sources no findings
+    batch reads yet, for an agent to read again with `projects actions add`. A run names a change once; with
+    `--since-time` it also lists what earlier runs, such as the timer's sync, found changed since then.
+  - `memo memories challenge` and `memo facts challenge <ref> --evidence … --reason … [--suggest …]` say a record no
+    longer holds. An agent may run them; they only open or add to the owner's review.
+  - `--quote <ref>=<words>` on `memories add` and `facts add` keeps the words a record rests on, so an edit that
+    keeps them raises nothing. A quote the source does not say is refused (`evidence.quote-not-found`), and one that
+    names no `--evidence` reference too (`evidence.quote-unmatched`).
+  - `memo review` lists `kind:memory_source_review`. `review show` gives each source as cited and as it is now, the
+    challenges and suggestions, and the command for each answer. `review confirm` says it still holds, `review
+    reject` dismisses it; both are the owner's alone, and `--from-app` counts as the owner. Correct with `memories
+    add --supersedes`, withdraw with `memories invalidate` or `facts reverse`.
+  - `memories list/show` and `facts list/show` carry `source_review`: the open review's `id` and `cause`, or `null`.
+  - `memo review agenda` has a `sources` section: the source reviews raised since `--since-time`, and the sources
+    found changed since then that no review or findings batch names. A review that only grew in place is not listed
+    again.
+- **An agent may propose a correction of a memory.** `memo memories add --supersedes memory:<id>` from an agent, or
+  `memories add` with `supersedes` through the MCP server, no longer fails with "only the owner corrects a memory". The
+  correction waits as proposed, and the memory it corrects stays as it is until you confirm the correction; rejecting
+  or removing it leaves that memory. Yours still applies at once (cli-core 0.616.0).
 
 ## 0.131.66 — 08.11.2026
 
