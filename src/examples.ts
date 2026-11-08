@@ -258,7 +258,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "records import": [
     "memo records import payments.jsonl --account rentals --dry-run",
     "memo records import envelope.json --account rentals --json",
-    "memo records import contacts.vcf --account phone:pixel",
+    "memo records import contacts.vcf --account phone:pixel --region gb",
   ],
   "records check": ["memo records check - --account rentals"],
   "records list": [
