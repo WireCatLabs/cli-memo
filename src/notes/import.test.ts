@@ -115,6 +115,16 @@ describe("memo sync --only notes", () => {
     expect(text).toContain("  Kai Sample  (nobody by that name yet)  (1)")
   })
 
+  it("reads a web page saved in the folder as HTML", async () => {
+    write(
+      "Saved/page.html",
+      "<html><head><title>Saved page</title></head><body><main><p>The saltmarsh survey starts in spring.</p></main></body></html>",
+    )
+    write("Saved/old.htm", "<html><body><p>An older saltmarsh page.</p></body></html>")
+    await run("sync", "--only", "notes")
+    expect(paths((await json("search", "notes", "saltmarsh")).items)).toEqual(["Saved/old.htm", "Saved/page.html"])
+  })
+
   it("never stores a note the config ignores, and drops one ignored after it was stored", async () => {
     await run("sync", "--only", "notes")
     const config = JSON.parse(readFileSync(configPath(env), "utf8"))

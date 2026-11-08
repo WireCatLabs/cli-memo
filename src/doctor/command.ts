@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { dirname, join } from "node:path"
 import { resolvePaths, type Streams } from "@wirecat/cli-base"
@@ -14,19 +14,17 @@ import {
   storeSummary,
   withSqliteSidecars,
 } from "@wirecat/cli-core/cli"
-import { sharedModelsDirectory } from "@wirecat/cli-core/speech"
 import { storePath } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { APP } from "../app.js"
 import { inspectConfig } from "../config.js"
 import { SHELL_OVERRIDES } from "../contract-overrides.js"
+import { searchModel } from "../notes/embed.js"
 import { noteFolders } from "../notes/folders.js"
 import { autoState, lastAutoRun } from "../run/auto.js"
 import { installer, latest } from "../update.js"
 import { VERSION } from "../version.js"
-
-const TEXT_MODEL = "e5-small"
 
 /** Something a person should do, with the command that does it. */
 interface Problem {
@@ -96,8 +94,7 @@ export const diagnose = async (env: NodeJS.ProcessEnv, program: Command, { deep 
     })
   }
 
-  const modelDir = join(sharedModelsDirectory("text", env), TEXT_MODEL)
-  const model = existsSync(modelDir) && readdirSync(modelDir).length > 0
+  const model = searchModel(env)
 
   const state = autoState(config)
   const unitFile = join(
@@ -136,7 +133,7 @@ export const diagnose = async (env: NodeJS.ProcessEnv, program: Command, { deep 
     cache: paths.cache,
     store,
     notes: folders,
-    search_model: { name: TEXT_MODEL, path: modelDir, present: model },
+    search_model: model,
     timer: { enabled: state.enabled, every: state.every, unit: unit ? unitFile : null, runs, failing },
     skills,
     files: files.checked

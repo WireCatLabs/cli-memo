@@ -16,6 +16,7 @@ import {
   runsCommand,
   skillCommand as sharedSkillCommand,
 } from "@wirecat/cli-core/cli"
+import type { FetchPageOptions } from "@wirecat/cli-core/documents"
 import { Command } from "commander"
 import { actionsCommand } from "./actions/command.js"
 import { agentsCommand } from "./agents/command.js"
@@ -57,6 +58,7 @@ import { syncCommand } from "./run/import.js"
 import { scheduleCommand } from "./schedule/command.js"
 import { searchCommand } from "./search/command.js"
 import { showCommand } from "./show/command.js"
+import { sourcesCommand } from "./sources/command.js"
 import { storeCommand } from "./store/info-command.js"
 import { tagsCommand } from "./tags/command.js"
 import { tasksCommand } from "./tasks/command.js"
@@ -68,6 +70,40 @@ import { vocabularyCommand } from "./vocabulary/command.js"
 /** memo's own answers, beyond cli-core's entities, so `--json=<field>` is checked against what each row holds. */
 const OWN_ENTITIES = entityFields({
   person_note_links: ["person", "name", "files"],
+  added_source: [
+    "ref",
+    "created",
+    "duplicate_of",
+    "title",
+    "kind",
+    "mime",
+    "bytes",
+    "chars",
+    "truncated",
+    "extractor",
+    "read",
+    "url",
+    "kept",
+    "searchable",
+    "subjects",
+  ],
+  source_detail: [
+    "ref",
+    "title",
+    "added",
+    "kept",
+    "chars",
+    "text",
+    "text_truncated",
+    "created_at",
+    "updated_at",
+    "subjects",
+    "facts",
+    "memories",
+    "batches",
+  ],
+  source_mention: ["ref", "type", "name", "found_as"],
+  source_removal: ["ref", "removed", "copy_deleted", "facts", "memories", "citing"],
   project_annotation_snapshot: ["snapshot", "fingerprint", "coverage", "read_bytes", "records"],
   project_annotation_export: [
     "output_file",
@@ -313,6 +349,7 @@ export const createProgram = ({
   env = process.env,
   signal,
   terminal,
+  fetchPage,
 }: {
   streams?: Streams
   env?: NodeJS.ProcessEnv
@@ -320,6 +357,8 @@ export const createProgram = ({
   signal?: AbortSignal
   /** Whether a person is at the terminal; the process's stdin and stdout unless a test hands one in. */
   terminal?: Terminal
+  /** How `sources add <url>` reaches the page; a test hands in its own lookup and transport. */
+  fetchPage?: FetchPageOptions
 } = {}): Command => {
   const fields = jsonFields(raw, OWN_ENTITIES)
   const { streams } = fields
@@ -333,6 +372,7 @@ export const createProgram = ({
   contextCommand(program, streams, env)
   showCommand(program, streams, env)
   notesCommand(program, streams, env)
+  sourcesCommand(program, streams, env, fetchPage ? { fetch: fetchPage } : {})
   foldersCommand(program, streams, env)
   messagesCommand(program, streams, env)
   mailCommand(program, streams, env)

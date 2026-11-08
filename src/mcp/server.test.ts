@@ -10,7 +10,7 @@ import { openStore } from "@wirecat/cli-core/store"
 import * as v from "valibot"
 import { beforeEach, expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
-import { commandCaller } from "../../test/mcp.js"
+import { commandCaller, commandSchema } from "../../test/mcp.js"
 import { updateConfig } from "../config.js"
 import { createProgram } from "../program.js"
 import { commandCatalogue, MCP_EXCLUSIONS } from "./catalogue.js"
@@ -643,6 +643,27 @@ it("answers show over MCP as JSON, with no --compact for an agent to pass", asyn
     const tool = items.find((item) => item.command === "show")
     expect(tool?.arguments).toBeDefined()
     expect(Object.keys(tool?.arguments ?? {})).not.toContain("compact")
+  } finally {
+    await client.close()
+  }
+})
+
+it("adds a source for an agent as text only: no path and no link reach memo", async () => {
+  const { client, call } = await connected()
+  try {
+    const schema = JSON.stringify(await commandSchema(client, "sources add"))
+    expect(schema).toContain('"text"')
+    expect(schema).not.toContain('"source"')
+    const added = await call("sources add", { text: "An agent kept the marshgate notes." })
+    expect(answerOf(JSON.stringify(added.structuredContent))).toMatchObject({ kind: "text", created: true })
+    const link = await call("sources add", { text: "ignored", source: "https://example.org/private" })
+    expect(link.isError).toBe(true)
+    const names = (
+      (await client.callTool({ name: "memo_tools_search", arguments: {} })).structuredContent as {
+        items: { command: string }[]
+      }
+    ).items.map(({ command }) => command)
+    expect(names).not.toContain("sources remove")
   } finally {
     await client.close()
   }

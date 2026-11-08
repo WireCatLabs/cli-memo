@@ -1,3 +1,5 @@
+import { existsSync, readdirSync } from "node:fs"
+import { join } from "node:path"
 import { isCliError } from "@wirecat/cli-base"
 import {
   conversationsService,
@@ -6,6 +8,7 @@ import {
   embedNotes as embedNoteChunksOf,
   storeOnlyDeps,
 } from "@wirecat/cli-core/services"
+import { sharedModelsDirectory } from "@wirecat/cli-core/speech"
 import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
 import { APP } from "../app.js"
 
@@ -22,9 +25,17 @@ export interface NotesEmbedded {
   pendingChats?: string[]
 }
 
+/** The model search by meaning reads notes with. */
+export const SEARCH_MODEL = "e5-small"
+
+export const searchModel = (env: NodeJS.ProcessEnv): { name: string; path: string; present: boolean } => {
+  const path = join(sharedModelsDirectory("text", env), SEARCH_MODEL)
+  return { name: SEARCH_MODEL, path, present: existsSync(path) && readdirSync(path).length > 0 }
+}
+
 const download = (model: string) => `the ${model} model is not downloaded — memo models download ${model}`
 
-const MISSING_MODEL = download("e5-small")
+const MISSING_MODEL = download(SEARCH_MODEL)
 
 const isMissingModel = (error: unknown): boolean => isCliError(error) && error.details.reason === "model.not-downloaded"
 
