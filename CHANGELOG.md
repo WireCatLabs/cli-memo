@@ -12,6 +12,10 @@ the API.
   sections.** The `morning-digest` skill now asks for plain text in the sections and line shapes of the digest
   format; the agent keeps what the agenda missed out of the report. One line says a source has not synced for over
   24 hours.
+- **cli-core 0.606.0: the mail triage agent no longer repeats the same batch all day.** A batch of held emails only
+  reused the findings key of the run that set the mark, so staging was refused (`mail-findings.key-used`), the mark
+  never moved and every scheduled run paid for the same emails again. It now takes a key of its own. Each email in
+  `review --holder` also carries the cursor that ends the batch at it.
 
 ## 0.131.52 — 08.11.2026
 
