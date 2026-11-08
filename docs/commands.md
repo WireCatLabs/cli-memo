@@ -1816,7 +1816,7 @@ memo relationships list [query] [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** relationship — id, from, to, kind, role, purpose, evidence, confirmed, and 3 more; every field: memo commands info relationships list
+**Returns:** relationship — id, from, to, kind, role, purpose, evidence, confirmed, and 7 more; every field: memo commands info relationships list
 
 **Example:** `memo relationships list about:"person:3"`, `memo relationships list confirmed:false`
 
@@ -3140,7 +3140,7 @@ memo deals add <title> <stage> [amount] [currency] [options]
 |---|---|
 | `--organization <organization>` | the client: organization:<id>. |
 | `--person <uid>` | a person on the deal: person:<id>; repeat for another, up to 20. |
-| `--role <role>` | what those people are on it: owner, contact, decision-maker; contact by default. |
+| `--role <role>` | what those people are on it: owner, contact, decision-maker, influencer; contact by default. |
 | `--due <time>` | the day you expect it to close, such as 2026-12-01. |
 | `--project <project>` | the project it belongs to: its key or project:<id>. |
 | `--reason <text>` | why an agent records it, kept with it. |
@@ -3265,7 +3265,7 @@ memo leads add <title> [stage] [amount] [currency] [options]
 |---|---|
 | `--organization <organization>` | the client: organization:<id>. |
 | `--person <uid>` | a person on the lead: person:<id>; repeat for another, up to 20. |
-| `--role <role>` | what those people are on it: owner, contact, decision-maker; contact by default. |
+| `--role <role>` | what those people are on it: owner, contact, decision-maker, influencer; contact by default. |
 | `--due <time>` | the day you expect it to close, such as 2026-12-01. |
 | `--project <project>` | the project it belongs to: its key or project:<id>. |
 | `--reason <text>` | why an agent records it, kept with it. |
