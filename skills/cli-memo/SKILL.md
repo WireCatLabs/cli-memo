@@ -40,7 +40,9 @@ only: `memo search mail`, `memo search messages` or `memo search notes`. Meeting
 Pasted text, a call's notes: `printf '%s' '<text>' | memo sources add - --title '<title>' --subject <ref> --json`. It
 answers a `document:<id>` you can cite; your subjects wait for the owner. A file or a public page the owner
 names: `memo sources add <path|url>` (over MCP, text only). Only the owner removes a source. `memo sources mentions <ref>` lists the people and
-organizations named in it; `memo sources show <ref>` its text and what cites it.
+organizations named in it; `memo sources show <ref>` its text and what cites it. `memo sources suggest <ref> --json`
+has the reader the owner chose propose facts, each quote checked against the text, as a batch only the owner
+confirms; never pass `--provider` or `--model`, and never run `sources readers set` or `models keys`.
 
 ## Rules
 

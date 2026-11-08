@@ -60,6 +60,17 @@ names the mailboxes it lists, and `memo config unset mail` removes it.
 `memo jobs start` and `memo jobs stop` write these. If you edit them by hand, the timer follows at its
 next run. See [importing on a timer](archive.md#import-on-a-timer-linux).
 
+## `sources`
+
+```json
+"sources": { "reader": "ollama", "model": "llama3.2:latest" }
+```
+
+The reader `memo sources suggest` sends a source's text to, and its model. `memo sources readers set <reader>
+[--model <model>]` writes both; with neither set, `sources suggest` refuses. Claude Code and Codex use their own
+model when `model` is not set; Ollama and the API readers need one.
+[Have a reader propose facts](sources.md#have-a-reader-propose-facts) lists the readers.
+
 ## `update_check`
 
 `false` stops the once-a-day check for a newer memo. `MEMO_NO_UPDATE_CHECK=1` does the same for one shell.

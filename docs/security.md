@@ -87,12 +87,32 @@ nothing and tells you.
 - Two accounts are treated as one person only after you link them. A matching name or email domain
   is never enough.
 
+## A reader that proposes facts
+
+[`memo sources suggest`](sources.md#have-a-reader-propose-facts) sends a source's stored text to the reader you
+chose, and to nothing else. Memo never chooses one: until you do, it refuses, and an agent can neither choose one nor
+name another.
+
+- `memo sources readers list` says for each reader whether the text leaves this computer and whether the reader could
+  read files here. Ollama is reached at `127.0.0.1` only. Codex is an agent: its sandbox is read-only, but it could
+  still read files on this computer.
+- Claude Code runs with every tool, MCP server, hook, slash command and saved session off, in an empty folder, with
+  the text on stdin. Codex runs in its read-only sandbox in an empty folder. Neither gets `ANTHROPIC_API_KEY`,
+  `OPENAI_API_KEY` or an agent's variables from Memo's environment.
+- An API key lives in the system keyring only. `memo models keys set` takes it at a hidden prompt or on stdin, never
+  as an argument, and never reads one from the environment. No answer, error or run record holds it.
+- The text is given as data, with an instruction never to follow what it says. A fact is proposed only with a quote
+  found in the text, and only you confirm the batch, even with `agent_decisions` on.
+- Over MCP, `sources suggest`, `sources readers set` and `models keys` are not offered.
+
 ## What can leave your computer
 
 - Browser and phone apps connect through your HTTPS tunnel and the shared access-code login. They use
   the same command permissions as local MCP clients. `memo mcp revoke` invalidates their saved logins,
   including on a running server; see [remote access](remote.md).
 
+- `memo sources suggest` sends one source's text to the reader you chose; `memo sources readers list` says whether
+  it leaves this computer.
 - `memo answers create` gives the sources to your own agent by default. It sends them to an AI provider only
   with `--analyze`, and to a provider outside your computer only with `--allow-remote` as well. The
   provider's answer is generated text: check it against the sources.

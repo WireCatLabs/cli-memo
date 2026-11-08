@@ -379,6 +379,83 @@ memo sources remove <ref> [options]
 
 **Example:** `memo sources remove document:42`
 
+### `memo sources suggest`
+
+send a source's text to the reader you chose and stage the facts it finds, each with a quote checked against the text, as one batch only you confirm
+
+This command changes the local store or your files.
+
+```sh
+memo sources suggest <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | document:<id> of the source, as sources add answered. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--provider <provider>` | read with this reader once: claude-code, codex, ollama, openai, anthropic; only you name one. |
+| `--model <model>` | the reader's model this once; only you may name one. |
+| `--subject <ref>` | who or what every fact is about: person:, organization:, project: or task:. |
+| `--rescan` | read it again although this reader already read this text. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** have the chosen reader propose facts from a source, for you to confirm
+
+**Example:** `memo sources suggest document:42`, `memo sources suggest document:42 --subject person:12 --json`, `memo sources suggest document:42 --provider ollama --model llama3.2 --rescan`
+
+### `memo sources readers`
+
+the readers that can propose facts from a source: installed, signed in, and which one you chose
+
+#### `memo sources readers list`
+
+each reader: installed, signed in, its model, whether the text leaves this computer, and your pick
+
+```sh
+memo sources readers list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** each reader: installed, signed in, and your pick
+
+**Example:** `memo sources readers list`, `memo sources readers list available:true --json`
+
+#### `memo sources readers set`
+
+choose the reader sources suggest sends a source's text to, and its model; only you choose
+
+This command changes the local store or your files.
+
+```sh
+memo sources readers set <reader> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `reader` | required | claude-code, codex, ollama, openai, anthropic. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--model <model>` | its model; Ollama and the API readers need one, Claude Code and Codex use their own. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** choose the reader that reads your sources
+
+**Example:** `memo sources readers set claude-code`, `memo sources readers set ollama --model llama3.2`
+
 ## `memo folders`
 
 folders of notes: the id links and the store use, and the path on this computer
@@ -4122,9 +4199,9 @@ memo models list [query] [options]
 |---|---|
 | `--json` | print JSON. |
 
-**Returns:** model — id, kind, title, languages, size_bytes, downloaded, default, path, and 1 more; every field: memo commands info models list
+**Returns:** model — id, kind, title, languages, size_bytes, downloaded, default, path, and 6 more; every field: memo commands info models list
 
-**Next usually:** `memo models download <model>`
+**Next usually:** `memo models download <model>`, `memo models set <model>`
 
 **Example:** `memo models list kind:text --json`
 
@@ -4148,9 +4225,111 @@ memo models download <model> [options]
 | `--accept-terms` | accept the model's licence terms, for a model that has its own. |
 | `--json` | print JSON. |
 
-**Returns:** model — id, kind, title, languages, size_bytes, downloaded, default, path, and 1 more; every field: memo commands info models download
+**Returns:** model — id, kind, title, languages, size_bytes, downloaded, default, path, and 6 more; every field: memo commands info models download
+
+**Next usually:** `memo models set <model>`
 
 **Example:** `memo models download e5-small`
+
+### `memo models set`
+
+make a downloaded text model the one every embed and every search by meaning uses, in every WireCat CLI. Each model keeps its own vectors: the next syncs embed what the new one lacks, and switching back is instant
+
+This command changes the local store or your files.
+
+```sh
+memo models set <model> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `model` | required | a downloaded text model id from models list. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** model chosen — id, kind, title, languages, size_bytes, downloaded, default, path, and 9 more; every field: memo commands info models set
+
+**Next usually:** `memo models download <model>`
+
+**Example:** `memo models set e5-large`
+
+### `memo models add`
+
+add an ONNX embedding model from Hugging Face, pinned and checked by sha256
+
+This command changes the local store or your files.
+
+```sh
+memo models add <id> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `id` | required | the id to give it: a-z, 0-9, . _ -. |
+
+| Option | What it does |
+|---|---|
+| `--payload <json>` | where the model is and how to run it, as JSON (below). |
+| `--offline` | refuse a call that needs the network. |
+| `--json` | print JSON. |
+
+**Returns:** model — id, kind, title, languages, size_bytes, downloaded, default, path, and 6 more; every field: memo commands info models add
+
+**Next usually:** `memo models download <model>`, `memo models set <model>`
+
+**Example:** `memo models add e5-base --payload '{"repository":"Xenova/multilingual-e5-base","onnx":"onnx/model_quantized.onnx","dims":768,"pooling":"mean","prefix":{"query":"query: ","passage":"passage: "}}'`
+
+### `memo models keys`
+
+API keys for the readers that propose facts from a source
+
+#### `memo models keys set`
+
+keep a key in the system keyring, typed at a hidden prompt or piped on stdin, never as an argument
+
+This command changes the local store or your files.
+
+```sh
+memo models keys set <provider> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `provider` | required | openai or anthropic. |
+
+| Option | What it does |
+|---|---|
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** model key stored — provider, stored; every field: memo commands info models keys set
+
+**Example:** `memo models keys set anthropic`, `memo models keys set openai`
+
+#### `memo models keys remove`
+
+forget a kept key
+
+This command changes the local store or your files.
+
+```sh
+memo models keys remove <provider> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `provider` | required | openai or anthropic. |
+
+| Option | What it does |
+|---|---|
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** model key removed — provider, removed; every field: memo commands info models keys remove
+
+**Example:** `memo models keys remove openai`
 
 ## `memo search`
 
@@ -4178,7 +4357,7 @@ memo search all <query> [options]
 | `--plain-order` | best first by the words alone, without moving mail from suspicious senders down. |
 | `--project <project>` | rank the key documents of this project (id, project:<id>, key, exact name or alias) first; nothing is left out. |
 
-**Returns:** hit — kind, ref, provider, account, title, timestamp, excerpt, url, and 13 more; every field: memo commands info search all
+**Returns:** hit — kind, ref, provider, account, title, timestamp, excerpt, url, and 15 more; every field: memo commands info search all
 
 **Example:** `memo search all 'budget harbour'`, `memo search all 'content:invoice' --only mail,notes --json`
 

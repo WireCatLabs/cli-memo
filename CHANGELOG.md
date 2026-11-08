@@ -18,10 +18,21 @@ the API.
 - **`memo sources show`, `memo sources mentions` and `memo sources remove`.** Show gives a source's text (bounded by
   `--bytes`), what it is (kind, address, type, size), its subjects and the facts, memories and findings batches citing it; mentions lists the known people
   and organizations named in it; remove (yours only) deletes the source and its kept copy and names what cites it.
+- **`memo sources suggest <ref>` has the reader you chose propose facts from a source.** Each fact comes with the
+  exact words it rests on, checked against the stored text; a fact whose quote is not there is dropped, and one
+  already stored from the source is named as `duplicate_of`. The rest wait as one findings batch citing the source,
+  staged by `memo-reader`, that only you confirm (`memo actions confirm`), even with `agent_decisions` on. The same
+  text read again by the same reader answers `reused: true` without asking it; `--rescan` asks again.
+- **`memo sources readers list` and `memo sources readers set <reader> [--model]`.** The readers are Claude Code and
+  Codex (your own sign-in, tools off, an empty folder), Ollama on this computer, and the OpenAI and Anthropic APIs
+  with your key. The list says for each whether it is ready, whether the text leaves this computer and whether it
+  could read files; only you choose one, kept as `sources.reader` and `sources.model`, and memo never picks one.
+- **`memo models keys set|remove <openai|anthropic>`** keeps an API key in the system keyring, from a hidden prompt
+  or stdin, never from an argument or the environment.
 - **Folder import reads web pages saved as `.html` and `.htm`.** A watched folder that holds them imports them on
   the next `memo sync`.
 - **Over MCP, `sources add` takes text only**, so an agent cannot make memo read a file or open an address;
-  `sources remove` is not offered.
+  `sources remove`, `sources suggest`, `sources readers set` and `models keys` are not offered.
 
 ## 0.131.54 — 08.11.2026
 

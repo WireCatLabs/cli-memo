@@ -72,6 +72,59 @@ this computer. A person is found by a name Memo has seen in a messenger or a mee
 phone number of theirs; an organization by its whole name. A name several people share lists each of them. Memo
 reads the names of up to 500 organizations; past that, the answer says so in `missing`.
 
+## Have a reader propose facts
+
+A reader is a model you choose that reads a source and proposes the facts in it. You confirm each one; nothing
+becomes a fact on its own.
+
+```sh
+memo sources readers list
+memo sources readers set claude-code
+memo sources suggest document:42 --subject person:12
+memo actions confirm 17 fact-1 fact-3 --fingerprint <fingerprint>
+```
+
+**Choose a reader once.** `memo sources readers list` shows each reader: whether it is installed and signed in, its
+model, whether the text leaves this computer (`leaves_computer`), and whether it could open files here
+(`reads_files`). It runs one read-only check per reader and chooses nothing. `memo sources readers set <reader>`
+chooses one; only you choose, and until you do, `sources suggest` refuses with `reader.none-chosen` and names the
+readers.
+
+| Reader | What reads the text | Leaves this computer | Model |
+|---|---|---|---|
+| `claude-code` | Your signed-in Claude Code, with every tool, MCP server, hook and saved session off, in an empty folder | Yes, to Anthropic | Its own, or `--model` |
+| `codex` | Your signed-in Codex CLI in its read-only sandbox, in an empty folder. It is an agent that could still read files on this computer | Yes, to OpenAI | Its own, or `--model` |
+| `ollama` | The Ollama running on this computer, at `127.0.0.1:11434` only | No | Required: one that `ollama list` shows |
+| `openai`, `anthropic` | The provider's API with your own key | Yes | Required |
+
+An API reader takes its key from the system keyring, never from an environment variable or the command line:
+`memo models keys set openai` asks for it at a hidden prompt or reads it from stdin. `memo models keys remove openai`
+forgets it. The key is never printed.
+
+**What `sources suggest` does.** It sends the source's stored text to the reader with an instruction to propose
+facts, each with the exact words they rest on, and treats the text as data, never as instructions. Then it checks
+each answer:
+
+- the quote must be in the text word for word, with spacing and line breaks ignored; a fact whose quote is not there
+  is dropped as `quote-not-found`;
+- a fact needs a statement and one of the fact types (`fact`, `statement`, `question`, `decision`, `promise`);
+- a fact already stored from this source is dropped and named as `duplicate_of`, and a fact repeated in the answer
+  is kept once.
+
+What remains is one findings batch that cites the source, each fact with its quote, staged by `memo-reader` with
+the reader and model as its model. **Only you confirm it**, even when `agent_decisions` is on:
+`memo actions confirm <batch> [fact ids] --fingerprint <fingerprint>` creates the facts you name and rejects the
+rest. A confirmed fact keeps its quote on its evidence, so a later source check knows which words it rests on. The
+answer lists the `facts` staged and the `dropped` ones with why.
+
+Reading the same text again with the same reader, model and subject returns the batch it staged before with
+`reused: true` and does not ask the reader again. `--rescan` asks again. `--subject` says who or what every fact is
+about: `person:`, `organization:`, `project:` or `task:`. `--provider` and `--model` read with another reader once;
+only you may give them.
+
+An agent in its terminal may run `sources suggest`, but only with the reader you chose, and the batch still waits for
+you. Over MCP it is not offered: an agent cannot send a source's text off this computer.
+
 ## Remove a source
 
 ```sh
@@ -92,10 +145,11 @@ Use memo CLI to keep these meeting notes as a source about Northbridge Bench, th
 ```
 
 Over MCP, `sources add` takes `text` only: an agent cannot make Memo read a file on this computer or open an
-address. `sources remove` is not offered over MCP ([The MCP server](mcp.md)).
+address. `sources remove`, `sources suggest` and `sources readers set` are not offered over MCP
+([The MCP server](mcp.md)).
 
 ## When adding fails
 
 Each refusal names its reason and what to do next; [Troubleshooting](troubleshooting.md#adding-a-source) lists them
-all. A link that needs you signed in, such as a private Google Doc, cannot be read this way: save it as a file and
+all, and the reasons a reader refuses. A link that needs you signed in, such as a private Google Doc, cannot be read this way: save it as a file and
 add the file.

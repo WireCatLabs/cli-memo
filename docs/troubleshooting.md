@@ -79,6 +79,26 @@ when it refuses.
 
 A scanned PDF or a picture is not refused: it is kept by its title and subjects, with `read: "no-text"`.
 
+## Reading a source for facts
+
+`memo sources suggest` and `memo sources readers set` refuse with these reasons. Nothing is staged when they do.
+
+| Reason | What happened | What to do |
+|---|---|---|
+| `reader.none-chosen` | No reader is chosen; the refusal lists them | `memo sources readers set <reader>` |
+| `reader.unknown` | The reader is not one Memo knows | Give one that `memo sources readers list` lists |
+| `reader.owner-picks` | An agent named a reader or a model, or tried to choose one | Only you choose; the agent reads with your reader |
+| `reader.model-missing` | Ollama or an API reader has no model, or Ollama lacks it | `memo sources readers set <reader> --model <model>`; for Ollama, `ollama pull <model>` |
+| `reader.unavailable` | Claude Code or Codex is not installed | Install it, or choose another reader |
+| `reader.failed` | The reader failed: not signed in, too old, the key was rejected or the account has no credit | `memo sources readers list` names the problem; sign in, update, or `memo models keys set <provider>` |
+| `reader.no-key` | No key is kept for the API reader | `memo models keys set <provider>` |
+| `reader.not-running` | Ollama is not running on this computer | `ollama serve`, then try again |
+| `reader.limit` | The provider's limit is reached | Try again later |
+| `reader.timeout` | The reader gave no answer within 10 minutes | Try again, or add a smaller part of the source |
+| `reader.unusable-answer` | The answer was not the JSON Memo asked for | Try again with `--rescan`, or another model |
+
+A batch with no facts means every proposed fact was dropped; `dropped` says why for each.
+
 ## A note edit is refused
 
 The revision you gave is not the current one: the note changed after you read it. Run

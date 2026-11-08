@@ -73,6 +73,21 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `sources remove` | `--as-owner` | ❌ |  |
 | `sources remove` | `--from-app` | ❌ |  |
 | `sources remove` | `--json` | ✅ |  |
+| `sources suggest` |  | ✅ |  |
+| `sources suggest` | `--as-owner` | ❌ |  |
+| `sources suggest` | `--from-app` | ✅ |  |
+| `sources suggest` | `--provider` | ✅ |  |
+| `sources suggest` | `--model` | ✅ |  |
+| `sources suggest` | `--subject` | ❌ |  |
+| `sources suggest` | `--rescan` | ✅ |  |
+| `sources suggest` | `--json` | ✅ |  |
+| `sources readers list` |  | ✅ |  |
+| `sources readers list` | `--json` | ✅ |  |
+| `sources readers set` |  | ✅ |  |
+| `sources readers set` | `--as-owner` | ❌ |  |
+| `sources readers set` | `--from-app` | ✅ |  |
+| `sources readers set` | `--model` | ✅ |  |
+| `sources readers set` | `--json` | ✅ |  |
 | `folders add` |  | ✅ |  |
 | `folders add` | `--format` | ❌ |  |
 | `folders add` | `--json` | ✅ |  |
@@ -824,6 +839,12 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `models download` | `--offline` | ✅ |  |
 | `models download` | `--accept-terms` | ✅ |  |
 | `models download` | `--json` | ✅ |  |
+| `models keys set` |  | ✅ |  |
+| `models keys set` | `--from-app` | ✅ |  |
+| `models keys set` | `--json` | ✅ |  |
+| `models keys remove` |  | ❌ |  |
+| `models keys remove` | `--from-app` | ❌ |  |
+| `models keys remove` | `--json` | ❌ |  |
 | `search all` |  | ✅ |  |
 | `search all` | `--limit` | ✅ |  |
 | `search all` | `--exact` | ✅ |  |

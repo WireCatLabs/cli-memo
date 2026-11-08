@@ -1,5 +1,5 @@
 import { fileURLToPath } from "node:url"
-import { CliError, createRenderer, processStreams, type Streams } from "@wirecat/cli-base"
+import { CliError, createRenderer, type KeyringStore, processStreams, type Streams } from "@wirecat/cli-base"
 import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
 import { skillCommand } from "@wirecat/cli-base/skill"
 import {
@@ -109,6 +109,35 @@ const OWN_ENTITIES = entityFields({
   ],
   source_mention: ["ref", "type", "name", "found_as"],
   source_removal: ["ref", "removed", "copy_deleted", "facts", "memories"],
+  source_suggestion: [
+    "ref",
+    "reader",
+    "model",
+    "leaves_computer",
+    "reused",
+    "batch",
+    "fingerprint",
+    "status",
+    "owner_only",
+    "facts",
+    "dropped",
+  ],
+  source_reader: [
+    "id",
+    "title",
+    "provider",
+    "available",
+    "signed_in",
+    "version",
+    "model",
+    "models",
+    "needs_model",
+    "leaves_computer",
+    "reads_files",
+    "chosen",
+    "problem",
+  ],
+  source_reader_choice: ["reader", "model", "leaves_computer", "reads_files"],
   project_annotation_snapshot: ["snapshot", "fingerprint", "coverage", "read_bytes", "records"],
   project_annotation_export: [
     "output_file",
@@ -355,6 +384,8 @@ export const createProgram = ({
   signal,
   terminal,
   fetchPage,
+  readerFetch,
+  keyring,
 }: {
   streams?: Streams
   env?: NodeJS.ProcessEnv
@@ -364,6 +395,10 @@ export const createProgram = ({
   terminal?: Terminal
   /** How `sources add <url>` reaches the page; a test hands in its own lookup and transport. */
   fetchPage?: FetchPageOptions
+  /** How the Ollama and API readers reach the network; a test hands in its own. */
+  readerFetch?: typeof fetch
+  /** Where API keys are kept; the system keyring unless a test hands in memoryKeyring(). */
+  keyring?: KeyringStore
 } = {}): Command => {
   const fields = jsonFields(raw, OWN_ENTITIES)
   const { streams } = fields
@@ -377,7 +412,10 @@ export const createProgram = ({
   contextCommand(program, streams, env)
   showCommand(program, streams, env)
   notesCommand(program, streams, env)
-  sourcesCommand(program, streams, env, fetchPage ? { fetch: fetchPage } : {})
+  sourcesCommand(program, streams, env, {
+    ...(fetchPage ? { fetch: fetchPage } : {}),
+    readers: { ...(readerFetch ? { fetch: readerFetch } : {}), ...(keyring ? { keyring } : {}) },
+  })
   foldersCommand(program, streams, env)
   messagesCommand(program, streams, env)
   mailCommand(program, streams, env)
@@ -399,7 +437,7 @@ export const createProgram = ({
   reviewCommand(program, streams, env)
   agentsCommand(program, streams, env)
   mcpCommand(program, streams, env, createProgram)
-  modelsCommand(program, streams, env)
+  modelsCommand(program, streams, env, keyring)
   searchCommand(program, streams, env)
   meetingReadCommands(program, streams, env)
   meetingPreparationCommand(program, streams, env)
