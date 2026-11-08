@@ -159,8 +159,10 @@ memo stages confirm --pipeline pipeline:3
 memo deals move deal:5 stage:3
 ```
 
-`stages show` makes the list on first use, in your first language. It shows each column with its open deals and
-mapped stages, and what is unsorted: stages not mapped yet or only suggested. `stages create`, `rename`, `move` and
+`stages show deal` makes the deal list on first use, in your first language (`owner_languages`; Russian while it is
+unset). The lead list is memo's own `Leads` pipeline as it is: New, Contacted, Qualified, Won, Lost. `stages show`
+gives each column with its open deals or leads and mapped stages, and what is unsorted: stages not mapped yet or only
+suggested. `stages create`, `rename`, `move` and
 `remove` edit the list; each list keeps at least one open, one won and one lost stage. `stages list` shows every
 other stage with its base stage and `confirmed`. `stages set` maps one stage. `stages confirm --all` confirms every
 suggestion. Only you edit the list and confirm. Your agent's `stages set` stays a suggestion until you confirm it.
