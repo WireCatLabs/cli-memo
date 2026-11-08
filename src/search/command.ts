@@ -13,7 +13,7 @@ import { positive } from "../options.js"
 import { SAVE_HELP } from "../save-help.js"
 import { ACCOUNTS_HELP, MAIL_SOURCES, mailboxesOf } from "../store/source-list.js"
 import { allAnswer, eventsMeaningNote, kindAnswer, messagesMeaningNote, notesAnswer } from "./answers.js"
-import { businessGate } from "./business-gate.js"
+import { lanesFor } from "./lane-gates.js"
 import { peopleAnswer, peopleText, searchPeople } from "./people.js"
 import { keyDocumentsFirst, searchEverywhere, searchKind, searchNotes } from "./search.js"
 
@@ -92,7 +92,7 @@ Calendar events come from every calendar gcal stored; an event's title, descript
         },
         command: Command,
       ) => {
-        const gate = businessGate(command, options.only)
+        const gate = lanesFor(command, options.only)
         const answer = await withStore(env, async (store) => {
           const found = await searchEverywhere(store, env, {
             text: words.join(" "),
