@@ -17,8 +17,9 @@ the API.
   the process, `memo mcp serve` included, and fails closed: only the commands that keep to a group run, and a
   reference or a bare id of account data outside it, another group, `all` and every group change are
   `permission_error`. Under the lock, evidence, sources, proposals and actions of an outside account are left out
-  and counted, never shown or decided, and a context counts the accounts it kept out instead of naming them. Needs
-  cli-core with the group lock (cli-core#2632).
+  and counted, never shown or decided, and a context counts the accounts it kept out instead of naming them.
+  `pipelines list` and `pipelines show` keep to the group too: in a group, a name means the group's pipeline of that
+  name. Needs cli-core with the group lock (cli-core#2632).
 - **`memo groups list | add <group> <source> | remove <group> <source> | move <source> <from> <to>`.** The
   list shows each account with its profiles in every app, why it is in, `also_in`, the duplicates and the
   profile-name suggestions. `memo groups add work <provider>:<account>` is the command a CRM sync's `group_hint`

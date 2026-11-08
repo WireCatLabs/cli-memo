@@ -3,13 +3,13 @@ import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { DEAL_KINDS, DEAL_ROLES, DEAL_STATUSES, type DealKind, type DealRole } from "@wirecat/cli-core"
 import { LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
-import type { DealFilter, MessageStore, PipelineReport } from "@wirecat/cli-core/store"
+import type { DealFilter, MessageStore, Pipeline, PipelineReport } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { authorOf } from "../author.js"
 import { collect, positive } from "../options.js"
 import { pageOf } from "../page.js"
-import { groupScopeOf } from "../store/group.js"
+import { type GroupScope, groupScopeOf } from "../store/group.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { dayOf } from "./finance.js"
 
@@ -241,6 +241,30 @@ const funnelText = (report: PipelineReport): string =>
       (report.totals.winRate === null ? "" : `, win rate ${Math.round(report.totals.winRate * 100)}%`),
   ].join("\n")
 
+const inScope = (scope: GroupScope | undefined) => (pipeline: Pipeline) =>
+  scope === undefined || pipeline.account === null || scope.has(pipeline.account)
+
+/** In a group a name means the group's pipeline: one outside it is never found, and never makes the name ambiguous. */
+const pipelineInGroup = async (store: MessageStore, env: NodeJS.ProcessEnv, reference: string) => {
+  const scope = await groupScopeOf(store, env)
+  if (scope === undefined || /^pipeline:\d+$/.test(reference.trim())) return reference
+  const name = reference.trim().toLocaleLowerCase()
+  const named = (await store.deals.pipelines()).filter(
+    (one) => one.name.toLocaleLowerCase() === name && inScope(scope)(one),
+  )
+  if (named.length === 1) return (named[0] as Pipeline).ref
+  if (named.length === 0)
+    throw new CliError("not_found", `no pipeline named ${reference.trim()} in group:${scope.run.name}`, {
+      reason: "pipeline.not-found",
+    })
+  throw new CliError(
+    "validation_error",
+    `more than one pipeline in group:${scope.run.name} is named ${reference.trim()}: ` +
+      `${named.map((one) => one.ref).join(", ")}; name one by its reference`,
+    { reason: "pipeline.ambiguous" },
+  )
+}
+
 /** `memo deals`, `memo leads` and `memo pipelines`: sales pipelines and what is in them. */
 export const dealCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { run, print } = answers(program, streams, env)
@@ -262,7 +286,8 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
         const terms = queryTerms(words, PIPELINE_QUERY, "pipelines list")
         const name = terms.get("name")?.toLocaleLowerCase()
         const kind = terms.get("kind") as DealKind | undefined
-        const all = await store.deals.pipelines(kind === undefined ? {} : { kind })
+        const scope = await groupScopeOf(store, env)
+        const all = (await store.deals.pipelines(kind === undefined ? {} : { kind })).filter(inScope(scope))
         return wholeList(
           "pipelines list",
           name === undefined ? all : all.filter((one) => one.name.toLocaleLowerCase() === name),
@@ -284,8 +309,8 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
     .argument("<pipeline>", "pipeline:<id>, or a name only one pipeline has")
     .action(async (pipeline: string, options: { sinceTime?: string; json?: boolean }) => {
       const since = dayOf(options.sinceTime)
-      const report = await withStore(env, (store) =>
-        store.deals.pipeline(pipeline, since === undefined ? {} : { since }),
+      const report = await withStore(env, async (store) =>
+        store.deals.pipeline(await pipelineInGroup(store, env, pipeline), since === undefined ? {} : { since }),
       )
       print(options.json, itemAnswer(report), funnelText(report))
     })

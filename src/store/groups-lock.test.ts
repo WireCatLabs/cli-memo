@@ -1,7 +1,8 @@
 import { mkdtempSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { ACME_PORTAL, type AcmeScenario, acmeScenario } from "@wirecat/cli-core/crm/testing"
+import { syncCrm } from "@wirecat/cli-core/crm"
+import { ACME_PORTAL, type AcmeScenario, acmeScenario, fakeCrmSource } from "@wirecat/cli-core/crm/testing"
 import { openStore } from "@wirecat/cli-core/store"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { memoEnvelope, memoIn } from "../../test/memo.js"
@@ -198,5 +199,48 @@ describe("MEMO_GROUP_LOCK fails closed", () => {
     expect((await owner("work", "projects", "status", "LKW")).out_of_scope).toEqual([
       { chat: "chat:telegram/1/301", reason: "other-account" },
     ])
+  })
+})
+
+describe("pipelines in a group", () => {
+  const SOUTHWIND = { provider: ACME_PORTAL.provider, account: "southwind.example" }
+  let outside: string
+
+  beforeEach(async () => {
+    const store = await openStore({ env })
+    try {
+      const source = fakeCrmSource()
+      source.put("deal", { externalId: "d9", title: "Southwind pilot", pipeline: "deal-1", stage: "new" })
+      await syncCrm(source, store, SOUTHWIND, { rescan: true })
+      const sales = await store.deals.pipelines({ kind: "deal", account: SOUTHWIND })
+      outside = (sales[0] as { ref: string }).ref
+    } finally {
+      await store.close()
+    }
+  })
+
+  const accountsOf = (items: { account: { account: string } | null }[]) =>
+    [...new Set(items.map((one) => one.account?.account ?? "own"))].sort()
+
+  it("lists and shows only the group's pipelines and the owner's under MEMO_GROUP_LOCK", async () => {
+    const memo = lockedTo("work")
+    expect(accountsOf((await memo("pipelines", "list")).items)).toEqual([ACME_PORTAL.account, "own"])
+    expect(await memo("pipelines", "show", "Example sales")).toMatchObject({ account: ACME_PORTAL })
+    await expect(memo("pipelines", "show", outside)).rejects.toMatchObject(refused)
+    await expect(lockedTo("personal")("pipelines", "show", "Example sales")).rejects.toMatchObject({
+      code: "not_found",
+    })
+  })
+
+  it("lists and shows only the group's pipelines under the group word", async () => {
+    const memo = memoIn(env)
+    expect(accountsOf((await memo("pipelines", "list")).items)).toEqual([ACME_PORTAL.account, "own", SOUTHWIND.account])
+    expect(accountsOf((await memo("work", "pipelines", "list")).items)).toEqual([ACME_PORTAL.account, "own"])
+    await expect(memo("pipelines", "show", "Example sales")).rejects.toMatchObject({ code: "validation_error" })
+    expect(await memo("work", "pipelines", "show", "Example sales")).toMatchObject({ account: ACME_PORTAL })
+    await expect(memo("personal", "pipelines", "show", "Example sales")).rejects.toMatchObject({
+      code: "not_found",
+      message: "no pipeline named Example sales in group:personal",
+    })
   })
 })

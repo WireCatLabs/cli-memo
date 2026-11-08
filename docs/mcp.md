@@ -48,7 +48,7 @@ the lock fails closed. These commands run under it:
 |---|---|
 | reads | `context`, `show`, `messages show`, `search all`, `messages`, `mail`, `notes` and `people` |
 | groups | `groups list`; `groups add`, `remove` and `move` are refused |
-| CRM | every `deals` and `leads` command, every `organizations` command |
+| CRM | every `deals` and `leads` command, every `organizations` command, `pipelines list` and `pipelines show` |
 | people and notes | `people list`, `people add`, `notes list`, `notes show` |
 | your own | every `memories`, `facts`, `actions`, `review` and `tasks` command; `projects list`, `add`, `context`, `status` and `key-documents` |
 | labels and links | `tags add`, `tags remove`, `relationships list`, `relationships add` |
