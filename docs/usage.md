@@ -139,6 +139,12 @@ A deal copied from a CRM account (`b24 <profile> sync`) and the people on it are
 did not confirm it. Put the CRM account in a group (`memo groups add work bitrix24:<portal>`), and a run of another group
 reads none of its deals, people or relationships.
 
+In `--json`, each row of `deals list`, `leads list` and `pipelines list` copied from a CRM has `writes_with`: the CLI
+that changes it on the CRM (`tool`, such as `b24`), the row's `account`, and the `profile` to run it as. The profile is
+set only when exactly one profile of that CLI has run on the account; otherwise it is `null`, `profiles` lists the
+candidates and `why` says what to choose. In a group, a profile on an account outside the group is never named. Your
+own rows have `"writes_with": null`: memo changes them itself.
+
 ## Answers for scripts and agents
 
 Add `--json` to most commands to get an answer a program can read. The text answer is for people;

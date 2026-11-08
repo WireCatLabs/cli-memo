@@ -8,6 +8,10 @@ the API.
 
 ### Added
 
+- **`writes_with` on CRM rows of `deals list`, `leads list` and `pipelines list`**: the CLI that changes the row on
+  its CRM (`tool`), the row's `account`, and the `profile`, named only when exactly one profile of that CLI is on the
+  account; otherwise `null`, with `profiles` and `why`. In a group, a profile on an account outside it is never named.
+  The owner's own rows have `null`. WireCat Desktop's Clients board reads it to move a card's stage through b24.
 - **`memo folders remove <id|path>`** stops reading a notes folder on this computer; its notes stay in the store.
   With `--allow-delete --yes` it also deletes the folder's notes and their text from the store; without `--yes` it
   says how many it would delete (`confirmation_required`). The files are never touched.

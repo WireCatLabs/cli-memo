@@ -2,9 +2,17 @@ import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { DEAL_KINDS, DEAL_ROLES, DEAL_STATUSES, type DealKind, type DealRole } from "@wirecat/cli-core"
-import { LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
+import {
+  LOCAL_READ,
+  LOCAL_WRITE,
+  queryTerms,
+  storedProfilesFor,
+  termField,
+  withQuery,
+  writesWithOf,
+} from "@wirecat/cli-core/cli"
 import { dealBrief, dealContext } from "@wirecat/cli-core/services"
-import type { DealFilter, MessageStore, Pipeline, PipelineReport } from "@wirecat/cli-core/store"
+import type { AccountKey, DealFilter, MessageStore, Pipeline, PipelineReport } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { authorOf } from "../author.js"
@@ -38,6 +46,28 @@ const PIPELINE_QUERY = {
   fields: [termField("kind", "enum", "kind:lead", { values: DEAL_KINDS }), termField("name", "kw", "name:Sales")],
 } as const satisfies QueryRegistry
 
+/**
+ * Each CRM copy's `writes_with`: the CLI and profile that change it on its server (FIND-2416). The profiles are read
+ * once per command. In a group, a profile whose account the group does not hold is never named.
+ */
+const withWriter = async (store: MessageStore, scope: GroupScope | undefined) => {
+  const profiles = await store.accounts.profiles()
+  const profilesFor = storedProfilesFor(profiles)
+  const options =
+    scope === undefined
+      ? {}
+      : {
+          allowed: (tool: string, profile: string) => {
+            const key = profiles[tool]?.[profile]
+            return key !== undefined && scope.has(key)
+          },
+        }
+  return <T extends { account: AccountKey | null }>(item: T) => ({
+    ...item,
+    writesWith: writesWithOf(item.account, profilesFor, options),
+  })
+}
+
 export const listDeals = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
@@ -56,8 +86,11 @@ export const listDeals = async (
     ...(terms.has("organization") ? { organization: terms.get("organization") as string } : {}),
   }
   const scope = await groupScopeOf(store, env)
-  return pageOf(command, limit, (most) =>
-    store.deals.list({ ...filter, ...(scope === undefined ? {} : { accounts: scope.accounts }), limit: most }),
+  const writer = await withWriter(store, scope)
+  return pageOf(command, limit, async (most) =>
+    (
+      await store.deals.list({ ...filter, ...(scope === undefined ? {} : { accounts: scope.accounts }), limit: most })
+    ).map(writer),
   )
 }
 
@@ -344,9 +377,10 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
         const kind = terms.get("kind") as DealKind | undefined
         const scope = await groupScopeOf(store, env)
         const all = (await store.deals.pipelines(kind === undefined ? {} : { kind })).filter(inScope(scope))
+        const writer = await withWriter(store, scope)
         return wholeList(
           "pipelines list",
-          name === undefined ? all : all.filter((one) => one.name.toLocaleLowerCase() === name),
+          (name === undefined ? all : all.filter((one) => one.name.toLocaleLowerCase() === name)).map(writer),
         )
       }),
     )
