@@ -11,9 +11,7 @@ const MAX_OUTPUT = 4 * 1024 * 1024
 const WITHHELD = ["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "CLAUDECODE", "AI_AGENT", "MEMO_MCP_CLIENT"]
 
 export const readerEnv = (env: NodeJS.ProcessEnv): NodeJS.ProcessEnv =>
-  Object.fromEntries(
-    Object.entries(env).filter(([name]) => !WITHHELD.includes(name) && !name.startsWith("CLAUDE_CODE_")),
-  )
+  Object.fromEntries(Object.entries(env).filter(([name]) => !WITHHELD.includes(name)))
 
 export interface Ran {
   code: number | null

@@ -1,4 +1,4 @@
-import { chmodSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
+import { chmodSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { Readable } from "node:stream"
@@ -229,6 +229,11 @@ describe("sources suggest", () => {
     const sent = requests.find((request) => request.url.includes("api.openai.com"))
     expect(sent?.headers.authorization).toBe(`Bearer ${key}`)
     for (const output of [kept.printed, item.printed, listed.printed]) expect(output).not.toContain(key)
+    const written = readdirSync(root, { recursive: true, encoding: "utf8" }).filter((path) => !path.startsWith("bin"))
+    for (const path of written) {
+      const full = join(root, path)
+      if (statSync(full).isFile()) expect(readFileSync(full).includes(key), path).toBe(false)
+    }
     await expect(run(["models", "keys", "set", "openai"], { as: agentEnv, stdin: "sk-agent" })).rejects.toMatchObject({
       code: "permission_error",
     })
