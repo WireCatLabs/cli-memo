@@ -498,3 +498,23 @@ it("search messages finds a reply that does not name its topic when asked a ques
   expect(await refs("when will the Quillmark price sync happen?")).toContain("msg:max/2/7/2")
   expect(await refs("Quillmark")).toEqual(["msg:max/2/7/1"])
 })
+
+it("search all finds a time in the words of a question, and names the word no note holds when nothing has them all", async () => {
+  const root = mkdtempSync(join(tmpdir(), "memo-time-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const store = await openStore({ env })
+  for (const day of [1, 2, 3])
+    await store.notes.addNote({ text: `Steering committee meeting ${day}: the review moved to 10:30.` })
+  await store.close()
+  const run = async (query: string) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env }).parseAsync(["search", "all", query, "--json"], { from: "user" })
+    return answerOf(streams.stdout.join(""))
+  }
+
+  expect((await run("steering committee 10:30")).items).toHaveLength(3)
+  expect((await run("When is the steering committee meeting? Answer as HH:MM.")).items).toHaveLength(3)
+  const none = await run("steering committee xyzzy")
+  expect(none.items).toEqual([])
+  expect(none.missing).toContainEqual({ field: "items", why: expect.stringContaining('holds "xyzzy"') })
+})
