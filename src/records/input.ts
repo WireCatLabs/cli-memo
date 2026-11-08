@@ -81,8 +81,13 @@ export const importRecords = async (
   const header = headerOf(first)
   if (header !== undefined) {
     async function* all(): AsyncIterable<string> {
-      yield first
-      yield* rest()
+      // A refused header stops the stream at its first line; the file is closed here, not when it is collected.
+      try {
+        yield first
+        yield* rest()
+      } finally {
+        await iterator.return?.()
+      }
     }
     return ingestLines(store, all(), { account: accountIn(header, account), dryRun })
   }

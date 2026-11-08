@@ -51,3 +51,13 @@ it("takes a vCard address book as the phone's contacts under phone:<device>, and
     code: "validation_error",
   })
 })
+
+it("refuses a JSONL file whose header names another account, and still reads the next file", async () => {
+  const f = await businessStore("records-header")
+  const lines = `${JSON.stringify(header)}\n${JSON.stringify(payment(1, f.client))}\n`
+  const refused = await f.piped(lines, "records", "check", "-", "--account", "sheet:someone-else")
+  expect(refused.errors).toEqual([expect.objectContaining({ code: "envelope.account-mismatch" })])
+  expect(await f.piped(lines, "records", "check", "-", "--account", "sheet:synthetic-rental")).toMatchObject({
+    created: 1,
+  })
+})
