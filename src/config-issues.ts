@@ -7,7 +7,11 @@ const pathOf = (command: Command): string[] => {
   return words
 }
 
-/** Memo's permission keys are command paths, plus the MCP server's own `mcp.authority`. */
+/**
+ * Memo's permission keys are command paths, plus the MCP server's own `mcp.authority` and `business.list`, which
+ * guards the business lane of `search all` as it does in cli-core: no one command lists business data.
+ */
 export const permissionKeyOf = (command: Command) => pathOf(command).join(".") || null
 
-export const memoPermissionKeys = (program: Command) => knownPermissionKeys(program, permissionKeyOf, ["mcp.authority"])
+export const memoPermissionKeys = (program: Command) =>
+  knownPermissionKeys(program, permissionKeyOf, ["mcp.authority", "business.list"])

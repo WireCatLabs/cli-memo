@@ -13,6 +13,7 @@ import { positive } from "../options.js"
 import { SAVE_HELP } from "../save-help.js"
 import { ACCOUNTS_HELP, MAIL_SOURCES, mailboxesOf } from "../store/source-list.js"
 import { allAnswer, eventsMeaningNote, kindAnswer, messagesMeaningNote, notesAnswer } from "./answers.js"
+import { businessGate } from "./business-gate.js"
 import { peopleAnswer, peopleText, searchPeople } from "./people.js"
 import { keyDocumentsFirst, searchEverywhere, searchKind, searchNotes } from "./search.js"
 
@@ -89,17 +90,23 @@ Calendar events come from every calendar gcal stored; an event's title, descript
           json?: boolean
           plainOrder?: boolean
         },
+        command: Command,
       ) => {
+        const gate = businessGate(command, options.only)
         const answer = await withStore(env, async (store) => {
           const found = await searchEverywhere(store, env, {
             text: words.join(" "),
             limit: options.limit,
-            ...(options.only === undefined ? {} : { only: options.only }),
+            ...(gate.only === undefined ? {} : { only: gate.only }),
             ...(options.exact ? { exact: true } : {}),
             ...(options.plainOrder ? { plainOrder: true } : {}),
             ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
           })
-          return { ...found, items: await keyDocumentsFirst(store, found.items, options.project) }
+          return {
+            ...found,
+            skipped: [...gate.skipped, ...found.skipped],
+            items: await keyDocumentsFirst(store, found.items.filter(gate.shows), options.project),
+          }
         })
         if (!options.json) {
           streams.diagnostic(
