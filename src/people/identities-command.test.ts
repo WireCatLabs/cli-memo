@@ -98,10 +98,31 @@ describe("memo people review", () => {
     expect(page.page.has_more).toBe(true)
     expect(shown.matches).toHaveLength(1)
     expect(shown.matches[0].persons).toContain(now)
+    expect(shown.matches[0]).toMatchObject({
+      joins: "person",
+      signal: "agent",
+      identity: "max:33",
+      with: "telegram:11",
+    })
+    expect(page.items[0]).toMatchObject({ joins: "person", signal: "agent" })
   })
 })
 
 describe("the owner's separations", () => {
+  it("take exact identity ids only, never the nearest name", async () => {
+    await run({}, OWNER, "people", "link", "max:33", "telegram:11")
+
+    await expect(run({}, NOBODY, "people", "unlink", "telegram:Rin Example", "--from-app")).rejects.toMatchObject({
+      code: "not_found",
+      details: { reason: "identity.not-found" },
+    })
+    await expect(run({}, OWNER, "people", "unlink", "max:Kai")).rejects.toMatchObject({
+      details: { reason: "identity.not-found" },
+    })
+    expect((await run({}, OWNER, "people", "show", "max:33")).identities).toHaveLength(2)
+    expect((await run({}, NOBODY, "people", "unlink", "telegram:11", "--from-app")).identities).toHaveLength(1)
+  })
+
   it("refuse an agent's unlink and unmerge", async () => {
     await run({}, OWNER, "people", "link", "max:33", "telegram:11")
     const { merges } = await run({}, OWNER, "people", "show", "max:33")

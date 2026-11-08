@@ -52,8 +52,8 @@ open matches.
 
 **Only the owner.**
 
-- `memo people unlink <identity…>` gives one identity a person of its own again, or moves several identities of
-  one person to one new person.
+- `memo people unlink <messenger:id…>`, by exact ids from `people show`, gives one identity a person of its own
+  again, or moves several identities of one person to one new person.
 - `memo people unmerge <merge:to-from>` gives a merge's identities back to the person they came from.
 
 MCP does not offer these two commands. After any of them, no automatic match joins those people again.

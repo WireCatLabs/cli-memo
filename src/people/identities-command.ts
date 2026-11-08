@@ -12,7 +12,7 @@ import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
 import { byOption, reasonOption, whoRuns } from "../author.js"
 import { positive } from "../options.js"
-import { identityOf } from "./identity.js"
+import { exactIdentityOf, identityOf } from "./identity.js"
 
 const OWNER_ONLY = "identity.owner-only"
 
@@ -46,6 +46,7 @@ const personAnswer = (person: PersonRecord) => ({
 const matchAnswer = (row: IdentityLinkRow) => ({
   id: row.id,
   persons: row.persons,
+  joins: row.joins,
   identity: row.identity,
   with: row.with,
   signal: row.signal,
@@ -200,13 +201,14 @@ export const identitiesCommands = (people: Command, program: Command, streams: S
         "take identities off their person: one gets a person of its own again, several move together to one new " +
           "person; only you, and no automatic match joins them back",
       )
-      .argument("<identities...>", "the identities that leave, each <messenger>:<name or id>, all of one person"),
+      .argument("<identities...>", "the identities that leave, each <messenger>:<id> exactly, all of one person"),
   )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (refs: string[], options: { json?: boolean }, command: Command) => {
       await asOwner(command, env, `unlink ${refs.join(" ")}?`)
       const person = await withStore(env, async (store) => {
-        const chosen = await identitiesOf(store, refs)
+        const chosen: IdentityRef[] = []
+        for (const ref of refs) chosen.push(await exactIdentityOf(store, ref))
         const [first] = chosen as [IdentityRef]
         if (chosen.length === 1) return store.people.unlinkIdentity(first, { method: "unlink", by: "owner" })
         const held = await store.people.personOf(first)

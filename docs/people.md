@@ -89,8 +89,10 @@ memo people show telegram:Kai
 ### Undo a link
 
 - `memo people unmerge merge:12-34` gives a merge's identities back to the person they came from.
-- `memo people unlink telegram:Kai` gives one identity a person of its own again.
-- `memo people unlink email:kai@example.com max:Kai` moves several identities of one person to one new person.
+- `memo people unlink telegram:12345` gives one identity a person of its own again.
+- `memo people unlink email:kai@example.com max:6789` moves several identities of one person to one new person.
+
+`unlink` takes each identity by its exact id, as `memo people show` lists it, never by a name.
 
 Only you can do these, at a terminal or in WireCat Desktop. After them, no automatic match joins those people again.
 An agent can only propose a link with `memo people link … --reason`. You confirm or reject it in `memo review`.

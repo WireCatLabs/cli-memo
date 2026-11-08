@@ -131,7 +131,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo people link max:Lena telegram:Lena",
     "memo people link max:Lena telegram:Lena --reason 'same phone in her signature'",
   ],
-  "people unlink": ["memo people unlink telegram:Lena", "memo people unlink email:lena@example.com max:Lena"],
+  "people unlink": ["memo people unlink telegram:12345", "memo people unlink email:lena@example.com max:6789"],
   "people unmerge": ["memo people unmerge merge:12-34"],
   "tasks agenda": [
     "memo tasks agenda --source telegram:1",

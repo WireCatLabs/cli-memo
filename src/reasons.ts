@@ -113,6 +113,12 @@ export const REASONS: ErrorReason[] = defineReasons([
   },
   { reason: "person.not-found", code: "not_found", message: "the store has no person by that name", details: [] },
   {
+    reason: "identity.not-found",
+    code: "not_found",
+    message: "no identity has that exact id; people show lists them",
+    details: [],
+  },
+  {
     reason: "identity.no-messenger",
     code: "validation_error",
     message: "the name has no messenger; write it as <messenger>:<name or id>",

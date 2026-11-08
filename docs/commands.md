@@ -691,7 +691,7 @@ memo people unlink <identities> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `identities` | required | the identities that leave, each <messenger>:<name or id>, all of one person. |
+| `identities` | required | the identities that leave, each <messenger>:<id> exactly, all of one person. |
 
 | Option | What it does |
 |---|---|
@@ -701,7 +701,7 @@ memo people unlink <identities> [options]
 
 **Returns:** take identities off a person, to one new person; only you
 
-**Example:** `memo people unlink telegram:Lena`, `memo people unlink email:lena@example.com max:Lena`
+**Example:** `memo people unlink telegram:12345`, `memo people unlink email:lena@example.com max:6789`
 
 ### `memo people unmerge`
 
