@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**768 ✅ · 0 ⛔ · 193 ❌** — 214 commands, 747 options.
+**822 ✅ · 0 ⛔ · 204 ❌** — 234 commands, 792 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -136,7 +136,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tags add` | `--account` | ✅ |  |
 | `tags add` | `--json` | ✅ |  |
 | `tags remove` |  | ✅ |  |
-| `tags remove` | `--message` | ❌ |  |
+| `tags remove` | `--message` | ✅ |  |
 | `tags remove` | `--note` | ✅ |  |
 | `tags remove` | `--chat` | ✅ |  |
 | `tags remove` | `--task` | ❌ |  |
@@ -268,6 +268,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `organizations list` |  | ✅ |  |
 | `organizations list` | `--json` | ✅ |  |
 | `organizations context` |  | ✅ |  |
+| `organizations context` | `--limit` | ✅ |  |
 | `organizations context` | `--json` | ✅ |  |
 | `projects meetings list` |  | ✅ |  |
 | `projects meetings list` | `--source` | ✅ |  |
@@ -374,11 +375,18 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `relationships add` | `--json` | ✅ |  |
 | `relationships add` | `--kind` | ✅ |  |
 | `relationships add` | `--role` | ✅ |  |
+| `relationships add` | `--position` | ✅ |  |
+| `relationships add` | `--start-date` | ✅ |  |
+| `relationships add` | `--end-date` | ❌ |  |
 | `relationships add` | `--reason` | ✅ |  |
 | `relationships list` |  | ✅ |  |
+| `relationships list` | `--limit` | ✅ |  |
+| `relationships list` | `--page` | ✅ |  |
 | `relationships list` | `--json` | ✅ |  |
 | `relationships update` |  | ✅ |  |
 | `relationships update` | `--role` | ✅ |  |
+| `relationships update` | `--position` | ❌ |  |
+| `relationships update` | `--start-date` | ❌ |  |
 | `relationships update` | `--purpose` | ✅ |  |
 | `relationships update` | `--reason` | ✅ |  |
 | `relationships update` | `--json` | ✅ |  |
@@ -394,6 +402,22 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `relationships confirm` | `--as-owner` | ❌ |  |
 | `relationships confirm` | `--from-app` | ❌ |  |
 | `relationships confirm` | `--reason` | ✅ |  |
+| `relationships end` |  | ✅ |  |
+| `relationships end` | `--end-date` | ✅ |  |
+| `relationships end` | `--json` | ✅ |  |
+| `relationships end` | `--as-owner` | ❌ |  |
+| `relationships end` | `--from-app` | ❌ |  |
+| `relationships roles list` |  | ✅ |  |
+| `relationships roles list` | `--json` | ✅ |  |
+| `relationships roles add` |  | ✅ |  |
+| `relationships roles add` | `--label` | ✅ |  |
+| `relationships roles add` | `--json` | ✅ |  |
+| `relationships roles add` | `--as-owner` | ❌ |  |
+| `relationships roles add` | `--from-app` | ❌ |  |
+| `relationships roles remove` |  | ✅ |  |
+| `relationships roles remove` | `--json` | ✅ |  |
+| `relationships roles remove` | `--as-owner` | ❌ |  |
+| `relationships roles remove` | `--from-app` | ❌ |  |
 | `relationships scan` |  | ✅ |  |
 | `relationships scan` | `--source` | ✅ |  |
 | `relationships scan` | `--since-time` | ❌ |  |
@@ -623,7 +647,14 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `deals list` | `--json` | ✅ |  |
 | `deals list` | `--limit` | ❌ |  |
 | `deals show` |  | ✅ |  |
-| `deals show` | `--json` | ❌ |  |
+| `deals show` | `--json` | ✅ |  |
+| `deals context` |  | ✅ |  |
+| `deals context` | `--json` | ✅ |  |
+| `deals context` | `--brief` | ✅ |  |
+| `deals context` | `--limit` | ✅ |  |
+| `deals update` |  | ✅ |  |
+| `deals update` | `--json` | ✅ |  |
+| `deals update` | `--project` | ✅ |  |
 | `deals add` |  | ✅ |  |
 | `deals add` | `--organization` | ✅ |  |
 | `deals add` | `--person` | ✅ |  |
@@ -643,7 +674,14 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `leads list` | `--json` | ✅ |  |
 | `leads list` | `--limit` | ❌ |  |
 | `leads show` |  | ✅ |  |
-| `leads show` | `--json` | ❌ |  |
+| `leads show` | `--json` | ✅ |  |
+| `leads context` |  | ✅ |  |
+| `leads context` | `--json` | ✅ |  |
+| `leads context` | `--brief` | ✅ |  |
+| `leads context` | `--limit` | ❌ |  |
+| `leads update` |  | ✅ |  |
+| `leads update` | `--json` | ❌ |  |
+| `leads update` | `--project` | ✅ |  |
 | `leads add` |  | ✅ |  |
 | `leads add` | `--organization` | ❌ |  |
 | `leads add` | `--person` | ✅ |  |
@@ -841,7 +879,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `models consents revoke` |  | ✅ |  |
 | `models consents revoke` | `--json` | ❌ |  |
 | `search all` |  | ✅ |  |
-| `search all` | `--limit` | ❌ |  |
+| `search all` | `--limit` | ✅ |  |
 | `search all` | `--exact` | ✅ |  |
 | `search all` | `--timezone` | ❌ |  |
 | `search all` | `--json` | ✅ |  |
