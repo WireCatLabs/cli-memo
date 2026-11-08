@@ -1,5 +1,5 @@
 import { fileURLToPath } from "node:url"
-import { CliError, createRenderer, processStreams, type Streams } from "@wirecat/cli-base"
+import { CliError, createRenderer, type KeyringStore, processStreams, type Streams } from "@wirecat/cli-base"
 import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
 import { skillCommand } from "@wirecat/cli-base/skill"
 import {
@@ -313,9 +313,12 @@ export const createProgram = ({
   env = process.env,
   signal,
   terminal,
+  keyring,
 }: {
   streams?: Streams
   env?: NodeJS.ProcessEnv
+  /** Where enrichment looks for its provider key; the system keyring unless a test hands in memoryKeyring(). */
+  keyring?: KeyringStore
   /** Ctrl-C or SIGTERM from `startCli`: a sync stops at its next safe point. */
   signal?: AbortSignal
   /** Whether a person is at the terminal; the process's stdin and stdout unless a test hands one in. */
@@ -354,12 +357,12 @@ export const createProgram = ({
   reviewCommand(program, streams, env)
   agentsCommand(program, streams, env)
   mcpCommand(program, streams, env, createProgram)
-  modelsCommand(program, streams, env)
+  modelsCommand(program, streams, env, keyring)
   searchCommand(program, streams, env)
   meetingReadCommands(program, streams, env)
   meetingPreparationCommand(program, streams, env)
   askCommand(program, streams, env)
-  syncCommand(program, streams, env, signal)
+  syncCommand(program, streams, env, signal, keyring)
   storeCommand(program, streams, env)
   autoCommand(program, streams, env)
   configCommand(program, streams, env)

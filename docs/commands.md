@@ -3762,7 +3762,7 @@ memo review list [query] [options]
 
 **Returns:** memo proposal — id, kind, status, title, project, project_title, source, owner_only, and 11 more; every field: memo commands info review list
 
-**Example:** `memo review list project:HRB`, `memo review list kind:relationship,fact by:agent`, `memo review list kind:invoice,payment --compact`
+**Example:** `memo review list project:HRB`, `memo review list kind:relationship,fact by:agent`, `memo review list via:chat:max/1/-100`
 
 ### `memo review show`
 
@@ -4106,6 +4106,69 @@ memo models add <id> [options]
 
 **Example:** `memo models add e5-base --payload '{"repository":"Xenova/multilingual-e5-base","onnx":"onnx/model_quantized.onnx","dims":768,"pooling":"mean","prefix":{"query":"query: ","passage":"passage: "}}'`
 
+### `memo models consents`
+
+consent to send stored notes, documents and mail to a hosted model that rewrites them for search; off by default
+
+#### `memo models consents show`
+
+whether enrichment is on, with which provider and model, how many records it covers and the cost
+
+```sh
+memo models consents show [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** whether enrichment is on, with which provider and model, how many records it…
+
+**Example:** `memo models consents show --json`
+
+#### `memo models consents set`
+
+turn enrichment on for one provider and model; without --yes, say what would be sent and change nothing
+
+This command changes the local store or your files.
+
+```sh
+memo models consents set <provider> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `provider` | required | the provider that receives the records: openai or anthropic. |
+
+| Option | What it does |
+|---|---|
+| `--model <model>` | the provider's model name, such as gpt-4o-mini or claude-haiku-5-5. |
+| `--base-url <url>` | the address of an OpenAI-compatible model API, or the Anthropic API root. |
+| `--yes` | agree that the records go to this provider, and turn enrichment on. |
+| `--json` | print JSON. |
+
+**Returns:** turn enrichment on for one provider and model; without --yes, say what would…
+
+**Example:** `memo models consents set openai --model gpt-4o-mini`, `memo models consents set openai --model gpt-4o-mini --yes`
+
+#### `memo models consents revoke`
+
+turn enrichment off and delete what the model wrote; search reads only the records' own text again
+
+This command changes the local store or your files.
+
+```sh
+memo models consents revoke [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** turn enrichment off and delete what the model wrote; search reads only the…
+
+**Example:** `memo models consents revoke`
+
 ## `memo search`
 
 search messages, mail, notes, memories and people; search all when unsure where
@@ -4132,7 +4195,7 @@ memo search all <query> [options]
 | `--plain-order` | best first by the words alone, without moving mail from suspicious senders down. |
 | `--project <project>` | rank the key documents of this project (id, project:<id>, key, exact name or alias) first; nothing is left out. |
 
-**Returns:** hit — kind, ref, provider, account, title, timestamp, excerpt, url, and 13 more; every field: memo commands info search all
+**Returns:** hit — kind, ref, provider, account, title, timestamp, excerpt, url, and 15 more; every field: memo commands info search all
 
 **Example:** `memo search all 'budget harbour'`, `memo search all 'content:invoice' --only mail,notes --json`
 

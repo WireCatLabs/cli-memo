@@ -157,6 +157,16 @@ memo relationships scan HRB --source all --yes  # proposes them for review
 memo review kind:relationship
 ```
 
+A person proposed because they write in a project's group says which group and how much: "wrote 40 messages in
+«Sales» (25 people)". When a scan proposes two or more senders of one group, it prints the command that lists them
+together, so you can decide that group's people in one go, apart from the people you work with directly:
+
+```sh
+memo review list via:chat:max/1/-100                # that group's senders; next names the confirm command
+memo review confirm 17070-17074                     # all of them
+memo review reject 17070-17074 --reason "not this project"
+```
+
 Proposals wait until you confirm them in `memo review`, and they do not appear in a person's context before that. A
 pair you rejected is never proposed again. People are matched by the account that wrote, never by a name in a text.
 Common free mail domains, such as Gmail, are never used for suggestions.

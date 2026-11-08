@@ -29,6 +29,43 @@ the API.
 - The morning-digest skill copies `scope`, `tasks` and `health` from the agenda into the report, writes one `task`
   item per agenda task with its `task:` reference, and lists only people as owed replies.
 
+## 0.131.61 — 08.11.2026
+
+### Added
+
+- cli-core 0.612.0.
+- **Write-time enrichment, off by default** (cli-core's `models consents`): `memo models consents show`,
+  `set <openai|anthropic> --model <m>` (a preview until `--yes`) and `revoke`. With it on, `memo sync` sends the notes,
+  documents and mail not yet enriched to the chosen provider, up to 600 of each a run, before it embeds.
+- **`memo sync` reports what enrichment sent**, notes and mail together, so a failure is not silent:
+  `enrichment: {status, provider, model, sent, enriched, failed, left, input_tokens, output_tokens, cost_usd,
+  reason}` in `--json`, and a line in the text. It is there even when the embedding model is missing. Absent while
+  enrichment is off.
+- memo reads the provider key from its keyring entry (`cli-memo` / `embeddings:<provider>`, then `cli-memo` /
+  `<provider>`) after `OPENAI_API_KEY` / `ANTHROPIC_API_KEY`, so a desktop started from the launcher finds it.
+
+## 0.131.60 — 08.11.2026
+
+### Fixed
+
+- **An exact word that only word search finds stays on the page of `search all`.** After the first hit of each
+  source, hits were ordered by the search model's score, and a hit only words found had none, so it sorted behind
+  every hit the model found. It now takes the score of the hit above it in its own source (cli-core 0.611.0).
+
+## 0.131.59 — 08.11.2026
+
+### Added
+
+- **A project's group senders can be decided together.** A person `relationships scan` proposes because they write
+  in a project's group now says which group and how much ("wrote 40 messages in «Sales» (25 people)"), and the
+  proposal's evidence leads with the group. When a scan proposes two or more senders of one group, its answer lists
+  the group under `groups`, with the command to review them: `memo review list via:<chat>` lists the proposals whose
+  evidence holds that reference, and its `next` step confirms them all in one `memo review confirm`. A pending
+  proposal takes the new reason on the next scan (cli-core 0.610.0's `chat-senders@3`).
+- **`search all` also finds invoices, payments, orders, contracts, subscriptions, products and wallets** by the words
+  of their numbers and names, as the `business` source (cli-core 0.610.0). Like deals, it reads title words only, so
+  a query with `?`, `-` or `*` leaves it out with the reason.
+
 ## 0.131.58 — 08.11.2026
 
 ### Changed — may break callers
