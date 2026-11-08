@@ -23,8 +23,8 @@ const fixture = (extra: NodeJS.ProcessEnv = {}) => {
 it("saves the owner's template and shows it, as JSON", async () => {
   const { run, streams, file } = fixture()
 
-  await run("edit", KEY, "--channel", "text", "--language", "ru", "--file", file, "--json")
-  await run("show", KEY, "--channel", "text", "--language", "ru", "--json")
+  await run("edit", KEY, "--channel", "text", "--locale", "ru", "--file", file, "--json")
+  await run("show", KEY, "--channel", "text", "--locale", "ru", "--json")
 
   const shown = JSON.parse(streams.stdout.at(-1) ?? "{}")
   expect(shown.item).toMatchObject({ key: KEY, channel: "text", source: "stored", body: "МОЙ {{ summary }}" })
@@ -33,12 +33,12 @@ it("saves the owner's template and shows it, as JSON", async () => {
 it("refuses a template change under MEMO_READ_ONLY, and still shows and previews", async () => {
   const { run, file } = fixture({ MEMO_READ_ONLY: "1" })
 
-  await expect(run("edit", KEY, "--channel", "text", "--language", "ru", "--file", file)).rejects.toMatchObject({
+  await expect(run("edit", KEY, "--channel", "text", "--locale", "ru", "--file", file)).rejects.toMatchObject({
     code: "permission_error",
     message: expect.stringContaining("MEMO_READ_ONLY"),
   })
-  await expect(run("reset", KEY, "--channel", "text", "--language", "ru")).rejects.toMatchObject({
+  await expect(run("reset", KEY, "--channel", "text", "--locale", "ru")).rejects.toMatchObject({
     code: "permission_error",
   })
-  await run("preview", KEY, "--channel", "telegram", "--language", "ru", "--json")
+  await run("preview", KEY, "--channel", "telegram", "--locale", "ru", "--json")
 })

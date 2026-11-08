@@ -402,6 +402,21 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "schedule run": ["memo schedule run digest"],
   "schedule remove": ["memo schedule remove digest"],
   "schedule exec": ["memo schedule exec ~/.local/state/cli-memo/schedules/digest/schedule.json"],
+  "templates list": ["memo templates list", "memo templates list channel:telegram source:stored --json"],
+  "templates show": [
+    "memo templates show report/morning-digest --channel telegram",
+    "memo templates show report/weekly-gaps --channel email --locale en --json",
+  ],
+  "templates edit": [
+    "memo templates edit report/morning-digest --channel telegram",
+    "memo templates edit report/morning-digest --channel text --file digest.text.liquid",
+    "memo templates edit report/morning-digest --channel telegram --undo",
+  ],
+  "templates preview": [
+    "memo templates preview report/morning-digest --channel telegram",
+    "memo templates preview report/morning-digest --channel email --locale en --file draft.liquid",
+  ],
+  "templates reset": ["memo templates reset report/morning-digest --channel telegram"],
   "agents list": ["memo agents list agent:claude-code --limit 20"],
   "mcp serve": ["memo mcp serve", "memo mcp serve --http --public-url https://laptop.example.ts.net"],
   "mcp revoke": ["memo mcp revoke --json"],
