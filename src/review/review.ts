@@ -26,6 +26,9 @@ export const REVIEW_QUERY = {
     termField("kind", "kw", "kind:relationship,fact"),
     termField("by", "kw", "by:agent"),
     termField("status", "enum", "status:proposed", { values: STATUSES }),
+    termField("via", "ref", 'via:"chat:max/1/-100"', {
+      relation: "a reference among the evidence, such as the group a scan found its senders in",
+    }),
   ],
 } as const satisfies QueryRegistry
 
@@ -46,10 +49,12 @@ export const filterOf = async (
       param: "kind",
     })
   const by = terms.get("by")
+  const via = terms.get("via")
   return {
     ...(project === undefined ? {} : { project: await canonicalProject(store, project) }),
     ...(kinds?.length ? { kinds } : {}),
     ...(by === undefined ? {} : { by: by === "agent" || by === "rule" ? by : { bot: by } }),
+    ...(via === undefined ? {} : { via }),
     status: (terms.get("status") as (typeof STATUSES)[number] | undefined) ?? "proposed",
   }
 }

@@ -6,6 +6,15 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **A project's group senders can be decided together.** A person `relationships scan` proposes because they write
+  in a project's group now says which group and how much ("wrote 40 messages in «Sales» (25 people)"), and the
+  proposal's evidence leads with the group. When a scan proposes two or more senders of one group, its answer lists
+  the group under `groups`, with the command to review them: `memo review list via:<chat>` lists the proposals whose
+  evidence holds that reference, and its `next` step confirms them all in one `memo review confirm`. A pending
+  proposal takes the new reason on the next scan (cli-core 0.609.0's `chat-senders@3`).
+
 ## 0.131.54 — 08.11.2026
 
 ### Fixed

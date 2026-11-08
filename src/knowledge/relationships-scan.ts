@@ -48,10 +48,30 @@ const projectsOf = async (store: MessageStore, reference: string | undefined): P
   return [(await projectOf(store, reference)).ref]
 }
 
+type Proposal = LinkScanResult["proposals"][number]
+
+/** The chats two or more proposed people write in, for `review list via:<chat>` to decide them together. */
+const groupsOf = (proposals: readonly Proposal[], label: (ref: string | null) => string | null) => {
+  const people = new Map<string, number>()
+  for (const one of proposals) {
+    const chat = one.evidence[0]
+    if (!one.from.startsWith("person:") || !chat?.startsWith("chat:")) continue
+    if (!one.signals.some((signal) => signal.scorer.startsWith("chat-senders@"))) continue
+    people.set(chat, (people.get(chat) ?? 0) + 1)
+  }
+  return [...people]
+    .filter(([, count]) => count >= 2)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([chat, count]) => ({ chat, title: label(chat), people: count, review: `memo review list via:${chat}` }))
+}
+
 const scanned = async (store: MessageStore, scans: LinkScanResult[], written: boolean) => {
   const label = await labelsFor(
     store,
-    scans.flatMap((scan) => [scan.project, ...scan.proposals.flatMap((one) => [one.from, one.to])]),
+    scans.flatMap((scan) => [
+      scan.project,
+      ...scan.proposals.flatMap((one) => [one.from, one.to, one.evidence[0] ?? null]),
+    ]),
   )
   return {
     written,
@@ -70,6 +90,7 @@ const scanned = async (store: MessageStore, scans: LinkScanResult[], written: bo
         signals: one.signals,
         evidence: one.evidence,
       })),
+      groups: written ? groupsOf(scan.proposals, label) : [],
       skipped: scan.skipped,
     })),
   }
@@ -78,13 +99,14 @@ const scanned = async (store: MessageStore, scans: LinkScanResult[], written: bo
 const scanText = ({ written, scans }: Awaited<ReturnType<typeof scanned>>) =>
   [
     written ? "Proposed for your review (memo review):" : "Nothing written; --yes proposes these for your review:",
-    ...scans.flatMap(({ project, title, proposals, skipped }) => [
+    ...scans.flatMap(({ project, title, proposals, groups, skipped }) => [
       `${title ?? project ?? "people by shared mail domain"}: ${proposals.length} to propose; skipped ` +
         `${skipped.confirmed} linked, ${skipped.rejected} rejected, ${skipped.belowThreshold} weak, ` +
         `${skipped.overLimit} over the limit`,
       ...proposals.map(
         (one) => `  ${one.score.toFixed(2)}  ${one.title}${one.id === null ? "" : `  ${one.id}`} ${one.state}`,
       ),
+      ...groups.map((one) => `  ${one.people} senders of ${one.title ?? one.chat}, to decide together: ${one.review}`),
     ]),
   ].join("\n")
 

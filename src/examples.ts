@@ -283,6 +283,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo review list project:HRB",
     "memo review list kind:relationship,fact by:agent",
     "memo review list kind:invoice,payment --compact",
+    "memo review list via:chat:max/1/-100",
   ],
   "review show": ["memo review show 17079", "memo review show 17080 --brief --json"],
   "review confirm": [

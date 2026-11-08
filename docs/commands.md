@@ -3762,7 +3762,7 @@ memo review list [query] [options]
 
 **Returns:** memo proposal — id, kind, status, title, project, project_title, source, owner_only, and 11 more; every field: memo commands info review list
 
-**Example:** `memo review list project:HRB`, `memo review list kind:relationship,fact by:agent`, `memo review list kind:invoice,payment --compact`
+**Example:** `memo review list project:HRB`, `memo review list kind:relationship,fact by:agent`, `memo review list kind:invoice,payment --compact`, `memo review list via:chat:max/1/-100`
 
 ### `memo review show`
 
