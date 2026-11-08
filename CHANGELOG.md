@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.60 — 08.11.2026
+
 ### Fixed
 
 - **An exact word that only word search finds stays on the page of `search all`.** After the first hit of each
