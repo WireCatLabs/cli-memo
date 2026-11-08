@@ -31,6 +31,11 @@ export const LOCAL_OPENS: Partial<Record<RefKindName, string[]>> = {
   deal: ["memo", "deals", "show"],
   lead: ["memo", "leads", "show"],
   pipeline: ["memo", "pipelines", "show"],
+  product: ["memo", "products", "show"],
+  contract: ["memo", "contracts", "show"],
+  subscription: ["memo", "subscriptions", "show"],
+  wallet: ["memo", "wallets", "show"],
+  transaction: ["memo", "transactions", "show"],
 }
 
 /** The permission key of the memo command that opens a kind, such as `invoices.show`. */

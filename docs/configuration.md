@@ -147,8 +147,8 @@ lane out.
 
 `memo show` refuses a reference whose own command a key denies: with `"invoices": "deny"` (or `invoices.show`) an
 agent's `memo show invoice:4` is a `permission_error`, the same as `memo invoices show invoice:4`. The same holds for
-notes, people (`context`), organizations, projects, tasks, facts, memories, messages, payments, orders, deals, leads
-and pipelines.
+notes, people (`context`), organizations, projects, tasks, facts, memories, messages, payments, orders, deals, leads,
+pipelines, products, contracts, subscriptions, wallets and transactions.
 
 Supported commands stay visible with their current availability. Saved permission changes take effect
 on existing connections too. `memo mcp serve --permission notes.edit=deny` tightens one key for that server
