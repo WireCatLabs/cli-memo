@@ -7,6 +7,7 @@ import {
   plainQuery,
   questionLookup,
   type SearchAllFound,
+  type SearchAllItem,
   type SearchedResource,
   searchAll,
   searchNotesOf,
@@ -211,30 +212,65 @@ interface EverywhereExtras {
   tasksIncomplete: boolean
 }
 
+/** Pages read past hits the caller may not see; a page short of `limit` after them says `hasMore`. */
+const PAGES_PAST_HIDDEN = 5
+
+/**
+ * A page of `limit` hits the caller may see, reading the next pages while hidden hits leave it short, so `--limit`
+ * is not spent on what is left out.
+ */
+const allowedPage = async (
+  ask: (offset?: number) => Promise<SearchAllFound>,
+  limit: number,
+  shows: (item: SearchAllItem) => boolean,
+): Promise<SearchAllFound> => {
+  const first = await ask()
+  let items = first.items.filter(shows)
+  let page = first
+  for (let read = 1; items.length < limit && page.hasMore && page.nextOffset !== undefined; read++) {
+    if (read > PAGES_PAST_HIDDEN) break
+    page = await ask(page.nextOffset)
+    items = items.concat(page.items.filter(shows))
+  }
+  const { nextOffset: _, ...rest } = first
+  return { ...rest, items: items.slice(0, limit), hasMore: items.length > limit || page.hasMore }
+}
+
 /** Messages, mail, notes and calendar events ranked together, with the open tasks that point at a hit. */
 export const searchEverywhere = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
-  { text, limit, only, exact, timezone, plainOrder }: QueryInput & { only?: SearchedResource[] },
+  {
+    text,
+    limit,
+    only,
+    exact,
+    timezone,
+    plainOrder,
+    shows,
+  }: QueryInput & { only?: SearchedResource[]; shows?: (item: SearchAllItem) => boolean },
 ): Promise<SearchAllFound & EverywhereExtras> => {
   const accounts = await store.accounts.accounts()
   // Group lists belong to tg; model downloads belong to memo.
   const messenger = { app: { ...APP, command: "tg" }, hintCommand: "memo" }
-  const found = await searchAll(
-    store,
-    MEMO,
-    {
-      text,
-      limit,
-      env,
-      ...(only === undefined ? {} : { only }),
-      ...(exact ? { exact: true } : {}),
-      ...(timezone === undefined ? {} : { timezone }),
-    },
-    messenger,
-    (query) => searchStore(store, MEMO, query, messenger),
-    meaningLane({ env, store: async () => store, messenger: { app: { command: "memo" } } }),
-  )
+  const ask = (offset?: number) =>
+    searchAll(
+      store,
+      MEMO,
+      {
+        text,
+        limit,
+        env,
+        ...(offset === undefined ? {} : { offset }),
+        ...(only === undefined ? {} : { only }),
+        ...(exact ? { exact: true } : {}),
+        ...(timezone === undefined ? {} : { timezone }),
+      },
+      messenger,
+      (query) => searchStore(store, MEMO, query, messenger),
+      meaningLane({ env, store: async () => store, messenger: { app: { command: "memo" } } }),
+    )
+  const found = shows === undefined ? await ask() : await allowedPage(ask, limit, shows)
   const tasks: EverywhereExtras["tasks"] = []
   let tasksIncomplete = false
   const sources = found.items.map((item) => item.ref)

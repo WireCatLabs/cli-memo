@@ -8,6 +8,7 @@ import type { Command } from "commander"
 import * as v from "valibot"
 import { itemAnswer } from "../answer.js"
 import { errorObject, throwParseFailures } from "../failure.js"
+import { grantLevels } from "./granted.js"
 
 export type ProgramFactory = (options: { env: NodeJS.ProcessEnv; streams: Streams }) => Command
 
@@ -54,11 +55,12 @@ export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramF
       const { file: _, ...entries } = tool.input.entries
       tool.input = v.object(entries)
     }
-  const runner: AgentProgram = {
+  const runnerFor = (levels: Record<string, Level>): AgentProgram => ({
     commands,
     run: async (argv, environment) => {
       const streams = captureStreams()
       const fresh = createProgram({ streams, env: environment.env ?? env })
+      grantLevels(fresh, levels)
       let rendered = false
       provide(fresh, {
         ...environmentOf(fresh),
@@ -106,7 +108,7 @@ export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramF
         return 1
       }
     },
-  }
+  })
   return {
     tools,
     availability: (path: readonly string[], levels: Record<string, Level>) => {
@@ -123,7 +125,7 @@ export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramF
     program,
     run: async (path: readonly string[], input: Record<string, unknown>, levels: Record<string, Level>) =>
       inRun({ runId: randomUUID(), command: path.join(" "), startedAt: Date.now() }, () =>
-        runCommandForAgent(runner, path, stdin(path) ? { ...input, file: "-" } : input, {
+        runCommandForAgent(runnerFor(levels), path, stdin(path) ? { ...input, file: "-" } : input, {
           stdin,
           authority,
           profile: "",
