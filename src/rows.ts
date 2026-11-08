@@ -15,6 +15,12 @@ const fact: RowShape = {
   text: ["text"],
 }
 
+/** An order or an invoice, with a row per line under it. */
+const LINED: RowShape = {
+  columns: [{ field: "ref" }, { field: "title" }, { field: "status" }, { field: "review" }],
+  sections: { lines: "memo_money_line" },
+}
+
 /**
  * memo's rows by command path. Most of memo's answers are cli-core's shared entities (note, memory, task, hit), whose
  * rows cli-core will not take from an app, so memo keys its own by the command that answers them.
@@ -109,6 +115,15 @@ export const ROWS: Readonly<Record<string, RowShape>> = {
   show: {
     columns: [{ field: "ref" }, { field: "kind" }, { field: "state" }, { field: "title" }, { field: "open.line" }],
   },
+  "wallets list": {
+    columns: [{ field: "ref" }, { field: "title" }, { field: "balance.amount" }, { field: "balance.currency" }],
+  },
+  "orders show": LINED,
+  "orders lines add": LINED,
+  "orders lines remove": LINED,
+  "invoices show": LINED,
+  "invoices lines add": LINED,
+  "invoices lines remove": LINED,
 }
 
 /** Rows for the lists inside an item answer, by the entity its row's `sections` names. */
@@ -137,6 +152,16 @@ const SECTION_ROWS: Readonly<Record<string, RowShape>> = {
       { field: "close_date", as: "day" },
     ],
     text: ["title"],
+  },
+  memo_money_line: {
+    columns: [
+      { field: "position" },
+      { field: "quantity" },
+      { field: "unit_price" },
+      { field: "amount" },
+      { field: "product" },
+    ],
+    text: ["description"],
   },
   memo_evidence_person: {
     columns: [{ field: "person" }, { field: "name" }, { field: "items", as: "count", tag: "items" }],

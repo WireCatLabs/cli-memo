@@ -50,10 +50,16 @@ export const businessStore = async (prefix: string) => {
     await made.parseAsync([...args, "--json"], { from: "user" })
     return envelopeOf(streams.stdout.join("")).item as Record<string, unknown>
   }
+  /** The owner's run as both streams, for what a command says beside its answer. */
+  const streamsOf = async (stdin: string | undefined, ...args: string[]) => {
+    const { made, streams } = program(OWNER, stdin)
+    await made.parseAsync(args, { from: "user" })
+    return { stdout: streams.stdout.join(""), stderr: streams.stderr.join("") }
+  }
   const text = async (...args: string[]) => {
     const { made, streams } = program(OWNER)
     await made.parseAsync(args, { from: "user" })
     return streams.stdout.join("")
   }
-  return { dir, env, run, item, items, piped, text, client: client.ref }
+  return { dir, env, run, item, items, piped, text, streamsOf, client: client.ref }
 }

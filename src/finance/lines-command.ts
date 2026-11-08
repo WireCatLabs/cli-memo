@@ -5,7 +5,7 @@ import type { Command } from "commander"
 import { type answers, itemAnswer } from "../answer.js"
 import { byOption, whoRuns } from "../author.js"
 import { positive } from "../options.js"
-import { given, json } from "./written.js"
+import { given, json, needed } from "./written.js"
 
 type By = Awaited<ReturnType<typeof whoRuns>>
 
@@ -58,27 +58,29 @@ export const lineCommands = (
         effects: LOCAL_WRITE,
         output: { entity: kind },
         literal_after_dashes: true,
-      }).option("--product <product>", "the product or service it is: its name and price are copied onto the line"),
+      })
+        .option("--product <product>", "the product or service it is: its name and price are copied onto the line")
+        .option("--amount <decimal>", "the price of one, such as 10000.00; the product's when left out with --product"),
     ),
   )
     .description(
       `add a line at the end of ${has}: quantity × price, and the total becomes the sum of the lines. With ` +
-        `--product its name and price are copied, so a later price change leaves the line as it is. ${who}`,
+        `--product its name and price are copied, so a later price change leaves the line as it is, and --amount ` +
+        `sets another price; without --product, --amount is needed. ${who}`,
     )
     .summary(`add a line to ${one}`)
     .argument(`<${kind}>`, `${kind}:<id>`)
     .argument("<quantity>", "how many, a decimal such as 12 or 1.5")
-    .argument("[price]", "the price of one, a decimal such as 10000.00; the product's when left out")
     .argument("[description...]", "what the line is, in a few words; the product's name when left out")
     .action(
       async (
         ref: string,
         quantity: string,
-        price: string | undefined,
         words: string[],
-        options: { product?: string; asOwner?: boolean; json?: boolean },
+        options: { product?: string; amount?: string; asOwner?: boolean; json?: boolean },
         command: Command,
       ) => {
+        if (options.product === undefined) needed(options.amount, "--amount", "the price of one, or --product")
         const by = await whoRuns(command, env, { asOwner: options.asOwner, question: asker(ref) })
         await run(options.json, async (store) =>
           itemAnswer(
@@ -86,7 +88,7 @@ export const lineCommands = (
               by,
               quantity,
               ...given({
-                unitPrice: price,
+                unitPrice: options.amount,
                 description: words.length > 0 ? words.join(" ") : undefined,
                 product: options.product,
               }),

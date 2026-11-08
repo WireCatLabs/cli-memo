@@ -3,7 +3,7 @@ import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { WALLET_KINDS } from "@wirecat/cli-core"
 import { LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
-import type { MessageStore, WalletFilter } from "@wirecat/cli-core/store"
+import type { MessageStore, Wallet, WalletFilter } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { authorOf, byOption, whoRuns } from "../author.js"
@@ -18,7 +18,6 @@ export const WALLET_QUERY = {
   fields: [
     termField("kind", "enum", "kind:card", { values: WALLET_KINDS }),
     termField("currency", "kw", "currency:RUB"),
-    termField("closed", "bool", "closed:false"),
   ],
 } as const satisfies QueryRegistry
 
@@ -31,9 +30,29 @@ export const listWallets = async (
   const filter: WalletFilter = given({
     kind: terms.get("kind") as WalletFilter["kind"],
     currency: terms.get("currency"),
-    closed: terms.has("closed") ? terms.get("closed") === "true" : undefined,
   })
   return pageOf("wallets list", limit, (most) => store.wallets.list({ ...filter, limit: most }))
+}
+
+/**
+ * An imported wallet's opening balance as its source record gives it: only the owner sets the wallet's own, so until
+ * then `wallets show` prints the source's beside it.
+ */
+const sourceSays = async (store: MessageStore, wallet: Wallet) => {
+  if (wallet.openingBalance !== null || !wallet.source.startsWith("import:")) return null
+  const provider = wallet.source.slice("import:".length)
+  for (const { account } of (await store.accounts.accounts()).filter((key) => key.provider === provider)) {
+    const [record] = await store.records.list({ provider, account, entity: wallet.ref, limit: 1 })
+    const { opening_balance: balance, opening_date: date } = record?.fields ?? {}
+    if (record && typeof balance === "string")
+      return {
+        openingBalance: balance,
+        openingDate: typeof date === "string" ? date : null,
+        record: `${record.type}:${record.externalId}`,
+        account: `${provider}:${account}`,
+      }
+  }
+  return null
 }
 
 /** `memo wallets`: where the owner's money is, with a balance computed from its confirmed, booked transactions. */
@@ -49,7 +68,7 @@ export const walletCommands = (program: Command, streams: Streams, env: NodeJS.P
 
   withQuery(
     json(annotate(wallets.command("list"), { effects: LOCAL_READ })).description(
-      "wallets with their balances today; closed:false leaves out the closed ones",
+      "wallets with their balances today; kind:card lists the cards",
     ),
     WALLET_QUERY,
   )
@@ -64,13 +83,17 @@ export const walletCommands = (program: Command, streams: Streams, env: NodeJS.P
       "the balance up to and including this day, such as 2026-10-31; today when left out",
     ),
   )
-    .description("one wallet with its balance, and beside it what is pending or proposed and not counted yet")
+    .description(
+      "one wallet with its balance, and beside it what is pending or proposed and not counted yet; for an imported " +
+        "wallet whose opening balance you have not set, source_says gives the one its source sent",
+    )
     .summary("one wallet with its balance and what is pending")
     .argument("<wallet>", "wallet:<id>")
     .action((ref: string, options: { untilTime?: string; json?: boolean }) =>
       run(options.json, async (store) => {
         const until = dayOf(options.untilTime)
-        return itemAnswer(await store.wallets.get(ref, until === undefined ? {} : { until }))
+        const wallet = await store.wallets.get(ref, until === undefined ? {} : { until })
+        return itemAnswer({ ...wallet, sourceSays: await sourceSays(store, wallet) })
       }),
     )
 

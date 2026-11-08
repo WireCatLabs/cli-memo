@@ -405,6 +405,7 @@ const OWN_ENTITIES = entityFields({
     "balance",
     "until",
     "pending",
+    "source_says",
     "author",
     "model",
     "source",

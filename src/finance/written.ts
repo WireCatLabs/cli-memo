@@ -2,6 +2,7 @@ import { CliError } from "@wirecat/cli-base"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { byOption } from "../author.js"
+import { jsonOption } from "../options.js"
 import { canonicalProject } from "../vocabulary/project.js"
 
 export interface Written {
@@ -17,8 +18,7 @@ export interface Written {
   json?: boolean
 }
 
-export const json = (command: Command) =>
-  command.option("--json", "print JSON; --json=ref,title keeps only those fields")
+export const json = (command: Command) => jsonOption(command)
 
 export const PROPOSES = "yours is confirmed at once; an agent's waits as proposed for you in memo review"
 
