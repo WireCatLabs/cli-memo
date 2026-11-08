@@ -24,7 +24,8 @@
     "skills",
     "install",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "THIRD_PARTY_NOTICES"
   ],
   "scripts": {
     "build": "tsc --build --force && cli-dev bundle --bin dist/bin/memo.js",

@@ -17,6 +17,9 @@ import { APP } from "../app.js"
 /** About three chunks a second with e5-small on this laptop (2026-10-06): a run stays near three minutes, under a five-minute timer, and the next resumes. */
 export const EMBED_PER_RUN = 600
 
+/** The model EMBED_PER_RUN was measured with; no longer the default, so it is named here. */
+const MEASURED_WITH = "e5-small"
+
 /** A model of unknown speed is taken to be as slow as EmbeddingGemma, so a timer run still ends in time. */
 const SLOWEST_KNOWN = 2
 
@@ -45,8 +48,7 @@ export interface NotesEmbedded {
 const missingModel = (error: unknown, env: NodeJS.ProcessEnv | undefined): string => {
   const named = isCliError(error) ? error.details.model : undefined
   const id = typeof named === "string" ? named : chosenTextModel(env).id
-  const terms = textModels(env).find((model) => model.id === id)?.terms
-  return `the ${id} model is not downloaded — memo models download ${id}${terms ? " --accept-terms" : ""}`
+  return `the ${id} model is not downloaded — memo models download ${id}`
 }
 
 /** Whether the chosen text model is downloaded; an unreadable model choice counts as missing, and doctor names it. */
