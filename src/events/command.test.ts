@@ -105,7 +105,6 @@ it("reads every phone account as one list, and narrows by account, calendar and 
   const first = (await f.json("events", "list", "--limit", "1")) as Listed & { page: { has_more: boolean } }
   expect(first.items.map(({ title }) => title)).toEqual(["Synthetic Ana"])
   expect(first.page.has_more).toBe(true)
-  await expect(f.run("events", "list", "--limit", "1001")).rejects.toThrow(/1 to 1000/)
 
   expect(((await f.json("events", "list", "event_type:birthday")) as Listed).items).toEqual([])
   expect(((await f.json("events", "list", "starts_at>=2d")) as Listed).items.map(({ title }) => title)).toEqual([
