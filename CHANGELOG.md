@@ -6,6 +6,15 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **The morning digest keeps what it found on its own in `internal.gaps`.** For each lead that showed something the
+  agenda did not, the report keeps one line in the owner's language with the section it belonged in and its
+  references. The digest never shows it. Once cli-core ships WireCatLabs/cli-core#2731, the Monday digest also sends
+  the week's gaps along the digest's own routes as one message, and a failed scheduled run sends a notice with the
+  cause and a fix link in place of the English one-liner. Nothing to set up: the routes and the schedule stay as
+  they are.
+
 ## 0.131.62 — 08.11.2026
 
 ### Added
