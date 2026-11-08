@@ -3722,7 +3722,7 @@ memo subscriptions add <name> <amount> <currency> [options]
 | `--customer <party>` | who receives it and pays for it: person:<uid> or organization:<id>; you, when you pay. |
 | `--product <product>` | the product or service it is for: product:<id>. |
 | `--contract <contract>` | the contract it runs under: contract:<id>. |
-| `--every <count-unit>` | how often it is charged: a count and a unit, such as 1-month or 1-year. |
+| `--period <count-unit>` | how often it is charged: a count and a unit, such as 1-month or 1-year. |
 | `--start-date <date>` | the first day it runs, YYYY-MM-DD. |
 | `--trial-end-date <date>` | the day its free trial ends, YYYY-MM-DD. |
 | `--kind <kind>` | receivable (you bill it) or payable (you pay it). |
@@ -3735,7 +3735,7 @@ memo subscriptions add <name> <amount> <currency> [options]
 
 **Returns:** record a subscription; an agent's waits for your review
 
-**Example:** `memo subscriptions add Hosting 990.00 RUB --kind payable --supplier organization:3 --every 1-month --start-date 2026-11-01`, `memo subscriptions add 'Bike rental' 10000.00 RUB --kind receivable --customer organization:3 --every 1-month --trial-end-date 2026-11-14 --status trial`
+**Example:** `memo subscriptions add Hosting 990.00 RUB --kind payable --supplier organization:3 --period 1-month --start-date 2026-11-01`, `memo subscriptions add 'Bike rental' 10000.00 RUB --kind receivable --customer organization:3 --period 1-month --trial-end-date 2026-11-14 --status trial`
 
 ### `memo subscriptions update`
 
@@ -3758,7 +3758,7 @@ memo subscriptions update <subscription> [options]
 | `--customer <party>` | who receives it and pays for it: person:<uid> or organization:<id>; you, when you pay. |
 | `--product <product>` | the product or service it is for: product:<id>. |
 | `--contract <contract>` | the contract it runs under: contract:<id>. |
-| `--every <count-unit>` | how often it is charged: a count and a unit, such as 1-month or 1-year. |
+| `--period <count-unit>` | how often it is charged: a count and a unit, such as 1-month or 1-year. |
 | `--start-date <date>` | the first day it runs, YYYY-MM-DD. |
 | `--trial-end-date <date>` | the day its free trial ends, YYYY-MM-DD. |
 | `--title <title>` | its new name. |
@@ -3769,7 +3769,7 @@ memo subscriptions update <subscription> [options]
 
 **Returns:** change a subscription
 
-**Example:** `memo subscriptions update subscription:5 --status paused`, `memo subscriptions update subscription:5 --every 1-year`
+**Example:** `memo subscriptions update subscription:5 --status paused`, `memo subscriptions update subscription:5 --period 1-year`
 
 ### `memo subscriptions cancel`
 
@@ -4110,11 +4110,12 @@ memo records import <file> [options]
 |---|---|
 | `--dry-run` | check and plan the import; write nothing. a dry run holds the store's write lock and grows the write-ahead log for its length. |
 | `--account <account>` | the source the envelope is for: <provider>:<account> (sheet:rentals) or its source.account alone; phone:<device> for a vCard file. |
+| `--region <country>` | a vCard file's country for phone numbers without +, such as ru or gb; without it they are kept, not matched. |
 | `--json` | print JSON; --json=created,errors keeps only those fields. |
 
 **Returns:** import a source's records; money waits for your review
 
-**Example:** `memo records import payments.jsonl --account rentals --dry-run`, `memo records import envelope.json --account rentals --json`, `memo records import contacts.vcf --account phone:pixel`
+**Example:** `memo records import payments.jsonl --account rentals --dry-run`, `memo records import envelope.json --account rentals --json`, `memo records import contacts.vcf --account phone:pixel --region gb`
 
 ### `memo records check`
 
@@ -4133,6 +4134,7 @@ memo records check <file> [options]
 | Option | What it does |
 |---|---|
 | `--account <account>` | the source the envelope is for: <provider>:<account> (sheet:rentals) or its source.account alone; phone:<device> for a vCard file. |
+| `--region <country>` | a vCard file's country for phone numbers without +, such as ru or gb; without it they are kept, not matched. |
 | `--json` | print JSON; --json=created,errors keeps only those fields. |
 
 **Returns:** check a records file against the store; write nothing

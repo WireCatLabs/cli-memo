@@ -1,12 +1,18 @@
+import { mkdtempSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
+import { captureStreams } from "@wirecat/cli-base"
 import { expect, it } from "vitest"
 import { AGENT, businessStore, OWNER } from "../../test/business.js"
+import { throwParseFailures } from "../failure.js"
+import { createProgram } from "../program.js"
 
 it("confirms the owner's subscription, keeps every price, and makes an agent's new price a proposal of its own", async () => {
   const f = await businessStore("subscriptions")
   const own = await f.item(
     OWNER,
     ...["subscriptions", "add", "Hosting", "990.00", "RUB", "--kind", "payable", "--supplier", f.client],
-    ...["--every", "1-month", "--start-date", "2026-01-01"],
+    ...["--period", "1-month", "--start-date", "2026-01-01"],
   )
   expect(own).toMatchObject({
     review: "confirmed",
@@ -42,11 +48,22 @@ it("keeps an agent's subscription for review and refuses one with no schedule", 
   const proposed = await f.item(
     AGENT,
     ...["subscriptions", "add", "Bike rental", "10000.00", "RUB", "--kind", "receivable", "--customer", f.client],
-    ...["--every", "1-month", "--start-date", "2026-11-01", "--trial-end-date", "2026-11-14", "--status", "trial"],
+    ...["--period", "1-month", "--start-date", "2026-11-01", "--trial-end-date", "2026-11-14", "--status", "trial"],
   )
   expect(proposed).toMatchObject({ review: "proposed", status: "trial", supplier: { owner: true } })
   expect((await f.items(OWNER, "review", "list", "kind:subscription")).map((one) => one.id)).toEqual([proposed.ref])
   await expect(
     f.run(OWNER, "subscriptions", "add", "Hosting", "990.00", "RUB", "--kind", "payable", "--supplier", f.client),
   ).rejects.toMatchObject({ code: "validation_error" })
+})
+
+it("takes a charge's repeat only as --period, so --every keeps the one meaning of a timer's duration", async () => {
+  const root = mkdtempSync(join(tmpdir(), "memo-subscriptions-period-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "store.db"), MEMO_CONFIG_DIR: root, MEMO_STATE_DIR: root }
+  const program = createProgram({ streams: captureStreams(), env })
+  throwParseFailures(program)
+
+  await expect(
+    program.parseAsync(["subscriptions", "add", "Hosting", "990.00", "RUB", "--every", "1-month"], { from: "user" }),
+  ).rejects.toMatchObject({ code: "commander.unknownOption", message: expect.stringContaining("--every") })
 })

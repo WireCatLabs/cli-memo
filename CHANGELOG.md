@@ -17,6 +17,21 @@ the API.
   `edit` and `reset` are the owner's alone: `MEMO_READ_ONLY` and an agent's run are refused. `memo commands` lists
   the group under Automate. The digest's task line gains "без срока: N · открыть" for open tasks with no due date.
 
+## 0.131.66 — 08.11.2026
+
+### Added
+
+- **`memo records import` and `records check` take `--region <country>` for a vCard file** (`ru`, `gb`, in any
+  case): a phone number written without `+` is read in that country, so the contact matches the person the number
+  already names instead of becoming a second one. An envelope names its region in `options.phone_region` instead.
+
+### Changed — may break callers
+
+- **`memo subscriptions add` and `subscriptions update` take `--period <count-unit>` (`1-month`, `1-year`) instead of
+  `--every`**, which shipped in 0.131.64. `--every` in every WireCat tool is a timer's `<duration>`, such as `5m`, and
+  one flag with two kinds of value failed the shared audit. `--every` on subscriptions is now an unknown option, with
+  no alias: rename it in scripts and agents' prompts. The JSON answer's `interval` is unchanged.
+
 ## 0.131.65 — 08.11.2026
 
 ### Fixed

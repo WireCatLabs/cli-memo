@@ -107,7 +107,7 @@ it("refuses memo show of a product, contract, subscription, wallet or transactio
         "payable",
         "--supplier",
         f.client,
-        "--every",
+        "--period",
         "1-month",
       ],
     ),

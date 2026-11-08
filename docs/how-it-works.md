@@ -138,5 +138,5 @@ lock: an agent that drives a terminal of its own can still answer it.
 Sending sources to an AI provider is opt-in. `memo answers create` prepares sources for your own agent by default. It sends
 text to an AI provider only when you set one up and add `--analyze`, and to a remote provider only
 with `--allow-remote` as well. What your agent does with the text it reads is up to that agent.
-Automatic update and sender-domain checks can also make network requests; [Security](security.md)
-explains what they send and which settings apply.
+The daily update check can also make a network request; [Security](security.md)
+explains what it sends and how to turn it off.

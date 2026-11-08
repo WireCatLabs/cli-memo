@@ -15,8 +15,8 @@ steps:
   - run: memo projects actions add -
     why: stage the payments and promises you read, each citing its message, on stdin; a paid one names the invoice it settles in supersedes
 look:
-  - money marked pattern is a word match; read the cited message before you stage it
-  - a chat held in part; sync it with the line next gives before trusting "nothing open"
+  - an amount or promise marked pattern was found by words; read the cited message before you stage it
+  - a chat the store holds only in part gets a sync line in next; run it before you trust that nothing is open
   - next names at most two chats; read those, not every chat
   - message text stays in the answer; never write it to a file
 ---

@@ -69,6 +69,20 @@ name is never enough to link accounts.
 
 To choose the main note about the person, see [the note about a person](notes.md#the-note-about-a-person).
 
+## Bring in a phone's contacts
+
+Export the contacts from your phone as a vCard file (`.vcf`) and import them under the phone's name:
+
+```sh
+memo records check contacts.vcf --account phone:pixel --region ru
+memo records import contacts.vcf --account phone:pixel --region ru
+```
+
+A contact is linked to the person who already has one of its e-mail addresses or phone numbers, or made a new
+person. A number written without `+`, such as `8 900 000-00-02`, is read in the country `--region` names (`ru`,
+`gb`, `de` and so on, in any case). Without `--region`, such a number is kept but not matched, so the contact can
+become a second entry for someone you already have; the import says which cards these are.
+
 ## Organizations and projects
 
 Organizations and projects are yours, not tied to one messenger account.
@@ -173,7 +187,7 @@ memo review reject 17070-17074 --reason "not this project"
 
 Proposals wait until you confirm them in `memo review`, and they do not appear in a person's context before that. A
 pair you rejected is never proposed again. People are matched by the account that wrote, never by a name in a text.
-Common free mail domains, such as Gmail, are never used for suggestions.
+Common free mail domains, such as Gmail, are never used for proposals.
 
 ## Meetings in a project
 
@@ -184,7 +198,7 @@ memo projects meetings link HRB 5 --account zoom:ACCOUNT
 memo projects meetings list HRB --source zoom:ACCOUNT
 ```
 
-Name the meeting's account exactly. `confirmed:false` lists the links an agent suggested; to confirm one,
+Name the meeting's account exactly. `confirmed:false` lists the links an agent proposed; to confirm one,
 repeat `link` with the `--fingerprint` value shown in that list.
 
 ## Other names for projects and tags
