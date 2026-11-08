@@ -47,24 +47,15 @@ const PIPELINE_QUERY = {
 } as const satisfies QueryRegistry
 
 /**
- * Each CRM copy's `writes_with`: the CLI and profile that change it on its server (FIND-2416). The profiles are read
- * once per command. In a group, a profile whose account the group does not hold is never named.
+ * Each CRM copy's `writes_with`: the CLI and profile that change it on its server. The profiles are read once per
+ * command. A row lists only the profiles on its own account, and these lists show only the group's rows, so no
+ * profile outside the group is ever named; a list that shows outside rows passes cli-core's `allowed` again.
  */
-const withWriter = async (store: MessageStore, scope: GroupScope | undefined) => {
-  const profiles = await store.accounts.profiles()
-  const profilesFor = storedProfilesFor(profiles)
-  const options =
-    scope === undefined
-      ? {}
-      : {
-          allowed: (tool: string, profile: string) => {
-            const key = profiles[tool]?.[profile]
-            return key !== undefined && scope.has(key)
-          },
-        }
+const withWriter = async (store: MessageStore) => {
+  const profilesFor = storedProfilesFor(await store.accounts.profiles())
   return <T extends { account: AccountKey | null }>(item: T) => ({
     ...item,
-    writesWith: writesWithOf(item.account, profilesFor, options),
+    writesWith: writesWithOf(item.account, profilesFor),
   })
 }
 
@@ -86,7 +77,7 @@ export const listDeals = async (
     ...(terms.has("organization") ? { organization: terms.get("organization") as string } : {}),
   }
   const scope = await groupScopeOf(store, env)
-  const writer = await withWriter(store, scope)
+  const writer = await withWriter(store)
   return pageOf(command, limit, async (most) =>
     (
       await store.deals.list({ ...filter, ...(scope === undefined ? {} : { accounts: scope.accounts }), limit: most })
@@ -377,7 +368,7 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
         const kind = terms.get("kind") as DealKind | undefined
         const scope = await groupScopeOf(store, env)
         const all = (await store.deals.pipelines(kind === undefined ? {} : { kind })).filter(inScope(scope))
-        const writer = await withWriter(store, scope)
+        const writer = await withWriter(store)
         return wholeList(
           "pipelines list",
           (name === undefined ? all : all.filter((one) => one.name.toLocaleLowerCase() === name)).map(writer),
