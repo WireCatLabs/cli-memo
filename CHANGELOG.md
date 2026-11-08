@@ -11,8 +11,39 @@ the API.
 - **The morning digest answers with one `wirecat.report/1` JSON document** instead of text: sections and typed
   items (reply, question, task, fact, risk, money, decision, meeting) with who, topic and what to do, and a list of
   stale sources. WireCat renders it per channel with the owner's headings, emoji and layout (cli-core's report
-  renderer), so the agent no longer writes any of them. What to do: memo needs a cli-core that renders
-  reports; with an older one the JSON would be delivered as it is.
+  renderer, 0.609.0), so the agent no longer writes any of them.
+
+## 0.131.57 — 08.11.2026
+
+### Fixed
+
+- **memo embeds and searches with the model chosen by `memo models set`.** A downloaded EmbeddingGemma or
+  e5-large was never used: memo embedded and searched with e5-small whatever was chosen, and `embedding_model` was
+  not a memo setting. The next `memo sync` runs give your notes and mail vectors from the new model a part at a time;
+  the old model's vectors are kept, so going back is instant.
+- **The missing-model message names the model that is missing** and the exact download, with `--accept-terms` for a
+  model that needs it; it always named e5-small.
+- **A sync with a slower model embeds fewer chunks a run**, so a timer run still ends within its five minutes.
+- `memo doctor` reports the search model in use, not always e5-small.
+
+## 0.131.56 — 08.11.2026
+
+### Fixed
+
+- **A question with a time in it finds what its words hold again, with no search model downloaded.** "When is the
+  steering committee meeting? Answer as HH:MM" and `steering committee 10:30` found nothing: the time made the
+  question look like syntax, so every word had to be in one record. When nothing holds every word of a short search,
+  `search all` now names the word no record holds (cli-core 0.609.0).
+- **`search all` gives the page to the best hits of every source.** Mail and notes took turns, five each, however
+  weak one source's hits were, and mail asked the search model a different question than notes did. A hit only words
+  found keeps its place among its source's hits (cli-core 0.609.0).
+
+### Added
+
+- **`memo models set` and `memo models add`** come with cli-core 0.609.0; memo itself still embeds and searches with
+  e5-small until it follows the chosen model.
+
+## 0.131.55 — 08.11.2026
 
 ### Fixed
 
@@ -21,8 +52,6 @@ the API.
   remote client's included), and `--export` wrote a file into any folder the agent named. Both options are left out
   of the MCP catalogue, and a run over MCP refuses them with `permission_error` before the note is saved; an agent
   gives the note as `text`.
-
-## 0.131.55 — 08.11.2026
 
 ## 0.131.54 — 08.11.2026
 

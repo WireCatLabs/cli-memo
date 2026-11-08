@@ -4024,9 +4024,9 @@ memo models list [query] [options]
 |---|---|
 | `--json` | print JSON. |
 
-**Returns:** model — id, kind, title, languages, size_bytes, downloaded, default, path, and 1 more; every field: memo commands info models list
+**Returns:** model — id, kind, title, languages, size_bytes, downloaded, default, path, and 6 more; every field: memo commands info models list
 
-**Next usually:** `memo models download <model>`
+**Next usually:** `memo models download <model>`, `memo models set <model>`
 
 **Example:** `memo models list kind:text --json`
 
@@ -4050,9 +4050,61 @@ memo models download <model> [options]
 | `--accept-terms` | accept the model's licence terms, for a model that has its own. |
 | `--json` | print JSON. |
 
-**Returns:** model — id, kind, title, languages, size_bytes, downloaded, default, path, and 1 more; every field: memo commands info models download
+**Returns:** model — id, kind, title, languages, size_bytes, downloaded, default, path, and 6 more; every field: memo commands info models download
 
-**Example:** `memo models download e5-small`
+**Next usually:** `memo models set <model>`
+
+**Example:** `memo models download e5-small`, `memo models download e5-large`
+
+### `memo models set`
+
+make a downloaded text model the one every embed and every search by meaning uses, in every WireCat CLI. Each model keeps its own vectors: the next syncs embed what the new one lacks, and switching back is instant
+
+This command changes the local store or your files.
+
+```sh
+memo models set <model> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `model` | required | a downloaded text model id from models list. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** model chosen — id, kind, title, languages, size_bytes, downloaded, default, path, and 9 more; every field: memo commands info models set
+
+**Next usually:** `memo models download <model>`
+
+**Example:** `memo models set e5-large`
+
+### `memo models add`
+
+add an ONNX embedding model from Hugging Face, pinned and checked by sha256
+
+This command changes the local store or your files.
+
+```sh
+memo models add <id> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `id` | required | the id to give it: a-z, 0-9, . _ -. |
+
+| Option | What it does |
+|---|---|
+| `--payload <json>` | where the model is and how to run it, as JSON (below). |
+| `--offline` | refuse a call that needs the network. |
+| `--json` | print JSON. |
+
+**Returns:** model — id, kind, title, languages, size_bytes, downloaded, default, path, and 6 more; every field: memo commands info models add
+
+**Next usually:** `memo models download <model>`, `memo models set <model>`
+
+**Example:** `memo models add e5-base --payload '{"repository":"Xenova/multilingual-e5-base","onnx":"onnx/model_quantized.onnx","dims":768,"pooling":"mean","prefix":{"query":"query: ","passage":"passage: "}}'`
 
 ## `memo search`
 
