@@ -93,7 +93,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   ],
   "models list": ["memo models list kind:text --json"],
   "commands info": ["memo commands info --json"],
-  "models download": ["memo models download e5-small", "memo models download e5-large"],
+  "models download": ["memo models download embeddinggemma", "memo models download e5-small"],
   "models set": ["memo models set e5-large"],
   "models consents show": ["memo models consents show --json"],
   "models consents set": [

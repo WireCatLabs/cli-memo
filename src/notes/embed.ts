@@ -4,7 +4,6 @@ import { isCliError, type KeyringStore } from "@wirecat/cli-base"
 import {
   chosenTextModel,
   conversationsService,
-  DEFAULT_TEXT_MODEL,
   embeddingsService,
   embedMail as embedMailChunksOf,
   embedNotes as embedNoteChunksOf,
@@ -18,6 +17,9 @@ import { APP } from "../app.js"
 /** About three chunks a second with e5-small on this laptop (2026-10-06): a run stays near three minutes, under a five-minute timer, and the next resumes. */
 export const EMBED_PER_RUN = 600
 
+/** The model EMBED_PER_RUN was measured with; no longer the default, so it is named here. */
+const MEASURED_WITH = "e5-small"
+
 /** A model of unknown speed is taken to be as slow as EmbeddingGemma, so a timer run still ends in time. */
 const SLOWEST_KNOWN = 2
 
@@ -25,7 +27,7 @@ const SLOWEST_KNOWN = 2
 export const embedPerRun = (env: NodeJS.ProcessEnv = process.env): number => {
   const models = textModels(env)
   const speed = (id: string) => models.find((model) => model.id === id)?.chunksPerSecond ?? SLOWEST_KNOWN
-  const ratio = speed(chosenTextModel(env).id) / speed(DEFAULT_TEXT_MODEL)
+  const ratio = speed(chosenTextModel(env).id) / speed(MEASURED_WITH)
   return Math.max(8, Math.min(EMBED_PER_RUN, Math.round(EMBED_PER_RUN * ratio)))
 }
 
@@ -43,8 +45,7 @@ export interface NotesEmbedded {
 const missingModel = (error: unknown, env: NodeJS.ProcessEnv | undefined): string => {
   const named = isCliError(error) ? error.details.model : undefined
   const id = typeof named === "string" ? named : chosenTextModel(env).id
-  const terms = textModels(env).find((model) => model.id === id)?.terms
-  return `the ${id} model is not downloaded — memo models download ${id}${terms ? " --accept-terms" : ""}`
+  return `the ${id} model is not downloaded — memo models download ${id}`
 }
 
 /** Whether the chosen text model is downloaded; an unreadable model choice counts as missing, and doctor names it. */
