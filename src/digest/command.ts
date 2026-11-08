@@ -39,13 +39,17 @@ export const reviewAgendaCommand = (review: Command, print: Print, streams: Stre
     .summary("the morning digest: watch list, owed replies, mail, meetings, tasks, projects")
     .description(
       "the morning digest, from the store alone with no model call: everything new in what you tagged " +
-        `${WATCH_TAG} (chats, mail threads, people, projects, a meeting's series), replies you owe in messengers and ` +
-        "personal mail, new personal mail, meetings that ended, tasks due or overdue, projects that moved, proposals " +
-        "waiting. Replies owed reach back 7 days; owed mail lists only senders you know (linked to a person with other " +
-        "identities, or written to before), and mail from new senders is one count with the command that lists it. Each item has its reference, who, when, one line of text and why " +
-        "it is there; a section cut by --limit or --max-output-bytes says how many it left out and the command that " +
-        "reads them. Coverage says how fresh " +
-        "each account is, so a quiet account that was not synced does not read as a quiet day",
+        `${WATCH_TAG} (chats, mail threads, people, projects, a meeting's series), replies you owe to people in ` +
+        "messengers and personal mail (not bots or service chats), new personal mail, meetings that ended, tasks, " +
+        "projects that moved, proposals waiting. Tasks are the open ones created since the last morning-digest run (a " +
+        "day back when none ran) and those overdue, due today or due tomorrow, each with who asked and who does it. " +
+        "Replies owed reach back 7 days; owed mail lists only senders you know (linked to a person with other " +
+        "identities, or written to before), and mail from new senders is one count with the command that lists it. " +
+        "Each item has its reference, who, when, one line of text and why it is there; a section cut by --limit or " +
+        "--max-output-bytes says how many it left out and the command that reads them. `scope` says what was read " +
+        "(the window, sources, counts), `tasks` counts each task group, and `health` names each account whose sync " +
+        "failed, that nothing syncs, or that is quiet for longer than usual, so an unsynced account does not read " +
+        "as a quiet day",
     )
     .option("--since-time <time>", "how far back: hours or days (12h, 7d) or a start date (2026-11-01)", "1d")
     .option("--limit <n>", "items per section before the size budget", positive, 25)
