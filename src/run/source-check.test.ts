@@ -2,6 +2,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { CliError, captureStreams } from "@wirecat/cli-base"
+import { openStore } from "@wirecat/cli-core/store"
 import { afterEach, beforeEach, expect, it, vi } from "vitest"
 import { envelopeOf } from "../../test/answer.js"
 import { updateConfig } from "../config.js"
@@ -26,10 +27,11 @@ vi.mock("@wirecat/cli-core/store", async (original) => {
 })
 
 let env: NodeJS.ProcessEnv
+let vault: string
 
 beforeEach(async () => {
   const dir = mkdtempSync(join(tmpdir(), "memo-sync-sources-"))
-  const vault = join(dir, "vault")
+  vault = join(dir, "vault")
   mkdirSync(vault)
   writeFileSync(join(vault, "a.md"), "synthetic note")
   env = {
@@ -59,6 +61,30 @@ it("lets memories follow their sources as the last step of a sync", async () => 
   expect(body.item.source_check).toMatchObject({ checked: 0, raised: 0, changed_refs: [] })
   expect(body.item.source_check_failed).toBeUndefined()
   expect(body.meta).toMatchObject({ complete: true })
+})
+
+it("still offers a change the sync's check took to a later memories check --since-time", async () => {
+  await run("sync", "--no-embed")
+  const store = await openStore({ env })
+  const [note] = (await store.notes.notes({})).items
+  if (!note) throw new Error("Missing note")
+  await store.memories.add({
+    kind: "preference",
+    body: "Synthetic",
+    scope: "work",
+    evidence: [{ ref: note.ref, quote: "synthetic" }],
+    author: "owner",
+    status: "confirmed",
+  })
+  await store.close()
+  writeFileSync(join(vault, "a.md"), "synthetic note, edited")
+  const synced = envelopeOf(await run("sync", "--no-embed", "--json"))
+  expect(synced.item.source_check).toMatchObject({ refreshed: 1, changed_refs: [note.ref] })
+
+  expect(envelopeOf(await run("memories", "check", "--json")).item).toMatchObject({ changed_refs: [] })
+  expect(envelopeOf(await run("memories", "check", "--since-time", "1h", "--json")).item).toMatchObject({
+    changed_refs: [note.ref],
+  })
 })
 
 it("reports a failed source check in the run and still passes the sync", async () => {

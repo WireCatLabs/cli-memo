@@ -112,8 +112,8 @@ cause, or `null`. The causes, from the mildest:
 
 A source that changed but still says the quoted words raises nothing. A record written before memo kept
 signatures raises a review only when its source changed after it was cited. `memo review agenda` lists the reviews
-raised within `--since-time` (a day unless you say) in its `sources` section; one that only grew in place is not
-listed again.
+raised within `--since-time` (a day unless you say) in its `sources` section, with the sources found changed in
+that time that no review names; a review that only grew in place is not listed again.
 
 **Decide it.**
 
@@ -150,7 +150,9 @@ memo memories add 'Delivery is on the 28th' --kind preference --scope work --evi
 
 - `memories check --json` answers `checked`, `baselined`, `raised`, `refreshed`, `closed` and `changed_refs`. The last
   lists changed sources that no findings batch reads yet; read those again and stage what is new with
-  `memo projects actions add`.
+  `memo projects actions add`. A run names a change once, and `memo sync` usually finds it first, so
+  `memories check --since-time 1d` also lists what earlier runs found changed since then. The agenda's `sources`
+  section lists them too.
 - `challenge` opens the record's source review, or adds to the open one, with the evidence, the reason and an optional
   `--suggest`. It changes nothing else.
 - `--quote <ref>=<words>` on `memories add` and `facts add` stores the words of an `--evidence` reference the record

@@ -6,8 +6,9 @@ import type { Command } from "commander"
 import * as v from "valibot"
 import { answers, itemAnswer, withStore } from "../answer.js"
 import { byOption, whoRuns } from "../author.js"
+import { sinceOf } from "../digest/command.js"
 import { positive } from "../options.js"
-import { reviewOf } from "../review/review.js"
+import { REVIEW_SOURCES, reviewOf } from "../review/review.js"
 
 export const QUOTE_HELP =
   "the words an --evidence reference says that this rests on, as <ref>=<words>, one per reference. A later check " +
@@ -64,8 +65,6 @@ export const SOURCE_CHECK = v.strictObject({
   changed_refs: v.array(v.string()),
 })
 
-export const REVIEW_SOURCES = "memo review list kind:memory_source_review"
-
 export const sourceCheckText = (check: SourceCheck) =>
   [
     `${check.checked} sources checked: ${check.raised} raised for review, ${check.refreshed} changed but still say ` +
@@ -85,12 +84,23 @@ export const sourceCheckCommand = (memories: Command, streams: Streams, env: Nod
       "compare what memories and facts cite with the sources now, least recently checked first: a changed source " +
         "that still says the quoted words is signed again; one that changed, went or was replaced raises a " +
         "memory_source_review for you to decide. Status never changes here. changed_refs lists changed sources no " +
-        "findings batch reads yet, for an agent to read again with projects actions add. memo sync runs it too",
+        "findings batch reads yet, for an agent to read again with projects actions add; a run names a change " +
+        "once, so --since-time also lists those an earlier run, such as memo sync's, already found. memo sync runs it too",
     )
     .option("--limit <n>", "most evidence links this run, up to 10000", positive, 500)
+    .option(
+      "--since-time <time>",
+      "changed_refs also lists sources earlier runs found changed since then: 12h, 7d or a date (2026-11-01)",
+    )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action(async (options: { limit: number; json?: boolean }) => {
-      const check = await withStore(env, (store) => store.knowledge.checkSources({ limit: options.limit }))
+    .action(async (options: { limit: number; sinceTime?: string; json?: boolean }) => {
+      const since = options.sinceTime === undefined ? undefined : sinceOf(options.sinceTime)
+      const check = await withStore(env, async (store) => {
+        const found = await store.knowledge.checkSources({ limit: options.limit })
+        if (since === undefined) return found
+        const earlier = await store.knowledge.changedSources({ since, limit: options.limit })
+        return { ...found, changedRefs: [...new Set([...found.changedRefs, ...earlier.map(({ ref }) => ref)])] }
+      })
       print(options.json, itemAnswer(check), sourceCheckText(check))
     })
 }

@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**771 ✅ · 0 ⛔ · 194 ❌** — 212 commands, 753 options.
+**772 ✅ · 0 ⛔ · 194 ❌** — 212 commands, 754 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -495,6 +495,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `memories remove` | `--reason` | ❌ |  |
 | `memories check` |  | ✅ |  |
 | `memories check` | `--limit` | ✅ |  |
+| `memories check` | `--since-time` | ✅ |  |
 | `memories check` | `--json` | ✅ |  |
 | `memories challenge` |  | ✅ |  |
 | `memories challenge` | `--as-owner` | ❌ |  |

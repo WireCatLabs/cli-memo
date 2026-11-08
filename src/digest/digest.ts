@@ -4,8 +4,7 @@ import { formatMeetingReference } from "@wirecat/cli-core/meetings"
 import { projectStatus, servicesFor, storeOnlyDeps } from "@wirecat/cli-core/services"
 import { type AccountKey, type MessageStore, SOURCE_REVIEW_KIND } from "@wirecat/cli-core/store"
 import { APP } from "../app.js"
-import { REVIEW_SOURCES } from "../memories/sources.js"
-import { listReview } from "../review/review.js"
+import { listReview, REVIEW_SOURCES } from "../review/review.js"
 import { counted } from "../review/status.js"
 import { knownSenders } from "./known.js"
 
@@ -398,6 +397,20 @@ export const gatherDigest = async (
       },
     }))
 
+  const reviewCount = sources.length
+  const reviewed = new Set(reviews.items.flatMap((row) => row.evidence))
+  for (const changed of await store.knowledge.changedSources({ since }))
+    if (!reviewed.has(changed.ref))
+      sources.push({
+        item: {
+          ref: changed.ref,
+          who: null,
+          at: changed.checkedAt,
+          excerpt: null,
+          why: "changed since a memory or fact cited it; no findings batch reads it yet",
+        },
+      })
+
   const waiting = await counted(store, env, { status: "proposed" })
   const proposed = await listReview(store, env, [], { limit, page: 1 })
   const proposals: Pending[] = proposed.items.map((row) => ({
@@ -431,7 +444,10 @@ export const gatherDigest = async (
     await section("projects", projects, limit, projectNext),
     await section("sources", sources, limit, [
       REVIEW_SOURCES,
-      ...(sources.length ? [`# decide them: ${REVIEW_SOURCES}`] : []),
+      ...(reviewCount > 0 ? [`# decide them: ${REVIEW_SOURCES}`] : []),
+      ...(sources.length > reviewCount
+        ? [`# read changed sources again: memo memories check --since-time ${days} --json`]
+        : []),
     ]),
     await section("proposals", proposals, limit, ["memo review list"], waiting.total),
   ]
