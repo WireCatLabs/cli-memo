@@ -1003,6 +1003,27 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `models consents set` | `--json` | ❌ |  |
 | `models consents revoke` |  | ✅ |  |
 | `models consents revoke` | `--json` | ❌ |  |
+| `templates list` |  | ✅ |  |
+| `templates list` | `--json` | ✅ |  |
+| `templates show` |  | ✅ |  |
+| `templates show` | `--channel` | ✅ |  |
+| `templates show` | `--locale` | ✅ |  |
+| `templates show` | `--json` | ✅ |  |
+| `templates edit` |  | ✅ |  |
+| `templates edit` | `--channel` | ✅ |  |
+| `templates edit` | `--locale` | ✅ |  |
+| `templates edit` | `--file` | ✅ |  |
+| `templates edit` | `--undo` | ✅ |  |
+| `templates edit` | `--json` | ✅ |  |
+| `templates preview` |  | ✅ |  |
+| `templates preview` | `--channel` | ✅ |  |
+| `templates preview` | `--locale` | ✅ |  |
+| `templates preview` | `--file` | ✅ |  |
+| `templates preview` | `--json` | ✅ |  |
+| `templates reset` |  | ✅ |  |
+| `templates reset` | `--channel` | ✅ |  |
+| `templates reset` | `--locale` | ❌ |  |
+| `templates reset` | `--json` | ❌ |  |
 | `search all` |  | ✅ |  |
 | `search all` | `--limit` | ✅ |  |
 | `search all` | `--exact` | ✅ |  |
