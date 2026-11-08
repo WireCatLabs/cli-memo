@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.59 — 08.11.2026
+
 ### Added
 
 - **A project's group senders can be decided together.** A person `relationships scan` proposes because they write
