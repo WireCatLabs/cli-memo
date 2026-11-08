@@ -18,7 +18,6 @@ export const LANE_GATES: readonly LaneGate[] = [
   {
     lane: "business",
     key: "business.list",
-    // contracts, subscriptions, products and wallets have no memo command yet; their keys guard them once they do.
     kinds: {
       invoice: "invoices.list",
       payment: "payments.list",
