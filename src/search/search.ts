@@ -246,7 +246,7 @@ const groupScoped = async (
 ) => {
   const scope = await groupScopeOf(store, env)
   if (scope === undefined) return undefined
-  const kinds = accountsByKind(scope)
+  const kinds = accountsByKind(scope, await store.business.accounts())
   const wanted = only ?? RESOURCES_SEARCHED
   const kept = wanted.filter((kind) => kinds[kind].length > 0)
   if (kept.length === 0)

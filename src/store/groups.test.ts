@@ -152,3 +152,21 @@ describe("account groups", () => {
     }
   })
 })
+
+describe("business data in a group", () => {
+  it("reads the owner's own in every group, and an import's only where the group holds its account", async () => {
+    const { accountsByKind } = await import("./group.js")
+    const work = { provider: "sheet", account: "rentals" }
+    const outside = { provider: "sheet", account: "home" }
+    const scope = {
+      run: { name: "work" } as never,
+      accounts: [work],
+      has: (key: { provider: string; account: string }) =>
+        key.provider === work.provider && key.account === work.account,
+    }
+    expect(accountsByKind(scope, [work, outside]).business).toEqual([
+      { provider: "business", account: "internal" },
+      work,
+    ])
+  })
+})

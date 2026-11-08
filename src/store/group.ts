@@ -54,14 +54,28 @@ export const groupScopeOf = async (store: MessageStore, env: NodeJS.ProcessEnv):
   return run === undefined ? undefined : scopeIn(run, await memoListContext(store, env))
 }
 
-export type GroupKind = "messages" | "mail" | "notes" | "events" | "crm"
+export type GroupKind = "messages" | "mail" | "notes" | "events" | "crm" | "business"
+
+/** The owner's own invoices, payments and contracts, as cli-core's business lane names them. */
+const OWN_BUSINESS: AccountKey = { provider: "business", account: "internal" }
 
 /**
- * The group's accounts of each kind `search all` reads, and the owner's own notes (`memo notes add`): they belong to
- * no account, so every group reads them (WC-ACCT-13).
+ * The group's accounts of each kind `search all` reads. The owner's own notes (`memo notes add`) and business data
+ * belong to no account, so every group reads them; an import's business data is its account's, in a group only when
+ * the group holds that account (WC-ACCT-13). `imports` are the accounts whose imports made business data.
  */
-export const accountsByKind = (scope: GroupScope): Record<GroupKind, AccountKey[]> => {
-  const kinds: Record<GroupKind, AccountKey[]> = { messages: [], mail: [], notes: [MEMO_ACCOUNT], events: [], crm: [] }
+export const accountsByKind = (
+  scope: GroupScope,
+  imports: readonly AccountKey[] = [],
+): Record<GroupKind, AccountKey[]> => {
+  const kinds: Record<GroupKind, AccountKey[]> = {
+    messages: [],
+    mail: [],
+    notes: [MEMO_ACCOUNT],
+    events: [],
+    crm: [],
+    business: [OWN_BUSINESS, ...imports.filter(scope.has)],
+  }
   for (const key of scope.accounts) {
     const kind = kindIn(key.provider)
     if (kind === "documents") kinds.notes.push(key)
