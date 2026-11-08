@@ -6,6 +6,17 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo templates`: the owner's own templates of the morning digest, per channel and language.**
+  `memo templates list [query...] | show | edit | preview | reset <key> --channel telegram|email|text
+  [--locale ru|en]`, from cli-core's `templates` group, kept in the shared store; `templates list channel:telegram
+  source:stored` narrows the list by `key`, `channel`, `language` and `source`. `edit` opens `$EDITOR` or takes
+  `--file <file>`, and checks the template against a synthetic report and the last real digest before it saves
+  anything; `edit --undo` puts back the body the last change replaced, and `reset` returns to the shipped template.
+  `edit` and `reset` are the owner's alone: `MEMO_READ_ONLY` and an agent's run are refused. `memo commands` lists
+  the group under Automate. The digest's task line gains "без срока: N · открыть" for open tasks with no due date.
+
 ## 0.131.66 — 08.11.2026
 
 ### Added

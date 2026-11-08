@@ -2273,7 +2273,7 @@ memo memories add <text> [options]
 | `--supersedes <ref>` | yours only: the memory this one corrects; it stays, marked superseded. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 12 more; every field: memo commands info memories add
+**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 13 more; every field: memo commands info memories add
 
 **Example:** `memo memories add 'Kai prefers Friday meetings' --kind preference --scope work --evidence note:12`
 
@@ -2294,7 +2294,7 @@ memo memories list [query] [options]
 | `--limit <n>` | most memories, up to 500. Default: `100`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 12 more; every field: memo commands info memories list
+**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 13 more; every field: memo commands info memories list
 
 **Example:** `memo memories list status:proposed kind:preference`
 
@@ -2315,7 +2315,7 @@ memo memories show <ref> [options]
 | `--sources` | read each piece of evidence back: who, when, a short excerpt, and whether it is gone. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 12 more; every field: memo commands info memories show
+**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 13 more; every field: memo commands info memories show
 
 **Example:** `memo memories show memory:4 --sources`
 
@@ -2338,7 +2338,7 @@ memo memories update <ref> [options]
 | `--project <project>` | the project's key or project:<id>; none takes it out of its project. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 12 more; every field: memo commands info memories update
+**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 13 more; every field: memo commands info memories update
 
 **Example:** `memo memories update memory:4 --project SYH`, `memo memories update memory:4 --project none`
 
@@ -2363,7 +2363,7 @@ memo memories confirm <ref> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
-**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 12 more; every field: memo commands info memories confirm
+**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 13 more; every field: memo commands info memories confirm
 
 **Example:** `memo memories confirm memory:4`
 
@@ -2388,7 +2388,7 @@ memo memories invalidate <ref> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
-**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 12 more; every field: memo commands info memories invalidate
+**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 13 more; every field: memo commands info memories invalidate
 
 **Example:** `memo memories invalidate memory:4`
 
@@ -2546,7 +2546,7 @@ memo facts add <statement> [options]
 | `--supersedes <ref>` | the proposed or accepted fact this one corrects; it stays, marked superseded once this one is accepted. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts add
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 14 more; every field: memo commands info facts add
 
 **Example:** `memo facts add 'We moved the launch to spring' --kind decision --evidence 'msg:telegram/1/77/42' --project HRB`
 
@@ -2567,7 +2567,7 @@ memo facts list [query] [options]
 | `--limit <n>` | most facts, up to 500. Default: `100`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts list
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 14 more; every field: memo commands info facts list
 
 **Example:** `memo facts list kind:decision project:HRB`
 
@@ -2588,7 +2588,7 @@ memo facts show <ref> [options]
 | `--sources` | read each piece of evidence back: who, when, a short excerpt, and whether it is gone. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts show
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 14 more; every field: memo commands info facts show
 
 **Example:** `memo facts show fact:4 --sources`
 
@@ -2613,7 +2613,7 @@ memo facts confirm <ref> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
-**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts confirm
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 14 more; every field: memo commands info facts confirm
 
 **Example:** `memo facts confirm fact:4`
 
@@ -2638,7 +2638,7 @@ memo facts revoke <ref> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
-**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts revoke
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 14 more; every field: memo commands info facts revoke
 
 **Example:** `memo facts revoke fact:4`
 
@@ -2663,7 +2663,7 @@ memo facts reverse <ref> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
-**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts reverse
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 14 more; every field: memo commands info facts reverse
 
 **Example:** `memo facts reverse fact:4`
 
@@ -2688,7 +2688,7 @@ memo facts reject <ref> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
-**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 13 more; every field: memo commands info facts reject
+**Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 14 more; every field: memo commands info facts reject
 
 **Example:** `memo facts reject fact:4`
 
@@ -5000,6 +5000,125 @@ memo models consents revoke [options]
 
 **Example:** `memo models consents revoke`
 
+## `memo templates`
+
+the templates of the digest and the other messages sent to you, per channel and language; edit, preview, reset
+
+### `memo templates list`
+
+every template key, channel and language, and whether yours or the shipped one applies
+
+```sh
+memo templates list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** template — key, channel, language, about, renders, source, updated_at, updated_by; every field: memo commands info templates list
+
+**Example:** `memo templates list`, `memo templates list channel:telegram source:stored --json`
+
+### `memo templates show`
+
+the template that applies, yours or the shipped one, and the bodies your changes replaced
+
+```sh
+memo templates show <key> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `key` | required | the template, such as report/morning-digest. |
+
+| Option | What it does |
+|---|---|
+| `--channel <channel>` | telegram (Bot API HTML), email (HTML with inline styles) or text. One of: `telegram`, `email`, `text`. |
+| `--locale <code>` | the template's language, ISO 639-1; the owner's first language if not given. |
+| `--json` | print JSON. |
+
+**Returns:** the template that applies, and the bodies your changes replaced
+
+**Example:** `memo templates show report/morning-digest --channel telegram`, `memo templates show report/weekly-gaps --channel email --locale en --json`
+
+### `memo templates edit`
+
+change a template in $EDITOR or from --file; it is checked first, and a failed check saves nothing and says why
+
+This command changes the local store or your files.
+
+```sh
+memo templates edit <key> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `key` | required | the template, such as report/morning-digest. |
+
+| Option | What it does |
+|---|---|
+| `--channel <channel>` | telegram (Bot API HTML), email (HTML with inline styles) or text. One of: `telegram`, `email`, `text`. |
+| `--locale <code>` | the template's language, ISO 639-1; the owner's first language if not given. |
+| `--file <file>` | take the new template from this file instead of opening an editor. |
+| `--undo` | put back the body your last change replaced; twice is back where you were. |
+| `--json` | print JSON. |
+
+**Returns:** change a template in $EDITOR or from --file; checked before it is saved
+
+**Example:** `memo templates edit report/morning-digest --channel telegram`, `memo templates edit report/morning-digest --channel text --file digest.text.liquid`, `memo templates edit report/morning-digest --channel telegram --undo`
+
+### `memo templates preview`
+
+what would be sent on that channel, from the last real report or a synthetic one when there is none; saves nothing
+
+```sh
+memo templates preview <key> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `key` | required | the template, such as report/morning-digest. |
+
+| Option | What it does |
+|---|---|
+| `--channel <channel>` | telegram (Bot API HTML), email (HTML with inline styles) or text. One of: `telegram`, `email`, `text`. |
+| `--locale <code>` | the template's language, ISO 639-1; the owner's first language if not given. |
+| `--file <file>` | preview this draft instead of the template that applies. |
+| `--json` | print JSON. |
+
+**Returns:** what would be sent on that channel; saves nothing
+
+**Example:** `memo templates preview report/morning-digest --channel telegram`, `memo templates preview report/morning-digest --channel email --locale en --file draft.liquid`
+
+### `memo templates reset`
+
+go back to the shipped template; yours is kept in the history, and edit --undo brings it back
+
+This command changes the local store or your files.
+
+```sh
+memo templates reset <key> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `key` | required | the template, such as report/morning-digest. |
+
+| Option | What it does |
+|---|---|
+| `--channel <channel>` | telegram (Bot API HTML), email (HTML with inline styles) or text. One of: `telegram`, `email`, `text`. |
+| `--locale <code>` | the template's language, ISO 639-1; the owner's first language if not given. |
+| `--json` | print JSON. |
+
+**Returns:** go back to the shipped template; edit --undo brings yours back
+
+**Example:** `memo templates reset report/morning-digest --channel telegram`
+
 ## `memo search`
 
 search messages, mail, notes, memories and people; search all when unsure where
@@ -5132,7 +5251,7 @@ memo search memories <query> [options]
 | `--limit <n>` | most memories, up to 500. Default: `20`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 12 more; every field: memo commands info search memories
+**Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 13 more; every field: memo commands info search memories
 
 **Example:** `memo search memories friday meetings scope:work`
 
