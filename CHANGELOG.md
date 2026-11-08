@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.61 — 08.11.2026
+
 ### Added
 
 - cli-core 0.612.0.
