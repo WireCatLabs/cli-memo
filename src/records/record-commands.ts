@@ -1,17 +1,21 @@
 import { CliError } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { RECORDS_SCHEMA_VERSION } from "@wirecat/cli-core"
+import { CORE_REASONS, RECORDS_SCHEMA_VERSION } from "@wirecat/cli-core"
 import { LOCAL_READ, LOCAL_WRITE } from "@wirecat/cli-core/cli"
 import { ingest } from "@wirecat/cli-core/services"
 import type { MatchRun, MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { type answers, itemAnswer } from "../answer.js"
+import { jsonOption } from "../options.js"
 import { ACCOUNT_HELP, RECORD_HELP, recordOf, sourceOf } from "./mapping.js"
 
-const json = (command: Command, fields: string) =>
-  command.option("--json", `print JSON; --json=${fields} keeps only those fields`)
-
 const INCOMING = 100
+
+/** The CLI code cli-core registers for an import's refusal, such as `record.stale-revision`. */
+export const codeOf = (reason: string) => {
+  const code = CORE_REASONS.find((one) => one.reason === reason)?.code
+  return code === undefined || code === "internal_error" ? "validation_error" : code
+}
 
 const storedRecord = async (store: MessageStore, account: string | undefined, record: string) => {
   const key = { ...sourceOf(account), ...recordOf(record) }
@@ -21,7 +25,8 @@ const storedRecord = async (store: MessageStore, account: string | undefined, re
       "not_found",
       `no record ${record} from ${key.provider}:${key.account}; records list shows them`,
       {
-        reason: "record.not-found",
+        reason: "records.not-stored",
+        record,
       },
     )
   return found
@@ -46,7 +51,7 @@ export const recordCommands = (
   { run, print }: ReturnType<typeof answers>,
   withStore: <T>(work: (store: MessageStore) => Promise<T>) => Promise<T>,
 ): void => {
-  json(
+  jsonOption(
     annotate(records.command("show"), { effects: LOCAL_READ, output: { entity: "source_record" } })
       .argument("<record>", RECORD_HELP)
       .option("--account <account>", ACCOUNT_HELP),
@@ -60,12 +65,15 @@ export const recordCommands = (
     .action((record: string, given: { account?: string; json?: boolean }) =>
       run(given.json, async (store) => {
         const found = await storedRecord(store, given.account, record)
-        const incoming = await store.records.incoming(found, { limit: INCOMING })
-        return itemAnswer({ ...found, incoming })
+        const incoming = await store.records.incoming(found, { limit: INCOMING + 1 })
+        return itemAnswer({
+          ...found,
+          incoming: { items: incoming.slice(0, INCOMING), hasMore: incoming.length > INCOMING },
+        })
       }),
     )
 
-  json(
+  jsonOption(
     annotate(records.command("delete"), { effects: LOCAL_WRITE, output: { entity: "records_receipt" } })
       .argument("<record>", RECORD_HELP)
       .option("--account <account>", ACCOUNT_HELP),
@@ -102,7 +110,7 @@ export const recordCommands = (
         )
       })
       const [refused] = receipt.errors
-      if (refused) throw new CliError("validation_error", refused.message, { reason: refused.code })
+      if (refused) throw new CliError(codeOf(refused.code), refused.message, { reason: refused.code })
       print(
         given.json,
         itemAnswer(receipt),
@@ -112,7 +120,7 @@ export const recordCommands = (
       )
     })
 
-  json(
+  jsonOption(
     annotate(records.command("match"), { effects: LOCAL_WRITE, output: { entity: "records_match" } }).option(
       "--account <account>",
       ACCOUNT_HELP,

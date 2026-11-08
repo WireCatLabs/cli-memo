@@ -1,6 +1,7 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { environmentOf, LOCAL_READ, LOCAL_WRITE } from "@wirecat/cli-core/cli"
+import type { IngestError } from "@wirecat/cli-core"
+import { environmentOf, LOCAL_WRITE } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
 import { importRecords, type Receipt } from "./input.js"
@@ -9,6 +10,11 @@ import { recordCommands } from "./record-commands.js"
 
 /** The review kinds of what the import proposed, as `memo review kind:` takes them: each ref's prefix. */
 const kindsOf = (proposed: readonly string[]) => [...new Set(proposed.map((ref) => ref.slice(0, ref.indexOf(":"))))]
+
+/** The envelope's root is `/`: an empty JSON pointer would break the answer's issue shape. */
+const pointerOf = (pointer: string) => pointer || "/"
+
+const refusedLine = (one: IngestError) => `refused ${pointerOf(one.pointer)} · ${one.message} (${one.code})`
 
 export const receiptText = (receipt: Receipt): string =>
   [
@@ -29,10 +35,12 @@ export const receiptText = (receipt: Receipt): string =>
     ),
     ...receipt.flagged.map((one) => `changed at the source ${one.key}: ${one.entity} kept as it was`),
     ...receipt.ignored.map((one) => `kept as data only ${one.key} ${one.pointer} (${one.reason})`),
-    ...(receipt.vcard ?? []).map((one) => `notice card ${one.card + 1}: ${one.message}`),
-    ...receipt.errors.map((one) => `refused ${one.pointer} · ${one.message} (${one.code})`),
+    ...(receipt.vcard ?? []).map((one) => `notice card ${one.card}: ${one.message}`),
+    ...receipt.errors.map(refusedLine),
     ...(receipt.truncated ? ["the lists stop at 1000 entries each; the counts are exact"] : []),
   ].join("\n")
+
+const HOLDS_LOCK = "a dry run holds the store's write lock and grows the write-ahead log for its length"
 
 export const recordsCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const answered = answers(program, streams, env)
@@ -66,11 +74,12 @@ export const recordsCommand = (program: Command, streams: Streams, env: NodeJS.P
             stdin: environmentOf(program).stdin ?? process.stdin,
             account,
             dryRun: dryRun ?? given.dryRun === true,
+            onIssue: (issue) => streams.diagnostic(`${refusedLine(issue)}\n`),
           }),
         )
         const issues = receipt.errors.map((one) => ({
           code: "validation_error" as const,
-          source: one.pointer,
+          source: pointerOf(one.pointer),
           reason: one.code,
         }))
         print(
@@ -84,15 +93,17 @@ export const recordsCommand = (program: Command, streams: Streams, env: NodeJS.P
     annotate(records.command("import"), { effects: LOCAL_WRITE, output: { entity: "records_receipt" } })
       .description(
         "bring a source's records into the store, once: the same file twice changes nothing, a lower revision is " +
-          "refused, and anything that feeds money totals becomes a proposal for you, never confirmed money",
+          "refused, and anything that feeds money totals becomes a proposal for you, never confirmed money. Each " +
+          "refusal is also printed on stderr as it happens, one line each, past the receipt's 1000",
       )
       .summary("import a source's records; money waits for your review")
-      .option("--dry-run", "check and plan the import; write nothing"),
+      .option("--dry-run", `check and plan the import; write nothing. ${HOLDS_LOCK}`),
     undefined,
   )
   importing(
-    annotate(records.command("check"), { effects: LOCAL_READ, output: { entity: "records_receipt" } })
-      .description("what records import would do with the file, as its receipt, writing nothing")
+    // A dry run holds the write lock for its length, so MCP gates it as a write.
+    annotate(records.command("check"), { effects: LOCAL_WRITE, output: { entity: "records_receipt" } })
+      .description(`what records import would do with the file, as its receipt, writing nothing; ${HOLDS_LOCK}`)
       .summary("check a records file against the store; write nothing"),
     true,
   )

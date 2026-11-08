@@ -1,21 +1,44 @@
 import { open } from "node:fs/promises"
 import { CliError } from "@wirecat/cli-base"
-import { envelopeOfText, isVcard, type VcardIssue } from "@wirecat/cli-core"
+import { envelopeOfText, type IngestError, isVcard, type VcardIssue } from "@wirecat/cli-core"
 import { type IngestReceipt, ingest, ingestLines, ingestVcard, jsonlLines } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
 
+/** `vcard` holds the converter's notices, each `card` counted from 1. */
 export type Receipt = IngestReceipt & { vcard?: VcardIssue[] }
 
 /** A vCard address book is a phone's contacts: they go under the seeded `phone` provider, one account per device. */
 const PHONE = "phone"
 
-const BOM = /^﻿/
+const BOM = /^\uFEFF/
 
-/** A file opened now, so a missing one fails before anything is read, as it did when the whole file was read. */
+const errnoOf = (error: unknown) =>
+  typeof error === "object" && error !== null && "code" in error ? String(error.code) : undefined
+
+/** A file opened now, so a missing one fails before anything is read; its errors come as answers, not as errno. */
 const linesOf = async (file: string, stdin: NodeJS.ReadableStream): Promise<AsyncIterable<string>> => {
   if (file === "-") return jsonlLines(stdin)
-  const handle = await open(file)
-  return jsonlLines(handle.createReadStream({ encoding: "utf8" }))
+  try {
+    const handle = await open(file)
+    if (!(await handle.stat()).isFile()) {
+      await handle.close()
+      throw Object.assign(new Error(`${file} is a folder`), { code: "EISDIR" })
+    }
+    return jsonlLines(handle.createReadStream({ encoding: "utf8" }))
+  } catch (error) {
+    if (errnoOf(error) === "ENOENT")
+      throw new CliError("not_found", `no records file ${file}: give a file that exists, or - for stdin`, {
+        reason: "records.file-missing",
+        path: file,
+      })
+    const why =
+      errnoOf(error) === "EISDIR" ? "it is a folder" : errnoOf(error) === "EACCES" ? "no permission" : "unreadable"
+    throw new CliError("validation_error", `the records file ${file} cannot be read: ${why}`, {
+      reason: "records.file-unreadable",
+      path: file,
+      why,
+    })
+  }
 }
 
 /** A JSONL file's first line: an object holding no `records`. */
@@ -48,11 +71,24 @@ const deviceOf = (given: string): string => {
 
 /**
  * Imports a records file or stdin. JSONL streams, a record at a time, so a file of any length fits in memory; a JSON
- * envelope and a vCard address book are read whole, as one envelope each.
+ * envelope and a vCard address book are read whole, as one envelope each. `onIssue` hears every refusal as it
+ * happens, also those past the receipt's capped lists.
  */
 export const importRecords = async (
   store: MessageStore,
-  { file, stdin, account, dryRun }: { file: string; stdin: NodeJS.ReadableStream; account: string; dryRun: boolean },
+  {
+    file,
+    stdin,
+    account,
+    dryRun,
+    onIssue,
+  }: {
+    file: string
+    stdin: NodeJS.ReadableStream
+    account: string
+    dryRun: boolean
+    onIssue: (issue: IngestError) => void
+  },
 ): Promise<Receipt> => {
   const iterator = (await linesOf(file, stdin))[Symbol.asyncIterator]()
   const before: string[] = []
@@ -69,15 +105,18 @@ export const importRecords = async (
     for await (const line of rest()) lines.push(line)
     return lines.join("\n")
   }
-  if (next.done) return ingest(store, envelopeOfText(before.join("\n")), { account, dryRun })
+  if (next.done) return ingest(store, envelopeOfText(before.join("\n")), { account, dryRun, onIssue })
   const first = next.value.replace(BOM, "")
-  if (isVcard(first))
-    return ingestVcard(store, await whole([first]), {
+  if (isVcard(first)) {
+    const { vcard, ...receipt } = await ingestVcard(store, await whole([first]), {
       account: deviceOf(account),
       provider: PHONE,
       batchId: `vcard-${new Date().toISOString()}`,
       dryRun,
+      onIssue,
     })
+    return { ...receipt, vcard: vcard.map((one) => ({ ...one, card: one.card + 1 })) }
+  }
   const header = headerOf(first)
   if (header !== undefined) {
     async function* all(): AsyncIterable<string> {
@@ -89,8 +128,8 @@ export const importRecords = async (
         await iterator.return?.()
       }
     }
-    return ingestLines(store, all(), { account: accountIn(header, account), dryRun })
+    return ingestLines(store, all(), { account: accountIn(header, account), dryRun, onIssue })
   }
   const envelope = envelopeOfText(await whole([first]))
-  return ingest(store, envelope, { account: accountIn(envelope, account), dryRun })
+  return ingest(store, envelope, { account: accountIn(envelope, account), dryRun, onIssue })
 }

@@ -3,6 +3,7 @@ import { join } from "node:path"
 import { expect, it } from "vitest"
 import { businessStore, OWNER } from "../../test/business.js"
 import { recordOf } from "./mapping.js"
+import { codeOf } from "./record-commands.js"
 
 const SOURCE = { provider: "example-erp", account: "demo", batch_id: "b1" }
 const ACCOUNT = ["--account", "example-erp:demo"]
@@ -51,6 +52,7 @@ it("shows a custom record as the source sent it, and deletes a payment's record 
   })
   await expect(f.run(OWNER, "records", "show", "custom:quote:Q-8", ...ACCOUNT)).rejects.toMatchObject({
     code: "not_found",
+    details: { reason: "records.not-stored" },
   })
 
   const [proposal] = receipt.proposed as string[]
@@ -111,16 +113,28 @@ it("finds a source's records by entry, batch and deletion, and shows the records
   expect(await f.items(OWNER, "records", "list", "batch:other", ...ACCOUNT)).toEqual([])
 
   expect(await f.item(OWNER, "records", "show", "product:SKU-RENT", ...ACCOUNT)).toMatchObject({
-    incoming: [{ record: { type: "custom:quote", external_id: "Q-7" }, role: "quoted-for", as: null, amount: null }],
+    incoming: {
+      items: [{ record: { type: "custom:quote", external_id: "Q-7" }, role: "quoted-for", as: null, amount: null }],
+      has_more: false,
+    },
   })
-  expect((await f.item(OWNER, "records", "show", "organization:C-1", ...ACCOUNT)).incoming).toMatchObject([
-    { record: { type: "product", external_id: "SKU-RENT" }, role: "supplier" },
-  ])
+  expect((await f.item(OWNER, "records", "show", "organization:C-1", ...ACCOUNT)).incoming).toMatchObject({
+    items: [{ record: { type: "product", external_id: "SKU-RENT" }, role: "supplier" }],
+  })
 
   await f.item(OWNER, "records", "delete", "custom:quote:Q-7", ...ACCOUNT)
   expect((await f.items(OWNER, "records", "list", "deleted:true", ...ACCOUNT)).map((one) => one.external_id)).toEqual([
     "Q-7",
   ])
   expect((await f.items(OWNER, "records", "list", "deleted:false", ...ACCOUNT)).length).toBe(2)
-  expect((await f.item(OWNER, "records", "show", "product:SKU-RENT", ...ACCOUNT)).incoming).toEqual([])
+  expect((await f.item(OWNER, "records", "show", "product:SKU-RENT", ...ACCOUNT)).incoming).toEqual({
+    items: [],
+    has_more: false,
+  })
+})
+
+it("refuses a delete with the code cli-core gives the import's refusal", () => {
+  expect(codeOf("record.map-owner-only")).toBe("permission_error")
+  expect(codeOf("record.stale-revision")).toBe("validation_error")
+  expect(codeOf("no.such-reason")).toBe("validation_error")
 })

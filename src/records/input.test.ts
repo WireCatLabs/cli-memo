@@ -1,3 +1,5 @@
+import { writeFileSync } from "node:fs"
+import { join } from "node:path"
 import { expect, it } from "vitest"
 import { businessStore, OWNER } from "../../test/business.js"
 
@@ -43,7 +45,7 @@ it("takes a vCard address book as the phone's contacts under phone:<device>, and
 
   const receipt = await f.piped(book, "records", "import", "-", "--account", "phone:pixel")
   expect(receipt).toMatchObject({ source: { provider: "phone", account: "pixel" }, created: 2, errors: [] })
-  expect(receipt.vcard).toEqual([{ card: 1, message: expect.stringContaining("no country code") }])
+  expect(receipt.vcard).toEqual([{ card: 2, message: expect.stringContaining("no country code") }])
   const people = await f.items(OWNER, "records", "list", "type:person", "--account", "phone:pixel")
   expect(people.map((one) => (one.fields as { name: string }).name).sort()).toEqual(["Анна Образцова", "Иван"])
 
@@ -59,5 +61,73 @@ it("refuses a JSONL file whose header names another account, and still reads the
   expect(refused.errors).toEqual([expect.objectContaining({ code: "envelope.account-mismatch" })])
   expect(await f.piped(lines, "records", "check", "-", "--account", "sheet:synthetic-rental")).toMatchObject({
     created: 1,
+  })
+})
+
+it("answers a valid envelope for an empty file, a JSON array and a refusal with no pointer", async () => {
+  const f = await businessStore("records-roots")
+  const file = (name: string, text: string) => {
+    const path = join(f.dir, name)
+    writeFileSync(path, text)
+    return path
+  }
+  const account = ["--account", "sheet:synthetic-rental"]
+  for (const text of ["", "[1,2]"]) {
+    const answer = await f.run(OWNER, "records", "check", file("root.json", text), ...account)
+    expect(answer.item.errors).toEqual([expect.objectContaining({ pointer: "", code: "envelope.invalid" })])
+    expect(answer.meta.issues).toEqual([{ code: "validation_error", source: "/", reason: "envelope.invalid" }])
+    process.exitCode = 0
+  }
+  const org = { key: "o", type: "organization", external_id: "O1", operation: "upsert", fields: { name: "ООО Пример" } }
+  const nameless = {
+    key: "s",
+    type: "subscription",
+    external_id: "S1",
+    operation: "upsert",
+    fields: { direction: "payable", interval: "1-month", start_date: "2026-11-01" },
+    relations: [{ role: "supplier", type: "organization", external_id: "O1" }],
+  }
+  const sheet = file("s.json", JSON.stringify({ ...header, records: [nameless, org] }))
+  const answer = await f.run(OWNER, "records", "import", sheet, ...account)
+  expect(answer.item.errors).toEqual([expect.objectContaining({ pointer: "", code: "subscription.field" })])
+  expect(answer.meta.issues).toEqual([{ code: "validation_error", source: "/", reason: "subscription.field" }])
+  process.exitCode = 0
+})
+
+it("prints every refusal on stderr as it happens, past the receipt's 1000, and keeps stdout to the receipt", async () => {
+  const f = await businessStore("records-issues")
+  const broken = Array.from({ length: 1001 }, (_, at) => JSON.stringify({ key: `k${at}`, type: "payment" }))
+  const lines = `${JSON.stringify(header)}\n${broken.join("\n")}\n`
+  const { stdout, stderr } = await f.streamsOf(
+    lines,
+    "records",
+    "check",
+    "-",
+    "--account",
+    "sheet:synthetic-rental",
+    "--json",
+  )
+  process.exitCode = 0
+  expect(
+    stderr
+      .trimEnd()
+      .split("\n")
+      .filter((line) => line.startsWith("refused ")),
+  ).toHaveLength(1001)
+  const receipt = JSON.parse(stdout).item
+  expect(receipt).toMatchObject({ refused: 1001, truncated: true })
+  expect(receipt.errors).toHaveLength(1000)
+})
+
+it("names a missing records file and a folder given as one, instead of a system error", async () => {
+  const f = await businessStore("records-files")
+  const account = ["--account", "sheet:synthetic-rental"]
+  await expect(f.run(OWNER, "records", "check", join(f.dir, "nope.jsonl"), ...account)).rejects.toMatchObject({
+    code: "not_found",
+    details: { reason: "records.file-missing" },
+  })
+  await expect(f.run(OWNER, "records", "check", f.dir, ...account)).rejects.toMatchObject({
+    code: "validation_error",
+    details: { reason: "records.file-unreadable" },
   })
 })
