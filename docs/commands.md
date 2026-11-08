@@ -2803,31 +2803,31 @@ the lines of an invoice, each a quantity at a price; its total is their sum. you
 
 #### `memo invoices lines add`
 
-add a line at the end of an invoice that is not void; the total never falls below what confirmed payments settled: quantity × price, and the total becomes the sum of the lines. With --product its name and price are copied, so a later price change leaves the line as it is. you change any invoice's lines; an agent only those of an invoice it proposed that is still proposed
+add a line at the end of an invoice that is not void; the total never falls below what confirmed payments settled: quantity × price, and the total becomes the sum of the lines. With --product its name and price are copied, so a later price change leaves the line as it is, and --amount sets another price; without --product, --amount is needed. you change any invoice's lines; an agent only those of an invoice it proposed that is still proposed
 
 This command changes the local store or your files.
 
 ```sh
-memo invoices lines add <invoice> <quantity> [price] [description] [options]
+memo invoices lines add <invoice> <quantity> [description] [options]
 ```
 
 | Argument | | What it is |
 |---|---|---|
 | `invoice` | required | invoice:<id>. |
 | `quantity` | required | how many, a decimal such as 12 or 1.5. |
-| `price` | optional | the price of one, a decimal such as 10000.00; the product's when left out. |
 | `description` | optional | what the line is, in a few words; the product's name when left out. |
 
 | Option | What it does |
 |---|---|
 | `--product <product>` | the product or service it is: its name and price are copied onto the line. |
+| `--amount <decimal>` | the price of one, such as 10000.00; the product's when left out with --product. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
 **Returns:** add a line to an invoice
 
-**Example:** `memo invoices lines add invoice:4 1 --product product:4`, `memo invoices lines add invoice:4 2 1500.00 Delivery`
+**Example:** `memo invoices lines add invoice:4 1 --product product:4`, `memo invoices lines add invoice:4 2 Delivery --amount 1500.00`
 
 #### `memo invoices lines remove`
 
@@ -3069,31 +3069,31 @@ the lines of an order, each a quantity at a price; its total is their sum. you c
 
 #### `memo orders lines add`
 
-add a line at the end of an order that has a currency (orders add with an amount): quantity × price, and the total becomes the sum of the lines. With --product its name and price are copied, so a later price change leaves the line as it is. you change any order's lines; an agent only those of an order it proposed that is still proposed
+add a line at the end of an order that has a currency (orders add with an amount): quantity × price, and the total becomes the sum of the lines. With --product its name and price are copied, so a later price change leaves the line as it is, and --amount sets another price; without --product, --amount is needed. you change any order's lines; an agent only those of an order it proposed that is still proposed
 
 This command changes the local store or your files.
 
 ```sh
-memo orders lines add <order> <quantity> [price] [description] [options]
+memo orders lines add <order> <quantity> [description] [options]
 ```
 
 | Argument | | What it is |
 |---|---|---|
 | `order` | required | order:<id>. |
 | `quantity` | required | how many, a decimal such as 12 or 1.5. |
-| `price` | optional | the price of one, a decimal such as 10000.00; the product's when left out. |
 | `description` | optional | what the line is, in a few words; the product's name when left out. |
 
 | Option | What it does |
 |---|---|
 | `--product <product>` | the product or service it is: its name and price are copied onto the line. |
+| `--amount <decimal>` | the price of one, such as 10000.00; the product's when left out with --product. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
 **Returns:** add a line to an order
 
-**Example:** `memo orders lines add order:3 12 --product product:4`, `memo orders lines add order:3 2 2500.00 Helmet`
+**Example:** `memo orders lines add order:3 12 --product product:4`, `memo orders lines add order:3 1 Rental, first week --product product:4 --amount 2000.00`, `memo orders lines add order:3 2 Helmet --amount 2500.00`
 
 #### `memo orders lines remove`
 
@@ -3834,7 +3834,7 @@ bank accounts, cards and cash you keep money in, one currency each; a balance is
 
 ### `memo wallets list`
 
-wallets with their balances today; closed:false leaves out the closed ones
+wallets with their balances today; kind:card lists the cards
 
 ```sh
 memo wallets list [query] [options]
@@ -3849,13 +3849,13 @@ memo wallets list [query] [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--limit <n>` | most wallets, up to 500. Default: `100`. |
 
-**Returns:** wallets with their balances today; closed:false leaves out the closed ones
+**Returns:** wallets with their balances today; kind:card lists the cards
 
-**Example:** `memo wallets list`, `memo wallets list kind:card closed:false --json`
+**Example:** `memo wallets list`, `memo wallets list kind:card --json`
 
 ### `memo wallets show`
 
-one wallet with its balance, and beside it what is pending or proposed and not counted yet
+one wallet with its balance, and beside it what is pending or proposed and not counted yet; for an imported wallet whose opening balance you have not set, source_says gives the one its source sent
 
 ```sh
 memo wallets show <wallet> [options]
@@ -4094,7 +4094,7 @@ what a source said, kept per account; what it says about money waits for your re
 
 ### `memo records import`
 
-bring a source's records into the store, once: the same file twice changes nothing, a lower revision is refused, and anything that feeds money totals becomes a proposal for you, never confirmed money
+bring a source's records into the store, once: the same file twice changes nothing, a lower revision is refused, and anything that feeds money totals becomes a proposal for you, never confirmed money. Each refusal is also printed on stderr as it happens, one line each, past the receipt's 1000
 
 This command changes the local store or your files.
 
@@ -4108,7 +4108,7 @@ memo records import <file> [options]
 
 | Option | What it does |
 |---|---|
-| `--dry-run` | check and plan the import; write nothing. |
+| `--dry-run` | check and plan the import; write nothing. a dry run holds the store's write lock and grows the write-ahead log for its length. |
 | `--account <account>` | the source the envelope is for: <provider>:<account> (sheet:rentals) or its source.account alone; phone:<device> for a vCard file. |
 | `--json` | print JSON; --json=created,errors keeps only those fields. |
 
@@ -4118,7 +4118,9 @@ memo records import <file> [options]
 
 ### `memo records check`
 
-what records import would do with the file, as its receipt, writing nothing
+what records import would do with the file, as its receipt, writing nothing; a dry run holds the store's write lock and grows the write-ahead log for its length
+
+This command changes the local store or your files.
 
 ```sh
 memo records check <file> [options]
