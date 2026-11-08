@@ -6,8 +6,6 @@ the API.
 
 ## Unreleased
 
-## 0.131.64 — 08.11.2026
-
 ### Fixed
 
 - **`review agenda` no longer names a synced account as having no sync schedule.** An account stored or synced
@@ -15,6 +13,16 @@ the API.
   `<PREFIX>_PROFILE` or its first argument (`tg second messages sync`); a running `serve` counts for its profile's
   account; and an account that no profile of its tool holds gets no line, since memo cannot tell what syncs it. A
   `no-schedule` account with nothing new in 30 days is stale since its last stored message, not for 0 hours.
+
+### Added
+
+- **`review agenda`'s `tasks` counts `undated`**: every open task with no due date, however old, in `--json` and
+  `--compact`; the morning-digest report copies it as `tasks.undated`.
+
+## 0.131.64 — 08.11.2026
+
+### Fixed
+
 - **`relationships add --role` help no longer suggests `cto`.** A person's role in an organization or a project
   comes from that relationship's list, so the help, the example and `docs/people.md` now name valid roles
   (employee, contributor).
@@ -31,8 +39,6 @@ the API.
 
 ### Added
 
-- **`review agenda`'s `tasks` counts `undated`**: every open task with no due date, however old, in `--json` and
-  `--compact`; the morning-digest report copies it as `tasks.undated`.
 - **`memo show` and each business `show` list where an entry came from** (`sources`): the source records mapped to
   it and the records whose relations name it, such as a quote `quoted-for` a deal. This covers products, contracts,
   subscriptions, wallets, transactions, invoices, payments, orders, deals, leads and pipelines. The title of one an
