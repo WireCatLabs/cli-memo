@@ -159,7 +159,7 @@ export const search: readonly SharedContractOverride[] = [
       },
       {
         flags: "--only <resources>",
-        description: "messages,mail,notes,events,crm,meetings, separated by commas",
+        description: "messages,mail,notes,events,crm,business,meetings, separated by commas",
         takes_value: true,
         mandatory: false,
       },

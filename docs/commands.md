@@ -4128,12 +4128,12 @@ memo search all <query> [options]
 | `--exact` | words as written; skip meaning search. |
 | `--timezone <zone>` | IANA timezone for calendar date boundaries. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--only <resources>` | messages,mail,notes,events,crm,meetings, separated by commas. |
+| `--only <resources>` | messages,mail,notes,events,crm,business,meetings, separated by commas. |
 | `--source <accounts>` | only these accounts, separated by commas: provider:account as a hit shows it, a provider, a kind or group:<name>; each resource reads the ones of its kind, and one it names none of is left out. |
 | `--plain-order` | best first by the words alone, without moving mail from suspicious senders down. |
 | `--project <project>` | rank the key documents of this project (id, project:<id>, key, exact name or alias) first; nothing is left out. |
 
-**Returns:** hit — kind, ref, provider, account, title, timestamp, excerpt, url, and 15 more; every field: memo commands info search all
+**Returns:** hit — kind, ref, provider, account, title, timestamp, excerpt, url, and 17 more; every field: memo commands info search all
 
 **Example:** `memo search all 'budget harbour'`, `memo search all 'content:invoice' --only mail,notes --json`, `memo search all 'release date' --source zoom:work,notes --json`
 

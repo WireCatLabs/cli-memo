@@ -13,8 +13,8 @@ the API.
   transcript hit's `next` step is `memo meetings passage <cue_ref> --source <provider>:<account>`. `missing` names an
   account whose index is not built yet, and `next` gives `memo search meetings <query> --source <provider>:<account>`,
   which builds it; a step that syncs a chat held in part comes first. `missing` also names a meeting account that
-  could not be read. `--source zoom:work,notes` reads only the accounts it names; `--only` takes `crm` and `meetings`
-  too. Unless the permissions let `search.meetings` and `meetings.passage` go ahead (`allow` or `readonly`), meetings
+  could not be read. `--source zoom:work,notes` reads only the accounts it names; `--only` takes `crm`, `business`
+  and `meetings` too. Unless the permissions let `search.meetings` and `meetings.passage` go ahead (`allow` or `readonly`), meetings
   are left out and `missing` says so; `ask` leaves them out too. Needs the cli-core release with meetings in
   `searchAll`.
 
