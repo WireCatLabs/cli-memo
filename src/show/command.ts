@@ -7,6 +7,7 @@ import type { Command } from "commander"
 import { answers, wholeList, withStore } from "../answer.js"
 import { profileFor } from "../knowledge/messenger-sync.js"
 import { grantedLevel } from "../mcp/granted.js"
+import { imported, readSourced, recordsHidden, type SourcesOf, sourcesOf, sourcesText } from "../records/sources.js"
 import { refuseBareNumber } from "../refs.js"
 
 const MAX_REFS = 100
@@ -36,6 +37,7 @@ export const LOCAL_OPENS: Partial<Record<RefKindName, string[]>> = {
   subscription: ["memo", "subscriptions", "show"],
   wallet: ["memo", "wallets", "show"],
   transaction: ["memo", "transactions", "show"],
+  event: ["memo", "events", "show"],
 }
 
 /** The permission key of the memo command that opens a kind, such as `invoices.show`. */
@@ -87,6 +89,8 @@ export interface Shown {
   state: RefSummary["state"]
   open: RefOpen & { line: string | null }
   untrusted?: string[]
+  /** Business data only: the source records it came from and those that name it. */
+  sources?: SourcesOf
 }
 
 const profilesFor =
@@ -111,7 +115,7 @@ export const showReferences = async (
   const summaries = await store.refs.summaries(texts)
   if (command !== undefined) refuseDenied(command, [...summaries.values()])
   const ports = { profilesFor: profilesFor(env), local: LOCAL_OPENS }
-  return texts.map((text) => {
+  const shown = texts.map((text): Shown => {
     const summary = summaries.get(text) ?? {
       ref: text,
       kind: "unknown",
@@ -137,6 +141,15 @@ export const showReferences = async (
       ...(OTHERS.has(summary.kind) ? { untrusted: ["title", "in"] } : {}),
     }
   })
+  const withRecords = command === undefined || !recordsHidden(command)
+  for (const one of shown) {
+    const entity = one.state === "available" ? await readSourced(store, one.kind, one.ref) : undefined
+    if (entity === undefined) continue
+    if (withRecords) one.sources = await sourcesOf(store, entity)
+    // An imported entry's title is the source system's words, as a chat title is its members'.
+    if (imported(entity)) one.untrusted = ["title"]
+  }
+  return shown
 }
 
 const minute = (at: string | null) => (at === null ? null : at.slice(0, 16).replace("T", " "))
@@ -147,6 +160,7 @@ const blockOf = (one: Shown): string =>
     `  ${[one.kind, one.in, one.state, minute(one.at)].filter((part) => part !== null).join(" · ")}`,
     `  open: ${one.open.line ?? "none"}`,
     ...(one.open.why === null ? [] : [`        ${one.open.why}`]),
+    ...(one.sources === undefined ? [] : sourcesText(one.ref, one.sources)),
   ].join("\n")
 
 export const showCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {

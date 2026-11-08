@@ -5,12 +5,13 @@ import { captureStreams } from "@wirecat/cli-base"
 import type { Message } from "@wirecat/cli-core"
 import { applyTaskRulesToStored } from "@wirecat/cli-core/services"
 import { openStore } from "@wirecat/cli-core/store"
-import { afterEach, expect, it } from "vitest"
+import { afterEach, expect, it, vi } from "vitest"
 import { envelopeOf } from "../../test/answer.js"
 import { storeMail } from "../../test/mail-store.js"
 import { createProgram } from "../program.js"
 
 const HOUR = 3_600_000
+const DAY = 24 * HOUR
 const ago = (hours: number) => new Date(Date.now() - hours * HOUR).toISOString()
 const MAILBOX = "owner@example.test"
 const tg = { provider: "telegram", account: "1" }
@@ -172,43 +173,54 @@ it("puts the watch list first, then replies owed in messengers and personal mail
 
 it("names each account whose sync needs a look and why, and never calls one stale for what it stored", async () => {
   const { run, schedule, write } = await setUp()
-  const failingSince = ago(30)
-  write("data", "tg-cli/accounts/personal.json", { account: "1" })
-  schedule(
-    "tg-cli",
-    "full-sync",
-    { TG_PROFILE: "personal" },
-    {
-      at: ago(2),
-      exitCode: 1,
-      reason: "auth.expired",
-      failingSince,
-      failures: 3,
-    },
-  )
-  const failing = envelopeOf(await run("review", "agenda", "--json")).item.health
-  expect(failing).toEqual([
-    {
-      source: "Telegram",
-      account: "Kai Owner",
-      reason: "sync-failed",
-      since: failingSince,
-      stale_hours: 30,
-      failure: "auth.expired",
-      refs: [],
-    },
-    expect.objectContaining({ source: "mail", account: MAILBOX, reason: "no-schedule", since: null }),
-  ])
+  vi.useFakeTimers({ toFake: ["Date"], now: Date.now() + 2 * DAY })
+  try {
+    const failingSince = ago(30)
+    write("data", "tg-cli/accounts/personal.json", { account: "1" })
+    write("xdg-config", "mail-cli/config.json", { profiles: { work: { address: MAILBOX } } })
+    schedule(
+      "tg-cli",
+      "full-sync",
+      { TG_PROFILE: "personal" },
+      {
+        at: ago(2),
+        exitCode: 1,
+        reason: "auth.expired",
+        failingSince,
+        failures: 3,
+      },
+    )
+    const failing = envelopeOf(await run("review", "agenda", "--json")).item.health
+    expect(failing).toEqual([
+      {
+        source: "Telegram",
+        account: "Kai Owner",
+        reason: "sync-failed",
+        since: failingSince,
+        stale_hours: 30,
+        failure: "auth.expired",
+        refs: [],
+      },
+      expect.objectContaining({ source: "mail", account: MAILBOX, reason: "no-schedule", since: null }),
+    ])
 
-  schedule("tg-cli", "full-sync", { TG_PROFILE: "personal" }, { at: ago(1), exitCode: 0 })
-  write("xdg-config", "mail-cli/config.json", { profiles: { work: { address: MAILBOX } } })
-  schedule("mail-cli", "mail-work", { MAIL_PROFILE: "work" }, { at: ago(1), exitCode: 0 })
-  const text = await run("review", "agenda", "--compact")
-  expect(text).toContain("\nhealth: []\n")
-  expect(text).not.toContain("STALE")
+    schedule("tg-cli", "full-sync", { TG_PROFILE: "personal" }, { at: ago(1), exitCode: 0 })
+    schedule("mail-cli", "mail-work", { MAIL_PROFILE: "work" }, { at: ago(1), exitCode: 0 })
+    const text = await run("review", "agenda", "--compact")
+    expect(text).toContain("\nhealth: []\n")
+    expect(text).not.toContain("STALE")
+  } finally {
+    vi.useRealTimers()
+  }
 })
 
-it("lists tasks new since the last digest and those overdue, due today or tomorrow, with who asked and who does them", async () => {
+it("names no account stored within a day, nor one no profile holds, whatever its schedules", async () => {
+  const { run, write } = await setUp()
+  write("data", "tg-cli/accounts/personal.json", { account: "1" })
+  expect(envelopeOf(await run("review", "agenda", "--json")).item.health).toEqual([])
+})
+
+it("lists tasks new since the last digest and those overdue, due today or tomorrow, with who asked and who does them, and counts every undated one", async () => {
   const { run, env, schedule } = await setUp()
   const now = Date.now()
   const store = await openStore({ env })
@@ -232,7 +244,7 @@ it("lists tasks new since the last digest and those overdue, due today or tomorr
   await store.close()
 
   const body = envelopeOf(await run("review", "agenda", "--json"))
-  expect(body.item.tasks).toEqual({ overdue: 1, today: 1, tomorrow: 1, new: 2, new_since: lastDigest })
+  expect(body.item.tasks).toEqual({ overdue: 1, today: 1, tomorrow: 1, new: 2, new_since: lastDigest, undated: 3 })
   const items = section(body, "tasks").items as unknown as { ref: string; why: string; who: string; for: string }[]
   expect(items.map((one) => [one.ref, one.why])).toEqual(
     expect.arrayContaining([
@@ -268,6 +280,7 @@ it("says what it read: the window, the sources with their accounts, and the coun
   const text = await run("review", "agenda", "--compact")
   expect(text).toMatch(/\nscope: \{"from":"[^"]+","to":"[^"]+","sources":\[/)
   expect(text).toContain('\ntasks: {"overdue":0,"today":0,"tomorrow":0,"new":0,"new_since":"')
+  expect(text).toMatch(/"new_since":"[^"]+","undated":0\}\n/)
 })
 
 it("counts owed mail from senders the owner does not know, and says how to list them", async () => {

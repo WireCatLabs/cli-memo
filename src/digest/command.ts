@@ -47,9 +47,10 @@ export const reviewAgendaCommand = (review: Command, print: Print, streams: Stre
         "identities, or written to before), and mail from new senders is one count with the command that lists it. " +
         "Each item has its reference, who, when, one line of text and why it is there; a section cut by --limit or " +
         "--max-output-bytes says how many it left out and the command that reads them. `scope` says what was read " +
-        "(the window, sources, counts), `tasks` counts each task group, and `health` names each account whose sync " +
-        "failed, that nothing syncs, or that is quiet for longer than usual, so an unsynced account does not read " +
-        "as a quiet day",
+        "(the window, sources, counts), `tasks` counts each task group and, as `undated`, every open task with no due " +
+        "date, and `health` names each account whose sync failed, that nothing syncs, or that is quiet for longer " +
+        "than usual, so an unsynced account does not read as a quiet day; an account stored or synced within a day " +
+        "is never named",
     )
     .option("--since-time <time>", "how far back: hours or days (12h, 7d) or a start date (2026-11-01)", "1d")
     .option("--limit <n>", "items per section before the size budget", positive, 25)

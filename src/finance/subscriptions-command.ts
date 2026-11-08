@@ -9,6 +9,7 @@ import { answers, itemAnswer } from "../answer.js"
 import { byOption, whoRuns } from "../author.js"
 import { positive } from "../options.js"
 import { pageOf } from "../page.js"
+import { withSources } from "../records/sources.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { dayOf, today } from "./finance.js"
 import { choice, given, json, needed, optionalChoice, PROPOSES, type Written, writeMeta, writtenBy } from "./written.js"
@@ -110,8 +111,10 @@ export const subscriptionCommands = (program: Command, streams: Streams, env: No
   json(annotate(subscriptions.command("show"), { effects: LOCAL_READ, output: { entity: "subscription" } }))
     .description("one subscription with its parties, dates, current price and every price it had")
     .argument("<subscription>", "subscription:<id>")
-    .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(await store.subscriptions.get(ref))),
+    .action((ref: string, options: { json?: boolean }, command: Command) =>
+      run(options.json, async (store) =>
+        itemAnswer(await withSources(command, store, await store.subscriptions.get(ref))),
+      ),
     )
 
   json(

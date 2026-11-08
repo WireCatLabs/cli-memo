@@ -9,6 +9,7 @@ import { answers, itemAnswer } from "../answer.js"
 import { authorOf, byOption, whoRuns } from "../author.js"
 import { positive } from "../options.js"
 import { pageOf } from "../page.js"
+import { sourceAccounts, withSources } from "../records/sources.js"
 import { dayOf } from "./finance.js"
 import { given, json, optionalChoice } from "./written.js"
 
@@ -39,9 +40,8 @@ export const listWallets = async (
  * then `wallets show` prints the source's beside it.
  */
 const sourceSays = async (store: MessageStore, wallet: Wallet) => {
-  if (wallet.openingBalance !== null || !wallet.source.startsWith("import:")) return null
-  const provider = wallet.source.slice("import:".length)
-  for (const { account } of (await store.accounts.accounts()).filter((key) => key.provider === provider)) {
+  if (wallet.openingBalance !== null) return null
+  for (const { provider, account } of await sourceAccounts(store, wallet)) {
     const [record] = await store.records.list({ provider, account, entity: wallet.ref, limit: 1 })
     const { opening_balance: balance, opening_date: date } = record?.fields ?? {}
     if (record && typeof balance === "string")
@@ -89,11 +89,11 @@ export const walletCommands = (program: Command, streams: Streams, env: NodeJS.P
     )
     .summary("one wallet with its balance and what is pending")
     .argument("<wallet>", "wallet:<id>")
-    .action((ref: string, options: { untilTime?: string; json?: boolean }) =>
+    .action((ref: string, options: { untilTime?: string; json?: boolean }, command: Command) =>
       run(options.json, async (store) => {
         const until = dayOf(options.untilTime)
         const wallet = await store.wallets.get(ref, until === undefined ? {} : { until })
-        return itemAnswer({ ...wallet, sourceSays: await sourceSays(store, wallet) })
+        return itemAnswer(await withSources(command, store, { ...wallet, sourceSays: await sourceSays(store, wallet) }))
       }),
     )
 

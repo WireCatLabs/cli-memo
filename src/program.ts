@@ -28,6 +28,7 @@ import { contextCommand } from "./context/command.js"
 import { SHELL_OVERRIDES } from "./contract-overrides.js"
 import { commandsCommand, placeInSections } from "./discovery/command.js"
 import { doctorCommand } from "./doctor/command.js"
+import { eventsCommand } from "./events/command.js"
 import { addExamples } from "./examples.js"
 import { factsCommand } from "./facts/command.js"
 import { recognisable } from "./failure.js"
@@ -535,6 +536,7 @@ export const createProgram = ({
   searchCommand(program, streams, env)
   meetingReadCommands(program, streams, env)
   meetingPreparationCommand(program, streams, env)
+  eventsCommand(program, streams, env)
   askCommand(program, streams, env)
   syncCommand(program, streams, env, signal, keyring)
   storeCommand(program, streams, env)

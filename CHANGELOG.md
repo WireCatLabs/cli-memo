@@ -9,22 +9,54 @@ the API.
 ### Added
 
 - **`memo templates`: the owner's own templates of the morning digest, per channel and language.**
-  `memo templates list | show | edit | preview | reset <key> --channel telegram|email|text [--language ru|en]`, from
-  cli-core's `templates` group, kept in the shared store. `edit` opens `$EDITOR` or takes `--file`, and checks the
-  template against a synthetic report and the last real digest before it saves anything; `edit --undo` puts back the
-  body the last change replaced, and `reset` returns to the shipped template. `edit` and `reset` are the owner's
-  alone: `MEMO_READ_ONLY` and an agent's run are refused.
+  `memo templates list [query...] | show | edit | preview | reset <key> --channel telegram|email|text
+  [--locale ru|en]`, from cli-core's `templates` group, kept in the shared store; `templates list channel:telegram
+  source:stored` narrows the list by `key`, `channel`, `language` and `source`. `edit` opens `$EDITOR` or takes
+  `--file <file>`, and checks the template against a synthetic report and the last real digest before it saves
+  anything; `edit --undo` puts back the body the last change replaced, and `reset` returns to the shipped template.
+  `edit` and `reset` are the owner's alone: `MEMO_READ_ONLY` and an agent's run are refused. `memo commands` lists
+  the group under Automate. The digest's task line gains "без срока: N · открыть" for open tasks with no due date.
+
+## 0.131.65 — 08.11.2026
+
+### Fixed
+
+- **`review agenda` no longer names a synced account as having no sync schedule.** An account stored or synced
+  within a day gets no `health` line at all; a tool's schedule counts for the profile it runs as, by its
+  `<PREFIX>_PROFILE` or its first argument (`tg second messages sync`); a running `serve` counts for its profile's
+  account; and an account that no profile of its tool holds gets no line, since memo cannot tell what syncs it. A
+  `no-schedule` account with nothing new in 30 days is stale since its last stored message, not for 0 hours.
+
+### Added
+
+- **`review agenda`'s `tasks` counts `undated`**: every open task with no due date, however old, in `--json` and
+  `--compact`; the morning-digest report copies it as `tasks.undated`.
+
+## 0.131.64 — 08.11.2026
 
 ### Fixed
 
 - **`relationships add --role` help no longer suggests `cto`.** A person's role in an organization or a project
   comes from that relationship's list, so the help, the example and `docs/people.md` now name valid roles
   (employee, contributor).
-
-## 0.131.63 — 08.11.2026
+- **`memo records link custom:quote:Q-7` reads the type `custom:quote`.** A record key was split at its first colon,
+  so a custom type was read as `custom`.
+- **`memo records import` streams JSONL** from a file or stdin a record at a time instead of reading the whole file
+  first, and its text receipt names the review kinds of what it proposed, the records left unmatched, the values kept
+  as data only, and when a list stopped at 1000 entries. Every refusal is also printed on stderr as it happens, one
+  line each, including those past the receipt's 1000.
+- **`memo records import --json` gives a valid answer for an empty file, a JSON array or a refusal with no place in
+  the file**: its issue names `/`, the envelope's root, where it named an empty pointer the answer schema refuses.
+- **A missing or unreadable records file is `not_found` (`records.file-missing`) or `validation_error`
+  (`records.file-unreadable`)**, not a system error.
 
 ### Added
 
+- **`memo show` and each business `show` list where an entry came from** (`sources`): the source records mapped to
+  it and the records whose relations name it, such as a quote `quoted-for` a deal. This covers products, contracts,
+  subscriptions, wallets, transactions, invoices, payments, orders, deals, leads and pipelines. The title of one an
+  import or a CRM made is the source's words, so `memo show` marks it `untrusted`. An MCP client denied
+  `records.show` gets no `sources`, as `records show` would refuse it.
 - **`memo show` opens invoices, payments, orders, deals, leads, pipelines, products, contracts, subscriptions, wallets
   and transactions** with memo's own `show`: its `open` names `memo invoices show invoice:4` and the like, where it
   said nothing opens them.
@@ -55,6 +87,12 @@ the API.
   and `records show` lists the records that name the record (`incoming`).
 - **`memo records import` and `records check` take a vCard address book** (`.vcf`, `BEGIN:VCARD`) as a phone's
   contacts, under `--account phone:<device>`; what the converter kept without matching is printed as a notice.
+- **`memo events list` lists the calendar events of every account in the store, phone calls included.** A call
+  imported with `memo records import` showed only in `search all`; it is now listed with no query, beside the
+  calendars gcal stored. Without `starts_at` the list covers the last 30 days and the next 7, latest first, and names
+  each account it read. `account:`, `calendar:`, `event_type:` and `starts_at` narrow it. `memo events show event:42`
+  opens one, and `memo show event:42` now names it. Over MCP, `events.list` set to `deny` also leaves events out of
+  `search all`, and `events.show` refuses `memo show` of an event.
 
 ### Changed — may break callers
 
@@ -64,6 +102,13 @@ the API.
   envelope): one exact e-mail, phone or other identifier links it, none makes it, two or more leave it waiting for
   `memo records link`. A record that waited for `records link` before is matched or made on its next import, so its
   invoice or payment becomes a proposal at once. Run `memo records check` on a file before its next import to see it.
+
+## 0.131.63 — 08.11.2026
+
+### Added
+
+- **`memo show` opens invoices, payments, orders, deals, leads and pipelines** with memo's own `show`: its `open`
+  names `memo invoices show invoice:4` and the like, where it said nothing opens them.
 
 ### Security
 
@@ -75,19 +120,6 @@ the API.
   `leads.list` refused those lists but still showed deal and lead titles in `search all`; those hits are now left out,
   with a `permission_error` issue for source `crm`. `crm.list` leaves the whole CRM lane out. `--only crm` and
   `--only business` name those lanes, and are refused when the lane may not be read.
-
-### Fixed
-
-- **`memo records link custom:quote:Q-7` reads the type `custom:quote`.** A record key was split at its first colon,
-  so a custom type was read as `custom`.
-- **`memo records import` streams JSONL** from a file or stdin a record at a time instead of reading the whole file
-  first, and its text receipt names the review kinds of what it proposed, the records left unmatched, the values kept
-  as data only, and when a list stopped at 1000 entries. Every refusal is also printed on stderr as it happens, one
-  line each, including those past the receipt's 1000.
-- **`memo records import --json` gives a valid answer for an empty file, a JSON array or a refusal with no place in
-  the file**: its issue names `/`, the envelope's root, where it named an empty pointer the answer schema refuses.
-- **A missing or unreadable records file is `not_found` (`records.file-missing`) or `validation_error`
-  (`records.file-unreadable`)**, not a system error.
 
 ## 0.131.62 — 08.11.2026
 

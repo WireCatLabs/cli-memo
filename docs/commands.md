@@ -57,7 +57,7 @@ memo show <ref> [options]
 
 **Returns:** what any reference names, and the command that opens it
 
-**Example:** `memo show chat:max/500/-1001 document:413`, `memo show note:12 msg:telegram/1/77/42 --json`
+**Example:** `memo show chat:max/500/-1001 document:413`, `memo show note:12 msg:telegram/1/77/42 --json`, `memo show contract:2 invoice:4 --json`
 
 ## `memo notes`
 
@@ -4671,7 +4671,7 @@ memo review reject <ids> [options]
 
 ### `memo review agenda`
 
-the morning digest, from the store alone with no model call: everything new in what you tagged watch (chats, mail threads, people, projects, a meeting's series), replies you owe to people in messengers and personal mail (not bots or service chats), new personal mail, meetings that ended, tasks, projects that moved, proposals waiting. Tasks are the open ones created since the last morning-digest run (a day back when none ran) and those overdue, due today or due tomorrow, each with who asked and who does it. Replies owed reach back 7 days; owed mail lists only senders you know (linked to a person with other identities, or written to before), and mail from new senders is one count with the command that lists it. Each item has its reference, who, when, one line of text and why it is there; a section cut by --limit or --max-output-bytes says how many it left out and the command that reads them. `scope` says what was read (the window, sources, counts), `tasks` counts each task group, and `health` names each account whose sync failed, that nothing syncs, or that is quiet for longer than usual, so an unsynced account does not read as a quiet day
+the morning digest, from the store alone with no model call: everything new in what you tagged watch (chats, mail threads, people, projects, a meeting's series), replies you owe to people in messengers and personal mail (not bots or service chats), new personal mail, meetings that ended, tasks, projects that moved, proposals waiting. Tasks are the open ones created since the last morning-digest run (a day back when none ran) and those overdue, due today or due tomorrow, each with who asked and who does it. Replies owed reach back 7 days; owed mail lists only senders you know (linked to a person with other identities, or written to before), and mail from new senders is one count with the command that lists it. Each item has its reference, who, when, one line of text and why it is there; a section cut by --limit or --max-output-bytes says how many it left out and the command that reads them. `scope` says what was read (the window, sources, counts), `tasks` counts each task group and, as `undated`, every open task with no due date, and `health` names each account whose sync failed, that nothing syncs, or that is quiet for longer than usual, so an unsynced account does not read as a quiet day; an account stored or synced within a day is never named
 
 ```sh
 memo review agenda [options]
@@ -5141,7 +5141,7 @@ memo search all <query> [options]
 
 **Returns:** hit — kind, ref, provider, account, title, timestamp, excerpt, url, and 15 more; every field: memo commands info search all
 
-**Example:** `memo search all 'budget harbour'`, `memo search all 'content:invoice' --only mail,notes --json`
+**Example:** `memo search all 'budget harbour'`, `memo search all 'content:invoice' --only mail,notes --json`, `memo search all 'Rental agreement' --only business`
 
 ### `memo search messages`
 
@@ -5305,6 +5305,51 @@ memo search meetings <query> [options]
 **Returns:** meeting hit — ref, meeting, scope, id, excerpt, offset_ms, language, line, and 5 more; every field: memo commands info search meetings
 
 **Example:** `memo search meetings budget --source zoom:me@example.com --project Harbour --since-time 2026-10-01 --limit 10 --json`
+
+## `memo events`
+
+calendar events of every account in the store, phone calls included
+
+### `memo events list`
+
+events of every calendar account in the store, latest start first: calendars and imported phone calls
+
+```sh
+memo events list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--limit <n>` | events at most, 1–1000. Default: `100`. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** event — id, event_series_id, title, description, location, starts_at, ends_at, timezone, and 13 more; every field: memo commands info events list
+
+**Example:** `memo events list event_type:call`, `memo events list account:phone:pixel 'starts_at:[2026-11-02 TO 2026-11-07}' --json`
+
+### `memo events show`
+
+one event: its time, the accounts and calendars that hold it, and its attendees
+
+```sh
+memo events show <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | event:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** event — id, event_series_id, title, description, location, starts_at, ends_at, timezone, and 13 more; every field: memo commands info events show
+
+**Example:** `memo events show event:42`
 
 ## `memo answers`
 

@@ -36,6 +36,19 @@ memo search mail 'from:kai invoice'   # mail only
 
 [Search](search.md) explains the search words and how to give your agent the sources.
 
+## See your calendar and calls
+
+`memo events list` lists the events of every calendar account in the store, latest first: the calendars gcal stored
+and the calls imported from a phone with `memo records import`. It says which accounts it read. Without a time it
+shows the last 30 days and the next 7.
+
+```sh
+memo events list                                   # every account, the last 30 days and the next 7
+memo events list event_type:call                   # phone calls only
+memo events list account:phone:pixel starts_at>=2026-10-01
+memo events show event:42                          # one event, and the accounts and calendars that hold it
+```
+
 ## Prepare for a conversation
 
 ```text prompt
@@ -106,6 +119,9 @@ A source's export, such as a payment sheet, comes in as a records envelope (JSON
 When the file names a party by its own id, such as `organization:client`, its invoices and payments wait until you
 say which of your entries that is. `memo records list waiting:true --account sheet:rentals` shows what waits, and
 `memo records link organization:client organization:3 --account sheet:rentals` links it; only you can.
+
+Products, contracts, subscriptions, bank accounts and transactions, refunds, and finding all of it again with
+`search all --only business` are on [Business data](./business.md).
 
 ## Track deals and leads
 

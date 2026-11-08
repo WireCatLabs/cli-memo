@@ -1,4 +1,14 @@
-# memo — Money: payments, invoices and a source's records
+# memo — Money: amounts, payments, refunds, business data and a source's records
+
+**Amounts.** Give and read every amount as a decimal string with at most the currency's decimals: `"50000.00"` RUB,
+`"1200"` JPY (none), `"1.250"` BHD (three). memo stores it as a whole number of the currency's minor units (kopecks,
+fils) and refuses more decimals than the currency has, or a currency it does not know. Nothing is converted: add up
+only amounts of one currency, and report totals per currency.
+
+**Paid is net.** An invoice's `paid` is its confirmed payments minus their confirmed refunds, and `open` is the total
+minus that. A refund is a payment the other way (`memo payments add ... --refund-of payment:<id>`), never more than
+the payment it gives back for; a fully refunded invoice reads `issued` again until the owner voids it. Never subtract
+refunds yourself from `paid`, and never sum `payments list` to get what an invoice still owes: read `invoices show`.
 
 Money is not a fact. A payment you read is a finding of kind `payment` with `amount` (a decimal string),
 `currency`, `direction` (`to_us`, `from_us`), `state` and `counterparty`. When the owner confirms it, a `paid` one
@@ -18,3 +28,12 @@ close them and make pipelines yourself (`memo deals add <title> <stage> [amount]
 `memo leads add <title>`, `memo deals move deal:<id> <stage>`, `memo deals close deal:<id> won|lost`); they are
 written at once, no review. Name a pipeline by `pipeline:<id>` when two share a name. `memo pipelines show <pipeline>`
 gives the counts and conversion per stage.
+
+Products, contracts, subscriptions, wallets and transactions: `memo products list`, `memo contracts show contract:<id>`
+(the last day to give notice), `memo subscriptions show subscription:<id>` (every price it had),
+`memo wallets show wallet:<id>` (the balance from the opening balance and the confirmed, booked transactions; what is
+pending is beside it, never in it), `memo transactions list 'wallet:"wallet:<id>"' uncategorized:true`. A transaction is
+what the bank says moved and a payment is the settlement: they meet only through `transactions update --payment`.
+An agent's contract with a value, subscription, price and transaction wait for the owner in `memo review`.
+`memo show <ref>` and each `show` list where an imported entry came from under `sources`: the source records mapped to
+it, and those that name it (a quote `quoted-for` a deal).

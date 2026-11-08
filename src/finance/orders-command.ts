@@ -9,6 +9,7 @@ import { answers, itemAnswer } from "../answer.js"
 import { byOption, whoRuns } from "../author.js"
 import { positive } from "../options.js"
 import { pageOf } from "../page.js"
+import { withSources } from "../records/sources.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { dayOf, partyOf } from "./finance.js"
 import { lineCommands } from "./lines-command.js"
@@ -87,8 +88,8 @@ export const orderCommands = (program: Command, streams: Streams, env: NodeJS.Pr
   json(annotate(orders.command("show"), { effects: LOCAL_READ, output: { entity: "order" } }))
     .description("one order with its customer, shop, amount, status and the mail it was read from")
     .argument("<ref>", "order:<id>")
-    .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(await store.orders.get(ref))),
+    .action((ref: string, options: { json?: boolean }, command: Command) =>
+      run(options.json, async (store) => itemAnswer(await withSources(command, store, await store.orders.get(ref)))),
     )
 
   json(
