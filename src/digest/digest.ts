@@ -253,7 +253,10 @@ export const gatherDigest = async (
   const syncRuns = syncRunsOf(env)
   const labels = await labelsOf(store, [...messengers, ...mailboxes])
   const health: Health[] = []
-  const checkHealth = (key: AccountKey, activity: { newest: number | null; moved30d: number }) => {
+  const checkHealth = (
+    key: AccountKey,
+    activity: { newest: number | null; moved30d: number; storedAt: number | null },
+  ) => {
     const found = healthOf(syncRuns(key), activity, now)
     if (found)
       health.push({
@@ -272,6 +275,7 @@ export const gatherDigest = async (
     checkHealth(key, {
       newest: month.reduce<number | null>((most, chat) => Math.max(most ?? 0, Date.parse(chat.lastMessageAt)), null),
       moved30d: month.length,
+      storedAt: storedAt === null ? null : Date.parse(storedAt),
     })
     const ref = (chat: string) => formatReference({ type: "chat", provider: key.provider, account: key.account, chat })
     chatsMoved += chats.filter((chat) => Date.parse(chat.lastMessageAt) >= since).length
@@ -326,6 +330,7 @@ export const gatherDigest = async (
     checkHealth(key, {
       newest: newest || null,
       moved30d: threads.filter((thread) => thread.lastEmailAt >= now - 30 * DAY).length,
+      storedAt: newest || null,
     })
     mailMoved += threads.filter(
       (thread) => thread.lastEmailAt >= since && thread.newest !== null && personal(thread.newest),

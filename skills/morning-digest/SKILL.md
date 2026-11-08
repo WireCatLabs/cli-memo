@@ -63,7 +63,8 @@ write only the content. A document that breaks this shape is not delivered: the 
   "scope": { "from": "2026-11-06T08:30:00Z", "to": "2026-11-07T08:30:00Z",
     "sources": [ { "kind": "telegram", "accounts": 2 }, { "kind": "mail", "accounts": 3 } ],
     "counts": { "chats": 31, "mail": 12, "tasks": 4, "meetings": 1 } },
-  "tasks": { "overdue": 1, "today": 2, "tomorrow": 0, "new": 1, "new_since": "2026-11-06T08:31:12Z" },
+  "tasks": { "overdue": 1, "today": 2, "tomorrow": 0, "new": 1, "new_since": "2026-11-06T08:31:12Z",
+    "undated": 91 },
   "health": [ { "source": "MAX", "account": "Анна Котова", "reason": "sync-failed", "since": "2026-11-05T04:45:00Z",
     "stale_hours": 51, "failure": "auth.expired", "refs": [] } ]
 }

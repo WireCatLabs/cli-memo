@@ -18,6 +18,8 @@ export interface TaskCounts {
   tomorrow: number
   new: number
   newSince: string
+  /** Every open task with no due date, however old: the digest lists none of them, so it counts them. */
+  undated: number
 }
 
 export type TaskGroup = "overdue" | "today" | "tomorrow" | "new"
@@ -110,11 +112,12 @@ export const gatherTasks = async (
   if (projects.length) accounts++
   for (const task of projects) seen.set(task.id, task)
 
-  const counts: TaskCounts = { overdue: 0, today: 0, tomorrow: 0, new: 0, newSince }
+  const counts: TaskCounts = { overdue: 0, today: 0, tomorrow: 0, new: 0, newSince, undated: 0 }
   const tasks: HotTask[] = []
   for (const task of seen.values()) {
     const groups: TaskGroup[] = []
     const due = task.dueAt === null ? null : day(Date.parse(task.dueAt))
+    if (due === null) counts.undated++
     if (due !== null && due < today) groups.push("overdue")
     if (due === today) groups.push("today")
     if (due === tomorrow) groups.push("tomorrow")
