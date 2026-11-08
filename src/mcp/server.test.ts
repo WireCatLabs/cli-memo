@@ -697,3 +697,63 @@ it("refuses --export in an MCP run before the note is saved or a file is written
     await store.close()
   }
 })
+
+it("lets an agent challenge a memory over MCP, and never decide its source review, even with every permission", async () => {
+  updateConfig(
+    (config) => ({
+      ...config,
+      agent_decisions: true,
+      permissions: {
+        "mcp.authority": "allow",
+        ...Object.fromEntries(OWNER_PERMISSIONS.map((key) => [key, "allow" as const])),
+      },
+    }),
+    env,
+  )
+  const store = await openStore({ env })
+  const contradiction = await store.notes.addNote({ text: "Bob Sample moved to Mondays" })
+  const memory = await store.memories.add({
+    kind: "preference",
+    body: "Bob Sample prefers Fridays",
+    scope: "work",
+    evidence: ["note:1"],
+    author: "owner",
+    status: "confirmed",
+  })
+  await store.close()
+  const { client, call, answer } = await connected()
+  try {
+    expect(
+      await answer("memories add", {
+        text: "Bob Sample prefers Fridays",
+        kind: "preference",
+        scope: "work",
+        evidence: ["note:1"],
+        quote: ["note:1=prefers Fridays"],
+      }),
+    ).toMatchObject({ status: "proposed" })
+    const review = (await answer("memories challenge", {
+      ref: memory.ref,
+      evidence: [contradiction.ref],
+      reason: "a later note says Mondays",
+    })) as { id: string; kind: string; status: string }
+    expect(review).toMatchObject({ kind: "memory_source_review", status: "proposed" })
+    for (const name of ["review confirm", "review reject"]) {
+      const decided = await call(name, { ids: [review.id], reason: "checked" })
+      expect(decided.structuredContent).toMatchObject({
+        item: { decided: [], refused: [{ id: review.id, reason: "proposal.owner-only" }] },
+      })
+    }
+    const kept = await openStore({ env })
+    try {
+      expect(await kept.memories.get(memory.ref)).toMatchObject({
+        status: "confirmed",
+        sourceReview: { id: review.id, cause: "contradicted" },
+      })
+    } finally {
+      await kept.close()
+    }
+  } finally {
+    await client.close()
+  }
+})

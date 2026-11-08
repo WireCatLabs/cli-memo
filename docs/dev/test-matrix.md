@@ -461,6 +461,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `memories add` |  | ✅ |  |
 | `memories add` | `--as-owner` | ❌ |  |
 | `memories add` | `--from-app` | ❌ |  |
+| `memories add` | `--quote` | ✅ |  |
 | `memories add` | `--kind` | ✅ |  |
 | `memories add` | `--scope` | ✅ |  |
 | `memories add` | `--evidence` | ✅ |  |
@@ -492,6 +493,16 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `memories remove` | `--from-app` | ❌ |  |
 | `memories remove` | `--json` | ✅ |  |
 | `memories remove` | `--reason` | ❌ |  |
+| `memories check` |  | ✅ |  |
+| `memories check` | `--limit` | ✅ |  |
+| `memories check` | `--json` | ✅ |  |
+| `memories challenge` |  | ✅ |  |
+| `memories challenge` | `--as-owner` | ❌ |  |
+| `memories challenge` | `--from-app` | ❌ |  |
+| `memories challenge` | `--evidence` | ✅ |  |
+| `memories challenge` | `--reason` | ✅ |  |
+| `memories challenge` | `--suggest` | ✅ |  |
+| `memories challenge` | `--json` | ✅ |  |
 | `mentions list` |  | ✅ |  |
 | `mentions list` | `--source` | ✅ |  |
 | `mentions list` | `--limit` | ❌ |  |
@@ -512,6 +523,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `facts add` |  | ✅ |  |
 | `facts add` | `--as-owner` | ❌ |  |
 | `facts add` | `--from-app` | ✅ |  |
+| `facts add` | `--quote` | ✅ |  |
 | `facts add` | `--kind` | ✅ |  |
 | `facts add` | `--evidence` | ✅ |  |
 | `facts add` | `--project` | ✅ |  |
@@ -551,6 +563,13 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `facts remove` | `--from-app` | ❌ |  |
 | `facts remove` | `--json` | ✅ |  |
 | `facts remove` | `--reason` | ❌ |  |
+| `facts challenge` |  | ✅ |  |
+| `facts challenge` | `--as-owner` | ❌ |  |
+| `facts challenge` | `--from-app` | ❌ |  |
+| `facts challenge` | `--evidence` | ✅ |  |
+| `facts challenge` | `--reason` | ✅ |  |
+| `facts challenge` | `--suggest` | ✅ |  |
+| `facts challenge` | `--json` | ✅ |  |
 | `invoices list` |  | ✅ |  |
 | `invoices list` | `--json` | ✅ |  |
 | `invoices list` | `--limit` | ❌ |  |

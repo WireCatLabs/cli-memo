@@ -88,6 +88,77 @@ memo facts remove fact:4
 
 An agent cannot forget or reject through the MCP server, and cannot correct a memory there.
 
+## When a source changes
+
+A memory or fact rests on its sources. When one of them changes, goes or is contradicted, memo opens a
+**source review** for you and marks the record, but never changes its status: it stays confirmed or accepted until
+you decide.
+
+**See it.** `memo sync` ends with the step "memories follow sources", so the timer checks for you. To check now:
+
+```sh
+memo memories check
+memo review list kind:memory_source_review
+memo memories show memory:3
+```
+
+`memories show`, `memories list`, `facts show` and `facts list` carry `source_review`: the open review's id and its
+cause, or `null`. The causes, from the mildest:
+
+- `changed`: a source was edited, and the words the record rests on are gone or were never quoted;
+- `outdated`: a cited memory or fact was itself replaced or withdrawn; the review names what replaced it;
+- `deleted`: a source was deleted;
+- `contradicted`: you or an agent ran `challenge` with evidence that says otherwise.
+
+A source that changed but still says the quoted words raises nothing. A record written before memo kept
+signatures raises a review only when its source changed after it was cited. `memo review agenda` lists the reviews
+raised within `--since-time` (a day unless you say) in its `sources` section; one that only grew in place is not
+listed again.
+
+**Decide it.**
+
+```sh
+memo review show 17090
+memo review confirm 17090
+memo review reject 17090 --reason 'the edit is a typo fix'
+```
+
+`review show` gives each source as it was cited and as it is now, the quote, every challenge with its evidence and
+reason, and any suggested wording, then the command for each answer:
+
+- **Still true**: `review confirm`. A memory counts as checked now.
+- **Dismiss**: `review reject --reason`.
+- **Correct or replace**: add the right one with `memories add … --supersedes memory:3` or `facts add …
+  --supersedes fact:4`, as in [Correct or forget](#correct-or-forget).
+- **Withdraw**: `memories invalidate memory:3` or `facts reverse fact:4`.
+
+Confirm and reject sign the sources again as they are now, so the same change does not come back. Only you decide a
+source review. WireCat Desktop passes `--from-app`, which records the decision as yours.
+
+**Find the original evidence.** `memories show memory:3 --sources` reads each cited source back as it is now and
+says `missing: true` once one is gone; `review show` adds the text as it was cited, for notes, documents and
+messages.
+
+**For agents.** An agent may look and propose, never decide:
+
+```sh
+memo memories check --json
+memo memories challenge memory:3 --evidence note:15 --reason 'the later note moves delivery to the 30th' --suggest 'Delivery is on the 30th'
+memo facts challenge fact:4 --evidence 'msg:telegram/1/77/50' --reason 'the decision was reversed in chat'
+memo memories add 'Delivery is on the 28th' --kind preference --scope work --evidence note:12 --quote 'note:12=delivery on the 28th'
+```
+
+- `memories check --json` answers `checked`, `baselined`, `raised`, `refreshed`, `closed` and `changed_refs`. The last
+  lists changed sources that no findings batch reads yet; read those again and stage what is new with
+  `memo projects actions add`.
+- `challenge` opens the record's source review, or adds to the open one, with the evidence, the reason and an optional
+  `--suggest`. It changes nothing else.
+- `--quote <ref>=<words>` on `memories add` and `facts add` stores the words of an `--evidence` reference the record
+  rests on, so a later edit that keeps them raises nothing. A quote the source does not say is refused
+  (`evidence.quote-not-found`), and so is one that names no `--evidence` reference (`evidence.quote-unmatched`).
+- `review confirm` and `review reject` refuse an agent on a source review (`proposal.owner-only`), whatever its
+  permissions and `agent_decisions` say.
+
 ## Facts
 
 A fact records what happened, with its evidence. Its kind is `fact`, `statement`, `question`,

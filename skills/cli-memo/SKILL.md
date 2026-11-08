@@ -44,6 +44,8 @@ latest first: `memo events list --compact` (`event_type:call` for calls only).
   when memo lists candidates, ask which one.
 - What you write (`memo facts add`, `memo memories add` and the like) waits for the owner. Never pass
   `--as-owner` or `--from-app`, and never confirm or reject your own proposals.
+- Evidence contradicts a memory or fact: `memo memories challenge` or `memo facts challenge` it, which only
+  proposes; a source review is the owner's alone (topic `proposals`).
 - Never write message, mail or note text to a file: quote it in the answer with its reference.
 - Something missing or broken: `memo doctor --json` first. A `memo:` line on stderr about sync or mail settings
   is for the owner: tell them and quote it.

@@ -10,7 +10,13 @@ import {
   type ProposalRow,
   proposalRegistry,
 } from "@wirecat/cli-core/services"
-import type { Decider, MessageStore, Proposer } from "@wirecat/cli-core/store"
+import {
+  type Decider,
+  type MessageStore,
+  type Proposer,
+  SOURCE_REVIEW_KIND,
+  type SourceReviewPayload,
+} from "@wirecat/cli-core/store"
 import { canonicalProject } from "../vocabulary/project.js"
 import { REVIEW_KINDS, type ReviewRow, reviewRegistry } from "./kinds.js"
 
@@ -93,6 +99,8 @@ const titleOf = (row: ProposalRow, label: Labels) => {
     case "meeting_findings":
     case "mail_findings":
       return `${row.summary ?? "findings"}${row.parts?.length ? `: ${row.parts.map((part) => part.kind).join(" · ")}` : ""}`
+    case SOURCE_REVIEW_KIND:
+      return `${subject}: ${row.summary ?? "sources changed"}${object === null ? "" : ` → ${object}`}`
     case "task_close":
       return row.summary ?? subject
     case "action":
@@ -146,6 +154,51 @@ export const listReview = async (
   const found = await reviewRegistry(store).list({ ...filter, limit, offset: (page - 1) * limit })
   const label = await labelsFor(store, found.items.flatMap(rowRefs))
   return { items: found.items.map((row) => reviewItem(row, label)), hasMore: found.hasMore }
+}
+
+/** One proposal as `review list` shows it, read by id. */
+export const reviewOf = async (store: MessageStore, id: string) => {
+  const row = await reviewRegistry(store).get(id)
+  return reviewItem(row, await labelsFor(store, rowRefs(row)))
+}
+
+const TEXT_SHOWN = 2000
+const shown = (text: string | null) =>
+  text === null || text.length <= TEXT_SHOWN ? text : `${text.slice(0, TEXT_SHOWN - 1)}…`
+
+/**
+ * What a `memory_source_review` asks of the owner: each source as it was cited and as it is now, the challenges and
+ * suggestions, and the command for each decision. The review holds no source text; it is read here, as data.
+ */
+export const sourceReviewDetail = async (store: MessageStore, id: string, target: string) => {
+  const payload = (await store.proposedActions.get(id)).payload as SourceReviewPayload
+  const texts = new Map((await store.knowledge.sourceReviewTexts(id)).map((one) => [one.link, one]))
+  const withdraw = target.startsWith("fact:") ? `memo facts reverse ${target}` : `memo memories invalidate ${target}`
+  return {
+    cause: payload.cause,
+    raisedAt: payload.raisedAt,
+    sources: payload.sources.map((source) => {
+      const text = texts.get(source.link)
+      return {
+        ref: source.ref,
+        kind: source.kind ?? null,
+        cause: source.cause,
+        replacement: source.replacement ?? null,
+        quote: text?.quote ?? null,
+        cited: shown(text?.cited ?? null),
+        now: shown(text?.now ?? null),
+      }
+    }),
+    challenges: payload.challenges,
+    suggestions: (payload.suggestions ?? []).map(({ author, body, evidence, at }) => ({ author, body, evidence, at })),
+    decide: {
+      stillTrue: `memo review confirm ${id}`,
+      dismiss: `memo review reject ${id} --reason <why>`,
+      correct: `memo ${target.startsWith("fact:") ? "facts" : "memories"} add <the right text and its options> --supersedes ${target}`,
+      withdraw,
+    },
+    untrusted: ["sources.quote", "sources.cited", "sources.now", "challenges.reason", "suggestions.body"],
+  }
 }
 
 export const showReview = async (store: MessageStore, env: NodeJS.ProcessEnv, id: string) => {

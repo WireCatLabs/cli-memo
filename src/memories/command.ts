@@ -10,6 +10,7 @@ import { decideOne } from "../review/review.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { addMemory } from "./memories.js"
 import { listMemories, MEMORY_QUERY, memoryItem, searchMemories } from "./memory.js"
+import { challengeCommand, explainQuote, quotedEvidence, quoteOption, sourceCheckCommand } from "./sources.js"
 
 export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { run } = answers(program, streams, env)
@@ -17,12 +18,14 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     .command("memories")
     .description("what agents and you concluded, with evidence; you confirm an agent's")
 
-  byOption(
-    annotate(memories.command("add"), {
-      effects: LOCAL_WRITE,
-      output: { entity: "memory" },
-      literal_after_dashes: true,
-    }).description("write a memory; an agent's waits as proposed until you confirm it"),
+  quoteOption(
+    byOption(
+      annotate(memories.command("add"), {
+        effects: LOCAL_WRITE,
+        output: { entity: "memory" },
+        literal_after_dashes: true,
+      }).description("write a memory; an agent's waits as proposed until you confirm it"),
+    ),
   )
     .argument("<text...>", "what is true, in a sentence or two")
     .requiredOption("--kind <kind>", MEMORY_KINDS.join(", "), oneOf(MEMORY_KINDS))
@@ -42,11 +45,13 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
           subject?: string
           project?: string
           supersedes?: string
+          quote?: string[]
           asOwner?: boolean
           json?: boolean
         },
         command: Command,
       ) => {
+        const evidence = quotedEvidence(options.evidence, options.quote)
         const by = whoRuns(command, env, { asOwner: options.asOwner, question: "record this memory as yours?" })
         return run(options.json, async (store) =>
           itemAnswer(
@@ -57,13 +62,13 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
                   text: words.join(" "),
                   kind: options.kind,
                   scope: options.scope,
-                  evidence: options.evidence,
+                  evidence,
                   ...(options.subject === undefined ? {} : { subject: options.subject }),
                   ...(options.project === undefined ? {} : { project: options.project }),
                   ...(options.supersedes === undefined ? {} : { supersedes: options.supersedes }),
                 },
                 await by,
-              ),
+              ).catch(explainQuote),
             ),
           ),
         )
@@ -152,6 +157,9 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
   decide("remove", "forget a memory: erase its text, its links to sources and its search entry", (store, ref, by) =>
     store.memories.remove(ref, by),
   ).addHelpText("after", `\n${FORGET_HELP}`)
+
+  sourceCheckCommand(memories, streams, env)
+  challengeCommand(memories, "memory", streams, env)
 }
 
 /** What Forget leaves behind, said where the owner decides (NEED-169). */

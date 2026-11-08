@@ -106,6 +106,13 @@ the same fields as `memo meetings actions add --help`. Every finding needs exact
 fingerprints and a confirmed project link. Unknown dates and assignees stay absent; inferred follow-ups
 are labelled as such. Exact retries reuse the key; changed input needs a new key.
 
+Some proposals are the owner's alone, whatever the permissions and `agent_decisions` say: mail and meeting
+findings batches, task closes and source reviews (`memory_source_review`). `review confirm` and `review reject`
+refuse an agent on them (`proposal.owner-only`). For a memory or fact whose sources changed, an agent may run
+`memories check`, `memories challenge` and `facts challenge`, which only open or add to the owner's review, and may
+quote what a source says with `quote` on `memories add` and `facts add`; it never decides the review
+([When a source changes](memories.md#when-a-source-changes)).
+
 `meetings actions show` and `meetings actions list` take an explicit `source`. The owner reviews
 batches through `memo meetings actions confirm` or `reject`, or explicitly permits the corresponding MCP decision commands. Staging creates no facts or numbered tasks.
 

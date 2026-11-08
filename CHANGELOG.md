@@ -6,6 +6,28 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **Memories and facts follow their sources.** When a cited source changes, goes, is replaced or is contradicted,
+  memo opens a source review (`memory_source_review`) and marks the record; its status never changes on its own.
+  - `memo memories check [--limit N]` looks again, and `memo sync` does it as its last step, "memories follow
+    sources"; a failure there is reported as `source_check_failed` and never fails the sync. `check --json` answers
+    `checked`, `baselined`, `raised`, `refreshed`, `closed` and `changed_refs`, the changed sources no findings
+    batch reads yet, for an agent to read again with `projects actions add`.
+  - `memo memories challenge` and `memo facts challenge <ref> --evidence … --reason … [--suggest …]` say a record no
+    longer holds. An agent may run them; they only open or add to the owner's review.
+  - `--quote <ref>=<words>` on `memories add` and `facts add` keeps the words a record rests on, so an edit that
+    keeps them raises nothing. A quote the source does not say is refused (`evidence.quote-not-found`), and one that
+    names no `--evidence` reference too (`evidence.quote-unmatched`).
+  - `memo review` lists `kind:memory_source_review`. `review show` gives each source as cited and as it is now, the
+    challenges and suggestions, and the command for each answer. `review confirm` says it still holds, `review
+    reject` dismisses it; both are the owner's alone, and `--from-app` counts as the owner. Correct with `memories
+    add --supersedes`, withdraw with `memories invalidate` or `facts reverse`.
+  - `memories list/show` and `facts list/show` carry `source_review`: the open review's `id` and `cause`, or `null`.
+  - `memo review agenda` has a `sources` section: the source reviews raised since `--since-time`. A review that only
+    grew in place is not listed again.
+  - Needs a cli-core release with source reviews and `sourceReviewTexts`.
+
 ## 0.131.66 — 08.11.2026
 
 ### Added

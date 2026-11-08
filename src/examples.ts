@@ -209,6 +209,11 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "memories confirm": ["memo memories confirm memory:4"],
   "memories invalidate": ["memo memories invalidate memory:4"],
   "memories remove": ["memo memories remove memory:4"],
+  "memories check": ["memo memories check", "memo memories check --limit 2000 --json"],
+  "memories challenge": [
+    "memo memories challenge memory:4 --evidence note:15 --reason 'the later note moves delivery to the 30th'",
+    "memo memories challenge memory:4 --evidence note:15 --reason 'moved' --suggest 'Delivery is on the 30th' --json",
+  ],
   "facts add": [
     "memo facts add 'We moved the launch to spring' --kind decision --evidence 'msg:telegram/1/77/42' --project HRB",
   ],
@@ -346,6 +351,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "facts reverse": ["memo facts reverse fact:4"],
   "facts reject": ["memo facts reject fact:4"],
   "facts remove": ["memo facts remove fact:4"],
+  "facts challenge": ["memo facts challenge fact:4 --evidence 'msg:telegram/1/77/50' --reason 'reversed in chat'"],
   "actions add": [
     "memo actions add reply --reason 'Kai asked twice' --account telegram:1 --target 'msg:telegram/1/77/42' --payload '{\"text\":\"Friday works\"}'",
   ],
