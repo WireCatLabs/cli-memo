@@ -8,27 +8,9 @@ the API.
 
 ### Added
 
-- **`memo show` opens invoices, payments, orders, deals, leads and pipelines** with memo's own `show`: its `open`
-  names `memo invoices show invoice:4` and the like, where it said nothing opens them.
-
-### Security
-
-- **`memo show` over MCP refuses a reference whose own command the server denies.** A server whose permissions denied
-  `invoices` (or `invoices.show`) refused `invoices show`, yet `memo show invoice:4` gave the agent the invoice's
-  number, amount and counterparty, and the same for an order, a lead and a pipeline. It is now a `permission_error`
-  naming the key, for every kind memo opens, whether the key is passed with `--permission` or saved in the config file.
-
-## 0.131.62 — 08.11.2026
-
-### Added
-
-- **`memo review agenda` says what it read and which accounts need a sync.** `scope` gives the window, each source
-  with its number of accounts, and how many chats, personal mail threads, tasks and meetings it read; `tasks` counts
-  the overdue, today, tomorrow and new tasks and gives `new_since`; `health` names each account whose sync needs a
-  look: `sync-failed` (its scheduled sync fails: since when and the failure's reason id), `no-schedule` (no schedule
-  and no running `serve` syncs it) or `quiet` (it syncs, but nothing new for longer than three of its usual gaps,
-  and at least three days). Each account is named by its name, username or address, never its id. `--compact` prints
-  the three as JSON lines that the morning-digest skill copies into the report.
+- **`memo show` opens invoices, payments, orders, deals, leads, pipelines, products, contracts, subscriptions, wallets
+  and transactions** with memo's own `show`: its `open` names `memo invoices show invoice:4` and the like, where it
+  said nothing opens them.
 - **Products, contracts, subscriptions, wallets and transactions.** `memo products` (list, show, add, update) keeps
   the goods and services you sell or buy with their prices, written directly by anyone. `memo contracts` (list, show,
   add, update) keeps their dates, renewal and notice, and `show` gives the last day to give notice; one with an amount
@@ -59,16 +41,6 @@ the API.
 
 ### Changed — may break callers
 
-- **The agenda's `tasks` section is the open tasks created since the last morning-digest run** (a day back when it
-  never ran; the start of the failures while it fails) **and those overdue, due today or due tomorrow**, by the local
-  day, project tasks included. Each says which of these it is, who asked, who does it and its due date. Tasks only to
-  check, and the "open tasks without a date left out" note, are gone.
-- **`owed` lists people only.** Dialogs the messenger marks as a bot, and Telegram's service notifications, are left
-  out.
-- **`coverage[].stale` is gone**, and the `coverage:` line no longer prints STALE: when the store last saved
-  something says nothing about the sync. `health` says it instead.
-- The morning-digest skill copies `scope`, `tasks` and `health` from the agenda into the report, writes one `task`
-  item per agenda task with its `task:` reference, and lists only people as owed replies.
 - **`memo records check` is a write for MCP** (asked by default): a dry run holds the store's write lock and grows
   the write-ahead log for its length, so `MEMO_READ_ONLY` refuses it too.
 - **A person, organization or project a records file names is matched or made on import** (cli-core's records
@@ -78,15 +50,10 @@ the API.
 
 ### Security
 
-- **`search all` over MCP no longer shows business data an agent may not list.** A server whose permissions deny
-  `invoices.list`, `payments.list` or `orders.list` (or their group) refused those lists but still showed their
-  titles in `search all`; those hits are now left out, with a `permission_error` issue for source `business`. The new
-  key `business.list` leaves the whole business lane out, and `--permission` and the config file accept it. A page
-  of `--limit` hits reads on past the hidden ones, up to five more pages, so it is not cut short by them.
-- **`search all` over MCP no longer shows deals or leads an agent may not list.** A server denying `deals.list` or
-  `leads.list` refused those lists but still showed deal and lead titles in `search all`; those hits are now left out,
-  with a `permission_error` issue for source `crm`. `crm.list` leaves the whole CRM lane out. `--only crm` and
-  `--only business` name those lanes, and are refused when the lane may not be read.
+- **`memo show` over MCP refuses a reference whose own command the server denies.** A server whose permissions denied
+  `invoices` (or `invoices.show`) refused `invoices show`, yet `memo show invoice:4` gave the agent the invoice's
+  number, amount and counterparty, and the same for an order, a lead and a pipeline. It is now a `permission_error`
+  naming the key, for every kind memo opens, whether the key is passed with `--permission` or saved in the config file.
 
 ### Fixed
 
@@ -100,6 +67,43 @@ the API.
   the file**: its issue names `/`, the envelope's root, where it named an empty pointer the answer schema refuses.
 - **A missing or unreadable records file is `not_found` (`records.file-missing`) or `validation_error`
   (`records.file-unreadable`)**, not a system error.
+
+## 0.131.62 — 08.11.2026
+
+### Added
+
+- **`memo review agenda` says what it read and which accounts need a sync.** `scope` gives the window, each source
+  with its number of accounts, and how many chats, personal mail threads, tasks and meetings it read; `tasks` counts
+  the overdue, today, tomorrow and new tasks and gives `new_since`; `health` names each account whose sync needs a
+  look: `sync-failed` (its scheduled sync fails: since when and the failure's reason id), `no-schedule` (no schedule
+  and no running `serve` syncs it) or `quiet` (it syncs, but nothing new for longer than three of its usual gaps,
+  and at least three days). Each account is named by its name, username or address, never its id. `--compact` prints
+  the three as JSON lines that the morning-digest skill copies into the report.
+
+### Changed — may break callers
+
+- **The agenda's `tasks` section is the open tasks created since the last morning-digest run** (a day back when it
+  never ran; the start of the failures while it fails) **and those overdue, due today or due tomorrow**, by the local
+  day, project tasks included. Each says which of these it is, who asked, who does it and its due date. Tasks only to
+  check, and the "open tasks without a date left out" note, are gone.
+- **`owed` lists people only.** Dialogs the messenger marks as a bot, and Telegram's service notifications, are left
+  out.
+- **`coverage[].stale` is gone**, and the `coverage:` line no longer prints STALE: when the store last saved
+  something says nothing about the sync. `health` says it instead.
+- The morning-digest skill copies `scope`, `tasks` and `health` from the agenda into the report, writes one `task`
+  item per agenda task with its `task:` reference, and lists only people as owed replies.
+
+### Security
+
+- **`search all` over MCP no longer shows business data an agent may not list.** A server whose permissions deny
+  `invoices.list`, `payments.list` or `orders.list` (or their group) refused those lists but still showed their
+  titles in `search all`; those hits are now left out, with a `permission_error` issue for source `business`. The new
+  key `business.list` leaves the whole business lane out, and `--permission` and the config file accept it. A page
+  of `--limit` hits reads on past the hidden ones, up to five more pages, so it is not cut short by them.
+- **`search all` over MCP no longer shows deals or leads an agent may not list.** A server denying `deals.list` or
+  `leads.list` refused those lists but still showed deal and lead titles in `search all`; those hits are now left out,
+  with a `permission_error` issue for source `crm`. `crm.list` leaves the whole CRM lane out. `--only crm` and
+  `--only business` name those lanes, and are refused when the lane may not be read.
 
 ## 0.131.61 — 08.11.2026
 
