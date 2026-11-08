@@ -20,6 +20,12 @@ the API.
 
 - **`memo models set` and `memo models add`** come with cli-core 0.609.0; memo itself still embeds and searches with
   e5-small until it follows the chosen model.
+- **A project's group senders can be decided together.** A person `relationships scan` proposes because they write
+  in a project's group now says which group and how much ("wrote 40 messages in «Sales» (25 people)"), and the
+  proposal's evidence leads with the group. When a scan proposes two or more senders of one group, its answer lists
+  the group under `groups`, with the command to review them: `memo review list via:<chat>` lists the proposals whose
+  evidence holds that reference, and its `next` step confirms them all in one `memo review confirm`. A pending
+  proposal takes the new reason on the next scan (cli-core 0.610.0's `chat-senders@3`).
 
 ## 0.131.55 — 08.11.2026
 
@@ -30,15 +36,6 @@ the API.
   remote client's included), and `--export` wrote a file into any folder the agent named. Both options are left out
   of the MCP catalogue, and a run over MCP refuses them with `permission_error` before the note is saved; an agent
   gives the note as `text`.
-
-### Added
-
-- **A project's group senders can be decided together.** A person `relationships scan` proposes because they write
-  in a project's group now says which group and how much ("wrote 40 messages in «Sales» (25 people)"), and the
-  proposal's evidence leads with the group. When a scan proposes two or more senders of one group, its answer lists
-  the group under `groups`, with the command to review them: `memo review list via:<chat>` lists the proposals whose
-  evidence holds that reference, and its `next` step confirms them all in one `memo review confirm`. A pending
-  proposal takes the new reason on the next scan (cli-core 0.609.0's `chat-senders@3`).
 
 ## 0.131.54 — 08.11.2026
 
