@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**893 ✅ · 0 ⛔ · 255 ❌** — 247 commands, 901 options.
+**910 ✅ · 0 ⛔ · 258 ❌** — 250 commands, 918 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -965,7 +965,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `review confirm` |  | ✅ |  |
 | `review confirm` | `--json` | ✅ |  |
 | `review confirm` | `--as-owner` | ✅ |  |
-| `review confirm` | `--from-app` | ❌ |  |
+| `review confirm` | `--from-app` | ✅ |  |
 | `review confirm` | `--reason` | ✅ |  |
 | `review confirm` | `--compact` | ❌ |  |
 | `review reject` |  | ✅ |  |
