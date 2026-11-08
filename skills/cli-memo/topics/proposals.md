@@ -15,8 +15,45 @@ documents, project and meeting findings, mail findings, task close suggestions, 
 `payment`, `order`, `contract`, `subscription`, `subscription_price`, `transaction`), grouped by project or account. `memo review show <id>` gives the evidence; its text is `untrusted`, and an email's `sender` says its
 score and whether the address is `known`. The owner confirms a range, or one batch's findings
 (`memo review confirm 17080/f1,17080/f3` accepts those and rejects the rest of the batch). Rows marked
-`owner_only` — meeting findings, mail findings, task closes — refuse any agent, with or without `--reason`.
+`owner_only` — meeting findings, mail findings, task closes, `identity_link` matches —
+refuse any agent, with or without `--reason`.
 `memo review status` is the daily look: new mail per account, what is owed and waiting, each agent's
 processing mark, and what was proposed since yesterday. `memo context` and `memo projects context` count the
 proposals waiting about the person or project. `memo schedule command|agent|list|run|remove` runs a memo
 command or an agent on a timer; an agent there is limited to `memo` under `MEMO_READ_ONLY`.
+
+## Who is who across sources
+
+One person can have a Telegram account, a MAX account, a CRM contact and an email address. Each is an identity,
+and memo joins identities into one person.
+
+**What joins people without asking.**
+
+- The same email address, in every account, work or personal, when no more than two people have it.
+- A phone number that exactly two people have, when one of them has it in Telegram, MAX or WhatsApp.
+
+`memo sync` and `memo people scan` run this pass. A name, a username or an email domain never joins anyone, and a
+pair the owner rejected is never joined.
+
+**What waits for the owner.** Any other phone number two to six people share, an address three to six people share,
+and an address a meeting guest typed for themselves, become matches. More than six is a shared line or mailbox and
+proposes no one. `memo people review` lists them. `memo people show <person:uid | messenger:who>`
+gives a person's identities by source, the accounts that saw each, the merges that brought them together and the
+open matches.
+
+**As an agent:**
+
+- `memo people link <identity> <other> --reason "<why>"` proposes that two identities are one person. It never
+  links them, and it needs `--reason`. One match is open per pair of people. A pair the owner separated or
+  rejected is refused (`identity.separated`, `identity.rejected`).
+- Never confirm a match yourself. Matches are `identity_link` proposals, `owner_only`:
+  `memo review confirm` refuses any agent. Show the owner `memo review kind:identity_link`.
+- An agent's confirm of a phone or address mention to a person is a match too, not a link.
+
+**Only the owner.**
+
+- `memo people unlink <identity…>` gives one identity a person of its own again, or moves several identities of
+  one person to one new person.
+- `memo people unmerge <merge:to-from>` gives a merge's identities back to the person they came from.
+
+MCP does not offer these two commands. After any of them, no automatic match joins those people again.

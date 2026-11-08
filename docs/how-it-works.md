@@ -65,10 +65,12 @@ it.
 
 ## One person, several accounts
 
-The same person can have a Telegram account, a MAX account and an email address. Memo treats them as
-one person only after you link them, with `tg personal contacts link` or `max personal contacts link`. A matching name
-or email domain is never enough. This keeps one person's messages from being mixed with someone
-else's.
+The same person can have a Telegram account, a MAX account and an email address. Memo treats them as one person
+when they share an exact email address no third person has, or a phone number nobody else has that one of them has
+in Telegram, MAX or WhatsApp, or after you link them with
+`memo people link`, `tg personal contacts link` or `max personal contacts link`. A matching name, username or email
+domain is never enough. A weaker signal, or an agent's guess, waits for you as a match in `memo people review`.
+Every merge can be undone ([how](people.md#undo-a-link)).
 
 ## References
 

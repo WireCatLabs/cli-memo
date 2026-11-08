@@ -61,8 +61,11 @@ nothing and tells you.
   stops with `permission_error` (exit 5), and `memo mcp serve` keeps writing commands discoverable but refuses them. Reads and `memo sync`
   still run, and so does `tasks link`, the task write a scheduled agent makes, as in tg and max:
   a link is only suggested, and linking two tasks is refused. `reminders claim` is refused.
-- Two accounts are treated as one person only after you link them. A matching name or email domain
-  is never enough.
+- Two accounts are treated as one person when they have the same email address, in any account, work or personal,
+  and no third person has it; when they have a phone number no one else has and one of them has it in Telegram, MAX
+  or WhatsApp; or after you link them. A matching name, username or email domain is never enough, and a pair you
+  rejected is never joined. A weaker signal, or an agent's guess, waits for you in `memo people review`, and only you
+  undo a link (`memo people unlink`, `memo people unmerge`).
 
 ## What can leave your computer
 

@@ -6,6 +6,19 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo people show`, `review`, `scan`, `link`, `unlink` and `unmerge`: who is who across sources.** `show` gives a
+  person's identities by source, the accounts that saw each with their scope, the merges and the open matches, naming
+  the people as they are now. `scan`, and every `memo sync` (`--only people`), joins people on the same email address
+  in any scope when no third person has it, and on a phone number exactly two people have when one has it in Telegram,
+  MAX or WhatsApp; a pair the owner rejected is never joined. Other shared numbers and addresses, and a meeting
+  guest's typed address, wait in `review`, which says `has_more` when `--limit` cuts it. `link` links for the owner;
+  an agent's link waits for the owner as an `identity_link` match and needs `--reason`. `unlink` (one identity, or
+  several to one new person) and `unmerge` are the owner's alone: an agent is refused (`identity.owner-only`), MCP
+  does not offer them, and WireCat Desktop passes `--from-app`. `memo review kind:identity_link` lists the matches.
+  They are owner-only, so an agent's `review confirm` is refused. `memo skill show proposals` is the agent's guide.
+
 ## 0.131.64 — 08.11.2026
 
 ### Fixed

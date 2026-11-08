@@ -553,7 +553,7 @@ memo mail review [query] [options]
 
 ## `memo people`
 
-the people memo knows, to assign tasks to
+the people memo knows: who is who across sources, and whom to assign tasks to
 
 ### `memo people add`
 
@@ -597,6 +597,135 @@ memo people list [query] [options]
 **Returns:** everyone memo knows, the owner first
 
 **Example:** `memo people list --json`
+
+### `memo people show`
+
+one person: their identities by source with the accounts that saw each, merges and open matches
+
+```sh
+memo people show <who> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `who` | required | person:<uid>, or <messenger>:<name or id> of an identity of the person. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** one person: identities by source, merges and open matches
+
+**Example:** `memo people show person:12`, `memo people show telegram:Lena --json`
+
+### `memo people review`
+
+people that may be one person, waiting for the owner; memo review confirms or rejects them
+
+```sh
+memo people review [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--limit <n>` | most matches, up to 500. Default: `50`. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** people that may be one person, waiting for the owner
+
+**Example:** `memo people review`, `memo people review --json`
+
+### `memo people scan`
+
+match people across sources now: the same address or a phone two people share joins them, the rest waits in people review; memo sync runs it too
+
+This command changes the local store or your files.
+
+```sh
+memo people scan [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** match people across sources now; memo sync does it too
+
+**Example:** `memo people scan`
+
+### `memo people link`
+
+say two identities are one person: yours links them, an agent's waits for you as a match
+
+This command changes the local store or your files.
+
+```sh
+memo people link <identity> <other> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `identity` | required | <messenger>:<name or id>. |
+| `other` | required | <messenger>:<name or id> of the person it joins. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--reason <text>` | why, in a few words; required when an agent decides for you. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** say two identities are one person; an agent's link waits for you
+
+**Example:** `memo people link max:Lena telegram:Lena`, `memo people link max:Lena telegram:Lena --reason 'same phone in her signature'`
+
+### `memo people unlink`
+
+take identities off their person: one gets a person of its own again, several move together to one new person; only you, and no automatic match joins them back
+
+This command changes the local store or your files.
+
+```sh
+memo people unlink <identities> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `identities` | required | the identities that leave, each <messenger>:<name or id>, all of one person. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** take identities off a person, to one new person; only you
+
+**Example:** `memo people unlink telegram:Lena`, `memo people unlink email:lena@example.com max:Lena`
+
+### `memo people unmerge`
+
+give the identities a merge brought back to the person they came from; only you
+
+This command changes the local store or your files.
+
+```sh
+memo people unmerge <merge> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `merge` | required | merge:<to>-<from>, as people show lists it. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** undo a merge: its identities go back to their person; only you
+
+**Example:** `memo people unmerge merge:12-34`
 
 ## `memo tags`
 
@@ -5268,7 +5397,7 @@ memo answers create <question> [query] [options]
 
 ## `memo sync`
 
-bring notes up to date in the store, only what changed, and embed the mail already stored for search by meaning; the mail CLI syncs the mail itself (mail <profile> sync). Every configured folder unless narrowed
+bring notes up to date in the store, only what changed, embed the mail already stored for search by meaning, and match people across sources (memo people scan); the mail CLI syncs the mail itself (mail <profile> sync). Every configured folder unless narrowed
 
 This command changes the local store or your files.
 
@@ -5278,14 +5407,14 @@ memo sync [options]
 
 | Option | What it does |
 |---|---|
-| `--only <resources>` | notes,mail, separated by commas; mail embeds stored mail only. |
+| `--only <resources>` | notes,mail,people, separated by commas; mail embeds stored mail only, people links who is who. |
 | `--folder <folder>` | notes: only this configured folder, by its id or path; repeat for more. |
 | `--ignore <path>` | notes: leave this file or folder alone this run, a path or a glob; repeat for more. |
 | `--no-embed` | skip embedding notes and mail for search by meaning this run. |
 | `--timeout <duration>` | stop after this long, e.g. 10m; progress so far is kept (default: no limit). |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** bring notes up to date in the store, and make stored mail searchable by meaning
+**Returns:** sync notes, make stored mail searchable by meaning, and match people
 
 **Example:** `memo sync`, `memo sync --only mail`, `memo sync --only notes --folder ~/notes --no-embed`
 

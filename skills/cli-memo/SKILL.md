@@ -52,5 +52,5 @@ latest first: `memo events list --compact` (`event_type:call` for calls only).
 
 `memo skill show <topic>` prints one: `search` (fields, `content:`, JSON, time windows), `projects` (status,
 evidence, chat links), `meetings`, `mail` (the `mail` CLI, new-mail review), `mail-triage`, `proposals` (writing
-facts, owner review), `money` (amounts, refunds, products, contracts, wallets), `mcp`, `vocabulary` (duplicate
-tags). `memo commands` lists every command.
+facts, owner review, who is who), `money` (amounts, refunds, products, contracts, wallets), `mcp`, `vocabulary`
+(duplicate tags). `memo commands` lists every command.

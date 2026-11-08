@@ -124,6 +124,15 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "tasks move": ["memo tasks move HRB-3 --status in_progress --before HRB-1 --revision 4"],
   "people list": ["memo people list --json"],
   "people add": ["memo people add Lena Example"],
+  "people show": ["memo people show person:12", "memo people show telegram:Lena --json"],
+  "people review": ["memo people review", "memo people review --json"],
+  "people scan": ["memo people scan"],
+  "people link": [
+    "memo people link max:Lena telegram:Lena",
+    "memo people link max:Lena telegram:Lena --reason 'same phone in her signature'",
+  ],
+  "people unlink": ["memo people unlink telegram:Lena", "memo people unlink email:lena@example.com max:Lena"],
+  "people unmerge": ["memo people unmerge merge:12-34"],
   "tasks agenda": [
     "memo tasks agenda --source telegram:1",
     "memo tasks agenda --source max:1 --waiting 3d --within 90d --json",

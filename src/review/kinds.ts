@@ -24,6 +24,7 @@ export const REVIEW_KINDS = [
   "subscription",
   "subscription_price",
   "transaction",
+  "identity_link",
 ] as const
 
 const BY_ACCOUNT: readonly string[] = [MEETING_FINDINGS_KIND, MAIL_FINDINGS_KIND]

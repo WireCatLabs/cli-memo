@@ -24,6 +24,8 @@ export const MCP_EXCLUSIONS = [
   { path: ["facts", "remove"], reason: "erases what the owner reviews; only the owner forgets" },
   { path: ["facts", "reject"], reason: "the owner's answer to an agent's proposal" },
   { path: ["records", "link"], reason: "only the owner says which entity a source's record is" },
+  { path: ["people", "unlink"], reason: "only the owner separates people" },
+  { path: ["people", "unmerge"], reason: "only the owner separates people" },
 ] as const
 
 export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramFactory) => {

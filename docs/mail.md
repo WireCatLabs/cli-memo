@@ -173,8 +173,9 @@ longer finds it.
 
 ## Mail and people
 
-To include a person's email in [their context](people.md#everything-about-a-person), link the
-address to them in tg or max: `tg personal contacts link 'Kai Sample' email:kai@example.com`.
+An address a person's contact already has joins that person by itself. Another address joins them when you link
+it: `memo people link email:kai@example.com telegram:Kai`. Then their mail is part of
+[their context](people.md#everything-about-a-person).
 
 ## Phones and links in mail
 

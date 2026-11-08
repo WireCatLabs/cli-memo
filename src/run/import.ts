@@ -48,6 +48,8 @@ export interface ImportRun {
   failed: { source: string; code: ErrorCode | "internal_error"; reasonId: string; reason: string }[]
   /** Why a timer run did nothing: another sync held the lock. */
   skipped?: string
+  /** The people matcher's pass: people joined, matches opened for the owner, pairs left apart. */
+  people?: { merged: number; proposed: number; skipped: number }
 }
 
 const text = (run: ImportRun): string =>
@@ -84,6 +86,9 @@ const text = (run: ImportRun): string =>
                 : ""),
         ]),
     ...(run.enrichment === undefined ? [] : [enrichmentLine(run.enrichment)]),
+    ...(run.people === undefined || run.people.merged + run.people.proposed === 0
+      ? []
+      : [`people: ${run.people.merged} joined, ${run.people.proposed} new matches — memo people review`]),
     ...run.failed.map(({ source, reason }) => `failed ${source}: ${reason}`),
   ].join("\n") || "Nothing to sync: add a notes folder with memo folders add."
 
@@ -105,7 +110,7 @@ const NOT_READ: Record<string, string> = {
 const notReadReason = (status: string, engine?: string): string =>
   status === "engine-missing" ? `needs the ${engine ?? "missing"} reader` : (NOT_READ[status] ?? status)
 
-type Synced = "notes" | "mail"
+type Synced = "notes" | "mail" | "people"
 
 interface SyncOptions {
   only?: Synced[]
@@ -116,18 +121,20 @@ interface SyncOptions {
   timeout?: number
 }
 
+const SYNCED: readonly Synced[] = ["notes", "mail", "people"]
+
 const onlyOf = (value: string): Synced[] => {
   const selected = value.split(",").map((part) => part.trim())
-  if (!selected.length || selected.some((part) => part !== "notes" && part !== "mail"))
-    throw new InvalidArgumentError("choose notes,mail, separated by commas")
+  if (!selected.length || selected.some((part) => !SYNCED.includes(part as Synced)))
+    throw new InvalidArgumentError("choose notes,mail,people, separated by commas")
   return [...new Set(selected)] as Synced[]
 }
 
-/** What a run syncs: --only, plus the side each narrowing option belongs to; both when nothing names a side. */
+/** What a run syncs: --only, plus the side each narrowing option belongs to; all when nothing names a side. */
 const syncedOf = (options: SyncOptions): Set<Synced> => {
   const synced = new Set(options.only)
   if (options.folder || options.ignore) synced.add("notes")
-  return synced.size ? synced : new Set(["notes", "mail"])
+  return synced.size ? synced : new Set(SYNCED)
 }
 
 /**
@@ -163,12 +170,17 @@ export const syncCommand = (
 ): void => {
   const { print } = answers(program, streams, env)
   annotate(program.command("sync"), { effects: FETCH })
-    .summary("bring notes up to date in the store, and make stored mail searchable by meaning")
+    .summary("sync notes, make stored mail searchable by meaning, and match people")
     .description(
-      "bring notes up to date in the store, only what changed, and embed the mail already stored for search by " +
-        "meaning; the mail CLI syncs the mail itself (mail <profile> sync). Every configured folder unless narrowed",
+      "bring notes up to date in the store, only what changed, embed the mail already stored for search by " +
+        "meaning, and match people across sources (memo people scan); the mail CLI syncs the mail itself " +
+        "(mail <profile> sync). Every configured folder unless narrowed",
     )
-    .option("--only <resources>", "notes,mail, separated by commas; mail embeds stored mail only", onlyOf)
+    .option(
+      "--only <resources>",
+      "notes,mail,people, separated by commas; mail embeds stored mail only, people links who is who",
+      onlyOf,
+    )
     .addOption(
       new Option(
         "--folder <folder>",
@@ -283,6 +295,15 @@ export const syncCommand = (
               env,
               ...(keyring ? { keyring } : {}),
             })
+          })
+        if (synced.has("people"))
+          await attempt("people", async () => {
+            const scan = await store.people.scanMatches()
+            run.people = {
+              merged: scan.merged.length,
+              proposed: scan.proposed.filter(({ opened }) => opened).length,
+              skipped: scan.skipped.length,
+            }
           })
         const enrichment = combinedEnrichment(run.notesEmbedded?.enrichment, run.mailEmbedded?.enrichment)
         if (enrichment) run.enrichment = enrichment
