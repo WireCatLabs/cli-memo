@@ -11,6 +11,8 @@ import { ACCOUNT_HELP, RECORD_HELP, recordOf, sourceOf } from "./mapping.js"
 const json = (command: Command, fields: string) =>
   command.option("--json", `print JSON; --json=${fields} keeps only those fields`)
 
+const INCOMING = 100
+
 const storedRecord = async (store: MessageStore, account: string | undefined, record: string) => {
   const key = { ...sourceOf(account), ...recordOf(record) }
   const found = await store.records.get(key)
@@ -48,12 +50,19 @@ export const recordCommands = (
     annotate(records.command("show"), { effects: LOCAL_READ, output: { entity: "source_record" } })
       .argument("<record>", RECORD_HELP)
       .option("--account <account>", ACCOUNT_HELP),
-    "fields,relations,entity",
+    "fields,relations,incoming,entity",
   )
-    .description("one record as its source said it: its fields, the records it names and the entry made from it")
+    .description(
+      "one record as its source said it: its fields, the records it names, the records that name it (incoming, " +
+        `the first ${INCOMING}) and the entry made from it`,
+    )
     .summary("one record as its source said it")
     .action((record: string, given: { account?: string; json?: boolean }) =>
-      run(given.json, async (store) => itemAnswer(await storedRecord(store, given.account, record))),
+      run(given.json, async (store) => {
+        const found = await storedRecord(store, given.account, record)
+        const incoming = await store.records.incoming(found, { limit: INCOMING })
+        return itemAnswer({ ...found, incoming })
+      }),
     )
 
   json(

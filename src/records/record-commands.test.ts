@@ -91,3 +91,36 @@ it("leaves a person whose identifiers name two people unmatched, lists it, and m
   expect(((matched.unmatched as { candidates: string[] }[])[0]?.candidates ?? []).sort()).toEqual(candidates)
   expect(await f.text("records", "match", ...ACCOUNT)).toMatch(/^matched 0, created 0\nunmatched person:P-3: could be /)
 })
+
+it("finds a source's records by entry, batch and deletion, and shows the records that name one", async () => {
+  const f = await businessStore("records-filters")
+  const receipt = await importing(f, [
+    upsert("organization", "C-1", { name: "ООО Пример" }),
+    upsert("product", "SKU-RENT", { kind: "service", name: "Bike rental, month" }, [
+      { role: "supplier", type: "organization", external_id: "C-1" },
+    ]),
+    upsert("custom:quote", "Q-7", { valid_until: "2026-11-30" }, [
+      { role: "quoted-for", type: "product", external_id: "SKU-RENT" },
+    ]),
+  ])
+  expect(receipt).toMatchObject({ created: 3, errors: [] })
+  const org = await f.item(OWNER, "records", "show", "organization:C-1", ...ACCOUNT)
+  const byEntity = await f.items(OWNER, "records", "list", `entity:"${org.entity}"`, ...ACCOUNT)
+  expect(byEntity.map((one) => one.external_id)).toEqual(["C-1"])
+  expect((await f.items(OWNER, "records", "list", "batch:b1", ...ACCOUNT)).length).toBe(3)
+  expect(await f.items(OWNER, "records", "list", "batch:other", ...ACCOUNT)).toEqual([])
+
+  expect(await f.item(OWNER, "records", "show", "product:SKU-RENT", ...ACCOUNT)).toMatchObject({
+    incoming: [{ record: { type: "custom:quote", external_id: "Q-7" }, role: "quoted-for", as: null, amount: null }],
+  })
+  expect((await f.item(OWNER, "records", "show", "organization:C-1", ...ACCOUNT)).incoming).toMatchObject([
+    { record: { type: "product", external_id: "SKU-RENT" }, role: "supplier" },
+  ])
+
+  await f.item(OWNER, "records", "delete", "custom:quote:Q-7", ...ACCOUNT)
+  expect((await f.items(OWNER, "records", "list", "deleted:true", ...ACCOUNT)).map((one) => one.external_id)).toEqual([
+    "Q-7",
+  ])
+  expect((await f.items(OWNER, "records", "list", "deleted:false", ...ACCOUNT)).length).toBe(2)
+  expect((await f.item(OWNER, "records", "show", "product:SKU-RENT", ...ACCOUNT)).incoming).toEqual([])
+})

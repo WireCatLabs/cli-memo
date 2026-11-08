@@ -16,6 +16,9 @@ export const RECORD_QUERY = {
     termField("waiting", "bool", "waiting:true"),
     termField("flagged", "bool", "flagged:true"),
     termField("unmatched", "bool", "unmatched:true"),
+    termField("entity", "ref", 'entity:"organization:3"'),
+    termField("batch", "kw", "batch:2026-11-07"),
+    termField("deleted", "bool", "deleted:true"),
   ],
 } as const satisfies QueryRegistry
 
@@ -62,7 +65,8 @@ export const recordMappingCommands = (
   withQuery(
     annotate(records.command("list"), { effects: LOCAL_READ }).description(
       "a source's records, newest first; waiting:true lists those that wait for a record they name, unmatched:true " +
-        "the people, organizations and projects whose identifiers fit more than one of yours",
+        "the people, organizations and projects whose identifiers fit more than one of yours, entity: those mapped " +
+        "to one of your entries",
     ),
     RECORD_QUERY,
   )
@@ -80,6 +84,9 @@ export const recordMappingCommands = (
           ...(terms.get("waiting") === "true" ? { waiting: true } : {}),
           ...(terms.get("flagged") === "true" ? { flagged: true } : {}),
           ...(terms.get("unmatched") === "true" ? { unmatched: true } : {}),
+          ...(terms.has("entity") ? { entity: terms.get("entity") as string } : {}),
+          ...(terms.has("batch") ? { batch: terms.get("batch") as string } : {}),
+          ...(terms.has("deleted") ? { deleted: terms.get("deleted") === "true" } : {}),
         }
         return pageOf("records list", given.limit, (most) => store.records.list({ ...filter, limit: most }))
       }),
