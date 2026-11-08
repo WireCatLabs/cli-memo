@@ -6,6 +6,12 @@ the API.
 
 ## Unreleased
 
+### Fixed
+
+- **An exact word that only word search finds stays on the page of `search all`.** After the first hit of each
+  source, hits were ordered by the search model's score, and a hit only words found had none, so it sorted behind
+  every hit the model found. It now takes the score of the hit above it in its own source (cli-core 0.611.0).
+
 ## 0.131.59 — 08.11.2026
 
 ### Added
