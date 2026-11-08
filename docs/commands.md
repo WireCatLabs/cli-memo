@@ -357,7 +357,7 @@ memo sources mentions <ref> [options]
 
 ### `memo sources remove`
 
-remove a source you added, and its copy if one was kept; facts and memories citing it keep their status
+remove a source you added, and its copy if one was kept; the next source check reviews what cites it
 
 This command changes the local store or your files.
 

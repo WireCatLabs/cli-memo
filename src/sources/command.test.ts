@@ -167,7 +167,13 @@ it("keeps a copy with --keep-copy only when the file is new, and answers a folde
   const again = await add([path, "--keep-copy"])
   expect(again).toMatchObject({ ref: kept.ref, created: false, kept: "copy" })
   expect(copies()).toHaveLength(1)
-  expect(await run(["sources", "show", kept.ref])).toMatchObject({ kept: "copy" })
+  expect(await run(["sources", "show", kept.ref])).toMatchObject({
+    added: true,
+    kind: "file",
+    file_name: "whiteboard.txt",
+    mime: "text/plain",
+    kept: "copy",
+  })
 
   const store = await openStore({ env })
   const folder = await store.notes.addFolder({ name: "Synthetic folder" })
@@ -227,7 +233,9 @@ it("keeps the address given when the page redirects, never the one it ended at",
   const added = await add(["https://example.org/timetable"], { fetchPage: web(transport) })
   expect(calls).toEqual(["https://example.org/timetable", "https://example.org/moved?token=secret-value"])
   expect(added.url).toBe("https://example.org/timetable")
-  expect(JSON.stringify(await run(["sources", "show", added.ref]))).not.toContain("secret-value")
+  const shown = await run(["sources", "show", added.ref])
+  expect(shown).toMatchObject({ kind: "page", url: "https://example.org/timetable", mime: "text/plain", kept: "text" })
+  expect(JSON.stringify(shown)).not.toContain("secret-value")
 })
 
 it("answers what the store keeps when the same file is added again with a larger --max-chars", async () => {

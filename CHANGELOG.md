@@ -16,7 +16,7 @@ the API.
   or Drive is answered as `duplicate_of`. The answer says what was read and kept, and whether it is searchable by
   meaning; refusals keep cli-core's `source.*` reasons with what to do next. An agent's subjects wait unconfirmed.
 - **`memo sources show`, `memo sources mentions` and `memo sources remove`.** Show gives a source's text (bounded by
-  `--bytes`), its subjects and the facts, memories and findings batches citing it; mentions lists the known people
+  `--bytes`), what it is (kind, address, type, size), its subjects and the facts, memories and findings batches citing it; mentions lists the known people
   and organizations named in it; remove (yours only) deletes the source and its kept copy and names what cites it.
 - **Folder import reads web pages saved as `.html` and `.htm`.** A watched folder that holds them imports them on
   the next `memo sync`.
