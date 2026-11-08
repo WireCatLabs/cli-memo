@@ -60,6 +60,7 @@ import { showCommand } from "./show/command.js"
 import { storeCommand } from "./store/info-command.js"
 import { tagsCommand } from "./tags/command.js"
 import { tasksCommand } from "./tasks/command.js"
+import { templatesCommand } from "./templates/command.js"
 import { provideTerminal, type Terminal } from "./terminal.js"
 import { upgradeCommand } from "./update.js"
 import { VERSION } from "./version.js"
@@ -355,6 +356,7 @@ export const createProgram = ({
   agentsCommand(program, streams, env)
   mcpCommand(program, streams, env, createProgram)
   modelsCommand(program, streams, env)
+  templatesCommand(program, streams, env)
   searchCommand(program, streams, env)
   meetingReadCommands(program, streams, env)
   meetingPreparationCommand(program, streams, env)

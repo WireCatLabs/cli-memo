@@ -43,6 +43,8 @@ only: `memo search mail`, `memo search messages` or `memo search notes`. Meeting
 - What you write (`memo facts add`, `memo memories add` and the like) waits for the owner. Never pass
   `--as-owner` or `--from-app`, and never confirm or reject your own proposals.
 - Never write message, mail or note text to a file: quote it in the answer with its reference.
+- The digest's templates (`memo templates list | show | preview`) are the owner's: you may show and preview them,
+  but `memo templates edit` and `reset` refuse an agent. Tell him the command to run instead.
 - Something missing or broken: `memo doctor --json` first. A `memo:` line on stderr about sync or mail settings
   is for the owner: tell them and quote it.
 
