@@ -40,14 +40,16 @@ the API.
   `splits add`/`remove`) keeps what a statement shows moving, the payment it settles and its categories. Every list
   filters with query words, and every write from an agent that feeds money totals waits as a proposal; `memo review`
   lists and decides `contract`, `subscription`, `subscription_price` and `transaction`.
-- **`memo orders lines add` and `remove`.** An order is made of lines, each a quantity at a price, and its total is
-  their sum; `--product` copies the product's name and price, so a later price change leaves the line as it is.
+- **`memo orders lines` and `memo invoices lines` (add, remove).** An order or an invoice is made of lines, each a
+  quantity at a price, and its total is their sum; `--product` copies the product's name and price, so a later price
+  change leaves the line as it is.
 - **`memo payments add --refund-of <payment>`** records a refund: a payment going the other way, never more than the
   payment it gives back for.
 - **`memo records show`, `records delete` and `records match`.** `show` prints one record as its source said it;
   `delete` marks it deleted as an import's delete does, keeping the entry made from it flagged for you; `match` links
   every waiting person, organization and project of a source to the one entry its identifiers name, or makes one.
-  `records list unmatched:true` lists those whose identifiers fit more than one of your entries.
+  `records list` takes `unmatched:`, `entity:` (the records mapped to one of your entries), `batch:` and `deleted:`,
+  and `records show` lists the records that name the record (`incoming`).
 - **`memo records import` and `records check` take a vCard address book** (`.vcf`, `BEGIN:VCARD`) as a phone's
   contacts, under `--account phone:<device>`; what the converter kept without matching is printed as a notice.
 

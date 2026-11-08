@@ -2764,7 +2764,7 @@ memo invoices show <ref> [options]
 
 ### `memo invoices add`
 
-record an invoice of one line; yours is confirmed at once; an agent's waits as proposed for you in memo review
+record an invoice of one line, and add more with invoices lines add; yours is confirmed at once; an agent's waits as proposed for you in memo review
 
 This command changes the local store or your files.
 
@@ -2796,6 +2796,63 @@ memo invoices add <amount> <currency> <description> [options]
 **Returns:** record an invoice; an agent's waits for your review
 
 **Example:** `memo invoices add 50000.00 RUB Bed rental, November --kind receivable --organization organization:3 --project HRB`, `memo invoices add 1200.50 EUR Hosting --kind payable --person person:7 --title 2026-118 --due 2026-11-15`
+
+### `memo invoices lines`
+
+the lines of an invoice, each a quantity at a price; its total is their sum. you change any invoice's lines; an agent only those of an invoice it proposed that is still proposed
+
+#### `memo invoices lines add`
+
+add a line at the end of an invoice that is not void; the total never falls below what confirmed payments settled: quantity × price, and the total becomes the sum of the lines. With --product its name and price are copied, so a later price change leaves the line as it is. you change any invoice's lines; an agent only those of an invoice it proposed that is still proposed
+
+This command changes the local store or your files.
+
+```sh
+memo invoices lines add <invoice> <quantity> [price] [description] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `invoice` | required | invoice:<id>. |
+| `quantity` | required | how many, a decimal such as 12 or 1.5. |
+| `price` | optional | the price of one, a decimal such as 10000.00; the product's when left out. |
+| `description` | optional | what the line is, in a few words; the product's name when left out. |
+
+| Option | What it does |
+|---|---|
+| `--product <product>` | the product or service it is: its name and price are copied onto the line. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** add a line to an invoice
+
+**Example:** `memo invoices lines add invoice:4 1 --product product:4`, `memo invoices lines add invoice:4 2 1500.00 Delivery`
+
+#### `memo invoices lines remove`
+
+take a line off an invoice; the others keep their positions, and the last line stays. you change any invoice's lines; an agent only those of an invoice it proposed that is still proposed
+
+This command changes the local store or your files.
+
+```sh
+memo invoices lines remove <invoice> <position> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `invoice` | required | invoice:<id>. |
+| `position` | required | the line's position, from 1, as invoices show lists it. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** take a line off an invoice
+
+**Example:** `memo invoices lines remove invoice:4 2`
 
 ## `memo payments`
 
@@ -3008,11 +3065,11 @@ memo orders add <shop> [amount] [currency] [options]
 
 ### `memo orders lines`
 
-the lines of an order, each a quantity at a price; the order's total is their sum. you change any order's lines; an agent only those of an order it proposed that is still proposed
+the lines of an order, each a quantity at a price; its total is their sum. you change any order's lines; an agent only those of an order it proposed that is still proposed
 
 #### `memo orders lines add`
 
-add a line at the end of an order that has a currency (orders add with an amount): quantity × price; the order's total becomes the sum of its lines. With --product its name and price are copied, so a later price change leaves the line as it is. you change any order's lines; an agent only those of an order it proposed that is still proposed
+add a line at the end of an order that has a currency (orders add with an amount): quantity × price, and the total becomes the sum of the lines. With --product its name and price are copied, so a later price change leaves the line as it is. you change any order's lines; an agent only those of an order it proposed that is still proposed
 
 This command changes the local store or your files.
 
@@ -4082,7 +4139,7 @@ memo records check <file> [options]
 
 ### `memo records list`
 
-a source's records, newest first; waiting:true lists those that wait for a record they name, unmatched:true the people, organizations and projects whose identifiers fit more than one of yours
+a source's records, newest first; waiting:true lists those that wait for a record they name, unmatched:true the people, organizations and projects whose identifiers fit more than one of yours, entity: those mapped to one of your entries
 
 ```sh
 memo records list [query] [options]
@@ -4100,7 +4157,7 @@ memo records list [query] [options]
 
 **Returns:** a source's records; waiting:true lists what needs records link
 
-**Example:** `memo records list waiting:true --account sheet:rentals`, `memo records list type:organization --account sheet:rentals --json`
+**Example:** `memo records list waiting:true --account sheet:rentals`, `memo records list type:organization --account sheet:rentals --json`, `memo records list 'entity:"organization:3"' deleted:false --account sheet:rentals`
 
 ### `memo records link`
 
@@ -4130,7 +4187,7 @@ memo records link <record> <ref> [options]
 
 ### `memo records show`
 
-one record as its source said it: its fields, the records it names and the entry made from it
+one record as its source said it: its fields, the records it names, the records that name it (incoming, the first 100) and the entry made from it
 
 ```sh
 memo records show <record> [options]
@@ -4143,7 +4200,7 @@ memo records show <record> [options]
 | Option | What it does |
 |---|---|
 | `--account <account>` | the source, <provider>:<account> as the envelope's source names it, such as sheet:rentals. |
-| `--json` | print JSON; --json=fields,relations,entity keeps only those fields. |
+| `--json` | print JSON; --json=fields,relations,incoming,entity keeps only those fields. |
 
 **Returns:** one record as its source said it
 
