@@ -104,3 +104,10 @@ it("fills --limit with the hits it may show, reading past the hidden ones", asyn
   const found = await searched(env, ["invoices=deny"], { limit: 2 })
   expect(found.items?.map((hit) => hit.kind)).toEqual(["order", "order"])
 })
+
+it("searches the business lane alone with --only business, and refuses it when business.list is denied", async () => {
+  const env = await invoiceStore()
+  expect(invoices(await searched(env, [], { only: ["business"] })).map((hit) => hit.ref)).toEqual(["invoice:1"])
+  const denied = await searched(env, ["business.list=deny"], { only: ["business"] })
+  expect(denied).toMatchObject({ isError: true, error: { code: "permission_error", reason: "search.all-denied" } })
+})
