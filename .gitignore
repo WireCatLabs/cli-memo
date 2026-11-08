@@ -11,3 +11,4 @@ coverage/
 /CLEANUP.md
 /HANDOFF.md
 /plans/
+.claude/worktrees/
