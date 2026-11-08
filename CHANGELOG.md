@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.54 — 08.11.2026
+
 ### Fixed
 
 - **The scheduled mail triage no longer acknowledges mail its input left out.** The input was cut at 60,000
