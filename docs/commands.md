@@ -1793,12 +1793,14 @@ memo relationships add <from> <to> [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--kind <kind>` | member-of or related-to. Default: `member-of`. |
-| `--role <role>` | the role it has there, in a few words, such as cto. |
+| `--role <role>` | the role it has there, from its list, such as approver on a project. |
+| `--role-note <text>` | what the role means here, in your words, beside a role from its list. |
+| `--engagement <level>` | a person on a project: how much you deal with them yourself, not how active they are: none, low, medium or high. |
 | `--reason <text>` | why you think so, in a sentence. |
 
 **Returns:** state that a person, organization, project or chat belongs or relates to another
 
-**Example:** `memo relationships add person:3 organization:1 --role cto`, `memo relationships add project:2 organization:1 --kind related-to --reason 'same client'`
+**Example:** `memo relationships add person:3 organization:1 --role employee`, `memo relationships add person:3 project:1 --role client-contact --engagement low`, `memo relationships add project:2 organization:1 --kind related-to --reason 'same client'`
 
 ### `memo relationships list`
 
@@ -1822,7 +1824,7 @@ memo relationships list [query] [options]
 
 ### `memo relationships update`
 
-set what a relationship is: its role, or what a chat is for in a project (work, sales, support, other); an agent's change waits for you in memo review
+set what a relationship is: its role and a note beside it, how much you deal with a person on a project, or what a chat is for in a project (work, sales, support, other); an agent's change waits for you in memo review
 
 This command changes the local store or your files.
 
@@ -1836,16 +1838,18 @@ memo relationships update <id> [options]
 
 | Option | What it does |
 |---|---|
-| `--role <role>` | the role it has there, in a few words; an empty value clears it. |
+| `--role <role>` | the role it has there, from its list; an empty value clears it. |
+| `--role-note <text>` | what the role means here, in your words; an empty value clears it. |
+| `--engagement <level>` | a person on a project: how much you deal with them yourself, not how active they are: none, low, medium or high; an empty value clears it. |
 | `--purpose <purpose>` | what the chat is for in the project: work, sales, support or other. |
 | `--reason <text>` | why, in a sentence. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
-**Returns:** set a relationship's role or a chat's purpose in a project
+**Returns:** set a relationship's role, engagement or a chat's purpose in a project
 
-**Example:** `memo relationships update 12 --purpose sales`, `memo relationships update 12 --role contractor --reason 'builds the site'`
+**Example:** `memo relationships update 12 --purpose sales`, `memo relationships update 12 --engagement low`, `memo relationships update 12 --role approver --role-note 'signs the acts'`
 
 ### `memo relationships remove`
 
