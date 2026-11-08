@@ -168,6 +168,8 @@ export const sourcesCommand = (
         }
         if (copy?.wrote && saved.duplicateOf !== null) dropCopy(env, copy.path)
         const text = read.read === "extracted"
+        // A source stored before keeps the text of its first read; this read's cut says nothing about it.
+        const same = saved.duplicateOf === null && saved.note.text === read.text.trim()
         return {
           ref: saved.note.ref,
           created: saved.created,
@@ -176,8 +178,8 @@ export const sourcesCommand = (
           kind: read.kind,
           mime: read.mime ?? null,
           bytes: read.size,
-          chars: read.text.length,
-          truncated: read.truncated,
+          chars: saved.note.text.length,
+          truncated: same ? read.truncated : null,
           extractor: read.extractor,
           read: read.read,
           url: read.url ?? null,
@@ -194,7 +196,7 @@ export const sourcesCommand = (
         itemAnswer(item),
         [
           `${item.ref}${item.duplicateOf ? "  already stored: only its subjects were added" : item.created ? "  added" : "  already added"}`,
-          `  ${item.title ?? ""}  ${item.kind}${item.mime ? ` · ${item.mime}` : ""} · ${item.chars} characters${item.truncated ? " (only the first part is kept)" : ""}`,
+          `  ${item.title ?? ""}  ${item.kind}${item.mime ? ` · ${item.mime}` : ""} · ${item.chars} characters${item.truncated === true ? " (only the first part is kept)" : ""}`,
           `  kept: ${item.kept === "copy" ? "its text and a copy of the file" : item.kept === "text" ? "its text" : "nothing new"}`,
           `  search: ${item.searchable.words ? "by words" : "by its title and subjects only"}${item.searchable.meaning ? " and by meaning after memo sync" : ""}`,
           ...(item.subjects.length ? [`  about: ${item.subjects.join(", ")}`] : []),
@@ -275,7 +277,7 @@ export const sourcesCommand = (
     annotate(sources.command("remove"), { effects: LOCAL_WRITE, output: { entity: "source_removal" } })
       .summary("remove a source you added, and its kept copy")
       .description(
-        "remove a source you added, and its copy if one was kept; facts and memories citing it are flagged for review",
+        "remove a source you added, and its copy if one was kept; facts and memories citing it keep their status",
       ),
   )
     .argument("<ref>", "document:<id> of a source you added")
@@ -292,8 +294,6 @@ export const sourcesCommand = (
           removed: true,
           copyDeleted: removed.copy !== null && dropCopy(env, removed.copy),
           ...cited,
-          // Status never changes here: the next source check opens a review of each, citing a deleted source.
-          citing: cited.facts.length + cited.memories.length,
         })
       })
     })

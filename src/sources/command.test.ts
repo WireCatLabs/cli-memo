@@ -208,6 +208,35 @@ it("keeps a page by the address as given, never where it redirected to", async (
   })
 })
 
+it("keeps the address given when the page redirects, never the one it ended at", async () => {
+  const calls: string[] = []
+  const transport: PageTransport = async ({ url }) => {
+    calls.push(url.href)
+    const moved = calls.length === 1
+    return {
+      status: moved ? 301 : 200,
+      header: (name) =>
+        ({ location: moved ? "/moved?token=secret-value" : null, "content-type": "text/plain" })[name.toLowerCase()] ??
+        null,
+      body: (async function* () {
+        yield new TextEncoder().encode("The gullwing timetable, moved here.")
+      })(),
+      cancel: () => {},
+    }
+  }
+  const added = await add(["https://example.org/timetable"], { fetchPage: web(transport) })
+  expect(calls).toEqual(["https://example.org/timetable", "https://example.org/moved?token=secret-value"])
+  expect(added.url).toBe("https://example.org/timetable")
+  expect(JSON.stringify(await run(["sources", "show", added.ref]))).not.toContain("secret-value")
+})
+
+it("answers what the store keeps when the same file is added again with a larger --max-chars", async () => {
+  const path = file("long.txt", "The ashgrove plan runs over many words.")
+  const first = await add([path, "--max-chars", "10"])
+  expect(first).toMatchObject({ chars: 10, truncated: true })
+  expect(await add([path])).toMatchObject({ ref: first.ref, created: false, chars: 10, truncated: null })
+})
+
 it("lists the people and organizations named in a source", async () => {
   const { ref } = await add(["-"], { stdin: "Met Lena Ortiz at Northwind Bench about the fennelbay pilot." })
   const named = await run(["sources", "mentions", ref])
@@ -268,6 +297,23 @@ it.each([
   ["source.url-refused", () => ["file:///etc/hostname"], undefined],
   ["source.url-status", () => ["https://example.org/gone"], { fetchPage: web(page(404, {})) }],
   [
+    "source.url-redirects",
+    () => ["https://example.org/loop"],
+    { fetchPage: web(page(302, { location: "https://example.org/loop" })) },
+  ],
+  [
+    "source.url-unreachable",
+    () => ["https://nowhere.example.org/"],
+    {
+      fetchPage: {
+        lookup: async () => {
+          throw new Error("ENOTFOUND")
+        },
+        transport: page(200, {}),
+      },
+    },
+  ],
+  [
     "source.needs-sign-in",
     () => ["https://docs.google.com/document/d/abc/edit"],
     { fetchPage: web(page(403, { "content-type": "text/html" })) },
@@ -297,7 +343,7 @@ it("removes an added source and its copy, naming the facts that cite it", async 
   const fact = await run(["facts", "add", "The wrenfield clause was drafted", "--kind", "decision", "--evidence", ref])
   await expect(run(["sources", "remove", ref], { as: agentEnv })).rejects.toMatchObject({ code: "permission_error" })
   const removed = await run(["sources", "remove", ref])
-  expect(removed).toMatchObject({ ref, removed: true, copy_deleted: true, facts: [fact.ref], memories: [], citing: 1 })
+  expect(removed).toMatchObject({ ref, removed: true, copy_deleted: true, facts: [fact.ref], memories: [] })
   expect(readdirSync(copiesDir(env))).toHaveLength(before - 1)
   await expect(run(["sources", "remove", ref])).rejects.toMatchObject({ code: "not_found" })
 })

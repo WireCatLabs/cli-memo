@@ -103,7 +103,7 @@ const OWN_ENTITIES = entityFields({
     "batches",
   ],
   source_mention: ["ref", "type", "name", "found_as"],
-  source_removal: ["ref", "removed", "copy_deleted", "facts", "memories", "citing"],
+  source_removal: ["ref", "removed", "copy_deleted", "facts", "memories"],
   project_annotation_snapshot: ["snapshot", "fingerprint", "coverage", "read_bytes", "records"],
   project_annotation_export: [
     "output_file",

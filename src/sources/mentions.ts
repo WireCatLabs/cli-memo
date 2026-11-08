@@ -22,21 +22,23 @@ const escaped = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
 const folded = (text: string) => text.normalize("NFC").toLocaleLowerCase()
 
-/** The document's own mentions, read from cli-core's list of every document's mentions. */
-const mentionsOf = async (store: MessageStore, id: number) => {
+/**
+ * The document's own mentions, read from cli-core's list of every document's mentions. The list is ordered by each
+ * document's time, newest first, then its id, so one document's mentions come together and the walk stops once it is
+ * past them, or past where they would be.
+ */
+const mentionsOf = async (store: MessageStore, note: Note) => {
+  const id = Number(note.id)
+  const at = note.modifiedAt ?? note.updatedAt
   const found = []
   for (let offset = 0; ; offset += PAGE) {
     const page = await store.sourceMentions.list("document", undefined, { limit: PAGE, offset }, [])
-    // The list is ordered by each document's time and then its id, so one document's mentions come together.
-    let passed = false
     for (const mention of page.items) {
+      const when = mention.source.at ?? ""
       if (mention.source.id === id) found.push(mention)
-      else if (found.length > 0) {
-        passed = true
-        break
-      }
+      else if (found.length > 0 || when < at || (when === at && mention.source.id < id)) return found
     }
-    if (passed || !page.hasMore) return found
+    if (!page.hasMore) return found
   }
 }
 
@@ -53,7 +55,7 @@ export const namedIn = async (store: MessageStore, note: Note): Promise<SourceMe
     named.set(ref, entry)
   }
   const candidates = new Map<string, string[]>()
-  for (const mention of await mentionsOf(store, Number(note.id))) {
+  for (const mention of await mentionsOf(store, note)) {
     if (mention.status === "dismissed") continue
     if (mention.kind === "person-name") {
       let people = mention.target?.startsWith("person:") ? [mention.target] : candidates.get(mention.value)
