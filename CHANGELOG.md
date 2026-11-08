@@ -4,14 +4,7 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
-## 0.131.58 — 08.11.2026
-
-### Changed — may break callers
-
-- **The morning digest answers with one `wirecat.report/1` JSON document** instead of text: sections and typed
-  items (reply, question, task, fact, risk, money, decision, meeting) with who, topic and what to do, and a list of
-  stale sources. WireCat renders it per channel with the owner's headings, emoji and layout (cli-core's report
-  renderer, 0.609.0), so the agent no longer writes any of them.
+## Unreleased
 
 ### Added
 
@@ -20,7 +13,16 @@ the API.
   proposal's evidence leads with the group. When a scan proposes two or more senders of one group, its answer lists
   the group under `groups`, with the command to review them: `memo review list via:<chat>` lists the proposals whose
   evidence holds that reference, and its `next` step confirms them all in one `memo review confirm`. A pending
-  proposal takes the new reason on the next scan (cli-core 0.611.0's `chat-senders@3`).
+  proposal takes the new reason on the next scan (cli-core 0.610.0's `chat-senders@3`).
+
+## 0.131.58 — 08.11.2026
+
+### Changed — may break callers
+
+- **The morning digest answers with one `wirecat.report/1` JSON document** instead of text: sections and typed
+  items (reply, question, task, fact, risk, money, decision, meeting) with who, topic and what to do, and a list of
+  stale sources. WireCat renders it per channel with the owner's headings, emoji and layout (cli-core's report
+  renderer, 0.609.0), so the agent no longer writes any of them.
 
 ## 0.131.57 — 08.11.2026
 
