@@ -4,6 +4,15 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## Unreleased
+
+### Fixed
+
+- **cli-core 0.606.0: the mail triage agent no longer repeats the same batch all day.** A batch of held emails only
+  reused the findings key of the run that set the mark, so staging was refused (`mail-findings.key-used`), the mark
+  never moved and every scheduled run paid for the same emails again. It now takes a key of its own. Each email in
+  `review --holder` also carries the cursor that ends the batch at it.
+
 ## 0.131.52 — 08.11.2026
 
 ### Fixed
