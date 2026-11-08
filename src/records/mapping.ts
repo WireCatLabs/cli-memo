@@ -15,11 +15,12 @@ export const RECORD_QUERY = {
     termField("type", "kw", "type:organization"),
     termField("waiting", "bool", "waiting:true"),
     termField("flagged", "bool", "flagged:true"),
+    termField("unmatched", "bool", "unmatched:true"),
   ],
 } as const satisfies QueryRegistry
 
 /** `sheet:rentals`: records are kept per source, so a read or a mapping names its provider and account. */
-const sourceOf = (account: string | undefined) => {
+export const sourceOf = (account: string | undefined) => {
   const [provider = "", ...rest] = (account ?? "").trim().split(":")
   const name = rest.join(":")
   if (!provider || !name)
@@ -29,17 +30,26 @@ const sourceOf = (account: string | undefined) => {
   return { provider, account: name }
 }
 
-/** `organization:client`: the record's type and its id at the source, as the envelope gave them. */
-const recordOf = (record: string) => {
-  const at = record.indexOf(":")
-  if (at < 1 || at === record.length - 1)
-    throw new CliError("validation_error", `${record} is not <type>:<external_id>, such as organization:client`, {
-      param: "record",
-    })
+/**
+ * `organization:client` or `custom:quote:Q-7`: the record's type and its id at the source, as the envelope gave them.
+ * Only a `custom:` type holds a colon; any other id may hold one.
+ */
+export const recordOf = (record: string) => {
+  const from = record.startsWith("custom:") ? "custom:".length : 0
+  const at = record.indexOf(":", from)
+  if (at <= from || at === record.length - 1)
+    throw new CliError(
+      "validation_error",
+      `${record} is not <type>:<external_id>, such as organization:client or custom:quote:Q-7`,
+      { param: "record" },
+    )
   return { type: record.slice(0, at), externalId: record.slice(at + 1) }
 }
 
-const ACCOUNT_HELP = "the source, <provider>:<account> as the envelope's source names it, such as sheet:rentals"
+export const RECORD_HELP =
+  "<type>:<external_id> as the source names it, such as organization:client or custom:quote:Q-7"
+
+export const ACCOUNT_HELP = "the source, <provider>:<account> as the envelope's source names it, such as sheet:rentals"
 
 export const recordMappingCommands = (
   records: Command,
@@ -51,7 +61,8 @@ export const recordMappingCommands = (
 
   withQuery(
     annotate(records.command("list"), { effects: LOCAL_READ }).description(
-      "a source's records, newest first; waiting:true lists those whose invoice or payment waits for records link",
+      "a source's records, newest first; waiting:true lists those that wait for a record they name, unmatched:true " +
+        "the people, organizations and projects whose identifiers fit more than one of yours",
     ),
     RECORD_QUERY,
   )
@@ -68,6 +79,7 @@ export const recordMappingCommands = (
           ...(terms.has("type") ? { type: terms.get("type") as string } : {}),
           ...(terms.get("waiting") === "true" ? { waiting: true } : {}),
           ...(terms.get("flagged") === "true" ? { flagged: true } : {}),
+          ...(terms.get("unmatched") === "true" ? { unmatched: true } : {}),
         }
         return pageOf("records list", given.limit, (most) => store.records.list({ ...filter, limit: most }))
       }),
@@ -80,7 +92,7 @@ export const recordMappingCommands = (
           "name. Records that waited for it become proposals in memo review. Only you link; an agent is refused",
       )
       .summary("say which of your entries a source's record is")
-      .argument("<record>", "<type>:<external_id> as the source names it, such as organization:client")
+      .argument("<record>", RECORD_HELP)
       .argument("<ref>", "your entry of the same type: person:<id>, organization:<id> or project:<id>")
       .option("--account <account>", ACCOUNT_HELP)
       .option("--json", "print JSON; --json=type,external_id,entity keeps only those fields"),

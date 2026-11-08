@@ -62,8 +62,7 @@ it("imports a JSONL file once as a proposal, never confirmed money, and a second
   expect(refused.errors).toEqual([expect.objectContaining({ code: "envelope.account-mismatch" })])
 })
 
-// cli-core 0.607.0 matches or makes the organization a record names, so nothing waits; #713 rewrites this for it.
-it.skip("lists records waiting for a party, refuses an agent's mapping and turns the owner's into a proposal", async () => {
+it("makes the organization a record names, proposes its invoice, and lets only the owner remap it", async () => {
   const dir = mkdtempSync(join(tmpdir(), "memo-records-map-"))
   const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), MEMO_CONFIG_DIR: dir }
   delete env.AI_AGENT
@@ -98,9 +97,12 @@ it.skip("lists records waiting for a party, refuses an agent's mapping and turns
     return envelopeOf(streams.stdout.join(""))
   }
   const source = ["--account", "sheet:synthetic-rental"]
-  expect((await run({}, OWNER, "records", "import", file, ...source)).item).toMatchObject({ proposed: [] })
-  const waiting = await run({}, OWNER, "records", "list", "waiting:true", ...source)
-  expect((waiting.items as { external_id: string }[]).map((one) => one.external_id)).toEqual(["счёт-1"])
+  const imported = (await run({}, OWNER, "records", "import", file, ...source)).item as { proposed: string[] }
+  expect(imported).toMatchObject({ created: 2, waiting: [], proposed: [expect.stringMatching(/^invoice:/)] })
+  expect((await run({}, OWNER, "records", "list", "waiting:true", ...source)).items).toEqual([])
+  const made = (await run({}, OWNER, "records", "show", "organization:client", ...source)).item as { entity: string }
+  expect(made).toMatchObject({ entity: expect.stringMatching(/^organization:/), created_entity: true })
+  expect(made.entity).not.toBe(client.ref)
 
   const agent = { AI_AGENT: "codex" }
   await expect(
@@ -108,8 +110,11 @@ it.skip("lists records waiting for a party, refuses an agent's mapping and turns
   ).rejects.toMatchObject({ code: "permission_error" })
 
   const mapped = await run({}, OWNER, "records", "link", "organization:client", client.ref, ...source)
-  expect(mapped.item).toMatchObject({ entity: client.ref })
-  expect((await run({}, OWNER, "records", "list", "waiting:true", ...source)).items).toEqual([])
+  expect(mapped.item).toMatchObject({ entity: client.ref, unused: made.entity })
+  const [invoice] = imported.proposed
+  expect((await run({}, OWNER, "invoices", "show", invoice as string)).item).toMatchObject({
+    counterparty: { ref: client.ref },
+  })
   const inbox = await run({}, OWNER, "review", "list", "kind:invoice")
   expect(inbox.items).toHaveLength(1)
 })
