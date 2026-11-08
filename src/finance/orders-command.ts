@@ -11,6 +11,8 @@ import { positive } from "../options.js"
 import { pageOf } from "../page.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { dayOf, partyOf } from "./finance.js"
+import { lineCommands } from "./lines-command.js"
+import { json } from "./written.js"
 
 export const ORDER_QUERY = {
   entity: "order",
@@ -62,8 +64,6 @@ interface AddOptions {
   asOwner?: boolean
   json?: boolean
 }
-
-const json = (command: Command) => command.option("--json", "print JSON; --json=ref,title keeps only those fields")
 
 /** `memo orders`: what the owner, his business or a client ordered, and how far delivery got. */
 export const orderCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
@@ -141,4 +141,5 @@ export const orderCommands = (program: Command, streams: Streams, env: NodeJS.Pr
         })
       },
     )
+  lineCommands(orders, "order", run, env)
 }

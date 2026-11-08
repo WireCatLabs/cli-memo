@@ -13,6 +13,7 @@ export const OWNER_PERMISSIONS = [
   "projects.annotations.restore",
   "review.confirm",
   "review.reject",
+  "wallets.update",
 ] as const
 
 const ORDER = { deny: 0, readonly: 1, ask: 2, allow: 3 }

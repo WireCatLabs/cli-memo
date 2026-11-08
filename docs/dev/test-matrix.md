@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**768 ✅ · 0 ⛔ · 193 ❌** — 214 commands, 747 options.
+**885 ✅ · 0 ⛔ · 256 ❌** — 245 commands, 896 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -569,6 +569,16 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `invoices add` | `--as-owner` | ❌ |  |
 | `invoices add` | `--from-app` | ❌ |  |
 | `invoices add` | `--json` | ✅ |  |
+| `invoices lines add` |  | ✅ |  |
+| `invoices lines add` | `--product` | ✅ |  |
+| `invoices lines add` | `--amount` | ✅ |  |
+| `invoices lines add` | `--as-owner` | ❌ |  |
+| `invoices lines add` | `--from-app` | ❌ |  |
+| `invoices lines add` | `--json` | ✅ |  |
+| `invoices lines remove` |  | ✅ |  |
+| `invoices lines remove` | `--as-owner` | ❌ |  |
+| `invoices lines remove` | `--from-app` | ❌ |  |
+| `invoices lines remove` | `--json` | ✅ |  |
 | `payments list` |  | ✅ |  |
 | `payments list` | `--json` | ✅ |  |
 | `payments list` | `--limit` | ❌ |  |
@@ -580,6 +590,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `payments add` | `--kind` | ✅ |  |
 | `payments add` | `--title` | ❌ |  |
 | `payments add` | `--occurred-time` | ✅ |  |
+| `payments add` | `--refund-of` | ✅ |  |
 | `payments add` | `--project` | ✅ |  |
 | `payments add` | `--reason` | ✅ |  |
 | `payments add` | `--evidence` | ✅ |  |
@@ -611,6 +622,16 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `orders add` | `--as-owner` | ❌ |  |
 | `orders add` | `--from-app` | ❌ |  |
 | `orders add` | `--json` | ✅ |  |
+| `orders lines add` |  | ✅ |  |
+| `orders lines add` | `--product` | ✅ |  |
+| `orders lines add` | `--amount` | ✅ |  |
+| `orders lines add` | `--as-owner` | ❌ |  |
+| `orders lines add` | `--from-app` | ❌ |  |
+| `orders lines add` | `--json` | ✅ |  |
+| `orders lines remove` |  | ✅ |  |
+| `orders lines remove` | `--as-owner` | ❌ |  |
+| `orders lines remove` | `--from-app` | ❌ |  |
+| `orders lines remove` | `--json` | ✅ |  |
 | `pipelines list` |  | ✅ |  |
 | `pipelines list` | `--json` | ✅ |  |
 | `pipelines show` |  | ✅ |  |
@@ -659,6 +680,156 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `leads close` | `--occurred-time` | ❌ |  |
 | `leads close` | `--reason` | ✅ |  |
 | `leads close` | `--json` | ❌ |  |
+| `products list` |  | ✅ |  |
+| `products list` | `--json` | ✅ |  |
+| `products list` | `--limit` | ❌ |  |
+| `products show` |  | ✅ |  |
+| `products show` | `--json` | ✅ |  |
+| `products add` |  | ✅ |  |
+| `products add` | `--kind` | ✅ |  |
+| `products add` | `--unit` | ✅ |  |
+| `products add` | `--sku` | ✅ |  |
+| `products add` | `--supplier` | ✅ |  |
+| `products add` | `--description` | ❌ |  |
+| `products add` | `--json` | ✅ |  |
+| `products update` |  | ✅ |  |
+| `products update` | `--amount` | ✅ |  |
+| `products update` | `--currency` | ✅ |  |
+| `products update` | `--title` | ❌ |  |
+| `products update` | `--unit` | ❌ |  |
+| `products update` | `--description` | ❌ |  |
+| `products update` | `--archived` | ✅ |  |
+| `products update` | `--json` | ✅ |  |
+| `contracts list` |  | ✅ |  |
+| `contracts list` | `--json` | ✅ |  |
+| `contracts list` | `--limit` | ❌ |  |
+| `contracts show` |  | ✅ |  |
+| `contracts show` | `--json` | ✅ |  |
+| `contracts add` |  | ✅ |  |
+| `contracts add` | `--kind` | ✅ |  |
+| `contracts add` | `--status` | ❌ |  |
+| `contracts add` | `--start-date` | ✅ |  |
+| `contracts add` | `--end-date` | ✅ |  |
+| `contracts add` | `--auto-renew` | ✅ |  |
+| `contracts add` | `--notice-days` | ✅ |  |
+| `contracts add` | `--amount` | ✅ |  |
+| `contracts add` | `--currency` | ✅ |  |
+| `contracts add` | `--project` | ✅ |  |
+| `contracts add` | `--reason` | ✅ |  |
+| `contracts add` | `--evidence` | ❌ |  |
+| `contracts add` | `--as-owner` | ❌ |  |
+| `contracts add` | `--from-app` | ❌ |  |
+| `contracts add` | `--json` | ✅ |  |
+| `contracts update` |  | ✅ |  |
+| `contracts update` | `--kind` | ❌ |  |
+| `contracts update` | `--status` | ✅ |  |
+| `contracts update` | `--start-date` | ❌ |  |
+| `contracts update` | `--end-date` | ✅ |  |
+| `contracts update` | `--auto-renew` | ❌ |  |
+| `contracts update` | `--notice-days` | ❌ |  |
+| `contracts update` | `--amount` | ✅ |  |
+| `contracts update` | `--currency` | ✅ |  |
+| `contracts update` | `--title` | ❌ |  |
+| `contracts update` | `--as-owner` | ❌ |  |
+| `contracts update` | `--from-app` | ❌ |  |
+| `contracts update` | `--json` | ✅ |  |
+| `subscriptions list` |  | ✅ |  |
+| `subscriptions list` | `--json` | ✅ |  |
+| `subscriptions list` | `--limit` | ❌ |  |
+| `subscriptions show` |  | ✅ |  |
+| `subscriptions show` | `--json` | ✅ |  |
+| `subscriptions add` |  | ✅ |  |
+| `subscriptions add` | `--status` | ✅ |  |
+| `subscriptions add` | `--supplier` | ✅ |  |
+| `subscriptions add` | `--customer` | ✅ |  |
+| `subscriptions add` | `--product` | ❌ |  |
+| `subscriptions add` | `--contract` | ❌ |  |
+| `subscriptions add` | `--every` | ✅ |  |
+| `subscriptions add` | `--start-date` | ✅ |  |
+| `subscriptions add` | `--trial-end-date` | ✅ |  |
+| `subscriptions add` | `--kind` | ✅ |  |
+| `subscriptions add` | `--project` | ❌ |  |
+| `subscriptions add` | `--reason` | ❌ |  |
+| `subscriptions add` | `--evidence` | ❌ |  |
+| `subscriptions add` | `--as-owner` | ❌ |  |
+| `subscriptions add` | `--from-app` | ❌ |  |
+| `subscriptions add` | `--json` | ✅ |  |
+| `subscriptions update` |  | ✅ |  |
+| `subscriptions update` | `--status` | ✅ |  |
+| `subscriptions update` | `--supplier` | ❌ |  |
+| `subscriptions update` | `--customer` | ❌ |  |
+| `subscriptions update` | `--product` | ❌ |  |
+| `subscriptions update` | `--contract` | ❌ |  |
+| `subscriptions update` | `--every` | ✅ |  |
+| `subscriptions update` | `--start-date` | ❌ |  |
+| `subscriptions update` | `--trial-end-date` | ❌ |  |
+| `subscriptions update` | `--title` | ❌ |  |
+| `subscriptions update` | `--end-date` | ❌ |  |
+| `subscriptions update` | `--as-owner` | ❌ |  |
+| `subscriptions update` | `--from-app` | ❌ |  |
+| `subscriptions update` | `--json` | ✅ |  |
+| `subscriptions cancel` |  | ✅ |  |
+| `subscriptions cancel` | `--occurred-time` | ✅ |  |
+| `subscriptions cancel` | `--as-owner` | ❌ |  |
+| `subscriptions cancel` | `--from-app` | ❌ |  |
+| `subscriptions cancel` | `--json` | ✅ |  |
+| `subscriptions prices add` |  | ✅ |  |
+| `subscriptions prices add` | `--start-date` | ✅ |  |
+| `subscriptions prices add` | `--reason` | ✅ |  |
+| `subscriptions prices add` | `--as-owner` | ❌ |  |
+| `subscriptions prices add` | `--from-app` | ❌ |  |
+| `subscriptions prices add` | `--json` | ✅ |  |
+| `wallets list` |  | ✅ |  |
+| `wallets list` | `--json` | ✅ |  |
+| `wallets list` | `--limit` | ❌ |  |
+| `wallets show` |  | ✅ |  |
+| `wallets show` | `--until-time` | ✅ |  |
+| `wallets show` | `--json` | ✅ |  |
+| `wallets add` |  | ✅ |  |
+| `wallets add` | `--kind` | ✅ |  |
+| `wallets add` | `--institution` | ✅ |  |
+| `wallets add` | `--json` | ✅ |  |
+| `wallets update` |  | ✅ |  |
+| `wallets update` | `--title` | ❌ |  |
+| `wallets update` | `--institution` | ❌ |  |
+| `wallets update` | `--opening-balance` | ✅ |  |
+| `wallets update` | `--opening-date` | ✅ |  |
+| `wallets update` | `--as-owner` | ❌ |  |
+| `wallets update` | `--from-app` | ❌ |  |
+| `wallets update` | `--json` | ✅ |  |
+| `transactions list` |  | ✅ |  |
+| `transactions list` | `--json` | ✅ |  |
+| `transactions list` | `--limit` | ❌ |  |
+| `transactions show` |  | ✅ |  |
+| `transactions show` | `--json` | ✅ |  |
+| `transactions add` |  | ✅ |  |
+| `transactions add` | `--kind` | ✅ |  |
+| `transactions add` | `--occurred-time` | ✅ |  |
+| `transactions add` | `--description` | ✅ |  |
+| `transactions add` | `--status` | ✅ |  |
+| `transactions add` | `--payment` | ✅ |  |
+| `transactions add` | `--project` | ❌ |  |
+| `transactions add` | `--reason` | ✅ |  |
+| `transactions add` | `--evidence` | ❌ |  |
+| `transactions add` | `--as-owner` | ❌ |  |
+| `transactions add` | `--from-app` | ❌ |  |
+| `transactions add` | `--json` | ✅ |  |
+| `transactions update` |  | ✅ |  |
+| `transactions update` | `--status` | ✅ |  |
+| `transactions update` | `--payment` | ✅ |  |
+| `transactions update` | `--description` | ❌ |  |
+| `transactions update` | `--as-owner` | ❌ |  |
+| `transactions update` | `--from-app` | ❌ |  |
+| `transactions update` | `--json` | ✅ |  |
+| `transactions splits add` |  | ✅ |  |
+| `transactions splits add` | `--project` | ✅ |  |
+| `transactions splits add` | `--as-owner` | ❌ |  |
+| `transactions splits add` | `--from-app` | ❌ |  |
+| `transactions splits add` | `--json` | ✅ |  |
+| `transactions splits remove` |  | ✅ |  |
+| `transactions splits remove` | `--as-owner` | ❌ |  |
+| `transactions splits remove` | `--from-app` | ❌ |  |
+| `transactions splits remove` | `--json` | ✅ |  |
 | `records import` |  | ✅ |  |
 | `records import` | `--dry-run` | ✅ |  |
 | `records import` | `--account` | ✅ |  |
@@ -672,9 +843,18 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `records list` | `--json` | ✅ |  |
 | `records link` |  | ✅ |  |
 | `records link` | `--account` | ✅ |  |
-| `records link` | `--json` | ❌ |  |
+| `records link` | `--json` | ✅ |  |
 | `records link` | `--as-owner` | ❌ |  |
 | `records link` | `--from-app` | ❌ |  |
+| `records show` |  | ✅ |  |
+| `records show` | `--account` | ✅ |  |
+| `records show` | `--json` | ✅ |  |
+| `records delete` |  | ✅ |  |
+| `records delete` | `--account` | ✅ |  |
+| `records delete` | `--json` | ✅ |  |
+| `records match` |  | ✅ |  |
+| `records match` | `--account` | ✅ |  |
+| `records match` | `--json` | ✅ |  |
 | `meetings actions add` |  | ✅ |  |
 | `meetings actions add` | `--account` | ✅ |  |
 | `meetings actions add` | `--json` | ✅ |  |

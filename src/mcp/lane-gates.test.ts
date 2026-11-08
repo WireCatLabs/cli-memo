@@ -111,3 +111,12 @@ it("searches the business lane alone with --only business, and refuses it when b
   const denied = await searched(env, ["business.list=deny"], { only: ["business"] })
   expect(denied).toMatchObject({ isError: true, error: { code: "permission_error", reason: "search.all-denied" } })
 })
+
+it("keeps from search all the products and contracts a server denies listing", async () => {
+  const env = await invoiceStore()
+  await owner(env, "products", "add", "ZANZI rental", "100.00", "RUB", "--kind", "service")
+  await owner(env, "contracts", "add", "ZANZI agreement", "--kind", "service")
+  const kinds = (found: Found) => (found.items ?? []).map((hit) => hit.kind).sort()
+  expect(kinds(await searched(env))).toEqual(["contract", "invoice", "product"])
+  expect(kinds(await searched(env, ["products=deny", "contracts.list=deny"]))).toEqual(["invoice"])
+})

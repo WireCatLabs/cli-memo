@@ -27,6 +27,24 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: ["path"],
   },
   {
+    reason: "records.not-stored",
+    code: "not_found",
+    message: "no record {record} from that source; memo records list shows them",
+    details: ["record"],
+  },
+  {
+    reason: "records.file-missing",
+    code: "not_found",
+    message: "no records file {path}: give a file that exists, or - for stdin",
+    details: ["path"],
+  },
+  {
+    reason: "records.file-unreadable",
+    code: "validation_error",
+    message: "the records file {path} cannot be read: {why}",
+    details: ["path", "why"],
+  },
+  {
     reason: "findings.key-mismatch",
     code: "validation_error",
     message: "the batch's key {key} is not --key {given}; give the key once, as --key",

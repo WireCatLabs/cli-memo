@@ -6,6 +6,7 @@ import { InMemoryTransport } from "@modelcontextprotocol/server"
 import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
+import { businessStore, OWNER } from "../../test/business.js"
 import { commandCaller } from "../../test/mcp.js"
 import { updateConfig } from "../config.js"
 import { createProgram } from "../program.js"
@@ -86,4 +87,49 @@ it("refuses memo show of a lead denied in the config file", async () => {
     isError: true,
     error: { code: "permission_error", details: { permission: "leads.show" } },
   })
+})
+
+it("refuses memo show of a product, contract, subscription, wallet or transaction whose own command is denied", async () => {
+  const f = await businessStore("show-gate-business")
+  const refOf = async (...args: string[]) => (await f.item(OWNER, ...args)).ref as string
+  const wallet = await refOf("wallets", "add", "Main account", "RUB")
+  const refs = {
+    products: await refOf("products", "add", "ZANZI rental", "100.00", "RUB", "--kind", "service"),
+    contracts: await refOf("contracts", "add", "ZANZI agreement", "--kind", "service"),
+    subscriptions: await refOf(
+      ...[
+        "subscriptions",
+        "add",
+        "ZANZI hosting",
+        "990.00",
+        "RUB",
+        "--kind",
+        "payable",
+        "--supplier",
+        f.client,
+        "--every",
+        "1-month",
+      ],
+    ),
+    wallets: wallet,
+    transactions: await refOf(
+      "transactions",
+      "add",
+      wallet,
+      "250.00",
+      "--kind",
+      "out",
+      "--occurred-time",
+      "2026-02-01",
+    ),
+  }
+  const opened = await shown(f.env, Object.values(refs))
+  expect(opened.items?.map((one) => one.open.line)).toEqual(
+    Object.entries(refs).map(([group, ref]) => `memo ${group} show ${ref}`),
+  )
+  for (const [group, ref] of Object.entries(refs))
+    expect(await shown(f.env, [ref], [`${group}=deny`])).toMatchObject({
+      isError: true,
+      error: { code: "permission_error", details: { permission: `${group}.show` } },
+    })
 })
