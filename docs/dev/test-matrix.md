@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**876 ✅ · 0 ⛔ · 254 ❌** — 242 commands, 888 options.
+**885 ✅ · 0 ⛔ · 256 ❌** — 245 commands, 896 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -56,7 +56,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `notes links clear` | `--json` | ✅ |  |
 | `notes links clear` | `--from-app` | ❌ |  |
 | `folders add` |  | ✅ |  |
-| `folders add` | `--format` | ❌ |  |
+| `folders add` | `--format` | ✅ |  |
 | `folders add` | `--json` | ✅ |  |
 | `folders update` |  | ✅ |  |
 | `folders update` | `--format` | ✅ |  |
@@ -571,6 +571,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `invoices add` | `--json` | ✅ |  |
 | `invoices lines add` |  | ✅ |  |
 | `invoices lines add` | `--product` | ✅ |  |
+| `invoices lines add` | `--amount` | ✅ |  |
 | `invoices lines add` | `--as-owner` | ❌ |  |
 | `invoices lines add` | `--from-app` | ❌ |  |
 | `invoices lines add` | `--json` | ✅ |  |
@@ -623,6 +624,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `orders add` | `--json` | ✅ |  |
 | `orders lines add` |  | ✅ |  |
 | `orders lines add` | `--product` | ✅ |  |
+| `orders lines add` | `--amount` | ✅ |  |
 | `orders lines add` | `--as-owner` | ❌ |  |
 | `orders lines add` | `--from-app` | ❌ |  |
 | `orders lines add` | `--json` | ✅ |  |
@@ -990,6 +992,15 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `models add` | `--payload` | ✅ |  |
 | `models add` | `--offline` | ❌ |  |
 | `models add` | `--json` | ❌ |  |
+| `models consents show` |  | ✅ |  |
+| `models consents show` | `--json` | ✅ |  |
+| `models consents set` |  | ✅ |  |
+| `models consents set` | `--model` | ✅ |  |
+| `models consents set` | `--base-url` | ❌ |  |
+| `models consents set` | `--yes` | ✅ |  |
+| `models consents set` | `--json` | ❌ |  |
+| `models consents revoke` |  | ✅ |  |
+| `models consents revoke` | `--json` | ❌ |  |
 | `search all` |  | ✅ |  |
 | `search all` | `--limit` | ✅ |  |
 | `search all` | `--exact` | ✅ |  |
