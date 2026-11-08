@@ -143,6 +143,11 @@ proposal decisions stay refused. The shared WireCat read ceiling and `MEMO_READ_
 `business.list`, the one key that names no command, set to `deny` leaves all of it out: invoices, payments, orders,
 contracts, subscriptions, products and wallets.
 
+`memo show` refuses a reference whose own command a key denies: with `"invoices": "deny"` (or `invoices.show`) an
+agent's `memo show invoice:4` is a `permission_error`, the same as `memo invoices show invoice:4`. The same holds for
+notes, people (`context`), organizations, projects, tasks, facts, memories, messages, payments, orders, deals, leads
+and pipelines.
+
 Supported commands stay visible with their current availability. Saved permission changes take effect
 on existing connections too. `memo mcp serve --permission notes.edit=deny` tightens one key for that server
 without changing the file; an override that loosens any saved key is refused.

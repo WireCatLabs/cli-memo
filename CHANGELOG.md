@@ -6,6 +6,18 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo show` opens invoices, payments, orders, deals, leads and pipelines** with memo's own `show`: its `open`
+  names `memo invoices show invoice:4` and the like, where it said nothing opens them.
+
+### Security
+
+- **`memo show` over MCP refuses a reference whose own command the server denies.** A server whose permissions denied
+  `invoices` (or `invoices.show`) refused `invoices show`, yet `memo show invoice:4` gave the agent the invoice's
+  number, amount and counterparty, and the same for an order, a lead and a pipeline. It is now a `permission_error`
+  naming the key, for every kind memo opens, whether the key is passed with `--permission` or saved in the config file.
+
 ## 0.131.62 — 08.11.2026
 
 ### Added
