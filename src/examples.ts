@@ -101,6 +101,8 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo models consents set openai --model gpt-4o-mini --yes",
   ],
   "models consents revoke": ["memo models consents revoke"],
+  "models keys set": ["memo models keys set openai", "memo models keys set anthropic"],
+  "models keys remove": ["memo models keys remove openai"],
   "models add": [
     `memo models add e5-base --payload '{"repository":"Xenova/multilingual-e5-base","onnx":"onnx/model_quantized.onnx","dims":768,"pooling":"mean","prefix":{"query":"query: ","passage":"passage: "}}'`,
   ],

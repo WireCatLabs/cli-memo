@@ -526,11 +526,14 @@ export const createProgram = ({
   terminal,
   keyring,
   fetchPage,
+  stdin,
 }: {
   streams?: Streams
   env?: NodeJS.ProcessEnv
   /** Where enrichment looks for its provider key; the system keyring unless a test hands in memoryKeyring(). */
   keyring?: KeyringStore
+  /** Where `models keys set` reads the key; the process's stdin unless a test hands one in. */
+  stdin?: NodeJS.ReadableStream
   /** Ctrl-C or SIGTERM from `startCli`: a sync stops at its next safe point. */
   signal?: AbortSignal
   /** Whether a person is at the terminal; the process's stdin and stdout unless a test hands one in. */
@@ -577,7 +580,7 @@ export const createProgram = ({
   reviewCommand(program, streams, env)
   agentsCommand(program, streams, env)
   mcpCommand(program, streams, env, createProgram)
-  modelsCommand(program, streams, env, keyring)
+  modelsCommand(program, streams, env, keyring, stdin)
   templatesCommand(program, streams, env)
   searchCommand(program, streams, env)
   meetingReadCommands(program, streams, env)
