@@ -46,7 +46,7 @@ memo sources add notes.txt --json
 | `duplicate_of` | The watched-folder or Drive document with the same content, when nothing new was stored |
 | `kind` | `file`, `page` or `text` |
 | `mime`, `bytes` | The type and size of what was read |
-| `chars`, `truncated` | How many characters of text were kept, and whether that is only the first part |
+| `chars`, `truncated` | How many characters of text the store keeps, and whether that is only the first part; `truncated` is `null` when the text was stored by an earlier add |
 | `extractor`, `read` | The reader that read it, and `extracted` or `no-text` |
 | `url` | The address you gave; the address a redirect ended at is never kept |
 | `kept` | `text`, or `copy` when a copy of the file is kept too; `null` for a duplicate |
@@ -77,8 +77,8 @@ memo sources remove document:42
 ```
 
 Only you remove a source you added. Its text goes, the copy Memo kept is deleted, and the answer lists the facts and
-memories that cite it. They keep their status: Memo flags each one for your review as citing a source that is gone,
-the next time it checks sources. A file on your disk is never touched.
+memories that cite it as `facts` and `memories`. They keep their status; check each one with `memo facts show` or
+`memo memories show`. A file on your disk is never touched.
 
 ## For an agent
 
