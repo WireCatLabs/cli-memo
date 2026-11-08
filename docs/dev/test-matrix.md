@@ -495,6 +495,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `memories remove` | `--reason` | ❌ |  |
 | `memories check` |  | ✅ |  |
 | `memories check` | `--limit` | ✅ |  |
+| `memories check` | `--since-time` | ✅ |  |
 | `memories check` | `--json` | ✅ |  |
 | `memories challenge` |  | ✅ |  |
 | `memories challenge` | `--as-owner` | ❌ |  |

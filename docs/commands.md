@@ -2420,7 +2420,7 @@ memo memories remove <ref> [options]
 
 ### `memo memories check`
 
-compare what memories and facts cite with the sources now, least recently checked first: a changed source that still says the quoted words is signed again; one that changed, went or was replaced raises a memory_source_review for you to decide. Status never changes here. changed_refs lists changed sources no findings batch reads yet, for an agent to read again with projects actions add. memo sync runs it too
+compare what memories and facts cite with the sources now, least recently checked first: a changed source that still says the quoted words is signed again; one that changed, went or was replaced raises a memory_source_review for you to decide. Status never changes here. changed_refs lists changed sources no findings batch reads yet, for an agent to read again with projects actions add; a run names a change once, so --since-time also lists those an earlier run, such as memo sync's, already found. memo sync runs it too
 
 This command changes the local store or your files.
 
@@ -2431,6 +2431,7 @@ memo memories check [options]
 | Option | What it does |
 |---|---|
 | `--limit <n>` | most evidence links this run, up to 10000. Default: `500`. |
+| `--since-time <time>` | changed_refs also lists sources earlier runs found changed since then: 12h, 7d or a date (2026-11-01). |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** source check — checked, baselined, raised, refreshed, closed, changed_refs; every field: memo commands info memories check

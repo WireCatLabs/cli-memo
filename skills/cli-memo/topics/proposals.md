@@ -22,8 +22,8 @@ proposals waiting about the person or project. `memo schedule command|agent|list
 command or an agent on a timer; an agent there is limited to `memo` under `MEMO_READ_ONLY`.
 
 **When a source changes.** A `memory_source_review` says a memory or fact may no longer hold: a source changed,
-went, was replaced, or someone challenged it. `memo memories check --json` looks again (sync does it too) and
-answers `changed_refs`, changed sources no findings batch reads yet: read them and stage what is new with
+went, was replaced, or someone challenged it. `memo memories check --since-time 1d --json` looks again (sync does it
+too) and answers `changed_refs`, changed sources no findings batch reads yet, including those an earlier run found: read them and stage what is new with
 `memo projects actions add`. When evidence contradicts a record, run
 `memo memories challenge <ref> --evidence <refs…> --reason <why> [--suggest <text>]` (or `memo facts challenge`); it
 only opens the owner's review. Quote what a source says with `--quote <ref>=<words>` on `memories add` and

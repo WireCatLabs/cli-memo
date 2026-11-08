@@ -93,43 +93,43 @@
   {
     "rule": "unknown-verb",
     "target": "memories challenge",
-    "reason": "The memory source review (owner's plan 2026-11-07, Part B) names it; the cli-base vocabulary has no verb for saying a record is contradicted, with evidence, without deciding it. Add one there, then rename.",
+    "reason": "Temporary: WireCatLabs/cli-base#524 adds this word to the shared vocabulary; drop this override and lower the budget back to 13 once memo pins a cli-base release with it.",
     "owner": "@leemour",
-    "review_after": "2027-02-08"
+    "review_after": "2026-12-08"
   },
   {
     "rule": "unknown-verb",
     "target": "facts challenge",
-    "reason": "The memory source review (owner's plan 2026-11-07, Part B) names it; the cli-base vocabulary has no verb for saying a record is contradicted, with evidence, without deciding it. Add one there, then rename.",
+    "reason": "Temporary: WireCatLabs/cli-base#524 adds this word to the shared vocabulary; drop this override and lower the budget back to 13 once memo pins a cli-base release with it.",
     "owner": "@leemour",
-    "review_after": "2027-02-08"
+    "review_after": "2026-12-08"
   },
   {
     "rule": "option-role",
     "target": "memories challenge --suggest",
-    "reason": "The memory source review (owner's plan 2026-11-07, Part B) names it; the cli-base vocabulary has no flag for wording an author offers the owner to take or leave. Add one there, then drop this.",
+    "reason": "Temporary: WireCatLabs/cli-base#524 adds this word to the shared vocabulary; drop this override and lower the budget back to 13 once memo pins a cli-base release with it.",
     "owner": "@leemour",
-    "review_after": "2027-02-08"
+    "review_after": "2026-12-08"
   },
   {
     "rule": "option-role",
     "target": "facts challenge --suggest",
-    "reason": "The memory source review (owner's plan 2026-11-07, Part B) names it; the cli-base vocabulary has no flag for wording an author offers the owner to take or leave. Add one there, then drop this.",
+    "reason": "Temporary: WireCatLabs/cli-base#524 adds this word to the shared vocabulary; drop this override and lower the budget back to 13 once memo pins a cli-base release with it.",
     "owner": "@leemour",
-    "review_after": "2027-02-08"
+    "review_after": "2026-12-08"
   },
   {
     "rule": "option-role",
     "target": "memories add --quote",
-    "reason": "The memory source review (owner's plan 2026-11-07, Part B) names it; the cli-base vocabulary has no flag for the words of one --evidence reference a record rests on, as <ref>=<words>. Add one there, then drop this.",
+    "reason": "Temporary: WireCatLabs/cli-base#524 adds this word to the shared vocabulary; drop this override and lower the budget back to 13 once memo pins a cli-base release with it.",
     "owner": "@leemour",
-    "review_after": "2027-02-08"
+    "review_after": "2026-12-08"
   },
   {
     "rule": "option-role",
     "target": "facts add --quote",
-    "reason": "The memory source review (owner's plan 2026-11-07, Part B) names it; the cli-base vocabulary has no flag for the words of one --evidence reference a record rests on, as <ref>=<words>. Add one there, then drop this.",
+    "reason": "Temporary: WireCatLabs/cli-base#524 adds this word to the shared vocabulary; drop this override and lower the budget back to 13 once memo pins a cli-base release with it.",
     "owner": "@leemour",
-    "review_after": "2027-02-08"
+    "review_after": "2026-12-08"
   }
 ]

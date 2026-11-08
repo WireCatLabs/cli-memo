@@ -329,10 +329,19 @@ it("lists memories whose sources changed since, once: a review refreshed in plac
 
   const now = await openStore({ env })
   await now.notes.editNote(note.ref, "Delivery on the 30th", 2)
-  expect(await now.knowledge.checkSources()).toMatchObject({ checked: 1, raised: 0 })
-  await now.close()
-  expect(section(envelopeOf(await run("review", "agenda", "--since-time", "1h", "--json")), "sources")).toMatchObject({
-    total: 0,
-    items: [],
+  const quoted = await now.notes.addNote({ text: "Room 4 at noon" })
+  await now.memories.add({
+    kind: "preference",
+    body: "The room is 4",
+    scope: "work",
+    evidence: [{ ref: quoted.ref, quote: "Room 4" }],
+    author: "owner",
+    status: "confirmed",
   })
+  await now.notes.editNote(quoted.ref, "Room 4 at one", 1)
+  expect(await now.knowledge.checkSources()).toMatchObject({ checked: 2, raised: 0, refreshed: 1 })
+  await now.close()
+  const later = section(envelopeOf(await run("review", "agenda", "--since-time", "1h", "--json")), "sources")
+  expect(later.items).toEqual([expect.objectContaining({ ref: quoted.ref, why: expect.stringContaining("changed") })])
+  expect(later.next).toEqual(["# read changed sources again: memo memories check --since-time 1d --json"])
 })

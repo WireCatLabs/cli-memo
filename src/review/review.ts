@@ -156,6 +156,8 @@ export const listReview = async (
   return { items: found.items.map((row) => reviewItem(row, label)), hasMore: found.hasMore }
 }
 
+export const REVIEW_SOURCES = "memo review list kind:memory_source_review"
+
 /** One proposal as `review list` shows it, read by id. */
 export const reviewOf = async (store: MessageStore, id: string) => {
   const row = await reviewRegistry(store).get(id)

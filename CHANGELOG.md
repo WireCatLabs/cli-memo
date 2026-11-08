@@ -13,7 +13,8 @@ the API.
   - `memo memories check [--limit N]` looks again, and `memo sync` does it as its last step, "memories follow
     sources"; a failure there is reported as `source_check_failed` and never fails the sync. `check --json` answers
     `checked`, `baselined`, `raised`, `refreshed`, `closed` and `changed_refs`, the changed sources no findings
-    batch reads yet, for an agent to read again with `projects actions add`.
+    batch reads yet, for an agent to read again with `projects actions add`. A run names a change once; with
+    `--since-time` it also lists what earlier runs, such as the timer's sync, found changed since then.
   - `memo memories challenge` and `memo facts challenge <ref> --evidence … --reason … [--suggest …]` say a record no
     longer holds. An agent may run them; they only open or add to the owner's review.
   - `--quote <ref>=<words>` on `memories add` and `facts add` keeps the words a record rests on, so an edit that
@@ -24,9 +25,10 @@ the API.
     reject` dismisses it; both are the owner's alone, and `--from-app` counts as the owner. Correct with `memories
     add --supersedes`, withdraw with `memories invalidate` or `facts reverse`.
   - `memories list/show` and `facts list/show` carry `source_review`: the open review's `id` and `cause`, or `null`.
-  - `memo review agenda` has a `sources` section: the source reviews raised since `--since-time`. A review that only
-    grew in place is not listed again.
-  - Needs a cli-core release with source reviews and `sourceReviewTexts`.
+  - `memo review agenda` has a `sources` section: the source reviews raised since `--since-time`, and the sources
+    found changed since then that no review or findings batch names. A review that only grew in place is not listed
+    again.
+  - Needs a cli-core release with source reviews, `sourceReviewTexts` and `changedSources`.
 
 ## 0.131.66 — 08.11.2026
 
