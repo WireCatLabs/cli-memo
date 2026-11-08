@@ -4856,6 +4856,7 @@ memo review agenda [options]
 | Option | What it does |
 |---|---|
 | `--since-time <time>` | how far back: hours or days (12h, 7d) or a start date (2026-11-01). Default: `1d`. |
+| `--before-time <time>` | build it as of this past ISO time or date, for a past day's digest: --since-time counts back from it, and what came later is left out; a chat or thread answered since reads as answered. |
 | `--limit <n>` | items per section before the size budget. Default: `25`. |
 | `--max-output-bytes <bytes>` | the text answer's size budget in bytes; 40000 with --compact, else 80000. |
 | `--compact` | one line per item, shorter excerpts, the smaller budget: for an agent. |
@@ -5935,6 +5936,32 @@ memo schedule exec <file> [options]
 **Returns:** what a timer runs, given the schedule's file; to run one by hand, use run
 
 **Example:** `memo schedule exec ~/.local/state/cli-memo/schedules/digest/schedule.json`
+
+## `memo digest`
+
+the morning digest's history: build the digests of past days
+
+### `memo digest backfill`
+
+build the morning digest each past day would have had: the morning-digest schedule's agent runs as its timer does (the same skill, flags and cost caps), reading the agenda as of that day's run time, and the result is kept as that day's run, marked backfill, for WireCat Desktop's digests screen. It is never sent to Telegram or mail. A day that already has a digest is skipped. Without --yes it only prints what it would build and the estimate: the days times the last digest run's cost. Each day is a paid model call: it stops once today's runs cost the schedule's daily cap or a day fails, and only you run it, never an agent. The store keeps what holds now, so a chat answered since reads as answered
+
+This command changes the local store or your files.
+
+```sh
+memo digest backfill [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--from <date>` | the first day, YYYY-MM-DD. |
+| `--to <date>` | the last day, YYYY-MM-DD; not a day whose run time is still ahead. |
+| `--yes` | build them; without it, only the estimate is printed. |
+| `--json` | print JSON. |
+
+**Returns:** build the morning digests of past days, without sending them
+
+**Example:** `memo digest backfill --from 2026-11-01 --to 2026-11-07`, `memo digest backfill --from 2026-11-01 --to 2026-11-07 --yes --json`
 
 ## `memo commands`
 

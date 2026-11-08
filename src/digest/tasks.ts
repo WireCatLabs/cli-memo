@@ -1,10 +1,12 @@
+import { existsSync, readdirSync } from "node:fs"
+import { join } from "node:path"
 import { resolvePaths } from "@wirecat/cli-base"
 import { timezoneOf } from "@wirecat/cli-base/query"
 import { listQuery, typedQuery } from "@wirecat/cli-core/cli"
 import type { AccountKey, MessageStore, TaskDetails } from "@wirecat/cli-core/store"
 import { APP } from "../app.js"
 import { TASKS_LIST_QUERY } from "../tasks/list.js"
-import { schedulesOf } from "./sync-health.js"
+import { type Scheduled, schedulesOf } from "./sync-health.js"
 
 /** The schedule whose last run starts "new since"; `memo schedule agent morning-digest …` names it so. */
 export const DIGEST_SCHEDULE = "morning-digest"
@@ -33,16 +35,43 @@ export interface HotTask {
   for: string | null
 }
 
+/** The morning-digest schedule, by its name or by the skill its agent runs, and the state folder it is under. */
+export const digestSchedule = (env: NodeJS.ProcessEnv): { state: string; schedule: Scheduled | undefined } => {
+  const state = resolvePaths({ appName: APP.appName, prefix: APP.envPrefix, env }).state
+  const schedule = schedulesOf(state).find(
+    (one) => one.name === DIGEST_SCHEDULE || (one.kind === "agent" && one.argv.join(" ").includes(DIGEST_SCHEDULE)),
+  )
+  return { state, schedule }
+}
+
+/** A run file's time from its name, `2026-11-08T08-30-00Z.report.json`; NaN for any other file. */
+export const runTime = (file: string): number => {
+  const [, day, hour, minute, second] = /^(\d{4}-\d{2}-\d{2})T(\d{2})-(\d{2})-(\d{2})Z\./.exec(file) ?? []
+  return day ? Date.parse(`${day}T${hour}:${minute}:${second}Z`) : Number.NaN
+}
+
+/** The times of the digest runs that left a report, oldest first. */
+export const digestReportTimes = (env: NodeJS.ProcessEnv): number[] => {
+  const { state, schedule } = digestSchedule(env)
+  const runs = schedule ? join(state, "schedules", schedule.name, "runs") : undefined
+  if (!runs || !existsSync(runs)) return []
+  return readdirSync(runs)
+    .filter((file) => file.endsWith(".report.json"))
+    .map(runTime)
+    .filter((at) => !Number.isNaN(at))
+    .sort((a, b) => a - b)
+}
+
+/** A past day's "new since": the newest digest report before `until`, or a day before it when there is none. */
+export const digestRunBefore = (env: NodeJS.ProcessEnv, until: number): string =>
+  new Date(digestReportTimes(env).findLast((at) => at < until) ?? until - DAY).toISOString()
+
 /**
  * When the previous digest ran: the last morning-digest run, or, while it fails, the run before the failures began,
  * so nothing created between a good run and a broken one is lost. A day back when no digest ran yet.
  */
 export const previousDigestAt = (env: NodeJS.ProcessEnv, now: number): string => {
-  const state = resolvePaths({ appName: APP.appName, prefix: APP.envPrefix, env }).state
-  const digest = schedulesOf(state).find(
-    (one) => one.name === DIGEST_SCHEDULE || (one.kind === "agent" && one.argv.join(" ").includes(DIGEST_SCHEDULE)),
-  )
-  const last = digest?.last
+  const last = digestSchedule(env).schedule?.last
   if (!last) return new Date(now - DAY).toISOString()
   return last.exitCode === 0 ? last.at : (last.failingSince ?? last.at)
 }
@@ -94,7 +123,7 @@ const personName = async (store: MessageStore, ref: string | undefined) => {
 export const gatherTasks = async (
   store: MessageStore,
   keys: readonly AccountKey[],
-  { now, newSince }: { now: number; newSince: string },
+  { now, newSince, until }: { now: number; newSince: string; until?: number },
 ): Promise<{ tasks: HotTask[]; counts: TaskCounts; accounts: number }> => {
   const zone = timezoneOf()
   const day = dayOf(zone)
@@ -115,6 +144,7 @@ export const gatherTasks = async (
   const counts: TaskCounts = { overdue: 0, today: 0, tomorrow: 0, new: 0, newSince, undated: 0 }
   const tasks: HotTask[] = []
   for (const task of seen.values()) {
+    if (until !== undefined && Date.parse(task.createdAt) > until) continue
     const groups: TaskGroup[] = []
     const due = task.dueAt === null ? null : day(Date.parse(task.dueAt))
     if (due === null) counts.undated++

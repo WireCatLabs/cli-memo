@@ -414,6 +414,10 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   ],
   "schedule list": ["memo schedule list", "memo schedule list kind:agent --json"],
   "schedule run": ["memo schedule run digest"],
+  "digest backfill": [
+    "memo digest backfill --from 2026-11-01 --to 2026-11-07",
+    "memo digest backfill --from 2026-11-01 --to 2026-11-07 --yes --json",
+  ],
   "schedule remove": ["memo schedule remove digest"],
   "schedule exec": ["memo schedule exec ~/.local/state/cli-memo/schedules/digest/schedule.json"],
   "templates list": ["memo templates list", "memo templates list channel:telegram source:stored --json"],

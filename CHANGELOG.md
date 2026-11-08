@@ -66,6 +66,22 @@ the API.
   `memories add` with `supersedes` through the MCP server, no longer fails with "only the owner corrects a memory". The
   correction waits as proposed, and the memory it corrects stays as it is until you confirm the correction; rejecting
   or removing it leaves that memory. Yours still applies at once (cli-core 0.616.0).
+- **`memo digest backfill --from <date> --to <date> [--yes] [--json]`: the morning digests of past days.** For each
+  day without a digest, the morning-digest schedule's agent runs as its timer does (the same skill, harness flags and
+  per-run cap), reading the agenda as of that day's run time, and the run is kept as that day's in the schedule's
+  `runs/`, with `"backfill": true` in its `.report.json`, for WireCat Desktop's digests screen. It is never sent to
+  Telegram or mail, and the last run, `latest.md` and `latest.txt` stay as they were. Without `--yes` it prints the
+  days it would build, the days skipped and the estimate (the days times the last run's cost): `--json` answers
+  `{ days, skipped, estimate_usd }`; with `--yes` also `built` (`date`, `at`, `exit_code`, `cost_usd`), `left` and
+  `cost_usd`. Each run counts in today's spend, and no day starts once it reaches the schedule's daily cap or a day
+  fails; the days it leaves are in `left`. Only the owner runs it: an agent is refused (`backfill.owner-only`), and
+  so is `MEMO_READ_ONLY`; WireCat Desktop passes `--from-app`.
+- **`review agenda --before-time <time>`** builds the agenda as of a past ISO time or date: `--since-time` counts back
+  from it, items dated later are left out, and the tasks "new since" start at the digest report before it. The store
+  keeps only what holds now, so a chat or thread answered since reads as answered.
+- **The morning-digest skill puts `person:<id>` and `project:<key>` refs on items** where memo printed them, after the
+  ref of where the item happened, so Desktop and the digest's links open the person or the project; and for a past
+  day's run (`backfill:` in its input) it reads the agenda with the window given and writes from the agenda alone.
 
 ## 0.131.66 — 08.11.2026
 
