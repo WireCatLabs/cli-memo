@@ -128,11 +128,15 @@ Move it to a key document with `memo projects key-documents add`, then `memo tag
 A **relationship** says that a person belongs to an organization or works on a project:
 
 ```sh
-memo relationships add person:PERSON_UID organization:1 --kind member-of
+memo relationships add person:PERSON_UID organization:1 --kind member-of --role employee
 memo relationships add person:PERSON_UID project:1 --kind related-to --role contributor
 memo relationships list 'about:"project:1"'
 memo relationships remove 4
 ```
+
+A person's role as a member comes from a list: in an organization employee, contractor, founder, owner,
+manager, adviser or contact; in a project owner, manager, contributor, client-contact or approver. memo refuses
+any other role (`relationship.role-unknown`).
 
 A chat can be a project's too, so `memo projects evidence` reads all of it, not only messages that name the
 project. The reference names the chat's account, so no account is guessed:

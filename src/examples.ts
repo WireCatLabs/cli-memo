@@ -170,7 +170,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo relationships update 12 --role contractor --reason 'builds the site'",
   ],
   "relationships add": [
-    "memo relationships add person:3 organization:1 --role cto",
+    "memo relationships add person:3 organization:1 --role employee",
     "memo relationships add project:2 organization:1 --kind related-to --reason 'same client'",
   ],
   "relationships list": ['memo relationships list about:"person:3"', "memo relationships list confirmed:false"],

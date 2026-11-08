@@ -292,7 +292,11 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .argument("<to>", "the person:, organization: or project: it belongs or relates to")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .option("--kind <kind>", "member-of or related-to", "member-of")
-    .option("--role <role>", "the role it has there, in a few words, such as cto")
+    .option(
+      "--role <role>",
+      "the role it has there; a person's role in an organization or a project is one from its list, " +
+        "such as employee or contributor",
+    )
     .option("--reason <text>", "why you think so, in a sentence")
     .action(
       async (
@@ -348,7 +352,10 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       )
       .summary("set a relationship's role or a chat's purpose in a project")
       .argument("<id>", "the relationship's id, as relationships list gives it")
-      .option("--role <role>", "the role it has there, in a few words; an empty value clears it")
+      .option(
+        "--role <role>",
+        "the role it has there, from the same list as relationships add; an empty value clears it",
+      )
       .option("--purpose <purpose>", "what the chat is for in the project: work, sales, support or other")
       .option("--reason <text>", "why, in a sentence")
       .option("--json", "print JSON; --json=id,title keeps only those fields"),
