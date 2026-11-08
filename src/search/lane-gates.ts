@@ -38,7 +38,8 @@ type Skipped = SearchAllFound["skipped"][number]
 export interface LanesAllowed {
   only: SearchedResource[] | undefined
   skipped: Skipped[]
-  shows: (item: { kind: string }) => boolean
+  /** Absent when no kind is hidden. */
+  shows?: (item: { kind: string }) => boolean
 }
 
 const leftOut = (lane: SearchedResource, what: string, key: string): Skipped => ({
@@ -70,8 +71,8 @@ export const lanesFor = (command: Command, asked: SearchedResource[] | undefined
         skipped.push(leftOut(gate.lane, kind, key))
       }
   }
-  const shows = (item: { kind: string }) => !hidden.has(item.kind)
-  if (!off.size) return { only: asked, skipped, shows }
+  const shows = hidden.size ? { shows: (item: { kind: string }) => !hidden.has(item.kind) } : {}
+  if (!off.size) return { only: asked, skipped, ...shows }
   const only = lanes.filter((lane) => !off.has(lane))
   if (!only.length)
     throw new CliError(
@@ -79,5 +80,5 @@ export const lanesFor = (command: Command, asked: SearchedResource[] | undefined
       `search all has nothing it may read: ${skipped.map(({ reason }) => reason).join("; ")}`,
       { reason: "search.all-denied" },
     )
-  return { only, skipped, shows }
+  return { only, skipped, ...shows }
 }

@@ -37,14 +37,19 @@ const invoiceStore = async () => {
   return env
 }
 
-const searched = async (env: NodeJS.ProcessEnv, overrides: string[] = []) => {
+const owner = (env: NodeJS.ProcessEnv, ...args: string[]) =>
+  createProgram({ streams: captureStreams(), env, terminal: { present: true } }).parseAsync([...args, "--json"], {
+    from: "user",
+  })
+
+const searched = async (env: NodeJS.ProcessEnv, overrides: string[] = [], extra: Record<string, unknown> = {}) => {
   const [server, transport] = InMemoryTransport.createLinkedPair()
   await createMemoServer(env, createProgram, overrides).connect(server)
   const client = new Client({ name: "synthetic-agent", version: "1" })
   await client.connect(transport)
   try {
     const call = await commandCaller(client)
-    const all = await call("search all", { query: "ZANZI-901" })
+    const all = await call("search all", { query: "ZANZI", ...extra })
     return { isError: all.isError === true, ...(all.structuredContent as Found) }
   } finally {
     await client.close()
@@ -75,4 +80,27 @@ it("leaves the whole business lane out for business.list=deny, passed or saved i
   expect(passed.meta?.issues).toContainEqual({ code: "permission_error", source: "business" })
   updateConfig((config) => ({ ...config, permissions: { "business.list": "deny" } }), env)
   expect(invoices(await searched(env))).toEqual([])
+})
+
+it("fills --limit with the hits it may show, reading past the hidden ones", async () => {
+  const env = await invoiceStore()
+  for (const number of ["ZANZI-11", "ZANZI-12"])
+    await owner(env, "orders", "add", "Synthetic Shop", "--title", number, "--kind", "business")
+  for (const number of ["ZANZI-21", "ZANZI-22", "ZANZI-23"])
+    await owner(
+      env,
+      "invoices",
+      "add",
+      "100.00",
+      "RUB",
+      "Extra",
+      "--title",
+      number,
+      "--kind",
+      "payable",
+      "--organization",
+      "organization:1",
+    )
+  const found = await searched(env, ["invoices=deny"], { limit: 2 })
+  expect(found.items?.map((hit) => hit.kind)).toEqual(["order", "order"])
 })

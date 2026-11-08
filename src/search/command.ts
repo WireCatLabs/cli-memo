@@ -98,6 +98,7 @@ Calendar events come from every calendar gcal stored; an event's title, descript
             text: words.join(" "),
             limit: options.limit,
             ...(gate.only === undefined ? {} : { only: gate.only }),
+            ...(gate.shows === undefined ? {} : { shows: gate.shows }),
             ...(options.exact ? { exact: true } : {}),
             ...(options.plainOrder ? { plainOrder: true } : {}),
             ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
@@ -105,7 +106,7 @@ Calendar events come from every calendar gcal stored; an event's title, descript
           return {
             ...found,
             skipped: [...gate.skipped, ...found.skipped],
-            items: await keyDocumentsFirst(store, found.items.filter(gate.shows), options.project),
+            items: await keyDocumentsFirst(store, found.items, options.project),
           }
         })
         if (!options.json) {
