@@ -25,8 +25,10 @@ one with `memo notes show` or in the original app.
 | Telegram or MAX messages | `memo search messages 'budget'` |
 | Stored meeting transcripts and summaries | `memo search meetings 'budget' --source zoom:work` |
 | A person, by name, username or alias | `memo search people kai` |
+| Invoices, contracts, products and other business data | `memo search all 'budget' --only business` |
 
-`search all` looks in messages, mail, notes and calendar events together. Events come from every calendar
+`search all` looks in messages, mail, notes, calendar events, deals and leads, and
+[business data](./business.md#find-it-again) together. Events come from every calendar
 gcal stored; the answer names each calendar it read, and `--only events` searches them alone. An event's title,
 description and place are written by whoever sent the invitation, and `--json` names those fields in the hit's
 `untrusted`. `memo events show <ref>` opens an `event:` reference, and `memo events list` lists the events of

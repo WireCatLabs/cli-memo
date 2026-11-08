@@ -1,11 +1,14 @@
 import { expect, it } from "vitest"
 import { businessStore, OWNER } from "../../test/business.js"
 
-it("finds products and contracts in search all by the words of their names", async () => {
+it("finds the owner's products and contracts in search all, and in --only business alone", async () => {
   const f = await businessStore("search-business")
-  await f.item(OWNER, "products", "add", "Velocipede rental", "10000.00", "RUB", "--kind", "service")
-  await f.item(OWNER, "contracts", "add", "Velocipede agreement", "--kind", "service")
-  const hits = await f.items(OWNER, "search", "all", "Velocipede")
-  const refs = hits.map((hit) => String(hit.ref)).filter((ref) => /^(product|contract):/.test(ref))
-  expect(refs.map((ref) => ref.split(":")[0]).sort()).toEqual(["contract", "product"])
+  const product = await f.item(OWNER, "products", "add", "Velocipede rental", "10000.00", "RUB", "--kind", "service")
+  const contract = await f.item(OWNER, "contracts", "add", "Velocipede agreement", "--kind", "service")
+  const refs = [product.ref, contract.ref]
+  const everywhere = await f.items(OWNER, "search", "all", "Velocipede")
+  expect(everywhere.map((hit) => hit.ref)).toEqual(expect.arrayContaining(refs))
+  const only = await f.items(OWNER, "search", "all", "Velocipede", "--only", "business")
+  expect(only.map((hit) => hit.ref).sort()).toEqual(refs.sort())
+  expect(only.every((hit) => hit.provider === "business" && hit.account === "internal")).toBe(true)
 })

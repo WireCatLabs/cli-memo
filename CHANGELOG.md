@@ -24,6 +24,11 @@ the API.
 
 ### Added
 
+- **`memo show` and each business `show` list where an entry came from** (`sources`): the source records mapped to
+  it and the records whose relations name it, such as a quote `quoted-for` a deal. This covers products, contracts,
+  subscriptions, wallets, transactions, invoices, payments, orders, deals, leads and pipelines. The title of one an
+  import or a CRM made is the source's words, so `memo show` marks it `untrusted`. An MCP client denied
+  `records.show` gets no `sources`, as `records show` would refuse it.
 - **`memo show` opens invoices, payments, orders, deals, leads, pipelines, products, contracts, subscriptions, wallets
   and transactions** with memo's own `show`: its `open` names `memo invoices show invoice:4` and the like, where it
   said nothing opens them.
