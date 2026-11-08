@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.53 — 08.11.2026
+
 ### Fixed
 
 - **The morning digest is written in the owner's language, without references, commands or Gaps and Coverage
