@@ -16,6 +16,8 @@ export const NOTE_EXTENSIONS = [
   ".epub",
   ".doc",
   ".xls",
+  ".html",
+  ".htm",
 ]
 
 const MEMO_ID = /^---\r?\n(?:[^\n]*\n)*?memo-id:[ \t]*["']?([^"'\s]+)/

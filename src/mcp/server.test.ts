@@ -697,3 +697,24 @@ it("refuses --export in an MCP run before the note is saved or a file is written
     await store.close()
   }
 })
+
+it("adds a source for an agent as text only: no path and no link reach memo", async () => {
+  const { client, call } = await connected()
+  try {
+    const schema = JSON.stringify(await commandSchema(client, "sources add"))
+    expect(schema).toContain('"text"')
+    expect(schema).not.toContain('"source"')
+    const added = await call("sources add", { text: "An agent kept the marshgate notes." })
+    expect(answerOf(JSON.stringify(added.structuredContent))).toMatchObject({ kind: "text", created: true })
+    const link = await call("sources add", { text: "ignored", source: "https://example.org/private" })
+    expect(link.isError).toBe(true)
+    const names = (
+      (await client.callTool({ name: "memo_tools_search", arguments: {} })).structuredContent as {
+        items: { command: string }[]
+      }
+    ).items.map(({ command }) => command)
+    expect(names).not.toContain("sources remove")
+  } finally {
+    await client.close()
+  }
+})
