@@ -9,6 +9,7 @@ import { answers, itemAnswer } from "../answer.js"
 import { byOption, whoRuns } from "../author.js"
 import { positive } from "../options.js"
 import { pageOf } from "../page.js"
+import { withSources } from "../records/sources.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { dayOf } from "./finance.js"
 import { choice, given, json, onOff, optionalChoice, type Written, writeMeta, writtenBy } from "./written.js"
@@ -109,8 +110,8 @@ export const contractCommands = (program: Command, streams: Streams, env: NodeJS
   json(annotate(contracts.command("show"), { effects: LOCAL_READ, output: { entity: "contract" } }))
     .description("one contract with its dates, renewal and the last day to give notice")
     .argument("<contract>", "contract:<id>")
-    .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(await store.contracts.get(ref))),
+    .action((ref: string, options: { json?: boolean }, command: Command) =>
+      run(options.json, async (store) => itemAnswer(await withSources(command, store, await store.contracts.get(ref)))),
     )
 
   json(

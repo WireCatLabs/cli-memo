@@ -9,6 +9,7 @@ import { answers, itemAnswer } from "../answer.js"
 import { authorOf } from "../author.js"
 import { positive } from "../options.js"
 import { pageOf } from "../page.js"
+import { withSources } from "../records/sources.js"
 import { today } from "./finance.js"
 import { given, json, onOff, optionalChoice } from "./written.js"
 
@@ -82,8 +83,8 @@ export const productCommands = (program: Command, streams: Streams, env: NodeJS.
   json(annotate(products.command("show"), { effects: LOCAL_READ, output: { entity: "product" } }))
     .description("one product or service with its price, unit, supplier and stock code")
     .argument("<product>", "product:<id>")
-    .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(await store.products.get(ref))),
+    .action((ref: string, options: { json?: boolean }, command: Command) =>
+      run(options.json, async (store) => itemAnswer(await withSources(command, store, await store.products.get(ref)))),
     )
 
   json(
