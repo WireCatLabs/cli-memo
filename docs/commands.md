@@ -281,6 +281,104 @@ memo notes links clear <identity> [options]
 
 **Example:** `memo notes links clear telegram:101`
 
+## `memo sources`
+
+sources you add by hand: pasted text, a file or a web page, kept as searchable documents
+
+### `memo sources add`
+
+keep a file, a web page or pasted text as a document of its own; only its text is kept unless --keep-copy
+
+This command changes the local store or your files.
+
+```sh
+memo sources add <source> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `source` | required | a file's path, an http(s) address, or - to read the text from stdin. |
+
+| Option | What it does |
+|---|---|
+| `--reason <text>` | why, in a few words; required when an agent decides for you. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--title <title>` | a title; otherwise the page's or file's own, or the text's first line. |
+| `--subject <ref>` | who or what it is about: person:, organization:, project:, task:, meeting:, or <messenger>:<name or id>; repeat for more. |
+| `--keep-copy` | also keep a copy of the file in memo's data folder, so it opens after the file is gone. |
+| `--max-chars <n>` | most characters of text to keep, up to 2000000 (default 200000). |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** keep a file, a web page or pasted text as a document
+
+**Example:** `memo sources add ~/Downloads/runner-notes.pdf --subject project:3 --keep-copy`, `memo sources add https://example.org/release-notes --title 'Release notes' --json`, `memo sources add - --title 'Call with Kai' --subject person:12`
+
+### `memo sources show`
+
+one source: its text, what is kept, what it is about, and the facts, memories and batches citing it
+
+```sh
+memo sources show <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | document:<id>, as sources add answered. |
+
+| Option | What it does |
+|---|---|
+| `--bytes <bytes>` | most UTF-8 bytes of its text, up to 1048576 (default 16384). |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** one source: its text, what is kept, and what cites it
+
+**Example:** `memo sources show document:42`, `memo sources show document:42 --bytes 65536 --json`
+
+### `memo sources mentions`
+
+people and organizations memo knows whose names appear in a source's text; nothing leaves
+
+```sh
+memo sources mentions <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | document:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** known people and organizations named in a source
+
+**Example:** `memo sources mentions document:42 --json`
+
+### `memo sources remove`
+
+remove a source you added, and its copy if one was kept; the next source check reviews what cites it
+
+This command changes the local store or your files.
+
+```sh
+memo sources remove <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | document:<id> of a source you added. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** remove a source you added, and its kept copy
+
+**Example:** `memo sources remove document:42`
+
 ## `memo folders`
 
 folders of notes: the id links and the store use, and the path on this computer
@@ -2265,12 +2363,13 @@ memo memories add <text> [options]
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--quote <ref=words...>` | the words an --evidence reference says that this rests on, as <ref>=<words>, one per reference. A later check raises nothing while the source still says them. |
 | `--kind <kind>` | summary, digest, preference. |
 | `--scope <scope>` | personal or work. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
 | `--subject <ref>` | what it is about, as a reference. |
 | `--project <project>` | the project it belongs to: its key or project:<id>. |
-| `--supersedes <ref>` | yours only: the memory this one corrects; it stays, marked superseded. |
+| `--supersedes <ref>` | the memory this one corrects, superseded once this one is confirmed; an agent's waits until you confirm it. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 13 more; every field: memo commands info memories add
@@ -2417,6 +2516,53 @@ memo memories remove <ref> [options]
 
 **Example:** `memo memories remove memory:4`
 
+### `memo memories check`
+
+compare what memories and facts cite with the sources now, least recently checked first: a changed source that still says the quoted words is signed again; one that changed, went or was replaced raises a memory_source_review for you to decide. Status never changes here. changed_refs lists changed sources no findings batch reads yet, for an agent to read again with projects actions add; a run names a change once, so --since-time also lists those an earlier run, such as memo sync's, already found. memo sync runs it too
+
+This command changes the local store or your files.
+
+```sh
+memo memories check [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--limit <n>` | most evidence links this run, up to 10000. Default: `500`. |
+| `--since-time <time>` | changed_refs also lists sources earlier runs found changed since then: 12h, 7d or a date (2026-11-01). |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** source check — checked, baselined, raised, refreshed, closed, changed_refs; every field: memo commands info memories check
+
+**Example:** `memo memories check`, `memo memories check --limit 2000 --json`
+
+### `memo memories challenge`
+
+say a memory is contradicted, citing what shows it: this opens its memory_source_review, or adds to the open one, and changes nothing else. Only you decide it (memo review show <id>). An agent may run it
+
+This command changes the local store or your files.
+
+```sh
+memo memories challenge <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | memory:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--evidence <ref...>` | what contradicts it: msg:, note:, meeting:, fact: or another reference. |
+| `--reason <text>` | why it no longer holds, in a sentence. |
+| `--suggest <text>` | what the memory should say instead, for you to take or leave. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** say a memory no longer holds, citing what contradicts it; you decide
+
+**Example:** `memo memories challenge memory:4 --evidence note:15 --reason 'the later note moves delivery to the 30th'`, `memo memories challenge memory:4 --evidence note:15 --reason 'moved' --suggest 'Delivery is on the 30th' --json`
+
 ## `memo mentions`
 
 phones, e-mail, links, names and addresses in documents, notes and mail
@@ -2537,6 +2683,7 @@ memo facts add <statement> [options]
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--quote <ref=words...>` | the words an --evidence reference says that this rests on, as <ref>=<words>, one per reference. A later check raises nothing while the source still says them. |
 | `--kind <kind>` | fact, statement, question, decision, promise. |
 | `--evidence <ref...>` | what shows it: msg:, note:, meeting:, person: or another reference. |
 | `--project <project>` | the project it belongs to: its key or project:<id>. |
@@ -2716,6 +2863,33 @@ memo facts remove <ref> [options]
 **Returns:** forget a fact: erase its text, its links to sources and its tags
 
 **Example:** `memo facts remove fact:4`
+
+### `memo facts challenge`
+
+say a fact is contradicted, citing what shows it: this opens its memory_source_review, or adds to the open one, and changes nothing else. Only you decide it (memo review show <id>). An agent may run it
+
+This command changes the local store or your files.
+
+```sh
+memo facts challenge <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | fact:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--evidence <ref...>` | what contradicts it: msg:, note:, meeting:, fact: or another reference. |
+| `--reason <text>` | why it no longer holds, in a sentence. |
+| `--suggest <text>` | what the fact should say instead, for you to take or leave. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** say a fact no longer holds, citing what contradicts it; you decide
+
+**Example:** `memo facts challenge fact:4 --evidence 'msg:telegram/1/77/50' --reason 'reversed in chat'`
 
 ## `memo invoices`
 
@@ -4597,7 +4771,7 @@ memo review list [query] [options]
 
 ### `memo review show`
 
-one proposal with its titles, signals and the text around each piece of evidence
+one proposal with its titles, signals and the text around each piece of evidence; a memory_source_review also shows each source as it was cited and as it is now, and the command for each decision
 
 ```sh
 memo review show <id> [options]
@@ -4673,7 +4847,7 @@ memo review reject <ids> [options]
 
 ### `memo review agenda`
 
-the morning digest, from the store alone with no model call: everything new in what you tagged watch (chats, mail threads, people, projects, a meeting's series), replies you owe to people in messengers and personal mail (not bots or service chats), new personal mail, meetings that ended, tasks, projects that moved, proposals waiting. Tasks are the open ones created since the last morning-digest run (a day back when none ran) and those overdue, due today or due tomorrow, each with who asked and who does it. Replies owed reach back 7 days; owed mail lists only senders you know (linked to a person with other identities, or written to before), and mail from new senders is one count with the command that lists it. Each item has its reference, who, when, one line of text and why it is there; a section cut by --limit or --max-output-bytes says how many it left out and the command that reads them. `scope` says what was read (the window, sources, counts), `tasks` counts each task group and, as `undated`, every open task with no due date, and `health` names each account whose sync failed, that nothing syncs, or that is quiet for longer than usual, so an unsynced account does not read as a quiet day; an account stored or synced within a day is never named
+the morning digest, from the store alone with no model call: everything new in what you tagged watch (chats, mail threads, people, projects, a meeting's series), replies you owe to people in messengers and personal mail (not bots or service chats), new personal mail, meetings that ended, tasks, projects that moved, memories and facts whose sources changed (source reviews raised since), proposals waiting. Tasks are the open ones created since the last morning-digest run (a day back when none ran) and those overdue, due today or due tomorrow, each with who asked and who does it. Replies owed reach back 7 days; owed mail lists only senders you know (linked to a person with other identities, or written to before), and mail from new senders is one count with the command that lists it. Each item has its reference, who, when, one line of text and why it is there; a section cut by --limit or --max-output-bytes says how many it left out and the command that reads them. `scope` says what was read (the window, sources, counts), `tasks` counts each task group and, as `undated`, every open task with no due date, and `health` names each account whose sync failed, that nothing syncs, or that is quiet for longer than usual, so an unsynced account does not read as a quiet day; an account stored or synced within a day is never named
 
 ```sh
 memo review agenda [options]

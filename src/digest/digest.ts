@@ -2,8 +2,8 @@ import { formatReference, kindOf } from "@wirecat/cli-core"
 import { mailTurn, OWED_DAYS } from "@wirecat/cli-core/mail"
 import { formatMeetingReference } from "@wirecat/cli-core/meetings"
 import { projectStatus } from "@wirecat/cli-core/services"
-import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
-import { listReview } from "../review/review.js"
+import { type AccountKey, type MessageStore, SOURCE_REVIEW_KIND } from "@wirecat/cli-core/store"
+import { listReview, REVIEW_SOURCES } from "../review/review.js"
 import { counted } from "../review/status.js"
 import { knownSenders } from "./known.js"
 import { HEALTH_REASONS, type Health, healthOf, SOURCE_WORDS, syncRunsOf } from "./sync-health.js"
@@ -36,7 +36,7 @@ export interface DigestSection {
   unknown?: { count: number; next: string[] }
 }
 
-export const SECTIONS = ["watch", "owed", "mail", "meetings", "tasks", "projects", "proposals"] as const
+export const SECTIONS = ["watch", "owed", "mail", "meetings", "tasks", "projects", "sources", "proposals"] as const
 export type SectionName = (typeof SECTIONS)[number]
 
 export interface Coverage {
@@ -481,6 +481,34 @@ export const gatherDigest = async (
       })
   }
 
+  // A review refreshed in place keeps its raise time, so it is listed once, when it was raised or grew graver.
+  const reviews = await listReview(store, env, [`kind:${SOURCE_REVIEW_KIND}`], { limit: 50, page: 1 })
+  const sourceItems: Pending[] = reviews.items
+    .filter((row) => Date.parse(row.createdAt) >= since)
+    .map((row) => ({
+      item: {
+        ref: row.subject,
+        who: row.proposer,
+        at: row.createdAt,
+        excerpt: oneLine(row.title, excerpt),
+        why: `review ${row.id}: ${row.summary ?? "sources changed"}`,
+      },
+    }))
+
+  const reviewCount = sourceItems.length
+  const reviewed = new Set(reviews.items.flatMap((row) => row.evidence))
+  for (const changed of await store.knowledge.changedSources({ since }))
+    if (!reviewed.has(changed.ref))
+      sourceItems.push({
+        item: {
+          ref: changed.ref,
+          who: null,
+          at: changed.checkedAt,
+          excerpt: null,
+          why: "changed since a memory or fact cited it; no findings batch reads it yet",
+        },
+      })
+
   const waiting = await counted(store, env, { status: "proposed" })
   const proposed = await listReview(store, env, [], { limit, page: 1 })
   const proposals: Pending[] = proposed.items.map((row) => ({
@@ -509,6 +537,13 @@ export const gatherDigest = async (
     await section("meetings", meetings, limit, ["memo search meetings <words>"]),
     await section("tasks", tasks, limit, ["memo tasks list"]),
     await section("projects", projects, limit, projectNext),
+    await section("sources", sourceItems, limit, [
+      REVIEW_SOURCES,
+      ...(reviewCount > 0 ? [`# decide them: ${REVIEW_SOURCES}`] : []),
+      ...(sourceItems.length > reviewCount
+        ? [`# read changed sources again: memo memories check --since-time ${days} --json`]
+        : []),
+    ]),
     await section("proposals", proposals, limit, ["memo review list"], waiting.total),
   ]
   const providerCount = (provider: string) => accounts.filter((key) => key.provider === provider).length

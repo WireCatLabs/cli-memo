@@ -24,7 +24,37 @@ export const MCP_EXCLUSIONS = [
   { path: ["facts", "remove"], reason: "erases what the owner reviews; only the owner forgets" },
   { path: ["facts", "reject"], reason: "the owner's answer to an agent's proposal" },
   { path: ["records", "link"], reason: "only the owner says which entity a source's record is" },
+  { path: ["sources", "remove"], reason: "erases what the owner added; only the owner removes it" },
 ] as const
+
+/**
+ * Commands whose input an agent hands over as stdin, never as a path: the argument that names the file is always `-`.
+ * `sources add` is offered as text only, so an agent gets no way to make memo read a file of this computer or fetch
+ * an address of its choosing; a path or a link is the owner's, on the command line.
+ */
+const STDIN_INPUT: Record<string, { argument: string; name: string; description: string; json?: true }> = {
+  "meetings.actions.add": {
+    argument: "file",
+    name: "input",
+    description: "the cited findings proposal as JSON",
+    json: true,
+  },
+  "projects.actions.add": {
+    argument: "file",
+    name: "input",
+    description: "the cited findings proposal as JSON",
+    json: true,
+  },
+  "mail.findings.add": {
+    argument: "file",
+    name: "input",
+    description: "the cited findings proposal as JSON",
+    json: true,
+  },
+  "records.import": { argument: "file", name: "input", description: "the records envelope as JSON", json: true },
+  "records.check": { argument: "file", name: "input", description: "the records envelope as JSON", json: true },
+  "sources.add": { argument: "source", name: "text", description: "the text to keep as a source" },
+}
 
 export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramFactory) => {
   const program = createProgram({ env, streams: captureStreams() })
@@ -33,28 +63,29 @@ export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramF
   const authority = changesAuthorityAt(program)
   const keyOf = (path: readonly string[]) => path.join(".")
   const byPath = new Map(all.map((info) => [keyOf(info.path), info]))
-  const stdin = (path: readonly string[]) =>
-    ["meetings.actions.add", "projects.actions.add", "mail.findings.add", "records.import", "records.check"].includes(
-      keyOf(path),
-    )
-      ? {
-          name: "input",
-          description: keyOf(path).startsWith("records.")
-            ? "the records envelope as JSON"
-            : "the cited findings proposal as JSON",
-          json: true as const,
-        }
-      : undefined
+  const stdinInput = (path: readonly string[]) => STDIN_INPUT[keyOf(path)]
+  const stdin = (path: readonly string[]) => {
+    const input = stdinInput(path)
+    if (!input) return undefined
+    const { argument: _, ...field } = input
+    return field
+  }
   const tools = toolsFromCommands(commands, {
     stdin,
     exclude: MCP_EXCLUSIONS.map(({ path }) => path),
     omit: ["as_owner", "compact", "debug", "from_app", "json", "jsonl", "no_input", "record", "text_file", "export"],
   })
-  for (const tool of tools)
-    if (stdin(tool.path)) {
-      const { file: _, ...entries } = tool.input.entries
+  for (const tool of tools) {
+    const input = stdinInput(tool.path)
+    if (input) {
+      const { [input.argument]: _, ...entries } = tool.input.entries
       tool.input = v.object(entries)
     }
+  }
+  const withStdin = (path: readonly string[], input: Record<string, unknown>) => {
+    const named = stdinInput(path)
+    return named ? { ...input, [named.argument]: "-" } : input
+  }
   const runnerFor = (levels: Record<string, Level>): AgentProgram => ({
     commands,
     run: async (argv, environment) => {
@@ -125,7 +156,7 @@ export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramF
     program,
     run: async (path: readonly string[], input: Record<string, unknown>, levels: Record<string, Level>) =>
       inRun({ runId: randomUUID(), command: path.join(" "), startedAt: Date.now() }, () =>
-        runCommandForAgent(runnerFor(levels), path, stdin(path) ? { ...input, file: "-" } : input, {
+        runCommandForAgent(runnerFor(levels), path, withStdin(path, input), {
           stdin,
           authority,
           profile: "",

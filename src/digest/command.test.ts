@@ -152,6 +152,7 @@ it("puts the watch list first, then replies owed in messengers and personal mail
     "meetings",
     "tasks",
     "projects",
+    "sources",
     "proposals",
   ])
   expect(section(body, "watch").items).toEqual([
@@ -303,4 +304,44 @@ it("keeps to the size budget, counting what it cut and naming the command that r
 
   const capped = await run("review", "agenda", "--compact", "--limit", "1")
   expect(capped).toContain("## owed 2 (1 not shown)")
+})
+
+it("lists memories whose sources changed since, once: a review refreshed in place is not new again", async () => {
+  const { run, env } = await setUp()
+  const earlier = Date.now() - 3 * HOUR
+  const past = await openStore({ env, now: () => earlier })
+  const note = await past.notes.addNote({ text: "Delivery on the 28th" })
+  const memory = await past.memories.add({
+    kind: "preference",
+    body: "Delivery is on the 28th",
+    scope: "work",
+    evidence: [note.ref],
+    author: "owner",
+    status: "confirmed",
+  })
+  await past.notes.editNote(note.ref, "Delivery on the 29th", 1)
+  await past.knowledge.checkSources()
+  await past.close()
+
+  const day = section(envelopeOf(await run("review", "agenda", "--json")), "sources")
+  expect(day.items).toEqual([expect.objectContaining({ ref: memory.ref, why: expect.stringContaining("changed") })])
+  expect(day.next).toEqual(["# decide them: memo review list kind:memory_source_review"])
+
+  const now = await openStore({ env })
+  await now.notes.editNote(note.ref, "Delivery on the 30th", 2)
+  const quoted = await now.notes.addNote({ text: "Room 4 at noon" })
+  await now.memories.add({
+    kind: "preference",
+    body: "The room is 4",
+    scope: "work",
+    evidence: [{ ref: quoted.ref, quote: "Room 4" }],
+    author: "owner",
+    status: "confirmed",
+  })
+  await now.notes.editNote(quoted.ref, "Room 4 at one", 1)
+  expect(await now.knowledge.checkSources()).toMatchObject({ checked: 2, raised: 0, refreshed: 1 })
+  await now.close()
+  const later = section(envelopeOf(await run("review", "agenda", "--since-time", "1h", "--json")), "sources")
+  expect(later.items).toEqual([expect.objectContaining({ ref: quoted.ref, why: expect.stringContaining("changed") })])
+  expect(later.next).toEqual(["# read changed sources again: memo memories check --since-time 1d --json"])
 })

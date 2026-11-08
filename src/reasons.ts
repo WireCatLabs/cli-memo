@@ -118,5 +118,11 @@ export const REASONS: ErrorReason[] = defineReasons([
     message: "the name has no messenger; write it as <messenger>:<name or id>",
     details: [],
   },
+  {
+    reason: "evidence.quote-unmatched",
+    code: "validation_error",
+    message: "a --quote names none of the --evidence references, or one twice; write it as <ref>=<the words>",
+    details: [],
+  },
   { reason: "auto.systemctl-failed", code: "provider_error", message: "systemctl failed", details: [] },
 ])

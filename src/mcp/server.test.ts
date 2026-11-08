@@ -355,7 +355,7 @@ it("covers every runnable command with a tool or a named exclusion", async () =>
   }
 })
 
-it("never offers an agent forgetting, rejecting or correcting a memory", async () => {
+it("never offers an agent forgetting or rejecting a memory, and keeps its correction proposed", async () => {
   const { client, call } = await connected()
   try {
     const catalogue = await client.callTool({ name: "memo_tools_search", arguments: {} })
@@ -377,7 +377,10 @@ it("never offers an agent forgetting, rejecting or correcting a memory", async (
       evidence: ["note:1"],
       supersedes: ref,
     })
-    expect(correction.isError).toBe(true)
+    expect(answerOf(JSON.stringify(correction.structuredContent))).toMatchObject({
+      status: "proposed",
+      supersedes: ref,
+    })
   } finally {
     await client.close()
   }
@@ -695,5 +698,86 @@ it("refuses --export in an MCP run before the note is saved or a file is written
     expect((await store.notes.notes({ source: "internal", limit: 10 })).items).toHaveLength(1)
   } finally {
     await store.close()
+  }
+})
+
+it("adds a source for an agent as text only: no path and no link reach memo", async () => {
+  const { client, call } = await connected()
+  try {
+    const schema = JSON.stringify(await commandSchema(client, "sources add"))
+    expect(schema).toContain('"text"')
+    expect(schema).not.toContain('"source"')
+    const added = await call("sources add", { text: "An agent kept the marshgate notes." })
+    expect(answerOf(JSON.stringify(added.structuredContent))).toMatchObject({ kind: "text", created: true })
+    const link = await call("sources add", { text: "ignored", source: "https://example.org/private" })
+    expect(link.isError).toBe(true)
+    const names = (
+      (await client.callTool({ name: "memo_tools_search", arguments: {} })).structuredContent as {
+        items: { command: string }[]
+      }
+    ).items.map(({ command }) => command)
+    expect(names).not.toContain("sources remove")
+  } finally {
+    await client.close()
+  }
+})
+
+it("lets an agent challenge a memory over MCP, and never decide its source review, even with every permission", async () => {
+  updateConfig(
+    (config) => ({
+      ...config,
+      agent_decisions: true,
+      permissions: {
+        "mcp.authority": "allow",
+        ...Object.fromEntries(OWNER_PERMISSIONS.map((key) => [key, "allow" as const])),
+      },
+    }),
+    env,
+  )
+  const store = await openStore({ env })
+  const contradiction = await store.notes.addNote({ text: "Bob Sample moved to Mondays" })
+  const memory = await store.memories.add({
+    kind: "preference",
+    body: "Bob Sample prefers Fridays",
+    scope: "work",
+    evidence: ["note:1"],
+    author: "owner",
+    status: "confirmed",
+  })
+  await store.close()
+  const { client, call, answer } = await connected()
+  try {
+    expect(
+      await answer("memories add", {
+        text: "Bob Sample prefers Fridays",
+        kind: "preference",
+        scope: "work",
+        evidence: ["note:1"],
+        quote: ["note:1=prefers Fridays"],
+      }),
+    ).toMatchObject({ status: "proposed" })
+    const review = (await answer("memories challenge", {
+      ref: memory.ref,
+      evidence: [contradiction.ref],
+      reason: "a later note says Mondays",
+    })) as { id: string; kind: string; status: string }
+    expect(review).toMatchObject({ kind: "memory_source_review", status: "proposed" })
+    for (const name of ["review confirm", "review reject"]) {
+      const decided = await call(name, { ids: [review.id], reason: "checked" })
+      expect(decided.structuredContent).toMatchObject({
+        item: { decided: [], refused: [{ id: review.id, reason: "proposal.owner-only" }] },
+      })
+    }
+    const kept = await openStore({ env })
+    try {
+      expect(await kept.memories.get(memory.ref)).toMatchObject({
+        status: "confirmed",
+        sourceReview: { id: review.id, cause: "contradicted" },
+      })
+    } finally {
+      await kept.close()
+    }
+  } finally {
+    await client.close()
   }
 })

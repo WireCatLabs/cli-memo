@@ -65,3 +65,10 @@ older install may lack the fix.
 **When something seems missing or broken, run `memo doctor --json` first.** It reads this computer only and
 lists each problem with the command that fixes it. A sync failure with reason `mail.throttled` means Gmail is
 limiting the account: wait an hour or more, do not retry in a loop.
+
+## Sources the owner hands you
+
+Pasted text, a call's notes: `printf '%s' '<text>' | memo sources add - --title '<title>' --subject <ref> --json`. It
+answers a `document:<id>` you can cite; your subjects wait for the owner. A file or a public page the owner
+names: `memo sources add <path|url>` (over MCP, text only). Only the owner removes a source. `memo sources mentions <ref>` lists the people and
+organizations named in it; `memo sources show <ref>` its text and what cites it.

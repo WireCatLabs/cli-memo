@@ -28,7 +28,7 @@ const setUp = () => {
   }
 }
 
-it("lets the owner correct an agent's memory, keeping the old one as superseded, and refuses an agent's correction", async () => {
+it("lets the owner correct an agent's memory, keeping the old one as superseded", async () => {
   const { owner, agent } = setUp()
   const note = await owner("notes", "add", "Kai Sample: Fridays work best")
   const wrong = await agent(
@@ -42,23 +42,6 @@ it("lets the owner correct an agent's memory, keeping the old one as superseded,
     "--evidence",
     note.ref,
   )
-
-  await expect(
-    agent(
-      "memories",
-      "add",
-      "Kai Sample prefers Friday calls",
-      "--kind",
-      "preference",
-      "--scope",
-      "work",
-      "--evidence",
-      note.ref,
-      "--supersedes",
-      wrong.ref,
-    ),
-  ).rejects.toMatchObject({ code: "permission_error" })
-  expect((await owner("memories", "list")).items).toHaveLength(1)
 
   const right = await owner(
     "memories",
@@ -75,6 +58,20 @@ it("lets the owner correct an agent's memory, keeping the old one as superseded,
   )
   expect(right).toMatchObject({ status: "confirmed", supersedes: wrong.ref, author: { type: "person" } })
   expect(await owner("memories", "show", wrong.ref)).toMatchObject({ status: "superseded" })
+})
+
+it("keeps an agent's correction proposed, and the memory it corrects confirmed until the owner confirms it", async () => {
+  const { owner, agent } = setUp()
+  const note = await owner("notes", "add", "Kai Sample: Fridays work best")
+  const add = (by: typeof owner, text: string, ...rest: string[]) =>
+    by("memories", "add", text, "--kind", "preference", "--scope", "work", "--evidence", note.ref, ...rest)
+  const kept = await add(owner, "Kai Sample prefers Thursday calls")
+  const correction = await add(agent, "Kai Sample prefers Friday calls", "--supersedes", kept.ref)
+
+  expect(correction).toMatchObject({ status: "proposed", supersedes: kept.ref, author: { type: "bot" } })
+  expect(await owner("memories", "show", kept.ref)).toMatchObject({ status: "confirmed" })
+  await owner("memories", "confirm", correction.ref)
+  expect(await owner("memories", "show", kept.ref)).toMatchObject({ status: "superseded" })
 })
 
 it("forgets one memory or fact for good, leaving its sources and every other record", async () => {

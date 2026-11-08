@@ -46,6 +46,11 @@ start another server, replace the running program, install instructions in other
 refuses them before anything is saved, so an agent cannot make Memo read a file on this computer or the server's own
 input, or write a file into a folder of its choice.
 
+`sources add` takes the source as `text` only: an agent cannot name a file on this computer or an address for Memo
+to open, so it gets no way to read local files or reach a private network through Memo. A path or a link is added
+from the command line ([Sources you add by hand](sources.md)). An agent's subjects wait for you to confirm them.
+`sources remove` is not offered: only you remove a source you added.
+
 `memories add`, `facts add`, `actions add`, `meetings actions add` and `projects actions add` save proposals.
 By default only the owner decides project proposals; `projects actions confirm` and `projects actions reject` refuse
 an agent. Set [`agent_decisions: true`](configuration.md#agent_decisions) to let them decide with a recorded reason
@@ -105,6 +110,13 @@ passages with `meetings passage`, then stage a batch with `meetings actions add`
 the same fields as `memo meetings actions add --help`. Every finding needs exact cue references and
 fingerprints and a confirmed project link. Unknown dates and assignees stay absent; inferred follow-ups
 are labelled as such. Exact retries reuse the key; changed input needs a new key.
+
+Some proposals are the owner's alone, whatever the permissions and `agent_decisions` say: mail and meeting
+findings batches, task closes and source reviews (`memory_source_review`). `review confirm` and `review reject`
+refuse an agent on them (`proposal.owner-only`). For a memory or fact whose sources changed, an agent may run
+`memories check`, `memories challenge` and `facts challenge`, which only open or add to the owner's review, and may
+quote what a source says with `quote` on `memories add` and `facts add`; it never decides the review
+([When a source changes](memories.md#when-a-source-changes)).
 
 `meetings actions show` and `meetings actions list` take an explicit `source`. The owner reviews
 batches through `memo meetings actions confirm` or `reject`, or explicitly permits the corresponding MCP decision commands. Staging creates no facts or numbered tasks.

@@ -1,3 +1,5 @@
+import { existsSync, readdirSync } from "node:fs"
+import { join } from "node:path"
 import { isCliError, type KeyringStore } from "@wirecat/cli-base"
 import {
   chosenTextModel,
@@ -9,6 +11,7 @@ import {
   storeOnlyDeps,
   textModels,
 } from "@wirecat/cli-core/services"
+import { sharedModelsDirectory } from "@wirecat/cli-core/speech"
 import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
 import { APP } from "../app.js"
 
@@ -42,6 +45,16 @@ const missingModel = (error: unknown, env: NodeJS.ProcessEnv | undefined): strin
   const id = typeof named === "string" ? named : chosenTextModel(env).id
   const terms = textModels(env).find((model) => model.id === id)?.terms
   return `the ${id} model is not downloaded — memo models download ${id}${terms ? " --accept-terms" : ""}`
+}
+
+/** Whether the chosen text model is downloaded; an unreadable model choice counts as missing, and doctor names it. */
+export const searchModelPresent = (env: NodeJS.ProcessEnv): boolean => {
+  try {
+    const path = join(sharedModelsDirectory("text", env), chosenTextModel(env).id)
+    return existsSync(path) && readdirSync(path).length > 0
+  } catch {
+    return false
+  }
 }
 
 const isMissingModel = (error: unknown): boolean => isCliError(error) && error.details.reason === "model.not-downloaded"

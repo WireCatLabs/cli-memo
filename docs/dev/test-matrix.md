@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**912 ✅ · 0 ⛔ · 257 ❌** — 252 commands, 917 options.
+**944 ✅ · 0 ⛔ · 263 ❌** — 259 commands, 948 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -55,6 +55,24 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `notes links clear` |  | ✅ |  |
 | `notes links clear` | `--json` | ✅ |  |
 | `notes links clear` | `--from-app` | ❌ |  |
+| `sources add` |  | ✅ |  |
+| `sources add` | `--reason` | ✅ |  |
+| `sources add` | `--as-owner` | ❌ |  |
+| `sources add` | `--from-app` | ✅ |  |
+| `sources add` | `--title` | ✅ |  |
+| `sources add` | `--subject` | ✅ |  |
+| `sources add` | `--keep-copy` | ✅ |  |
+| `sources add` | `--max-chars` | ✅ |  |
+| `sources add` | `--json` | ✅ |  |
+| `sources show` |  | ✅ |  |
+| `sources show` | `--bytes` | ✅ |  |
+| `sources show` | `--json` | ✅ |  |
+| `sources mentions` |  | ✅ |  |
+| `sources mentions` | `--json` | ✅ |  |
+| `sources remove` |  | ✅ |  |
+| `sources remove` | `--as-owner` | ❌ |  |
+| `sources remove` | `--from-app` | ❌ |  |
+| `sources remove` | `--json` | ✅ |  |
 | `folders add` |  | ✅ |  |
 | `folders add` | `--format` | ✅ |  |
 | `folders add` | `--json` | ✅ |  |
@@ -461,6 +479,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `memories add` |  | ✅ |  |
 | `memories add` | `--as-owner` | ❌ |  |
 | `memories add` | `--from-app` | ❌ |  |
+| `memories add` | `--quote` | ✅ |  |
 | `memories add` | `--kind` | ✅ |  |
 | `memories add` | `--scope` | ✅ |  |
 | `memories add` | `--evidence` | ✅ |  |
@@ -492,6 +511,17 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `memories remove` | `--from-app` | ❌ |  |
 | `memories remove` | `--json` | ✅ |  |
 | `memories remove` | `--reason` | ❌ |  |
+| `memories check` |  | ✅ |  |
+| `memories check` | `--limit` | ✅ |  |
+| `memories check` | `--since-time` | ✅ |  |
+| `memories check` | `--json` | ✅ |  |
+| `memories challenge` |  | ✅ |  |
+| `memories challenge` | `--as-owner` | ❌ |  |
+| `memories challenge` | `--from-app` | ❌ |  |
+| `memories challenge` | `--evidence` | ✅ |  |
+| `memories challenge` | `--reason` | ✅ |  |
+| `memories challenge` | `--suggest` | ✅ |  |
+| `memories challenge` | `--json` | ✅ |  |
 | `mentions list` |  | ✅ |  |
 | `mentions list` | `--source` | ✅ |  |
 | `mentions list` | `--limit` | ❌ |  |
@@ -512,6 +542,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `facts add` |  | ✅ |  |
 | `facts add` | `--as-owner` | ❌ |  |
 | `facts add` | `--from-app` | ✅ |  |
+| `facts add` | `--quote` | ✅ |  |
 | `facts add` | `--kind` | ✅ |  |
 | `facts add` | `--evidence` | ✅ |  |
 | `facts add` | `--project` | ✅ |  |
@@ -551,6 +582,13 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `facts remove` | `--from-app` | ❌ |  |
 | `facts remove` | `--json` | ✅ |  |
 | `facts remove` | `--reason` | ❌ |  |
+| `facts challenge` |  | ✅ |  |
+| `facts challenge` | `--as-owner` | ❌ |  |
+| `facts challenge` | `--from-app` | ❌ |  |
+| `facts challenge` | `--evidence` | ✅ |  |
+| `facts challenge` | `--reason` | ✅ |  |
+| `facts challenge` | `--suggest` | ✅ |  |
+| `facts challenge` | `--json` | ✅ |  |
 | `invoices list` |  | ✅ |  |
 | `invoices list` | `--json` | ✅ |  |
 | `invoices list` | `--limit` | ❌ |  |
@@ -945,7 +983,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `review confirm` |  | ✅ |  |
 | `review confirm` | `--json` | ✅ |  |
 | `review confirm` | `--as-owner` | ✅ |  |
-| `review confirm` | `--from-app` | ❌ |  |
+| `review confirm` | `--from-app` | ✅ |  |
 | `review confirm` | `--reason` | ✅ |  |
 | `review confirm` | `--compact` | ❌ |  |
 | `review reject` |  | ✅ |  |
