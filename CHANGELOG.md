@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.57 — 08.11.2026
+
 ### Fixed
 
 - **memo embeds and searches with the model chosen by `memo models set`.** A downloaded EmbeddingGemma or
