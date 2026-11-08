@@ -4054,7 +4054,7 @@ memo models download <model> [options]
 
 **Next usually:** `memo models set <model>`
 
-**Example:** `memo models download e5-small`
+**Example:** `memo models download e5-small`, `memo models download e5-large`
 
 ### `memo models set`
 

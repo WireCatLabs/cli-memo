@@ -6,6 +6,30 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **A project's group senders can be decided together.** A person `relationships scan` proposes because they write
+  in a project's group now says which group and how much ("wrote 40 messages in «Sales» (25 people)"), and the
+  proposal's evidence leads with the group. When a scan proposes two or more senders of one group, its answer lists
+  the group under `groups`, with the command to review them: `memo review list via:<chat>` lists the proposals whose
+  evidence holds that reference, and its `next` step confirms them all in one `memo review confirm`. A pending
+  proposal takes the new reason on the next scan (cli-core 0.610.0's `chat-senders@3`).
+
+## 0.131.57 — 08.11.2026
+
+### Fixed
+
+- **memo embeds and searches with the model chosen by `memo models set`.** A downloaded EmbeddingGemma or
+  e5-large was never used: memo embedded and searched with e5-small whatever was chosen, and `embedding_model` was
+  not a memo setting. The next `memo sync` runs give your notes and mail vectors from the new model a part at a time;
+  the old model's vectors are kept, so going back is instant.
+- **The missing-model message names the model that is missing** and the exact download, with `--accept-terms` for a
+  model that needs it; it always named e5-small.
+- **A sync with a slower model embeds fewer chunks a run**, so a timer run still ends within its five minutes.
+- `memo doctor` reports the search model in use, not always e5-small.
+
+## 0.131.56 — 08.11.2026
+
 ### Fixed
 
 - **A question with a time in it finds what its words hold again, with no search model downloaded.** "When is the
@@ -20,12 +44,6 @@ the API.
 
 - **`memo models set` and `memo models add`** come with cli-core 0.609.0; memo itself still embeds and searches with
   e5-small until it follows the chosen model.
-- **A project's group senders can be decided together.** A person `relationships scan` proposes because they write
-  in a project's group now says which group and how much ("wrote 40 messages in «Sales» (25 people)"), and the
-  proposal's evidence leads with the group. When a scan proposes two or more senders of one group, its answer lists
-  the group under `groups`, with the command to review them: `memo review list via:<chat>` lists the proposals whose
-  evidence holds that reference, and its `next` step confirms them all in one `memo review confirm`. A pending
-  proposal takes the new reason on the next scan (cli-core 0.610.0's `chat-senders@3`).
 
 ## 0.131.55 — 08.11.2026
 
