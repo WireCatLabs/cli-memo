@@ -6,6 +6,14 @@ the API.
 
 ## Unreleased
 
+### Changed — may break callers
+
+- **The morning digest answers with one `wirecat.report/1` JSON document** instead of text: sections and typed
+  items (reply, question, task, fact, risk, money, decision, meeting) with who, topic and what to do, and a list of
+  stale sources. WireCat renders it per channel with the owner's headings, emoji and layout (cli-core's report
+  renderer), so the agent no longer writes any of them. What to do: memo needs a cli-core that renders
+  reports; with an older one the JSON would be delivered as it is.
+
 ### Fixed
 
 - **Over MCP, `notes add` and `notes edit` no longer read `--text-file` or write `--export`.** `-` read the MCP
