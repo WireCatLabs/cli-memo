@@ -7,6 +7,7 @@ import { answers, itemAnswer } from "../answer.js"
 import { byOption, whoRuns } from "../author.js"
 import { positive } from "../options.js"
 import { dayOf, INVOICE_QUERY, listInvoices, listPayments, PAYMENT_QUERY, partyOf, today } from "./finance.js"
+import { lineCommands } from "./lines-command.js"
 import { choice, json, PROPOSES, party, type Written, writeMeta, writtenBy } from "./written.js"
 
 export const financeCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
@@ -51,7 +52,7 @@ export const financeCommands = (program: Command, streams: Streams, env: NodeJS.
         .option("--due <time>", "the day it is due, such as 2026-11-15"),
     ),
   )
-    .description(`record an invoice of one line; ${PROPOSES}`)
+    .description(`record an invoice of one line, and add more with invoices lines add; ${PROPOSES}`)
     .summary("record an invoice; an agent's waits for your review")
     .argument("<amount>", "a decimal, such as 50000.00")
     .argument("<currency>", "ISO 4217, such as RUB")
@@ -83,6 +84,8 @@ export const financeCommands = (program: Command, streams: Streams, env: NodeJS.
         })
       },
     )
+
+  lineCommands(invoices, "invoice", run, env)
 
   const payments = program
     .command("payments")

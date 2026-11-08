@@ -11,7 +11,7 @@ import { positive } from "../options.js"
 import { pageOf } from "../page.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { dayOf, partyOf } from "./finance.js"
-import { orderLineCommands } from "./order-lines-command.js"
+import { lineCommands } from "./lines-command.js"
 
 export const ORDER_QUERY = {
   entity: "order",
@@ -142,5 +142,5 @@ export const orderCommands = (program: Command, streams: Streams, env: NodeJS.Pr
         })
       },
     )
-  orderLineCommands(orders, run, env)
+  lineCommands(orders, "order", run, env)
 }

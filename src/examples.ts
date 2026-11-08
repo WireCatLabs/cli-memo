@@ -255,6 +255,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "records list": [
     "memo records list waiting:true --account sheet:rentals",
     "memo records list type:organization --account sheet:rentals --json",
+    `memo records list 'entity:"organization:3"' deleted:false --account sheet:rentals`,
   ],
   "records link": ["memo records link organization:client organization:3 --account sheet:rentals"],
   "payments allocate": ["memo payments allocate payment:9 invoice:4 25000.00"],
@@ -273,6 +274,11 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo orders lines add order:3 2 2500.00 Helmet",
   ],
   "orders lines remove": ["memo orders lines remove order:3 2"],
+  "invoices lines add": [
+    "memo invoices lines add invoice:4 1 --product product:4",
+    "memo invoices lines add invoice:4 2 1500.00 Delivery",
+  ],
+  "invoices lines remove": ["memo invoices lines remove invoice:4 2"],
   "contracts list": ["memo contracts list status:active", "memo contracts list expires:2026-12-31 --json"],
   "contracts show": ["memo contracts show contract:2"],
   "contracts add": [

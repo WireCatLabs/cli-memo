@@ -268,6 +268,7 @@ const OWN_ENTITIES = entityFields({
     "revision",
     "fingerprint",
     "relations",
+    "incoming",
     "entity",
     "created_entity",
     "flagged",
