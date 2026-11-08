@@ -131,3 +131,36 @@ it("names a missing records file and a folder given as one, instead of a system 
     details: { reason: "records.file-unreadable" },
   })
 })
+
+it("reads a vCard's national numbers in --region, in any case, so they match the person a number already names", async () => {
+  const f = await businessStore("records-vcard-region")
+  const card = (tel: string) => ["BEGIN:VCARD", "VERSION:3.0", "FN:Иван", `TEL:${tel}`, "END:VCARD", ""].join("\r\n")
+  await f.piped(card("+79000000002"), "records", "import", "-", "--account", "phone:pixel")
+  const [known] = await f.items(OWNER, "records", "list", "type:person", "--account", "phone:pixel")
+
+  const national = card("8 900 000-00-02")
+  const checked = await f.piped(national, "records", "check", "-", "--account", "phone:tablet", "--region", "RU")
+  expect(checked).toMatchObject({ dry_run: true, errors: [] })
+  expect(checked.vcard).toEqual([])
+  const imported = await f.piped(national, "records", "import", "-", "--account", "phone:tablet", "--region", "RU")
+  expect(imported).toMatchObject({ errors: [], vcard: [] })
+  const [matched] = await f.items(OWNER, "records", "list", "type:person", "--account", "phone:tablet")
+  expect(matched?.entity).toBe(known?.entity)
+
+  const unread = await f.piped(national, "records", "import", "-", "--account", "phone:laptop")
+  expect(unread.vcard).toEqual([{ card: 1, message: expect.stringContaining("no country code") }])
+  const [apart] = await f.items(OWNER, "records", "list", "type:person", "--account", "phone:laptop")
+  expect(apart?.entity).not.toBe(known?.entity)
+})
+
+it("refuses --region for an envelope and a country memo has no phone plan for", async () => {
+  const f = await businessStore("records-region-refused")
+  const envelope = `${JSON.stringify(header)}\n${JSON.stringify(payment(1, f.client))}\n`
+  await expect(
+    f.piped(envelope, "records", "import", "-", "--account", "sheet:synthetic-rental", "--region", "ru"),
+  ).rejects.toMatchObject({ code: "validation_error" })
+  const card = ["BEGIN:VCARD", "VERSION:3.0", "FN:Иван", "TEL:8 900 000-00-02", "END:VCARD", ""].join("\r\n")
+  await expect(
+    f.piped(card, "records", "import", "-", "--account", "phone:pixel", "--region", "zz"),
+  ).rejects.toMatchObject({ code: "validation_error", message: expect.stringMatching(/^--region is one of .*\bru\b/) })
+})
