@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.65 — 08.11.2026
+
 ### Fixed
 
 - **`review agenda` no longer names a synced account as having no sync schedule.** An account stored or synced
