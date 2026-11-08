@@ -69,20 +69,6 @@ name is never enough to link accounts.
 
 To choose the main note about the person, see [the note about a person](notes.md#the-note-about-a-person).
 
-## Bring in a phone's contacts
-
-Export the contacts from your phone as a vCard file (`.vcf`) and import them under the phone's name:
-
-```sh
-memo records check contacts.vcf --account phone:pixel --region ru
-memo records import contacts.vcf --account phone:pixel --region ru
-```
-
-A contact is linked to the person who already has one of its e-mail addresses or phone numbers, or made a new
-person. A number written without `+`, such as `8 900 000-00-02`, is read in the country `--region` names (`ru`,
-`gb`, `de` and so on, in any case). Without `--region`, such a number is kept but not matched, so the contact can
-become a second entry for someone you already have; the import says which cards these are.
-
 ## Organizations and projects
 
 Organizations and projects are yours, not tied to one messenger account.
