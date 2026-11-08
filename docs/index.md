@@ -26,6 +26,7 @@ Three words appear on every page:
 | See everything about one person: messages, mail and notes | [People and projects](./people.md) |
 | Bring your email in beside your notes and messages | [Mail](./mail.md) |
 | Keep track of what you owe people, and get reminded | [Tasks and reminders](./tasks.md) |
+| Keep products, contracts, subscriptions, bank accounts and an import from another system | [Business data](./business.md) |
 | Let your agent remember what it learned, with you deciding what stays | [Memories and facts](./memories.md) |
 | Use Memo from an app with no terminal, such as Claude Desktop | [The MCP server](./mcp.md) |
 | Connect an app on the web or phone | [Remote connection](./remote.md) |

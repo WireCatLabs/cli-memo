@@ -6,6 +6,17 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo show` and each business `show` list where an entry came from** (`sources`): the source records mapped to
+  it and the records whose relations name it, such as a quote `quoted-for` a deal. This covers products, contracts,
+  subscriptions, wallets, transactions, invoices, payments, orders, deals, leads and pipelines. The title of one an
+  import or a CRM made is the source's words, so `memo show` marks it `untrusted`. An MCP client denied
+  `records.show` gets no `sources`, as `records show` would refuse it.
+- **`memo records import` and `records check` take `--region <country>` for a vCard file** (`ru`, `gb`, in any
+  case): a phone number written without `+` is read in that country, so the contact matches the person the number
+  already names instead of becoming a second one. An envelope names its region in `options.phone_region` instead.
+
 ### Fixed
 
 - **`relationships add --role` help no longer suggests `cto`.** A person's role in an organization or a project

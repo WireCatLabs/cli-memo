@@ -120,6 +120,9 @@ When the file names a party by its own id, such as `organization:client`, its in
 say which of your entries that is. `memo records list waiting:true --account sheet:rentals` shows what waits, and
 `memo records link organization:client organization:3 --account sheet:rentals` links it; only you can.
 
+Products, contracts, subscriptions, bank accounts and transactions, refunds, and finding all of it again with
+`search all --only business` are on [Business data](./business.md).
+
 ## Track deals and leads
 
 A deal is what you hope to sell: a title, the client, the expected amount and the stage it is in. A lead is a first
