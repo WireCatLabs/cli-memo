@@ -241,6 +241,25 @@ it("records an agent's subjects as unconfirmed", async () => {
   expect((await run(["sources", "show", owned.ref])).subjects).toEqual([{ ref: organization, confirmed: true }])
 })
 
+it("keeps only --max-chars characters and says so", async () => {
+  const added = await add(["-", "--max-chars", "12"], { stdin: "The silverbrook plan has many words in it." })
+  expect(added).toMatchObject({ chars: 12, truncated: true })
+  expect((await run(["sources", "show", added.ref])).text).toBe("The silverbr")
+})
+
+it("takes the app's word that the owner added it, even in an agent's environment", async () => {
+  const { ref } = await add(["-", "--subject", organization, "--from-app"], {
+    stdin: "Added in the app: the cinderfell notes.",
+    as: agentEnv,
+  })
+  expect((await run(["sources", "show", ref])).subjects).toEqual([{ ref: organization, confirmed: true }])
+  const proposed = await add(["-", "--subject", organization, "--reason", "the owner pasted it in chat"], {
+    stdin: "Pasted in chat: the duskmere notes.",
+    as: agentEnv,
+  })
+  expect((await run(["sources", "show", proposed.ref])).subjects).toEqual([{ ref: organization, confirmed: false }])
+})
+
 it.each([
   ["source.unsupported", () => [file("archive.bin", new Uint8Array([0, 159, 146, 150, 0, 1, 2, 3]))], undefined],
   ["source.no-text", () => [file("empty.txt", "   \n")], undefined],

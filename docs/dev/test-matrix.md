@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**756 ✅ · 0 ⛔ · 190 ❌** — 209 commands, 737 options.
+**771 ✅ · 0 ⛔ · 193 ❌** — 213 commands, 751 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -55,6 +55,24 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `notes links clear` |  | ✅ |  |
 | `notes links clear` | `--json` | ✅ |  |
 | `notes links clear` | `--from-app` | ❌ |  |
+| `sources add` |  | ✅ |  |
+| `sources add` | `--reason` | ✅ |  |
+| `sources add` | `--as-owner` | ❌ |  |
+| `sources add` | `--from-app` | ✅ |  |
+| `sources add` | `--title` | ✅ |  |
+| `sources add` | `--subject` | ✅ |  |
+| `sources add` | `--keep-copy` | ✅ |  |
+| `sources add` | `--max-chars` | ✅ |  |
+| `sources add` | `--json` | ✅ |  |
+| `sources show` |  | ✅ |  |
+| `sources show` | `--bytes` | ✅ |  |
+| `sources show` | `--json` | ✅ |  |
+| `sources mentions` |  | ✅ |  |
+| `sources mentions` | `--json` | ✅ |  |
+| `sources remove` |  | ✅ |  |
+| `sources remove` | `--as-owner` | ❌ |  |
+| `sources remove` | `--from-app` | ❌ |  |
+| `sources remove` | `--json` | ✅ |  |
 | `folders add` |  | ✅ |  |
 | `folders add` | `--format` | ❌ |  |
 | `folders add` | `--json` | ✅ |  |

@@ -42,6 +42,11 @@ Discovery retains blocked commands with current `availability` and the reason, a
 The named CLI-only exclusions are the `mcp` commands, `upgrade`, `skill install`, `jobs start` and `jobs stop`: they
 start another server, replace the running program, install instructions in other apps, or manage a background timer.
 
+`sources add` takes the source as `text` only: an agent cannot name a file on this computer or an address for Memo
+to open, so it gets no way to read local files or reach a private network through Memo. A path or a link is added
+from the command line ([Sources you add by hand](sources.md)). An agent's subjects wait for you to confirm them.
+`sources remove` is not offered: only you remove a source you added.
+
 `memories add`, `facts add`, `actions add`, `meetings actions add` and `projects actions add` save proposals.
 By default only the owner decides project proposals; `projects actions confirm` and `projects actions reject` refuse
 an agent. Set [`agent_decisions: true`](configuration.md#agent_decisions) to let them decide with a recorded reason

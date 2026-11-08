@@ -6,6 +6,23 @@ the API.
 
 ## Unreleased
 
+### Added
+
+- **`memo sources add <path|url|->` keeps one file, web page or pasted text as a document of its own**, searchable
+  and citable like a folder document, with `--title`, `--subject` (repeatable), `--keep-copy` and `--max-chars`. A
+  file is read by cli-core's readers, a link once from this computer as a public page (no cookies, no private
+  addresses, 50 MiB, 30 s, 5 redirects), and `-` reads stdin. Only the text is kept unless `--keep-copy` copies the
+  file into memo's data folder. Adding the same source again changes only its subjects; content already in a folder
+  or Drive is answered as `duplicate_of`. The answer says what was read and kept, and whether it is searchable by
+  meaning; refusals keep cli-core's `source.*` reasons with what to do next. An agent's subjects wait unconfirmed.
+- **`memo sources show`, `memo sources mentions` and `memo sources remove`.** Show gives a source's text (bounded by
+  `--bytes`), its subjects and the facts, memories and findings batches citing it; mentions lists the known people
+  and organizations named in it; remove (yours only) deletes the source and its kept copy and names what cites it.
+- **Folder import reads web pages saved as `.html` and `.htm`.** A watched folder that holds them imports them on
+  the next `memo sync`.
+- **Over MCP, `sources add` takes text only**, so an agent cannot make memo read a file or open an address;
+  `sources remove` is not offered.
+
 ## 0.131.54 — 08.11.2026
 
 ### Fixed

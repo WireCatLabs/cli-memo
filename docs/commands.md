@@ -281,6 +281,104 @@ memo notes links clear <identity> [options]
 
 **Example:** `memo notes links clear telegram:101`
 
+## `memo sources`
+
+sources you add by hand: pasted text, a file or a web page, kept as searchable documents
+
+### `memo sources add`
+
+keep a file, a web page or pasted text as a document of its own; only its text is kept unless --keep-copy
+
+This command changes the local store or your files.
+
+```sh
+memo sources add <source> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `source` | required | a file's path, an http(s) address, or - to read the text from stdin. |
+
+| Option | What it does |
+|---|---|
+| `--reason <text>` | why, in a few words; required when an agent decides for you. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--title <title>` | a title; otherwise the page's or file's own, or the text's first line. |
+| `--subject <ref>` | who or what it is about: person:, organization:, project:, task:, meeting:, or <messenger>:<name or id>; repeat for more. |
+| `--keep-copy` | also keep a copy of the file in memo's data folder, so it opens after the file is gone. |
+| `--max-chars <n>` | most characters of text to keep, up to 2000000 (default 200000). |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** keep a file, a web page or pasted text as a document
+
+**Example:** `memo sources add ~/Downloads/runner-notes.pdf --subject project:3 --keep-copy`, `memo sources add https://example.org/release-notes --title 'Release notes' --json`, `memo sources add - --title 'Call with Kai' --subject person:12`
+
+### `memo sources show`
+
+one source: its text, what is kept, what it is about, and the facts, memories and batches citing it
+
+```sh
+memo sources show <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | document:<id>, as sources add answered. |
+
+| Option | What it does |
+|---|---|
+| `--bytes <bytes>` | most UTF-8 bytes of its text, up to 1048576 (default 16384). |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** one source: its text, what is kept, and what cites it
+
+**Example:** `memo sources show document:42`, `memo sources show document:42 --bytes 65536 --json`
+
+### `memo sources mentions`
+
+people and organizations memo knows whose names appear in a source's text; nothing leaves
+
+```sh
+memo sources mentions <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | document:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** known people and organizations named in a source
+
+**Example:** `memo sources mentions document:42 --json`
+
+### `memo sources remove`
+
+remove a source you added, and its copy if one was kept; facts and memories citing it are flagged for review
+
+This command changes the local store or your files.
+
+```sh
+memo sources remove <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | document:<id> of a source you added. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** remove a source you added, and its kept copy
+
+**Example:** `memo sources remove document:42`
+
 ## `memo folders`
 
 folders of notes: the id links and the store use, and the path on this computer

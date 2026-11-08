@@ -23,6 +23,29 @@ store, a file on your computer shared with tg and max. Search by meaning uses a 
 your computer. Reminders go to a program on your computer that asks for them, never to a messenger
 or a mailbox.
 
+## A source you add by hand
+
+[`memo sources add`](sources.md) keeps the text it read, not the file: a copy of the file is made only with
+`--keep-copy`, into Memo's data folder, readable by you alone. Nothing says a file is kept unless a copy was made.
+Reading a file or pasted text sends nothing anywhere.
+
+A link is read once, from this computer, as one plain request:
+
+- Only `http` and `https`, with no user name or password in the address. No cookies and no sign-in are sent, so a
+  page that needs you signed in, such as a private Google Doc, is refused.
+- Every address the name points to must be on the public internet. `localhost`, home and office networks
+  (`10.*`, `192.168.*` and the like), link-local and cloud metadata addresses are refused, on every redirect too, and
+  the connection goes to the address that was checked. A link cannot make Memo read a service on your computer or
+  your network.
+- At most 50 MiB, 30 seconds and 5 redirects; a redirect from `https` to plain `http` is refused.
+- The site sees your IP address, as it would in a browser.
+- Memo keeps the address you gave, never the one a redirect ended at, which may carry a signed token. An error
+  names the site only.
+- The address is a typed value, so the run log keeps it unless [`record_input`](configuration.md#record-record_input-and-keep_runs_for_days) is
+  `false`. Add `--no-record` when the address carries a token.
+- Over MCP an agent may add text only. It cannot make Memo read a file or open an address, and only you remove a
+  source.
+
 ## Deletions are respected
 
 When you delete a note file or an email, its text leaves the local store on the next import. If an
