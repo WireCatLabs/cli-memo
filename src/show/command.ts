@@ -6,6 +6,7 @@ import type { MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, wholeList, withStore } from "../answer.js"
 import { profileFor } from "../knowledge/messenger-sync.js"
+import { grantedLevel } from "../mcp/granted.js"
 import { refuseBareNumber } from "../refs.js"
 
 const MAX_REFS = 100
@@ -24,6 +25,35 @@ export const LOCAL_OPENS: Partial<Record<RefKindName, string[]>> = {
   fact: ["memo", "facts", "show"],
   memory: ["memo", "memories", "show"],
   message: ["memo", "messages", "show"],
+  invoice: ["memo", "invoices", "show"],
+  payment: ["memo", "payments", "show"],
+  order: ["memo", "orders", "show"],
+  deal: ["memo", "deals", "show"],
+  lead: ["memo", "leads", "show"],
+  pipeline: ["memo", "pipelines", "show"],
+  product: ["memo", "products", "show"],
+  contract: ["memo", "contracts", "show"],
+  subscription: ["memo", "subscriptions", "show"],
+  wallet: ["memo", "wallets", "show"],
+  transaction: ["memo", "transactions", "show"],
+}
+
+/** The permission key of the memo command that opens a kind, such as `invoices.show`. */
+export const openKeyOf = (kind: string) => LOCAL_OPENS[kind as RefKindName]?.slice(1).join(".")
+
+/**
+ * `memo show` tells what the command that opens a reference would, so an MCP client denied that command is refused
+ * here too, rather than read the title past it.
+ */
+const refuseDenied = (command: Command, summaries: readonly Pick<RefSummary, "ref" | "kind">[]) => {
+  for (const { ref, kind } of summaries) {
+    const key = openKeyOf(kind)
+    if (key !== undefined && grantedLevel(command, key) === "deny")
+      throw new CliError("permission_error", `${ref}: memo's MCP server denies ${key}`, {
+        reason: "access.denied",
+        permission: key,
+      })
+  }
 }
 
 /** Titles of these kinds are written by other people: a chat's title, a sender's name, a shared file's name. */
@@ -73,11 +103,13 @@ export const showReferences = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
   texts: readonly string[],
+  command?: Command,
 ): Promise<Shown[]> => {
   if (texts.length > MAX_REFS) throw new CliError("validation_error", `at most ${MAX_REFS} references at once`)
   for (const text of texts) await refuseBareNumber(store, text, NUMBERED)
   for (const text of texts) parseReference(text)
   const summaries = await store.refs.summaries(texts)
+  if (command !== undefined) refuseDenied(command, [...summaries.values()])
   const ports = { profilesFor: profilesFor(env), local: LOCAL_OPENS }
   return texts.map((text) => {
     const summary = summaries.get(text) ?? {
@@ -123,8 +155,8 @@ export const showCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .description("what any reference names, and the command that opens it")
     .argument("<ref...>", "1 to 100 references any WireCat CLI printed: chat:, msg:, note:, document:, person:, task:…")
     .option("--json", "print JSON; --json=ref,title keeps only those fields")
-    .action(async (refs: string[], options: { json?: boolean }) => {
-      const items = await withStore(env, (store) => showReferences(store, env, refs))
+    .action(async (refs: string[], options: { json?: boolean }, command: Command) => {
+      const items = await withStore(env, (store) => showReferences(store, env, refs, command))
       const gone = items.filter((one) => one.state !== "available")
       const body = wholeList("show", items)
       if (gone.length > 0) {

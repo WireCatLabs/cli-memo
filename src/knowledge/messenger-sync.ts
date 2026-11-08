@@ -31,6 +31,22 @@ export const syncProfileOf = (value: string, previous: Record<string, string> = 
   return { ...previous, [tool]: profile }
 }
 
+const accountsDir = (tool: { appName: string; envPrefix: string }, env: NodeJS.ProcessEnv) =>
+  join(resolvePaths({ appName: tool.appName, prefix: tool.envPrefix, env }).state, "accounts")
+
+/** The account a messenger CLI's profile is signed in to, from its own record (`<state>/accounts/<profile>.json`). */
+export const signedInAccount = (
+  tool: { appName: string; envPrefix: string },
+  profile: string,
+  env: NodeJS.ProcessEnv,
+): unknown => {
+  try {
+    return JSON.parse(readFileSync(join(accountsDir(tool, env), `${profile}.json`), "utf8"))?.account
+  } catch {
+    return undefined
+  }
+}
+
 /**
  * The profile signed in to this account, from the CLI's own record of it (`<state>/accounts/<profile>.json`). memo
  * never picks one for the owner: one signed in is used, several or none is a refusal naming them, and a profile the
@@ -44,20 +60,14 @@ export const profileFor = (
 ): { profile: string } | { why: string; profiles: string[] } | undefined => {
   const tool = messengerToolOf(provider)
   if (!tool) return undefined
-  const dir = join(resolvePaths({ appName: tool.appName, prefix: tool.envPrefix, env }).state, "accounts")
+  const dir = accountsDir(tool, env)
   const profiles = existsSync(dir)
     ? readdirSync(dir)
         .filter((name) => name.endsWith(".json"))
         .map((name) => name.slice(0, -".json".length))
         .sort()
     : []
-  const accountOf = (profile: string): unknown => {
-    try {
-      return JSON.parse(readFileSync(join(dir, `${profile}.json`), "utf8"))?.account
-    } catch {
-      return undefined
-    }
-  }
+  const accountOf = (profile: string): unknown => signedInAccount(tool, profile, env)
   const all = profiles.join(", ") || "none"
   const pick = chosen[tool.tool]
   if (pick !== undefined) {

@@ -13,13 +13,16 @@ import { positive } from "../options.js"
 import { SAVE_HELP } from "../save-help.js"
 import { ACCOUNTS_HELP, MAIL_SOURCES, mailboxesOf } from "../store/source-list.js"
 import { allAnswer, eventsMeaningNote, kindAnswer, messagesMeaningNote, notesAnswer } from "./answers.js"
+import { lanesFor } from "./lane-gates.js"
 import { peopleAnswer, peopleText, searchPeople } from "./people.js"
 import { keyDocumentsFirst, searchEverywhere, searchKind, searchNotes } from "./search.js"
 
+const ONLY = ["messages", "mail", "notes", "events", "crm", "business"]
+
 const onlyOf = (value: string): SearchedResource[] => {
   const selected = value.split(",").map((part) => part.trim())
-  if (!selected.length || selected.some((part) => !["messages", "mail", "notes", "events"].includes(part)))
-    throw new InvalidArgumentError("choose messages,mail,notes,events, separated by commas")
+  if (!selected.length || selected.some((part) => !ONLY.includes(part)))
+    throw new InvalidArgumentError(`choose ${ONLY.join(",")}, separated by commas`)
   return [...new Set(selected)] as SearchedResource[]
 }
 
@@ -62,12 +65,13 @@ const searchCommandDefinition = (program: Command, streams: Streams, env: NodeJS
   queryOptions(
     annotate(group.command("all"), { effects: LOCAL_READ, output: { entity: "hit" } })
       .description(
-        "messages, mail, notes and calendar events ranked together; not people, memories, projects or decisions. " +
+        "messages, mail, notes, calendar events, deals, leads and business data ranked together; not people, memories, " +
+          "projects or decisions. " +
           "A kind you know reads better with its own search, with all its fields",
       )
       .summary("messages, mail, notes and calendar events ranked together"),
   )
-    .option("--only <resources>", "messages,mail,notes,events, separated by commas", onlyOf)
+    .option("--only <resources>", `${ONLY.join(",")}, separated by commas`, onlyOf)
     .option("--plain-order", "best first by the words alone, without moving mail from suspicious senders down")
     .option("--project <project>", PROJECT_ORDER_HELP)
     .addHelpText(
@@ -75,6 +79,8 @@ const searchCommandDefinition = (program: Command, streams: Streams, env: NodeJS
       `
 content: narrows a search to the text of files, transcript: to voice transcripts, filename: to file names — memo search all 'content:invoice'.
 Calendar events come from every calendar gcal stored; an event's title, description and place are written by whoever sent the invitation.
+crm finds deals and leads by the words of their title only.
+business finds invoices, payments, orders, contracts, subscriptions, products and wallets by the words of their numbers and names.
 --json: the list is items, each a hit as in tg search all: ref, kind, title, timestamp, excerpt.`,
     )
     .action(
@@ -89,17 +95,25 @@ Calendar events come from every calendar gcal stored; an event's title, descript
           json?: boolean
           plainOrder?: boolean
         },
+        command: Command,
       ) => {
+        const gate = lanesFor(command, options.only)
         const answer = await withStore(env, async (store) => {
           const found = await searchEverywhere(store, env, {
             text: words.join(" "),
             limit: options.limit,
-            ...(options.only === undefined ? {} : { only: options.only }),
+            ...(gate.only === undefined ? {} : { only: gate.only }),
+            ...(gate.shows === undefined ? {} : { shows: gate.shows }),
+            ...(gate.crmKinds === undefined ? {} : { crmKinds: gate.crmKinds }),
             ...(options.exact ? { exact: true } : {}),
             ...(options.plainOrder ? { plainOrder: true } : {}),
             ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
           })
-          return { ...found, items: await keyDocumentsFirst(store, found.items, options.project) }
+          return {
+            ...found,
+            skipped: [...gate.skipped, ...found.skipped],
+            items: await keyDocumentsFirst(store, found.items, options.project),
+          }
         })
         if (!options.json) {
           streams.diagnostic(

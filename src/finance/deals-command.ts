@@ -11,6 +11,7 @@ import { collect, positive } from "../options.js"
 import { pageOf } from "../page.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { dayOf } from "./finance.js"
+import { json } from "./written.js"
 
 const queryOf = (entity: DealKind) =>
   ({
@@ -79,8 +80,6 @@ interface AddOptions {
   evidence?: string[]
   json?: boolean
 }
-
-const json = (command: Command) => command.option("--json", "print JSON; --json=ref,title keeps only those fields")
 
 const WHAT = {
   deal: { one: "deal", hope: "what you hope to sell, such as 'Site for the clinic'" },

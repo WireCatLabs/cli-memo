@@ -31,3 +31,7 @@ export const readScope = (command: Command, help = ONE_ACCOUNT_HELP) =>
 /** A write's `--account provider:account`. */
 export const writeScope = (command: Command, help?: string) =>
   writeOptions(command, help).option("--json", "print JSON; --json=id,title keeps only those fields")
+
+/** `--json`, and the fields `--json=a,b` may keep, named in its help. */
+export const jsonOption = (command: Command, fields = "ref,title") =>
+  command.option("--json", `print JSON; --json=${fields} keeps only those fields`)

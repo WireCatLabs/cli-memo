@@ -1,5 +1,5 @@
 import { fileURLToPath } from "node:url"
-import { CliError, createRenderer, processStreams, type Streams } from "@wirecat/cli-base"
+import { CliError, createRenderer, type KeyringStore, processStreams, type Streams } from "@wirecat/cli-base"
 import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
 import { skillCommand } from "@wirecat/cli-base/skill"
 import {
@@ -32,8 +32,13 @@ import { addExamples } from "./examples.js"
 import { factsCommand } from "./facts/command.js"
 import { recognisable } from "./failure.js"
 import { financeCommands } from "./finance/command.js"
+import { contractCommands } from "./finance/contracts-command.js"
 import { dealCommands } from "./finance/deals-command.js"
 import { orderCommands } from "./finance/orders-command.js"
+import { productCommands } from "./finance/products-command.js"
+import { subscriptionCommands } from "./finance/subscriptions-command.js"
+import { transactionCommands } from "./finance/transactions-command.js"
+import { walletCommands } from "./finance/wallets-command.js"
 import { findingsCommand } from "./findings/command.js"
 import { jsonFields } from "./json-fields.js"
 import { knowledgeCommands } from "./knowledge/command.js"
@@ -182,6 +187,10 @@ const OWN_ENTITIES = entityFields({
     "fulfilled_date",
     "invoice",
     "payment",
+    "direction",
+    "contract",
+    "deal",
+    "lines",
     "review",
     "author",
     "model",
@@ -236,6 +245,8 @@ const OWN_ENTITIES = entityFields({
     "reference",
     "allocated",
     "unallocated",
+    "refund_of",
+    "subscription",
     "evidence",
     "review",
     "author",
@@ -258,7 +269,9 @@ const OWN_ENTITIES = entityFields({
     "revision",
     "fingerprint",
     "relations",
+    "incoming",
     "entity",
+    "created_entity",
     "flagged",
     "batch_id",
     "created_at",
@@ -276,8 +289,162 @@ const OWN_ENTITIES = entityFields({
     "proposed",
     "waiting",
     "flagged",
+    "unmatched",
+    "ignored",
+    "vcard",
     "errors",
+    "truncated",
   ],
+  product: [
+    "id",
+    "ref",
+    "title",
+    "kind",
+    "name",
+    "sku",
+    "supplier",
+    "unit",
+    "unit_price",
+    "currency",
+    "description",
+    "archived_date",
+    "author",
+    "model",
+    "source",
+    "created_at",
+    "updated_at",
+  ],
+  contract: [
+    "id",
+    "ref",
+    "title",
+    "name",
+    "number",
+    "kind",
+    "status",
+    "signed_date",
+    "effective_date",
+    "expiration_date",
+    "auto_renew",
+    "renewal",
+    "notice_days",
+    "notice_deadline",
+    "terms",
+    "value",
+    "currency",
+    "deal",
+    "review",
+    "author",
+    "model",
+    "confirmed_by",
+    "source",
+    "reason",
+    "evidence",
+    "project",
+    "project_name",
+    "created_at",
+    "updated_at",
+  ],
+  subscription: [
+    "id",
+    "ref",
+    "title",
+    "name",
+    "direction",
+    "supplier",
+    "customer",
+    "product",
+    "contract",
+    "status",
+    "interval",
+    "start_date",
+    "trial_end_date",
+    "next_renewal_date",
+    "cancelled_date",
+    "end_date",
+    "current_price",
+    "prices",
+    "review",
+    "author",
+    "model",
+    "confirmed_by",
+    "source",
+    "reason",
+    "evidence",
+    "project",
+    "project_name",
+    "created_at",
+    "updated_at",
+  ],
+  subscription_price: [
+    "id",
+    "ref",
+    "title",
+    "subscription",
+    "amount",
+    "currency",
+    "effective_from",
+    "review",
+    "author",
+    "reason",
+    "project",
+    "created_at",
+  ],
+  wallet: [
+    "id",
+    "ref",
+    "title",
+    "name",
+    "kind",
+    "currency",
+    "institution",
+    "number_hint",
+    "holder",
+    "opening_balance",
+    "opening_date",
+    "closed_date",
+    "balance",
+    "until",
+    "pending",
+    "source_says",
+    "author",
+    "model",
+    "source",
+    "created_at",
+    "updated_at",
+  ],
+  transaction: [
+    "id",
+    "ref",
+    "title",
+    "wallet",
+    "wallet_name",
+    "direction",
+    "amount",
+    "currency",
+    "status",
+    "statement_date",
+    "booked_date",
+    "description",
+    "counterparty_name",
+    "counterparty",
+    "reference",
+    "payment",
+    "splits",
+    "uncategorized",
+    "review",
+    "author",
+    "model",
+    "confirmed_by",
+    "source",
+    "reason",
+    "evidence",
+    "project",
+    "project_name",
+    "created_at",
+    "updated_at",
+  ],
+  records_match: ["linked", "created", "unmatched", "proposed", "errors", "truncated"],
   payment_allocation: ["payment", "invoice", "amount", "currency", "created_at"],
 })
 
@@ -314,9 +481,12 @@ export const createProgram = ({
   env = process.env,
   signal,
   terminal,
+  keyring,
 }: {
   streams?: Streams
   env?: NodeJS.ProcessEnv
+  /** Where enrichment looks for its provider key; the system keyring unless a test hands in memoryKeyring(). */
+  keyring?: KeyringStore
   /** Ctrl-C or SIGTERM from `startCli`: a sync stops at its next safe point. */
   signal?: AbortSignal
   /** Whether a person is at the terminal; the process's stdin and stdout unless a test hands one in. */
@@ -349,19 +519,24 @@ export const createProgram = ({
   financeCommands(program, streams, env)
   orderCommands(program, streams, env)
   dealCommands(program, streams, env)
+  productCommands(program, streams, env)
+  contractCommands(program, streams, env)
+  subscriptionCommands(program, streams, env)
+  walletCommands(program, streams, env)
+  transactionCommands(program, streams, env)
   recordsCommand(program, streams, env)
   findingsCommand(program, streams, env)
   actionsCommand(program, streams, env)
   reviewCommand(program, streams, env)
   agentsCommand(program, streams, env)
   mcpCommand(program, streams, env, createProgram)
-  modelsCommand(program, streams, env)
+  modelsCommand(program, streams, env, keyring)
   templatesCommand(program, streams, env)
   searchCommand(program, streams, env)
   meetingReadCommands(program, streams, env)
   meetingPreparationCommand(program, streams, env)
   askCommand(program, streams, env)
-  syncCommand(program, streams, env, signal)
+  syncCommand(program, streams, env, signal, keyring)
   storeCommand(program, streams, env)
   autoCommand(program, streams, env)
   configCommand(program, streams, env)
