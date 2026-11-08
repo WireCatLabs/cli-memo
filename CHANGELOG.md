@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.66 — 08.11.2026
+
 ### Added
 
 - **`memo records import` and `records check` take `--region <country>` for a vCard file** (`ru`, `gb`, in any
