@@ -43,15 +43,23 @@ const NOTES_LIST_QUERY = {
   ],
 } as const satisfies QueryRegistry
 
-const textOf = (options: { text?: string; textFile?: string }, mcp: boolean, given?: string): string => {
-  const sources = [given, options.text, options.textFile].filter((value) => value !== undefined)
-  if (sources.length !== 1)
-    throw new CliError("validation_error", "give the text once: as an argument, --text or --text-file")
-  // Over MCP `-` would read the server's own stdin, and a path a file of the computer memo runs on.
-  if (options.textFile !== undefined && mcp)
+/** Over MCP `-` would read the server's own stdin, a path a file of this computer, and `--export` write anywhere. */
+const refuseOverMcp = (options: { textFile?: string; export?: string | true }, mcp: boolean) => {
+  if (!mcp) return
+  if (options.textFile !== undefined)
     throw new CliError("permission_error", "over MCP a note's text is given as text, never read from a file", {
       param: "text_file",
     })
+  if (options.export !== undefined)
+    throw new CliError("permission_error", "over MCP a note is not written as a file; the owner exports it", {
+      param: "export",
+    })
+}
+
+const textOf = (options: { text?: string; textFile?: string }, given?: string): string => {
+  const sources = [given, options.text, options.textFile].filter((value) => value !== undefined)
+  if (sources.length !== 1)
+    throw new CliError("validation_error", "give the text once: as an argument, --text or --text-file")
   if (options.textFile !== undefined) return readFileSync(options.textFile === "-" ? 0 : options.textFile, "utf8")
   return sources[0] as string
 }
@@ -206,7 +214,8 @@ const notesCommandDefinition = (program: Command, streams: Streams, env: NodeJS.
         },
         command: Command,
       ) => {
-        const body = textOf(options, isMcpRun(command, env), given)
+        refuseOverMcp(options, isMcpRun(command, env))
+        const body = textOf(options, given)
         const value = writeAccountOf(options, (text) => streams.diagnostic(text))
         if (options.meeting === undefined && value !== undefined)
           throw new CliError("validation_error", "--account selects the account of --meeting")
@@ -257,7 +266,8 @@ const notesCommandDefinition = (program: Command, streams: Streams, env: NodeJS.
         },
         command: Command,
       ) => {
-        const body = textOf(options, isMcpRun(command, env))
+        refuseOverMcp(options, isMcpRun(command, env))
+        const body = textOf(options)
         const answer = await withNotes(async (store) => {
           await refuseBareNumber(store, id, ["note"])
           const note = await store.notes.editNote(id.replace(/^note:/, ""), body, options.revision)

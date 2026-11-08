@@ -1,4 +1,4 @@
-import { mkdtempSync } from "node:fs"
+import { mkdtempSync, readdirSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { Client } from "@modelcontextprotocol/client"
@@ -652,7 +652,8 @@ it("never reads a note's text from a file or the server's stdin for an agent", a
   const { client, call, answer } = await connected()
   try {
     for (const command of ["notes add", "notes edit"])
-      expect(JSON.stringify(await commandSchema(client, command))).not.toContain("text_file")
+      for (const field of ["text_file", "export"])
+        expect(JSON.stringify(await commandSchema(client, command))).not.toContain(`"${field}"`)
     for (const file of ["-", "/etc/hostname"]) {
       const refused = await call("notes add", { text_file: file })
       expect(refused.isError).toBe(true)
@@ -670,4 +671,29 @@ it("refuses --text-file in an MCP run even when it reaches the command", async (
   await expect(
     program.parseAsync(["notes", "add", "--text-file", "-", "--json"], { from: "user" }),
   ).rejects.toMatchObject({ code: "permission_error", details: { param: "text_file" } })
+})
+
+it("refuses --export in an MCP run before the note is saved or a file is written", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "memo-mcp-export-"))
+  const mcp = { ...env, AI_AGENT: "memo-mcp" }
+  const program = createProgram({ streams: captureStreams(), env: mcp })
+  program.exitOverride()
+  await expect(
+    program.parseAsync(["notes", "add", "An agent's note", "--export", dir, "--json"], { from: "user" }),
+  ).rejects.toMatchObject({ code: "permission_error", details: { param: "export" } })
+  const edit = createProgram({ streams: captureStreams(), env: mcp })
+  edit.exitOverride()
+  await expect(
+    edit.parseAsync(["notes", "edit", "note:1", "--revision", "1", "--text", "x", "--export", dir, "--json"], {
+      from: "user",
+    }),
+  ).rejects.toMatchObject({ code: "permission_error", details: { param: "export" } })
+  expect(readdirSync(dir)).toEqual([])
+  const store = await openStore({ env })
+  try {
+    expect((await store.notes.note("note:1")).text).toBe("Bob Sample prefers Fridays")
+    expect((await store.notes.notes({ source: "internal", limit: 10 })).items).toHaveLength(1)
+  } finally {
+    await store.close()
+  }
 })

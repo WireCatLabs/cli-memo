@@ -8,10 +8,11 @@ the API.
 
 ### Fixed
 
-- **Over MCP, `notes add` and `notes edit` no longer read `--text-file`.** `-` read the MCP server's own stdin, and a
-  path read any file of the computer memo runs on into a note an agent could read back, a remote client's included.
-  The option is left out of the MCP catalogue, and a run over MCP refuses it with `permission_error`; an agent gives
-  the note as `text`.
+- **Over MCP, `notes add` and `notes edit` no longer read `--text-file` or write `--export`.** `-` read the MCP
+  server's own stdin, a path read any file of the computer memo runs on into a note an agent could read back (a
+  remote client's included), and `--export` wrote a file into any folder the agent named. Both options are left out
+  of the MCP catalogue, and a run over MCP refuses them with `permission_error` before the note is saved; an agent
+  gives the note as `text`.
 
 ## 0.131.55 — 08.11.2026
 
