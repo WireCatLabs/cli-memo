@@ -11,8 +11,7 @@ the API.
 - **An agent may propose a correction of a memory.** `memo memories add --supersedes memory:<id>` from an agent, or
   `memories add` with `supersedes` through the MCP server, no longer fails with "only the owner corrects a memory". The
   correction waits as proposed, and the memory it corrects stays as it is until you confirm the correction; rejecting
-  or removing it leaves that memory. Yours still applies at once. Needs the cli-core version that supersedes on
-  confirm.
+  or removing it leaves that memory. Yours still applies at once (cli-core 0.616.0).
 
 ## 0.131.66 — 08.11.2026
 
