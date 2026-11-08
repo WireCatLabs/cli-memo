@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.52 — 08.11.2026
+
 ### Fixed
 
 - **`memo sync` names a damaged store instead of a bug.** "database disk image is malformed" or "file is not a
