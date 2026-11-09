@@ -6,6 +6,8 @@ the API.
 
 ## Unreleased
 
+## 0.131.68 — 09.11.2026
+
 ### Added
 
 - **The scheduled mail triage files a sender as envelopes itself.** A `memo schedule agent` run may now run `mail`
@@ -31,6 +33,9 @@ the API.
   ref of where the item happened, so Desktop and the digest's links open the person or the project; and for a past
   day's run (`backfill:` in its input) it reads the agenda with the window given and writes from the agenda alone.
 - cli-core 0.618.0.
+- **A pull request adds its changelog entries as a fragment, `changes/<branch>.md`.** Open pull requests no longer
+  conflict under `## Unreleased`. `pnpm docs:check` checks each fragment, and `bin/release` collects them into the
+  version's section. An entry under `## Unreleased` still works during the move.
 
 ## 0.131.67 — 09.11.2026
 
