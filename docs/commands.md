@@ -1893,6 +1893,8 @@ memo relationships add <from> <to> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--kind <kind>` | member-of, reports-to, customer-of, partner-of, related-to. Default: `member-of`. |
 | `--role <role>` | its role: in an organization employee, contractor, founder, owner, manager, adviser, contact; in a project owner, manager, contributor, client-contact, approver; on a deal or lead owner, contact, decision-maker, influencer. A job title is not a role. |
+| `--role-note <text>` | what the role means here, in your words, beside a role from its list. |
+| `--engagement <level>` | a person on a project: how much you deal with them yourself, not how active they are: none, low, medium or high. |
 | `--position <position>` | the job title, such as 'Procurement manager'; kept apart from the role. |
 | `--start-date <date>` | the first day it held, such as 2026-01-01. |
 | `--end-date <date>` | the last day it held, included; it ends at the start of the day after. |
@@ -1926,7 +1928,7 @@ memo relationships list [query] [options]
 
 ### `memo relationships update`
 
-set what a relationship is: its role, or what a chat is for in a project (work, sales, support, other); an agent's change waits for you in memo review
+set what a relationship is: its role and a note beside it, how much you deal with a person on a project, or what a chat is for in a project (work, sales, support, other); an agent's change waits for you in memo review
 
 This command changes the local store or your files.
 
@@ -1941,6 +1943,8 @@ memo relationships update <id> [options]
 | Option | What it does |
 |---|---|
 | `--role <role>` | its role: in an organization employee, contractor, founder, owner, manager, adviser, contact; in a project owner, manager, contributor, client-contact, approver; on a deal or lead owner, contact, decision-maker, influencer. A job title is not a role; an empty value clears it. |
+| `--role-note <text>` | what the role means here, in your words; an empty value clears it. |
+| `--engagement <level>` | a person on a project: how much you deal with them yourself, not how active they are: none, low, medium or high; an empty value clears it. |
 | `--position <position>` | the job title; an empty value clears it. |
 | `--start-date <date>` | the first day it held, such as 2026-01-01. |
 | `--purpose <purpose>` | what the chat is for in the project: work, sales, support or other. |
@@ -1949,9 +1953,9 @@ memo relationships update <id> [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
-**Returns:** set a relationship's role or a chat's purpose in a project
+**Returns:** set a relationship's role, engagement or a chat's purpose in a project
 
-**Example:** `memo relationships update 12 --purpose sales`, `memo relationships update 12 --role contractor --reason 'builds the site'`
+**Example:** `memo relationships update 12 --purpose sales`, `memo relationships update 12 --engagement low`, `memo relationships update 12 --role approver --role-note 'signs the acts'`
 
 ### `memo relationships remove`
 
@@ -5441,7 +5445,7 @@ memo models download <model> [options]
 
 **Next usually:** `memo models set <model>`
 
-**Example:** `memo models download e5-small`, `memo models download e5-large`
+**Example:** `memo models download embeddinggemma`, `memo models download e5-small`
 
 ### `memo models set`
 
@@ -5555,6 +5559,54 @@ memo models consents revoke [options]
 **Returns:** turn enrichment off and delete what the model wrote; search reads only the…
 
 **Example:** `memo models consents revoke`
+
+### `memo models keys`
+
+the API key write-time enrichment sends with each request
+
+#### `memo models keys set`
+
+store a key, typed at a hidden prompt or piped on stdin — never as an argument
+
+This command changes the local store or your files.
+
+```sh
+memo models keys set <provider> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `provider` | required | openai, anthropic, or the host of a --base-url server that wants a key. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** model key stored — provider, stored; every field: memo commands info models keys set
+
+**Example:** `memo models keys set openai`, `memo models keys set anthropic`
+
+#### `memo models keys remove`
+
+forget the stored key; a key in the environment stays
+
+This command changes the local store or your files.
+
+```sh
+memo models keys remove <provider> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `provider` | required | openai, anthropic, or a server's host. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** model key removed — provider, removed; every field: memo commands info models keys remove
+
+**Example:** `memo models keys remove openai`
 
 ## `memo templates`
 
@@ -6414,7 +6466,63 @@ memo schedule exec <file> [options]
 
 ## `memo digest`
 
-the morning digest's history: build the digests of past days
+the morning digest: your brief on what it collects, and the digests of past days
+
+### `memo digest brief`
+
+your own instructions on what the morning digest collects: projects, people, topics, what to skip, how many items. The morning-digest skill ends with them, and where they contradict its rules they win; the run stays read only, with memo as its only tool and the schedule's cost cap. At most 4000 characters
+
+#### `memo digest brief show`
+
+```sh
+memo digest brief show [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** the brief the morning digest follows, and the bodies your changes replaced
+
+**Example:** `memo digest brief show`, `memo digest brief show --json`
+
+#### `memo digest brief edit`
+
+write the brief in $EDITOR, or from --file; at most 4000 characters. The body it replaces is kept, and --undo puts it back. Only you change it, never an agent or a read-only run
+
+This command changes the local store or your files.
+
+```sh
+memo digest brief edit [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--file <file>` | take the brief from this file instead of opening an editor; - reads stdin. |
+| `--undo` | put back the body your last change replaced. |
+| `--json` | print JSON. |
+
+**Returns:** write the brief in $EDITOR or from --file; only you, never an agent
+
+**Example:** `memo digest brief edit`, `memo digest brief edit --file brief.md`, `memo digest brief edit --undo`
+
+#### `memo digest brief reset`
+
+remove the brief, so the morning digest follows its skill alone; edit --undo brings it back
+
+This command changes the local store or your files.
+
+```sh
+memo digest brief reset [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** remove the brief; edit --undo brings it back
+
+**Example:** `memo digest brief reset`
 
 ### `memo digest backfill`
 
@@ -6480,7 +6588,7 @@ the instructions an agent is given for this tool
 
 ### `memo skill show`
 
-print SKILL.md — `memo skill install` puts it where Claude Code, Codex, Gemini CLI and OpenClaw look for it, and where Hermes does on request; --for prints the copy already there
+print SKILL.md — `memo skill install` puts it where Claude Code, Codex, Gemini CLI and OpenClaw look for it, and where Hermes does on request; --for prints the copy already there; morning-digest ends with your brief from `memo digest brief` when you wrote one
 
 ```sh
 memo skill show [name] [options]
