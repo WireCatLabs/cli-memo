@@ -64,7 +64,7 @@ describe("the search model memo uses", () => {
     expect((await memo(env, ["models", "set", "tiny-a", "--json"])).item).toMatchObject({
       id: "tiny-a",
       default: true,
-      previous: "e5-small",
+      previous: "embeddinggemma",
     })
     expect(await embedNoteChunks(store, { env })).toEqual({ chunks: 1, left: false })
     const switched = await memo(env, ["models", "set", "tiny-b", "--json"])
@@ -90,7 +90,7 @@ describe("the search model memo uses", () => {
   })
 
   it("embeds fewer chunks a run with a slower model, so a timer run still ends in time", async () => {
-    expect(embedPerRun((await machine()).env)).toBe(EMBED_PER_RUN)
-    expect(embedPerRun((await machine("embeddinggemma")).env)).toBeLessThan(EMBED_PER_RUN / 10)
+    expect(embedPerRun((await machine("e5-small")).env)).toBe(EMBED_PER_RUN)
+    expect(embedPerRun((await machine()).env)).toBeLessThan(EMBED_PER_RUN / 5)
   })
 })

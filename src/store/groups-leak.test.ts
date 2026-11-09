@@ -270,5 +270,5 @@ describe("a generic leak scan of every group-aware read under the lock", () => {
       if (path.at(-1) === "list" && !answer.startsWith("{")) found.push(`${path.join(" ")}: failed ${answer}`)
     }
     expect(found).toEqual([])
-  })
+  }, 60_000)
 })

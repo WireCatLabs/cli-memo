@@ -13,7 +13,7 @@ import {
 } from "@wirecat/cli-core/store"
 import { proposalsOf, reviewOf } from "../store/guard.js"
 import { canonicalProject } from "../vocabulary/project.js"
-import { REVIEW_KINDS, type ReviewRow } from "./kinds.js"
+import { REVIEW_KINDS, type ReviewRow, reviewRegistry } from "./kinds.js"
 
 export { REVIEW_KINDS }
 

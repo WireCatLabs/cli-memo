@@ -14,6 +14,13 @@ account; if memo refuses an ambiguous selection and lists candidates, ask which 
 coverage in `meta.accounts`. A group word first (`memo <group> search all …`) reads only that group's accounts;
 `all` is every account; bare `--source personal` is the owner's own messenger accounts, not a group.
 
+**A client, a person or a deal.** Resolve one ref: `memo search people <name>`, `memo organizations list`,
+`memo deals list`. Read its context: `memo context person:<id>`, `memo organizations context <ref>`,
+`memo deals context <ref> --brief`. Follow only the relationships the question needs
+(`memo relationships list kind:reports-to to:<ref>`), then search for evidence with `memo search all '<words>'`.
+Cite the refs and name each gap in `coverage`. `reported` is a CRM's word only: say so. Never guess a gap.
+`memo groups list` shows which accounts each group holds.
+
 **`content:` narrows a search to the text of files, `filename:` to their names.** Whether a plain word
 also reads file text and voice transcripts depends on the version. Compare like with like:
 `memo search messages 'content:invoice'` with `tg personal search messages 'content:invoice'`, a plain word

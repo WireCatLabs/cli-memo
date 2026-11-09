@@ -19,6 +19,7 @@ export const REASONS: ErrorReason[] = defineReasons([
     code: "permission_error",
     message:
       "a backfill spends the owner's money on model calls; the owner runs it at a terminal or in WireCat Desktop",
+    details: [],
   },
   {
     reason: "roles.owner-only",

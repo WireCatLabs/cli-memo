@@ -4,7 +4,6 @@ import { isCliError, type KeyringStore } from "@wirecat/cli-base"
 import {
   chosenTextModel,
   conversationsService,
-  DEFAULT_TEXT_MODEL,
   embeddingsService,
   embedMail as embedMailChunksOf,
   embedNotes as embedNoteChunksOf,
@@ -21,11 +20,14 @@ export const EMBED_PER_RUN = 600
 /** A model of unknown speed is taken to be as slow as EmbeddingGemma, so a timer run still ends in time. */
 const SLOWEST_KNOWN = 2
 
+/** The model EMBED_PER_RUN was measured with; cli-core's default changed since, the measurement did not. */
+const MEASURED_WITH = "e5-small"
+
 /** The run's bound for the chosen model: a slower model embeds fewer chunks in the same three minutes. */
 export const embedPerRun = (env: NodeJS.ProcessEnv = process.env): number => {
   const models = textModels(env)
   const speed = (id: string) => models.find((model) => model.id === id)?.chunksPerSecond ?? SLOWEST_KNOWN
-  const ratio = speed(chosenTextModel(env).id) / speed(DEFAULT_TEXT_MODEL)
+  const ratio = speed(chosenTextModel(env).id) / speed(MEASURED_WITH)
   return Math.max(8, Math.min(EMBED_PER_RUN, Math.round(EMBED_PER_RUN * ratio)))
 }
 
