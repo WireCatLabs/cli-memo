@@ -6907,6 +6907,7 @@ memo digest add <name> [options]
 
 | Option | What it does |
 |---|---|
+| `--paused` | make it without putting it on its timer; `memo digest resume` does. |
 | `--title <title>` | the name the digest is shown under. |
 | `--at <HH:MM>` | when it runs: HH:MM every day, or 'mon,fri 09:00' on those days; repeat it for more times, as 08:30 and 18:00. |
 | `--source <accounts>` | what it reads, comma-separated or repeated: telegram, max, whatsapp, mail, meetings, tasks; all (the default) reads everything. |

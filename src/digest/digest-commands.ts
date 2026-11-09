@@ -62,6 +62,7 @@ interface Options {
   text?: string
   maxCost?: number
   maxCostPerDay?: number
+  paused?: boolean
   json?: boolean
   fromApp?: boolean
 }
@@ -198,7 +199,8 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
           "time (a weekly one reads the week) and only the sources given, and sends what it writes along the routes " +
           "given. It runs read only. Each run is a paid model call; only you make one",
       )
-      .argument("<name>", "lowercase letters, digits and dashes"),
+      .argument("<name>", "lowercase letters, digits and dashes")
+      .option("--paused", "make it without putting it on its timer; `memo digest resume` does"),
   ).action(async (name: string, given: Options, command: Command) => {
     const digestName = scheduleName(name)
     if (existsSync(digestScheduleFile(env, digestName)))
@@ -225,6 +227,7 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
       ...(given.maxCost ? { maxCost: given.maxCost } : {}),
       ...(given.maxCostPerDay === undefined ? {} : { maxCostPerDay: given.maxCostPerDay }),
       ...(given.deliverTo?.length ? { to: given.deliverTo } : {}),
+      ...(given.paused ? { paused: true } : {}),
     })
     writeDefinition(env, {
       name: digestName,
@@ -234,7 +237,7 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
     })
     await writeSchedule(site, schedule)
     await saveBrief(digestName, given.text)
-    await say(given.json, digestName, `Added ${digestName}.`)
+    await say(given.json, digestName, `Added ${digestName}${given.paused ? ", paused" : ""}.`)
   })
 
   withDigestOptions(

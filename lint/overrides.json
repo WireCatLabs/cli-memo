@@ -173,5 +173,12 @@
     "reason": "WireCat Desktop's Digests page (plan 2026-11-09-people-clients-digests, TASK-959) reads every digest in one call, a handful at most; a query needs a digest entity schema the page does not use. Add one when a caller filters, then drop this.",
     "owner": "@leemour",
     "review_after": "2027-02-09"
+  },
+  {
+    "rule": "option-role",
+    "target": "digest add --paused",
+    "reason": "WireCat Desktop's Digests page (plan 2026-11-09-people-clients-digests, TASK-959, PR wirecat-desktop#249) makes a digest off its timer in one call; add then pause would leave a paid digest on its timer when the second call fails. The cli-base vocabulary has no such switch (FIND-2445); add one there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-09"
   }
 ]

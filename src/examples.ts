@@ -500,8 +500,6 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "schedule pause": ["memo schedule pause digest"],
   "schedule resume": ["memo schedule resume digest"],
   "schedule remove": ["memo schedule remove digest"],
-  "schedule pause": ["memo schedule pause digest"],
-  "schedule resume": ["memo schedule resume digest"],
   "schedule exec": ["memo schedule exec ~/.local/state/cli-memo/schedules/digest/schedule.json"],
   "templates list": ["memo templates list", "memo templates list channel:telegram source:stored --json"],
   "templates show": [

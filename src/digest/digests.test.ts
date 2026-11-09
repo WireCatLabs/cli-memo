@@ -199,8 +199,7 @@ describe("digests by name", () => {
 
   it("pauses and resumes: the timer goes and comes back, the digest stays", async () => {
     const { json, env } = setUp()
-    await json("digest", "add", "d", "--at", "08:30", "--from-app")
-    await json("digest", "pause", "d", "--from-app")
+    await json("digest", "add", "d", "--at", "08:30", "--paused", "--from-app")
     const timers = join(env.XDG_CONFIG_HOME ?? "", "systemd", "user")
     expect(existsSync(join(timers, "memo-schedule-d.timer"))).toBe(false)
     expect((await json("digest", "list")).items[0]).toMatchObject({ scheduled: false, next_at: null })
