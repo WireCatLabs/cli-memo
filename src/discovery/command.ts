@@ -102,6 +102,7 @@ const SECTIONS: [string, HelpSection][] = [
   ["vocabulary", "organise"],
   ["sync", "automate"],
   ["jobs", "automate"],
+  ["digest", "automate"],
   ["folders", "setup"],
   ["config", "setup"],
 ]

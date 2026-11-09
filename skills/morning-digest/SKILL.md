@@ -23,6 +23,14 @@ You run on a schedule with `Bash(memo:*)` under `MEMO_READ_ONLY`. Every write is
 - At most 12 memo calls after the first. Stop following leads when they run out; the agenda already counted what it
   left out.
 
+## A past day's digest
+
+When your input has a `backfill: <date>` line and a `window:` line, this run writes the digest that day would have
+had, for the owner's history. Add the `window:` flags exactly as given to the agenda call
+(`memo review agenda --compact --since-time <…> --before-time <…>`), set `date` to the `backfill:` day, and write the
+report from the agenda alone: skip step 2, because every other command reads the store as it is now and would bring in
+what came after that day. Everything else below holds.
+
 ## One run
 
 1. `memo review agenda --compact`. Three lines near the top are JSON for the report, copied as they are: `scope:`
@@ -70,7 +78,8 @@ write only the content. A document that breaks this shape is not delivered: the 
 }
 ```
 
-- `date`: today, `YYYY-MM-DD`. `summary`: at most one sentence (120 characters), or `null`.
+- `date`: today, `YYYY-MM-DD` (the `backfill:` day for a past day's digest). `summary`: at most one sentence (120
+  characters), or `null`.
 - Every text field (`summary`, `who`, `topic`, `action`, `detail`, `quote`) is in the owner's language: the language
   of their own recent messages, Russian when unclear. Keep names of people and companies as written. Address the
   owner politely ("вы" in Russian). No Markdown in any field.
@@ -85,6 +94,11 @@ write only the content. A document that breaks this shape is not delivered: the 
 - One `task` item for each item of the agenda's `tasks` section, in `today`: `topic` the task in a few words, `due` its
   due time (`null` when it has none), `who` who asked, `detail` who does it when the agenda names someone,
   `priority: "high"` when it is overdue, `channel: "task"`, and `refs` the `task:` reference the agenda printed.
+- `refs` also name who and what an item is about, so the owner can open them: `person:<id>` for the person in `who`
+  and `project:<key>` for its project, each only when memo printed that reference (the agenda's `watched person:<id>`
+  lines, `memo context`, `memo search people "<name>"`, a project's key in `projects` or `projects status`). Put the
+  reference of where it happened (`msg:`, `chat:`, `task:`, `proposal:`) first. Never guess an id; a lookup
+  counts against the 12 calls.
 - `owed` holds people only. A bot, a channel, a service chat or list mail is never a `reply`; it may be a `mail` item
   when it is worth a look.
 - `items[].type` and the fields each one needs (others are optional, `null` or left out):

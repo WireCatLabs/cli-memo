@@ -3,6 +3,25 @@ import { defineReasons, type ErrorReason } from "@wirecat/cli-base/standards"
 /** The reasons memo raises itself; cli-base's and cli-core's are merged in by `failureContext`. */
 export const REASONS: ErrorReason[] = defineReasons([
   {
+    reason: "backfill.no-schedule",
+    code: "not_found",
+    message: "no morning-digest schedule to build from — memo skill show morning-digest says how to make one",
+    details: [],
+  },
+  {
+    reason: "backfill.not-daily",
+    code: "validation_error",
+    message: "{schedule} does not run at a daily time, so it has no past days",
+    details: ["schedule"],
+  },
+  {
+    reason: "backfill.owner-only",
+    code: "permission_error",
+    message:
+      "a backfill spends the owner's money on model calls; the owner runs it at a terminal or in WireCat Desktop",
+    details: [],
+  },
+  {
     reason: "ref.bare-number",
     code: "validation_error",
     message: "{value} is a bare number, which names no one kind of record here; give a reference such as {suggestion}",

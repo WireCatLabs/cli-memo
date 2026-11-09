@@ -43,7 +43,7 @@ const toolOf = (provider: string): Tool | undefined => (provider === "email" ? M
 const stateDirs = (tool: Tool, env: NodeJS.ProcessEnv) =>
   resolvePaths({ appName: tool.appName, prefix: tool.envPrefix, env })
 
-interface Scheduled {
+export interface Scheduled {
   name: string
   kind: string
   argv: string[]

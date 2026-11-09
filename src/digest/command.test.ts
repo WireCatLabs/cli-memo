@@ -172,6 +172,21 @@ it("puts the watch list first, then replies owed in messengers and personal mail
   expect(body.item.coverage[0]).not.toHaveProperty("stale")
 })
 
+it("builds the agenda as of a past time: the window ends there and what came later is left out", async () => {
+  const { run } = await setUp()
+  await run("tags", "add", "watch", "--chat", "12", "--account", "telegram:1")
+  const before = new Date(Date.now() - 2.5 * HOUR).toISOString()
+  const body = envelopeOf(await run("review", "agenda", "--json", "--before-time", before))
+
+  expect(section(body, "watch").items).toEqual([])
+  expect(section(body, "owed").items.map((one) => one.ref)).toEqual(["chat:telegram/1/10"])
+  expect(body.item.scope).toMatchObject({ to: before, from: new Date(Date.parse(before) - DAY).toISOString() })
+  expect(body.item.tasks.new_since).toBe(new Date(Date.parse(before) - DAY).toISOString())
+  await expect(run("review", "agenda", "--before-time", new Date(Date.now() + HOUR).toISOString())).rejects.toThrow(
+    /in the future/,
+  )
+})
+
 it("names each account whose sync needs a look and why, and never calls one stale for what it stored", async () => {
   const { run, schedule, write } = await setUp()
   vi.useFakeTimers({ toFake: ["Date"], now: Date.now() + 2 * DAY })
@@ -235,6 +250,8 @@ it("lists tasks new since the last digest and those overdue, due today or tomorr
   const today = await add("Pay the mooring fee", new Date(now))
   const tomorrow = await add("Paint the pier", new Date(now + 86_400_000))
   await add("Someday: a second pier", null)
+  // A task created in the digest's own millisecond would count as new; "new" is created at or after it.
+  await new Promise((resolve) => setTimeout(resolve, 5))
   const lastDigest = new Date().toISOString()
   schedule("cli-memo", "morning-digest", {}, { at: lastDigest, exitCode: 0 }, "agent")
   await new Promise((resolve) => setTimeout(resolve, 5))

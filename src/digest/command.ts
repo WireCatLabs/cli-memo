@@ -16,6 +16,7 @@ const OWED_WITHIN = 7 * 86_400_000
 
 interface Options {
   sinceTime: string
+  beforeTime?: string
   limit: number
   maxOutputBytes?: number
   compact?: boolean
@@ -29,6 +30,20 @@ export const sinceOf = (value: string, now = Date.now()): number => {
       param: "since-time",
     })
   return since
+}
+
+/** A past moment, as an ISO time or a date (its local midnight); it must not be in the future. */
+export const beforeOf = (value: string, now = Date.now()): number => {
+  const at = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00:00`).getTime() : Date.parse(value)
+  if (!/^\d{4}-\d{2}-\d{2}/.test(value) || Number.isNaN(at))
+    throw new CliError("validation_error", `--before-time takes an ISO time or a date, not "${value}"`, {
+      param: "before-time",
+    })
+  if (at > now)
+    throw new CliError("validation_error", "--before-time is in the future; leave it out for now", {
+      param: "before-time",
+    })
+  return at
 }
 
 type Print = (json: boolean | undefined, body: Body) => void
@@ -54,6 +69,11 @@ export const reviewAgendaCommand = (review: Command, print: Print, streams: Stre
         "is never named",
     )
     .option("--since-time <time>", "how far back: hours or days (12h, 7d) or a start date (2026-11-01)", "1d")
+    .option(
+      "--before-time <time>",
+      "build it as of this past ISO time or date, for a past day's digest: --since-time counts back from it, and " +
+        "what came later is left out; a chat or thread answered since reads as answered",
+    )
     .option("--limit <n>", "items per section before the size budget", positive, 25)
     .option(
       "--max-output-bytes <bytes>",
@@ -68,10 +88,12 @@ export const reviewAgendaCommand = (review: Command, print: Print, streams: Stre
           reason: "output.conflict",
           param: "--compact",
         })
-      const since = sinceOf(given.sinceTime)
+      const until = given.beforeTime === undefined ? undefined : beforeOf(given.beforeTime)
+      const since = sinceOf(given.sinceTime, until)
       const gathered = await withStore(env, (store) =>
         gatherDigest(store, env, {
           since,
+          ...(until === undefined ? {} : { until }),
           limit: given.limit,
           excerpt: given.compact ? 100 : 200,
           owedWithin: OWED_WITHIN,
