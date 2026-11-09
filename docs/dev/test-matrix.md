@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1100 ✅ · 0 ⛔ · 294 ❌** — 308 commands, 1086 options.
+**1107 ✅ · 0 ⛔ · 294 ❌** — 309 commands, 1092 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -973,13 +973,20 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `transactions splits remove` | `--json` | ✅ |  |
 | `records import` |  | ✅ |  |
 | `records import` | `--dry-run` | ✅ |  |
+| `records import` | `--type` | ✅ |  |
 | `records import` | `--account` | ✅ |  |
 | `records import` | `--region` | ✅ |  |
 | `records import` | `--json` | ✅ |  |
 | `records check` |  | ✅ |  |
+| `records check` | `--type` | ✅ |  |
 | `records check` | `--account` | ✅ |  |
 | `records check` | `--region` | ✅ |  |
 | `records check` | `--json` | ✅ |  |
+| `records template` |  | ✅ |  |
+| `records template` | `--format` | ✅ |  |
+| `records template` | `--separator` | ✅ |  |
+| `records template` | `--account` | ✅ |  |
+| `records template` | `--json` | ✅ |  |
 | `records list` |  | ✅ |  |
 | `records list` | `--account` | ✅ |  |
 | `records list` | `--limit` | ❌ |  |
