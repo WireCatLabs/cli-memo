@@ -89,7 +89,8 @@ export const searchPeople = async (
     if (known && known.identities.length === 0)
       hits.set(person, { ref: person, name, identities: [], aliases: [], ties: [] })
   }
-  const ties = await store.people.ties([...hits.keys()].filter((ref) => ref.startsWith("person:")))
+  const people = [...hits.keys()].filter((ref) => ref.startsWith("person:"))
+  const ties = people.length === 0 ? {} : await store.people.ties(people)
   for (const hit of hits.values()) hit.ties = ties[hit.ref] ?? []
   const first = wanted.join(" ")
   const rank = (hit: PersonHit) => (fold(hit.name ?? "").startsWith(first) ? 0 : 1)

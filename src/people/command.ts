@@ -90,7 +90,6 @@ interface PeopleListOptions {
   json?: boolean
 }
 
-/** A listed person as memo answers: the ref, the stored name and the one to show, the kind, the contact, the counts. */
 const personRow = (person: ListedPerson) => ({
   ref: person.person,
   name: person.name,
@@ -117,25 +116,32 @@ const KIND_WORDS: Record<string, [string, string]> = {
   unsorted: ["unsorted one", "unsorted ones"],
 }
 
-/** The other kinds that hold someone, with how many: where the rest of the people are. */
-const otherKinds = (shown: PersonKind | "all", counts: Record<PersonKind, number>, name?: string): NextStep[] =>
-  shown === "all"
-    ? []
-    : PERSON_KINDS.filter((kind) => kind !== shown && counts[kind] > 0).map((kind) => {
-        const query = [`kind:${kind}`, ...(name === undefined ? [] : [`name:${name}`])].join(" ")
-        const [one, many] = KIND_WORDS[kind] ?? [kind, kind]
-        return {
-          kind: "command",
-          step: "people.kind",
-          command: "people list",
-          args: { query },
-          line: `memo people list ${query}`,
-          why: `${counts[kind]} ${counts[kind] === 1 ? one : many}`,
-          safe_to_auto_execute: true,
-        }
-      })
+/**
+ * One step to every kind, with how many each other kind holds: an answer keeps two next steps at most, and the next page
+ * takes one of them.
+ */
+const otherKinds = (shown: PersonKind | "all", counts: Record<PersonKind, number>, name?: string): NextStep[] => {
+  const others = PERSON_KINDS.filter((kind) => kind !== shown && counts[kind] > 0)
+  if (shown === "all" || others.length === 0) return []
+  const query = ["kind:all", ...(name === undefined ? [] : [`name:${JSON.stringify(name)}`])].join(" ")
+  return [
+    {
+      kind: "command",
+      step: "people.kinds",
+      command: "people list",
+      args: { query },
+      line: `memo people list '${query}'`,
+      why: others
+        .map((kind) => {
+          const [one, many] = KIND_WORDS[kind] ?? [kind, kind]
+          return `${counts[kind]} ${counts[kind] === 1 ? one : many}`
+        })
+        .join(", "),
+      safe_to_auto_execute: true,
+    },
+  ]
+}
 
-/** For an assignee picker: everyone the store knows, the owner first, then by how many tasks name them. */
 export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
   const people = program
@@ -165,8 +171,8 @@ export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       .description(
         "people of one kind: person (the default: the owner, people added by hand or assigned a task, and named " +
           "people with a tie to you, such as a one-to-one chat, a group of at most 10, mail you wrote, a meeting, a " +
-          "CRM or your address book), organization, automated (bots, newsletters, notifications), stranger (a name but " +
-          "no tie), unsorted (no name) or all. The owner first, then by the messages and mail they sent",
+          "CRM or your address book), organization, automated (bots, newsletters, notifications), unsorted (no tie " +
+          "or no name) or all. The owner first, then by the messages and mail they sent",
       ),
     query,
   )
@@ -187,9 +193,14 @@ export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.Pr
           kind,
           ...(name === undefined ? {} : { query: name }),
         })
-        const items = await keepInGroup(store, env, found.items.map(personRow), ({ ref }) => ref)
-        // In a group the store's counts cover people outside it, so the answer claims none.
         const counted = groupOf(env) === undefined
+        // In a group the store's counts and ties cover accounts outside it (WC-ACCT-13), so the answer claims none.
+        const rows = found.items
+          .map(personRow)
+          .map((row) =>
+            counted ? row : { ...row, messages_from: null, last_contact: null, ties: [], kind_signals: [] },
+          )
+        const items = await keepInGroup(store, env, rows, ({ ref }) => ref)
         const steps = counted ? otherKinds(kind, found.counts, name) : []
         print(
           json,
@@ -199,7 +210,10 @@ export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.Pr
             has_more: found.hasMore,
             page: options.page,
             ...(counted ? { total: { value: found.total, relation: "eq" as const } } : {}),
-            args: words.length ? { query: words.join(" ") } : {},
+            args: {
+              ...(words.length ? { query: words.join(" ") } : {}),
+              ...(options.sort === "interactions" ? {} : { sort: options.sort }),
+            },
             ...(steps.length ? { next: steps } : {}),
           }),
         )

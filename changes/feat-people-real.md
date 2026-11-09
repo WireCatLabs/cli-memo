@@ -1,13 +1,12 @@
 ### Changed — may break callers
 
 - **`memo people list` lists one kind of person at a time**, people by default, the ones who write to you most first.
-  `kind:` is `person`, `organization`, `automated`, `stranger`, `unsorted` or `all`. A person is you, someone you added by hand or
+  `kind:` is `person`, `organization`, `automated`, `unsorted` or `all`. A person is you, someone you added by hand or
   assigned a task, or a named person with a tie to you: a one-to-one chat, a group of at most 10, mail you wrote, a
   meeting, a CRM or your address book. Bots, newsletters and notifications are `automated`; companies (an
-  organization's account, `info@`, ООО, LLC, Airlines…) are `organization`; named people with no tie, such as authors seen
-  only in big groups, are `stranger` (with cli-core's next release; until then `unsorted`); accounts with no name are
-  `unsorted`. The answer's `next` steps name the other kinds with how many each
-  holds. Each person now has `display_name` (no wrapping quotes; «Без имени» or a name with no letter shows the
+  organization's account, `info@`, ООО, LLC, Airlines…) are `organization`; the rest, such as authors seen only in big
+  groups and accounts with no name, is `unsorted`. The answer's `next` step `people.kinds` says how many each other
+  kind holds. Each person now has `display_name` (no wrapping quotes; «Без имени» or a name with no letter shows the
   username, phone or email; `name` stays as stored), `kind`, `kind_signals`, `contact`, `phone`, `email`, `username`,
   `messages_from`, `last_contact` and `ties`. The list pages (`--page`) with an exact total, sorts by
   `--sort interactions|recent|name|tasks` and searches by `name:<text>` (3 characters at least). Run

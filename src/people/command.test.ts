@@ -143,9 +143,19 @@ describe("memo people list", () => {
       last_contact: "2026-09-10T08:00:00.000Z",
     })
     expect(shown.page.total).toEqual({ value: shown.items.length, relation: "eq" })
-    expect(shown.next).toEqual(
+    expect(shown.next).toEqual([
+      expect.objectContaining({
+        step: "people.kinds",
+        args: { query: "kind:all" },
+        why: expect.stringMatching(/^1 organization, \d+ unsorted ones?$/),
+      }),
+    ])
+    const named = JSON.parse(
+      await run("people", "list", 'name:"kai sample"', "--sort", "name", "--limit", "1", "--json"),
+    )
+    expect(named.next).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ step: "people.kind", args: { query: "kind:organization" }, why: "1 organization" }),
+        expect.objectContaining({ step: "people.kinds", args: { query: 'kind:all name:"kai sample"' } }),
       ]),
     )
     expect(names(everyone)).toEqual(expect.arrayContaining(["Rin Example", "Kai Sample", "CZECH AIRLINES"]))
@@ -159,6 +169,10 @@ describe("memo people list", () => {
     const second = JSON.parse(await run("people", "list", "kind:all", "--limit", "1", "--page", "2", "--json"))
     expect(first.page).toMatchObject({ has_more: true })
     expect(second.items[0].ref).not.toBe(first.items[0].ref)
+    const sortedPage = JSON.parse(await run("people", "list", "kind:all", "--sort", "name", "--limit", "1", "--json"))
+    expect(sortedPage.next).toContainEqual(
+      expect.objectContaining({ step: "page.next", args: expect.objectContaining({ sort: "name" }) }),
+    )
     const byName = JSON.parse(await run("people", "list", "kind:all", "--sort", "name", "--json"))
     const names = byName.items
       .filter(({ owner }: { owner: boolean }) => !owner)

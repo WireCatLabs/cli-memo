@@ -754,7 +754,7 @@ memo people add <name> [options]
 
 ### `memo people list`
 
-people of one kind: person (the default: the owner, people added by hand or assigned a task, and named people with a tie to you, such as a one-to-one chat, a group of at most 10, mail you wrote, a meeting, a CRM or your address book), organization, automated (bots, newsletters, notifications), stranger (a name but no tie), unsorted (no name) or all. The owner first, then by the messages and mail they sent
+people of one kind: person (the default: the owner, people added by hand or assigned a task, and named people with a tie to you, such as a one-to-one chat, a group of at most 10, mail you wrote, a meeting, a CRM or your address book), organization, automated (bots, newsletters, notifications), unsorted (no tie or no name) or all. The owner first, then by the messages and mail they sent
 
 ```sh
 memo people list [query] [options]
