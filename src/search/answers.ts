@@ -111,6 +111,17 @@ const meetingsMissed = (found: SearchAllFound): Missing[] => [
     .map(({ resource, source, reason }) => ({ field: "items", why: `${source ?? resource} not searched: ${reason}` })),
 ]
 
+/** What `--harder` did, for a person: reordered and at what cost, or the plain order and why. */
+export const harderNote = (found: Pick<SearchAllFound, "harder"> & { harderSkipped?: string }): string | undefined =>
+  found.harderSkipped !== undefined
+    ? `not reordered by the model: ${found.harderSkipped}`
+    : found.harder === undefined
+      ? undefined
+      : found.harder.applied
+        ? `reordered by ${found.harder.provider} ${found.harder.model} (${found.harder.sent} hits sent, ` +
+          `${found.harder.cost_usd === null ? "cost unknown" : `$${found.harder.cost_usd}`}, ${found.harder.ms} ms)`
+        : `not reordered by the model: ${found.harder.reason}`
+
 /**
  * `search all`, CLI and MCP alike. A hit that open tasks point at gets a step listing them, and a meeting transcript
  * hit one opening its passage; the answer keeps the first two.
@@ -119,6 +130,7 @@ export const allAnswer = (
   found: SearchAllFound & {
     tasks: { source: string; heldBy: AccountKey }[]
     tasksIncomplete: boolean
+    harderSkipped?: string
   },
   limit: number,
   exact = false,
@@ -172,6 +184,9 @@ export const allAnswer = (
               why: `every word must be in one record, and nothing in ${found.searched.join(", ")} holds ${found.unmatched.map((word) => `"${word}"`).join(", ")}`,
             },
           ]
+        : []),
+      ...((found.harder && !found.harder.applied) || found.harderSkipped !== undefined
+        ? [{ field: "order", why: harderNote(found) as string }]
         : []),
     ],
     meta: metaOf(found.accounts, found.skipped, archive.missing.length > 0),

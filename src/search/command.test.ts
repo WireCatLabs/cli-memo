@@ -4,7 +4,7 @@ import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
-import { expect, it } from "vitest"
+import { expect, it, vi } from "vitest"
 import { answerOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
 
@@ -518,4 +518,53 @@ it("search all finds a time in the words of a question, and names the word no no
   const none = await run("steering committee xyzzy")
   expect(none.items).toEqual([])
   expect(none.missing).toContainEqual({ field: "items", why: expect.stringContaining('holds "xyzzy"') })
+})
+
+it("search all --harder without the owner's consent sends nothing and says why, in the plain order", async () => {
+  const root = mkdtempSync(join(tmpdir(), "memo-harder-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const store = await openStore({ env })
+  for (const n of ["1", "2"])
+    await store.messages.saveMessages(
+      { provider: "telegram", account: "1" },
+      "7",
+      [
+        {
+          id: n,
+          chatId: "7",
+          senderId: "9",
+          senderName: null,
+          timestamp: `2026-10-0${n}T00:00:00Z`,
+          editedAt: null,
+          text: "Harderword synthetic",
+          outgoing: false,
+          attachments: [],
+          replyTo: null,
+          forwardedFrom: null,
+          reactions: null,
+        },
+      ],
+      { via: "test" },
+    )
+  await store.close()
+  const sent = vi.spyOn(globalThis, "fetch")
+  const plain = captureStreams()
+  await createProgram({ streams: plain, env }).parseAsync(["search", "all", "Harderword", "--json"], { from: "user" })
+  const json = captureStreams()
+  await createProgram({ streams: json, env }).parseAsync(["search", "all", "Harderword", "--harder", "--json"], {
+    from: "user",
+  })
+  const text = captureStreams()
+  await createProgram({ streams: text, env }).parseAsync(["search", "all", "Harderword", "--harder"], { from: "user" })
+
+  const refs = (streams: typeof plain) =>
+    answerOf(streams.stdout.join("")).items.map((item: { ref: string }) => item.ref)
+  expect(refs(json)).toEqual(refs(plain))
+  expect(answerOf(json.stdout.join("")).missing).toContainEqual({
+    field: "order",
+    why: expect.stringContaining("memo models search-consents set anthropic --yes"),
+  })
+  expect(text.stderr.join("")).toContain("not reordered by the model")
+  expect(sent).not.toHaveBeenCalled()
+  sent.mockRestore()
 })

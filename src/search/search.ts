@@ -209,6 +209,8 @@ export interface QueryInput {
 interface EverywhereExtras {
   tasks: (Awaited<ReturnType<typeof taskPage>>["items"][number] & { heldBy: AccountKey })[]
   tasksIncomplete: boolean
+  /** Why `--harder` sent nothing before cli-core was asked. */
+  harderSkipped?: string
 }
 
 /** Pages read past hits the caller may not see; a page short of `limit` after them says `hasMore`. */
@@ -285,17 +287,23 @@ export const searchEverywhere = async (
     timezone,
     plainOrder,
     shows,
+    harder,
   }: QueryInput & {
     only?: SearchedResource[]
     source?: string
     crmKinds?: readonly DealKind[]
     shows?: (item: SearchAllItem) => boolean
+    /** A hosted model reorders the first hits, if the owner consented (`models search-consents`). */
+    harder?: boolean
   },
 ): Promise<SearchAllFound & EverywhereExtras> => {
   const accounts = await scopedAccounts(store, env)
   const group = await groupScoped(store, env, only)
   // Group lists belong to tg; model downloads belong to memo.
   const messenger = { app: { ...APP, command: "tg" }, hintCommand: "memo" }
+  // Hits a permission hides are dropped after the search, so they would already have gone to the model.
+  const harderSkipped =
+    harder && shows !== undefined ? "a permission hides some kinds here, so no hit was sent to the model" : undefined
   const ask = (offset?: number) =>
     searchAll(
       store,
@@ -313,6 +321,7 @@ export const searchEverywhere = async (
         ...(only?.includes("meetings") ? { meetingsAsked: true } : {}),
         ...(exact ? { exact: true } : {}),
         ...(timezone === undefined ? {} : { timezone }),
+        ...(harder && harderSkipped === undefined ? { harder: { app: APP } } : {}),
       },
       messenger,
       (query) => searchStore(store, MEMO, query, messenger),
@@ -334,6 +343,7 @@ export const searchEverywhere = async (
     items: lowerSuspicious(found.items, (item) => suspicious.has(item.ref)),
     tasks: tasks.slice(0, limit),
     tasksIncomplete: tasksIncomplete || tasks.length > limit,
+    ...(harderSkipped === undefined ? {} : { harderSkipped }),
   }
 }
 

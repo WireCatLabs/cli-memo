@@ -255,6 +255,31 @@ EmbeddingGemma has read more.
 `memo models add` adds a model of your own from Hugging Face; `memo models add --help` shows what it
 needs.
 
+## Search harder
+
+`memo search all --harder` asks a hosted model, Claude Haiku from Anthropic, to read your question with the first 30
+results and put the ones that answer it first. It helps most with questions that need a little thought, such as
+"what changed since the spring". In a test on synthetic data it found the right record in the first ten for 93 of
+100 questions instead of 79. It costs about $0.0007 and 1 to 2 seconds a search.
+
+It is off until you allow it, because it sends your words out of your computer:
+
+```sh
+memo models search-consents set anthropic          # says what it sends; changes nothing
+memo models search-consents set anthropic --yes    # allow it
+memo models keys set anthropic                     # your Anthropic API key, typed at a hidden prompt
+memo search all 'what did we agree about the server price?' --harder
+memo models search-consents revoke                 # stop it
+```
+
+**What is sent:** your question and the first 30 results: for each one its date, title and the short excerpt the
+result shows (at most 400 characters). They go to Anthropic (`api.anthropic.com`) only on a search with `--harder`.
+A search without it sends nothing. Anthropic's model answers only with the numbers of the results it picks.
+
+If the model does not answer within 5 seconds, or anything else goes wrong, Memo shows the results in the usual order
+and says why. It never fails the search. Only the first page is reordered. When a permission hides some kinds of
+results (an MCP server started with `--permission`), `--harder` sends nothing. An agent cannot allow it for you.
+
 ## What a result shows
 
 For a note, a result shows the file and the first matching line. Below the results, Memo lists the

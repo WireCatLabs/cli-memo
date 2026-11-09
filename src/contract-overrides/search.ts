@@ -185,6 +185,13 @@ export const search: readonly SharedContractOverride[] = [
         mandatory: false,
       },
       {
+        flags: "--harder",
+        description:
+          "a hosted model (Claude Haiku) reorders the first 30 hits; sends the question and those hits to Anthropic, only after memo models search-consents set anthropic --yes",
+        takes_value: false,
+        mandatory: false,
+      },
+      {
         flags: "--project <project>",
         description:
           "rank the key documents of this project (id, project:<id>, key, exact name or alias) first; nothing is left out",
