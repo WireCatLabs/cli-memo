@@ -268,7 +268,10 @@ const groupScoped = async (
   }
 }
 
-/** Messages, mail, notes and calendar events ranked together, with the open tasks that point at a hit. */
+/**
+ * Messages, mail, notes, calendar events, CRM deals and leads, business data and meeting passages ranked together,
+ * with the open tasks that point at a hit. Meetings come from every meeting account, through each one's search index.
+ */
 export const searchEverywhere = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
@@ -277,12 +280,14 @@ export const searchEverywhere = async (
     limit,
     only,
     crmKinds,
+    source,
     exact,
     timezone,
     plainOrder,
     shows,
   }: QueryInput & {
     only?: SearchedResource[]
+    source?: string
     crmKinds?: readonly DealKind[]
     shows?: (item: SearchAllItem) => boolean
   },
@@ -302,6 +307,10 @@ export const searchEverywhere = async (
         ...(offset === undefined ? {} : { offset }),
         ...(group === undefined ? (only === undefined ? {} : { only }) : { only: group.only, scope: group.scope }),
         ...(crmKinds === undefined ? {} : { crmKinds }),
+        ...(source === undefined ? {} : { source }),
+        // memo is the owner's own view of every account, personal and work alike.
+        meetingScopes: ["personal", "work"],
+        ...(only?.includes("meetings") ? { meetingsAsked: true } : {}),
         ...(exact ? { exact: true } : {}),
         ...(timezone === undefined ? {} : { timezone }),
       },

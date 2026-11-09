@@ -116,6 +116,12 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo models consents set openai --model gpt-4o-mini --yes",
   ],
   "models consents revoke": ["memo models consents revoke"],
+  "models search-consents show": ["memo models search-consents show --json"],
+  "models search-consents set": [
+    "memo models search-consents set anthropic",
+    "memo models search-consents set anthropic --yes",
+  ],
+  "models search-consents revoke": ["memo models search-consents revoke"],
   "models keys set": ["memo models keys set openai", "memo models keys set anthropic"],
   "models keys remove": ["memo models keys remove openai"],
   "models add": [
@@ -502,8 +508,8 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "mcp server stop": ["memo mcp server stop"],
   "search all": [
     "memo search all 'budget harbour'",
-    "memo search all 'content:invoice' --only mail,notes --json",
     "memo search all 'Rental agreement' --only business",
+    "memo search all 'release date' --source zoom:work,notes --json",
   ],
   "search messages": ["memo search messages 'friday meeting has:voice'"],
   "search mail": ["memo search mail 'mailbox:important budget' --source email:me@example.com"],

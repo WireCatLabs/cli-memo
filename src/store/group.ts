@@ -54,7 +54,7 @@ export const groupScopeOf = async (store: MessageStore, env: NodeJS.ProcessEnv):
   return run === undefined ? undefined : scopeIn(run, await memoListContext(store, env))
 }
 
-export type GroupKind = "messages" | "mail" | "notes" | "events" | "crm" | "business"
+export type GroupKind = "messages" | "mail" | "notes" | "events" | "crm" | "business" | "meetings"
 
 /** The owner's own invoices, payments and contracts, as cli-core's business lane names them. */
 const OWN_BUSINESS: AccountKey = { provider: "business", account: "internal" }
@@ -75,11 +75,12 @@ export const accountsByKind = (
     events: [],
     crm: [],
     business: [OWN_BUSINESS, ...imports.filter(scope.has)],
+    meetings: [],
   }
   for (const key of scope.accounts) {
     const kind = kindIn(key.provider)
     if (kind === "documents") kinds.notes.push(key)
-    else if (kind !== undefined && kind !== "meetings" && kind in kinds) kinds[kind as GroupKind].push(key)
+    else if (kind !== undefined && kind in kinds) kinds[kind as GroupKind].push(key)
   }
   return kinds
 }

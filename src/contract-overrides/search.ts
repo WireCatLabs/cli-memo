@@ -31,7 +31,7 @@ export const search: readonly SharedContractOverride[] = [
     command: ["search", "all"],
     field: "summary",
     before: "search stored messages, notes, calendar events and selected meeting transcripts",
-    after: "messages, mail, notes, events and deals ranked together",
+    after: "messages, mail, notes, events, deals and meetings ranked together",
     reason:
       "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
@@ -41,7 +41,7 @@ export const search: readonly SharedContractOverride[] = [
     before:
       "search messenger messages and notes in the local store, calendar events when the store holds a calendar, and a meeting account's transcripts when --source names one — best match first; not mail (the separate memo CLI searches it: memo search mail), tasks, people, memories or projects. Use it when you do not know where something was written; search messages or notes reads one kind with all its fields",
     after:
-      "messages, mail, notes, calendar events, deals, leads and business data ranked together; not people, memories, projects or decisions. A kind you know reads better with its own search, with all its fields",
+      "messages, mail, notes, calendar events, deals, leads, business data and meeting passages from every meeting account, ranked together; not people, memories, projects or decisions. A kind you know reads better with its own search, with all its fields",
     reason:
       "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
@@ -167,7 +167,14 @@ export const search: readonly SharedContractOverride[] = [
       },
       {
         flags: "--only <resources>",
-        description: "messages,mail,notes,events,crm,business, separated by commas",
+        description: "messages,mail,notes,events,crm,business,meetings, separated by commas",
+        takes_value: true,
+        mandatory: false,
+      },
+      {
+        flags: "--source <accounts>",
+        description:
+          "only these accounts, separated by commas: provider:account as a hit shows it, a provider, a kind or group:<name>; each resource reads the ones of its kind, and one it names none of is left out",
         takes_value: true,
         mandatory: false,
       },
