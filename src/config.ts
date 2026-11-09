@@ -85,6 +85,13 @@ const ConfigSchema = v.strictObject({
   mail_bulk_newsletter_words: v.optional(v.string()),
   mail_bulk_newsletter_senders: v.optional(v.string()),
   mail_bulk_order_words: v.optional(v.string()),
+  /** The reader `memo sources suggest` sends a source's text to, and its model; only the owner picks them. */
+  sources: v.optional(
+    v.strictObject({
+      reader: v.optional(v.pipe(v.string(), v.minLength(1))),
+      model: v.optional(v.pipe(v.string(), v.minLength(1), v.maxLength(200))),
+    }),
+  ),
   /** Retired: memo no longer imports mail, the `mail` CLI does. Still loads so an old config works; doctor names it. */
   mail: v.optional(v.unknown()),
 })

@@ -81,7 +81,9 @@ input, or write a file into a folder of its choice.
 `sources add` takes the source as `text` only: an agent cannot name a file on this computer or an address for Memo
 to open, so it gets no way to read local files or reach a private network through Memo. A path or a link is added
 from the command line ([Sources you add by hand](sources.md)). An agent's subjects wait for you to confirm them.
-`sources remove` is not offered: only you remove a source you added.
+`sources remove` is not offered: only you remove a source you added. `sources suggest` is not offered either, so an
+agent cannot send a source's text off this computer; nor are `sources readers set` and `models keys set` and
+`remove`, since only you choose the reader and give its key. `sources readers list` is offered.
 
 `memories add`, `facts add`, `actions add`, `meetings actions add` and `projects actions add` save proposals.
 By default only the owner decides project proposals; `projects actions confirm` and `projects actions reject` refuse

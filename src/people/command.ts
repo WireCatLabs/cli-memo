@@ -10,6 +10,7 @@ import { boundFolders, folderOfFile } from "../notes/bound.js"
 import { folderNotes } from "../notes/import.js"
 import { positive } from "../options.js"
 import { keepInGroup } from "../store/group.js"
+import { identitiesCommands } from "./identities-command.js"
 import { identityOf } from "./identity.js"
 import { importNotesMap } from "./notes-map.js"
 
@@ -77,7 +78,9 @@ export const noteCommand = (program: Command, streams: Streams, env: NodeJS.Proc
 /** For an assignee picker: everyone the store knows, the owner first, then by how many tasks name them. */
 export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
-  const people = program.command("people").description("the people memo knows, to assign tasks to")
+  const people = program
+    .command("people")
+    .description("the people memo knows: who is who across sources, and whom to assign tasks to")
   annotate(people.command("add"), { effects: LOCAL_WRITE, literal_after_dashes: true })
     .description("add a person by name, before any message names them")
     .argument("<name...>", "what to call them")
@@ -115,4 +118,5 @@ export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.Pr
         )
       })
     })
+  identitiesCommands(people, program, streams, env)
 }

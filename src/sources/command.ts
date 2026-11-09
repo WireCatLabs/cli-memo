@@ -15,6 +15,7 @@ import { refuseBareNumber } from "../refs.js"
 import { dropCopy, keepCopy } from "./copy.js"
 import { namedIn } from "./mentions.js"
 import { argumentKind, readFile, readPage, readText, SOURCE_TEXT_CHARS, withNextStep } from "./read.js"
+import { type ReaderDeps, readerCommands } from "./suggest-command.js"
 
 const SUBJECT_HELP =
   "who or what it is about: person:, organization:, project:, task:, meeting:, or <messenger>:<name or id>; repeat for more"
@@ -86,7 +87,7 @@ export const sourcesCommand = (
   program: Command,
   streams: Streams,
   env: NodeJS.ProcessEnv,
-  { fetch }: { fetch?: FetchPageOptions } = {},
+  { fetch, readers = {} }: { fetch?: FetchPageOptions; readers?: ReaderDeps } = {},
 ): void => {
   const { print, run } = answers(program, streams, env)
   const sources = program
@@ -297,4 +298,6 @@ export const sourcesCommand = (
         })
       })
     })
+
+  readerCommands(program, sources, streams, env, readers)
 }

@@ -20,6 +20,8 @@
     "RDAP",
     "mbox",
     "notmuch",
+    "ollama",
+    "Ollama",
     "openai",
     "Screenpipe",
     "UIDVALIDITY"

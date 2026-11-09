@@ -125,6 +125,35 @@ const OWN_ENTITIES = entityFields({
   ],
   source_mention: ["ref", "type", "name", "found_as"],
   source_removal: ["ref", "removed", "copy_deleted", "facts", "memories"],
+  source_suggestion: [
+    "ref",
+    "reader",
+    "model",
+    "leaves_computer",
+    "reused",
+    "batch",
+    "fingerprint",
+    "status",
+    "owner_only",
+    "facts",
+    "dropped",
+  ],
+  source_reader: [
+    "id",
+    "title",
+    "provider",
+    "available",
+    "signed_in",
+    "version",
+    "model",
+    "models",
+    "needs_model",
+    "leaves_computer",
+    "reads_files",
+    "chosen",
+    "problem",
+  ],
+  source_reader_choice: ["reader", "model", "leaves_computer", "reads_files"],
   project_annotation_snapshot: ["snapshot", "fingerprint", "coverage", "read_bytes", "records"],
   project_annotation_export: [
     "output_file",
@@ -661,6 +690,7 @@ export const createProgram = ({
   fetchPage,
   group,
   stdin,
+  readerFetch,
 }: {
   streams?: Streams
   env?: NodeJS.ProcessEnv
@@ -676,6 +706,8 @@ export const createProgram = ({
   fetchPage?: FetchPageOptions
   /** The account group the first word named (`memo work …`), as `liftGroup` took it off the command line. */
   group?: string
+  /** How the Ollama and API readers reach the network; a test hands in its own. */
+  readerFetch?: typeof fetch
 } = {}): Command => {
   // Every reader of the run's group reads MEMO_GROUP, so the first word is that, said shorter (WC-ACCT-13).
   const env = group === undefined ? given : { ...given, MEMO_GROUP: group }
@@ -692,7 +724,10 @@ export const createProgram = ({
   contextCommand(program, streams, env)
   showCommand(program, streams, env)
   notesCommand(program, streams, env)
-  sourcesCommand(program, streams, env, fetchPage ? { fetch: fetchPage } : {})
+  sourcesCommand(program, streams, env, {
+    ...(fetchPage ? { fetch: fetchPage } : {}),
+    readers: { ...(readerFetch ? { fetch: readerFetch } : {}), ...(keyring ? { keyring } : {}) },
+  })
   foldersCommand(program, streams, env)
   messagesCommand(program, streams, env)
   mailCommand(program, streams, env)
