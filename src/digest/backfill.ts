@@ -12,6 +12,7 @@ import {
   runsBetween,
   SCHEDULE_DEFAULTS,
   scheduleFile,
+  slotsOf,
   spentToday,
 } from "@wirecat/cli-core/cli"
 import { type Command, Option } from "commander"
@@ -65,8 +66,11 @@ const dateOf = (value: string, flag: string): Date => {
 const runsOf = (when: CalendarWhen, from: Date, to: Date) => {
   const end = new Date(to)
   end.setDate(end.getDate() + 1)
+  // Two runs on one day are told apart by their time; a digest that runs once a day keeps the plain date.
+  const timed = new Set(slotsOf(when).map((slot) => slot.at)).size > 1
   return runsBetween(when, from.getTime(), end.getTime()).map((at) => ({
     date: localDate(at),
+    label: timed ? `${localDate(at)} ${new Date(at).toTimeString().slice(0, 5)}` : localDate(at),
     at,
     since: windowStart(when, at),
     next: nextRun(when, at) ?? at + DAY,
@@ -162,10 +166,10 @@ export const digestCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       // A run its timer started late, or a backfill a minute off, still counts as that time's digest.
       const done = (run: { at: number; next: number }) => reported.some((at) => at >= run.at - MINUTE && at < run.next)
       const days = all.filter((day) => !done(day))
-      const skipped = all.filter(done).map((day) => day.date)
+      const skipped = all.filter(done).map((day) => day.label)
       const lastCost = schedule.last?.costUsd
       const estimate = {
-        days: days.map((day) => day.date),
+        days: days.map((day) => day.label),
         skipped,
         estimateUsd: typeof lastCost === "number" ? cents(days.length * lastCost) : null,
       }
@@ -204,14 +208,14 @@ export const digestCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       for (const day of days) {
         const failed = built.some((one) => one.exitCode !== 0)
         if (left.length || failed || (cap > 0 && spentToday(file) >= cap)) {
-          left.push(day.date)
+          left.push(day.label)
           continue
         }
         const run = await backfillScheduleRun(command, APP, env, file, {
           at: new Date(day.at),
           input: inputOf(day.date, day.at, day.since, sources),
         })
-        built.push({ date: day.date, at: run.at, exitCode: run.exitCode, costUsd: run.costUsd ?? null })
+        built.push({ date: day.label, at: run.at, exitCode: run.exitCode, costUsd: run.costUsd ?? null })
       }
       const costUsd = cents(built.reduce((sum, one) => sum + (one.costUsd ?? 0), 0))
       if (built.some((one) => one.exitCode !== 0)) process.exitCode = 1

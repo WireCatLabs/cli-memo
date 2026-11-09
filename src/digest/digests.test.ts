@@ -266,6 +266,25 @@ describe("digests by name", () => {
   })
 })
 
+describe("digests after other changes", () => {
+  it("drops a digest whose schedule another command removed, and adds one of that name again", async () => {
+    const { json } = setUp()
+    await json("digest", "add", "d", "--at", "08:30", "--from-app")
+    await json("schedule", "remove", "d")
+    expect((await json("digest", "list")).items).toEqual([])
+    expect((await json("digest", "add", "d", "--at", "09:00", "--from-app")).item).toMatchObject({ times: ["09:00"] })
+  })
+
+  it("tells the morning digest its window once it runs twice a day", async () => {
+    const { json, run, env, state } = setUp()
+    morningDigest(state, "claude")
+    await json("digest", "edit", "morning-digest", "--at", "08:30", "--at", "18:00", "--from-app")
+    env.MEMO_SCHEDULED = "morning-digest"
+    expect(await run("skill", "show", "morning-digest")).toContain("## This digest: Morning digest")
+    delete env.MEMO_SCHEDULED
+  })
+})
+
 describe("a digest's window", () => {
   const local = (day: number, hour: number, minute = 0) => new Date(2026, 10, day, hour, minute).getTime()
 

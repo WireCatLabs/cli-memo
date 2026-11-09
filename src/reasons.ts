@@ -34,6 +34,12 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: [],
   },
   {
+    reason: "digest.own-prompt",
+    code: "validation_error",
+    message: "the digest runs a prompt of its own, made with memo schedule agent; change it there",
+    details: [],
+  },
+  {
     reason: "digest.owner-only",
     code: "permission_error",
     message:

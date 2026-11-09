@@ -67,10 +67,12 @@ export const writeDefinition = (env: NodeJS.ProcessEnv, definition: DigestDefini
 export const dropDefinition = (env: NodeJS.ProcessEnv, name: string): void =>
   rmSync(definitionFile(env, name), { force: true })
 
-/** The morning digest is one while its schedule exists; any other name, while memo keeps its definition. */
+/**
+ * A digest while its schedule exists: the morning digest by name, any other while memo keeps its definition too. A
+ * definition left behind by `memo schedule remove` is no digest, and `digest add` writes over it.
+ */
 export const isDigest = (env: NodeJS.ProcessEnv, name: string): boolean =>
-  existsSync(definitionFile(env, name)) ||
-  (name === MORNING_DIGEST && existsSync(digestScheduleFile(env, MORNING_DIGEST)))
+  existsSync(digestScheduleFile(env, name)) && (name === MORNING_DIGEST || existsSync(definitionFile(env, name)))
 
 /** The digests by name, the morning digest first. */
 export const digestNames = (env: NodeJS.ProcessEnv): string[] => {
@@ -80,8 +82,8 @@ export const digestNames = (env: NodeJS.ProcessEnv): string[] => {
         .filter((file) => file.endsWith(".json"))
         .map((file) => file.slice(0, -".json".length))
     : []
-  const all = new Set([...(isDigest(env, MORNING_DIGEST) ? [MORNING_DIGEST] : []), ...named.sort()])
-  return [...all]
+  const all = new Set([MORNING_DIGEST, ...named.sort()])
+  return [...all].filter((name) => isDigest(env, name))
 }
 
 /** The digest a scheduled run belongs to: the run's own schedule when it is a digest, else the morning digest. */
@@ -145,7 +147,7 @@ export const runCapOf = (argv: readonly string[]): number | null => {
 /** A digest's schedule, or a not-found refusal that names the command listing them. */
 export const digestOf = (env: NodeJS.ProcessEnv, name: string): { file: string; schedule: Schedule } => {
   const file = digestScheduleFile(env, name)
-  if (!isDigest(env, name) || !existsSync(file))
+  if (!isDigest(env, name))
     throw new CliError("not_found", `no digest ${name} — \`memo digest list\` names them`, {
       reason: "digest.not-found",
     })

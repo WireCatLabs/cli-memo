@@ -4,7 +4,15 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { CliError } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { type Body, grantsAuthority, LOCAL_READ, LOCAL_WRITE, readSchedule } from "@wirecat/cli-core/cli"
+import {
+  type Body,
+  grantsAuthority,
+  isCalendar,
+  LOCAL_READ,
+  LOCAL_WRITE,
+  readSchedule,
+  slotsOf,
+} from "@wirecat/cli-core/cli"
 import { type MessageStore, storePath, type TemplateAddress } from "@wirecat/cli-core/store"
 import { Command, Option } from "commander"
 import { itemAnswer, withStore } from "../answer.js"
@@ -80,17 +88,20 @@ export const digestAddendum = async (
   const brief = await readBrief(env, name)
   const definition = readDefinition(env, name)
   const file = digestScheduleFile(env, name)
-  if (!definition || !existsSync(file)) return { brief, digest: undefined }
-  const flags = agendaFlags(windowStart(readSchedule(file).when, now), definition.sources)
+  if (!existsSync(file)) return { brief, digest: undefined }
+  const { when } = readSchedule(file)
+  const slots = isCalendar(when) ? slotsOf(when) : []
+  // The skill's own `--since-time 1d` is already right for a morning digest that runs once a day.
+  if (!definition && !(slots.length > 1 || slots.some((slot) => slot.on))) return { brief, digest: undefined }
+  const sources = definition?.sources ?? []
+  const flags = agendaFlags(windowStart(when, now), sources)
   return {
     brief,
     digest:
-      `## This digest: ${definition.title}\n\n` +
+      `## This digest: ${definition?.title ?? "Morning digest"}\n\n` +
       "Unless your input has a `backfill:` line, the agenda call is " +
       `\`memo review agenda --compact ${flags}\`: this digest reads from its previous time` +
-      (definition.sources.length
-        ? `, and only ${definition.sources.join(", ")}; leave everything else out of the report too.`
-        : ".") +
+      (sources.length ? `, and only ${sources.join(", ")}; leave everything else out of the report too.` : ".") +
       " Where this skill says `--since-time 1d`, give that call the same `--since-time` instead. " +
       `Keep \`"kind": "morning-digest"\` in the report: it names the report's shape, not the digest.`,
   }

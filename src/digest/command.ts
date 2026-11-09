@@ -4,9 +4,10 @@ import type { Body } from "@wirecat/cli-core/cli"
 import { LOCAL_READ, parseDuration } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { itemAnswer, withStore } from "../answer.js"
+import { APP } from "../app.js"
 import { positive } from "../options.js"
 import { gatherDigest, WATCH_TAG } from "./digest.js"
-import { DIGEST_SOURCES, type DigestSource } from "./digests.js"
+import { DIGEST_SOURCES, type DigestSource, readDefinition, runningDigest } from "./digests.js"
 import { digestText, fitDigest } from "./text.js"
 
 /** Roughly 10k tokens of mixed Russian and English: Cyrillic takes two bytes a letter and fewer letters a token. */
@@ -24,6 +25,10 @@ interface Options {
   json?: boolean
   source?: DigestSource[]
 }
+
+/** A digest's run keeps to the digest's sources even when its agent leaves out `--source`. */
+const scheduledSources = (env: NodeJS.ProcessEnv): DigestSource[] =>
+  env[`${APP.envPrefix}_SCHEDULED`] ? (readDefinition(env, runningDigest(env))?.sources ?? []) : []
 
 /** `--source telegram,mail`, repeatable: what the agenda reads; each one a part it can leave out. */
 export const sourcesOf = (value: string, before: DigestSource[] = []): DigestSource[] => {
@@ -92,7 +97,8 @@ export const reviewAgendaCommand = (review: Command, print: Print, streams: Stre
     )
     .option(
       "--source <accounts>",
-      `only these, comma-separated or repeated: ${DIGEST_SOURCES.join(", ")}; watched items, projects and proposals stay`,
+      `only these, comma-separated or repeated: ${DIGEST_SOURCES.join(", ")}; watched items, projects and proposals stay. ` +
+        "A digest's run reads the digest's own sources without it",
       sourcesOf,
     )
     .option("--limit <n>", "items per section before the size budget", positive, 25)
@@ -118,7 +124,7 @@ export const reviewAgendaCommand = (review: Command, print: Print, streams: Stre
           limit: given.limit,
           excerpt: given.compact ? 100 : 200,
           owedWithin: OWED_WITHIN,
-          ...(given.source ? { sources: given.source } : {}),
+          sources: given.source ?? scheduledSources(env),
         }),
       )
       const digest = fitDigest(gathered, given.maxOutputBytes ?? (given.compact ? COMPACT_BYTES : FULL_BYTES))

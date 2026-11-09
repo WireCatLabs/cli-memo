@@ -231,7 +231,8 @@ export const gatherDigest = async (
   const window = (now - since) / DAY
   const days = `${Math.max(1, Math.ceil(window))}d`
   const reads = (source: DigestSource) => only.length === 0 || only.includes(source)
-  const accounts = (await scopedAccounts(store, env)).filter((key) => {
+  const scoped = await scopedAccounts(store, env)
+  const accounts = scoped.filter((key) => {
     const source = sourceOf(key.provider)
     return source === undefined || reads(source)
   })
@@ -474,11 +475,16 @@ export const gatherDigest = async (
 
   const tasksSince = newSince ?? (until === undefined ? previousDigestAt(env, now) : digestRunBefore(env, until))
   const hot = reads("tasks")
-    ? await gatherTasks(store, [...messengers, ...mailboxes], {
-        now,
-        newSince: tasksSince,
-        ...(until === undefined ? {} : { until }),
-      })
+    ? // Tasks taken from chats and mail count under tasks, read or not their source.
+      await gatherTasks(
+        store,
+        scoped.filter((key) => MESSENGERS.has(key.provider) || key.provider === "email"),
+        {
+          now,
+          newSince: tasksSince,
+          ...(until === undefined ? {} : { until }),
+        },
+      )
     : {
         tasks: [],
         counts: { overdue: 0, today: 0, tomorrow: 0, new: 0, newSince: tasksSince, undated: 0 },

@@ -5471,7 +5471,7 @@ memo review agenda [options]
 |---|---|
 | `--since-time <time>` | how far back: hours or days (12h, 7d) or a start date (2026-11-01). Default: `1d`. |
 | `--before-time <time>` | build it as of this past ISO time or date, for a past day's digest: --since-time counts back from it, and what came later is left out; a chat or thread answered since reads as answered. |
-| `--source <accounts>` | only these, comma-separated or repeated: telegram, max, whatsapp, mail, meetings, tasks; watched items, projects and proposals stay. |
+| `--source <accounts>` | only these, comma-separated or repeated: telegram, max, whatsapp, mail, meetings, tasks; watched items, projects and proposals stay. A digest's run reads the digest's own sources without it. |
 | `--limit <n>` | items per section before the size budget. Default: `25`. |
 | `--max-output-bytes <bytes>` | the text answer's size budget in bytes; 40000 with --compact, else 80000. |
 | `--compact` | one line per item, shorter excerpts, the smaller budget: for an agent. |

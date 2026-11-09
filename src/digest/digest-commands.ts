@@ -41,7 +41,6 @@ import {
   digestOf,
   digestScheduleFile,
   dropDefinition,
-  isDigest,
   MORNING_DIGEST,
   readDefinition,
   runCapOf,
@@ -67,10 +66,16 @@ interface Options {
   fromApp?: boolean
 }
 
-const usdOf = (flag: string) => (value: string) => {
+const usdOf = (flag: string, least: "zero" | "above zero") => (value: string) => {
   const usd = Number(value)
-  if (!Number.isFinite(usd) || usd < 0)
-    throw new CliError("validation_error", `${flag} takes US dollars, 0 or more; not "${value}"`, { param: flag })
+  if (!Number.isFinite(usd) || usd < 0 || (least === "above zero" && usd === 0))
+    throw new CliError(
+      "validation_error",
+      `${flag} takes US dollars, ${least === "zero" ? "0 or more" : "more than 0"}; not "${value}"`,
+      {
+        param: flag,
+      },
+    )
   return usd
 }
 
@@ -101,11 +106,15 @@ const withDigestOptions = (command: Command) =>
         routeOf,
       )
       .option("--text <text>", "your brief: what to collect, what to skip, how much; at most 4000 characters")
-      .option("--max-cost <usd>", "stop a run that costs more than this, in US dollars", usdOf("--max-cost"))
+      .option(
+        "--max-cost <usd>",
+        "stop a run that costs more than this, in US dollars",
+        usdOf("--max-cost", "above zero"),
+      )
       .option(
         "--max-cost-per-day <usd>",
         "start no run for the rest of the day once its runs cost this much, in US dollars; 0 for no cap",
-        usdOf("--max-cost-per-day"),
+        usdOf("--max-cost-per-day", "zero"),
       )
       .option("--json", "print JSON"),
   )
@@ -192,7 +201,7 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
       .argument("<name>", "lowercase letters, digits and dashes"),
   ).action(async (name: string, given: Options, command: Command) => {
     const digestName = scheduleName(name)
-    if (isDigest(env, digestName) || existsScheduled(env, digestName))
+    if (existsSync(digestScheduleFile(env, digestName)))
       throw new CliError(
         "validation_error",
         `${digestName} already exists; \`memo digest edit ${digestName}\` changes it`,
@@ -239,6 +248,12 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
       .argument("<name>", "the digest's name, as `memo digest list` shows it"),
   ).action(async (name: string, given: Options, command: Command) => {
     const { schedule } = digestOf(env, name)
+    if (!schedule.argv.includes(DIGEST_PROMPT))
+      throw new CliError(
+        "validation_error",
+        `${name} runs a prompt of its own, made with \`memo schedule agent\`; an edit here would replace it — change it there`,
+        { reason: "digest.own-prompt" },
+      )
     const when = given.at?.length ? calendarOf(given.at.flatMap(slotsOfAt)) : schedule.when
     if (given.text !== undefined) checkedBrief(given.text)
     await owner(command, `change the digest ${name}?`)
@@ -349,6 +364,3 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
       print(given.json, itemAnswer({ name, removed: true }), `Removed ${name}; its past runs stay.`)
     })
 }
-
-/** A schedule of that name that is no digest, such as the mail triage: a digest must not replace it. */
-const existsScheduled = (env: NodeJS.ProcessEnv, name: string) => existsSync(digestScheduleFile(env, name))
