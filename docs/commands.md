@@ -318,8 +318,6 @@ memo sources add <source> [options]
 
 read a web page as sources add would, with the same refusals, and say what would be kept; nothing is saved
 
-This command changes the local store or your files.
-
 ```sh
 memo sources preview <url> [options]
 ```

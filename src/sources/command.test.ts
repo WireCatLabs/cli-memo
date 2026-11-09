@@ -400,6 +400,15 @@ it("refuses in preview what sources add refuses, and takes only a web address", 
   await expect(signIn).resolves.toMatchObject({ details: { reason: "source.needs-sign-in" } })
   await expect(preview(["http://127.0.0.1/admin"])).rejects.toMatchObject({ details: { reason: "source.url-refused" } })
   await expect(preview([file("plain.txt", "local")])).rejects.toMatchObject({ details: { reason: "input.invalid" } })
+  const strict = createProgram({
+    streams: captureStreams(),
+    env,
+    fetchPage: web(page(200, { "content-type": "text/plain" }, "x")),
+  })
+  quiet(strict)
+  await expect(
+    strict.parseAsync(["sources", "preview", "https://example.org/kestrel", "--json=titel"], { from: "user" }),
+  ).rejects.toMatchObject({ details: { reason: "output.unknown-field" } })
   const transport = page(200, { "content-type": "text/plain" }, "never fetched")
   await expect(
     preview(["https://example.org/x"], { fetchPage: web(transport), as: { ...env, AI_AGENT: "memo-mcp" } }),

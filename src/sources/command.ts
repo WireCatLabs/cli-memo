@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs"
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { environmentOf, FETCH, LOCAL_READ, LOCAL_WRITE } from "@wirecat/cli-core/cli"
+import { environmentOf, FETCH, LOCAL_READ, LOCAL_WRITE, REMOTE_READ } from "@wirecat/cli-core/cli"
 import { type FetchPageOptions, MAX_TEXT_CHARS } from "@wirecat/cli-core/documents"
 import { type AddedSourceContent, addedSourceKeyOf, type Decider, type MessageStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
@@ -205,7 +205,7 @@ export const sourcesCommand = (
       )
     })
 
-  annotate(sources.command("preview"), { effects: FETCH, output: { entity: "source_preview" } })
+  annotate(sources.command("preview"), { effects: REMOTE_READ, output: { entity: "source_preview" } })
     .summary("read a web page as sources add would, and keep nothing")
     .description(
       "read a web page as sources add would, with the same refusals, and say what would be kept; nothing is saved",
@@ -213,12 +213,18 @@ export const sourcesCommand = (
     .argument("<url>", "an http(s) address")
     .option("--json", "print JSON; --json=title,excerpt keeps only those fields")
     .action(async (given: string, options: { json?: boolean }, command: Command) => {
-      if (argumentKind(given) !== "url")
-        throw new CliError("validation_error", `${given} is not a web address; give an http(s) address`, {
-          reason: "input.invalid",
-        })
       if (isAgentServer(command, env))
-        throw new CliError("permission_error", "over MCP a source is added as text only, never from a path or a link")
+        throw new CliError("permission_error", "an agent over MCP cannot make memo fetch an address", {
+          reason: "source.agent-fetch",
+        })
+      if (argumentKind(given) !== "url")
+        throw new CliError(
+          "validation_error",
+          "give an http(s) address; a file is previewed by the app that picked it",
+          {
+            reason: "input.invalid",
+          },
+        )
       const read = await readPage(given, { maxChars: SOURCE_TEXT_CHARS, ...(fetch ? { fetch } : {}) }).catch(
         (error: unknown) => {
           throw withNextStep(error)
