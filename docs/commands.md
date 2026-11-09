@@ -754,7 +754,7 @@ memo people add <name> [options]
 
 ### `memo people list`
 
-everyone memo knows, by name: the owner first, then by how many tasks name them
+people of one kind: person (the default: the owner, people added by hand or assigned a task, and named people with a tie to you, such as a one-to-one chat, a group of at most 10, mail you wrote, a meeting, a CRM or your address book), organization, automated (bots, newsletters, notifications), unsorted (no tie or no name) or all. The owner first, then by the messages and mail they sent
 
 ```sh
 memo people list [query] [options]
@@ -762,16 +762,39 @@ memo people list [query] [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `query` | optional | field:value terms; this list filters by none yet. |
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
 
 | Option | What it does |
 |---|---|
-| `--limit <n>` | most people, up to 5000. Default: `500`. |
+| `--sort <field>` | interactions, recent, name, tasks (default interactions). Default: `interactions`. |
+| `--limit <n>` | most people on a page, up to 5000. Default: `500`. |
+| `--page <n>` | which page, from 1. Default: `1`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** everyone memo knows, the owner first
+**Returns:** people of one kind, most messages first: person by default
 
-**Example:** `memo people list --json`
+**Example:** `memo people list --json`, `memo people list kind:organization --sort name --page 2`
+
+### `memo people check`
+
+people whose names start like these words, the same name first: check before adding a person
+
+```sh
+memo people check <name> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | required | the name being typed. |
+
+| Option | What it does |
+|---|---|
+| `--limit <n>` | most people, up to 50. Default: `8`. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** people with a name like this one, to check before adding a person
+
+**Example:** `memo people check ivan petrov --json`
 
 ### `memo people show`
 

@@ -133,9 +133,9 @@ it("adds a person by name, and lists everyone memo knows to assign", async () =>
 
   const people = await run(["people", "list"])
   expect(people.items[0]).toMatchObject({ owner: true })
-  expect(people.items.filter(({ owner }: { owner: boolean }) => !owner)).toEqual([
-    { ref: ana, name: "Ana Example", owner: false, tasks: 1 },
-    { ref: lena.ref, name: "Lena Example", owner: false, tasks: 1 },
+  expect(people.items.filter(({ owner }: { owner: boolean }) => !owner)).toMatchObject([
+    { ref: ana, name: "Ana Example", display_name: "Ana Example", owner: false, tasks: 1, ties: ["task"] },
+    { ref: lena.ref, name: "Lena Example", owner: false, tasks: 1, ties: ["added", "task"] },
   ])
   expect((await run(["people", "list", "--limit", "1"])).items).toHaveLength(1)
 })

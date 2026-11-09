@@ -17,6 +17,37 @@ matches when their name, username or the alias you gave them holds every word; c
 not matter. Each result shows the person's `person:<id>`, which `memo projects evidence --contact`
 takes, and the accounts behind it.
 
+## The people you know
+
+```sh
+memo people list                          # people, the ones who write to you most first
+memo people list kind:organization        # companies, shops, airlines
+memo people list kind:all --sort recent --page 2
+memo people list name:ivan --json
+memo people check ivan petrov             # before adding a person: who already has this name
+```
+
+`people list` shows one kind at a time; the first rule that holds decides it, and `kind_signals` says which:
+
+1. **person**: you, people you added by hand, and anyone assigned a task, always.
+2. **automated**: a bot, a no-reply address, a sender most of whose mail is in the bulk box or whose mail you never
+   answer, or a name such as «Notifications» or «Рассылка».
+3. **organization**: an account an organization owns, a shared address such as `info@`, or a legal form or company
+   word in the name (ООО, LLC, Airlines, Hotel, Team…).
+4. **person**: a readable name and a tie to you: a one-to-one chat, a group of at most 10, mail you wrote to them, a
+   meeting, a CRM, or your phone's address book.
+5. **unsorted**: everyone else, such as authors seen only in big groups and accounts with no name.
+
+`kind:person` is the default; `kind:all` lists every kind. The answer's `next` step `people.kinds` says how many each
+other kind holds. Each person has `display_name` (the name cleaned of wrapping quotes and spaces; a placeholder such as «Без
+имени» gives way to the username, phone or email; `name` stays as stored), `contact` (the phone, else the email, else
+the username), `messages_from` (the messages and mail they sent), `last_contact` and `ties`. `--sort` is
+`interactions` (the default), `recent`, `name` or `tasks`. Run `contacts sync` in each messenger once, or nobody has
+the address-book tie.
+
+`people check` lists people whose names start like the words you type, in any order, the same name first
+(`same_name`). Memo never joins them on its own: link them as below.
+
 ## Everything about a person
 
 **The easiest way: ask your agent.**

@@ -19,6 +19,8 @@ export interface PersonHit {
   name: string | null
   identities: PersonIdentity[]
   aliases: string[]
+  /** Why `people list` shows them; empty for someone with no tie to the owner, who is listed after the rest. */
+  ties: string[]
 }
 
 export interface PeopleFound {
@@ -66,7 +68,7 @@ export const searchPeople = async (
       const ref = person
         ? `person:${person.uid}`
         : formatReference({ type: "contact", provider: key.provider, id: contact.id })
-      const hit = hits.get(ref) ?? { ref, name: person?.name ?? contact.name, identities: [], aliases: [] }
+      const hit = hits.get(ref) ?? { ref, name: person?.name ?? contact.name, identities: [], aliases: [], ties: [] }
       hit.identities.push({
         provider: key.provider,
         account: key.account,
@@ -84,12 +86,20 @@ export const searchPeople = async (
   for (const { person, name } of source === undefined ? await store.tasks.taskPeople({ limit: 5000 }) : []) {
     if (hits.has(person) || name === null || !wanted.every((word) => fold(name).includes(word))) continue
     const known = await store.people.personByUid(person.slice("person:".length))
-    if (known && known.identities.length === 0) hits.set(person, { ref: person, name, identities: [], aliases: [] })
+    if (known && known.identities.length === 0)
+      hits.set(person, { ref: person, name, identities: [], aliases: [], ties: [] })
   }
+  const people = [...hits.keys()].filter((ref) => ref.startsWith("person:"))
+  const ties = people.length === 0 ? {} : await store.people.ties(people)
+  for (const hit of hits.values()) hit.ties = ties[hit.ref] ?? []
   const first = wanted.join(" ")
   const rank = (hit: PersonHit) => (fold(hit.name ?? "").startsWith(first) ? 0 : 1)
   const sorted = [...hits.values()].sort(
-    (a, b) => rank(a) - rank(b) || (a.name ?? "").localeCompare(b.name ?? "") || a.ref.localeCompare(b.ref),
+    (a, b) =>
+      Number(b.ties.length > 0) - Number(a.ties.length > 0) ||
+      rank(a) - rank(b) ||
+      (a.name ?? "").localeCompare(b.name ?? "") ||
+      a.ref.localeCompare(b.ref),
   )
   return { items: sorted.slice(0, limit), hasMore: sorted.length > limit, accounts }
 }
@@ -106,7 +116,7 @@ export const peopleText = (found: PeopleFound) =>
   found.items
     .map((hit) =>
       [
-        `${hit.ref}  ${hit.name ?? "(no name)"}${hit.aliases.length ? `  alias ${hit.aliases.join(", ")}` : ""}`,
+        `${hit.ref}  ${hit.name ?? "(no name)"}${hit.aliases.length ? `  alias ${hit.aliases.join(", ")}` : ""}${hit.ties.length ? "" : "  no tie"}`,
         ...hit.identities.map(
           (one) =>
             `  ${one.provider}:${one.account}  ${one.id}  ${one.name ?? ""}${one.username ? `  @${one.username}` : ""}`,

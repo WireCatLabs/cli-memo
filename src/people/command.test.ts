@@ -113,3 +113,95 @@ describe("memo note", () => {
     expect(await run("notes", "links", "show", "telegram:101")).toBe("Rin Example: no note\n")
   })
 })
+
+describe("memo people list", () => {
+  const seeded = async () => {
+    const store = await openStore({ env })
+    const tg = { provider: "telegram", account: "1" }
+    await store.chats.saveChats(tg, [
+      { id: "chat-101", title: null, kind: "dialog", unreadCount: 0, lastMessageAt: null, participantsCount: 2 },
+    ])
+    await store.roster.saveMembers(tg, "chat-101", ["101"])
+    await store.people.savePeople(tg, [{ id: "301", name: "CZECH AIRLINES" }])
+    await store.close()
+  }
+
+  it("lists people by default, names the other kinds with their counts, and lists everyone with kind:all", async () => {
+    await seeded()
+
+    const shown = JSON.parse(await run("people", "list", "--json"))
+    const everyone = JSON.parse(await run("people", "list", "kind:all", "--json"))
+
+    const names = (answer: { items: { display_name: string; owner: boolean }[] }) =>
+      answer.items.filter(({ owner }) => !owner).map(({ display_name }) => display_name)
+    expect(names(shown)).toEqual(["Rin Example"])
+    expect(shown.items.find(({ owner }: { owner: boolean }) => !owner)).toMatchObject({
+      kind: "person",
+      kind_signals: ["chat"],
+      ties: ["chat"],
+      messages_from: 1,
+      last_contact: "2026-09-10T08:00:00.000Z",
+    })
+    expect(shown.page.total).toEqual({ value: shown.items.length, relation: "eq" })
+    expect(shown.next).toEqual([
+      expect.objectContaining({
+        step: "people.kinds",
+        args: { query: "kind:all" },
+        why: expect.stringMatching(/^1 organization, \d+ unsorted ones?$/),
+      }),
+    ])
+    const named = JSON.parse(
+      await run("people", "list", 'name:"kai sample"', "--sort", "name", "--limit", "1", "--json"),
+    )
+    expect(named.next).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ step: "people.kinds", args: { query: 'kind:all name:"kai sample"' } }),
+      ]),
+    )
+    expect(names(everyone)).toEqual(expect.arrayContaining(["Rin Example", "Kai Sample", "CZECH AIRLINES"]))
+    const companies = JSON.parse(await run("people", "list", "kind:organization", "--json"))
+    expect(names(companies)).toEqual(["CZECH AIRLINES"])
+  })
+
+  it("pages, sorts by name, and searches by name", async () => {
+    await seeded()
+    const first = JSON.parse(await run("people", "list", "kind:all", "--limit", "1", "--json"))
+    const second = JSON.parse(await run("people", "list", "kind:all", "--limit", "1", "--page", "2", "--json"))
+    expect(first.page).toMatchObject({ has_more: true })
+    expect(second.items[0].ref).not.toBe(first.items[0].ref)
+    const sortedPage = JSON.parse(await run("people", "list", "kind:all", "--sort", "name", "--limit", "1", "--json"))
+    expect(sortedPage.next).toContainEqual(
+      expect.objectContaining({ step: "page.next", args: expect.objectContaining({ sort: "name" }) }),
+    )
+    const byName = JSON.parse(await run("people", "list", "kind:all", "--sort", "name", "--json"))
+    const names = byName.items
+      .filter(({ owner }: { owner: boolean }) => !owner)
+      .map(({ display_name }: { display_name: string }) => display_name)
+    expect(names).toEqual([...names].sort((a: string, b: string) => a.localeCompare(b)))
+    const found = JSON.parse(await run("people", "list", "name:kai", "kind:all", "--json"))
+    expect(found.items.map(({ display_name }: { display_name: string }) => display_name)).toEqual([
+      "Kai Sample",
+      "Kai Sample",
+    ])
+  })
+})
+
+describe("memo people check", () => {
+  it("finds the same name in any word order first", async () => {
+    const found = JSON.parse(await run("people", "check", "sample", "KAI", "--json"))
+    expect(
+      found.items.map(({ display_name, same_name }: { display_name: string; same_name: boolean }) => [
+        display_name,
+        same_name,
+      ]),
+    ).toEqual([
+      ["Kai Sample", true],
+      ["Kai Sample", true],
+    ])
+  })
+
+  it("stops at --limit", async () => {
+    const found = JSON.parse(await run("people", "check", "kai", "--limit", "1", "--json"))
+    expect(found.items).toHaveLength(1)
+  })
+})
