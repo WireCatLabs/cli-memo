@@ -23,9 +23,6 @@ const MEASURED_WITH = "e5-small"
 /** A model of unknown speed is taken to be as slow as EmbeddingGemma, so a timer run still ends in time. */
 const SLOWEST_KNOWN = 2
 
-/** The model EMBED_PER_RUN was measured with; cli-core's default changed since, the measurement did not. */
-const MEASURED_WITH = "e5-small"
-
 /** The run's bound for the chosen model: a slower model embeds fewer chunks in the same three minutes. */
 export const embedPerRun = (env: NodeJS.ProcessEnv = process.env): number => {
   const models = textModels(env)
