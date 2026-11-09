@@ -51,7 +51,7 @@ describe("memo doctor", () => {
     expect(report.item).toMatchObject({
       config: { path: join(dir, "config", "config.json"), found: false, issues: [] },
       store: { path: join(dir, "messages.db") },
-      search_model: { name: "e5-small", present: false },
+      search_model: { name: "embeddinggemma", present: false },
       timer: { enabled: false, failing: null },
     })
     expect(report.meta.run_id).toEqual(expect.any(String))
