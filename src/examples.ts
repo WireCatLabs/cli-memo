@@ -31,6 +31,10 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo sources add https://example.org/release-notes --title 'Release notes' --json",
     "memo sources add - --title 'Call with Kai' --subject person:12",
   ],
+  "sources preview": [
+    "memo sources preview https://example.org/release-notes",
+    "memo sources preview https://example.org/release-notes --json=title,excerpt",
+  ],
   "sources suggest": [
     "memo sources suggest document:42",
     "memo sources suggest document:42 --subject person:12 --json",

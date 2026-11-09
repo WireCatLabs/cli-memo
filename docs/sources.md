@@ -33,6 +33,18 @@ pbpaste | memo sources add - --subject person:12
 
 A picture or a scanned PDF has no text Memo can read: it is kept by its title and subjects only (`read: "no-text"`).
 
+## Look at a page before adding it
+
+```sh
+memo sources preview https://example.org/release-notes --json
+```
+
+`sources preview` reads a page the way `sources add` would, refuses what `sources add` refuses (a private address,
+a page that asks you to sign in, too many redirects), and keeps nothing. It answers the page's `title`, `site`,
+`description`, the first 800 characters of its text as `excerpt`, and the `kind`, `mime`, `read`, `chars` and
+`truncated` that `sources add` would answer. It takes a web address only, and over MCP it is refused like a link given
+to `sources add`.
+
 ## What the answer says
 
 ```sh

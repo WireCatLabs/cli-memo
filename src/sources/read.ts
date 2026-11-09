@@ -222,3 +222,28 @@ export const readPage = async (
     ...(page.sections ? { sections: page.sections } : {}),
   }
 }
+
+/** Enough of the text to recognise the page; the app shows a few lines of it. */
+const EXCERPT_CHARS = 800
+
+const metaText = (metadata: ReadSource["metadata"], key: string) => {
+  const value = metadata?.[key]
+  return typeof value === "string" && value.trim() ? value.trim().slice(0, 500) : null
+}
+
+/** What `sources preview` answers: the page as `sources add` would keep it, without the text itself. */
+export const previewOf = (read: ReadSource) => {
+  const flat = read.text.replace(/\s+/g, " ").trim()
+  return {
+    url: read.url ?? null,
+    title: read.title,
+    site: read.url ? new URL(read.url).hostname : null,
+    description: metaText(read.metadata, "description"),
+    excerpt: flat ? flat.slice(0, EXCERPT_CHARS) : null,
+    kind: read.kind,
+    mime: read.mime ?? null,
+    read: read.read,
+    chars: read.text.length,
+    truncated: read.truncated,
+  }
+}

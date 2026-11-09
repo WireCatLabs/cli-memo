@@ -314,6 +314,28 @@ memo sources add <source> [options]
 
 **Example:** `memo sources add ~/Downloads/runner-notes.pdf --subject project:3 --keep-copy`, `memo sources add https://example.org/release-notes --title 'Release notes' --json`, `memo sources add - --title 'Call with Kai' --subject person:12`
 
+### `memo sources preview`
+
+read a web page as sources add would, with the same refusals, and say what would be kept; nothing is saved
+
+This command changes the local store or your files.
+
+```sh
+memo sources preview <url> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `url` | required | an http(s) address. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=title,excerpt keeps only those fields. |
+
+**Returns:** read a web page as sources add would, and keep nothing
+
+**Example:** `memo sources preview https://example.org/release-notes`, `memo sources preview https://example.org/release-notes --json=title,excerpt`
+
 ### `memo sources show`
 
 one source: its text, what is kept, what it is about, and the facts, memories and batches citing it
