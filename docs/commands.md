@@ -754,7 +754,7 @@ memo people add <name> [options]
 
 ### `memo people list`
 
-the people you have a tie with: a one-to-one chat, a group of at most 10, mail you wrote to them, a meeting, a CRM or your address book; also people added by hand or assigned a task. The owner first, then by how many tasks name them. --all adds everyone else (here --all means people with no tie, not every account)
+people of one kind: person (the default: the owner, people added by hand or assigned a task, and named people with a tie to you, such as a one-to-one chat, a group of at most 10, mail you wrote, a meeting, a CRM or your address book), organization, automated (bots, newsletters, notifications), stranger (a name but no tie), unsorted (no name) or all. The owner first, then by the messages and mail they sent
 
 ```sh
 memo people list [query] [options]
@@ -766,15 +766,14 @@ memo people list [query] [options]
 
 | Option | What it does |
 |---|---|
-| `--all` | also people with no tie to you, such as authors seen only in big groups. |
-| `--sort <field>` | tasks or name (default tasks). Default: `tasks`. |
+| `--sort <field>` | interactions, recent, name, tasks (default interactions). Default: `interactions`. |
 | `--limit <n>` | most people on a page, up to 5000. Default: `500`. |
 | `--page <n>` | which page, from 1. Default: `1`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** the people you have a tie with, the owner first
+**Returns:** people of one kind, most messages first: person by default
 
-**Example:** `memo people list --json`, `memo people list name:ivan --all --page 2`
+**Example:** `memo people list --json`, `memo people list kind:organization --sort name --page 2`
 
 ### `memo people similar`
 

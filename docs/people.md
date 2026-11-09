@@ -20,18 +20,31 @@ takes, and the accounts behind it.
 ## The people you know
 
 ```sh
-memo people list                    # the people you have a tie with, you first
-memo people list --all --page 2     # everyone, the second page
+memo people list                          # people, the ones who write to you most first
+memo people list kind:organization        # companies, shops, airlines
+memo people list kind:all --sort recent --page 2
 memo people list name:ivan --json
-memo people similar ivan petrov     # before adding a person: who already has this name
+memo people similar ivan petrov           # before adding a person: who already has this name
 ```
 
-`people list` shows a person when they have a tie to you: a one-to-one chat, a group of at most 10, mail you
-wrote to them, a meeting, a CRM, or your phone's address book. People you added by hand and people assigned a
-task are listed too. Everyone else, such as authors seen only in big groups, is hidden; the answer says how many,
-and `--all` lists them. Each person has `display_name`, the name cleaned of wrapping quotes and spaces (`name`
-stays as stored), and `ties`, the reasons they are listed. Run `contacts sync` in each messenger once, or nobody
-has the address-book tie.
+`people list` shows one kind at a time; the first rule that holds decides it, and `kind_signals` says which:
+
+1. **person**: you, people you added by hand, and anyone assigned a task, always.
+2. **automated**: a bot, a no-reply address, a sender most of whose mail is in the bulk box or whose mail you never
+   answer, or a name such as «Notifications» or «Рассылка».
+3. **organization**: an account an organization owns, a shared address such as `info@`, or a legal form or company
+   word in the name (ООО, LLC, Airlines, Hotel, Team…).
+4. **person**: a readable name and a tie to you: a one-to-one chat, a group of at most 10, mail you wrote to them, a
+   meeting, a CRM, or your phone's address book.
+5. **unsorted**: accounts with nothing to show as a name.
+6. **stranger**: a name but no tie to you, such as authors seen only in big groups.
+
+`kind:person` is the default; `kind:all` lists every kind. The answer's `next` steps say how many each other kind
+holds. Each person has `display_name` (the name cleaned of wrapping quotes and spaces; a placeholder such as «Без
+имени» gives way to the username, phone or email; `name` stays as stored), `contact` (the phone, else the email, else
+the username), `messages_from` (the messages and mail they sent), `last_contact` and `ties`. `--sort` is
+`interactions` (the default), `recent`, `name` or `tasks`. Run `contacts sync` in each messenger once, or nobody has
+the address-book tie.
 
 `people similar` lists people whose names start like the words you type, in any order, the same name first
 (`same_name`). Memo never joins them on its own: link them as below.

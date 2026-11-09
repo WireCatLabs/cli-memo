@@ -170,7 +170,7 @@
   {
     "rule": "option-role",
     "target": "people list --sort",
-    "reason": "WireCat Desktop's People page (plan 2026-11-09-people-clients-digests, M-1) sorts its paged table by tasks or name; --order in the vocabulary takes only recent or name, and tasks is the default here, as on tasks list --sort.",
+    "reason": "WireCat Desktop's People page (plan 2026-11-09-people-clients-digests, M-1, UX-133) sorts its paged table by interactions, recent, name or tasks; --order in the vocabulary takes only recent or name, and interactions is the default here.",
     "owner": "@leemour",
     "review_after": "2027-02-09"
   }

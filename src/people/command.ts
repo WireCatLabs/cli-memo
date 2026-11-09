@@ -4,7 +4,13 @@ import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import type { NextStep } from "@wirecat/cli-base/standards"
 import { LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
-import type { ListedPerson } from "@wirecat/cli-core/store"
+import {
+  type ListedPerson,
+  PEOPLE_SORTS,
+  PERSON_KINDS,
+  type PeopleSort,
+  type PersonKind,
+} from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, wholeList, withStore } from "../answer.js"
 import { deciderOf, fromAppOption } from "../author.js"
@@ -77,39 +83,57 @@ export const noteCommand = (program: Command, streams: Streams, env: NodeJS.Proc
   }
 }
 
-const PEOPLE_SORTS = ["tasks", "name"] as const
-
 interface PeopleListOptions {
-  all?: boolean
-  sort: (typeof PEOPLE_SORTS)[number]
+  sort: PeopleSort
   limit: number
   page: number
   json?: boolean
 }
 
-/** A listed person as memo answers: the ref, the stored name and the one to show, the contact, the ties. */
-const personRow = ({ person, displayName, ...rest }: ListedPerson) => ({
-  ref: person,
-  name: rest.name,
-  display_name: displayName,
-  owner: rest.owner,
-  tasks: rest.tasks,
-  username: rest.username,
-  phone: rest.phone,
-  email: rest.email,
-  ties: rest.ties,
+/** A listed person as memo answers: the ref, the stored name and the one to show, the kind, the contact, the counts. */
+const personRow = (person: ListedPerson) => ({
+  ref: person.person,
+  name: person.name,
+  display_name: person.displayName,
+  kind: person.kind,
+  kind_signals: person.kindSignals,
+  owner: person.owner,
+  tasks: person.tasks,
+  contact: person.contact,
+  phone: person.phone,
+  email: person.email,
+  username: person.username,
+  messages_from: person.messagesFrom,
+  last_contact: person.lastContact,
+  ties: person.ties,
 })
 
-/** The step to the people the list hid, with how many: the count a page shows beside "Show all". */
-const showAll = (words: string[], hidden: number): NextStep => ({
-  kind: "command",
-  step: "people.all",
-  command: "people list",
-  args: { ...(words.length ? { query: words.join(" ") } : {}), all: true },
-  line: `memo people list${words.length ? ` ${words.join(" ")}` : ""} --all`,
-  why: `${hidden} ${hidden === 1 ? "person has" : "people have"} no tie to you and ${hidden === 1 ? "is" : "are"} hidden`,
-  safe_to_auto_execute: true,
-})
+// Keyed by name rather than PersonKind: a cli-core that adds a kind must not break memo's build.
+const KIND_WORDS: Record<string, [string, string]> = {
+  person: ["person", "people"],
+  organization: ["organization", "organizations"],
+  automated: ["automated sender", "automated senders"],
+  stranger: ["stranger", "strangers"],
+  unsorted: ["unsorted one", "unsorted ones"],
+}
+
+/** The other kinds that hold someone, with how many: where the rest of the people are. */
+const otherKinds = (shown: PersonKind | "all", counts: Record<PersonKind, number>, name?: string): NextStep[] =>
+  shown === "all"
+    ? []
+    : PERSON_KINDS.filter((kind) => kind !== shown && counts[kind] > 0).map((kind) => {
+        const query = [`kind:${kind}`, ...(name === undefined ? [] : [`name:${name}`])].join(" ")
+        const [one, many] = KIND_WORDS[kind] ?? [kind, kind]
+        return {
+          kind: "command",
+          step: "people.kind",
+          command: "people list",
+          args: { query },
+          line: `memo people list ${query}`,
+          why: `${counts[kind]} ${counts[kind] === 1 ? one : many}`,
+          safe_to_auto_execute: true,
+        }
+      })
 
 /** For an assignee picker: everyone the store knows, the owner first, then by how many tasks name them. */
 export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
@@ -130,38 +154,43 @@ export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.Pr
   const query = {
     entity: "task_person",
     backend: "native",
-    fields: [termField("name", "txt", "name:ivan")],
+    fields: [
+      termField("name", "txt", "name:ivan"),
+      termField("kind", "enum", "kind:organization", { values: [...PERSON_KINDS, "all"] }),
+    ],
   } as const satisfies QueryRegistry
   withQuery(
     annotate(people.command("list"), { effects: LOCAL_READ })
-      .summary("the people you have a tie with, the owner first")
+      .summary("people of one kind, most messages first: person by default")
       .description(
-        "the people you have a tie with: a one-to-one chat, a group of at most 10, mail you wrote to them, a " +
-          "meeting, a CRM or your address book; also people added by hand or assigned a task. The owner first, " +
-          "then by how many tasks name them. --all adds everyone else (here --all means people with no tie, not " +
-          "every account)",
+        "people of one kind: person (the default: the owner, people added by hand or assigned a task, and named " +
+          "people with a tie to you, such as a one-to-one chat, a group of at most 10, mail you wrote, a meeting, a " +
+          "CRM or your address book), organization, automated (bots, newsletters, notifications), stranger (a name but " +
+          "no tie), unsorted (no name) or all. The owner first, then by the messages and mail they sent",
       ),
     query,
   )
-    .option("--all", "also people with no tie to you, such as authors seen only in big groups")
-    .option("--sort <field>", `${PEOPLE_SORTS.join(" or ")} (default tasks)`, oneOf(PEOPLE_SORTS), "tasks")
+    .option("--sort <field>", `${PEOPLE_SORTS.join(", ")} (default interactions)`, oneOf(PEOPLE_SORTS), "interactions")
     .option("--limit <n>", "most people on a page, up to 5000", positive, 500)
     .option("--page <n>", "which page, from 1", positive, 1)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (words: string[], { json, ...options }: PeopleListOptions) => {
-      const name = queryTerms(words, query, "people list").get("name")
+      const terms = queryTerms(words, query, "people list")
+      const name = terms.get("name")
+      const kind = (terms.get("kind") ?? "person") as PersonKind | "all"
       const limit = Math.min(options.limit, 5000)
       await withStore(env, async (store) => {
         const found = await store.people.list({
           limit,
           offset: (options.page - 1) * limit,
           sort: options.sort,
-          ...(options.all ? { all: true } : {}),
+          kind,
           ...(name === undefined ? {} : { query: name }),
         })
         const items = await keepInGroup(store, env, found.items.map(personRow), ({ ref }) => ref)
         // In a group the store's counts cover people outside it, so the answer claims none.
         const counted = groupOf(env) === undefined
+        const steps = counted ? otherKinds(kind, found.counts, name) : []
         print(
           json,
           listAnswer("people list", {
@@ -170,8 +199,8 @@ export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.Pr
             has_more: found.hasMore,
             page: options.page,
             ...(counted ? { total: { value: found.total, relation: "eq" as const } } : {}),
-            args: { ...(words.length ? { query: words.join(" ") } : {}), ...(options.all ? { all: true } : {}) },
-            ...(!counted || options.all || found.hidden === 0 ? {} : { next: [showAll(words, found.hidden)] }),
+            args: words.length ? { query: words.join(" ") } : {},
+            ...(steps.length ? { next: steps } : {}),
           }),
         )
       })
