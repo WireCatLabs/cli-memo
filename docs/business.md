@@ -90,6 +90,20 @@ memo records import erp.jsonl --account example-erp:demo
 memo review list kind:invoice,payment,order,contract
 ```
 
+A spreadsheet works too, one type a sheet. `memo records templates list` lists the types and their columns;
+`memo records templates show invoice --locale ru` writes the header row to fill with `;` between cells, as Excel in
+Russian or Spanish expects, and `--format json` writes an example envelope instead. The sheet is checked and imported with its type:
+
+```sh
+memo records templates show invoice --locale ru > invoices.csv
+memo records check invoices.csv --type invoice --account sheet:rentals
+memo records import invoices.csv --type invoice --account sheet:rentals
+```
+
+A role takes the target's external id (`wallet` = `W-1`), or `organization:C-1` where it may be a person or an
+organization. A row that repeats an invoice's `external_id` adds one more line to it. `10 000,50` and `09.11.2026` are
+read as Excel writes them. Each refusal names the sheet's line and column.
+
 The same file twice changes nothing. The people and organizations it names are matched by one exact e-mail, phone or
 other identifier, or made; never by name. Its invoices, payments, orders, contracts with an amount, subscriptions and
 transactions wait for you in `memo review`.
