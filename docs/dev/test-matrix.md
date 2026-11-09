@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1018 ✅ · 0 ⛔ · 277 ❌** — 285 commands, 1010 options.
+**1047 ✅ · 0 ⛔ · 283 ❌** — 294 commands, 1036 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -73,6 +73,21 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `sources remove` | `--as-owner` | ❌ |  |
 | `sources remove` | `--from-app` | ❌ |  |
 | `sources remove` | `--json` | ✅ |  |
+| `sources suggest` |  | ✅ |  |
+| `sources suggest` | `--as-owner` | ❌ |  |
+| `sources suggest` | `--from-app` | ✅ |  |
+| `sources suggest` | `--provider` | ✅ |  |
+| `sources suggest` | `--model` | ✅ |  |
+| `sources suggest` | `--subject` | ✅ |  |
+| `sources suggest` | `--rescan` | ✅ |  |
+| `sources suggest` | `--json` | ✅ |  |
+| `sources readers list` |  | ✅ |  |
+| `sources readers list` | `--json` | ✅ |  |
+| `sources readers set` |  | ✅ |  |
+| `sources readers set` | `--as-owner` | ❌ |  |
+| `sources readers set` | `--from-app` | ✅ |  |
+| `sources readers set` | `--model` | ✅ |  |
+| `sources readers set` | `--json` | ✅ |  |
 | `folders add` |  | ✅ |  |
 | `folders add` | `--format` | ✅ |  |
 | `folders add` | `--json` | ✅ |  |
@@ -139,6 +154,26 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `people list` |  | ✅ |  |
 | `people list` | `--limit` | ✅ |  |
 | `people list` | `--json` | ✅ |  |
+| `people show` |  | ✅ |  |
+| `people show` | `--json` | ✅ |  |
+| `people review` |  | ✅ |  |
+| `people review` | `--limit` | ✅ |  |
+| `people review` | `--json` | ✅ |  |
+| `people scan` |  | ✅ |  |
+| `people scan` | `--json` | ✅ |  |
+| `people link` |  | ✅ |  |
+| `people link` | `--as-owner` | ❌ |  |
+| `people link` | `--from-app` | ❌ |  |
+| `people link` | `--reason` | ✅ |  |
+| `people link` | `--json` | ✅ |  |
+| `people unlink` |  | ✅ |  |
+| `people unlink` | `--as-owner` | ❌ |  |
+| `people unlink` | `--from-app` | ✅ |  |
+| `people unlink` | `--json` | ✅ |  |
+| `people unmerge` |  | ✅ |  |
+| `people unmerge` | `--as-owner` | ❌ |  |
+| `people unmerge` | `--from-app` | ✅ |  |
+| `people unmerge` | `--json` | ✅ |  |
 | `tags add` |  | ✅ |  |
 | `tags add` | `--message` | ✅ |  |
 | `tags add` | `--note` | ✅ |  |

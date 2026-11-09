@@ -159,5 +159,19 @@
     "reason": "The owner's brief on what the morning digest collects (digest plan section 11, owner 2026-11-09, ASK-457 and NEED-2458) is one text, not a collection, and WireCat Desktop's \"What to collect\" editor will run exactly `memo digest brief show | edit | reset`; the cli-base vocabulary has no singular setting resource. Register one there, then drop this.",
     "owner": "@leemour",
     "review_after": "2027-02-09"
+  },
+  {
+    "rule": "unknown-verb",
+    "target": "sources suggest",
+    "reason": "WireCat Desktop's Add to memory panel runs memo sources suggest to have the owner's chosen reader propose facts from a source; the vocabulary has extract, which reads text out, not a proposal the owner confirms. Add suggest as a verb there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-08"
+  },
+  {
+    "rule": "unknown-resource",
+    "target": "sources readers",
+    "reason": "WireCat Desktop's Settings lists and sets the reader that reads sources for facts (Claude Code, Codex, Ollama, an API key); the vocabulary has no noun for a model-backed reader. Add readers as a collection there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-08"
   }
 ]

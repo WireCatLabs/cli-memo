@@ -25,6 +25,12 @@ export const MCP_EXCLUSIONS = [
   { path: ["facts", "reject"], reason: "the owner's answer to an agent's proposal" },
   { path: ["records", "link"], reason: "only the owner says which entity a source's record is" },
   { path: ["sources", "remove"], reason: "erases what the owner added; only the owner removes it" },
+  { path: ["sources", "suggest"], reason: "sends a source's text to a reader, which may be off this computer" },
+  { path: ["sources", "readers", "set"], reason: "only the owner picks the reader a source's text goes to" },
+  { path: ["models", "keys", "set"], reason: "keeps an API key; only the owner gives one" },
+  { path: ["models", "keys", "remove"], reason: "forgets an API key; only the owner does" },
+  { path: ["people", "unlink"], reason: "only the owner separates people" },
+  { path: ["people", "unmerge"], reason: "only the owner separates people" },
 ] as const
 
 /**

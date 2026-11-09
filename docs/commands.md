@@ -379,6 +379,83 @@ memo sources remove <ref> [options]
 
 **Example:** `memo sources remove document:42`
 
+### `memo sources suggest`
+
+send a source's text to the reader you chose and stage the facts it finds, each with a quote checked against the text, as one batch only you confirm
+
+This command changes the local store or your files.
+
+```sh
+memo sources suggest <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | document:<id> of the source, as sources add answered. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--provider <provider>` | read with this reader once: claude-code, codex, ollama, openai, anthropic; only you name one. |
+| `--model <model>` | the reader's model this once; only you may name one. |
+| `--subject <ref>` | who or what every fact is about: person:, organization:, project: or task:. |
+| `--rescan` | read it again although this reader already read this text. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** have the chosen reader propose facts from a source, for you to confirm
+
+**Example:** `memo sources suggest document:42`, `memo sources suggest document:42 --subject person:12 --json`, `memo sources suggest document:42 --provider ollama --model llama3.2 --rescan`
+
+### `memo sources readers`
+
+the readers that can propose facts from a source: installed, signed in, and which one you chose
+
+#### `memo sources readers list`
+
+each reader: installed, signed in, its model, whether the text leaves this computer, and your pick
+
+```sh
+memo sources readers list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** each reader: installed, signed in, and your pick
+
+**Example:** `memo sources readers list`, `memo sources readers list available:true --json`
+
+#### `memo sources readers set`
+
+choose the reader sources suggest sends a source's text to, and its model; only you choose
+
+This command changes the local store or your files.
+
+```sh
+memo sources readers set <reader> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `reader` | required | claude-code, codex, ollama, openai, anthropic. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--model <model>` | its model; Ollama and the API readers need one, Claude Code and Codex use their own. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** choose the reader that reads your sources
+
+**Example:** `memo sources readers set claude-code`, `memo sources readers set ollama --model llama3.2`
+
 ## `memo folders`
 
 folders of notes: the id links and the store use, and the path on this computer
@@ -651,7 +728,7 @@ memo mail review [query] [options]
 
 ## `memo people`
 
-the people memo knows, to assign tasks to
+the people memo knows: who is who across sources, and whom to assign tasks to
 
 ### `memo people add`
 
@@ -695,6 +772,135 @@ memo people list [query] [options]
 **Returns:** everyone memo knows, the owner first
 
 **Example:** `memo people list --json`
+
+### `memo people show`
+
+one person: their identities by source with the accounts that saw each, merges and open matches
+
+```sh
+memo people show <who> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `who` | required | person:<uid>, or <messenger>:<name or id> of an identity of the person. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** one person: identities by source, merges and open matches
+
+**Example:** `memo people show person:12`, `memo people show telegram:Lena --json`
+
+### `memo people review`
+
+people that may be one person, waiting for the owner; memo review confirms or rejects them
+
+```sh
+memo people review [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--limit <n>` | most matches, up to 500. Default: `50`. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** people that may be one person, waiting for the owner
+
+**Example:** `memo people review`, `memo people review --json`
+
+### `memo people scan`
+
+match people across sources now: the same address or a phone two people share joins them, the rest waits in people review; memo sync runs it too
+
+This command changes the local store or your files.
+
+```sh
+memo people scan [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** match people across sources now; memo sync does it too
+
+**Example:** `memo people scan`
+
+### `memo people link`
+
+say two identities are one person: yours links them, an agent's waits for you as a match
+
+This command changes the local store or your files.
+
+```sh
+memo people link <identity> <other> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `identity` | required | <messenger>:<name or id>. |
+| `other` | required | <messenger>:<name or id> of the person it joins. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--reason <text>` | why, in a few words; required when an agent decides for you. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** say two identities are one person; an agent's link waits for you
+
+**Example:** `memo people link max:Lena telegram:Lena`, `memo people link max:Lena telegram:Lena --reason 'same phone in her signature'`
+
+### `memo people unlink`
+
+take identities off their person: one gets a person of its own again, several move together to one new person; only you, and no automatic match joins them back
+
+This command changes the local store or your files.
+
+```sh
+memo people unlink <identities> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `identities` | required | the identities that leave, each <messenger>:<id> exactly, all of one person. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** take identities off a person, to one new person; only you
+
+**Example:** `memo people unlink telegram:12345`, `memo people unlink email:lena@example.com max:6789`
+
+### `memo people unmerge`
+
+give the identities a merge brought back to the person they came from; only you
+
+This command changes the local store or your files.
+
+```sh
+memo people unmerge <merge> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `merge` | required | merge:<to>-<from>, as people show lists it. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** undo a merge: its identities go back to their person; only you
+
+**Example:** `memo people unmerge merge:12-34`
 
 ## `memo tags`
 
@@ -5997,7 +6203,7 @@ memo answers create <question> [query] [options]
 
 ## `memo sync`
 
-bring notes up to date in the store, only what changed, and embed the mail already stored for search by meaning; the mail CLI syncs the mail itself (mail <profile> sync). Every configured folder unless narrowed
+bring notes up to date in the store, only what changed, embed the mail already stored for search by meaning, and match people across sources (memo people scan); the mail CLI syncs the mail itself (mail <profile> sync). Every configured folder unless narrowed
 
 This command changes the local store or your files.
 
@@ -6007,14 +6213,14 @@ memo sync [options]
 
 | Option | What it does |
 |---|---|
-| `--only <resources>` | notes,mail, separated by commas; mail embeds stored mail only. |
+| `--only <resources>` | notes,mail,people, separated by commas; mail embeds stored mail only, people links who is who. |
 | `--folder <folder>` | notes: only this configured folder, by its id or path; repeat for more. |
 | `--ignore <path>` | notes: leave this file or folder alone this run, a path or a glob; repeat for more. |
 | `--no-embed` | skip embedding notes and mail for search by meaning this run. |
 | `--timeout <duration>` | stop after this long, e.g. 10m; progress so far is kept (default: no limit). |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** bring notes up to date in the store, and make stored mail searchable by meaning
+**Returns:** sync notes, make stored mail searchable by meaning, and match people
 
 **Example:** `memo sync`, `memo sync --only mail`, `memo sync --only notes --folder ~/notes --no-embed`
 

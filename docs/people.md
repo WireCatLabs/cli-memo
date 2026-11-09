@@ -64,15 +64,48 @@ If you have several accounts in the same messenger, add `--source` to a `<messen
 
 ## Link a person's accounts
 
-One person can have a Telegram account, a MAX account and an email address. Link them in tg or max,
-so Memo treats them as one person:
+One person can have a Telegram account, a MAX account, a CRM contact and an email address. Memo treats them as one
+person when:
+
+- they have the **same email address**, in any account, work or personal, and no third person has it, unless it is
+  a role address such as `info@` or `support@`, which only suggests a link;
+- they have the **same phone number**, no one else has it, and one of them has it in Telegram, MAX or WhatsApp.
+
+`memo sync` joins them, and so does `memo people scan`. A matching name, username or email domain is never enough,
+and a no-reply address such as `noreply@` neither joins nor suggests anyone. A pair you rejected is never joined.
+New evidence about it, such as the same email address after you rejected a phone match, suggests it again; the
+evidence you rejected never does.
+
+Some signals only suggest a link: a phone number only CRM contacts or cards share, a phone number or an address
+that three or more people share, an address a meeting guest typed for themselves, or an agent's guess. These wait as
+matches:
 
 ```sh
-tg personal contacts link 'Kai Sample' email:kai@example.com
+memo people review
+memo review kind:identity_link
+memo review confirm 17090
 ```
 
-After this, `memo context` for any of the accounts shows everything from all of them. A matching
-name is never enough to link accounts.
+Link two accounts yourself, or look at one person:
+
+```sh
+memo people link max:Kai telegram:Kai
+memo people show telegram:Kai
+```
+
+`memo people show` lists the person's identities by source, the accounts that saw each, the merges that joined them
+(`merge:12-34`) and the matches that wait. `memo context` for any of the accounts shows everything from all of them.
+
+### Undo a link
+
+- `memo people unmerge merge:12-34` gives a merge's identities back to the person they came from.
+- `memo people unlink telegram:12345` gives one identity a person of its own again.
+- `memo people unlink email:kai@example.com max:6789` moves several identities of one person to one new person.
+
+`unlink` takes each identity by its exact id, as `memo people show` lists it, never by a name.
+
+Only you can do these, at a terminal or in WireCat Desktop. After them, no automatic match joins those people again.
+An agent can only propose a link with `memo people link … --reason`. You confirm or reject it in `memo review`.
 
 To choose the main note about the person, see [the note about a person](notes.md#the-note-about-a-person).
 
