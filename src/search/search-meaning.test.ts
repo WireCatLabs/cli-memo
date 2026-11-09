@@ -105,10 +105,10 @@ it("search all reads messages by words and names memo's download while the model
 
   const found = await everywhere(store)
 
-  expect(found.messages?.meaningSkipped).toMatchObject({ step: "models.download", model: "e5-small" })
+  expect(found.messages?.meaningSkipped).toMatchObject({ step: "models.download", model: "embeddinggemma" })
   expect(found.items.map(({ foundBy }) => foundBy)).toEqual([["words"]])
   expect(allAnswer({ ...found }, 10).missing).toContainEqual({
     field: "found_by",
-    why: expect.stringContaining("`memo models download e5-small`"),
+    why: expect.stringContaining("`memo models download embeddinggemma`"),
   })
 })

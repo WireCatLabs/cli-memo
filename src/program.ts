@@ -2,24 +2,30 @@ import { fileURLToPath } from "node:url"
 import { CliError, createRenderer, type KeyringStore, processStreams, type Streams } from "@wirecat/cli-base"
 import { customizeSharedCommand } from "@wirecat/cli-base/commands"
 import { skillCommand } from "@wirecat/cli-base/skill"
+import { REF_KINDS } from "@wirecat/cli-core"
 import {
   addContractInfo,
   assertSharedContracts,
+  commandWords,
   entityFields,
   environmentOf,
+  groupAware,
   guideCommand,
   installHelp,
+  liftProfile,
   overrideSharedContract,
   provide,
   recordRuns,
+  refKinds,
   runsCommand,
   skillCommand as sharedSkillCommand,
 } from "@wirecat/cli-core/cli"
 import type { FetchPageOptions } from "@wirecat/cli-core/documents"
+import { groupLockOf } from "@wirecat/cli-core/services"
 import { Command } from "commander"
 import { actionsCommand } from "./actions/command.js"
 import { agentsCommand } from "./agents/command.js"
-import { answers, itemAnswer, trackAnswers } from "./answer.js"
+import { answers, itemAnswer, trackAnswers, withStore } from "./answer.js"
 import { askCommand } from "./answers/command.js"
 import { APP } from "./app.js"
 import { loadConfig } from "./config.js"
@@ -66,6 +72,8 @@ import { scheduleCommand } from "./schedule/command.js"
 import { searchCommand } from "./search/command.js"
 import { showCommand } from "./show/command.js"
 import { sourcesCommand } from "./sources/command.js"
+import { memoListContext, scopeRunsToGroup } from "./store/group.js"
+import { groupsCommand } from "./store/groups-command.js"
 import { storeCommand } from "./store/info-command.js"
 import { tagsCommand } from "./tags/command.js"
 import { tasksCommand } from "./tasks/command.js"
@@ -214,6 +222,38 @@ const OWN_ENTITIES = entityFields({
   agent_action: ["id", "actor", "tool", "tier", "target", "status", "error", "started_at", "finished_at"],
   meeting_project: ["id", "meeting", "project", "confirmed", "provenance", "fingerprint"],
   notes_folder: ["id", "name", "path", "format", "kept_by"],
+  account_group: ["group", "members", "duplicates", "suggested"],
+  relationship_role: ["list", "id", "label", "built_in"],
+  person_context_memo: [
+    "messages",
+    "events",
+    "notes",
+    "your_notes",
+    "not_read",
+    "tasks",
+    "relationships",
+    "business",
+    "coverage",
+    "files",
+    "untrusted",
+    "proposals",
+  ],
+  organization_context_memo: [
+    "organization",
+    "categories",
+    "people",
+    "customers",
+    "suppliers",
+    "partners",
+    "projects",
+    "deals",
+    "money",
+    "communications",
+    "tasks",
+    "coverage",
+    "notes",
+    "tags",
+  ],
   order: [
     "id",
     "ref",
@@ -491,6 +531,99 @@ const OWN_ENTITIES = entityFields({
   payment_allocation: ["payment", "invoice", "amount", "currency", "created_at"],
 })
 
+/**
+ * The commands that keep to the run's account group (WC-ACCT-13): each reads only the group's accounts and its
+ * references are checked, so under MEMO_GROUP_LOCK these run and every other command is refused. Add a command only
+ * once its reads are scoped.
+ */
+const GROUP_AWARE = [
+  "context",
+  "show",
+  "messages show",
+  "search all",
+  "search messages",
+  "search mail",
+  "search notes",
+  "search people",
+  "groups",
+  "tags add",
+  "tags remove",
+  "deals",
+  "leads",
+  "pipelines list",
+  "pipelines show",
+  "stages",
+  "organizations",
+  "people list",
+  "people add",
+  "notes list",
+  "notes show",
+  "relationships list",
+  "relationships add",
+  "relationships update",
+  "relationships end",
+  "relationships remove",
+  "relationships confirm",
+  "relationships roles",
+  "mcp serve",
+  "memories",
+  "facts",
+  "actions",
+  "review",
+  "tasks",
+  "projects list",
+  "projects add",
+  "projects context",
+  "projects status",
+  "projects key-documents",
+]
+
+const isSimpleKind = (name: string) => REF_KINDS.some(({ type }) => type === name)
+
+/** What a `<ref>` or `<id>` argument names in each top-level group; ids of owner-only queues name no account. */
+const REF_KINDS_OF: Record<string, Record<string, string>> = {
+  deals: { ref: "deal" },
+  leads: { ref: "lead" },
+  memories: { ref: "memory" },
+  facts: { ref: "fact" },
+  tasks: { id: "task", "other-task": "task" },
+  actions: { id: "action" },
+  review: { id: "proposal", ids: "proposal" },
+}
+/** Argument names that are ids of something cli-core's lock cannot map yet: such a command stays refused under it. */
+const UNMAPPED_IDS = new Set(["id", "ids", "ref", "meeting-id"])
+
+const leaves = (command: Command): Command[] =>
+  command.commands.length === 0 ? [command] : command.commands.flatMap(leaves)
+
+const topOf = (command: Command): string => {
+  let at = command
+  while (at.parent?.parent) at = at.parent
+  return at.name()
+}
+
+const markGroupAware = (program: Command) => {
+  for (const path of GROUP_AWARE) {
+    let command: Command | undefined = program
+    for (const name of path.split(" ")) command = command?.commands.find((child) => child.name() === name)
+    if (!command) throw new Error(`no command to mark group-aware: ${path}`)
+    groupAware(command)
+    // Every argument is declared: an id as what it names, free text as none, so a search word or an amount passes
+    // the lock while an id is checked. An id no reference maps stays undeclared, and the lock refuses its command.
+    for (const leaf of leaves(command)) {
+      const top = topOf(leaf)
+      const kinds: Record<string, string> = {}
+      let mapped = true
+      for (const name of leaf.registeredArguments.map((argument) => argument.name())) {
+        const kind = REF_KINDS_OF[top]?.[name] ?? (isSimpleKind(name) ? name : undefined)
+        if (kind !== undefined) kinds[name] = kind
+        else if (UNMAPPED_IDS.has(name)) mapped = false
+      }
+      if (mapped) refKinds(leaf, kinds as Parameters<typeof refKinds>[1])
+    }
+  }
+}
+
 /** The parts of the skill an agent reads only when a task needs them; the primary SKILL.md is read every session. */
 export const SKILL_TOPICS = [
   "search",
@@ -521,23 +654,31 @@ const FIRST_SCREEN = {
 
 export const createProgram = ({
   streams: raw = processStreams,
-  env = process.env,
+  env: given = process.env,
   signal,
   terminal,
   keyring,
   fetchPage,
+  group,
+  stdin,
 }: {
   streams?: Streams
   env?: NodeJS.ProcessEnv
   /** Where enrichment looks for its provider key; the system keyring unless a test hands in memoryKeyring(). */
   keyring?: KeyringStore
+  /** Where `models keys set` reads the key; the process's stdin unless a test hands one in. */
+  stdin?: NodeJS.ReadableStream
   /** Ctrl-C or SIGTERM from `startCli`: a sync stops at its next safe point. */
   signal?: AbortSignal
   /** Whether a person is at the terminal; the process's stdin and stdout unless a test hands one in. */
   terminal?: Terminal
   /** How `sources add <url>` reaches the page; a test hands in its own lookup and transport. */
   fetchPage?: FetchPageOptions
+  /** The account group the first word named (`memo work …`), as `liftGroup` took it off the command line. */
+  group?: string
 } = {}): Command => {
+  // Every reader of the run's group reads MEMO_GROUP, so the first word is that, said shorter (WC-ACCT-13).
+  const env = group === undefined ? given : { ...given, MEMO_GROUP: group }
   const fields = jsonFields(raw, OWN_ENTITIES)
   const { streams } = fields
   const program = new Command("memo")
@@ -545,6 +686,7 @@ export const createProgram = ({
     .version(VERSION)
     .option("--debug", "on failure, show the full error record: cause and stack")
   refuseWritesUnderLock(program, env)
+  scopeRunsToGroup(program, env, group)
   provideTerminal(program, terminal)
 
   contextCommand(program, streams, env)
@@ -577,7 +719,7 @@ export const createProgram = ({
   reviewCommand(program, streams, env)
   agentsCommand(program, streams, env)
   mcpCommand(program, streams, env, createProgram)
-  modelsCommand(program, streams, env, keyring)
+  modelsCommand(program, streams, env, keyring, stdin)
   templatesCommand(program, streams, env)
   searchCommand(program, streams, env)
   meetingReadCommands(program, streams, env)
@@ -586,6 +728,7 @@ export const createProgram = ({
   askCommand(program, streams, env)
   syncCommand(program, streams, env, signal, keyring)
   storeCommand(program, streams, env)
+  groupsCommand(program, streams, env)
   autoCommand(program, streams, env)
   configCommand(program, streams, env)
   doctorCommand(program, streams, env)
@@ -681,6 +824,7 @@ export const createProgram = ({
   })
   trackAnswers(program)
   placeInSections(program)
+  markGroupAware(program)
   installHelp(program, FIRST_SCREEN)
   provide(program, {
     ...environmentOf(program),
@@ -698,6 +842,34 @@ export const createProgram = ({
   })
   assertSharedContracts(program)
   return program
+}
+
+/**
+ * `memo work search all …`: a first word that is no command is an account group (WC-ACCT-13), lifted off before
+ * parsing, as `liftProfile` lifts a profile. A command must follow it; a word that is neither names the groups.
+ */
+export const liftGroup = async (
+  program: Command,
+  args: readonly string[],
+  env: NodeJS.ProcessEnv,
+): Promise<{ group?: string; rest: string[] }> => {
+  const words = commandWords(program)
+  // memo's root options (--debug, --version) take no value, so none can hide the first word.
+  const { profile: group, rest } = liftProfile([...args], words)
+  if (group === undefined) return { rest }
+  const next = rest.find((arg) => !arg.startsWith("-"))
+  const groups = await withStore(env, async (store) => Object.keys((await memoListContext(store, env)).groups))
+  // `all`, every account, is no saved group but always a word.
+  const known = group === "all" || groups.includes(group)
+  // Under the lock another group is a permission_error, which the run's own check gives.
+  if ((known || groupLockOf(APP, env) !== undefined) && next !== undefined && words.has(next)) return { group, rest }
+  throw new CliError(
+    "validation_error",
+    known
+      ? `"${group}" is a group, and a command follows it: memo ${group} search all …`
+      : `"${group}": unknown command or group — groups here: ${groups.join(", ")}; memo commands lists the commands`,
+    { reason: "input.invalid", groups },
+  )
 }
 
 /**

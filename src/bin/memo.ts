@@ -30,20 +30,22 @@ if (wcat.code !== undefined) {
       // failure.js loads cli-core's whole command tree, which a bare --version never needs.
       failure = await import("../failure.js")
       // A static import would load the store's SQLite before startCli could swap it.
-      const { createProgram, refuseJoinedPath } = await import("../program.js")
+      const { createProgram, liftGroup, refuseJoinedPath } = await import("../program.js")
       const { autoNotice, followInstall } = await import("../run/auto.js")
+      program = createProgram({ signal: entry.signal })
+      const { group, rest: args } = await liftGroup(program, entry.args, entry.env)
+      if (group !== undefined) program = createProgram({ signal: entry.signal, group })
       // `memo jobs status` says it in full; everywhere else one line, until a timer run passes again.
-      if (entry.args[0] !== "jobs") {
+      if (args[0] !== "jobs") {
         const notice = autoNotice(entry.env)
         if (notice) processStreams.diagnostic(notice)
       }
       const { updateNotice } = await import("../update.js")
-      const notice = updateNotice(entry.args)
-      program = createProgram({ signal: entry.signal })
+      const notice = updateNotice(args)
       program.hook("preAction", (_root, command) => entry.atStart(command))
       failure.throwParseFailures(program)
-      refuseJoinedPath(program, entry.args)
-      await program.parseAsync(process.argv)
+      refuseJoinedPath(program, args)
+      await program.parseAsync(args, { from: "user" })
       // After the command, so a broken systemctl never stands between the owner and the answer.
       await followInstall(entry.env).catch(() => undefined)
       const line = await notice

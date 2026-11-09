@@ -36,7 +36,7 @@ Each source needs one more thing, and only when you use it:
 |---|---|
 | Notes and documents | Nothing: [files Memo can read](notes.md#files-memo-can-read) |
 | Telegram or MAX messages | [tg](https://github.com/WireCatLabs/tg-cli) or [max](https://github.com/WireCatLabs/max-cli). They save your chats in the local store; Memo does not log in to a messenger |
-| Search by meaning | A search model on your computer, about 135 MB. Download it once: `memo models download e5-small`. Without it, Memo searches by words |
+| Search by meaning | A search model on your computer, about 220 MB. Download it once: `memo models download embeddinggemma`. Without it, Memo searches by words |
 | Mail | The [mail](https://github.com/WireCatLabs/mail-cli) CLI. It copies your mailbox into the local store, and Memo searches it ([mail](mail.md#bring-mail-in-with-mail)). |
 | Syncing on a timer (`memo jobs`) | Linux with systemd. On macOS and Windows, run `memo sync` yourself or from your own scheduler ([keeping Memo up to date](archive.md)) |
 

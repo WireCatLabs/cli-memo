@@ -1,8 +1,10 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
+import { parseLucene } from "@wirecat/cli-base/query"
 import { LOCAL_READ, sharedCommandTemplate, shownOf } from "@wirecat/cli-core/cli"
 import { hitText } from "@wirecat/cli-core/mail"
 import type { SearchedResource } from "@wirecat/cli-core/services"
+import type { MessageStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, withStore } from "../answer.js"
 import { APP } from "../app.js"
@@ -11,11 +13,26 @@ import { searchMemoriesCommand } from "../memories/command.js"
 import { searchText } from "../notes/search.js"
 import { positive } from "../options.js"
 import { SAVE_HELP } from "../save-help.js"
+import { accountsByKind, groupScopeOf } from "../store/group.js"
 import { ACCOUNTS_HELP, MAIL_SOURCES, mailboxesOf } from "../store/source-list.js"
 import { allAnswer, eventsMeaningNote, kindAnswer, messagesMeaningNote, notesAnswer } from "./answers.js"
 import { lanesFor } from "./lane-gates.js"
 import { peopleAnswer, peopleText, searchPeople } from "./people.js"
-import { keyDocumentsFirst, searchEverywhere, searchKind, searchNotes } from "./search.js"
+import { hasSource, keyDocumentsFirst, searchEverywhere, searchKind, searchNotes } from "./search.js"
+
+/** `search messages` takes no `--source`; in a group it reads the group's messenger accounts only. */
+const groupMessengers = async (store: MessageStore, env: NodeJS.ProcessEnv, text: string) => {
+  const scope = await groupScopeOf(store, env)
+  if (scope === undefined) return undefined
+  if (hasSource(parseLucene(text).root))
+    throw new CliError(
+      "validation_error",
+      `in group ${scope.run.name} search messages reads the group's accounts — leave in: out of the query`,
+    )
+  const { messages } = accountsByKind(scope)
+  if (messages.length === 0) throw new CliError("not_found", `group ${scope.run.name} holds no messenger account`)
+  return messages
+}
 
 const ONLY = ["messages", "mail", "notes", "events", "crm", "business"]
 
@@ -69,7 +86,7 @@ const searchCommandDefinition = (program: Command, streams: Streams, env: NodeJS
           "projects or decisions. " +
           "A kind you know reads better with its own search, with all its fields",
       )
-      .summary("messages, mail, notes and calendar events ranked together"),
+      .summary("messages, mail, notes, events and deals ranked together"),
   )
     .option("--only <resources>", `${ONLY.join(",")}, separated by commas`, onlyOf)
     .option("--plain-order", "best first by the words alone, without moving mail from suspicious senders down")
@@ -185,7 +202,12 @@ For an agent: read with --compact, one line per hit with its reference. Never wr
         const level = levelOf(options)
         const text = words.join(" ")
         const answer = await withStore(env, async (store) => {
-          const mailboxes = options.source === undefined ? undefined : await mailboxesOf(store, env, options.source)
+          const mailboxes =
+            options.source !== undefined
+              ? await mailboxesOf(store, env, options.source)
+              : kind === "messages"
+                ? await groupMessengers(store, env, text)
+                : undefined
           return searchKind(store, kind, {
             text,
             limit: options.limit,

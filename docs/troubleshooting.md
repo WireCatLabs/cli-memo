@@ -25,7 +25,7 @@ The search model for search by meaning is not on your computer. Memo still finds
 contains your words. To also search by meaning, download the model with tg or max, then import:
 
 ```sh
-memo models download e5-small
+memo models download embeddinggemma
 memo sync
 ```
 

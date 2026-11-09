@@ -3,13 +3,7 @@ import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { type StepDefinition, stepOf } from "@wirecat/cli-base/standards"
 import { queryTerms, type RefSummary, refLabel, termField } from "@wirecat/cli-core/cli"
 import { showMail } from "@wirecat/cli-core/mail"
-import {
-  type Decided,
-  type Decision,
-  type ProposalFilter,
-  type ProposalRow,
-  proposalRegistry,
-} from "@wirecat/cli-core/services"
+import type { Decided, Decision, ProposalFilter, ProposalRow } from "@wirecat/cli-core/services"
 import {
   type Decider,
   type MessageStore,
@@ -17,6 +11,7 @@ import {
   SOURCE_REVIEW_KIND,
   type SourceReviewPayload,
 } from "@wirecat/cli-core/store"
+import { proposalsOf, reviewOf } from "../store/guard.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { REVIEW_KINDS, type ReviewRow, reviewRegistry } from "./kinds.js"
 
@@ -151,7 +146,7 @@ export const listReview = async (
   { limit, page }: { limit: number; page: number },
 ) => {
   const filter = await filterOf(store, words)
-  const found = await reviewRegistry(store).list({ ...filter, limit, offset: (page - 1) * limit })
+  const found = await (await reviewOf(store, env)).list({ ...filter, limit, offset: (page - 1) * limit })
   const label = await labelsFor(store, found.items.flatMap(rowRefs))
   return { items: found.items.map((row) => reviewItem(row, label)), hasMore: found.hasMore }
 }
@@ -159,7 +154,7 @@ export const listReview = async (
 export const REVIEW_SOURCES = "memo review list kind:memory_source_review"
 
 /** One proposal as `review list` shows it, read by id. */
-export const reviewOf = async (store: MessageStore, id: string) => {
+export const reviewItemOf = async (store: MessageStore, id: string) => {
   const row = await reviewRegistry(store).get(id)
   return reviewItem(row, await labelsFor(store, rowRefs(row)))
 }
@@ -204,7 +199,7 @@ export const sourceReviewDetail = async (store: MessageStore, id: string, target
 }
 
 export const showReview = async (store: MessageStore, env: NodeJS.ProcessEnv, id: string) => {
-  const row = await reviewRegistry(store).get(id)
+  const row = await (await reviewOf(store, env)).get(id)
   const label = await labelsFor(store, [...rowRefs(row), ...row.evidence])
   return {
     ...reviewItem(row, label),
@@ -347,8 +342,13 @@ export const decisionOf = (confirm: boolean, by: Decider, reason?: string): Deci
  * An old decide command's one proposal, through the same registry and check as `review confirm`: a refusal is
  * thrown as the error the store would have raised.
  */
-export const decideOne = async (store: MessageStore, id: string, decision: Decision): Promise<Decided> => {
-  const { decided, refused } = await proposalRegistry(store).decide([id], decision)
+export const decideOne = async (
+  store: MessageStore,
+  env: NodeJS.ProcessEnv,
+  id: string,
+  decision: Decision,
+): Promise<Decided> => {
+  const { decided, refused } = await (await proposalsOf(store, env)).decide([id], decision)
   const refusal = refused[0]
   if (refusal) throw new CliError(refusal.code, refusal.message, { reason: refusal.reason })
   return decided[0] as Decided

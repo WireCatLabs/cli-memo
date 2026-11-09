@@ -27,7 +27,14 @@ Deals and leads: `memo deals list status:open`, `memo leads list`, `memo deals s
 close them and make pipelines yourself (`memo deals add <title> <stage> [amount] [currency] --reason ...`,
 `memo leads add <title>`, `memo deals move deal:<id> <stage>`, `memo deals close deal:<id> won|lost`); they are
 written at once, no review. Name a pipeline by `pipeline:<id>` when two share a name. `memo pipelines show <pipeline>`
-gives the counts and conversion per stage.
+gives the counts and conversion per stage. To change a CRM copy on its server, run the CLI in its `writes_with`
+(`tool` and `profile`); when `profile` is `null`, ask the owner which of `profiles` to use, never pick one.
+
+Base stages are the owner's own columns for deals and for leads; every other stage maps onto one
+(`memo stages show deal`, `memo stages list confirmed:false`). Move the owner's own deal to a base stage with
+`memo deals move deal:<id> stage:<id>`. On `stage.choice-required`, ask the owner which of `candidates` and move to
+its `stage:<id>`. On `stage.unmapped`, tell the owner which stage to map. Your `memo stages set` is a suggestion for
+the owner. Editing the base stages and `memo stages confirm` are the owner's own.
 
 Products, contracts, subscriptions, wallets and transactions: `memo products list`, `memo contracts show contract:<id>`
 (the last day to give notice), `memo subscriptions show subscription:<id>` (every price it had),
@@ -37,3 +44,9 @@ what the bank says moved and a payment is the settlement: they meet only through
 An agent's contract with a value, subscription, price and transaction wait for the owner in `memo review`.
 `memo show <ref>` and each `show` list where an imported entry came from under `sources`: the source records mapped to
 it, and those that name it (a quote `quoted-for` a deal).
+One deal whole: `memo deals context deal:<id> --brief` (people with roles and standing, client, project, money
+totals, counts); without `--brief` the detailed form. Its messages, mail and meetings are `proposed`: they share
+people with the deal, nothing links them. A stage named Won is not a payment: money is what invoices and payments
+say. A client's whole picture: `memo organizations context organization:<id>`; clients only:
+`memo organizations list category:client`. A deal or a person on it copied from a CRM is `reported`: say so when only
+the CRM says it. Set the project of a deal with `memo deals update deal:<id> --project <key>`.

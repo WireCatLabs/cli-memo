@@ -22,6 +22,12 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: [],
   },
   {
+    reason: "roles.owner-only",
+    code: "permission_error",
+    message: "only the owner changes the role lists; an agent uses the roles they hold",
+    details: [],
+  },
+  {
     reason: "brief.owner-only",
     code: "permission_error",
     message: "only the owner changes the digest brief, not an agent",
@@ -175,4 +181,10 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: [],
   },
   { reason: "auto.systemctl-failed", code: "provider_error", message: "systemctl failed", details: [] },
+  {
+    reason: "stage.crm-copy",
+    code: "validation_error",
+    message: "the row is a CRM's copy: its CRM's CLI moves it to a base stage, as writes_with names it",
+    details: ["writes_with"],
+  },
 ])

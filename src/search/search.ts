@@ -6,6 +6,7 @@ import {
   meaningLane,
   plainQuery,
   questionLookup,
+  RESOURCES_SEARCHED,
   type SearchAllFound,
   type SearchAllItem,
   type SearchedResource,
@@ -17,6 +18,7 @@ import {
 import type { AccountKey, MessageStore, Note } from "@wirecat/cli-core/store"
 import { APP } from "../app.js"
 import { keyDocuments, keyFirst, projectOf } from "../knowledge/key-documents.js"
+import { accountsByKind, groupScopeOf, MEMO_ACCOUNT, scopedAccounts } from "../store/group.js"
 import { accountsOf } from "../store/source-list.js"
 import { taskPage } from "../tasks/context.js"
 
@@ -33,11 +35,8 @@ export interface EvidenceItem {
 
 const CHATS_CHECKED = 500
 
-/**
- * The account memo's searches run as: its own notes, never a stored account picked for the owner. The scope comes
- * from the query alone, and every account it covers is named in the answer.
- */
-const MEMO: AccountKey = { provider: "notes", account: "internal" }
+/** memo's searches run as its own notes, never a stored account picked for the owner; the query sets the scope. */
+const MEMO = MEMO_ACCOUNT
 
 export const unifiedSearch = async (
   store: MessageStore,
@@ -183,7 +182,7 @@ export const searchAccounts = async (
   if (options.all && options.source !== undefined)
     throw new CliError("validation_error", "use --all alone, or name the accounts with --source")
   if (options.all)
-    return { keys: (await store.accounts.accounts()).filter(({ provider }) => provider !== "notes"), notes: true }
+    return { keys: (await scopedAccounts(store, env)).filter(({ provider }) => provider !== "notes"), notes: true }
   if (options.source === undefined)
     throw new CliError("validation_error", "give --all, or name the accounts with --source: telegram:1,email,notes")
   const keys = await accountsOf(store, env, options.source)
@@ -193,7 +192,7 @@ export const searchAccounts = async (
   }
 }
 
-const hasSource = (node: QueryNode): boolean =>
+export const hasSource = (node: QueryNode): boolean =>
   node.kind === "predicate"
     ? node.field === "in"
     : node.clauses.some(({ occur, node }) => occur !== "must_not" && hasSource(node))
@@ -236,6 +235,37 @@ const allowedPage = async (
   return { ...rest, items: items.slice(0, limit), hasMore: items.length > limit || page.hasMore }
 }
 
+/**
+ * In a group, each kind reads only the group's accounts of it; a kind it holds none of is left out and named, never
+ * read whole: an empty list would mean "every account" to some readers.
+ */
+const groupScoped = async (
+  store: MessageStore,
+  env: NodeJS.ProcessEnv,
+  only: readonly SearchedResource[] | undefined,
+) => {
+  const scope = await groupScopeOf(store, env)
+  if (scope === undefined) return undefined
+  const kinds = accountsByKind(scope, await store.business.accounts())
+  const wanted = only ?? RESOURCES_SEARCHED
+  const kept = wanted.filter((kind) => kinds[kind].length > 0)
+  if (kept.length === 0)
+    throw new CliError("validation_error", `group ${scope.run.name} holds no account of ${wanted.join(", ")}`)
+  return {
+    only: kept,
+    scope: Object.fromEntries(kept.map((kind) => [kind, kinds[kind]])) as Partial<
+      Record<SearchedResource, AccountKey[]>
+    >,
+    skipped: wanted
+      .filter((kind) => !kept.includes(kind))
+      .map((resource) => ({
+        resource,
+        code: "not_found" as const,
+        reason: `group ${scope.run.name} holds no account of it`,
+      })),
+  }
+}
+
 /** Messages, mail, notes and calendar events ranked together, with the open tasks that point at a hit. */
 export const searchEverywhere = async (
   store: MessageStore,
@@ -255,7 +285,8 @@ export const searchEverywhere = async (
     shows?: (item: SearchAllItem) => boolean
   },
 ): Promise<SearchAllFound & EverywhereExtras> => {
-  const accounts = await store.accounts.accounts()
+  const accounts = await scopedAccounts(store, env)
+  const group = await groupScoped(store, env, only)
   // Group lists belong to tg; model downloads belong to memo.
   const messenger = { app: { ...APP, command: "tg" }, hintCommand: "memo" }
   const ask = (offset?: number) =>
@@ -267,7 +298,7 @@ export const searchEverywhere = async (
         limit,
         env,
         ...(offset === undefined ? {} : { offset }),
-        ...(only === undefined ? {} : { only }),
+        ...(group === undefined ? (only === undefined ? {} : { only }) : { only: group.only, scope: group.scope }),
         ...(crmKinds === undefined ? {} : { crmKinds }),
         ...(exact ? { exact: true } : {}),
         ...(timezone === undefined ? {} : { timezone }),
@@ -276,7 +307,8 @@ export const searchEverywhere = async (
       (query) => searchStore(store, MEMO, query, messenger),
       meaningLane({ env, store: async () => store, messenger: { app: { command: "memo" } } }),
     )
-  const found = shows === undefined ? await ask() : await allowedPage(ask, limit, shows)
+  const searched = shows === undefined ? await ask() : await allowedPage(ask, limit, shows)
+  const found = group === undefined ? searched : { ...searched, skipped: [...group.skipped, ...searched.skipped] }
   const tasks: EverywhereExtras["tasks"] = []
   let tasksIncomplete = false
   const sources = found.items.map((item) => item.ref)
@@ -359,7 +391,7 @@ export const searchKind = async (
     {
       text,
       kind,
-      ...(hasSource(parseLucene(plain).root) ? {} : { source: "all" as const }),
+      ...(hasSource(parseLucene(plain).root) || accounts !== undefined ? {} : { source: "all" as const }),
       limit,
       ...scope,
       // As search all does: a question finds a short reply by the message it answers, and records holding some words.

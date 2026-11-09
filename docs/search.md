@@ -27,8 +27,12 @@ one with `memo notes show` or in the original app.
 | A person, by name, username or alias | `memo search people kai` |
 | Invoices, contracts, products and other business data | `memo search all 'budget' --only business` |
 
-`search all` looks in messages, mail, notes, calendar events, deals and leads, and
-[business data](./business.md#find-it-again) together. Events come from every calendar
+`search all` looks in messages, mail, notes, calendar events, CRM deals and leads, and
+[business data](./business.md#find-it-again) together. Deals and leads are
+found by the words of their title; `--only crm` searches them alone. When memo's
+[`permissions`](configuration.md#permissions) deny `deals` or `leads`, `search all` leaves them out and says so.
+A question about who someone is or how things relate reads better from `memo context person:<id>`,
+`memo organizations context` or `memo relationships list` first; search for the evidence after. Events come from every calendar
 gcal stored; the answer names each calendar it read, and `--only events` searches them alone. An event's title,
 description and place are written by whoever sent the invitation, and `--json` names those fields in the hit's
 `untrusted`. `memo events show <ref>` opens an `event:` reference, and `memo events list` lists the events of
@@ -205,35 +209,37 @@ With the search model on your computer, Memo also searches by meaning, so `holid
 about a vacation. tg or max downloads the model once:
 
 ```sh
-memo models download e5-small
+memo models download embeddinggemma
 ```
 
 The model runs on your computer. After the download, run `memo sync` so your notes are prepared
 for it. Each result says whether it was found by words, by meaning or both. Without the model,
 Memo says "Searched by words only" and searches stored notes by words.
 
-### Choosing a larger model
+### Choosing another model
 
 There are three search models. `memo models list` shows them, their size on disk and which one is in use:
 
 | Model | Size | On disk | Licence | Speed |
 | --- | --- | --- | --- | --- |
-| `e5-small` | small, the default | 135 MB | MIT | fast |
-| `embeddinggemma` | medium | 218 MB | Gemma Terms of Use | about 15 times slower, reads chats best |
+| `embeddinggemma` | medium, the default | 218 MB | [Gemma Terms of Use](https://ai.google.dev/gemma/terms) | finds the most in other words |
+| `e5-small` | small | 135 MB | MIT | about 6 times faster |
 | `e5-large` | large | 579 MB | MIT | about 8 times slower |
 
 To use another one, download it, then choose it:
 
 ```sh
-memo models download e5-large
-memo models set e5-large
+memo models download e5-small
+memo models set e5-small
 ```
 
 The choice is shared: tg, max and the other WireCat tools use the same model. Memo then says how many
 pieces of text the new model still has to read and about how long that takes. The next `memo sync`
 runs do that work a part at a time. Until they finish, search by meaning finds only what the new
 model has read, and search by words finds the rest. The old model's work is kept, so going back to
-it with `memo models set e5-small` is instant.
+it with `memo models set embeddinggemma` is instant. A computer that had e5-small before EmbeddingGemma became the
+default keeps using it until EmbeddingGemma is downloaded; then search by meaning reads e5-small's work until
+EmbeddingGemma has read more.
 
 `memo models add` adds a model of your own from Hugging Face; `memo models add --help` shows what it
 needs.

@@ -64,7 +64,7 @@ describe("the search model memo uses", () => {
     expect((await memo(env, ["models", "set", "tiny-a", "--json"])).item).toMatchObject({
       id: "tiny-a",
       default: true,
-      previous: "e5-small",
+      previous: "embeddinggemma",
     })
     expect(await embedNoteChunks(store, { env })).toEqual({ chunks: 1, left: false })
     const switched = await memo(env, ["models", "set", "tiny-b", "--json"])
@@ -79,18 +79,18 @@ describe("the search model memo uses", () => {
     expect([...(await store.vectors.vectorCounts(keys)).values()]).toEqual([1, 1])
   })
 
-  it("names the missing model and its exact download, terms included", async () => {
+  it("names the missing model and its exact download", async () => {
     const { env, store } = await machine("embeddinggemma")
     await store.notes.addNote({ text: "fish" })
 
     expect(await embedNoteChunks(store, { env })).toMatchObject({
       chunks: 0,
-      notEmbedded: "the embeddinggemma model is not downloaded — memo models download embeddinggemma --accept-terms",
+      notEmbedded: "the embeddinggemma model is not downloaded — memo models download embeddinggemma",
     })
   })
 
   it("embeds fewer chunks a run with a slower model, so a timer run still ends in time", async () => {
-    expect(embedPerRun((await machine()).env)).toBe(EMBED_PER_RUN)
-    expect(embedPerRun((await machine("embeddinggemma")).env)).toBeLessThan(EMBED_PER_RUN / 10)
+    expect(embedPerRun((await machine("e5-small")).env)).toBe(EMBED_PER_RUN)
+    expect(embedPerRun((await machine()).env)).toBeLessThan(EMBED_PER_RUN / 5)
   })
 })

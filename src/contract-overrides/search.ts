@@ -31,7 +31,7 @@ export const search: readonly SharedContractOverride[] = [
     command: ["search", "all"],
     field: "summary",
     before: "search stored messages, notes, calendar events and selected meeting transcripts",
-    after: "messages, mail, notes and calendar events ranked together",
+    after: "messages, mail, notes, events and deals ranked together",
     reason:
       "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },

@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**961 ✅ · 0 ⛔ · 265 ❌** — 263 commands, 963 options.
+**1018 ✅ · 0 ⛔ · 277 ❌** — 285 commands, 1010 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -154,7 +154,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tags add` | `--account` | ✅ |  |
 | `tags add` | `--json` | ✅ |  |
 | `tags remove` |  | ✅ |  |
-| `tags remove` | `--message` | ❌ |  |
+| `tags remove` | `--message` | ✅ |  |
 | `tags remove` | `--note` | ✅ |  |
 | `tags remove` | `--chat` | ✅ |  |
 | `tags remove` | `--task` | ❌ |  |
@@ -286,6 +286,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `organizations list` |  | ✅ |  |
 | `organizations list` | `--json` | ✅ |  |
 | `organizations context` |  | ✅ |  |
+| `organizations context` | `--limit` | ✅ |  |
 | `organizations context` | `--json` | ✅ |  |
 | `projects meetings list` |  | ✅ |  |
 | `projects meetings list` | `--source` | ✅ |  |
@@ -394,13 +395,20 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `relationships add` | `--role` | ✅ |  |
 | `relationships add` | `--role-note` | ✅ |  |
 | `relationships add` | `--engagement` | ✅ |  |
+| `relationships add` | `--position` | ✅ |  |
+| `relationships add` | `--start-date` | ✅ |  |
+| `relationships add` | `--end-date` | ❌ |  |
 | `relationships add` | `--reason` | ✅ |  |
 | `relationships list` |  | ✅ |  |
+| `relationships list` | `--limit` | ✅ |  |
+| `relationships list` | `--page` | ✅ |  |
 | `relationships list` | `--json` | ✅ |  |
 | `relationships update` |  | ✅ |  |
 | `relationships update` | `--role` | ✅ |  |
 | `relationships update` | `--role-note` | ✅ |  |
 | `relationships update` | `--engagement` | ✅ |  |
+| `relationships update` | `--position` | ❌ |  |
+| `relationships update` | `--start-date` | ❌ |  |
 | `relationships update` | `--purpose` | ✅ |  |
 | `relationships update` | `--reason` | ✅ |  |
 | `relationships update` | `--json` | ✅ |  |
@@ -416,6 +424,22 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `relationships confirm` | `--as-owner` | ❌ |  |
 | `relationships confirm` | `--from-app` | ❌ |  |
 | `relationships confirm` | `--reason` | ✅ |  |
+| `relationships end` |  | ✅ |  |
+| `relationships end` | `--end-date` | ✅ |  |
+| `relationships end` | `--json` | ✅ |  |
+| `relationships end` | `--as-owner` | ❌ |  |
+| `relationships end` | `--from-app` | ❌ |  |
+| `relationships roles list` |  | ✅ |  |
+| `relationships roles list` | `--json` | ✅ |  |
+| `relationships roles add` |  | ✅ |  |
+| `relationships roles add` | `--label` | ✅ |  |
+| `relationships roles add` | `--json` | ✅ |  |
+| `relationships roles add` | `--as-owner` | ❌ |  |
+| `relationships roles add` | `--from-app` | ❌ |  |
+| `relationships roles remove` |  | ✅ |  |
+| `relationships roles remove` | `--json` | ✅ |  |
+| `relationships roles remove` | `--as-owner` | ❌ |  |
+| `relationships roles remove` | `--from-app` | ❌ |  |
 | `relationships scan` |  | ✅ |  |
 | `relationships scan` | `--source` | ✅ |  |
 | `relationships scan` | `--since-time` | ❌ |  |
@@ -687,6 +711,13 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `deals list` | `--limit` | ❌ |  |
 | `deals show` |  | ✅ |  |
 | `deals show` | `--json` | ✅ |  |
+| `deals context` |  | ✅ |  |
+| `deals context` | `--json` | ✅ |  |
+| `deals context` | `--brief` | ✅ |  |
+| `deals context` | `--limit` | ✅ |  |
+| `deals update` |  | ✅ |  |
+| `deals update` | `--json` | ✅ |  |
+| `deals update` | `--project` | ✅ |  |
 | `deals add` |  | ✅ |  |
 | `deals add` | `--organization` | ✅ |  |
 | `deals add` | `--person` | ✅ |  |
@@ -706,7 +737,14 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `leads list` | `--json` | ✅ |  |
 | `leads list` | `--limit` | ❌ |  |
 | `leads show` |  | ✅ |  |
-| `leads show` | `--json` | ❌ |  |
+| `leads show` | `--json` | ✅ |  |
+| `leads context` |  | ✅ |  |
+| `leads context` | `--json` | ✅ |  |
+| `leads context` | `--brief` | ✅ |  |
+| `leads context` | `--limit` | ❌ |  |
+| `leads update` |  | ✅ |  |
+| `leads update` | `--json` | ❌ |  |
+| `leads update` | `--project` | ✅ |  |
 | `leads add` |  | ✅ |  |
 | `leads add` | `--organization` | ❌ |  |
 | `leads add` | `--person` | ✅ |  |
@@ -722,6 +760,25 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `leads close` | `--occurred-time` | ❌ |  |
 | `leads close` | `--reason` | ✅ |  |
 | `leads close` | `--json` | ❌ |  |
+| `stages show` |  | ✅ |  |
+| `stages show` | `--json` | ✅ |  |
+| `stages create` |  | ✅ |  |
+| `stages create` | `--json` | ✅ |  |
+| `stages rename` |  | ✅ |  |
+| `stages rename` | `--json` | ✅ |  |
+| `stages move` |  | ✅ |  |
+| `stages move` | `--json` | ❌ |  |
+| `stages remove` |  | ✅ |  |
+| `stages remove` | `--json` | ❌ |  |
+| `stages list` |  | ✅ |  |
+| `stages list` | `--json` | ✅ |  |
+| `stages set` |  | ✅ |  |
+| `stages set` | `--json` | ✅ |  |
+| `stages confirm` |  | ✅ |  |
+| `stages confirm` | `--pipeline` | ✅ |  |
+| `stages confirm` | `--all` | ✅ |  |
+| `stages confirm` | `--kind` | ❌ |  |
+| `stages confirm` | `--json` | ✅ |  |
 | `products list` |  | ✅ |  |
 | `products list` | `--json` | ✅ |  |
 | `products list` | `--limit` | ❌ |  |
@@ -1046,6 +1103,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `models consents set` | `--json` | ❌ |  |
 | `models consents revoke` |  | ✅ |  |
 | `models consents revoke` | `--json` | ❌ |  |
+| `models keys set` |  | ✅ |  |
+| `models keys set` | `--json` | ✅ |  |
+| `models keys remove` |  | ✅ |  |
+| `models keys remove` | `--json` | ✅ |  |
 | `templates list` |  | ✅ |  |
 | `templates list` | `--json` | ✅ |  |
 | `templates show` |  | ✅ |  |
@@ -1147,6 +1208,14 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `store recover` | `--json` | ✅ |  |
 | `store recover run` |  | ✅ |  |
 | `store recover run` | `--json` | ❌ |  |
+| `groups list` |  | ✅ |  |
+| `groups list` | `--json` | ✅ |  |
+| `groups add` |  | ✅ |  |
+| `groups add` | `--json` | ✅ |  |
+| `groups remove` |  | ✅ |  |
+| `groups remove` | `--json` | ✅ |  |
+| `groups move` |  | ✅ |  |
+| `groups move` | `--json` | ✅ |  |
 | `jobs start` |  | ✅ |  |
 | `jobs start` | `--every` | ✅ |  |
 | `jobs stop` |  | ✅ |  |

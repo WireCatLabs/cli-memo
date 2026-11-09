@@ -16,6 +16,7 @@ import {
   projectWindowOf,
 } from "@wirecat/cli-core/cli"
 import {
+  groupLockOf,
   type ProjectStatus,
   projectStatus,
   purposeList,
@@ -25,9 +26,11 @@ import {
 import type { MessageStore } from "@wirecat/cli-core/store"
 import { type Command, Option } from "commander"
 import { withStore } from "../answer.js"
+import { APP } from "../app.js"
 import { dealsText, openDealsOf } from "../finance/deals-command.js"
 import { financeOf, financeText } from "../finance/finance.js"
 import { collect } from "../options.js"
+import { groupScopeOf } from "../store/group.js"
 import { chatRead, chatSync, syncProfileOf } from "./messenger-sync.js"
 
 interface Options {
@@ -100,7 +103,7 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
         "projects', in every account those links name (meta.accounts lists them): the last message, who replies " +
         "next, open questions both ways, promises, amounts found by words with their direction (only when the project " +
         "has no confirmed invoice or payment), payments recorded, billed, paid and " +
-        "owed per currency from confirmed invoices and payments (finance), up to five open confirmed deals (deals), how long each " +
+        "owed per currency from confirmed invoices and payments (finance), up to five open deals (deals), how long each " +
         "--context-query has been quiet on their side, and how much of each chat is held. Amounts, directions and " +
         "promises found by words are marked pattern: read the cited message before trusting one. Others' questions " +
         "in a group with no role, and others' word-found promises in a group, are counted on the chat's row as " +
@@ -140,8 +143,10 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
         })
       const chosen = options.syncProfile ?? {}
       const { found, finance, open } = await withStore(env, async (store) => {
+        const scope = await groupScopeOf(store, env)
         const status = await projectStatus(store, {
           project,
+          ...(scope === undefined ? {} : { accounts: scope.accounts }),
           ...projectWindowOf(options.sinceTime),
           ...(options.beforeTime === undefined ? {} : { asOf: projectCutoffTime(options.beforeTime) }),
           contextQueries: options.contextQuery,
@@ -158,8 +163,20 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
         read: (chat, since) => step("messages.list", chatRead(linked(chat), since, env, chosen)),
         line: (one) => (one.kind === "command" ? (one.line ?? one.command) : one.why),
       }
-      const { item, next, missing, meta } = projectStatusAnswer(found, hints)
-      const gaps = [...missing, ...(blocked.size ? [{ field: "next_command", why: [...blocked].join("; ") }] : [])]
+      // Under the lock an outside chat's ref would tell the agent that account and chat exist: only a count is said.
+      const lock = groupLockOf(APP, env)
+      const hidden = lock === undefined ? [] : found.outOfScope.filter(({ reason }) => reason === "other-account")
+      const shown = hidden.length
+        ? { ...found, outOfScope: found.outOfScope.filter((one) => !hidden.includes(one)) }
+        : found
+      const { item, next, missing, meta } = projectStatusAnswer(shown, hints)
+      const gaps = [
+        ...missing,
+        ...(hidden.length
+          ? [{ field: "out_of_scope", why: `${hidden.length} of the project's chats are outside group ${lock}` }]
+          : []),
+        ...(blocked.size ? [{ field: "next_command", why: [...blocked].join("; ") }] : []),
+      ]
       print(
         options.json,
         itemOf(
@@ -175,7 +192,7 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
             meta,
           },
         ),
-        [projectStatusText(found, hints), ...financeText(finance), ...dealsText(open)].join("\n"),
+        [projectStatusText(shown, hints), ...financeText(finance), ...dealsText(open)].join("\n"),
         options.compact === true,
       )
     })

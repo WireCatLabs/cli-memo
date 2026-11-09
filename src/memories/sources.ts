@@ -8,7 +8,7 @@ import { answers, itemAnswer, withStore } from "../answer.js"
 import { byOption, whoRuns } from "../author.js"
 import { sinceOf } from "../digest/command.js"
 import { positive } from "../options.js"
-import { REVIEW_SOURCES, reviewOf } from "../review/review.js"
+import { REVIEW_SOURCES, reviewItemOf } from "../review/review.js"
 
 export const QUOTE_HELP =
   "the words an --evidence reference says that this rests on, as <ref>=<words>, one per reference. A later check " +
@@ -141,7 +141,7 @@ export const challengeCommand = (
             by,
             ...(options.suggest === undefined ? {} : { suggestion: options.suggest }),
           })
-          return itemAnswer(await reviewOf(store, proposal.id))
+          return itemAnswer(await reviewItemOf(store, proposal.id))
         })
       },
     )

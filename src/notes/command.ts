@@ -16,6 +16,7 @@ import { importNotesMap } from "../people/notes-map.js"
 import { subjectOf } from "../people/subject.js"
 import { refuseBareNumber } from "../refs.js"
 import { SAVE_HELP } from "../save-help.js"
+import { keepInGroup } from "../store/group.js"
 import { meetingReference } from "../store/scope.js"
 import { MEETING_WRITE_HELP, oneAccountOf, writeAccountOf, writeOptions } from "../store/source-list.js"
 import { isNoteReference } from "./about.js"
@@ -150,15 +151,17 @@ const notesCommandDefinition = (program: Command, streams: Streams, env: NodeJS.
       if (about !== undefined && terms.size > 1)
         throw new CliError("validation_error", "about: stands alone in notes list: its notes are found through links")
       const options = { ...paging, json }
-      const page = await withNotes(async (store) =>
-        listNotes(store, {
+      const page = await withNotes(async (store) => {
+        const found = await listNotes(store, {
           limit: options.limit,
           offset: (options.page - 1) * options.limit,
           ...(about === undefined
             ? { ...(source === undefined ? {} : { source }), ...(search === undefined ? {} : { search }) }
             : { about: await subjectOf(store, about) }),
-        }),
-      )
+        })
+        // In a group only its notes are listed; a page may then hold fewer than asked.
+        return { ...found, items: await keepInGroup(store, env, found.items, ({ ref }) => ref) }
+      })
       print(
         options.json,
         listAnswer("notes list", {
@@ -227,6 +230,7 @@ const notesCommandDefinition = (program: Command, streams: Streams, env: NodeJS.
             about.push(
               await meetingReference(
                 store,
+                env,
                 options.meeting,
                 value === undefined ? {} : await oneAccountOf(store, env, value, "--account"),
               ),

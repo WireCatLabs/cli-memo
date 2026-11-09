@@ -18,7 +18,7 @@ These options work with the `memo` command itself.
 
 ## `memo context`
 
-messages, mail, notes and events about a person, each with a link to its source; `proposals` counts what waits for you about them, by kind (`complete: false` means at least), and `next` names the command that lists them
+messages, mail, notes and events about a person, each with a link to its source, and `business`: their organizations, reporting lines, deals and projects, each relationship with its standing (`reported` is a CRM's word only). person:<id> reads every account; `coverage` names what was read and what was not. `proposals` counts what waits for you about them, by kind (`complete: false` means at least), and `next` names the command that lists them
 
 ```sh
 memo context <person> [options]
@@ -32,12 +32,12 @@ memo context <person> [options]
 |---|---|
 | `--limit <n>` | most messages, notes and events of each kind. Default: `20`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--source <accounts>` | the account to read, as provider:account; required when the store holds several of that messenger. |
+| `--source <accounts>` | the accounts to read: every one when left out, or the group's in a group run; for <messenger>:<name>, the one account of that messenger. |
 | `--trimmed` | each email's own text, without quoted earlier mail or the signature — for an agent's reads. |
 
 **Returns:** messages, mail, notes and events about a person, each with a link to its source
 
-**Example:** `memo context telegram:'Kai Sample'`, `memo context email:kai@example.com --limit 5 --json`
+**Example:** `memo context telegram:'Kai Sample'`, `memo context person:7 --json`, `memo context email:kai@example.com --limit 5 --json`
 
 ## `memo show`
 
@@ -1356,7 +1356,7 @@ memo organizations show <organization> [options]
 
 ### `memo organizations list`
 
-your organizations
+your organizations; category:client, supplier, partner or employer keeps those its relationships make so
 
 ```sh
 memo organizations list [query] [options]
@@ -1372,11 +1372,11 @@ memo organizations list [query] [options]
 
 **Returns:** organization — id, ref, kind, name, scope, created_at; every field: memo commands info organizations list
 
-**Example:** `memo organizations list name:*harbour*`, `memo organizations list --json`
+**Example:** `memo organizations list name:*harbour*`, `memo organizations list category:client`, `memo organizations list --json`
 
 ### `memo organizations context`
 
-one organization by its id or organization:<id>: its relationships, the notes about or linking it, and its tags
+one organization by its id or organization:<id>: its people by role, customers, suppliers and partners, projects, open deals and leads, invoices, payments and orders, how much its people wrote, open tasks and categories, each relationship with its standing; then the notes about it and its tags. `coverage` names what was not read
 
 ```sh
 memo organizations context <organization> [options]
@@ -1388,11 +1388,12 @@ memo organizations context <organization> [options]
 
 | Option | What it does |
 |---|---|
+| `--limit <n>` | most items in each section. Default: `20`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** one organization: its relationships, notes and tags
+**Returns:** one organization: people, customers, deals, money, tasks, notes
 
-**Example:** `memo organizations context organization:1`
+**Example:** `memo organizations context organization:1`, `memo organizations context 1 --json`
 
 ## `memo projects`
 
@@ -1559,7 +1560,7 @@ memo projects evidence <project> [options]
 
 ### `memo projects status`
 
-where a project stands, from the stored messages of every chat confirmed as the project's or its child projects', in every account those links name (meta.accounts lists them): the last message, who replies next, open questions both ways, promises, amounts found by words with their direction (only when the project has no confirmed invoice or payment), payments recorded, billed, paid and owed per currency from confirmed invoices and payments (finance), up to five open confirmed deals (deals), how long each --context-query has been quiet on their side, and how much of each chat is held. Amounts, directions and promises found by words are marked pattern: read the cited message before trusting one. Others' questions in a group with no role, and others' word-found promises in a group, are counted on the chat's row as unlisted, not listed. next names at most two chats to read, with the messenger command that reads them. No model call; nothing leaves this machine
+where a project stands, from the stored messages of every chat confirmed as the project's or its child projects', in every account those links name (meta.accounts lists them): the last message, who replies next, open questions both ways, promises, amounts found by words with their direction (only when the project has no confirmed invoice or payment), payments recorded, billed, paid and owed per currency from confirmed invoices and payments (finance), up to five open deals (deals), how long each --context-query has been quiet on their side, and how much of each chat is held. Amounts, directions and promises found by words are marked pattern: read the cited message before trusting one. Others' questions in a group with no role, and others' word-found promises in a group, are counted on the chat's row as unlisted, not listed. next names at most two chats to read, with the messenger command that reads them. No model call; nothing leaves this machine
 
 ```sh
 memo projects status <project> [options]
@@ -1872,7 +1873,7 @@ relations between people, organizations and projects; never between identities
 
 ### `memo relationships add`
 
-state that a person, organization or project belongs to or relates to another, or that a chat is a project's (member-of only); an agent's waits for you to confirm it
+state that a person, organization or project belongs to, reports to, is a customer or partner of, or relates to another, or that a chat is a project's (member-of only); an agent's waits for you to confirm it
 
 This command changes the local store or your files.
 
@@ -1890,15 +1891,18 @@ memo relationships add <from> <to> [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--kind <kind>` | member-of or related-to. Default: `member-of`. |
-| `--role <role>` | the role it has there; a person's role in an organization or a project is one from its list, such as employee or contributor. |
+| `--kind <kind>` | member-of, reports-to, customer-of, partner-of, related-to. Default: `member-of`. |
+| `--role <role>` | its role: in an organization employee, contractor, founder, owner, manager, adviser, contact; in a project owner, manager, contributor, client-contact, approver; on a deal or lead owner, contact, decision-maker, influencer. A job title is not a role. |
 | `--role-note <text>` | what the role means here, in your words, beside a role from its list. |
 | `--engagement <level>` | a person on a project: how much you deal with them yourself, not how active they are: none, low, medium or high. |
+| `--position <title>` | the job title, such as 'Procurement manager'; kept apart from the role. |
+| `--start-date <date>` | the first day it held, such as 2026-01-01. |
+| `--end-date <date>` | the last day it held, included; it ends at the start of the day after. |
 | `--reason <text>` | why you think so, in a sentence. |
 
 **Returns:** state that a person, organization, project or chat belongs or relates to another
 
-**Example:** `memo relationships add person:3 organization:1 --role employee`, `memo relationships add person:3 project:1 --role client-contact --engagement low`, `memo relationships add project:2 organization:1 --kind related-to --reason 'same client'`
+**Example:** `memo relationships add person:3 organization:1 --role employee --position CTO --start-date 2026-01-01`, `memo relationships add person:3 person:5 --kind reports-to`, `memo relationships add organization:1 organization:2 --kind customer-of --reason 'signed in October'`
 
 ### `memo relationships list`
 
@@ -1914,11 +1918,13 @@ memo relationships list [query] [options]
 
 | Option | What it does |
 |---|---|
+| `--limit <n>` | most relationships, up to 500. Default: `100`. |
+| `--page <n>` | which page, from 1. Default: `1`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** relationship — id, from, to, kind, role, purpose, evidence, confirmed, and 7 more; every field: memo commands info relationships list
+**Returns:** relationship — id, from, to, kind, role, purpose, evidence, confirmed, and 9 more; every field: memo commands info relationships list
 
-**Example:** `memo relationships list about:"person:3"`, `memo relationships list confirmed:false`
+**Example:** `memo relationships list about:"person:3"`, `memo relationships list kind:reports-to to:"person:5"`, `memo relationships list standing:reported include:ended --limit 50`
 
 ### `memo relationships update`
 
@@ -1936,9 +1942,11 @@ memo relationships update <id> [options]
 
 | Option | What it does |
 |---|---|
-| `--role <role>` | the role it has there, from the same list as relationships add; an empty value clears it. |
+| `--role <role>` | its role: in an organization employee, contractor, founder, owner, manager, adviser, contact; in a project owner, manager, contributor, client-contact, approver; on a deal or lead owner, contact, decision-maker, influencer. A job title is not a role; an empty value clears it. |
 | `--role-note <text>` | what the role means here, in your words; an empty value clears it. |
 | `--engagement <level>` | a person on a project: how much you deal with them yourself, not how active they are: none, low, medium or high; an empty value clears it. |
+| `--position <title>` | the job title; an empty value clears it. |
+| `--start-date <date>` | the first day it held, such as 2026-01-01. |
 | `--purpose <purpose>` | what the chat is for in the project: work, sales, support or other. |
 | `--reason <text>` | why, in a sentence. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
@@ -1998,6 +2006,106 @@ memo relationships confirm <id> [options]
 **Returns:** confirm a suggested relationship
 
 **Example:** `memo relationships confirm 4`
+
+### `memo relationships end`
+
+say that a relationship no longer holds, from a day on; it stays, as ended, and relationships list include:ended shows it. An agent's waits for you in memo review
+
+This command changes the local store or your files.
+
+```sh
+memo relationships end <id> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `id` | required | the relationship's id, as relationships list gives it. |
+
+| Option | What it does |
+|---|---|
+| `--end-date <date>` | the last day it held, included; it ends at the start of the day after. Today when left out. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+
+**Returns:** say that a relationship ended
+
+**Example:** `memo relationships end 4 --end-date 2026-09-30`
+
+### `memo relationships roles`
+
+the roles a relationship may take: built in and your own
+
+#### `memo relationships roles list`
+
+the roles of every list, or of one with list:organization, list:project or list:deal; each built in or yours
+
+```sh
+memo relationships roles list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** the roles a relationship may take
+
+**Example:** `memo relationships roles list`, `memo relationships roles list list:deal --json`
+
+#### `memo relationships roles add`
+
+add a role of your own to a list; relationships may then take it. Only you change the lists
+
+This command changes the local store or your files.
+
+```sh
+memo relationships roles add <list> <role> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `list` | required | organization (roles in an organization), project or deal (a deal's or a lead's). |
+| `role` | required | the role's id: lowercase letters, digits and -, such as board-member. |
+
+| Option | What it does |
+|---|---|
+| `--label <label>` | how it reads, such as 'Board member'. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+
+**Returns:** add a role of your own
+
+**Example:** `memo relationships roles add organization board-member --label 'Board member'`
+
+#### `memo relationships roles remove`
+
+remove a role of your own; a built-in one stays, and one a relationship still holds is refused
+
+This command changes the local store or your files.
+
+```sh
+memo relationships roles remove <list> <role> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `list` | required | organization (roles in an organization), project or deal (a deal's or a lead's). |
+| `role` | required | the role's id. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+
+**Returns:** remove a role of your own
+
+**Example:** `memo relationships roles remove organization board-member`
 
 ### `memo relationships scan`
 
@@ -3388,7 +3496,7 @@ memo deals list [query] [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--limit <n>` | most deals, up to 500. Default: `100`. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 24 more; every field: memo commands info deals list
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info deals list
 
 **Example:** `memo deals list status:open project:HRB`, `memo deals list stage:Quote --json`
 
@@ -3408,9 +3516,54 @@ memo deals show <ref> [options]
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 24 more; every field: memo commands info deals show
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info deals show
 
 **Example:** `memo deals show deal:5`
+
+### `memo deals context`
+
+one deal whole: its stages, client, people with their roles and standing, owner, project, invoices and payments as stored, its people's messages, mail and meetings in its lifetime (`proposed`: they share people, nothing links them), open tasks and `coverage`. A stage named Won is not a payment
+
+```sh
+memo deals context <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | deal:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+| `--brief` | the compact form for a model's context: names, roles, totals and counts. |
+| `--limit <n>` | most items in each section. Default: `20`. |
+
+**Returns:** deal context — deal, stages, organization, participants, owner, project, money, window, and 3 more; every field: memo commands info deals context
+
+**Example:** `memo deals context deal:5`, `memo deals context deal:5 --brief --json`
+
+### `memo deals update`
+
+set the project a deal belongs to; a CRM's copy takes it too, and the next sync keeps it. An empty value clears it
+
+This command changes the local store or your files.
+
+```sh
+memo deals update <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | deal:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+| `--project <project>` | the project: its key or project:<id>. |
+
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info deals update
+
+**Example:** `memo deals update deal:5 --project HRB`
 
 ### `memo deals add`
 
@@ -3440,7 +3593,7 @@ memo deals add <title> <stage> [amount] [currency] [options]
 | `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 24 more; every field: memo commands info deals add
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info deals add
 
 **Example:** `memo deals add 'Site for the clinic' Call 500000.00 RUB --organization organization:3 --project HRB`, `memo deals add 'Support contract' Sales/Quote --person person:7 --role decision-maker --due 2026-12-01`
 
@@ -3457,15 +3610,15 @@ memo deals move <ref> <stage> [options]
 | Argument | | What it is |
 |---|---|---|
 | `ref` | required | deal:<id>. |
-| `stage` | required | a stage of the deal's pipeline. |
+| `stage` | required | a stage of the deal's pipeline by its name or stage:<id>; or a base stage's stage:<id>, which moves it to the one stage of its pipeline mapped there, and refuses several (with the candidates) or none. |
 
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 24 more; every field: memo commands info deals move
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info deals move
 
-**Example:** `memo deals move deal:5 Quote`
+**Example:** `memo deals move deal:5 Quote`, `memo deals move deal:5 stage:5`
 
 ### `memo deals close`
 
@@ -3488,7 +3641,7 @@ memo deals close <ref> <outcome> [options]
 | `--reason <text>` | why it was won or lost, kept with it. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 24 more; every field: memo commands info deals close
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info deals close
 
 **Example:** `memo deals close deal:5 won`, `memo deals close deal:6 lost --reason 'chose a cheaper studio'`
 
@@ -3513,7 +3666,7 @@ memo leads list [query] [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--limit <n>` | most leads, up to 500. Default: `100`. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 24 more; every field: memo commands info leads list
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info leads list
 
 **Example:** `memo leads list status:open`
 
@@ -3533,9 +3686,54 @@ memo leads show <ref> [options]
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 24 more; every field: memo commands info leads show
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info leads show
 
 **Example:** `memo leads show lead:3`
+
+### `memo leads context`
+
+one lead whole: its stages, client, people with their roles and standing, owner, project, invoices and payments as stored, its people's messages, mail and meetings in its lifetime (`proposed`: they share people, nothing links them), open tasks and `coverage`. A stage named Won is not a payment
+
+```sh
+memo leads context <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | lead:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+| `--brief` | the compact form for a model's context: names, roles, totals and counts. |
+| `--limit <n>` | most items in each section. Default: `20`. |
+
+**Returns:** deal context — deal, stages, organization, participants, owner, project, money, window, and 3 more; every field: memo commands info leads context
+
+**Example:** `memo leads context lead:3 --brief`
+
+### `memo leads update`
+
+set the project a lead belongs to; a CRM's copy takes it too, and the next sync keeps it. An empty value clears it
+
+This command changes the local store or your files.
+
+```sh
+memo leads update <ref> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ref` | required | lead:<id>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+| `--project <project>` | the project: its key or project:<id>. |
+
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info leads update
+
+**Example:** `memo leads update lead:3 --project HRB`
 
 ### `memo leads add`
 
@@ -3565,7 +3763,7 @@ memo leads add <title> [stage] [amount] [currency] [options]
 | `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 24 more; every field: memo commands info leads add
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info leads add
 
 **Example:** `memo leads add 'Call from the site'`, `memo leads add 'Clinic in Kazan' contacted --person person:9`
 
@@ -3582,15 +3780,15 @@ memo leads move <ref> <stage> [options]
 | Argument | | What it is |
 |---|---|---|
 | `ref` | required | lead:<id>. |
-| `stage` | required | a stage of the lead's pipeline. |
+| `stage` | required | a stage of the lead's pipeline by its name or stage:<id>; or a base stage's stage:<id>, which moves it to the one stage of its pipeline mapped there, and refuses several (with the candidates) or none. |
 
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 24 more; every field: memo commands info leads move
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info leads move
 
-**Example:** `memo leads move lead:3 qualified`
+**Example:** `memo leads move lead:3 qualified`, `memo leads move lead:3 stage:5`
 
 ### `memo leads close`
 
@@ -3613,9 +3811,192 @@ memo leads close <ref> <outcome> [options]
 | `--reason <text>` | why it was won or lost, kept with it. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 24 more; every field: memo commands info leads close
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info leads close
 
 **Example:** `memo leads close lead:3 lost --reason 'no budget'`
+
+## `memo stages`
+
+the owner's base stages of deals and of leads, the columns of a board across every pipeline and CRM, and how each other pipeline's stage maps onto them
+
+### `memo stages show`
+
+the base set in order, with the open rows and mapped stages each column holds, and what is unsorted (unmapped or only suggested); the first use takes the owner's only own pipeline of the kind, or makes the default set in the owner's language; a read-only store shows that set without making it
+
+```sh
+memo stages show <kind> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `kind` | required | deal or lead: which base set. One of: `deal`, `lead`. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** base stage set — kind, pipeline, stages, unsorted; every field: memo commands info stages show
+
+**Example:** `memo stages show deal`, `memo stages show lead --json`
+
+### `memo stages create`
+
+add a stage to the base set: an open one goes before the first won or lost stage, a won or lost one last; move puts it elsewhere
+
+This command changes the local store or your files.
+
+```sh
+memo stages create <kind> <name> [outcome] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `kind` | required | deal or lead: which base set. One of: `deal`, `lead`. |
+| `name` | required | the stage's name, once in its set. |
+| `outcome` | optional | open, won or lost; open by default. One of: `open`, `won`, `lost`. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** base stage set — kind, pipeline, stages, unsorted; every field: memo commands info stages create
+
+**Example:** `memo stages create deal Demo`, `memo stages create lead Spam lost`
+
+### `memo stages rename`
+
+rename a base stage; what maps to it stays mapped
+
+This command changes the local store or your files.
+
+```sh
+memo stages rename <kind> <stage> <name> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `kind` | required | deal or lead: which base set. One of: `deal`, `lead`. |
+| `stage` | required | the base stage, by its stage:<id> or its name. |
+| `name` | required | its new name. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** base stage set — kind, pipeline, stages, unsorted; every field: memo commands info stages rename
+
+**Example:** `memo stages rename deal Proposal 'Quote sent'`
+
+### `memo stages move`
+
+put a base stage at another place in its set; unconfirmed suggestions follow the new order
+
+This command changes the local store or your files.
+
+```sh
+memo stages move <kind> <stage> <position> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `kind` | required | deal or lead: which base set. One of: `deal`, `lead`. |
+| `stage` | required | the base stage, by its stage:<id> or its name. |
+| `position` | required | its new place, from 1. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** base stage set — kind, pipeline, stages, unsorted; every field: memo commands info stages move
+
+**Example:** `memo stages move deal Negotiation 2`
+
+### `memo stages remove`
+
+take a stage out of the base set: refused for the last of its outcome and for one the owner's own rows stood in; what was mapped to it waits for a new confirm
+
+This command changes the local store or your files.
+
+```sh
+memo stages remove <kind> <stage> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `kind` | required | deal or lead: which base set. One of: `deal`, `lead`. |
+| `stage` | required | the base stage, by its stage:<id> or its name. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** base stage set — kind, pipeline, stages, unsorted; every field: memo commands info stages remove
+
+**Example:** `memo stages remove deal Negotiation`
+
+### `memo stages list`
+
+every stage outside the base sets in scope, a CRM's or an own pipeline's, with the base stage it maps to, and whether the owner confirmed that or it is the store's suggestion
+
+```sh
+memo stages list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** stage mapping — ref, name, position, outcome, external_id, kind, pipeline, pipeline_name, and 5 more; every field: memo commands info stages list
+
+**Example:** `memo stages list confirmed:false`, `memo stages list kind:deal pipeline:pipeline:3 --json`
+
+### `memo stages set`
+
+map one stage of a CRM or own pipeline onto a base stage of its kind, confirmed, so a later sync keeps it; an agent's run records it as a suggestion the owner confirms
+
+This command changes the local store or your files.
+
+```sh
+memo stages set <stage> <base-stage> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `stage` | required | the stage, by its stage:<id> as stages list shows it. |
+| `base-stage` | required | the base stage, by its stage:<id> or its name. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** stage mapping — ref, name, position, outcome, external_id, kind, pipeline, pipeline_name, and 5 more; every field: memo commands info stages set
+
+**Example:** `memo stages set stage:41 Proposal`
+
+### `memo stages confirm`
+
+confirm every suggestion of one pipeline, or of all of them in scope, as it stands
+
+This command changes the local store or your files.
+
+```sh
+memo stages confirm [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--pipeline <pipeline>` | pipeline:<id>, or a name only one pipeline has. |
+| `--all` | every pipeline in scope. |
+| `--kind <kind>` | with --all: only deal or only lead stages. One of: `deal`, `lead`. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** stage mapping confirm — confirmed; every field: memo commands info stages confirm
+
+**Example:** `memo stages confirm --pipeline pipeline:3`, `memo stages confirm --all`
 
 ## `memo products`
 
@@ -5057,14 +5438,14 @@ memo models download <model> [options]
 | Option | What it does |
 |---|---|
 | `--offline` | refuse a download that needs the network. |
-| `--accept-terms` | accept the model's licence terms, for a model that has its own. |
+| `--accept-terms` | no longer needed; kept so older scripts still run. |
 | `--json` | print JSON. |
 
 **Returns:** model — id, kind, title, languages, size_bytes, downloaded, default, path, and 6 more; every field: memo commands info models download
 
 **Next usually:** `memo models set <model>`
 
-**Example:** `memo models download e5-small`, `memo models download e5-large`
+**Example:** `memo models download embeddinggemma`, `memo models download e5-small`
 
 ### `memo models set`
 
@@ -5178,6 +5559,54 @@ memo models consents revoke [options]
 **Returns:** turn enrichment off and delete what the model wrote; search reads only the…
 
 **Example:** `memo models consents revoke`
+
+### `memo models keys`
+
+the API key write-time enrichment sends with each request
+
+#### `memo models keys set`
+
+store a key, typed at a hidden prompt or piped on stdin — never as an argument
+
+This command changes the local store or your files.
+
+```sh
+memo models keys set <provider> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `provider` | required | openai, anthropic, or the host of a --base-url server that wants a key. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** model key stored — provider, stored; every field: memo commands info models keys set
+
+**Example:** `memo models keys set openai`, `memo models keys set anthropic`
+
+#### `memo models keys remove`
+
+forget the stored key; a key in the environment stays
+
+This command changes the local store or your files.
+
+```sh
+memo models keys remove <provider> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `provider` | required | openai, anthropic, or a server's host. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** model key removed — provider, removed; every field: memo commands info models keys remove
+
+**Example:** `memo models keys remove openai`
 
 ## `memo templates`
 
@@ -5638,6 +6067,100 @@ memo store recover run [options]
 **Returns:** rebuild a damaged store from every row it can read
 
 **Example:** `memo store recover run`
+
+## `memo groups`
+
+account groups: memo <group> … reads only the group's accounts
+
+### `memo groups list`
+
+every saved group, then all, with its accounts, each with its profiles in every app and the other groups that hold it too; duplicates and profile-name suggestions last
+
+```sh
+memo groups list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms; this list filters by none yet. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** the saved groups, then all, with accounts, profiles and duplicates
+
+**Example:** `memo groups list`, `memo groups list --json`
+
+### `memo groups add`
+
+put an account in a group, which is made when it does not exist; it may stay in others too
+
+This command changes the local store or your files.
+
+```sh
+memo groups add <group> <source> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `group` | required | the group: letters, digits, - and _, not a memo command word. |
+| `source` | required | one account, as --source names it: telegram:102, tg:work, email:me@work.example, bitrix24:<portal>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** put an account in a group
+
+**Example:** `memo groups add work bitrix24:acme`, `memo groups add personal telegram:102`
+
+### `memo groups remove`
+
+take an account out of a group; the account and its data stay, and `all` still reads it
+
+This command changes the local store or your files.
+
+```sh
+memo groups remove <group> <source> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `group` | required | the group. |
+| `source` | required | one account, as --source names it: telegram:102, tg:work, email:me@work.example, bitrix24:<portal>. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** take an account out of a group
+
+**Example:** `memo groups remove work telegram:102`
+
+### `memo groups move`
+
+move an account from one group to another in one write; the other group is made when it is new
+
+This command changes the local store or your files.
+
+```sh
+memo groups move <source> <from> <to> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `source` | required | one account, as --source names it: telegram:102, tg:work, email:me@work.example, bitrix24:<portal>. |
+| `from` | required | the group it leaves. |
+| `to` | required | the group it joins. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** move an account between groups
+
+**Example:** `memo groups move telegram:102 personal work`
 
 ## `memo jobs`
 

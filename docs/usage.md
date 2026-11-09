@@ -143,6 +143,52 @@ Your agent writes deals, leads and pipelines as you do, at once. To limit what i
 pipeline named Sales: name one by its reference, `pipeline:3`. `pipelines show` counts, per stage, how many deals
 reached it and the share that went on to the next. `projects status` lists up to five open deals of the project.
 
+`memo deals context deal:5` gives one deal whole: how its stage moved, the client, its people with their roles and
+standing, the owner, the project, the invoices and payments of its project and its client, each saying how it was
+reached, the messages, mail and meetings of its people while it was open, and its open tasks. Those messages share
+people with the deal, nothing links them, so they are marked `proposed`. A stage named Won is not a payment: money is
+what the invoices and payments say. `--brief` is the short form for an agent; `memo leads context` is the same for a
+lead. `memo deals update deal:5 --project HRB` sets the project a deal belongs to, a CRM's copy too: the sync never
+changes it.
+
+A deal copied from a CRM account (`b24 <profile> sync`) and the people on it are `reported`: the CRM says so, and you
+did not confirm it. Put the CRM account in a group (`memo groups add work bitrix24:<portal>`), and a run of another group
+reads none of its deals, people or relationships.
+
+In `--json`, each row of `deals list`, `leads list` and `pipelines list` copied from a CRM has `writes_with`: the CLI
+that changes it on the CRM (`tool`, such as `b24`), the row's `account`, and the `profile` to run it as. The profile is
+set only when exactly one profile of that CLI has run on the account; otherwise it is `null`, `profiles` lists the
+candidates and `why` says what to choose. In a group, a profile on an account outside the group is never named. Your
+own rows have `"writes_with": null`: memo changes them itself.
+
+### Base stages
+
+Each CRM and each of your pipelines names its stages its own way. Base stages are one list of your own for deals and
+one for leads: the columns a board shows across every pipeline. Every other stage maps onto one of them. Memo suggests
+the mapping, and you confirm it.
+
+```sh
+memo stages show deal
+memo stages list confirmed:false
+memo stages set stage:41 stage:3
+memo stages confirm --pipeline pipeline:3
+memo deals move deal:5 stage:3
+```
+
+`stages show deal` makes the deal list on first use, in your first language (`owner_languages`; Russian while it is
+unset). The lead list is memo's own `Leads` pipeline as it is: New, Contacted, Qualified, Won, Lost. `stages show`
+gives each column with its open deals or leads and mapped stages, and what is unsorted: stages not mapped yet or only
+suggested. `stages create`, `rename`, `move` and
+`remove` edit the list; each list keeps at least one open, one won and one lost stage. `stages list` shows every
+other stage with its base stage and `confirmed`. `stages set` maps one stage. `stages confirm --all` confirms every
+suggestion. Only you edit the list and confirm. Your agent's `stages set` stays a suggestion until you confirm it.
+
+`deals move` and `leads move` take a base stage's `stage:<id>`. They move your own deal to the one stage of its
+pipeline that is mapped there. When several are, the answer is `stage.choice-required` with `candidates`: move to one
+of them by its `stage:<id>`. When none is, it is `stage.unmapped`. A CRM's copy moves on its CRM, with the CLI in its
+`writes_with`. In `--json`, a row of `deals list` and `leads list` has `base_stage`, which stays `null` until you
+confirm its mapping. In a group, `stages` counts and lists only the group's pipelines and your own.
+
 ## Answers for scripts and agents
 
 Add `--json` to most commands to get an answer a program can read. The text answer is for people;
@@ -186,3 +232,24 @@ A command that changes something, such as adding a task or a reminder, acts as o
 Memo tells you which accounts exist.
 
 Reads use `--source`; account-scoped writes use `--account provider:account`. Retired selection flags are refused.
+
+### Groups of accounts
+
+Memo reads every account by default: that is `all`, and `memo all …` says it out loud. A group is an opt-in list of
+accounts you save, mostly to keep an agent to work data. Put an account in one with `memo groups add work
+bitrix24:acme`, and read only that group by naming it first: `memo work search all "renewal"`, `memo work context
+person:5`. `MEMO_GROUP=work` does the same for every command. In a group, a read takes only the group's accounts; an
+explicit `--source` narrows inside it, and an account outside it is refused, as is a write's `--account`. A command
+that reads one kind, such as `search mail`, takes the group's accounts of that kind. What you made yourself (your
+notes, projects, tasks, invoices, memories and facts) belongs to no account, so every group shows it.
+
+`memo groups list` shows each saved group, then `all`, with its accounts, every app's profile names for each
+(`tg work`, `b24 work`), and the other groups that hold an account too: an account may be in several, and the list
+names those duplicates. A profile named like a group is only a suggestion; it never puts an account in a group.
+`personal` is a group like any other, empty until you save it. `--source personal` is not that group: it means your
+own messenger accounts, not bots.
+
+`memo groups remove work telegram:102` takes an account out; `all` still reads it. `memo groups move telegram:102
+personal work` moves it in one write: the account, then the group it leaves, then the group it joins. Without a lock
+a group is a convenience, not a boundary: references (`msg:…`, `deal:5`) are not checked, and a run without the word
+reads every account. To pin a process to one group, see [the MCP lock](mcp.md#lock-an-agent-to-a-group).

@@ -4,7 +4,6 @@ import { isCliError, type KeyringStore } from "@wirecat/cli-base"
 import {
   chosenTextModel,
   conversationsService,
-  DEFAULT_TEXT_MODEL,
   embeddingsService,
   embedMail as embedMailChunksOf,
   embedNotes as embedNoteChunksOf,
@@ -18,6 +17,9 @@ import { APP } from "../app.js"
 /** About three chunks a second with e5-small on this laptop (2026-10-06): a run stays near three minutes, under a five-minute timer, and the next resumes. */
 export const EMBED_PER_RUN = 600
 
+/** The model EMBED_PER_RUN was measured with; no longer the default, so it is named here. */
+const MEASURED_WITH = "e5-small"
+
 /** A model of unknown speed is taken to be as slow as EmbeddingGemma, so a timer run still ends in time. */
 const SLOWEST_KNOWN = 2
 
@@ -25,7 +27,7 @@ const SLOWEST_KNOWN = 2
 export const embedPerRun = (env: NodeJS.ProcessEnv = process.env): number => {
   const models = textModels(env)
   const speed = (id: string) => models.find((model) => model.id === id)?.chunksPerSecond ?? SLOWEST_KNOWN
-  const ratio = speed(chosenTextModel(env).id) / speed(DEFAULT_TEXT_MODEL)
+  const ratio = speed(chosenTextModel(env).id) / speed(MEASURED_WITH)
   return Math.max(8, Math.min(EMBED_PER_RUN, Math.round(EMBED_PER_RUN * ratio)))
 }
 
@@ -43,8 +45,7 @@ export interface NotesEmbedded {
 const missingModel = (error: unknown, env: NodeJS.ProcessEnv | undefined): string => {
   const named = isCliError(error) ? error.details.model : undefined
   const id = typeof named === "string" ? named : chosenTextModel(env).id
-  const terms = textModels(env).find((model) => model.id === id)?.terms
-  return `the ${id} model is not downloaded — memo models download ${id}${terms ? " --accept-terms" : ""}`
+  return `the ${id} model is not downloaded — memo models download ${id}`
 }
 
 /** Whether the chosen text model is downloaded; an unreadable model choice counts as missing, and doctor names it. */
@@ -170,6 +171,8 @@ export interface EnrichmentReport {
   /** `null` when the model has no known price. */
   costUsd: number | null
   reason?: string
+  /** `reason` as an id from cli-core's ENRICHMENT_REASON_IDS, for a window to word it. */
+  reasonId?: string
 }
 
 export interface NoteChunksEmbedded {
@@ -185,7 +188,7 @@ type Enriched = Awaited<ReturnType<typeof embedNoteChunksOf>>["enrichment"]
 
 const reportOf = (run: Enriched): EnrichmentReport | undefined => {
   if (run === undefined) return undefined
-  if (run.status === "failed")
+  if (!("provider" in run))
     return {
       status: "failed",
       sent: 0,
@@ -196,6 +199,7 @@ const reportOf = (run: Enriched): EnrichmentReport | undefined => {
       outputTokens: 0,
       costUsd: 0,
       reason: run.reason,
+      reasonId: run.reason_id,
     }
   return {
     status: run.status,
@@ -209,23 +213,29 @@ const reportOf = (run: Enriched): EnrichmentReport | undefined => {
     outputTokens: run.usage.output,
     costUsd: run.cost_usd,
     ...(run.reason === undefined ? {} : { reason: run.reason }),
+    ...(run.reason_id === undefined ? {} : { reasonId: run.reason_id }),
   }
 }
 
-/** One sync's notes and mail enrichment as one block: sums, and the worse status with its reason. */
+/**
+ * One sync's notes and mail enrichment as one block: sums, and the reason of the worse part. It is `failed` only when
+ * nothing came back enriched, so mail enriched beside failed notes still reads `stopped`.
+ */
 export const combinedEnrichment = (...parts: (EnrichmentReport | undefined)[]): EnrichmentReport | undefined => {
   const present = parts.filter((part): part is EnrichmentReport => part !== undefined)
   if (present.length === 0) return undefined
   const rank = { done: 0, stopped: 1, failed: 2 } as const
   const worst = present.reduce((a, b) => (rank[b.status] > rank[a.status] ? b : a))
+  const enriched = present.reduce((sum, part) => sum + part.enriched, 0)
+  const status = worst.status === "failed" && enriched > 0 ? "stopped" : worst.status
   const named = present.find((part) => part.provider !== undefined)
   const costs = present.map((part) => part.costUsd)
   return {
-    status: worst.status,
+    status,
     ...(named?.provider === undefined ? {} : { provider: named.provider }),
     ...(named?.model === undefined ? {} : { model: named.model }),
     sent: present.reduce((sum, part) => sum + part.sent, 0),
-    enriched: present.reduce((sum, part) => sum + part.enriched, 0),
+    enriched,
     failed: present.reduce((sum, part) => sum + part.failed, 0),
     left: present.reduce((sum, part) => sum + part.left, 0),
     inputTokens: present.reduce((sum, part) => sum + part.inputTokens, 0),
@@ -234,6 +244,7 @@ export const combinedEnrichment = (...parts: (EnrichmentReport | undefined)[]): 
       ? null
       : Math.round(costs.reduce<number>((sum, cost) => sum + (cost ?? 0), 0) * 1_000_000) / 1_000_000,
     ...(worst.reason === undefined ? {} : { reason: worst.reason }),
+    ...(worst.reasonId === undefined ? {} : { reasonId: worst.reasonId }),
   }
 }
 

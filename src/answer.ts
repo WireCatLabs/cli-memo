@@ -37,8 +37,11 @@ export const listAnswer = <T>(command: string, input: ListInput<T>) => {
 export const wholeList = (command: string, items: unknown[]) =>
   listAnswer(command, { items, limit: Math.max(1, items.length), has_more: false })
 
+export const openMemoStore = (env: NodeJS.ProcessEnv): Promise<MessageStore> =>
+  openStore({ env, ...STORE_CLIENT, decisions: decisionPolicy(env) })
+
 export const withStore = async <T>(env: NodeJS.ProcessEnv, work: (store: MessageStore) => Promise<T>): Promise<T> => {
-  const store = await openStore({ env, ...STORE_CLIENT, decisions: decisionPolicy(env) })
+  const store = await openMemoStore(env)
   try {
     return await work(store)
   } finally {

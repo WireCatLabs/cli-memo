@@ -32,10 +32,13 @@ Tell me what is still open between us, with the source of each point.
 memo context telegram:'Kai Sample'
 memo context email:kai@example.com
 memo context max:'Kai Sample' --limit 50
+memo context person:7
 ```
 
 Name the person by their account: `telegram:` or `max:` with a name or ID, or `email:` with an
-address. The answer brings together:
+address, or as `person:<id>` (`memo search people` gives it). `person:<id>` reads every account that saw them,
+a CRM contact or a name you only added (`memo people add`) too, and `coverage` names each account it read and each
+source it did not, with the reason. The answer brings together:
 
 - every account you linked to the person;
 - the last message each way, recent messages in direct chats and groups, and the chats you share;
@@ -46,14 +49,18 @@ address. The answer brings together:
 - the note about them, the notes that link to them, and the notes you wrote about them in Memo;
 - open tasks that are about them or assigned to them.
 - the Google Drive files they own or last edited, as Google reports it. You have not reviewed these links;
-  they come from Google's own file record, not from a guess.
+  they come from Google's own file record, not from a guess;
+- `business`: the organizations they belong to with their role and position, whom they report to and who reports to
+  them, the deals and leads they are on, their projects, and categories such as `client`. Each relationship has a
+  `standing`: `confirmed` (yours), `reported` (a CRM account says so, and names it; nobody confirmed it), `proposed`
+  (waits for you in `memo review`) or `ended`.
 
 A note that only mentions the name in its text is not included; only links count
 ([why](how-it-works.md#links-between-notes-and-people)). If a part gave nothing, the answer says
 why. `--limit` shows more than 20 items of each kind, and `--json` gives the answer to an agent.
 
-If you have several accounts in the same messenger, add `--source`, for example
-`memo context telegram:101 --source telegram:1`.
+If you have several accounts in the same messenger, add `--source` to a `<messenger>:<name>` reference, for example
+`memo context telegram:101 --source telegram:1`. For `person:<id>`, `--source` only narrows the accounts read.
 
 ## Link a person's accounts
 
@@ -104,8 +111,13 @@ memo projects context HRB
 `--scope` is `personal` or `work`. `name:` ignores case and takes `*` as any text, so `name:*studio*` finds every name
 that holds the word. An agent's `organizations add` and `organizations rename` are written at once, as yours are;
 memo's `permissions` settings are what limit them. `projects context` takes a key, number, `project:<id>`, exact name or alias.
-`projects context` and `organizations context` show the people linked to the project or
-organization, the notes about it or linking to it, and its tags. For a project, the view also groups pending key documents, relationships, facts and meeting follow-ups
+`projects context` shows the people linked to the project, the notes about it or linking to it, and its tags.
+`organizations context` shows the organization's people by role, its customers, suppliers and partners, its projects,
+open deals and leads, invoices, payments and orders as stored (totals per status and currency, confirmed rows only),
+how much its people wrote to you, the open tasks of its projects, its categories, the notes about it and its tags. Each
+relationship says its standing, and `coverage` what was not read. `memo organizations list category:client` lists the
+organizations that are customers of one of your own; `supplier`, `partner` and `employer` work the same way. A
+category is read from relationships each time, never stored. For a project, the view also groups pending key documents, relationships, facts and meeting follow-ups
 under `review`, separate from existing open numbered tasks. It confirms nothing. The text view shows
 proposal references; `--json` includes evidence, source scope and continuation commands. Fact/task
 previews hold 20 records each. Meeting previews read at most five proposed batches per linked meeting
@@ -139,18 +151,38 @@ Move it to a key document with `memo projects key-documents add`, then `memo tag
 
 ## Who belongs where
 
-A **relationship** says that a person belongs to an organization or works on a project:
+A **relationship** says that a person belongs to an organization or works on a project, reports to someone, or that
+one organization is a customer or partner of another:
 
 ```sh
-memo relationships add person:PERSON_UID organization:1 --kind member-of --role employee
-memo relationships add person:PERSON_UID project:1 --kind related-to --role contributor
+memo relationships add person:PERSON_UID organization:1 --role employee --position CTO --start-date 2026-01-01
+memo relationships add person:PERSON_UID project:1 --role contributor
+memo relationships add person:PERSON_UID person:OTHER_UID --kind reports-to
+memo relationships add organization:2 organization:1 --kind customer-of
 memo relationships list 'about:"project:1"'
+memo relationships list kind:reports-to 'to:"person:5"'
+memo relationships list standing:reported include:ended --limit 50
+memo relationships end 4 --end-date 2026-09-30
 memo relationships remove 4
 ```
 
-A person's role as a member comes from a list: in an organization employee, contractor, founder, owner,
-manager, adviser or contact; in a project owner, manager, contributor, client-contact or approver. memo refuses
-any other role (`relationship.role-unknown`).
+`--position` keeps a job title apart from the role, and `--start-date` and `--end-date` (the last
+day) say when it held. `memo relationships end <id> --end-date <date>` says it no longer holds: it stays, as `ended`.
+
+Kinds: `member-of`, `reports-to`, `customer-of` (read backwards: supplier of), `partner-of` and `related-to`. A role
+is one from a list: in an organization `employee`, `contractor`, `founder`, `owner`, `manager`, `adviser`, `contact`;
+in a project `owner`, `manager`, `contributor`, `client-contact`, `approver`; on a deal or lead `owner`, `contact`,
+`decision-maker`, `influencer`. A job title is not a role: give it with `--position`. `memo relationships roles list` shows the lists;
+`memo relationships roles add organization board-member --label 'Board member'` adds a role of your own, and
+`remove` takes it off again while no relationship holds it. Only you change the lists. A role saved before these lists stays as written, and
+`relationships list` marks it `custom`.
+
+`relationships list` filters by `kind:`, `role:`, `standing:`, `from:`, `to:` and `at:<day>` (held on that day), and
+pages with `--limit` and `--page`; `at:<day>` means held at the start of that UTC day. It leaves out the ones that
+ended unless you add `include:ended`, and lists the proposals waiting for you with `standing:proposed`. With
+`about:<ref>` each row says its `direction` (`outgoing` or `incoming`) and, incoming, its `inverse`, such as `manages`
+for `reports-to` read backwards. Every row shows its standing and, for a CRM's, the account that reported it.
+
 What the role means here goes beside it, in your words, with `--role-note`.
 A free-text role from before the lists still reads; to change it, set a listed role and keep the old words as
 the note: `memo relationships update 4 --role client-contact --role-note '<the old words>'`.

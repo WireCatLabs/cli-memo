@@ -5,6 +5,7 @@ import { projectStatus } from "@wirecat/cli-core/services"
 import { type AccountKey, type MessageStore, SOURCE_REVIEW_KIND } from "@wirecat/cli-core/store"
 import { listReview, REVIEW_SOURCES } from "../review/review.js"
 import { counted } from "../review/status.js"
+import { scopedAccounts } from "../store/group.js"
 import { knownSenders } from "./known.js"
 import { HEALTH_REASONS, type Health, healthOf, SOURCE_WORDS, syncRunsOf } from "./sync-health.js"
 import { digestRunBefore, gatherTasks, previousDigestAt, type TaskCounts } from "./tasks.js"
@@ -216,7 +217,7 @@ export const gatherDigest = async (
   const upTo = (found: Pending[]) => found.filter((one) => by(Date.parse(one.item.at)))
   const window = (now - since) / DAY
   const days = `${Math.max(1, Math.ceil(window))}d`
-  const accounts = await store.accounts.accounts()
+  const accounts = await scopedAccounts(store, env)
   const messengers = accounts.filter((key) => MESSENGERS.has(key.provider))
   const mailboxes = accounts.filter((key) => key.provider === "email")
   const owedSince = Math.min(since, now - owedWithin)

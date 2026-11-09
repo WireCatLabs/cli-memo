@@ -1,84 +1,101 @@
+import { CliError } from "@wirecat/cli-base"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
-import { byEngagement } from "@wirecat/cli-core"
+import { byEngagement, RELATION_KINDS, type RelationKind, STANDINGS, type Standing } from "@wirecat/cli-core"
 import { queryTerms, termField } from "@wirecat/cli-core/cli"
-import { proposalRegistry } from "@wirecat/cli-core/services"
-import type { MessageStore } from "@wirecat/cli-core/store"
+import type { AccountKey, MessageStore, Proposer } from "@wirecat/cli-core/store"
 import { labelsFor, proposerName } from "../review/review.js"
+import { guardOf } from "../store/guard.js"
 
 export const RELATIONSHIP_QUERY = {
   entity: "relationship",
   backend: "native",
   fields: [
-    termField("about", "ref", 'about:"project:1"', {
-      relation: "the person, organization or project at either end",
+    termField("about", "ref", 'about:"person:5"', {
+      relation: "the person, organization, project, deal or lead at either end; each row says its direction",
     }),
+    termField("from", "ref", 'from:"person:5"', { relation: "the end that belongs, reports or relates" }),
+    termField("to", "ref", 'to:"person:5"', { relation: "the end it belongs, reports or relates to" }),
+    termField("kind", "enum", "kind:reports-to", { values: RELATION_KINDS }),
+    termField("role", "kw", "role:decision-maker"),
+    termField("standing", "enum", "standing:reported", { values: STANDINGS }),
     termField("confirmed", "enum", "confirmed:false", { values: ["true", "false"] }),
+    termField("at", "kw", "at:2026-10-01", { relation: "held at the start of that UTC day" }),
+    termField("include", "enum", "include:ended", { values: ["ended"] }),
   ],
 } as const satisfies QueryRegistry
 
-const PENDING_LIMIT = 50
+const DAY = /^\d{4}-\d{2}-\d{2}$/
 
-interface Payload {
-  kind?: string
-  purpose?: string
+/** `at:2026-10-01`: held at the start of that UTC day. */
+const atOf = (day: string): number => {
+  const at = Date.parse(`${day}T00:00:00Z`)
+  if (!DAY.test(day) || Number.isNaN(at))
+    throw new CliError("validation_error", `at: takes a day, such as at:2026-10-01 — not "${day}"`, {
+      reason: "input.invalid",
+    })
+  return at
 }
 
-/** The pending ones are the review's `relationship` rows, so both commands list the same proposals. */
-const pending = async (store: MessageStore, about: string | undefined) => {
-  const found = await proposalRegistry(store).list({
-    kinds: ["relationship"],
-    status: "proposed",
-    ...(about?.startsWith("project:") ? { project: about } : {}),
-    limit: PENDING_LIMIT,
-    offset: 0,
-  })
-  const payloads = new Map(
-    (await store.proposedActions.list({ kinds: ["relationship"], status: "proposed", limit: 500 })).map((one) => [
-      one.id,
-      (one.payload ?? {}) as Payload,
-    ]),
-  )
-  const rows = found.items.filter((row) => about === undefined || row.subject === about || row.object === about)
-  return {
-    hasMore: found.hasMore,
-    items: rows.map((row) => ({
-      id: row.id,
-      from: row.subject,
-      to: row.object,
-      kind: payloads.get(row.id)?.kind ?? null,
-      role: row.summary,
-      purpose: payloads.get(row.id)?.purpose ?? null,
-      evidence: row.reason,
-      confirmed: false,
-      status: "proposed" as const,
-      proposer: proposerName(row.proposedBy),
-      score: row.score,
-      createdAt: row.createdAt,
-    })),
-  }
+export interface RelationshipPage {
+  limit: number
+  page: number
+  /** The accounts in scope: a source's relationship from any other is left out; the owner's are always in. */
+  accounts?: AccountKey[]
+  /** Kinds memo's permissions deny: no relationship with a deal or a lead end. */
+  deniedKinds?: string[]
 }
 
-export const listRelationships = async (store: MessageStore, words: readonly string[]) => {
+/** `relationships list`: cli-core filters and pages the links and the pending proposals together. */
+export const listRelationships = async (
+  store: MessageStore,
+  env: NodeJS.ProcessEnv,
+  words: readonly string[],
+  { limit, page, accounts, deniedKinds }: RelationshipPage = { limit: 100, page: 1 },
+) => {
   const terms = queryTerms(words, RELATIONSHIP_QUERY, "relationships list")
-  const about = terms.get("about")
   const confirmed = terms.get("confirmed")
-  const found =
-    confirmed === "false"
-      ? await pending(store, about)
-      : {
-          hasMore: false,
-          items: byEngagement(await store.knowledge.relations(null, about))
-            .filter((one) => confirmed === undefined || one.confirmed)
-            .map((one) => ({ ...one, status: one.confirmed ? ("confirmed" as const) : ("proposed" as const) })),
-        }
+  const standing = (terms.get("standing") ??
+    (confirmed === "false" ? "proposed" : confirmed === "true" ? "confirmed" : undefined)) as Standing | undefined
+  const at = terms.get("at")
+  const found = await store.knowledge.listRelations({
+    ...(terms.has("kind") ? { kind: terms.get("kind") as RelationKind } : {}),
+    ...(terms.has("role") ? { role: terms.get("role") as string } : {}),
+    ...(terms.has("from") ? { from: terms.get("from") as string } : {}),
+    ...(terms.has("to") ? { to: terms.get("to") as string } : {}),
+    ...(terms.has("about") ? { about: terms.get("about") as string } : {}),
+    ...(standing === undefined ? {} : { standing }),
+    ...(at === undefined ? {} : { at: atOf(at) }),
+    ...(terms.get("include") === "ended" ? { includeEnded: true } : {}),
+    ...(accounts === undefined ? {} : { accounts }),
+    ...(deniedKinds?.length ? { deniedKinds } : {}),
+    limit,
+    page,
+  })
+  // Under the lock a row whose end the group cannot show, a person only an outside account saw, is left out.
+  const guard = await guardOf(store, env)
+  const rows = []
+  for (const one of found.items)
+    if (guard === undefined || ((await guard.visible(one.from)) && (await guard.visible(one.to)))) rows.push(one)
   const label = await labelsFor(
     store,
-    found.items.flatMap((one) => [one.from, one.to]),
+    rows.flatMap((one) => [one.from, one.to]),
   )
   return {
     hasMore: found.hasMore,
-    limit: confirmed === "false" ? PENDING_LIMIT : Math.max(1, found.items.length),
-    items: found.items.map((one) => ({ ...one, fromTitle: label(one.from), toTitle: label(one.to) })),
+    limit,
+    page,
+    items: await Promise.all(
+      byEngagement(rows).map(async (one) => ({
+        ...one,
+        status: one.standing,
+        // Who proposed it is the review's to name; the list says it beside the proposal.
+        ...(one.source === "proposal"
+          ? { proposer: proposerName((await store.proposedActions.get(one.id)).proposedBy as Proposer) }
+          : {}),
+        fromTitle: label(one.from),
+        toTitle: label(one.to),
+      })),
+    ),
   }
 }
 
@@ -92,15 +109,18 @@ export const relationshipsText = (items: readonly Listed[]) =>
             one.id,
             `${one.fromTitle} → ${one.toTitle}`,
             [
-              one.kind,
-              one.role && `as ${one.role}`,
+              one.direction === "incoming" ? (one.inverse ?? one.kind) : one.kind,
+              one.role && `as ${one.role}${one.custom ? " (custom)" : ""}`,
               "roleNote" in one && one.roleNote && `(${one.roleNote})`,
+              one.position && `(${one.position})`,
               one.purpose && `for ${one.purpose}`,
               "engagement" in one && one.engagement && `engagement ${one.engagement}`,
             ]
               .filter(Boolean)
               .join(" "),
-            "proposer" in one ? `proposed by ${one.proposer}` : one.confirmed ? "" : "suggested",
+            "proposer" in one
+              ? `proposed by ${one.proposer}`
+              : [one.standing, one.account && `by ${one.account}`].filter(Boolean).join(" "),
           ]
             .filter(Boolean)
             .join("  "),
