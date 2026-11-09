@@ -5798,11 +5798,12 @@ memo models search-consents set <provider> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `provider` | required | the provider that receives the question and hits: anthropic. |
+| `provider` | required | the provider that receives the question and hits: openai or anthropic. |
 
 | Option | What it does |
 |---|---|
-| `--model <model>` | the provider's model name. Default: `claude-haiku-5-5`. |
+| `--model <model>` | the provider's model; claude-haiku-5-5 or gpt-4o-mini if left out. |
+| `--base-url <url>` | the address of an OpenAI-compatible model API (OpenRouter…); needs --model. |
 | `--yes` | agree that a --harder search sends its question and hits, and allow it. |
 | `--json` | print JSON. |
 
@@ -6602,7 +6603,7 @@ memo schedule command <name> <args> [options]
 | Option | What it does |
 |---|---|
 | `--every <duration>` | repeat: 30m, 2h, 1d. |
-| `--at <HH:MM>` | every day at this local time. |
+| `--at <HH:MM>` | every day at this local time; 'mon 09:00' once a week (mon, tue, wed, thu, fri, sat, sun). |
 | `--at-time <time>` | one run: 30m, 2d from now, or an ISO time; the schedule removes itself after it. |
 | `--notify-on <when>` | desktop notice after a run (default failures for an agent that repeats with --every, else always). One of: `always`, `failures`, `never`. |
 | `--deliver-to <route>` | also send the result, when --notify-on says so, by the owner's own tg or mail: telegram-bot:<profile>/<chat id or user:id>, or email:<profile>/<address>; repeat it for more. |
@@ -6634,7 +6635,7 @@ memo schedule agent <name> <harness> <prompt> [options]
 | `--max-cost <usd>` | claude only: stop a run that costs more than this, in US dollars. |
 | `--max-cost-per-day <usd>` | claude only: start no run for the rest of the day once its runs cost this much, in US dollars; 0 for no cap (default 5, or the config file's). |
 | `--every <duration>` | repeat: 30m, 2h, 1d. |
-| `--at <HH:MM>` | every day at this local time. |
+| `--at <HH:MM>` | every day at this local time; 'mon 09:00' once a week (mon, tue, wed, thu, fri, sat, sun). |
 | `--at-time <time>` | one run: 30m, 2d from now, or an ISO time; the schedule removes itself after it. |
 | `--notify-on <when>` | desktop notice after a run (default failures for an agent that repeats with --every, else always). One of: `always`, `failures`, `never`. |
 | `--deliver-to <route>` | also send the result, when --notify-on says so, by the owner's own tg or mail: telegram-bot:<profile>/<chat id or user:id>, or email:<profile>/<address>; repeat it for more. |
