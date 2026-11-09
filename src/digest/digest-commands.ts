@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs"
 import { CliError } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
+import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { type ServerSystem, thisMachine } from "@wirecat/cli-core/background"
 import {
   type AgentScheduleSpec,
@@ -14,6 +15,7 @@ import {
   LOCAL_WRITE,
   parseRoute,
   pauseSchedule,
+  queryTerms,
   removeSchedule,
   routeText,
   runScheduleNow,
@@ -21,6 +23,8 @@ import {
   type ScheduleSite,
   scheduleName,
   slotsOfAt,
+  termField,
+  withQuery,
   writeSchedule,
 } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
@@ -161,11 +165,22 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
     await withStore(env, async (store) => store.templates.save(briefAddress(name), body, "memo"))
   }
 
-  annotate(digest.command("list"), { effects: LOCAL_READ })
-    .summary("your digests: when each runs, what it reads, where it goes, last and next run")
+  const listQuery = {
+    entity: "digest",
+    backend: "native",
+    fields: [termField("name", "kw", "name:weekly")],
+  } as const satisfies QueryRegistry
+  withQuery(
+    annotate(digest.command("list"), { effects: LOCAL_READ }).summary(
+      "your digests: when each runs, what it reads, where it goes, last and next run",
+    ),
+    listQuery,
+  )
     .option("--json", "print JSON")
-    .action(async (given: { json?: boolean }) => {
-      const items = await Promise.all(digestNames(env).map(shown))
+    .action(async (words: string[], given: { json?: boolean }) => {
+      const wanted = queryTerms(words, listQuery, "digest list").get("name")
+      const names = digestNames(env).filter((name) => wanted === undefined || name === wanted)
+      const items = await Promise.all(names.map(shown))
       print(
         given.json,
         wholeList("digest list", items),

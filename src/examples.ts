@@ -473,7 +473,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   ],
   "schedule list": ["memo schedule list", "memo schedule list kind:agent --json"],
   "schedule run": ["memo schedule run digest"],
-  "digest list": ["memo digest list", "memo digest list --json"],
+  "digest list": ["memo digest list", "memo digest list name:weekly --json"],
   "digest add": [
     "memo digest add evening --title 'Evening digest' --at 18:00 --deliver-to telegram-bot:personal/user:42",
     "memo digest add weekly --title 'The week' --at 'mon 09:00' --source telegram,mail,tasks",

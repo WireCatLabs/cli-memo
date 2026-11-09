@@ -6880,8 +6880,12 @@ memo digest brief reset [digest] [options]
 ### `memo digest list`
 
 ```sh
-memo digest list [options]
+memo digest list [query] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
 
 | Option | What it does |
 |---|---|
@@ -6889,7 +6893,7 @@ memo digest list [options]
 
 **Returns:** your digests: when each runs, what it reads, where it goes, last and next run
 
-**Example:** `memo digest list`, `memo digest list --json`
+**Example:** `memo digest list`, `memo digest list name:weekly --json`
 
 ### `memo digest add`
 

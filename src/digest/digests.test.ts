@@ -266,6 +266,13 @@ describe("digests by name", () => {
 })
 
 describe("digests after other changes", () => {
+  it("lists one digest by name:", async () => {
+    const { json } = setUp()
+    await json("digest", "add", "a", "--at", "08:30", "--from-app")
+    await json("digest", "add", "b", "--at", "09:00", "--from-app")
+    expect((await json("digest", "list", "name:b")).items.map(({ name }: { name: string }) => name)).toEqual(["b"])
+  })
+
   it("refuses a name shaped like a path", async () => {
     const { run } = setUp()
     await expect(run("digest", "run", "../../x", "--no-notify", "--from-app")).rejects.toThrow("no digest")
