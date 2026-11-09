@@ -20,6 +20,7 @@ import { answers, itemAnswer } from "../answer.js"
 import { APP } from "../app.js"
 import { fromAppOption, whoRuns } from "../author.js"
 import { scheduleLimits } from "../config.js"
+import { setExitCode } from "../exit-code.js"
 import { briefCommand } from "./brief.js"
 import { digestCommands } from "./digest-commands.js"
 import { agendaFlags, type DigestSource, isDigest, readDefinition, windowStart } from "./digests.js"
@@ -218,7 +219,7 @@ export const digestCommand = (program: Command, streams: Streams, env: NodeJS.Pr
         built.push({ date: day.label, at: run.at, exitCode: run.exitCode, costUsd: run.costUsd ?? null })
       }
       const costUsd = cents(built.reduce((sum, one) => sum + (one.costUsd ?? 0), 0))
-      if (built.some((one) => one.exitCode !== 0)) process.exitCode = 1
+      if (built.some((one) => one.exitCode !== 0)) setExitCode(command, 1)
       print(
         given.json,
         itemAnswer({ ...estimate, built, left, costUsd }),

@@ -32,6 +32,7 @@ import { itemAnswer, wholeList, withStore } from "../answer.js"
 import { APP } from "../app.js"
 import { fromAppOption, whoRuns } from "../author.js"
 import { scheduleLimits } from "../config.js"
+import { setExitCode } from "../exit-code.js"
 import { agentInputOf, MAIL_CLI } from "../schedule/command.js"
 import { checkedBrief, readBrief, refuseAgent } from "./brief.js"
 import { sourcesOf } from "./command.js"
@@ -342,7 +343,7 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
           )
           return
         }
-        if (last.exitCode !== 0) process.exitCode = 1
+        if (last.exitCode !== 0) setExitCode(command, 1)
         print(
           given.json,
           itemAnswer({ name, ...last }),

@@ -32,9 +32,9 @@ if (wcat.code !== undefined) {
       // A static import would load the store's SQLite before startCli could swap it.
       const { createProgram, liftGroup, refuseJoinedPath } = await import("../program.js")
       const { autoNotice, followInstall } = await import("../run/auto.js")
-      program = createProgram({ signal: entry.signal })
+      program = createProgram({ signal: entry.signal, setExitCode: entry.setExitCode })
       const { group, rest: args } = await liftGroup(program, entry.args, entry.env)
-      if (group !== undefined) program = createProgram({ signal: entry.signal, group })
+      if (group !== undefined) program = createProgram({ signal: entry.signal, group, setExitCode: entry.setExitCode })
       // `memo jobs status` says it in full; everywhere else one line, until a timer run passes again.
       if (args[0] !== "jobs") {
         const notice = autoNotice(entry.env)

@@ -22,6 +22,7 @@ import { answers, itemAnswer } from "../answer.js"
 import { APP } from "../app.js"
 import { inspectConfig } from "../config.js"
 import { SHELL_OVERRIDES } from "../contract-overrides.js"
+import { setExitCode } from "../exit-code.js"
 import { noteFolders } from "../notes/folders.js"
 import { autoState, lastAutoRun } from "../run/auto.js"
 import { installer, latest } from "../update.js"
@@ -250,7 +251,7 @@ const doctorCommandDefinition = (program: Command, streams: Streams, env: NodeJS
         doctorText(diagnosis, fixes, online),
       )
       if (options.json) for (const fix of fixes) streams.diagnostic(`to make it private: ${fix}`)
-      if (diagnosis.problems.length > 0) process.exitCode = 1
+      if (diagnosis.problems.length > 0) setExitCode(program, 1)
     })
 }
 

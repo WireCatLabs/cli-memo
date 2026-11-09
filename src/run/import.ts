@@ -13,6 +13,7 @@ import { type Command, InvalidArgumentError, Option } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { APP, STORE_CLIENT } from "../app.js"
 import { decisionPolicy, loadConfig } from "../config.js"
+import { setExitCode } from "../exit-code.js"
 import { errorObject } from "../failure.js"
 import { boundFolders, UNBOUND, unboundReason } from "../notes/bound.js"
 import {
@@ -358,6 +359,6 @@ export const syncCommand = (
     }
     recordAutoRun(env, startedAt, failedReason(run.failed))
     print(options.json, answer(), text(run))
-    if (run.failed.length > 0) process.exitCode = 1
+    if (run.failed.length > 0) setExitCode(program, 1)
   }
 }
