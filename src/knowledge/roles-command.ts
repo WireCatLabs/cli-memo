@@ -78,7 +78,7 @@ export const relationshipRolesCommand = (
       .summary("add a role of your own")
       .argument("<list>", LIST_HELP, oneOf(LISTS))
       .argument("<role>", "the role's id: lowercase letters, digits and -, such as board-member")
-      .option("--label <text>", "how it reads, such as 'Board member'")
+      .option("--label <label>", "how it reads, such as 'Board member'")
       .option("--json", "print JSON; --json=id,title keeps only those fields"),
   ).action(
     async (

@@ -358,7 +358,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .option("--role <role>", ROLE_HELP)
     .option("--role-note <text>", "what the role means here, in your words, beside a role from its list")
     .option("--engagement <level>", ENGAGEMENT_HELP, oneOf(ENGAGEMENT_LEVELS))
-    .option("--position <position>", "the job title, such as 'Procurement manager'; kept apart from the role")
+    .option("--position <title>", "the job title, such as 'Procurement manager'; kept apart from the role")
     .option("--start-date <date>", "the first day it held, such as 2026-01-01", dayOption)
     .option("--end-date <date>", "the last day it held, included; it ends at the start of the day after", lastDayOption)
     .option("--reason <text>", "why you think so, in a sentence")
@@ -447,7 +447,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       .option("--engagement <level>", `${ENGAGEMENT_HELP}; an empty value clears it`, (value: string) =>
         value === "" ? "" : oneOf(ENGAGEMENT_LEVELS)(value),
       )
-      .option("--position <position>", "the job title; an empty value clears it")
+      .option("--position <title>", "the job title; an empty value clears it")
       .option("--start-date <date>", "the first day it held, such as 2026-01-01", dayOption)
       .option("--purpose <purpose>", "what the chat is for in the project: work, sales, support or other")
       .option("--reason <text>", "why, in a sentence")

@@ -1895,7 +1895,7 @@ memo relationships add <from> <to> [options]
 | `--role <role>` | its role: in an organization employee, contractor, founder, owner, manager, adviser, contact; in a project owner, manager, contributor, client-contact, approver; on a deal or lead owner, contact, decision-maker, influencer. A job title is not a role. |
 | `--role-note <text>` | what the role means here, in your words, beside a role from its list. |
 | `--engagement <level>` | a person on a project: how much you deal with them yourself, not how active they are: none, low, medium or high. |
-| `--position <position>` | the job title, such as 'Procurement manager'; kept apart from the role. |
+| `--position <title>` | the job title, such as 'Procurement manager'; kept apart from the role. |
 | `--start-date <date>` | the first day it held, such as 2026-01-01. |
 | `--end-date <date>` | the last day it held, included; it ends at the start of the day after. |
 | `--reason <text>` | why you think so, in a sentence. |
@@ -1945,7 +1945,7 @@ memo relationships update <id> [options]
 | `--role <role>` | its role: in an organization employee, contractor, founder, owner, manager, adviser, contact; in a project owner, manager, contributor, client-contact, approver; on a deal or lead owner, contact, decision-maker, influencer. A job title is not a role; an empty value clears it. |
 | `--role-note <text>` | what the role means here, in your words; an empty value clears it. |
 | `--engagement <level>` | a person on a project: how much you deal with them yourself, not how active they are: none, low, medium or high; an empty value clears it. |
-| `--position <position>` | the job title; an empty value clears it. |
+| `--position <title>` | the job title; an empty value clears it. |
 | `--start-date <date>` | the first day it held, such as 2026-01-01. |
 | `--purpose <purpose>` | what the chat is for in the project: work, sales, support or other. |
 | `--reason <text>` | why, in a sentence. |
@@ -2073,7 +2073,7 @@ memo relationships roles add <list> <role> [options]
 
 | Option | What it does |
 |---|---|
-| `--label <text>` | how it reads, such as 'Board member'. |
+| `--label <label>` | how it reads, such as 'Board member'. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
