@@ -118,8 +118,14 @@ const firstLine = (text: string) => {
   return line ? line.slice(0, 120) : null
 }
 
-const titleIn = (metadata: Record<string, string | string[]> | undefined) =>
-  typeof metadata?.title === "string" && metadata.title.trim() ? metadata.title.trim().slice(0, 500) : null
+/** A metadata value as one line of text: the first non-empty one when the page gave several. */
+const metaText = (metadata: Record<string, string | string[]> | undefined, key: string) => {
+  const value = metadata?.[key]
+  const first = (Array.isArray(value) ? value : [value]).find((v) => typeof v === "string" && v.trim())
+  return first ? first.trim().slice(0, 500) : null
+}
+
+const titleIn = (metadata: Record<string, string | string[]> | undefined) => metaText(metadata, "title")
 
 const readStdin = async (stdin: AsyncIterable<string | Uint8Array>): Promise<string> => {
   const chunks: Buffer[] = []
@@ -220,5 +226,27 @@ export const readPage = async (
     title: titleIn(page.metadata) ?? new URL(page.requestedUrl).hostname,
     ...(page.metadata ? { metadata: page.metadata } : {}),
     ...(page.sections ? { sections: page.sections } : {}),
+  }
+}
+
+/** Enough of the text to recognise the page; the app shows a few lines of it. */
+const EXCERPT_CHARS = 800
+
+/** What `sources preview` answers: the page as `sources add` would keep it, without the text itself. */
+export const previewOf = (read: ReadSource) => {
+  const flat = read.text.replace(/\s+/g, " ").trim()
+  return {
+    url: read.url ?? null,
+    title: read.title,
+    site: read.url ? new URL(read.url).hostname : null,
+    description: metaText(read.metadata, "description"),
+    // By code point, so an emoji at the cut is never split into half a character.
+    excerpt: flat ? Array.from(flat).slice(0, EXCERPT_CHARS).join("") : null,
+    kind: read.kind,
+    mime: read.mime ?? null,
+    read: read.read,
+    // The store keeps the text trimmed, and sources add answers its length.
+    chars: read.text.trim().length,
+    truncated: read.truncated,
   }
 }

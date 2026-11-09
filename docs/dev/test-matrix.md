@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1098 ✅ · 0 ⛔ · 294 ❌** — 307 commands, 1085 options.
+**1100 ✅ · 0 ⛔ · 294 ❌** — 308 commands, 1086 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -64,6 +64,8 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `sources add` | `--keep-copy` | ✅ |  |
 | `sources add` | `--max-chars` | ✅ |  |
 | `sources add` | `--json` | ✅ |  |
+| `sources preview` |  | ✅ |  |
+| `sources preview` | `--json` | ✅ |  |
 | `sources show` |  | ✅ |  |
 | `sources show` | `--bytes` | ✅ |  |
 | `sources show` | `--json` | ✅ |  |

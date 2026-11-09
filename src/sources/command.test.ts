@@ -45,6 +45,7 @@ const run = async (
 }
 
 const add = (args: string[], options?: Parameters<typeof run>[1]) => run(["sources", "add", ...args], options)
+const preview = (args: string[], options?: Parameters<typeof run>[1]) => run(["sources", "preview", ...args], options)
 
 const file = (name: string, content: string | Uint8Array) => {
   const path = join(root, name)
@@ -363,5 +364,54 @@ it("never reads a path or a link for an agent over MCP", async () => {
     code: "permission_error",
   })
   await expect(add([file("local.txt", "local text")], { as: mcp })).rejects.toMatchObject({ code: "permission_error" })
+  expect((transport as PageTransport & { calls: string[] }).calls).toEqual([])
+})
+
+it("previews a page as sources add would read it, and keeps nothing", async () => {
+  const html = [
+    "<html><head><title>Kestrel route plan</title>",
+    '<meta name="description" content="Where the kestrel survey goes in spring.">',
+    "</head><body><p>The survey starts at the north ridge on 3 April.</p></body></html>",
+  ].join("")
+  const transport = page(200, { "content-type": "text/html; charset=utf-8" }, html)
+  const seen = await preview(["https://example.org/kestrel?ref=2"], { fetchPage: web(transport) })
+  expect(seen).toMatchObject({
+    url: "https://example.org/kestrel?ref=2",
+    title: "Kestrel route plan",
+    description: "Where the kestrel survey goes in spring.",
+    site: "example.org",
+    kind: "page",
+    mime: "text/html",
+    read: "extracted",
+    truncated: false,
+  })
+  expect(seen.excerpt).toMatch(/north ridge on 3 April/)
+  expect(seen.chars).toBeGreaterThan(0)
+
+  expect(await add(["https://example.org/kestrel?ref=2"], { fetchPage: web(transport) })).toMatchObject({
+    created: true,
+  })
+})
+
+it("refuses in preview what sources add refuses, and takes only a web address", async () => {
+  const signIn = preview(["https://docs.google.com/document/d/abc/edit"], {
+    fetchPage: web(page(403, { "content-type": "text/html" })),
+  }).catch((error: unknown) => error)
+  await expect(signIn).resolves.toMatchObject({ details: { reason: "source.needs-sign-in" } })
+  await expect(preview(["http://127.0.0.1/admin"])).rejects.toMatchObject({ details: { reason: "source.url-refused" } })
+  await expect(preview([file("plain.txt", "local")])).rejects.toMatchObject({ details: { reason: "input.invalid" } })
+  const strict = createProgram({
+    streams: captureStreams(),
+    env,
+    fetchPage: web(page(200, { "content-type": "text/plain" }, "x")),
+  })
+  quiet(strict)
+  await expect(
+    strict.parseAsync(["sources", "preview", "https://example.org/kestrel", "--json=titel"], { from: "user" }),
+  ).rejects.toMatchObject({ details: { reason: "output.unknown-field" } })
+  const transport = page(200, { "content-type": "text/plain" }, "never fetched")
+  await expect(
+    preview(["https://example.org/x"], { fetchPage: web(transport), as: { ...env, AI_AGENT: "memo-mcp" } }),
+  ).rejects.toMatchObject({ code: "permission_error" })
   expect((transport as PageTransport & { calls: string[] }).calls).toEqual([])
 })

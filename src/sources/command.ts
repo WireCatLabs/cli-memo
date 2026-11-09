@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs"
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { environmentOf, FETCH, LOCAL_READ, LOCAL_WRITE } from "@wirecat/cli-core/cli"
+import { environmentOf, FETCH, LOCAL_READ, LOCAL_WRITE, REMOTE_READ } from "@wirecat/cli-core/cli"
 import { type FetchPageOptions, MAX_TEXT_CHARS } from "@wirecat/cli-core/documents"
 import { type AddedSourceContent, addedSourceKeyOf, type Decider, type MessageStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
@@ -14,7 +14,7 @@ import { subjectOf } from "../people/subject.js"
 import { refuseBareNumber } from "../refs.js"
 import { dropCopy, keepCopy } from "./copy.js"
 import { namedIn } from "./mentions.js"
-import { argumentKind, readFile, readPage, readText, SOURCE_TEXT_CHARS, withNextStep } from "./read.js"
+import { argumentKind, previewOf, readFile, readPage, readText, SOURCE_TEXT_CHARS, withNextStep } from "./read.js"
 import { type ReaderDeps, readerCommands } from "./suggest-command.js"
 
 const SUBJECT_HELP =
@@ -201,6 +201,44 @@ export const sourcesCommand = (
           `  kept: ${item.kept === "copy" ? "its text and a copy of the file" : item.kept === "text" ? "its text" : "nothing new"}`,
           `  search: ${item.searchable.words ? "by words" : "by its title and subjects only"}${item.searchable.meaning ? " and by meaning after memo sync" : ""}`,
           ...(item.subjects.length ? [`  about: ${item.subjects.join(", ")}`] : []),
+        ].join("\n"),
+      )
+    })
+
+  annotate(sources.command("preview"), { effects: REMOTE_READ, output: { entity: "source_preview" } })
+    .summary("read a web page as sources add would, and keep nothing")
+    .description(
+      "read a web page as sources add would, with the same refusals, and say what would be kept; nothing is saved",
+    )
+    .argument("<url>", "an http(s) address")
+    .option("--json", "print JSON; --json=title,excerpt keeps only those fields")
+    .action(async (given: string, options: { json?: boolean }, command: Command) => {
+      if (isAgentServer(command, env))
+        throw new CliError("permission_error", "an agent over MCP cannot make memo fetch an address", {
+          reason: "source.agent-fetch",
+        })
+      if (argumentKind(given) !== "url")
+        throw new CliError(
+          "validation_error",
+          "give an http(s) address; a file is previewed by the app that picked it",
+          {
+            reason: "input.invalid",
+          },
+        )
+      const read = await readPage(given, { maxChars: SOURCE_TEXT_CHARS, ...(fetch ? { fetch } : {}) }).catch(
+        (error: unknown) => {
+          throw withNextStep(error)
+        },
+      )
+      const item = previewOf(read)
+      print(
+        options.json,
+        itemAnswer(item),
+        [
+          `${item.url}  nothing saved`,
+          `  ${item.title ?? ""}  ${item.kind}${item.mime ? ` · ${item.mime}` : ""} · ${item.chars} characters${item.truncated ? " (only the first part would be kept)" : ""}`,
+          ...(item.description ? [`  ${item.description}`] : []),
+          ...(item.excerpt ? [`  “${item.excerpt}”`] : []),
         ].join("\n"),
       )
     })

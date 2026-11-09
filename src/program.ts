@@ -104,6 +104,7 @@ const OWN_ENTITIES = entityFields({
     "searchable",
     "subjects",
   ],
+  source_preview: ["url", "title", "site", "description", "excerpt", "kind", "mime", "read", "chars", "truncated"],
   source_detail: [
     "ref",
     "title",
