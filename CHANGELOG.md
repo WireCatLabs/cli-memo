@@ -30,6 +30,7 @@ the API.
 - **The morning-digest skill puts `person:<id>` and `project:<key>` refs on items** where memo printed them, after the
   ref of where the item happened, so Desktop and the digest's links open the person or the project; and for a past
   day's run (`backfill:` in its input) it reads the agenda with the window given and writes from the agenda alone.
+- cli-core 0.618.0.
 
 ## 0.131.67 — 09.11.2026
 
