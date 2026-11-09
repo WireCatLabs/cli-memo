@@ -219,7 +219,7 @@ export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.Pr
         )
       })
     })
-  annotate(people.command("similar"), { effects: LOCAL_READ })
+  annotate(people.command("check"), { effects: LOCAL_READ })
     .summary("people with a name like this one, to check before adding a person")
     .description("people whose names start like these words, the same name first: check before adding a person")
     .argument("<name...>", "the name being typed")
@@ -234,7 +234,7 @@ export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.Pr
           found.map(({ sameName, ...person }) => ({ ...personRow(person), same_name: sameName })),
           ({ ref }) => ref,
         )
-        print(options.json, wholeList("people similar", items))
+        print(options.json, wholeList("people check", items))
       })
     })
   identitiesCommands(people, program, streams, env)

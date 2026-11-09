@@ -775,12 +775,12 @@ memo people list [query] [options]
 
 **Example:** `memo people list --json`, `memo people list kind:organization --sort name --page 2`
 
-### `memo people similar`
+### `memo people check`
 
 people whose names start like these words, the same name first: check before adding a person
 
 ```sh
-memo people similar <name> [options]
+memo people check <name> [options]
 ```
 
 | Argument | | What it is |
@@ -794,7 +794,7 @@ memo people similar <name> [options]
 
 **Returns:** people with a name like this one, to check before adding a person
 
-**Example:** `memo people similar ivan petrov --json`
+**Example:** `memo people check ivan petrov --json`
 
 ### `memo people show`
 

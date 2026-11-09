@@ -154,7 +154,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "tasks comments list": ["memo tasks comments list HRB-1 --json"],
   "tasks move": ["memo tasks move HRB-3 --status in_progress --before HRB-1 --revision 4"],
   "people list": ["memo people list --json", "memo people list kind:organization --sort name --page 2"],
-  "people similar": ["memo people similar ivan petrov --json"],
+  "people check": ["memo people check ivan petrov --json"],
   "people add": ["memo people add Lena Example"],
   "people show": ["memo people show person:12", "memo people show telegram:Lena --json"],
   "people review": ["memo people review", "memo people review --json"],

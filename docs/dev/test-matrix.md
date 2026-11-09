@@ -156,9 +156,9 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `people list` | `--limit` | ✅ |  |
 | `people list` | `--page` | ✅ |  |
 | `people list` | `--json` | ✅ |  |
-| `people similar` |  | ✅ |  |
-| `people similar` | `--limit` | ✅ |  |
-| `people similar` | `--json` | ✅ |  |
+| `people check` |  | ✅ |  |
+| `people check` | `--limit` | ✅ |  |
+| `people check` | `--json` | ✅ |  |
 | `people show` |  | ✅ |  |
 | `people show` | `--json` | ✅ |  |
 | `people review` |  | ✅ |  |

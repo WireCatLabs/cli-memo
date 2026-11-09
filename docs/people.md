@@ -24,7 +24,7 @@ memo people list                          # people, the ones who write to you mo
 memo people list kind:organization        # companies, shops, airlines
 memo people list kind:all --sort recent --page 2
 memo people list name:ivan --json
-memo people similar ivan petrov           # before adding a person: who already has this name
+memo people check ivan petrov             # before adding a person: who already has this name
 ```
 
 `people list` shows one kind at a time; the first rule that holds decides it, and `kind_signals` says which:
@@ -45,7 +45,7 @@ the username), `messages_from` (the messages and mail they sent), `last_contact`
 `interactions` (the default), `recent`, `name` or `tasks`. Run `contacts sync` in each messenger once, or nobody has
 the address-book tie.
 
-`people similar` lists people whose names start like the words you type, in any order, the same name first
+`people check` lists people whose names start like the words you type, in any order, the same name first
 (`same_name`). Memo never joins them on its own: link them as below.
 
 ## Everything about a person

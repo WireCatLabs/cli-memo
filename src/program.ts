@@ -584,7 +584,7 @@ const GROUP_AWARE = [
   "stages",
   "organizations",
   "people list",
-  "people similar",
+  "people check",
   "people add",
   "notes list",
   "notes show",

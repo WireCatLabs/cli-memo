@@ -161,13 +161,6 @@
     "review_after": "2027-02-09"
   },
   {
-    "rule": "unknown-verb",
-    "target": "people similar",
-    "reason": "WireCat Desktop's Add person form (plan 2026-11-09-people-clients-digests, M-1) shows people with a like name while the owner types; no verb in the cli-base vocabulary names a lookup by a name that never matches or links on its own (match links, check verifies). Add one there, then rename.",
-    "owner": "@leemour",
-    "review_after": "2027-02-09"
-  },
-  {
     "rule": "option-role",
     "target": "people list --sort",
     "reason": "WireCat Desktop's People page (plan 2026-11-09-people-clients-digests, M-1, UX-133) sorts its paged table by interactions, recent, name or tasks; --order in the vocabulary takes only recent or name, and interactions is the default here.",

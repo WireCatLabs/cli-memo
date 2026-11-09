@@ -186,9 +186,9 @@ describe("memo people list", () => {
   })
 })
 
-describe("memo people similar", () => {
+describe("memo people check", () => {
   it("finds the same name in any word order first", async () => {
-    const found = JSON.parse(await run("people", "similar", "sample", "KAI", "--json"))
+    const found = JSON.parse(await run("people", "check", "sample", "KAI", "--json"))
     expect(
       found.items.map(({ display_name, same_name }: { display_name: string; same_name: boolean }) => [
         display_name,
@@ -201,7 +201,7 @@ describe("memo people similar", () => {
   })
 
   it("stops at --limit", async () => {
-    const found = JSON.parse(await run("people", "similar", "kai", "--limit", "1", "--json"))
+    const found = JSON.parse(await run("people", "check", "kai", "--limit", "1", "--json"))
     expect(found.items).toHaveLength(1)
   })
 })

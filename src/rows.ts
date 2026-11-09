@@ -75,7 +75,7 @@ export const ROWS: Readonly<Record<string, RowShape>> = {
       { field: "kind_signals" },
     ],
   },
-  "people similar": {
+  "people check": {
     columns: [
       { field: "ref" },
       { field: "display_name" },

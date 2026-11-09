@@ -15,5 +15,5 @@
 
 ### Added
 
-- **`memo people similar <name...>`**: people whose names start like the typed words, in any order, the same name
+- **`memo people check <name...>`**: people whose names start like the typed words, in any order, the same name
   first (`same_name`), so a form can show likely duplicates before adding a person.
