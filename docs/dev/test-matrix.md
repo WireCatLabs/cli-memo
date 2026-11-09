@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1109 ✅ · 0 ⛔ · 294 ❌** — 310 commands, 1093 options.
+**1113 ✅ · 0 ⛔ · 294 ❌** — 310 commands, 1097 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -559,6 +559,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `memories add` | `--json` | ✅ |  |
 | `memories list` |  | ✅ |  |
 | `memories list` | `--limit` | ✅ |  |
+| `memories list` | `--page` | ✅ |  |
 | `memories list` | `--json` | ✅ |  |
 | `memories show` |  | ✅ |  |
 | `memories show` | `--sources` | ✅ |  |
@@ -623,6 +624,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `facts add` | `--json` | ✅ |  |
 | `facts list` |  | ✅ |  |
 | `facts list` | `--limit` | ✅ |  |
+| `facts list` | `--page` | ✅ |  |
 | `facts list` | `--json` | ✅ |  |
 | `facts show` |  | ✅ |  |
 | `facts show` | `--sources` | ✅ |  |
@@ -1065,6 +1067,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `actions add` | `--json` | ✅ |  |
 | `actions list` |  | ✅ |  |
 | `actions list` | `--limit` | ❌ |  |
+| `actions list` | `--page` | ✅ |  |
 | `actions list` | `--brief` | ✅ |  |
 | `actions list` | `--json` | ✅ |  |
 | `actions show` |  | ✅ |  |
@@ -1117,6 +1120,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `review status` | `--since-time` | ✅ |  |
 | `agents list` |  | ✅ |  |
 | `agents list` | `--limit` | ✅ |  |
+| `agents list` | `--page` | ✅ |  |
 | `agents list` | `--json` | ✅ |  |
 | `mcp serve` |  | ✅ |  |
 | `mcp serve` | `--permission` | ✅ |  |

@@ -1,5 +1,5 @@
 import type { QueryRegistry } from "@wirecat/cli-base/query"
-import { queryTerms, termField } from "@wirecat/cli-core/cli"
+import { queryTerms, termField, typedQuery } from "@wirecat/cli-core/cli"
 import { FACT_STATUSES, FACT_TYPES, type Fact, type MessageStore } from "@wirecat/cli-core/store"
 import { pageOf } from "../page.js"
 import { canonicalProject } from "../vocabulary/project.js"
@@ -41,7 +41,12 @@ export const factItem = ({ type, statement, source, confirmedBy, ...fact }: Fact
 })
 
 /** Facts the store filters by the query's terms; CLI and MCP list through it. */
-export const listFacts = async (store: MessageStore, query: readonly string[] | string | undefined, limit?: number) => {
+export const listFacts = async (
+  store: MessageStore,
+  query: readonly string[] | string | undefined,
+  limit?: number,
+  page?: number,
+) => {
   const terms = queryTerms(query, FACT_QUERY, "facts list")
   const project = terms.get("project")
   const filters = {
@@ -50,7 +55,10 @@ export const listFacts = async (store: MessageStore, query: readonly string[] | 
     ...(project === undefined ? {} : { project: await canonicalProject(store, project) }),
     ...(terms.has("subject") ? { subject: terms.get("subject") as string } : {}),
   }
-  return pageOf("facts list", limit, async (most) =>
-    (await store.facts.list({ ...filters, limit: most })).map(factItem),
+  return pageOf(
+    "facts list",
+    limit,
+    async (most, offset) => (await store.facts.list({ ...filters, limit: most, offset })).map(factItem),
+    { page, args: { query: typedQuery(query) } },
   )
 }

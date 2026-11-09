@@ -46,6 +46,7 @@ export const listMemories = async (
   store: MessageStore,
   query: readonly string[] | string | undefined,
   limit?: number,
+  page?: number,
 ) => {
   const terms = queryTerms(query, MEMORY_QUERY, "memories list")
   const project = terms.get("project") as string | undefined
@@ -56,8 +57,11 @@ export const listMemories = async (
     ...(terms.has("subject") ? { subject: terms.get("subject") as string } : {}),
     ...(project === undefined ? {} : { project: await canonicalProject(store, project) }),
   }
-  return pageOf("memories list", limit, async (most) =>
-    (await store.memories.list({ ...filters, limit: most })).map(memoryItem),
+  return pageOf(
+    "memories list",
+    limit,
+    async (most, offset) => (await store.memories.list({ ...filters, limit: most, offset })).map(memoryItem),
+    { page, args: { query: typedQuery(query) } },
   )
 }
 

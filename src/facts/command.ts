@@ -75,10 +75,11 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     })
 
   withQuery(annotate(facts.command("list"), { effects: LOCAL_READ }).description("facts, latest first"), FACT_QUERY)
-    .option("--limit <n>", "most facts, up to 500", positive, 100)
+    .option("--limit <n>", "most facts on a page, up to 500", positive, 100)
+    .option("--page <n>", "which page, from 1", positive, 1)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((words: string[], { json, limit }: { limit: number; json?: boolean }) =>
-      run(json, async (store) => stripped(store, env, await listFacts(store, words, limit))),
+    .action((words: string[], { json, limit, page }: { limit: number; page: number; json?: boolean }) =>
+      run(json, async (store) => stripped(store, env, await listFacts(store, words, limit, page))),
     )
 
   annotate(facts.command("show"), { effects: LOCAL_READ, output: { entity: "fact" } })

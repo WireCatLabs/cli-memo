@@ -83,10 +83,11 @@ export const memoriesCommand = (program: Command, streams: Streams, env: NodeJS.
     annotate(memories.command("list"), { effects: LOCAL_READ }).description("memories, newest first"),
     MEMORY_QUERY,
   )
-    .option("--limit <n>", "most memories, up to 500", positive, 100)
+    .option("--limit <n>", "most memories on a page, up to 500", positive, 100)
+    .option("--page <n>", "which page, from 1", positive, 1)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((words: string[], { json, limit }: { limit: number; json?: boolean }) =>
-      run(json, async (store) => stripped(store, env, await listMemories(store, words, limit))),
+    .action((words: string[], { json, limit, page }: { limit: number; page: number; json?: boolean }) =>
+      run(json, async (store) => stripped(store, env, await listMemories(store, words, limit, page))),
     )
 
   annotate(memories.command("show"), { effects: LOCAL_READ, output: { entity: "memory" } })

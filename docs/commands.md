@@ -2751,7 +2751,8 @@ memo memories list [query] [options]
 
 | Option | What it does |
 |---|---|
-| `--limit <n>` | most memories, up to 500. Default: `100`. |
+| `--limit <n>` | most memories on a page, up to 500. Default: `100`. |
+| `--page <n>` | which page, from 1. Default: `1`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** memory — ref, id, kind, text, subject, author, model, confidence, and 13 more; every field: memo commands info memories list
@@ -3072,7 +3073,8 @@ memo facts list [query] [options]
 
 | Option | What it does |
 |---|---|
-| `--limit <n>` | most facts, up to 500. Default: `100`. |
+| `--limit <n>` | most facts on a page, up to 500. Default: `100`. |
+| `--page <n>` | which page, from 1. Default: `1`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** fact — ref, id, kind, text, status, project, subject, occurred_at, and 14 more; every field: memo commands info facts list
@@ -5344,7 +5346,8 @@ memo actions list [query] [options]
 
 | Option | What it does |
 |---|---|
-| `--limit <n>` | most actions, up to 500. Default: `100`. |
+| `--limit <n>` | most actions on a page, up to 500. Default: `100`. |
+| `--page <n>` | which page, from 1. Default: `1`. |
 | `--brief` | without each findings batch's cited sources. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
@@ -5585,7 +5588,8 @@ memo agents list [query] [options]
 
 | Option | What it does |
 |---|---|
-| `--limit <n>` | most rows, up to 500. Default: `100`. |
+| `--limit <n>` | most rows on a page, up to 500. Default: `100`. |
+| `--page <n>` | which page, from 1. Default: `1`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** one row per tool call, newest first: agent, tool, outcome and times
