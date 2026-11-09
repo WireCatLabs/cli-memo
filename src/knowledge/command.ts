@@ -296,7 +296,11 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .argument("<to>", "the person:, organization: or project: it belongs or relates to")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .option("--kind <kind>", "member-of or related-to", "member-of")
-    .option("--role <role>", "the role it has there, from its list, such as approver on a project")
+    .option(
+      "--role <role>",
+      "the role it has there; a person's role in an organization or a project is one from its list, " +
+        "such as employee or contributor",
+    )
     .option("--role-note <text>", "what the role means here, in your words, beside a role from its list")
     .option("--engagement <level>", ENGAGEMENT_HELP, oneOf(ENGAGEMENT_LEVELS))
     .option("--reason <text>", "why you think so, in a sentence")
@@ -358,7 +362,10 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       )
       .summary("set a relationship's role, engagement or a chat's purpose in a project")
       .argument("<id>", "the relationship's id, as relationships list gives it")
-      .option("--role <role>", "the role it has there, from its list; an empty value clears it")
+      .option(
+        "--role <role>",
+        "the role it has there, from the same list as relationships add; an empty value clears it",
+      )
       .option("--role-note <text>", "what the role means here, in your words; an empty value clears it")
       .option("--engagement <level>", `${ENGAGEMENT_HELP}; an empty value clears it`, (value: string) =>
         value === "" ? "" : oneOf(ENGAGEMENT_LEVELS)(value),

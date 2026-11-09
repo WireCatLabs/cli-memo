@@ -43,6 +43,13 @@ memo search messages '<words>' --compact         # one line per hit, each with i
 memo projects evidence <project> --source all --compact # the evidence as rows, every reference kept
 ```
 
+**Business data is a lane of `search all`** (`--only business`): invoices, payments, orders, contracts,
+subscriptions, products and wallets, found by the words of their numbers and names only, so a query with an operator
+(`inv?ice`, `-budget`, `budg*`) leaves them out with a reason in `meta.issues`. A hit an import made names its
+source's provider and account. Bank transactions are not in it: `memo transactions list` filters them. Deals and
+leads are their own lane. When the owner denies `business.list` to the MCP server, the lane is left out and
+`meta.issues` says so; `--only business` is then refused.
+
 Cite each result by its reference (`msg:…`, `note:…`, `document:…`) so the owner can open it.
 `memo show <ref>` tells what any reference is and the command that opens it; a bare number is refused with the
 reference it may mean. Read with `--compact`: one line per item, every reference kept, paging and next steps as `#`
@@ -58,3 +65,10 @@ older install may lack the fix.
 **When something seems missing or broken, run `memo doctor --json` first.** It reads this computer only and
 lists each problem with the command that fixes it. A sync failure with reason `mail.throttled` means Gmail is
 limiting the account: wait an hour or more, do not retry in a loop.
+
+## Sources the owner hands you
+
+Pasted text, a call's notes: `printf '%s' '<text>' | memo sources add - --title '<title>' --subject <ref> --json`. It
+answers a `document:<id>` you can cite; your subjects wait for the owner. A file or a public page the owner
+names: `memo sources add <path|url>` (over MCP, text only). Only the owner removes a source. `memo sources mentions <ref>` lists the people and
+organizations named in it; `memo sources show <ref>` its text and what cites it.

@@ -27,6 +27,24 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: ["path"],
   },
   {
+    reason: "records.not-stored",
+    code: "not_found",
+    message: "no record {record} from that source; memo records list shows them",
+    details: ["record"],
+  },
+  {
+    reason: "records.file-missing",
+    code: "not_found",
+    message: "no records file {path}: give a file that exists, or - for stdin",
+    details: ["path"],
+  },
+  {
+    reason: "records.file-unreadable",
+    code: "validation_error",
+    message: "the records file {path} cannot be read: {why}",
+    details: ["path", "why"],
+  },
+  {
     reason: "findings.key-mismatch",
     code: "validation_error",
     message: "the batch's key {key} is not --key {given}; give the key once, as --key",
@@ -70,6 +88,12 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: [],
   },
   {
+    reason: "events.account-unknown",
+    code: "not_found",
+    message: "account: names no calendar account in the store; the message lists the ones it holds",
+    details: [],
+  },
+  {
     reason: "mail.account-unknown",
     code: "not_found",
     message: "no stored mailbox by that address; the mail CLI syncs one",
@@ -92,6 +116,12 @@ export const REASONS: ErrorReason[] = defineReasons([
     reason: "identity.no-messenger",
     code: "validation_error",
     message: "the name has no messenger; write it as <messenger>:<name or id>",
+    details: [],
+  },
+  {
+    reason: "evidence.quote-unmatched",
+    code: "validation_error",
+    message: "a --quote names none of the --evidence references, or one twice; write it as <ref>=<the words>",
     details: [],
   },
   { reason: "auto.systemctl-failed", code: "provider_error", message: "systemctl failed", details: [] },

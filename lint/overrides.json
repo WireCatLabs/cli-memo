@@ -117,5 +117,12 @@
     "reason": "memo's relationships commands set a person's engagement on a project and a role note beside the role (IDEA-258, DEBT-291, 2026-11-08); the shared flag vocabulary in cli-base 0.82 has neither (https://github.com/WireCatLabs/cli-base/issues/538). Take the cli-base release with them, then drop this.",
     "owner": "@leemour",
     "review_after": "2027-02-08"
+  },
+  {
+    "rule": "unknown-verb",
+    "target": "sources mentions",
+    "reason": "WireCat Desktop's Add to memory panel (desktop plan 2026-11-01-memory-add) calls memo sources mentions; cli-base 0.84.0 added sources, --keep-copy and --max-chars but mentions is still a collection there, not a view noun. Add the view noun there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-08"
   }
 ]

@@ -20,7 +20,7 @@ mail personal sync
 mail personal status
 ```
 
-`ya` is a profile name you choose for one mailbox. `session start` signs in, `sync` reads the last 30 days into the
+`personal` is a profile name you choose for one mailbox. `session start` signs in, `sync` reads the last 30 days into the
 shared store, and `status` shows how far a large mailbox is. Run `mail personal sync` again to bring in new mail. Memo needs
 no setting for this mail: it reads the same store.
 
@@ -65,8 +65,8 @@ scattered mail costs a few runs, not dozens. Newsletters, suspicious senders and
 Once the day's runs have cost 5 US dollars, no run starts until the next day; `memo schedule list` shows the day's
 spend and why it skipped. Change these per schedule with `--mail-wait 1h`, `--mail-batch 20` and
 `--max-cost-per-day 2`, or for every schedule in the config file: `schedule_mail_wait`, `schedule_mail_batch` and
-`schedule_max_cost_per_day` (`memo config show` lists them; a flag wins over the file). Otherwise it starts `claude`
-on Sonnet with only `memo` allowed, under `MEMO_READ_ONLY`, and without your MCP servers, skills, settings and
+`schedule_max_cost_per_day` (`memo config show` lists them; a flag wins over the file). When enough mail waits and
+the day's budget allows, it starts `claude` on Sonnet with only `memo` allowed, under `MEMO_READ_ONLY`, and without your MCP servers, skills, settings and
 CLAUDE.md: a run starts on about 4,700 tokens instead of 38,000. `--model opus` picks another model for one schedule,
 and `schedule_model_claude` in the config file for every new one; `schedule_lean_start: false` loads your setup. Both
 apply when the schedule is added, so add it again after changing them. That run may move only the `mail-triage` mark.

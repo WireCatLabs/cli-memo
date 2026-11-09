@@ -3,6 +3,7 @@ import { annotate } from "@wirecat/cli-base/commands"
 import { answerEntity, LOCAL_READ, LOCAL_WRITE, type RowShape, withQuery } from "@wirecat/cli-core/cli"
 import { mailMark } from "@wirecat/cli-core/mail/cli"
 import { parseProposalIds } from "@wirecat/cli-core/services"
+import { SOURCE_REVIEW_KIND } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import * as v from "valibot"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
@@ -21,6 +22,7 @@ import {
   reviewText,
   senderOf,
   showReview,
+  sourceReviewDetail,
 } from "./review.js"
 import { reviewStatus, reviewStatusText } from "./status.js"
 
@@ -84,6 +86,12 @@ const ROW: RowShape = {
   text: ["reason"],
 }
 
+/** How the owner answers a source review, said wherever one is decided. */
+export const SOURCE_REVIEW_HELP =
+  "A memory_source_review is yours alone: confirm says the memory or fact still holds, reject dismisses the review; " +
+  "both sign its sources again as they are now, and an agent is refused. To correct it, add the right one with " +
+  "memories add --supersedes (or facts add --supersedes); to withdraw it, memories invalidate or facts reverse."
+
 const json = (command: Command) => command.option("--json", "print JSON; --json=id,title keeps only those fields")
 
 export const reviewCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
@@ -129,7 +137,12 @@ export const reviewCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     })
 
   json(annotate(review.command("show"), { effects: LOCAL_READ }))
-    .description("one proposal with its titles, signals and the text around each piece of evidence")
+    .description(
+      "one proposal with its titles, signals and the text around each piece of evidence; a memory_source_review " +
+        "also shows each source as it was cited and as it is now, and the command for each decision",
+    )
+    .summary("one proposal with its titles, signals and the text around each piece of evidence")
+    .addHelpText("after", `\n${SOURCE_REVIEW_HELP}`)
     .argument(
       "<id>",
       "the proposal's id, as review lists it: 17070, fact:512, memory:88, link:17, payment:4, close:Q-15",
@@ -161,7 +174,13 @@ export const reviewCommand = (program: Command, streams: Streams, env: NodeJS.Pr
               }
             }),
           )
-          return itemAnswer({ ...shown, evidence })
+          return itemAnswer({
+            ...shown,
+            evidence,
+            ...(shown.kind === SOURCE_REVIEW_KIND
+              ? { sourceReview: await sourceReviewDetail(store, shown.id, shown.subject) }
+              : {}),
+          })
         })
         print(given.json, body, undefined, given.compact)
       },
@@ -187,6 +206,7 @@ export const reviewCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     if (name === "confirm") command.option("--reason <text>", "why, in a few words; required when an agent decides")
     else command.requiredOption("--reason <text>", "why it is turned down, in a few words")
     command.option("--compact", "one line per decision")
+    command.addHelpText("after", `\n${SOURCE_REVIEW_HELP}`)
     command.action(
       async (words: string[], given: { reason?: string; asOwner?: boolean; json?: boolean; compact?: boolean }) => {
         const ids = parseProposalIds(words)

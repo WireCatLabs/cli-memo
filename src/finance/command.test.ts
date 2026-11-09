@@ -194,3 +194,27 @@ it("lets only you move money between the invoices of a confirmed payment", async
     details: { reason: "finance.over-invoice" },
   })
 })
+
+it("records a refund of a confirmed payment going the other way, and refuses one larger than the payment", async () => {
+  const f = await setUp()
+  const paid = await f.item(OWNER, "payments", "add", "1000.00", "RUB", "--kind", "in", "--organization", f.client)
+  const refund = await f.item(
+    OWNER,
+    ...[
+      "payments",
+      "add",
+      "400.00",
+      "RUB",
+      "--kind",
+      "out",
+      "--organization",
+      f.client,
+      "--refund-of",
+      paid.ref as string,
+    ],
+  )
+  expect(refund).toMatchObject({ review: "confirmed", direction: "out", refund_of: paid.ref })
+  await expect(
+    f.run(OWNER, "payments", "add", "700.00", "RUB", "--kind", "out", "--refund-of", paid.ref as string),
+  ).rejects.toMatchObject({ code: "validation_error" })
+})

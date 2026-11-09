@@ -4,7 +4,11 @@ import type { Command } from "commander"
 
 export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   context: ["memo context telegram:'Kai Sample'", "memo context email:kai@example.com --limit 5 --json"],
-  show: ["memo show chat:max/500/-1001 document:413", "memo show note:12 msg:telegram/1/77/42 --json"],
+  show: [
+    "memo show chat:max/500/-1001 document:413",
+    "memo show note:12 msg:telegram/1/77/42 --json",
+    "memo show contract:2 invoice:4 --json",
+  ],
   "notes show": ["memo notes show note:12", "memo notes show ~/notes/People/Kai.md --json"],
   "notes list": [
     "memo notes list 'about:\"telegram:Kai Sample\"'",
@@ -18,6 +22,14 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "notes edit": ["memo notes edit note:12 --revision 2 --text 'Prefers calls after ten'"],
   "notes remove": ["memo notes remove note:12"],
   "notes export": ["memo notes export --output-dir ~/notes/memo --format obsidian"],
+  "sources add": [
+    "memo sources add ~/Downloads/runner-notes.pdf --subject project:3 --keep-copy",
+    "memo sources add https://example.org/release-notes --title 'Release notes' --json",
+    "memo sources add - --title 'Call with Kai' --subject person:12",
+  ],
+  "sources show": ["memo sources show document:42", "memo sources show document:42 --bytes 65536 --json"],
+  "sources mentions": ["memo sources mentions document:42 --json"],
+  "sources remove": ["memo sources remove document:42"],
   "folders add": ["memo folders add ~/notes"],
   "folders update": ["memo folders update 1 ~/notes"],
   "folders remove": ["memo folders remove 1", "memo folders remove 1 --allow-delete --yes"],
@@ -207,6 +219,11 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "memories confirm": ["memo memories confirm memory:4"],
   "memories invalidate": ["memo memories invalidate memory:4"],
   "memories remove": ["memo memories remove memory:4"],
+  "memories check": ["memo memories check", "memo memories check --limit 2000 --json"],
+  "memories challenge": [
+    "memo memories challenge memory:4 --evidence note:15 --reason 'the later note moves delivery to the 30th'",
+    "memo memories challenge memory:4 --evidence note:15 --reason 'moved' --suggest 'Delivery is on the 30th' --json",
+  ],
   "facts add": [
     "memo facts add 'We moved the launch to spring' --kind decision --evidence 'msg:telegram/1/77/42' --project HRB",
   ],
@@ -236,6 +253,11 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo orders add 'Shop One' 2499.00 RUB --kind personal --title A-1042",
     "memo orders add 'Office Supply' --kind client --organization organization:3",
   ],
+  "events list": [
+    "memo events list event_type:call",
+    "memo events list account:phone:pixel 'starts_at:[2026-11-02 TO 2026-11-07}' --json",
+  ],
+  "events show": ["memo events show event:42"],
   "invoices list": ["memo invoices list project:HRB open:true", "memo invoices list review:proposed --json"],
   "invoices show": ["memo invoices show invoice:4"],
   "invoices add": [
@@ -246,18 +268,92 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "payments show": ["memo payments show payment:9"],
   "payments add": [
     "memo payments add 25000.00 RUB --kind in --organization organization:3 --occurred-time 2026-11-01 --project HRB",
+    "memo payments add 5000.00 RUB --kind out --organization organization:3 --refund-of payment:9",
   ],
   "records import": [
     "memo records import payments.jsonl --account rentals --dry-run",
     "memo records import envelope.json --account rentals --json",
+    "memo records import contacts.vcf --account phone:pixel --region gb",
   ],
   "records check": ["memo records check - --account rentals"],
   "records list": [
     "memo records list waiting:true --account sheet:rentals",
     "memo records list type:organization --account sheet:rentals --json",
+    `memo records list 'entity:"organization:3"' deleted:false --account sheet:rentals`,
   ],
   "records link": ["memo records link organization:client organization:3 --account sheet:rentals"],
   "payments allocate": ["memo payments allocate payment:9 invoice:4 25000.00"],
+  "products list": ["memo products list kind:service", "memo products list archived:true --json"],
+  "products show": ["memo products show product:4"],
+  "products add": [
+    "memo products add 'Bike rental, month' 10000.00 RUB --kind service --unit month",
+    "memo products add 'Helmet' 2500.00 RUB --sku H-12 --supplier organization:3",
+  ],
+  "products update": [
+    "memo products update product:4 --amount 12000.00 --currency RUB",
+    "memo products update product:4 --archived on",
+  ],
+  "orders lines add": [
+    "memo orders lines add order:3 12 --product product:4",
+    "memo orders lines add order:3 1 Rental, first week --product product:4 --amount 2000.00",
+    "memo orders lines add order:3 2 Helmet --amount 2500.00",
+  ],
+  "orders lines remove": ["memo orders lines remove order:3 2"],
+  "invoices lines add": [
+    "memo invoices lines add invoice:4 1 --product product:4",
+    "memo invoices lines add invoice:4 2 Delivery --amount 1500.00",
+  ],
+  "invoices lines remove": ["memo invoices lines remove invoice:4 2"],
+  "contracts list": ["memo contracts list status:active", "memo contracts list expires:2026-12-31 --json"],
+  "contracts show": ["memo contracts show contract:2"],
+  "contracts add": [
+    "memo contracts add 'Rental agreement' --kind service --start-date 2026-11-01 --end-date 2027-10-31 --auto-renew on --notice-days 30 --amount 120000.00 --currency RUB",
+    "memo contracts add 'NDA with the studio' --kind nda --project HRB",
+  ],
+  "contracts update": [
+    "memo contracts update contract:2 --status terminated",
+    "memo contracts update contract:2 --end-date 2027-12-31",
+  ],
+  "subscriptions list": [
+    "memo subscriptions list status:active direction:payable",
+    "memo subscriptions list renews:2026-12-01 --json",
+  ],
+  "subscriptions show": ["memo subscriptions show subscription:5"],
+  "subscriptions add": [
+    "memo subscriptions add Hosting 990.00 RUB --kind payable --supplier organization:3 --period 1-month --start-date 2026-11-01",
+    "memo subscriptions add 'Bike rental' 10000.00 RUB --kind receivable --customer organization:3 --period 1-month --trial-end-date 2026-11-14 --status trial",
+  ],
+  "subscriptions update": [
+    "memo subscriptions update subscription:5 --status paused",
+    "memo subscriptions update subscription:5 --period 1-year",
+  ],
+  "subscriptions cancel": ["memo subscriptions cancel subscription:5 --occurred-time 2026-11-30"],
+  "subscriptions prices add": ["memo subscriptions prices add subscription:5 1190.00 RUB --start-date 2027-01-01"],
+  "wallets list": ["memo wallets list", "memo wallets list kind:card --json"],
+  "wallets show": ["memo wallets show wallet:2", "memo wallets show wallet:2 --until-time 2026-10-31"],
+  "wallets add": ["memo wallets add 'Main card' RUB --kind card --institution 'Bank One'"],
+  "wallets update": ["memo wallets update wallet:2 --opening-balance 15000.00 --opening-date 2026-01-01"],
+  "transactions list": [
+    `memo transactions list 'wallet:"wallet:2"' status:pending`,
+    "memo transactions list uncategorized:true --json",
+  ],
+  "transactions show": ["memo transactions show transaction:12"],
+  "transactions add": [
+    "memo transactions add wallet:2 500.00 --kind out --occurred-time 2026-11-14 --description 'Coffee shop'",
+    "memo transactions add wallet:2 10000.00 --kind in --payment payment:9",
+  ],
+  "transactions update": [
+    "memo transactions update transaction:12 --status booked",
+    "memo transactions update transaction:12 --payment payment:9",
+  ],
+  "transactions splits add": ["memo transactions splits add transaction:12 300.00 Rent --project HRB"],
+  "transactions splits remove": ["memo transactions splits remove transaction:12 1"],
+  "records show": [
+    "memo records show custom:quote:Q-7 --account example-erp:demo",
+    "memo records show organization:client --account sheet:rentals --json",
+  ],
+  "records delete": ["memo records delete payment:sheet-12 --account sheet:rentals"],
+  "records match": ["memo records match --account sheet:rentals"],
   "payments unlink": ["memo payments unlink payment:9 invoice:4"],
   "facts show": ["memo facts show fact:4 --sources"],
   "facts confirm": ["memo facts confirm fact:4"],
@@ -265,6 +361,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "facts reverse": ["memo facts reverse fact:4"],
   "facts reject": ["memo facts reject fact:4"],
   "facts remove": ["memo facts remove fact:4"],
+  "facts challenge": ["memo facts challenge fact:4 --evidence 'msg:telegram/1/77/50' --reason 'reversed in chat'"],
   "actions add": [
     "memo actions add reply --reason 'Kai asked twice' --account telegram:1 --target 'msg:telegram/1/77/42' --payload '{\"text\":\"Friday works\"}'",
   ],
@@ -321,13 +418,32 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "schedule run": ["memo schedule run digest"],
   "schedule remove": ["memo schedule remove digest"],
   "schedule exec": ["memo schedule exec ~/.local/state/cli-memo/schedules/digest/schedule.json"],
+  "templates list": ["memo templates list", "memo templates list channel:telegram source:stored --json"],
+  "templates show": [
+    "memo templates show report/morning-digest --channel telegram",
+    "memo templates show report/weekly-gaps --channel email --locale en --json",
+  ],
+  "templates edit": [
+    "memo templates edit report/morning-digest --channel telegram",
+    "memo templates edit report/morning-digest --channel text --file digest.text.liquid",
+    "memo templates edit report/morning-digest --channel telegram --undo",
+  ],
+  "templates preview": [
+    "memo templates preview report/morning-digest --channel telegram",
+    "memo templates preview report/morning-digest --channel email --locale en --file draft.liquid",
+  ],
+  "templates reset": ["memo templates reset report/morning-digest --channel telegram"],
   "agents list": ["memo agents list agent:claude-code --limit 20"],
   "mcp serve": ["memo mcp serve", "memo mcp serve --http --public-url https://laptop.example.ts.net"],
   "mcp revoke": ["memo mcp revoke --json"],
   "mcp server start": ["memo mcp server start --public-url https://laptop.example.ts.net"],
   "mcp server status": ["memo mcp server status --json"],
   "mcp server stop": ["memo mcp server stop"],
-  "search all": ["memo search all 'budget harbour'", "memo search all 'content:invoice' --only mail,notes --json"],
+  "search all": [
+    "memo search all 'budget harbour'",
+    "memo search all 'content:invoice' --only mail,notes --json",
+    "memo search all 'Rental agreement' --only business",
+  ],
   "search messages": ["memo search messages 'friday meeting has:voice'"],
   "search mail": ["memo search mail 'mailbox:important budget' --source email:me@example.com"],
   "search notes": ["memo search notes budget notes:2", "memo search notes kickoff --project HRB --json"],

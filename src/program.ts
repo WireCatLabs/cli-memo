@@ -16,6 +16,7 @@ import {
   runsCommand,
   skillCommand as sharedSkillCommand,
 } from "@wirecat/cli-core/cli"
+import type { FetchPageOptions } from "@wirecat/cli-core/documents"
 import { Command } from "commander"
 import { actionsCommand } from "./actions/command.js"
 import { agentsCommand } from "./agents/command.js"
@@ -28,12 +29,18 @@ import { contextCommand } from "./context/command.js"
 import { SHELL_OVERRIDES } from "./contract-overrides.js"
 import { commandsCommand, placeInSections } from "./discovery/command.js"
 import { doctorCommand } from "./doctor/command.js"
+import { eventsCommand } from "./events/command.js"
 import { addExamples } from "./examples.js"
 import { factsCommand } from "./facts/command.js"
 import { recognisable } from "./failure.js"
 import { financeCommands } from "./finance/command.js"
+import { contractCommands } from "./finance/contracts-command.js"
 import { dealCommands } from "./finance/deals-command.js"
 import { orderCommands } from "./finance/orders-command.js"
+import { productCommands } from "./finance/products-command.js"
+import { subscriptionCommands } from "./finance/subscriptions-command.js"
+import { transactionCommands } from "./finance/transactions-command.js"
+import { walletCommands } from "./finance/wallets-command.js"
 import { findingsCommand } from "./findings/command.js"
 import { jsonFields } from "./json-fields.js"
 import { knowledgeCommands } from "./knowledge/command.js"
@@ -57,9 +64,11 @@ import { syncCommand } from "./run/import.js"
 import { scheduleCommand } from "./schedule/command.js"
 import { searchCommand } from "./search/command.js"
 import { showCommand } from "./show/command.js"
+import { sourcesCommand } from "./sources/command.js"
 import { storeCommand } from "./store/info-command.js"
 import { tagsCommand } from "./tags/command.js"
 import { tasksCommand } from "./tasks/command.js"
+import { templatesCommand } from "./templates/command.js"
 import { provideTerminal, type Terminal } from "./terminal.js"
 import { upgradeCommand } from "./update.js"
 import { VERSION } from "./version.js"
@@ -68,6 +77,45 @@ import { vocabularyCommand } from "./vocabulary/command.js"
 /** memo's own answers, beyond cli-core's entities, so `--json=<field>` is checked against what each row holds. */
 const OWN_ENTITIES = entityFields({
   person_note_links: ["person", "name", "files"],
+  added_source: [
+    "ref",
+    "created",
+    "duplicate_of",
+    "title",
+    "kind",
+    "mime",
+    "bytes",
+    "chars",
+    "truncated",
+    "extractor",
+    "read",
+    "url",
+    "kept",
+    "searchable",
+    "subjects",
+  ],
+  source_detail: [
+    "ref",
+    "title",
+    "added",
+    "kind",
+    "url",
+    "file_name",
+    "mime",
+    "bytes",
+    "kept",
+    "chars",
+    "text",
+    "text_truncated",
+    "created_at",
+    "updated_at",
+    "subjects",
+    "facts",
+    "memories",
+    "batches",
+  ],
+  source_mention: ["ref", "type", "name", "found_as"],
+  source_removal: ["ref", "removed", "copy_deleted", "facts", "memories"],
   project_annotation_snapshot: ["snapshot", "fingerprint", "coverage", "read_bytes", "records"],
   project_annotation_export: [
     "output_file",
@@ -181,6 +229,10 @@ const OWN_ENTITIES = entityFields({
     "fulfilled_date",
     "invoice",
     "payment",
+    "direction",
+    "contract",
+    "deal",
+    "lines",
     "review",
     "author",
     "model",
@@ -235,6 +287,8 @@ const OWN_ENTITIES = entityFields({
     "reference",
     "allocated",
     "unallocated",
+    "refund_of",
+    "subscription",
     "evidence",
     "review",
     "author",
@@ -257,7 +311,9 @@ const OWN_ENTITIES = entityFields({
     "revision",
     "fingerprint",
     "relations",
+    "incoming",
     "entity",
+    "created_entity",
     "flagged",
     "batch_id",
     "created_at",
@@ -275,8 +331,162 @@ const OWN_ENTITIES = entityFields({
     "proposed",
     "waiting",
     "flagged",
+    "unmatched",
+    "ignored",
+    "vcard",
     "errors",
+    "truncated",
   ],
+  product: [
+    "id",
+    "ref",
+    "title",
+    "kind",
+    "name",
+    "sku",
+    "supplier",
+    "unit",
+    "unit_price",
+    "currency",
+    "description",
+    "archived_date",
+    "author",
+    "model",
+    "source",
+    "created_at",
+    "updated_at",
+  ],
+  contract: [
+    "id",
+    "ref",
+    "title",
+    "name",
+    "number",
+    "kind",
+    "status",
+    "signed_date",
+    "effective_date",
+    "expiration_date",
+    "auto_renew",
+    "renewal",
+    "notice_days",
+    "notice_deadline",
+    "terms",
+    "value",
+    "currency",
+    "deal",
+    "review",
+    "author",
+    "model",
+    "confirmed_by",
+    "source",
+    "reason",
+    "evidence",
+    "project",
+    "project_name",
+    "created_at",
+    "updated_at",
+  ],
+  subscription: [
+    "id",
+    "ref",
+    "title",
+    "name",
+    "direction",
+    "supplier",
+    "customer",
+    "product",
+    "contract",
+    "status",
+    "interval",
+    "start_date",
+    "trial_end_date",
+    "next_renewal_date",
+    "cancelled_date",
+    "end_date",
+    "current_price",
+    "prices",
+    "review",
+    "author",
+    "model",
+    "confirmed_by",
+    "source",
+    "reason",
+    "evidence",
+    "project",
+    "project_name",
+    "created_at",
+    "updated_at",
+  ],
+  subscription_price: [
+    "id",
+    "ref",
+    "title",
+    "subscription",
+    "amount",
+    "currency",
+    "effective_from",
+    "review",
+    "author",
+    "reason",
+    "project",
+    "created_at",
+  ],
+  wallet: [
+    "id",
+    "ref",
+    "title",
+    "name",
+    "kind",
+    "currency",
+    "institution",
+    "number_hint",
+    "holder",
+    "opening_balance",
+    "opening_date",
+    "closed_date",
+    "balance",
+    "until",
+    "pending",
+    "source_says",
+    "author",
+    "model",
+    "source",
+    "created_at",
+    "updated_at",
+  ],
+  transaction: [
+    "id",
+    "ref",
+    "title",
+    "wallet",
+    "wallet_name",
+    "direction",
+    "amount",
+    "currency",
+    "status",
+    "statement_date",
+    "booked_date",
+    "description",
+    "counterparty_name",
+    "counterparty",
+    "reference",
+    "payment",
+    "splits",
+    "uncategorized",
+    "review",
+    "author",
+    "model",
+    "confirmed_by",
+    "source",
+    "reason",
+    "evidence",
+    "project",
+    "project_name",
+    "created_at",
+    "updated_at",
+  ],
+  records_match: ["linked", "created", "unmatched", "proposed", "errors", "truncated"],
   payment_allocation: ["payment", "invoice", "amount", "currency", "created_at"],
 })
 
@@ -314,6 +524,7 @@ export const createProgram = ({
   signal,
   terminal,
   keyring,
+  fetchPage,
 }: {
   streams?: Streams
   env?: NodeJS.ProcessEnv
@@ -323,6 +534,8 @@ export const createProgram = ({
   signal?: AbortSignal
   /** Whether a person is at the terminal; the process's stdin and stdout unless a test hands one in. */
   terminal?: Terminal
+  /** How `sources add <url>` reaches the page; a test hands in its own lookup and transport. */
+  fetchPage?: FetchPageOptions
 } = {}): Command => {
   const fields = jsonFields(raw, OWN_ENTITIES)
   const { streams } = fields
@@ -336,6 +549,7 @@ export const createProgram = ({
   contextCommand(program, streams, env)
   showCommand(program, streams, env)
   notesCommand(program, streams, env)
+  sourcesCommand(program, streams, env, fetchPage ? { fetch: fetchPage } : {})
   foldersCommand(program, streams, env)
   messagesCommand(program, streams, env)
   mailCommand(program, streams, env)
@@ -351,6 +565,11 @@ export const createProgram = ({
   financeCommands(program, streams, env)
   orderCommands(program, streams, env)
   dealCommands(program, streams, env)
+  productCommands(program, streams, env)
+  contractCommands(program, streams, env)
+  subscriptionCommands(program, streams, env)
+  walletCommands(program, streams, env)
+  transactionCommands(program, streams, env)
   recordsCommand(program, streams, env)
   findingsCommand(program, streams, env)
   actionsCommand(program, streams, env)
@@ -358,9 +577,11 @@ export const createProgram = ({
   agentsCommand(program, streams, env)
   mcpCommand(program, streams, env, createProgram)
   modelsCommand(program, streams, env, keyring)
+  templatesCommand(program, streams, env)
   searchCommand(program, streams, env)
   meetingReadCommands(program, streams, env)
   meetingPreparationCommand(program, streams, env)
+  eventsCommand(program, streams, env)
   askCommand(program, streams, env)
   syncCommand(program, streams, env, signal, keyring)
   storeCommand(program, streams, env)

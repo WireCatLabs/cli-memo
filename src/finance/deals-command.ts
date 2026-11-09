@@ -9,8 +9,10 @@ import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { authorOf } from "../author.js"
 import { collect, positive } from "../options.js"
 import { pageOf } from "../page.js"
+import { withSources } from "../records/sources.js"
 import { canonicalProject } from "../vocabulary/project.js"
 import { dayOf } from "./finance.js"
+import { json } from "./written.js"
 
 const queryOf = (entity: DealKind) =>
   ({
@@ -80,8 +82,6 @@ interface AddOptions {
   json?: boolean
 }
 
-const json = (command: Command) => command.option("--json", "print JSON; --json=ref,title keeps only those fields")
-
 const WHAT = {
   deal: { one: "deal", hope: "what you hope to sell, such as 'Site for the clinic'" },
   lead: { one: "lead", hope: "who or what came in, such as 'Call from the site'" },
@@ -119,8 +119,8 @@ const itemCommands = (
     .description(`one ${one} with its pipeline, stage, status, amount, the people on it and what it was read from`)
     .summary(`one ${one} with its stage, status, amount and people`)
     .argument("<ref>", `${kind}:<id>`)
-    .action((ref: string, options: { json?: boolean }) =>
-      run(options.json, async (store) => itemAnswer(await store.deals.get(ref))),
+    .action((ref: string, options: { json?: boolean }, command: Command) =>
+      run(options.json, async (store) => itemAnswer(await withSources(command, store, await store.deals.get(ref)))),
     )
 
   json(
@@ -277,10 +277,10 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
     )
     .summary("one pipeline's stages with counts and conversion")
     .argument("<pipeline>", "pipeline:<id>, or a name only one pipeline has")
-    .action(async (pipeline: string, options: { sinceTime?: string; json?: boolean }) => {
+    .action(async (pipeline: string, options: { sinceTime?: string; json?: boolean }, command: Command) => {
       const since = dayOf(options.sinceTime)
-      const report = await withStore(env, (store) =>
-        store.deals.pipeline(pipeline, since === undefined ? {} : { since }),
+      const report = await withStore(env, async (store) =>
+        withSources(command, store, await store.deals.pipeline(pipeline, since === undefined ? {} : { since })),
       )
       print(options.json, itemAnswer(report), funnelText(report))
     })

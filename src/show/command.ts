@@ -6,6 +6,8 @@ import type { MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, wholeList, withStore } from "../answer.js"
 import { profileFor } from "../knowledge/messenger-sync.js"
+import { grantedLevel } from "../mcp/granted.js"
+import { imported, readSourced, recordsHidden, type SourcesOf, sourcesOf, sourcesText } from "../records/sources.js"
 import { refuseBareNumber } from "../refs.js"
 
 const MAX_REFS = 100
@@ -24,6 +26,36 @@ export const LOCAL_OPENS: Partial<Record<RefKindName, string[]>> = {
   fact: ["memo", "facts", "show"],
   memory: ["memo", "memories", "show"],
   message: ["memo", "messages", "show"],
+  invoice: ["memo", "invoices", "show"],
+  payment: ["memo", "payments", "show"],
+  order: ["memo", "orders", "show"],
+  deal: ["memo", "deals", "show"],
+  lead: ["memo", "leads", "show"],
+  pipeline: ["memo", "pipelines", "show"],
+  product: ["memo", "products", "show"],
+  contract: ["memo", "contracts", "show"],
+  subscription: ["memo", "subscriptions", "show"],
+  wallet: ["memo", "wallets", "show"],
+  transaction: ["memo", "transactions", "show"],
+  event: ["memo", "events", "show"],
+}
+
+/** The permission key of the memo command that opens a kind, such as `invoices.show`. */
+export const openKeyOf = (kind: string) => LOCAL_OPENS[kind as RefKindName]?.slice(1).join(".")
+
+/**
+ * `memo show` tells what the command that opens a reference would, so an MCP client denied that command is refused
+ * here too, rather than read the title past it.
+ */
+const refuseDenied = (command: Command, summaries: readonly Pick<RefSummary, "ref" | "kind">[]) => {
+  for (const { ref, kind } of summaries) {
+    const key = openKeyOf(kind)
+    if (key !== undefined && grantedLevel(command, key) === "deny")
+      throw new CliError("permission_error", `${ref}: memo's MCP server denies ${key}`, {
+        reason: "access.denied",
+        permission: key,
+      })
+  }
 }
 
 /** Titles of these kinds are written by other people: a chat's title, a sender's name, a shared file's name. */
@@ -57,6 +89,8 @@ export interface Shown {
   state: RefSummary["state"]
   open: RefOpen & { line: string | null }
   untrusted?: string[]
+  /** Business data only: the source records it came from and those that name it. */
+  sources?: SourcesOf
 }
 
 const profilesFor =
@@ -73,13 +107,15 @@ export const showReferences = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
   texts: readonly string[],
+  command?: Command,
 ): Promise<Shown[]> => {
   if (texts.length > MAX_REFS) throw new CliError("validation_error", `at most ${MAX_REFS} references at once`)
   for (const text of texts) await refuseBareNumber(store, text, NUMBERED)
   for (const text of texts) parseReference(text)
   const summaries = await store.refs.summaries(texts)
+  if (command !== undefined) refuseDenied(command, [...summaries.values()])
   const ports = { profilesFor: profilesFor(env), local: LOCAL_OPENS }
-  return texts.map((text) => {
+  const shown = texts.map((text): Shown => {
     const summary = summaries.get(text) ?? {
       ref: text,
       kind: "unknown",
@@ -105,6 +141,15 @@ export const showReferences = async (
       ...(OTHERS.has(summary.kind) ? { untrusted: ["title", "in"] } : {}),
     }
   })
+  const withRecords = command === undefined || !recordsHidden(command)
+  for (const one of shown) {
+    const entity = one.state === "available" ? await readSourced(store, one.kind, one.ref) : undefined
+    if (entity === undefined) continue
+    if (withRecords) one.sources = await sourcesOf(store, entity)
+    // An imported entry's title is the source system's words, as a chat title is its members'.
+    if (imported(entity)) one.untrusted = ["title"]
+  }
+  return shown
 }
 
 const minute = (at: string | null) => (at === null ? null : at.slice(0, 16).replace("T", " "))
@@ -115,6 +160,7 @@ const blockOf = (one: Shown): string =>
     `  ${[one.kind, one.in, one.state, minute(one.at)].filter((part) => part !== null).join(" · ")}`,
     `  open: ${one.open.line ?? "none"}`,
     ...(one.open.why === null ? [] : [`        ${one.open.why}`]),
+    ...(one.sources === undefined ? [] : sourcesText(one.ref, one.sources)),
   ].join("\n")
 
 export const showCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
@@ -123,8 +169,8 @@ export const showCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .description("what any reference names, and the command that opens it")
     .argument("<ref...>", "1 to 100 references any WireCat CLI printed: chat:, msg:, note:, document:, person:, task:…")
     .option("--json", "print JSON; --json=ref,title keeps only those fields")
-    .action(async (refs: string[], options: { json?: boolean }) => {
-      const items = await withStore(env, (store) => showReferences(store, env, refs))
+    .action(async (refs: string[], options: { json?: boolean }, command: Command) => {
+      const items = await withStore(env, (store) => showReferences(store, env, refs, command))
       const gone = items.filter((one) => one.state !== "available")
       const body = wholeList("show", items)
       if (gone.length > 0) {

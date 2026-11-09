@@ -69,6 +69,20 @@ name is never enough to link accounts.
 
 To choose the main note about the person, see [the note about a person](notes.md#the-note-about-a-person).
 
+## Bring in a phone's contacts
+
+Export the contacts from your phone as a vCard file (`.vcf`) and import them under the phone's name:
+
+```sh
+memo records check contacts.vcf --account phone:pixel --region ru
+memo records import contacts.vcf --account phone:pixel --region ru
+```
+
+A contact is linked to the person who already has one of its e-mail addresses or phone numbers, or made a new
+person. A number written without `+`, such as `8 900 000-00-02`, is read in the country `--region` names (`ru`,
+`gb`, `de` and so on, in any case). Without `--region`, such a number is kept but not matched, so the contact can
+become a second entry for someone you already have; the import says which cards these are.
+
 ## Organizations and projects
 
 Organizations and projects are yours, not tied to one messenger account.
@@ -128,15 +142,16 @@ Move it to a key document with `memo projects key-documents add`, then `memo tag
 A **relationship** says that a person belongs to an organization or works on a project:
 
 ```sh
-memo relationships add person:PERSON_UID organization:1 --kind member-of
+memo relationships add person:PERSON_UID organization:1 --kind member-of --role employee
 memo relationships add person:PERSON_UID project:1 --kind related-to --role contributor
 memo relationships list 'about:"project:1"'
 memo relationships remove 4
 ```
 
-A role comes from its list: `owner`, `manager`, `contributor`, `client-contact` or `approver` on a project, and
-`employee`, `contractor`, `founder`, `owner`, `manager`, `adviser` or `contact` on an organization, or a role
-added to that list. What the role means here goes beside it, in your words, with `--role-note`.
+A person's role as a member comes from a list: in an organization employee, contractor, founder, owner,
+manager, adviser or contact; in a project owner, manager, contributor, client-contact or approver. memo refuses
+any other role (`relationship.role-unknown`).
+What the role means here goes beside it, in your words, with `--role-note`.
 A free-text role from before the lists still reads; to change it, set a listed role and keep the old words as
 the note: `memo relationships update 4 --role client-contact --role-note '<the old words>'`.
 
@@ -188,7 +203,7 @@ memo review reject 17070-17074 --reason "not this project"
 
 Proposals wait until you confirm them in `memo review`, and they do not appear in a person's context before that. A
 pair you rejected is never proposed again. People are matched by the account that wrote, never by a name in a text.
-Common free mail domains, such as Gmail, are never used for suggestions.
+Common free mail domains, such as Gmail, are never used for proposals.
 
 ## Meetings in a project
 
@@ -199,7 +214,7 @@ memo projects meetings link HRB 5 --account zoom:ACCOUNT
 memo projects meetings list HRB --source zoom:ACCOUNT
 ```
 
-Name the meeting's account exactly. `confirmed:false` lists the links an agent suggested; to confirm one,
+Name the meeting's account exactly. `confirmed:false` lists the links an agent proposed; to confirm one,
 repeat `link` with the `--fingerprint` value shown in that list.
 
 ## Other names for projects and tags

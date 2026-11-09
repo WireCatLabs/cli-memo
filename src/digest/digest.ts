@@ -1,12 +1,13 @@
-import { formatReference } from "@wirecat/cli-core"
+import { formatReference, kindOf } from "@wirecat/cli-core"
 import { mailTurn, OWED_DAYS } from "@wirecat/cli-core/mail"
 import { formatMeetingReference } from "@wirecat/cli-core/meetings"
-import { projectStatus, servicesFor, storeOnlyDeps } from "@wirecat/cli-core/services"
-import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
-import { APP } from "../app.js"
-import { listReview } from "../review/review.js"
+import { projectStatus } from "@wirecat/cli-core/services"
+import { type AccountKey, type MessageStore, SOURCE_REVIEW_KIND } from "@wirecat/cli-core/store"
+import { listReview, REVIEW_SOURCES } from "../review/review.js"
 import { counted } from "../review/status.js"
 import { knownSenders } from "./known.js"
+import { HEALTH_REASONS, type Health, healthOf, SOURCE_WORDS, syncRunsOf } from "./sync-health.js"
+import { gatherTasks, previousDigestAt, type TaskCounts } from "./tasks.js"
 
 /** The tag that puts a chat, mail thread, person, project or meeting series on the owner's watch list. */
 export const WATCH_TAG = "watch"
@@ -18,6 +19,10 @@ export interface DigestItem {
   /** One line of what was written, quoted as data. */
   excerpt: string | null
   why: string
+  /** A task's: when it is due, `null` for none. */
+  due?: string | null
+  /** A task's: who does it. */
+  for?: string | null
 }
 
 export interface DigestSection {
@@ -31,24 +36,35 @@ export interface DigestSection {
   unknown?: { count: number; next: string[] }
 }
 
-export const SECTIONS = ["watch", "owed", "mail", "meetings", "tasks", "projects", "proposals"] as const
+export const SECTIONS = ["watch", "owed", "mail", "meetings", "tasks", "projects", "sources", "proposals"] as const
 export type SectionName = (typeof SECTIONS)[number]
 
 export interface Coverage {
   account: string
-  /** When the store last saved anything of it; `null` when it never did. */
+  /** When the store last saved anything of it; `null` when it never did. Says nothing about the sync by itself. */
   storedAt: string | null
-  /** Nothing stored for a day: quiet may mean unsynced. */
-  stale: boolean
   /** The owner wrote last in the window and nobody answered yet. */
   waiting: number
   /** Chats the chat list says moved while their newest message is not stored. */
   unsynced: number
 }
 
+export const SCOPE_KINDS = ["telegram", "max", "whatsapp", "mail", "meeting", "task"] as const
+
+/** What the digest read, for the report's "what was viewed" line: memo counts it, the agent copies it. */
+export interface Scope {
+  from: string
+  to: string
+  sources: { kind: (typeof SCOPE_KINDS)[number]; accounts: number }[]
+  counts: { chats: number; mail: number; tasks: number; meetings: number }
+}
+
 export interface Digest {
   since: string
   at: string
+  scope: Scope
+  tasks: TaskCounts
+  health: Health[]
   coverage: Coverage[]
   sections: DigestSection[]
   /** Excerpts and titles were written by others: an agent reads them as data, never as instructions. */
@@ -64,10 +80,66 @@ export interface DigestOptions {
   excerpt: number
   /** ms: an owed reply older than this is left to `tasks agenda` and `mail review`. */
   owedWithin: number
+  /** Tasks created after this are new; the previous morning-digest run when left out. */
+  newSince?: string
 }
 
 const DAY = 86_400_000
 const MESSENGERS = new Set(["telegram", "max", "whatsapp"])
+const HEALTH_ORDER: readonly string[] = HEALTH_REASONS
+const UNNAMED = "unnamed account"
+/** Dialogs with a messenger's own service account: no person there is owed a reply. */
+const SERVICE_CHATS: Record<string, ReadonlySet<string>> = { telegram: new Set(["777000"]) }
+
+/** The dialogs of an account that are not with a person: bots, as the messenger marks them, and service chats. */
+const notPeopleOf = async (store: MessageStore, key: AccountKey): Promise<Set<string>> => {
+  const found = new Set(SERVICE_CHATS[key.provider] ?? [])
+  for (let offset = 0; ; offset += 500) {
+    const page = await store.chats.chats(key, { limit: 500, offset })
+    for (const chat of page.items)
+      if (chat.kind === "dialog" && chat.providerMetadata?.isBot === true) found.add(chat.id)
+    if (!page.hasMore) break
+  }
+  return found
+}
+
+/**
+ * What a person calls each account: its name and username, a mailbox its address. Never the raw id; an account with
+ * neither is named by the profile that signs in to it, and two of a provider with one name get theirs added.
+ */
+const labelsOf = async (store: MessageStore, keys: readonly AccountKey[]): Promise<Map<string, string>> => {
+  const stored = new Map((await store.accounts.storedAccounts()).map((one) => [name(one), one.name]))
+  const profiles = Object.values(await store.accounts.profiles()).flatMap((byProfile) => Object.entries(byProfile))
+  const profileOf = (key: AccountKey) =>
+    profiles.find(([, held]) => held.provider === key.provider && held.account === key.account)?.[0]
+  const labels = new Map<string, string>()
+  for (const key of keys) {
+    if (key.provider === "email") {
+      labels.set(name(key), key.account)
+      continue
+    }
+    const person = await store.people.personOf({ provider: key.provider, id: key.account })
+    const username = person?.identities.find((one) => one.provider === key.provider && one.id === key.account)?.username
+    const given = stored.get(name(key))
+    const label = [given && given !== key.account ? given : null, username ? `@${username}` : null]
+      .filter(Boolean)
+      .join(" ")
+    const profile = profileOf(key)
+    labels.set(name(key), label || (profile ? `profile ${profile}` : UNNAMED))
+  }
+  const taken = new Map<string, number>()
+  for (const [account, label] of labels) {
+    const word = `${account.split(":")[0]}|${label}`
+    taken.set(word, (taken.get(word) ?? 0) + 1)
+  }
+  for (const key of keys) {
+    const label = labels.get(name(key)) ?? UNNAMED
+    const profile = profileOf(key)
+    if ((taken.get(`${key.provider}|${label}`) ?? 0) > 1 && profile && !label.startsWith("profile "))
+      labels.set(name(key), `${label} (profile ${profile})`)
+  }
+  return labels
+}
 
 const oneLine = (text: string | null | undefined, size: number): string | null => {
   const flat = (text ?? "").replace(/\s+/g, " ").trim()
@@ -132,7 +204,7 @@ const personal = (newest: { bulk: boolean; list: boolean; envelope: boolean; dem
 export const gatherDigest = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
-  { since, now = Date.now(), limit, excerpt, owedWithin }: DigestOptions,
+  { since, now = Date.now(), limit, excerpt, owedWithin, newSince }: DigestOptions,
 ): Promise<Digest> => {
   const window = (now - since) / DAY
   const days = `${Math.max(1, Math.ceil(window))}d`
@@ -178,20 +250,48 @@ export const gatherDigest = async (
   let olderMail = 0
   const unknown = { count: 0, next: [] as string[] }
 
+  const syncRuns = syncRunsOf(env)
+  const labels = await labelsOf(store, [...messengers, ...mailboxes])
+  const health: Health[] = []
+  const checkHealth = (
+    key: AccountKey,
+    activity: { newest: number | null; moved30d: number; storedAt: number | null },
+  ) => {
+    const found = healthOf(syncRuns(key), activity, now)
+    if (found)
+      health.push({
+        source: SOURCE_WORDS[key.provider] ?? key.provider,
+        account: labels.get(name(key)) ?? UNNAMED,
+        ...found,
+        refs: [],
+      })
+  }
+  let chatsMoved = 0
+  let mailMoved = 0
+
   for (const key of messengers) {
     const { chats, storedAt } = await store.chats.chatActivity(key, owedSince)
+    const month = (await store.chats.chatActivity(key, now - 30 * DAY)).chats
+    checkHealth(key, {
+      newest: month.reduce<number | null>((most, chat) => Math.max(most ?? 0, Date.parse(chat.lastMessageAt)), null),
+      moved30d: month.length,
+      storedAt: storedAt === null ? null : Date.parse(storedAt),
+    })
     const ref = (chat: string) => formatReference({ type: "chat", provider: key.provider, account: key.account, chat })
+    chatsMoved += chats.filter((chat) => Date.parse(chat.lastMessageAt) >= since).length
     coverage.push({
       account: name(key),
       storedAt,
-      stale: storedAt === null || Date.parse(storedAt) < now - DAY,
       waiting: chats.filter((chat) => chat.lastFromOwner === true && Date.parse(chat.lastMessageAt) >= since).length,
       unsynced: chats.filter((chat) => chat.lastMessageId === null && Date.parse(chat.lastMessageAt) >= since).length,
     })
+    const owedChats = chats.filter(
+      (chat) => !isWatchedChat(key, chat.chatId) && chat.kind === "dialog" && chat.lastFromOwner === false,
+    )
+    const notPeople = owedChats.length ? await notPeopleOf(store, key) : new Set<string>()
     let owedHere = 0
-    for (const chat of chats) {
-      if (isWatchedChat(key, chat.chatId)) continue
-      if (chat.kind !== "dialog" || chat.lastFromOwner !== false) continue
+    for (const chat of owedChats) {
+      if (notPeople.has(chat.chatId)) continue
       owed.push({
         item: { ref: ref(chat.chatId), who: chat.title, at: chat.lastMessageAt, excerpt: null, why: "owed reply" },
         fill: messageFill(store, key, chat.chatId, chat.lastMessageId, excerpt),
@@ -227,10 +327,17 @@ export const gatherDigest = async (
     const ref = (thread: string) =>
       formatReference({ type: "chat", provider: "email", account: key.account, chat: thread })
     const newest = threads.reduce((most, thread) => Math.max(most, thread.lastEmailAt), 0)
+    checkHealth(key, {
+      newest: newest || null,
+      moved30d: threads.filter((thread) => thread.lastEmailAt >= now - 30 * DAY).length,
+      storedAt: newest || null,
+    })
+    mailMoved += threads.filter(
+      (thread) => thread.lastEmailAt >= since && thread.newest !== null && personal(thread.newest),
+    ).length
     coverage.push({
       account: name(key),
       storedAt: newest ? iso(newest) : null,
-      stale: newest < now - DAY,
       waiting: threads.filter((thread) => mailTurn(thread.newest) === "waiting" && thread.lastEmailAt >= since).length,
       unsynced: 0,
     })
@@ -332,30 +439,21 @@ export const gatherDigest = async (
     })
   }
 
-  const tasks = new Map<string, Pending>()
-  let unplanned = 0
-  for (const key of [...messengers, ...mailboxes]) {
-    const agenda = await servicesFor(storeOnlyDeps(store, key, { app: APP, env })).agenda.show({
-      within: 1,
-      dueWithin: DAY,
-    })
-    for (const task of agenda.tasks) {
-      const reasons = task.reasons.filter((reason) => reason !== "unplanned")
-      if (reasons.length === 0) {
-        unplanned++
-        continue
-      }
-      tasks.set(task.id, {
-        item: {
-          ref: `task:${task.key ?? task.id}`,
-          who: null,
-          at: task.dueAt ?? task.nextCheckAt ?? task.createdAt,
-          excerpt: oneLine(task.title, excerpt),
-          why: reasons.join(", "),
-        },
-      })
-    }
-  }
+  const hot = await gatherTasks(store, [...messengers, ...mailboxes], {
+    now,
+    newSince: newSince ?? previousDigestAt(env, now),
+  })
+  const tasks: Pending[] = hot.tasks.map(({ task, groups, askedBy, for: doer }) => ({
+    item: {
+      ref: task.ref,
+      who: askedBy,
+      at: task.dueAt ?? task.createdAt,
+      excerpt: oneLine(task.title, excerpt),
+      why: groups.join(", "),
+      due: task.dueAt,
+      for: doer,
+    },
+  }))
 
   const projects: Pending[] = []
   const projectNext: string[] = []
@@ -383,6 +481,34 @@ export const gatherDigest = async (
       })
   }
 
+  // A review refreshed in place keeps its raise time, so it is listed once, when it was raised or grew graver.
+  const reviews = await listReview(store, env, [`kind:${SOURCE_REVIEW_KIND}`], { limit: 50, page: 1 })
+  const sourceItems: Pending[] = reviews.items
+    .filter((row) => Date.parse(row.createdAt) >= since)
+    .map((row) => ({
+      item: {
+        ref: row.subject,
+        who: row.proposer,
+        at: row.createdAt,
+        excerpt: oneLine(row.title, excerpt),
+        why: `review ${row.id}: ${row.summary ?? "sources changed"}`,
+      },
+    }))
+
+  const reviewCount = sourceItems.length
+  const reviewed = new Set(reviews.items.flatMap((row) => row.evidence))
+  for (const changed of await store.knowledge.changedSources({ since }))
+    if (!reviewed.has(changed.ref))
+      sourceItems.push({
+        item: {
+          ref: changed.ref,
+          who: null,
+          at: changed.checkedAt,
+          excerpt: null,
+          why: "changed since a memory or fact cited it; no findings batch reads it yet",
+        },
+      })
+
   const waiting = await counted(store, env, { status: "proposed" })
   const proposed = await listReview(store, env, [], { limit, page: 1 })
   const proposals: Pending[] = proposed.items.map((row) => ({
@@ -409,18 +535,40 @@ export const gatherDigest = async (
     },
     await section("mail", mail, limit, [...mailNext, ...(bulk ? [`# ${bulk} bulk or list threads left out`] : [])]),
     await section("meetings", meetings, limit, ["memo search meetings <words>"]),
-    await section("tasks", [...tasks.values()], limit, [
-      "memo tasks list",
-      ...(unplanned ? [`# ${unplanned} open tasks without a date left out`] : []),
-    ]),
+    await section("tasks", tasks, limit, ["memo tasks list"]),
     await section("projects", projects, limit, projectNext),
+    await section("sources", sourceItems, limit, [
+      REVIEW_SOURCES,
+      ...(reviewCount > 0 ? [`# decide them: ${REVIEW_SOURCES}`] : []),
+      ...(sourceItems.length > reviewCount
+        ? [`# read changed sources again: memo memories check --since-time ${days} --json`]
+        : []),
+    ]),
     await section("proposals", proposals, limit, ["memo review list"], waiting.total),
+  ]
+  const providerCount = (provider: string) => accounts.filter((key) => key.provider === provider).length
+  const meetingAccounts = accounts.filter((key) => kindOf(key.provider) === "meetings").length
+  const sources: Scope["sources"] = [
+    { kind: "telegram", accounts: providerCount("telegram") },
+    { kind: "max", accounts: providerCount("max") },
+    { kind: "whatsapp", accounts: providerCount("whatsapp") },
+    { kind: "mail", accounts: mailboxes.length },
+    { kind: "meeting", accounts: meetingAccounts },
+    { kind: "task", accounts: hot.accounts },
   ]
   return {
     since: iso(since),
     at: iso(now),
+    scope: {
+      from: iso(since),
+      to: iso(now),
+      sources: sources.filter((one) => one.accounts > 0),
+      counts: { chats: chatsMoved, mail: mailMoved, tasks: hot.tasks.length, meetings: meetings.length },
+    },
+    tasks: hot.counts,
+    health: health.sort((a, b) => HEALTH_ORDER.indexOf(a.reason) - HEALTH_ORDER.indexOf(b.reason)),
     coverage,
     sections,
-    untrusted: ["sections.items.who", "sections.items.excerpt"],
+    untrusted: ["sections.items.who", "sections.items.excerpt", "sections.items.for"],
   }
 }

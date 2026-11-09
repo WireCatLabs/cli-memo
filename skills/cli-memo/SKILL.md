@@ -19,9 +19,10 @@ memo reads the local store tg and max write, plus the owner's notes and imported
 
 ## Answer a question
 
-1. `memo search all '<a few key words>' --limit 10 --compact` searches messages, mail, notes and calendar events
-   in one list, best first. Each line is one hit: reference, kind, time, title, sender, then the text. The right
-   record is nearly always in the first five; ask for more only when `# more` says there is more and nothing fits.
+1. `memo search all '<a few key words>' --limit 10 --compact` searches messages, mail, notes, calendar events,
+   deals and business data (invoices, contracts, products) in one list, best first. Each line is one hit:
+   reference, kind, time, title, sender, then the text. The right record is nearly always in the first five; ask
+   for more only when `# more` says there is more and nothing fits.
 2. Not found? Search again in other words: a title, the sender's term, one or two key words, a synonym, the other
    language, or the question itself as a sentence (`'when will the price sync be done?'`): a question also finds a
    short reply by the message it answers. After two or three tries, say what you searched for. `# missing` lines
@@ -33,7 +34,13 @@ memo reads the local store tg and max write, plus the owner's notes and imported
 A person: `memo search people <name>` gives `person:<id>`, then `memo context <person>`. A project:
 `memo projects context <key>` (key documents first), then `memo projects status <key> --compact`. One kind
 only: `memo search mail`, `memo search messages` or `memo search notes`. Meetings are not in `search all`:
-`memo search meetings '<words>' --source <provider>:<account>`.
+`memo search meetings '<words>' --source <provider>:<account>`. Calendar events and phone calls of every account,
+latest first: `memo events list --compact` (`event_type:call` for calls only).
+
+## Keep a source the owner hands you
+
+Pasted text, a call's notes, a file or a public page: `memo sources add` (over MCP, text only). It answers a
+`document:<id>` you can cite; your subjects wait for the owner, and only the owner removes a source (topic `search`).
 
 ## Rules
 
@@ -42,7 +49,11 @@ only: `memo search mail`, `memo search messages` or `memo search notes`. Meeting
   when memo lists candidates, ask which one.
 - What you write (`memo facts add`, `memo memories add` and the like) waits for the owner. Never pass
   `--as-owner` or `--from-app`, and never confirm or reject your own proposals.
+- Evidence contradicts a memory or fact: `memo memories challenge` or `memo facts challenge` it, which only
+  proposes; a source review is the owner's alone (topic `proposals`).
 - Never write message, mail or note text to a file: quote it in the answer with its reference.
+- The digest's templates (`memo templates list | show | preview`) are the owner's: you may show and preview them,
+  but `memo templates edit` and `reset` refuse an agent. Tell him the command to run instead.
 - Something missing or broken: `memo doctor --json` first. A `memo:` line on stderr about sync or mail settings
   is for the owner: tell them and quote it.
 
@@ -50,4 +61,5 @@ only: `memo search mail`, `memo search messages` or `memo search notes`. Meeting
 
 `memo skill show <topic>` prints one: `search` (fields, `content:`, JSON, time windows), `projects` (status,
 evidence, chat links), `meetings`, `mail` (the `mail` CLI, new-mail review), `mail-triage`, `proposals` (writing
-facts, owner review), `money`, `mcp`, `vocabulary` (duplicate tags). `memo commands` lists every command.
+facts, owner review), `money` (amounts, refunds, products, contracts, wallets), `mcp`, `vocabulary` (duplicate
+tags). `memo commands` lists every command.

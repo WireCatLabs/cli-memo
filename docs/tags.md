@@ -70,7 +70,9 @@ memo tags list                              # every tag, up to 100
 
 The tag `watch` marks what the morning digest must never miss. `memo review agenda` shows everything new in a
 watched chat or mail thread, every chat a watched person wrote in, each watched project even when it was quiet, and
-the meetings of a watched meeting's series.
+the meetings of a watched meeting's series. It also lists replies owed to people (bots and service chats are left
+out), the tasks created since the last morning digest and those overdue, due today or tomorrow, and each account
+whose sync failed, that nothing syncs, or that has been quiet for longer than usual.
 
 ```sh
 memo tags add watch --chat 12345 --account telegram:1   # a chat or a mail thread
