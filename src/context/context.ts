@@ -243,14 +243,16 @@ const withNotesAndTasks = async (
   const tasks = await personTasks(store, messages.person, accounts, limit)
   const incoming = await store.notes.links({ to: person })
   // cli-core leaves out a link with an end outside the scope, the owner's too, and an end of a denied kind.
-  const relationships = (
-    await store.knowledge.listRelations({
-      about: person,
-      ...(scope === undefined ? {} : { accounts: scope }),
-      ...(deniedKinds.length ? { deniedKinds: [...deniedKinds] } : {}),
-      limit: 500,
-    })
-  ).items.filter((one) => isUsable(one.standing))
+  const listed = await store.knowledge.listRelations({
+    about: person,
+    ...(scope === undefined ? {} : { accounts: scope }),
+    ...(deniedKinds.length ? { deniedKinds: [...deniedKinds] } : {}),
+    limit: 500,
+  })
+  // A file Google reports is listed under files; since cli-core 0.621.0 its link is `reported`, so it would repeat here.
+  const relationships = listed.items.filter(
+    (one) => isUsable(one.standing) && !(one.provenance && SOURCE_REPORTS.has(one.provenance)),
+  )
   const files = await reportedFiles(store, incoming, limit)
   const { subject: _, name: __, ...notes } = linked
   return {

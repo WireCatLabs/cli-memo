@@ -6,6 +6,15 @@ the API.
 
 ## Unreleased
 
+### Changed
+
+- **memo is built on cli-core 0.623.0** (was 0.620.0). Desktop's pages can keep one memo process running
+  (`commands --serve`) instead of starting memo for every call; `relationships list include:ended` answers in a
+  fraction of a second on a store with a busy person, not minutes; the store file's `-wal` is capped at 64 MiB.
+- **A Drive document's owner and last editor show once in `memo context`, under its files.** Google's own record
+  of who owns a document is a fact the source reports, not a suggestion waiting for review, so it would also have
+  appeared among the relationships.
+
 ### Security
 
 - `search all` run by an agent from a shell leaves out the deals and leads memo's saved permissions deny (`deals`,
