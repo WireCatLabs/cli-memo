@@ -4,6 +4,40 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## 0.131.75 — 09.11.2026
+
+### Added
+
+- **Digests by name: `memo digest list|add|edit|run|pause|resume|remove`.** Each digest has a title, its times
+  (`--at 08:30 --at 18:00`, or `--at 'mon,fri 09:00'` on those days), the sources it reads (`--source telegram,mail`;
+  `all` reads everything), its routes (`--deliver-to telegram-bot:<profile>/<chat>`, `email:<profile>/<address>`;
+  `none` sends nowhere), its brief (`--text`) and its cost caps; `--paused` makes it off its timer. A daily digest reads a day, a weekly one the week, and
+  one that runs more than once a day reads since its previous time. `digest run` builds one now: along its routes,
+  only along the ones `--deliver-to` names, or with `--no-notify` nowhere. `digest list --json` gives each digest's
+  last and next run. The morning digest is listed first, and its schedule, brief and templates stay where they were.
+  Only the owner changes or runs a digest; each run is a paid model call.
+- `digest brief show|edit|reset`, `digest backfill` and `templates` take a digest's name (`report/<name>`); a
+  digest without its own template uses the morning digest's.
+- `review agenda --source <sources>` reads only the sources given; a digest's run reads the digest's own sources
+  without it.
+- **`memo people check <name...>`**: people whose names start like the typed words, in any order, the same name
+  first (`same_name`), so a form can show likely duplicates before adding a person.
+
+### Changed — may break callers
+
+- **`memo people list` lists one kind of person at a time**, people by default, the ones who write to you most first.
+  `kind:` is `person`, `organization`, `automated`, `unsorted` or `all`. A person is you, someone you added by hand or
+  assigned a task, or a named person with a tie to you: a one-to-one chat, a group of at most 10, mail you wrote, a
+  meeting, a CRM or your address book. Bots, newsletters and notifications are `automated`; companies (an
+  organization's account, `info@`, ООО, LLC, Airlines…) are `organization`; the rest, such as authors seen only in big
+  groups and accounts with no name, is `unsorted`. The answer's `next` step `people.kinds` says how many each other
+  kind holds. Each person now has `display_name` (no wrapping quotes; «Без имени» or a name with no letter shows the
+  username, phone or email; `name` stays as stored), `kind`, `kind_signals`, `contact`, `phone`, `email`, `username`,
+  `messages_from`, `last_contact` and `ties`. The list pages (`--page`) with an exact total, sorts by
+  `--sort interactions|recent|name|tasks` and searches by `name:<text>` (3 characters at least). Run
+  `<messenger> <profile> contacts sync` once per messenger account: until then nobody has the address-book tie.
+- **`memo search people`** lists people with a tie first; each hit has `ties`, empty for someone with none.
+
 ## 0.131.74 — 09.11.2026
 
 ### Added
