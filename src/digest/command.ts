@@ -7,7 +7,7 @@ import { itemAnswer, withStore } from "../answer.js"
 import { APP } from "../app.js"
 import { positive } from "../options.js"
 import { gatherDigest, WATCH_TAG } from "./digest.js"
-import { DIGEST_SOURCES, type DigestSource, readDefinition, runningDigest } from "./digests.js"
+import { DIGEST_SOURCES, type DigestSource, isDigest, readDefinition } from "./digests.js"
 import { digestText, fitDigest } from "./text.js"
 
 /** Roughly 10k tokens of mixed Russian and English: Cyrillic takes two bytes a letter and fewer letters a token. */
@@ -26,9 +26,11 @@ interface Options {
   source?: DigestSource[]
 }
 
-/** A digest's run keeps to the digest's sources even when its agent leaves out `--source`. */
-const scheduledSources = (env: NodeJS.ProcessEnv): DigestSource[] =>
-  env[`${APP.envPrefix}_SCHEDULED`] ? (readDefinition(env, runningDigest(env))?.sources ?? []) : []
+/** A digest's run keeps to the digest's sources even when its agent leaves out `--source`; other schedules do not. */
+const scheduledSources = (env: NodeJS.ProcessEnv): DigestSource[] => {
+  const scheduled = env[`${APP.envPrefix}_SCHEDULED`]
+  return scheduled && isDigest(env, scheduled) ? (readDefinition(env, scheduled)?.sources ?? []) : []
+}
 
 /** `--source telegram,mail`, repeatable: what the agenda reads; each one a part it can leave out. */
 export const sourcesOf = (value: string, before: DigestSource[] = []): DigestSource[] => {

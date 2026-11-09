@@ -266,6 +266,11 @@ describe("digests by name", () => {
 })
 
 describe("digests after other changes", () => {
+  it("refuses a name shaped like a path", async () => {
+    const { run } = setUp()
+    await expect(run("digest", "run", "../../x", "--no-notify", "--from-app")).rejects.toThrow("no digest")
+  })
+
   it("drops a digest whose schedule another command removed, and adds one of that name again", async () => {
     const { json } = setUp()
     await json("digest", "add", "d", "--at", "08:30", "--from-app")

@@ -71,8 +71,13 @@ export const dropDefinition = (env: NodeJS.ProcessEnv, name: string): void =>
  * A digest while its schedule exists: the morning digest by name, any other while memo keeps its definition too. A
  * definition left behind by `memo schedule remove` is no digest, and `digest add` writes over it.
  */
+// A name goes into file paths: only `add`'s shape can name a digest, so `../x` never reaches the disk.
+const DIGEST_NAME = /^[a-z0-9][a-z0-9-]*$/
+
 export const isDigest = (env: NodeJS.ProcessEnv, name: string): boolean =>
-  existsSync(digestScheduleFile(env, name)) && (name === MORNING_DIGEST || existsSync(definitionFile(env, name)))
+  DIGEST_NAME.test(name) &&
+  existsSync(digestScheduleFile(env, name)) &&
+  (name === MORNING_DIGEST || existsSync(definitionFile(env, name)))
 
 /** The digests by name, the morning digest first. */
 export const digestNames = (env: NodeJS.ProcessEnv): string[] => {
