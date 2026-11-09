@@ -392,7 +392,8 @@ const OWN_ENTITIES = entityFields({
     "updated_at",
     "deleted_at",
   ],
-  records_template: ["types", "type", "format", "columns", "text"],
+  records_templates: ["types"],
+  records_template: ["type", "format", "columns", "text"],
   records_receipt: [
     "dry_run",
     "source",

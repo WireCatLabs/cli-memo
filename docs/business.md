@@ -90,12 +90,12 @@ memo records import erp.jsonl --account example-erp:demo
 memo review list kind:invoice,payment,order,contract
 ```
 
-A spreadsheet works too, one type a sheet. `memo records template` lists the types and their columns;
-`memo records template invoice --separator ';'` writes the header row to fill (`;` is what Excel uses in Russian or
-Spanish), and `--format json` writes an example envelope instead. The sheet is checked and imported with its type:
+A spreadsheet works too, one type a sheet. `memo records templates list` lists the types and their columns;
+`memo records templates show invoice --locale ru` writes the header row to fill with `;` between cells, as Excel in
+Russian or Spanish expects, and `--format json` writes an example envelope instead. The sheet is checked and imported with its type:
 
 ```sh
-memo records template invoice --separator ';' > invoices.csv
+memo records templates show invoice --locale ru > invoices.csv
 memo records check invoices.csv --type invoice --account sheet:rentals
 memo records import invoices.csv --type invoice --account sheet:rentals
 ```

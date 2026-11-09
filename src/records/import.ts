@@ -1,7 +1,17 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
+import { defineQuery } from "@wirecat/cli-base/query"
 import { type IngestError, recordColumns, recordTemplate, TABLE_RECORD_TYPES, type TablePlace } from "@wirecat/cli-core"
-import { environmentOf, LOCAL_READ, LOCAL_WRITE } from "@wirecat/cli-core/cli"
+import {
+  environmentOf,
+  LOCAL_READ,
+  LOCAL_WRITE,
+  listQuery,
+  nativeTerms,
+  termField,
+  typedQuery,
+  withQuery,
+} from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
 import { importRecords, placeText, type Receipt } from "./input.js"
@@ -10,6 +20,14 @@ import { recordCommands } from "./record-commands.js"
 
 /** The review kinds of what the import proposed, as `memo review kind:` takes them: each ref's prefix. */
 const kindsOf = (proposed: readonly string[]) => [...new Set(proposed.map((ref) => ref.slice(0, ref.indexOf(":"))))]
+
+const LOCALES = ["en", "ru", "es"]
+
+const TEMPLATES_QUERY = defineQuery({
+  entity: "records_templates",
+  backend: "native",
+  fields: [termField("type", "kw", "type:invoice")],
+})
 
 /** The envelope's root is `/`: an empty JSON pointer would break the answer's issue shape. */
 const pointerOf = (pointer: string) => pointer || "/"
@@ -120,46 +138,58 @@ export const recordsCommand = (program: Command, streams: Streams, env: NodeJS.P
       .summary("check a records file against the store; write nothing"),
     true,
   )
-  annotate(records.command("template"), { effects: LOCAL_READ, output: { entity: "records_template" } })
+  const templates = records
+    .command("templates")
+    .description("files to fill for records import: a CSV header row or a JSON envelope, one type each")
+    .summary("files to fill for records import")
+  withQuery(
+    annotate(templates.command("list"), { effects: LOCAL_READ, output: { entity: "records_templates" } }),
+    TEMPLATES_QUERY,
+  )
+    .description("the types a sheet can hold, and their columns: whether each is required, its shape and its values")
+    .summary("the types a sheet can hold, with their columns")
+    .option("--json", "print JSON; --json=types keeps only those fields")
+    .action((words: string[], given: { json?: boolean }) => {
+      const terms = nativeTerms(
+        listQuery(typedQuery(words), TEMPLATES_QUERY, "records templates list"),
+        "records templates list",
+      )
+      const wanted = terms.get("type")?.value
+      const types = TABLE_RECORD_TYPES.filter((one) => wanted === undefined || one === wanted).map((one) => ({
+        type: one,
+        columns: recordColumns(one),
+      }))
+      return print(given.json, itemAnswer({ types }), types.map((one) => one.type).join("\n"))
+    })
+  annotate(templates.command("show"), { effects: LOCAL_READ, output: { entity: "records_template" } })
     .description(
-      "a file to fill for one type: the CSV header row (with a byte-order mark, so Excel reads it as UTF-8) or a JSON " +
-        "envelope of one example record. Without a type, the types and their columns, each with whether it is " +
-        "required, its shape and its values",
+      "the file to fill for one type: the CSV header row (with a byte-order mark, so Excel reads it as UTF-8) or a " +
+        "JSON envelope of one example record",
     )
-    .summary("a CSV or JSON file to fill, for records import")
-    .argument("[type]", `one of ${TABLE_RECORD_TYPES.join(", ")}`)
+    .summary("the CSV or JSON file to fill for one type")
+    .argument("<type>", `one of ${TABLE_RECORD_TYPES.join(", ")}`)
     .option("--format <format>", "csv or json", "csv")
-    .option("--separator <separator>", "the CSV separator: , or ; (Excel's in Russian or Spanish)", ",")
+    // Excel in Russian or Spanish writes and expects ; between cells, because , is their decimal mark.
+    .option("--locale <code>", "the language of the Excel that opens it: en takes , and ru or es take ;", "en")
     .option("--account <account>", "the source a JSON template names: <provider>:<account>, such as sheet:rentals")
-    .option("--json", "print JSON; --json=columns keeps only those fields")
-    .action(
-      (type: string | undefined, given: { format: string; separator: string; account?: string; json?: boolean }) => {
-        if (type === undefined) {
-          const types = TABLE_RECORD_TYPES.map((one) => ({ type: one, columns: recordColumns(one) }))
-          return print(given.json, itemAnswer({ types }), types.map((one) => one.type).join("\n"))
-        }
-        if (!TABLE_RECORD_TYPES.includes(type))
-          throw new CliError(
-            "validation_error",
-            `no template for ${type}: use one of ${TABLE_RECORD_TYPES.join(", ")}`,
-            {
-              param: "type",
-            },
-          )
-        if (given.format !== "csv" && given.format !== "json")
-          throw new CliError("validation_error", "--format is csv or json", { param: "--format" })
-        if (![",", ";", "\t"].includes(given.separator))
-          throw new CliError("validation_error", "--separator is , or ;", { param: "--separator" })
-        const source = given.account === undefined ? undefined : sourceOf(given.account)
-        const text = recordTemplate(type, given.format, {
-          separator: given.separator,
-          ...(source ? { source } : {}),
+    .option("--json", "print JSON; --json=text keeps only those fields")
+    .action((type: string, given: { format: string; locale: string; account?: string; json?: boolean }) => {
+      if (!TABLE_RECORD_TYPES.includes(type))
+        throw new CliError("validation_error", `no template for ${type}: use one of ${TABLE_RECORD_TYPES.join(", ")}`, {
+          param: "type",
         })
-        if (given.json)
-          return print(true, itemAnswer({ type, format: given.format, columns: recordColumns(type), text }))
-        streams.data(text)
-      },
-    )
+      if (given.format !== "csv" && given.format !== "json")
+        throw new CliError("validation_error", "--format is csv or json", { param: "--format" })
+      if (!LOCALES.includes(given.locale))
+        throw new CliError("validation_error", `--locale is one of ${LOCALES.join(", ")}`, { param: "--locale" })
+      const source = given.account === undefined ? undefined : sourceOf(given.account)
+      const text = recordTemplate(type, given.format, {
+        separator: given.locale === "en" ? "," : ";",
+        ...(source ? { source } : {}),
+      })
+      if (given.json) return print(true, itemAnswer({ type, format: given.format, columns: recordColumns(type), text }))
+      streams.data(text)
+    })
   recordMappingCommands(records, program, streams, env)
   recordCommands(records, answered, (work) => withStore(env, work))
 }

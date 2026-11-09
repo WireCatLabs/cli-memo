@@ -29,12 +29,14 @@ const setUp = () => {
 
 it("lists every type with its columns, and writes a CSV header in Excel's separator", async () => {
   const f = setUp()
-  const { types } = (await f.item("records", "template")) as { types: { type: string; columns: { name: string }[] }[] }
+  const { types } = (await f.item("records", "templates", "list")) as {
+    types: { type: string; columns: { name: string }[] }[]
+  }
   expect(types.map((t) => t.type)).toEqual(expect.arrayContaining(["organization", "invoice", "transaction"]))
   expect(types.map((t) => t.type)).not.toContain("message")
-  const json = await f.item("records", "template", "invoice", "--format", "json", "--account", "sheet:rentals")
+  const json = await f.item("records", "templates", "show", "invoice", "--format", "json", "--account", "sheet:rentals")
   expect(JSON.parse(json.text as string).source).toMatchObject({ provider: "sheet", account: "rentals" })
-  expect(await f.call(["records", "template", "organization", "--separator", ";"])).toMatch(/^﻿external_id;name;/)
+  expect(await f.call(["records", "templates", "show", "organization", "--locale", "ru"])).toMatch(/^﻿external_id;name;/)
 })
 
 it("imports a sheet Russian Excel saved, and a second import changes nothing", async () => {

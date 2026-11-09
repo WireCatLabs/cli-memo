@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1107 ✅ · 0 ⛔ · 294 ❌** — 309 commands, 1092 options.
+**1109 ✅ · 0 ⛔ · 294 ❌** — 310 commands, 1093 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -982,11 +982,13 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `records check` | `--account` | ✅ |  |
 | `records check` | `--region` | ✅ |  |
 | `records check` | `--json` | ✅ |  |
-| `records template` |  | ✅ |  |
-| `records template` | `--format` | ✅ |  |
-| `records template` | `--separator` | ✅ |  |
-| `records template` | `--account` | ✅ |  |
-| `records template` | `--json` | ✅ |  |
+| `records templates list` |  | ✅ |  |
+| `records templates list` | `--json` | ✅ |  |
+| `records templates show` |  | ✅ |  |
+| `records templates show` | `--format` | ✅ |  |
+| `records templates show` | `--locale` | ✅ |  |
+| `records templates show` | `--account` | ✅ |  |
+| `records templates show` | `--json` | ✅ |  |
 | `records list` |  | ✅ |  |
 | `records list` | `--account` | ✅ |  |
 | `records list` | `--limit` | ❌ |  |
