@@ -754,7 +754,7 @@ memo people add <name> [options]
 
 ### `memo people list`
 
-everyone memo knows, by name: the owner first, then by how many tasks name them
+the people you have a tie with: a one-to-one chat, a group of at most 10, mail you wrote to them, a meeting, a CRM or your address book; also people added by hand or assigned a task. The owner first, then by how many tasks name them. --all adds everyone else (here --all means people with no tie, not every account)
 
 ```sh
 memo people list [query] [options]
@@ -762,16 +762,40 @@ memo people list [query] [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `query` | optional | field:value terms; this list filters by none yet. |
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
 
 | Option | What it does |
 |---|---|
-| `--limit <n>` | most people, up to 5000. Default: `500`. |
+| `--all` | also people with no tie to you, such as authors seen only in big groups. |
+| `--sort <field>` | tasks or name (default tasks). Default: `tasks`. |
+| `--limit <n>` | most people on a page, up to 5000. Default: `500`. |
+| `--page <n>` | which page, from 1. Default: `1`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** everyone memo knows, the owner first
+**Returns:** the people you have a tie with, the owner first
 
-**Example:** `memo people list --json`
+**Example:** `memo people list --json`, `memo people list name:ivan --all --page 2`
+
+### `memo people similar`
+
+people whose names start like these words, the same name first: check before adding a person
+
+```sh
+memo people similar <name> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | required | the name being typed. |
+
+| Option | What it does |
+|---|---|
+| `--limit <n>` | most people, up to 50. Default: `8`. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** people with a name like this one, to check before adding a person
+
+**Example:** `memo people similar ivan petrov --json`
 
 ### `memo people show`
 

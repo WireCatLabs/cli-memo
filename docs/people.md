@@ -17,6 +17,25 @@ matches when their name, username or the alias you gave them holds every word; c
 not matter. Each result shows the person's `person:<id>`, which `memo projects evidence --contact`
 takes, and the accounts behind it.
 
+## The people you know
+
+```sh
+memo people list                    # the people you have a tie with, you first
+memo people list --all --page 2     # everyone, the second page
+memo people list name:ivan --json
+memo people similar ivan petrov     # before adding a person: who already has this name
+```
+
+`people list` shows a person when they have a tie to you: a one-to-one chat, a group of at most 10, mail you
+wrote to them, a meeting, a CRM, or your phone's address book. People you added by hand and people assigned a
+task are listed too. Everyone else, such as authors seen only in big groups, is hidden; the answer says how many,
+and `--all` lists them. Each person has `display_name`, the name cleaned of wrapping quotes and spaces (`name`
+stays as stored), and `ties`, the reasons they are listed. Run `contacts sync` in each messenger once, or nobody
+has the address-book tie.
+
+`people similar` lists people whose names start like the words you type, in any order, the same name first
+(`same_name`). Memo never joins them on its own: link them as below.
+
 ## Everything about a person
 
 **The easiest way: ask your agent.**

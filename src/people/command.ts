@@ -2,14 +2,16 @@ import { join } from "node:path"
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
-import { LOCAL_READ, LOCAL_WRITE, listQuery, typedQuery, withQuery } from "@wirecat/cli-core/cli"
+import type { NextStep } from "@wirecat/cli-base/standards"
+import { LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
+import type { ListedPerson } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
-import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
+import { answers, itemAnswer, listAnswer, wholeList, withStore } from "../answer.js"
 import { deciderOf, fromAppOption } from "../author.js"
 import { boundFolders, folderOfFile } from "../notes/bound.js"
 import { folderNotes } from "../notes/import.js"
-import { positive } from "../options.js"
-import { keepInGroup } from "../store/group.js"
+import { oneOf, positive } from "../options.js"
+import { groupOf, keepInGroup } from "../store/group.js"
 import { identitiesCommands } from "./identities-command.js"
 import { identityOf } from "./identity.js"
 import { importNotesMap } from "./notes-map.js"
@@ -75,6 +77,40 @@ export const noteCommand = (program: Command, streams: Streams, env: NodeJS.Proc
   }
 }
 
+const PEOPLE_SORTS = ["tasks", "name"] as const
+
+interface PeopleListOptions {
+  all?: boolean
+  sort: (typeof PEOPLE_SORTS)[number]
+  limit: number
+  page: number
+  json?: boolean
+}
+
+/** A listed person as memo answers: the ref, the stored name and the one to show, the contact, the ties. */
+const personRow = ({ person, displayName, ...rest }: ListedPerson) => ({
+  ref: person,
+  name: rest.name,
+  display_name: displayName,
+  owner: rest.owner,
+  tasks: rest.tasks,
+  username: rest.username,
+  phone: rest.phone,
+  email: rest.email,
+  ties: rest.ties,
+})
+
+/** The step to the people the list hid, with how many: the count a page shows beside "Show all". */
+const showAll = (words: string[], hidden: number): NextStep => ({
+  kind: "command",
+  step: "people.all",
+  command: "people list",
+  args: { ...(words.length ? { query: words.join(" ") } : {}), all: true },
+  line: `memo people list${words.length ? ` ${words.join(" ")}` : ""} --all`,
+  why: `${hidden} ${hidden === 1 ? "person has" : "people have"} no tie to you and ${hidden === 1 ? "is" : "are"} hidden`,
+  safe_to_auto_execute: true,
+})
+
 /** For an assignee picker: everyone the store knows, the owner first, then by how many tasks name them. */
 export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { print } = answers(program, streams, env)
@@ -91,31 +127,71 @@ export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.Pr
         print(options.json, itemAnswer({ ref: `person:${person.uid}`, name: person.name }), `person:${person.uid}`)
       })
     })
-  const query = { entity: "task_person", backend: "native", fields: [] } as const satisfies QueryRegistry
+  const query = {
+    entity: "task_person",
+    backend: "native",
+    fields: [termField("name", "txt", "name:ivan")],
+  } as const satisfies QueryRegistry
   withQuery(
     annotate(people.command("list"), { effects: LOCAL_READ })
-      .summary("everyone memo knows, the owner first")
-      .description("everyone memo knows, by name: the owner first, then by how many tasks name them"),
+      .summary("the people you have a tie with, the owner first")
+      .description(
+        "the people you have a tie with: a one-to-one chat, a group of at most 10, mail you wrote to them, a " +
+          "meeting, a CRM or your address book; also people added by hand or assigned a task. The owner first, " +
+          "then by how many tasks name them. --all adds everyone else (here --all means people with no tie, not " +
+          "every account)",
+      ),
     query,
   )
-    .option("--limit <n>", "most people, up to 5000", positive, 500)
+    .option("--all", "also people with no tie to you, such as authors seen only in big groups")
+    .option("--sort <field>", `${PEOPLE_SORTS.join(" or ")} (default tasks)`, oneOf(PEOPLE_SORTS), "tasks")
+    .option("--limit <n>", "most people on a page, up to 5000", positive, 500)
+    .option("--page <n>", "which page, from 1", positive, 1)
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .action(async (words: string[], { json, ...options }: PeopleListOptions) => {
+      const name = queryTerms(words, query, "people list").get("name")
+      const limit = Math.min(options.limit, 5000)
+      await withStore(env, async (store) => {
+        const found = await store.people.list({
+          limit,
+          offset: (options.page - 1) * limit,
+          sort: options.sort,
+          ...(options.all ? { all: true } : {}),
+          ...(name === undefined ? {} : { query: name }),
+        })
+        const items = await keepInGroup(store, env, found.items.map(personRow), ({ ref }) => ref)
+        // In a group the store's counts cover people outside it, so the answer claims none.
+        const counted = groupOf(env) === undefined
+        print(
+          json,
+          listAnswer("people list", {
+            items,
+            limit,
+            has_more: found.hasMore,
+            page: options.page,
+            ...(counted ? { total: { value: found.total, relation: "eq" as const } } : {}),
+            args: { ...(words.length ? { query: words.join(" ") } : {}), ...(options.all ? { all: true } : {}) },
+            ...(!counted || options.all || found.hidden === 0 ? {} : { next: [showAll(words, found.hidden)] }),
+          }),
+        )
+      })
+    })
+  annotate(people.command("similar"), { effects: LOCAL_READ })
+    .summary("people with a name like this one, to check before adding a person")
+    .description("people whose names start like these words, the same name first: check before adding a person")
+    .argument("<name...>", "the name being typed")
+    .option("--limit <n>", "most people, up to 50", positive, 8)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (words: string[], options: { limit: number; json?: boolean }) => {
-      listQuery(typedQuery(words), query, "people list")
       await withStore(env, async (store) => {
-        const found = await keepInGroup(
+        const found = await store.people.similar(words.join(" "), { limit: Math.min(options.limit, 50) })
+        const items = await keepInGroup(
           store,
           env,
-          await store.tasks.taskPeople({ limit: options.limit }),
-          ({ person }) => person,
+          found.map(({ sameName, ...person }) => ({ ...personRow(person), same_name: sameName })),
+          ({ ref }) => ref,
         )
-        print(
-          options.json,
-          wholeList(
-            "people list",
-            found.map(({ person, ...rest }) => ({ ref: person, ...rest })),
-          ),
-        )
+        print(options.json, wholeList("people similar", items))
       })
     })
   identitiesCommands(people, program, streams, env)

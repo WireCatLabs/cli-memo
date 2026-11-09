@@ -167,7 +167,7 @@ again (`--remind-time`), leaves it as it is, so working on a task does not make 
 memo tasks assign HRB-1 PERSON_UID
 memo tasks assign HRB-1 PERSON_UID --role reviewer
 memo tasks assign HRB-1 PERSON_UID --clear     # take them off it
-memo people list                               # you, and everyone tasks already name
+memo people list                               # you, and the people you have a tie with
 memo tasks update HRB-1 --agent hermes         # the agent working on it; --agent none clears it
 ```
 

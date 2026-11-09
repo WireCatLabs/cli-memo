@@ -67,10 +67,14 @@ export const ROWS: Readonly<Record<string, RowShape>> = {
   "people list": {
     columns: [
       { field: "ref" },
-      { field: "name" },
+      { field: "display_name" },
       { field: "owner", tag: "owner" },
       { field: "tasks", as: "count", tag: "tasks" },
+      { field: "ties" },
     ],
+  },
+  "people similar": {
+    columns: [{ field: "ref" }, { field: "display_name" }, { field: "same_name", tag: "same name" }, { field: "ties" }],
   },
   "events list": {
     columns: [

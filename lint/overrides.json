@@ -159,5 +159,19 @@
     "reason": "Opt-in: a hosted model the owner consented to (memo models search-consents set) reorders the first 30 hits of search all (cli-core 0.622.0, measured in cli-testing search-lab, 2026-11-09). No role in the cli-base flag vocabulary names sending results to a model for reranking. Add one there, then drop this.",
     "owner": "@leemour",
     "review_after": "2027-02-09"
+  },
+  {
+    "rule": "unknown-verb",
+    "target": "people similar",
+    "reason": "WireCat Desktop's Add person form (plan 2026-11-09-people-clients-digests, M-1) shows people with a like name while the owner types; no verb in the cli-base vocabulary names a lookup by a name that never matches or links on its own (match links, check verifies). Add one there, then rename.",
+    "owner": "@leemour",
+    "review_after": "2027-02-09"
+  },
+  {
+    "rule": "option-role",
+    "target": "people list --sort",
+    "reason": "WireCat Desktop's People page (plan 2026-11-09-people-clients-digests, M-1) sorts its paged table by tasks or name; --order in the vocabulary takes only recent or name, and tasks is the default here, as on tasks list --sort.",
+    "owner": "@leemour",
+    "review_after": "2027-02-09"
   }
 ]
