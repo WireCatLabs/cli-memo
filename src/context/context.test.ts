@@ -261,7 +261,7 @@ describe("memo context", () => {
     expect(shown).toContain("Prefers mornings")
   })
 
-  it("lists files Google reports they own, and leaves out unreviewed links a program guessed", async () => {
+  it("lists files Google reports they own as reported, and leaves out unreviewed links a program guessed", async () => {
     const store = await openStore({ env })
     const drive = { provider: "google-drive", account: "u1" }
     const folder = await store.notes.documentsAccount(drive, true)
@@ -295,9 +295,13 @@ describe("memo context", () => {
         confirmed: false,
       },
     ])
-    await store.notes.replaceFileLinks(await documentOf("f2.md"), [
-      { kind: "related-to", to: `person:${uid}`, provenance: "scan", confirmed: false },
-    ])
+    await store.notes.addLink({
+      from: `document:${await documentOf("f2.md")}`,
+      kind: "related-to",
+      to: `person:${uid}`,
+      provenance: "scan",
+      confirmed: false,
+    })
     await store.close()
 
     const answer = answerOf(await run("context", "telegram:101", "--json"))
@@ -312,7 +316,10 @@ describe("memo context", () => {
         confirmed: false,
       }),
     ])
-    expect(answer.relationships).toEqual([])
+    // cli-core 0.621.0: what the file's own account says is reported; the guess stays a proposal, left out.
+    expect(answer.relationships).toEqual([
+      expect.objectContaining({ role: "owner", standing: "reported", confirmed: false }),
+    ])
     expect(text).toContain("Files, as Google reports")
     expect(text).toMatch(
       /owner {2}Lighthouse budget {2}2026-10-01 10:00 {2}https:\/\/docs\.google\.com\/document\/d\/f1\/edit/,
