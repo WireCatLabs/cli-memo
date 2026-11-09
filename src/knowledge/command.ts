@@ -2,7 +2,14 @@ import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { timezoneOf } from "@wirecat/cli-base/query"
-import { DEAL_ROLES, ORGANIZATION_ROLES, PROJECT_ROLES, RELATION_KINDS } from "@wirecat/cli-core"
+import {
+  DEAL_ROLES,
+  ENGAGEMENT_LEVELS,
+  type Engagement,
+  ORGANIZATION_ROLES,
+  PROJECT_ROLES,
+  RELATION_KINDS,
+} from "@wirecat/cli-core"
 import {
   answerEntity,
   type Body,
@@ -107,6 +114,9 @@ const pendingLink = async (store: MessageStore, id: string) => {
     throw error
   }
 }
+
+const ENGAGEMENT_HELP =
+  "a person on a project: how much you deal with them yourself, not how active they are: none, low, medium or high"
 
 export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const { run, print } = answers(program, streams, env)
@@ -346,6 +356,8 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .option("--kind <kind>", RELATION_KINDS.join(", "), oneOf(RELATION_KINDS), "member-of")
     .option("--role <role>", ROLE_HELP)
+    .option("--role-note <text>", "what the role means here, in your words, beside a role from its list")
+    .option("--engagement <level>", ENGAGEMENT_HELP, oneOf(ENGAGEMENT_LEVELS))
     .option("--position <position>", "the job title, such as 'Procurement manager'; kept apart from the role")
     .option("--start-date <date>", "the first day it held, such as 2026-01-01", dayOption)
     .option("--end-date <date>", "the last day it held, included; it ends at the start of the day after", lastDayOption)
@@ -357,6 +369,8 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         options: {
           kind: KnowledgeRelation["kind"]
           role?: string
+          roleNote?: string
+          engagement?: Engagement
           position?: string
           startDate?: number
           endDate?: number
@@ -373,6 +387,8 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
             to: await withOwner(store, to),
             kind: options.kind,
             ...(options.role === undefined ? {} : { role: options.role }),
+            ...(options.roleNote === undefined ? {} : { roleNote: options.roleNote }),
+            ...(options.engagement === undefined ? {} : { engagement: options.engagement }),
             ...(options.position === undefined ? {} : { position: options.position }),
             ...(options.startDate === undefined ? {} : { startsAt: options.startDate }),
             ...(options.endDate === undefined ? {} : { endsAt: options.endDate }),
@@ -421,12 +437,16 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   byOption(
     annotate(relations.command("update"), { effects: LOCAL_WRITE })
       .description(
-        "set what a relationship is: its role, or what a chat is for in a project (work, sales, support, other); " +
-          "an agent's change waits for you in memo review",
+        "set what a relationship is: its role and a note beside it, how much you deal with a person on a project, or " +
+          "what a chat is for in a project (work, sales, support, other); an agent's change waits for you in memo review",
       )
-      .summary("set a relationship's role or a chat's purpose in a project")
+      .summary("set a relationship's role, engagement or a chat's purpose in a project")
       .argument("<id>", "the relationship's id, as relationships list gives it")
       .option("--role <role>", `${ROLE_HELP}; an empty value clears it`)
+      .option("--role-note <text>", "what the role means here, in your words; an empty value clears it")
+      .option("--engagement <level>", `${ENGAGEMENT_HELP}; an empty value clears it`, (value: string) =>
+        value === "" ? "" : oneOf(ENGAGEMENT_LEVELS)(value),
+      )
       .option("--position <position>", "the job title; an empty value clears it")
       .option("--start-date <date>", "the first day it held, such as 2026-01-01", dayOption)
       .option("--purpose <purpose>", "what the chat is for in the project: work, sales, support or other")
@@ -437,6 +457,8 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       id: string,
       options: {
         role?: string
+        roleNote?: string
+        engagement?: Engagement | ""
         position?: string
         startDate?: number
         purpose?: string
@@ -446,19 +468,26 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
       },
       command: Command,
     ) => {
+      const cleared = (value: string) => (value === "" ? null : value)
       const change = {
-        ...(options.role === undefined ? {} : { role: options.role === "" ? null : options.role }),
-        ...(options.position === undefined ? {} : { position: options.position === "" ? null : options.position }),
+        ...(options.role === undefined ? {} : { role: cleared(options.role) }),
+        ...(options.roleNote === undefined ? {} : { roleNote: cleared(options.roleNote) }),
+        ...(options.engagement === undefined ? {} : { engagement: cleared(options.engagement) as Engagement | null }),
+        ...(options.position === undefined ? {} : { position: cleared(options.position) }),
         ...(options.startDate === undefined ? {} : { startsAt: options.startDate }),
         ...(options.purpose === undefined ? {} : { purpose: options.purpose }),
       }
       const by = await whoRuns(command, env, { asOwner: options.asOwner, question: `change relationship ${id}?` })
       return owned(options, async (store) => {
         if (Object.keys(change).length === 0)
-          throw new CliError("validation_error", "say what to change: --role, --position, --start-date or --purpose", {
-            reason: "input.invalid",
-            param: "--purpose",
-          })
+          throw new CliError(
+            "validation_error",
+            "say what to change: --role, --role-note, --engagement, --position, --start-date or --purpose",
+            {
+              reason: "input.invalid",
+              param: "--purpose",
+            },
+          )
         if (options.purpose !== undefined) purposesOf([options.purpose])
         return by === "owner"
           ? store.knowledge.updateRelation(null, id, { ...change, by })

@@ -109,6 +109,8 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo models consents set openai --model gpt-4o-mini --yes",
   ],
   "models consents revoke": ["memo models consents revoke"],
+  "models keys set": ["memo models keys set openai", "memo models keys set anthropic"],
+  "models keys remove": ["memo models keys remove openai"],
   "models add": [
     `memo models add e5-base --payload '{"repository":"Xenova/multilingual-e5-base","onnx":"onnx/model_quantized.onnx","dims":768,"pooling":"mean","prefix":{"query":"query: ","passage":"passage: "}}'`,
   ],
@@ -191,10 +193,12 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "projects key-documents list": ["memo projects key-documents list HRB"],
   "relationships update": [
     "memo relationships update 12 --purpose sales",
-    "memo relationships update 12 --role contractor --reason 'builds the site'",
+    "memo relationships update 12 --engagement low",
+    "memo relationships update 12 --role approver --role-note 'signs the acts'",
   ],
   "relationships add": [
     "memo relationships add person:3 organization:1 --role employee --position CTO --start-date 2026-01-01",
+    "memo relationships add person:3 project:1 --role client-contact --engagement low",
     "memo relationships add person:3 person:5 --kind reports-to",
     "memo relationships add organization:1 organization:2 --kind customer-of --reason 'signed in October'",
   ],
@@ -451,6 +455,13 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo digest backfill --from 2026-11-01 --to 2026-11-07",
     "memo digest backfill --from 2026-11-01 --to 2026-11-07 --yes --json",
   ],
+  "digest brief show": ["memo digest brief show", "memo digest brief show --json"],
+  "digest brief edit": [
+    "memo digest brief edit",
+    "memo digest brief edit --file brief.md",
+    "memo digest brief edit --undo",
+  ],
+  "digest brief reset": ["memo digest brief reset"],
   "schedule remove": ["memo schedule remove digest"],
   "schedule exec": ["memo schedule exec ~/.local/state/cli-memo/schedules/digest/schedule.json"],
   "templates list": ["memo templates list", "memo templates list channel:telegram source:stored --json"],

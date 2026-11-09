@@ -1,6 +1,6 @@
 import { CliError } from "@wirecat/cli-base"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
-import { RELATION_KINDS, type RelationKind, STANDINGS, type Standing } from "@wirecat/cli-core"
+import { byEngagement, RELATION_KINDS, type RelationKind, STANDINGS, type Standing } from "@wirecat/cli-core"
 import { queryTerms, termField } from "@wirecat/cli-core/cli"
 import type { AccountKey, MessageStore, Proposer } from "@wirecat/cli-core/store"
 import { labelsFor, proposerName } from "../review/review.js"
@@ -85,7 +85,7 @@ export const listRelationships = async (
     limit,
     page,
     items: await Promise.all(
-      rows.map(async (one) => ({
+      byEngagement(rows).map(async (one) => ({
         ...one,
         status: one.standing,
         // Who proposed it is the review's to name; the list says it beside the proposal.
@@ -111,8 +111,10 @@ export const relationshipsText = (items: readonly Listed[]) =>
             [
               one.direction === "incoming" ? (one.inverse ?? one.kind) : one.kind,
               one.role && `as ${one.role}${one.custom ? " (custom)" : ""}`,
+              "roleNote" in one && one.roleNote && `(${one.roleNote})`,
               one.position && `(${one.position})`,
               one.purpose && `for ${one.purpose}`,
+              "engagement" in one && one.engagement && `engagement ${one.engagement}`,
             ]
               .filter(Boolean)
               .join(" "),

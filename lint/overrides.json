@@ -91,6 +91,34 @@
     "review_after": "2026-12-07"
   },
   {
+    "rule": "option-role",
+    "target": "relationships add --engagement",
+    "reason": "memo's relationships commands set a person's engagement on a project and a role note beside the role (IDEA-258, DEBT-291, 2026-11-08); the shared flag vocabulary in cli-base 0.82 has neither (https://github.com/WireCatLabs/cli-base/issues/538). Take the cli-base release with them, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-08"
+  },
+  {
+    "rule": "option-role",
+    "target": "relationships add --role-note",
+    "reason": "memo's relationships commands set a person's engagement on a project and a role note beside the role (IDEA-258, DEBT-291, 2026-11-08); the shared flag vocabulary in cli-base 0.82 has neither (https://github.com/WireCatLabs/cli-base/issues/538). Take the cli-base release with them, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-08"
+  },
+  {
+    "rule": "option-role",
+    "target": "relationships update --engagement",
+    "reason": "memo's relationships commands set a person's engagement on a project and a role note beside the role (IDEA-258, DEBT-291, 2026-11-08); the shared flag vocabulary in cli-base 0.82 has neither (https://github.com/WireCatLabs/cli-base/issues/538). Take the cli-base release with them, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-08"
+  },
+  {
+    "rule": "option-role",
+    "target": "relationships update --role-note",
+    "reason": "memo's relationships commands set a person's engagement on a project and a role note beside the role (IDEA-258, DEBT-291, 2026-11-08); the shared flag vocabulary in cli-base 0.82 has neither (https://github.com/WireCatLabs/cli-base/issues/538). Take the cli-base release with them, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-08"
+  },
+  {
     "rule": "unknown-verb",
     "target": "sources mentions",
     "reason": "WireCat Desktop's Add to memory panel (desktop plan 2026-11-01-memory-add) calls memo sources mentions; cli-base 0.84.0 added sources, --keep-copy and --max-chars but mentions is still a collection there, not a view noun. Add the view noun there, then drop this.",
@@ -124,5 +152,12 @@
     "reason": "WireCat Desktop's Digests screen (digest plan 10.4 item 2, owner 2026-11-08) runs exactly `memo digest backfill --from <date> --to <date> [--yes] [--json]`; --from, the first day of the range, has no role in the vocabulary. Add a date range pair there, then rename with Desktop.",
     "owner": "@leemour",
     "review_after": "2027-02-08"
+  },
+  {
+    "rule": "unknown-resource",
+    "target": "digest brief",
+    "reason": "The owner's brief on what the morning digest collects (digest plan section 11, owner 2026-11-09, ASK-457 and NEED-2458) is one text, not a collection, and WireCat Desktop's \"What to collect\" editor will run exactly `memo digest brief show | edit | reset`; the cli-base vocabulary has no singular setting resource. Register one there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-09"
   }
 ]
