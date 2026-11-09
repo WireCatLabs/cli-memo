@@ -258,9 +258,9 @@ needs.
 ## Search harder
 
 `memo search all --harder` asks a hosted model, Claude Haiku from Anthropic, to read your question with the first 30
-results and put the ones that answer it first. It helps most with questions that need a little thought, such as
-"what changed since the spring". In a test on synthetic data it found the right record in the first ten for 93 of
-100 questions instead of 79. It costs about $0.0007 and 1 to 2 seconds a search.
+results and put the ones that answer it first. In a test on synthetic data, after a first search that was already
+helped by the same model, it raised the share of right records in the first ten from 0.49 to 0.55. How much it adds to
+Memo's own ranking has not been measured yet. It costs about $0.0004 and 1 to 2 seconds a search.
 
 It is off until you allow it, because it sends your words out of your computer:
 

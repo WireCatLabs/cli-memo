@@ -522,7 +522,13 @@ it("search all finds a time in the words of a question, and names the word no no
 
 it("search all --harder without the owner's consent sends nothing and says why, in the plain order", async () => {
   const root = mkdtempSync(join(tmpdir(), "memo-harder-"))
-  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  // The shared settings, where the consent lives, stay in the temp folder whatever the shell sets.
+  const env = {
+    ...process.env,
+    MESSAGING_STORE: join(root, "m.db"),
+    MEMO_CONFIG_DIR: join(root, "config"),
+    WIRECAT_CONFIG_DIR: join(root, "wirecat"),
+  }
   const store = await openStore({ env })
   for (const n of ["1", "2"])
     await store.messages.saveMessages(
