@@ -6,6 +6,7 @@ import { type AccountKey, type MessageStore, SOURCE_REVIEW_KIND } from "@wirecat
 import { listReview, REVIEW_SOURCES } from "../review/review.js"
 import { counted } from "../review/status.js"
 import { scopedAccounts } from "../store/group.js"
+import type { DigestSource } from "./digests.js"
 import { knownSenders } from "./known.js"
 import { HEALTH_REASONS, type Health, healthOf, SOURCE_WORDS, syncRunsOf } from "./sync-health.js"
 import { digestRunBefore, gatherTasks, previousDigestAt, type TaskCounts } from "./tasks.js"
@@ -86,9 +87,21 @@ export interface DigestOptions {
   excerpt: number
   /** ms: an owed reply older than this is left to `tasks agenda` and `mail review`. */
   owedWithin: number
-  /** Tasks created after this are new; the previous morning-digest run when left out. */
+  /** Tasks created after this are new; the previous run of the running digest when left out. */
   newSince?: string
+  /** Only these parts: messengers by provider, mail, meetings, tasks. Empty or absent: all of them. */
+  sources?: readonly DigestSource[]
 }
+
+/** The digest source an account belongs to; one that is none of them (a CRM) stays in. */
+const sourceOf = (provider: string): DigestSource | undefined =>
+  MESSENGERS.has(provider)
+    ? (provider as DigestSource)
+    : provider === "email"
+      ? "mail"
+      : kindOf(provider) === "meetings"
+        ? "meetings"
+        : undefined
 
 const DAY = 86_400_000
 const MESSENGERS = new Set(["telegram", "max", "whatsapp"])
@@ -210,14 +223,19 @@ const personal = (newest: { bulk: boolean; list: boolean; envelope: boolean; dem
 export const gatherDigest = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
-  { since, now: clock = Date.now(), until, limit, excerpt, owedWithin, newSince }: DigestOptions,
+  { since, now: clock = Date.now(), until, limit, excerpt, owedWithin, newSince, sources: only = [] }: DigestOptions,
 ): Promise<Digest> => {
   const now = until ?? clock
   const by = (at: number) => until === undefined || at <= until
   const upTo = (found: Pending[]) => found.filter((one) => by(Date.parse(one.item.at)))
   const window = (now - since) / DAY
   const days = `${Math.max(1, Math.ceil(window))}d`
-  const accounts = await scopedAccounts(store, env)
+  const reads = (source: DigestSource) => only.length === 0 || only.includes(source)
+  const scoped = await scopedAccounts(store, env)
+  const accounts = scoped.filter((key) => {
+    const source = sourceOf(key.provider)
+    return source === undefined || reads(source)
+  })
   const messengers = accounts.filter((key) => MESSENGERS.has(key.provider))
   const mailboxes = accounts.filter((key) => key.provider === "email")
   const owedSince = Math.min(since, now - owedWithin)
@@ -426,7 +444,7 @@ export const gatherDigest = async (
   }
 
   const meetings: Pending[] = []
-  for (const meeting of await store.meetings.meetings({ since, limit: 100 })) {
+  for (const meeting of reads("meetings") ? await store.meetings.meetings({ since, limit: 100 }) : []) {
     const ended = meeting.endedAt ?? meeting.startedAt
     if (ended === null || ended < since || meeting.deletedAt !== null) continue
     meetings.push({
@@ -455,11 +473,23 @@ export const gatherDigest = async (
     })
   }
 
-  const hot = await gatherTasks(store, [...messengers, ...mailboxes], {
-    now,
-    newSince: newSince ?? (until === undefined ? previousDigestAt(env, now) : digestRunBefore(env, until)),
-    ...(until === undefined ? {} : { until }),
-  })
+  const tasksSince = newSince ?? (until === undefined ? previousDigestAt(env, now) : digestRunBefore(env, until))
+  const hot = reads("tasks")
+    ? // Tasks taken from chats and mail count under tasks, read or not their source.
+      await gatherTasks(
+        store,
+        scoped.filter((key) => MESSENGERS.has(key.provider) || key.provider === "email"),
+        {
+          now,
+          newSince: tasksSince,
+          ...(until === undefined ? {} : { until }),
+        },
+      )
+    : {
+        tasks: [],
+        counts: { overdue: 0, today: 0, tomorrow: 0, new: 0, newSince: tasksSince, undated: 0 },
+        accounts: 0,
+      }
   const tasks: Pending[] = hot.tasks.map(({ task, groups, askedBy, for: doer }) => ({
     item: {
       ref: task.ref,

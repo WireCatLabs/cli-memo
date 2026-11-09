@@ -5471,6 +5471,7 @@ memo review agenda [options]
 |---|---|
 | `--since-time <time>` | how far back: hours or days (12h, 7d) or a start date (2026-11-01). Default: `1d`. |
 | `--before-time <time>` | build it as of this past ISO time or date, for a past day's digest: --since-time counts back from it, and what came later is left out; a chat or thread answered since reads as answered. |
+| `--source <accounts>` | only these, comma-separated or repeated: telegram, max, whatsapp, mail, meetings, tasks; watched items, projects and proposals stay. A digest's run reads the digest's own sources without it. |
 | `--limit <n>` | items per section before the size budget. Default: `25`. |
 | `--max-output-bytes <bytes>` | the text answer's size budget in bytes; 40000 with --compact, else 80000. |
 | `--compact` | one line per item, shorter excerpts, the smaller budget: for an agent. |
@@ -6806,7 +6807,7 @@ memo schedule exec <file> [options]
 
 ## `memo digest`
 
-the morning digest: your brief on what it collects, and the digests of past days
+your digests: each a name, its times, what it reads, where it is sent and your brief; run one now, pause it, and build past days
 
 ### `memo digest brief`
 
@@ -6815,14 +6816,18 @@ your own instructions on what the morning digest collects: projects, people, top
 #### `memo digest brief show`
 
 ```sh
-memo digest brief show [options]
+memo digest brief show [digest] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `digest` | optional | the digest's name, as `memo digest list` shows it; morning-digest when left out. |
 
 | Option | What it does |
 |---|---|
 | `--json` | print JSON. |
 
-**Returns:** the brief the morning digest follows, and the bodies your changes replaced
+**Returns:** the brief a digest follows, and the bodies your changes replaced
 
 **Example:** `memo digest brief show`, `memo digest brief show --json`
 
@@ -6833,8 +6838,12 @@ write the brief in $EDITOR, or from --file; at most 4000 characters. The body it
 This command changes the local store or your files.
 
 ```sh
-memo digest brief edit [options]
+memo digest brief edit [digest] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `digest` | optional | the digest's name, as `memo digest list` shows it; morning-digest when left out. |
 
 | Option | What it does |
 |---|---|
@@ -6848,13 +6857,17 @@ memo digest brief edit [options]
 
 #### `memo digest brief reset`
 
-remove the brief, so the morning digest follows its skill alone; edit --undo brings it back
+remove the brief, so the digest follows its skill alone; edit --undo brings it back
 
 This command changes the local store or your files.
 
 ```sh
-memo digest brief reset [options]
+memo digest brief reset [digest] [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `digest` | optional | the digest's name, as `memo digest list` shows it; morning-digest when left out. |
 
 | Option | What it does |
 |---|---|
@@ -6864,15 +6877,186 @@ memo digest brief reset [options]
 
 **Example:** `memo digest brief reset`
 
-### `memo digest backfill`
+### `memo digest list`
 
-build the morning digest each past day would have had: the morning-digest schedule's agent runs as its timer does (the same skill, flags and cost caps), reading the agenda as of that day's run time, and the result is kept as that day's run, marked backfill, for WireCat Desktop's digests screen. It is never sent to Telegram or mail. A day that already has a digest is skipped. Without --yes it only prints what it would build and the estimate: the days times the last digest run's cost. Each day is a paid model call: it stops once today's runs cost the schedule's daily cap or a day fails, and only you run it, never an agent. The store keeps what holds now, so a chat answered since reads as answered
+```sh
+memo digest list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** your digests: when each runs, what it reads, where it goes, last and next run
+
+**Example:** `memo digest list`, `memo digest list name:weekly --json`
+
+### `memo digest add`
+
+make a digest: an agent that runs memo's morning-digest skill at the given times, reading from its previous time (a weekly one reads the week) and only the sources given, and sends what it writes along the routes given. It runs read only. Each run is a paid model call; only you make one
 
 This command changes the local store or your files.
 
 ```sh
-memo digest backfill [options]
+memo digest add <name> [options]
 ```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | required | lowercase letters, digits and dashes. |
+
+| Option | What it does |
+|---|---|
+| `--paused` | make it without putting it on its timer; `memo digest resume` does. |
+| `--title <title>` | the name the digest is shown under. |
+| `--at <HH:MM>` | when it runs: HH:MM every day, or 'mon,fri 09:00' on those days; repeat it for more times, as 08:30 and 18:00. |
+| `--source <accounts>` | what it reads, comma-separated or repeated: telegram, max, whatsapp, mail, meetings, tasks; all (the default) reads everything. |
+| `--deliver-to <route>` | where each run is sent: telegram-bot:<profile>/<chat> or email:<profile>/<address>; repeat it for more, none for nowhere. |
+| `--text <text>` | your brief: what to collect, what to skip, how much; at most 4000 characters. |
+| `--max-cost <usd>` | stop a run that costs more than this, in US dollars. |
+| `--max-cost-per-day <usd>` | start no run for the rest of the day once its runs cost this much, in US dollars; 0 for no cap. |
+| `--json` | print JSON. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+
+**Returns:** make a digest: its times, sources, routes and brief, on its timer
+
+**Example:** `memo digest add evening --title 'Evening digest' --at 18:00 --deliver-to telegram-bot:personal/user:42`, `memo digest add weekly --title 'The week' --at 'mon 09:00' --source telegram,mail,tasks`
+
+### `memo digest edit`
+
+change a digest: each option given replaces what it set before (--at all its times, --source all its sources, --deliver-to all its routes), and the rest stays as it was. --source all reads everything again, --deliver-to none sends nowhere. A paused digest stays paused. Only you change one
+
+This command changes the local store or your files.
+
+```sh
+memo digest edit <name> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | required | the digest's name, as `memo digest list` shows it. |
+
+| Option | What it does |
+|---|---|
+| `--title <title>` | the name the digest is shown under. |
+| `--at <HH:MM>` | when it runs: HH:MM every day, or 'mon,fri 09:00' on those days; repeat it for more times, as 08:30 and 18:00. |
+| `--source <accounts>` | what it reads, comma-separated or repeated: telegram, max, whatsapp, mail, meetings, tasks; all (the default) reads everything. |
+| `--deliver-to <route>` | where each run is sent: telegram-bot:<profile>/<chat> or email:<profile>/<address>; repeat it for more, none for nowhere. |
+| `--text <text>` | your brief: what to collect, what to skip, how much; at most 4000 characters. |
+| `--max-cost <usd>` | stop a run that costs more than this, in US dollars. |
+| `--max-cost-per-day <usd>` | start no run for the rest of the day once its runs cost this much, in US dollars; 0 for no cap. |
+| `--json` | print JSON. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+
+**Returns:** change a digest; each option given replaces what it says, the rest stays
+
+**Example:** `memo digest edit evening --at 08:30 --at 18:00`, `memo digest edit weekly --source all --deliver-to none`
+
+### `memo digest run`
+
+build a digest now, as its timer would, paused or not, and keep the run with its others; it is sent along its routes, only along those --deliver-to names (each one of its own), or with --no-notify nowhere. A paid model call: the day's cost cap holds, and only you run it
+
+This command changes the local store or your files.
+
+```sh
+memo digest run <name> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | required | the digest's name, as `memo digest list` shows it. |
+
+| Option | What it does |
+|---|---|
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--no-notify` | keep it here: send it nowhere. |
+| `--deliver-to <route>` | send it only along this one of the digest's routes; repeat it for more. |
+| `--json` | print JSON. |
+
+**Returns:** build a digest now and send it along its routes, or only some, or none
+
+**Example:** `memo digest run evening`, `memo digest run weekly --no-notify --json`
+
+### `memo digest pause`
+
+This command changes the local store or your files.
+
+```sh
+memo digest pause <name> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | required | the digest's name, as `memo digest list` shows it. |
+
+| Option | What it does |
+|---|---|
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--json` | print JSON. |
+
+**Returns:** take a digest off its timer; it stays, and run still builds it
+
+**Example:** `memo digest pause weekly`
+
+### `memo digest resume`
+
+This command changes the local store or your files.
+
+```sh
+memo digest resume <name> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | required | the digest's name, as `memo digest list` shows it. |
+
+| Option | What it does |
+|---|---|
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--json` | print JSON. |
+
+**Returns:** put a paused digest back on its timer
+
+**Example:** `memo digest resume weekly`
+
+### `memo digest remove`
+
+This command changes the local store or your files.
+
+```sh
+memo digest remove <name> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | required | the digest's name, as `memo digest list` shows it. |
+
+| Option | What it does |
+|---|---|
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--json` | print JSON. |
+
+**Returns:** remove a digest and its timer; its past runs, brief and templates stay
+
+**Example:** `memo digest remove weekly`
+
+### `memo digest backfill`
+
+build each past run a digest would have had: its schedule's agent runs as its timer does (the same skill, flags and cost caps), reading the agenda as of that run's time and from the digest's previous time, and the result is kept as that run, marked backfill, for WireCat Desktop's digests screen. It is never sent to Telegram or mail. A run that already has a digest is skipped. Without --yes it only prints what it would build and the estimate: the runs times the last run's cost. Each run is a paid model call: it stops once today's runs cost the schedule's daily cap or a run fails, and only you run it, never an agent. The store keeps what holds now, so a chat answered since reads as answered
+
+This command changes the local store or your files.
+
+```sh
+memo digest backfill [digest] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `digest` | optional | the digest's name, as `memo digest list` shows it; morning-digest when left out. |
 
 | Option | What it does |
 |---|---|
@@ -6882,7 +7066,7 @@ memo digest backfill [options]
 | `--yes` | build them; without it, only the estimate is printed. |
 | `--json` | print JSON. |
 
-**Returns:** build the morning digests of past days, without sending them
+**Returns:** build a digest's past runs, without sending them
 
 **Example:** `memo digest backfill --since-time 2026-11-01 --until-time 2026-11-07`, `memo digest backfill --since-time 2026-11-01 --until-time 2026-11-07 --yes --json`
 

@@ -4,8 +4,10 @@ import type { Body } from "@wirecat/cli-core/cli"
 import { LOCAL_READ, parseDuration } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { itemAnswer, withStore } from "../answer.js"
+import { APP } from "../app.js"
 import { positive } from "../options.js"
 import { gatherDigest, WATCH_TAG } from "./digest.js"
+import { DIGEST_SOURCES, type DigestSource, isDigest, readDefinition } from "./digests.js"
 import { digestText, fitDigest } from "./text.js"
 
 /** Roughly 10k tokens of mixed Russian and English: Cyrillic takes two bytes a letter and fewer letters a token. */
@@ -21,6 +23,27 @@ interface Options {
   maxOutputBytes?: number
   compact?: boolean
   json?: boolean
+  source?: DigestSource[]
+}
+
+/** A digest's run keeps to the digest's sources even when its agent leaves out `--source`; other schedules do not. */
+const scheduledSources = (env: NodeJS.ProcessEnv): DigestSource[] => {
+  const scheduled = env[`${APP.envPrefix}_SCHEDULED`]
+  return scheduled && isDigest(env, scheduled) ? (readDefinition(env, scheduled)?.sources ?? []) : []
+}
+
+/** `--source telegram,mail`, repeatable: what the agenda reads; each one a part it can leave out. */
+export const sourcesOf = (value: string, before: DigestSource[] = []): DigestSource[] => {
+  const words = value
+    .split(",")
+    .map((word) => word.trim().toLowerCase())
+    .filter(Boolean)
+  const unknown = words.filter((word) => !(DIGEST_SOURCES as readonly string[]).includes(word))
+  if (unknown.length)
+    throw new CliError("validation_error", `--source takes ${DIGEST_SOURCES.join(", ")}; not ${unknown.join(", ")}`, {
+      param: "source",
+    })
+  return [...new Set([...before, ...(words as DigestSource[])])]
 }
 
 export const sinceOf = (value: string, now = Date.now()): number => {
@@ -74,6 +97,12 @@ export const reviewAgendaCommand = (review: Command, print: Print, streams: Stre
       "build it as of this past ISO time or date, for a past day's digest: --since-time counts back from it, and " +
         "what came later is left out; a chat or thread answered since reads as answered",
     )
+    .option(
+      "--source <accounts>",
+      `only these, comma-separated or repeated: ${DIGEST_SOURCES.join(", ")}; watched items, projects and proposals stay. ` +
+        "A digest's run reads the digest's own sources without it",
+      sourcesOf,
+    )
     .option("--limit <n>", "items per section before the size budget", positive, 25)
     .option(
       "--max-output-bytes <bytes>",
@@ -97,6 +126,7 @@ export const reviewAgendaCommand = (review: Command, print: Print, streams: Stre
           limit: given.limit,
           excerpt: given.compact ? 100 : 200,
           owedWithin: OWED_WITHIN,
+          sources: given.source ?? scheduledSources(env),
         }),
       )
       const digest = fitDigest(gathered, given.maxOutputBytes ?? (given.compact ? COMPACT_BYTES : FULL_BYTES))

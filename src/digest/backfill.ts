@@ -4,26 +4,36 @@ import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import {
   backfillScheduleRun,
+  type CalendarWhen,
+  isCalendar,
   LOCAL_WRITE,
+  nextRun,
   readSchedule,
+  runsBetween,
   SCHEDULE_DEFAULTS,
   scheduleFile,
+  slotsOf,
   spentToday,
 } from "@wirecat/cli-core/cli"
-import type { Command } from "commander"
+import { type Command, Option } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { APP } from "../app.js"
 import { fromAppOption, whoRuns } from "../author.js"
 import { scheduleLimits } from "../config.js"
 import { briefCommand } from "./brief.js"
+import { digestCommands } from "./digest-commands.js"
+import { agendaFlags, type DigestSource, isDigest, readDefinition, windowStart } from "./digests.js"
 import { DIGEST_SCHEDULE, digestSchedule, runTime } from "./tasks.js"
 
 const DAY = 86_400_000
+const MINUTE = 60_000
 const DATE = /^(\d{4})-(\d{2})-(\d{2})$/
 
 interface Options {
-  sinceTime: string
-  untilTime: string
+  sinceTime?: string
+  untilTime?: string
+  from?: string
+  to?: string
   yes?: boolean
   json?: boolean
   fromApp?: boolean
@@ -49,22 +59,27 @@ const dateOf = (value: string, flag: string): Date => {
   return date
 }
 
-/** Each day from `from` to `to`, at the schedule's local time, as its timer would have started it. */
-const daysOf = (from: Date, to: Date, time: string) => {
-  const [hour, minute] = time.split(":").map(Number) as [number, number]
-  const days: { date: string; at: number }[] = []
-  for (const day = new Date(from); day <= to; day.setDate(day.getDate() + 1))
-    days.push({
-      date: localDate(day.getTime()),
-      at: new Date(day.getFullYear(), day.getMonth(), day.getDate(), hour, minute).getTime(),
-    })
-  return days
+/**
+ * Each run the digest's timer would have started from the first day to the last, with the window it reads: from its
+ * previous time, so a weekly digest reads a week and one at 08:30 and 18:00 reads since the other time.
+ */
+const runsOf = (when: CalendarWhen, from: Date, to: Date) => {
+  const end = new Date(to)
+  end.setDate(end.getDate() + 1)
+  // Two runs on one day are told apart by their time; a digest that runs once a day keeps the plain date.
+  const timed = new Set(slotsOf(when).map((slot) => slot.at)).size > 1
+  return runsBetween(when, from.getTime(), end.getTime()).map((at) => ({
+    date: localDate(at),
+    label: timed ? `${localDate(at)} ${new Date(at).toTimeString().slice(0, 5)}` : localDate(at),
+    at,
+    since: windowStart(when, at),
+    next: nextRun(when, at) ?? at + DAY,
+  }))
 }
 
 /** What the agent reads first: which day it writes and the window its agenda reads, as the skill expects them. */
-const inputOf = (date: string, at: number) =>
-  `backfill: ${date}\n` +
-  `window: --since-time ${new Date(at - DAY).toISOString()} --before-time ${new Date(at).toISOString()}\n`
+const inputOf = (date: string, at: number, since: number, sources: readonly DigestSource[]) =>
+  `backfill: ${date}\nwindow: ${agendaFlags(since, sources)} --before-time ${new Date(at).toISOString()}\n`
 
 const usd = (value: number) => `$${value.toFixed(2)}`
 const cents = (value: number) => Math.round(value * 100) / 100
@@ -78,67 +93,83 @@ export const digestCommand = (program: Command, streams: Streams, env: NodeJS.Pr
   const { print } = answers(program, streams, env)
   const digest = program
     .command("digest")
-    .description("the morning digest: your brief on what it collects, and the digests of past days")
-    .summary("the morning digest: your brief, past days")
-  briefCommand(digest, print, env)
-  fromAppOption(annotate(digest.command("backfill"), { effects: LOCAL_WRITE }))
-    .summary("build the morning digests of past days, without sending them")
     .description(
-      "build the morning digest each past day would have had: the morning-digest schedule's agent runs as its timer " +
-        "does (the same skill, flags and cost caps), reading the agenda as of that day's run time, and the result is " +
-        "kept as that day's run, marked backfill, for WireCat Desktop's digests screen. It is never sent to Telegram " +
-        "or mail. A day that already has a digest is skipped. Without --yes it only prints what it would build and " +
-        "the estimate: the days times the last digest run's cost. Each day is a paid model call: it stops once " +
-        "today's runs cost the schedule's daily cap or a day fails, and only you run it, never an agent. The store " +
+      "your digests: each a name, its times, what it reads, where it is sent and your brief; run one now, pause it, " +
+        "and build past days",
+    )
+    .summary("your digests: times, sources, routes, brief, past days")
+  briefCommand(digest, print, env)
+  digestCommands(digest, print, env)
+  fromAppOption(annotate(digest.command("backfill"), { effects: LOCAL_WRITE }))
+    .summary("build a digest's past runs, without sending them")
+    .description(
+      "build each past run a digest would have had: its schedule's agent runs as its timer does (the same skill, " +
+        "flags and cost caps), reading the agenda as of that run's time and from the digest's previous time, and the " +
+        "result is kept as that run, marked backfill, for WireCat Desktop's digests screen. It is never sent to " +
+        "Telegram or mail. A run that already has a digest is skipped. Without --yes it only prints what it would " +
+        "build and the estimate: the runs times the last run's cost. Each run is a paid model call: it stops once " +
+        "today's runs cost the schedule's daily cap or a run fails, and only you run it, never an agent. The store " +
         "keeps what holds now, so a chat answered since reads as answered",
     )
-    .requiredOption("--since-time <time>", "the first day, YYYY-MM-DD")
-    .requiredOption("--until-time <time>", "the last day, YYYY-MM-DD; not a day whose run time is still ahead")
+    .argument("[digest]", `the digest's name, as \`memo digest list\` shows it; ${DIGEST_SCHEDULE} when left out`)
+    .option("--since-time <time>", "the first day, YYYY-MM-DD")
+    .option("--until-time <time>", "the last day, YYYY-MM-DD; not a day whose run time is still ahead")
+    // WireCat Desktop before 0.131.73's rename sends these; kept so an older app still builds past days.
+    .addOption(new Option("--from <date>").hideHelp())
+    .addOption(new Option("--to <date>").hideHelp())
     .option("--yes", "build them; without it, only the estimate is printed")
     .option("--json", "print JSON")
-    .action(async (given: Options, command: Command) => {
-      const from = dateOf(given.sinceTime, "--since-time")
-      const to = dateOf(given.untilTime, "--until-time")
+    .action(async (name: string | undefined, given: Options, command: Command) => {
+      const since = given.sinceTime ?? given.from
+      const until = given.untilTime ?? given.to
+      if (since === undefined || until === undefined)
+        throw new CliError("validation_error", "say which days: --since-time YYYY-MM-DD --until-time YYYY-MM-DD", {
+          param: since === undefined ? "--since-time" : "--until-time",
+        })
+      const from = dateOf(since, "--since-time")
+      const to = dateOf(until, "--until-time")
       if (from > to)
         throw new CliError("validation_error", "--since-time is after --until-time", { param: "--since-time" })
-      const { state, schedule } = digestSchedule(env)
+      const digestName = name ?? DIGEST_SCHEDULE
+      if (digestName !== DIGEST_SCHEDULE && !isDigest(env, digestName))
+        throw new CliError("not_found", `no digest ${digestName} — \`memo digest list\` names them`, {
+          reason: "digest.not-found",
+        })
+      const { state, schedule } = digestSchedule(env, digestName)
       if (!schedule)
         throw new CliError(
           "not_found",
-          `no ${DIGEST_SCHEDULE} schedule to build from — memo skill show morning-digest says how to make one`,
+          `no ${digestName} schedule to build from — memo skill show morning-digest says how to make one`,
           { reason: "backfill.no-schedule" },
         )
       const file = scheduleFile(state, schedule.name)
       const when = readSchedule(file).when
-      if (!("daily" in when))
-        throw new CliError(
-          "validation_error",
-          `${schedule.name} does not run at a daily time, so it has no past days`,
-          {
-            reason: "backfill.not-daily",
-            schedule: schedule.name,
-          },
-        )
-      const all = daysOf(from, to, when.daily)
+      if (!isCalendar(when))
+        throw new CliError("validation_error", `${schedule.name} does not run at set times, so it has no past runs`, {
+          reason: "backfill.not-daily",
+          schedule: schedule.name,
+        })
+      const sources = readDefinition(env, digestName)?.sources ?? []
+      const all = runsOf(when, from, to)
       if ((all.at(-1)?.at ?? 0) > Date.now())
         throw new CliError(
           "validation_error",
-          `the ${given.untilTime} digest's time has not come yet; --until-time an earlier day`,
+          `the ${until} digest's time has not come yet; --until-time an earlier day`,
           {
             param: "--until-time",
           },
         )
       const runs = join(file, "..", "runs")
-      const done = new Set(
-        (existsSync(runs) ? readdirSync(runs) : [])
-          .filter((name) => name.endsWith(".report.json"))
-          .map((name) => localDate(runTime(name))),
-      )
-      const days = all.filter((day) => !done.has(day.date))
-      const skipped = all.filter((day) => done.has(day.date)).map((day) => day.date)
+      const reported = (existsSync(runs) ? readdirSync(runs) : [])
+        .filter((file) => file.endsWith(".report.json"))
+        .map(runTime)
+      // A run its timer started late, or a backfill a minute off, still counts as that time's digest.
+      const done = (run: { at: number; next: number }) => reported.some((at) => at >= run.at - MINUTE && at < run.next)
+      const days = all.filter((day) => !done(day))
+      const skipped = all.filter(done).map((day) => day.label)
       const lastCost = schedule.last?.costUsd
       const estimate = {
-        days: days.map((day) => day.date),
+        days: days.map((day) => day.label),
         skipped,
         estimateUsd: typeof lastCost === "number" ? cents(days.length * lastCost) : null,
       }
@@ -177,14 +208,14 @@ export const digestCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       for (const day of days) {
         const failed = built.some((one) => one.exitCode !== 0)
         if (left.length || failed || (cap > 0 && spentToday(file) >= cap)) {
-          left.push(day.date)
+          left.push(day.label)
           continue
         }
         const run = await backfillScheduleRun(command, APP, env, file, {
           at: new Date(day.at),
-          input: inputOf(day.date, day.at),
+          input: inputOf(day.date, day.at, day.since, sources),
         })
-        built.push({ date: day.date, at: run.at, exitCode: run.exitCode, costUsd: run.costUsd ?? null })
+        built.push({ date: day.label, at: run.at, exitCode: run.exitCode, costUsd: run.costUsd ?? null })
       }
       const costUsd = cents(built.reduce((sum, one) => sum + (one.costUsd ?? 0), 0))
       if (built.some((one) => one.exitCode !== 0)) process.exitCode = 1

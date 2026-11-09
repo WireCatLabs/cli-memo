@@ -166,5 +166,12 @@
     "reason": "WireCat Desktop's People page (plan 2026-11-09-people-clients-digests, M-1, UX-133) sorts its paged table by interactions, recent, name or tasks; --order in the vocabulary takes only recent or name, and interactions is the default here.",
     "owner": "@leemour",
     "review_after": "2027-02-09"
+  },
+  {
+    "rule": "option-role",
+    "target": "digest add --paused",
+    "reason": "WireCat Desktop's Digests page (plan 2026-11-09-people-clients-digests, TASK-959, PR wirecat-desktop#249) makes a digest off its timer in one call; add then pause would leave a paid digest on its timer when the second call fails. The cli-base vocabulary has no such switch (FIND-2445); add one there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-09"
   }
 ]

@@ -6,10 +6,10 @@ import { listQuery, typedQuery } from "@wirecat/cli-core/cli"
 import type { AccountKey, MessageStore, TaskDetails } from "@wirecat/cli-core/store"
 import { APP } from "../app.js"
 import { TASKS_LIST_QUERY } from "../tasks/list.js"
+import { isDigest, MORNING_DIGEST, runningDigest } from "./digests.js"
 import { type Scheduled, schedulesOf } from "./sync-health.js"
 
-/** The schedule whose last run starts "new since"; `memo schedule agent morning-digest …` names it so. */
-export const DIGEST_SCHEDULE = "morning-digest"
+export { MORNING_DIGEST as DIGEST_SCHEDULE } from "./digests.js"
 
 const DAY = 86_400_000
 
@@ -35,12 +35,24 @@ export interface HotTask {
   for: string | null
 }
 
-/** The morning-digest schedule, by its name or by the skill its agent runs, and the state folder it is under. */
-export const digestSchedule = (env: NodeJS.ProcessEnv): { state: string; schedule: Scheduled | undefined } => {
+/**
+ * A digest's schedule and the state folder it is under; the run's own digest by default. The morning digest is also
+ * found by the skill its agent runs, for a schedule made under another name, but never as a named digest's schedule:
+ * those run that skill too.
+ */
+export const digestSchedule = (
+  env: NodeJS.ProcessEnv,
+  name = runningDigest(env),
+): { state: string; schedule: Scheduled | undefined } => {
   const state = resolvePaths({ appName: APP.appName, prefix: APP.envPrefix, env }).state
-  const schedule = schedulesOf(state).find(
-    (one) => one.name === DIGEST_SCHEDULE || (one.kind === "agent" && one.argv.join(" ").includes(DIGEST_SCHEDULE)),
-  )
+  const all = schedulesOf(state)
+  const schedule =
+    all.find((one) => one.name === name) ??
+    (name === MORNING_DIGEST
+      ? all.find(
+          (one) => one.kind === "agent" && one.argv.join(" ").includes(MORNING_DIGEST) && !isDigest(env, one.name),
+        )
+      : undefined)
   return { state, schedule }
 }
 
