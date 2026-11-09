@@ -4912,11 +4912,12 @@ memo records import <file> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `file` | required | a records envelope as JSON, JSONL (a header line, then a record per line, read as it streams) or a vCard address book (.vcf, into phone:<device>); - for stdin. |
+| `file` | required | a records envelope as JSON, JSONL (a header line, then a record per line, read as it streams), a CSV sheet of one --type, or a vCard address book (.vcf, into phone:<device>); - for stdin. |
 
 | Option | What it does |
 |---|---|
 | `--dry-run` | check and plan the import; write nothing. a dry run holds the store's write lock and grows the write-ahead log for its length. |
+| `--type <type>` | the one type a CSV sheet holds: invoice, payment, person, organization, project, order, product, contract, subscription, wallet, transaction, deal, lead, pipeline. |
 | `--account <account>` | the source the envelope is for: <provider>:<account> (sheet:rentals) or its source.account alone; phone:<device> for a vCard file. |
 | `--region <country>` | a vCard file's country for phone numbers without +, such as ru or gb; without it they are kept, not matched. |
 | `--json` | print JSON; --json=created,errors keeps only those fields. |
@@ -4937,17 +4938,65 @@ memo records check <file> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `file` | required | a records envelope as JSON, JSONL (a header line, then a record per line, read as it streams) or a vCard address book (.vcf, into phone:<device>); - for stdin. |
+| `file` | required | a records envelope as JSON, JSONL (a header line, then a record per line, read as it streams), a CSV sheet of one --type, or a vCard address book (.vcf, into phone:<device>); - for stdin. |
 
 | Option | What it does |
 |---|---|
+| `--type <type>` | the one type a CSV sheet holds: invoice, payment, person, organization, project, order, product, contract, subscription, wallet, transaction, deal, lead, pipeline. |
 | `--account <account>` | the source the envelope is for: <provider>:<account> (sheet:rentals) or its source.account alone; phone:<device> for a vCard file. |
 | `--region <country>` | a vCard file's country for phone numbers without +, such as ru or gb; without it they are kept, not matched. |
 | `--json` | print JSON; --json=created,errors keeps only those fields. |
 
 **Returns:** check a records file against the store; write nothing
 
-**Example:** `memo records check - --account rentals`
+**Example:** `memo records check - --account rentals`, `memo records check invoices.csv --type invoice --account sheet:rentals`
+
+### `memo records templates`
+
+files to fill for records import: a CSV header row or a JSON envelope, one type each
+
+#### `memo records templates list`
+
+the types a sheet can hold, and their columns: whether each is required, its shape and its values
+
+```sh
+memo records templates list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=types keeps only those fields. |
+
+**Returns:** the types a sheet can hold, with their columns
+
+**Example:** `memo records templates list --json`, `memo records templates list type:invoice`
+
+#### `memo records templates show`
+
+the file to fill for one type: the CSV header row (with a byte-order mark, so Excel reads it as UTF-8) or a JSON envelope of one example record
+
+```sh
+memo records templates show <type> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `type` | required | one of invoice, payment, person, organization, project, order, product, contract, subscription, wallet, transaction, deal, lead, pipeline. |
+
+| Option | What it does |
+|---|---|
+| `--format <format>` | csv or json. Default: `csv`. |
+| `--locale <code>` | the language of the Excel that opens it: en takes , and ru or es take ;. Default: `en`. |
+| `--account <account>` | the source a JSON template names: <provider>:<account>, such as sheet:rentals. |
+| `--json` | print JSON; --json=text keeps only those fields. |
+
+**Returns:** the CSV or JSON file to fill for one type
+
+**Example:** `memo records templates show invoice --locale ru`, `memo records templates show invoice --format json --account sheet:rentals`
 
 ### `memo records list`
 
