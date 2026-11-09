@@ -336,7 +336,15 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo records import envelope.json --account rentals --json",
     "memo records import contacts.vcf --account phone:pixel --region gb",
   ],
-  "records check": ["memo records check - --account rentals"],
+  "records check": [
+    "memo records check - --account rentals",
+    "memo records check invoices.csv --type invoice --account sheet:rentals",
+  ],
+  "records template": [
+    "memo records template --json",
+    "memo records template invoice --separator ';'",
+    "memo records template invoice --format json --account sheet:rentals",
+  ],
   "records list": [
     "memo records list waiting:true --account sheet:rentals",
     "memo records list type:organization --account sheet:rentals --json",

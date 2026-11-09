@@ -1,6 +1,17 @@
-import { open } from "node:fs/promises"
+import { open, readFile } from "node:fs/promises"
+import { basename } from "node:path"
+import { text as streamText } from "node:stream/consumers"
 import { CliError } from "@wirecat/cli-base"
-import { envelopeOfText, type IngestError, isVcard, type VcardIssue } from "@wirecat/cli-core"
+import {
+  envelopeOfCsv,
+  envelopeOfText,
+  type IngestError,
+  isVcard,
+  TABLE_RECORD_TYPES,
+  TableError,
+  type TablePlace,
+  type VcardIssue,
+} from "@wirecat/cli-core"
 import {
   type IngestReceipt,
   type IngestVcardOptions,
@@ -10,9 +21,13 @@ import {
   jsonlLines,
 } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
+import { sourceOf } from "./mapping.js"
 
 /** `vcard` holds the converter's notices, each `card` counted from 1. */
 export type Receipt = IngestReceipt & { vcard?: VcardIssue[] }
+
+/** A sheet's line (the header is 1) and column, beside each pointer of a receipt read from CSV. */
+type Placed = { pointer: string; place?: TablePlace }
 
 /** A vCard address book is a phone's contacts: they go under the seeded `phone` provider, one account per device. */
 const PHONE = "phone"
@@ -90,6 +105,7 @@ export const importRecords = async (
     dryRun,
     onIssue,
     region,
+    type,
   }: {
     file: string
     stdin: NodeJS.ReadableStream
@@ -98,8 +114,12 @@ export const importRecords = async (
     onIssue: (issue: IngestError) => void
     /** A vCard's country for numbers without `+`, in any case. */
     region?: string
+    /** The one type a CSV sheet holds; a `.csv` file needs it. */
+    type?: string
   },
 ): Promise<Receipt> => {
+  if (type !== undefined || file.toLowerCase().endsWith(".csv"))
+    return importSheet(store, { file, stdin, account, dryRun, onIssue, type })
   const iterator = (await linesOf(file, stdin))[Symbol.asyncIterator]()
   const before: string[] = []
   let next = await iterator.next()
@@ -154,4 +174,103 @@ export const importRecords = async (
   }
   const envelope = envelopeOfText(await whole([first]))
   return ingest(store, envelope, { account: accountIn(envelope, account), dryRun, onIssue })
+}
+
+const placed = <T extends Placed>(items: T[], placeOf: (pointer: string) => TablePlace | undefined): T[] =>
+  items.map((item) => {
+    const place = placeOf(item.pointer)
+    return place ? { ...item, place } : item
+  })
+
+const sheetText = async (file: string, stdin: NodeJS.ReadableStream) => {
+  if (file === "-") return streamText(stdin)
+  try {
+    return await readFile(file, "utf8")
+  } catch (error) {
+    if (errnoOf(error) === "ENOENT")
+      throw new CliError("not_found", `no records file ${file}: give a file that exists, or - for stdin`, {
+        reason: "records.file-missing",
+        path: file,
+      })
+    throw new CliError("validation_error", `the records file ${file} cannot be read`, {
+      reason: "records.file-unreadable",
+      path: file,
+    })
+  }
+}
+
+/** `line 3, column total`: where a sheet's refusal is, as the owner finds it in a spreadsheet. */
+export const placeText = (place: TablePlace | undefined) =>
+  place ? `line ${place.line}${place.column ? `, column ${place.column}` : ""}` : ""
+
+/** A sheet that cannot be read as records is refused whole, as an envelope is: nothing is written. */
+const refusedSheet = (dryRun: boolean, source: Receipt["source"], errors: Receipt["errors"]): Receipt => ({
+  dryRun,
+  source,
+  created: 0,
+  updated: 0,
+  unchanged: 0,
+  deleted: 0,
+  refused: errors.length,
+  proposed: [],
+  waiting: [],
+  flagged: [],
+  unmatched: [],
+  ignored: [],
+  relationships: { added: 0, kept: 0, restored: 0, withdrawn: 0, proposed: 0, skippedOwnerRejected: 0 },
+  notices: [],
+  errors,
+  truncated: false,
+})
+
+/**
+ * A CSV sheet of one type, read whole, as an envelope of `<provider>:<account>`; every pointer of the receipt also
+ * names the sheet's line and column.
+ */
+const importSheet = async (
+  store: MessageStore,
+  {
+    file,
+    stdin,
+    account,
+    dryRun,
+    onIssue,
+    type,
+  }: {
+    file: string
+    stdin: NodeJS.ReadableStream
+    account: string
+    dryRun: boolean
+    onIssue: (issue: IngestError & { place?: TablePlace }) => void
+    type: string | undefined
+  },
+): Promise<Receipt> => {
+  if (!type || !TABLE_RECORD_TYPES.includes(type))
+    throw new CliError("validation_error", `a CSV sheet holds one type: --type ${TABLE_RECORD_TYPES.join("|")}`, {
+      param: "--type",
+    })
+  const source = sourceOf(account)
+  const batch = `${file === "-" ? "stdin" : basename(file)}-${new Date().toISOString()}`
+  let read: ReturnType<typeof envelopeOfCsv>
+  try {
+    read = envelopeOfCsv(await sheetText(file, stdin), { type, source: { ...source, batch_id: batch } })
+  } catch (error) {
+    if (!(error instanceof TableError)) throw error
+    for (const one of error.errors) onIssue(one)
+    return refusedSheet(dryRun, { ...source, batchId: batch }, error.errors)
+  }
+  const receipt = await ingest(store, read.envelope, {
+    account: source.account,
+    dryRun,
+    onIssue: (issue) =>
+      onIssue({ ...issue, ...(read.placeOf(issue.pointer) ? { place: read.placeOf(issue.pointer) } : {}) }),
+  })
+  return {
+    ...receipt,
+    waiting: placed(receipt.waiting, read.placeOf),
+    flagged: placed(receipt.flagged, read.placeOf),
+    unmatched: placed(receipt.unmatched, read.placeOf),
+    ignored: placed(receipt.ignored, read.placeOf),
+    errors: placed(receipt.errors, read.placeOf),
+  }
 }

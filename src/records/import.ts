@@ -1,11 +1,11 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import type { IngestError } from "@wirecat/cli-core"
-import { environmentOf, LOCAL_WRITE } from "@wirecat/cli-core/cli"
+import { type IngestError, recordColumns, recordTemplate, TABLE_RECORD_TYPES, type TablePlace } from "@wirecat/cli-core"
+import { environmentOf, LOCAL_READ, LOCAL_WRITE } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
-import { importRecords, type Receipt } from "./input.js"
-import { recordMappingCommands } from "./mapping.js"
+import { importRecords, placeText, type Receipt } from "./input.js"
+import { recordMappingCommands, sourceOf } from "./mapping.js"
 import { recordCommands } from "./record-commands.js"
 
 /** The review kinds of what the import proposed, as `memo review kind:` takes them: each ref's prefix. */
@@ -14,7 +14,8 @@ const kindsOf = (proposed: readonly string[]) => [...new Set(proposed.map((ref) 
 /** The envelope's root is `/`: an empty JSON pointer would break the answer's issue shape. */
 const pointerOf = (pointer: string) => pointer || "/"
 
-const refusedLine = (one: IngestError) => `refused ${pointerOf(one.pointer)} · ${one.message} (${one.code})`
+const refusedLine = (one: IngestError & { place?: TablePlace }) =>
+  `refused ${one.place ? placeText(one.place) : pointerOf(one.pointer)} · ${one.message} (${one.code})`
 
 export const receiptText = (receipt: Receipt): string =>
   [
@@ -54,8 +55,9 @@ export const recordsCommand = (program: Command, streams: Streams, env: NodeJS.P
     command
       .argument(
         "<file>",
-        "a records envelope as JSON, JSONL (a header line, then a record per line, read as it streams) or a vCard address book (.vcf, into phone:<device>); - for stdin",
+        "a records envelope as JSON, JSONL (a header line, then a record per line, read as it streams), a CSV sheet of one --type, or a vCard address book (.vcf, into phone:<device>); - for stdin",
       )
+      .option("--type <type>", `the one type a CSV sheet holds: ${TABLE_RECORD_TYPES.join(", ")}`)
       .option(
         "--account <account>",
         "the source the envelope is for: <provider>:<account> (sheet:rentals) or its source.account alone; " +
@@ -66,33 +68,39 @@ export const recordsCommand = (program: Command, streams: Streams, env: NodeJS.P
         "a vCard file's country for phone numbers without +, such as ru or gb; without it they are kept, not matched",
       )
       .option("--json", "print JSON; --json=created,errors keeps only those fields")
-      .action(async (file: string, given: { account?: string; dryRun?: boolean; json?: boolean; region?: string }) => {
-        const account = given.account?.trim()
-        if (!account)
-          throw new CliError("validation_error", "name the source account the envelope is for: --account <account>", {
-            param: "--account",
-          })
-        const receipt = await withStore(env, (store) =>
-          importRecords(store, {
-            file,
-            stdin: environmentOf(program).stdin ?? process.stdin,
-            account,
-            dryRun: dryRun ?? given.dryRun === true,
-            onIssue: (issue) => streams.diagnostic(`${refusedLine(issue)}\n`),
-            ...(given.region === undefined ? {} : { region: given.region }),
-          }),
-        )
-        const issues = receipt.errors.map((one) => ({
-          code: "validation_error" as const,
-          source: pointerOf(one.pointer),
-          reason: one.code,
-        }))
-        print(
-          given.json,
-          itemAnswer(receipt, issues.length ? { meta: { complete: false, issues } } : undefined),
-          receiptText(receipt),
-        )
-      })
+      .action(
+        async (
+          file: string,
+          given: { account?: string; dryRun?: boolean; json?: boolean; region?: string; type?: string },
+        ) => {
+          const account = given.account?.trim()
+          if (!account)
+            throw new CliError("validation_error", "name the source account the envelope is for: --account <account>", {
+              param: "--account",
+            })
+          const receipt = await withStore(env, (store) =>
+            importRecords(store, {
+              file,
+              stdin: environmentOf(program).stdin ?? process.stdin,
+              account,
+              dryRun: dryRun ?? given.dryRun === true,
+              onIssue: (issue) => streams.diagnostic(`${refusedLine(issue)}\n`),
+              ...(given.region === undefined ? {} : { region: given.region }),
+              ...(given.type === undefined ? {} : { type: given.type }),
+            }),
+          )
+          const issues = receipt.errors.map((one) => ({
+            code: "validation_error" as const,
+            source: pointerOf(one.pointer),
+            reason: one.code,
+          }))
+          print(
+            given.json,
+            itemAnswer(receipt, issues.length ? { meta: { complete: false, issues } } : undefined),
+            receiptText(receipt),
+          )
+        },
+      )
 
   importing(
     annotate(records.command("import"), { effects: LOCAL_WRITE, output: { entity: "records_receipt" } })
@@ -112,6 +120,46 @@ export const recordsCommand = (program: Command, streams: Streams, env: NodeJS.P
       .summary("check a records file against the store; write nothing"),
     true,
   )
+  annotate(records.command("template"), { effects: LOCAL_READ, output: { entity: "records_template" } })
+    .description(
+      "a file to fill for one type: the CSV header row (with a byte-order mark, so Excel reads it as UTF-8) or a JSON " +
+        "envelope of one example record. Without a type, the types and their columns, each with whether it is " +
+        "required, its shape and its values",
+    )
+    .summary("a CSV or JSON file to fill, for records import")
+    .argument("[type]", `one of ${TABLE_RECORD_TYPES.join(", ")}`)
+    .option("--format <format>", "csv or json", "csv")
+    .option("--separator <separator>", "the CSV separator: , or ; (Excel's in Russian or Spanish)", ",")
+    .option("--account <account>", "the source a JSON template names: <provider>:<account>, such as sheet:rentals")
+    .option("--json", "print JSON; --json=columns keeps only those fields")
+    .action(
+      (type: string | undefined, given: { format: string; separator: string; account?: string; json?: boolean }) => {
+        if (type === undefined) {
+          const types = TABLE_RECORD_TYPES.map((one) => ({ type: one, columns: recordColumns(one) }))
+          return print(given.json, itemAnswer({ types }), types.map((one) => one.type).join("\n"))
+        }
+        if (!TABLE_RECORD_TYPES.includes(type))
+          throw new CliError(
+            "validation_error",
+            `no template for ${type}: use one of ${TABLE_RECORD_TYPES.join(", ")}`,
+            {
+              param: "type",
+            },
+          )
+        if (given.format !== "csv" && given.format !== "json")
+          throw new CliError("validation_error", "--format is csv or json", { param: "--format" })
+        if (![",", ";", "\t"].includes(given.separator))
+          throw new CliError("validation_error", "--separator is , or ;", { param: "--separator" })
+        const source = given.account === undefined ? undefined : sourceOf(given.account)
+        const text = recordTemplate(type, given.format, {
+          separator: given.separator,
+          ...(source ? { source } : {}),
+        })
+        if (given.json)
+          return print(true, itemAnswer({ type, format: given.format, columns: recordColumns(type), text }))
+        streams.data(text)
+      },
+    )
   recordMappingCommands(records, program, streams, env)
   recordCommands(records, answered, (work) => withStore(env, work))
 }
