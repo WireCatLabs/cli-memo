@@ -120,13 +120,6 @@
   },
   {
     "rule": "unknown-verb",
-    "target": "sources mentions",
-    "reason": "WireCat Desktop's Add to memory panel (desktop plan 2026-11-01-memory-add) calls memo sources mentions; cli-base 0.84.0 added sources, --keep-copy and --max-chars but mentions is still a collection there, not a view noun. Add the view noun there, then drop this.",
-    "owner": "@leemour",
-    "review_after": "2027-02-08"
-  },
-  {
-    "rule": "unknown-verb",
     "target": "digest backfill",
     "reason": "WireCat Desktop's Digests screen (digest plan 10.4 item 2, owner 2026-11-08) runs exactly `memo digest backfill --since-time <date> --until-time <date> [--yes] [--json]`; no verb in the cli-base vocabulary names building past days' runs. Add one there, then rename with Desktop.",
     "owner": "@leemour",
@@ -159,5 +152,12 @@
     "reason": "WireCat Desktop's Settings lists and sets the reader that reads sources for facts (Claude Code, Codex, Ollama, an API key); the vocabulary has no noun for a model-backed reader. Add readers as a collection there, then drop this.",
     "owner": "@leemour",
     "review_after": "2027-02-08"
+  },
+  {
+    "rule": "option-role",
+    "target": "search all --harder",
+    "reason": "Opt-in: a hosted model the owner consented to (memo models search-consents set) reorders the first 30 hits of search all (cli-core 0.622.0, measured in cli-testing search-lab, 2026-11-09). No role in the cli-base flag vocabulary names sending results to a model for reranking. Add one there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-09"
   }
 ]

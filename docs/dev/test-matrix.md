@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1053 ✅ · 0 ⛔ · 287 ❌** — 297 commands, 1043 options.
+**1056 ✅ · 0 ⛔ · 291 ❌** — 299 commands, 1048 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -1180,6 +1180,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `search all` | `--only` | ✅ |  |
 | `search all` | `--source` | ✅ |  |
 | `search all` | `--plain-order` | ❌ |  |
+| `search all` | `--harder` | ✅ |  |
 | `search all` | `--project` | ✅ |  |
 | `search messages` |  | ✅ |  |
 | `search messages` | `--limit` | ❌ |  |
@@ -1302,9 +1303,15 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `schedule list` |  | ✅ |  |
 | `schedule list` | `--json` | ✅ |  |
 | `schedule run` |  | ✅ |  |
+| `schedule run` | `--no-notify` | ❌ |  |
+| `schedule run` | `--deliver-to` | ❌ |  |
 | `schedule run` | `--json` | ❌ |  |
 | `schedule remove` |  | ✅ |  |
 | `schedule remove` | `--json` | ❌ |  |
+| `schedule pause` |  | ✅ |  |
+| `schedule pause` | `--json` | ❌ |  |
+| `schedule resume` |  | ✅ |  |
+| `schedule resume` | `--json` | ❌ |  |
 | `schedule exec` |  | ✅ |  |
 | `schedule exec` | `--json` | ❌ |  |
 | `digest brief show` |  | ✅ |  |

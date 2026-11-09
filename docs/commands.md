@@ -6021,6 +6021,7 @@ memo search all <query> [options]
 | `--only <resources>` | messages,mail,notes,events,crm,business,meetings, separated by commas. |
 | `--source <accounts>` | only these accounts, separated by commas: provider:account as a hit shows it, a provider, a kind or group:<name>; each resource reads the ones of its kind, and one it names none of is left out. |
 | `--plain-order` | best first by the words alone, without moving mail from suspicious senders down. |
+| `--harder` | a hosted model reorders the first 30 hits; sends the question and those hits to the provider you chose with memo models search-consents set <provider> --yes, only after that. |
 | `--project <project>` | rank the key documents of this project (id, project:<id>, key, exact name or alias) first; nothing is left out. |
 
 **Returns:** hit — kind, ref, provider, account, title, timestamp, excerpt, url, and 17 more; every field: memo commands info search all
@@ -6603,7 +6604,7 @@ memo schedule command <name> <args> [options]
 | Option | What it does |
 |---|---|
 | `--every <duration>` | repeat: 30m, 2h, 1d. |
-| `--at <HH:MM>` | every day at this local time; 'mon 09:00' once a week (mon, tue, wed, thu, fri, sat, sun). |
+| `--at <HH:MM>` | every day at this local time; 'mon 09:00' once a week, 'mon,fri 09:00' on several days (mon, tue, wed, thu, fri, sat, sun); repeat it for more times. |
 | `--at-time <time>` | one run: 30m, 2d from now, or an ISO time; the schedule removes itself after it. |
 | `--notify-on <when>` | desktop notice after a run (default failures for an agent that repeats with --every, else always). One of: `always`, `failures`, `never`. |
 | `--deliver-to <route>` | also send the result, when --notify-on says so, by the owner's own tg or mail: telegram-bot:<profile>/<chat id or user:id>, or email:<profile>/<address>; repeat it for more. |
@@ -6635,7 +6636,7 @@ memo schedule agent <name> <harness> <prompt> [options]
 | `--max-cost <usd>` | claude only: stop a run that costs more than this, in US dollars. |
 | `--max-cost-per-day <usd>` | claude only: start no run for the rest of the day once its runs cost this much, in US dollars; 0 for no cap (default 5, or the config file's). |
 | `--every <duration>` | repeat: 30m, 2h, 1d. |
-| `--at <HH:MM>` | every day at this local time; 'mon 09:00' once a week (mon, tue, wed, thu, fri, sat, sun). |
+| `--at <HH:MM>` | every day at this local time; 'mon 09:00' once a week, 'mon,fri 09:00' on several days (mon, tue, wed, thu, fri, sat, sun); repeat it for more times. |
 | `--at-time <time>` | one run: 30m, 2d from now, or an ISO time; the schedule removes itself after it. |
 | `--notify-on <when>` | desktop notice after a run (default failures for an agent that repeats with --every, else always). One of: `always`, `failures`, `never`. |
 | `--deliver-to <route>` | also send the result, when --notify-on says so, by the owner's own tg or mail: telegram-bot:<profile>/<chat id or user:id>, or email:<profile>/<address>; repeat it for more. |
@@ -6664,13 +6665,13 @@ memo schedule list [query] [options]
 |---|---|
 | `--json` | print JSON. |
 
-**Returns:** scheduled job — name, kind, when, last, notify, deliver_to, spent_today_usd, max_cost_usd, and 1 more; every field: memo commands info schedule list
+**Returns:** scheduled job — name, kind, when, last, paused, notify, deliver_to, spent_today_usd, and 2 more; every field: memo commands info schedule list
 
 **Example:** `memo schedule list`, `memo schedule list kind:agent --json`
 
 ### `memo schedule run`
 
-run a schedule now, as its timer would, and wait for it
+run a schedule now, as its timer would, and wait for it; a paused one runs too
 
 This command changes the local store or your files.
 
@@ -6684,9 +6685,11 @@ memo schedule run <name> [options]
 
 | Option | What it does |
 |---|---|
+| `--no-notify` | keep the result here: send it along none of its routes. |
+| `--deliver-to <route>` | send it along only this one of its own routes; repeat it for more. |
 | `--json` | print JSON. |
 
-**Returns:** run a schedule now, as its timer would, and wait for it
+**Returns:** run a schedule now, as its timer would, and wait for it; a paused one runs too
 
 **Example:** `memo schedule run digest`
 
@@ -6711,6 +6714,50 @@ memo schedule remove <name> [options]
 **Returns:** stop a schedule and remove its timer; its past output stays
 
 **Example:** `memo schedule remove digest`
+
+### `memo schedule pause`
+
+take a schedule off its timer and keep it; run runs it, resume puts it back
+
+This command changes the local store or your files.
+
+```sh
+memo schedule pause <name> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | required | the schedule's name, as `schedule list` shows it. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** take a schedule off its timer and keep it; run runs it, resume puts it back
+
+**Example:** `memo schedule pause digest`
+
+### `memo schedule resume`
+
+put a paused schedule back on its timer
+
+This command changes the local store or your files.
+
+```sh
+memo schedule resume <name> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `name` | required | the schedule's name, as `schedule list` shows it. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** put a paused schedule back on its timer
+
+**Example:** `memo schedule resume digest`
 
 ### `memo schedule exec`
 

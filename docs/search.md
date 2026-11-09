@@ -255,6 +255,43 @@ EmbeddingGemma has read more.
 `memo models add` adds a model of your own from Hugging Face; `memo models add --help` shows what it
 needs.
 
+## Search harder
+
+`memo search all --harder` asks a hosted model to read your question with the first 30 results and put the ones that
+answer it first. On synthetic data, over Memo's own search, it raised the share of right records in the first ten
+from 0.79 to 0.88 on questions worded unlike their records, and from 0.32 to 0.39 on a sample of 59 LifeBench
+questions (Claude Haiku). It costs about $0.0003 and a second or two a search.
+
+It is off until you allow it, because it sends your words out of your computer. You choose the provider:
+
+```sh
+memo models search-consents set anthropic          # says what it sends; changes nothing
+memo models search-consents set anthropic --yes    # allow it: Claude Haiku
+memo models search-consents set openai --yes       # or OpenAI: gpt-4o-mini
+memo models keys set anthropic                     # the provider's API key, typed at a hidden prompt
+memo search all 'what did we agree about the server price?' --harder
+memo models search-consents revoke                 # stop it
+```
+
+Another OpenAI-compatible service, such as OpenRouter, takes its address and the model's name:
+`memo models search-consents set openai --base-url https://openrouter.ai/api/v1 --model deepseek/deepseek-chat --yes`.
+If you already allowed enrichment (`memo models consents`), `show` proposes the same provider, but you still allow
+this one yourself.
+
+**What is sent:** your question and the first 30 results: for each one its date, title and the short excerpt the
+result shows (at most 400 characters). They go to the provider you chose, only on a search with `--harder`. A search
+without it sends nothing. The model answers only with the numbers of the results it picks.
+
+If the model does not answer within 5 seconds, or anything else goes wrong, Memo shows the results in the usual order
+and says why. It never fails the search. Only the first page is reordered. When a permission hides some kinds of
+results (an MCP server started with `--permission`), `--harder` sends nothing. An agent cannot allow it for you.
+
+With `--json`, `meta.ranking` says what happened, for a program such as WireCat Desktop: `applied` (whether the
+model's order was used), `reason_id` when it was not (`harder.no-consent`, `harder.timeout`, …), `provider`, `model`,
+`endpoint`, `sent` (results sent), `cost_usd` (`null` for a model with no known price), `usage` (input and output
+tokens, when the model answered) and `ms`. A search the permissions kept from the model has no `meta.ranking`; its
+`missing` says why.
+
 ## What a result shows
 
 For a note, a result shows the file and the first matching line. Below the results, Memo lists the

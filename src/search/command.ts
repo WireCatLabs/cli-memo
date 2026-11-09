@@ -18,7 +18,7 @@ import { positive } from "../options.js"
 import { SAVE_HELP } from "../save-help.js"
 import { accountsByKind, groupScopeOf } from "../store/group.js"
 import { ACCOUNTS_HELP, MAIL_SOURCES, mailboxesOf } from "../store/source-list.js"
-import { allAnswer, eventsMeaningNote, kindAnswer, messagesMeaningNote, notesAnswer } from "./answers.js"
+import { allAnswer, eventsMeaningNote, harderNote, kindAnswer, messagesMeaningNote, notesAnswer } from "./answers.js"
 import { deniedCrm } from "./denied.js"
 import { lanesFor } from "./lane-gates.js"
 import { peopleAnswer, peopleText, searchPeople } from "./people.js"
@@ -115,6 +115,11 @@ const searchCommandDefinition = (program: Command, streams: Streams, env: NodeJS
         "group:<name>; each resource reads the ones of its kind, and one it names none of is left out",
     )
     .option("--plain-order", "best first by the words alone, without moving mail from suspicious senders down")
+    .option(
+      "--harder",
+      "a hosted model reorders the first 30 hits; sends the question and those hits to the provider you chose with " +
+        "memo models search-consents set <provider> --yes, only after that",
+    )
     .option("--project <project>", PROJECT_ORDER_HELP)
     .addHelpText(
       "after",
@@ -137,6 +142,7 @@ business finds invoices, payments, orders, contracts, subscriptions, products an
           project?: string
           json?: boolean
           plainOrder?: boolean
+          harder?: boolean
         },
         command: Command,
       ) => {
@@ -162,6 +168,7 @@ business finds invoices, payments, orders, contracts, subscriptions, products an
             ...(options.source === undefined ? {} : { source: options.source }),
             ...(options.exact ? { exact: true } : {}),
             ...(options.plainOrder ? { plainOrder: true } : {}),
+            ...(options.harder ? { harder: true } : {}),
             ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
           })
           return {
@@ -181,6 +188,8 @@ business finds invoices, payments, orders, contracts, subscriptions, products an
           if (answer.events?.meaningSkipped) streams.diagnostic(`${eventsMeaningNote(answer.events.meaningSkipped)}\n`)
           if (answer.messages?.meaningSkipped)
             streams.diagnostic(`${messagesMeaningNote(answer.messages.meaningSkipped)}\n`)
+          const harder = harderNote(answer)
+          if (harder) streams.diagnostic(`${harder}\n`)
         }
         print(
           options.json,

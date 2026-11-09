@@ -185,6 +185,13 @@ export const search: readonly SharedContractOverride[] = [
         mandatory: false,
       },
       {
+        flags: "--harder",
+        description:
+          "a hosted model reorders the first 30 hits; sends the question and those hits to the provider you chose with memo models search-consents set <provider> --yes, only after that",
+        takes_value: false,
+        mandatory: false,
+      },
+      {
         flags: "--project <project>",
         description:
           "rank the key documents of this project (id, project:<id>, key, exact name or alias) first; nothing is left out",
