@@ -1,11 +1,12 @@
 import { CliError } from "@wirecat/cli-base"
 import { mailOwnText } from "@wirecat/cli-core/mail"
 import { type ContextMessage, calendarAccounts, type PersonContext, personContext } from "@wirecat/cli-core/services"
-import type { AccountKey, Link, MessageStore, Note } from "@wirecat/cli-core/store"
+import type { AccountKey, Link, MessageStore, Note, RelationListItem } from "@wirecat/cli-core/store"
 import { type NotesAbout, notesAbout } from "../notes/about.js"
 import { withOwner } from "../people/owner.js"
+import { groupScopeOf, inGroup, scopedAccounts } from "../store/group.js"
 import { selectAccount } from "../store/scope.js"
-import { oneAccountOf } from "../store/source-list.js"
+import { accountsOf } from "../store/source-list.js"
 import { personTasks } from "../tasks/context.js"
 
 /** Written by whoever sent the invitation, as cli-core's calendar tools mark them. */
@@ -28,7 +29,7 @@ export interface MemoContext {
   /** Sources that gave nothing, and why. */
   notRead: { source: string; reason: string }[]
   tasks: Awaited<ReturnType<typeof personTasks>>
-  relationships: Link[]
+  relationships: RelationListItem[]
   /** Files a source says they own or last edited, as the source reports it: not reviewed by you. */
   files: ReportedFile[]
   /** Fields other people wrote that an agent reads as data, never as instructions. */
@@ -44,9 +45,6 @@ export interface ReportedFile {
   provenance: string
   confirmed: boolean
 }
-
-/** An assignment shows under tasks, not here. */
-const RELATIONS = new Set(["member-of", "related-to"])
 
 /** Drive copies these from Google's own file record, so they are facts as Google states them, not guesses. */
 const SOURCE_REPORTS = new Set(["google-drive:files.get"])
@@ -77,18 +75,30 @@ const reportedFiles = async (store: MessageStore, links: Link[], limit: number):
  * One answer about a person: what the store holds of them across messengers and mail (cli-core's
  * person context), and every note linked to them. A name in a note's plain text is not a link.
  */
-/** The stored account of the person's messenger that `source` (`telegram:1`) names, as memoContext takes it. */
-export const contextAccountOf = async (
+/**
+ * The stored accounts of the person's messenger that `source` names (`telegram:1`, or a group's), as memoContext
+ * takes them.
+ */
+export const contextAccountsOf = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
   person: string,
   source: string,
-): Promise<AccountKey> => {
-  const key = await oneAccountOf(store, env, source)
-  if (!person.startsWith("person:") && key.provider !== person.split(":")[0])
-    throw new CliError("validation_error", `${source} is not an account of ${person}'s messenger`)
-  return key
+): Promise<AccountKey[]> => {
+  const provider = person.startsWith("person:") ? undefined : person.split(":")[0]
+  const keys = (await accountsOf(store, env, source)).filter(
+    (key) => provider === undefined || key.provider === provider,
+  )
+  if (keys.length === 0)
+    throw new CliError("validation_error", `${source} is not an account of ${person}'s messenger`, { param: "source" })
+  return keys
 }
+
+const accountIn = (keys: readonly AccountKey[] | undefined) =>
+  keys?.length === 1 ? { account: (keys[0] as AccountKey).account } : {}
+
+const among = (sources: readonly AccountKey[] | undefined, provider: string, account: string) =>
+  sources === undefined || sources.some((one) => one.provider === provider && one.account === account)
 
 /**
  * `person:<uid>` as the `<messenger>:<id>` of one identity, read from the one account that saw it. A person seen by
@@ -97,7 +107,7 @@ export const contextAccountOf = async (
 const anchorOf = async (
   store: MessageStore,
   uid: string,
-  source: AccountKey | undefined,
+  sources: readonly AccountKey[] | undefined,
 ): Promise<{ reference: string; provider: string; account: string }> => {
   const person = await store.people.personByUid(uid)
   if (person === undefined) throw new CliError("not_found", `no person:${uid} in the store`)
@@ -108,9 +118,7 @@ const anchorOf = async (
       account: held,
     })),
   )
-  const matches = seen.filter(
-    (one) => source === undefined || (one.provider === source.provider && one.account === source.account),
-  )
+  const matches = seen.filter((one) => among(sources, one.provider, one.account))
   const accounts = [...new Set(matches.map((one) => `${one.provider}:${one.account}`))]
   const [first] = matches
   // Several identities of one person on one account all resolve to the same person context.
@@ -125,24 +133,35 @@ const anchorOf = async (
 
 export const memoContext = async (
   store: MessageStore,
+  env: NodeJS.ProcessEnv,
   reference: string,
-  { limit = 20, source }: { limit?: number; source?: AccountKey } = {},
+  { limit = 20, sources }: { limit?: number; sources?: readonly AccountKey[] } = {},
 ): Promise<MemoContext> => {
   const named = (await withOwner(store, reference)).trim()
   if (named.startsWith("person:")) {
-    const anchor = await anchorOf(store, named.slice("person:".length), source)
-    return memoContext(store, anchor.reference, { limit, source: anchor })
+    const anchor = await anchorOf(store, named.slice("person:".length), sources)
+    return memoContext(store, env, anchor.reference, { limit, sources: [anchor] })
   }
   const [, provider, who] = /^([a-z][a-z0-9-]*):(.+)$/.exec(reference.trim()) ?? []
   if (provider === undefined || who === undefined)
     throw new CliError("validation_error", `"${reference}" names no messenger — write it as <messenger>:<name or id>`, {
       reason: "identity.no-messenger",
     })
-  const accounts = await store.accounts.accounts()
-  const asked = await selectAccount(store, { provider, ...(source === undefined ? {} : { account: source.account }) })
+  const accounts = await scopedAccounts(store, env)
+  const own = sources?.filter((one) => one.provider === provider)
+  const asked =
+    own?.length === 1 ? (own[0] as AccountKey) : await selectAccount(store, env, { provider, ...accountIn(own) })
 
-  const { events, ...messages } = await personContext(store, asked, who, { messages: limit })
-  const calendars = await calendarAccounts(store)
+  const calendars = await inGroup(store, env, await calendarAccounts(store))
+  const scope = await groupScopeOf(store, env)
+  const calendarIds =
+    scope === undefined
+      ? undefined
+      : await Promise.all(calendars.map(async (key) => (await store.accounts.storedAccount(key)).id))
+  const { events, ...messages } = await personContext(store, asked, who, {
+    messages: limit,
+    ...(calendarIds === undefined ? {} : { calendarIds }),
+  })
   const person = `person:${messages.person.uid}`
   const linked = await notesAbout(store, { ref: person, person: messages.person }, limit)
   const yourNotes = []
@@ -167,9 +186,15 @@ export const memoContext = async (
 
   const tasks = await personTasks(store, messages.person, accounts, limit)
   const incoming = await store.notes.links({ to: person })
-  const relationships = [...(await store.notes.links({ from: person })), ...incoming].filter(
-    (link) => RELATIONS.has(link.kind) && link.confirmed,
-  )
+  // cli-core leaves out a link with an end outside the group, the owner's own too.
+  const relationships = (
+    await store.knowledge.listRelations({
+      about: person,
+      standing: "confirmed",
+      ...(scope === undefined ? {} : { accounts: scope.accounts }),
+      limit: 500,
+    })
+  ).items
   const files = await reportedFiles(store, incoming, limit)
   const { subject: _, name: __, ...notes } = linked
   return {

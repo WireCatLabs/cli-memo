@@ -1064,7 +1064,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `templates reset` | `--locale` | ❌ |  |
 | `templates reset` | `--json` | ❌ |  |
 | `search all` |  | ✅ |  |
-| `search all` | `--limit` | ✅ |  |
+| `search all` | `--limit` | ❌ |  |
 | `search all` | `--exact` | ✅ |  |
 | `search all` | `--timezone` | ❌ |  |
 | `search all` | `--json` | ✅ |  |
@@ -1143,6 +1143,14 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `store recover` | `--json` | ✅ |  |
 | `store recover run` |  | ✅ |  |
 | `store recover run` | `--json` | ❌ |  |
+| `groups list` |  | ✅ |  |
+| `groups list` | `--json` | ✅ |  |
+| `groups add` |  | ✅ |  |
+| `groups add` | `--json` | ✅ |  |
+| `groups remove` |  | ✅ |  |
+| `groups remove` | `--json` | ✅ |  |
+| `groups move` |  | ✅ |  |
+| `groups move` | `--json` | ✅ |  |
 | `jobs start` |  | ✅ |  |
 | `jobs start` | `--every` | ✅ |  |
 | `jobs stop` |  | ✅ |  |

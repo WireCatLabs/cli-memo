@@ -104,6 +104,7 @@ const SECTIONS: [string, HelpSection][] = [
   ["jobs", "automate"],
   ["digest", "automate"],
   ["folders", "setup"],
+  ["groups", "setup"],
   ["config", "setup"],
 ]
 

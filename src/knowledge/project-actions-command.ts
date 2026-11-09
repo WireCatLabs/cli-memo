@@ -163,7 +163,7 @@ export const projectActionsCommand = (projects: Command, streams: Streams, env: 
         await run(given.json, async (store) => {
           const project = await projectOf(store, reference)
           return itemAnswer(
-            await decideAction(store, project, id, {
+            await decideAction(store, env, project, id, {
               confirm: name === "confirm",
               ...(given.fingerprint === undefined ? {} : { fingerprint: given.fingerprint }),
               ...(given.reason === undefined ? {} : { reason: given.reason }),

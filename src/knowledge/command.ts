@@ -32,6 +32,8 @@ import { notesAbout } from "../notes/about.js"
 import { oneOf, positive, readScope, writeScope } from "../options.js"
 import { withOwner } from "../people/owner.js"
 import { decideOne, decisionOf } from "../review/review.js"
+import { keepInGroup } from "../store/group.js"
+import { stripped } from "../store/guard.js"
 import {
   ACCOUNTS_HELP,
   accountName,
@@ -142,7 +144,9 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((words: string[], options: { json?: boolean }) => {
       const query = listQuery(typedQuery(words), ORGANIZATIONS_QUERY, "organizations list")
-      return ownedList("organizations list", options, (store) => store.knowledge.organizations(query))
+      return ownedList("organizations list", options, async (store) =>
+        keepInGroup(store, env, await store.knowledge.organizations(query), ({ ref }) => ref),
+      )
     })
   annotate(organizations.command("context"), { effects: LOCAL_READ })
     .description(
@@ -213,7 +217,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (reference: string, options: { json?: boolean }) => {
       const { context, next } = await withStore(env, async (store) => {
-        const context = await projectContext(store, env, reference)
+        const context = await stripped(store, env, await projectContext(store, env, reference))
         return { context, next: await scanStep(store, context.project, "all") }
       })
       print(options.json, itemAnswer(context, next.length ? { next } : {}), projectContextText(context))
@@ -337,7 +341,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (words: string[], options: { json?: boolean }) => {
-      const found = await withStore(env, (store) => listRelationships(store, words))
+      const found = await withStore(env, (store) => listRelationships(store, env, words))
       print(
         options.json,
         listAnswer("relationships list", { items: found.items, limit: found.limit, has_more: found.hasMore }),
@@ -370,7 +374,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         ...(options.purpose === undefined ? {} : { purpose: options.purpose }),
       }
       const by = await whoRuns(command, env, { asOwner: options.asOwner, question: `change relationship ${id}?` })
-      return owned(options, (store) => {
+      return owned(options, async (store) => {
         if (options.role === undefined && options.purpose === undefined)
           throw new CliError("validation_error", "say what to change: --role, --purpose or both", {
             reason: "input.invalid",
@@ -409,7 +413,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
           return name === "remove"
             ? store.knowledge.removeRelation(null, id, by)
             : store.knowledge.confirmRelation(null, id, by)
-        await decideOne(store, suggestion.id, decisionOf(name === "confirm", by, options.reason))
+        await decideOne(store, env, suggestion.id, decisionOf(name === "confirm", by, options.reason))
         if (name === "remove") return { id, removed: true }
         return (await store.knowledge.relations(null, suggestion.subject)).find((one) => one.id === id)
       })

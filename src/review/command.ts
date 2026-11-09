@@ -11,7 +11,7 @@ import { byOption, deciderOf } from "../author.js"
 import { reviewAgendaCommand, sinceOf } from "../digest/command.js"
 import { evidenceContext } from "../knowledge/project-actions.js"
 import { positive, whole } from "../options.js"
-import { reviewRegistry } from "./kinds.js"
+import { reviewOf } from "../store/guard.js"
 import {
   decidedText,
   decisionOf,
@@ -214,8 +214,8 @@ export const reviewCommand = (program: Command, streams: Streams, env: NodeJS.Pr
           ...given,
           question: `${name} ${ids.length} proposal${ids.length === 1 ? "" : "s"} as you, the owner?`,
         })
-        const result = await withStore(env, (store) =>
-          reviewRegistry(store).decide(ids, decisionOf(name === "confirm", by, given.reason)),
+        const result = await withStore(env, async (store) =>
+          (await reviewOf(store, env)).decide(ids, decisionOf(name === "confirm", by, given.reason)),
         )
         const issues = result.refused.map((one) => ({
           code: one.code,

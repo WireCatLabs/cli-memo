@@ -2,7 +2,8 @@ import { mailTurn, marksOf, OWED_DAYS } from "@wirecat/cli-core/mail"
 import { markItem } from "@wirecat/cli-core/mail/cli"
 import type { ProposalFilter } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
-import { reviewRegistry } from "./kinds.js"
+import { scopedAccounts } from "../store/group.js"
+import { reviewOf } from "../store/guard.js"
 
 /** Pages read to count proposals; past them the count says "at least". */
 const MOST_PAGES = 10
@@ -13,7 +14,7 @@ export const counted = async (
   filter: Omit<ProposalFilter, "limit" | "offset">,
   since?: number,
 ) => {
-  const registry = reviewRegistry(store)
+  const registry = await reviewOf(store, env)
   const byKind: Record<string, number> = {}
   let total = 0
   for (let page = 0; page < MOST_PAGES; page++) {
@@ -29,7 +30,7 @@ export const counted = async (
 /** How many proposals wait for the owner about these references: as subject, linked object or project. */
 export const waitingAbout = async (store: MessageStore, env: NodeJS.ProcessEnv, refs: readonly string[]) => {
   const wanted = new Set(refs)
-  const registry = reviewRegistry(store)
+  const registry = await reviewOf(store, env)
   const kinds: Record<string, number> = {}
   let count = 0
   for (let page = 0; page < MOST_PAGES; page++) {
@@ -50,7 +51,7 @@ export const waitingAbout = async (store: MessageStore, env: NodeJS.ProcessEnv, 
  */
 export const reviewStatus = async (store: MessageStore, env: NodeJS.ProcessEnv, since: number, now = Date.now()) => {
   const mail = []
-  for (const key of (await store.accounts.accounts()).filter((one) => one.provider === "email")) {
+  for (const key of (await scopedAccounts(store, env)).filter((one) => one.provider === "email")) {
     const stored = await store.accounts.storedAccount(key)
     const turns = (await store.mail.threadActivity(stored.id, now - OWED_DAYS * 86_400_000)).map((thread) => ({
       at: thread.lastEmailAt,

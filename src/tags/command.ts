@@ -8,6 +8,7 @@ import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
 import { folderIds } from "../notes/bound.js"
 import { positive } from "../options.js"
+import { scopedAccounts } from "../store/group.js"
 import { heldMessage } from "../store/held.js"
 import { selectTarget, type TargetInput } from "../store/scope.js"
 import {
@@ -159,7 +160,7 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     }
     if (options.contact !== undefined || options.meeting !== undefined) {
       await withStore(env, async (store) => {
-        const { key, target } = await selectTarget(store, { ...options, ...(await scoped(store)) })
+        const { key, target } = await selectTarget(store, env, { ...options, ...(await scoped(store)) })
         const changed = await (operation === "add" ? store.knowledge.addTags : store.knowledge.removeTags)(
           key,
           target,
@@ -225,7 +226,7 @@ export const tagsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         ...(terms.has("type") ? { type: terms.get("type") as SourceTagType } : {}),
       }
       await withStore(env, async (store) => {
-        const keys = value === undefined ? await store.accounts.accounts() : await accountsOf(store, env, value)
+        const keys = value === undefined ? await scopedAccounts(store, env) : await accountsOf(store, env, value)
         const answer = await listTags(store, { ...options, keys })
         const owned =
           options.type === undefined || (OWNED as readonly string[]).includes(options.type)

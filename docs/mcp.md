@@ -39,6 +39,37 @@ for more keys. It cannot loosen the saved permissions, including more specific k
 `MEMO_READ_ONLY=1` marks every writing command unavailable and refuses writes on an existing connection.
 Discovery retains blocked commands with current `availability` and the reason, as cli-core does.
 
+## Lock an agent to a group
+
+`MEMO_GROUP_LOCK=work memo mcp serve` serves only the group `work` (see [groups](usage.md#groups-of-accounts)), and
+the lock fails closed. These commands run under it:
+
+| Group | Commands |
+|---|---|
+| reads | `context`, `show`, `messages show`, `search all`, `messages`, `mail`, `notes` and `people` |
+| groups | `groups list`; `groups add`, `remove` and `move` are refused |
+| CRM | every `deals` and `leads` command, every `organizations` command, `pipelines list` and `pipelines show` |
+| people and notes | `people list`, `people add`, `notes list`, `notes show` |
+| your own | every `memories`, `facts`, `actions`, `review` and `tasks` command; `projects list`, `add`, `context`, `status` and `key-documents` |
+| labels and links | `tags add`, `tags remove`, `relationships list`, `relationships add` |
+| server | `mcp serve` |
+
+Every other command is refused with `permission_error`, among them `projects gather`, `evidence`, `annotations` and
+`actions`, which read linked chats without the group yet. So are `relationships update`, `end`, `remove` and
+`confirm`: they take a bare relationship id, which the lock cannot tie to an account.
+
+In the commands that run, reads take only the group's accounts, and a list leaves out what belongs to an account
+outside it. What you made yourself (notes, projects, tasks, invoices, memories, facts) belongs to no account and shows
+in every group. A reference outside the group is refused with `permission_error`, in an argument or an option, and so
+is a bare id of one (`organizations show 3`). That covers a message, a chat, a calendar event, a deal or organization
+a CRM outside the group brought, and a person none of whose accounts is in it. Another group, `--source all`, and a
+`--source` or `--account` outside the group are refused too. `projects status` counts a linked chat outside the group
+in `missing`, and names none. Evidence and sources outside it are left out and counted in `out_of_scope` (a list says so in `missing`); a context's
+`coverage` counts the accounts it kept out instead of naming them. A proposal or an action outside the group is not
+listed, shown or decided.
+
+Set the lock in the environment of the process the app starts; the agent cannot lift it.
+
 The named CLI-only exclusions are the `mcp` commands, `upgrade`, `skill install`, `jobs start` and `jobs stop`: they
 start another server, replace the running program, install instructions in other apps, or manage a background timer.
 
