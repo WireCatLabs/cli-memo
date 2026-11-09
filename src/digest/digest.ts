@@ -7,7 +7,7 @@ import { listReview, REVIEW_SOURCES } from "../review/review.js"
 import { counted } from "../review/status.js"
 import { knownSenders } from "./known.js"
 import { HEALTH_REASONS, type Health, healthOf, SOURCE_WORDS, syncRunsOf } from "./sync-health.js"
-import { gatherTasks, previousDigestAt, type TaskCounts } from "./tasks.js"
+import { digestRunBefore, gatherTasks, previousDigestAt, type TaskCounts } from "./tasks.js"
 
 /** The tag that puts a chat, mail thread, person, project or meeting series on the owner's watch list. */
 export const WATCH_TAG = "watch"
@@ -74,6 +74,11 @@ export interface Digest {
 export interface DigestOptions {
   since: number
   now?: number
+  /**
+   * A past moment to build the digest as of, for a day's backfill: it is the digest's now, and what the store dates
+   * later is left out. The store keeps only what holds now, so a chat answered since still reads as answered.
+   */
+  until?: number
   /** Items per section before the size budget. */
   limit: number
   /** Characters per excerpt. */
@@ -204,8 +209,11 @@ const personal = (newest: { bulk: boolean; list: boolean; envelope: boolean; dem
 export const gatherDigest = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
-  { since, now = Date.now(), limit, excerpt, owedWithin, newSince }: DigestOptions,
+  { since, now: clock = Date.now(), until, limit, excerpt, owedWithin, newSince }: DigestOptions,
 ): Promise<Digest> => {
+  const now = until ?? clock
+  const by = (at: number) => until === undefined || at <= until
+  const upTo = (found: Pending[]) => found.filter((one) => by(Date.parse(one.item.at)))
   const window = (now - since) / DAY
   const days = `${Math.max(1, Math.ceil(window))}d`
   const accounts = await store.accounts.accounts()
@@ -278,7 +286,9 @@ export const gatherDigest = async (
       storedAt: storedAt === null ? null : Date.parse(storedAt),
     })
     const ref = (chat: string) => formatReference({ type: "chat", provider: key.provider, account: key.account, chat })
-    chatsMoved += chats.filter((chat) => Date.parse(chat.lastMessageAt) >= since).length
+    chatsMoved += chats.filter(
+      (chat) => Date.parse(chat.lastMessageAt) >= since && by(Date.parse(chat.lastMessageAt)),
+    ).length
     coverage.push({
       account: name(key),
       storedAt,
@@ -301,7 +311,11 @@ export const gatherDigest = async (
     if (owedHere)
       owedNext.push(`memo tasks agenda --source ${name(key)} --unanswered 1m --within ${Math.ceil(owedWithin / DAY)}d`)
     for (const chatId of watched.chats.get(name(key)) ?? []) {
-      const page = await store.messages.messages(key, chatId, { limit, since: iso(since) })
+      const page = await store.messages.messages(key, chatId, {
+        limit,
+        since: iso(since),
+        ...(until === undefined ? {} : { until }),
+      })
       for (const message of page.items)
         watch.push({
           item: {
@@ -333,7 +347,8 @@ export const gatherDigest = async (
       storedAt: newest || null,
     })
     mailMoved += threads.filter(
-      (thread) => thread.lastEmailAt >= since && thread.newest !== null && personal(thread.newest),
+      (thread) =>
+        thread.lastEmailAt >= since && by(thread.lastEmailAt) && thread.newest !== null && personal(thread.newest),
     ).length
     coverage.push({
       account: name(key),
@@ -441,7 +456,8 @@ export const gatherDigest = async (
 
   const hot = await gatherTasks(store, [...messengers, ...mailboxes], {
     now,
-    newSince: newSince ?? previousDigestAt(env, now),
+    newSince: newSince ?? (until === undefined ? previousDigestAt(env, now) : digestRunBefore(env, until)),
+    ...(until === undefined ? {} : { until }),
   })
   const tasks: Pending[] = hot.tasks.map(({ task, groups, askedBy, for: doer }) => ({
     item: {
@@ -484,7 +500,7 @@ export const gatherDigest = async (
   // A review refreshed in place keeps its raise time, so it is listed once, when it was raised or grew graver.
   const reviews = await listReview(store, env, [`kind:${SOURCE_REVIEW_KIND}`], { limit: 50, page: 1 })
   const sourceItems: Pending[] = reviews.items
-    .filter((row) => Date.parse(row.createdAt) >= since)
+    .filter((row) => Date.parse(row.createdAt) >= since && by(Date.parse(row.createdAt)))
     .map((row) => ({
       item: {
         ref: row.subject,
@@ -498,7 +514,7 @@ export const gatherDigest = async (
   const reviewCount = sourceItems.length
   const reviewed = new Set(reviews.items.flatMap((row) => row.evidence))
   for (const changed of await store.knowledge.changedSources({ since }))
-    if (!reviewed.has(changed.ref))
+    if (!reviewed.has(changed.ref) && by(Date.parse(changed.checkedAt)))
       sourceItems.push({
         item: {
           ref: changed.ref,
@@ -522,21 +538,24 @@ export const gatherDigest = async (
   }))
 
   const sections = [
-    await section("watch", watch, limit, [
+    await section("watch", upTo(watch), limit, [
       "memo tags list tag:watch",
       ...[...watched.people].map((uid) => `memo context person:${uid}`),
     ]),
     {
-      ...(await section("owed", owed, limit, [
+      ...(await section("owed", upTo(owed), limit, [
         ...owedNext,
         ...(olderMail ? [`# ${olderMail} mail threads owed from before the window left out`] : []),
       ])),
       ...(unknown.count ? { unknown } : {}),
     },
-    await section("mail", mail, limit, [...mailNext, ...(bulk ? [`# ${bulk} bulk or list threads left out`] : [])]),
-    await section("meetings", meetings, limit, ["memo search meetings <words>"]),
+    await section("mail", upTo(mail), limit, [
+      ...mailNext,
+      ...(bulk ? [`# ${bulk} bulk or list threads left out`] : []),
+    ]),
+    await section("meetings", upTo(meetings), limit, ["memo search meetings <words>"]),
     await section("tasks", tasks, limit, ["memo tasks list"]),
-    await section("projects", projects, limit, projectNext),
+    await section("projects", upTo(projects), limit, projectNext),
     await section("sources", sourceItems, limit, [
       REVIEW_SOURCES,
       ...(reviewCount > 0 ? [`# decide them: ${REVIEW_SOURCES}`] : []),
@@ -544,7 +563,7 @@ export const gatherDigest = async (
         ? [`# read changed sources again: memo memories check --since-time ${days} --json`]
         : []),
     ]),
-    await section("proposals", proposals, limit, ["memo review list"], waiting.total),
+    await section("proposals", upTo(proposals), limit, ["memo review list"], waiting.total),
   ]
   const providerCount = (provider: string) => accounts.filter((key) => key.provider === provider).length
   const meetingAccounts = accounts.filter((key) => kindOf(key.provider) === "meetings").length
@@ -563,7 +582,7 @@ export const gatherDigest = async (
       from: iso(since),
       to: iso(now),
       sources: sources.filter((one) => one.accounts > 0),
-      counts: { chats: chatsMoved, mail: mailMoved, tasks: hot.tasks.length, meetings: meetings.length },
+      counts: { chats: chatsMoved, mail: mailMoved, tasks: hot.tasks.length, meetings: upTo(meetings).length },
     },
     tasks: hot.counts,
     health: health.sort((a, b) => HEALTH_ORDER.indexOf(a.reason) - HEALTH_ORDER.indexOf(b.reason)),

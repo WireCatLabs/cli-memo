@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**944 ✅ · 0 ⛔ · 263 ❌** — 259 commands, 948 options.
+**951 ✅ · 0 ⛔ · 263 ❌** — 260 commands, 954 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -994,6 +994,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `review reject` | `--compact` | ❌ |  |
 | `review agenda` |  | ✅ |  |
 | `review agenda` | `--since-time` | ✅ |  |
+| `review agenda` | `--before-time` | ✅ |  |
 | `review agenda` | `--limit` | ✅ |  |
 | `review agenda` | `--max-output-bytes` | ✅ |  |
 | `review agenda` | `--compact` | ✅ |  |
@@ -1188,6 +1189,12 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `schedule remove` | `--json` | ❌ |  |
 | `schedule exec` |  | ✅ |  |
 | `schedule exec` | `--json` | ❌ |  |
+| `digest backfill` |  | ✅ |  |
+| `digest backfill` | `--from-app` | ✅ |  |
+| `digest backfill` | `--from` | ✅ |  |
+| `digest backfill` | `--to` | ✅ |  |
+| `digest backfill` | `--yes` | ✅ |  |
+| `digest backfill` | `--json` | ✅ |  |
 | `commands` |  | ✅ |  |
 | `commands` | `--json` | ✅ |  |
 | `commands info` |  | ✅ |  |

@@ -27,6 +27,7 @@ import { loadConfig } from "./config.js"
 import { configCommand } from "./config-command.js"
 import { contextCommand } from "./context/command.js"
 import { SHELL_OVERRIDES } from "./contract-overrides.js"
+import { digestCommand } from "./digest/backfill.js"
 import { commandsCommand, placeInSections } from "./discovery/command.js"
 import { doctorCommand } from "./doctor/command.js"
 import { eventsCommand } from "./events/command.js"
@@ -590,6 +591,7 @@ export const createProgram = ({
   doctorCommand(program, streams, env)
   program.addCommand(upgradeCommand(streams))
   program.addCommand(scheduleCommand(env))
+  digestCommand(program, streams, env)
   commandsCommand(program, streams)
   const skill = customizeSharedCommand(
     sharedSkillCommand(APP, new URL("../skills/cli-memo/SKILL.md", import.meta.url)),
