@@ -151,7 +151,7 @@ describe("MEMO_GROUP_LOCK fails closed", () => {
       ["people", "list"],
       ["people", "add", "Lock Person 2026"],
       ["notes", "list"],
-      ["relationships", "list", "confirmed:true"],
+      ["relationships", "list", "kind:member-of"],
     ])
       await expect(memo(...args), args.join(" ")).resolves.toBeDefined()
   })
@@ -160,7 +160,7 @@ describe("MEMO_GROUP_LOCK fails closed", () => {
     const memo = lockedTo("work")
     for (const args of [
       ["relationships", "confirm", "link:1"],
-      ["relationships", "remove", "1e0"],
+      ["relationships", "end", "1e0"],
       ["relationships", "update", "1", "--role", "contact"],
     ])
       await expect(memo(...args), args.join(" ")).rejects.toMatchObject({

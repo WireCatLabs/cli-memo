@@ -37,3 +37,9 @@ what the bank says moved and a payment is the settlement: they meet only through
 An agent's contract with a value, subscription, price and transaction wait for the owner in `memo review`.
 `memo show <ref>` and each `show` list where an imported entry came from under `sources`: the source records mapped to
 it, and those that name it (a quote `quoted-for` a deal).
+One deal whole: `memo deals context deal:<id> --brief` (people with roles and standing, client, project, money
+totals, counts); without `--brief` the detailed form. Its messages, mail and meetings are `proposed`: they share
+people with the deal, nothing links them. A stage named Won is not a payment: money is what invoices and payments
+say. A client's whole picture: `memo organizations context organization:<id>`; clients only:
+`memo organizations list category:client`. A deal or a person on it copied from a CRM is `reported`: say so when only
+the CRM says it. Set the project of a deal with `memo deals update deal:<id> --project <key>`.

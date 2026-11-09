@@ -86,7 +86,7 @@ const searchCommandDefinition = (program: Command, streams: Streams, env: NodeJS
           "projects or decisions. " +
           "A kind you know reads better with its own search, with all its fields",
       )
-      .summary("messages, mail, notes and calendar events ranked together"),
+      .summary("messages, mail, notes, events and deals ranked together"),
   )
     .option("--only <resources>", `${ONLY.join(",")}, separated by commas`, onlyOf)
     .option("--plain-order", "best first by the words alone, without moving mail from suspicious senders down")

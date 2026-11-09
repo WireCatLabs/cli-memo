@@ -143,6 +143,18 @@ Your agent writes deals, leads and pipelines as you do, at once. To limit what i
 pipeline named Sales: name one by its reference, `pipeline:3`. `pipelines show` counts, per stage, how many deals
 reached it and the share that went on to the next. `projects status` lists up to five open deals of the project.
 
+`memo deals context deal:5` gives one deal whole: how its stage moved, the client, its people with their roles and
+standing, the owner, the project, the invoices and payments of its project and its client, each saying how it was
+reached, the messages, mail and meetings of its people while it was open, and its open tasks. Those messages share
+people with the deal, nothing links them, so they are marked `proposed`. A stage named Won is not a payment: money is
+what the invoices and payments say. `--brief` is the short form for an agent; `memo leads context` is the same for a
+lead. `memo deals update deal:5 --project HRB` sets the project a deal belongs to, a CRM's copy too: the sync never
+changes it.
+
+A deal copied from a CRM account (`b24 <profile> sync`) and the people on it are `reported`: the CRM says so, and you
+did not confirm it. Put the CRM account in a group (`memo groups add work bitrix24:<portal>`), and a run of another group
+reads none of its deals, people or relationships.
+
 ## Answers for scripts and agents
 
 Add `--json` to most commands to get an answer a program can read. The text answer is for people;

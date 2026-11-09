@@ -96,7 +96,7 @@ export const createMemoServer = (
         let result: CallToolResult
         try {
           const current = allowed(tool.path, tool.writes)
-          const run = await catalogue.run(tool.path, v.parse(input, args), current)
+          const run = await catalogue.run(tool.path, v.parse(input, args), current, overrides)
           result = "error" in run ? agentResult(mcpErrorResult(run.error)) : answer(run.result as Body)
         } catch (error) {
           result = mcpFailure(error)

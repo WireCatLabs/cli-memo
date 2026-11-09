@@ -27,8 +27,12 @@ one with `memo notes show` or in the original app.
 | A person, by name, username or alias | `memo search people kai` |
 | Invoices, contracts, products and other business data | `memo search all 'budget' --only business` |
 
-`search all` looks in messages, mail, notes, calendar events, deals and leads, and
-[business data](./business.md#find-it-again) together. Events come from every calendar
+`search all` looks in messages, mail, notes, calendar events, CRM deals and leads, and
+[business data](./business.md#find-it-again) together. Deals and leads are
+found by the words of their title; `--only crm` searches them alone. When memo's
+[`permissions`](configuration.md#permissions) deny `deals` or `leads`, `search all` leaves them out and says so.
+A question about who someone is or how things relate reads better from `memo context person:<id>`,
+`memo organizations context` or `memo relationships list` first; search for the evidence after. Events come from every calendar
 gcal stored; the answer names each calendar it read, and `--only events` searches them alone. An event's title,
 description and place are written by whoever sent the invitation, and `--json` names those fields in the hit's
 `untrusted`. `memo events show <ref>` opens an `event:` reference, and `memo events list` lists the events of

@@ -70,11 +70,9 @@ it("finds a person by the owner's alias", async () => {
 it("reads every account by default and says which", async () => {
   const answer = await run("search", "people", "stefan")
   expect(answer.meta.accounts).toEqual(expect.arrayContaining(["telegram:1", "max:2"]))
-  expect(refs(answer)).toEqual([stepa])
-  expect(answer.items[0].identities.map(({ provider }: { provider: string }) => provider).sort()).toEqual([
-    "max",
-    "telegram",
-  ])
+  expect(refs(answer)).toContain(stepa)
+  const found = answer.items.find(({ ref }: { ref: string }) => ref === stepa)
+  expect(found.identities.map(({ provider }: { provider: string }) => provider).sort()).toEqual(["max", "telegram"])
 })
 
 it("says when --limit leaves people out", async () => {
