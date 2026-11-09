@@ -28,10 +28,23 @@ it("sets a person's engagement and a role note on a project membership, lists th
   const [rare, lead, helper] = people.map((person) => `person:${person.uid}`)
   const added = await json(true, "relationships", "add", String(rare), "project:1", "--engagement", "low")
   expect(added.item).toMatchObject({ engagement: "low" })
-  const daily = await json(true, "relationships", "add", String(lead), "project:1", "--role", "approver")
+  const daily = await json(
+    true,
+    "relationships",
+    "add",
+    String(lead),
+    "project:1",
+    "--role",
+    "approver",
+    "--role-note",
+    "reviews",
+  )
   await json(true, "relationships", "add", String(helper), "project:1")
 
-  const proposed = await json(false, "relationships", "update", daily.item.id, "--engagement", "high")
+  const proposed = await json(
+    false,
+    ...["relationships", "update", daily.item.id, "--engagement", "high", "--reason", "talks to them daily"],
+  )
   expect(proposed.item).toMatchObject({ kind: "relationship_update", payload: { changes: { engagement: "high" } } })
   const updated = await json(
     true,

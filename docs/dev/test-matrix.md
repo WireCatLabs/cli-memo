@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**944 ✅ · 0 ⛔ · 263 ❌** — 259 commands, 948 options.
+**948 ✅ · 0 ⛔ · 263 ❌** — 259 commands, 952 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -392,11 +392,15 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `relationships add` | `--json` | ✅ |  |
 | `relationships add` | `--kind` | ✅ |  |
 | `relationships add` | `--role` | ✅ |  |
+| `relationships add` | `--role-note` | ✅ |  |
+| `relationships add` | `--engagement` | ✅ |  |
 | `relationships add` | `--reason` | ✅ |  |
 | `relationships list` |  | ✅ |  |
 | `relationships list` | `--json` | ✅ |  |
 | `relationships update` |  | ✅ |  |
 | `relationships update` | `--role` | ✅ |  |
+| `relationships update` | `--role-note` | ✅ |  |
+| `relationships update` | `--engagement` | ✅ |  |
 | `relationships update` | `--purpose` | ✅ |  |
 | `relationships update` | `--reason` | ✅ |  |
 | `relationships update` | `--json` | ✅ |  |
