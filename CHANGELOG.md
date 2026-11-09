@@ -6,7 +6,7 @@ the API.
 
 ## Unreleased
 
-### Changed
+### Changed — may break callers
 
 - **memo is built on cli-core 0.623.0** (was 0.620.0). Desktop's pages can keep one memo process running
   (`commands --serve`) instead of starting memo for every call; `relationships list include:ended` answers in a
