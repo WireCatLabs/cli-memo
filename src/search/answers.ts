@@ -2,7 +2,7 @@ import type { ErrorCode } from "@wirecat/cli-base"
 import { MAX_NEXT_STEPS, type Missing, type StepDefinition, stepOf } from "@wirecat/cli-base/standards"
 import { kindIn } from "@wirecat/cli-core"
 import { allHitItem, coverageGaps, messageHitItem, noteHitItem } from "@wirecat/cli-core/cli"
-import type { NotesFound, SearchAllFound, SearchFound } from "@wirecat/cli-core/services"
+import { harderRanking, type NotesFound, type SearchAllFound, type SearchFound } from "@wirecat/cli-core/services"
 import type { AccountKey } from "@wirecat/cli-core/store"
 import { listAnswer } from "../answer.js"
 import { briefHit } from "./hits.js"
@@ -189,7 +189,10 @@ export const allAnswer = (
         ? [{ field: "order", why: harderNote(found) as string }]
         : []),
     ],
-    meta: metaOf(found.accounts, found.skipped, archive.missing.length > 0),
+    meta: {
+      ...metaOf(found.accounts, found.skipped, archive.missing.length > 0),
+      ...(found.harder ? { ranking: harderRanking(found.harder) } : {}),
+    },
   })
 }
 

@@ -570,6 +570,17 @@ it("search all --harder without the owner's consent sends nothing and says why, 
     field: "order",
     why: expect.stringContaining("memo models search-consents set "),
   })
+  expect(answerOf(json.stdout.join("")).meta.ranking).toEqual({
+    applied: false,
+    reason_id: "harder.no-consent",
+    provider: "anthropic",
+    model: "claude-haiku-5-5",
+    endpoint: "https://api.anthropic.com",
+    sent: 0,
+    cost_usd: 0,
+    ms: expect.any(Number),
+  })
+  expect(answerOf(plain.stdout.join("")).meta).not.toHaveProperty("ranking")
   expect(text.stderr.join("")).toContain("not reordered by the model")
   expect(sent).not.toHaveBeenCalled()
   sent.mockRestore()

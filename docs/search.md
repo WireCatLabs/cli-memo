@@ -286,6 +286,12 @@ If the model does not answer within 5 seconds, or anything else goes wrong, Memo
 and says why. It never fails the search. Only the first page is reordered. When a permission hides some kinds of
 results (an MCP server started with `--permission`), `--harder` sends nothing. An agent cannot allow it for you.
 
+With `--json`, `meta.ranking` says what happened, for a program such as WireCat Desktop: `applied` (whether the
+model's order was used), `reason_id` when it was not (`harder.no-consent`, `harder.timeout`, …), `provider`, `model`,
+`endpoint`, `sent` (results sent), `cost_usd` (`null` for a model with no known price), `usage` (input and output
+tokens, when the model answered) and `ms`. A search the permissions kept from the model has no `meta.ranking`; its
+`missing` says why.
+
 ## What a result shows
 
 For a note, a result shows the file and the first matching line. Below the results, Memo lists the
