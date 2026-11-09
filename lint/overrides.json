@@ -166,5 +166,12 @@
     "reason": "WireCat Desktop's People page (plan 2026-11-09-people-clients-digests, M-1, UX-133) sorts its paged table by interactions, recent, name or tasks; --order in the vocabulary takes only recent or name, and interactions is the default here.",
     "owner": "@leemour",
     "review_after": "2027-02-09"
+  },
+  {
+    "rule": "list-without-query",
+    "target": "digest list",
+    "reason": "WireCat Desktop's Digests page (plan 2026-11-09-people-clients-digests, TASK-959) reads every digest in one call, a handful at most; a query needs a digest entity schema the page does not use. Add one when a caller filters, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-09"
   }
 ]

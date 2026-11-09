@@ -22,6 +22,25 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: [],
   },
   {
+    reason: "digest.exists",
+    code: "validation_error",
+    message: "a digest or schedule of that name already exists; memo digest edit changes a digest",
+    details: [],
+  },
+  {
+    reason: "digest.not-found",
+    code: "not_found",
+    message: "no digest of that name — memo digest list names them",
+    details: [],
+  },
+  {
+    reason: "digest.owner-only",
+    code: "permission_error",
+    message:
+      "a digest spends the owner's money and writes to his chats; he changes or runs it in a terminal or WireCat Desktop",
+    details: [],
+  },
+  {
     reason: "roles.owner-only",
     code: "permission_error",
     message: "only the owner changes the role lists; an agent uses the roles they hold",

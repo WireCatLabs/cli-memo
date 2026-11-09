@@ -3,6 +3,7 @@ import { CliError, createRenderer, type KeyringStore, processStreams, type Strea
 import { customizeSharedCommand } from "@wirecat/cli-base/commands"
 import { skillCommand } from "@wirecat/cli-base/skill"
 import { REF_KINDS } from "@wirecat/cli-core"
+import type { ServerSystem } from "@wirecat/cli-core/background"
 import {
   addContractInfo,
   assertSharedContracts,
@@ -33,7 +34,7 @@ import { configCommand } from "./config-command.js"
 import { contextCommand } from "./context/command.js"
 import { SHELL_OVERRIDES } from "./contract-overrides.js"
 import { digestCommand } from "./digest/backfill.js"
-import { readBrief, withBrief } from "./digest/brief.js"
+import { digestAddendum, withBrief } from "./digest/brief.js"
 import { commandsCommand, placeInSections } from "./discovery/command.js"
 import { doctorCommand } from "./doctor/command.js"
 import { eventsCommand } from "./events/command.js"
@@ -692,6 +693,7 @@ export const createProgram = ({
   group,
   stdin,
   readerFetch,
+  system,
 }: {
   streams?: Streams
   env?: NodeJS.ProcessEnv
@@ -709,6 +711,8 @@ export const createProgram = ({
   group?: string
   /** How the Ollama and API readers reach the network; a test hands in its own. */
   readerFetch?: typeof fetch
+  /** Where schedules and digests put their timers and run their agents; this machine unless a test hands one in. */
+  system?: ServerSystem
 } = {}): Command => {
   // Every reader of the run's group reads MEMO_GROUP, so the first word is that, said shorter (WC-ACCT-13).
   const env = group === undefined ? given : { ...given, MEMO_GROUP: group }
@@ -777,7 +781,7 @@ export const createProgram = ({
     "Memo installs its own stored-data instructions through its environment, prints the packaged skills (morning-digest with the owner's brief from the store after it), and takes --json on each skill command because it has no global one.",
     () => {
       const out = answers(program, streams, env)
-      let brief: string | undefined
+      let brief: Awaited<ReturnType<typeof digestAddendum>> | undefined
       const skill = skillCommand(
         APP,
         new URL("../skills/cli-memo/SKILL.md", import.meta.url),
@@ -789,12 +793,16 @@ export const createProgram = ({
             const shown = value as { content?: string }
             out.print(
               true,
-              itemAnswer(shown.content === undefined ? value : { ...shown, content: withBrief(shown.content, brief) }),
+              itemAnswer(
+                shown.content === undefined
+                  ? value
+                  : { ...shown, content: withBrief(shown.content, brief?.brief, brief?.digest) },
+              ),
             )
           }
           return {
             renderer: json ? { ...renderer, result } : renderer,
-            streams: { ...streams, data: (text: string) => streams.data(withBrief(text, brief)) },
+            streams: { ...streams, data: (text: string) => streams.data(withBrief(text, brief?.brief, brief?.digest)) },
             env,
           }
         },
@@ -814,7 +822,7 @@ export const createProgram = ({
         `${show.description()}; morning-digest ends with your brief from \`memo digest brief\` when you wrote one`,
       )
       show?.hook("preAction", async (command) => {
-        brief = command.args[0] === "morning-digest" ? await readBrief(env) : undefined
+        brief = command.args[0] === "morning-digest" ? await digestAddendum(env) : undefined
       })
       return skill
     },
@@ -864,6 +872,7 @@ export const createProgram = ({
   installHelp(program, FIRST_SCREEN)
   provide(program, {
     ...environmentOf(program),
+    ...(system ? { system } : {}),
     env,
     discoveryAvailability: (info) => {
       let command: Command | undefined = program

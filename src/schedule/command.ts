@@ -8,7 +8,15 @@ import { bulkTriage, scheduleLimits } from "../config.js"
 import { mailTriageInput } from "./mail-triage-input.js"
 
 /** The `mail` CLI's identity, as its own `IDENTITY` names it: its folders and its `MAIL_*` variables. */
-const MAIL_CLI = { command: "mail", appName: "mail-cli", envPrefix: "MAIL" }
+export const MAIL_CLI = { command: "mail", appName: "mail-cli", envPrefix: "MAIL" }
+
+/** What an agent schedule's run reads first: the mail triage's waiting mail; nothing for any other agent. */
+export const agentInputOf = (env: NodeJS.ProcessEnv) =>
+  mailTriageInput(() =>
+    withStore(env, async (store) =>
+      (await store.accounts.accounts()).filter((key) => key.provider === "email").map((key) => key.account),
+    ),
+  )
 
 /**
  * cli-core's `schedule`: a memo command or an agent on a timer. memo has no profiles, and its `--json` is per
@@ -28,11 +36,7 @@ export const scheduleCommand = (env: NodeJS.ProcessEnv): Command => {
         await advancePastSkipped(store, holder, Date.now(), triage)
         return mailWaiting(store, holder, Date.now(), triage)
       }),
-    agentInput: mailTriageInput(() =>
-      withStore(env, async (store) =>
-        (await store.accounts.accounts()).filter((key) => key.provider === "email").map((key) => key.account),
-      ),
-    ),
+    agentInput: agentInputOf(env),
     limits: () => scheduleLimits(env),
   })
   for (const one of schedule.commands)

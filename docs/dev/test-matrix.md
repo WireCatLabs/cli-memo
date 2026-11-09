@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1061 ✅ · 0 ⛔ · 291 ❌** — 300 commands, 1052 options.
+**1090 ✅ · 0 ⛔ · 295 ❌** — 306 commands, 1079 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -152,13 +152,8 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `people add` |  | ✅ |  |
 | `people add` | `--json` | ✅ |  |
 | `people list` |  | ✅ |  |
-| `people list` | `--sort` | ✅ |  |
 | `people list` | `--limit` | ✅ |  |
-| `people list` | `--page` | ✅ |  |
 | `people list` | `--json` | ✅ |  |
-| `people check` |  | ✅ |  |
-| `people check` | `--limit` | ✅ |  |
-| `people check` | `--json` | ✅ |  |
 | `people show` |  | ✅ |  |
 | `people show` | `--json` | ✅ |  |
 | `people review` |  | ✅ |  |
@@ -1096,6 +1091,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `review agenda` |  | ✅ |  |
 | `review agenda` | `--since-time` | ✅ |  |
 | `review agenda` | `--before-time` | ✅ |  |
+| `review agenda` | `--source` | ❌ |  |
 | `review agenda` | `--limit` | ✅ |  |
 | `review agenda` | `--max-output-bytes` | ✅ |  |
 | `review agenda` | `--compact` | ✅ |  |
@@ -1185,7 +1181,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `search all` | `--only` | ✅ |  |
 | `search all` | `--source` | ✅ |  |
 | `search all` | `--plain-order` | ❌ |  |
-| `search all` | `--harder` | ✅ |  |
 | `search all` | `--project` | ✅ |  |
 | `search messages` |  | ✅ |  |
 | `search messages` | `--limit` | ❌ |  |
@@ -1327,10 +1322,48 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `digest brief edit` | `--json` | ❌ |  |
 | `digest brief reset` |  | ✅ |  |
 | `digest brief reset` | `--json` | ❌ |  |
+| `digest list` |  | ✅ |  |
+| `digest list` | `--json` | ✅ |  |
+| `digest add` |  | ✅ |  |
+| `digest add` | `--title` | ✅ |  |
+| `digest add` | `--at` | ✅ |  |
+| `digest add` | `--source` | ✅ |  |
+| `digest add` | `--deliver-to` | ✅ |  |
+| `digest add` | `--text` | ✅ |  |
+| `digest add` | `--max-cost` | ✅ |  |
+| `digest add` | `--max-cost-per-day` | ❌ |  |
+| `digest add` | `--json` | ✅ |  |
+| `digest add` | `--from-app` | ✅ |  |
+| `digest edit` |  | ✅ |  |
+| `digest edit` | `--title` | ✅ |  |
+| `digest edit` | `--at` | ✅ |  |
+| `digest edit` | `--source` | ✅ |  |
+| `digest edit` | `--deliver-to` | ✅ |  |
+| `digest edit` | `--text` | ✅ |  |
+| `digest edit` | `--max-cost` | ✅ |  |
+| `digest edit` | `--max-cost-per-day` | ✅ |  |
+| `digest edit` | `--json` | ✅ |  |
+| `digest edit` | `--from-app` | ✅ |  |
+| `digest run` |  | ✅ |  |
+| `digest run` | `--from-app` | ✅ |  |
+| `digest run` | `--no-notify` | ✅ |  |
+| `digest run` | `--deliver-to` | ✅ |  |
+| `digest run` | `--json` | ✅ |  |
+| `digest pause` |  | ✅ |  |
+| `digest pause` | `--from-app` | ✅ |  |
+| `digest pause` | `--json` | ✅ |  |
+| `digest resume` |  | ✅ |  |
+| `digest resume` | `--from-app` | ✅ |  |
+| `digest resume` | `--json` | ✅ |  |
+| `digest remove` |  | ✅ |  |
+| `digest remove` | `--from-app` | ✅ |  |
+| `digest remove` | `--json` | ✅ |  |
 | `digest backfill` |  | ✅ |  |
 | `digest backfill` | `--from-app` | ✅ |  |
 | `digest backfill` | `--since-time` | ✅ |  |
 | `digest backfill` | `--until-time` | ✅ |  |
+| `digest backfill` | `--from` | ❌ |  |
+| `digest backfill` | `--to` | ❌ |  |
 | `digest backfill` | `--yes` | ✅ |  |
 | `digest backfill` | `--json` | ✅ |  |
 | `commands` |  | ✅ |  |
