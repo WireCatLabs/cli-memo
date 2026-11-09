@@ -5817,7 +5817,7 @@ memo schedule command <name> <args> [options]
 
 ### `memo schedule agent`
 
-start an agent (claude or codex) with a prompt on a timer; it runs with MEMO_READ_ONLY=1, so it reads and drafts and cannot send — its answer is kept and you are notified
+start an agent (claude or codex) with a prompt on a timer; it runs with MEMO_READ_ONLY=1 and MAIL_READ_ONLY=1, so it reads and drafts and cannot send — its answer is kept and you are notified
 
 This command changes the local store or your files.
 
