@@ -151,6 +151,22 @@ memo relationships remove 4
 A person's role as a member comes from a list: in an organization employee, contractor, founder, owner,
 manager, adviser or contact; in a project owner, manager, contributor, client-contact or approver. memo refuses
 any other role (`relationship.role-unknown`).
+What the role means here goes beside it, in your words, with `--role-note`.
+A free-text role from before the lists still reads; to change it, set a listed role and keep the old words as
+the note: `memo relationships update 4 --role client-contact --role-note '<the old words>'`.
+
+A person on a project also takes an **engagement level**: how much you deal with them yourself, not how active
+they are. It is `none`, `low`, `medium` or `high`; without one it is unknown. Someone who writes in the client
+group but whom you rarely answer stays a member, with `low`:
+
+```sh
+memo relationships update 4 --engagement low
+memo relationships update 4 --role approver --role-note 'signs the acts'
+memo relationships update 4 --engagement ''    # back to unknown
+```
+
+`memo projects context` and `memo relationships list` put the project's people in this order: high, medium,
+unknown, low, none.
 
 A chat can be a project's too, so `memo projects evidence` reads all of it, not only messages that name the
 project. The reference names the chat's account, so no account is guessed:

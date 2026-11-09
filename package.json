@@ -1,6 +1,6 @@
 {
   "name": "@wirecat/cli-memo",
-  "version": "0.131.67",
+  "version": "0.131.68",
   "description": "Context about people across messengers, notes and mail, from a local store",
   "mcpName": "dev.wirecat/cli-memo",
   "license": "Apache-2.0",
@@ -34,7 +34,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "lint:commands": "cli-dev lint --cli dist/bin/memo.js --budget 19",
+    "lint:commands": "cli-dev lint --cli dist/bin/memo.js --budget 23",
     "release:check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && node --experimental-strip-types scripts/commands.ts --check && pnpm lint:commands && pnpm secrets:scan",
     "prepare": "lefthook install || true",
     "postinstall": "node install/postinstall.mjs",

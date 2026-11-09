@@ -44,3 +44,10 @@ project backup or use it to justify clearing live data. MCP offers `project_anno
 `project_annotations_preview`; neither restores records. The generated `projects_annotations_restore`
 requires the owner's explicit `projects.annotations.restore` permission. Never clear agent environment
 markers to bypass that permission. Historical proposals stay proposed.
+
+A person's `member-of` a project may carry `engagement`: `none`, `low`, `medium` or `high`, how much the owner deals
+with that person himself, not how active they are; absent is unknown. A `low` or `none` member is still a member and
+is still read by sender. `memo projects context` lists the project's people high, medium, unknown, low, none. A
+`role` is one of the project's roles; the owner's words about it are `role_note`. Set either with
+`memo relationships update <id> --engagement <level>` or `--role-note <text>`; yours waits for the owner in
+`memo review`, and never guess a level from how much a person writes.

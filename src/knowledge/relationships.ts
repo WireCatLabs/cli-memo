@@ -1,4 +1,5 @@
 import type { QueryRegistry } from "@wirecat/cli-base/query"
+import { byEngagement } from "@wirecat/cli-core"
 import { queryTerms, termField } from "@wirecat/cli-core/cli"
 import { proposalRegistry } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
@@ -66,7 +67,7 @@ export const listRelationships = async (store: MessageStore, words: readonly str
       ? await pending(store, about)
       : {
           hasMore: false,
-          items: (await store.knowledge.relations(null, about))
+          items: byEngagement(await store.knowledge.relations(null, about))
             .filter((one) => confirmed === undefined || one.confirmed)
             .map((one) => ({ ...one, status: one.confirmed ? ("confirmed" as const) : ("proposed" as const) })),
         }
@@ -90,7 +91,15 @@ export const relationshipsText = (items: readonly Listed[]) =>
           [
             one.id,
             `${one.fromTitle} → ${one.toTitle}`,
-            [one.kind, one.role && `as ${one.role}`, one.purpose && `for ${one.purpose}`].filter(Boolean).join(" "),
+            [
+              one.kind,
+              one.role && `as ${one.role}`,
+              "roleNote" in one && one.roleNote && `(${one.roleNote})`,
+              one.purpose && `for ${one.purpose}`,
+              "engagement" in one && one.engagement && `engagement ${one.engagement}`,
+            ]
+              .filter(Boolean)
+              .join(" "),
             "proposer" in one ? `proposed by ${one.proposer}` : one.confirmed ? "" : "suggested",
           ]
             .filter(Boolean)
