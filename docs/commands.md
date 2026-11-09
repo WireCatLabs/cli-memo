@@ -6743,14 +6743,14 @@ memo digest backfill [options]
 | Option | What it does |
 |---|---|
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
-| `--from <date>` | the first day, YYYY-MM-DD. |
-| `--to <date>` | the last day, YYYY-MM-DD; not a day whose run time is still ahead. |
+| `--since-time <time>` | the first day, YYYY-MM-DD. |
+| `--until-time <time>` | the last day, YYYY-MM-DD; not a day whose run time is still ahead. |
 | `--yes` | build them; without it, only the estimate is printed. |
 | `--json` | print JSON. |
 
 **Returns:** build the morning digests of past days, without sending them
 
-**Example:** `memo digest backfill --from 2026-11-01 --to 2026-11-07`, `memo digest backfill --from 2026-11-01 --to 2026-11-07 --yes --json`
+**Example:** `memo digest backfill --since-time 2026-11-01 --until-time 2026-11-07`, `memo digest backfill --since-time 2026-11-01 --until-time 2026-11-07 --yes --json`
 
 ## `memo commands`
 

@@ -88,7 +88,9 @@ process.stdout.write(JSON.stringify({ type: "result", result: JSON.stringify(rep
 it("estimates the days without a digest at the last run's cost, and builds nothing", async () => {
   const { run, runs, inputs } = setUp()
   writeFileSync(join(runs, `${stampOf(dateBack(2))}.report.json`), "{}")
-  const body = envelopeOf(await run("digest", "backfill", "--from", dateBack(3), "--to", dateBack(1), "--json"))
+  const body = envelopeOf(
+    await run("digest", "backfill", "--since-time", dateBack(3), "--until-time", dateBack(1), "--json"),
+  )
 
   expect(body.item).toEqual({ days: [dateBack(3), dateBack(1)], skipped: [dateBack(2)], estimate_usd: 0.18 })
   expect(inputs()).toBe("")
@@ -97,7 +99,17 @@ it("estimates the days without a digest at the last run's cost, and builds nothi
 it("builds each day as that day's run, marked backfill, with its window, and leaves the last run", async () => {
   const { run, folder, runs, inputs, last } = setUp()
   const body = envelopeOf(
-    await run("digest", "backfill", "--from", dateBack(2), "--to", dateBack(1), "--yes", "--from-app", "--json"),
+    await run(
+      "digest",
+      "backfill",
+      "--since-time",
+      dateBack(2),
+      "--until-time",
+      dateBack(1),
+      "--yes",
+      "--from-app",
+      "--json",
+    ),
   )
 
   expect(body.item).toMatchObject({ days: [dateBack(2), dateBack(1)], skipped: [], left: [], cost_usd: 0.18 })
@@ -118,7 +130,17 @@ it("stops starting days once today's runs cost the schedule's daily cap", async 
   const { run, folder, inputs } = setUp()
   writeFileSync(join(folder, "spend.json"), JSON.stringify({ day: dateBack(0), usd: 0.95 }))
   const body = envelopeOf(
-    await run("digest", "backfill", "--from", dateBack(2), "--to", dateBack(1), "--yes", "--from-app", "--json"),
+    await run(
+      "digest",
+      "backfill",
+      "--since-time",
+      dateBack(2),
+      "--until-time",
+      dateBack(1),
+      "--yes",
+      "--from-app",
+      "--json",
+    ),
   )
 
   expect(body.item.built.map((one: { date: string }) => one.date)).toEqual([dateBack(2)])
@@ -129,7 +151,17 @@ it("stops starting days once today's runs cost the schedule's daily cap", async 
 it("stops at a failed day, so a broken harness is not paid for every day", async () => {
   const { run, inputs } = setUp({}, { FAKE_FAIL: "1" })
   const body = envelopeOf(
-    await run("digest", "backfill", "--from", dateBack(2), "--to", dateBack(1), "--yes", "--from-app", "--json"),
+    await run(
+      "digest",
+      "backfill",
+      "--since-time",
+      dateBack(2),
+      "--until-time",
+      dateBack(1),
+      "--yes",
+      "--from-app",
+      "--json",
+    ),
   )
 
   expect(body.item.built).toEqual([expect.objectContaining({ date: dateBack(2), exit_code: 3 })])
@@ -140,19 +172,25 @@ it("stops at a failed day, so a broken harness is not paid for every day", async
 
 it("is the owner's alone: an agent and the read-only lock are refused before anything runs", async () => {
   const agent = setUp({ AI_AGENT: "claude-code_2-1-296_agent" })
-  await expect(agent.run("digest", "backfill", "--from", dateBack(2), "--to", dateBack(1), "--yes")).rejects.toThrow(
-    /owner's money/,
-  )
+  await expect(
+    agent.run("digest", "backfill", "--since-time", dateBack(2), "--until-time", dateBack(1), "--yes"),
+  ).rejects.toThrow(/owner's money/)
   expect(agent.inputs()).toBe("")
   const locked = setUp({ MEMO_READ_ONLY: "1" })
-  await expect(locked.run("digest", "backfill", "--from", dateBack(2), "--to", dateBack(1))).rejects.toThrow(
-    /MEMO_READ_ONLY/,
-  )
+  await expect(
+    locked.run("digest", "backfill", "--since-time", dateBack(2), "--until-time", dateBack(1)),
+  ).rejects.toThrow(/MEMO_READ_ONLY/)
 })
 
 it("refuses a day whose run time is still ahead, and a range the wrong way round", async () => {
   const { run } = setUp()
-  await expect(run("digest", "backfill", "--from", dateBack(1), "--to", ahead())).rejects.toThrow(/has not come yet/)
-  await expect(run("digest", "backfill", "--from", dateBack(1), "--to", dateBack(2))).rejects.toThrow(/after --to/)
-  await expect(run("digest", "backfill", "--from", "2026-02-30", "--to", dateBack(1))).rejects.toThrow(/YYYY-MM-DD/)
+  await expect(run("digest", "backfill", "--since-time", dateBack(1), "--until-time", ahead())).rejects.toThrow(
+    /has not come yet/,
+  )
+  await expect(run("digest", "backfill", "--since-time", dateBack(1), "--until-time", dateBack(2))).rejects.toThrow(
+    /after --until-time/,
+  )
+  await expect(run("digest", "backfill", "--since-time", "2026-02-30", "--until-time", dateBack(1))).rejects.toThrow(
+    /YYYY-MM-DD/,
+  )
 })

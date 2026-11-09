@@ -22,8 +22,8 @@ const DAY = 86_400_000
 const DATE = /^(\d{4})-(\d{2})-(\d{2})$/
 
 interface Options {
-  from: string
-  to: string
+  sinceTime: string
+  untilTime: string
   yes?: boolean
   json?: boolean
   fromApp?: boolean
@@ -92,14 +92,15 @@ export const digestCommand = (program: Command, streams: Streams, env: NodeJS.Pr
         "today's runs cost the schedule's daily cap or a day fails, and only you run it, never an agent. The store " +
         "keeps what holds now, so a chat answered since reads as answered",
     )
-    .requiredOption("--from <date>", "the first day, YYYY-MM-DD")
-    .requiredOption("--to <date>", "the last day, YYYY-MM-DD; not a day whose run time is still ahead")
+    .requiredOption("--since-time <time>", "the first day, YYYY-MM-DD")
+    .requiredOption("--until-time <time>", "the last day, YYYY-MM-DD; not a day whose run time is still ahead")
     .option("--yes", "build them; without it, only the estimate is printed")
     .option("--json", "print JSON")
     .action(async (given: Options, command: Command) => {
-      const from = dateOf(given.from, "--from")
-      const to = dateOf(given.to, "--to")
-      if (from > to) throw new CliError("validation_error", "--from is after --to", { param: "--from" })
+      const from = dateOf(given.sinceTime, "--since-time")
+      const to = dateOf(given.untilTime, "--until-time")
+      if (from > to)
+        throw new CliError("validation_error", "--since-time is after --until-time", { param: "--since-time" })
       const { state, schedule } = digestSchedule(env)
       if (!schedule)
         throw new CliError(
@@ -120,9 +121,13 @@ export const digestCommand = (program: Command, streams: Streams, env: NodeJS.Pr
         )
       const all = daysOf(from, to, when.daily)
       if ((all.at(-1)?.at ?? 0) > Date.now())
-        throw new CliError("validation_error", `the ${given.to} digest's time has not come yet; --to an earlier day`, {
-          param: "--to",
-        })
+        throw new CliError(
+          "validation_error",
+          `the ${given.untilTime} digest's time has not come yet; --until-time an earlier day`,
+          {
+            param: "--until-time",
+          },
+        )
       const runs = join(file, "..", "runs")
       const done = new Set(
         (existsSync(runs) ? readdirSync(runs) : [])
