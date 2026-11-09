@@ -22,6 +22,37 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: [],
   },
   {
+    reason: "brief.owner-only",
+    code: "permission_error",
+    message: "only the owner changes the digest brief, not an agent",
+    details: [],
+  },
+  {
+    reason: "brief.no-editor",
+    code: "validation_error",
+    message: "set VISUAL or EDITOR, or pass the brief with --file",
+    details: [],
+  },
+  {
+    reason: "brief.no-history",
+    code: "validation_error",
+    message: "the brief has no earlier body to put back",
+    details: [],
+  },
+  {
+    reason: "brief.empty",
+    code: "validation_error",
+    message: "the brief is empty; memo digest brief reset removes it",
+    details: [],
+  },
+  {
+    reason: "brief.too-long",
+    code: "validation_error",
+    message:
+      "the brief is {chars} characters; the limit is {limit}, because every morning run reads it and pays for it",
+    details: ["chars", "limit"],
+  },
+  {
     reason: "ref.bare-number",
     code: "validation_error",
     message: "{value} is a bare number, which names no one kind of record here; give a reference such as {suggestion}",

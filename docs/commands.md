@@ -5943,7 +5943,63 @@ memo schedule exec <file> [options]
 
 ## `memo digest`
 
-the morning digest's history: build the digests of past days
+the morning digest: your brief on what it collects, and the digests of past days
+
+### `memo digest brief`
+
+your own instructions on what the morning digest collects: projects, people, topics, what to skip, how many items. The morning-digest skill ends with them, and where they contradict its rules they win; the run stays read only, with memo as its only tool and the schedule's cost cap. At most 4000 characters
+
+#### `memo digest brief show`
+
+```sh
+memo digest brief show [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** the brief the morning digest follows, and the bodies your changes replaced
+
+**Example:** `memo digest brief show`, `memo digest brief show --json`
+
+#### `memo digest brief edit`
+
+write the brief in $EDITOR, or from --file; at most 4000 characters. The body it replaces is kept, and --undo puts it back. Only you change it, never an agent or a read-only run
+
+This command changes the local store or your files.
+
+```sh
+memo digest brief edit [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--file <file>` | take the brief from this file instead of opening an editor; - reads stdin. |
+| `--undo` | put back the body your last change replaced. |
+| `--json` | print JSON. |
+
+**Returns:** write the brief in $EDITOR or from --file; only you, never an agent
+
+**Example:** `memo digest brief edit`, `memo digest brief edit --file brief.md`, `memo digest brief edit --undo`
+
+#### `memo digest brief reset`
+
+remove the brief, so the morning digest follows its skill alone; edit --undo brings it back
+
+This command changes the local store or your files.
+
+```sh
+memo digest brief reset [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** remove the brief; edit --undo brings it back
+
+**Example:** `memo digest brief reset`
 
 ### `memo digest backfill`
 
@@ -6009,7 +6065,7 @@ the instructions an agent is given for this tool
 
 ### `memo skill show`
 
-print SKILL.md — `memo skill install` puts it where Claude Code, Codex, Gemini CLI and OpenClaw look for it, and where Hermes does on request; --for prints the copy already there
+print SKILL.md — `memo skill install` puts it where Claude Code, Codex, Gemini CLI and OpenClaw look for it, and where Hermes does on request; --for prints the copy already there; morning-digest ends with your brief from `memo digest brief` when you wrote one
 
 ```sh
 memo skill show [name] [options]
