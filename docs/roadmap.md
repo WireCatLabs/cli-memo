@@ -23,7 +23,7 @@ Nothing is being built right now. The first items under Next come first.
 
 - **Project evidence, next steps.** Before gathering, say which sources are fresh enough to search; read the
   whole thread around a match; optionally add search by meaning.
-- **Meetings in `search all` and in a person's context.** Today stored meetings have their own search.
+- **Meetings in a person's context.** `search all` reads every meeting account; `memo context` does not yet.
 - **Faster search.** A search should not take seconds on a small store.
 
 ## Later

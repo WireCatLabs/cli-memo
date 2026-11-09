@@ -27,8 +27,8 @@ one with `memo notes show` or in the original app.
 | A person, by name, username or alias | `memo search people kai` |
 | Invoices, contracts, products and other business data | `memo search all 'budget' --only business` |
 
-`search all` looks in messages, mail, notes, calendar events, CRM deals and leads, and
-[business data](./business.md#find-it-again) together. Deals and leads are
+`search all` looks in messages, mail, notes, calendar events, CRM deals and leads,
+[business data](./business.md#find-it-again) and meetings together. Deals and leads are
 found by the words of their title; `--only crm` searches them alone. When memo's
 [`permissions`](configuration.md#permissions) deny `deals` or `leads`, `search all` leaves them out and says so.
 A question about who someone is or how things relate reads better from `memo context person:<id>`,
@@ -36,7 +36,18 @@ A question about who someone is or how things relate reads better from `memo con
 gcal stored; the answer names each calendar it read, and `--only events` searches them alone. An event's title,
 description and place are written by whoever sent the invitation, and `--json` names those fields in the hit's
 `untrusted`. `memo events show <ref>` opens an `event:` reference, and `memo events list` lists the events of
-every calendar account, phone calls included. It does not search meetings, people, memories, projects or tasks; use `memo search people`, `memo context`, `memo search memories` and `memo tasks list` for those.
+every calendar account, phone calls included.
+
+Meetings come from every stored meeting account, through each account's search index; in a group, from the group's
+meeting accounts only. A meeting gives at most 3 hits. A transcript hit has `cue_ref`, and the answer's `next` names
+the `memo meetings passage` command that opens it. Search all never builds the index: when `missing` names an
+account, `next` gives `memo search meetings <query> --source <provider>:<account>`, which builds it.
+`--source zoom:work,notes` reads only the accounts it names; a kind it names none of is left out.
+`--only meetings,crm` reads only those kinds. When your permissions set `search.meetings` or `meetings.passage` to
+`deny` or `ask`, search all leaves meetings out and says so in `missing`.
+
+It does not search people, memories, projects or tasks; use `memo search people`, `memo context`, `memo search
+memories` and `memo tasks list` for those.
 When you know where something is, its own search is better, because it understands more search
 words.
 

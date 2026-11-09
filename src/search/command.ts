@@ -1,14 +1,16 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
 import { parseLucene } from "@wirecat/cli-base/query"
-import { LOCAL_READ, sharedCommandTemplate, shownOf } from "@wirecat/cli-core/cli"
+import { environmentOf, LOCAL_READ, sharedCommandTemplate, shownOf } from "@wirecat/cli-core/cli"
 import { hitText } from "@wirecat/cli-core/mail"
-import type { SearchedResource } from "@wirecat/cli-core/services"
+import { levelFor } from "@wirecat/cli-core/sends"
+import { RESOURCES_SEARCHED, type SearchedResource } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, withStore } from "../answer.js"
 import { APP } from "../app.js"
 import { SHELL_OVERRIDES } from "../contract-overrides.js"
+import { memoLevels } from "../mcp/permissions.js"
 import { searchMemoriesCommand } from "../memories/command.js"
 import { searchText } from "../notes/search.js"
 import { positive } from "../options.js"
@@ -34,13 +36,29 @@ const groupMessengers = async (store: MessageStore, env: NodeJS.ProcessEnv, text
   return messages
 }
 
-const ONLY = ["messages", "mail", "notes", "events", "crm", "business"]
+const ONLY: readonly string[] = RESOURCES_SEARCHED
 
 const onlyOf = (value: string): SearchedResource[] => {
   const selected = value.split(",").map((part) => part.trim())
   if (!selected.length || selected.some((part) => !ONLY.includes(part)))
     throw new InvalidArgumentError(`choose ${ONLY.join(",")}, separated by commas`)
   return [...new Set(selected)] as SearchedResource[]
+}
+
+/**
+ * A meeting hit is only useful opened, so search all reads meetings only where searching and opening them both go
+ * ahead unasked: `ask` would have stopped either command, so it keeps them out too.
+ */
+const MEETING_KEYS = ["search.meetings", "meetings.passage"] as const
+const READS = new Set(["allow", "readonly"])
+
+const meetingsDenied = (command: Command, env: NodeJS.ProcessEnv): { why: string } | undefined => {
+  const levels = memoLevels(env, environmentOf(command).agent?.overrides ?? [])
+  for (const key of MEETING_KEYS) {
+    const { level } = levelFor(levels, key)
+    if (!READS.has(level)) return { why: `meetings left out: the permissions set ${key} to ${level}` }
+  }
+  return undefined
 }
 
 export type Level = "brief" | "full"
@@ -82,13 +100,18 @@ const searchCommandDefinition = (program: Command, streams: Streams, env: NodeJS
   queryOptions(
     annotate(group.command("all"), { effects: LOCAL_READ, output: { entity: "hit" } })
       .description(
-        "messages, mail, notes, calendar events, deals, leads and business data ranked together; not people, memories, " +
-          "projects or decisions. " +
+        "messages, mail, notes, calendar events, deals, leads, business data and meeting passages from every meeting " +
+          "account, ranked together; not people, memories, projects or decisions. " +
           "A kind you know reads better with its own search, with all its fields",
       )
-      .summary("messages, mail, notes, events and deals ranked together"),
+      .summary("messages, mail, notes, events, deals and meetings ranked together"),
   )
     .option("--only <resources>", `${ONLY.join(",")}, separated by commas`, onlyOf)
+    .option(
+      "--source <accounts>",
+      "only these accounts, separated by commas: provider:account as a hit shows it, a provider, a kind or " +
+        "group:<name>; each resource reads the ones of its kind, and one it names none of is left out",
+    )
     .option("--plain-order", "best first by the words alone, without moving mail from suspicious senders down")
     .option("--project <project>", PROJECT_ORDER_HELP)
     .addHelpText(
@@ -106,6 +129,7 @@ business finds invoices, payments, orders, contracts, subscriptions, products an
         options: {
           limit: number
           only?: SearchedResource[]
+          source?: string
           exact?: boolean
           timezone?: string
           project?: string
@@ -114,7 +138,15 @@ business finds invoices, payments, orders, contracts, subscriptions, products an
         },
         command: Command,
       ) => {
-        const gate = lanesFor(command, options.only)
+        const denied = meetingsDenied(command, env)
+        const asked = options.only ?? [...RESOURCES_SEARCHED]
+        const wanted = denied ? asked.filter((one) => one !== "meetings") : options.only
+        if (wanted?.length === 0)
+          throw new CliError("permission_error", `search all has nothing it may read: ${denied?.why}`, {
+            reason: "search.all-denied",
+          })
+        const leftOut = denied ? [denied] : []
+        const gate = lanesFor(command, wanted)
         const answer = await withStore(env, async (store) => {
           const found = await searchEverywhere(store, env, {
             text: words.join(" "),
@@ -122,6 +154,7 @@ business finds invoices, payments, orders, contracts, subscriptions, products an
             ...(gate.only === undefined ? {} : { only: gate.only }),
             ...(gate.shows === undefined ? {} : { shows: gate.shows }),
             ...(gate.crmKinds === undefined ? {} : { crmKinds: gate.crmKinds }),
+            ...(options.source === undefined ? {} : { source: options.source }),
             ...(options.exact ? { exact: true } : {}),
             ...(options.plainOrder ? { plainOrder: true } : {}),
             ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
@@ -133,6 +166,7 @@ business finds invoices, payments, orders, contracts, subscriptions, products an
           }
         })
         if (!options.json) {
+          for (const { why } of leftOut) streams.diagnostic(`${why}\n`)
           streams.diagnostic(
             `searched: ${answer.accounts.map(({ provider, account }) => `${provider}:${account}`).join(", ") || "nothing"}\n`,
           )
@@ -145,7 +179,7 @@ business finds invoices, payments, orders, contracts, subscriptions, products an
         }
         print(
           options.json,
-          allAnswer(answer, options.limit, options.exact),
+          allAnswer(answer, options.limit, options.exact, leftOut),
           [
             ...answer.items.map((item) => `${"key" in item ? "key  " : ""}${item.kind}  ${item.ref}\n  ${item.text}`),
             ...answer.tasks.map((task) => `task  task:${task.id}  ${task.kind}  ${task.source}`),

@@ -5766,9 +5766,71 @@ memo models consents revoke [options]
 
 **Example:** `memo models consents revoke`
 
+### `memo models search-consents`
+
+consent that search all --harder sends the question and its first hits to a hosted model; off by default
+
+#### `memo models search-consents show`
+
+whether search all --harder may call the model, which one, and whether its key is found
+
+```sh
+memo models search-consents show [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** whether search all --harder may call the model, which one, and whether its…
+
+**Example:** `memo models search-consents show --json`
+
+#### `memo models search-consents set`
+
+allow search all --harder to call the model; without --yes, say what it sends and change nothing
+
+This command changes the local store or your files.
+
+```sh
+memo models search-consents set <provider> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `provider` | required | the provider that receives the question and hits: anthropic. |
+
+| Option | What it does |
+|---|---|
+| `--model <model>` | the provider's model name. Default: `claude-haiku-5-5`. |
+| `--yes` | agree that a --harder search sends its question and hits, and allow it. |
+| `--json` | print JSON. |
+
+**Returns:** allow search all --harder to call the model; without --yes, say what it…
+
+**Example:** `memo models search-consents set anthropic`, `memo models search-consents set anthropic --yes`
+
+#### `memo models search-consents revoke`
+
+stop search all --harder from calling the model; it gives the plain order again
+
+This command changes the local store or your files.
+
+```sh
+memo models search-consents revoke [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** stop search all --harder from calling the model; it gives the plain order again
+
+**Example:** `memo models search-consents revoke`
+
 ### `memo models keys`
 
-the API key write-time enrichment sends with each request
+the API key write-time enrichment and search all --harder send with each request
 
 #### `memo models keys set`
 
@@ -5878,7 +5940,7 @@ memo templates edit <key> [options]
 |---|---|
 | `--channel <channel>` | telegram (Bot API HTML), email (HTML with inline styles) or text. One of: `telegram`, `email`, `text`. |
 | `--locale <code>` | the template's language, ISO 639-1; the owner's first language if not given. |
-| `--file <file>` | take the new template from this file instead of opening an editor. |
+| `--file <file>` | take the new template from this file instead of opening an editor; - reads stdin. |
 | `--undo` | put back the body your last change replaced; twice is back where you were. |
 | `--json` | print JSON. |
 
@@ -5902,7 +5964,7 @@ memo templates preview <key> [options]
 |---|---|
 | `--channel <channel>` | telegram (Bot API HTML), email (HTML with inline styles) or text. One of: `telegram`, `email`, `text`. |
 | `--locale <code>` | the template's language, ISO 639-1; the owner's first language if not given. |
-| `--file <file>` | preview this draft instead of the template that applies. |
+| `--file <file>` | preview this draft instead of the template that applies; - reads stdin. |
 | `--json` | print JSON. |
 
 **Returns:** what would be sent on that channel; saves nothing
@@ -5939,7 +6001,7 @@ search messages, mail, notes, memories and people; search all when unsure where
 
 ### `memo search all`
 
-messages, mail, notes, calendar events, deals, leads and business data ranked together; not people, memories, projects or decisions. A kind you know reads better with its own search, with all its fields
+messages, mail, notes, calendar events, deals, leads, business data and meeting passages from every meeting account, ranked together; not people, memories, projects or decisions. A kind you know reads better with its own search, with all its fields
 
 ```sh
 memo search all <query> [options]
@@ -5955,13 +6017,14 @@ memo search all <query> [options]
 | `--exact` | words as written; skip meaning search. |
 | `--timezone <zone>` | IANA timezone for calendar date boundaries. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--only <resources>` | messages,mail,notes,events,crm,business, separated by commas. |
+| `--only <resources>` | messages,mail,notes,events,crm,business,meetings, separated by commas. |
+| `--source <accounts>` | only these accounts, separated by commas: provider:account as a hit shows it, a provider, a kind or group:<name>; each resource reads the ones of its kind, and one it names none of is left out. |
 | `--plain-order` | best first by the words alone, without moving mail from suspicious senders down. |
 | `--project <project>` | rank the key documents of this project (id, project:<id>, key, exact name or alias) first; nothing is left out. |
 
-**Returns:** hit — kind, ref, provider, account, title, timestamp, excerpt, url, and 15 more; every field: memo commands info search all
+**Returns:** hit — kind, ref, provider, account, title, timestamp, excerpt, url, and 17 more; every field: memo commands info search all
 
-**Example:** `memo search all 'budget harbour'`, `memo search all 'content:invoice' --only mail,notes --json`, `memo search all 'Rental agreement' --only business`
+**Example:** `memo search all 'budget harbour'`, `memo search all 'Rental agreement' --only business`, `memo search all 'release date' --source zoom:work,notes --json`
 
 ### `memo search messages`
 

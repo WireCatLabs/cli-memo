@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1047 ✅ · 0 ⛔ · 283 ❌** — 294 commands, 1036 options.
+**1053 ✅ · 0 ⛔ · 286 ❌** — 297 commands, 1042 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -1138,6 +1138,14 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `models consents set` | `--json` | ❌ |  |
 | `models consents revoke` |  | ✅ |  |
 | `models consents revoke` | `--json` | ❌ |  |
+| `models search-consents show` |  | ✅ |  |
+| `models search-consents show` | `--json` | ✅ |  |
+| `models search-consents set` |  | ✅ |  |
+| `models search-consents set` | `--model` | ❌ |  |
+| `models search-consents set` | `--yes` | ✅ |  |
+| `models search-consents set` | `--json` | ❌ |  |
+| `models search-consents revoke` |  | ✅ |  |
+| `models search-consents revoke` | `--json` | ❌ |  |
 | `models keys set` |  | ✅ |  |
 | `models keys set` | `--json` | ✅ |  |
 | `models keys remove` |  | ✅ |  |
@@ -1169,6 +1177,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `search all` | `--timezone` | ❌ |  |
 | `search all` | `--json` | ✅ |  |
 | `search all` | `--only` | ✅ |  |
+| `search all` | `--source` | ✅ |  |
 | `search all` | `--plain-order` | ❌ |  |
 | `search all` | `--project` | ✅ |  |
 | `search messages` |  | ✅ |  |
