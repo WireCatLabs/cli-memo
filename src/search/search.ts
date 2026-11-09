@@ -246,14 +246,16 @@ const groupScoped = async (
 ) => {
   const scope = await groupScopeOf(store, env)
   if (scope === undefined) return undefined
-  const kinds = accountsByKind(scope, await store.business.accounts())
+  const byKind: Partial<Record<SearchedResource, AccountKey[]>> = accountsByKind(scope, await store.business.accounts())
+  // cli-core may search a kind a group holds no accounts of here (meetings); such a kind is left out, not read whole.
+  const kinds = (kind: SearchedResource): AccountKey[] => byKind[kind] ?? []
   const wanted = only ?? RESOURCES_SEARCHED
-  const kept = wanted.filter((kind) => kinds[kind].length > 0)
+  const kept = wanted.filter((kind) => kinds(kind).length > 0)
   if (kept.length === 0)
     throw new CliError("validation_error", `group ${scope.run.name} holds no account of ${wanted.join(", ")}`)
   return {
     only: kept,
-    scope: Object.fromEntries(kept.map((kind) => [kind, kinds[kind]])) as Partial<
+    scope: Object.fromEntries(kept.map((kind) => [kind, kinds(kind)])) as Partial<
       Record<SearchedResource, AccountKey[]>
     >,
     skipped: wanted
