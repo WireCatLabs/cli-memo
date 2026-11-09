@@ -250,6 +250,8 @@ it("lists tasks new since the last digest and those overdue, due today or tomorr
   const today = await add("Pay the mooring fee", new Date(now))
   const tomorrow = await add("Paint the pier", new Date(now + 86_400_000))
   await add("Someday: a second pier", null)
+  // A task created in the digest's own millisecond would count as new; "new" is created at or after it.
+  await new Promise((resolve) => setTimeout(resolve, 5))
   const lastDigest = new Date().toISOString()
   schedule("cli-memo", "morning-digest", {}, { at: lastDigest, exitCode: 0 }, "agent")
   await new Promise((resolve) => setTimeout(resolve, 5))
