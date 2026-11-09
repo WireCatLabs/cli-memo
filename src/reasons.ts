@@ -53,6 +53,12 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: [],
   },
   {
+    reason: "source.agent-fetch",
+    code: "permission_error",
+    message: "an agent over MCP cannot make memo fetch an address",
+    details: [],
+  },
+  {
     reason: "brief.owner-only",
     code: "permission_error",
     message: "only the owner changes the digest brief, not an agent",
