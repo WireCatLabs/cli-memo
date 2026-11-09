@@ -22,7 +22,7 @@ export default defineConfig({
         extends: true,
         test: {
           name: "memo",
-          include: ["src/**/*.test.ts", "test/**/*.test.ts"],
+          include: ["src/**/*.test.ts", "test/**/*.test.ts", "scripts/**/*.test.ts"],
           exclude: [...configDefaults.exclude, MEANING],
         },
       },
