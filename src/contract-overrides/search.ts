@@ -187,7 +187,7 @@ export const search: readonly SharedContractOverride[] = [
       {
         flags: "--harder",
         description:
-          "a hosted model (Claude Haiku) reorders the first 30 hits; sends the question and those hits to Anthropic, only after memo models search-consents set anthropic --yes",
+          "a hosted model reorders the first 30 hits; sends the question and those hits to the provider you chose with memo models search-consents set <provider> --yes, only after that",
         takes_value: false,
         mandatory: false,
       },

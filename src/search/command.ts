@@ -117,8 +117,8 @@ const searchCommandDefinition = (program: Command, streams: Streams, env: NodeJS
     .option("--plain-order", "best first by the words alone, without moving mail from suspicious senders down")
     .option(
       "--harder",
-      "a hosted model (Claude Haiku) reorders the first 30 hits; sends the question and those hits to Anthropic, only " +
-        "after memo models search-consents set anthropic --yes",
+      "a hosted model reorders the first 30 hits; sends the question and those hits to the provider you chose with " +
+        "memo models search-consents set <provider> --yes, only after that",
     )
     .option("--project <project>", PROJECT_ORDER_HELP)
     .addHelpText(

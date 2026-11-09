@@ -568,7 +568,7 @@ it("search all --harder without the owner's consent sends nothing and says why, 
   expect(refs(json)).toEqual(refs(plain))
   expect(answerOf(json.stdout.join("")).missing).toContainEqual({
     field: "order",
-    why: expect.stringContaining("memo models search-consents set anthropic --yes"),
+    why: expect.stringContaining("memo models search-consents set "),
   })
   expect(text.stderr.join("")).toContain("not reordered by the model")
   expect(sent).not.toHaveBeenCalled()
