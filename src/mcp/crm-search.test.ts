@@ -1,4 +1,4 @@
-import { mkdtempSync } from "node:fs"
+import { mkdtempSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { Client } from "@modelcontextprotocol/client"
@@ -87,4 +87,16 @@ it("leaves the CRM lane out for crm.list or both lists denied, and refuses --onl
       await client.close()
     }
   }
+})
+
+it("leaves deals out of a command-line search all when memo's saved permissions deny them, as deals context does", async () => {
+  const env = await crmStore()
+  writeFileSync(join(env.MEMO_CONFIG_DIR ?? "", "config.json"), JSON.stringify({ permissions: { deals: "deny" } }))
+  const streams = captureStreams()
+  await createProgram({ streams, env, terminal: { present: false } })
+    .exitOverride()
+    .parseAsync(["search", "all", "Rental", "--json"], { from: "user" })
+  const answer = JSON.parse(streams.stdout.join("")) as Omit<Answer, "isError">
+  expect(answer.items.map((hit) => hit.kind)).toEqual(["lead"])
+  expect(answer.meta.issues).toContainEqual(expect.objectContaining({ code: "permission_error", source: "crm" }))
 })

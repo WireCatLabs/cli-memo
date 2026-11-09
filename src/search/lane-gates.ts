@@ -1,5 +1,6 @@
 import { CliError } from "@wirecat/cli-base"
 import { DEAL_KINDS, type DealKind } from "@wirecat/cli-core"
+import type { LeftOut } from "@wirecat/cli-core/cli"
 import { RESOURCES_SEARCHED, type SearchAllFound, type SearchedResource } from "@wirecat/cli-core/services"
 import type { Command } from "commander"
 import { grantedLevel } from "../mcp/granted.js"
@@ -53,27 +54,36 @@ const leftOut = (lane: SearchedResource, what: string, key: string): Skipped => 
 })
 
 /**
- * What `search all` may read and show an MCP client. memo checks permissions only for an MCP client, so a run at the
- * owner's terminal reads everything.
+ * What `search all` may read and show. The MCP server's levels gate every lane; `denied` adds the CRM kinds memo's own
+ * permissions deny for a run that is not the owner at a terminal, as the contexts leave them out (SEC-151).
  */
-export const lanesFor = (command: Command, asked: SearchedResource[] | undefined): LanesAllowed => {
+export const lanesFor = (
+  command: Command,
+  asked: SearchedResource[] | undefined,
+  denied: readonly LeftOut<DealKind>[] = [],
+): LanesAllowed => {
   const lanes = asked ?? [...RESOURCES_SEARCHED]
-  const denied = (key: string) => grantedLevel(command, key) === "deny"
+  const granted = (key: string) => grantedLevel(command, key) === "deny"
   const skipped: Skipped[] = []
   const hidden = new Set<string>()
   const off = new Set<SearchedResource>()
   for (const gate of LANE_GATES) {
     if (!lanes.includes(gate.lane)) continue
-    if (denied(gate.key)) {
+    if (granted(gate.key)) {
       off.add(gate.lane)
       skipped.push(leftOut(gate.lane, gate.lane, gate.key))
       continue
     }
-    for (const [kind, key] of Object.entries(gate.kinds))
-      if (denied(key)) {
+    for (const [kind, key] of Object.entries(gate.kinds)) {
+      const saved = denied.find((one) => one.kind === kind)
+      if (granted(key)) {
         hidden.add(kind)
         skipped.push(leftOut(gate.lane, kind, key))
+      } else if (saved) {
+        hidden.add(kind)
+        skipped.push({ code: "permission_error", resource: gate.lane, reason: saved.why })
       }
+    }
     if (Object.keys(gate.kinds).every((kind) => hidden.has(kind))) off.add(gate.lane)
   }
   const shows = hidden.size ? { shows: (item: { kind: string }) => !hidden.has(item.kind) } : {}

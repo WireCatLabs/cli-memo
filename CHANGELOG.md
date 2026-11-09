@@ -6,6 +6,13 @@ the API.
 
 ## Unreleased
 
+### Security
+
+- `search all` run by an agent from a shell leaves out the deals and leads memo's saved permissions deny (`deals`,
+  `deals.list`, `leads`, `leads.list`), as an MCP client's search and `deals context` already did, and its `issues`
+  say which key. Before, such a run still showed the titles of denied deals. The owner at a terminal still finds
+  everything.
+
 ## 0.131.73 — 09.11.2026
 
 ### Added

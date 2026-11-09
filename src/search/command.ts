@@ -9,6 +9,7 @@ import type { MessageStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, withStore } from "../answer.js"
 import { APP } from "../app.js"
+import { whoRuns } from "../author.js"
 import { SHELL_OVERRIDES } from "../contract-overrides.js"
 import { memoLevels } from "../mcp/permissions.js"
 import { searchMemoriesCommand } from "../memories/command.js"
@@ -18,6 +19,7 @@ import { SAVE_HELP } from "../save-help.js"
 import { accountsByKind, groupScopeOf } from "../store/group.js"
 import { ACCOUNTS_HELP, MAIL_SOURCES, mailboxesOf } from "../store/source-list.js"
 import { allAnswer, eventsMeaningNote, kindAnswer, messagesMeaningNote, notesAnswer } from "./answers.js"
+import { deniedCrm } from "./denied.js"
 import { lanesFor } from "./lane-gates.js"
 import { peopleAnswer, peopleText, searchPeople } from "./people.js"
 import { hasSource, keyDocumentsFirst, searchEverywhere, searchKind, searchNotes } from "./search.js"
@@ -146,7 +148,10 @@ business finds invoices, payments, orders, contracts, subscriptions, products an
             reason: "search.all-denied",
           })
         const leftOut = denied ? [denied] : []
-        const gate = lanesFor(command, wanted)
+        // The owner at a terminal reads everything (#739); any other run, an agent's shell included, follows the saved
+        // CRM permissions as the contexts do.
+        const owner = (await whoRuns(command, env, { question: "search all" })) === "owner"
+        const gate = lanesFor(command, wanted, owner ? [] : deniedCrm(command, env))
         const answer = await withStore(env, async (store) => {
           const found = await searchEverywhere(store, env, {
             text: words.join(" "),
