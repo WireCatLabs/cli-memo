@@ -42,9 +42,20 @@ Sparse, and only *why*. The global rule in `~/.claude/CLAUDE.md` applies.
 
 Conventional commits, a branch off `main`, a pull request. The pre-commit hook checks staged lint and secrets; no other local checks are required by default.
 
-A change a caller can see gets a `CHANGELOG.md` entry under `## Unreleased`, under one of the five headings of
-[WC-DOC-15](https://github.com/WireCatLabs/cli-base/blob/main/docs/standards/docs.md#wc-doc-15--changelog-entries-go-under-five-fixed-headings-each-at-most-once-per-section).
-Older released sections keep the headings they shipped with. Releasing is `bin/release` on `main`.
+A change a caller can see gets a changelog fragment: a new file `changes/<branch>.md` (lower case, `/` as `-`) with
+one or more of the five headings of
+[WC-DOC-15](https://github.com/WireCatLabs/cli-base/blob/main/docs/standards/docs.md#wc-doc-15--changelog-entries-go-under-five-fixed-headings-each-at-most-once-per-section)
+and the entries under them, written as they will read in `CHANGELOG.md`, with links relative to `changes/`
+(`../docs/…`). Do not edit `## Unreleased`: every open pull request edits the same lines there and conflicts at each
+merge. `pnpm docs:check` checks the fragments; `bin/release` collects them into the version's section and deletes
+them in its pull request. Older released sections keep the headings they shipped with. Releasing is `bin/release` on
+`main`.
+
+```md
+### Fixed
+
+- **`memo mail sync` names what it skipped.** Why it matters and what a caller does about it.
+```
 
 ## Documents
 
