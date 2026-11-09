@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**951 ✅ · 0 ⛔ · 263 ❌** — 260 commands, 954 options.
+**957 ✅ · 0 ⛔ · 265 ❌** — 263 commands, 959 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -1189,6 +1189,14 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `schedule remove` | `--json` | ❌ |  |
 | `schedule exec` |  | ✅ |  |
 | `schedule exec` | `--json` | ❌ |  |
+| `digest brief show` |  | ✅ |  |
+| `digest brief show` | `--json` | ✅ |  |
+| `digest brief edit` |  | ✅ |  |
+| `digest brief edit` | `--file` | ✅ |  |
+| `digest brief edit` | `--undo` | ✅ |  |
+| `digest brief edit` | `--json` | ❌ |  |
+| `digest brief reset` |  | ✅ |  |
+| `digest brief reset` | `--json` | ❌ |  |
 | `digest backfill` |  | ✅ |  |
 | `digest backfill` | `--from-app` | ✅ |  |
 | `digest backfill` | `--from` | ✅ |  |

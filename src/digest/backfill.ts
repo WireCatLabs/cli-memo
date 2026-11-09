@@ -15,6 +15,7 @@ import { answers, itemAnswer } from "../answer.js"
 import { APP } from "../app.js"
 import { fromAppOption, whoRuns } from "../author.js"
 import { scheduleLimits } from "../config.js"
+import { briefCommand } from "./brief.js"
 import { DIGEST_SCHEDULE, digestSchedule, runTime } from "./tasks.js"
 
 const DAY = 86_400_000
@@ -77,8 +78,9 @@ export const digestCommand = (program: Command, streams: Streams, env: NodeJS.Pr
   const { print } = answers(program, streams, env)
   const digest = program
     .command("digest")
-    .description("the morning digest's history: build the digests of past days")
-    .summary("the morning digest's history")
+    .description("the morning digest: your brief on what it collects, and the digests of past days")
+    .summary("the morning digest: your brief, past days")
+  briefCommand(digest, print, env)
   fromAppOption(annotate(digest.command("backfill"), { effects: LOCAL_WRITE }))
     .summary("build the morning digests of past days, without sending them")
     .description(

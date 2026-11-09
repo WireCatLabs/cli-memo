@@ -34,7 +34,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "lint:commands": "cli-dev lint --cli dist/bin/memo.js --budget 18",
+    "lint:commands": "cli-dev lint --cli dist/bin/memo.js --budget 19",
     "release:check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && node --experimental-strip-types scripts/commands.ts --check && pnpm lint:commands && pnpm secrets:scan",
     "prepare": "lefthook install || true",
     "postinstall": "node install/postinstall.mjs",

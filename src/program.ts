@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url"
 import { CliError, createRenderer, type KeyringStore, processStreams, type Streams } from "@wirecat/cli-base"
-import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
+import { customizeSharedCommand } from "@wirecat/cli-base/commands"
 import { skillCommand } from "@wirecat/cli-base/skill"
 import {
   addContractInfo,
@@ -9,7 +9,6 @@ import {
   environmentOf,
   guideCommand,
   installHelp,
-  NO_EFFECTS,
   overrideSharedContract,
   provide,
   recordRuns,
@@ -28,6 +27,7 @@ import { configCommand } from "./config-command.js"
 import { contextCommand } from "./context/command.js"
 import { SHELL_OVERRIDES } from "./contract-overrides.js"
 import { digestCommand } from "./digest/backfill.js"
+import { readBrief, withBrief } from "./digest/brief.js"
 import { commandsCommand, placeInSections } from "./discovery/command.js"
 import { doctorCommand } from "./doctor/command.js"
 import { eventsCommand } from "./events/command.js"
@@ -595,9 +595,10 @@ export const createProgram = ({
   commandsCommand(program, streams)
   const skill = customizeSharedCommand(
     sharedSkillCommand(APP, new URL("../skills/cli-memo/SKILL.md", import.meta.url)),
-    "Memo installs its own stored-data instructions through its environment, prints the packaged primary skill without filesystem effects, and takes --json on each skill command because it has no global one.",
+    "Memo installs its own stored-data instructions through its environment, prints the packaged skills (morning-digest with the owner's brief from the store after it), and takes --json on each skill command because it has no global one.",
     () => {
       const out = answers(program, streams, env)
+      let brief: string | undefined
       const skill = skillCommand(
         APP,
         new URL("../skills/cli-memo/SKILL.md", import.meta.url),
@@ -605,9 +606,16 @@ export const createProgram = ({
           const json = command.opts().json === true
           const renderer = createRenderer({ format: json ? "json" : "pretty", color: false, streams })
           // cli-base prints each answer bare; the { item, meta } envelope is ours, as in cli-core.
+          const result = (value: unknown) => {
+            const shown = value as { content?: string }
+            out.print(
+              true,
+              itemAnswer(shown.content === undefined ? value : { ...shown, content: withBrief(shown.content, brief) }),
+            )
+          }
           return {
-            renderer: json ? { ...renderer, result: (value: unknown) => out.print(true, itemAnswer(value)) } : renderer,
-            streams,
+            renderer: json ? { ...renderer, result } : renderer,
+            streams: { ...streams, data: (text: string) => streams.data(withBrief(text, brief)) },
             env,
           }
         },
@@ -622,8 +630,13 @@ export const createProgram = ({
       // memo has no global --json, so each skill command takes its own, as guide does.
       for (const command of skill.commands) command.option("--json", "print JSON")
       const show = skill.commands.find((command) => command.name() === "show")
-      // cli-base declares a local read; the text memo prints ships inside the package.
-      if (show) annotate(show, { effects: NO_EFFECTS })
+      // cli-base's show is synchronous, so the owner's brief is read before it runs.
+      show?.description(
+        `${show.description()}; morning-digest ends with your brief from \`memo digest brief\` when you wrote one`,
+      )
+      show?.hook("preAction", async (command) => {
+        brief = command.args[0] === "morning-digest" ? await readBrief(env) : undefined
+      })
       return skill
     },
     SHELL_OVERRIDES.skill,

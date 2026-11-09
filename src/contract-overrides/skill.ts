@@ -1,7 +1,10 @@
 import type { SharedContractOverride } from "@wirecat/cli-base/commands"
 
 const REASON =
-  "Memo installs its own stored-data instructions through its environment, prints the packaged primary skill without filesystem effects, and takes --json on each skill command because it has no global one."
+  "Memo installs its own stored-data instructions through its environment, prints the packaged skills (morning-digest with the owner's brief from the store after it), and takes --json on each skill command because it has no global one."
+
+const SHOW_DESCRIPTION =
+  "print SKILL.md — `memo skill install` puts it where Claude Code, Codex, Gemini CLI and OpenClaw look for it, and where Hermes does on request; --for prints the copy already there"
 
 const JSON_OPTION = { flags: "--json", description: "print JSON", takes_value: false, mandatory: false }
 const SHOW_FOR = {
@@ -24,15 +27,9 @@ const INSTALL_FOR = {
 export const skill: readonly SharedContractOverride[] = [
   {
     command: ["skill", "show"],
-    field: "effects",
-    before: {
-      remote: "none",
-      local: "read",
-    },
-    after: {
-      remote: "none",
-      local: "none",
-    },
+    field: "description",
+    before: SHOW_DESCRIPTION,
+    after: `${SHOW_DESCRIPTION}; morning-digest ends with your brief from \`memo digest brief\` when you wrote one`,
     reason: REASON,
   },
   {
