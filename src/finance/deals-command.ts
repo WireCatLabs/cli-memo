@@ -2,11 +2,21 @@ import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { DEAL_KINDS, DEAL_ROLES, DEAL_STATUSES, type DealKind, type DealRole } from "@wirecat/cli-core"
-import { LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
+import {
+  baseStagesCommand,
+  LOCAL_READ,
+  LOCAL_WRITE,
+  queryTerms,
+  storedProfilesFor,
+  termField,
+  withQuery,
+  writesWithOf,
+} from "@wirecat/cli-core/cli"
 import { dealBrief, dealContext } from "@wirecat/cli-core/services"
-import type { DealFilter, MessageStore, Pipeline, PipelineReport } from "@wirecat/cli-core/store"
+import type { AccountKey, DealFilter, MessageStore, Pipeline, PipelineReport } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
-import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
+import { answers, itemAnswer, openMemoStore, wholeList, withStore } from "../answer.js"
+import { APP } from "../app.js"
 import { authorOf } from "../author.js"
 import { collect, positive } from "../options.js"
 import { pageOf } from "../page.js"
@@ -40,6 +50,19 @@ const PIPELINE_QUERY = {
   fields: [termField("kind", "enum", "kind:lead", { values: DEAL_KINDS }), termField("name", "kw", "name:Sales")],
 } as const satisfies QueryRegistry
 
+/**
+ * Each CRM copy's `writes_with`: the CLI and profile that change it on its server. The profiles are read once per
+ * command. A row lists only the profiles on its own account, and these lists show only the group's rows, so no
+ * profile outside the group is ever named; a list that shows outside rows passes cli-core's `allowed` again.
+ */
+const withWriter = async (store: MessageStore) => {
+  const profilesFor = storedProfilesFor(await store.accounts.profiles())
+  return <T extends { account: AccountKey | null }>(item: T) => ({
+    ...item,
+    writesWith: writesWithOf(item.account, profilesFor),
+  })
+}
+
 export const listDeals = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
@@ -58,9 +81,33 @@ export const listDeals = async (
     ...(terms.has("organization") ? { organization: terms.get("organization") as string } : {}),
   }
   const scope = await groupScopeOf(store, env)
-  return pageOf(command, limit, (most) =>
-    store.deals.list({ ...filter, ...(scope === undefined ? {} : { accounts: scope.accounts }), limit: most }),
+  const writer = await withWriter(store)
+  return pageOf(command, limit, async (most) =>
+    (
+      await store.deals.list({ ...filter, ...(scope === undefined ? {} : { accounts: scope.accounts }), limit: most })
+    ).map(writer),
   )
+}
+
+const BASE_STAGE = /^stage:\d+$/
+
+/**
+ * The stage name `deals move` writes: a `stage:<id>` is a stage of the row's pipeline, or a base stage, which cli-core
+ * resolves to the one stage of that pipeline mapped onto it. A CRM's copy moves on its CRM, or the next sync undoes it.
+ */
+const stageToMove = async (store: MessageStore, ref: string, stage: string): Promise<string> => {
+  if (!BASE_STAGE.test(stage.trim())) return stage
+  const row = await store.deals.get(ref)
+  if (row.account !== null) {
+    const writesWith = writesWithOf(row.account, storedProfilesFor(await store.accounts.profiles()))
+    throw new CliError(
+      "validation_error",
+      `${ref} is a copy from ${row.account.provider}:${row.account.account}; move it there with ` +
+        `${writesWith?.tool ?? "its CRM's CLI"} ${row.kind}s move ${ref} ${stage.trim()}`,
+      { reason: "stage.crm-copy", writes_with: writesWith },
+    )
+  }
+  return (await store.baseStages.resolve(ref, stage.trim())).stage.name
 }
 
 const roleOf = (role: string | undefined): DealRole => {
@@ -247,10 +294,16 @@ const itemCommands = (
     )
     .summary(`move a ${one} to another stage`)
     .argument("<ref>", `${kind}:<id>`)
-    .argument("<stage>", `a stage of the ${one}'s pipeline`)
+    .argument(
+      "<stage>",
+      `a stage of the ${one}'s pipeline by its name or stage:<id>; or a base stage's stage:<id>, which moves it to ` +
+        "the one stage of its pipeline mapped there, and refuses several (with the candidates) or none",
+    )
     .action(async (ref: string, stage: string, options: { json?: boolean }) => {
       const by = authorOf(env)
-      await run(options.json, async (store) => itemAnswer(await store.deals.move(ref, { stage, by })))
+      await run(options.json, async (store) =>
+        itemAnswer(await store.deals.move(ref, { stage: await stageToMove(store, ref, stage), by })),
+      )
     })
 
   json(
@@ -344,9 +397,10 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
         const kind = terms.get("kind") as DealKind | undefined
         const scope = await groupScopeOf(store, env)
         const all = (await store.deals.pipelines(kind === undefined ? {} : { kind })).filter(inScope(scope))
+        const writer = await withWriter(store)
         return wholeList(
           "pipelines list",
-          name === undefined ? all : all.filter((one) => one.name.toLocaleLowerCase() === name),
+          (name === undefined ? all : all.filter((one) => one.name.toLocaleLowerCase() === name)).map(writer),
         )
       }),
     )
@@ -410,6 +464,16 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
 
   itemCommands(program, "deal", { run, print }, env)
   itemCommands(program, "lead", { run, print }, env)
+
+  const stages = baseStagesCommand(APP, {
+    env: () => env,
+    open: () => openMemoStore(env),
+    output: (body, command) => print(command.opts<{ json?: boolean }>().json, body),
+    accounts: async (store) => (await groupScopeOf(store, env))?.accounts,
+  })
+  // memo has no global --json; cli-core's builder leaves it to the app.
+  for (const leaf of stages.commands) json(leaf)
+  program.addCommand(stages)
 }
 
 /** Open deals `projects status` shows, soonest expected close first; more than this is a count. */

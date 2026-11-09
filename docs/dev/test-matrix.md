@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**951 ✅ · 0 ⛔ · 263 ❌** — 260 commands, 954 options.
+**822 ✅ · 0 ⛔ · 204 ❌** — 234 commands, 792 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -55,24 +55,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `notes links clear` |  | ✅ |  |
 | `notes links clear` | `--json` | ✅ |  |
 | `notes links clear` | `--from-app` | ❌ |  |
-| `sources add` |  | ✅ |  |
-| `sources add` | `--reason` | ✅ |  |
-| `sources add` | `--as-owner` | ❌ |  |
-| `sources add` | `--from-app` | ✅ |  |
-| `sources add` | `--title` | ✅ |  |
-| `sources add` | `--subject` | ✅ |  |
-| `sources add` | `--keep-copy` | ✅ |  |
-| `sources add` | `--max-chars` | ✅ |  |
-| `sources add` | `--json` | ✅ |  |
-| `sources show` |  | ✅ |  |
-| `sources show` | `--bytes` | ✅ |  |
-| `sources show` | `--json` | ✅ |  |
-| `sources mentions` |  | ✅ |  |
-| `sources mentions` | `--json` | ✅ |  |
-| `sources remove` |  | ✅ |  |
-| `sources remove` | `--as-owner` | ❌ |  |
-| `sources remove` | `--from-app` | ❌ |  |
-| `sources remove` | `--json` | ✅ |  |
 | `folders add` |  | ✅ |  |
 | `folders add` | `--format` | ✅ |  |
 | `folders add` | `--json` | ✅ |  |
@@ -154,7 +136,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `tags add` | `--account` | ✅ |  |
 | `tags add` | `--json` | ✅ |  |
 | `tags remove` |  | ✅ |  |
-| `tags remove` | `--message` | ❌ |  |
+| `tags remove` | `--message` | ✅ |  |
 | `tags remove` | `--note` | ✅ |  |
 | `tags remove` | `--chat` | ✅ |  |
 | `tags remove` | `--task` | ❌ |  |
@@ -286,6 +268,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `organizations list` |  | ✅ |  |
 | `organizations list` | `--json` | ✅ |  |
 | `organizations context` |  | ✅ |  |
+| `organizations context` | `--limit` | ✅ |  |
 | `organizations context` | `--json` | ✅ |  |
 | `projects meetings list` |  | ✅ |  |
 | `projects meetings list` | `--source` | ✅ |  |
@@ -392,11 +375,18 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `relationships add` | `--json` | ✅ |  |
 | `relationships add` | `--kind` | ✅ |  |
 | `relationships add` | `--role` | ✅ |  |
+| `relationships add` | `--position` | ✅ |  |
+| `relationships add` | `--start-date` | ✅ |  |
+| `relationships add` | `--end-date` | ❌ |  |
 | `relationships add` | `--reason` | ✅ |  |
 | `relationships list` |  | ✅ |  |
+| `relationships list` | `--limit` | ✅ |  |
+| `relationships list` | `--page` | ✅ |  |
 | `relationships list` | `--json` | ✅ |  |
 | `relationships update` |  | ✅ |  |
 | `relationships update` | `--role` | ✅ |  |
+| `relationships update` | `--position` | ❌ |  |
+| `relationships update` | `--start-date` | ❌ |  |
 | `relationships update` | `--purpose` | ✅ |  |
 | `relationships update` | `--reason` | ✅ |  |
 | `relationships update` | `--json` | ✅ |  |
@@ -412,6 +402,22 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `relationships confirm` | `--as-owner` | ❌ |  |
 | `relationships confirm` | `--from-app` | ❌ |  |
 | `relationships confirm` | `--reason` | ✅ |  |
+| `relationships end` |  | ✅ |  |
+| `relationships end` | `--end-date` | ✅ |  |
+| `relationships end` | `--json` | ✅ |  |
+| `relationships end` | `--as-owner` | ❌ |  |
+| `relationships end` | `--from-app` | ❌ |  |
+| `relationships roles list` |  | ✅ |  |
+| `relationships roles list` | `--json` | ✅ |  |
+| `relationships roles add` |  | ✅ |  |
+| `relationships roles add` | `--label` | ✅ |  |
+| `relationships roles add` | `--json` | ✅ |  |
+| `relationships roles add` | `--as-owner` | ❌ |  |
+| `relationships roles add` | `--from-app` | ❌ |  |
+| `relationships roles remove` |  | ✅ |  |
+| `relationships roles remove` | `--json` | ✅ |  |
+| `relationships roles remove` | `--as-owner` | ❌ |  |
+| `relationships roles remove` | `--from-app` | ❌ |  |
 | `relationships scan` |  | ✅ |  |
 | `relationships scan` | `--source` | ✅ |  |
 | `relationships scan` | `--since-time` | ❌ |  |
@@ -479,7 +485,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `memories add` |  | ✅ |  |
 | `memories add` | `--as-owner` | ❌ |  |
 | `memories add` | `--from-app` | ❌ |  |
-| `memories add` | `--quote` | ✅ |  |
 | `memories add` | `--kind` | ✅ |  |
 | `memories add` | `--scope` | ✅ |  |
 | `memories add` | `--evidence` | ✅ |  |
@@ -511,17 +516,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `memories remove` | `--from-app` | ❌ |  |
 | `memories remove` | `--json` | ✅ |  |
 | `memories remove` | `--reason` | ❌ |  |
-| `memories check` |  | ✅ |  |
-| `memories check` | `--limit` | ✅ |  |
-| `memories check` | `--since-time` | ✅ |  |
-| `memories check` | `--json` | ✅ |  |
-| `memories challenge` |  | ✅ |  |
-| `memories challenge` | `--as-owner` | ❌ |  |
-| `memories challenge` | `--from-app` | ❌ |  |
-| `memories challenge` | `--evidence` | ✅ |  |
-| `memories challenge` | `--reason` | ✅ |  |
-| `memories challenge` | `--suggest` | ✅ |  |
-| `memories challenge` | `--json` | ✅ |  |
 | `mentions list` |  | ✅ |  |
 | `mentions list` | `--source` | ✅ |  |
 | `mentions list` | `--limit` | ❌ |  |
@@ -542,7 +536,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `facts add` |  | ✅ |  |
 | `facts add` | `--as-owner` | ❌ |  |
 | `facts add` | `--from-app` | ✅ |  |
-| `facts add` | `--quote` | ✅ |  |
 | `facts add` | `--kind` | ✅ |  |
 | `facts add` | `--evidence` | ✅ |  |
 | `facts add` | `--project` | ✅ |  |
@@ -582,13 +575,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `facts remove` | `--from-app` | ❌ |  |
 | `facts remove` | `--json` | ✅ |  |
 | `facts remove` | `--reason` | ❌ |  |
-| `facts challenge` |  | ✅ |  |
-| `facts challenge` | `--as-owner` | ❌ |  |
-| `facts challenge` | `--from-app` | ❌ |  |
-| `facts challenge` | `--evidence` | ✅ |  |
-| `facts challenge` | `--reason` | ✅ |  |
-| `facts challenge` | `--suggest` | ✅ |  |
-| `facts challenge` | `--json` | ✅ |  |
 | `invoices list` |  | ✅ |  |
 | `invoices list` | `--json` | ✅ |  |
 | `invoices list` | `--limit` | ❌ |  |
@@ -607,16 +593,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `invoices add` | `--as-owner` | ❌ |  |
 | `invoices add` | `--from-app` | ❌ |  |
 | `invoices add` | `--json` | ✅ |  |
-| `invoices lines add` |  | ✅ |  |
-| `invoices lines add` | `--product` | ✅ |  |
-| `invoices lines add` | `--amount` | ✅ |  |
-| `invoices lines add` | `--as-owner` | ❌ |  |
-| `invoices lines add` | `--from-app` | ❌ |  |
-| `invoices lines add` | `--json` | ✅ |  |
-| `invoices lines remove` |  | ✅ |  |
-| `invoices lines remove` | `--as-owner` | ❌ |  |
-| `invoices lines remove` | `--from-app` | ❌ |  |
-| `invoices lines remove` | `--json` | ✅ |  |
 | `payments list` |  | ✅ |  |
 | `payments list` | `--json` | ✅ |  |
 | `payments list` | `--limit` | ❌ |  |
@@ -628,7 +604,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `payments add` | `--kind` | ✅ |  |
 | `payments add` | `--title` | ❌ |  |
 | `payments add` | `--occurred-time` | ✅ |  |
-| `payments add` | `--refund-of` | ✅ |  |
 | `payments add` | `--project` | ✅ |  |
 | `payments add` | `--reason` | ✅ |  |
 | `payments add` | `--evidence` | ✅ |  |
@@ -660,16 +635,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `orders add` | `--as-owner` | ❌ |  |
 | `orders add` | `--from-app` | ❌ |  |
 | `orders add` | `--json` | ✅ |  |
-| `orders lines add` |  | ✅ |  |
-| `orders lines add` | `--product` | ✅ |  |
-| `orders lines add` | `--amount` | ✅ |  |
-| `orders lines add` | `--as-owner` | ❌ |  |
-| `orders lines add` | `--from-app` | ❌ |  |
-| `orders lines add` | `--json` | ✅ |  |
-| `orders lines remove` |  | ✅ |  |
-| `orders lines remove` | `--as-owner` | ❌ |  |
-| `orders lines remove` | `--from-app` | ❌ |  |
-| `orders lines remove` | `--json` | ✅ |  |
 | `pipelines list` |  | ✅ |  |
 | `pipelines list` | `--json` | ✅ |  |
 | `pipelines show` |  | ✅ |  |
@@ -683,6 +648,13 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `deals list` | `--limit` | ❌ |  |
 | `deals show` |  | ✅ |  |
 | `deals show` | `--json` | ✅ |  |
+| `deals context` |  | ✅ |  |
+| `deals context` | `--json` | ✅ |  |
+| `deals context` | `--brief` | ✅ |  |
+| `deals context` | `--limit` | ✅ |  |
+| `deals update` |  | ✅ |  |
+| `deals update` | `--json` | ✅ |  |
+| `deals update` | `--project` | ✅ |  |
 | `deals add` |  | ✅ |  |
 | `deals add` | `--organization` | ✅ |  |
 | `deals add` | `--person` | ✅ |  |
@@ -702,7 +674,14 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `leads list` | `--json` | ✅ |  |
 | `leads list` | `--limit` | ❌ |  |
 | `leads show` |  | ✅ |  |
-| `leads show` | `--json` | ❌ |  |
+| `leads show` | `--json` | ✅ |  |
+| `leads context` |  | ✅ |  |
+| `leads context` | `--json` | ✅ |  |
+| `leads context` | `--brief` | ✅ |  |
+| `leads context` | `--limit` | ❌ |  |
+| `leads update` |  | ✅ |  |
+| `leads update` | `--json` | ❌ |  |
+| `leads update` | `--project` | ✅ |  |
 | `leads add` |  | ✅ |  |
 | `leads add` | `--organization` | ❌ |  |
 | `leads add` | `--person` | ✅ |  |
@@ -718,164 +697,31 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `leads close` | `--occurred-time` | ❌ |  |
 | `leads close` | `--reason` | ✅ |  |
 | `leads close` | `--json` | ❌ |  |
-| `products list` |  | ✅ |  |
-| `products list` | `--json` | ✅ |  |
-| `products list` | `--limit` | ❌ |  |
-| `products show` |  | ✅ |  |
-| `products show` | `--json` | ✅ |  |
-| `products add` |  | ✅ |  |
-| `products add` | `--kind` | ✅ |  |
-| `products add` | `--unit` | ✅ |  |
-| `products add` | `--sku` | ✅ |  |
-| `products add` | `--supplier` | ✅ |  |
-| `products add` | `--description` | ❌ |  |
-| `products add` | `--json` | ✅ |  |
-| `products update` |  | ✅ |  |
-| `products update` | `--amount` | ✅ |  |
-| `products update` | `--currency` | ✅ |  |
-| `products update` | `--title` | ❌ |  |
-| `products update` | `--unit` | ❌ |  |
-| `products update` | `--description` | ❌ |  |
-| `products update` | `--archived` | ✅ |  |
-| `products update` | `--json` | ✅ |  |
-| `contracts list` |  | ✅ |  |
-| `contracts list` | `--json` | ✅ |  |
-| `contracts list` | `--limit` | ❌ |  |
-| `contracts show` |  | ✅ |  |
-| `contracts show` | `--json` | ✅ |  |
-| `contracts add` |  | ✅ |  |
-| `contracts add` | `--kind` | ✅ |  |
-| `contracts add` | `--status` | ❌ |  |
-| `contracts add` | `--start-date` | ✅ |  |
-| `contracts add` | `--end-date` | ✅ |  |
-| `contracts add` | `--auto-renew` | ✅ |  |
-| `contracts add` | `--notice-days` | ✅ |  |
-| `contracts add` | `--amount` | ✅ |  |
-| `contracts add` | `--currency` | ✅ |  |
-| `contracts add` | `--project` | ✅ |  |
-| `contracts add` | `--reason` | ✅ |  |
-| `contracts add` | `--evidence` | ❌ |  |
-| `contracts add` | `--as-owner` | ❌ |  |
-| `contracts add` | `--from-app` | ❌ |  |
-| `contracts add` | `--json` | ✅ |  |
-| `contracts update` |  | ✅ |  |
-| `contracts update` | `--kind` | ❌ |  |
-| `contracts update` | `--status` | ✅ |  |
-| `contracts update` | `--start-date` | ❌ |  |
-| `contracts update` | `--end-date` | ✅ |  |
-| `contracts update` | `--auto-renew` | ❌ |  |
-| `contracts update` | `--notice-days` | ❌ |  |
-| `contracts update` | `--amount` | ✅ |  |
-| `contracts update` | `--currency` | ✅ |  |
-| `contracts update` | `--title` | ❌ |  |
-| `contracts update` | `--as-owner` | ❌ |  |
-| `contracts update` | `--from-app` | ❌ |  |
-| `contracts update` | `--json` | ✅ |  |
-| `subscriptions list` |  | ✅ |  |
-| `subscriptions list` | `--json` | ✅ |  |
-| `subscriptions list` | `--limit` | ❌ |  |
-| `subscriptions show` |  | ✅ |  |
-| `subscriptions show` | `--json` | ✅ |  |
-| `subscriptions add` |  | ✅ |  |
-| `subscriptions add` | `--status` | ✅ |  |
-| `subscriptions add` | `--supplier` | ✅ |  |
-| `subscriptions add` | `--customer` | ✅ |  |
-| `subscriptions add` | `--product` | ❌ |  |
-| `subscriptions add` | `--contract` | ❌ |  |
-| `subscriptions add` | `--period` | ✅ |  |
-| `subscriptions add` | `--start-date` | ✅ |  |
-| `subscriptions add` | `--trial-end-date` | ✅ |  |
-| `subscriptions add` | `--kind` | ✅ |  |
-| `subscriptions add` | `--project` | ❌ |  |
-| `subscriptions add` | `--reason` | ❌ |  |
-| `subscriptions add` | `--evidence` | ❌ |  |
-| `subscriptions add` | `--as-owner` | ❌ |  |
-| `subscriptions add` | `--from-app` | ❌ |  |
-| `subscriptions add` | `--json` | ✅ |  |
-| `subscriptions update` |  | ✅ |  |
-| `subscriptions update` | `--status` | ✅ |  |
-| `subscriptions update` | `--supplier` | ❌ |  |
-| `subscriptions update` | `--customer` | ❌ |  |
-| `subscriptions update` | `--product` | ❌ |  |
-| `subscriptions update` | `--contract` | ❌ |  |
-| `subscriptions update` | `--period` | ✅ |  |
-| `subscriptions update` | `--start-date` | ❌ |  |
-| `subscriptions update` | `--trial-end-date` | ❌ |  |
-| `subscriptions update` | `--title` | ❌ |  |
-| `subscriptions update` | `--end-date` | ❌ |  |
-| `subscriptions update` | `--as-owner` | ❌ |  |
-| `subscriptions update` | `--from-app` | ❌ |  |
-| `subscriptions update` | `--json` | ✅ |  |
-| `subscriptions cancel` |  | ✅ |  |
-| `subscriptions cancel` | `--occurred-time` | ✅ |  |
-| `subscriptions cancel` | `--as-owner` | ❌ |  |
-| `subscriptions cancel` | `--from-app` | ❌ |  |
-| `subscriptions cancel` | `--json` | ✅ |  |
-| `subscriptions prices add` |  | ✅ |  |
-| `subscriptions prices add` | `--start-date` | ✅ |  |
-| `subscriptions prices add` | `--reason` | ✅ |  |
-| `subscriptions prices add` | `--as-owner` | ❌ |  |
-| `subscriptions prices add` | `--from-app` | ❌ |  |
-| `subscriptions prices add` | `--json` | ✅ |  |
-| `wallets list` |  | ✅ |  |
-| `wallets list` | `--json` | ✅ |  |
-| `wallets list` | `--limit` | ❌ |  |
-| `wallets show` |  | ✅ |  |
-| `wallets show` | `--until-time` | ✅ |  |
-| `wallets show` | `--json` | ✅ |  |
-| `wallets add` |  | ✅ |  |
-| `wallets add` | `--kind` | ✅ |  |
-| `wallets add` | `--institution` | ✅ |  |
-| `wallets add` | `--json` | ✅ |  |
-| `wallets update` |  | ✅ |  |
-| `wallets update` | `--title` | ❌ |  |
-| `wallets update` | `--institution` | ❌ |  |
-| `wallets update` | `--opening-balance` | ✅ |  |
-| `wallets update` | `--opening-date` | ✅ |  |
-| `wallets update` | `--as-owner` | ❌ |  |
-| `wallets update` | `--from-app` | ❌ |  |
-| `wallets update` | `--json` | ✅ |  |
-| `transactions list` |  | ✅ |  |
-| `transactions list` | `--json` | ✅ |  |
-| `transactions list` | `--limit` | ❌ |  |
-| `transactions show` |  | ✅ |  |
-| `transactions show` | `--json` | ✅ |  |
-| `transactions add` |  | ✅ |  |
-| `transactions add` | `--kind` | ✅ |  |
-| `transactions add` | `--occurred-time` | ✅ |  |
-| `transactions add` | `--description` | ✅ |  |
-| `transactions add` | `--status` | ✅ |  |
-| `transactions add` | `--payment` | ✅ |  |
-| `transactions add` | `--project` | ❌ |  |
-| `transactions add` | `--reason` | ✅ |  |
-| `transactions add` | `--evidence` | ❌ |  |
-| `transactions add` | `--as-owner` | ❌ |  |
-| `transactions add` | `--from-app` | ❌ |  |
-| `transactions add` | `--json` | ✅ |  |
-| `transactions update` |  | ✅ |  |
-| `transactions update` | `--status` | ✅ |  |
-| `transactions update` | `--payment` | ✅ |  |
-| `transactions update` | `--description` | ❌ |  |
-| `transactions update` | `--as-owner` | ❌ |  |
-| `transactions update` | `--from-app` | ❌ |  |
-| `transactions update` | `--json` | ✅ |  |
-| `transactions splits add` |  | ✅ |  |
-| `transactions splits add` | `--project` | ✅ |  |
-| `transactions splits add` | `--as-owner` | ❌ |  |
-| `transactions splits add` | `--from-app` | ❌ |  |
-| `transactions splits add` | `--json` | ✅ |  |
-| `transactions splits remove` |  | ✅ |  |
-| `transactions splits remove` | `--as-owner` | ❌ |  |
-| `transactions splits remove` | `--from-app` | ❌ |  |
-| `transactions splits remove` | `--json` | ✅ |  |
+| `stages show` |  | ✅ |  |
+| `stages show` | `--json` | ✅ |  |
+| `stages create` |  | ✅ |  |
+| `stages create` | `--json` | ✅ |  |
+| `stages rename` |  | ✅ |  |
+| `stages rename` | `--json` | ✅ |  |
+| `stages move` |  | ✅ |  |
+| `stages move` | `--json` | ❌ |  |
+| `stages remove` |  | ✅ |  |
+| `stages remove` | `--json` | ❌ |  |
+| `stages list` |  | ✅ |  |
+| `stages list` | `--json` | ✅ |  |
+| `stages set` |  | ✅ |  |
+| `stages set` | `--json` | ✅ |  |
+| `stages confirm` |  | ✅ |  |
+| `stages confirm` | `--pipeline` | ✅ |  |
+| `stages confirm` | `--all` | ✅ |  |
+| `stages confirm` | `--kind` | ❌ |  |
+| `stages confirm` | `--json` | ✅ |  |
 | `records import` |  | ✅ |  |
 | `records import` | `--dry-run` | ✅ |  |
 | `records import` | `--account` | ✅ |  |
-| `records import` | `--region` | ✅ |  |
 | `records import` | `--json` | ✅ |  |
 | `records check` |  | ✅ |  |
 | `records check` | `--account` | ✅ |  |
-| `records check` | `--region` | ✅ |  |
 | `records check` | `--json` | ✅ |  |
 | `records list` |  | ✅ |  |
 | `records list` | `--account` | ✅ |  |
@@ -883,18 +729,9 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `records list` | `--json` | ✅ |  |
 | `records link` |  | ✅ |  |
 | `records link` | `--account` | ✅ |  |
-| `records link` | `--json` | ✅ |  |
+| `records link` | `--json` | ❌ |  |
 | `records link` | `--as-owner` | ❌ |  |
 | `records link` | `--from-app` | ❌ |  |
-| `records show` |  | ✅ |  |
-| `records show` | `--account` | ✅ |  |
-| `records show` | `--json` | ✅ |  |
-| `records delete` |  | ✅ |  |
-| `records delete` | `--account` | ✅ |  |
-| `records delete` | `--json` | ✅ |  |
-| `records match` |  | ✅ |  |
-| `records match` | `--account` | ✅ |  |
-| `records match` | `--json` | ✅ |  |
 | `meetings actions add` |  | ✅ |  |
 | `meetings actions add` | `--account` | ✅ |  |
 | `meetings actions add` | `--json` | ✅ |  |
@@ -983,7 +820,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `review confirm` |  | ✅ |  |
 | `review confirm` | `--json` | ✅ |  |
 | `review confirm` | `--as-owner` | ✅ |  |
-| `review confirm` | `--from-app` | ✅ |  |
+| `review confirm` | `--from-app` | ❌ |  |
 | `review confirm` | `--reason` | ✅ |  |
 | `review confirm` | `--compact` | ❌ |  |
 | `review reject` |  | ✅ |  |
@@ -994,7 +831,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `review reject` | `--compact` | ❌ |  |
 | `review agenda` |  | ✅ |  |
 | `review agenda` | `--since-time` | ✅ |  |
-| `review agenda` | `--before-time` | ✅ |  |
 | `review agenda` | `--limit` | ✅ |  |
 | `review agenda` | `--max-output-bytes` | ✅ |  |
 | `review agenda` | `--compact` | ✅ |  |
@@ -1042,29 +878,8 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `models consents set` | `--json` | ❌ |  |
 | `models consents revoke` |  | ✅ |  |
 | `models consents revoke` | `--json` | ❌ |  |
-| `templates list` |  | ✅ |  |
-| `templates list` | `--json` | ✅ |  |
-| `templates show` |  | ✅ |  |
-| `templates show` | `--channel` | ✅ |  |
-| `templates show` | `--locale` | ✅ |  |
-| `templates show` | `--json` | ✅ |  |
-| `templates edit` |  | ✅ |  |
-| `templates edit` | `--channel` | ✅ |  |
-| `templates edit` | `--locale` | ✅ |  |
-| `templates edit` | `--file` | ✅ |  |
-| `templates edit` | `--undo` | ✅ |  |
-| `templates edit` | `--json` | ✅ |  |
-| `templates preview` |  | ✅ |  |
-| `templates preview` | `--channel` | ✅ |  |
-| `templates preview` | `--locale` | ✅ |  |
-| `templates preview` | `--file` | ✅ |  |
-| `templates preview` | `--json` | ✅ |  |
-| `templates reset` |  | ✅ |  |
-| `templates reset` | `--channel` | ✅ |  |
-| `templates reset` | `--locale` | ❌ |  |
-| `templates reset` | `--json` | ❌ |  |
 | `search all` |  | ✅ |  |
-| `search all` | `--limit` | ❌ |  |
+| `search all` | `--limit` | ✅ |  |
 | `search all` | `--exact` | ✅ |  |
 | `search all` | `--timezone` | ❌ |  |
 | `search all` | `--json` | ✅ |  |
@@ -1118,11 +933,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `search meetings` | `--max-read-bytes` | ✅ |  |
 | `search meetings` | `--source` | ✅ |  |
 | `search meetings` | `--json` | ✅ |  |
-| `events list` |  | ✅ |  |
-| `events list` | `--limit` | ✅ |  |
-| `events list` | `--json` | ✅ |  |
-| `events show` |  | ✅ |  |
-| `events show` | `--json` | ✅ |  |
 | `answers create` |  | ✅ |  |
 | `answers create` | `--all` | ✅ |  |
 | `answers create` | `--source` | ✅ |  |
@@ -1197,12 +1007,6 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `schedule remove` | `--json` | ❌ |  |
 | `schedule exec` |  | ✅ |  |
 | `schedule exec` | `--json` | ❌ |  |
-| `digest backfill` |  | ✅ |  |
-| `digest backfill` | `--from-app` | ✅ |  |
-| `digest backfill` | `--from` | ✅ |  |
-| `digest backfill` | `--to` | ✅ |  |
-| `digest backfill` | `--yes` | ✅ |  |
-| `digest backfill` | `--json` | ✅ |  |
 | `commands` |  | ✅ |  |
 | `commands` | `--json` | ✅ |  |
 | `commands info` |  | ✅ |  |

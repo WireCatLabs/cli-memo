@@ -552,6 +552,7 @@ const GROUP_AWARE = [
   "leads",
   "pipelines list",
   "pipelines show",
+  "stages",
   "organizations",
   "people list",
   "people add",

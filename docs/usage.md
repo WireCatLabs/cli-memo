@@ -155,6 +155,40 @@ A deal copied from a CRM account (`b24 <profile> sync`) and the people on it are
 did not confirm it. Put the CRM account in a group (`memo groups add work bitrix24:<portal>`), and a run of another group
 reads none of its deals, people or relationships.
 
+In `--json`, each row of `deals list`, `leads list` and `pipelines list` copied from a CRM has `writes_with`: the CLI
+that changes it on the CRM (`tool`, such as `b24`), the row's `account`, and the `profile` to run it as. The profile is
+set only when exactly one profile of that CLI has run on the account; otherwise it is `null`, `profiles` lists the
+candidates and `why` says what to choose. In a group, a profile on an account outside the group is never named. Your
+own rows have `"writes_with": null`: memo changes them itself.
+
+### Base stages
+
+Each CRM and each of your pipelines names its stages its own way. Base stages are one list of your own for deals and
+one for leads: the columns a board shows across every pipeline. Every other stage maps onto one of them. Memo suggests
+the mapping, and you confirm it.
+
+```sh
+memo stages show deal
+memo stages list confirmed:false
+memo stages set stage:41 stage:3
+memo stages confirm --pipeline pipeline:3
+memo deals move deal:5 stage:3
+```
+
+`stages show deal` makes the deal list on first use, in your first language (`owner_languages`; Russian while it is
+unset). The lead list is memo's own `Leads` pipeline as it is: New, Contacted, Qualified, Won, Lost. `stages show`
+gives each column with its open deals or leads and mapped stages, and what is unsorted: stages not mapped yet or only
+suggested. `stages create`, `rename`, `move` and
+`remove` edit the list; each list keeps at least one open, one won and one lost stage. `stages list` shows every
+other stage with its base stage and `confirmed`. `stages set` maps one stage. `stages confirm --all` confirms every
+suggestion. Only you edit the list and confirm. Your agent's `stages set` stays a suggestion until you confirm it.
+
+`deals move` and `leads move` take a base stage's `stage:<id>`. They move your own deal to the one stage of its
+pipeline that is mapped there. When several are, the answer is `stage.choice-required` with `candidates`: move to one
+of them by its `stage:<id>`. When none is, it is `stage.unmapped`. A CRM's copy moves on its CRM, with the CLI in its
+`writes_with`. In `--json`, a row of `deals list` and `leads list` has `base_stage`, which stays `null` until you
+confirm its mapping. In a group, `stages` counts and lists only the group's pipelines and your own.
+
 ## Answers for scripts and agents
 
 Add `--json` to most commands to get an answer a program can read. The text answer is for people;
