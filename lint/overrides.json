@@ -159,5 +159,12 @@
     "reason": "WireCat Desktop's Settings lists and sets the reader that reads sources for facts (Claude Code, Codex, Ollama, an API key); the vocabulary has no noun for a model-backed reader. Add readers as a collection there, then drop this.",
     "owner": "@leemour",
     "review_after": "2027-02-08"
+  },
+  {
+    "rule": "option-role",
+    "target": "search all --harder",
+    "reason": "Opt-in: a hosted model the owner consented to (memo models search-consents set) reorders the first 30 hits of search all (cli-core 0.622.0, measured in cli-testing search-lab, 2026-11-09). No role in the cli-base flag vocabulary names sending results to a model for reranking. Add one there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-09"
   }
 ]

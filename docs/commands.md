@@ -6021,6 +6021,7 @@ memo search all <query> [options]
 | `--only <resources>` | messages,mail,notes,events,crm,business,meetings, separated by commas. |
 | `--source <accounts>` | only these accounts, separated by commas: provider:account as a hit shows it, a provider, a kind or group:<name>; each resource reads the ones of its kind, and one it names none of is left out. |
 | `--plain-order` | best first by the words alone, without moving mail from suspicious senders down. |
+| `--harder` | a hosted model reorders the first 30 hits; sends the question and those hits to the provider you chose with memo models search-consents set <provider> --yes, only after that. |
 | `--project <project>` | rank the key documents of this project (id, project:<id>, key, exact name or alias) first; nothing is left out. |
 
 **Returns:** hit — kind, ref, provider, account, title, timestamp, excerpt, url, and 17 more; every field: memo commands info search all
