@@ -467,8 +467,8 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "schedule list": ["memo schedule list", "memo schedule list kind:agent --json"],
   "schedule run": ["memo schedule run digest"],
   "digest backfill": [
-    "memo digest backfill --from 2026-11-01 --to 2026-11-07",
-    "memo digest backfill --from 2026-11-01 --to 2026-11-07 --yes --json",
+    "memo digest backfill --since-time 2026-11-01 --until-time 2026-11-07",
+    "memo digest backfill --since-time 2026-11-01 --until-time 2026-11-07 --yes --json",
   ],
   "digest brief show": ["memo digest brief show", "memo digest brief show --json"],
   "digest brief edit": [

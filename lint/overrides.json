@@ -128,28 +128,14 @@
   {
     "rule": "unknown-verb",
     "target": "digest backfill",
-    "reason": "WireCat Desktop's Digests screen (digest plan 10.4 item 2, owner 2026-11-08) runs exactly `memo digest backfill --from <date> --to <date> [--yes] [--json]`; no verb in the cli-base vocabulary names building past days' runs. Add one there, then rename with Desktop.",
+    "reason": "WireCat Desktop's Digests screen (digest plan 10.4 item 2, owner 2026-11-08) runs exactly `memo digest backfill --since-time <date> --until-time <date> [--yes] [--json]`; no verb in the cli-base vocabulary names building past days' runs. Add one there, then rename with Desktop.",
     "owner": "@leemour",
     "review_after": "2027-02-08"
   },
   {
     "rule": "unknown-resource",
     "target": "digest",
-    "reason": "WireCat Desktop's Digests screen (digest plan 10.4 item 2, owner 2026-11-08) runs exactly `memo digest backfill --from <date> --to <date> [--yes] [--json]`; the morning digest is not a resource in the cli-base vocabulary. Register it there, then drop this.",
-    "owner": "@leemour",
-    "review_after": "2027-02-08"
-  },
-  {
-    "rule": "flag-two-meanings",
-    "target": "--to",
-    "reason": "WireCat Desktop's Digests screen (digest plan 10.4 item 2, owner 2026-11-08) runs exactly `memo digest backfill --from <date> --to <date> [--yes] [--json]`; --to is a chat or an address in the vocabulary, here the last day of a date range, beside --from. Add a date range pair there, then rename with Desktop.",
-    "owner": "@leemour",
-    "review_after": "2027-02-08"
-  },
-  {
-    "rule": "option-role",
-    "target": "digest backfill --from",
-    "reason": "WireCat Desktop's Digests screen (digest plan 10.4 item 2, owner 2026-11-08) runs exactly `memo digest backfill --from <date> --to <date> [--yes] [--json]`; --from, the first day of the range, has no role in the vocabulary. Add a date range pair there, then rename with Desktop.",
+    "reason": "WireCat Desktop's Digests screen (digest plan 10.4 item 2, owner 2026-11-08) runs exactly `memo digest backfill --since-time <date> --until-time <date> [--yes] [--json]`; the morning digest is not a resource in the cli-base vocabulary. Register it there, then drop this.",
     "owner": "@leemour",
     "review_after": "2027-02-08"
   },

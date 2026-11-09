@@ -1307,8 +1307,8 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `digest brief reset` | `--json` | ❌ |  |
 | `digest backfill` |  | ✅ |  |
 | `digest backfill` | `--from-app` | ✅ |  |
-| `digest backfill` | `--from` | ✅ |  |
-| `digest backfill` | `--to` | ✅ |  |
+| `digest backfill` | `--since-time` | ✅ |  |
+| `digest backfill` | `--until-time` | ✅ |  |
 | `digest backfill` | `--yes` | ✅ |  |
 | `digest backfill` | `--json` | ✅ |  |
 | `commands` |  | ✅ |  |
