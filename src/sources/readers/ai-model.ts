@@ -63,9 +63,9 @@ export const aiModel: Reader = {
   read: async (context, { system, prompt }) => {
     const found = reader(context)
     if ("refused" in found)
-      throw new CliError("configuration_error", problemOf(found.refused), {
-        reason: found.refused === "ai.not-set" ? "reader.ai-not-set" : "reader.no-key",
-      })
+      throw found.refused === "ai.not-set"
+        ? new CliError("configuration_error", problemOf(found.refused), { reason: "reader.ai-not-set" })
+        : new CliError("authentication_error", problemOf(found.refused), { reason: "reader.no-key" })
     try {
       return await found.complete({ purpose: "sources", system, prompt, maxTokens: 4096 })
     } catch (error) {

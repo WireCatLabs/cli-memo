@@ -8,6 +8,7 @@ import type { Command } from "commander"
 import { beforeAll, describe, expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
 import { updateConfig } from "../config.js"
+import { errorObject } from "../failure.js"
 import { createProgram } from "../program.js"
 import { providerKeys } from "./readers/keys.js"
 import { factsIn } from "./suggest.js"
@@ -128,6 +129,11 @@ describe("sources suggest", () => {
         readers: ["ai-model", "claude-code", "codex", "ollama", "openai", "anthropic"],
       },
     })
+  })
+
+  it("answers reader.ai-not-set when the owner reads once with the AI model and none is chosen", async () => {
+    const failure = await suggest([ref, "--provider=ai-model", "--from-app"]).catch((error: unknown) => error)
+    expect(errorObject(failure)).toMatchObject({ error: { code: "configuration_error", reason: "reader.ai-not-set" } })
   })
 
   it("stages only the facts whose quote is in the text, as a batch only the owner confirms", async () => {
@@ -264,9 +270,8 @@ describe("sources suggest", () => {
       "https://models.example/v1",
       "--from-app",
     ])
-    await expect(suggest([ref, "--rescan", "--from-app"])).rejects.toMatchObject({
-      details: { reason: "reader.no-key" },
-    })
+    const noKey = await suggest([ref, "--rescan", "--from-app"]).catch((error: unknown) => error)
+    expect(errorObject(noKey)).toMatchObject({ error: { code: "authentication_error", reason: "reader.no-key" } })
     await expect(suggest([ref, "--provider", "ai-model", "--model", "x", "--from-app"])).rejects.toMatchObject({
       details: { param: "model" },
     })

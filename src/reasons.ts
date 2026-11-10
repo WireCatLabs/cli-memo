@@ -255,6 +255,12 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: [],
   },
   {
+    reason: "reader.ai-not-set",
+    code: "configuration_error",
+    message: "no AI model is chosen for every tool; memo models ai set <provider> --model <model> chooses one",
+    details: [],
+  },
+  {
     reason: "reader.no-key",
     code: "authentication_error",
     message: "no API key is kept for the reader's provider; memo models keys set <provider> keeps one",

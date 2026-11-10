@@ -34,19 +34,28 @@ memo people check ivan petrov             # before adding a person: who already 
    answer, or a name such as «Notifications» or «Рассылка».
 3. **organization**: an account an organization owns, a shared address such as `info@`, or a legal form or company
    word in the name (ООО, LLC, Airlines, Hotel, Team…).
-4. **person**: a readable name and a tie to you: a one-to-one chat, a group of at most 10, mail you wrote to them, a
-   meeting, a CRM, or your phone's address book.
-5. **unsorted**: everyone else, such as authors seen only in big groups and accounts with no name.
+4. **person**: a readable name and a tie to you: a one-to-one chat or a group of at most 10 they are in or wrote in,
+   mail you wrote to them, a meeting, a CRM deal or lead whose owner is your CRM user (link that user to yourself with
+   `memo people link`), a CRM's own users, or your phone's address book.
+5. **stranger**: a readable name and no tie, such as authors seen only in big groups and CRM contacts with no deal of
+   yours.
+6. **unsorted**: no readable name.
 
 `kind:person` is the default; `kind:all` lists every kind. The answer's `next` step `people.kinds` says how many each
 other kind holds. Each person has `display_name` (the name cleaned of wrapping quotes and spaces; a placeholder such as «Без
 имени» gives way to the username, phone or email; `name` stays as stored), `contact` (the phone, else the email, else
-the username), `messages_from` (the messages and mail they sent), `last_contact` and `ties`. `--sort` is
+the username; `username_source` names the messenger the username belongs to), `messages_from` (the messages and mail they sent), `last_contact` and `ties`. `--sort` is
 `interactions` (the default), `recent`, `name` or `tasks`. Run `contacts sync` in each messenger once, or nobody has
 the address-book tie.
 
-`people check` lists people whose names start like the words you type, in any order, the same name first
-(`same_name`). Memo never joins them on its own: link them as below.
+`people check` lists people whose names start like the words you type, in any order and in either script, the same
+name first (`same_name`): «Светлана» finds Svetlana too. `name:` searches find a name in either script as well. Memo
+never joins people on a name alone: link them as below.
+
+Memo never joins anyone to you on its own. An account you connect under another person's name, such as a partner's
+mailbox or a spouse's messenger you read, waits in `people review` as a match with the signal `account`, and so does
+anyone whose phone or address is also yours. A shared address such as `info@`, a company's phone and a bot's number
+join and propose no one.
 
 ## Everything about a person
 
