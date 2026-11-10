@@ -185,6 +185,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "tasks claim": ["memo tasks claim HRB-1 --lease 2h --account telegram:1"],
   "tasks release": ["memo tasks release HRB-1 --account telegram:1"],
   "tasks show": ["memo tasks show 1a2b3c4d --source telegram:1 --json"],
+  "stats projects show": ["memo stats projects show", "memo stats projects show --since-time 7d --json"],
   "stats tasks show": [
     "memo stats tasks show --source telegram:1",
     "memo stats tasks show --type question --source telegram:1 --json",
