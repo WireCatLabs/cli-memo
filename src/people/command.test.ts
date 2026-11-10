@@ -186,6 +186,35 @@ describe("memo people list", () => {
   })
 })
 
+describe("memo people counts", () => {
+  it("counts every kind in one answer, or only the people a name matches", async () => {
+    const store = await openStore({ env })
+    await store.people.savePeople({ provider: "telegram", account: "1" }, [
+      { id: "301", name: "CZECH AIRLINES" },
+      { id: "302", name: "Weather Notifications" },
+    ])
+    await store.close()
+
+    const counts = JSON.parse(await run("people", "counts", "--json")).item
+    const airlines = JSON.parse(await run("people", "counts", "name:airlines", "--json")).item
+
+    const count = (answer: { kind: { value: string; count: number }[] }, kind: string) =>
+      answer.kind.find(({ value }) => value === kind)?.count
+    expect([count(counts, "organization"), count(counts, "automated")]).toEqual([1, 1])
+    expect(counts.total).toBe(counts.kind.reduce((sum: number, { count }: { count: number }) => sum + count, 0))
+    expect(airlines).toEqual({
+      total: 1,
+      kind: [
+        { value: "person", count: 0 },
+        { value: "organization", count: 1 },
+        { value: "automated", count: 0 },
+        { value: "stranger", count: 0 },
+        { value: "unsorted", count: 0 },
+      ],
+    })
+  })
+})
+
 describe("memo people check", () => {
   it("finds the same name in any word order first", async () => {
     const found = JSON.parse(await run("people", "check", "sample", "KAI", "--json"))

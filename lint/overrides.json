@@ -15,6 +15,13 @@
   },
   {
     "rule": "unknown-verb",
+    "target": "people counts",
+    "reason": "WireCat Desktop's People page shows a count on each kind tab and made one people list call per kind, about 3.7 s each on the owner's store (desktop page speed plan item 1, 2026-11-10); the same reason as tasks counts: no verb or view noun in the cli-base vocabulary names per-value counts, and a list envelope has no room for them. Rename with tasks counts.",
+    "owner": "@leemour",
+    "review_after": "2027-02-01"
+  },
+  {
+    "rule": "unknown-verb",
     "target": "tasks counts",
     "reason": "WireCat Desktop's Tasks page (plan 2026-10-31-tasks-page, owner's choices NEED-175 and NEED-176, 2026-11-01) counts project tasks per project, assignee, priority and state for its pickers; no verb or view noun in the cli-base vocabulary names per-value counts, and a list envelope has no room for them. Add a view noun there, then rename.",
     "owner": "@leemour",
