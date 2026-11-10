@@ -177,7 +177,18 @@ would fix each:
   mailbox.
 - **mixed-names**: one person with different names and no phone or address in common.
 
-What you linked yourself, and identities you kept together by rejecting a split, are left out.
+What you linked yourself, the identities a person already held when you linked another to them, and identities you
+kept together by rejecting a split, are left out.
+
+When a doubt is wrong (a nickname beside a full name, say), tell memo the person is right as they are:
+
+```sh
+memo people links resolve person:42 keep
+```
+
+The identities in doubt stop being listed until one of them moves to another person. An identity that joins the person
+later is checked again, and an agent's split of the kept ones is refused. Only you run it, at a terminal or in WireCat
+Desktop.
 
 ### Undo a link
 

@@ -27,6 +27,7 @@ const personOf = async (store: MessageStore, who: string): Promise<PersonRecord>
 const personAnswer = (person: PersonRecord) => ({
   ref: `person:${person.uid}`,
   name: person.name,
+  display_name: person.displayName ?? null,
   ...(person.mergedInto === undefined ? {} : { mergedInto: `person:${person.mergedInto}` }),
   identities: person.identities.map((identity) => ({
     identity: `${identity.provider}:${identity.id}`,
