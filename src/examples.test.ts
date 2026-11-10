@@ -1,3 +1,4 @@
+import { metaOf } from "@wirecat/cli-base/commands"
 import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { beforeAll, describe, expect, it } from "vitest"
@@ -16,6 +17,16 @@ const leaves = (command: Command, path: string[] = []): string[] =>
           ...leaves(child, [...path, child.name()]),
         ]
       : [[...path, child.name()].join(" ")],
+  )
+
+/** Leaves whose shared definition (cli-core) carries its own examples; memo need not repeat them. */
+const examplesOf = (command: Command, path: string[] = []): Map<string, readonly string[]> =>
+  new Map(
+    command.commands.flatMap((child) => {
+      const at = [...path, child.name()]
+      const own = metaOf(child).examples ?? []
+      return [...(own.length ? [[at.join(" "), own] as const] : []), ...examplesOf(child, at)]
+    }),
   )
 
 /** Splits like a shell does for these examples: single quotes keep spaces, nothing else is special. */
@@ -45,10 +56,11 @@ describe("examples", () => {
 
   it("gives every leaf one to three examples, and names no command memo lacks", () => {
     const moved = MOVED_TO_MAIL.map(([from]) => `mail ${from}`)
-    const all = leaves(createProgram({ env: {} })).filter((path) => !moved.includes(path))
-    // cli-core's next release adds `models ai`; its examples land with the bump to it.
-    const arriving = (path: string) => path.startsWith("models ai ")
-    expect(all.filter((path) => !arriving(path) && (!EXAMPLES[path] || EXAMPLES[path].length > 3))).toEqual([])
+    const program = createProgram({ env: {} })
+    const all = leaves(program).filter((path) => !moved.includes(path))
+    const shared = examplesOf(program)
+    const examples = (path: string) => EXAMPLES[path] ?? shared.get(path)
+    expect(all.filter((path) => !examples(path) || (examples(path)?.length ?? 0) > 3)).toEqual([])
     expect(Object.keys(EXAMPLES).filter((path) => !all.includes(path))).toEqual([])
   })
 

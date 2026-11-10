@@ -30,10 +30,6 @@ export const MCP_EXCLUSIONS = [
   { path: ["sources", "readers", "set"], reason: "only the owner picks the reader a source's text goes to" },
   { path: ["models", "keys", "set"], reason: "keeps an API key; only the owner gives one" },
   { path: ["models", "keys", "remove"], reason: "forgets an API key; only the owner does" },
-  { path: ["models", "ai", "set"], reason: "only the owner chooses the model, its address and its key" },
-  { path: ["models", "ai", "off"], reason: "only the owner turns the AI model off" },
-  { path: ["models", "ai", "forget"], reason: "forgets an API key; only the owner does" },
-  { path: ["models", "ai", "check"], reason: "spends the owner's credit at the provider" },
   { path: ["people", "unlink"], reason: "only the owner separates people" },
   { path: ["people", "unmerge"], reason: "only the owner separates people" },
 ] as const
