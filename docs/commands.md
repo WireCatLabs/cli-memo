@@ -5974,6 +5974,115 @@ memo models keys remove <provider> [options]
 
 **Example:** `memo models keys remove openai`
 
+### `memo models ai`
+
+the AI model WireCat may use instead of your agent: provider, model and its key
+
+#### `memo models ai show`
+
+the chosen model, whether a key is stored for its address, and whether images may go to it
+
+```sh
+memo models ai show [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** the chosen model, whether a key is stored for its address, and whether…
+
+**Example:** `memo models ai show`
+
+#### `memo models ai set`
+
+choose the model: anthropic, openai (or any service that works like it, with --base-url) or ollama (beta)
+
+This command changes the local store or your files.
+
+```sh
+memo models ai set <provider> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `provider` | required | anthropic, openai, ollama. |
+
+| Option | What it does |
+|---|---|
+| `--model <model>` | the model's name as the provider writes it. |
+| `--base-url <url>` | the service's address; https, or http only on this computer. |
+| `--key-stdin` | read the API key from stdin and keep it for this address only. |
+| `--images` | let images you add to memory go to this model to be read; they leave this computer. |
+| `--no-images` | stop sending images to it; without either flag an earlier yes for this model stays. |
+| `--from-app` | you did this in WireCat Desktop. |
+| `--json` | print JSON. |
+
+**Returns:** choose the model: anthropic, openai (or any service that works like it, with…
+
+**Example:** `memo models ai set anthropic --model claude-haiku-4-5 --key-stdin < key.txt`, `memo models ai set openai --model openai/gpt-4o-mini --base-url https://openrouter.ai/api/v1 --key-stdin`, `memo models ai set ollama --model llama3.2-vision`
+
+#### `memo models ai off`
+
+stop using a model; its key stays until models ai forget
+
+This command changes the local store or your files.
+
+```sh
+memo models ai off [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--from-app` | you did this in WireCat Desktop. |
+| `--json` | print JSON. |
+
+**Returns:** stop using a model; its key stays until models ai forget
+
+**Example:** `memo models ai off`
+
+#### `memo models ai forget`
+
+remove the key stored for an address
+
+This command changes the local store or your files.
+
+```sh
+memo models ai forget [origin] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `origin` | optional | the address, for example https://openrouter.ai; the chosen model's when absent. |
+
+| Option | What it does |
+|---|---|
+| `--from-app` | you did this in WireCat Desktop. |
+| `--json` | print JSON. |
+
+**Returns:** remove the key stored for an address
+
+**Example:** `memo models ai forget https://api.anthropic.com`
+
+#### `memo models ai check`
+
+send one short request (billed by the provider, usually under a cent) and say what is wrong
+
+This command changes the local store or your files.
+
+```sh
+memo models ai check [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--from-app` | you did this in WireCat Desktop. |
+| `--json` | print JSON. |
+
+**Returns:** send one short request (billed by the provider, usually under a cent) and…
+
+**Example:** `memo models ai check`
+
 ## `memo templates`
 
 the templates of the digest and the other messages sent to you, per channel and language; edit, preview, reset
