@@ -9,7 +9,7 @@ import { groupScopeOf } from "../store/group.js"
 
 const DAY = 86_400_000
 
-/** `all`, days back (30d) or a start date, as `projects status` takes them. */
+/** `all`, or days back (30d) or a start date as `projects status` takes them. */
 const sinceOf = (value: string, now: number): number => {
   if (value.trim().toLowerCase() === "all") return 0
   const window = projectWindowOf(value)
@@ -35,8 +35,8 @@ export const projectActivityCommand = (program: Command, streams: Streams, env: 
   annotate(projects.command("show"), { effects: LOCAL_READ })
     .summary("each project's linked chats: messages in a period, last activity, busiest chats")
     .description(
-      "for each of your projects, the chats linked to it or its child projects (confirmed links, every purpose, as " +
-        "projects status reads them): how many, how many are muted, messages and yours in the period by when they " +
+      "for each of your projects, the chats linked to it or its child projects (every confirmed link, any purpose, " +
+        "no chat limit, unlike projects status): how many, how many are muted, messages and yours in the period by when they " +
         "were sent, the newest message and the three busiest chats; a muted chat's messages are not counted. Busiest " +
         "first. One read for all projects; projects status <project> says where one stands",
     )
@@ -66,12 +66,17 @@ export const projectActivityCommand = (program: Command, streams: Streams, env: 
           page: options.page,
           has_more: found.hasMore,
           total: { value: found.total, relation: "eq" as const },
+          args: { since_time: options.sinceTime, limit },
         }),
         [
-          `since ${new Date(since).toISOString().slice(0, 10)}`,
-          ...found.items.map(textOf),
-          ...(found.hasMore ? [`more: --page ${options.page + 1}`] : []),
-        ].join("\n\n") || "no projects",
+          since === 0 ? "all time" : `since ${new Date(since).toISOString().slice(0, 10)}`,
+          ...(found.items.length
+            ? found.items.map(textOf)
+            : [options.page > 1 ? "no projects on this page" : "no projects"]),
+          ...(found.hasMore
+            ? [`more: --since-time ${options.sinceTime} --limit ${limit} --page ${options.page + 1}`]
+            : []),
+        ].join("\n\n"),
       )
     })
 }

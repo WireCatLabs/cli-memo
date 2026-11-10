@@ -25,6 +25,8 @@ const said = (chatId: string, id: number, days: number, outgoing: boolean) => ({
   reactions: null,
 })
 
+const locks: Record<string, string>[] = []
+
 const setUp = async () => {
   const root = mkdtempSync(join(tmpdir(), "memo-activity-"))
   const env = { ...process.env, MESSAGING_STORE: join(root, "s.db") }
@@ -50,16 +52,16 @@ const setUp = async () => {
       confirmed: true,
     })
   }
+  await store.chats.saveChats({ provider: "max", account: "22" }, [{ id: "5", title: "Other", kind: "dialog" }])
   await store.close()
-  return async (...args: string[]) => {
+  const run = async (args: string[]) => {
     const streams = captureStreams()
-    await createProgram({ streams, env })
+    await createProgram({ streams, env: { ...env, ...locks.at(-1) } })
       .exitOverride()
-      .parseAsync(["stats", "projects", "show", ...args], {
-        from: "user",
-      })
+      .parseAsync(args, { from: "user" })
     return streams.stdout.join("")
   }
+  return Object.assign((...args: string[]) => run(["stats", "projects", "show", ...args]), { run })
 }
 
 it("lists every project's linked chats busiest first, muted ones named and not counted", async () => {
@@ -90,7 +92,22 @@ it("reads all time, pages, and prints one block per project", async () => {
   expect(second.items.map((one: { key: string }) => one.key)).toEqual(["QTE"])
   expect(second.page).toMatchObject({ has_more: false })
 
+  expect(JSON.stringify(first.next)).toContain("30d")
+
   const text = await show()
   expect(text).toContain("HRB  Harbour site · 2 chats (1 muted, not counted) · 2 messages (1 yours)")
   expect(text).toContain("  2  Harbour group")
+  expect(await show("--since-time", "all")).toMatch(/^all time/)
+})
+
+it("runs under a group lock and counts only that group's chats", async () => {
+  const show = await setUp()
+  await show.run(["groups", "add", "personal", "max:22"])
+  locks.push({ MEMO_GROUP_LOCK: "personal" })
+  try {
+    const body = envelopeOf(await show("--json"))
+    expect(body.items[0]).toMatchObject({ chats: 0, messages: 0 })
+  } finally {
+    locks.pop()
+  }
 })

@@ -1619,7 +1619,7 @@ project statistics
 
 #### `memo stats projects show`
 
-for each of your projects, the chats linked to it or its child projects (confirmed links, every purpose, as projects status reads them): how many, how many are muted, messages and yours in the period by when they were sent, the newest message and the three busiest chats; a muted chat's messages are not counted. Busiest first. One read for all projects; projects status <project> says where one stands
+for each of your projects, the chats linked to it or its child projects (every confirmed link, any purpose, no chat limit, unlike projects status): how many, how many are muted, messages and yours in the period by when they were sent, the newest message and the three busiest chats; a muted chat's messages are not counted. Busiest first. One read for all projects; projects status <project> says where one stands
 
 ```sh
 memo stats projects show [options]

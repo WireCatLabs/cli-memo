@@ -611,6 +611,7 @@ const GROUP_AWARE = [
   "projects context",
   "projects status",
   "projects key-documents",
+  "stats projects show",
 ]
 
 const isSimpleKind = (name: string) => REF_KINDS.some(({ type }) => type === name)
