@@ -29,13 +29,18 @@ export interface Reader {
   id: string
   title: string
   provider: string
-  /** The text goes to a service outside this computer. */
-  leavesComputer: boolean
+  /** The text goes to a service outside this computer; for the shared AI model it depends on the owner's setting. */
+  leavesComputer: boolean | ((env: NodeJS.ProcessEnv) => boolean)
   /** The reader is an agent that could open files of this computer, though memo asks it not to. */
   readsFiles: boolean
   /** It refuses to read until the owner names a model. */
   needsModel: boolean
+  /** The model it reads with, set elsewhere than `--model`; such a reader refuses `--model`. */
+  modelOf?: (env: NodeJS.ProcessEnv) => string | null
   probe(context: ReaderContext): Promise<ReaderProbe>
   /** The model's answer as text. */
   read(context: ReaderContext, request: ReadRequest): Promise<string>
 }
+
+export const leavesComputer = (reader: Reader, env: NodeJS.ProcessEnv): boolean =>
+  typeof reader.leavesComputer === "function" ? reader.leavesComputer(env) : reader.leavesComputer

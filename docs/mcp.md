@@ -88,7 +88,9 @@ to open, so it gets no way to read local files or reach a private network throug
 from the command line ([Sources you add by hand](sources.md)). An agent's subjects wait for you to confirm them.
 `sources remove` is not offered: only you remove a source you added. `sources suggest` is not offered either, so an
 agent cannot send a source's text off this computer; nor are `sources readers set` and `models keys set` and
-`remove`, since only you choose the reader and give its key. `sources readers list` is offered.
+`remove`, since only you choose the reader and give its key. `sources readers list` is offered. Of `models ai`, only
+`show` is offered: `set`, `unset`, `remove`, `revoke` and `check` choose the AI model, its address and its key, or
+spend your credit, so only you run them.
 
 `memories add`, `facts add`, `actions add`, `meetings actions add` and `projects actions add` save proposals.
 By default only the owner decides project proposals; `projects actions confirm` and `projects actions reject` refuse

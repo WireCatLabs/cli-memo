@@ -103,8 +103,11 @@ name another.
 - Claude Code runs with every tool, MCP server, hook, slash command and saved session off, in an empty folder, with
   the text on stdin. Codex runs in its read-only sandbox in an empty folder. Neither gets `ANTHROPIC_API_KEY`,
   `OPENAI_API_KEY` or an agent's variables from Memo's environment.
-- An API key lives in the system keyring only. `memo models keys set` takes it at a hidden prompt or on stdin, never
-  as an argument, and never reads one from the environment. No answer, error or run record holds it.
+- An API key lives in the system keyring, or in a file only your user can read when the computer has no keyring.
+  `memo models keys set` takes it at a hidden prompt or on stdin, never as an argument, and never reads one from the
+  environment. No answer, error or run record holds it. The `ai-model` reader and image reading use the key
+  `memo models ai set --secret-stdin` kept for the model's address; with none kept, an official address
+  (api.openai.com, api.anthropic.com) also takes `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` from the environment.
 - The text is given as data, with an instruction never to follow what it says. A fact is proposed only with a quote
   found in the text, and only you confirm the batch, even with `agent_decisions` on.
 - Over MCP, `sources suggest`, `sources readers set` and `models keys` are not offered.
@@ -117,6 +120,12 @@ name another.
 
 - `memo sources suggest` sends one source's text to the reader you chose; `memo sources readers list` says whether
   it leaves this computer.
+- `memo sources add` sends an image to your AI model only after `memo models ai set … --allow-remote`, and only to the
+  address and model you agreed to. The key for that model is sent only to its address. Changing either withdraws
+  the consent. Only your own `sources add` sends one: an agent's add keeps the image by its name. An agent can run
+  neither `models ai set` nor `models ai check`.
+- The `ai-model` reader sends a source's text to whatever model `memo models ai set` chose at the time it reads, not
+  the one chosen when you picked the reader. Changing the AI model changes where `sources suggest` sends text.
 - `memo answers create` gives the sources to your own agent by default. It sends them to an AI provider only
   with `--analyze`, and to a provider outside your computer only with `--allow-remote` as well. The
   provider's answer is generated text: check it against the sources.

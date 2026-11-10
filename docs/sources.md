@@ -31,7 +31,21 @@ pbpaste | memo sources add - --subject person:12
 - **`--max-chars`** keeps at most that many characters of text, up to 2,000,000 (default 200,000). The answer says
   `truncated: true` when only the first part was kept.
 
-A picture or a scanned PDF has no text Memo can read: it is kept by its title and subjects only (`read: "no-text"`).
+A scanned PDF has no text Memo can read: it is kept by its title and subjects only (`read: "no-text"`).
+
+An image (PNG, JPEG or WebP, up to 4 MB) is read by your AI model once you chose one and agreed that images go to it:
+
+```sh
+memo models ai set anthropic --model claude-haiku-4-5 --allow-remote --secret-stdin < key.txt
+memo models ai check
+```
+
+The image is sent to that provider, so it leaves this computer (Ollama on this computer is the exception). The answer's
+`image.read_by` names the model. Without a model, consent or key, or for a GIF or a larger image, the image is kept by
+its title only, and `image.reason` says why: `ai.not-set`, `ai.images-not-allowed`, `ai.key-missing`,
+`ai.owner-only` (an agent added it; only your own add sends an image), `ai.setting-invalid`, `image.unsupported` or
+`ai.failed`. A change of the model or the address withdraws the consent until you give it again, and
+`memo models ai revoke` withdraws it at once.
 
 ## Look at a page before adding it
 
@@ -91,7 +105,7 @@ becomes a fact on its own.
 
 ```sh
 memo sources readers list
-memo sources readers set claude-code
+memo sources readers set ai-model
 memo sources suggest document:42 --subject person:12
 memo actions confirm 17 fact-1 fact-3 --fingerprint <fingerprint>
 ```
@@ -104,6 +118,7 @@ readers.
 
 | Reader | What reads the text | Leaves this computer | Model |
 |---|---|---|---|
+| `ai-model` | The AI model you chose for every WireCat tool (`memo models ai set`), with its one key | Yes, except a model on this computer such as Ollama | The one `memo models ai set` chose |
 | `claude-code` | Your signed-in Claude Code, with every tool, MCP server, hook and saved session off, in an empty folder | Yes, to Anthropic | Its own, or `--model` |
 | `codex` | Your signed-in Codex CLI in its read-only sandbox, in an empty folder. It is an agent that could still read files on this computer | Yes, to OpenAI | Its own, or `--model` |
 | `ollama` | The Ollama running on this computer, at `127.0.0.1:11434` only | No | Required: one that `ollama list` shows |

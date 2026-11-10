@@ -2,10 +2,11 @@ import { existsSync } from "node:fs"
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { environmentOf, FETCH, LOCAL_READ, LOCAL_WRITE, REMOTE_READ } from "@wirecat/cli-core/cli"
-import { type FetchPageOptions, MAX_TEXT_CHARS } from "@wirecat/cli-core/documents"
+import { aiImageReader, type FetchPageOptions, MAX_TEXT_CHARS } from "@wirecat/cli-core/documents"
 import { type AddedSourceContent, addedSourceKeyOf, type Decider, type MessageStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
+import { APP } from "../app.js"
 import { byOption, reasonOption, whoRuns } from "../author.js"
 import { loadConfig } from "../config.js"
 import { searchModelPresent } from "../notes/embed.js"
@@ -14,7 +15,16 @@ import { subjectOf } from "../people/subject.js"
 import { refuseBareNumber } from "../refs.js"
 import { dropCopy, keepCopy } from "./copy.js"
 import { namedIn } from "./mentions.js"
-import { argumentKind, previewOf, readFile, readPage, readText, SOURCE_TEXT_CHARS, withNextStep } from "./read.js"
+import {
+  argumentKind,
+  type ImageRead,
+  previewOf,
+  readFile,
+  readPage,
+  readText,
+  SOURCE_TEXT_CHARS,
+  withNextStep,
+} from "./read.js"
 import { type ReaderDeps, readerCommands } from "./suggest-command.js"
 
 const SUBJECT_HELP =
@@ -72,6 +82,20 @@ const citing = async (store: MessageStore, ref: string) => {
   const of = (type: string) => [...new Set(links.flatMap(({ from }) => (from.startsWith(`${type}:`) ? [from] : [])))]
   return { facts: of("fact"), memories: of("memory") }
 }
+
+const IMAGE_WHY: Record<NonNullable<ImageRead["reason"]>, string> = {
+  "ai.not-set": "kept by its name: no AI model is chosen (memo models ai set)",
+  "ai.images-not-allowed": "kept by its name: images may not go to your AI model (memo models ai set … --allow-remote)",
+  "ai.key-missing": "kept by its name: no key is stored for your AI model (memo models ai set … --secret-stdin)",
+  "ai.owner-only": "kept by its name: only your own add sends an image to your AI model, not an agent's",
+  "ai.setting-invalid":
+    "kept by its name: the ai section of the WireCat config is not one memo can read (memo models ai set)",
+  "image.unsupported": "kept by its name: the model reads PNG, JPEG and WebP up to 4 MB",
+  "ai.failed": "kept by its name: your AI model could not read it (memo models ai check)",
+}
+
+const imageLine = (image: ImageRead) =>
+  image.read_by ? `read by ${image.read_by}` : IMAGE_WHY[image.reason ?? "ai.failed"]
 
 interface AddOptions {
   title?: string
@@ -131,7 +155,18 @@ export const sourcesCommand = (
         ? readText(environmentOf(command).stdin ?? process.stdin, { maxChars })
         : kind === "url"
           ? readPage(given, { maxChars, ...(fetch ? { fetch } : {}) })
-          : readFile(given, { maxChars })
+          : readFile(given, {
+              maxChars,
+              // An agent's add never sends the owner's image off this computer; the consent was for the owner's own adds.
+              image: () => {
+                if (who !== "owner") return { refused: "ai.owner-only" }
+                try {
+                  return aiImageReader({ app: APP, env, keyring: readers.keyring, fetch: readers.fetch })
+                } catch {
+                  return { refused: "ai.setting-invalid" }
+                }
+              },
+            })
       ).catch((error: unknown) => {
         throw withNextStep(error)
       })
@@ -190,6 +225,7 @@ export const sourcesCommand = (
             meaning: text && searchModelPresent(env) && loadConfig(env).notes?.embed !== false,
           },
           subjects: saved.subjects,
+          ...(read.image ? { image: read.image } : {}),
         }
       })
       print(
@@ -200,6 +236,7 @@ export const sourcesCommand = (
           `  ${item.title ?? ""}  ${item.kind}${item.mime ? ` · ${item.mime}` : ""} · ${item.chars} characters${item.truncated === true ? " (only the first part is kept)" : ""}`,
           `  kept: ${item.kept === "copy" ? "its text and a copy of the file" : item.kept === "text" ? "its text" : "nothing new"}`,
           `  search: ${item.searchable.words ? "by words" : "by its title and subjects only"}${item.searchable.meaning ? " and by meaning after memo sync" : ""}`,
+          ...(item.image ? [`  image: ${imageLine(item.image)}`] : []),
           ...(item.subjects.length ? [`  about: ${item.subjects.join(", ")}`] : []),
         ].join("\n"),
       )

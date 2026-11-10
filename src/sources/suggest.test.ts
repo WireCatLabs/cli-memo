@@ -99,7 +99,13 @@ const quiet = (command: Command) => {
 
 const run = async (args: string[], { as = env, stdin }: { as?: NodeJS.ProcessEnv; stdin?: string } = {}) => {
   const streams = captureStreams()
-  const program = createProgram({ streams, env: as, readerFetch, keyring })
+  const program = createProgram({
+    streams,
+    env: as,
+    readerFetch,
+    keyring,
+    ...(stdin === undefined ? {} : { stdin: Readable.from([stdin]) }),
+  })
   if (stdin !== undefined) provide(program, { ...environmentOf(program), stdin: Readable.from([stdin]) })
   quiet(program)
   await program.parseAsync([...args, "--json"], { from: "user" })
@@ -117,7 +123,10 @@ describe("sources suggest", () => {
   it("refuses until the owner chooses a reader, and names every reader it could use", async () => {
     await expect(suggest([ref, "--from-app"])).rejects.toMatchObject({
       code: "configuration_error",
-      details: { reason: "reader.none-chosen", readers: ["claude-code", "codex", "ollama", "openai", "anthropic"] },
+      details: {
+        reason: "reader.none-chosen",
+        readers: ["ai-model", "claude-code", "codex", "ollama", "openai", "anthropic"],
+      },
     })
   })
 
@@ -235,6 +244,45 @@ describe("sources suggest", () => {
       const full = join(root, path)
       if (statSync(full).isFile()) expect(readFileSync(full).includes(key), path).toBe(false)
     }
+  })
+
+  it("reads with the AI model the owner chose for every tool, with its one key", async () => {
+    const key = "sk-synthetic-ai-model-0000"
+    await run(["sources", "readers", "set", "ai-model", "--from-app"])
+    await expect(suggest([ref, "--rescan", "--from-app"])).rejects.toMatchObject({
+      details: { reason: "reader.ai-not-set" },
+    })
+    // An address of its own: ANTHROPIC_API_KEY in this test's environment would count for the official one.
+    await run([
+      "models",
+      "ai",
+      "set",
+      "openai",
+      "--model",
+      "m",
+      "--base-url",
+      "https://models.example/v1",
+      "--from-app",
+    ])
+    await expect(suggest([ref, "--rescan", "--from-app"])).rejects.toMatchObject({
+      details: { reason: "reader.no-key" },
+    })
+    await expect(suggest([ref, "--provider", "ai-model", "--model", "x", "--from-app"])).rejects.toMatchObject({
+      details: { param: "model" },
+    })
+    await run(["models", "ai", "set", "openai", "--model", "gpt-shared", "--secret-stdin", "--from-app"], {
+      stdin: key,
+    })
+    const item = await suggest([ref, "--rescan", "--from-app"])
+    expect(item).toMatchObject({ reader: "ai-model", model: "openai/gpt-shared", leaves_computer: true })
+    const sent = requests.filter((request) => request.url.includes("api.openai.com")).at(-1)
+    expect(sent?.headers.authorization).toBe(`Bearer ${key}`)
+    expect(sent?.body).toMatchObject({ model: "gpt-shared" })
+
+    await run(["models", "ai", "set", "ollama", "--model", "llama3.2:latest", "--from-app"])
+    const listed = await run(["sources", "readers", "list", "id:ai-model"])
+    expect(listed.body.items).toMatchObject([{ id: "ai-model", chosen: true, leaves_computer: false }])
+    await run(["sources", "readers", "set", "openai", "--model", "gpt-synthetic", "--from-app"])
   })
 
   it("lists every reader with what it would do with the text, and the owner's pick", async () => {

@@ -16,9 +16,9 @@ export const providerKeys = ({ env, keyring }: Pick<ReaderContext, "env" | "keyr
     configDir: resolvePaths(where).config,
     service: APP.appName,
     isolated: isMovedRun(where),
-    storage: "keyring",
     env,
     ...(keyring ? { keyring } : {}),
+    warn: (message) => process.stderr.write(`${message}\n`),
   })
   const account = (provider: KeyProvider) => `embeddings:${provider}`
   return {

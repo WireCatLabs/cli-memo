@@ -720,7 +720,17 @@ it("adds a source for an agent as text only: no path and no link reach memo", as
     ).items.map(({ command }) => command)
     expect(names).not.toContain("sources remove")
     expect(names).toContain("sources readers list")
-    for (const excluded of ["sources suggest", "sources readers set", "models keys set", "models keys remove"])
+    for (const excluded of [
+      "sources suggest",
+      "sources readers set",
+      "models keys set",
+      "models keys remove",
+      "models ai set",
+      "models ai unset",
+      "models ai remove",
+      "models ai revoke",
+      "models ai check",
+    ])
       expect(names).not.toContain(excluded)
   } finally {
     await client.close()
