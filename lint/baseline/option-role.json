@@ -1,7 +1,4 @@
 [
-  "models ai set --images",
-  "models ai set --key-stdin",
-  "models ai set --no-images",
   "projects evidence --include-proposed",
   "projects evidence --purpose",
   "projects status --purpose",

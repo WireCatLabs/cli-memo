@@ -774,7 +774,7 @@ memo people add <name> [options]
 
 ### `memo people list`
 
-people of one kind: person (the default: the owner, people added by hand or assigned a task, and named people with a tie to you, such as a one-to-one chat, a group of at most 10, mail you wrote, a meeting, a CRM or your address book), organization, automated (bots, newsletters, notifications), unsorted (no tie or no name) or all. The owner first, then by the messages and mail they sent
+people of one kind: person (the default: the owner, people added by hand or assigned a task, and named people with a tie to you, such as a one-to-one chat, a group of at most 10, mail you wrote, a meeting, a CRM or your address book), organization, automated (bots, newsletters, notifications), stranger (a name and no tie), unsorted (no name) or all. The owner first, then by the messages and mail they sent
 
 ```sh
 memo people list [query] [options]
@@ -794,6 +794,26 @@ memo people list [query] [options]
 **Returns:** people of one kind, most messages first: person by default
 
 **Example:** `memo people list --json`, `memo people list kind:organization --sort name --page 2`
+
+### `memo people counts`
+
+how many people each kind holds (person, organization, automated, stranger, unsorted), or how many of them match name:, in one answer: the counts a people list's kind tabs show
+
+```sh
+memo people counts [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** how many people each kind holds, every kind at once
+
+**Example:** `memo people counts --json`, `memo people counts name:ivan --json`
 
 ### `memo people check`
 
@@ -5990,7 +6010,7 @@ memo models ai show [options]
 |---|---|
 | `--json` | print JSON. |
 
-**Returns:** the chosen model, whether a key is stored for its address, and whether…
+**Returns:** the chosen model, its key, and whether images may go to it
 
 **Example:** `memo models ai show`
 
@@ -6012,24 +6032,23 @@ memo models ai set <provider> [options]
 |---|---|
 | `--model <model>` | the model's name as the provider writes it. |
 | `--base-url <url>` | the service's address; https, or http only on this computer. |
-| `--key-stdin` | read the API key from stdin and keep it for this address only. |
-| `--images` | let images you add to memory go to this model to be read; they leave this computer. |
-| `--no-images` | stop sending images to it; without either flag an earlier yes for this model stays. |
+| `--secret-stdin` | read the API key from stdin, or ask for it; kept for this address only. |
+| `--allow-remote` | let images you add to memory go to this model to be read; they leave this computer. Without it, a set takes back an earlier yes. |
 | `--from-app` | you did this in WireCat Desktop. |
 | `--json` | print JSON. |
 
-**Returns:** choose the model: anthropic, openai (or any service that works like it, with…
+**Returns:** choose the AI model: anthropic, openai or compatible, or ollama (beta)
 
-**Example:** `memo models ai set anthropic --model claude-haiku-4-5 --key-stdin < key.txt`, `memo models ai set openai --model openai/gpt-4o-mini --base-url https://openrouter.ai/api/v1 --key-stdin`, `memo models ai set ollama --model llama3.2-vision`
+**Example:** `memo models ai set anthropic --model claude-haiku-4-5 --secret-stdin --allow-remote`, `memo models ai set openai --model openai/gpt-4o-mini --base-url https://openrouter.ai/api/v1 --secret-stdin`, `memo models ai set ollama --model llama3.2-vision`
 
-#### `memo models ai off`
+#### `memo models ai unset`
 
-stop using a model; its key stays until models ai forget
+stop using a model; its key stays until models ai remove
 
 This command changes the local store or your files.
 
 ```sh
-memo models ai off [options]
+memo models ai unset [options]
 ```
 
 | Option | What it does |
@@ -6037,18 +6056,18 @@ memo models ai off [options]
 | `--from-app` | you did this in WireCat Desktop. |
 | `--json` | print JSON. |
 
-**Returns:** stop using a model; its key stays until models ai forget
+**Returns:** stop using a model; its key stays until models ai remove
 
-**Example:** `memo models ai off`
+**Example:** `memo models ai unset`
 
-#### `memo models ai forget`
+#### `memo models ai remove`
 
 remove the key stored for an address
 
 This command changes the local store or your files.
 
 ```sh
-memo models ai forget [origin] [options]
+memo models ai remove [origin] [options]
 ```
 
 | Argument | | What it is |
@@ -6062,7 +6081,26 @@ memo models ai forget [origin] [options]
 
 **Returns:** remove the key stored for an address
 
-**Example:** `memo models ai forget https://api.anthropic.com`
+**Example:** `memo models ai remove https://api.anthropic.com`
+
+#### `memo models ai revoke`
+
+stop sending images to the AI model; the model itself stays chosen
+
+This command changes the local store or your files.
+
+```sh
+memo models ai revoke [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--from-app` | you did this in WireCat Desktop. |
+| `--json` | print JSON. |
+
+**Returns:** stop sending images to the AI model; the model itself stays chosen
+
+**Example:** `memo models ai revoke`
 
 #### `memo models ai check`
 
@@ -6079,7 +6117,7 @@ memo models ai check [options]
 | `--from-app` | you did this in WireCat Desktop. |
 | `--json` | print JSON. |
 
-**Returns:** send one short request (billed by the provider, usually under a cent) and…
+**Returns:** send one short paid request and say what is wrong
 
 **Example:** `memo models ai check`
 

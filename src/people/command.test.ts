@@ -195,8 +195,8 @@ describe("memo people counts", () => {
     ])
     await store.close()
 
-    const counts = JSON.parse(await run("people", "counts", "--json"))
-    const airlines = JSON.parse(await run("people", "counts", "name:airlines", "--json"))
+    const counts = JSON.parse(await run("people", "counts", "--json")).item
+    const airlines = JSON.parse(await run("people", "counts", "name:airlines", "--json")).item
 
     const count = (answer: { kind: { value: string; count: number }[] }, kind: string) =>
       answer.kind.find(({ value }) => value === kind)?.count

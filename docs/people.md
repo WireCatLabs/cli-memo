@@ -42,7 +42,7 @@ memo people check ivan petrov             # before adding a person: who already 
 
 `kind:person` is the default; `kind:all` lists every kind. The answer's `next` step `people.kinds` says how many each
 other kind holds; `people counts` gives every kind's count as data, in the shape of `tasks counts`:
-`{ total, kind: [{ value, count }] }`, with `name:` to count only the matching ones. Each person has `display_name` (the name cleaned of wrapping quotes and spaces; a placeholder such as «Без
+`item` holds `{ total, kind: [{ value, count }] }`, with `name:` to count only the matching ones. Each person has `display_name` (the name cleaned of wrapping quotes and spaces; a placeholder such as «Без
 имени» gives way to the username, phone or email; `name` stays as stored), `contact` (the phone, else the email, else
 the username), `messages_from` (the messages and mail they sent), `last_contact` and `ties`. `--sort` is
 `interactions` (the default), `recent`, `name` or `tasks`. Run `contacts sync` in each messenger once, or nobody has
