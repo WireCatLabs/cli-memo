@@ -64,6 +64,7 @@ import { KEY_DOCUMENTS_QUERY, keyDocument } from "./list-queries.js"
 import { meetingProjectsCommand } from "./meeting-projects-command.js"
 import { organizationText } from "./organization-text.js"
 import { projectActionsCommand } from "./project-actions-command.js"
+import { projectActivityCommand } from "./project-activity-command.js"
 import { projectContext, projectContextText } from "./project-context.js"
 import { projectGatherCommand } from "./project-gather-command.js"
 import { projectStatusCommand } from "./project-status-command.js"
@@ -283,6 +284,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     })
   projectGatherCommand(projects, print, env, warn)
   projectStatusCommand(projects, print, env)
+  projectActivityCommand(program, streams, env)
   projectActionsCommand(projects, streams, env)
   projectTransferCommand(projects, streams, env)
   const keys = projects

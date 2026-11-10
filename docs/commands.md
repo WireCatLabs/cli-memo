@@ -1613,6 +1613,29 @@ memo stats tasks show [query] [options]
 
 **Example:** `memo stats tasks show --source telegram:1`, `memo stats tasks show --type question --source telegram:1 --json`
 
+### `memo stats projects`
+
+project statistics
+
+#### `memo stats projects show`
+
+for each of your projects, the chats linked to it or its child projects (every confirmed link, any purpose, no chat limit, unlike projects status): how many, how many are muted, messages and yours in the period by when they were sent, the newest message and the three busiest chats; a muted chat's messages are not counted. Busiest first. One read for all projects; projects status <project> says where one stands
+
+```sh
+memo stats projects show [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--since-time <time>` | how far back: days (30d, at most 730d), a start date (2026-09-01) or all. Default: `30d`. |
+| `--limit <n>` | most projects on a page, up to 200. Default: `20`. |
+| `--page <n>` | which page, from 1. Default: `1`. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** each project's linked chats: messages in a period, last activity, busiest chats
+
+**Example:** `memo stats projects show`, `memo stats projects show --since-time 7d --json`
+
 ## `memo organizations`
 
 companies, teams, families and communities of yours

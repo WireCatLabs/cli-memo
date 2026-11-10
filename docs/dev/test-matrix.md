@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1138 ✅ · 0 ⛔ · 318 ❌** — 320 commands, 1136 options.
+**1143 ✅ · 0 ⛔ · 318 ❌** — 321 commands, 1140 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -340,6 +340,11 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `stats tasks show` | `--timezone` | ❌ |  |
 | `stats tasks show` | `--source` | ✅ |  |
 | `stats tasks show` | `--json` | ✅ |  |
+| `stats projects show` |  | ✅ |  |
+| `stats projects show` | `--since-time` | ✅ |  |
+| `stats projects show` | `--limit` | ✅ |  |
+| `stats projects show` | `--page` | ✅ |  |
+| `stats projects show` | `--json` | ✅ |  |
 | `organizations add` |  | ✅ |  |
 | `organizations add` | `--kind` | ✅ |  |
 | `organizations add` | `--scope` | ✅ |  |
