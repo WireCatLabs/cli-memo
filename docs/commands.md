@@ -838,7 +838,7 @@ memo people show <who> [options]
 
 ### `memo people review`
 
-what waits for the owner about who is who: matches (people that may be one) and splits (identities an agent says are not this person), newest first; people confirm or people reject answers them
+what waits for the owner about who is who: matches (people that may be one) and splits (identities an agent says are not this person), highest score first, then newest; people confirm or people reject answers them, and people resolve company answers a match on a shared mailbox
 
 ```sh
 memo people review [options]
@@ -909,6 +909,34 @@ memo people reject <ids> [options]
 **Returns:** turn down matches and splits by id, or all that people review lists; only you
 
 **Example:** `memo people reject 17081 --reason 'two people'`, `memo people reject all --kind link --reason 'not one'`
+
+### `memo people resolve`
+
+answers a match on a shared mailbox (people review shows shared and mailbox) with company: the address goes to the organization you name, else to the one that has the address or its company domain, else to one named --name, else to a new company named after the domain. The two people are not joined and are not proposed again on that address
+
+This command changes the local store or your files.
+
+```sh
+memo people resolve <id> <answer> [organization] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `id` | required | the match's id as people review lists it. |
+| `answer` | required | company: the mailbox is a company's, not either person's. |
+| `organization` | optional | organization:<id> to give the address to. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--name <name>` | the company's name, when no organization is named. |
+| `--reason <text>` | why, in a few words. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** say a shared mailbox is a company's, not either person's; only you
+
+**Example:** `memo people resolve 17092 company`, `memo people resolve 17093 company organization:12 --json`
 
 ### `memo people links`
 

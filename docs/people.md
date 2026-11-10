@@ -54,8 +54,8 @@ never joins people on a name alone: link them as below.
 
 Memo never joins anyone to you on its own. An account you connect under another person's name, such as a partner's
 mailbox or a spouse's messenger you read, waits in `people review` as a match with the signal `account`, and so does
-anyone whose phone or address is also yours. A shared address such as `info@`, a company's phone and a bot's number
-join and propose no one.
+anyone whose phone or address is also yours. A company's phone and a bot's number join and propose no one; a shared
+mailbox such as `info@` joins no one but suggests each pair of its people, as below.
 
 ## Everything about a person
 
@@ -108,7 +108,7 @@ One person can have a Telegram account, a MAX account, a CRM contact and an emai
 person when:
 
 - they have the **same email address**, in any account, work or personal, and no third person has it, unless it is
-  a role address such as `info@` or `support@`, which only suggests a link;
+  a shared mailbox (a role address such as `info@` or `support@`, or a company's address), which only suggests a link;
 - they have the **same phone number**, no one else has it, and one of them has it in Telegram, MAX or WhatsApp.
 
 `memo sync` joins them, and so does `memo people scan`. A matching name, username or email domain is never enough,
@@ -131,6 +131,21 @@ memo people reject 17091 --reason "two people"
 what it would do and changes nothing until you add `--yes`. Each proposal is decided on its own, so one that changed
 since is refused and the others are still decided. `memo review` lists and decides the same proposals among
 everything else.
+
+`people review` lists the highest `score` first, and matches with no score and splits after them, newest first. A
+match on a shared mailbox shows `shared` (`role` for an address such as `info@`, `line` for a company's) and the
+address as `mailbox`; its score is 0.1 for the mailbox alone and rises when the two people also have one name, a
+phone or another address only they hold, or a chat or a company domain. When the mailbox is a company's, not either
+person's, say so:
+
+```sh
+memo people resolve 17092 company                    # the company that has the address or its domain, else a new one
+memo people resolve 17092 company organization:12    # this organization
+memo people resolve 17092 company --name "Shop Ltd"  # a company of this name; needed for a free mailbox such as gmail.com
+```
+
+The address goes to the organization, the two people are not joined, and that pair is not suggested again on that
+address. Only you answer it, as with `confirm` and `reject`.
 
 Link two accounts yourself, or look at one person:
 
