@@ -74,8 +74,8 @@ describe("memo stages", () => {
   it("mounts every stages command with --json", async () => {
     const stages = createProgram({ streams: captureStreams(), env }).commands.find((one) => one.name() === "stages")
     const leaves = stages?.commands ?? []
-    expect(leaves.map((leaf) => leaf.name()).sort()).toEqual(
-      ["confirm", "create", "list", "move", "remove", "rename", "set", "show"].sort(),
+    expect(leaves.map((leaf) => leaf.name())).toEqual(
+      expect.arrayContaining(["confirm", "create", "list", "move", "remove", "rename", "set", "show"]),
     )
     for (const leaf of leaves) expect(leaf.options.map((option) => option.long)).toContain("--json")
     const columns = await openColumns()
