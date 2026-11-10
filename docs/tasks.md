@@ -42,11 +42,12 @@ check. Each reads or changes one account; name it:
 memo tasks agenda --source telegram:1           # overdue, due, owed and waiting chats
 memo tasks update 1a2b3c4d --due 2d --remind-time 1d --title 'Send the revised budget' --account telegram:1
 memo tasks show 1a2b3c4d --source telegram:1
-memo stats tasks show --source telegram:1       # open tasks per chat
+memo stats tasks show                           # open tasks per chat, every account
 memo tasks agenda --source notes                # tasks from your notes folder
 ```
 
-A command without `--source` or `--account` lists the accounts the store holds. tg and max open these tasks
+A command without `--source` or `--account` lists the accounts the store holds; `stats tasks show` without it counts
+every stored account and names them in `accounts`. tg and max open these tasks
 when they sync; memo reads the same store.
 
 ## Tasks in a project

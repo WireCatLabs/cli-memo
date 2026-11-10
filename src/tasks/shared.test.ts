@@ -83,6 +83,31 @@ it("**mounts tg's tasks agenda, show and stats tasks show**, and plans a message
   expect((await run("stats", "tasks", "show", ...scope, "--json")).json().item).toMatchObject({ open: 1 })
 })
 
+it("**counts tasks across every stored account** when stats tasks show names none, and says which", async () => {
+  const { env, run } = await setUp()
+  const other = { provider: "telegram", account: "600" }
+  const store = await openStore({ env })
+  await store.accounts.saveAccount(other, { name: null })
+  await store.chats.saveChats(other, [
+    { id: "7", title: null, kind: "dialog", unreadCount: 0, lastMessageAt: null, participantsCount: null },
+  ])
+  await store.messages.saveMessages(other, "7", [said("1", 40, "can you send the deck?")], { via: "test" })
+  await applyTaskRulesToStored(store, other)
+  await store.close()
+
+  const all = (await run("stats", "tasks", "show", "--json")).json().item
+  expect(all).toMatchObject({ accounts: ["telegram:500", "telegram:600"], open: 2 })
+  expect(all.rows.map(({ chat }: { chat: string }) => chat).sort()).toEqual([
+    "chat:telegram/500/7",
+    "chat:telegram/600/7",
+  ])
+  expect((await run("stats", "tasks", "show", ...scope, "--json")).json().item).toMatchObject({ open: 1 })
+  await expect(run("stats", "tasks", "show", "--chat", "7", "--json")).rejects.toMatchObject({
+    code: "validation_error",
+    message: expect.stringContaining("--source"),
+  })
+})
+
 it("refuses a shared task command that names no account, and lists the ones the store holds", async () => {
   const { run } = await setUp()
 
