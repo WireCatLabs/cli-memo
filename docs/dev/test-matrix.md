@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1109 ✅ · 0 ⛔ · 294 ❌** — 310 commands, 1093 options.
+**1114 ✅ · 0 ⛔ · 312 ❌** — 315 commands, 1111 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -559,6 +559,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `memories add` | `--json` | ✅ |  |
 | `memories list` |  | ✅ |  |
 | `memories list` | `--limit` | ✅ |  |
+| `memories list` | `--page` | ✅ |  |
 | `memories list` | `--json` | ✅ |  |
 | `memories show` |  | ✅ |  |
 | `memories show` | `--sources` | ✅ |  |
@@ -623,6 +624,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `facts add` | `--json` | ✅ |  |
 | `facts list` |  | ✅ |  |
 | `facts list` | `--limit` | ✅ |  |
+| `facts list` | `--page` | ✅ |  |
 | `facts list` | `--json` | ✅ |  |
 | `facts show` |  | ✅ |  |
 | `facts show` | `--sources` | ✅ |  |
@@ -1064,7 +1066,8 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `actions add` | `--payload` | ✅ |  |
 | `actions add` | `--json` | ✅ |  |
 | `actions list` |  | ✅ |  |
-| `actions list` | `--limit` | ❌ |  |
+| `actions list` | `--limit` | ✅ |  |
+| `actions list` | `--page` | ✅ |  |
 | `actions list` | `--brief` | ✅ |  |
 | `actions list` | `--json` | ✅ |  |
 | `actions show` |  | ✅ |  |
@@ -1117,6 +1120,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `review status` | `--since-time` | ✅ |  |
 | `agents list` |  | ✅ |  |
 | `agents list` | `--limit` | ✅ |  |
+| `agents list` | `--page` | ✅ |  |
 | `agents list` | `--json` | ✅ |  |
 | `mcp serve` |  | ✅ |  |
 | `mcp serve` | `--permission` | ✅ |  |
@@ -1168,6 +1172,25 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `models keys set` | `--json` | ✅ |  |
 | `models keys remove` |  | ✅ |  |
 | `models keys remove` | `--json` | ✅ |  |
+| `models ai show` |  | ❌ |  |
+| `models ai show` | `--json` | ❌ |  |
+| `models ai set` |  | ❌ |  |
+| `models ai set` | `--model` | ❌ |  |
+| `models ai set` | `--base-url` | ❌ |  |
+| `models ai set` | `--key-stdin` | ❌ |  |
+| `models ai set` | `--images` | ❌ |  |
+| `models ai set` | `--no-images` | ❌ |  |
+| `models ai set` | `--from-app` | ❌ |  |
+| `models ai set` | `--json` | ❌ |  |
+| `models ai off` |  | ❌ |  |
+| `models ai off` | `--from-app` | ❌ |  |
+| `models ai off` | `--json` | ❌ |  |
+| `models ai forget` |  | ❌ |  |
+| `models ai forget` | `--from-app` | ❌ |  |
+| `models ai forget` | `--json` | ❌ |  |
+| `models ai check` |  | ❌ |  |
+| `models ai check` | `--from-app` | ❌ |  |
+| `models ai check` | `--json` | ❌ |  |
 | `templates list` |  | ✅ |  |
 | `templates list` | `--json` | ✅ |  |
 | `templates show` |  | ✅ |  |

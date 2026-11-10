@@ -1,0 +1,3 @@
+[
+  "models ai set: memo models ai set anthropic --model claude-haiku-4-5 --key-stdin < key.txt"
+]

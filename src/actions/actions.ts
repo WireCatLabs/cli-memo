@@ -1,7 +1,7 @@
 import { CliError } from "@wirecat/cli-base"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { parseLocator } from "@wirecat/cli-core"
-import { queryTerms, termField } from "@wirecat/cli-core/cli"
+import { queryTerms, termField, typedQuery } from "@wirecat/cli-core/cli"
 import { MEETING_FINDINGS_KIND } from "@wirecat/cli-core/meetings"
 import { proposalRegistry } from "@wirecat/cli-core/services"
 import {
@@ -162,17 +162,16 @@ export const listActions = (
   store: MessageStore,
   query: readonly string[] | string | undefined,
   limit?: number,
-  options: { brief?: boolean; keep?: (rows: ProposedAction[]) => Promise<ProposedAction[]> } = {},
+  options: { brief?: boolean; page?: number; keep?: (rows: ProposedAction[]) => Promise<ProposedAction[]> } = {},
 ) => {
   const status = queryTerms(query, ACTION_QUERY, "actions list").get("status") as ProposedAction["status"] | undefined
-  const { keep = async (rows) => rows, ...shown } = options
+  const { keep = async (rows) => rows, page, ...shown } = options
   // Under the group lock only the group's actions are listed; a page may then hold fewer than asked.
-  return pageOf("actions list", limit, async (most) =>
-    actionItems(
-      store,
-      await keep(await store.proposedActions.list({ limit: most, ...(status === undefined ? {} : { status }) })),
-      shown,
-    ),
+  return pageOf(
+    "actions list",
+    limit,
+    (most, offset) => store.proposedActions.list({ limit: most, offset, ...(status === undefined ? {} : { status }) }),
+    { page, args: { query: typedQuery(query) }, shape: async (rows) => actionItems(store, await keep(rows), shown) },
   )
 }
 

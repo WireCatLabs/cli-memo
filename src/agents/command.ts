@@ -15,9 +15,10 @@ export const agentsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       .description("one row per tool call, newest first: agent, tool, tier, outcome and times, never its arguments"),
     AGENT_LOG_QUERY,
   )
-    .option("--limit <n>", "most rows, up to 500", positive, 100)
+    .option("--limit <n>", "most rows on a page, up to 500", positive, 100)
+    .option("--page <n>", "which page, from 1", positive, 1)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((words: string[], options: { limit: number; json?: boolean }) =>
-      run(options.json, (store) => listAgentActions(store, words, options.limit)),
+    .action((words: string[], options: { limit: number; page: number; json?: boolean }) =>
+      run(options.json, (store) => listAgentActions(store, words, options.limit, options.page)),
     )
 }

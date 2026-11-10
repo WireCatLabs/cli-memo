@@ -39,6 +39,7 @@ import { commandsCommand, placeInSections } from "./discovery/command.js"
 import { doctorCommand } from "./doctor/command.js"
 import { eventsCommand } from "./events/command.js"
 import { addExamples } from "./examples.js"
+import { keepExitCode } from "./exit-code.js"
 import { factsCommand } from "./facts/command.js"
 import { recognisable } from "./failure.js"
 import { financeCommands } from "./finance/command.js"
@@ -697,6 +698,7 @@ export const createProgram = ({
   stdin,
   readerFetch,
   system,
+  setExitCode,
 }: {
   streams?: Streams
   env?: NodeJS.ProcessEnv
@@ -716,6 +718,8 @@ export const createProgram = ({
   readerFetch?: typeof fetch
   /** Where schedules and digests put their timers and run their agents; this machine unless a test hands one in. */
   system?: ServerSystem
+  /** The run's own exit code, from `startCli`; the process's when left out. */
+  setExitCode?: (code: number) => void
 } = {}): Command => {
   // Every reader of the run's group reads MEMO_GROUP, so the first word is that, said shorter (WC-ACCT-13).
   const env = group === undefined ? given : { ...given, MEMO_GROUP: group }
@@ -725,6 +729,7 @@ export const createProgram = ({
     .description("context about people across messengers, notes and mail")
     .version(VERSION)
     .option("--debug", "on failure, show the full error record: cause and stack")
+  if (setExitCode) keepExitCode(program, setExitCode)
   refuseWritesUnderLock(program, env)
   scopeRunsToGroup(program, env, group)
   provideTerminal(program, terminal)

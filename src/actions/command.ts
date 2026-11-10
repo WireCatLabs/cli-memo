@@ -62,16 +62,18 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     ),
     ACTION_QUERY,
   )
-    .option("--limit <n>", "most actions, up to 500", positive, 100)
+    .option("--limit <n>", "most actions on a page, up to 500", positive, 100)
+    .option("--page <n>", "which page, from 1", positive, 1)
     .option("--brief", "without each findings batch's cited sources")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action((words: string[], options: { limit: number; brief?: boolean; json?: boolean }) =>
+    .action((words: string[], options: { limit: number; page: number; brief?: boolean; json?: boolean }) =>
       run(options.json, async (store) =>
         stripped(
           store,
           env,
           await listActions(store, words, options.limit, {
             brief: options.brief === true,
+            page: options.page,
             keep: (rows) => actionsIn(store, env, rows),
           }),
         ),
