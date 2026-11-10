@@ -2,6 +2,8 @@ import { readFileSync, statSync } from "node:fs"
 import { basename, extname } from "node:path"
 import { CliError, isCliError } from "@wirecat/cli-base"
 import {
+  type AiImageRefusal,
+  type aiImageReader,
   type Extraction,
   extractText,
   type FetchPageOptions,
@@ -9,6 +11,7 @@ import {
   importEngine,
   type LoadEngine,
   MAX_FILE_BYTES,
+  ocrImage,
   type Section,
 } from "@wirecat/cli-core/documents"
 import type { AddedSourceInput } from "@wirecat/cli-core/store"
@@ -32,7 +35,21 @@ export interface ReadSource
   truncated: boolean
   title: string | null
   sections?: Section[]
+  /** For an image: which model read it, or why it is kept by its name only. */
+  image?: ImageRead
 }
+
+export interface ImageRead {
+  read_by: string | null
+  reason: ImageRefusal | "image.unsupported" | "ai.failed" | null
+}
+
+export type ImageRefusal = AiImageRefusal | "ai.owner-only" | "ai.setting-invalid"
+
+/** The owner's AI model, when they chose one and agreed that images go to it. */
+export type ImageReader = () =>
+  | Exclude<ReturnType<typeof aiImageReader>, { refused: unknown }>
+  | { refused: ImageRefusal }
 
 const MIMES: Record<string, string> = {
   ".md": "text/markdown",
@@ -162,7 +179,7 @@ export const readText = async (
 
 export const readFile = async (
   path: string,
-  { maxChars, load = importEngine }: { maxChars: number; load?: LoadEngine },
+  { maxChars, load = importEngine, image }: { maxChars: number; load?: LoadEngine; image?: ImageReader },
 ): Promise<ReadSource> => {
   const stat = statSync(path, { throwIfNoEntry: false })
   const name = basename(path)
@@ -181,6 +198,42 @@ export const readFile = async (
     bytes,
     size: bytes.byteLength,
   }
+  const byName = name.replace(/\.[^.]+$/, "") || name
+  if (found.status === "needs-agent" && mime?.startsWith("image/") && image) {
+    const reader = image()
+    if ("refused" in reader)
+      return {
+        ...base,
+        text: "",
+        read: "no-text",
+        extractor: found.extractor ?? null,
+        truncated: false,
+        title: byName,
+        image: { read_by: null, reason: reader.refused },
+      }
+    const seen = await ocrImage(bytes, reader.pipeline)
+    if (seen.status === "extracted") {
+      const { text, cut } = bounded(seen.text, maxChars)
+      return {
+        ...base,
+        text,
+        read: "extracted",
+        extractor: seen.extractor,
+        truncated: cut,
+        title: byName,
+        image: { read_by: reader.by, reason: null },
+      }
+    }
+    return {
+      ...base,
+      text: "",
+      read: "no-text",
+      extractor: reader.pipeline.extractor,
+      truncated: false,
+      title: byName,
+      image: { read_by: null, reason: seen.status === "needs-agent" ? "image.unsupported" : "ai.failed" },
+    }
+  }
   if (found.status === "needs-agent")
     return {
       ...base,
@@ -188,7 +241,7 @@ export const readFile = async (
       read: "no-text",
       extractor: found.extractor ?? null,
       truncated: false,
-      title: name.replace(/\.[^.]+$/, "") || name,
+      title: byName,
     }
   if (found.status !== "extracted") throw refusal(found, name)
   const { text, cut } = bounded(found.text, maxChars)
@@ -199,7 +252,7 @@ export const readFile = async (
     read: "extracted",
     extractor: found.extractor,
     truncated: cut || found.truncated === true,
-    title: titleIn(found.metadata) ?? (name.replace(/\.[^.]+$/, "") || name),
+    title: titleIn(found.metadata) ?? byName,
     ...(found.metadata ? { metadata: found.metadata } : {}),
     ...(found.sections ? { sections: found.sections } : {}),
   }

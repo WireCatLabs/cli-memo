@@ -417,7 +417,7 @@ memo sources suggest <ref> [options]
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
-| `--provider <provider>` | read with this reader once: claude-code, codex, ollama, openai, anthropic; only you name one. |
+| `--provider <provider>` | read with this reader once: ai-model, claude-code, codex, ollama, openai, anthropic; only you name one. |
 | `--model <model>` | the reader's model this once; only you may name one. |
 | `--subject <ref>` | who or what every fact is about: person:, organization:, project: or task:. |
 | `--rescan` | read it again although this reader already read this text. |

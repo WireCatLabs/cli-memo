@@ -91,7 +91,8 @@ A scanned PDF or a picture is not refused: it is kept by its title and subjects,
 | `reader.model-missing` | Ollama or an API reader has no model, or Ollama lacks it | `memo sources readers set <reader> --model <model>`; for Ollama, `ollama pull <model>` |
 | `reader.unavailable` | Claude Code or Codex is not installed | Install it, or choose another reader |
 | `reader.failed` | The reader failed: not signed in, too old, the key was rejected or the account has no credit | `memo sources readers list` names the problem; sign in, update, or `memo models keys set <provider>` |
-| `reader.no-key` | No key is kept for the API reader | `memo models keys set <provider>` |
+| `reader.no-key` | No key is kept for the API reader, or for the AI model `ai-model` reads with | `memo models keys set <provider>`; for `ai-model`, `memo models ai set <provider> --model <m> --secret-stdin` |
+| `reader.ai-not-set` | `ai-model` is chosen, but no AI model is | `memo models ai set <provider> --model <m>` |
 | `reader.not-running` | Ollama is not running on this computer | `ollama serve`, then try again |
 | `reader.limit` | The provider's limit is reached | Try again later |
 | `reader.timeout` | The reader gave no answer within 10 minutes | Try again, or add a smaller part of the source |

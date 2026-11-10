@@ -19,7 +19,7 @@ import { byOption, whoRuns } from "../author.js"
 import { loadConfig, updateConfig } from "../config.js"
 import { subjectOf } from "../people/subject.js"
 import { refuseBareNumber } from "../refs.js"
-import { READER_IDS, READERS, type Reader, type ReaderContext, readerOf } from "./readers/index.js"
+import { leavesComputer, READER_IDS, READERS, type Reader, type ReaderContext, readerOf } from "./readers/index.js"
 import { suggestFacts } from "./suggest.js"
 
 const READERS_QUERY = defineQuery({
@@ -51,6 +51,16 @@ const unknownReader = (id: string): never => {
   })
 }
 
+const fixedModel = (reader: Reader) =>
+  new CliError(
+    "validation_error",
+    `${reader.title} reads with the model memo models ai set chose; --model is not taken`,
+    {
+      reason: "input.invalid",
+      param: "model",
+    },
+  )
+
 /** The reader and model to use: the owner's choice, never a default; only the owner may name another here. */
 const chosen = (
   env: NodeJS.ProcessEnv,
@@ -71,6 +81,10 @@ const chosen = (
       { reason: "reader.none-chosen", readers: READER_IDS },
     )
   const reader = readerOf(id) ?? unknownReader(id)
+  if (reader.modelOf) {
+    if (given.model !== undefined) throw fixedModel(reader)
+    return { reader, model: reader.modelOf(env) }
+  }
   const model =
     given.model ?? (given.reader === undefined || given.reader === config?.reader ? config?.model : undefined)
   if (reader.needsModel && !model)
@@ -162,7 +176,7 @@ export const readerCommands = (
             ref,
             reader: reader.id,
             model,
-            leavesComputer: reader.leavesComputer,
+            leavesComputer: leavesComputer(reader, env),
             reused: done.reused,
             batch: done.batch?.id ?? null,
             fingerprint: done.batch?.fingerprint ?? null,
@@ -231,10 +245,10 @@ export const readerCommands = (
             available: probe.available,
             signedIn: probe.signedIn,
             version: probe.version,
-            model: picked ? (config?.model ?? null) : null,
+            model: reader.modelOf ? reader.modelOf(env) : picked ? (config?.model ?? null) : null,
             models: probe.models,
             needsModel: reader.needsModel,
-            leavesComputer: reader.leavesComputer,
+            leavesComputer: leavesComputer(reader, env),
             readsFiles: reader.readsFiles,
             chosen: picked,
             problem: probe.problem,
@@ -277,6 +291,7 @@ export const readerCommands = (
           reason: "reader.owner-picks",
         })
       const reader = readerOf(id) ?? unknownReader(id)
+      if (reader.modelOf && options.model !== undefined) throw fixedModel(reader)
       if (reader.needsModel && !options.model?.trim())
         throw new CliError("validation_error", `${reader.title} needs --model <model>`, {
           reason: "reader.model-missing",
@@ -289,7 +304,7 @@ export const readerCommands = (
         itemAnswer({
           reader: reader.id,
           model: model ?? null,
-          leavesComputer: reader.leavesComputer,
+          leavesComputer: leavesComputer(reader, env),
           readsFiles: reader.readsFiles,
         }),
         `sources are read with ${reader.title}${model ? ` (${model})` : ""}`,
