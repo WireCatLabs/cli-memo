@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1114 ✅ · 0 ⛔ · 312 ❌** — 315 commands, 1111 options.
+**1116 ✅ · 0 ⛔ · 314 ❌** — 317 commands, 1113 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -158,6 +158,8 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `people list` | `--limit` | ✅ |  |
 | `people list` | `--page` | ✅ |  |
 | `people list` | `--json` | ✅ |  |
+| `people counts` |  | ✅ |  |
+| `people counts` | `--json` | ✅ |  |
 | `people check` |  | ✅ |  |
 | `people check` | `--limit` | ✅ |  |
 | `people check` | `--json` | ✅ |  |
@@ -1177,17 +1179,19 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `models ai set` |  | ❌ |  |
 | `models ai set` | `--model` | ❌ |  |
 | `models ai set` | `--base-url` | ❌ |  |
-| `models ai set` | `--key-stdin` | ❌ |  |
-| `models ai set` | `--images` | ❌ |  |
-| `models ai set` | `--no-images` | ❌ |  |
+| `models ai set` | `--secret-stdin` | ❌ |  |
+| `models ai set` | `--allow-remote` | ❌ |  |
 | `models ai set` | `--from-app` | ❌ |  |
 | `models ai set` | `--json` | ❌ |  |
-| `models ai off` |  | ❌ |  |
-| `models ai off` | `--from-app` | ❌ |  |
-| `models ai off` | `--json` | ❌ |  |
-| `models ai forget` |  | ❌ |  |
-| `models ai forget` | `--from-app` | ❌ |  |
-| `models ai forget` | `--json` | ❌ |  |
+| `models ai unset` |  | ❌ |  |
+| `models ai unset` | `--from-app` | ❌ |  |
+| `models ai unset` | `--json` | ❌ |  |
+| `models ai remove` |  | ❌ |  |
+| `models ai remove` | `--from-app` | ❌ |  |
+| `models ai remove` | `--json` | ❌ |  |
+| `models ai revoke` |  | ❌ |  |
+| `models ai revoke` | `--from-app` | ❌ |  |
+| `models ai revoke` | `--json` | ❌ |  |
 | `models ai check` |  | ❌ |  |
 | `models ai check` | `--from-app` | ❌ |  |
 | `models ai check` | `--json` | ❌ |  |
