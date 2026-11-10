@@ -109,7 +109,7 @@ describe("memo people review", () => {
 })
 
 describe("a shared mailbox in people review", () => {
-  it("lists first by score with its mailbox, and people company gives the address to a company", async () => {
+  it("lists first by score with its mailbox, and people resolve company gives the address to a company", async () => {
     const store = await openStore({ env })
     await store.people.savePeople(TG, [{ id: "44", name: "Ana Diaz", email: "info@shop.example" }])
     await store.people.savePeople(MAX, [{ id: "55", name: "Bo Lind", email: "info@shop.example" }])
@@ -118,10 +118,10 @@ describe("a shared mailbox in people review", () => {
     await run(CLAUDE, NOBODY, "people", "link", "max:33", "telegram:11", "--reason", "same face")
 
     const listed = envelopeOf(await raw({}, OWNER, "people", "review", "--json")).items
-    await expect(run(CLAUDE, NOBODY, "people", "company", listed[0].id)).rejects.toMatchObject({
+    await expect(run(CLAUDE, NOBODY, "people", "resolve", listed[0].id, "company")).rejects.toMatchObject({
       code: "permission_error",
     })
-    const decided = await run({}, OWNER, "people", "company", listed[0].id)
+    const decided = await run({}, OWNER, "people", "resolve", listed[0].id, "company")
 
     expect(listed).toMatchObject([
       { shared: "role", mailbox: "info@shop.example", score: 0.1 },

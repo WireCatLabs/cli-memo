@@ -1,6 +1,6 @@
 ### Added
 
-- **`memo people company <id> [organization]` says a match's shared mailbox is a company's.** The address goes to the
+- **`memo people resolve <id> company [organization]` says a match's shared mailbox is a company's.** The address goes to the
   organization you name, else to the one that has the address or its company domain, else to a company of `--name`,
   else to a new company named after the domain. The two people are not joined and are not suggested again on that
   address. Only the owner answers it, as with `people confirm` and `people reject`

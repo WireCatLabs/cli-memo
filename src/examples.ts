@@ -167,7 +167,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo people reject 17081 --reason 'two people'",
     "memo people reject all --kind link --reason 'not one'",
   ],
-  "people company": ["memo people company 17092", "memo people company 17093 organization:12 --json"],
+  "people resolve": ["memo people resolve 17092 company", "memo people resolve 17093 company organization:12 --json"],
   "people links check": ["memo people links check", "memo people links check --page 2 --json"],
   "people scan": ["memo people scan"],
   "people link": [

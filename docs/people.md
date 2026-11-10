@@ -139,9 +139,9 @@ phone or another address only they hold, or a chat or a company domain. When the
 person's, say so:
 
 ```sh
-memo people company 17092                     # the company that has the address or its domain, else a new one
-memo people company 17092 organization:12     # this organization
-memo people company 17092 --name "Shop Ltd"   # a company of this name; needed for a free mailbox such as gmail.com
+memo people resolve 17092 company                    # the company that has the address or its domain, else a new one
+memo people resolve 17092 company organization:12    # this organization
+memo people resolve 17092 company --name "Shop Ltd"  # a company of this name; needed for a free mailbox such as gmail.com
 ```
 
 The address goes to the organization, the two people are not joined, and that pair is not suggested again on that

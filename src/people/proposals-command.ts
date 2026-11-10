@@ -41,6 +41,9 @@ const peopleIds = async (store: MessageStore, ids: string[]): Promise<{ ids: str
   return { ids: kept, refused }
 }
 
+/** The owner's answers besides confirm and reject; only a shared mailbox has one so far (NEED-2528). */
+const RESOLVE_ANSWERS = ["company"] as const
+
 const organizationOf = (word: string | undefined): number | undefined => {
   if (word === undefined) return undefined
   const id = /^(?:organization:)?(\d+)$/.exec(word)?.[1]
@@ -73,7 +76,7 @@ export const peopleProposalCommands = (
     .description(
       "what waits for the owner about who is who: matches (people that may be one) and splits (identities an agent " +
         "says are not this person), highest score first, then newest; people confirm or people reject answers them, " +
-        "and people company answers a match on a shared mailbox",
+        "and people resolve company answers a match on a shared mailbox",
     )
     .option("--kind <kind>", `${PROPOSAL_KINDS.join(", ")} (default all)`, oneOf(PROPOSAL_KINDS), "all")
     .option("--limit <n>", "most proposals, up to 500", positive, 50)
@@ -154,23 +157,25 @@ export const peopleProposalCommands = (
   }
 
   const company = byOption(
-    annotate(people.command("company"), { effects: LOCAL_WRITE })
-      .summary("say a match's shared mailbox is a company's, not either person's; only you")
+    annotate(people.command("resolve"), { effects: LOCAL_WRITE })
+      .summary("say a shared mailbox is a company's, not either person's; only you")
       .description(
-        "answers a match on a shared mailbox (people review shows shared and mailbox): the address goes to the " +
+        "answers a match on a shared mailbox (people review shows shared and mailbox) with company: the address goes to the " +
           "organization you name, else to the one that has the address or its company domain, else to one named " +
           "--name, else to a new company named after the domain. The two people are not joined and are not proposed " +
           "again on that address",
       )
       .argument("<id>", "the match's id as people review lists it")
+      .argument("<answer>", "company: the mailbox is a company's, not either person's", oneOf(RESOLVE_ANSWERS))
       .argument("[organization]", "organization:<id> to give the address to"),
   )
-    .option("--name <text>", "the company's name, when no organization is named")
+    .option("--name <name>", "the company's name, when no organization is named")
     .option("--reason <text>", "why, in a few words")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
   company.action(
     async (
       id: string,
+      _answer: (typeof RESOLVE_ANSWERS)[number],
       organization: string | undefined,
       options: { name?: string; reason?: string; json?: boolean },
     ) => {
