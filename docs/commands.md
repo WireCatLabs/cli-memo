@@ -2368,7 +2368,7 @@ the roles a relationship may take: built in and your own
 
 #### `memo relationships roles list`
 
-the roles of every list, or of one with list:organization, list:project or list:deal; each built in or yours
+the roles of every list, or of one with list:<name>; each built in (with labels in English, Russian and Spanish) or yours
 
 ```sh
 memo relationships roles list [query] [options]
@@ -2398,7 +2398,7 @@ memo relationships roles add <list> <role> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `list` | required | organization (roles in an organization), project or deal (a deal's or a lead's). |
+| `list` | required | organization (roles in an organization), project, deal (a deal's or a lead's), contract (a party's) or related (what a person or an organization is to another). |
 | `role` | required | the role's id: lowercase letters, digits and -, such as board-member. |
 
 | Option | What it does |
@@ -2424,7 +2424,7 @@ memo relationships roles remove <list> <role> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `list` | required | organization (roles in an organization), project or deal (a deal's or a lead's). |
+| `list` | required | organization (roles in an organization), project, deal (a deal's or a lead's), contract (a party's) or related (what a person or an organization is to another). |
 | `role` | required | the role's id. |
 
 | Option | What it does |
