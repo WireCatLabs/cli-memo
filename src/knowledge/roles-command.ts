@@ -1,14 +1,14 @@
 import { CliError } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
+import { ROLE_LISTS, type RoleList } from "@wirecat/cli-core"
 import { LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { type answers, listAnswer, withStore } from "../answer.js"
 import { byOption, whoRuns } from "../author.js"
 import { oneOf } from "../options.js"
 
-const LISTS = ["organization", "project", "deal"] as const
-type RoleList = (typeof LISTS)[number]
+const LISTS = Object.keys(ROLE_LISTS) as RoleList[]
 
 /** memo's own entity: one role of one list. */
 const ROLES_QUERY = {
@@ -17,7 +17,9 @@ const ROLES_QUERY = {
   fields: [termField("list", "enum", "list:organization", { values: LISTS })],
 } as const satisfies QueryRegistry
 
-const LIST_HELP = "organization (roles in an organization), project or deal (a deal's or a lead's)"
+const LIST_HELP =
+  "organization (roles in an organization), project, deal (a deal's or a lead's), contract (a party's) or related " +
+  "(what a person or an organization is to another)"
 
 /** Role lists are the owner's settings, as the permissions are: an agent reads them and changes none. */
 const ownerOnly = async (command: Command, env: NodeJS.ProcessEnv, asOwner: boolean | undefined, question: string) => {
@@ -52,7 +54,8 @@ export const relationshipRolesCommand = (
       listAnswer(command, { items, limit: Math.max(1, items.length), has_more: false }),
       items
         .map(
-          ({ list, id, label, builtIn }) => `${list}  ${id}${label ? `  ${label}` : ""}${builtIn ? "" : "  (yours)"}`,
+          ({ list, id, label, labels, builtIn }) =>
+            `${list}  ${id}${(label ?? labels?.en) ? `  ${label ?? labels?.en}` : ""}${builtIn ? "" : "  (yours)"}`,
         )
         .join("\n"),
     )
@@ -63,7 +66,8 @@ export const relationshipRolesCommand = (
     ROLES_QUERY,
   )
     .description(
-      "the roles of every list, or of one with list:organization, list:project or list:deal; each built in or yours",
+      "the roles of every list, or of one with list:<name>; each built in (with labels in English, Russian and " +
+        "Spanish) or yours",
     )
     .summary("the roles a relationship may take")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
