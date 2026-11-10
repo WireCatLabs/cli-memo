@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1121 ✅ · 0 ⛔ · 312 ❌** — 317 commands, 1116 options.
+**1137 ✅ · 0 ⛔ · 319 ❌** — 320 commands, 1136 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -164,8 +164,29 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `people show` |  | ✅ |  |
 | `people show` | `--json` | ✅ |  |
 | `people review` |  | ✅ |  |
+| `people review` | `--kind` | ✅ |  |
 | `people review` | `--limit` | ✅ |  |
 | `people review` | `--json` | ✅ |  |
+| `people confirm` |  | ✅ |  |
+| `people confirm` | `--as-owner` | ❌ |  |
+| `people confirm` | `--from-app` | ❌ |  |
+| `people confirm` | `--kind` | ✅ |  |
+| `people confirm` | `--limit` | ❌ |  |
+| `people confirm` | `--yes` | ✅ |  |
+| `people confirm` | `--reason` | ❌ |  |
+| `people confirm` | `--json` | ✅ |  |
+| `people reject` |  | ✅ |  |
+| `people reject` | `--as-owner` | ❌ |  |
+| `people reject` | `--from-app` | ✅ |  |
+| `people reject` | `--kind` | ✅ |  |
+| `people reject` | `--limit` | ❌ |  |
+| `people reject` | `--yes` | ✅ |  |
+| `people reject` | `--reason` | ✅ |  |
+| `people reject` | `--json` | ✅ |  |
+| `people links check` |  | ✅ |  |
+| `people links check` | `--limit` | ❌ |  |
+| `people links check` | `--page` | ✅ |  |
+| `people links check` | `--json` | ✅ |  |
 | `people scan` |  | ✅ |  |
 | `people scan` | `--json` | ✅ |  |
 | `people link` |  | ✅ |  |
@@ -176,10 +197,12 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `people unlink` |  | ✅ |  |
 | `people unlink` | `--as-owner` | ❌ |  |
 | `people unlink` | `--from-app` | ✅ |  |
+| `people unlink` | `--reason` | ✅ |  |
 | `people unlink` | `--json` | ✅ |  |
 | `people unmerge` |  | ✅ |  |
 | `people unmerge` | `--as-owner` | ❌ |  |
 | `people unmerge` | `--from-app` | ✅ |  |
+| `people unmerge` | `--reason` | ✅ |  |
 | `people unmerge` | `--json` | ✅ |  |
 | `tags add` |  | ✅ |  |
 | `tags add` | `--message` | ✅ |  |

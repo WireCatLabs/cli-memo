@@ -177,13 +177,13 @@ describe("memo people confirm and reject", () => {
     expect(envelopeOf(await raw({}, OWNER, "people", "review", "--json")).items).toEqual([])
   })
 
-  it("refuses a proposal that is not about people and still decides the rest", async () => {
+  it("refuses a proposal that is not about people and still decides the rest, as the desktop app asks", async () => {
     const { proposal } = await run(CLAUDE, NOBODY, "people", "link", "max:33", "telegram:11", "--reason", "same face")
     const store = await openStore({ env })
     const other = await store.proposedActions.propose({ kind: "reply", by: { bot: "claude-code" } })
     await store.close()
 
-    const done = await run({}, OWNER, "people", "reject", proposal, other.id, "--reason", "not one")
+    const done = await run({}, NOBODY, "people", "reject", proposal, other.id, "--reason", "not one", "--from-app")
 
     expect(done).toMatchObject({
       decided: [{ id: proposal, status: "rejected" }],
