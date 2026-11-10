@@ -34,6 +34,8 @@ const settings = settingsFor({ ...APP, appName: "cli-memo-tasks", envPrefix: "ME
 
 /** The account the preAction hook resolved from `--source`; cli-core asks for it synchronously. */
 const resolved = new WeakMap<Command, AccountKey>()
+/** `stats tasks show` without `--source`: every account the run may read, counted together. */
+const across = new WeakMap<Command, AccountKey[]>()
 
 const messenger: Messenger = {
   app: APP,
@@ -44,10 +46,12 @@ const messenger: Messenger = {
     throw new CliError("validation_error", "memo reads no messenger: these commands answer from the store")
   },
   accountOf: (command) => resolved.get(command),
+  accountsOf: (command) => across.get(command),
 }
 
 /**
- * Never one picked for the owner: a command that names no account fails, listing the ones the store holds.
+ * Never one picked for the owner: a command that names no account fails, listing the ones the store holds; a
+ * statistic reads them all.
  * `tasks link` between two project tasks, and `tasks show`, `update`, `claim` or `release` of one, need none: project
  * tasks belong to no messenger account.
  */
@@ -64,6 +68,11 @@ const requireAccount =
     try {
       if (value !== undefined) {
         resolved.set(command, await oneAccountOf(store, env, value, option))
+        return
+      }
+      // A chat belongs to one account, so `--chat` still asks for `--source`.
+      if (isTaskStats(command) && command.opts<{ chat?: string }>().chat === undefined) {
+        across.set(command, await scopedAccounts(store, env))
         return
       }
       if (
@@ -88,6 +97,9 @@ const requireAccount =
     }
   }
 
+const isTaskStats = (command: Command) =>
+  command.name() === "show" && command.parent?.name() === "tasks" && command.parent.parent?.name() === "stats"
+
 const scoped = (command: Command, env: NodeJS.ProcessEnv, warn: (text: string) => void): Command =>
   overrideSharedContract(
     command,
@@ -95,7 +107,12 @@ const scoped = (command: Command, env: NodeJS.ProcessEnv, warn: (text: string) =
     (one) => {
       ;(WRITES.has(one.name())
         ? writeOptions(one, "the account it acts as: telegram:<account>, email:<account>, notes:<id>")
-        : sourceOptions(one, "the account: telegram:<account>, email:<account>, notes:<id>, or group:<name> of one")
+        : sourceOptions(
+            one,
+            isTaskStats(one)
+              ? "only this account: telegram:<account>, email:<account>, notes:<id>, or group:<name>; every stored account without it"
+              : "the account: telegram:<account>, email:<account>, notes:<id>, or group:<name> of one",
+          )
       )
         .option("--json", "print JSON")
         .hook("preAction", requireAccount(env, warn))
