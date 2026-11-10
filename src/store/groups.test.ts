@@ -82,6 +82,47 @@ describe("account groups", () => {
     await expect(memo("groups", "add", "all", "telegram:1")).rejects.toMatchObject({ code: "validation_error" })
   })
 
+  it("sets an account's scope and one chat's, and a later list shows the account's", async () => {
+    expect(await memo("groups", "update", "telegram:2", "--scope", "work")).toMatchObject({
+      ...WORK,
+      scope: "work",
+    })
+    expect(rowOf(await memo("groups", "list"), "work")?.members).toEqual([
+      expect.objectContaining({ ...WORK, scope: "work" }),
+    ])
+    expect(await memo("groups", "update", "telegram:1", "--chat", "7", "--scope", "work")).toEqual({
+      ...PERSONAL,
+      chat: "7",
+      own: "work",
+      scope: "work",
+    })
+    expect(await memo("groups", "update", "telegram:1", "--chat", "7", "--scope", "account")).toMatchObject({
+      own: null,
+      scope: "personal",
+    })
+    await expect(memo("groups", "update", "telegram:1", "--scope", "account")).rejects.toMatchObject({
+      code: "validation_error",
+    })
+    await expect(memo("groups", "update", "telegram:1", "--chat", "nowhere", "--scope", "work")).rejects.toMatchObject({
+      code: "not_found",
+    })
+  })
+
+  it("never offers an agent over MCP the scope change", async () => {
+    const [serverSide, clientSide] = InMemoryTransport.createLinkedPair()
+    await createMemoServer(env, createProgram).connect(serverSide)
+    const client = new Client({ name: "agent", version: "0" })
+    await client.connect(clientSide)
+    try {
+      const found = await client.callTool({ name: "memo_tools_search", arguments: {} })
+      const commands = (found.structuredContent as { items: { command: string }[] }).items.map((one) => one.command)
+      expect(commands).toContain("groups move")
+      expect(commands).not.toContain("groups update")
+    } finally {
+      await client.close()
+    }
+  })
+
   it("reads only the group's accounts after the group word, every account with all, and refuses an outside --source", async () => {
     expect(refs(await memo("search", "messages", "Groupsignal"))).toEqual(["msg:telegram/1/7/1", "msg:telegram/2/7/1"])
     expect(refs(await memo("all", "search", "messages", "Groupsignal"))).toEqual([
@@ -123,6 +164,7 @@ describe("account groups", () => {
       ["search", "people", "x", "--source", "telegram:1"],
       ["search", "people", "x", "--source", "all"],
       ["groups", "add", "work", "telegram:1"],
+      ["groups", "update", "telegram:2", "--scope", "personal"],
     ])
       await expect(locked(...args)).rejects.toMatchObject({ code: "permission_error" })
   })

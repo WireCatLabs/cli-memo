@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1145 ✅ · 0 ⛔ · 322 ❌** — 322 commands, 1145 options.
+**1149 ✅ · 0 ⛔ · 322 ❌** — 323 commands, 1148 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -1343,6 +1343,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `groups remove` | `--json` | ✅ |  |
 | `groups move` |  | ✅ |  |
 | `groups move` | `--json` | ✅ |  |
+| `groups update` |  | ✅ |  |
+| `groups update` | `--scope` | ✅ |  |
+| `groups update` | `--chat` | ✅ |  |
+| `groups update` | `--json` | ✅ |  |
 | `jobs start` |  | ✅ |  |
 | `jobs start` | `--every` | ✅ |  |
 | `jobs stop` |  | ✅ |  |

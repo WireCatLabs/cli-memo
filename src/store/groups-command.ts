@@ -1,4 +1,5 @@
 import type { Streams } from "@wirecat/cli-base"
+import { CliError } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { commandWords, grantsAuthority, LOCAL_READ, LOCAL_WRITE, queryTerms, withQuery } from "@wirecat/cli-core/cli"
@@ -8,12 +9,29 @@ import {
   listAccountGroups,
   moveGroupMember,
   removeGroupMember,
+  setAccountScope,
+  setChatScope,
 } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
-import { answers, listAnswer, withStore } from "../answer.js"
+import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
 import { APP } from "../app.js"
 import { MEMO_ACCOUNT } from "./group.js"
+
+type Scope = "personal" | "work"
+
+/** With --chat, `account` takes the chat's own scope off, so it follows its account again. */
+const scopeOption = (scope: string, chat: string | undefined): Scope | null => {
+  if (scope === "personal" || scope === "work") return scope
+  if (scope === "account" && chat !== undefined) return null
+  throw new CliError(
+    "validation_error",
+    chat === undefined
+      ? `--scope ${scope}: personal or work`
+      : `--scope ${scope}: personal, work, or account to let the chat follow its account`,
+    { reason: "input.invalid", param: "scope" },
+  )
+}
 
 const MEMBER_HELP = "one account, as --source names it: telegram:102, tg:work, email:me@work.example, bitrix24:<portal>"
 
@@ -129,4 +147,41 @@ export const groupsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
         moveGroupMember(at(store, env), { member, from, to, reserved: reserved() }),
       ),
     )
+
+  // Moving an account to work lets work views and agents of a work group read it: the owner's word, never an agent's.
+  grantsAuthority(
+    annotate(groups.command("update"), {
+      effects: LOCAL_WRITE,
+      mcp: false,
+      output: { entity: "account_scope" },
+    }),
+  )
+    .description(
+      "set an account's scope, personal or work, which decides whether work views and meeting preparation read it; " +
+        "with --chat, pin one chat of it to a scope, or let it follow its account again",
+    )
+    .summary("set an account's or one chat's scope, personal or work")
+    .argument("<source>", MEMBER_HELP)
+    .requiredOption("--scope <scope>", "personal or work; with --chat also account, which takes the chat's own off")
+    .option("--chat <chat>", "one chat of the account, by its id there")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .action(async (member: string, options: { scope: string; chat?: string; json?: boolean }) => {
+      const scope = scopeOption(options.scope, options.chat)
+      if (options.chat === undefined) {
+        const account = await withStore(env, (store) =>
+          setAccountScope(at(store, env), { member, scope: scope as Scope }),
+        )
+        print(options.json, itemAnswer(account), `${account.provider}:${account.account} is ${account.scope}`)
+        return
+      }
+      const chat = await withStore(env, (store) =>
+        setChatScope(at(store, env), { member, chat: options.chat as string, scope }),
+      )
+      print(
+        options.json,
+        itemAnswer(chat),
+        `chat ${chat.chat} of ${chat.provider}:${chat.account} is ${chat.scope}` +
+          (chat.own === null ? ", as its account" : ", its own"),
+      )
+    })
 }

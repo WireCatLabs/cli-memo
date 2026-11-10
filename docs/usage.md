@@ -253,3 +253,9 @@ own messenger accounts, not bots.
 personal work` moves it in one write: the account, then the group it leaves, then the group it joins. Without a lock
 a group is a convenience, not a boundary: references (`msg:…`, `deal:5`) are not checked, and a run without the word
 reads every account. To pin a process to one group, see [the MCP lock](mcp.md#lock-an-agent-to-a-group).
+
+Each account is personal or work: work views and meeting preparation read only work accounts, and every account is
+personal until you say otherwise, except one a CRM CLI such as `b24` adds, which starts as work. `memo groups update
+bitrix24:acme --scope work` moves one, with what search copied of its old scope; `groups list` shows each account's
+`scope`. `--chat 7 --scope work` pins one chat of the account, and `--scope account` lets that chat follow its account
+again. Only you change a scope: an agent over MCP does not see the command.

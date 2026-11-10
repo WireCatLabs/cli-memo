@@ -53,6 +53,10 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "groups add": ["memo groups add work bitrix24:acme", "memo groups add personal telegram:102"],
   "groups remove": ["memo groups remove work telegram:102"],
   "groups move": ["memo groups move telegram:102 personal work"],
+  "groups update": [
+    "memo groups update bitrix24:acme --scope work",
+    "memo groups update telegram:102 --chat 7 --scope account",
+  ],
   "config show": ["memo config show", "memo config show --json"],
   "config migrate": ["memo config migrate"],
   "config unset": ["memo config unset permissions.notes.edit"],

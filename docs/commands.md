@@ -6810,6 +6810,30 @@ memo groups move <source> <from> <to> [options]
 
 **Example:** `memo groups move telegram:102 personal work`
 
+### `memo groups update`
+
+set an account's scope, personal or work, which decides whether work views and meeting preparation read it; with --chat, pin one chat of it to a scope, or let it follow its account again
+
+This command changes the local store or your files.
+
+```sh
+memo groups update <source> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `source` | required | one account, as --source names it: telegram:102, tg:work, email:me@work.example, bitrix24:<portal>. |
+
+| Option | What it does |
+|---|---|
+| `--scope <scope>` | personal or work; with --chat also account, which takes the chat's own off. |
+| `--chat <chat>` | one chat of the account, by its id there. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** set an account's or one chat's scope, personal or work
+
+**Example:** `memo groups update bitrix24:acme --scope work`, `memo groups update telegram:102 --chat 7 --scope account`
+
 ## `memo jobs`
 
 run memo sync on a systemd user timer, set in the config
