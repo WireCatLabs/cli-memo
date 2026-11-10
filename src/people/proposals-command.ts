@@ -2,7 +2,7 @@ import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { LOCAL_READ, LOCAL_WRITE } from "@wirecat/cli-core/cli"
 import { parseProposalIds } from "@wirecat/cli-core/services"
-import { IDENTITY_LINK_KIND, IDENTITY_SPLIT_KIND, type MessageStore } from "@wirecat/cli-core/store"
+import { IDENTITY_LINK_KIND, IDENTITY_SPLIT_KIND, type MessageStore, type Refusal } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
 import { byOption } from "../author.js"
@@ -18,16 +18,27 @@ const limitOf = (limit: number): number => {
   return limit
 }
 
-/** Only the people review's own proposals: the shared review decides everything else. */
-const peopleIds = async (store: MessageStore, ids: string[]): Promise<string[]> => {
+/** Only the people review's own proposals; any other id is refused on its own, so the rest are still decided. */
+const peopleIds = async (store: MessageStore, ids: string[]): Promise<{ ids: string[]; refused: Refusal[] }> => {
+  const kept: string[] = []
+  const refused: Refusal[] = []
   for (const id of ids) {
-    const { kind } = await store.proposedActions.get(id)
-    if (!PEOPLE_KINDS.includes(kind))
-      throw new CliError("validation_error", `${id} is a ${kind} proposal; memo review decides it`, {
+    const kind = await store.proposedActions.get(id).then(
+      (action) => action.kind,
+      () => undefined,
+    )
+    if (kind === undefined)
+      refused.push({ id, code: "not_found", reason: "proposal.not-found", message: `no proposal ${id}` })
+    else if (!PEOPLE_KINDS.includes(kind))
+      refused.push({
+        id,
+        code: "validation_error",
         reason: "proposal.not-people",
+        message: `${id} is a ${kind} proposal; memo review decides it`,
       })
+    else kept.push(id)
   }
-  return ids
+  return { ids: kept, refused }
 }
 
 interface DecideOptions {
@@ -84,42 +95,49 @@ export const peopleProposalCommands = (
                 "as people review lists them, or `all` of what it lists with the same --kind and --limit; each is " +
                 "decided on its own, so a refusal leaves the others decided. `all` shows what it would do until --yes"
             : "turn down matches and splits by id or range, or `all` of what people review lists; a turned-down match " +
-                "comes back only on new evidence, a turned-down split never. `all` shows what it would do until --yes",
+                "comes back only on new evidence, a turned-down split not while its identities stay on that person. " +
+                "`all` shows what it would do until --yes",
         )
         .argument("<ids...>", "ids or ranges as people review lists them (17080 17082-17085), or all"),
     )
       .option("--kind <kind>", `with all: ${PROPOSAL_KINDS.join(", ")} (default all)`, oneOf(PROPOSAL_KINDS), "all")
       .option("--limit <n>", "with all: as many as people review lists, up to 500", positive, 50)
       .option("--yes", "with all: do it, not only show what would be done")
-      .option("--reason <text>", confirm ? "why, in a few words" : "why they are turned down, in a few words")
-      .option("--json", "print JSON; --json=id,title keeps only those fields")
+    if (confirm) command.option("--reason <text>", "why, in a few words")
+    else command.requiredOption("--reason <text>", "why they are turned down, in a few words")
+    command.option("--json", "print JSON; --json=id,title keeps only those fields")
     command.action(async (words: string[], options: DecideOptions) => {
       const everything = words.length === 1 && words[0]?.toLowerCase() === "all"
       const limit = limitOf(options.limit)
       await asOwner(command, env, `${name} ${everything ? "all waiting" : words.join(" ")} people proposals?`)
       const result = await withStore(env, async (store) => {
-        const ids = everything
-          ? (await waiting(store, { kind: options.kind, limit })).items.map(({ id }) => id)
+        const listed = everything ? await waiting(store, { kind: options.kind, limit }) : undefined
+        const chosen = listed
+          ? { ids: listed.items.map(({ id }) => id), refused: [] }
           : await peopleIds(store, parseProposalIds(words))
-        if (everything && !options.yes) return { preview: ids }
-        return (await reviewOf(store, env)).decide(ids, decisionOf(confirm, "owner", options.reason))
+        const more = listed?.hasMore ?? false
+        if (everything && !options.yes) return { kind: "preview" as const, preview: chosen.ids, more }
+        const done = await (await reviewOf(store, env)).decide(chosen.ids, decisionOf(confirm, "owner", options.reason))
+        return { kind: "decided" as const, ...done, refused: [...chosen.refused, ...done.refused], more }
       })
-      if ("preview" in result) {
+      const moreText = result.more ? `\nmore wait than --limit ${limit}; run it again for the rest` : ""
+      if (result.kind === "preview") {
         const count = result.preview.length
         print(
           options.json,
-          itemAnswer({ outcome: "preview" as const, would: name, ids: result.preview }),
+          itemAnswer({ outcome: "preview" as const, would: name, ids: result.preview, has_more: result.more }),
           count === 0
             ? "nothing about people waits for you"
-            : `would ${name} ${count}: ${result.preview.join(" ")}\nnothing changed; add --yes to ${name} them`,
+            : `would ${name} ${count}: ${result.preview.join(" ")}\nnothing changed; add --yes to ${name} them${moreText}`,
         )
         return
       }
-      const issues = result.refused.map((one) => ({ code: one.code, source: one.id, reason: one.reason }))
+      const { more, kind: _, ...decided } = result
+      const issues = decided.refused.map((one) => ({ code: one.code, source: one.id, reason: one.reason }))
       print(
         options.json,
-        itemAnswer(result, issues.length ? { meta: { complete: false, issues } } : undefined),
-        decidedText(result),
+        itemAnswer({ ...decided, has_more: more }, issues.length ? { meta: { complete: false, issues } } : undefined),
+        decidedText(decided) + moreText,
       )
     })
   }

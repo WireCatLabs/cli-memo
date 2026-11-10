@@ -167,7 +167,7 @@ describe("memo people confirm and reject", () => {
     await run(CLAUDE, NOBODY, "people", "link", "max:33", "telegram:11", "--reason", "same face")
     await run(CLAUDE, NOBODY, "people", "link", "max:33", "max:22", "--reason", "same voice")
 
-    const preview = await run({}, OWNER, "people", "reject", "all")
+    const preview = await run({}, OWNER, "people", "reject", "all", "--reason", "not one")
     expect(preview).toMatchObject({ outcome: "preview", would: "reject" })
     expect(preview.ids).toHaveLength(2)
     expect(envelopeOf(await raw({}, OWNER, "people", "review", "--json")).items).toHaveLength(2)
@@ -177,13 +177,17 @@ describe("memo people confirm and reject", () => {
     expect(envelopeOf(await raw({}, OWNER, "people", "review", "--json")).items).toEqual([])
   })
 
-  it("refuses a proposal that is not about people", async () => {
+  it("refuses a proposal that is not about people and still decides the rest", async () => {
+    const { proposal } = await run(CLAUDE, NOBODY, "people", "link", "max:33", "telegram:11", "--reason", "same face")
     const store = await openStore({ env })
     const other = await store.proposedActions.propose({ kind: "reply", by: { bot: "claude-code" } })
     await store.close()
 
-    await expect(run({}, OWNER, "people", "confirm", other.id)).rejects.toMatchObject({
-      details: { reason: "proposal.not-people" },
+    const done = await run({}, OWNER, "people", "reject", proposal, other.id, "--reason", "not one")
+
+    expect(done).toMatchObject({
+      decided: [{ id: proposal, status: "rejected" }],
+      refused: [{ id: other.id, reason: "proposal.not-people" }],
     })
   })
 })

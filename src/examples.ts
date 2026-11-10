@@ -163,7 +163,10 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "people show": ["memo people show person:12", "memo people show telegram:Lena --json"],
   "people review": ["memo people review", "memo people review --kind split --json"],
   "people confirm": ["memo people confirm 17080 17082-17085", "memo people confirm all --kind split --yes"],
-  "people reject": ["memo people reject 17081 --reason 'two people'", "memo people reject all --kind link"],
+  "people reject": [
+    "memo people reject 17081 --reason 'two people'",
+    "memo people reject all --kind link --reason 'not one'",
+  ],
   "people links check": ["memo people links check", "memo people links check --page 2 --json"],
   "people scan": ["memo people scan"],
   "people link": [

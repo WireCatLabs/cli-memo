@@ -172,8 +172,8 @@ What you linked yourself, and identities you kept together by rejecting a split,
 
 Yours apply at once, at a terminal or in WireCat Desktop. After them, no automatic match joins those people again.
 An agent's `unlink` or `unmerge` needs `--reason` and only proposes the split: it waits in `memo people review` with
-the reason, and only your `memo people confirm` carries it out. A split you reject is never proposed again, and
-`people links check` no longer lists those identities. An agent's `memo people link … --reason` waits the same way.
+the reason, and only your `memo people confirm` carries it out. A split you reject is not proposed again while
+those identities stay on that person, and `people links check` no longer lists them. An agent's `memo people link … --reason` waits the same way.
 
 To choose the main note about the person, see [the note about a person](notes.md#the-note-about-a-person).
 

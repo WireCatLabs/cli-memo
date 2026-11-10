@@ -52,7 +52,10 @@ export const doubtsCommand = (people: Command, program: Command, streams: Stream
           has_more: found.hasMore,
           ...(counted ? { total: { value: found.total, relation: "eq" as const } } : {}),
         }),
-        found.items.map(textOf).join("\n\n") || "no person looks wrong",
+        [
+          found.items.map(textOf).join("\n\n") || (found.hasMore ? "none on this page" : "no person looks wrong"),
+          ...(found.hasMore ? [`more: --page ${options.page + 1}`] : []),
+        ].join("\n\n"),
       )
     })
 }

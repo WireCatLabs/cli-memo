@@ -884,7 +884,7 @@ memo people confirm <ids> [options]
 
 ### `memo people reject`
 
-turn down matches and splits by id or range, or `all` of what people review lists; a turned-down match comes back only on new evidence, a turned-down split never. `all` shows what it would do until --yes
+turn down matches and splits by id or range, or `all` of what people review lists; a turned-down match comes back only on new evidence, a turned-down split not while its identities stay on that person. `all` shows what it would do until --yes
 
 This command changes the local store or your files.
 
@@ -908,7 +908,7 @@ memo people reject <ids> [options]
 
 **Returns:** turn down matches and splits by id, or all that people review lists; only you
 
-**Example:** `memo people reject 17081 --reason 'two people'`, `memo people reject all --kind link`
+**Example:** `memo people reject 17081 --reason 'two people'`, `memo people reject all --kind link --reason 'not one'`
 
 ### `memo people links`
 
