@@ -36,6 +36,8 @@ const personAnswer = (person: PersonRecord) => ({
     identity: `${identity.provider}:${identity.id}`,
     name: identity.name,
     username: identity.username,
+    phone: identity.phone ?? null,
+    email: identity.email ?? null,
     seenIn: identity.seenIn,
     method: identity.method,
     linkedBy: identity.linkedBy,

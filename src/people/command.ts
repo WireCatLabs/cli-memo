@@ -102,6 +102,7 @@ const personRow = (person: ListedPerson) => ({
   phone: person.phone,
   email: person.email,
   username: person.username,
+  username_source: person.usernameSource,
   messages_from: person.messagesFrom,
   last_contact: person.lastContact,
   ties: person.ties,
@@ -171,8 +172,8 @@ export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       .description(
         "people of one kind: person (the default: the owner, people added by hand or assigned a task, and named " +
           "people with a tie to you, such as a one-to-one chat, a group of at most 10, mail you wrote, a meeting, a " +
-          "CRM or your address book), organization, automated (bots, newsletters, notifications), unsorted (no tie " +
-          "or no name) or all. The owner first, then by the messages and mail they sent",
+          "CRM deal of yours or your address book), organization, automated (bots, newsletters, notifications), " +
+          "stranger (no tie), unsorted (no name) or all. The owner first, then by the messages and mail they sent",
       ),
     query,
   )

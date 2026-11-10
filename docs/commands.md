@@ -774,7 +774,7 @@ memo people add <name> [options]
 
 ### `memo people list`
 
-people of one kind: person (the default: the owner, people added by hand or assigned a task, and named people with a tie to you, such as a one-to-one chat, a group of at most 10, mail you wrote, a meeting, a CRM or your address book), organization, automated (bots, newsletters, notifications), unsorted (no tie or no name) or all. The owner first, then by the messages and mail they sent
+people of one kind: person (the default: the owner, people added by hand or assigned a task, and named people with a tie to you, such as a one-to-one chat, a group of at most 10, mail you wrote, a meeting, a CRM deal of yours or your address book), organization, automated (bots, newsletters, notifications), stranger (no tie), unsorted (no name) or all. The owner first, then by the messages and mail they sent
 
 ```sh
 memo people list [query] [options]
@@ -4248,6 +4248,27 @@ memo stages confirm [options]
 **Returns:** stage mapping confirm — confirmed; every field: memo commands info stages confirm
 
 **Example:** `memo stages confirm --pipeline pipeline:3`, `memo stages confirm --all`
+
+### `memo stages suggest`
+
+send every unconfirmed stage that has more than one base stage of its outcome to go to, with the base stages, to the AI model chosen with `memo models ai set`, and record its answers as suggestions the owner confirms with `memo stages confirm --all`. --dry-run sends nothing and prints the same task as JSON for an agent; --text-file records the agent's answer instead of asking the model
+
+This command changes the local store or your files.
+
+```sh
+memo stages suggest [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--kind <kind>` | only deal or only lead stages. One of: `deal`, `lead`. |
+| `--dry-run` | print the task for an agent: the stages, the base stages to choose from, the answer's shape. |
+| `--text-file <path>` | record an agent's answer, {"map": [{"stage": "stage:<id>", "base": "stage:<id>"}]}, from this file; - reads stdin. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Returns:** stage suggestion — by, suggested, left, skipped, task, answer, submit, base_stages, and 2 more; every field: memo commands info stages suggest
+
+**Example:** `memo stages suggest`, `memo stages suggest --kind deal --dry-run --json`, `memo stages suggest --text-file answer.json`
 
 ## `memo products`
 
