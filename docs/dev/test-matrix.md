@@ -205,6 +205,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `people unlink` | `--as-owner` | ❌ |  |
 | `people unlink` | `--from-app` | ✅ |  |
 | `people unlink` | `--reason` | ✅ |  |
+| `people unlink` | `--from` | ✅ |  |
 | `people unlink` | `--json` | ✅ |  |
 | `people unmerge` |  | ✅ |  |
 | `people unmerge` | `--as-owner` | ❌ |  |

@@ -12,6 +12,7 @@ import { matchAnswer, summaryOf } from "./proposal-rows.js"
 import { peopleProposalCommands } from "./proposals-command.js"
 
 const PERSON = /^person:([1-9]\d*)$/
+const FROM = /^person:([1-9]\d*|me)$/
 
 /** `person:<uid>`, `person:me`, or an identity of the person as `<messenger>:<name or id>`. */
 const personOf = async (store: MessageStore, who: string): Promise<PersonRecord> => {
@@ -181,22 +182,28 @@ export const identitiesCommands = (people: Command, program: Command, streams: S
         .argument("<identities...>", "the identities that leave, each <messenger>:<id> exactly, all of one person"),
     ),
   )
+    .option("--from <person>", "the person they leave, person:<uid> or person:me; refused when they sit on another")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action(async (refs: string[], options: { reason?: string; json?: boolean }, command: Command) => {
-      const who = await separation(command, `unlink ${refs.join(" ")}?`, options.reason)
+    .action(async (refs: string[], options: { from?: string; reason?: string; json?: boolean }, command: Command) => {
+      // Named, never worked out from the identities: a guess took a colleague's mailbox off the colleague (BUG-709).
+      if (!FROM.test(options.from?.trim() ?? ""))
+        throw new CliError(
+          "validation_error",
+          "say whom they leave: --from person:<uid> or --from person:me; memo people show <identity> names who holds one",
+          { reason: "person.from-required", param: "from" },
+        )
+      const who = await separation(command, `unlink ${refs.join(" ")} from ${options.from}?`, options.reason)
       const done = await withStore(env, async (store) => {
+        const from = (await personOf(store, options.from as string)).uid
         const chosen: IdentityRef[] = []
         for (const ref of refs) chosen.push(await exactIdentityOf(store, ref))
         if (who !== "owner") {
           const reason = options.reason?.trim() as string
-          return { proposal: (await store.people.proposeSplit({ identities: chosen, by: who, reason })).id }
+          return { proposal: (await store.people.proposeSplit({ identities: chosen, from, by: who, reason })).id }
         }
         const [first] = chosen as [IdentityRef]
-        if (chosen.length === 1) return store.people.unlinkIdentity(first, { method: "unlink", by: "owner" })
-        const held = await store.people.personOf(first)
-        if (held === undefined)
-          throw new CliError("not_found", `the store has no person for "${refs[0]}"`, { reason: "person.not-found" })
-        return store.people.split(held.uid, chosen, "owner")
+        if (chosen.length === 1) return store.people.unlinkIdentity(first, { method: "unlink", by: "owner", from })
+        return store.people.split(from, chosen, "owner")
       })
       if ("proposal" in done) proposed(options.json, done.proposal)
       else print(options.json, itemAnswer(personAnswer(done)), `person:${done.uid}`)

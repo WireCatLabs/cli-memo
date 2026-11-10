@@ -200,6 +200,12 @@ export const REASONS: ErrorReason[] = defineReasons([
   },
   { reason: "person.not-found", code: "not_found", message: "the store has no person by that name", details: [] },
   {
+    reason: "person.from-required",
+    code: "validation_error",
+    message: "people unlink names the person the identities leave: --from person:<uid> or person:me",
+    details: [],
+  },
+  {
     reason: "identity.not-found",
     code: "not_found",
     message: "no identity has that exact id; people show lists them",
