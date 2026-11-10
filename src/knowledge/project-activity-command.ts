@@ -19,7 +19,8 @@ const sinceOf = (value: string, now: number): number => {
 const textOf = (one: ProjectActivity): string =>
   [
     `${one.key ?? one.ref}  ${one.name} · ${one.chats} chats${one.muted ? ` (${one.muted} muted, not counted)` : ""} · ` +
-      `${one.messages} messages (${one.sent} yours)${one.lastAt ? ` · last ${one.lastAt.slice(0, 10)}` : ""}`,
+      `${one.messages} messages (${one.sent} yours)${one.lastAt ? ` · last ${one.lastAt.slice(0, 10)}` : ""}` +
+      (one.partial ? " · some sub-projects not counted" : ""),
     ...one.top.map((chat) => `  ${chat.messages}  ${chat.title ?? chat.ref}`),
   ].join("\n")
 

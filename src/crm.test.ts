@@ -367,7 +367,9 @@ describe("relationship roles: built in and the owner's own", () => {
     expect(listed.items).toEqual(expect.arrayContaining([expect.objectContaining({ id: "employee", built_in: true })]))
     const added = await memo("relationships", "roles", "add", "organization", "board-member", "--label", "Board member")
     expect(added.items).toEqual(
-      expect.arrayContaining([{ list: "organization", id: "board-member", label: "Board member", built_in: false }]),
+      expect.arrayContaining([
+        { list: "organization", id: "board-member", label: "Board member", labels: null, built_in: false },
+      ]),
     )
     const link = await memo("relationships", "add", refs.bob, refs.acme, "--role", "board-member")
     expect(link).toMatchObject({ role: "board-member" })
