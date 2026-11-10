@@ -271,11 +271,12 @@ describe("memo context", () => {
         externalId: "f1.md",
         kind: "file",
         name: "Lighthouse budget",
-        parents: [],
+        parents: ["d1.md"],
         url: "https://docs.google.com/document/d/f1/edit",
         modifiedAt: "2026-10-01T10:00:00Z",
       },
       { externalId: "f2.md", kind: "file", name: "Guessed file", parents: [] },
+      { externalId: "d1.md", kind: "folder", name: "Clients", parents: [] },
     ])
     await store.accounts.saveAccount(drive, { name: "Google Drive" })
     await store.people.savePeople(drive, [{ id: "g1", name: "Rin Example" }])
@@ -318,6 +319,16 @@ describe("memo context", () => {
       /owner {2}Lighthouse budget {2}2026-10-01 10:00 {2}https:\/\/docs\.google\.com\/document\/d\/f1\/edit/,
     )
     expect(text).not.toContain("Guessed file")
+
+    const [reported] = answerOf(await run("relationships", "list", "standing:reported", "--json")).items
+    expect(reported.from_document).toEqual({
+      ref: reported.from,
+      title: "Lighthouse budget",
+      path: "Clients/Lighthouse budget",
+      url: "https://docs.google.com/document/d/f1/edit",
+      modified_at: "2026-10-01T10:00:00Z",
+      mime: null,
+    })
   })
 
   it("asks for the messenger, and names a messenger the store does not hold", async () => {

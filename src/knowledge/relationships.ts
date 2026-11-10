@@ -5,6 +5,7 @@ import { queryTerms, termField } from "@wirecat/cli-core/cli"
 import type { AccountKey, MessageStore, Proposer } from "@wirecat/cli-core/store"
 import { labelsFor, proposerName } from "../review/review.js"
 import { guardOf } from "../store/guard.js"
+import { type DocumentContext, documentContext } from "./document-context.js"
 
 export const RELATIONSHIP_QUERY = {
   entity: "relationship",
@@ -80,6 +81,16 @@ export const listRelationships = async (
     store,
     rows.flatMap((one) => [one.from, one.to]),
   )
+  const documents = new Map<string, Promise<DocumentContext | null>>()
+  const documentOf = (ref: string) => {
+    if (!ref.startsWith("document:")) return undefined
+    if (!documents.has(ref)) documents.set(ref, documentContext(store, ref))
+    return documents.get(ref)
+  }
+  const ends = async (one: { from: string; to: string }) => {
+    const [from, to] = await Promise.all([documentOf(one.from), documentOf(one.to)])
+    return { ...(from === undefined ? {} : { fromDocument: from }), ...(to === undefined ? {} : { toDocument: to }) }
+  }
   return {
     hasMore: found.hasMore,
     limit,
@@ -94,6 +105,7 @@ export const listRelationships = async (
           : {}),
         fromTitle: label(one.from),
         toTitle: label(one.to),
+        ...(await ends(one)),
       })),
     ),
   }

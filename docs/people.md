@@ -273,10 +273,13 @@ day) say when it held. `memo relationships end <id> --end-date <date>` says it n
 Kinds: `member-of`, `reports-to`, `customer-of` (read backwards: supplier of), `partner-of` and `related-to`. A role
 is one from a list: in an organization `employee`, `contractor`, `founder`, `owner`, `manager`, `adviser`, `contact`;
 in a project `owner`, `manager`, `contributor`, `client-contact`, `approver`; on a deal or lead `owner`, `contact`,
-`decision-maker`, `influencer`. A job title is not a role: give it with `--position`. `memo relationships roles list` shows the lists;
+`decision-maker`, `influencer`; between people and organizations (`related-to`) the offered `colleague`, `adviser`,
+`investor`, `mentor`, `family`, `friend` (another word is kept, as `custom`). A job title is not a role: give it with `--position`. `memo relationships roles list` shows the lists;
 `memo relationships roles add organization board-member --label 'Board member'` adds a role of your own, and
 `remove` takes it off again while no relationship holds it. Only you change the lists. A role saved before these lists stays as written, and
-`relationships list` marks it `custom`.
+`relationships list` marks it `custom`; `role_list` on each row names the list its role comes from. A row with a
+document at an end carries `from_document` or `to_document`: title, folder path, the link that opens it and when it last
+changed.
 
 `relationships list` filters by `kind:`, `role:`, `standing:`, `from:`, `to:` and `at:<day>` (held on that day), and
 pages with `--limit` and `--page`; `at:<day>` means held at the start of that UTC day. It leaves out the ones that

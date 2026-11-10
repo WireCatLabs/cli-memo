@@ -367,7 +367,9 @@ describe("relationship roles: built in and the owner's own", () => {
     expect(listed.items).toEqual(expect.arrayContaining([expect.objectContaining({ id: "employee", built_in: true })]))
     const added = await memo("relationships", "roles", "add", "organization", "board-member", "--label", "Board member")
     expect(added.items).toEqual(
-      expect.arrayContaining([{ list: "organization", id: "board-member", label: "Board member", built_in: false }]),
+      expect.arrayContaining([
+        { list: "organization", id: "board-member", label: "Board member", labels: null, built_in: false },
+      ]),
     )
     const link = await memo("relationships", "add", refs.bob, refs.acme, "--role", "board-member")
     expect(link).toMatchObject({ role: "board-member" })
@@ -383,6 +385,21 @@ describe("relationship roles: built in and the owner's own", () => {
     expect(
       (await memo("relationships", "roles", "list", "list:organization")).items.map(({ id }: { id: string }) => id),
     ).not.toContain("board-member")
+  })
+
+  it("lists the related roles with their labels in three languages", async () => {
+    const related = await memo("relationships", "roles", "list", "list:related")
+    expect(related.items).toEqual(
+      expect.arrayContaining([
+        {
+          list: "related",
+          id: "colleague",
+          label: null,
+          labels: { en: "Colleague", ru: "Коллега", es: "Colega" },
+          built_in: true,
+        },
+      ]),
+    )
   })
 
   it("lets an agent read the role lists and change none", async () => {
