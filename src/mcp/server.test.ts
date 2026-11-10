@@ -346,6 +346,8 @@ it("covers every runnable command with a tool or a named exclusion", async () =>
     )
     expect(runnable.length).toBeGreaterThan(100)
     for (const info of runnable) {
+      // A shared command its definition keeps off MCP (cli-core's owner-only ones) is excluded there, with its reason.
+      if (info.mcp === false) continue
       const excluded = MCP_EXCLUSIONS.find(({ path }) => path.every((word, at) => info.path[at] === word))
       if (excluded) expect(excluded.reason.length).toBeGreaterThan(0)
       else expect(names.has(info.path.join(" ")), info.path.join(" ")).toBe(true)
