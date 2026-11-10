@@ -838,7 +838,7 @@ memo people show <who> [options]
 
 ### `memo people review`
 
-people that may be one person, waiting for the owner; memo review confirms or rejects them
+what waits for the owner about who is who: matches (people that may be one) and splits (identities an agent says are not this person), newest first; people confirm or people reject answers them
 
 ```sh
 memo people review [options]
@@ -846,12 +846,91 @@ memo people review [options]
 
 | Option | What it does |
 |---|---|
-| `--limit <n>` | most matches, up to 500. Default: `50`. |
+| `--kind <kind>` | all, link, split (default all). Default: `all`. |
+| `--limit <n>` | most proposals, up to 500. Default: `50`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** people that may be one person, waiting for the owner
+**Returns:** people that may be one, and splits an agent proposed, waiting for you
 
-**Example:** `memo people review`, `memo people review --json`
+**Example:** `memo people review`, `memo people review --kind split --json`
+
+### `memo people confirm`
+
+confirm matches (the people become one) and splits (the identities leave their person) by id or range as people review lists them, or `all` of what it lists with the same --kind and --limit; each is decided on its own, so a refusal leaves the others decided. `all` shows what it would do until --yes
+
+This command changes the local store or your files.
+
+```sh
+memo people confirm <ids> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ids` | required | ids or ranges as people review lists them (17080 17082-17085), or all. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--kind <kind>` | with all: all, link, split (default all). Default: `all`. |
+| `--limit <n>` | with all: as many as people review lists, up to 500. Default: `50`. |
+| `--yes` | with all: do it, not only show what would be done. |
+| `--reason <text>` | why, in a few words. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** confirm matches and splits by id, or all that people review lists; only you
+
+**Example:** `memo people confirm 17080 17082-17085`, `memo people confirm all --kind split --yes`
+
+### `memo people reject`
+
+turn down matches and splits by id or range, or `all` of what people review lists; a turned-down match comes back only on new evidence, a turned-down split never. `all` shows what it would do until --yes
+
+This command changes the local store or your files.
+
+```sh
+memo people reject <ids> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `ids` | required | ids or ranges as people review lists them (17080 17082-17085), or all. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--kind <kind>` | with all: all, link, split (default all). Default: `all`. |
+| `--limit <n>` | with all: as many as people review lists, up to 500. Default: `50`. |
+| `--yes` | with all: do it, not only show what would be done. |
+| `--reason <text>` | why they are turned down, in a few words. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** turn down matches and splits by id, or all that people review lists; only you
+
+**Example:** `memo people reject 17081 --reason 'two people'`, `memo people reject all --kind link`
+
+### `memo people links`
+
+who is who: the links that make identities one person
+
+#### `memo people links check`
+
+people that may be wrong, you first: your person holding an identity under another name, test data, an identity joined by an address a person of another name has, one person with different names and nothing in common. Each says why and gives the unlink or unmerge that fixes it; an agent adds --reason and it waits for you in people review. What you linked by hand, or kept together by turning a split down, is left out
+
+```sh
+memo people links check [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--limit <n>` | most people on a page, up to 200. Default: `20`. |
+| `--page <n>` | which page, from 1. Default: `1`. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** people that may be wrong, with why and the command that fixes each
+
+**Example:** `memo people links check`, `memo people links check --page 2 --json`
 
 ### `memo people scan`
 
@@ -899,7 +978,7 @@ memo people link <identity> <other> [options]
 
 ### `memo people unlink`
 
-take identities off their person: one gets a person of its own again, several move together to one new person; only you, and no automatic match joins them back
+take identities off their person: one gets a person of its own again, several move together to one new person, and no automatic match joins them back; yours applies at once, an agent's waits for you in people review
 
 This command changes the local store or your files.
 
@@ -915,15 +994,16 @@ memo people unlink <identities> [options]
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--reason <text>` | why, in a few words; required when an agent decides for you. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** take identities off a person, to one new person; only you
+**Returns:** take identities off a person, to one new person; an agent's waits for you
 
-**Example:** `memo people unlink telegram:12345`, `memo people unlink email:lena@example.com max:6789`
+**Example:** `memo people unlink telegram:12345`, `memo people unlink email:lena@example.com max:6789 --reason 'her husband's mailbox'`
 
 ### `memo people unmerge`
 
-give the identities a merge brought back to the person they came from; only you
+give the identities a merge brought back to the person they came from; yours applies at once, an agent's waits for you in people review
 
 This command changes the local store or your files.
 
@@ -939,11 +1019,12 @@ memo people unmerge <merge> [options]
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--reason <text>` | why, in a few words; required when an agent decides for you. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** undo a merge: its identities go back to their person; only you
+**Returns:** undo a merge: its identities go back to their person; an agent's waits for you
 
-**Example:** `memo people unmerge merge:12-34`
+**Example:** `memo people unmerge merge:12-34`, `memo people unmerge merge:12-34 --reason 'a shared mailbox'`
 
 ## `memo tags`
 

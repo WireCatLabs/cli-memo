@@ -1,26 +1,21 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { LOCAL_READ, LOCAL_WRITE } from "@wirecat/cli-core/cli"
-import {
-  type IdentityLinkRow,
-  type IdentityRef,
-  type MessageStore,
-  type PersonRecord,
-  parseMergeId,
-} from "@wirecat/cli-core/store"
+import { type IdentityRef, type MessageStore, type PersonRecord, parseMergeId } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
-import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
+import { answers, itemAnswer, withStore } from "../answer.js"
 import { byOption, reasonOption, whoRuns } from "../author.js"
-import { positive } from "../options.js"
+import { doubtsCommand } from "./doubts-command.js"
 import { exactIdentityOf, identityOf } from "./identity.js"
-
-const OWNER_ONLY = "identity.owner-only"
+import { withOwner } from "./owner.js"
+import { matchAnswer, summaryOf } from "./proposal-rows.js"
+import { peopleProposalCommands } from "./proposals-command.js"
 
 const PERSON = /^person:([1-9]\d*)$/
 
-/** `person:<uid>`, or an identity of the person as `<messenger>:<name or id>`. */
+/** `person:<uid>`, `person:me`, or an identity of the person as `<messenger>:<name or id>`. */
 const personOf = async (store: MessageStore, who: string): Promise<PersonRecord> => {
-  const uid = PERSON.exec(who.trim())?.[1]
+  const uid = PERSON.exec((await withOwner(store, who)).trim())?.[1]
   const found =
     uid === undefined ? await store.people.personOf(await identityOf(store, who)) : await store.people.personByUid(uid)
   if (found === undefined)
@@ -44,33 +39,6 @@ const personAnswer = (person: PersonRecord) => ({
     linkedAt: identity.linkedAt,
   })),
 })
-
-const matchAnswer = (row: IdentityLinkRow) => ({
-  id: row.id,
-  persons: row.persons,
-  joins: row.joins,
-  identity: row.identity,
-  with: row.with,
-  signal: row.signal,
-  score: row.score,
-  candidates: row.candidates,
-  reason: row.reason,
-  evidence: row.evidence,
-  proposedBy: row.proposedBy,
-  createdAt: row.createdAt,
-})
-
-const summaryOf = ({ identity, with: other, persons, signal }: ReturnType<typeof matchAnswer>) =>
-  `${identity} may be the same person as ${other ?? persons[1]} (${signal})`
-
-/** The owner's moves: refused for anyone else before anything is read, whatever the store would say. */
-const asOwner = async (command: Command, env: NodeJS.ProcessEnv, question: string): Promise<"owner"> => {
-  const options = command.opts<{ asOwner?: boolean }>()
-  const who = await whoRuns(command, env, { asOwner: options.asOwner, question })
-  if (who !== "owner")
-    throw new CliError("permission_error", `only the owner can ${question.replace(/\?$/, "")}`, { reason: OWNER_ONLY })
-  return who
-}
 
 const identitiesOf = async (store: MessageStore, refs: string[]): Promise<IdentityRef[]> => {
   const found: IdentityRef[] = []
@@ -103,32 +71,17 @@ export const identitiesCommands = (people: Command, program: Command, streams: S
         [
           `${shown.ref} ${shown.name ?? ""}`.trim(),
           ...shown.identities.map(({ identity, name }) => `  ${identity}${name ? `  ${name}` : ""}`),
-          ...shown.merges.map(({ id, from }) => `  merged: ${id} (person:${from})`),
+          ...shown.merges.map(
+            ({ id, from, method, by, at }) =>
+              `  merged: ${id} (person:${from}) by ${by} via ${method}, ${at.slice(0, 10)}`,
+          ),
           ...shown.matches.map((match) => `  match ${match.id}: ${summaryOf(match)}`),
         ].join("\n"),
       )
     })
 
-  annotate(people.command("review"), { effects: LOCAL_READ })
-    .summary("people that may be one person, waiting for the owner")
-    .description("people that may be one person, waiting for the owner; memo review confirms or rejects them")
-    .option("--limit <n>", "most matches, up to 500", positive, 50)
-    .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action(async (options: { limit: number; json?: boolean }) => {
-      if (options.limit > 500) throw new CliError("validation_error", "--limit takes 1–500", { param: "limit" })
-      const found = await withStore(env, (store) =>
-        store.people.linkProposals({ status: "proposed", limit: options.limit, offset: 0 }),
-      )
-      const items = found.items.map(matchAnswer)
-      print(
-        options.json,
-        listAnswer("people review", { items, limit: options.limit, has_more: found.hasMore }),
-        [
-          ...items.map((match) => `${match.id}  ${summaryOf(match)}`),
-          ...(found.hasMore ? [`more wait: --limit ${Math.min(500, options.limit * 2)}`] : []),
-        ].join("\n") || "no matches wait for you",
-      )
-    })
+  peopleProposalCommands(people, program, streams, env)
+  doubtsCommand(people, program, streams, env)
 
   annotate(people.command("scan"), { effects: LOCAL_WRITE })
     .summary("match people across sources now; memo sync does it too")
@@ -196,21 +149,48 @@ export const identitiesCommands = (people: Command, program: Command, streams: S
       },
     )
 
-  byOption(
-    annotate(people.command("unlink"), { effects: LOCAL_WRITE })
-      .summary("take identities off a person, to one new person; only you")
-      .description(
-        "take identities off their person: one gets a person of its own again, several move together to one new " +
-          "person; only you, and no automatic match joins them back",
-      )
-      .argument("<identities...>", "the identities that leave, each <messenger>:<id> exactly, all of one person"),
+  /**
+   * The owner's separations apply at once; anyone else's waits for the owner as a split proposal, with why. A run with
+   * no reason that is not the owner's is refused before anything is read.
+   */
+  const separation = async (command: Command, question: string, reason: string | undefined) => {
+    const who = await whoRuns(command, env, { asOwner: command.opts<{ asOwner?: boolean }>().asOwner, question })
+    if (who !== "owner" && !reason?.trim())
+      throw new CliError("validation_error", "an agent's split waits for the owner; say why with --reason", {
+        reason: "proposal.reason-required",
+        param: "reason",
+      })
+    return who
+  }
+  const proposed = (json: boolean | undefined, proposal: string) =>
+    print(
+      json,
+      itemAnswer({ outcome: "proposed" as const, proposal }),
+      `waits for the owner as split ${proposal}: memo people review`,
+    )
+
+  reasonOption(
+    byOption(
+      annotate(people.command("unlink"), { effects: LOCAL_WRITE })
+        .summary("take identities off a person, to one new person; an agent's waits for you")
+        .description(
+          "take identities off their person: one gets a person of its own again, several move together to one new " +
+            "person, and no automatic match joins them back; yours applies at once, an agent's waits for you in " +
+            "people review",
+        )
+        .argument("<identities...>", "the identities that leave, each <messenger>:<id> exactly, all of one person"),
+    ),
   )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action(async (refs: string[], options: { json?: boolean }, command: Command) => {
-      await asOwner(command, env, `unlink ${refs.join(" ")}?`)
-      const person = await withStore(env, async (store) => {
+    .action(async (refs: string[], options: { reason?: string; json?: boolean }, command: Command) => {
+      const who = await separation(command, `unlink ${refs.join(" ")}?`, options.reason)
+      const done = await withStore(env, async (store) => {
         const chosen: IdentityRef[] = []
         for (const ref of refs) chosen.push(await exactIdentityOf(store, ref))
+        if (who !== "owner") {
+          const reason = options.reason?.trim() as string
+          return { proposal: (await store.people.proposeSplit({ identities: chosen, by: who, reason })).id }
+        }
         const [first] = chosen as [IdentityRef]
         if (chosen.length === 1) return store.people.unlinkIdentity(first, { method: "unlink", by: "owner" })
         const held = await store.people.personOf(first)
@@ -218,19 +198,31 @@ export const identitiesCommands = (people: Command, program: Command, streams: S
           throw new CliError("not_found", `the store has no person for "${refs[0]}"`, { reason: "person.not-found" })
         return store.people.split(held.uid, chosen, "owner")
       })
-      print(options.json, itemAnswer(personAnswer(person)), `person:${person.uid}`)
+      if ("proposal" in done) proposed(options.json, done.proposal)
+      else print(options.json, itemAnswer(personAnswer(done)), `person:${done.uid}`)
     })
 
-  byOption(
-    annotate(people.command("unmerge"), { effects: LOCAL_WRITE })
-      .summary("undo a merge: its identities go back to their person; only you")
-      .description("give the identities a merge brought back to the person they came from; only you")
-      .argument("<merge>", "merge:<to>-<from>, as people show lists it"),
+  reasonOption(
+    byOption(
+      annotate(people.command("unmerge"), { effects: LOCAL_WRITE })
+        .summary("undo a merge: its identities go back to their person; an agent's waits for you")
+        .description(
+          "give the identities a merge brought back to the person they came from; yours applies at once, an " +
+            "agent's waits for you in people review",
+        )
+        .argument("<merge>", "merge:<to>-<from>, as people show lists it"),
+    ),
   )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action(async (merge: string, options: { json?: boolean }, command: Command) => {
+    .action(async (merge: string, options: { reason?: string; json?: boolean }, command: Command) => {
       const { to, from } = parseMergeId(merge)
-      await asOwner(command, env, `undo ${merge}?`)
+      const who = await separation(command, `undo ${merge}?`, options.reason)
+      if (who !== "owner") {
+        const reason = options.reason?.trim() as string
+        const proposal = await withStore(env, (store) => store.people.proposeSplit({ merge, by: who, reason }))
+        proposed(options.json, proposal.id)
+        return
+      }
       const person = await withStore(env, (store) => store.people.undoMerge(to, from, "owner"))
       print(options.json, itemAnswer(personAnswer(person)), `person:${person.uid}`)
     })
