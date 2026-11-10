@@ -171,8 +171,8 @@ export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       .description(
         "people of one kind: person (the default: the owner, people added by hand or assigned a task, and named " +
           "people with a tie to you, such as a one-to-one chat, a group of at most 10, mail you wrote, a meeting, a " +
-          "CRM or your address book), organization, automated (bots, newsletters, notifications), unsorted (no tie " +
-          "or no name) or all. The owner first, then by the messages and mail they sent",
+          "CRM or your address book), organization, automated (bots, newsletters, notifications), stranger (a " +
+          "name and no tie), unsorted (no name) or all. The owner first, then by the messages and mail they sent",
       ),
     query,
   )
@@ -217,6 +217,28 @@ export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.Pr
             ...(steps.length ? { next: steps } : {}),
           }),
         )
+      })
+    })
+  const countsQuery = {
+    entity: "task_person",
+    backend: "native",
+    fields: [termField("name", "txt", "name:ivan")],
+  } as const satisfies QueryRegistry
+  withQuery(
+    annotate(people.command("counts"), { effects: LOCAL_READ })
+      .summary("how many people each kind holds, every kind at once")
+      .description(
+        "how many people each kind holds (person, organization, automated, stranger, unsorted), or how many of " +
+          "them match name:, in one answer: the counts a people list's kind tabs show",
+      ),
+    countsQuery,
+  )
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .action(async (words: string[], options: { json?: boolean }) => {
+      const name = queryTerms(words, countsQuery, "people counts").get("name")
+      await withStore(env, async (store) => {
+        const counts = Object.entries(await store.people.counts(name)).map(([value, count]) => ({ value, count }))
+        print(options.json, itemAnswer({ total: counts.reduce((sum, { count }) => sum + count, 0), kind: counts }))
       })
     })
   annotate(people.command("check"), { effects: LOCAL_READ })
