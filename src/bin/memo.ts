@@ -19,7 +19,8 @@ if (wcat.code !== undefined) {
 } else {
   const { startCli } = await import("@wirecat/cli-core/cli/start")
 
-  let program: Command | undefined
+  // `commands --serve` runs requests at once: a program shared between them would parse each with the last one's words.
+  const programs = new WeakMap<object, Command>()
   let failure: typeof import("../failure.js") | undefined
   await startCli({
     app: APP,
@@ -32,9 +33,13 @@ if (wcat.code !== undefined) {
       // A static import would load the store's SQLite before startCli could swap it.
       const { createProgram, liftGroup, refuseJoinedPath } = await import("../program.js")
       const { autoNotice, followInstall } = await import("../run/auto.js")
-      program = createProgram({ signal: entry.signal, setExitCode: entry.setExitCode })
+      let program = createProgram({ signal: entry.signal, setExitCode: entry.setExitCode })
+      programs.set(entry, program)
       const { group, rest: args } = await liftGroup(program, entry.args, entry.env)
-      if (group !== undefined) program = createProgram({ signal: entry.signal, group, setExitCode: entry.setExitCode })
+      if (group !== undefined) {
+        program = createProgram({ signal: entry.signal, group, setExitCode: entry.setExitCode })
+        programs.set(entry, program)
+      }
       // `memo jobs status` says it in full; everywhere else one line, until a timer run passes again.
       if (args[0] !== "jobs") {
         const notice = autoNotice(entry.env)
@@ -54,7 +59,12 @@ if (wcat.code !== undefined) {
     },
     fail: (error, entry) => {
       if (failure)
-        return failure.reportFailure(error, { args: entry.args, program, streams: processStreams, tty: entry.tty })
+        return failure.reportFailure(error, {
+          args: entry.args,
+          program: programs.get(entry),
+          streams: processStreams,
+          tty: entry.tty,
+        })
       // Before run loaded failure.js: the SQLite swap, or the import itself.
       const object = errorObjectOf(error)
       processStreams.diagnostic(
