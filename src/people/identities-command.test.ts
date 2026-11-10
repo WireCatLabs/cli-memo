@@ -108,6 +108,31 @@ describe("memo people review", () => {
   })
 })
 
+describe("a shared mailbox in people review", () => {
+  it("lists first by score with its mailbox, and people company gives the address to a company", async () => {
+    const store = await openStore({ env })
+    await store.people.savePeople(TG, [{ id: "44", name: "Ana Diaz", email: "info@shop.example" }])
+    await store.people.savePeople(MAX, [{ id: "55", name: "Bo Lind", email: "info@shop.example" }])
+    await store.close()
+    await run({}, NOBODY, "people", "scan")
+    await run(CLAUDE, NOBODY, "people", "link", "max:33", "telegram:11", "--reason", "same face")
+
+    const listed = envelopeOf(await raw({}, OWNER, "people", "review", "--json")).items
+    await expect(run(CLAUDE, NOBODY, "people", "company", listed[0].id)).rejects.toMatchObject({
+      code: "permission_error",
+    })
+    const decided = await run({}, OWNER, "people", "company", listed[0].id)
+
+    expect(listed).toMatchObject([
+      { shared: "role", mailbox: "info@shop.example", score: 0.1 },
+      { signal: "agent", score: null, shared: null, mailbox: null },
+    ])
+    expect(decided).toMatchObject({ status: "rejected", mailbox: "info@shop.example" })
+    expect(decided.organization).toMatch(/^organization:\d+$/)
+    expect(envelopeOf(await raw({}, OWNER, "people", "review", "--json")).items).toMatchObject([{ signal: "agent" }])
+  })
+})
+
 describe("the owner's separations", () => {
   it("take exact identity ids only, never the nearest name", async () => {
     await run({}, OWNER, "people", "link", "max:33", "telegram:11")

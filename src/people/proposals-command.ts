@@ -41,6 +41,16 @@ const peopleIds = async (store: MessageStore, ids: string[]): Promise<{ ids: str
   return { ids: kept, refused }
 }
 
+const organizationOf = (word: string | undefined): number | undefined => {
+  if (word === undefined) return undefined
+  const id = /^(?:organization:)?(\d+)$/.exec(word)?.[1]
+  if (id === undefined)
+    throw new CliError("validation_error", `${word} is not an organization; it looks like organization:12`, {
+      param: "organization",
+    })
+  return Number(id)
+}
+
 interface DecideOptions {
   kind: ProposalKindWord
   limit: number
@@ -62,7 +72,8 @@ export const peopleProposalCommands = (
     .summary("people that may be one, and splits an agent proposed, waiting for you")
     .description(
       "what waits for the owner about who is who: matches (people that may be one) and splits (identities an agent " +
-        "says are not this person), newest first; people confirm or people reject answers them",
+        "says are not this person), highest score first, then newest; people confirm or people reject answers them, " +
+        "and people company answers a match on a shared mailbox",
     )
     .option("--kind <kind>", `${PROPOSAL_KINDS.join(", ")} (default all)`, oneOf(PROPOSAL_KINDS), "all")
     .option("--limit <n>", "most proposals, up to 500", positive, 50)
@@ -141,4 +152,49 @@ export const peopleProposalCommands = (
       )
     })
   }
+
+  const company = byOption(
+    annotate(people.command("company"), { effects: LOCAL_WRITE })
+      .summary("say a match's shared mailbox is a company's, not either person's; only you")
+      .description(
+        "answers a match on a shared mailbox (people review shows shared and mailbox): the address goes to the " +
+          "organization you name, else to the one that has the address or its company domain, else to one named " +
+          "--name, else to a new company named after the domain. The two people are not joined and are not proposed " +
+          "again on that address",
+      )
+      .argument("<id>", "the match's id as people review lists it")
+      .argument("[organization]", "organization:<id> to give the address to"),
+  )
+    .option("--name <text>", "the company's name, when no organization is named")
+    .option("--reason <text>", "why, in a few words")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+  company.action(
+    async (
+      id: string,
+      organization: string | undefined,
+      options: { name?: string; reason?: string; json?: boolean },
+    ) => {
+      const owned = organizationOf(organization)
+      await asOwner(company, env, `say the mailbox of people proposal ${id} is a company's?`)
+      const decided = await withStore(env, async (store) => {
+        await (await reviewOf(store, env)).get(id)
+        return store.people.decideLink(id, {
+          confirm: false,
+          by: "owner",
+          company: {
+            ...(owned === undefined ? {} : { organization: owned }),
+            ...(options.name ? { name: options.name } : {}),
+          },
+          ...(options.reason ? { reason: options.reason } : {}),
+        })
+      })
+      const given = (decided.result as { organization?: string } | null)?.organization ?? null
+      const mailbox = (decided.payload as { mailbox?: string }).mailbox ?? null
+      print(
+        options.json,
+        itemAnswer({ id, kind: IDENTITY_LINK_KIND, status: "rejected" as const, mailbox, organization: given }),
+        `${id}: ${mailbox} is ${given}'s mailbox now; the two people stay apart`,
+      )
+    },
+  )
 }

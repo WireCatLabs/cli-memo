@@ -23,6 +23,8 @@ export const matchAnswer = (row: IdentityLinkRow) => ({
   with: row.with,
   signal: row.signal,
   score: row.score,
+  shared: row.shared,
+  mailbox: row.mailbox,
   candidates: row.candidates,
   reason: row.reason,
   evidence: row.evidence,
@@ -50,8 +52,11 @@ export const splitAnswer = (row: IdentitySplitRow) => ({
 export type PeopleProposal = ReturnType<typeof matchAnswer> | ReturnType<typeof splitAnswer>
 
 export const summaryOf = (row: PeopleProposal): string => {
-  if (row.kind === "identity_link")
-    return `${row.identity} may be the same person as ${row.with ?? row.persons[1]} (${row.signal})`
+  if (row.kind === "identity_link") {
+    const why = [row.signal, ...(row.mailbox ? [`shared mailbox ${row.mailbox}`] : [])]
+    const score = row.score === null ? "" : `, score ${row.score}`
+    return `${row.identity} may be the same person as ${row.with ?? row.persons[1]} (${why.join(", ")}${score})`
+  }
   return row.split === "unmerge"
     ? `undo ${row.merge}: ${row.identities.join(" ")} go back to their own person`
     : `take ${row.identities.join(" ")} off ${row.person}`
@@ -61,17 +66,22 @@ export const PROPOSAL_KINDS = ["all", "link", "split"] as const
 
 export type ProposalKindWord = (typeof PROPOSAL_KINDS)[number]
 
-/** The matches and splits waiting for the owner, newest first, at most `limit`, and whether more wait. */
+const scoreOf = (row: PeopleProposal): number => (row.kind === "identity_link" ? (row.score ?? -1) : -1)
+
+/**
+ * The matches and splits waiting for the owner, highest score first, those without one newest first after them
+ * (NEED-2527), at most `limit`, and whether more wait.
+ */
 export const waiting = async (
   store: MessageStore,
   { kind, limit }: { kind: ProposalKindWord; limit: number },
 ): Promise<{ items: PeopleProposal[]; hasMore: boolean }> => {
   const none = { items: [], hasMore: false }
   const page = { status: "proposed" as const, limit, offset: 0 }
-  const links = kind === "split" ? none : await store.people.linkProposals(page)
+  const links = kind === "split" ? none : await store.people.linkProposals({ ...page, order: "score" })
   const splits = kind === "link" ? none : await store.people.splitProposals(page)
   const rows: PeopleProposal[] = [...links.items.map(matchAnswer), ...splits.items.map(splitAnswer)].sort(
-    (a, b) => b.createdAt.localeCompare(a.createdAt) || Number(b.id) - Number(a.id),
+    (a, b) => scoreOf(b) - scoreOf(a) || b.createdAt.localeCompare(a.createdAt) || Number(b.id) - Number(a.id),
   )
   return { items: rows.slice(0, limit), hasMore: links.hasMore || splits.hasMore || rows.length > limit }
 }
