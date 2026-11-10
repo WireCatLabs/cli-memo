@@ -173,6 +173,10 @@ describe("the owner's separations", () => {
   })
 
   it("name the person the identities leave, and are refused when they sit on someone else (BUG-709)", async () => {
+    const store = await openStore({ env })
+    await store.people.savePeople(TG, [{ id: "101", name: "Me" }])
+    await store.people.linkToOwner({ provider: "telegram", id: "101" })
+    await store.close()
     await run({}, OWNER, "people", "link", "max:33", "telegram:11")
     const { ref } = await run({}, OWNER, "people", "show", "max:33")
 
@@ -190,6 +194,9 @@ describe("the owner's separations", () => {
     await expect(
       run(CLAUDE, NOBODY, "people", "unlink", "telegram:11", "--from", "person:me", "--reason", "not his"),
     ).rejects.toMatchObject({ details: { reason: "identity.held-elsewhere" } })
+    await expect(
+      run({}, OWNER, "people", "unlink", "telegram:11", "max:33", "--from", "person:me"),
+    ).rejects.toMatchObject({ details: { reason: "identity.held-elsewhere", reference: ref } })
     expect((await run({}, OWNER, "people", "show", "max:33")).identities).toHaveLength(2)
   })
 

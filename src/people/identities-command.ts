@@ -185,7 +185,6 @@ export const identitiesCommands = (people: Command, program: Command, streams: S
     .option("--from <person>", "the person they leave, person:<uid> or person:me; refused when they sit on another")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (refs: string[], options: { from?: string; reason?: string; json?: boolean }, command: Command) => {
-      // Named, never worked out from the identities: a guess took a colleague's mailbox off the colleague (BUG-709).
       if (!FROM.test(options.from?.trim() ?? ""))
         throw new CliError(
           "validation_error",
@@ -194,7 +193,7 @@ export const identitiesCommands = (people: Command, program: Command, streams: S
         )
       const who = await separation(command, `unlink ${refs.join(" ")} from ${options.from}?`, options.reason)
       const done = await withStore(env, async (store) => {
-        const from = (await personOf(store, options.from as string)).uid
+        const from = PERSON.exec(await withOwner(store, (options.from as string).trim()))?.[1] as string
         const chosen: IdentityRef[] = []
         for (const ref of refs) chosen.push(await exactIdentityOf(store, ref))
         if (who !== "owner") {

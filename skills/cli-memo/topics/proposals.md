@@ -66,8 +66,9 @@ open matches.
   two names with nothing in common), each with `why`, `evidence` and `fix`: the unlink or unmerge that would set it
   right. Check the evidence, then propose the fix with `--reason`.
 - `memo people unlink <messenger:id…> --from person:<uid> --reason "<why>"` and
-  `memo people unmerge <merge:to-from> --reason "<why>"` only propose a split (`identity_split`, `owner_only`); it waits in `memo people review`. Proposing the same split
-  again renews it after the person changed; one the owner rejected is refused (`identity.kept-together`).
+  `memo people unmerge <merge:to-from> --reason "<why>"` only propose a split (`identity_split`, `owner_only`); it
+  waits in `memo people review`. Proposing the same split again renews it after the person changed; one the owner
+  rejected is refused (`identity.kept-together`).
   `--from` is the person they leave. Never guess it: `memo people show <messenger:id>` names who holds an identity,
   and a wrong one is refused (`identity.held-elsewhere`) with the person who really holds it.
 
