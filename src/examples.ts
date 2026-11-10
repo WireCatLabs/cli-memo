@@ -161,14 +161,23 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "people check": ["memo people check ivan petrov --json"],
   "people add": ["memo people add Lena Example"],
   "people show": ["memo people show person:12", "memo people show telegram:Lena --json"],
-  "people review": ["memo people review", "memo people review --json"],
+  "people review": ["memo people review", "memo people review --kind split --json"],
+  "people confirm": ["memo people confirm 17080 17082-17085", "memo people confirm all --kind split --yes"],
+  "people reject": [
+    "memo people reject 17081 --reason 'two people'",
+    "memo people reject all --kind link --reason 'not one'",
+  ],
+  "people links check": ["memo people links check", "memo people links check --page 2 --json"],
   "people scan": ["memo people scan"],
   "people link": [
     "memo people link max:Lena telegram:Lena",
     "memo people link max:Lena telegram:Lena --reason 'same phone in her signature'",
   ],
-  "people unlink": ["memo people unlink telegram:12345", "memo people unlink email:lena@example.com max:6789"],
-  "people unmerge": ["memo people unmerge merge:12-34"],
+  "people unlink": [
+    "memo people unlink telegram:12345",
+    "memo people unlink email:lena@example.com max:6789 --reason 'her husband's mailbox'",
+  ],
+  "people unmerge": ["memo people unmerge merge:12-34", "memo people unmerge merge:12-34 --reason 'a shared mailbox'"],
   "tasks agenda": [
     "memo tasks agenda --source telegram:1",
     "memo tasks agenda --source max:1 --waiting 3d --within 90d --json",

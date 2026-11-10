@@ -123,17 +123,31 @@ describe("the owner's separations", () => {
     expect((await run({}, NOBODY, "people", "unlink", "telegram:11", "--from-app")).identities).toHaveLength(1)
   })
 
-  it("refuse an agent's unlink and unmerge", async () => {
+  it("from an agent wait for the owner with a reason, and only the owner's confirm applies them", async () => {
     await run({}, OWNER, "people", "link", "max:33", "telegram:11")
     const { merges } = await run({}, OWNER, "people", "show", "max:33")
+    await expect(run(CLAUDE, NOBODY, "people", "unlink", "telegram:11")).rejects.toMatchObject({
+      details: { reason: "proposal.reason-required" },
+    })
 
-    for (const args of [
-      ["people", "unlink", "telegram:11"],
-      ["people", "unlink", "max:33", "telegram:11"],
-      ["people", "unmerge", merges[0].id],
-    ])
-      await expect(run(CLAUDE, NOBODY, ...args)).rejects.toMatchObject({ details: { reason: "identity.owner-only" } })
+    const unlink = await run(CLAUDE, NOBODY, "people", "unlink", "telegram:11", "--reason", "another man")
+    const unmerge = await run(CLAUDE, NOBODY, "people", "unmerge", merges[0].id, "--reason", "a shared phone")
+    expect([unlink.outcome, unmerge.outcome]).toEqual(["proposed", "proposed"])
     expect((await run({}, OWNER, "people", "show", "max:33")).identities).toHaveLength(2)
+
+    const waiting = envelopeOf(await raw({}, OWNER, "people", "review", "--kind", "split", "--json"))
+    expect(waiting.items).toMatchObject([
+      { id: unmerge.proposal, kind: "identity_split", split: "unmerge", reason: "a shared phone" },
+      { id: unlink.proposal, kind: "identity_split", split: "unlink", identities: ["telegram:11"] },
+    ])
+    expect(waiting.items[0]).not.toHaveProperty("persons")
+    await expect(run(CLAUDE, NOBODY, "people", "confirm", unlink.proposal)).rejects.toMatchObject({
+      details: { reason: "identity.owner-only" },
+    })
+
+    const accepted = await run({}, OWNER, "people", "confirm", unlink.proposal)
+    expect(accepted.decided).toMatchObject([{ kind: "identity_split", status: "confirmed" }])
+    expect((await run({}, OWNER, "people", "show", "max:33")).identities).toHaveLength(1)
   })
 
   it("are the app's to make with --from-app, and a scan does not join an undone merge again", async () => {
@@ -145,6 +159,65 @@ describe("the owner's separations", () => {
 
     expect(restored.identities).toMatchObject([{ identity: "max:33" }])
     expect((await run({}, OWNER, "people", "show", "max:33")).identities).toHaveLength(1)
+  })
+})
+
+describe("memo people confirm and reject", () => {
+  it("all shows what it would do until --yes, then answers every listed proposal", async () => {
+    await run(CLAUDE, NOBODY, "people", "link", "max:33", "telegram:11", "--reason", "same face")
+    await run(CLAUDE, NOBODY, "people", "link", "max:33", "max:22", "--reason", "same voice")
+
+    const preview = await run({}, OWNER, "people", "reject", "all", "--reason", "not one")
+    expect(preview).toMatchObject({ outcome: "preview", would: "reject" })
+    expect(preview.ids).toHaveLength(2)
+    expect(envelopeOf(await raw({}, OWNER, "people", "review", "--json")).items).toHaveLength(2)
+
+    const done = await run({}, OWNER, "people", "reject", "all", "--yes", "--reason", "not one")
+    expect(done.decided.map(({ status }: { status: string }) => status)).toEqual(["rejected", "rejected"])
+    expect(envelopeOf(await raw({}, OWNER, "people", "review", "--json")).items).toEqual([])
+  })
+
+  it("refuses a proposal that is not about people and still decides the rest, as the desktop app asks", async () => {
+    const { proposal } = await run(CLAUDE, NOBODY, "people", "link", "max:33", "telegram:11", "--reason", "same face")
+    const store = await openStore({ env })
+    const other = await store.proposedActions.propose({ kind: "reply", by: { bot: "claude-code" } })
+    await store.close()
+
+    const done = await run({}, NOBODY, "people", "reject", proposal, other.id, "--reason", "not one", "--from-app")
+
+    expect(done).toMatchObject({
+      decided: [{ id: proposal, status: "rejected" }],
+      refused: [{ id: other.id, reason: "proposal.not-people" }],
+    })
+  })
+})
+
+describe("memo people links check", () => {
+  it("names a person with two names and nothing in common, and people show person:me is the owner", async () => {
+    const store = await openStore({ env })
+    await store.accounts.saveAccount(TG, { name: null })
+    await store.people.savePeople(TG, [{ id: "1", name: "Lena Example" }])
+    await store.accounts.saveAccount(TG, { name: null })
+    await store.people.linkIdentities(
+      { provider: "max", id: "33" },
+      { provider: "telegram", id: "11" },
+      { method: "same-email", by: "rules" },
+    )
+    await store.close()
+
+    const doubts = envelopeOf(await raw({}, OWNER, "people", "links", "check", "--json"))
+    expect(doubts.items).toMatchObject([{ reason: "mixed-names" }])
+    expect(doubts.page.total).toMatchObject({ value: 1 })
+    expect(await raw({}, OWNER, "people", "links", "check")).toContain("mixed-names")
+    expect((await run({}, OWNER, "people", "show", "person:me")).identities).toMatchObject([{ identity: "telegram:1" }])
+  })
+
+  it("prints how and when each merge was made", async () => {
+    await run({}, OWNER, "people", "link", "max:33", "telegram:11")
+
+    expect(await raw({}, OWNER, "people", "show", "max:33")).toMatch(
+      /merged: merge:\d+-\d+ \(person:\d+\) by owner via manual, \d{4}-\d\d-\d\d/,
+    )
   })
 })
 
@@ -173,7 +246,7 @@ describe("memo people scan", () => {
 })
 
 describe("over MCP", () => {
-  it("offers no unlink or unmerge, and an agent's link is a proposal", async () => {
+  it("offers no confirm or reject, and an agent's link and unlink are proposals", async () => {
     const [serverSide, clientSide] = InMemoryTransport.createLinkedPair()
     await createMemoServer(env, createProgram).connect(serverSide)
     const client = new Client({ name: "fixture", version: "0" })
@@ -183,12 +256,16 @@ describe("over MCP", () => {
       const names = (catalogue.structuredContent as { items: { command: string }[] }).items.map(
         ({ command }) => command,
       )
-      expect(names).toEqual(expect.arrayContaining(["people show", "people review", "people link"]))
-      for (const owners of ["people unlink", "people unmerge"]) expect(names).not.toContain(owners)
+      expect(names).toEqual(
+        expect.arrayContaining(["people show", "people review", "people link", "people unlink", "people links check"]),
+      )
+      for (const owners of ["people confirm", "people reject"]) expect(names).not.toContain(owners)
 
       const call = await commandCaller(client)
       const linked = await call("people link", { identity: "max:33", other: "telegram:11", reason: "same face" })
       expect(answerOf(JSON.stringify(linked.structuredContent))).toMatchObject({ outcome: "proposed" })
+      const unlinked = await call("people unlink", { identities: ["max:22"], reason: "another man", as_owner: true })
+      expect(unlinked.isError).toBe(true)
     } finally {
       await client.close()
     }

@@ -206,6 +206,18 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: [],
   },
   {
+    reason: "proposal.not-found",
+    code: "not_found",
+    message: "no proposal has that id; people review lists them",
+    details: [],
+  },
+  {
+    reason: "proposal.not-people",
+    code: "validation_error",
+    message: "that proposal is not about people; memo review decides it",
+    details: [],
+  },
+  {
     reason: "identity.no-messenger",
     code: "validation_error",
     message: "the name has no messenger; write it as <messenger>:<name or id>",
