@@ -122,9 +122,15 @@ matches:
 
 ```sh
 memo people review
-memo review kind:identity_link
-memo review confirm 17090
+memo people confirm 17090
+memo people reject 17091 --reason "two people"
 ```
+
+`memo people confirm` and `memo people reject` take ids and ranges (`17090-17095`) as `people review` lists them, or
+`all`: everything `people review` lists with the same `--kind` (`link`, `split` or `all`) and `--limit`. `all` shows
+what it would do and changes nothing until you add `--yes`. Each proposal is decided on its own, so one that changed
+since is refused and the others are still decided. `memo review` lists and decides the same proposals among
+everything else.
 
 Link two accounts yourself, or look at one person:
 
@@ -134,7 +140,27 @@ memo people show telegram:Kai
 ```
 
 `memo people show` lists the person's identities by source, the accounts that saw each, the merges that joined them
-(`merge:12-34`) and the matches that wait. `memo context` for any of the accounts shows everything from all of them.
+(`merge:12-34`, with how, by whom and when) and the matches that wait. `memo people show person:me` shows you.
+`memo context` for any of the accounts shows everything from all of them.
+
+### People that look wrong
+
+```sh
+memo people links check
+memo people links check --page 2 --json
+```
+
+`memo people links check` lists people that may be wrong across the whole store, you first, with why and the command that
+would fix each:
+
+- **owner-other-name**: your own person holds an identity under another name, such as a partner's mailbox or a
+  spouse's messenger you read. Spelling and script do not count: «Алексей Иванов» is Aleksei Ivanov.
+- **test-data**: the people of a test, or an address at a reserved domain such as `.test` or `example.com`.
+- **shared-address**: an identity joined by an address that a person of another name has, such as a shared or company
+  mailbox.
+- **mixed-names**: one person with different names and no phone or address in common.
+
+What you linked yourself, and identities you kept together by rejecting a split, are left out.
 
 ### Undo a link
 
@@ -144,8 +170,10 @@ memo people show telegram:Kai
 
 `unlink` takes each identity by its exact id, as `memo people show` lists it, never by a name.
 
-Only you can do these, at a terminal or in WireCat Desktop. After them, no automatic match joins those people again.
-An agent can only propose a link with `memo people link … --reason`. You confirm or reject it in `memo review`.
+Yours apply at once, at a terminal or in WireCat Desktop. After them, no automatic match joins those people again.
+An agent's `unlink` or `unmerge` needs `--reason` and only proposes the split: it waits in `memo people review` with
+the reason, and only your `memo people confirm` carries it out. A split you reject is not proposed again while
+those identities stay on that person, and `people links check` no longer lists them. An agent's `memo people link … --reason` waits the same way.
 
 To choose the main note about the person, see [the note about a person](notes.md#the-note-about-a-person).
 

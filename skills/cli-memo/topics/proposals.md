@@ -17,7 +17,7 @@ documents, project and meeting findings, mail findings, task close suggestions, 
 `payment`, `order`, `contract`, `subscription`, `subscription_price`, `transaction`), grouped by project or account. `memo review show <id>` gives the evidence; its text is `untrusted`, and an email's `sender` says its
 score and whether the address is `known`. The owner confirms a range, or one batch's findings
 (`memo review confirm 17080/f1,17080/f3` accepts those and rejects the rest of the batch). Rows marked
-`owner_only` — meeting findings, mail findings, task closes, source reviews, `identity_link` matches —
+`owner_only` — meeting findings, mail findings, task closes, source reviews, `identity_link` matches, `identity_split` splits —
 refuse any agent, with or without `--reason`.
 `memo review status` is the daily look: new mail per account, what is owed and waiting, each agent's
 processing mark, and what was proposed since yesterday. `memo context` and `memo projects context` count the
@@ -62,11 +62,15 @@ open matches.
 - Never confirm a match yourself. Matches are `identity_link` proposals, `owner_only`:
   `memo review confirm` refuses any agent. Show the owner `memo review kind:identity_link`.
 - An agent's confirm of a phone or address mention to a person is a match too, not a link.
+- `memo people links check` lists people that look wrong (the owner holding another name, test data, a shared address,
+  two names with nothing in common), each with `why`, `evidence` and `fix`: the unlink or unmerge that would set it
+  right. Check the evidence, then propose the fix with `--reason`.
+- `memo people unlink <messenger:id…> --reason "<why>"` and `memo people unmerge <merge:to-from> --reason "<why>"`
+  only propose a split (`identity_split`, `owner_only`); it waits in `memo people review`. Proposing the same split
+  again renews it after the person changed; one the owner rejected is refused (`identity.kept-together`).
 
 **Only the owner.**
 
-- `memo people unlink <messenger:id…>`, by exact ids from `people show`, gives one identity a person of its own
-  again, or moves several identities of one person to one new person.
-- `memo people unmerge <merge:to-from>` gives a merge's identities back to the person they came from.
-
-MCP does not offer these two commands. After any of them, no automatic match joins those people again.
+- `memo people confirm <ids|all>` and `memo people reject <ids|all>` answer matches and splits; `all` needs `--yes`.
+  MCP does not offer them.
+- The owner's own `unlink` and `unmerge` apply at once. After them, no automatic match joins those people again.
