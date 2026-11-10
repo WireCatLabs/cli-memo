@@ -4,6 +4,38 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## 0.131.76 — 10.11.2026
+
+### Added
+
+- **`memories list`, `facts list`, `actions list` and `agents list` take `--page`.** They stopped at 500 rows, so
+  WireCat Desktop's Memory page could not show more of a kind. `--limit 500 --page 2` gives the next 500 in the same
+  order, newest first, each row once, and `page.next_page` says when there is one, as `relationships list` does. A
+  page at the 500 cap now says `has_more: false` when nothing follows, where it used to say `true`.
+
+- **cli-core 0.627.0: `memo models ai` and a command server that answers 8 requests at once.** `models ai
+  show|set|off|forget|check` picks the one AI model every WireCat tool uses. `memo commands --serve` now says
+  `"concurrent":8` and answers several requests from WireCat Desktop together, each with its own output and exit
+  code.
+- **`records import` and `records check` take a CSV sheet of one type** (`--type invoice`): `;` or `,`, a byte-order
+  mark, `10 000,50` and `09.11.2026` as Excel writes them in Russian or Spanish. Each refusal names the sheet's line
+  and column. **`records templates show <type>`** writes the header row to fill (`--locale ru` puts `;` between cells)
+  or an example envelope (`--format json`); **`records templates list`** lists the types and their columns. WireCat Desktop's Storage import uses both.
+- **`memo sources preview <url>`: a web page as `sources add` would read it, with nothing kept.** It answers the
+  title, site, description, the first lines of the text and its size, and refuses what `sources add` refuses. WireCat
+  Desktop shows it in "Add to memory" before you save ([Sources you add by hand](docs/sources.md#look-at-a-page-before-adding-it)).
+
+### Changed — may break callers
+
+- **memo is built on cli-core 0.625.0** (was 0.624.0): records templates and CSV sheets, and a `stranger` kind in
+  `people list` for a named person with no tie.
+
+### Fixed
+
+- **A failed `sync`, `doctor`, `digest run` or `digest backfill` under `commands --serve` keeps its exit code to
+  itself.** The server answers several requests at once, and these four wrote the one process exit code, so the code
+  went to whichever request ended next. They now set it for their own request.
+
 ## 0.131.75 — 09.11.2026
 
 ### Added
