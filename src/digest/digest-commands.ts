@@ -27,7 +27,7 @@ import {
   withQuery,
   writeSchedule,
 } from "@wirecat/cli-core/cli"
-import type { Command } from "commander"
+import { type Command, Option } from "commander"
 import { itemAnswer, wholeList, withStore } from "../answer.js"
 import { APP } from "../app.js"
 import { fromAppOption, whoRuns } from "../author.js"
@@ -56,6 +56,9 @@ import {
 type Print = (json: boolean | undefined, body: Body, text?: string) => void
 
 /** `--source all` and `--deliver-to none`: an edit's way to clear what an earlier one set. */
+const HARNESSES = ["claude", "codex"] as const
+type Harness = (typeof HARNESSES)[number]
+
 const ALL = "all"
 const NONE = "none"
 
@@ -67,6 +70,8 @@ interface Options {
   text?: string
   maxCost?: number
   maxCostPerDay?: number
+  agent?: Harness
+  model?: string
   paused?: boolean
   json?: boolean
   fromApp?: boolean
@@ -112,9 +117,19 @@ const withDigestOptions = (command: Command) =>
         routeOf,
       )
       .option("--text <text>", "your brief: what to collect, what to skip, how much; at most 4000 characters")
+      .addOption(
+        new Option(
+          "--agent <agent>",
+          "the agent that writes it: claude (the default) or codex; a local model needs an agent set up to run one",
+        ).choices(HARNESSES),
+      )
+      .option(
+        "--model <model>",
+        'the model the agent runs on: an alias such as sonnet or a model id; "" for the agent\'s own default',
+      )
       .option(
         "--max-cost <usd>",
-        "stop a run that costs more than this, in US dollars",
+        "claude only: stop a run that costs more than this, in US dollars",
         usdOf("--max-cost", "above zero"),
       )
       .option(
@@ -237,9 +252,10 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
     const site = siteOf(command)
     const schedule = agentSchedule(site, {
       name: digestName,
-      harness: "claude",
+      harness: given.agent ?? "claude",
       prompt: DIGEST_PROMPT,
       when,
+      ...(given.model === undefined ? {} : { model: given.model }),
       ...(given.maxCost ? { maxCost: given.maxCost } : {}),
       ...(given.maxCostPerDay === undefined ? {} : { maxCostPerDay: given.maxCostPerDay }),
       ...(given.deliverTo?.length ? { to: given.deliverTo } : {}),
@@ -281,12 +297,15 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
     const maxCost = given.maxCost ?? previous.maxCost
     const to = given.deliverTo ?? schedule.to ?? []
     const maxCostPerDay = given.maxCostPerDay ?? schedule.maxCostPerDay
+    const harness = given.agent ?? previous.harness
+    // Another agent's model names mean nothing to this one; its default applies unless --model names one.
+    const model = given.model ?? (harness === previous.harness ? previous.model : undefined)
     const rebuilt = agentSchedule(site, {
       name,
-      harness: previous.harness,
+      harness,
       prompt: DIGEST_PROMPT,
       when,
-      ...(previous.model === undefined ? {} : { model: previous.model }),
+      ...(model === undefined ? {} : { model }),
       ...(maxCost ? { maxCost } : {}),
       ...(maxCostPerDay === undefined ? {} : { maxCostPerDay }),
       ...(schedule.notify ? { notify: schedule.notify } : {}),

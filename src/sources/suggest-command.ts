@@ -20,6 +20,7 @@ import { loadConfig, updateConfig } from "../config.js"
 import { subjectOf } from "../people/subject.js"
 import { refuseBareNumber } from "../refs.js"
 import { leavesComputer, READER_IDS, READERS, type Reader, type ReaderContext, readerOf } from "./readers/index.js"
+import { OLLAMA, ollama, ollamaAddressAllowed } from "./readers/ollama.js"
 import { suggestFacts } from "./suggest.js"
 
 const READERS_QUERY = defineQuery({
@@ -281,33 +282,55 @@ export const readerCommands = (
   )
     .argument("<reader>", READER_IDS.join(", "))
     .option("--model <model>", "its model; Ollama and the API readers need one, Claude Code and Codex use their own")
+    .option("--base-url <url>", `Ollama only: its address on this computer, when not ${OLLAMA}`)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action(async (id: string, options: { model?: string; asOwner?: boolean; json?: boolean }, command: Command) => {
-      if (isAgentServer(command, env))
-        throw new CliError("permission_error", "only the owner picks the reader", { reason: "reader.owner-picks" })
-      const who = await whoRuns(command, env, { asOwner: options.asOwner, question: `read sources with ${id}?` })
-      if (who !== "owner")
-        throw new CliError("permission_error", "only the owner picks the reader that reads a source", {
-          reason: "reader.owner-picks",
-        })
-      const reader = readerOf(id) ?? unknownReader(id)
-      if (reader.modelOf && options.model !== undefined) throw fixedModel(reader)
-      if (reader.needsModel && !options.model?.trim())
-        throw new CliError("validation_error", `${reader.title} needs --model <model>`, {
-          reason: "reader.model-missing",
-          param: "model",
-        })
-      const model = options.model?.trim() || undefined
-      updateConfig((config) => ({ ...config, sources: { reader: reader.id, ...(model ? { model } : {}) } }), env)
-      print(
-        options.json,
-        itemAnswer({
-          reader: reader.id,
-          model: model ?? null,
-          leavesComputer: leavesComputer(reader, env),
-          readsFiles: reader.readsFiles,
-        }),
-        `sources are read with ${reader.title}${model ? ` (${model})` : ""}`,
-      )
-    })
+    .action(
+      async (
+        id: string,
+        options: { model?: string; baseUrl?: string; asOwner?: boolean; json?: boolean },
+        command: Command,
+      ) => {
+        if (isAgentServer(command, env))
+          throw new CliError("permission_error", "only the owner picks the reader", { reason: "reader.owner-picks" })
+        const who = await whoRuns(command, env, { asOwner: options.asOwner, question: `read sources with ${id}?` })
+        if (who !== "owner")
+          throw new CliError("permission_error", "only the owner picks the reader that reads a source", {
+            reason: "reader.owner-picks",
+          })
+        const reader = readerOf(id) ?? unknownReader(id)
+        if (reader.modelOf && options.model !== undefined) throw fixedModel(reader)
+        if (reader.needsModel && !options.model?.trim())
+          throw new CliError("validation_error", `${reader.title} needs --model <model>`, {
+            reason: "reader.model-missing",
+            param: "model",
+          })
+        const baseUrl = options.baseUrl?.trim().replace(/\/+$/, "") || undefined
+        if (baseUrl !== undefined && reader.id !== ollama.id)
+          throw new CliError("validation_error", "--base-url is for the ollama reader", { param: "base-url" })
+        if (baseUrl !== undefined && !ollamaAddressAllowed(baseUrl))
+          throw new CliError("validation_error", "Ollama is read only on this computer: give http://127.0.0.1:<port>", {
+            reason: "reader.address-refused",
+            param: "base-url",
+          })
+        const model = options.model?.trim() || undefined
+        updateConfig(
+          (config) => ({
+            ...config,
+            sources: { reader: reader.id, ...(model ? { model } : {}), ...(baseUrl ? { base_url: baseUrl } : {}) },
+          }),
+          env,
+        )
+        print(
+          options.json,
+          itemAnswer({
+            reader: reader.id,
+            model: model ?? null,
+            base_url: baseUrl ?? null,
+            leavesComputer: leavesComputer(reader, env),
+            readsFiles: reader.readsFiles,
+          }),
+          `sources are read with ${reader.title}${model ? ` (${model})` : ""}`,
+        )
+      },
+    )
 }

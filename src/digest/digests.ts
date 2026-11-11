@@ -136,10 +136,19 @@ export interface DigestView {
   routes: string[]
   brief: string | null
   scheduled: boolean
+  /** The agent that writes it, and the model named on its command line; null for the agent's own default. */
+  harness: "claude" | "codex" | null
+  model: string | null
   maxCostUsd: number | null
   maxCostPerDayUsd: number
   last: { at: string; ok: boolean; costUsd: number | null; output: string } | null
   nextAt: string | null
+}
+
+/** The model an agent schedule's argv names after `--model`, or null for the harness's default. */
+export const modelOf = (argv: readonly string[]): string | null => {
+  const at = argv.indexOf("--model")
+  return at < 0 ? null : argv[at + 1] || null
 }
 
 /** The per-run cap an agent schedule was made with (`--max-budget-usd` in claude's argv), or null. */
@@ -178,6 +187,8 @@ export const viewOf = (
     routes: schedule?.to ?? [],
     brief,
     scheduled,
+    harness: schedule ? (schedule.argv[1] === "exec" ? "codex" : "claude") : null,
+    model: schedule ? modelOf(schedule.argv) : null,
     maxCostUsd: schedule ? runCapOf(schedule.argv) : null,
     maxCostPerDayUsd: schedule?.maxCostPerDay ?? limits.maxCostPerDay ?? SCHEDULE_DEFAULTS.maxCostPerDay,
     last: last ? { at: last.at, ok: last.exitCode === 0, costUsd: last.costUsd ?? null, output: last.output } : null,

@@ -1,9 +1,11 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { REMOTE_READ } from "@wirecat/cli-core/cli"
-import { type ModelAdapter, type ModelTarget, modelGateway } from "@wirecat/cli-core/models"
+import { sharedModel } from "@wirecat/cli-core/documents"
+import { type ModelAdapter, type ModelTarget, modelGateway, onThisComputer } from "@wirecat/cli-core/models"
 import type { Command } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
+import { APP } from "../app.js"
 import { positive } from "../options.js"
 import { type EvidenceItem, searchAccounts, unifiedSearch } from "../search/search.js"
 import { ACCOUNTS_HELP, type SourceOptions, sourceOf, sourceOptions } from "../store/source-list.js"
@@ -22,11 +24,18 @@ interface SuggestedTask {
 export const answerEvidence = async (
   question: string,
   evidence: EvidenceItem[],
-  options: { target: ModelTarget; consent: boolean; key?: string; adapters?: Record<string, ModelAdapter> },
+  options: {
+    target: ModelTarget
+    consent: boolean
+    key?: string
+    adapters?: Record<string, ModelAdapter>
+    env?: NodeJS.ProcessEnv
+  },
 ) => {
   const result = await modelGateway({
     resolve: () => options.target,
     consent: () => options.consent,
+    ...(options.env === undefined ? {} : { env: options.env }),
     ...(options.key === undefined ? {} : { key: () => options.key }),
     ...(options.adapters === undefined ? {} : { adapters: options.adapters }),
   }).complete({
@@ -86,6 +95,29 @@ export const answerEvidence = async (
   }
 }
 
+/** MEMO_MODELS_ANALYSIS_* when set, else the AI model chosen for every tool with `memo models ai set`. */
+export const answerModel = (env: NodeJS.ProcessEnv): { target: ModelTarget; key: string | undefined } => {
+  const provider = env.MEMO_MODELS_ANALYSIS_PROVIDER,
+    model = env.MEMO_MODELS_ANALYSIS_MODEL
+  if (provider && model)
+    return {
+      target: {
+        provider,
+        model,
+        ...(env.MEMO_MODELS_ANALYSIS_BASE_URL ? { baseUrl: env.MEMO_MODELS_ANALYSIS_BASE_URL } : {}),
+      },
+      key: env.MEMO_MODEL_API_KEY,
+    }
+  const shared = sharedModel({ app: APP, env })
+  if (!shared)
+    throw new CliError(
+      "configuration_error",
+      "choose a model with memo models ai set, or configure MEMO_MODELS_ANALYSIS_PROVIDER and MEMO_MODELS_ANALYSIS_MODEL",
+      { reason: "ai.not-set" },
+    )
+  return { target: shared.target, key: env.MEMO_MODEL_API_KEY ?? shared.key }
+}
+
 export const askCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv) => {
   const { print } = answers(program, streams, env)
   const ask = annotate(
@@ -101,7 +133,10 @@ export const askCommand = (program: Command, streams: Streams, env: NodeJS.Proce
     .option("--all", "look in every stored account and the notes")
   sourceOptions(ask, `look in these only: ${ACCOUNTS_HELP}`)
     .option("--limit <n>", "most evidence items, at most 100", positive, 20)
-    .option("--analyze", "call MEMO_MODELS_ANALYSIS_PROVIDER/MODEL instead of returning an evidence bundle")
+    .option(
+      "--analyze",
+      "call the AI model (memo models ai set, or MEMO_MODELS_ANALYSIS_*) instead of returning evidence",
+    )
     .option("--allow-remote", "explicitly consent to sending this evidence to the configured model")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(
@@ -137,27 +172,15 @@ export const askCommand = (program: Command, streams: Streams, env: NodeJS.Proce
             throw new CliError("validation_error", "the answer exceeds 64 KiB; lower --limit")
           let answer: unknown = bundle
           if (options.analyze) {
-            const provider = env.MEMO_MODELS_ANALYSIS_PROVIDER,
-              model = env.MEMO_MODELS_ANALYSIS_MODEL
-            if (!provider || !model)
-              throw new CliError(
-                "configuration_error",
-                "configure MEMO_MODELS_ANALYSIS_PROVIDER and MEMO_MODELS_ANALYSIS_MODEL",
-              )
-            const target = {
-              provider,
-              model,
-              ...(env.MEMO_MODELS_ANALYSIS_BASE_URL ? { baseUrl: env.MEMO_MODELS_ANALYSIS_BASE_URL } : {}),
-            }
-            const local =
-              target.baseUrl !== undefined &&
-              ["localhost", "127.0.0.1", "[::1]"].includes(new URL(target.baseUrl).hostname)
+            const { target, key } = answerModel(env)
+            const local = target.baseUrl !== undefined && onThisComputer(target.baseUrl)
             answer = {
               ...bundle,
               ...(await answerEvidence(question, found.items, {
                 target,
                 consent: local || options.allowRemote === true,
-                ...(env.MEMO_MODEL_API_KEY === undefined ? {} : { key: env.MEMO_MODEL_API_KEY }),
+                env,
+                ...(key === undefined ? {} : { key }),
               })),
             }
           }

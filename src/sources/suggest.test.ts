@@ -233,6 +233,35 @@ describe("sources suggest", () => {
     expect(generate?.body).toMatchObject({ model: "llama3.2:latest", stream: false, format: "json" })
   })
 
+  it("reads with Ollama at another port on this computer, never at another computer", async () => {
+    await expect(
+      run([
+        "sources",
+        "readers",
+        "set",
+        "ollama",
+        "--model",
+        "x",
+        "--base-url",
+        "http://192.0.2.10:11434",
+        "--from-app",
+      ]),
+    ).rejects.toMatchObject({ details: { reason: "reader.address-refused" } })
+    await run([
+      "sources",
+      "readers",
+      "set",
+      "ollama",
+      "--model",
+      "llama3.2:latest",
+      "--base-url",
+      "http://127.0.0.1:11500/",
+      "--from-app",
+    ])
+    await suggest([ref, "--rescan", "--from-app"])
+    expect(requests.at(-1)?.url).toBe("http://127.0.0.1:11500/api/generate")
+  })
+
   it("reads with the OpenAI key kept in the keyring, never printing or writing it", async () => {
     const key = "sk-synthetic-key-0000"
     await run(["sources", "readers", "set", "openai", "--model", "gpt-synthetic", "--from-app"])

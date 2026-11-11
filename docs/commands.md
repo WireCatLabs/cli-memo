@@ -470,11 +470,12 @@ memo sources readers set <reader> [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--model <model>` | its model; Ollama and the API readers need one, Claude Code and Codex use their own. |
+| `--base-url <url>` | Ollama only: its address on this computer, when not http://127.0.0.1:11434. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** choose the reader that reads your sources
 
-**Example:** `memo sources readers set claude-code`, `memo sources readers set ollama --model llama3.2`
+**Example:** `memo sources readers set claude-code`, `memo sources readers set ollama --model llama3.2`, `memo sources readers set ollama --model llama3.2 --base-url http://127.0.0.1:11500`
 
 ## `memo folders`
 
@@ -3906,7 +3907,7 @@ memo deals list [query] [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--limit <n>` | most deals, up to 500. Default: `100`. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info deals list
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info deals list
 
 **Example:** `memo deals list status:open project:HRB`, `memo deals list stage:Quote --json`
 
@@ -3926,7 +3927,7 @@ memo deals show <ref> [options]
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info deals show
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info deals show
 
 **Example:** `memo deals show deal:5`
 
@@ -3971,7 +3972,7 @@ memo deals update <ref> [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--project <project>` | the project: its key or project:<id>. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info deals update
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info deals update
 
 **Example:** `memo deals update deal:5 --project HRB`
 
@@ -4003,7 +4004,7 @@ memo deals add <title> <stage> [amount] [currency] [options]
 | `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info deals add
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info deals add
 
 **Example:** `memo deals add 'Site for the clinic' Call 500000.00 RUB --organization organization:3 --project HRB`, `memo deals add 'Support contract' Sales/Quote --person person:7 --role decision-maker --due 2026-12-01`
 
@@ -4026,7 +4027,7 @@ memo deals move <ref> <stage> [options]
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info deals move
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info deals move
 
 **Example:** `memo deals move deal:5 Quote`, `memo deals move deal:5 stage:5`
 
@@ -4051,7 +4052,7 @@ memo deals close <ref> <outcome> [options]
 | `--reason <text>` | why it was won or lost, kept with it. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info deals close
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info deals close
 
 **Example:** `memo deals close deal:5 won`, `memo deals close deal:6 lost --reason 'chose a cheaper studio'`
 
@@ -4076,7 +4077,7 @@ memo leads list [query] [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--limit <n>` | most leads, up to 500. Default: `100`. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info leads list
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info leads list
 
 **Example:** `memo leads list status:open`
 
@@ -4096,7 +4097,7 @@ memo leads show <ref> [options]
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info leads show
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info leads show
 
 **Example:** `memo leads show lead:3`
 
@@ -4141,7 +4142,7 @@ memo leads update <ref> [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--project <project>` | the project: its key or project:<id>. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info leads update
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info leads update
 
 **Example:** `memo leads update lead:3 --project HRB`
 
@@ -4173,7 +4174,7 @@ memo leads add <title> [stage] [amount] [currency] [options]
 | `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info leads add
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info leads add
 
 **Example:** `memo leads add 'Call from the site'`, `memo leads add 'Clinic in Kazan' contacted --person person:9`
 
@@ -4196,7 +4197,7 @@ memo leads move <ref> <stage> [options]
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info leads move
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info leads move
 
 **Example:** `memo leads move lead:3 qualified`, `memo leads move lead:3 stage:5`
 
@@ -4221,7 +4222,7 @@ memo leads close <ref> <outcome> [options]
 | `--reason <text>` | why it was won or lost, kept with it. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 25 more; every field: memo commands info leads close
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info leads close
 
 **Example:** `memo leads close lead:3 lost --reason 'no budget'`
 
@@ -6081,6 +6082,7 @@ memo models search-consents set <provider> [options]
 |---|---|
 | `--model <model>` | the provider's model; claude-haiku-5-5 or gpt-4o-mini if left out. |
 | `--base-url <url>` | the address of an OpenAI-compatible model API (OpenRouter…); needs --model. |
+| `--timeout <duration>` | how long a --harder search waits for the model, 1s to 10m (30s, 2m); 5 s for a hosted model, 60 s for one on this computer until one is set; kept until set again. |
 | `--yes` | agree that a --harder search sends its question and hits, and allow it. |
 | `--json` | print JSON. |
 
@@ -6280,6 +6282,49 @@ memo models ai check [options]
 **Returns:** send one short paid request and say what is wrong
 
 **Example:** `memo models ai check`
+
+### `memo models local-only`
+
+keep every model call on this computer: refuse any address that is not, in every WireCat tool
+
+#### `memo models local-only show`
+
+whether local only is on, and for each feature whether its data stays on this computer
+
+```sh
+memo models local-only show [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** whether local only is on, and where each feature sends data
+
+**Example:** `memo models local-only show`
+
+#### `memo models local-only set`
+
+turn local only on or off; only you turn it off
+
+This command changes the local store or your files.
+
+```sh
+memo models local-only set <state> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `state` | required | on or off. |
+
+| Option | What it does |
+|---|---|
+| `--from-app` | you did this in WireCat Desktop. |
+| `--json` | print JSON. |
+
+**Returns:** turn local only on or off; only you turn it off
+
+**Example:** `memo models local-only set on`, `memo models local-only set off`
 
 ## `memo templates`
 
@@ -6662,7 +6707,7 @@ memo answers create <question> [query] [options]
 | `--all` | look in every stored account and the notes. |
 | `--source <accounts>` | look in these only: which accounts, separated by commas: provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>. |
 | `--limit <n>` | most evidence items, at most 100. Default: `20`. |
-| `--analyze` | call MEMO_MODELS_ANALYSIS_PROVIDER/MODEL instead of returning an evidence bundle. |
+| `--analyze` | call the AI model (memo models ai set, or MEMO_MODELS_ANALYSIS_*) instead of returning evidence. |
 | `--allow-remote` | explicitly consent to sending this evidence to the configured model. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
@@ -7321,7 +7366,9 @@ memo digest add <name> [options]
 | `--source <accounts>` | what it reads, comma-separated or repeated: telegram, max, whatsapp, mail, meetings, tasks; all (the default) reads everything. |
 | `--deliver-to <route>` | where each run is sent: telegram-bot:<profile>/<chat> or email:<profile>/<address>; repeat it for more, none for nowhere. |
 | `--text <text>` | your brief: what to collect, what to skip, how much; at most 4000 characters. |
-| `--max-cost <usd>` | stop a run that costs more than this, in US dollars. |
+| `--agent <agent>` | the agent that writes it: claude (the default) or codex; a local model needs an agent set up to run one. One of: `claude`, `codex`. |
+| `--model <model>` | the model the agent runs on: an alias such as sonnet or a model id; "" for the agent's own default. |
+| `--max-cost <usd>` | claude only: stop a run that costs more than this, in US dollars. |
 | `--max-cost-per-day <usd>` | start no run for the rest of the day once its runs cost this much, in US dollars; 0 for no cap. |
 | `--json` | print JSON. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
@@ -7351,7 +7398,9 @@ memo digest edit <name> [options]
 | `--source <accounts>` | what it reads, comma-separated or repeated: telegram, max, whatsapp, mail, meetings, tasks; all (the default) reads everything. |
 | `--deliver-to <route>` | where each run is sent: telegram-bot:<profile>/<chat> or email:<profile>/<address>; repeat it for more, none for nowhere. |
 | `--text <text>` | your brief: what to collect, what to skip, how much; at most 4000 characters. |
-| `--max-cost <usd>` | stop a run that costs more than this, in US dollars. |
+| `--agent <agent>` | the agent that writes it: claude (the default) or codex; a local model needs an agent set up to run one. One of: `claude`, `codex`. |
+| `--model <model>` | the model the agent runs on: an alias such as sonnet or a model id; "" for the agent's own default. |
+| `--max-cost <usd>` | claude only: stop a run that costs more than this, in US dollars. |
 | `--max-cost-per-day <usd>` | start no run for the rest of the day once its runs cost this much, in US dollars; 0 for no cap. |
 | `--json` | print JSON. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |

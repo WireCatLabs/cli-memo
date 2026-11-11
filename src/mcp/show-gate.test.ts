@@ -89,6 +89,7 @@ it("refuses memo show of a lead denied in the config file", async () => {
   })
 })
 
+// Many stores and MCP calls in one test: over 5 s on a busy CI runner under coverage, about 1 s here.
 it("refuses memo show of a product, contract, subscription, wallet or transaction whose own command is denied", async () => {
   const f = await businessStore("show-gate-business")
   const refOf = async (...args: string[]) => (await f.item(OWNER, ...args)).ref as string
@@ -132,4 +133,4 @@ it("refuses memo show of a product, contract, subscription, wallet or transactio
       isError: true,
       error: { code: "permission_error", details: { permission: `${group}.show` } },
     })
-})
+}, 30_000)

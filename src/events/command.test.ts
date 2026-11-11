@@ -130,6 +130,7 @@ const agent = async (env: NodeJS.ProcessEnv, overrides: string[]) => {
   }
 }
 
+// Many stores and MCP calls in one test: over 5 s on a busy CI runner under coverage, about 1 s here.
 it("lists events to an agent, and refuses events and the titles behind them when the server denies them", async () => {
   const f = await setUp([{ account: "pixel", name: "Synthetic Caller", phone: "+34600000001", days: 2 }])
   const allowed = await agent(f.env, [])
@@ -169,4 +170,4 @@ it("lists events to an agent, and refuses events and the titles behind them when
       await denied.close()
     }
   }
-})
+}, 30_000)
