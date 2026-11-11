@@ -147,7 +147,7 @@ describe("memo people list", () => {
       expect.objectContaining({
         step: "people.kinds",
         args: { query: "kind:all" },
-        why: expect.stringMatching(/^1 organization, \d+ (unsorted ones?|strangers?)$/),
+        why: expect.stringMatching(/^1 organization, \d+ (unsorted ones?|strangers?)(, \d+ tests?)?$/),
       }),
     ])
     const named = JSON.parse(
