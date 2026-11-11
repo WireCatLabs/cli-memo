@@ -5604,13 +5604,12 @@ memo actions edit <id> <finding> [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--fingerprint <hash>` | the fingerprint actions show gives. |
-| `--set <field=value...>` | a field and its new value; JSON for a list or null. Default: ``. |
-| `--clear <field...>` | an optional field to empty, such as dueAt or assignee. Default: ``. |
+| `--set <field=value...>` | a field and its new value: JSON for a list, null empties it. Default: ``. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** change a finding still waiting in a findings batch, before you confirm it; only you
+**Returns:** change a finding still waiting in a findings batch before you confirm it
 
-**Example:** `memo actions edit 5 f2 --fingerprint 3f9a --set title="Send the signed contract" --clear dueAt`
+**Example:** `memo actions edit 5 f2 --fingerprint 3f9a --set title="Send the signed contract" dueAt=null`
 
 ### `memo actions reject`
 
@@ -5759,7 +5758,7 @@ memo review agenda [options]
 | `--compact` | one line per item, shorter excerpts, the smaller budget: for an agent. |
 | `--json` | print JSON. |
 
-**Returns:** the morning digest: watch list, owed replies, mail, meetings, calendar, Drive, CRM,…
+**Returns:** morning digest: watched, owed, mail, meetings, calendar, Drive, CRM, tasks
 
 **Example:** `memo review agenda --compact`, `memo review agenda --since-time 3d --json`
 
@@ -6354,6 +6353,51 @@ memo models local-only set <state> [options]
 **Returns:** turn local only on or off; only you turn it off
 
 **Example:** `memo models local-only set on`, `memo models local-only set off`
+
+### `memo models picture-reading`
+
+let your coding agent read the text of a picture you choose: never (the default) or on request
+
+#### `memo models picture-reading show`
+
+whether `images read` may give a picture to your coding agent, which one and with which model
+
+```sh
+memo models picture-reading show [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** whether pictures are read, and by which agent
+
+**Example:** `memo models picture-reading show`
+
+#### `memo models picture-reading set`
+
+never, or on request with `images read`; only you turn it on
+
+This command changes the local store or your files.
+
+```sh
+memo models picture-reading set <mode> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `mode` | required | never or request. |
+
+| Option | What it does |
+|---|---|
+| `--agent <agent>` | the coding agent that reads: claude or codex. One of: `claude`, `codex`. |
+| `--model <model>` | the agent's model; its own default if not given. |
+| `--from-app` | you did this in WireCat Desktop. |
+| `--json` | print JSON. |
+
+**Returns:** never, or on request with `images read`; only you turn it on
+
+**Example:** `memo models picture-reading set request --agent claude`, `memo models picture-reading set request --agent codex --model gpt-5`, `memo models picture-reading set never`
 
 ## `memo templates`
 
@@ -7163,7 +7207,7 @@ memo schedule command <name> <args> [options]
 
 ### `memo schedule agent`
 
-start an agent (claude or codex) with a prompt on a timer; it runs with MEMO_READ_ONLY=1 and MAIL_READ_ONLY=1, so it reads and drafts and cannot send — its answer is kept and you are notified
+start an agent (claude, codex, gemini, cursor, opencode, openclaw, hermes, grok, kimi) with a prompt on a timer; it runs with MEMO_READ_ONLY=1 and MAIL_READ_ONLY=1, so it reads and drafts and does not send; claude and codex are also held to that by their own limits, the others approve every command — its answer is kept and you are notified
 
 This command changes the local store or your files.
 
@@ -7174,14 +7218,14 @@ memo schedule agent <name> <harness> <prompt> [options]
 | Argument | | What it is |
 |---|---|---|
 | `name` | required | lowercase letters, digits and dashes. |
-| `harness` | required | the agent to start. One of: `claude`, `codex`. |
+| `harness` | required | the agent to start. One of: `claude`, `codex`, `gemini`, `cursor`, `opencode`, `openclaw`, `hermes`, `grok`, `kimi`. |
 | `prompt` | required | what to do, e.g. "summarize what came in during the last day: memo personal search messages 'date>1d' --newest --limit 20". |
 
 | Option | What it does |
 |---|---|
-| `--model <model>` | the model it runs on: an alias such as sonnet, or a model id; "" for the harness's default (default sonnet for claude, codex's own for codex, or the config file's). |
+| `--model <model>` | the model it runs on: an alias such as sonnet, or a model id; "" for the agent's own default (default sonnet for claude, the agent's own for the others, or the config file's). |
 | `--max-cost <usd>` | claude only: stop a run that costs more than this, in US dollars. |
-| `--max-cost-per-day <usd>` | claude only: start no run for the rest of the day once its runs cost this much, in US dollars; 0 for no cap (default 5, or the config file's). |
+| `--max-cost-per-day <usd>` | claude only, as the others report no cost: start no run for the rest of the day once its runs cost this much, in US dollars; 0 for no cap (default 5, or the config file's). |
 | `--every <duration>` | repeat: 30m, 2h, 1d. |
 | `--at <HH:MM>` | every day at this local time; 'mon 09:00' once a week, 'mon,fri 09:00' on several days (mon, tue, wed, thu, fri, sat, sun); repeat it for more times. |
 | `--at-time <time>` | one run: 30m, 2d from now, or an ISO time; the schedule removes itself after it. |
@@ -7192,7 +7236,7 @@ memo schedule agent <name> <harness> <prompt> [options]
 | `--mail-batch <n>` | with --on-new-mail: or once this many emails wait (default 10, or the config file's). |
 | `--json` | print JSON. |
 
-**Returns:** start an agent (claude or codex) with a prompt on a timer; it runs with…
+**Returns:** start an agent (claude, codex, gemini, cursor, opencode, openclaw, hermes,…
 
 **Example:** `memo schedule agent triage claude 'read memo review status and list what needs me today' --at 08:45 --max-cost 1`, `memo schedule agent mail-triage claude 'Run memo skill show mail-triage and follow it.' --every 5m --on-new-mail mail-triage --mail-wait 1h --mail-batch 20 --max-cost 1 --max-cost-per-day 5`, `memo schedule agent weekly claude 'read memo review status and sum up the week' --at 09:00 --model opus`
 
@@ -7212,9 +7256,37 @@ memo schedule list [query] [options]
 |---|---|
 | `--json` | print JSON. |
 
-**Returns:** scheduled job — name, kind, when, last, paused, notify, deliver_to, spent_today_usd, and 2 more; every field: memo commands info schedule list
+**Returns:** scheduled job — name, kind, when, last, paused, notify, deliver_to, harness, and 4 more; every field: memo commands info schedule list
 
 **Example:** `memo schedule list`, `memo schedule list kind:agent --json`
+
+### `memo schedule agents`
+
+the coding agents an agent schedule may start
+
+```sh
+memo schedule agents [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+#### `memo schedule agents list`
+
+the agents a schedule may start, and which are on PATH here
+
+```sh
+memo schedule agents list [query]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms; this list filters by none yet. |
+
+**Returns:** schedule harness — id, name, programs, reports_cost, restricted, installed, path; every field: memo commands info schedule agents list
+
+**Example:** `memo schedule agents list`, `memo schedule agents list --json`
 
 ### `memo schedule run`
 
@@ -7440,9 +7512,9 @@ memo digest add <name> [options]
 | `--source <accounts>` | what it reads, comma-separated or repeated: telegram, max, whatsapp, mail, meetings, tasks, drive, calendar, crm; all (the default) reads everything. |
 | `--deliver-to <route>` | where each run is sent: telegram-bot:<profile>/<chat> or email:<profile>/<address>; repeat it for more, none for nowhere. |
 | `--text <text>` | your brief: what to collect, what to skip, how much; at most 4000 characters. |
-| `--agent <agent>` | the agent that writes it: claude (the default) or codex; a local model needs an agent set up to run one. One of: `claude`, `codex`. |
+| `--agent <agent>` | the agent that writes it; a new digest takes the one agent installed, and asks when there are more. A local model needs an agent set up to run one. One of: `claude`, `codex`, `gemini`, `cursor`, `opencode`, `openclaw`, `hermes`, `grok`, `kimi`. |
 | `--model <model>` | the model the agent runs on: an alias such as sonnet or a model id; "" for the agent's own default. |
-| `--max-cost <usd>` | claude only: stop a run that costs more than this, in US dollars. |
+| `--max-cost <usd>` | stop a run that costs more than this, in US dollars; only for an agent that reports its cost. |
 | `--max-cost-per-day <usd>` | start no run for the rest of the day once its runs cost this much, in US dollars; 0 for no cap. |
 | `--json` | print JSON. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
@@ -7472,9 +7544,9 @@ memo digest edit <name> [options]
 | `--source <accounts>` | what it reads, comma-separated or repeated: telegram, max, whatsapp, mail, meetings, tasks, drive, calendar, crm; all (the default) reads everything. |
 | `--deliver-to <route>` | where each run is sent: telegram-bot:<profile>/<chat> or email:<profile>/<address>; repeat it for more, none for nowhere. |
 | `--text <text>` | your brief: what to collect, what to skip, how much; at most 4000 characters. |
-| `--agent <agent>` | the agent that writes it: claude (the default) or codex; a local model needs an agent set up to run one. One of: `claude`, `codex`. |
+| `--agent <agent>` | the agent that writes it; a new digest takes the one agent installed, and asks when there are more. A local model needs an agent set up to run one. One of: `claude`, `codex`, `gemini`, `cursor`, `opencode`, `openclaw`, `hermes`, `grok`, `kimi`. |
 | `--model <model>` | the model the agent runs on: an alias such as sonnet or a model id; "" for the agent's own default. |
-| `--max-cost <usd>` | claude only: stop a run that costs more than this, in US dollars. |
+| `--max-cost <usd>` | stop a run that costs more than this, in US dollars; only for an agent that reports its cost. |
 | `--max-cost-per-day <usd>` | start no run for the rest of the day once its runs cost this much, in US dollars; 0 for no cap. |
 | `--json` | print JSON. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |

@@ -25,6 +25,11 @@
     "openai",
     "Screenpipe",
     "UIDVALIDITY",
-    "whatsapp"
+    "whatsapp",
+    "gemini",
+    "grok",
+    "kimi",
+    "openclaw",
+    "opencode"
   ]
 }
