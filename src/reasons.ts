@@ -22,6 +22,12 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: [],
   },
   {
+    reason: "digest.agent-unchosen",
+    code: "validation_error",
+    message: "no single agent is installed to write the digest; name one with --agent",
+    details: ["choices"],
+  },
+  {
     reason: "digest.exists",
     code: "validation_error",
     message: "a digest or schedule of that name already exists; memo digest edit changes a digest",

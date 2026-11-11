@@ -11,12 +11,17 @@ import {
   calendarOf,
   environmentOf,
   grantsAuthority,
+  HARNESSES,
+  type Harness,
+  harnessesOn,
+  harnessOfArgv,
   LOCAL_READ,
   LOCAL_WRITE,
   parseRoute,
   pauseSchedule,
   queryTerms,
   removeSchedule,
+  reportsCost,
   routeText,
   runScheduleNow,
   type Schedule,
@@ -47,6 +52,7 @@ import {
   digestScheduleFile,
   dropDefinition,
   MORNING_DIGEST,
+  modelOf,
   readDefinition,
   runCapOf,
   viewOf,
@@ -56,9 +62,6 @@ import {
 type Print = (json: boolean | undefined, body: Body, text?: string) => void
 
 /** `--source all` and `--deliver-to none`: an edit's way to clear what an earlier one set. */
-const HARNESSES = ["claude", "codex"] as const
-type Harness = (typeof HARNESSES)[number]
-
 const ALL = "all"
 const NONE = "none"
 
@@ -120,7 +123,8 @@ const withDigestOptions = (command: Command) =>
       .addOption(
         new Option(
           "--agent <agent>",
-          "the agent that writes it: claude (the default) or codex; a local model needs an agent set up to run one",
+          "the agent that writes it; a new digest takes the one agent installed, and asks when there are more. A " +
+            "local model needs an agent set up to run one",
         ).choices(HARNESSES),
       )
       .option(
@@ -129,7 +133,7 @@ const withDigestOptions = (command: Command) =>
       )
       .option(
         "--max-cost <usd>",
-        "claude only: stop a run that costs more than this, in US dollars",
+        "stop a run that costs more than this, in US dollars; only for an agent that reports its cost",
         usdOf("--max-cost", "above zero"),
       )
       .option(
@@ -143,13 +147,40 @@ const withDigestOptions = (command: Command) =>
 /** The harness, model and per-run cap an existing schedule's argv was made with, so an edit keeps them. */
 const kept = (schedule: Schedule): Pick<AgentScheduleSpec, "harness" | "model" | "maxCost"> => {
   const { argv } = schedule
-  const model = argv.indexOf("--model")
+  const model = modelOf(argv)
   const cap = runCapOf(argv)
   return {
-    harness: argv[1] === "exec" ? "codex" : "claude",
-    ...(model < 0 ? { model: "" } : { model: argv[model + 1] ?? "" }),
+    harness: harnessOfArgv(argv) ?? "claude",
+    model: model ?? "",
     ...(cap === null ? {} : { maxCost: cap }),
   }
+}
+
+/** A cost cap typed for an agent that reports no cost would never stop it, so it is refused rather than kept. */
+const refuseUncostedCap = (harness: Harness, given: Options) => {
+  if (!reportsCost(harness) && (given.maxCost !== undefined || given.maxCostPerDay))
+    throw new CliError(
+      "validation_error",
+      `${harness} reports no cost, so --max-cost and --max-cost-per-day cannot stop it; leave them out`,
+      { reason: "agent.cost-unknown", param: given.maxCost !== undefined ? "max-cost" : "max-cost-per-day" },
+    )
+}
+
+/**
+ * A new digest's agent when none is given: the one installed. With none or several, the owner names it, because a
+ * guessed agent may be one without credit.
+ */
+const installedAgent = (env: NodeJS.ProcessEnv): Harness => {
+  const installed = harnessesOn(env, process.platform).filter((one) => one.installed)
+  if (installed.length === 1 && installed[0]) return installed[0].id
+  const choices = (installed.length ? installed : harnessesOn(env, process.platform)).map(({ id }) => id)
+  throw new CliError(
+    "validation_error",
+    installed.length
+      ? `more than one agent is installed; name the one that writes it: --agent ${choices.join("|")}`
+      : `no agent is installed; install one and name it with --agent: ${choices.join(", ")}`,
+    { param: "agent", reason: "digest.agent-unchosen", choices },
+  )
 }
 
 export const digestCommands = (digest: Command, print: Print, env: NodeJS.ProcessEnv): void => {
@@ -248,11 +279,13 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
       })
     const when = calendarOf(given.at.flatMap(slotsOfAt))
     if (given.text !== undefined) checkedBrief(given.text)
+    const harness = given.agent ?? installedAgent(env)
+    refuseUncostedCap(harness, given)
     await owner(command, `make the digest ${digestName}, a paid model call at each of its times?`)
     const site = siteOf(command)
     const schedule = agentSchedule(site, {
       name: digestName,
-      harness: given.agent ?? "claude",
+      harness,
       prompt: DIGEST_PROMPT,
       when,
       ...(given.model === undefined ? {} : { model: given.model }),
@@ -291,13 +324,15 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
       )
     const when = given.at?.length ? calendarOf(given.at.flatMap(slotsOfAt)) : schedule.when
     if (given.text !== undefined) checkedBrief(given.text)
+    const previous = kept(schedule)
+    const harness = given.agent ?? previous.harness
+    refuseUncostedCap(harness, given)
     await owner(command, `change the digest ${name}?`)
     const site = siteOf(command)
-    const previous = kept(schedule)
-    const maxCost = given.maxCost ?? previous.maxCost
+    const costed = reportsCost(harness)
+    const maxCost = costed ? (given.maxCost ?? previous.maxCost) : undefined
     const to = given.deliverTo ?? schedule.to ?? []
-    const maxCostPerDay = given.maxCostPerDay ?? schedule.maxCostPerDay
-    const harness = given.agent ?? previous.harness
+    const maxCostPerDay = costed ? (given.maxCostPerDay ?? schedule.maxCostPerDay) : undefined
     // Another agent's model names mean nothing to this one; its default applies unless --model names one.
     const model = given.model ?? (harness === previous.harness ? previous.model : undefined)
     const rebuilt = agentSchedule(site, {
