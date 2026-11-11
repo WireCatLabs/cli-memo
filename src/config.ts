@@ -18,6 +18,7 @@ import {
 } from "@wirecat/cli-core/cli"
 import type { BulkTriage } from "@wirecat/cli-core/mail"
 import { bulkTriageOf, MAIL_BULK_SETTINGS } from "@wirecat/cli-core/mail/cli"
+import { onThisComputer } from "@wirecat/cli-core/models"
 import { DEFAULT_DECISION_POLICY, type DecisionPolicy } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import * as v from "valibot"
@@ -90,6 +91,8 @@ const ConfigSchema = v.strictObject({
     v.strictObject({
       reader: v.optional(v.pipe(v.string(), v.minLength(1))),
       model: v.optional(v.pipe(v.string(), v.minLength(1), v.maxLength(200))),
+      /** Where the Ollama reader is, when not on its own port: an address on this computer only. */
+      base_url: v.optional(v.pipe(v.string(), v.check(onThisComputer, "use an address on this computer"))),
     }),
   ),
   /** Retired: memo no longer imports mail, the `mail` CLI does. Still loads so an old config works; doctor names it. */

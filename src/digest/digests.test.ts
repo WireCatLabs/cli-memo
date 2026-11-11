@@ -188,6 +188,31 @@ describe("digests by name", () => {
     })
   })
 
+  it("runs with codex and a model the owner names, and an edit to the other agent drops the old model", async () => {
+    const { json, schedule, env } = setUp()
+    writeFileSync(join(String(env.PATH).split(":")[0] ?? "", "codex"), "#!/bin/sh\n", { mode: 0o755 })
+    const added = await json(
+      "digest",
+      "add",
+      "d",
+      "--at",
+      "08:30",
+      "--harness",
+      "codex",
+      "--model",
+      "qwen3",
+      "--from-app",
+    )
+    expect(added.item).toMatchObject({ harness: "codex", model: "qwen3" })
+    expect(schedule("d").argv.slice(1, 2)).toEqual(["exec"])
+    expect(schedule("d").argv).toContain("qwen3")
+    const kept = await json("digest", "edit", "d", "--at", "09:00", "--from-app")
+    expect(kept.item).toMatchObject({ harness: "codex", model: "qwen3" })
+    const back = await json("digest", "edit", "d", "--agent", "claude", "--from-app")
+    expect(back.item.harness).toBe("claude")
+    expect(schedule("d").argv).not.toContain("qwen3")
+  })
+
   it("keeps each digest's brief apart, the morning digest's where it was", async () => {
     const { json, state } = setUp()
     morningDigest(state, "claude")

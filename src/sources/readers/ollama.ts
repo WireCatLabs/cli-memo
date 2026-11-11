@@ -1,8 +1,30 @@
 import { CliError } from "@wirecat/cli-base"
+import { onThisComputer } from "@wirecat/cli-core/models"
+import { loadConfig } from "../../config.js"
 import type { Reader } from "./types.js"
 
-/** Only the Ollama on this computer: a remote one would be a way to send the text off it. */
-const OLLAMA = "http://127.0.0.1:11434"
+export const OLLAMA = "http://127.0.0.1:11434"
+
+/** Only an Ollama on this computer: a remote one would be a way to send the text off it. */
+export const ollamaAddressAllowed = (value: string): boolean => {
+  if (!onThisComputer(value)) return false
+  const url = new URL(value)
+  return url.protocol === "http:" || url.protocol === "https:"
+}
+
+/** The owner's `sources.base_url`, else Ollama's own default port. */
+const addressOf = (env: NodeJS.ProcessEnv): string => {
+  let given: string | undefined
+  try {
+    given = loadConfig(env).sources?.base_url
+  } catch {}
+  if (given === undefined) return OLLAMA
+  if (!ollamaAddressAllowed(given))
+    throw new CliError("configuration_error", `sources.base_url ${given} is not on this computer`, {
+      reason: "reader.address-refused",
+    })
+  return given.replace(/\/+$/, "")
+}
 
 const notRunning = () =>
   new CliError("provider_unavailable", "Ollama is not running on this computer: start it with ollama serve", {
@@ -16,9 +38,9 @@ export const ollama: Reader = {
   leavesComputer: false,
   readsFiles: false,
   needsModel: true,
-  probe: async ({ fetch, signal }) => {
+  probe: async ({ env, fetch, signal }) => {
     try {
-      const response = await fetch(`${OLLAMA}/api/tags`, { ...(signal ? { signal } : {}) })
+      const response = await fetch(`${addressOf(env)}/api/tags`, { ...(signal ? { signal } : {}) })
       const body = (await response.json()) as { models?: { name?: unknown }[] }
       const models = (body.models ?? []).flatMap((model) => (typeof model.name === "string" ? [model.name] : []))
       return {
@@ -38,10 +60,11 @@ export const ollama: Reader = {
       }
     }
   },
-  read: async ({ fetch, signal }, { system, prompt, model }) => {
+  read: async ({ env, fetch, signal }, { system, prompt, model }) => {
+    const address = addressOf(env)
     let response: Response
     try {
-      response = await fetch(`${OLLAMA}/api/generate`, {
+      response = await fetch(`${address}/api/generate`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ model, system, prompt, stream: false, format: "json" }),
