@@ -121,8 +121,11 @@ const KIND_WORDS: Record<string, [string, string]> = {
  * One step to every kind, with how many each other kind holds: an answer keeps two next steps at most, and the next page
  * takes one of them.
  */
+// cli-core 0.640.0 hides test data from every list, kind:all included, so the step must not name it.
+const HIDDEN_KINDS: readonly string[] = ["test"]
+
 const otherKinds = (shown: PersonKind | "all", counts: Record<PersonKind, number>, name?: string): NextStep[] => {
-  const others = PERSON_KINDS.filter((kind) => kind !== shown && counts[kind] > 0)
+  const others = PERSON_KINDS.filter((kind) => kind !== shown && !HIDDEN_KINDS.includes(kind) && counts[kind] > 0)
   if (shown === "all" || others.length === 0) return []
   const query = ["kind:all", ...(name === undefined ? [] : [`name:${JSON.stringify(name)}`])].join(" ")
   return [
