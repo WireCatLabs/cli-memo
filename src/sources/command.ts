@@ -2,7 +2,7 @@ import { existsSync } from "node:fs"
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { environmentOf, FETCH, LOCAL_READ, LOCAL_WRITE, REMOTE_READ } from "@wirecat/cli-core/cli"
-import { aiImageReader, type FetchPageOptions, MAX_TEXT_CHARS } from "@wirecat/cli-core/documents"
+import { agentPictureReader, aiImageReader, type FetchPageOptions, MAX_TEXT_CHARS } from "@wirecat/cli-core/documents"
 import { type AddedSourceContent, addedSourceKeyOf, type Decider, type MessageStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
@@ -161,7 +161,10 @@ export const sourcesCommand = (
               image: () => {
                 if (who !== "owner") return { refused: "ai.owner-only" }
                 try {
-                  return aiImageReader({ app: APP, env, keyring: readers.keyring, fetch: readers.fetch })
+                  return (
+                    agentPictureReader(env) ??
+                    aiImageReader({ app: APP, env, keyring: readers.keyring, fetch: readers.fetch })
+                  )
                 } catch {
                   return { refused: "ai.setting-invalid" }
                 }
