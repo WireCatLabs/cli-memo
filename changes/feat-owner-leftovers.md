@@ -8,6 +8,7 @@
 
 ### Changed — may break callers
 
+- **`memo digest add|edit --agent` takes every agent cli-core knows** (claude, codex, gemini, cursor, opencode, openclaw, hermes, grok, kimi). A new digest with no `--agent` takes the one agent installed; with none or several it is refused (`digest.agent-unchosen`) and the error lists the choices. Before, it took claude. Existing digests keep their agent. `--max-cost` and `--max-cost-per-day` for an agent that reports no cost are refused (`agent.cost-unknown`).
 - **`memo actions confirm <id> <findings...>` leaves the findings not named waiting.** Before, it rejected them. With no names it creates every finding still waiting; `reject` rejects only what waits.
 - **`memo_tools_search` ranks by the words it matches** (cli-core). A task phrase in an agent's words finds its command; the help's examples count. See [the measurement](https://github.com/WireCatLabs/cli-testing/tree/main/performance/agents/tools-search).
 
