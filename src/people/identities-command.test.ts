@@ -321,7 +321,9 @@ describe("memo people links check", () => {
     await expect(run({}, OWNER, "people", "links", "resolve", "max:33", "keep")).rejects.toMatchObject({
       details: { reason: "person.no-doubt" },
     })
-    await expect(run(CLAUDE, NOBODY, "people", "unlink", kept.kept[0], "--reason", "two names")).rejects.toMatchObject({
+    await expect(
+      run(CLAUDE, NOBODY, "people", "unlink", kept.kept[0], "--from", person, "--reason", "two names"),
+    ).rejects.toMatchObject({
       details: { reason: "identity.kept-together" },
     })
   })
