@@ -97,7 +97,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   withQuery(
     readScope(
       annotate(group.command("list"), { effects: LOCAL_READ }).description(
-        "tasks of the --source accounts (default all), open by default; a board field or --sort lists every task",
+        "tasks of the --source accounts, open by default; a board field lists every task",
       ),
       ACCOUNTS_HELP,
     ),

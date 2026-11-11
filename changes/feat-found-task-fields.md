@@ -9,5 +9,6 @@
 
 ### Fixed
 
-- **`memo actions confirm` decides a meeting findings batch by the findings it names.** It went through the generic
-  confirm, which takes no finding IDs, as mail and evidence findings already did not.
+- **`memo actions confirm` decides a meeting findings batch by the findings it names.** As for mail findings, the
+  named finding IDs are accepted and the rest rejected, with `--fingerprint` checked when given; it used to refuse and
+  point to `meetings actions confirm`.
