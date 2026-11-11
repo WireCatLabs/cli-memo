@@ -173,6 +173,10 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   ],
   "people resolve": ["memo people resolve 17092 company", "memo people resolve 17093 company organization:12 --json"],
   "people links check": ["memo people links check", "memo people links check --page 2 --json"],
+  "people links resolve": [
+    "memo people links resolve person:42 keep",
+    "memo people links resolve person:42 keep --from-app --json",
+  ],
   "people scan": ["memo people scan"],
   "people link": [
     "memo people link max:Lena telegram:Lena",

@@ -945,7 +945,7 @@ who is who: the links that make identities one person
 
 #### `memo people links check`
 
-people that may be wrong, you first: your person holding an identity under another name, test data, an identity joined by an address a person of another name has, one person with different names and nothing in common. Each says why and gives the unlink or unmerge that fixes it; an agent adds --reason and it waits for you in people review. What you linked by hand, or kept together by turning a split down, is left out
+people that may be wrong, you first: your person holding an identity under another name, test data, an identity joined by an address a person of another name has, one person with different names and nothing in common. Each says why and gives the unlink or unmerge that fixes it; an agent adds --reason and it waits for you in people review. What you linked by hand, what the person held when you did, what you kept with people links resolve <who> keep, or kept together by turning a split down, is left out
 
 ```sh
 memo people links check [options]
@@ -960,6 +960,31 @@ memo people links check [options]
 **Returns:** people that may be wrong, with why and the command that fixes each
 
 **Example:** `memo people links check`, `memo people links check --page 2 --json`
+
+#### `memo people links resolve`
+
+answers a doubt with keep: the person's links are right, so links check stops listing the identities in doubt until one of them moves to another person; an identity that joins later is checked again, and an agent's split of the kept ones is refused. Test data stays listed
+
+This command changes the local store or your files.
+
+```sh
+memo people links resolve <who> <answer> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `who` | required | person:<uid> as people links check lists it, person:me, or an identity of the person. |
+| `answer` | required | keep: the person is right as they are. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** say a person people links check doubts is right as they are; only you
+
+**Example:** `memo people links resolve person:42 keep`, `memo people links resolve person:42 keep --from-app --json`
 
 ### `memo people scan`
 

@@ -1,6 +1,7 @@
 import { CliError } from "@wirecat/cli-base"
 import { pickPerson } from "@wirecat/cli-core"
-import type { IdentityRef, MessageStore } from "@wirecat/cli-core/store"
+import type { IdentityRef, MessageStore, PersonRecord } from "@wirecat/cli-core/store"
+import { withOwner } from "./owner.js"
 
 const parsed = (reference: string): { provider: string; who: string } => {
   const match = /^([a-z][a-z0-9-]*):(.+)$/.exec(reference.trim())
@@ -32,4 +33,16 @@ export const exactIdentityOf = async (store: MessageStore, reference: string): P
       reason: "identity.not-found",
     })
   return ref
+}
+
+const PERSON = /^person:([1-9]\d*)$/
+
+/** `person:<uid>`, `person:me`, or an identity of the person as `<messenger>:<name or id>`. */
+export const personOf = async (store: MessageStore, who: string): Promise<PersonRecord> => {
+  const uid = PERSON.exec((await withOwner(store, who)).trim())?.[1]
+  const found =
+    uid === undefined ? await store.people.personOf(await identityOf(store, who)) : await store.people.personByUid(uid)
+  if (found === undefined)
+    throw new CliError("not_found", `the store has no person for "${who}"`, { reason: "person.not-found" })
+  return found
 }

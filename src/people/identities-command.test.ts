@@ -300,6 +300,54 @@ describe("memo people links check", () => {
     expect((await run({}, OWNER, "people", "show", "person:me")).identities).toMatchObject([{ identity: "telegram:1" }])
   })
 
+  it("people links resolve keep is the owner's: the doubt goes, and an agent is refused", async () => {
+    const store = await openStore({ env })
+    await store.people.linkIdentities(
+      { provider: "max", id: "33" },
+      { provider: "telegram", id: "11" },
+      { method: "same-email", by: "rules" },
+    )
+    await store.close()
+    const [doubt] = envelopeOf(await raw({}, OWNER, "people", "links", "check", "--json")).items
+    const person = doubt.person as string
+
+    await expect(run(CLAUDE, NOBODY, "people", "links", "resolve", person, "keep")).rejects.toMatchObject({
+      details: { reason: "identity.owner-only" },
+    })
+    const kept = await run(CLAUDE, NOBODY, "people", "links", "resolve", person, "keep", "--from-app")
+
+    expect(kept).toMatchObject({ person, kept: [expect.any(String)] })
+    expect(envelopeOf(await raw({}, OWNER, "people", "links", "check", "--json")).items).toEqual([])
+    await expect(run({}, OWNER, "people", "links", "resolve", "max:33", "keep")).rejects.toMatchObject({
+      details: { reason: "person.no-doubt" },
+    })
+    await expect(
+      run(CLAUDE, NOBODY, "people", "unlink", kept.kept[0], "--from", person, "--reason", "two names"),
+    ).rejects.toMatchObject({
+      details: { reason: "identity.kept-together" },
+    })
+  })
+
+  it("people show gives the name people list shows, an account's when the person has none", async () => {
+    const store = await openStore({ env })
+    await store.people.savePeople(TG, [{ id: "44", name: "!", username: "xorlov" }])
+    await store.people.savePeople(MAX, [{ id: "45", name: "Ярослав Орлов" }])
+    await store.people.linkIdentities(
+      { provider: "telegram", id: "44" },
+      { provider: "max", id: "45" },
+      { method: "manual", by: "owner" },
+    )
+    await store.close()
+
+    const shown = await run({}, OWNER, "people", "show", "telegram:44")
+    const listed = envelopeOf(await raw({}, OWNER, "people", "list", "kind:all", "--json")).items.find(
+      ({ ref }: { ref: string }) => ref === shown.ref,
+    )
+
+    expect(shown.display_name).toBe("Ярослав Орлов")
+    expect(listed.display_name).toBe(shown.display_name)
+  })
+
   it("prints how and when each merge was made", async () => {
     await run({}, OWNER, "people", "link", "max:33", "telegram:11")
 
