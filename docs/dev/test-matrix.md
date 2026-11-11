@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1154 ✅ · 0 ⛔ · 323 ❌** — 324 commands, 1153 options.
+**1158 ✅ · 0 ⛔ · 330 ❌** — 326 commands, 1162 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -89,6 +89,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `sources readers set` | `--as-owner` | ❌ |  |
 | `sources readers set` | `--from-app` | ✅ |  |
 | `sources readers set` | `--model` | ✅ |  |
+| `sources readers set` | `--base-url` | ✅ |  |
 | `sources readers set` | `--json` | ✅ |  |
 | `folders add` |  | ✅ |  |
 | `folders add` | `--format` | ✅ |  |
@@ -1209,6 +1210,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `models search-consents set` |  | ✅ |  |
 | `models search-consents set` | `--model` | ❌ |  |
 | `models search-consents set` | `--base-url` | ❌ |  |
+| `models search-consents set` | `--timeout` | ❌ |  |
 | `models search-consents set` | `--yes` | ✅ |  |
 | `models search-consents set` | `--json` | ❌ |  |
 | `models search-consents revoke` |  | ✅ |  |
@@ -1238,6 +1240,11 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `models ai check` |  | ❌ |  |
 | `models ai check` | `--from-app` | ❌ |  |
 | `models ai check` | `--json` | ❌ |  |
+| `models local-only show` |  | ❌ |  |
+| `models local-only show` | `--json` | ❌ |  |
+| `models local-only set` |  | ❌ |  |
+| `models local-only set` | `--from-app` | ❌ |  |
+| `models local-only set` | `--json` | ❌ |  |
 | `templates list` |  | ✅ |  |
 | `templates list` | `--json` | ✅ |  |
 | `templates show` |  | ✅ |  |
@@ -1422,6 +1429,8 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `digest add` | `--source` | ✅ |  |
 | `digest add` | `--deliver-to` | ✅ |  |
 | `digest add` | `--text` | ✅ |  |
+| `digest add` | `--agent` | ✅ |  |
+| `digest add` | `--model` | ✅ |  |
 | `digest add` | `--max-cost` | ✅ |  |
 | `digest add` | `--max-cost-per-day` | ❌ |  |
 | `digest add` | `--json` | ✅ |  |
@@ -1432,6 +1441,8 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `digest edit` | `--source` | ✅ |  |
 | `digest edit` | `--deliver-to` | ✅ |  |
 | `digest edit` | `--text` | ✅ |  |
+| `digest edit` | `--agent` | ✅ |  |
+| `digest edit` | `--model` | ❌ |  |
 | `digest edit` | `--max-cost` | ✅ |  |
 | `digest edit` | `--max-cost-per-day` | ✅ |  |
 | `digest edit` | `--json` | ✅ |  |
