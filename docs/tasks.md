@@ -63,7 +63,9 @@ memo tasks update HRB-1 --priority critical --description 'Call before Friday'
 ```
 
 A plain `memo tasks list` shows the tasks of your accounts only; a project's tasks are listed with
-`project:` and the project's key, its name or an alias, and every project's with `project:*`.
+`project:` and the project's key, its name or an alias, and every project's with `project:*`. Any other field
+(`assignee:`, `priority:`, words…), `--sort` or `--cursor` lists every task: project tasks and the tasks found in
+messages, each found one with its `account`.
 
 | Option | Meaning |
 |---|---|
@@ -76,6 +78,11 @@ A plain `memo tasks list` shows the tasks of your accounts only; a project's tas
 To create the project first, see [organizations and projects](people.md#organizations-and-projects).
 
 ### Moving a task to another project
+
+A task found in a message moves into a project the same way, with its account:
+`memo tasks update Q-9 --project HRB --account telegram:1`. It takes the project's next key (`HRB-12`); `Q-9`
+and its id still find it, and it keeps the message it came from. From then on it is a project task: it leaves its
+account's list, and `--type` may make it a `bug`, `feature` or `chore` in the same command.
 
 ```sh
 memo tasks update HRB-1 --project OPS
@@ -112,30 +119,32 @@ in the todo column`). `--status` alone moves the task into an empty column.
 A project task is `open` (new), `todo` (decided to do), `in_progress`, `done` or `dismissed`. Move it with
 `tasks update --status`, back from `done` or `dismissed` too; every change is kept in its history. `todo` and
 `in_progress` count as open work everywhere: a task that waits for one is not ready, and an agent may claim one.
-A task from a message is only `open`, `done` or `dismissed`.
+A task found in a message takes the same states, and a priority, an agent and assignees too; it keeps a message kind
+(`question`, `request`, `mention`, `promise`) until it moves into a project. An account's list reads `state:open` as
+every task not closed yet.
 
 ```sh
 memo tasks update HRB-1 --status in_progress
 memo tasks history HRB-1 --json      # who changed what, and when
 ```
 
-## Find project tasks
+## Find tasks
 
-`memo tasks list` with `project:` takes a query: fields joined by AND, OR inside a field, NOT, and plain words,
-which search the title and description:
+`memo tasks list` takes a query: fields joined by AND, OR inside a field, NOT, and plain words, which search the title
+and description. Without `project:` it covers the tasks found in messages too:
 
 ```sh
-memo tasks list project:* 'assignee:"person:3"' priority:[high TO critical] invoice
+memo tasks list 'assignee:"person:3"' priority:[high TO critical] invoice
 memo tasks list project:(HRB OR OPS) state:(done OR dismissed) closed:>=14d
 memo tasks list project:* overdue:true --sort due
 memo tasks list project:* NOT due:* NOT priority:*
-memo tasks counts project:* --json   # how many per project, assignee, priority and state
+memo tasks counts --json             # how many per project, assignee, priority and state, found tasks too
 ```
 
 | Field | Meaning |
 |---|---|
 | `state:` | `open`, `todo`, `in_progress`, `done`, `dismissed`; without it, the three open states |
-| `project:` | a key, a name, `project:<id>`, or `*` for every project |
+| `project:` | a key, a name, `project:<id>`, or `*` for every project, without the found tasks |
 | `assignee:` | `any`, `none`, or a person: `"person:3"` in quotes, or `3` |
 | `priority:` | a label, `none`, or a range of labels or numbers |
 | `agent:` | the agent working on it, `none` or `any` |

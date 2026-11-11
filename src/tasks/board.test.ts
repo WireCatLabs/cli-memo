@@ -74,7 +74,36 @@ it("lists every project's open work with a query, a sort, a cursor and a total",
   expect(await keys("project:*", `assignee:"${ana}"`)).toEqual(["OPS-1"])
   expect(await keys("project:*", "state:(done OR dismissed)", "closed:>=1d")).toEqual(["HRB-2"])
   expect(await keys("project:*", "closed:>=1d")).toEqual([])
-  await expect(run(["tasks", "list", "priority:high"])).rejects.toThrow("project:*")
+  expect(await keys("priority:critical")).toEqual(["HRB-1"])
+})
+
+it("gives a found task a project task's fields, lists it under its assignee and moves it into a project", async () => {
+  const { run, ana } = await setUp()
+  const acts = ["--account", "telegram:1"]
+  const note = await run(["notes", "add", "Synthetic budget request"])
+  const found = (await run(["tasks", "add", `note:${note.id}`, ...acts])).task
+  await run(["tasks", "add", "--project", "HRB", "--title", "Print badges"])
+
+  const fields = ["--priority", "high", "--agent", "hermes", "--status", "todo", ...acts]
+  const updated = await run(["tasks", "update", found.key, ...fields])
+  expect(updated).toMatchObject({ status: "todo", priority: 0.625, agent: "hermes" })
+  await run(["tasks", "update", found.key, "--assignee", ana, ...acts])
+
+  const [listed] = (await run(["tasks", "list", `assignee:"${ana}"`])).items
+  expect(listed).toMatchObject({
+    key: found.key,
+    state: "todo",
+    account: "telegram:1",
+    assignments: [{ to: ana, role: "assignee" }],
+  })
+  expect((await run(["tasks", "list", "state:todo"])).items.map(({ key }: { key: string }) => key)).toEqual([found.key])
+  expect((await run(["tasks", "list"])).items.map(({ key }: { key: string }) => key)).toEqual([found.key])
+  expect((await run(["tasks", "counts"])).total).toBe(2)
+
+  const moved = await run(["tasks", "update", found.key, "--project", "OPS", "--type", "bug", ...acts])
+  expect(moved).toMatchObject({ key: "OPS-1", type: "bug", source: `note:${note.id}` })
+  expect((await run(["tasks", "list"])).items).toEqual([])
+  expect((await run(["tasks", "list", "project:OPS"])).items[0]).toMatchObject({ key: "OPS-1", state: "todo" })
 })
 
 it("counts project tasks for the pickers, and keeps an account's list as it was", async () => {

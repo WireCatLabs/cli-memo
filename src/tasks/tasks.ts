@@ -83,8 +83,8 @@ const addToProject = async (store: MessageStore, env: NodeJS.ProcessEnv, options
     {
       project: await canonicalProject(store, options.project),
       title: options.title,
-      type: type as WorkTaskType,
       ...fieldsOf(options),
+      type: type as WorkTaskType,
       ...(options.due === undefined || options.due === "none" ? {} : { dueAt: options.due }),
       ...(options.status === undefined ? {} : { status: options.status }),
       ...(options.agent === undefined ? {} : { agent: options.agent }),
@@ -198,8 +198,9 @@ export type UpdateOptions = AccountScope &
   }
 
 /**
- * A project task is edited in the store; a task from a message goes through cli-core's plan, which checks the
- * category, refuses a due date on a closed task and resolves `sender`.
+ * A project task is edited in the store. A task from a message takes its board fields (priority, parent, status,
+ * agent, kind, project) in the store too, and the rest through cli-core's plan, which checks the category, refuses a
+ * due date on a closed task and resolves `sender`.
  */
 export const updateTask = async (store: MessageStore, env: NodeJS.ProcessEnv, id: string, options: UpdateOptions) => {
   const fields = fieldsOf(options)
@@ -235,26 +236,44 @@ export const updateTask = async (store: MessageStore, env: NodeJS.ProcessEnv, id
         ...(options.status === undefined ? {} : { status: options.status }),
         ...(options.agent === undefined ? {} : { agent: options.agent === "none" ? null : options.agent }),
         ...(options.project === undefined ? {} : { project: await canonicalProject(store, options.project) }),
-        ...(options.type === undefined ? {} : { type: options.type as WorkTaskType }),
+        ...(options.type === undefined ? {} : { type: options.type }),
       },
       authorOf(env),
       checkOf(options.revision),
     )
   }
-  if (
-    options.status !== undefined ||
-    options.agent !== undefined ||
-    options.revision !== undefined ||
-    options.project !== undefined ||
-    options.type !== undefined
-  )
-    throw new CliError(
-      "validation_error",
-      "--status, --agent, --revision, --project and --type are for a project task; close a task from a message with " +
-        "tasks close",
-    )
-  if (options.priority !== undefined || options.parent !== undefined)
-    throw new CliError("validation_error", "--priority and --parent are for a task in a project")
+  const author = authorOf(env)
+  // A found task becomes a bug or a chore only in a project, so a kind given with --project goes with the move.
+  const kind = options.type === undefined ? {} : { type: options.type }
+  const board = {
+    ...(options.priority === undefined ? {} : { priority: options.priority }),
+    ...(options.parent === undefined ? {} : { parent: options.parent }),
+    ...(options.status === undefined ? {} : { status: options.status }),
+    ...(options.agent === undefined ? {} : { agent: options.agent === "none" ? null : options.agent }),
+    ...(options.project === undefined ? kind : {}),
+  }
+  if (Object.keys(board).length > 0 || options.revision !== undefined)
+    await store.tasks.edit(id, board, author, checkOf(options.revision))
+  const planned =
+    options.title !== undefined ||
+    options.description !== undefined ||
+    Object.keys(times).length > 0 ||
+    options.category !== undefined ||
+    options.assignee !== undefined
+  const plan = planned ? await planFound(store, env, id, options, times) : undefined
+  // Moved last: once in a project, the task is no longer its account's, and the plan above could not reach it.
+  if (options.project !== undefined)
+    return store.tasks.edit(id, { project: await canonicalProject(store, options.project), ...kind }, author)
+  return plan !== undefined && Object.keys(board).length === 0 ? plan : store.tasks.details(id)
+}
+
+const planFound = async (
+  store: MessageStore,
+  env: NodeJS.ProcessEnv,
+  id: string,
+  options: UpdateOptions,
+  times: Pick<TaskFields, "dueAt" | "nextCheckAt">,
+) => {
   const assignees = options.assignee?.map((one) => (one === "sender" || one === "none" ? one : personRef(one)))
   const key = await selectAccount(store, env, options)
   return tasksService(storeOnlyDeps(store, key, { app: APP, env })).plan(

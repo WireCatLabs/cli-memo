@@ -17,7 +17,7 @@ import { canonicalProject } from "../vocabulary/project.js"
 
 const OPEN_WORK = "state:(open OR todo OR in_progress)"
 
-/** A project's tasks when the query names project:, otherwise an account's tasks, which know state and source only. */
+/** Every task, found ones too, when the query names a board field; otherwise an account's tasks, by state and source. */
 export const TASKS_LIST_QUERY = {
   entity: "task",
   backend: "sql",
@@ -82,7 +82,8 @@ const taskItem = (task: TaskDetails, extra: { held?: HeldTask; readiness?: Readi
     category: task.category,
     claimed_by: task.claimedBy,
     claimed_until: task.claimedUntil,
-    ...(readiness ? { assignments: task.assignments, ready: readiness.ready, blocked_by: readiness.blockers } : {}),
+    assignments: task.assignments,
+    ...(readiness ? { ready: readiness.ready, blocked_by: readiness.blockers } : {}),
     created_by: task.createdBy,
     created_at: task.createdAt,
     updated_at: task.updatedAt,
@@ -110,18 +111,24 @@ const accountTasks = async (
   })
 }
 
-/** An account's task is open, done or dismissed: the default open work reads as open. */
+const statesOf = (leaves: ReturnType<typeof walkQuery>) =>
+  new Set(leaves.filter(({ field }) => field === "state").map(({ value }) => value.toLowerCase()))
+
+/** An account's list reads open as every task not closed yet; todo or in_progress alone needs the board. */
+const onBoard = (leaves: ReturnType<typeof walkQuery>, options: ListOptions) => {
+  const states = statesOf(leaves)
+  return (
+    leaves.some(({ field }) => !ACCOUNT_FIELDS.has(field)) ||
+    ((states.has("todo") || states.has("in_progress")) && !states.has("open")) ||
+    options.cursor !== undefined ||
+    options.sort !== undefined ||
+    Boolean(options.desc)
+  )
+}
+
 const accountTerms = (query: QueryAst | undefined) => {
   const leaves = query ? walkQuery(query.root) : []
-  const other = leaves.find(({ field }) => !ACCOUNT_FIELDS.has(field))
-  if (other)
-    throw new CliError(
-      "validation_error",
-      `${other.field}: narrows project tasks: add project:<key>, or project:* for every project`,
-    )
-  const states = new Set(leaves.filter(({ field }) => field === "state").map(({ value }) => value.toLowerCase()))
-  if ((states.has("todo") || states.has("in_progress")) && !states.has("open"))
-    throw new CliError("validation_error", "todo and in_progress are steps of a project task: add project:")
+  const states = statesOf(leaves)
   const closed = [...states].filter(isClosedState)
   if (closed.length > 1 || (closed.length === 1 && states.size > 1))
     throw new CliError("validation_error", "an account's tasks are listed in one state: state:open, done or dismissed")
@@ -172,7 +179,11 @@ const projectTasks = async (store: MessageStore, typed: string, query: QueryAst,
   const offset = offsetOf(options.cursor, key)
   const page = await store.tasks.board(query, { limit, offset, sort, descending: desc, zone: timezoneOf() })
   const items = []
-  for (const task of page.items) items.push(taskItem(task, { readiness: await store.tasks.taskReadiness(task.id) }))
+  for (const task of page.items) {
+    // Readiness follows blocked-by links between project tasks; a found task has none.
+    const held = task.source === null ? undefined : await store.tasks.get(task.id)
+    items.push(taskItem(task, held ? { held } : { readiness: await store.tasks.taskReadiness(task.id) }))
+  }
   const next = offset + items.length
   const more = next < page.total
   return listAnswer("tasks list", {
@@ -191,8 +202,8 @@ const projectTasks = async (store: MessageStore, typed: string, query: QueryAst,
 }
 
 /**
- * Project tasks when the query names project: (project:* is every project), otherwise the tasks of the accounts
- * `accounts` picks; CLI and MCP list through it.
+ * Every task, found ones too, when the query names a board field or asks for an order or a page (project:* keeps to
+ * the owner's projects); otherwise the tasks of the accounts `accounts` picks. CLI and MCP list through it.
  */
 export const listTasks = async (
   store: MessageStore,
@@ -215,13 +226,11 @@ export const listTasks = async (
   const typed = typedQuery(words)
   const query = listQuery(typed, TASKS_LIST_QUERY, "tasks list", { defaultField: "text" })
   const leaves = query ? walkQuery(query.root) : []
-  if (leaves.some(({ field }) => field === "project")) {
+  if (onBoard(leaves, options)) {
     if (leaves.some(({ field }) => field === "source"))
-      throw new CliError("validation_error", "source: narrows an account's tasks, not a project's")
+      throw new CliError("validation_error", "source: narrows an account's tasks; leave the other fields out")
     return projectTasks(store, typed, (await resolveProjects(store, query)) as QueryAst, options)
   }
-  if (options.cursor !== undefined || options.sort !== undefined || options.desc)
-    throw new CliError("validation_error", "--cursor, --sort and --desc page and order project tasks: add project:")
   const { state, source } = accountTerms(query)
   return accountTasks(store, await accounts(), {
     state,
@@ -230,7 +239,7 @@ export const listTasks = async (
   })
 }
 
-/** The board's pickers: every project task when the query names no project:. */
+/** The board's pickers: every task, found ones too, when the query names no project:. */
 export const countTasks = async (store: MessageStore, words: QueryWords) => {
   const query = listQuery(typedQuery(words), TASKS_LIST_QUERY, "tasks counts", { defaultField: "text" })
   if (query && walkQuery(query.root).some(({ field }) => field === "source"))

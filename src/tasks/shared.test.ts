@@ -73,9 +73,8 @@ it("**mounts tg's tasks agenda, show and stats tasks show**, and plans a message
   expect((await run("tasks", "update", task, "--assignee", uid, ...acts, "--json")).json().item.assignments).toEqual([
     assignee,
   ])
-  await expect(run("tasks", "update", task, "--priority", "1", ...acts)).rejects.toMatchObject({
-    code: "validation_error",
-    message: expect.stringContaining("in a project"),
+  expect((await run("tasks", "update", task, "--priority", "high", ...acts, "--json")).json()).toMatchObject({
+    item: { priority: 0.625, priority_label: "high" },
   })
   expect((await run("tasks", "show", task, ...scope, "--json")).json()).toMatchObject({
     item: { key: task, title: "Hand over the keys" },
