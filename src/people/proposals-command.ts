@@ -170,6 +170,7 @@ export const peopleProposalCommands = (
       .argument("[organization]", "organization:<id> to give the address to"),
   )
     .option("--name <name>", "the company's name, when no organization is named")
+    .option("--all", "every match waiting on the same mailbox, in this one answer; without it, only this match")
     .option("--reason <text>", "why, in a few words")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
   company.action(
@@ -177,7 +178,7 @@ export const peopleProposalCommands = (
       id: string,
       _answer: (typeof RESOLVE_ANSWERS)[number],
       organization: string | undefined,
-      options: { name?: string; reason?: string; json?: boolean },
+      options: { name?: string; all?: boolean; reason?: string; json?: boolean },
     ) => {
       const owned = organizationOf(organization)
       await asOwner(company, env, `say the mailbox of people proposal ${id} is a company's?`)
@@ -189,16 +190,19 @@ export const peopleProposalCommands = (
           company: {
             ...(owned === undefined ? {} : { organization: owned }),
             ...(options.name ? { name: options.name } : {}),
+            ...(options.all ? { all: true } : {}),
           },
           ...(options.reason ? { reason: options.reason } : {}),
         })
       })
-      const given = (decided.result as { organization?: string } | null)?.organization ?? null
+      const result = decided.result as { organization?: string; closed?: string[] } | null
+      const given = result?.organization ?? null
+      const closed = result?.closed ?? [id]
       const mailbox = (decided.payload as { mailbox?: string }).mailbox ?? null
       print(
         options.json,
-        itemAnswer({ id, kind: IDENTITY_LINK_KIND, status: "rejected" as const, mailbox, organization: given }),
-        `${id}: ${mailbox} is ${given}'s mailbox now; the two people stay apart`,
+        itemAnswer({ id, kind: IDENTITY_LINK_KIND, status: "rejected" as const, mailbox, organization: given, closed }),
+        `${closed.join(" ")}: ${mailbox} is ${given}'s mailbox now; the people on it stay apart`,
       )
     },
   )

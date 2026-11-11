@@ -931,6 +931,7 @@ memo people resolve <id> <answer> [organization] [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--name <name>` | the company's name, when no organization is named. |
+| `--all` | every match waiting on the same mailbox, in this one answer; without it, only this match. |
 | `--reason <text>` | why, in a few words. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
