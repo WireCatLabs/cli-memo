@@ -41,7 +41,11 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo sources suggest document:42 --provider ollama --model llama3.2 --rescan",
   ],
   "sources readers list": ["memo sources readers list", "memo sources readers list available:true --json"],
-  "sources readers set": ["memo sources readers set claude-code", "memo sources readers set ollama --model llama3.2"],
+  "sources readers set": [
+    "memo sources readers set claude-code",
+    "memo sources readers set ollama --model llama3.2",
+    "memo sources readers set ollama --model llama3.2 --base-url http://127.0.0.1:11500",
+  ],
   "sources show": ["memo sources show document:42", "memo sources show document:42 --bytes 65536 --json"],
   "sources mentions": ["memo sources mentions document:42 --json"],
   "sources remove": ["memo sources remove document:42"],
