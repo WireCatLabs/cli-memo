@@ -261,6 +261,13 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: [],
   },
   {
+    reason: "reader.address-refused",
+    code: "validation_error",
+    message:
+      "the reader's address must be on this computer (localhost, 127.x.x.x or [::1]); --base-url is Ollama's only",
+    details: [],
+  },
+  {
     reason: "reader.model-missing",
     code: "configuration_error",
     message: "the reader needs a model the owner names; memo sources readers set <reader> --model <model>",

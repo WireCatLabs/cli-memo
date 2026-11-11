@@ -15,4 +15,4 @@
 ### Changed — may break callers
 
 - **Plain http to another computer is refused for every model call**, and voice messages are heard by the downloaded
-  model first (cli-core). See cli-core's changelog for the version this bump brings.
+  model first (cli-core 0.642.0).

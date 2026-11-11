@@ -197,7 +197,7 @@ describe("digests by name", () => {
       "d",
       "--at",
       "08:30",
-      "--harness",
+      "--agent",
       "codex",
       "--model",
       "qwen3",
