@@ -31,7 +31,8 @@ process.stdout.write(JSON.stringify({ type: "result", result: JSON.stringify(rep
   )
   for (const name of ["tg", "mail"]) writeFileSync(join(bin, name), "#!/bin/sh\n", { mode: 0o755 })
   const env: NodeJS.ProcessEnv = {
-    PATH: `${bin}:${process.env.PATH}`,
+    // Only the fake claude: a new digest with no --agent takes the one agent installed.
+    PATH: `${bin}:/usr/bin:/bin`,
     HOME: join(root, "home"),
     AI_AGENT: "",
     CLAUDECODE: "",
@@ -211,6 +212,35 @@ describe("digests by name", () => {
     const back = await json("digest", "edit", "d", "--agent", "claude", "--from-app")
     expect(back.item.harness).toBe("claude")
     expect(schedule("d").argv).not.toContain("qwen3")
+  })
+
+  it("takes the one agent installed, asks when there are none or several, and never caps an agent that reports no cost", async () => {
+    const { json, schedule, env } = setUp()
+    const bin = String(env.PATH).split(":")[0] ?? ""
+    expect((await json("digest", "add", "only", "--at", "08:30", "--from-app")).item.harness).toBe("claude")
+    writeFileSync(join(bin, "gemini"), "#!/bin/sh\n", { mode: 0o755 })
+    await expect(json("digest", "add", "two", "--at", "08:30", "--from-app")).rejects.toMatchObject({
+      details: { reason: "digest.agent-unchosen", choices: ["claude", "gemini"] },
+    })
+    await expect(
+      json("digest", "add", "capped", "--at", "08:30", "--agent", "gemini", "--max-cost", "1", "--from-app"),
+    ).rejects.toMatchObject({ details: { reason: "agent.cost-unknown" } })
+    expect((await json("digest", "edit", "only", "--at", "09:00", "--from-app")).item.harness).toBe("claude")
+    const moved = await json("digest", "edit", "only", "--agent", "gemini", "--from-app")
+    expect(moved.item).toMatchObject({ harness: "gemini", max_cost_usd: null })
+    expect(schedule("only").argv[0]).toMatch(/gemini$/)
+    expect((await json("digest", "edit", "only", "--at", "10:00", "--from-app")).item.harness).toBe("gemini")
+    await expect(json("digest", "edit", "only", "--max-cost-per-day", "2", "--from-app")).rejects.toMatchObject({
+      details: { reason: "agent.cost-unknown" },
+    })
+  })
+
+  it("asks for an agent when none is installed", async () => {
+    const { json, env } = setUp()
+    env.PATH = "/usr/bin:/bin"
+    await expect(json("digest", "add", "none", "--at", "08:30", "--from-app")).rejects.toMatchObject({
+      details: { reason: "digest.agent-unchosen" },
+    })
   })
 
   it("keeps each digest's brief apart, the morning digest's where it was", async () => {
