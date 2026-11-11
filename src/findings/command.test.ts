@@ -85,7 +85,7 @@ it("stages cited findings, keeps nested selection and lets only the owner confir
   const confirmed = (await f.run(args)).item
   expect(confirmed.receipt.items.map((item: { status: string }) => item.status)).toEqual(["accepted", "rejected"])
   expect((await f.run(args)).item.receipt).toEqual(confirmed.receipt)
-  await expect(f.run(["actions", "confirm", staged.id])).rejects.toThrow("dedicated")
+  await expect(f.run(["actions", "confirm", staged.id])).rejects.toThrow("already confirmed")
 })
 it("paginates with scope intact and rejects stale owner decisions", async () => {
   const f = await fixture()

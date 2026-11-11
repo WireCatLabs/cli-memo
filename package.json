@@ -62,7 +62,7 @@
   "dependencies": {
     "@modelcontextprotocol/server": "2.4.0",
     "@wirecat/cli-base": "0.96.0",
-    "@wirecat/cli-core": "0.637.0",
+    "@wirecat/cli-core": "0.639.0",
     "commander": "15.0.0",
     "disposable-email-domains-js": "1.26.0",
     "postal-mime": "4.1.4",

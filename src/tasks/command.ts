@@ -97,16 +97,16 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   withQuery(
     readScope(
       annotate(group.command("list"), { effects: LOCAL_READ }).description(
-        "tasks of the --source accounts (default all) or of a project, open by default",
+        "tasks of the --source accounts, open by default; a board field lists every task",
       ),
       ACCOUNTS_HELP,
     ),
     TASKS_LIST_QUERY,
   )
     .option("--limit <n>", "most tasks, at most 500 for a project's", positive, 100)
-    .option("--sort <field>", `project tasks: ${TASK_SORTS.join(", ")} (default priority)`, oneOf(TASK_SORTS))
-    .option("--desc", "project tasks: the --sort order reversed")
-    .option("--cursor <cursor>", "project tasks: the next page, from page.next_cursor, with the same query and order")
+    .option("--sort <field>", `every task: ${TASK_SORTS.join(", ")} (default priority)`, oneOf(TASK_SORTS))
+    .option("--desc", "the --sort order reversed")
+    .option("--cursor <cursor>", "the next page of every task, from page.next_cursor, with the same query and order")
     .action(async (words: string[], options: SourceOptions & ListOptions & { json?: boolean }) => {
       await withStore(env, async (store) => {
         print(options.json, await listTasks(store, words, options, () => theAccounts(store, env, options, warn)))
@@ -114,7 +114,7 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     })
   withQuery(
     annotate(group.command("counts"), { effects: LOCAL_READ, output: { entity: "task_counts" } }).description(
-      "how many project tasks match, by project, assignee, priority and state",
+      "how many tasks match, found ones too, by project, assignee, priority and state",
     ),
     TASKS_LIST_QUERY,
   )
@@ -235,23 +235,27 @@ export const tasksCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   if (!sharedUpdate) throw new Error("shared task update is missing")
   overrideSharedContract(
     sharedUpdate,
-    "Memo preserves source-account checks and bare person UIDs; priority and parent edits apply to project tasks only.",
+    "Memo preserves source-account checks and bare person UIDs; a found task takes priority, status and agent too.",
     (command) => {
       command
         .description(
-          "update stored tasks: source edits name --account; priority, parent and status apply to project tasks",
+          "update stored tasks: source edits name --account; a found task takes priority, status, agent and --project",
         )
-        .option("--agent <agent>", "a project task: the agent working on it, apart from its assignees; none clears it")
+        .option("--agent <agent>", "the agent working on the task, apart from its assignees; none clears it")
         .option(
           "--project <project>",
-          "a project task: move it to another project, by key or project:<id>; it and its subtasks take new keys " +
+          "move the task, a found one too, to a project, by key or project:<id>; it and its subtasks take new keys " +
             "there, and the old keys still find them. A subtask moves alone only with --parent none",
         )
-        .option("--type <type>", `a project task's kind: ${WORK_TASK_TYPES.join(", ")}`, oneOf(WORK_TASK_TYPES))
+        .option(
+          "--type <type>",
+          `${WORK_TASK_TYPES.join(", ")} in a project; a found task keeps a message kind until it moves into one`,
+          oneOf(TASK_TYPES),
+        )
         .option("--revision <n>", REVISION_HELP, revisionOf)
         .option(
           "--status <state>",
-          `a project task's state: ${TASK_STATES.join(", ")}; a closed one reopens`,
+          `the task's state: ${TASK_STATES.join(", ")}; a closed one reopens`,
           oneOf(TASK_STATES as readonly TaskState[]),
         )
       const description = command.options.find((option) => option.long === "--description")

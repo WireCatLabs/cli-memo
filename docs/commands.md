@@ -1282,7 +1282,7 @@ memo tasks add [source] [options]
 
 ### `memo tasks list`
 
-tasks of the --source accounts (default all) or of a project, open by default
+tasks of the --source accounts, open by default; a board field lists every task
 
 ```sh
 memo tasks list [query] [options]
@@ -1297,9 +1297,9 @@ memo tasks list [query] [options]
 | `--source <accounts>` | which accounts, separated by commas: provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--limit <n>` | most tasks, at most 500 for a project's. Default: `100`. |
-| `--sort <field>` | project tasks: priority, due, created, updated, key, state (default priority). |
-| `--desc` | project tasks: the --sort order reversed. |
-| `--cursor <cursor>` | project tasks: the next page, from page.next_cursor, with the same query and order. |
+| `--sort <field>` | every task: priority, due, created, updated, key, state (default priority). |
+| `--desc` | the --sort order reversed. |
+| `--cursor <cursor>` | the next page of every task, from page.next_cursor, with the same query and order. |
 
 **Returns:** task — ref, id, title, kind, state, created_at, key, description, and 26 more; every field: memo commands info tasks list
 
@@ -1309,7 +1309,7 @@ memo tasks list [query] [options]
 
 ### `memo tasks counts`
 
-how many project tasks match, by project, assignee, priority and state
+how many tasks match, found ones too, by project, assignee, priority and state
 
 ```sh
 memo tasks counts [query] [options]
@@ -1503,7 +1503,7 @@ memo tasks agenda [query] [options]
 
 ### `memo tasks update`
 
-update stored tasks: source edits name --account; priority, parent and status apply to project tasks
+update stored tasks: source edits name --account; a found task takes priority, status, agent and --project
 
 This command changes the local store or your files.
 
@@ -1527,11 +1527,11 @@ memo tasks update <task> [options]
 | `--assignee <person...>` | who does it: sender (whoever sent the task's message) or person:<id>; none clears it. Leave it out when unsure: a task with no assignee is better than none. |
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
 | `--json` | print JSON. |
-| `--agent <agent>` | a project task: the agent working on it, apart from its assignees; none clears it. |
-| `--project <project>` | a project task: move it to another project, by key or project:<id>; it and its subtasks take new keys there, and the old keys still find them. A subtask moves alone only with --parent none. |
-| `--type <type>` | a project task's kind: bug, feature, chore. |
+| `--agent <agent>` | the agent working on the task, apart from its assignees; none clears it. |
+| `--project <project>` | move the task, a found one too, to a project, by key or project:<id>; it and its subtasks take new keys there, and the old keys still find them. A subtask moves alone only with --parent none. |
+| `--type <type>` | bug, feature, chore in a project; a found task keeps a message kind until it moves into one. |
 | `--revision <n>` | refuse the write unless the task is still at this revision (conflict, task.stale, exit 15). |
-| `--status <state>` | a project task's state: open, todo, in_progress, done, dismissed; a closed one reopens. |
+| `--status <state>` | the task's state: open, todo, in_progress, done, dismissed; a closed one reopens. |
 
 **Returns:** task card — id, ref, key, project, project_key, project_name, created_by, title, and 26 more; every field: memo commands info tasks update
 

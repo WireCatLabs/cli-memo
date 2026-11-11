@@ -202,6 +202,15 @@ const BATCHES: Record<
     stale: "mail-findings.stale",
     required: false,
   },
+  [MEETING_FINDINGS_KIND]: {
+    fingerprint: async (store, id) => {
+      const { account } = await store.proposedActions.get(id)
+      if (account === null) throw new CliError("not_found", `meeting findings ${id} name no account`)
+      return (await store.meetingFindings.get(account, id)).fingerprint
+    },
+    stale: "meeting-findings.stale",
+    required: false,
+  },
 }
 
 /**

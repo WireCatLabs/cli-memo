@@ -158,7 +158,7 @@ it("adds a bug to a project with its fields and assignee, updates, lists and clo
   expect(await run("tasks", "close", bug.id, "--reason", "fixed")).toMatchObject({ status: "done", reason: "fixed" })
   expect((await run("tasks", "list", "state:done", "project:LHT")).items).toMatchObject([{ id: "LHT-1" }])
   expect((await run("tasks", "list", "kind:chore", "project:LHT")).items).toMatchObject([{ id: "LHT-2" }])
-  await expect(run("tasks", "list", "kind:chore")).rejects.toMatchObject({ code: "validation_error" })
+  expect((await run("tasks", "list", "kind:chore")).items).toMatchObject([{ id: "LHT-2" }])
 })
 
 it("keeps a task's id in an outside service and its page through add, show and list", async () => {
