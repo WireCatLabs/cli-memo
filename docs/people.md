@@ -182,10 +182,14 @@ What you linked yourself, and identities you kept together by rejecting a split,
 ### Undo a link
 
 - `memo people unmerge merge:12-34` gives a merge's identities back to the person they came from.
-- `memo people unlink telegram:12345` gives one identity a person of its own again.
-- `memo people unlink email:kai@example.com max:6789` moves several identities of one person to one new person.
+- `memo people unlink telegram:12345 --from person:me` gives one identity of yours a person of its own again.
+- `memo people unlink email:kai@example.com max:6789 --from person:42` moves several identities of one person to one
+  new person.
 
-`unlink` takes each identity by its exact id, as `memo people show` lists it, never by a name.
+`unlink` takes each identity by its exact id, as `memo people show` lists it, never by a name. `--from` names the
+person they leave, as `person:<uid>` or `person:me`, and is required. When an identity sits on someone else, nothing
+changes: the refusal (`identity.held-elsewhere`) names the person who holds it, so you can check before you run it
+again with that person.
 
 Yours apply at once, at a terminal or in WireCat Desktop. After them, no automatic match joins those people again.
 An agent's `unlink` or `unmerge` needs `--reason` and only proposes the split: it waits in `memo people review` with

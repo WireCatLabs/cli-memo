@@ -158,26 +158,67 @@ describe("people resolve company --all", () => {
 describe("the owner's separations", () => {
   it("take exact identity ids only, never the nearest name", async () => {
     await run({}, OWNER, "people", "link", "max:33", "telegram:11")
+    const { ref } = await run({}, OWNER, "people", "show", "max:33")
 
-    await expect(run({}, NOBODY, "people", "unlink", "telegram:Rin Example", "--from-app")).rejects.toMatchObject({
-      code: "not_found",
-      details: { reason: "identity.not-found" },
-    })
-    await expect(run({}, OWNER, "people", "unlink", "max:Kai")).rejects.toMatchObject({
+    await expect(
+      run({}, NOBODY, "people", "unlink", "telegram:Rin Example", "--from", ref, "--from-app"),
+    ).rejects.toMatchObject({ code: "not_found", details: { reason: "identity.not-found" } })
+    await expect(run({}, OWNER, "people", "unlink", "max:Kai", "--from", ref)).rejects.toMatchObject({
       details: { reason: "identity.not-found" },
     })
     expect((await run({}, OWNER, "people", "show", "max:33")).identities).toHaveLength(2)
-    expect((await run({}, NOBODY, "people", "unlink", "telegram:11", "--from-app")).identities).toHaveLength(1)
+    expect(
+      (await run({}, NOBODY, "people", "unlink", "telegram:11", "--from", ref, "--from-app")).identities,
+    ).toHaveLength(1)
+  })
+
+  it("name the person the identities leave, and are refused when they sit on someone else (BUG-709)", async () => {
+    const store = await openStore({ env })
+    await store.people.savePeople(TG, [{ id: "101", name: "Me" }])
+    await store.people.linkToOwner({ provider: "telegram", id: "101" })
+    await store.close()
+    await run({}, OWNER, "people", "link", "max:33", "telegram:11")
+    const { ref } = await run({}, OWNER, "people", "show", "max:33")
+
+    await expect(run({}, OWNER, "people", "unlink", "telegram:11")).rejects.toMatchObject({
+      code: "validation_error",
+      details: { reason: "person.from-required", param: "from" },
+    })
+    await expect(run({}, OWNER, "people", "unlink", "telegram:11", "--from", "max:33")).rejects.toMatchObject({
+      details: { reason: "person.from-required" },
+    })
+    await expect(run({}, OWNER, "people", "unlink", "telegram:11", "--from", "person:me")).rejects.toMatchObject({
+      code: "validation_error",
+      details: { reason: "identity.held-elsewhere", reference: ref },
+    })
+    await expect(
+      run(CLAUDE, NOBODY, "people", "unlink", "telegram:11", "--from", "person:me", "--reason", "not his"),
+    ).rejects.toMatchObject({ details: { reason: "identity.held-elsewhere" } })
+    await expect(
+      run({}, OWNER, "people", "unlink", "telegram:11", "max:33", "--from", "person:me"),
+    ).rejects.toMatchObject({ details: { reason: "identity.held-elsewhere", reference: ref } })
+    expect((await run({}, OWNER, "people", "show", "max:33")).identities).toHaveLength(2)
   })
 
   it("from an agent wait for the owner with a reason, and only the owner's confirm applies them", async () => {
     await run({}, OWNER, "people", "link", "max:33", "telegram:11")
     const { merges } = await run({}, OWNER, "people", "show", "max:33")
-    await expect(run(CLAUDE, NOBODY, "people", "unlink", "telegram:11")).rejects.toMatchObject({
+    const { ref } = await run({}, OWNER, "people", "show", "max:33")
+    await expect(run(CLAUDE, NOBODY, "people", "unlink", "telegram:11", "--from", ref)).rejects.toMatchObject({
       details: { reason: "proposal.reason-required" },
     })
 
-    const unlink = await run(CLAUDE, NOBODY, "people", "unlink", "telegram:11", "--reason", "another man")
+    const unlink = await run(
+      CLAUDE,
+      NOBODY,
+      "people",
+      "unlink",
+      "telegram:11",
+      "--from",
+      ref,
+      "--reason",
+      "another man",
+    )
     const unmerge = await run(CLAUDE, NOBODY, "people", "unmerge", merges[0].id, "--reason", "a shared phone")
     expect([unlink.outcome, unmerge.outcome]).toEqual(["proposed", "proposed"])
     expect((await run({}, OWNER, "people", "show", "max:33")).identities).toHaveLength(2)
@@ -311,7 +352,12 @@ describe("over MCP", () => {
       const call = await commandCaller(client)
       const linked = await call("people link", { identity: "max:33", other: "telegram:11", reason: "same face" })
       expect(answerOf(JSON.stringify(linked.structuredContent))).toMatchObject({ outcome: "proposed" })
-      const unlinked = await call("people unlink", { identities: ["max:22"], reason: "another man", as_owner: true })
+      const unlinked = await call("people unlink", {
+        identities: ["max:22"],
+        from: "person:me",
+        reason: "another man",
+        as_owner: true,
+      })
       expect(unlinked.isError).toBe(true)
     } finally {
       await client.close()

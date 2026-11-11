@@ -1024,11 +1024,12 @@ memo people unlink <identities> [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
+| `--from <person>` | the person they leave, person:<uid> or person:me; refused when they sit on another. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Returns:** take identities off a person, to one new person; an agent's waits for you
 
-**Example:** `memo people unlink telegram:12345`, `memo people unlink email:lena@example.com max:6789 --reason 'her husband's mailbox'`
+**Example:** `memo people unlink telegram:12345 --from person:me`, `memo people unlink email:lena@example.com max:6789 --from person:42 --reason 'her husband's mailbox'`
 
 ### `memo people unmerge`
 
