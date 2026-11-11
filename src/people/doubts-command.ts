@@ -1,4 +1,4 @@
-import type { Streams } from "@wirecat/cli-base"
+import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { LOCAL_READ, LOCAL_WRITE } from "@wirecat/cli-core/cli"
 import type { PersonDoubt } from "@wirecat/cli-core/store"
@@ -7,6 +7,7 @@ import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
 import { byOption } from "../author.js"
 import { oneOf, positive } from "../options.js"
 import { groupOf, keepInGroup } from "../store/group.js"
+import { personOf } from "./identity.js"
 import { asOwner } from "./proposal-rows.js"
 
 const RESOLVE_ANSWERS = ["keep"] as const
@@ -35,7 +36,7 @@ export const doubtsCommand = (people: Command, program: Command, streams: Stream
         "identity joined by an address a person of another name has, one person with different names and nothing " +
         "in common. Each says why and gives the unlink or unmerge that fixes it; an agent adds --reason and it waits " +
         "for you in people review. What you linked by hand, what the person held when you did, what you kept with " +
-        "people links resolve <person> keep, or kept together by turning a split down, is left out",
+        "people links resolve <who> keep, or kept together by turning a split down, is left out",
     )
     .option("--limit <n>", "most people on a page, up to 200", positive, 20)
     .option("--page <n>", "which page, from 1", positive, 1)
@@ -72,10 +73,18 @@ export const doubtsCommand = (people: Command, program: Command, streams: Stream
           "doubt until one of them moves to another person; an identity that joins later is checked again, and an " +
           "agent's split of the kept ones is refused. Test data stays listed",
       )
-      .argument("<person>", "person:<uid> as people links check lists it")
+      .argument("<who>", "person:<uid> as people links check lists it, person:me, or an identity of the person")
       .argument("<answer>", "keep: the person is right as they are", oneOf(RESOLVE_ANSWERS)),
   ).option("--json", "print JSON; --json=id,title keeps only those fields")
-  resolve.action(async (person: string, _answer: (typeof RESOLVE_ANSWERS)[number], options: { json?: boolean }) => {
+  resolve.action(async (who: string, _answer: (typeof RESOLVE_ANSWERS)[number], options: { json?: boolean }) => {
+    const person = await withStore(env, async (store) => {
+      const ref = `person:${(await personOf(store, who)).uid}`
+      if ((await keepInGroup(store, env, [ref], (one) => one)).length === 0)
+        throw new CliError("not_found", `${ref} is outside the account group this run reads`, {
+          reason: "person.not-found",
+        })
+      return ref
+    })
     const by = await asOwner(resolve, env, `say ${person}'s links are right?`)
     const kept = await withStore(env, (store) => store.people.keep(person, by))
     print(options.json, itemAnswer(kept), `${kept.person}: kept ${kept.kept.join(", ")}`)

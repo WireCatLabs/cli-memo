@@ -1,6 +1,6 @@
 ### Added
 
-- **`memo people links resolve <person> keep` says a person `people links check` doubts is right as they are.** The
+- **`memo people links resolve <who> keep` says a person `people links check` doubts is right as they are.** The
   identities in doubt stop being listed until one of them moves to another person; an identity that joins later is
   checked again, and an agent's split of the kept ones is refused. Only the owner runs it; WireCat Desktop passes
   `--from-app`. `--json` answers `{ "person": "person:<uid>", "kept": ["<provider>:<id>", …] }`.

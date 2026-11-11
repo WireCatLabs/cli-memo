@@ -6,23 +6,13 @@ import type { Command } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
 import { byOption, reasonOption, whoRuns } from "../author.js"
 import { doubtsCommand } from "./doubts-command.js"
-import { exactIdentityOf, identityOf } from "./identity.js"
+import { exactIdentityOf, identityOf, personOf } from "./identity.js"
 import { withOwner } from "./owner.js"
 import { matchAnswer, summaryOf } from "./proposal-rows.js"
 import { peopleProposalCommands } from "./proposals-command.js"
 
 const PERSON = /^person:([1-9]\d*)$/
 const FROM = /^person:([1-9]\d*|me)$/
-
-/** `person:<uid>`, `person:me`, or an identity of the person as `<messenger>:<name or id>`. */
-const personOf = async (store: MessageStore, who: string): Promise<PersonRecord> => {
-  const uid = PERSON.exec((await withOwner(store, who)).trim())?.[1]
-  const found =
-    uid === undefined ? await store.people.personOf(await identityOf(store, who)) : await store.people.personByUid(uid)
-  if (found === undefined)
-    throw new CliError("not_found", `the store has no person for "${who}"`, { reason: "person.not-found" })
-  return found
-}
 
 const personAnswer = (person: PersonRecord) => ({
   ref: `person:${person.uid}`,
@@ -71,7 +61,7 @@ export const identitiesCommands = (people: Command, program: Command, streams: S
         options.json,
         itemAnswer(shown),
         [
-          `${shown.ref} ${shown.name ?? ""}`.trim(),
+          `${shown.ref} ${shown.display_name ?? ""}`.trim(),
           ...shown.identities.map(({ identity, name }) => `  ${identity}${name ? `  ${name}` : ""}`),
           ...shown.merges.map(
             ({ id, from, method, by, at }) =>

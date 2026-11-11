@@ -945,7 +945,7 @@ who is who: the links that make identities one person
 
 #### `memo people links check`
 
-people that may be wrong, you first: your person holding an identity under another name, test data, an identity joined by an address a person of another name has, one person with different names and nothing in common. Each says why and gives the unlink or unmerge that fixes it; an agent adds --reason and it waits for you in people review. What you linked by hand, what the person held when you did, what you kept with people links resolve <person> keep, or kept together by turning a split down, is left out
+people that may be wrong, you first: your person holding an identity under another name, test data, an identity joined by an address a person of another name has, one person with different names and nothing in common. Each says why and gives the unlink or unmerge that fixes it; an agent adds --reason and it waits for you in people review. What you linked by hand, what the person held when you did, what you kept with people links resolve <who> keep, or kept together by turning a split down, is left out
 
 ```sh
 memo people links check [options]
@@ -968,12 +968,12 @@ answers a doubt with keep: the person's links are right, so links check stops li
 This command changes the local store or your files.
 
 ```sh
-memo people links resolve <person> <answer> [options]
+memo people links resolve <who> <answer> [options]
 ```
 
 | Argument | | What it is |
 |---|---|---|
-| `person` | required | person:<uid> as people links check lists it. |
+| `who` | required | person:<uid> as people links check lists it, person:me, or an identity of the person. |
 | `answer` | required | keep: the person is right as they are. |
 
 | Option | What it does |
@@ -6558,7 +6558,7 @@ memo search people <name> [options]
 
 **Returns:** person — ref, name, identities; every field: memo commands info search people
 
-**Next usually:** `memo context <person>`, `memo people links resolve <person> <answer>`, `memo tasks assign <id> <person>`
+**Next usually:** `memo context <person>`, `memo tasks assign <id> <person>`, `memo mentions confirm <id> [person]`
 
 **Example:** `memo search people ana`, `memo search people Ana Example --source telegram --json`
 
