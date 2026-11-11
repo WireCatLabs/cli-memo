@@ -89,6 +89,7 @@ export const searchPeople = async (
     if (known && known.identities.length === 0)
       hits.set(person, { ref: person, name, identities: [], aliases: [], ties: [] })
   }
+  for (const { person } of (await store.people.list({ kind: "test", limit: 5000 })).items) hits.delete(person)
   const people = [...hits.keys()].filter((ref) => ref.startsWith("person:"))
   const ties = people.length === 0 ? {} : await store.people.ties(people)
   for (const hit of hits.values()) hit.ties = ties[hit.ref] ?? []

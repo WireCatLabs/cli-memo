@@ -115,6 +115,7 @@ const KIND_WORDS: Record<string, [string, string]> = {
   automated: ["automated sender", "automated senders"],
   stranger: ["stranger", "strangers"],
   unsorted: ["unsorted one", "unsorted ones"],
+  test: ["test account", "test accounts"],
 }
 
 /**
@@ -122,7 +123,8 @@ const KIND_WORDS: Record<string, [string, string]> = {
  * takes one of them.
  */
 const otherKinds = (shown: PersonKind | "all", counts: Record<PersonKind, number>, name?: string): NextStep[] => {
-  const others = PERSON_KINDS.filter((kind) => kind !== shown && counts[kind] > 0)
+  // Test data is hidden from every list: `kind:all` leaves it out, so the step never names it.
+  const others = PERSON_KINDS.filter((kind) => kind !== shown && kind !== "test" && counts[kind] > 0)
   if (shown === "all" || others.length === 0) return []
   const query = ["kind:all", ...(name === undefined ? [] : [`name:${JSON.stringify(name)}`])].join(" ")
   return [
@@ -173,7 +175,8 @@ export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.Pr
         "people of one kind: person (the default: the owner, people added by hand or assigned a task, and named " +
           "people with a tie to you, such as a one-to-one chat, a group of at most 10, mail you wrote, a meeting, a " +
           "CRM deal of yours or your address book), organization, automated (bots, newsletters, notifications), " +
-          "stranger (no tie), unsorted (no name) or all. The owner first, then by the messages and mail they sent",
+          "stranger (no tie), unsorted (no name), test (what a test run left, hidden from every other list) or all, " +
+          "which leaves test out. The owner first, then by the messages and mail they sent",
       ),
     query,
   )

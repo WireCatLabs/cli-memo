@@ -10,7 +10,7 @@ import { groupOf, keepInGroup } from "../store/group.js"
 import { personOf } from "./identity.js"
 import { asOwner } from "./proposal-rows.js"
 
-const RESOLVE_ANSWERS = ["keep"] as const
+const RESOLVE_ANSWERS = ["keep", "test"] as const
 
 const textOf = (doubt: PersonDoubt): string =>
   [
@@ -32,7 +32,8 @@ export const doubtsCommand = (people: Command, program: Command, streams: Stream
   annotate(links.command("check"), { effects: LOCAL_READ })
     .summary("people that may be wrong, with why and the command that fixes each")
     .description(
-      "people that may be wrong, you first: your person holding an identity under another name, test data, an " +
+      "people that may be wrong, you first: your person holding an identity under another name, what may be test " +
+        "data (sure test data is hidden without asking: people list kind:test), an " +
         "identity joined by an address a person of another name has, one person with different names and nothing " +
         "in common. Each says why and gives the unlink or unmerge that fixes it; an agent adds --reason and it waits " +
         "for you in people review. What you linked by hand, what the person held when you did, what you kept with " +
@@ -67,16 +68,22 @@ export const doubtsCommand = (people: Command, program: Command, streams: Stream
 
   const resolve = byOption(
     annotate(links.command("resolve"), { effects: LOCAL_WRITE })
-      .summary("say a person people links check doubts is right as they are; only you")
+      .summary("say a person people links check doubts is right as they are, or test data; only you")
       .description(
         "answers a doubt with keep: the person's links are right, so links check stops listing the identities in " +
           "doubt until one of them moves to another person; an identity that joins later is checked again, and an " +
-          "agent's split of the kept ones is refused. Test data stays listed",
+          "agent's split of the kept ones is refused. Keep also says what looked like test data is a real contact, " +
+          "and brings back a person memo hid as test data (people list kind:test lists them). test: the person is " +
+          "test data, hidden from every list until you keep them",
       )
       .argument("<who>", "person:<uid> as people links check lists it, person:me, or an identity of the person")
-      .argument("<answer>", "keep: the person is right as they are", oneOf(RESOLVE_ANSWERS)),
+      .argument(
+        "<answer>",
+        "keep: the person is right as they are; test: the person is test data",
+        oneOf(RESOLVE_ANSWERS),
+      ),
   ).option("--json", "print JSON; --json=id,title keeps only those fields")
-  resolve.action(async (who: string, _answer: (typeof RESOLVE_ANSWERS)[number], options: { json?: boolean }) => {
+  resolve.action(async (who: string, answer: (typeof RESOLVE_ANSWERS)[number], options: { json?: boolean }) => {
     const person = await withStore(env, async (store) => {
       const ref = `person:${(await personOf(store, who)).uid}`
       if ((await keepInGroup(store, env, [ref], (one) => one)).length === 0)
@@ -85,6 +92,12 @@ export const doubtsCommand = (people: Command, program: Command, streams: Stream
         })
       return ref
     })
+    if (answer === "test") {
+      const by = await asOwner(resolve, env, `hide ${person} as test data?`)
+      const hidden = await withStore(env, (store) => store.people.markTestData(person, by))
+      print(options.json, itemAnswer(hidden), `${hidden.person}: test data, hidden (${hidden.identities.join(", ")})`)
+      return
+    }
     const by = await asOwner(resolve, env, `say ${person}'s links are right?`)
     const kept = await withStore(env, (store) => store.people.keep(person, by))
     print(options.json, itemAnswer(kept), `${kept.person}: kept ${kept.kept.join(", ")}`)
