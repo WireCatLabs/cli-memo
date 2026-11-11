@@ -91,6 +91,8 @@ const IMAGE_WHY: Record<NonNullable<ImageRead["reason"]>, string> = {
   "ai.setting-invalid":
     "kept by its name: the ai section of the WireCat config is not one memo can read (memo models ai set)",
   "image.unsupported": "kept by its name: the model reads PNG, JPEG and WebP up to 4 MB",
+  "ai.empty-answer":
+    "kept by its name: the model answered nothing; it may not read pictures — choose a vision model (memo models ai set)",
   "ai.failed": "kept by its name: your AI model could not read it (memo models ai check)",
 }
 

@@ -138,3 +138,19 @@ it("reads an image with the owner's coding agent when picture reading is on requ
   const found = await run(["sources", "show", String((added.answer as { ref: string }).ref)])
   expect(JSON.stringify(found.answer)).toContain("Receipt 7 from Synthetic Shop")
 })
+
+it("says the model answered nothing when a model that cannot read pictures gives an empty answer", async () => {
+  const { run, image, readerFetch } = fixture()
+  readerFetch.mockImplementation(
+    async () =>
+      new Response(
+        JSON.stringify({ choices: [{ message: { content: "" }, finish_reason: "stop" }], usage: { total_tokens: 1 } }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+  )
+  await run(["models", "ai", "set", "openai", "--model", "gpt-4o-mini", "--allow-remote", "--secret-stdin"], KEY)
+
+  const added = await run(["sources", "add", image("blank.png")])
+
+  expect(added.answer).toMatchObject({ read: "no-text", image: { read_by: null, reason: "ai.empty-answer" } })
+})
