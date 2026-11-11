@@ -127,9 +127,31 @@ describe("a shared mailbox in people review", () => {
       { shared: "role", mailbox: "info@shop.example", score: 0.1 },
       { signal: "agent", score: null, shared: null, mailbox: null },
     ])
-    expect(decided).toMatchObject({ status: "rejected", mailbox: "info@shop.example" })
+    expect(decided).toMatchObject({ status: "rejected", mailbox: "info@shop.example", closed: [listed[0].id] })
     expect(decided.organization).toMatch(/^organization:\d+$/)
     expect(envelopeOf(await raw({}, OWNER, "people", "review", "--json")).items).toMatchObject([{ signal: "agent" }])
+  })
+})
+
+describe("people resolve company --all", () => {
+  it("closes every match on the mailbox in one answer, and review shows them together by mailbox", async () => {
+    const store = await openStore({ env })
+    await store.people.savePeople(TG, [{ id: "44", name: "Ana Diaz", email: "info@shop.example" }])
+    await store.people.savePeople(MAX, [
+      { id: "55", name: "Bo Lind", email: "info@shop.example" },
+      { id: "66", name: "Cy Moss", email: "info@shop.example" },
+    ])
+    await store.close()
+    await run({}, NOBODY, "people", "scan")
+    const listed = envelopeOf(await raw({}, OWNER, "people", "review", "--json")).items
+
+    const decided = await run({}, OWNER, "people", "resolve", listed[0].id, "company", "--all")
+
+    expect(listed).toHaveLength(3)
+    for (const row of listed) expect(row).toMatchObject({ mailbox: "info@shop.example", shared: "role" })
+    expect(listed[0].candidates).toHaveLength(3)
+    expect([...decided.closed].sort()).toEqual(listed.map(({ id }: { id: string }) => id).sort())
+    expect(envelopeOf(await raw({}, OWNER, "people", "review", "--json")).items).toEqual([])
   })
 })
 

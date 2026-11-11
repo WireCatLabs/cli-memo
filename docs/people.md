@@ -142,10 +142,12 @@ person's, say so:
 memo people resolve 17092 company                    # the company that has the address or its domain, else a new one
 memo people resolve 17092 company organization:12    # this organization
 memo people resolve 17092 company --name "Shop Ltd"  # a company of this name; needed for a free mailbox such as gmail.com
+memo people resolve 17092 company --all              # and every other match waiting on that mailbox
 ```
 
 The address goes to the organization, the two people are not joined, and that pair is not suggested again on that
-address. Only you answer it, as with `confirm` and `reject`.
+address. With `--all` every match waiting on the same mailbox is closed in that one answer, and `closed` lists them.
+Each match carries `mailbox` and, when three or more people share it, all of them in `candidates`. Only you answer it, as with `confirm` and `reject`.
 
 Link two accounts yourself, or look at one person:
 
