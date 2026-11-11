@@ -275,6 +275,8 @@ it("leaves every decision to the owner, and the owner's confirm closes the task 
   const card = (await box.memo({}, NOBODY, "tasks", "show", box.task.ref.slice("task:".length), "--source", MAILBOX))
     .item
   expect(card).toMatchObject({ status: "done", reason: "you replied" })
+  expect((await box.memo({}, NOBODY, "mail", "findings", "show", batch.id)).item.status).toBe("proposed")
+  await box.memo({}, OWNER, "actions", "reject", batch.id)
   expect((await box.memo({}, NOBODY, "mail", "findings", "show", batch.id)).item.status).toBe("reviewed")
 })
 
@@ -308,6 +310,7 @@ it("lets the owner confirm or reject a mail batch with the fingerprint it read, 
     expect(await box.refusalAt(OWNER, {}, "actions", verb, id, "--fingerprint", wrong)).toBe("mail-findings.stale")
   await box.memo({}, OWNER, "actions", "confirm", first.id, "t1", "--fingerprint", first.fingerprint)
   await box.memo({}, OWNER, "actions", "reject", second.id, "--fingerprint", second.fingerprint)
+  await box.memo({}, OWNER, "actions", "reject", first.id)
 
   const shown = async (id: string) => (await box.memo({}, NOBODY, "mail", "findings", "show", id)).item.receipt
   expect((await shown(first.id)).accepted).toEqual(["t1"])
@@ -333,6 +336,7 @@ it("lets the app confirm a mail batch as the owner under --from-app, and refuses
   const decide = ["actions", "confirm", batch.id, "t1", "--fingerprint", batch.fingerprint]
   expect(await box.refusal(desktop, ...decide)).toBe("decision.decider-unknown")
   await box.memo(desktop, NOBODY, ...decide, "--from-app")
+  await box.memo(desktop, NOBODY, "actions", "reject", batch.id, "--from-app")
   const shown = (await box.memo({}, NOBODY, "mail", "findings", "show", batch.id)).item
   expect(shown).toMatchObject({ status: "reviewed", receipt: { accepted: ["t1"] } })
 })

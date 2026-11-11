@@ -157,7 +157,20 @@ it("lets an agent stage cited findings, shows each with its text and neighbours,
     "--reason",
     "the message says it is agreed",
   )
-  expect(decided).toMatchObject({
+  expect(decided).toMatchObject({ status: "proposed" })
+  const rejected = await run(
+    { ...agent, AI_AGENT: "reviewer-agent" },
+    "projects",
+    "actions",
+    "reject",
+    "SYP",
+    staged.id,
+    "--fingerprint",
+    decided.fingerprint,
+    "--reason",
+    "the message says it is agreed",
+  )
+  expect(rejected).toMatchObject({
     status: "reviewed",
     receipt: {
       decision: { by: "agent", bot: "reviewer-agent", reason: "the message says it is agreed" },
