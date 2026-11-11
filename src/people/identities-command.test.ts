@@ -328,6 +328,51 @@ describe("memo people links check", () => {
     })
   })
 
+  it("people links resolve test hides a person everywhere, and keep brings them back", async () => {
+    const store = await openStore({ env })
+    await store.people.savePeople({ provider: "whatsapp", account: "9" }, [
+      { id: "11", name: "Ann Lee" },
+      { id: "12", name: "Bob Ray" },
+    ])
+    await store.people.savePeople({ provider: "email", account: "me@acme.ru" }, [{ id: "qa@demo.test", name: "Quinn" }])
+    await store.close()
+    const doubts = envelopeOf(await raw({}, OWNER, "people", "links", "check", "--json")).items
+    const ann = doubts.find((d: { identities: { identity: string }[] }) => d.identities[0]?.identity === "whatsapp:11")
+    expect(ann.moves).toEqual([{ op: "test-data", person: ann.person }])
+    expect(ann.fix).toEqual([`people links resolve ${ann.person} test`])
+
+    await expect(run(CLAUDE, NOBODY, "people", "links", "resolve", ann.person, "test")).rejects.toMatchObject({
+      details: { reason: "identity.owner-only" },
+    })
+    expect(await run({}, OWNER, "people", "links", "resolve", ann.person, "test")).toMatchObject({
+      person: ann.person,
+      identities: ["whatsapp:11"],
+    })
+    const hidden = envelopeOf(await raw({}, OWNER, "people", "list", "kind:test", "--json")).items
+    expect(hidden.map(({ ref }: { ref: string }) => ref)).toHaveLength(2)
+    expect(hidden.map(({ ref }: { ref: string }) => ref)).toContain(ann.person)
+    expect(envelopeOf(await raw({}, OWNER, "search", "people", "Ann", "--json")).items).toEqual([])
+
+    await run({}, OWNER, "people", "links", "resolve", ann.person, "keep")
+    expect(envelopeOf(await raw({}, OWNER, "people", "list", "kind:test", "--json")).items).toHaveLength(1)
+    expect(
+      envelopeOf(await raw({}, OWNER, "search", "people", "Ann", "--json")).items.map(
+        ({ ref }: { ref: string }) => ref,
+      ),
+    ).toEqual([ann.person])
+  })
+
+  it("people show lists every phone and address an identity's source gave", async () => {
+    const store = await openStore({ env })
+    await store.people.savePeople({ provider: "bitrix24", account: "acme.ru" }, [
+      { id: "acme.ru/contact/7", name: "Lev Orlov", phone: "+34600000001", phones: ["+34600000001", "+34600000002"] },
+    ])
+    await store.close()
+
+    const [identity] = (await run({}, OWNER, "people", "show", "bitrix24:acme.ru/contact/7")).identities
+    expect(identity).toMatchObject({ phone: "+34600000001", phones: ["+34600000001", "+34600000002"], emails: [] })
+  })
+
   it("people show gives the name people list shows, an account's when the person has none", async () => {
     const store = await openStore({ env })
     await store.people.savePeople(TG, [{ id: "44", name: "!", username: "xorlov" }])

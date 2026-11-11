@@ -25,6 +25,8 @@ const personAnswer = (person: PersonRecord) => ({
     username: identity.username,
     phone: identity.phone ?? null,
     email: identity.email ?? null,
+    phones: identity.phones ?? [],
+    emails: identity.emails ?? [],
     seenIn: identity.seenIn,
     method: identity.method,
     linkedBy: identity.linkedBy,
