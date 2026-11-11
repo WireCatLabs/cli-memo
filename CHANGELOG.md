@@ -4,6 +4,34 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## 0.131.82 — 11.11.2026
+
+### Added
+
+- **`memo people resolve <id> company --all` closes every match on the same mailbox in one answer.** The answer's
+  `closed` lists every match it closed; without `--all` it is only the match named, as before
+  ([people.md](docs/people.md)).
+- **`memo people links resolve <who> keep` says a person `people links check` doubts is right as they are.** The
+  identities in doubt stop being listed until one of them moves to another person; an identity that joins later is
+  checked again, and an agent's split of the kept ones is refused. Only the owner runs it; WireCat Desktop passes
+  `--from-app`. `--json` answers `{ "person": "person:<uid>", "kept": ["<provider>:<id>", …] }`.
+- **`memo people show --json` gives `display_name`**, the name `people list` shows for the person: their own, else the
+  first readable account name, a username, phone or address.
+
+### Changed — may break callers
+
+- **`memo people unlink` names the person the identities leave, with `--from person:<uid>` or `--from person:me`.**
+  It is required, and an identity that sits on someone else is refused with `identity.held-elsewhere`; the message
+  names who holds it and nothing changes. Before, a script that meant to take a colleague's mailbox off your card
+  took it off the colleague. A run without `--from` is refused with `person.from-required`. The `fix` of
+  `memo people links check` ends in the `--from` it needs.
+
+### Fixed
+
+- **`memo people links check` no longer lists a person you linked by hand under mixed names.** The identities the
+  person held when you linked another to them count as seen by you; one that joins later is still checked.
+- **Mail triage proposes a new contact only when the email's text gives a better name than the sender line.** A name copied from the sender line is metadata, so it no longer waits for your review ([mail.md](docs/mail.md)).
+
 ## 0.131.81 — 10.11.2026
 
 ### Added
