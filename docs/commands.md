@@ -774,7 +774,7 @@ memo people add <name> [options]
 
 ### `memo people list`
 
-people of one kind: person (the default: the owner, people added by hand or assigned a task, and named people with a tie to you, such as a one-to-one chat, a group of at most 10, mail you wrote, a meeting, a CRM deal of yours or your address book), organization, automated (bots, newsletters, notifications), stranger (no tie), unsorted (no name) or all. The owner first, then by the messages and mail they sent
+people of one kind: person (the default: the owner, people added by hand or assigned a task, and named people with a tie to you, such as a one-to-one chat, a group of at most 10, mail you wrote, a meeting, a CRM deal of yours or your address book), organization, automated (bots, newsletters, notifications), stranger (no tie), unsorted (no name), test (what a test run left, hidden from every other list) or all, which leaves test out. The owner first, then by the messages and mail they sent
 
 ```sh
 memo people list [query] [options]
@@ -945,7 +945,7 @@ who is who: the links that make identities one person
 
 #### `memo people links check`
 
-people that may be wrong, you first: your person holding an identity under another name, test data, an identity joined by an address a person of another name has, one person with different names and nothing in common. Each says why and gives the unlink or unmerge that fixes it; an agent adds --reason and it waits for you in people review. What you linked by hand, what the person held when you did, what you kept with people links resolve <who> keep, or kept together by turning a split down, is left out
+people that may be wrong, you first: your person holding an identity under another name, what may be test data (sure test data is hidden without asking: people list kind:test), an identity joined by an address a person of another name has, one person with different names and nothing in common. Each says why and gives the unlink or unmerge that fixes it; an agent adds --reason and it waits for you in people review. What you linked by hand, what the person held when you did, what you kept with people links resolve <who> keep, or kept together by turning a split down, is left out
 
 ```sh
 memo people links check [options]
@@ -963,7 +963,7 @@ memo people links check [options]
 
 #### `memo people links resolve`
 
-answers a doubt with keep: the person's links are right, so links check stops listing the identities in doubt until one of them moves to another person; an identity that joins later is checked again, and an agent's split of the kept ones is refused. Test data stays listed
+answers a doubt with keep: the person's links are right, so links check stops listing the identities in doubt until one of them moves to another person; an identity that joins later is checked again, and an agent's split of the kept ones is refused. Keep also says what looked like test data is a real contact, and brings back a person memo hid as test data (people list kind:test lists them). test: the person is test data, hidden from every list until you keep them
 
 This command changes the local store or your files.
 
@@ -974,7 +974,7 @@ memo people links resolve <who> <answer> [options]
 | Argument | | What it is |
 |---|---|---|
 | `who` | required | person:<uid> as people links check lists it, person:me, or an identity of the person. |
-| `answer` | required | keep: the person is right as they are. |
+| `answer` | required | keep: the person is right as they are; test: the person is test data. |
 
 | Option | What it does |
 |---|---|
@@ -982,9 +982,9 @@ memo people links resolve <who> <answer> [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** say a person people links check doubts is right as they are; only you
+**Returns:** say a person people links check doubts is right as they are, or test data; only you
 
-**Example:** `memo people links resolve person:42 keep`, `memo people links resolve person:42 keep --from-app --json`
+**Example:** `memo people links resolve person:42 keep`, `memo people links resolve person:42 keep --from-app --json`, `memo people links resolve person:42 test`
 
 ### `memo people scan`
 
