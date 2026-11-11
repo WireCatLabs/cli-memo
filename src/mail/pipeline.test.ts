@@ -166,8 +166,8 @@ const scriptedAgent = (items: Item[], task: { ref: string }, through: string) =>
         id: "c1",
         kind: "new_contact",
         address: "bob@example.org",
-        name: "Bob",
-        reason: "Bob wrote first",
+        name: "Bob Example",
+        reason: "Bob signs with it",
         evidence: evidenceOf(ask),
       },
     ],
@@ -252,7 +252,10 @@ it("leaves every decision to the owner, and the owner's confirm closes the task 
     email("lease", 30),
     email("signed", 1, { from: { address: ME, name: "Me" }, to: [{ address: "ann@example.com", name: "Ann" }] }),
   )
-  await box.thread("t-new", email("quote", 1, { from: { address: "bob@example.org", name: "Bob" } }))
+  await box.thread(
+    "t-new",
+    email("quote", 1, { from: { address: "bob@example.org", name: "Bob" }, bodyText: BOB_ASKS }),
+  )
   await box.synced()
   const read = await box.review()
   const findings = box.file("findings.json", scriptedAgent(read.items, box.task, read.cursor.split(".")[0] as string))
@@ -282,7 +285,10 @@ it("lets the owner confirm or reject a mail batch with the fingerprint it read, 
     email("lease", 30),
     email("signed", 1, { from: { address: ME, name: "Me" }, to: [{ address: "ann@example.com", name: "Ann" }] }),
   )
-  await box.thread("t-new", email("quote", 1, { from: { address: "bob@example.org", name: "Bob" } }))
+  await box.thread(
+    "t-new",
+    email("quote", 1, { from: { address: "bob@example.org", name: "Bob" }, bodyText: BOB_ASKS }),
+  )
   await box.synced()
   const read = await box.review()
   const stage = async (key: string) => {
@@ -315,7 +321,10 @@ it("lets the app confirm a mail batch as the owner under --from-app, and refuses
     email("lease", 30),
     email("signed", 1, { from: { address: ME, name: "Me" }, to: [{ address: "ann@example.com", name: "Ann" }] }),
   )
-  await box.thread("t-new", email("quote", 1, { from: { address: "bob@example.org", name: "Bob" } }))
+  await box.thread(
+    "t-new",
+    email("quote", 1, { from: { address: "bob@example.org", name: "Bob" }, bodyText: BOB_ASKS }),
+  )
   await box.synced()
   const read = await box.review()
   const findings = box.file("findings.json", scriptedAgent(read.items, box.task, read.cursor.split(".")[0] as string))
@@ -330,7 +339,10 @@ it("lets the app confirm a mail batch as the owner under --from-app, and refuses
 
 it("refuses a batch that cites mail changed since review, and stages nothing", async () => {
   const box = await triaged()
-  await box.thread("t-new", email("quote", 1, { from: { address: "bob@example.org", name: "Bob" } }))
+  await box.thread(
+    "t-new",
+    email("quote", 1, { from: { address: "bob@example.org", name: "Bob" }, bodyText: BOB_ASKS }),
+  )
   await box.synced()
   const [item] = (await box.review()).items as [Item]
   const stale = box.file("stale.json", {
@@ -342,8 +354,8 @@ it("refuses a batch that cites mail changed since review, and stages nothing", a
         id: "c1",
         kind: "new_contact",
         address: "bob@example.org",
-        name: "Bob",
-        reason: "Bob wrote first",
+        name: "Bob Example",
+        reason: "Bob signs with it",
         evidence: [{ reference: item.ref, fingerprint: "0".repeat(64) }],
       },
     ],
@@ -415,7 +427,10 @@ it("lets only the owner move the agent's mark back, and says how many emails it 
 it("stages a run after the owner moved the mark back, while the batch staged before the reset still waits", async () => {
   const box = await triaged()
   await box.thread("t-lease", email("lease", 30), email("signed", 1, { from: { address: ME, name: "Me" } }))
-  await box.thread("t-new", email("quote", 1, { from: { address: "bob@example.org", name: "Bob" } }))
+  await box.thread(
+    "t-new",
+    email("quote", 1, { from: { address: "bob@example.org", name: "Bob" }, bodyText: BOB_ASKS }),
+  )
   await box.synced()
   const stage = (key: string, findings: unknown, ...extra: string[]) =>
     box.memo(
@@ -482,7 +497,10 @@ it("checks a whole batch with --dry-run under the read-only lock, and stages not
     email("lease", 30),
     email("signed", 1, { from: { address: ME, name: "Me" }, to: [{ address: "ann@example.com", name: "Ann" }] }),
   )
-  await box.thread("t-new", email("quote", 1, { from: { address: "bob@example.org", name: "Bob" } }))
+  await box.thread(
+    "t-new",
+    email("quote", 1, { from: { address: "bob@example.org", name: "Bob" }, bodyText: BOB_ASKS }),
+  )
   await box.synced()
   const read = await box.review()
   const agent = scriptedAgent(read.items, box.task, read.cursor.split(".")[0] as string)
@@ -527,7 +545,10 @@ it("checks a whole batch with --dry-run under the read-only lock, and stages not
 
 it("leaves out a finding the store or a waiting batch already holds, and stages the rest", async () => {
   const box = await triaged()
-  await box.thread("t-new", email("quote", 1, { from: { address: "bob@example.org", name: "Bob" } }))
+  await box.thread(
+    "t-new",
+    email("quote", 1, { from: { address: "bob@example.org", name: "Bob" }, bodyText: BOB_ASKS }),
+  )
   await box.synced()
   const [item] = (await box.review()).items as [Item]
   const order = (id: string, shop: string) => ({
@@ -543,8 +564,8 @@ it("leaves out a finding the store or a waiting batch already holds, and stages 
     id: "c1",
     kind: "new_contact",
     address: "bob@example.org",
-    name: "Bob",
-    reason: "Bob wrote first",
+    name: "Bob Example",
+    reason: "Bob signs with it",
     evidence: evidenceOf(item),
   }
   const add = (key: string, findings: unknown[], ...extra: string[]) =>

@@ -90,8 +90,9 @@ What it does, per mailbox:
 2. It keeps the emails that ask something of you, carry a date, or answer a thread with an open task.
 3. It reads context for those only, through links the store already has: the thread, `memo context` of the sender.
 4. It stages one batch: `memo mail findings add '<json>' --key <key> --source email:<account>`, the JSON as one
-   argument (a file or `-` for stdin work too) and the key the review gave in its `mail-findings.add` step. New
-   senders always get a link to a known person or a new contact proposal. After `messages reset` the key ends in
+   argument (a file or `-` for stdin work too) and the key the review gave in its `mail-findings.add` step. A new
+   sender gets a link to a known person, or a new contact proposal only when the email's text gives a better name
+   than the sender line. After `messages reset` the key ends in
    `-r<n>`, so a run over mail read again stages beside a batch still waiting for you.
 5. Then, and only then, `memo messages acknowledge --holder mail-triage --cursor <cursor> --source email:<account>`
    moves its mark. A run that fails before this reads the same mail again; the same batch is not staged twice.
