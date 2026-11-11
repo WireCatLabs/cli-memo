@@ -57,6 +57,8 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "groups add": ["memo groups add work bitrix24:acme", "memo groups add personal telegram:102"],
   "groups remove": ["memo groups remove work telegram:102"],
   "groups move": ["memo groups move telegram:102 personal work"],
+  "groups rename": ["memo groups rename work office"],
+  "groups delete": ["memo groups delete clients"],
   "groups update": [
     "memo groups update bitrix24:acme --scope work",
     "memo groups update telegram:102 --chat 7 --scope account",
@@ -480,6 +482,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "actions list": ["memo actions list status:proposed"],
   "actions show": ["memo actions show 5"],
   "actions confirm": ["memo actions confirm 5"],
+  "actions edit": ['memo actions edit 5 f2 --fingerprint 3f9a --set title="Send the signed contract" dueAt=null'],
   "actions reject": ["memo actions reject 5"],
   "review list": [
     "memo review list project:HRB",

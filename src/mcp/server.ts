@@ -88,6 +88,7 @@ export const createMemoServer = (
       },
       title: tool.title,
       description: tool.description,
+      ...(tool.keywords ? { keywords: tool.keywords } : {}),
       writes: tool.writes,
       input,
       checked: true,

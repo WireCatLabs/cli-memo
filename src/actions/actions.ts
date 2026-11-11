@@ -236,6 +236,48 @@ export const decideFindings = async (
   return showAction(store, id)
 }
 
+/** `field=value` as the owner types it: JSON when it parses (a list, `null`, a number), the text otherwise. */
+const changeOf = (pair: string): [string, unknown] => {
+  const at = pair.indexOf("=")
+  if (at < 1) throw new CliError("validation_error", `--set takes field=value, not "${pair}"`, { param: "set" })
+  const raw = pair.slice(at + 1)
+  try {
+    const parsed: unknown = JSON.parse(raw)
+    return [
+      pair.slice(0, at),
+      typeof parsed === "string" || parsed === null || typeof parsed === "object" ? parsed : raw,
+    ]
+  } catch {
+    return [pair.slice(0, at), raw]
+  }
+}
+
+/**
+ * The owner's edit of one finding still waiting in a batch, whatever the batch is about: the store checks the fields
+ * its kind allows, keeps the evidence, and answers the batch with its new fingerprint.
+ */
+export const editFinding = async (
+  store: MessageStore,
+  id: string,
+  finding: string,
+  edit: { fingerprint: string; set: readonly string[] },
+) => {
+  const changes = Object.fromEntries(edit.set.map(changeOf))
+  if (Object.keys(changes).length === 0)
+    throw new CliError("validation_error", "name what changes: --set field=value, or field=null to empty it", {
+      param: "set",
+    })
+  const action = await store.proposedActions.get(id)
+  const options = { fingerprint: edit.fingerprint, by: "owner" as const }
+  if (action.kind === EVIDENCE_FINDINGS_KIND) await store.evidenceFindings.edit(id, finding, changes, options)
+  else if (action.kind === MAIL_FINDINGS_KIND) await store.mailFindings.edit(id, finding, changes, options)
+  else if (action.kind === MEETING_FINDINGS_KIND) {
+    if (action.account === null) throw new CliError("not_found", `meeting findings ${id} name no account`)
+    await store.meetingFindings.edit(action.account, id, finding, changes, options)
+  } else throw new CliError("validation_error", `${id} is a ${action.kind}, not a findings batch`)
+  return showAction(store, id)
+}
+
 /**
  * A findings batch decided through the review registry. The fingerprint the reviewer read must still be the
  * batch's: the registry takes the stored one, so a changed batch is refused here first.

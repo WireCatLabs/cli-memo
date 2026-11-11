@@ -26,7 +26,17 @@ export const MORNING_DIGEST = "morning-digest"
 export const DIGEST_PROMPT = "Run memo skill show morning-digest and follow it."
 
 /** What a digest may read, each a part of `review agenda` it can leave out. */
-export const DIGEST_SOURCES = ["telegram", "max", "whatsapp", "mail", "meetings", "tasks"] as const
+export const DIGEST_SOURCES = [
+  "telegram",
+  "max",
+  "whatsapp",
+  "mail",
+  "meetings",
+  "tasks",
+  "drive",
+  "calendar",
+  "crm",
+] as const
 export type DigestSource = (typeof DIGEST_SOURCES)[number]
 
 /** What memo keeps of a digest beside its schedule: the schedule holds the times, routes and caps. */

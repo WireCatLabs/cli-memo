@@ -133,6 +133,28 @@ describe("a shared mailbox in people review", () => {
   })
 })
 
+describe("people resolve company --mailbox (Desktop #331)", () => {
+  it("gives the address the owner names to a company on a match that is not about a shared mailbox", async () => {
+    const store = await openStore({ env })
+    await store.people.savePeople(TG, [{ id: "44", name: "Kai Berg", email: "b2b@telco.example" }])
+    await store.people.savePeople(MAX, [{ id: "55", name: "Kai Berg", email: "kai@gmail.com" }])
+    await store.close()
+    const proposed = await run(CLAUDE, NOBODY, "people", "link", "max:55", "telegram:44", "--reason", "same name")
+
+    await expect(run({}, OWNER, "people", "resolve", proposed.proposal, "company")).rejects.toMatchObject({
+      details: { reason: "identity.not-shared", candidates: ["b2b@telco.example"] },
+    })
+    const decided = await run(
+      {},
+      OWNER,
+      ...["people", "resolve", proposed.proposal, "company", "--mailbox", "b2b@telco.example", "--name", "Telco"],
+    )
+
+    expect(decided).toMatchObject({ status: "rejected", mailbox: "b2b@telco.example", closed: [proposed.proposal] })
+    expect(decided.organization).toMatch(/^organization:\d+$/)
+  })
+})
+
 describe("people resolve company --all", () => {
   it("closes every match on the mailbox in one answer, and review shows them together by mailbox", async () => {
     const store = await openStore({ env })

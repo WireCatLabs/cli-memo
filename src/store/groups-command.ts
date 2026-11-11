@@ -5,10 +5,12 @@ import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { commandWords, grantsAuthority, LOCAL_READ, LOCAL_WRITE, queryTerms, withQuery } from "@wirecat/cli-core/cli"
 import {
   addGroupMember,
+  deleteAccountGroup,
   type GroupMembership,
   listAccountGroups,
   moveGroupMember,
   removeGroupMember,
+  renameAccountGroup,
   setAccountScope,
   setChatScope,
 } from "@wirecat/cli-core/services"
@@ -146,6 +148,32 @@ export const groupsCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       show("groups move", options.json, (store) =>
         moveGroupMember(at(store, env), { member, from, to, reserved: reserved() }),
       ),
+    )
+
+  grantsAuthority(annotate(groups.command("rename"), { effects: LOCAL_WRITE, output: { entity: "account_group" } }))
+    .description(
+      "give a group another name, with its members; a run, lock or agent that still names the old one is refused " +
+        "with the groups there are",
+    )
+    .summary("rename a group")
+    .argument("<group>", "the group")
+    .argument("<name>", "its new name: letters, digits, - and _, not a memo command word")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .action((from: string, to: string, options: { json?: boolean }) =>
+      show("groups rename", options.json, (store) =>
+        renameAccountGroup(at(store, env), { from, to, reserved: reserved() }),
+      ),
+    )
+
+  grantsAuthority(annotate(groups.command("delete"), { effects: LOCAL_WRITE, output: { entity: "account_group" } }))
+    .description(
+      "delete a group and its memberships; its accounts and their data stay, in their other groups and in `all`",
+    )
+    .summary("delete a group")
+    .argument("<group>", "the group")
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .action((group: string, options: { json?: boolean }) =>
+      show("groups delete", options.json, (store) => deleteAccountGroup(at(store, env), group)),
     )
 
   // Moving an account to work lets work views and agents of a work group read it: the owner's word, never an agent's.

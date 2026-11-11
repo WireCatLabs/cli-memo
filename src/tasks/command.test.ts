@@ -189,3 +189,36 @@ it("keeps a task's id in an outside service and its page through add, show and l
     details: { reason: "task.external-id" },
   })
 })
+
+it("lists the tasks of a deal and of its client company with related:", async () => {
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-related-tasks-")), "store.db") }
+  const portal = { provider: "example-crm", account: "portal-a" }
+  const store = await openStore({ env })
+  await store.accounts.saveAccount(portal, { name: null })
+  await store.crm.savePipelines(portal, "deal", [
+    { externalId: "p1", name: "Sales", stages: [{ externalId: "s1", name: "New", position: 10, outcome: "open" }] },
+  ])
+  await store.crm.saveOrganizations(portal, [{ externalId: "c1", name: "Example LLC" }])
+  await store.crm.saveItems(portal, "deal", [
+    { externalId: "d1", title: "Website", pipeline: "p1", stage: "s1", organization: "c1" },
+  ])
+  const [deal] = await store.deals.list({ account: portal, kind: "deal" })
+  await store.close()
+  const run = async (...args: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env })
+      .exitOverride()
+      .parseAsync([...args, "--json"], { from: "user" })
+    return answerOf(streams.stdout.join(""))
+  }
+  await run("projects", "add", "Lighthouse", "--key", "LHT")
+  await run("projects", "add", "Office", "--key", "OFF")
+  await run("deals", "update", deal?.ref as string, "--project", "LHT")
+  await run("tasks", "add", "--project", "LHT", "--title", "Draft the proposal")
+  await run("tasks", "add", "--project", "OFF", "--title", "Renew the lease")
+  const ids = async (ref: string) =>
+    (await run("tasks", "list", `related:"${ref}"`)).items.map((task: { id: string }) => task.id)
+
+  expect(await ids(deal?.ref as string)).toEqual(["LHT-1"])
+  expect(await ids(deal?.organization?.ref as string)).toEqual(["LHT-1"])
+})
