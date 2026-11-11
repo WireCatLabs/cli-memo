@@ -196,6 +196,17 @@ it("confirms exactly the findings named and rejects the rest of the batch", asyn
   expect((await f.run({}, OWNER, "review", "kind:task_close")).items).toEqual([])
 })
 
+it("decides a meeting findings batch through actions confirm only for the findings it names", async () => {
+  const f = await setUp()
+  await f.run({}, OWNER, "actions", "confirm", f.batch, "followup")
+  const shown = (await f.run({}, OWNER, "review", "show", f.batch, "--brief")).item
+  expect(shown.parts).toMatchObject([
+    { id: "followup", outcome: "accepted" },
+    { id: "budget", outcome: "rejected" },
+  ])
+  await expect(f.run({}, OWNER, "actions", "confirm", f.batch, "followup", "--fingerprint", "stale")).rejects.toThrow()
+})
+
 it("refuses an agent on every owner-only kind, and lets the owner decide a mail findings batch", async () => {
   const f = await setUp()
   const ids = [f.batch, `close:${f.task.key}`, f.mail.id]

@@ -6,3 +6,8 @@
 - **`memo tasks list` with any board field lists found tasks too.** `assignee:`, `priority:`, words and the other
   fields, `--sort` and `--cursor` no longer need `project:`: they list every task, project and found, and each item
   carries its `assignments`. `project:*` still lists project tasks only. `memo tasks counts` counts found tasks too.
+
+### Fixed
+
+- **`memo actions confirm` decides a meeting findings batch by the findings it names.** It went through the generic
+  confirm, which takes no finding IDs, as mail and evidence findings already did not.
