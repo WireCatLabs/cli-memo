@@ -405,8 +405,8 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   withQuery(
     annotate(relations.command("list"), { effects: LOCAL_READ })
       .description(
-        "relationships, all or those of one reference, with titles; confirmed:false lists the proposals waiting for " +
-          "you, as memo review kind:relationship does",
+        "relationships (who works where, who reports to whom, who is on a deal), all or those of one reference, with " +
+          "titles; confirmed:false lists the proposals waiting for you, as memo review kind:relationship does",
       )
       .summary("relationships with titles; confirmed:false lists those waiting for you"),
     RELATIONSHIP_QUERY,

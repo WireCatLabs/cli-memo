@@ -8,6 +8,14 @@ import { counted } from "../review/status.js"
 import { scopedAccounts } from "../store/group.js"
 import type { DigestSource } from "./digests.js"
 import { knownSenders } from "./known.js"
+import {
+  calendarChanges,
+  crmChanges,
+  driveChanges,
+  isCalendarAccount,
+  isCrmAccount,
+  isDriveAccount,
+} from "./sources.js"
 import { HEALTH_REASONS, type Health, healthOf, SOURCE_WORDS, syncRunsOf } from "./sync-health.js"
 import { digestRunBefore, gatherTasks, previousDigestAt, type TaskCounts } from "./tasks.js"
 
@@ -38,7 +46,19 @@ export interface DigestSection {
   unknown?: { count: number; next: string[] }
 }
 
-export const SECTIONS = ["watch", "owed", "mail", "meetings", "tasks", "projects", "sources", "proposals"] as const
+export const SECTIONS = [
+  "watch",
+  "owed",
+  "mail",
+  "meetings",
+  "calendar",
+  "drive",
+  "crm",
+  "tasks",
+  "projects",
+  "sources",
+  "proposals",
+] as const
 export type SectionName = (typeof SECTIONS)[number]
 
 export interface Coverage {
@@ -89,11 +109,11 @@ export interface DigestOptions {
   owedWithin: number
   /** Tasks created after this are new; the previous run of the running digest when left out. */
   newSince?: string
-  /** Only these parts: messengers by provider, mail, meetings, tasks. Empty or absent: all of them. */
+  /** Only these parts: messengers by provider, mail, meetings, calendar, drive, crm, tasks. Empty or absent: all. */
   sources?: readonly DigestSource[]
 }
 
-/** The digest source an account belongs to; one that is none of them (a CRM) stays in. */
+/** The digest source an account belongs to; one that is none of them stays in. */
 const sourceOf = (provider: string): DigestSource | undefined =>
   MESSENGERS.has(provider)
     ? (provider as DigestSource)
@@ -101,7 +121,13 @@ const sourceOf = (provider: string): DigestSource | undefined =>
       ? "mail"
       : kindOf(provider) === "meetings"
         ? "meetings"
-        : undefined
+        : isDriveAccount(provider)
+          ? "drive"
+          : isCalendarAccount(provider)
+            ? "calendar"
+            : isCrmAccount(provider)
+              ? "crm"
+              : undefined
 
 const DAY = 86_400_000
 const MESSENGERS = new Set(["telegram", "max", "whatsapp"])
@@ -473,6 +499,12 @@ export const gatherDigest = async (
     })
   }
 
+  const reading = { since, now, excerpt }
+  const none = { found: [], next: [] }
+  const calendar = reads("calendar") ? await calendarChanges(store, accounts, reading) : none
+  const drive = reads("drive") ? await driveChanges(store, accounts, reading) : none
+  const crm = reads("crm") ? await crmChanges(store, accounts, reading) : none
+
   const tasksSince = newSince ?? (until === undefined ? previousDigestAt(env, now) : digestRunBefore(env, until))
   const hot = reads("tasks")
     ? // Tasks taken from chats and mail count under tasks, read or not their source.
@@ -585,6 +617,9 @@ export const gatherDigest = async (
       ...(bulk ? [`# ${bulk} bulk or list threads left out`] : []),
     ]),
     await section("meetings", upTo(meetings), limit, ["memo search meetings <words>"]),
+    await section("calendar", calendar.found, limit, calendar.next),
+    await section("drive", drive.found, limit, drive.next),
+    await section("crm", crm.found, limit, crm.next),
     await section("tasks", tasks, limit, ["memo tasks list"]),
     await section("projects", upTo(projects), limit, projectNext),
     await section("sources", sourceItems, limit, [

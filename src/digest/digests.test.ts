@@ -142,7 +142,7 @@ describe("digests by name", () => {
       "already exists",
     )
     await expect(run("digest", "add", "x", "--from-app")).rejects.toThrow("say when")
-    await expect(run("digest", "add", "x", "--at", "08:30", "--source", "crm", "--from-app")).rejects.toThrow(
+    await expect(run("digest", "add", "x", "--at", "08:30", "--source", "fax", "--from-app")).rejects.toThrow(
       "--source takes",
     )
   })

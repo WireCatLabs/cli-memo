@@ -913,7 +913,7 @@ memo people reject <ids> [options]
 
 ### `memo people resolve`
 
-answers a match on a shared mailbox (people review shows shared and mailbox) with company: the address goes to the organization you name, else to the one that has the address or its company domain, else to one named --name, else to a new company named after the domain. The two people are not joined and are not proposed again on that address
+answers a match with company: the address goes to the organization you name, else to the one that has the address or its company domain, else to one named --name, else to a new company named after the domain. The two people are not joined and are not proposed again on that address. A match on a shared mailbox (people review shows shared and mailbox) names its address; on any other match, by name say, --mailbox names which of the two people's addresses it is
 
 This command changes the local store or your files.
 
@@ -932,6 +932,7 @@ memo people resolve <id> <answer> [organization] [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--name <name>` | the company's name, when no organization is named. |
+| `--mailbox <address>` | on a match that is not about a shared mailbox: the address that is the company's. |
 | `--all` | every match waiting on the same mailbox, in this one answer; without it, only this match. |
 | `--reason <text>` | why, in a few words. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
@@ -2315,7 +2316,7 @@ memo relationships add <from> <to> [options]
 
 ### `memo relationships list`
 
-relationships, all or those of one reference, with titles; confirmed:false lists the proposals waiting for you, as memo review kind:relationship does
+relationships (who works where, who reports to whom, who is on a deal), all or those of one reference, with titles; confirmed:false lists the proposals waiting for you, as memo review kind:relationship does
 
 ```sh
 memo relationships list [query] [options]
@@ -5558,7 +5559,7 @@ memo actions show <id> [options]
 
 ### `memo actions confirm`
 
-confirm it: it becomes a task in the account that would act, nothing is sent; for a findings batch, create the named findings (all when none is named) and reject the rest
+confirm it: it becomes a task in the account that would act, nothing is sent; for a findings batch, create the named findings and leave the others waiting, or create every waiting one when none is named
 
 This command changes the local store or your files.
 
@@ -5569,7 +5570,7 @@ memo actions confirm <id> [findings] [options]
 | Argument | | What it is |
 |---|---|---|
 | `id` | required | the action's id, as actions list gives it. |
-| `findings` | optional | a findings batch: the finding IDs to create. |
+| `findings` | optional | a findings batch: the finding IDs to create; the others keep waiting. |
 
 | Option | What it does |
 |---|---|
@@ -5583,9 +5584,37 @@ memo actions confirm <id> [findings] [options]
 
 **Example:** `memo actions confirm 5`
 
+### `memo actions edit`
+
+change one finding still waiting in a findings batch: its text and the fields its kind allows (a fact's statement, type and subject; a task's title, type, reason, commitment, dueAt and assignee; a mail finding's reason and its kind's fields). Its evidence never changes, nor a meeting finding's project. Answers the batch with its new fingerprint
+
+This command changes the local store or your files.
+
+```sh
+memo actions edit <id> <finding> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `id` | required | the findings batch's id, as actions list gives it. |
+| `finding` | required | the finding's id in the batch. |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--fingerprint <hash>` | the fingerprint actions show gives. |
+| `--set <field=value...>` | a field and its new value; JSON for a list or null. Default: ``. |
+| `--clear <field...>` | an optional field to empty, such as dueAt or assignee. Default: ``. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** change a finding still waiting in a findings batch, before you confirm it; only you
+
+**Example:** `memo actions edit 5 f2 --fingerprint 3f9a --set title="Send the signed contract" --clear dueAt`
+
 ### `memo actions reject`
 
-reject it; nothing is done. For a findings batch, every new finding
+reject it; nothing is done. For a findings batch, every finding still waiting
 
 This command changes the local store or your files.
 
@@ -5605,7 +5634,7 @@ memo actions reject <id> [options]
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** reject it; nothing is done. For a findings batch, every new finding
+**Returns:** reject it; nothing is done. For a findings batch, every finding still waiting
 
 **Example:** `memo actions reject 5`
 
@@ -5714,7 +5743,7 @@ memo review reject <ids> [options]
 
 ### `memo review agenda`
 
-the morning digest, from the store alone with no model call: everything new in what you tagged watch (chats, mail threads, people, projects, a meeting's series), replies you owe to people in messengers and personal mail (not bots or service chats), new personal mail, meetings that ended, tasks, projects that moved, memories and facts whose sources changed (source reviews raised since), proposals waiting. Tasks are the open ones created since the last morning-digest run (a day back when none ran) and those overdue, due today or due tomorrow, each with who asked and who does it. Replies owed reach back 7 days; owed mail lists only senders you know (linked to a person with other identities, or written to before), and mail from new senders is one count with the command that lists it. Each item has its reference, who, when, one line of text and why it is there; a section cut by --limit or --max-output-bytes says how many it left out and the command that reads them. `scope` says what was read (the window, sources, counts), `tasks` counts each task group and, as `undated`, every open task with no due date, and `health` names each account whose sync failed, that nothing syncs, or that is quiet for longer than usual, so an unsynced account does not read as a quiet day; an account stored or synced within a day is never named
+the morning digest, from the store alone with no model call: everything new in what you tagged watch (chats, mail threads, people, projects, a meeting's series), replies you owe to people in messengers and personal mail (not bots or service chats), new personal mail, meetings that ended, calendar events added, moved or cancelled and those starting within a day, Drive documents edited, CRM deals and leads the CRM changed (with a stage they moved to), tasks, projects that moved, memories and facts whose sources changed (source reviews raised since), proposals waiting. Tasks are the open ones created since the last morning-digest run (a day back when none ran) and those overdue, due today or due tomorrow, each with who asked and who does it. Replies owed reach back 7 days; owed mail lists only senders you know (linked to a person with other identities, or written to before), and mail from new senders is one count with the command that lists it. Each item has its reference, who, when, one line of text and why it is there; a section cut by --limit or --max-output-bytes says how many it left out and the command that reads them. `scope` says what was read (the window, sources, counts), `tasks` counts each task group and, as `undated`, every open task with no due date, and `health` names each account whose sync failed, that nothing syncs, or that is quiet for longer than usual, so an unsynced account does not read as a quiet day; an account stored or synced within a day is never named
 
 ```sh
 memo review agenda [options]
@@ -5724,13 +5753,13 @@ memo review agenda [options]
 |---|---|
 | `--since-time <time>` | how far back: hours or days (12h, 7d) or a start date (2026-11-01). Default: `1d`. |
 | `--before-time <time>` | build it as of this past ISO time or date, for a past day's digest: --since-time counts back from it, and what came later is left out; a chat or thread answered since reads as answered. |
-| `--source <accounts>` | only these, comma-separated or repeated: telegram, max, whatsapp, mail, meetings, tasks; watched items, projects and proposals stay. A digest's run reads the digest's own sources without it. |
+| `--source <accounts>` | only these, comma-separated or repeated: telegram, max, whatsapp, mail, meetings, tasks, drive, calendar, crm; watched items, projects and proposals stay. A digest's run reads the digest's own sources without it. |
 | `--limit <n>` | items per section before the size budget. Default: `25`. |
 | `--max-output-bytes <bytes>` | the text answer's size budget in bytes; 40000 with --compact, else 80000. |
 | `--compact` | one line per item, shorter excerpts, the smaller budget: for an agent. |
 | `--json` | print JSON. |
 
-**Returns:** the morning digest: watch list, owed replies, mail, meetings, tasks, projects
+**Returns:** the morning digest: watch list, owed replies, mail, meetings, calendar, Drive, CRM,…
 
 **Example:** `memo review agenda --compact`, `memo review agenda --since-time 3d --json`
 
@@ -6882,6 +6911,51 @@ memo groups move <source> <from> <to> [options]
 
 **Example:** `memo groups move telegram:102 personal work`
 
+### `memo groups rename`
+
+give a group another name, with its members; a run, lock or agent that still names the old one is refused with the groups there are
+
+This command changes the local store or your files.
+
+```sh
+memo groups rename <group> <name> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `group` | required | the group. |
+| `name` | required | its new name: letters, digits, - and _, not a memo command word. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** rename a group
+
+**Example:** `memo groups rename work office`
+
+### `memo groups delete`
+
+delete a group and its memberships; its accounts and their data stay, in their other groups and in `all`
+
+This command changes the local store or your files.
+
+```sh
+memo groups delete <group> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `group` | required | the group. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Returns:** delete a group
+
+**Example:** `memo groups delete clients`
+
 ### `memo groups update`
 
 set an account's scope, personal or work, which decides whether work views and meeting preparation read it; with --chat, pin one chat of it to a scope, or let it follow its account again
@@ -7363,7 +7437,7 @@ memo digest add <name> [options]
 | `--paused` | make it without putting it on its timer; `memo digest resume` does. |
 | `--title <title>` | the name the digest is shown under. |
 | `--at <HH:MM>` | when it runs: HH:MM every day, or 'mon,fri 09:00' on those days; repeat it for more times, as 08:30 and 18:00. |
-| `--source <accounts>` | what it reads, comma-separated or repeated: telegram, max, whatsapp, mail, meetings, tasks; all (the default) reads everything. |
+| `--source <accounts>` | what it reads, comma-separated or repeated: telegram, max, whatsapp, mail, meetings, tasks, drive, calendar, crm; all (the default) reads everything. |
 | `--deliver-to <route>` | where each run is sent: telegram-bot:<profile>/<chat> or email:<profile>/<address>; repeat it for more, none for nowhere. |
 | `--text <text>` | your brief: what to collect, what to skip, how much; at most 4000 characters. |
 | `--agent <agent>` | the agent that writes it: claude (the default) or codex; a local model needs an agent set up to run one. One of: `claude`, `codex`. |
@@ -7395,7 +7469,7 @@ memo digest edit <name> [options]
 |---|---|
 | `--title <title>` | the name the digest is shown under. |
 | `--at <HH:MM>` | when it runs: HH:MM every day, or 'mon,fri 09:00' on those days; repeat it for more times, as 08:30 and 18:00. |
-| `--source <accounts>` | what it reads, comma-separated or repeated: telegram, max, whatsapp, mail, meetings, tasks; all (the default) reads everything. |
+| `--source <accounts>` | what it reads, comma-separated or repeated: telegram, max, whatsapp, mail, meetings, tasks, drive, calendar, crm; all (the default) reads everything. |
 | `--deliver-to <route>` | where each run is sent: telegram-bot:<profile>/<chat> or email:<profile>/<address>; repeat it for more, none for nowhere. |
 | `--text <text>` | your brief: what to collect, what to skip, how much; at most 4000 characters. |
 | `--agent <agent>` | the agent that writes it: claude (the default) or codex; a local model needs an agent set up to run one. One of: `claude`, `codex`. |

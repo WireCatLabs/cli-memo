@@ -67,6 +67,17 @@ describe("account groups", () => {
     expect(rowOf(doubled, "work")?.members).toEqual([expect.objectContaining({ also_in: ["personal"] })])
   })
 
+  it("renames a group with its members, deletes one, and a run in a gone group lists the groups", async () => {
+    await memo("groups", "add", "family", "telegram:1")
+    const renamed = await memo("groups", "rename", "work", "office")
+    expect(renamed.items.map(({ group }: { group: string }) => group)).toEqual(["office", "family", "all"])
+    expect(rowOf(renamed, "office")?.members).toEqual([expect.objectContaining(WORK)])
+    const deleted = await memo("groups", "delete", "family")
+    expect(deleted.items.map(({ group }: { group: string }) => group)).toEqual(["office", "all"])
+    await expect(memo("groups", "delete", "all")).rejects.toThrow(/built in/)
+    await expect(memo("work", "search", "messages", "Groupsignal")).rejects.toThrow(/groups here: office/)
+  })
+
   it("adds, moves and removes a member, and never takes a command word as a group name", async () => {
     const added = await memo("groups", "add", "family", "telegram:1")
     expect(rowOf(added, "family")?.members).toEqual([expect.objectContaining(PERSONAL)])

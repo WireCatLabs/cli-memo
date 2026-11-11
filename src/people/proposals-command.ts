@@ -160,16 +160,18 @@ export const peopleProposalCommands = (
     annotate(people.command("resolve"), { effects: LOCAL_WRITE })
       .summary("say a shared mailbox is a company's, not either person's; only you")
       .description(
-        "answers a match on a shared mailbox (people review shows shared and mailbox) with company: the address goes to the " +
+        "answers a match with company: the address goes to the " +
           "organization you name, else to the one that has the address or its company domain, else to one named " +
           "--name, else to a new company named after the domain. The two people are not joined and are not proposed " +
-          "again on that address",
+          "again on that address. A match on a shared mailbox (people review shows shared and mailbox) names its " +
+          "address; on any other match, by name say, --mailbox names which of the two people's addresses it is",
       )
       .argument("<id>", "the match's id as people review lists it")
       .argument("<answer>", "company: the mailbox is a company's, not either person's", oneOf(RESOLVE_ANSWERS))
       .argument("[organization]", "organization:<id> to give the address to"),
   )
     .option("--name <name>", "the company's name, when no organization is named")
+    .option("--mailbox <address>", "on a match that is not about a shared mailbox: the address that is the company's")
     .option("--all", "every match waiting on the same mailbox, in this one answer; without it, only this match")
     .option("--reason <text>", "why, in a few words")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
@@ -178,7 +180,7 @@ export const peopleProposalCommands = (
       id: string,
       _answer: (typeof RESOLVE_ANSWERS)[number],
       organization: string | undefined,
-      options: { name?: string; all?: boolean; reason?: string; json?: boolean },
+      options: { name?: string; mailbox?: string; all?: boolean; reason?: string; json?: boolean },
     ) => {
       const owned = organizationOf(organization)
       await asOwner(company, env, `say the mailbox of people proposal ${id} is a company's?`)
@@ -190,15 +192,16 @@ export const peopleProposalCommands = (
           company: {
             ...(owned === undefined ? {} : { organization: owned }),
             ...(options.name ? { name: options.name } : {}),
+            ...(options.mailbox ? { mailbox: options.mailbox } : {}),
             ...(options.all ? { all: true } : {}),
           },
           ...(options.reason ? { reason: options.reason } : {}),
         })
       })
-      const result = decided.result as { organization?: string; closed?: string[] } | null
+      const result = decided.result as { organization?: string; closed?: string[]; mailbox?: string } | null
       const given = result?.organization ?? null
       const closed = result?.closed ?? [id]
-      const mailbox = (decided.payload as { mailbox?: string }).mailbox ?? null
+      const mailbox = result?.mailbox ?? (decided.payload as { mailbox?: string }).mailbox ?? null
       print(
         options.json,
         itemAnswer({ id, kind: IDENTITY_LINK_KIND, status: "rejected" as const, mailbox, organization: given, closed }),

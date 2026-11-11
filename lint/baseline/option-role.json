@@ -1,4 +1,6 @@
 [
+  "actions edit --set",
+  "people resolve --mailbox",
   "projects evidence --include-proposed",
   "projects evidence --purpose",
   "projects status --purpose",
