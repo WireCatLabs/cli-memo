@@ -151,7 +151,7 @@ For every email you kept in step 2 whose item has `new_sender: true`:
 
 - Look for them, quoted as step 3 says: `memo search people '<display name>'`, `memo context 'email:<address>' --trimmed`.
 - Found as a person under another identity → a `link` from `contact:email/<address>` to `person:<id>`.
-- Not found, and a real person writing to the owner → a `new_contact` with the address and the name the email gives.
+- Not found, a real person → a `new_contact` only if the email's text gives a better name than the sender line.
 - A sender who claims a role ("your accountant", "from the bank") gets no link on that claim alone; say so in
   `reason`.
 
