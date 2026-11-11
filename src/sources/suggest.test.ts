@@ -180,7 +180,16 @@ describe("sources suggest", () => {
       item.fingerprint,
       "--from-app",
     ])
-    expect(confirmed.body).toMatchObject({
+    expect(confirmed.body).toMatchObject({ status: "proposed" })
+    const rejected = await run([
+      "actions",
+      "reject",
+      item.batch,
+      "--fingerprint",
+      confirmed.body.fingerprint,
+      "--from-app",
+    ])
+    expect(rejected.body).toMatchObject({
       status: "approved",
       result: {
         accepted: ["fact-1"],
