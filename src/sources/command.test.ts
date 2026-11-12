@@ -298,9 +298,60 @@ it("takes the app's word that the owner added it, even in an agent's environment
   expect((await run(["sources", "show", proposed.ref])).subjects).toEqual([{ ref: organization, confirmed: false }])
 })
 
+it("keeps a WebVTT transcript as who said what, one line per turn", async () => {
+  const vtt = [
+    "\uFEFFWEBVTT - exported call",
+    "",
+    "NOTE written by the meeting app",
+    "",
+    "1f2e-cue",
+    "00:00:01.000 --> 00:00:04.000 align:start position:10%",
+    "<v Kai Sample>Agenda: the</v>",
+    "",
+    "00:00:04.000 --> 00:00:06.500",
+    "<v Kai Sample>harbourline budget.</v>",
+    "",
+    "00:00:07.000 --> 00:00:09.000",
+    "<v.loud Mira Test>Agreed, <i>ship</i> it.</v>",
+    "",
+    "01:00:09.000 --> 01:00:11.000",
+    "Kai Sample: Q&amp;A &lt;v Nobody&gt; at 5&#160;pm &#x2014; done",
+    "",
+  ].join("\r\n")
+  const added = await add([file("Weekly call.vtt", vtt)])
+  expect(added).toMatchObject({ title: "Weekly call", mime: "text/vtt" })
+  expect((await run(["sources", "show", added.ref])).text).toBe(
+    "Kai Sample: Agenda: the harbourline budget.\nMira Test: Agreed, ship it.\nKai Sample: Q&A <v Nobody> at 5\u00a0pm \u2014 done",
+  )
+})
+
+it("keeps a SubRip transcript, with the speaker each cue names", async () => {
+  const srt = [
+    "1",
+    "00:00:01,000 --> 00:00:03,000",
+    "Kai Sample: The thornfield draft",
+    "is ready.",
+    "",
+    "2",
+    "00:00:03,500 --> 00:00:05,000",
+    "Kai Sample: Send it today.",
+    "",
+    "3",
+    "00:00:05,000 --> 00:00:07,000",
+    "No one named here.",
+    "",
+  ].join("\n")
+  const added = await add([file("standup.srt", srt)])
+  expect(added).toMatchObject({ title: "standup", mime: "application/x-subrip" })
+  expect((await run(["sources", "show", added.ref])).text).toBe(
+    "Kai Sample: The thornfield draft is ready. Send it today.\nNo one named here.",
+  )
+})
+
 it.each([
   ["source.unsupported", () => [file("archive.bin", new Uint8Array([0, 159, 146, 150, 0, 1, 2, 3]))], undefined],
   ["source.no-text", () => [file("empty.txt", "   \n")], undefined],
+  ["source.no-text", () => [file("empty.vtt", "WEBVTT\n\nNOTE nothing was said\n")], undefined],
   ["source.no-text", () => ["-"], { stdin: "  \n " }],
   ["source.url-refused", () => ["http://127.0.0.1/admin"], undefined],
   ["source.url-refused", () => ["file:///etc/hostname"], undefined],

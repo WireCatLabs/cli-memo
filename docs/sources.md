@@ -14,7 +14,7 @@ pbpaste | memo sources add - --subject person:12
 
 | Give | Memo reads |
 |---|---|
-| A file's path | The file, with the readers of [Files Memo can read](notes.md#files-memo-can-read), and web pages saved as `.html` or `.htm` |
+| A file's path | The file, with the readers of [Files Memo can read](notes.md#files-memo-can-read), web pages saved as `.html` or `.htm`, and meeting transcripts saved as `.vtt` or `.srt` |
 | An `http` or `https` address | The page, once, from this computer, as it reads today |
 | `-` | The text on stdin |
 
@@ -30,6 +30,10 @@ pbpaste | memo sources add - --subject person:12
 - **`--title`** names it. Without one, Memo takes the page's or the file's own title, or the first line of the text.
 - **`--max-chars`** keeps at most that many characters of text, up to 2,000,000 (default 200,000). The answer says
   `truncated: true` when only the first part was kept.
+
+A meeting transcript exported as WebVTT (`.vtt`) or SubRip (`.srt`), as Google Meet, Zoom, Teams, Telemost or Otter
+save one, is kept as what was said: one line per turn, `Name: text` when the file names the speaker, without the
+timings.
 
 A scanned PDF has no text Memo can read: it is kept by its title and subjects only (`read: "no-text"`).
 
