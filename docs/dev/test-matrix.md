@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1158 ✅ · 0 ⛔ · 330 ❌** — 326 commands, 1162 options.
+**1174 ✅ · 0 ⛔ · 336 ❌** — 332 commands, 1178 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -187,7 +187,8 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `people resolve` |  | ✅ |  |
 | `people resolve` | `--as-owner` | ❌ |  |
 | `people resolve` | `--from-app` | ❌ |  |
-| `people resolve` | `--name` | ❌ |  |
+| `people resolve` | `--name` | ✅ |  |
+| `people resolve` | `--mailbox` | ✅ |  |
 | `people resolve` | `--all` | ✅ |  |
 | `people resolve` | `--reason` | ❌ |  |
 | `people resolve` | `--json` | ✅ |  |
@@ -1124,9 +1125,15 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `actions confirm` | `--fingerprint` | ✅ |  |
 | `actions confirm` | `--reason` | ✅ |  |
 | `actions confirm` | `--json` | ✅ |  |
+| `actions edit` |  | ✅ |  |
+| `actions edit` | `--as-owner` | ❌ |  |
+| `actions edit` | `--from-app` | ❌ |  |
+| `actions edit` | `--fingerprint` | ✅ |  |
+| `actions edit` | `--set` | ✅ |  |
+| `actions edit` | `--json` | ❌ |  |
 | `actions reject` |  | ✅ |  |
 | `actions reject` | `--as-owner` | ❌ |  |
-| `actions reject` | `--from-app` | ❌ |  |
+| `actions reject` | `--from-app` | ✅ |  |
 | `actions reject` | `--fingerprint` | ✅ |  |
 | `actions reject` | `--reason` | ✅ |  |
 | `actions reject` | `--json` | ✅ |  |
@@ -1156,7 +1163,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `review agenda` |  | ✅ |  |
 | `review agenda` | `--since-time` | ✅ |  |
 | `review agenda` | `--before-time` | ✅ |  |
-| `review agenda` | `--source` | ❌ |  |
+| `review agenda` | `--source` | ✅ |  |
 | `review agenda` | `--limit` | ✅ |  |
 | `review agenda` | `--max-output-bytes` | ✅ |  |
 | `review agenda` | `--compact` | ✅ |  |
@@ -1245,6 +1252,13 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `models local-only set` |  | ❌ |  |
 | `models local-only set` | `--from-app` | ❌ |  |
 | `models local-only set` | `--json` | ❌ |  |
+| `models picture-reading show` |  | ❌ |  |
+| `models picture-reading show` | `--json` | ❌ |  |
+| `models picture-reading set` |  | ✅ |  |
+| `models picture-reading set` | `--agent` | ✅ |  |
+| `models picture-reading set` | `--model` | ✅ |  |
+| `models picture-reading set` | `--from-app` | ❌ |  |
+| `models picture-reading set` | `--json` | ✅ |  |
 | `templates list` |  | ✅ |  |
 | `templates list` | `--json` | ✅ |  |
 | `templates show` |  | ✅ |  |
@@ -1356,6 +1370,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `groups remove` | `--json` | ✅ |  |
 | `groups move` |  | ✅ |  |
 | `groups move` | `--json` | ✅ |  |
+| `groups rename` |  | ✅ |  |
+| `groups rename` | `--json` | ✅ |  |
+| `groups delete` |  | ✅ |  |
+| `groups delete` | `--json` | ✅ |  |
 | `groups update` |  | ✅ |  |
 | `groups update` | `--scope` | ✅ |  |
 | `groups update` | `--chat` | ✅ |  |
@@ -1388,6 +1406,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `schedule agent` |  | ✅ |  |
 | `schedule agent` | `--model` | ✅ |  |
 | `schedule agent` | `--max-cost` | ✅ |  |
+| `schedule agent` | `--allow-dangerous` | ❌ |  |
 | `schedule agent` | `--max-cost-per-day` | ✅ |  |
 | `schedule agent` | `--every` | ✅ |  |
 | `schedule agent` | `--at` | ✅ |  |
@@ -1400,6 +1419,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `schedule agent` | `--json` | ❌ |  |
 | `schedule list` |  | ✅ |  |
 | `schedule list` | `--json` | ✅ |  |
+| `schedule agents list` |  | ❌ |  |
 | `schedule run` |  | ✅ |  |
 | `schedule run` | `--no-notify` | ❌ |  |
 | `schedule run` | `--deliver-to` | ❌ |  |
@@ -1431,6 +1451,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `digest add` | `--text` | ✅ |  |
 | `digest add` | `--agent` | ✅ |  |
 | `digest add` | `--model` | ✅ |  |
+| `digest add` | `--allow-dangerous` | ✅ |  |
 | `digest add` | `--max-cost` | ✅ |  |
 | `digest add` | `--max-cost-per-day` | ❌ |  |
 | `digest add` | `--json` | ✅ |  |
@@ -1443,6 +1464,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `digest edit` | `--text` | ✅ |  |
 | `digest edit` | `--agent` | ✅ |  |
 | `digest edit` | `--model` | ❌ |  |
+| `digest edit` | `--allow-dangerous` | ❌ |  |
 | `digest edit` | `--max-cost` | ✅ |  |
 | `digest edit` | `--max-cost-per-day` | ✅ |  |
 | `digest edit` | `--json` | ✅ |  |
