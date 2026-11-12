@@ -15,6 +15,7 @@ import {
   type Section,
 } from "@wirecat/cli-core/documents"
 import type { AddedSourceInput } from "@wirecat/cli-core/store"
+import { transcriptText } from "./transcript.js"
 
 /** What memo's folder import keeps of a file's text; `--max-chars` may raise it to the store's own limit. */
 export const SOURCE_TEXT_CHARS = 200_000
@@ -69,6 +70,8 @@ const MIMES: Record<string, string> = {
   ".ods": "application/vnd.oasis.opendocument.spreadsheet",
   ".epub": "application/epub+zip",
   ".rtf": "application/rtf",
+  ".vtt": "text/vtt",
+  ".srt": "application/x-subrip",
   ".png": "image/png",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
@@ -189,7 +192,6 @@ export const readFile = async (
   const bytes = new Uint8Array(readFileSync(path))
   const extension = extname(name).toLowerCase()
   const mime = MIMES[extension] ?? null
-  const found = await extractText(bytes, { kind: "file", name, mime, path }, load)
   const base = {
     kind: "file" as const,
     url: null,
@@ -199,6 +201,12 @@ export const readFile = async (
     size: bytes.byteLength,
   }
   const byName = name.replace(/\.[^.]+$/, "") || name
+  if (extension === ".vtt" || extension === ".srt") {
+    const { text, cut } = bounded(transcriptText(new TextDecoder().decode(bytes)), maxChars)
+    if (!text.trim()) throw noText(name)
+    return { ...base, text, read: "extracted", extractor: "transcript", truncated: cut, title: byName }
+  }
+  const found = await extractText(bytes, { kind: "file", name, mime, path }, load)
   if (found.status === "needs-agent" && mime?.startsWith("image/") && image) {
     const reader = image()
     if ("refused" in reader)
