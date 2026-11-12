@@ -149,6 +149,21 @@ The address goes to the organization, the two people are not joined, and that pa
 address. With `--all` every match waiting on the same mailbox is closed in that one answer, and `closed` lists them.
 Each match carries `mailbox` and, when three or more people share it, all of them in `candidates`. Only you answer it, as with `confirm` and `reject`.
 
+When both "people" on a match are the company's mailboxes (two contacts named after the company, at its domain), give
+them all to it:
+
+```sh
+memo people resolve 17094 organization                    # the company with an address or the domain, else a new one
+memo people resolve 17094 organization organization:12    # this organization
+memo people resolve 17094 organization --name "Shop Ltd"  # a company of this name; needed for free mail (gmail.com)
+```
+
+Every address on the match goes to that organization; with no name, a new one is named after the people's shared
+name, else the domain. A person who is only those addresses becomes the company's and leaves the people list
+(`people list kind:organization` shows them); one who also has a Telegram account or a phone keeps it and stays a
+person, and only the address leaves them. Nobody is joined, the match closes, `--all` closes every match waiting on
+those addresses, and the answer lists `mailboxes`, `people` (who became the company's) and `closed`.
+
 Link two accounts yourself, or look at one person:
 
 ```sh

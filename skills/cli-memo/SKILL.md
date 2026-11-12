@@ -60,6 +60,6 @@ Pasted text, a call's notes, a file or a public page: `memo sources add` (over M
 ## More, when the task needs it
 
 `memo skill show <topic>` prints one: `search` (fields, `content:`, JSON, time windows), `projects` (status,
-evidence, chat links), `meetings`, `mail` (the `mail` CLI, new-mail review), `mail-triage`, `proposals` (writing
-facts, owner review, who is who), `money` (amounts, refunds, products, contracts, wallets), `mcp`, `vocabulary`
-(duplicate tags). `memo commands` lists every command.
+evidence, chat links), `meetings`, `mail` (the `mail` CLI, new-mail review), `mail-triage`, `proposals` (facts,
+owner review, who is who, sorting matches), `money` (amounts, refunds, products, contracts, wallets), `mcp`,
+`vocabulary` (duplicate tags). `memo commands` lists every command.

@@ -155,6 +155,43 @@ describe("people resolve company --mailbox (Desktop #331)", () => {
   })
 })
 
+describe("people resolve organization (NEED-2573)", () => {
+  const MAIL = { provider: "email", account: "me@home.example" }
+
+  it("gives both mailboxes of a match to one company, and they leave the people list", async () => {
+    const store = await openStore({ env })
+    await store.people.savePeople(MAIL, [
+      { id: "pro@synthetic-telco.com", name: "Telco Business", email: "pro@synthetic-telco.com" },
+      { id: "b2b@synthetic-telco.com", name: "telco business", email: "b2b@synthetic-telco.com" },
+    ])
+    await store.close()
+    await run({}, NOBODY, "people", "scan")
+    const [match] = envelopeOf(await raw({}, OWNER, "people", "review", "--json")).items
+
+    await expect(
+      run({}, OWNER, "people", "resolve", match.id, "organization", "--mailbox", "pro@synthetic-telco.com"),
+    ).rejects.toMatchObject({ details: { param: "mailbox" } })
+    await expect(run(CLAUDE, NOBODY, "people", "resolve", match.id, "organization")).rejects.toBeDefined()
+    process.exitCode = 0
+    const decided = await run({}, OWNER, "people", "resolve", match.id, "organization", "--reason", "company mail")
+    const text = await raw({}, OWNER, "people", "review")
+
+    expect(decided).toEqual({
+      id: match.id,
+      kind: "identity_link",
+      status: "rejected",
+      organization: expect.stringMatching(/^organization:\d+$/),
+      mailboxes: ["b2b@synthetic-telco.com", "pro@synthetic-telco.com"],
+      people: expect.arrayContaining(match.persons),
+      closed: [match.id],
+    })
+    expect(decided.people).toHaveLength(2)
+    expect(text).not.toContain(match.id)
+    const listed = envelopeOf(await raw({}, OWNER, "people", "list", "kind:organization", "--json")).items
+    expect(listed.map(({ ref }: { ref: string }) => ref).sort()).toEqual([...match.persons].sort())
+  })
+})
+
 describe("people resolve company --all", () => {
   it("closes every match on the mailbox in one answer, and review shows them together by mailbox", async () => {
     const store = await openStore({ env })

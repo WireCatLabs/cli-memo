@@ -913,7 +913,7 @@ memo people reject <ids> [options]
 
 ### `memo people resolve`
 
-answers a match with company: the address goes to the organization you name, else to the one that has the address or its company domain, else to one named --name, else to a new company named after the domain. The two people are not joined and are not proposed again on that address. A match on a shared mailbox (people review shows shared and mailbox) names its address; on any other match, by name say, --mailbox names which of the two people's addresses it is
+answers a match with company: the address goes to the organization you name, else to the one that has the address or its company domain, else to one named --name, else to a new company named after the domain. The two people are not joined and are not proposed again on that address. A match on a shared mailbox (people review shows shared and mailbox) names its address; on any other match, by name say, --mailbox names which of the two people's addresses it is. organization answers a match whose two people are the company's mailboxes: every address on it goes to one organization, chosen the same way, else named after the people's shared name; people who are only those addresses become the company's, people with other identities keep them and stay people
 
 This command changes the local store or your files.
 
@@ -924,22 +924,22 @@ memo people resolve <id> <answer> [organization] [options]
 | Argument | | What it is |
 |---|---|---|
 | `id` | required | the match's id as people review lists it. |
-| `answer` | required | company: the mailbox is a company's, not either person's. |
-| `organization` | optional | organization:<id> to give the address to. |
+| `answer` | required | company: the mailbox is a company's, not either person's; organization: both are the company's mailboxes. |
+| `organization` | optional | organization:<id> to give the addresses to. |
 
 | Option | What it does |
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--name <name>` | the company's name, when no organization is named. |
-| `--mailbox <address>` | on a match that is not about a shared mailbox: the address that is the company's. |
-| `--all` | every match waiting on the same mailbox, in this one answer; without it, only this match. |
+| `--mailbox <address>` | with company, on a match not about a shared mailbox: the company's address. |
+| `--all` | every match waiting on the same addresses, in this one answer; without it, only this match. |
 | `--reason <text>` | why, in a few words. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** say a shared mailbox is a company's, not either person's; only you
+**Returns:** say a match's mailbox, or both its people, are a company's; only you
 
-**Example:** `memo people resolve 17092 company`, `memo people resolve 17093 company organization:12 --json`
+**Example:** `memo people resolve 17092 company`, `memo people resolve 17093 company organization:12 --json`, `memo people resolve 17094 organization --name "Shop Ltd"`
 
 ### `memo people links`
 
