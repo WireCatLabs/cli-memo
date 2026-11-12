@@ -82,9 +82,12 @@ it("stages cited findings, keeps nested selection and lets only the owner confir
   expect(selected.meta).toBeDefined()
   const args = ["meetings", "actions", "confirm", staged.id, ...f.acts, "--fingerprint", staged.fingerprint, "decision"]
   await expect(f.run(args, true)).rejects.toThrow("belong to the owner")
-  const confirmed = (await f.run(args)).item
+  const partial = (await f.run(args)).item
+  expect(partial).toMatchObject({ status: "proposed", receipt: null })
+  await expect(f.run(args)).rejects.toThrow("changed since they were read")
+  const reject = ["meetings", "actions", "reject", staged.id, ...f.acts, "--fingerprint", partial.fingerprint]
+  const confirmed = (await f.run(reject)).item
   expect(confirmed.receipt.items.map((item: { status: string }) => item.status)).toEqual(["accepted", "rejected"])
-  expect((await f.run(args)).item.receipt).toEqual(confirmed.receipt)
   await expect(f.run(["actions", "confirm", staged.id])).rejects.toThrow("already confirmed")
 })
 it("paginates with scope intact and rejects stale owner decisions", async () => {

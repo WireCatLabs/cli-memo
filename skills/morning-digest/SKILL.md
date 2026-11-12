@@ -37,7 +37,9 @@ what came after that day. Everything else below holds.
    (what was read), `tasks:` (how many tasks in each group) and `health:` (accounts whose sync needs a look). Its
    sections come in this order: `watch` (what the owner tagged `watch`), `owed` (replies he owes to people; bots and
    service chats are already left out; mail from new senders is one counted line, run its `next:` only if a new client
-   is plausible), `mail` (new personal mail), `meetings` (ended, with or without a transcript), `tasks` (open tasks
+   is plausible), `mail` (new personal mail), `meetings` (ended, with or without a transcript), `calendar` (events
+   added, moved or cancelled, and those starting within a day), `drive` (Google Drive documents edited), `crm` (deals
+   and leads the CRM changed, with the stage one moved to), `tasks` (open tasks
    created since the last digest, and those overdue, due today or due tomorrow; the line says which, who asked, who
    does it and when it is due), `projects` (what moved), `proposals` (waiting for his decision). An account in
    `health` was not synced as it should be, so the day there may only look quiet.
@@ -89,6 +91,9 @@ write only the content. A document that breaks this shape is not delivered: the 
   and yesterday's with a transcript or an open follow-up), `projects` (one item per project that moved), `mail`
   (personal mail worth a look that is not owed and not in a project). Order items by importance; send as many as
   matter, WireCat keeps the first ones and counts the rest. `more`: how many you knew of and left out.
+- The agenda's `calendar` items go in `meetings` as `meeting` items with channel `meeting`; a `crm` deal or lead in
+  `money` when its amount or stage matters, else in `projects`; a `drive` document in `projects` when it belongs to
+  one, else leave it out. Put the agenda's `event:`, `deal:`, `lead:` or `document:` reference first in `refs`.
 - `scope`, `tasks` and `health`: the JSON of the agenda's `scope:`, `tasks:` and `health:` lines, exactly as printed.
   Never count, add or drop anything in them yourself; `"health": []` when the agenda's is empty.
 - One `task` item for each item of the agenda's `tasks` section, in `today`: `topic` the task in a few words, `due` its

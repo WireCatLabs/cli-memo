@@ -4,19 +4,25 @@ import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { type ServerSystem, thisMachine } from "@wirecat/cli-core/background"
 import {
-  type AgentScheduleSpec,
   agentSchedule,
   type BaseEnvironment,
   type Body,
   calendarOf,
   environmentOf,
   grantsAuthority,
+  HARNESSES,
+  type Harness,
+  harnessesOn,
+  harnessInfo,
+  harnessOfArgv,
   LOCAL_READ,
   LOCAL_WRITE,
   parseRoute,
   pauseSchedule,
   queryTerms,
+  readSchedule,
   removeSchedule,
+  reportsCost,
   routeText,
   runScheduleNow,
   type Schedule,
@@ -30,25 +36,29 @@ import {
 import { type Command, Option } from "commander"
 import { itemAnswer, wholeList, withStore } from "../answer.js"
 import { APP } from "../app.js"
-import { fromAppOption, whoRuns } from "../author.js"
+import { authorOf, fromAppOption, whoRuns } from "../author.js"
 import { scheduleLimits } from "../config.js"
 import { setExitCode } from "../exit-code.js"
+import { readOnly } from "../read-only.js"
 import { agentInputOf, MAIL_CLI } from "../schedule/command.js"
 import { checkedBrief, readBrief, refuseAgent } from "./brief.js"
 import { sourcesOf } from "./command.js"
 import {
+  agentOf,
   briefAddress,
   DIGEST_PROMPT,
   DIGEST_SOURCES,
+  type DigestAgent,
   type DigestSource,
   type DigestView,
   digestNames,
   digestOf,
   digestScheduleFile,
   dropDefinition,
+  legacyClaudeDigest,
   MORNING_DIGEST,
   readDefinition,
-  runCapOf,
+  runsDigestSkill,
   viewOf,
   writeDefinition,
 } from "./digests.js"
@@ -56,9 +66,6 @@ import {
 type Print = (json: boolean | undefined, body: Body, text?: string) => void
 
 /** `--source all` and `--deliver-to none`: an edit's way to clear what an earlier one set. */
-const HARNESSES = ["claude", "codex"] as const
-type Harness = (typeof HARNESSES)[number]
-
 const ALL = "all"
 const NONE = "none"
 
@@ -72,6 +79,7 @@ interface Options {
   maxCostPerDay?: number
   agent?: Harness
   model?: string
+  allowDangerous?: boolean
   paused?: boolean
   json?: boolean
   fromApp?: boolean
@@ -120,7 +128,8 @@ const withDigestOptions = (command: Command) =>
       .addOption(
         new Option(
           "--agent <agent>",
-          "the agent that writes it: claude (the default) or codex; a local model needs an agent set up to run one",
+          "the agent that writes it; a new digest takes the one agent installed, and asks when there are more. A " +
+            "local model needs an agent set up to run one",
         ).choices(HARNESSES),
       )
       .option(
@@ -128,8 +137,13 @@ const withDigestOptions = (command: Command) =>
         'the model the agent runs on: an alias such as sonnet or a model id; "" for the agent\'s own default',
       )
       .option(
+        "--allow-dangerous",
+        "let an agent whose own limits cannot hold it to memo's commands write it, where `memo schedule agents list` " +
+          "says allowed_with_ack (codex): it may then run any program inside its sandbox. Only you give this",
+      )
+      .option(
         "--max-cost <usd>",
-        "claude only: stop a run that costs more than this, in US dollars",
+        "stop a run that costs more than this, in US dollars; only for an agent that reports its cost",
         usdOf("--max-cost", "above zero"),
       )
       .option(
@@ -140,17 +154,82 @@ const withDigestOptions = (command: Command) =>
       .option("--json", "print JSON"),
   )
 
-/** The harness, model and per-run cap an existing schedule's argv was made with, so an edit keeps them. */
-const kept = (schedule: Schedule): Pick<AgentScheduleSpec, "harness" | "model" | "maxCost"> => {
-  const { argv } = schedule
-  const model = argv.indexOf("--model")
-  const cap = runCapOf(argv)
-  return {
-    harness: argv[1] === "exec" ? "codex" : "claude",
-    ...(model < 0 ? { model: "" } : { model: argv[model + 1] ?? "" }),
-    ...(cap === null ? {} : { maxCost: cap }),
-  }
+/** The commands an old claude digest was allowed: memo's own and the mail CLI's. */
+const LEGACY_TOOLS = [APP.command, MAIL_CLI.command].map((command) => `Bash(${command}:*)`)
+
+/** What an existing digest's agent was asked, so an edit keeps it; an old file only in the shape memo saved it. */
+const kept = (schedule: Schedule): DigestAgent =>
+  agentOf(schedule) ??
+  legacyClaudeDigest(schedule.argv, LEGACY_TOOLS) ?? { harness: harnessOfArgv(schedule.argv) ?? "claude", model: "" }
+
+/** An agent no schedule may start, or one that needs `--allow-dangerous`, is refused before anything is asked. */
+const refuseUnheld = (harness: Harness, accepted: boolean) => {
+  const info = harnessInfo(harness)
+  if (info.restricted || (info.allowedWithAck && accepted)) return
+  throw new CliError(
+    "permission_error",
+    info.allowedWithAck
+      ? `${info.name} writes a digest only with --allow-dangerous, as ${info.restrictedReason}`
+      : `${info.name} cannot run on a schedule: ${info.restrictedReason}`,
+    { reason: "agent.unrestricted", restricted_reason: info.restrictedReason },
+  )
 }
+
+/** A cost cap typed for an agent that reports no cost would never stop it, so it is refused rather than kept. */
+const refuseUncostedCap = (harness: Harness, given: Options) => {
+  if (!reportsCost(harness) && (given.maxCost !== undefined || given.maxCostPerDay))
+    throw new CliError(
+      "validation_error",
+      `${harness} reports no cost, so --max-cost and --max-cost-per-day cannot stop it; leave them out`,
+      { reason: "agent.cost-unknown", param: given.maxCost !== undefined ? "max-cost" : "max-cost-per-day" },
+    )
+}
+
+/**
+ * A new digest's agent when none is given: the one installed. With none or several, the owner names it, because a
+ * guessed agent may be one without credit.
+ */
+const installedAgent = (env: NodeJS.ProcessEnv): Harness => {
+  const installed = harnessesOn(env, process.platform).filter((one) => one.installed)
+  if (installed.length === 1 && installed[0]) return installed[0].id
+  const choices = (installed.length ? installed : harnessesOn(env, process.platform)).map(({ id }) => id)
+  throw new CliError(
+    "validation_error",
+    installed.length
+      ? `more than one agent is installed; name the one that writes it: --agent ${choices.join("|")}`
+      : `no agent is installed; install one and name it with --agent: ${choices.join(", ")}`,
+    { param: "agent", reason: "digest.agent-unchosen", choices },
+  )
+}
+
+/** A digest's schedule rebuilt for `agent`, keeping its notice, pause and creation time. */
+const digestSchedule = (
+  site: ScheduleSite,
+  name: string,
+  schedule: Schedule,
+  agent: Omit<DigestAgent, "model" | "allowDangerous"> & {
+    model: string | undefined
+    maxCostPerDay: number | undefined
+    allowDangerous?: boolean
+    when: Schedule["when"]
+    to: string[]
+  },
+): Schedule => ({
+  ...agentSchedule(site, {
+    name,
+    harness: agent.harness,
+    prompt: DIGEST_PROMPT,
+    when: agent.when,
+    ...(agent.model === undefined ? {} : { model: agent.model }),
+    ...(agent.maxCost ? { maxCost: agent.maxCost } : {}),
+    ...(agent.allowDangerous ? { allowDangerous: true } : {}),
+    ...(agent.maxCostPerDay === undefined ? {} : { maxCostPerDay: agent.maxCostPerDay }),
+    ...(schedule.notify ? { notify: schedule.notify } : {}),
+    ...(agent.to.length ? { to: agent.to } : {}),
+    ...(schedule.paused ? { paused: true } : {}),
+  }),
+  createdAt: schedule.createdAt,
+})
 
 export const digestCommands = (digest: Command, print: Print, env: NodeJS.ProcessEnv): void => {
   const siteOf = (command: Command): ScheduleSite => ({
@@ -161,6 +240,39 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
     agentRuns: [MAIL_CLI],
     limits: scheduleLimits(env),
   })
+  /**
+   * After cli-core 0.643.0 a timer runs only a schedule that keeps its `agent` (SEC-11). Each old claude digest whose
+   * argv is the shape memo saved is saved again once, at the owner's first command; the rest wait in `digest list`.
+   * Never in an agent's run or under the read-only lock, where a run could rewrite the owner's timers.
+   */
+  const saveOldDigests = async (command: Command) => {
+    if (readOnly(env) || env[`${APP.envPrefix}_SCHEDULED`] || authorOf(env) !== "owner") return
+    for (const name of digestNames(env)) {
+      const file = digestScheduleFile(env, name)
+      if (!existsSync(file)) continue
+      try {
+        const schedule = readSchedule(file)
+        if (schedule.kind !== "agent" || schedule.agent !== undefined) continue
+        const legacy = legacyClaudeDigest(schedule.argv, LEGACY_TOOLS)
+        if (!legacy) continue
+        const site = siteOf(command)
+        await writeSchedule(
+          site,
+          digestSchedule(site, name, schedule, {
+            ...legacy,
+            maxCostPerDay: schedule.maxCostPerDay,
+            when: schedule.when,
+            to: schedule.to ?? [],
+          }),
+        )
+      } catch {
+        // A digest that cannot be saved again keeps its old file, and `digest list` says what it needs.
+      }
+    }
+  }
+  let root = digest
+  while (root.parent) root = root.parent
+  root.hook("preAction", (_root, action) => saveOldDigests(action))
   // Each of these spends the owner's money, sets his timers or sends to his chats: he does it, never an agent.
   const owner = async (command: Command, question: string) => {
     refuseAgent(env)
@@ -214,6 +326,7 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
                   one.sources.length ? `reads ${one.sources.join(", ")}` : "reads everything",
                   one.routes.length ? `to ${one.routes.join(", ")}` : "sent nowhere",
                   one.last ? `last ${one.last.at.slice(0, 16).replace("T", " ")} ${one.last.ok ? "ok" : "failed"}` : "",
+                  one.needs ? `needs you: ${one.needs}` : "",
                 ]
                   .filter(Boolean)
                   .join("  "),
@@ -248,15 +361,19 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
       })
     const when = calendarOf(given.at.flatMap(slotsOfAt))
     if (given.text !== undefined) checkedBrief(given.text)
+    const harness = given.agent ?? installedAgent(env)
+    refuseUncostedCap(harness, given)
+    refuseUnheld(harness, given.allowDangerous === true)
     await owner(command, `make the digest ${digestName}, a paid model call at each of its times?`)
     const site = siteOf(command)
     const schedule = agentSchedule(site, {
       name: digestName,
-      harness: given.agent ?? "claude",
+      harness,
       prompt: DIGEST_PROMPT,
       when,
       ...(given.model === undefined ? {} : { model: given.model }),
       ...(given.maxCost ? { maxCost: given.maxCost } : {}),
+      ...(given.allowDangerous && harnessInfo(harness).allowedWithAck ? { allowDangerous: true } : {}),
       ...(given.maxCostPerDay === undefined ? {} : { maxCostPerDay: given.maxCostPerDay }),
       ...(given.deliverTo?.length ? { to: given.deliverTo } : {}),
       ...(given.paused ? { paused: true } : {}),
@@ -283,7 +400,7 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
       .argument("<name>", "the digest's name, as `memo digest list` shows it"),
   ).action(async (name: string, given: Options, command: Command) => {
     const { schedule } = digestOf(env, name)
-    if (!schedule.argv.includes(DIGEST_PROMPT))
+    if (!runsDigestSkill(schedule))
       throw new CliError(
         "validation_error",
         `${name} runs a prompt of its own, made with \`memo schedule agent\`; an edit here would replace it — change it there`,
@@ -291,26 +408,23 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
       )
     const when = given.at?.length ? calendarOf(given.at.flatMap(slotsOfAt)) : schedule.when
     if (given.text !== undefined) checkedBrief(given.text)
-    await owner(command, `change the digest ${name}?`)
-    const site = siteOf(command)
     const previous = kept(schedule)
-    const maxCost = given.maxCost ?? previous.maxCost
-    const to = given.deliverTo ?? schedule.to ?? []
-    const maxCostPerDay = given.maxCostPerDay ?? schedule.maxCostPerDay
     const harness = given.agent ?? previous.harness
-    // Another agent's model names mean nothing to this one; its default applies unless --model names one.
-    const model = given.model ?? (harness === previous.harness ? previous.model : undefined)
-    const rebuilt = agentSchedule(site, {
-      name,
+    const same = harness === previous.harness
+    const accepted = given.allowDangerous ?? (same && previous.allowDangerous === true)
+    refuseUncostedCap(harness, given)
+    refuseUnheld(harness, accepted)
+    await owner(command, `change the digest ${name}?`)
+    const costed = reportsCost(harness)
+    const rebuilt = digestSchedule(siteOf(command), name, schedule, {
       harness,
-      prompt: DIGEST_PROMPT,
+      // Another agent's model names mean nothing to this one; its default applies unless --model names one.
+      model: given.model ?? (same ? previous.model : undefined),
+      maxCost: costed ? (given.maxCost ?? previous.maxCost) : undefined,
+      maxCostPerDay: costed ? (given.maxCostPerDay ?? schedule.maxCostPerDay) : undefined,
+      allowDangerous: accepted && harnessInfo(harness).allowedWithAck,
       when,
-      ...(model === undefined ? {} : { model }),
-      ...(maxCost ? { maxCost } : {}),
-      ...(maxCostPerDay === undefined ? {} : { maxCostPerDay }),
-      ...(schedule.notify ? { notify: schedule.notify } : {}),
-      ...(to.length ? { to } : {}),
-      ...(schedule.paused ? { paused: true } : {}),
+      to: given.deliverTo ?? schedule.to ?? [],
     })
     const definition = readDefinition(env, name)
     if (given.title !== undefined || given.source !== undefined || definition) {
@@ -321,7 +435,7 @@ export const digestCommands = (digest: Command, print: Print, env: NodeJS.Proces
         createdAt: definition?.createdAt || schedule.createdAt,
       })
     }
-    await writeSchedule(site, { ...rebuilt, createdAt: schedule.createdAt })
+    await writeSchedule(siteOf(command), rebuilt)
     await saveBrief(name, given.text)
     await say(given.json, name, `Changed ${name}.`)
   })

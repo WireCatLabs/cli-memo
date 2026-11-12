@@ -74,11 +74,13 @@ type Print = (json: boolean | undefined, body: Body) => void
 /** `review agenda`: the morning digest an agent reads first, then follows only the `next` lines it prints. */
 export const reviewAgendaCommand = (review: Command, print: Print, streams: Streams, env: NodeJS.ProcessEnv): void => {
   annotate(review.command("agenda"), { effects: LOCAL_READ })
-    .summary("the morning digest: watch list, owed replies, mail, meetings, tasks, projects")
+    .summary("morning digest: watched, owed, mail, meetings, calendar, Drive, CRM, tasks")
     .description(
       "the morning digest, from the store alone with no model call: everything new in what you tagged " +
         `${WATCH_TAG} (chats, mail threads, people, projects, a meeting's series), replies you owe to people in ` +
-        "messengers and personal mail (not bots or service chats), new personal mail, meetings that ended, tasks, " +
+        "messengers and personal mail (not bots or service chats), new personal mail, meetings that ended, calendar " +
+        "events added, moved or cancelled and those starting within a day, Drive documents edited, CRM deals and leads " +
+        "the CRM changed (with a stage they moved to), tasks, " +
         "projects that moved, memories and facts whose sources changed (source reviews raised since), proposals " +
         "waiting. Tasks are the open ones created since the last morning-digest run (a " +
         "day back when none ran) and those overdue, due today or due tomorrow, each with who asked and who does it. " +

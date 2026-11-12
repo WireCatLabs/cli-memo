@@ -224,9 +224,9 @@ export const kindAnswer = (
 /** `search notes`, CLI and MCP alike; `args` reruns the same search for the next page. */
 export const notesAnswer = (found: NotesFound, limit: number, page: number, args: Record<string, unknown> = {}) =>
   listAnswer("search notes", {
-    items: found.hits.map(noteHitItem),
+    items: found.items.map(noteHitItem),
     limit,
-    has_more: found.has_more && found.next_offset !== undefined,
+    has_more: found.hasMore && found.nextOffset !== undefined,
     page,
     ...(found.total ? { total: found.total } : {}),
     args,

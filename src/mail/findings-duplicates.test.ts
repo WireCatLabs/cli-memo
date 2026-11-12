@@ -3,14 +3,15 @@ import type { MessageStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { withoutDuplicates } from "./findings-duplicates.js"
 
+const page = (items: unknown[]) => async () => ({ items, hasMore: false })
 const stored = {
-  orders: { list: async () => [] },
+  orders: { list: page([]) },
   finance: {
-    invoices: async () => [
+    invoices: page([
       { ref: "invoice:1", review: "confirmed", number: "A-7", counterparty: { ref: "organization:2", name: "Acme" } },
       { ref: "invoice:2", review: "rejected", number: "B-1", counterparty: { ref: "organization:2", name: "Acme" } },
-    ],
-    payments: async () => [
+    ]),
+    payments: page([
       {
         ref: "payment:3",
         review: "proposed",
@@ -21,13 +22,11 @@ const stored = {
         payer: { ref: "person:1", name: "Me", owner: true },
         payee: { ref: "organization:2", name: "Acme", owner: false },
       },
-    ],
+    ]),
   },
-  tasks: { find: async () => [{ ref: "task:REQ-1", externalId: "avito:42", sourceUrl: null }] },
+  tasks: { find: page([{ ref: "task:REQ-1", externalId: "avito:42", sourceUrl: null }]) },
   facts: {
-    list: async () => [
-      { ref: "fact:4", status: "accepted", statement: "Certificate expires 2027-01-05.", subject: null },
-    ],
+    list: page([{ ref: "fact:4", status: "accepted", statement: "Certificate expires 2027-01-05.", subject: null }]),
   },
   mailFindings: { list: async () => ({ items: [], hasMore: false }) },
 } as unknown as MessageStore

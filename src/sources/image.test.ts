@@ -114,3 +114,43 @@ it("keeps an image by its name when the shared ai section is one memo cannot rea
   expect(added.answer).toMatchObject({ image: { reason: "ai.setting-invalid" } })
   expect((await run(["sources", "readers", "list"])).answer).toMatchObject({ items: expect.any(Array) })
 })
+
+it("reads an image with the owner's coding agent when picture reading is on request, before the AI model", async () => {
+  const { run, image, readerFetch, env } = fixture()
+  const bin = mkdtempSync(join(tmpdir(), "memo-agent-"))
+  writeFileSync(
+    join(bin, "codex"),
+    `#!/bin/sh\nnext=""\nfor arg in "$@"; do\n  if [ "$next" = 1 ]; then printf 'Receipt 7 from Synthetic Shop' > "$arg"; next=""; fi\n  [ "$arg" = "--output-last-message" ] && next=1\ndone\nexit 0\n`,
+    { mode: 0o755 },
+  )
+  env.PATH = `${bin}:${env.PATH}`
+  await run(["models", "ai", "set", "openai", "--model", "gpt-4o-mini", "--allow-remote", "--secret-stdin"], KEY)
+  await run(["models", "picture-reading", "set", "request", "--agent", "codex", "--model", "gpt-5"])
+
+  const added = await run(["sources", "add", image("receipt.png")])
+
+  expect(added.answer).toMatchObject({
+    read: "extracted",
+    extractor: "agent:codex/gpt-5",
+    image: { read_by: "agent:codex/gpt-5", reason: null },
+  })
+  expect(readerFetch).not.toHaveBeenCalled()
+  const found = await run(["sources", "show", String((added.answer as { ref: string }).ref)])
+  expect(JSON.stringify(found.answer)).toContain("Receipt 7 from Synthetic Shop")
+})
+
+it("says the model answered nothing when a model that cannot read pictures gives an empty answer", async () => {
+  const { run, image, readerFetch } = fixture()
+  readerFetch.mockImplementation(
+    async () =>
+      new Response(
+        JSON.stringify({ choices: [{ message: { content: "" }, finish_reason: "stop" }], usage: { total_tokens: 1 } }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+  )
+  await run(["models", "ai", "set", "openai", "--model", "gpt-4o-mini", "--allow-remote", "--secret-stdin"], KEY)
+
+  const added = await run(["sources", "add", image("blank.png")])
+
+  expect(added.answer).toMatchObject({ read: "no-text", image: { read_by: null, reason: "ai.empty-answer" } })
+})

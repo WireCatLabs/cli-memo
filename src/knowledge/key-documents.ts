@@ -129,7 +129,7 @@ const proposeKey = async (
   author: Exclude<Author, "owner">,
   source: { title: string | null; path: string | null },
 ): Promise<KeyDocument> => {
-  const pending = await store.proposedActions.list({
+  const { items: pending } = await store.proposedActions.list({
     kinds: ["key_document"],
     status: "proposed",
     project: project.ref,

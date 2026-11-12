@@ -82,10 +82,12 @@ export const listDeals = async (
   }
   const scope = await groupScopeOf(store, env)
   const writer = await withWriter(store)
-  return pageOf(command, limit, async (most) =>
-    (
-      await store.deals.list({ ...filter, ...(scope === undefined ? {} : { accounts: scope.accounts }), limit: most })
-    ).map(writer),
+  return pageOf(
+    command,
+    limit,
+    (most) =>
+      store.deals.list({ ...filter, ...(scope === undefined ? {} : { accounts: scope.accounts }), limit: most }),
+    { shape: (rows) => rows.map(writer) },
   )
 }
 
@@ -481,7 +483,9 @@ const STATUS_DEALS = 5
 
 /** The open deals of these projects. */
 export const openDealsOf = async (store: MessageStore, projects: readonly string[]) => {
-  const found = (await Promise.all(projects.map((project) => store.deals.list({ project, status: "open" })))).flat()
+  const found = (
+    await Promise.all(projects.map(async (project) => (await store.deals.list({ project, status: "open" })).items))
+  ).flat()
   const sorted = found.sort(
     (a, b) => (a.closeDate ?? "9999").localeCompare(b.closeDate ?? "9999") || b.createdAt.localeCompare(a.createdAt),
   )

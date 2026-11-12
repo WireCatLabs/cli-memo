@@ -1,5 +1,6 @@
 [
   "models ai",
   "models local-only",
+  "models picture-reading",
   "models search-consents"
 ]

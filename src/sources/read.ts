@@ -41,7 +41,7 @@ export interface ReadSource
 
 export interface ImageRead {
   read_by: string | null
-  reason: ImageRefusal | "image.unsupported" | "ai.failed" | null
+  reason: ImageRefusal | "image.unsupported" | "ai.empty-answer" | "ai.failed" | null
 }
 
 export type ImageRefusal = AiImageRefusal | "ai.owner-only" | "ai.setting-invalid"
@@ -231,7 +231,15 @@ export const readFile = async (
       extractor: reader.pipeline.extractor,
       truncated: false,
       title: byName,
-      image: { read_by: null, reason: seen.status === "needs-agent" ? "image.unsupported" : "ai.failed" },
+      image: {
+        read_by: null,
+        reason:
+          seen.status === "needs-agent"
+            ? "image.unsupported"
+            : seen.status === "unreadable" && seen.error === "empty_answer"
+              ? "ai.empty-answer"
+              : "ai.failed",
+      },
     }
   }
   if (found.status === "needs-agent")

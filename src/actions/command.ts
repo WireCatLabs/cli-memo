@@ -7,6 +7,7 @@ import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { byOption, deciderOf, whoRuns } from "../author.js"
 import { positive } from "../options.js"
+import { asOwner } from "../people/proposal-rows.js"
 import { decideOne, decisionOf } from "../review/review.js"
 import { actionsIn, proposalsOf, refuseOutsideAction, stripped } from "../store/guard.js"
 import { type WriteOptions, writeAccount, writeOptions } from "../store/source-list.js"
@@ -14,6 +15,7 @@ import {
   ACTION_QUERY,
   type Decision,
   decideFindings,
+  editFinding,
   listActions,
   type NewProposal,
   propose,
@@ -95,10 +97,10 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
     .summary("confirm it: a task to act on, or a findings batch's facts and tasks")
     .description(
       "confirm it: it becomes a task in the account that would act, nothing is sent; for a findings batch, create " +
-        "the named findings (all when none is named) and reject the rest",
+        "the named findings and leave the others waiting, or create every waiting one when none is named",
     )
     .argument("<id>", "the action's id, as actions list gives it")
-    .argument("[findings...]", "a findings batch: the finding IDs to create")
+    .argument("[findings...]", "a findings batch: the finding IDs to create; the others keep waiting")
     .option("--fingerprint <hash>", "a findings batch: the fingerprint actions show gives")
     .option("--reason <text>", "why, in a few words; required when an agent decides for you")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
@@ -114,8 +116,36 @@ export const actionsCommand = (program: Command, streams: Streams, env: NodeJS.P
       })
     })
 
+  byOption(annotate(actions.command("edit"), { effects: LOCAL_WRITE }))
+    .summary("change a finding still waiting in a findings batch before you confirm it")
+    .description(
+      "change one finding still waiting in a findings batch: its text and the fields its kind allows (a fact's " +
+        "statement, type and subject; a task's title, type, reason, commitment, dueAt and assignee; a mail " +
+        "finding's reason and its kind's fields). Its evidence never changes, nor a meeting finding's project. " +
+        "Answers the batch with its new fingerprint",
+    )
+    .argument("<id>", "the findings batch's id, as actions list gives it")
+    .argument("<finding>", "the finding's id in the batch")
+    .requiredOption("--fingerprint <hash>", "the fingerprint actions show gives")
+    .option("--set <field=value...>", "a field and its new value: JSON for a list, null empties it", [])
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .action(
+      async (
+        id: string,
+        finding: string,
+        options: { fingerprint: string; set: string[]; json?: boolean },
+        command: Command,
+      ) => {
+        await asOwner(command, env, `change finding ${finding} of action ${id}?`)
+        await run(options.json, async (store) => {
+          await refuseOutsideAction(store, env, id)
+          return itemAnswer(await stripped(store, env, await editFinding(store, id, finding, options)))
+        })
+      },
+    )
+
   byOption(annotate(actions.command("reject"), { effects: LOCAL_WRITE }))
-    .description("reject it; nothing is done. For a findings batch, every new finding")
+    .description("reject it; nothing is done. For a findings batch, every finding still waiting")
     .argument("<id>", "the action's id, as actions list gives it")
     .option("--fingerprint <hash>", "a findings batch: the fingerprint actions show gives")
     .option("--reason <text>", "why, in a few words; required when an agent decides for you")

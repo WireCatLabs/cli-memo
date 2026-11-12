@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { delimiter, isAbsolute, join } from "node:path"
 import { captureStreams, resolvePaths } from "@wirecat/cli-base"
 import { afterEach, expect, it } from "vitest"
 import { envelopeOf } from "../../test/answer.js"
@@ -26,10 +26,13 @@ const stampOf = (date: string) =>
     .replaceAll(":", "-")
     .replace(/\.\d+Z$/, "Z")
 
-const setUp = (extra: NodeJS.ProcessEnv = {}, environment: Record<string, string> = {}) => {
+const setUp = (extra: NodeJS.ProcessEnv = {}) => {
   const root = mkdtempSync(join(tmpdir(), "memo-backfill-"))
   const env: NodeJS.ProcessEnv = {
     ...process.env,
+    // A schedule only starts the claude found on PATH: the fake must be that one.
+    // pnpm puts ./node_modules/.bin on PATH, and a schedule refuses a relative entry.
+    PATH: [root, ...(process.env.PATH ?? "").split(delimiter).filter((dir) => isAbsolute(dir))].join(delimiter),
     AI_AGENT: "",
     CLAUDECODE: "",
     MEMO_READ_ONLY: "",
@@ -69,7 +72,7 @@ process.stdout.write(JSON.stringify({ type: "result", result: JSON.stringify(rep
       kind: "agent",
       argv: [claude, "-p", "Run memo skill show morning-digest and follow it.", "--max-budget-usd", "0.5"],
       when: { daily: "08:30" },
-      environment,
+      environment: {},
       createdAt: "",
       maxCostPerDay: 1,
       to: ["telegram-bot:personal/user:42"],
@@ -149,7 +152,7 @@ it("stops starting days once today's runs cost the schedule's daily cap", async 
 })
 
 it("stops at a failed day, so a broken harness is not paid for every day", async () => {
-  const { run, inputs } = setUp({}, { FAKE_FAIL: "1" })
+  const { run, inputs } = setUp({ FAKE_FAIL: "1" })
   const body = envelopeOf(
     await run(
       "digest",

@@ -40,7 +40,9 @@ const setUp = async () => {
   const meeting = await store.meetings.saveMeeting(sample)
   await store.knowledge.linkMeetingProject(key, String(meeting.meeting.id), project.id, { by: "owner" })
   await store.tasks.create({ project: project.ref, title: "Send the signed lease", type: "chore" }, "owner")
-  const [task] = await store.tasks.find({ project: project.ref, status: "open", limit: 1 })
+  const {
+    items: [task],
+  } = await store.tasks.find({ project: project.ref, status: "open", limit: 1 })
   if (!task) throw new Error("no task")
   await store.tasks.suggestClose(task.id, { as: "done", certainty: 0.8, reason: "you replied" }, { bot: "claude-code" })
   const mailbox = await store.accounts.saveAccount({ provider: "email", account: ME }, { name: null })
@@ -174,7 +176,7 @@ it("lists each kind waiting for the owner once, grouped by where it came from", 
   expect((await f.run({}, OWNER, "review", "kind:task_close")).items).toHaveLength(1)
 })
 
-it("confirms exactly the findings named and rejects the rest of the batch", async () => {
+it("confirms exactly the findings named and leaves the rest of the batch waiting", async () => {
   const f = await setUp()
   const decided = (await f.run({}, OWNER, "review", "confirm", `${f.batch}/followup`)).item
   expect(decided.refused).toEqual([])
@@ -183,7 +185,7 @@ it("confirms exactly the findings named and rejects the rest of the batch", asyn
   const shown = (await f.run({}, OWNER, "review", "show", f.batch, "--brief")).item
   expect(shown.parts).toMatchObject([
     { id: "followup", outcome: "accepted" },
-    { id: "budget", outcome: "rejected" },
+    { id: "budget", outcome: null },
   ])
   const tasks = (await f.run({}, OWNER, "tasks", "list", "project:SYH")).items.map(
     (one: { title: string }) => one.title,
@@ -202,9 +204,14 @@ it("decides a meeting findings batch through actions confirm only for the findin
   const shown = (await f.run({}, OWNER, "review", "show", f.batch, "--brief")).item
   expect(shown.parts).toMatchObject([
     { id: "followup", outcome: "accepted" },
-    { id: "budget", outcome: "rejected" },
+    { id: "budget", outcome: null },
   ])
   await expect(f.run({}, OWNER, "actions", "confirm", f.batch, "followup", "--fingerprint", "stale")).rejects.toThrow()
+  await f.run({}, OWNER, "actions", "reject", f.batch)
+  expect((await f.run({}, OWNER, "review", "show", f.batch, "--brief")).item.parts).toMatchObject([
+    { id: "followup", outcome: "accepted" },
+    { id: "budget", outcome: "rejected" },
+  ])
 })
 
 it("refuses an agent on every owner-only kind, and lets the owner decide a mail findings batch", async () => {

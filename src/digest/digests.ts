@@ -1,8 +1,11 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from "node:fs"
-import { join } from "node:path"
+import { basename, join } from "node:path"
 import { CliError, resolvePaths, writeSecurely } from "@wirecat/cli-base"
 import {
+  type Harness,
+  harnessOfArgv,
   isCalendar,
+  isHarness,
   lastRun,
   nextRun,
   previousRun,
@@ -26,7 +29,17 @@ export const MORNING_DIGEST = "morning-digest"
 export const DIGEST_PROMPT = "Run memo skill show morning-digest and follow it."
 
 /** What a digest may read, each a part of `review agenda` it can leave out. */
-export const DIGEST_SOURCES = ["telegram", "max", "whatsapp", "mail", "meetings", "tasks"] as const
+export const DIGEST_SOURCES = [
+  "telegram",
+  "max",
+  "whatsapp",
+  "mail",
+  "meetings",
+  "tasks",
+  "drive",
+  "calendar",
+  "crm",
+] as const
 export type DigestSource = (typeof DIGEST_SOURCES)[number]
 
 /** What memo keeps of a digest beside its schedule: the schedule holds the times, routes and caps. */
@@ -136,26 +149,94 @@ export interface DigestView {
   routes: string[]
   brief: string | null
   scheduled: boolean
-  /** The agent that writes it, and the model named on its command line; null for the agent's own default. */
-  harness: "claude" | "codex" | null
+  /** The agent that writes it, and the model it was given; null for the agent's own default. */
+  harness: Harness | null
   model: string | null
   maxCostUsd: number | null
+  /** Why its timer will not start it until you act, and the command that fixes it; null when it runs. */
+  needs: string | null
   maxCostPerDayUsd: number
   last: { at: string; ok: boolean; costUsd: number | null; output: string } | null
   nextAt: string | null
 }
 
-/** The model an agent schedule's argv names after `--model`, or null for the harness's default. */
-export const modelOf = (argv: readonly string[]): string | null => {
-  const at = argv.indexOf("--model")
-  return at < 0 ? null : argv[at + 1] || null
+/** What a digest's agent was asked, as cli-core keeps it beside the argv it rebuilds each run from. */
+export interface DigestAgent {
+  harness: Harness
+  model: string
+  maxCost?: number
+  allowDangerous?: true
 }
 
-/** The per-run cap an agent schedule was made with (`--max-budget-usd` in claude's argv), or null. */
-export const runCapOf = (argv: readonly string[]): number | null => {
-  const at = argv.indexOf("--max-budget-usd")
-  const cap = at < 0 ? Number.NaN : Number(argv[at + 1])
-  return Number.isFinite(cap) ? cap : null
+export const agentOf = (schedule: Schedule): DigestAgent | undefined => {
+  const { agent } = schedule
+  if (agent === undefined || !isHarness(agent.harness)) return undefined
+  return {
+    harness: agent.harness,
+    model: agent.model,
+    ...(agent.maxCost === undefined ? {} : { maxCost: agent.maxCost }),
+    ...(agent.allowDangerous ? { allowDangerous: true } : {}),
+  }
+}
+
+/** Whether the schedule runs memo's digest skill, not a prompt of its own made with `memo schedule agent`. */
+export const runsDigestSkill = (schedule: Schedule): boolean =>
+  schedule.agent ? schedule.agent.prompt === DIGEST_PROMPT : schedule.argv.includes(DIGEST_PROMPT)
+
+const ONE_TOKEN_FLAGS = new Set(["--no-session-persistence", "--strict-mcp-config", "--disable-slash-commands"])
+const FIXED_VALUE_FLAGS: Record<string, string> = {
+  "--permission-mode": "dontAsk",
+  "--tools": "Bash",
+  "--setting-sources": "",
+}
+const MODEL = /^[A-Za-z0-9][\w.:/@[\]-]*$/
+
+/**
+ * A digest saved before cli-core kept `agent`, read back only when its argv is exactly the shape memo's claude digest
+ * had: a run may have rewritten that file (SEC-1), so anything else is left for the owner rather than carried over.
+ */
+export const legacyClaudeDigest = (argv: readonly string[], tools: readonly string[]): DigestAgent | undefined => {
+  const program = basename(argv[0] ?? "")
+    .replace(/\.(exe|cmd)$/i, "")
+    .toLowerCase()
+  if (program !== "claude" || argv[1] !== "-p" || argv[2] !== DIGEST_PROMPT) return undefined
+  let model = ""
+  let maxCost: number | undefined
+  for (let at = 3; at < argv.length; at++) {
+    const flag = argv[at] ?? ""
+    const value = argv[at + 1]
+    if (ONE_TOKEN_FLAGS.has(flag)) continue
+    if (flag in FIXED_VALUE_FLAGS && value === FIXED_VALUE_FLAGS[flag]) {
+      at++
+      continue
+    }
+    if (flag === "--model" && value !== undefined && MODEL.test(value)) {
+      model = value
+      at++
+      continue
+    }
+    if (flag === "--max-budget-usd" && Number(value) > 0 && Number.isFinite(Number(value))) {
+      maxCost = Number(value)
+      at++
+      continue
+    }
+    if (flag === "--allowedTools" && tools.includes(value ?? "")) {
+      while (tools.includes(argv[at + 1] ?? "")) at++
+      continue
+    }
+    return undefined
+  }
+  return { harness: "claude", model, ...(maxCost === undefined ? {} : { maxCost }) }
+}
+
+/** Why a digest will not run until the owner acts, with the command that fixes it, or null. */
+export const needsOf = (name: string, schedule: Schedule): string | null => {
+  if (schedule.kind !== "agent") return null
+  const agent = agentOf(schedule)
+  if (agent) return null
+  if (harnessOfArgv(schedule.argv) === "codex")
+    return `codex runs on a schedule only with your consent: \`memo digest edit ${name} --agent codex --allow-dangerous\``
+  return `saved by an older memo in a shape memo does not re-save by itself; check it, then \`memo digest edit ${name} --agent claude\``
 }
 
 /** A digest's schedule, or a not-found refusal that names the command listing them. */
@@ -187,9 +268,10 @@ export const viewOf = (
     routes: schedule?.to ?? [],
     brief,
     scheduled,
-    harness: schedule ? (schedule.argv[1] === "exec" ? "codex" : "claude") : null,
-    model: schedule ? modelOf(schedule.argv) : null,
-    maxCostUsd: schedule ? runCapOf(schedule.argv) : null,
+    harness: (schedule && (agentOf(schedule)?.harness ?? harnessOfArgv(schedule.argv))) || null,
+    model: (schedule && agentOf(schedule)?.model) || null,
+    maxCostUsd: (schedule && agentOf(schedule)?.maxCost) ?? null,
+    needs: schedule ? needsOf(name, schedule) : null,
     maxCostPerDayUsd: schedule?.maxCostPerDay ?? limits.maxCostPerDay ?? SCHEDULE_DEFAULTS.maxCostPerDay,
     last: last ? { at: last.at, ok: last.exitCode === 0, costUsd: last.costUsd ?? null, output: last.output } : null,
     nextAt: next === undefined ? null : new Date(next).toISOString(),

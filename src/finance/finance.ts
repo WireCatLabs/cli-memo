@@ -129,7 +129,7 @@ export const financeOf = async (store: MessageStore, projects: readonly string[]
     return made
   }
   for (const project of projects) {
-    for (const invoice of await store.finance.invoices({ project, review: "confirmed", limit: 500 })) {
+    for (const invoice of (await store.finance.invoices({ project, review: "confirmed", limit: 500 })).items) {
       if (invoice.status === "void" || invoice.status === "draft") continue
       const total = totalOf(invoice.direction, invoice.currency)
       total.billed += minorUnits(invoice.total, invoice.currency)
@@ -137,7 +137,7 @@ export const financeOf = async (store: MessageStore, projects: readonly string[]
       total.owed += minorUnits(invoice.open, invoice.currency)
       total.invoices.push(invoice.ref)
     }
-    for (const payment of await store.finance.payments({ project, review: "confirmed", limit: 500 })) {
+    for (const payment of (await store.finance.payments({ project, review: "confirmed", limit: 500 })).items) {
       const total = totalOf(DIRECTION_OF_PAYMENT[payment.direction], payment.currency)
       total.unallocated += minorUnits(payment.unallocated, payment.currency)
       total.payments.push(payment.ref)

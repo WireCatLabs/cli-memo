@@ -21,6 +21,7 @@ Works with:
   drive                         Google Drive and Docs as local text, searchable with your other WireCat data
   gcal                          Google Calendar events, searchable with your other WireCat data
   mail                          IMAP mail in the same local store: search your mailbox offline, next to your other WireCat data
+  b24                           Bitrix24 CRM: deals, leads and pipelines, searchable with your other WireCat data
 
 Start here:   memo folders add <path>
 Next:         memo commands            every command, by section
