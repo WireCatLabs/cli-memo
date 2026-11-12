@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { delimiter, join } from "node:path"
 import { captureStreams, resolvePaths } from "@wirecat/cli-base"
 import { afterEach, expect, it } from "vitest"
 import { envelopeOf } from "../../test/answer.js"
@@ -30,6 +30,8 @@ const setUp = (extra: NodeJS.ProcessEnv = {}, environment: Record<string, string
   const root = mkdtempSync(join(tmpdir(), "memo-backfill-"))
   const env: NodeJS.ProcessEnv = {
     ...process.env,
+    // A schedule only starts the claude found on PATH: the fake must be that one.
+    PATH: `${root}${delimiter}${process.env.PATH ?? ""}`,
     AI_AGENT: "",
     CLAUDECODE: "",
     MEMO_READ_ONLY: "",
