@@ -7207,7 +7207,7 @@ memo schedule command <name> <args> [options]
 
 ### `memo schedule agent`
 
-start an agent (claude, codex, gemini, cursor, opencode, openclaw, hermes, grok, kimi) with a prompt on a timer; it runs with MEMO_READ_ONLY=1 and MAIL_READ_ONLY=1, so it reads and drafts and does not send; claude and codex are also held to that by their own limits, the others approve every command — its answer is kept and you are notified
+start an agent (claude, codex, gemini, cursor, opencode, openclaw, hermes, grok, kimi) with a prompt on a timer; it runs with MEMO_READ_ONLY=1 and MAIL_READ_ONLY=1, so it reads and drafts and cannot send, and its own limits hold it to these CLIs' commands; an agent with no such limit is refused (`schedule agents list` says which) — its answer is kept and you are notified
 
 This command changes the local store or your files.
 
@@ -7225,6 +7225,7 @@ memo schedule agent <name> <harness> <prompt> [options]
 |---|---|
 | `--model <model>` | the model it runs on: an alias such as sonnet, or a model id; "" for the agent's own default (default sonnet for claude, the agent's own for the others, or the config file's). |
 | `--max-cost <usd>` | claude only: stop a run that costs more than this, in US dollars. |
+| `--allow-dangerous` | start an agent its own limits cannot hold to these CLIs' commands, where `schedule agents list` says allowed_with_ack: it may then run any program inside its sandbox. |
 | `--max-cost-per-day <usd>` | claude only, as the others report no cost: start no run for the rest of the day once its runs cost this much, in US dollars; 0 for no cap (default 5, or the config file's). |
 | `--every <duration>` | repeat: 30m, 2h, 1d. |
 | `--at <HH:MM>` | every day at this local time; 'mon 09:00' once a week, 'mon,fri 09:00' on several days (mon, tue, wed, thu, fri, sat, sun); repeat it for more times. |
@@ -7284,7 +7285,7 @@ memo schedule agents list [query]
 |---|---|---|
 | `query` | optional | field:value terms; this list filters by none yet. |
 
-**Returns:** schedule harness — id, name, programs, reports_cost, restricted, installed, path; every field: memo commands info schedule agents list
+**Returns:** schedule harness — id, name, programs, reports_cost, restricted, restricted_reason, allowed_with_ack, installed, and 1 more; every field: memo commands info schedule agents list
 
 **Example:** `memo schedule agents list`, `memo schedule agents list --json`
 
@@ -7385,12 +7386,13 @@ what a timer runs, given the schedule's file; to run one by hand, use run
 This command changes the local store or your files.
 
 ```sh
-memo schedule exec <file> [options]
+memo schedule exec <file> [seal] [options]
 ```
 
 | Argument | | What it is |
 |---|---|---|
 | `file` | required | the schedule's schedule.json in the state folder, as the timer passes it. |
+| `seal` | optional | the file's SHA-256 as it was saved, which the timer passes; a file that differs does not run. |
 
 | Option | What it does |
 |---|---|
@@ -7514,6 +7516,7 @@ memo digest add <name> [options]
 | `--text <text>` | your brief: what to collect, what to skip, how much; at most 4000 characters. |
 | `--agent <agent>` | the agent that writes it; a new digest takes the one agent installed, and asks when there are more. A local model needs an agent set up to run one. One of: `claude`, `codex`, `gemini`, `cursor`, `opencode`, `openclaw`, `hermes`, `grok`, `kimi`. |
 | `--model <model>` | the model the agent runs on: an alias such as sonnet or a model id; "" for the agent's own default. |
+| `--allow-dangerous` | let an agent whose own limits cannot hold it to memo's commands write it, where `memo schedule agents list` says allowed_with_ack (codex): it may then run any program inside its sandbox. Only you give this. |
 | `--max-cost <usd>` | stop a run that costs more than this, in US dollars; only for an agent that reports its cost. |
 | `--max-cost-per-day <usd>` | start no run for the rest of the day once its runs cost this much, in US dollars; 0 for no cap. |
 | `--json` | print JSON. |
@@ -7546,6 +7549,7 @@ memo digest edit <name> [options]
 | `--text <text>` | your brief: what to collect, what to skip, how much; at most 4000 characters. |
 | `--agent <agent>` | the agent that writes it; a new digest takes the one agent installed, and asks when there are more. A local model needs an agent set up to run one. One of: `claude`, `codex`, `gemini`, `cursor`, `opencode`, `openclaw`, `hermes`, `grok`, `kimi`. |
 | `--model <model>` | the model the agent runs on: an alias such as sonnet or a model id; "" for the agent's own default. |
+| `--allow-dangerous` | let an agent whose own limits cannot hold it to memo's commands write it, where `memo schedule agents list` says allowed_with_ack (codex): it may then run any program inside its sandbox. Only you give this. |
 | `--max-cost <usd>` | stop a run that costs more than this, in US dollars; only for an agent that reports its cost. |
 | `--max-cost-per-day <usd>` | start no run for the rest of the day once its runs cost this much, in US dollars; 0 for no cap. |
 | `--json` | print JSON. |
