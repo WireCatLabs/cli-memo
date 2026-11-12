@@ -8,6 +8,7 @@
 
 ### Changed — may break callers
 
+- **On cli-core 0.643.0 and cli-base 0.97.0.** Agents in a scheduled run see other people's text marked as untrusted, and under the read-only lock an output file goes only into the run's own folder (`read-only.output-outside`). Lists and searches come back in one shape.
 - **`memo digest add|edit --agent` takes the agents a schedule may start** (cli-core 0.643.0): claude, gemini and opencode, and codex with `--allow-dangerous`, your consent that it may run any program inside its sandbox. The others are refused (`agent.unrestricted`, with `restricted_reason`). A new digest with no `--agent` takes the one agent installed; with none or several it is refused (`digest.agent-unchosen`) and the error lists the choices. Before, it took claude. `--max-cost` and `--max-cost-per-day` for an agent that reports no cost are refused (`agent.cost-unknown`).
 - **Your digests are saved again once, by themselves.** cli-core 0.643.0 runs a schedule only from the agent it keeps, never from the saved command, so a digest saved before stops. At your first memo command after the update, memo saves each old claude digest again when its command is exactly the one memo made. Any other one, and every codex one, waits: `memo digest list` shows `needs` with the command to run. Never in an agent's run or under the read-only lock.
 - **`memo actions confirm <id> <findings...>` leaves the findings not named waiting.** Before, it rejected them. With no names it creates every finding still waiting; `reject` rejects only what waits.
