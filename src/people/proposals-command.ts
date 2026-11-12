@@ -41,8 +41,11 @@ const peopleIds = async (store: MessageStore, ids: string[]): Promise<{ ids: str
   return { ids: kept, refused }
 }
 
-/** The owner's answers besides confirm and reject; only a shared mailbox has one so far (NEED-2528). */
-const RESOLVE_ANSWERS = ["company"] as const
+/**
+ * The owner's answers besides confirm and reject: one address is a company's (NEED-2528), or both people are the
+ * company's mailboxes (NEED-2573).
+ */
+const RESOLVE_ANSWERS = ["company", "organization"] as const
 
 const organizationOf = (word: string | undefined): number | undefined => {
   if (word === undefined) return undefined
@@ -158,31 +161,79 @@ export const peopleProposalCommands = (
 
   const company = byOption(
     annotate(people.command("resolve"), { effects: LOCAL_WRITE })
-      .summary("say a shared mailbox is a company's, not either person's; only you")
+      .summary("say a match's mailbox, or both its people, are a company's; only you")
       .description(
         "answers a match with company: the address goes to the " +
           "organization you name, else to the one that has the address or its company domain, else to one named " +
           "--name, else to a new company named after the domain. The two people are not joined and are not proposed " +
           "again on that address. A match on a shared mailbox (people review shows shared and mailbox) names its " +
-          "address; on any other match, by name say, --mailbox names which of the two people's addresses it is",
+          "address; on any other match, by name say, --mailbox names which of the two people's addresses it is. " +
+          "organization answers a match whose two people are the company's mailboxes: every address on it goes to " +
+          "one organization, chosen the same way, else named after the people's shared name; people who are only " +
+          "those addresses become the company's, people with other identities keep them and stay people",
       )
       .argument("<id>", "the match's id as people review lists it")
-      .argument("<answer>", "company: the mailbox is a company's, not either person's", oneOf(RESOLVE_ANSWERS))
-      .argument("[organization]", "organization:<id> to give the address to"),
+      .argument(
+        "<answer>",
+        "company: the mailbox is a company's, not either person's; organization: both are the company's mailboxes",
+        oneOf(RESOLVE_ANSWERS),
+      )
+      .argument("[organization]", "organization:<id> to give the addresses to"),
   )
     .option("--name <name>", "the company's name, when no organization is named")
-    .option("--mailbox <address>", "on a match that is not about a shared mailbox: the address that is the company's")
-    .option("--all", "every match waiting on the same mailbox, in this one answer; without it, only this match")
+    .option("--mailbox <address>", "with company, on a match not about a shared mailbox: the company's address")
+    .option("--all", "every match waiting on the same addresses, in this one answer; without it, only this match")
     .option("--reason <text>", "why, in a few words")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
   company.action(
     async (
       id: string,
-      _answer: (typeof RESOLVE_ANSWERS)[number],
+      answer: (typeof RESOLVE_ANSWERS)[number],
       organization: string | undefined,
       options: { name?: string; mailbox?: string; all?: boolean; reason?: string; json?: boolean },
     ) => {
       const owned = organizationOf(organization)
+      if (answer === "organization") {
+        if (options.mailbox !== undefined)
+          throw new CliError("validation_error", "organization gives every address on the match; drop --mailbox", {
+            param: "mailbox",
+          })
+        await asOwner(company, env, `say the people of people proposal ${id} are a company's mailboxes?`)
+        const decided = await withStore(env, async (store) => {
+          await (await reviewOf(store, env)).get(id)
+          return store.people.decideLink(id, {
+            confirm: false,
+            by: "owner",
+            organization: {
+              ...(owned === undefined ? {} : { organization: owned }),
+              ...(options.name ? { name: options.name } : {}),
+              ...(options.all ? { all: true } : {}),
+            },
+            ...(options.reason ? { reason: options.reason } : {}),
+          })
+        })
+        const result = decided.result as {
+          organization: string
+          mailboxes: string[]
+          people: string[]
+          closed: string[]
+        }
+        const people = result.people.length > 0 ? `; ${result.people.join(" ")} are the company's now` : ""
+        print(
+          options.json,
+          itemAnswer({
+            id,
+            kind: IDENTITY_LINK_KIND,
+            status: "rejected" as const,
+            organization: result.organization,
+            mailboxes: result.mailboxes,
+            people: result.people,
+            closed: result.closed,
+          }),
+          `${result.closed.join(" ")}: ${result.mailboxes.join(", ")} belong to ${result.organization}${people}`,
+        )
+        return
+      }
       await asOwner(company, env, `say the mailbox of people proposal ${id} is a company's?`)
       const decided = await withStore(env, async (store) => {
         await (await reviewOf(store, env)).get(id)

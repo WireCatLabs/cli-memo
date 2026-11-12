@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1174 ✅ · 0 ⛔ · 336 ❌** — 332 commands, 1178 options.
+**1175 ✅ · 0 ⛔ · 335 ❌** — 332 commands, 1178 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -190,7 +190,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `people resolve` | `--name` | ✅ |  |
 | `people resolve` | `--mailbox` | ✅ |  |
 | `people resolve` | `--all` | ✅ |  |
-| `people resolve` | `--reason` | ❌ |  |
+| `people resolve` | `--reason` | ✅ |  |
 | `people resolve` | `--json` | ✅ |  |
 | `people links check` |  | ✅ |  |
 | `people links check` | `--limit` | ❌ |  |
