@@ -11,26 +11,19 @@ interface Paging<R, T> {
   shape?: (rows: R[]) => Promise<T[]> | T[]
 }
 
-/**
- * The store's memory, fact and action lists answer an array of at most `cap` rows. One row more than asked says
- * whether more remain. Asked for the whole cap, a list without `--page` cannot tell and says more may remain; a paged
- * one reads one row past the page to know.
- */
+/** One page of a store list, which says itself whether more rows remain. */
 export const pageOf = async <R, T = R>(
   command: string,
   limit: number | undefined,
-  read: (limit: number, offset: number) => Promise<R[]>,
+  read: (limit: number, offset: number) => Promise<{ items: R[]; hasMore: boolean }>,
   { fallback = 100, cap = 500, page, args, shape = (rows) => rows as unknown as T[] }: Paging<R, T> = {},
 ) => {
   const wanted = Math.min(limit ?? fallback, cap)
-  const offset = ((page ?? 1) - 1) * wanted
-  const rows = await read(Math.min(wanted + 1, cap), offset)
-  const full = rows.length === cap && wanted === cap
-  const more = rows.length > wanted || (full && (page === undefined || (await read(1, offset + cap)).length > 0))
+  const { items, hasMore } = await read(wanted, ((page ?? 1) - 1) * wanted)
   return listAnswer(command, {
-    items: await shape(rows.slice(0, wanted)),
+    items: await shape(items),
     limit: wanted,
-    has_more: more,
+    has_more: hasMore,
     ...(page === undefined ? {} : { page }),
     ...(args === undefined ? {} : { args }),
   })

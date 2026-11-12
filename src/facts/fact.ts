@@ -55,10 +55,9 @@ export const listFacts = async (
     ...(project === undefined ? {} : { project: await canonicalProject(store, project) }),
     ...(terms.has("subject") ? { subject: terms.get("subject") as string } : {}),
   }
-  return pageOf(
-    "facts list",
-    limit,
-    async (most, offset) => (await store.facts.list({ ...filters, limit: most, offset })).map(factItem),
-    { page, args: { query: typedQuery(query) } },
-  )
+  return pageOf("facts list", limit, (most, offset) => store.facts.list({ ...filters, limit: most, offset }), {
+    page,
+    args: { query: typedQuery(query) },
+    shape: (rows) => rows.map(factItem),
+  })
 }

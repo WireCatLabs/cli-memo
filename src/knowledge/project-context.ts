@@ -27,8 +27,8 @@ export const projectContext = async (store: MessageStore, env: NodeJS.ProcessEnv
   const pending = (kind: string) =>
     proposals.list({ project: project.ref, kinds: [kind], status: "proposed", limit: 50, offset: 0 })
   const [facts, tasks, findings, keys, links, waiting] = await Promise.all([
-    store.facts.list({ project: project.ref, status: "proposed", limit: 21 }),
-    store.tasks.find({ project: project.ref, status: "open", limit: 21 }),
+    store.facts.list({ project: project.ref, status: "proposed", limit: 20 }),
+    store.tasks.find({ project: project.ref, status: "open", limit: 20 }),
     projectFindings(store, project.ref, relationships),
     pending("key_document"),
     pending("relationship"),
@@ -68,20 +68,18 @@ export const projectContext = async (store: MessageStore, env: NodeJS.ProcessEnv
         proposer: proposerName(row.proposedBy),
       })),
       facts: {
-        items: facts.slice(0, 20).map(factItem),
-        hasMore: facts.length > 20,
-        next:
-          facts.length > 20
-            ? { command: "facts list", args: { query: `project:"${project.ref}" status:proposed`, limit: 100 } }
-            : null,
+        items: facts.items.map(factItem),
+        hasMore: facts.hasMore,
+        next: facts.hasMore
+          ? { command: "facts list", args: { query: `project:"${project.ref}" status:proposed`, limit: 100 } }
+          : null,
       },
       meetingActions: findings,
     },
     openTasks: {
-      items: tasks.slice(0, 20),
-      hasMore: tasks.length > 20,
-      next:
-        tasks.length > 20 ? { command: "tasks list", args: { query: `project:"${project.ref}"`, limit: 100 } } : null,
+      items: tasks.items,
+      hasMore: tasks.hasMore,
+      next: tasks.hasMore ? { command: "tasks list", args: { query: `project:"${project.ref}"`, limit: 100 } } : null,
     },
   }
 }

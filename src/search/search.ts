@@ -455,5 +455,5 @@ export const searchNotes = async (store: MessageStore, env: NodeJS.ProcessEnv, t
   })
   return options.project === undefined
     ? found
-    : { ...found, hits: await keyDocumentsFirst(store, found.hits, options.project) }
+    : { ...found, items: await keyDocumentsFirst(store, found.items, options.project) }
 }
