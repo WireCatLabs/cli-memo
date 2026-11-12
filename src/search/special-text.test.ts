@@ -23,7 +23,7 @@ const CASES: [label: string, query: string, record: string | null][] = [
   ["an at sign", "user@example.com", "write to user@example.com soon"],
   ["an ampersand", "R&D", "the R&D budget"],
   ["a percent sign", "50%", "a 50% discount"],
-  ["a caret", "x^2", "the curve x^2 grows"],
+  ["a quoted caret", '"x^2"', "the curve x^2 grows"],
   ["a tilde", "~home", "the ~home folder"],
   ["square brackets", "[draft]", "marked [draft] for now"],
   ["curly brackets", "{draft}", "marked {draft} for now"],
@@ -131,6 +131,14 @@ describe("special characters in free-text search", () => {
     expect(texts(await run("search", "messages", "draft NOT late"))).not.toContain("budget draft")
     expect(texts(await run("search", "mail", '"room four" AND in:email'))).toContain("Steering meeting")
     await expect(run("search", "messages", "kind:nonsense")).rejects.toMatchObject({ code: "validation_error" })
+  })
+
+  it("refuses a bare caret as a boost, and says to quote it", async () => {
+    for (const kind of ["messages", "mail", "notes"])
+      await expect(run("search", kind, "x^2"), `search ${kind}`).rejects.toMatchObject({
+        code: "validation_error",
+        message: expect.stringContaining("query.unsupported-operator at position 1 — boost ^2 is not supported"),
+      })
   })
 
   it("names why search all skipped a source in meta.issues", async () => {
