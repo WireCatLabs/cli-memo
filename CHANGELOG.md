@@ -4,6 +4,35 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## 0.131.86 — 12.11.2026
+
+### Added
+
+- **`memo actions edit <id> <finding> --fingerprint <hash> --set field=value`** changes a finding still waiting in a findings batch before you confirm it: its text and the fields its kind allows; `field=null` empties an optional one. Only the owner runs it; it answers the batch with its new fingerprint.
+- **`memo groups rename <group> <name>` and `memo groups delete <group>`.** Rename keeps the members; delete removes the group and its memberships only. Both refuse a built-in, missing or taken name and answer with the groups. A later run in the old name is refused with the groups there are.
+- **`memo people resolve <id> company --mailbox <address>`** marks an address as the company's on a match by name, not only on a shared mailbox. The answer names the `mailbox`.
+- **`memo tasks list 'related:"deal:7"'`** (also `lead:` and `organization:`) lists the tasks of a deal, a lead or a client company: those `deals context` and `organizations context` count.
+- **The digest reads Google Drive, Google Calendar and the CRM.** `review agenda` gains the parts `calendar` (events added, moved or cancelled, and those starting within a day), `drive` (documents edited) and `crm` (deals and leads the CRM changed, with the stage they moved to). A digest's sources take `drive`, `calendar` and `crm`.
+- **Your coding agent can read a picture you add.** With `memo models picture-reading set request --agent claude`
+  (or `--agent codex`, with an optional `--model`), `memo sources add <picture>` gives the picture to that agent and
+  keeps the text it read, with the extractor `agent:claude` or `agent:codex/<model>`; this comes before the AI model.
+  The default is `never`; only you turn it on. The picture goes to the agent's provider unless it runs a local model.
+  The same setting lets `images read` in the messenger CLIs read a chat picture (cli-core).
+
+### Changed — may break callers
+
+- **On cli-core 0.643.0 and cli-base 0.97.0.** Agents in a scheduled run see other people's text marked as untrusted, and under the read-only lock an output file goes only into the run's own folder (`read-only.output-outside`). Lists and searches come back in one shape.
+- **`memo digest add|edit --agent` takes the agents a schedule may start** (cli-core 0.643.0): claude, gemini and opencode, and codex with `--allow-dangerous`, your consent that it may run any program inside its sandbox. The others are refused (`agent.unrestricted`, with `restricted_reason`). A new digest with no `--agent` takes the one agent installed; with none or several it is refused (`digest.agent-unchosen`) and the error lists the choices. Before, it took claude. `--max-cost` and `--max-cost-per-day` for an agent that reports no cost are refused (`agent.cost-unknown`).
+- **Your digests are saved again once, by themselves.** cli-core 0.643.0 runs a schedule only from the agent it keeps, never from the saved command, so a digest saved before stops. At your first memo command after the update, memo saves each old claude digest again when its command is exactly the one memo made. Any other one, and every codex one, waits: `memo digest list` shows `needs` with the command to run. Never in an agent's run or under the read-only lock.
+- **`memo actions confirm <id> <findings...>` leaves the findings not named waiting.** Before, it rejected them. With no names it creates every finding still waiting; `reject` rejects only what waits.
+- **`memo_tools_search` ranks by the words it matches** (cli-core). A task phrase in an agent's words finds its command; the help's examples count. See [the measurement](https://github.com/WireCatLabs/cli-testing/tree/main/performance/agents/tools-search).
+
+### Fixed
+
+- **Contacts** (cli-core): one name in private chats on two messengers is proposed as one person; a person in a two-way private chat is no longer `automated`; a person on one of your own accounts no longer takes that profile's label as their name; a person's phone, address and username come from the identity that wrote the most; `hr@` scores below `info@`, and the same company in the CRM counts as a trace.
+- **A picture the AI model answers nothing to says so.** `memo sources add` gives `image.reason: "ai.empty-answer"`
+  and a hint to choose a vision model, instead of `ai.failed`; with cli-core's fix, moondream on Ollama reads pictures.
+
 ## 0.131.85 — 12.11.2026
 
 ### Added
