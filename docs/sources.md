@@ -31,9 +31,8 @@ pbpaste | memo sources add - --subject person:12
 - **`--max-chars`** keeps at most that many characters of text, up to 2,000,000 (default 200,000). The answer says
   `truncated: true` when only the first part was kept.
 
-A meeting transcript exported as WebVTT (`.vtt`) or SubRip (`.srt`), as Google Meet, Zoom, Teams, Telemost or Otter
-save one, is kept as what was said: one line per turn, `Name: text` when the file names the speaker, without the
-timings.
+A meeting transcript saved as WebVTT (`.vtt`) or SubRip (`.srt`) is kept as what was said: one line per turn,
+`Name: text` when the file names the speaker, without the timings.
 
 A scanned PDF has no text Memo can read: it is kept by its title and subjects only (`read: "no-text"`).
 

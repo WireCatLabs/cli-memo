@@ -315,13 +315,13 @@ it("keeps a WebVTT transcript as who said what, one line per turn", async () => 
     "<v.loud Mira Test>Agreed, <i>ship</i> it.</v>",
     "",
     "01:00:09.000 --> 01:00:11.000",
-    "Kai Sample: Q&amp;A &lt;v Nobody&gt; at 5&#160;pm &#x2014; done",
+    "Kai Sample: Q&amp;A &lt;v Nobody&gt; at 5&#160;pm &#x2014; done &bogus; &#0;",
     "",
   ].join("\r\n")
   const added = await add([file("Weekly call.vtt", vtt)])
   expect(added).toMatchObject({ title: "Weekly call", mime: "text/vtt" })
   expect((await run(["sources", "show", added.ref])).text).toBe(
-    "Kai Sample: Agenda: the harbourline budget.\nMira Test: Agreed, ship it.\nKai Sample: Q&A <v Nobody> at 5\u00a0pm \u2014 done",
+    "Kai Sample: Agenda: the harbourline budget.\nMira Test: Agreed, ship it.\nKai Sample: Q&A <v Nobody> at 5\u00a0pm \u2014 done &bogus; &#0;",
   )
 })
 
