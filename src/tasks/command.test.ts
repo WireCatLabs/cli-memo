@@ -202,7 +202,9 @@ it("lists the tasks of a deal and of its client company with related:", async ()
   await store.crm.saveItems(portal, "deal", [
     { externalId: "d1", title: "Website", pipeline: "p1", stage: "s1", organization: "c1" },
   ])
-  const [deal] = await store.deals.list({ account: portal, kind: "deal" })
+  const {
+    items: [deal],
+  } = await store.deals.list({ account: portal, kind: "deal" })
   await store.close()
   const run = async (...args: string[]) => {
     const streams = captureStreams()
