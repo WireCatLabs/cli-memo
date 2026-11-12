@@ -40,7 +40,9 @@ const setUp = async () => {
   const meeting = await store.meetings.saveMeeting(sample)
   await store.knowledge.linkMeetingProject(key, String(meeting.meeting.id), project.id, { by: "owner" })
   await store.tasks.create({ project: project.ref, title: "Send the signed lease", type: "chore" }, "owner")
-  const [task] = await store.tasks.find({ project: project.ref, status: "open", limit: 1 })
+  const {
+    items: [task],
+  } = await store.tasks.find({ project: project.ref, status: "open", limit: 1 })
   if (!task) throw new Error("no task")
   await store.tasks.suggestClose(task.id, { as: "done", certainty: 0.8, reason: "you replied" }, { bot: "claude-code" })
   const mailbox = await store.accounts.saveAccount({ provider: "email", account: ME }, { name: null })

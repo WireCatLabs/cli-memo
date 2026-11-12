@@ -77,7 +77,7 @@ export const sourcesOf = async (store: MessageStore, entity: Sourced): Promise<S
   const records: SourceRecordRef[] = []
   for (const { provider, account } of await sourceAccounts(store, entity)) {
     if (records.length > MOST) break
-    for (const one of await store.records.list({ provider, account, entity: ref, limit: MOST + 1 }))
+    for (const one of (await store.records.list({ provider, account, entity: ref, limit: MOST + 1 })).items)
       records.push({
         ...named(one),
         ...(one.flagged ? { flagged: true as const } : {}),

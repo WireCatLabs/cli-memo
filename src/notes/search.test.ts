@@ -88,8 +88,8 @@ it("labels a note found by meaning, and no other", () => {
     ({ ref: "document:1", path, excerpt: "", found_by }) as NoteHit
   const text = searchText({
     query: "budget",
-    hits: [hit("title.md", ["title"]), hit("words.md", ["words"]), hit("meaning.md", ["meaning"])],
-    has_more: false,
+    items: [hit("title.md", ["title"]), hit("words.md", ["words"]), hit("meaning.md", ["meaning"])],
+    hasMore: false,
     linked: [],
   } as unknown as Parameters<typeof searchText>[0])
   expect(text).toContain("title.md\n")

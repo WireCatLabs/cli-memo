@@ -57,12 +57,11 @@ export const listMemories = async (
     ...(terms.has("subject") ? { subject: terms.get("subject") as string } : {}),
     ...(project === undefined ? {} : { project: await canonicalProject(store, project) }),
   }
-  return pageOf(
-    "memories list",
-    limit,
-    async (most, offset) => (await store.memories.list({ ...filters, limit: most, offset })).map(memoryItem),
-    { page, args: { query: typedQuery(query) } },
-  )
+  return pageOf("memories list", limit, (most, offset) => store.memories.list({ ...filters, limit: most, offset }), {
+    page,
+    args: { query: typedQuery(query) },
+    shape: (rows) => rows.map(memoryItem),
+  })
 }
 
 const SEARCH = { command: "search memories", guide: LIST_QUERY_GUIDE }
@@ -96,10 +95,7 @@ export const searchMemories = (store: MessageStore, query: readonly string[] | s
   return pageOf(
     "search memories",
     limit,
-    async (most) =>
-      (await store.memories.search(words.join(" "), { limit: most, ...(scope === undefined ? {} : { scope }) })).map(
-        memoryItem,
-      ),
-    { fallback: 20, cap: 200 },
+    (most) => store.memories.search(words.join(" "), { limit: most, ...(scope === undefined ? {} : { scope }) }),
+    { fallback: 20, cap: 200, shape: (rows) => rows.map(memoryItem) },
   )
 }

@@ -6,15 +6,15 @@ export { searchNotes } from "@wirecat/cli-core/services"
 
 export const searchText = (result: NotesSearch, offset = 0): string =>
   [
-    ...(result.hits.length === 0
+    ...(result.items.length === 0
       ? [`No note holds "${result.query}". Run memo sync --only notes if notes changed.`]
       : []),
-    ...result.hits.map(
+    ...result.items.map(
       (hit) =>
         `${"key" in hit ? "key  " : ""}${hit.path ?? hit.ref}${hit.found_by.length === 1 && hit.found_by[0] === "meaning" ? "  (by meaning)" : ""}\n  ${hit.excerpt}`,
     ),
-    ...[shownOf(result.hits.length, offset, result.total)].filter((line) => line !== undefined),
-    ...(result.has_more ? ["More notes match; raise --limit or ask for --page with the next number."] : []),
+    ...[shownOf(result.items.length, offset, result.total)].filter((line) => line !== undefined),
+    ...(result.hasMore ? ["More notes match; raise --limit or ask for --page with the next number."] : []),
     ...(result.linked.length === 0
       ? []
       : [

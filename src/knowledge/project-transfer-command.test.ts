@@ -92,8 +92,10 @@ it("previews and owner-restores through standard envelopes without duplicating a
   expect(Array.isArray(restored.mappings)).toBe(true)
   const store = await openStore({ path: f.target, env: f.env, readOnly: true })
   try {
-    expect((await store.facts.list({ project: f.targetProject.ref })).map((fact) => fact.status)).toEqual(["proposed"])
-    expect(await store.facts.list({ project: f.unrelated.ref })).toHaveLength(2)
+    expect((await store.facts.list({ project: f.targetProject.ref })).items.map((fact) => fact.status)).toEqual([
+      "proposed",
+    ])
+    expect((await store.facts.list({ project: f.unrelated.ref })).items).toHaveLength(2)
   } finally {
     await store.close()
   }

@@ -84,7 +84,7 @@ const known = async (store: MessageStore, kinds: Set<string>): Promise<Seen> => 
   const tasks: Promise<void>[] = []
   if (kinds.has("order"))
     tasks.push(
-      store.orders.list({ limit: NEWEST }).then((orders) => {
+      store.orders.list({ limit: NEWEST }).then(({ items: orders }) => {
         for (const one of live(orders))
           remember(
             seen,
@@ -98,7 +98,7 @@ const known = async (store: MessageStore, kinds: Set<string>): Promise<Seen> => 
     )
   if (kinds.has("invoice"))
     tasks.push(
-      store.finance.invoices({ limit: NEWEST }).then((invoices) => {
+      store.finance.invoices({ limit: NEWEST }).then(({ items: invoices }) => {
         for (const one of live(invoices))
           if (one.number)
             remember(
@@ -112,7 +112,7 @@ const known = async (store: MessageStore, kinds: Set<string>): Promise<Seen> => 
     )
   if (kinds.has("payment"))
     tasks.push(
-      store.finance.payments({ limit: NEWEST }).then((payments) => {
+      store.finance.payments({ limit: NEWEST }).then(({ items: payments }) => {
         for (const one of live(payments)) {
           const sides = [one.payer, one.payee].filter((side) => side && !side.owner)
           remember(
@@ -130,7 +130,7 @@ const known = async (store: MessageStore, kinds: Set<string>): Promise<Seen> => 
     )
   if (kinds.has("task"))
     tasks.push(
-      store.tasks.find({ limit: NEWEST }).then((found) => {
+      store.tasks.find({ limit: NEWEST }).then(({ items: found }) => {
         for (const one of found)
           remember(
             seen,
@@ -144,7 +144,7 @@ const known = async (store: MessageStore, kinds: Set<string>): Promise<Seen> => 
     )
   if (kinds.has("fact"))
     tasks.push(
-      store.facts.list({ limit: NEWEST, order: "created" }).then((facts) => {
+      store.facts.list({ limit: NEWEST, order: "created" }).then(({ items: facts }) => {
         for (const one of facts)
           if (one.status === "proposed" || one.status === "accepted")
             remember(seen, [`fact:${fold(one.statement)}/${one.subject ?? ""}`], one.ref)

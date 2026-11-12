@@ -42,7 +42,9 @@ export const listWallets = async (
 const sourceSays = async (store: MessageStore, wallet: Wallet) => {
   if (wallet.openingBalance !== null) return null
   for (const { provider, account } of await sourceAccounts(store, wallet)) {
-    const [record] = await store.records.list({ provider, account, entity: wallet.ref, limit: 1 })
+    const {
+      items: [record],
+    } = await store.records.list({ provider, account, entity: wallet.ref, limit: 1 })
     const { opening_balance: balance, opening_date: date } = record?.fields ?? {}
     if (record && typeof balance === "string")
       return {

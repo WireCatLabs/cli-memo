@@ -28,8 +28,9 @@ export const personTasks = async (
   const items: TaskView[] = []
   let incomplete = false
   for (const key of accounts) {
-    for (const assigned of await store.tasks.find({ assignee: `person:${person.uid}`, status: "open", limit: 500 })) {
-      const task = await store.tasks.get(assigned.id)
+    const { items: assigned } = await store.tasks.find({ assignee: `person:${person.uid}`, status: "open", limit: 500 })
+    for (const one of assigned) {
+      const task = await store.tasks.get(one.id)
       if (task?.state !== "open" || task.account !== `${key.provider}:${key.account}`) continue
       items.push(await taskView(store, key, task))
     }
