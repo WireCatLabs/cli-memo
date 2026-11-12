@@ -148,9 +148,8 @@ export const crmChanges = async (store: MessageStore, accounts: readonly Account
   const found: SourcePart["found"] = []
   const next: string[] = []
   for (const kind of ["deal", "lead"] as const) {
-    const rows = await store.deals.list({ kind, accounts: keys, limit: CRM_READ })
-    if (rows.length >= CRM_READ)
-      next.push(`# the newest ${CRM_READ} ${kind}s were read; an older one changed is left out`)
+    const { items: rows, hasMore } = await store.deals.list({ kind, accounts: keys, limit: CRM_READ })
+    if (hasMore) next.push(`# the newest ${CRM_READ} ${kind}s were read; an older one changed is left out`)
     let here = 0
     for (const row of rows) {
       const updated = Date.parse(row.updatedAt)
