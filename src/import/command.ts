@@ -10,6 +10,7 @@ import { byOption, isMcpRun, whoRuns } from "../author.js"
 import { receiptText } from "../records/import.js"
 import { importRecords, type Receipt } from "../records/input.js"
 import { sourceOf } from "../records/mapping.js"
+import { type Hear, hearAll, hearLocally } from "./audio.js"
 import { DOCUMENT_TYPE, documentFields, documentRecord, MOST_FILES, type Skipped, TooMany, walk } from "./files.js"
 import { RECORDS_FILES, readerOf } from "./readers.js"
 
@@ -58,6 +59,9 @@ const folderImport = async (
     dryRun,
     by,
     onIssue,
+    transcribe,
+    hear,
+    env,
   }: {
     path: string
     provider: string
@@ -65,6 +69,9 @@ const folderImport = async (
     dryRun: boolean
     by: string
     onIssue: Parameters<typeof ingestLines>[2]["onIssue"]
+    transcribe: boolean
+    hear: Hear
+    env: NodeJS.ProcessEnv
   },
 ): Promise<ImportReceipt> => {
   let found: Awaited<ReturnType<typeof walk>>
@@ -72,17 +79,22 @@ const folderImport = async (
     found = await walk(path)
   } catch (error) {
     if (error instanceof TooMany)
-      throw new CliError(
-        "validation_error",
-        `${path} holds more than ${MOST_FILES} files: import its folders one by one`,
-        {
-          reason: "import.too-many-files",
-          path,
-        },
-      )
+      throw new CliError("validation_error", `${path} holds more than ${MOST_FILES} files: import them by folder`, {
+        reason: "import.too-many-files",
+        path,
+      })
     if (errnoOf(error) === "ENOENT") throw new CliError("not_found", `no file or folder ${path}`, { path })
     throw error
   }
+  const heard = await hearAll(store, found.files, {
+    provider,
+    account,
+    type: DOCUMENT_TYPE,
+    transcribe,
+    dryRun,
+    hear,
+    env,
+  })
   const skipped = [...found.skipped]
   const cut: string[] = []
   let files = 0
@@ -90,7 +102,7 @@ const folderImport = async (
   async function* lines(): AsyncIterable<string> {
     yield JSON.stringify({ schema_version: 1, source: { provider, account, batch_id: batch } })
     for (const file of found.files) {
-      const reader = readerOf(file)
+      const reader = readerOf(file, heard)
       if (typeof reader === "string") {
         skipped.push({ path: file.relative, reason: reader })
         continue
@@ -118,32 +130,43 @@ export const importText = (receipt: ImportReceipt): string =>
     ...receipt.skipped.map((one) => `skipped ${one.path}: ${one.reason}`),
   ].join("\n")
 
-export const importCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
+export const importCommand = (
+  program: Command,
+  streams: Streams,
+  env: NodeJS.ProcessEnv,
+  { hear = hearLocally }: { hear?: Hear } = {},
+): void => {
   const { print } = answers(program, streams, env)
   byOption(
     annotate(program.command("import"), { effects: LOCAL_WRITE, output: { entity: "import_receipt" } })
       .summary("bring a folder of documents or a records file into memo's search")
       .description(
-        "bring a folder of text, Markdown, PDF and Word files and .vtt or .srt transcripts, one such file, or a " +
-          "records file (JSON or JSONL) into the store, under the account you name. Each file is a document keyed by its path in the folder: the same folder " +
-          "twice changes nothing, an edited file updates its document, and a file gone from the folder is kept. " +
-          "Links are not followed and nothing leaves this computer; the text is kept as data, never run",
+        "bring a folder of text, Markdown, PDF and Word files, .vtt or .srt transcripts and, with --transcribe, " +
+          "recordings, one such file, or a records file (JSON or JSONL) into the store, under the account you name. " +
+          "Each file is a document keyed by its path in the folder: the same folder twice changes nothing, an " +
+          "edited file updates its document, and a file gone from the folder is kept. Links are not followed and " +
+          "nothing leaves this computer; the text is kept as data, never run",
       ),
   )
     .argument(
       "<path>",
-      "a folder, a .txt, .md, .pdf, .docx, .vtt or .srt file, or a records file (.json, .jsonl; - for stdin)",
+      "a folder, a .txt, .md, .pdf, .docx, .vtt, .srt or audio file, or a records file (.json, .jsonl; - for stdin)",
     )
     .option(
       "--account <account>",
       "the source the files belong to: <provider>:<account>, such as phone:office-pbx; never chosen for you",
+    )
+    .option(
+      "--transcribe",
+      "hear recordings (.wav, .mp3, .m4a, .ogg, .opus, .flac) with the local speech model; a recording heard " +
+        "before and unchanged is not heard again. Without it recordings are skipped",
     )
     .option("--dry-run", "read every file and plan the import; write nothing. Holds the store's write lock meanwhile")
     .option("--json", "print JSON; --json=created,skipped keeps only those fields")
     .action(
       async (
         path: string,
-        given: { account?: string; dryRun?: boolean; json?: boolean; asOwner?: boolean },
+        given: { account?: string; dryRun?: boolean; json?: boolean; asOwner?: boolean; transcribe?: boolean },
         command: Command,
       ) => {
         if (isMcpRun(command, env))
@@ -171,7 +194,17 @@ export const importCommand = (program: Command, streams: Streams, env: NodeJS.Pr
                 skipped: [],
                 cut: [],
               }
-            : folderImport(store, { path, provider, account, dryRun, by, onIssue }),
+            : folderImport(store, {
+                path,
+                provider,
+                account,
+                dryRun,
+                by,
+                onIssue,
+                transcribe: given.transcribe === true,
+                hear,
+                env,
+              }),
         )
         const issues = receipt.errors.map((one) => ({
           code: "validation_error" as const,

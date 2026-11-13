@@ -7,6 +7,7 @@ import { expect, it, vi } from "vitest"
 import { envelopeOf } from "../../test/answer.js"
 import { docxOf, pdfOf } from "../../test/office.js"
 import { createProgram } from "../program.js"
+import type { Hear } from "./audio.js"
 import { idOfPath } from "./external-id.js"
 
 // cli-core has no `document` type yet; a custom type is kept with its fingerprint the same way, so what memo sends
@@ -28,9 +29,9 @@ const setUp = () => {
     "---\nkind: call\n---\n# Call with the depot\n\nThe crane is due Friday.\n",
   )
   writeFileSync(join(folder, "notes.txt"), "Gate code changes on Monday.\n")
-  const run = async (args: string[], extra: NodeJS.ProcessEnv = {}) => {
+  const run = async (args: string[], extra: NodeJS.ProcessEnv = {}, hear?: Hear) => {
     const streams = captureStreams()
-    await createProgram({ streams, env: { ...env, ...extra } })
+    await createProgram({ streams, env: { ...env, ...extra }, ...(hear ? { hear } : {}) })
       .exitOverride()
       .parseAsync([...args, "--json"], { from: "user" })
     return envelopeOf(streams.stdout.join("")).item as Record<string, unknown>
@@ -180,4 +181,58 @@ it("keeps a WebVTT or SubRip transcript as turns, with its timings and speakers 
   expect((await f.record(idOfPath("call.srt")))?.fields).toMatchObject({
     metadata: { format: "srt", transcript: { cues: 1, start_seconds: 0.5, end_seconds: 3, speakers: ["Operator"] } },
   })
+})
+
+it("hears a recording only with --transcribe, once, and again only when its bytes change", async () => {
+  const f = setUp()
+  const recording = join(f.folder, "2026", "call-7.mp3")
+  writeFileSync(recording, Buffer.from("synthetic recording one"))
+  const hear = vi.fn<Hear>(async () => ({
+    model: "parakeet-v3",
+    seconds: 64.04,
+    pieces: [
+      { start: 0.5, end: 2, text: "Depot, good morning." },
+      { start: 61, end: 64, text: " The crane is due Friday. " },
+    ],
+  }))
+
+  const without = await f.run(["import", f.folder, ...ACCOUNT], {}, hear)
+  expect(without.skipped).toEqual([{ path: "2026/call-7.mp3", reason: expect.stringContaining("--transcribe") }])
+  expect(await f.run(["import", f.folder, ...ACCOUNT, "--transcribe", "--dry-run"], {}, hear)).toMatchObject({
+    skipped: [{ path: "2026/call-7.mp3", reason: expect.stringContaining("dry run") }],
+  })
+  expect(hear).not.toHaveBeenCalled()
+
+  expect(await f.run(["import", f.folder, ...ACCOUNT, "--transcribe"], {}, hear)).toMatchObject({ created: 1 })
+  expect(hear).toHaveBeenCalledTimes(1)
+  expect((await f.record(idOfPath("2026/call-7.mp3")))?.fields).toMatchObject({
+    title: "call-7",
+    text: "[00:00] Depot, good morning.\n[01:01] The crane is due Friday.",
+    metadata: {
+      format: "audio",
+      sha256: expect.stringMatching(/^[0-9a-f]{64}$/),
+      audio: { seconds: 64, model: "parakeet-v3", pieces: 2 },
+    },
+  })
+
+  expect(await f.run(["import", f.folder, ...ACCOUNT, "--transcribe"], {}, hear)).toMatchObject({
+    created: 0,
+    updated: 0,
+    unchanged: 3,
+  })
+  expect(hear).toHaveBeenCalledTimes(1)
+
+  writeFileSync(recording, Buffer.from("synthetic recording two"))
+  expect(await f.run(["import", f.folder, ...ACCOUNT, "--transcribe"], {}, hear)).toMatchObject({ updated: 1 })
+  expect(hear).toHaveBeenCalledTimes(2)
+})
+
+it("stops before writing anything when the local speech model is not downloaded", async () => {
+  const f = setUp()
+  writeFileSync(join(f.folder, "call.wav"), Buffer.from("synthetic"))
+  await expect(f.run(["import", f.folder, ...ACCOUNT, "--transcribe"])).rejects.toMatchObject({
+    code: "not_found",
+    details: expect.objectContaining({ reason: "model.not-downloaded" }),
+  })
+  expect(await f.record(idOfPath("notes.txt"))).toBeUndefined()
 })

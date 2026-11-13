@@ -51,6 +51,7 @@ import { subscriptionCommands } from "./finance/subscriptions-command.js"
 import { transactionCommands } from "./finance/transactions-command.js"
 import { walletCommands } from "./finance/wallets-command.js"
 import { findingsCommand } from "./findings/command.js"
+import type { Hear } from "./import/audio.js"
 import { importCommand } from "./import/command.js"
 import { jsonFields } from "./json-fields.js"
 import { knowledgeCommands } from "./knowledge/command.js"
@@ -715,6 +716,7 @@ export const createProgram = ({
   readerFetch,
   system,
   setExitCode,
+  hear,
 }: {
   streams?: Streams
   env?: NodeJS.ProcessEnv
@@ -736,6 +738,8 @@ export const createProgram = ({
   system?: ServerSystem
   /** The run's own exit code, from `startCli`; the process's when left out. */
   setExitCode?: (code: number) => void
+  /** How `import --transcribe` hears a recording; the local speech model unless a test hands in its own. */
+  hear?: Hear
 } = {}): Command => {
   // Every reader of the run's group reads MEMO_GROUP, so the first word is that, said shorter (WC-ACCT-13).
   const env = group === undefined ? given : { ...given, MEMO_GROUP: group }
@@ -778,7 +782,7 @@ export const createProgram = ({
   walletCommands(program, streams, env)
   transactionCommands(program, streams, env)
   recordsCommand(program, streams, env)
-  importCommand(program, streams, env)
+  importCommand(program, streams, env, hear ? { hear } : {})
   findingsCommand(program, streams, env)
   actionsCommand(program, streams, env)
   reviewCommand(program, streams, env)

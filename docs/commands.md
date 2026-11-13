@@ -5006,7 +5006,7 @@ memo records match [options]
 
 ## `memo import`
 
-bring a folder of text and Markdown files, one such file, or a records file (JSON or JSONL) into the store, under the account you name. Each file is a document keyed by its path in the folder: the same folder twice changes nothing, an edited file updates its document, and a file gone from the folder is kept. Links are not followed and nothing leaves this computer; the text is kept as data, never run
+bring a folder of text, Markdown, PDF and Word files, .vtt or .srt transcripts and, with --transcribe, recordings, one such file, or a records file (JSON or JSONL) into the store, under the account you name. Each file is a document keyed by its path in the folder: the same folder twice changes nothing, an edited file updates its document, and a file gone from the folder is kept. Links are not followed and nothing leaves this computer; the text is kept as data, never run
 
 This command changes the local store or your files.
 
@@ -5016,17 +5016,18 @@ memo import <path> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `path` | required | a folder, a .txt or .md file, or a records file (.json, .jsonl; - for stdin). |
+| `path` | required | a folder, a .txt, .md, .pdf, .docx, .vtt, .srt or audio file, or a records file (.json, .jsonl; - for stdin). |
 
 | Option | What it does |
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--account <account>` | the source the files belong to: <provider>:<account>, such as phone:office-pbx; never chosen for you. |
+| `--transcribe` | hear recordings (.wav, .mp3, .m4a, .ogg, .opus, .flac) with the local speech model; a recording heard before and unchanged is not heard again. Without it recordings are skipped. |
 | `--dry-run` | read every file and plan the import; write nothing. Holds the store's write lock meanwhile. |
 | `--json` | print JSON; --json=created,skipped keeps only those fields. |
 
-**Returns:** bring a folder of text files or a records file into memo's search
+**Returns:** bring a folder of documents or a records file into memo's search
 
 **Example:** `memo import ./transcripts --account phone:office-pbx --dry-run`, `memo import ./notes/call-42.md --account phone:office-pbx --json`, `memo import calls.jsonl --account phone:office-pbx`
 

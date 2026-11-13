@@ -28,6 +28,7 @@ own sync owns it.
 | `.md`, `.markdown` | A document; its title is the first heading, past any front matter, else the file name |
 | `.pdf`, `.docx` | A document, read on this computer by the readers of [Files Memo can read](notes.md#files-memo-can-read); its title is the file's own, else its name. A scanned PDF holds no text and is skipped |
 | `.vtt`, `.srt` | A transcript: one `Name: text` line per turn, as [Sources you add by hand](sources.md#add-a-source) keeps it. The timings and speakers go to `metadata.transcript` |
+| `.wav`, `.mp3`, `.m4a`, `.ogg`, `.opus`, `.flac` | With `--transcribe`, what was said, heard on this computer ([Recordings](#recordings)); without it the recording is skipped |
 | `.json`, `.jsonl` given on its own | Records, as `memo records import` reads them ([Custom integrations](#custom-integrations)) |
 
 Memo walks the folder and its subfolders. It leaves out names that start with `.` (`.git`, `.obsidian`). The answer
@@ -36,6 +37,32 @@ that is not UTF-8 text, an empty file, or a symbolic link.
 
 One `.txt` or `.md` file may be given instead of a folder. Its document is keyed by the file's name alone, so two
 files of the same name from different folders are one document: import their folder instead.
+
+## Recordings
+
+```sh
+memo import ./recordings --account phone:office-pbx --transcribe
+```
+
+`--transcribe` hears each recording with the local speech model `parakeet-v3`, which understands 25 languages. The
+recording never leaves this computer. Each passage the model heard is one line of the document's text, with where it
+starts in the recording:
+
+```text
+[00:00] Depot, good morning.
+[01:01] The crane is due Friday.
+```
+
+- **The model is not downloaded for you.** It is about 650 MB. Without it the import stops before it writes anything
+  and names the command that downloads it once, such as `tg models download parakeet-v3`. Every WireCat tool on this
+  computer shares it.
+- **A recording is heard once.** Its document keeps the hash of the recording's bytes. The next import with
+  `--transcribe` finds the same hash and sends the stored text again, so the recording is not heard again and the
+  document stays `unchanged`. A changed recording is heard again.
+- `--dry-run` does not transcribe: it lists new recordings under `skipped`.
+- One recording plays as one voice: speakers are not told apart, and a recording longer than an hour is refused by the
+  decoder.
+- MP3, Ogg, Opus and FLAC are read by Memo's own decoders. WAV, M4A and others need `ffmpeg` installed.
 
 ## Run it again at any time
 
@@ -66,6 +93,7 @@ Each file is a `document` record with:
 | `metadata.format` | `text`, `markdown`, `pdf`, `docx`, `vtt` or `srt` |
 | `metadata.extractor` | The reader of a PDF or Word file, with its version |
 | `metadata.transcript` | For a transcript: `cues`, `start_seconds`, `end_seconds` and `speakers` |
+| `metadata.audio` | For a recording: its length in `seconds`, the speech `model` and the number of `pieces` |
 | `metadata.sha256` | The hash of the file's bytes |
 | `metadata.size` | Its size in bytes |
 
@@ -76,7 +104,7 @@ agent's name.
 
 - **10,000 files** in one folder import. A larger tree is refused whole: import its folders one by one.
 - **32 folders deep.** Deeper folders are listed under `skipped`.
-- **50 MiB** a file. A larger file is skipped.
+- **50 MiB** a file, **256 MiB** a recording. A larger file is skipped.
 - **About 60 KiB of text** a document. A longer text is cut: the answer lists the file under `cut`, and its
   `metadata.truncated` is `true`.
 

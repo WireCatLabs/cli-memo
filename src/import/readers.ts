@@ -1,5 +1,6 @@
 import { isCliError } from "@wirecat/cli-base"
 import { readFile, SOURCE_TEXT_CHARS } from "../sources/read.js"
+import type { Hearing } from "./audio.js"
 import {
   type FoundFile,
   type ReadDocument,
@@ -81,8 +82,10 @@ const readTranscript: Reader = async (file) => {
   }
 }
 
-/** The reader of a file found in a folder, or why it is skipped. */
-export const readerOf = (file: FoundFile): Reader | string => {
+/** The reader of a file found in a folder, or why it is skipped; recordings were heard before, in `heard`. */
+export const readerOf = (file: FoundFile, heard: ReadonlyMap<string, Hearing>): Reader | string => {
+  const recording = heard.get(file.path)
+  if (recording) return async () => recording
   if (TEXT_EXTENSIONS[file.extension]) return readTextFile
   if (DOCUMENT_EXTENSIONS[file.extension]) return readDocument
   if (TRANSCRIPT_EXTENSIONS[file.extension]) return readTranscript
