@@ -5,20 +5,23 @@ records a small script of yours writes. After the import they are found by `memo
 everything else that reads Memo's store, next to your messages, mail and notes.
 
 ```sh
-memo import ./transcripts --account phone:office-pbx --dry-run
-memo import ./transcripts --account phone:office-pbx
-memo import calls.jsonl --account phone:office-pbx
+memo import ~/Documents/handbook --account import:handbook --dry-run
+memo import ~/Documents/handbook --account import:handbook
+memo import crm-notes.jsonl --account import:crm-notes
 ```
 
 ## The account
 
-Every import names the account it belongs to as `--account <provider>:<account>`, such as `phone:office-pbx` for an
-office phone exchange. Memo never picks one for you: without `--account` the error lists the accounts that already
-hold imports. A new account is made the first time you name it.
+Every import names the account it belongs to as `--account <provider>:<account>`. Memo never picks one for you:
+without `--account` the error lists the accounts that already hold imports. A new account is made the first time you
+name it.
 
-Keep one account per source. An import's documents sit next to that source's calls and contacts, and
-`memo search --source phone:office-pbx` finds only them. Do not import into a messenger's or Drive's account: its
-own sync owns it.
+- **`import:<name>`** for documents, notes and exports: `import:handbook`, `import:crm-notes`.
+- **`phone:<exchange>`** for call transcripts, next to that exchange's calls: `phone:office-pbx`.
+
+Files go only to these two providers, which no sync owns. Any other, such as a messenger's or Drive's account, is
+refused (`record.provider-not-imported`): its own sync owns it. Keep one account per source;
+`memo search --source import:handbook` then finds only its documents.
 
 ## What a folder import reads
 
@@ -41,7 +44,7 @@ files of the same name from different folders are one document: import their fol
 ## Recordings
 
 ```sh
-memo import ./recordings --account phone:office-pbx --transcribe
+memo import ./recordings --account import:voice-memos --transcribe
 ```
 
 `--transcribe` hears each recording with the local speech model `parakeet-v3`, which understands 25 languages. The
@@ -107,14 +110,16 @@ agent's name.
 - **10,000 files** in one folder import. A larger tree is refused whole: import its folders one by one.
 - **32 folders deep.** Deeper folders are listed under `skipped`.
 - **50 MiB** a file, **256 MiB** a recording. A larger file is skipped.
-- **About 60 KiB of text** a document. A longer text is cut: the answer lists the file under `cut`, and its
-  `metadata.truncated` is `true`.
+- **A million characters** of text a document, within 1 MiB. A longer text is cut: the answer lists the file under
+  `cut`, and its `metadata.truncated` is `true`.
 
 ## Safety
 
 - **Nothing leaves this computer.** Memo reads the files where they are and writes only to its local store.
 - **Links are not followed.** A symbolic link inside the folder is skipped, so an import never reads a file outside the
   folder you named. The folder you name may itself be a link.
+- **No credentials.** A file whose text holds something shaped like a credential, such as a private key or a
+  `Bearer` token, is refused and listed under `skipped` (`record.secret-field`). The other files are imported.
 - **The text is data.** Memo stores and searches it and runs nothing in it. An agent that reads an imported document
   reads it as a source, not as instructions.
 - **An agent's import is recorded as the agent's.** Run from an agent's terminal, the receipt's `by` names the agent.
@@ -129,9 +134,9 @@ writes the envelope, and gives it to Memo. You do not need to know Memo's databa
 The envelope as JSONL: the first line names the format version and the source, each further line is one record.
 
 ```jsonl
-{"schema_version":1,"source":{"provider":"phone","account":"office-pbx","batch_id":"2026-11-13"}}
-{"key":"c1","type":"event","external_id":"1700000000.1","operation":"upsert","fields":{"kind":"call","direction":"in","phone":"+34600000001","started_at":"2026-11-10T09:00:00+01:00","duration":61}}
-{"key":"n1","type":"document","external_id":"note-1700000000.1","operation":"upsert","fields":{"title":"Call about the delivery","text":"The crane is due Friday.","created_at":"2026-11-10T09:02:00+01:00","metadata":{"agent":"reception"}},"relations":[{"role":"about","type":"event","external_id":"1700000000.1"}]}
+{"schema_version":1,"source":{"provider":"import","account":"crm-notes","batch_id":"2026-11-13"}}
+{"key":"p1","type":"person","external_id":"contact-17","operation":"upsert","fields":{"name":"Ana Example","email":"ana@example.com"}}
+{"key":"n1","type":"document","external_id":"note-901","operation":"upsert","fields":{"title":"Delivery call","text":"The crane is due Friday.","created_at":"2026-11-10T09:02:00+01:00","metadata":{"manager":"reception"}},"relations":[{"role":"about","type":"person","external_id":"contact-17"}]}
 ```
 
 - **`external_id` is the record's id at the source.** Keep it stable: the same id is the same record on every run, so
@@ -139,44 +144,49 @@ The envelope as JSONL: the first line names the format version and the source, e
 - **`operation`** is `upsert`, or `delete` to remove a record you sent before.
 - **`fields`** hold the record's data; keys a type does not know are kept as sent. `metadata` keeps anything else
   worth knowing.
-- **`relations`** link records of the same account: a document `about` a call, a deal's `person`.
+- **`relations`** link records of the same account, or a store entity by `ref`: a document `about` a person, an
+  organization, a deal or a call event.
 - `memo records templates show <type> --format json` prints an example record of each type. The full format, every
   type and every rule: [The records envelope](https://github.com/WireCatLabs/cli-core/blob/main/docs/storage/records-envelope.md).
 
 Check a file before writing it, then import it:
 
 ```sh
-memo import calls.jsonl --account phone:office-pbx --dry-run
-memo import calls.jsonl --account phone:office-pbx
+memo import crm-notes.jsonl --account import:crm-notes --dry-run
+memo import crm-notes.jsonl --account import:crm-notes
 ```
 
 ### A source adapter in 20 lines
 
-This Node script turns a CSV export of calls (`id,date,number,direction,seconds`) into the envelope on stdout. Memo
-reads it from stdin with `-`:
+This Node script turns a tab-separated export of CRM notes (`id`, `date`, client e-mail, `text`) into the envelope on
+stdout: each client a person matched by e-mail, each note a document about that person. Memo reads it from stdin
+with `-`:
 
 ```js
-// calls-to-envelope.mjs: node calls-to-envelope.mjs calls.csv | memo import - --account phone:office-pbx
+// notes-to-envelope.mjs: node notes-to-envelope.mjs notes.tsv | memo import - --account import:crm-notes
 import { readFileSync } from "node:fs"
 
 const [, ...rows] = readFileSync(process.argv[2], "utf8").trim().split("\n")
 const line = (value) => process.stdout.write(`${JSON.stringify(value)}\n`)
+const people = new Set()
 
-line({ schema_version: 1, source: { provider: "phone", account: "office-pbx", batch_id: new Date().toISOString() } })
+line({ schema_version: 1, source: { provider: "import", account: "crm-notes", batch_id: new Date().toISOString() } })
 for (const row of rows) {
-  const [id, date, number, direction, seconds] = row.split(",")
+  const [id, date, email, text] = row.split("\t")
+  if (!people.has(email)) {
+    people.add(email)
+    line({ key: email, type: "person", external_id: email, operation: "upsert", fields: { name: email, email } })
+  }
   line({
-    key: id,
-    type: "event",
-    external_id: id,
-    operation: "upsert",
-    fields: { kind: "call", direction, phone: number, started_at: date, duration: Number(seconds) },
+    key: id, type: "document", external_id: `note-${id}`, operation: "upsert",
+    fields: { title: `Note ${id}`, text, created_at: date },
+    relations: [{ role: "about", type: "person", external_id: email }],
   })
 }
 ```
 
-The dates in the CSV must carry their offset (`2026-11-10T09:00:00+01:00`). A number written without `+` matches a
-person only when the header names `"options": { "phone_region": "es" }`.
+The dates must carry their offset (`2026-11-10T09:00:00+01:00`). A person is matched by an exact e-mail, never by
+name; one no contact holds is made.
 
 ### Example: call history from Asterisk
 

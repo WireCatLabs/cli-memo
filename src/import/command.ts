@@ -43,7 +43,7 @@ const noAccount = async (env: NodeJS.ProcessEnv): Promise<never> => {
     "validation_error",
     `name the account to import into: --account <provider>:<account>. ${
       choices.length ? `Accounts that hold imports: ${choices.join(", ")}.` : "No account holds imports yet."
-    } A new one is made on first use, such as phone:office-pbx for a phone exchange`,
+    } A new one is made on first use: import:<name> for documents and notes, phone:<exchange> for call transcripts`,
     { param: "--account", choices },
   )
 }
@@ -83,6 +83,13 @@ const folderImport = async (
     env: NodeJS.ProcessEnv
   },
 ): Promise<ImportReceipt> => {
+  if (providerNamed(provider)?.imported !== true)
+    throw new CliError(
+      "validation_error",
+      `files are imported only into an account of an import-only provider, which no sync owns: ${provider} is not ` +
+        "one. Use import:<name> for documents and notes, or phone:<exchange> for call transcripts",
+      { param: "--account", reason: "record.provider-not-imported" },
+    )
   let found: Awaited<ReturnType<typeof walk>>
   try {
     found = await walk(path)
@@ -106,6 +113,7 @@ const folderImport = async (
   })
   const skipped = [...found.skipped]
   const cut: string[] = []
+  const fileOf = new Map<string, string>()
   let files = 0
   const batch = `memo-import-${new Date().toISOString()}${by === "owner" ? "" : `-by-${by}`}`
   async function* lines(): AsyncIterable<string> {
@@ -124,11 +132,20 @@ const folderImport = async (
       const { fields, cut: wasCut } = documentFields(file, read)
       if (wasCut) cut.push(file.relative)
       files++
-      yield JSON.stringify(documentRecord(file, fields, DOCUMENT_TYPE))
+      const record = documentRecord(file, fields, DOCUMENT_TYPE)
+      fileOf.set(record.key, file.relative)
+      yield JSON.stringify(record)
     }
   }
   const receipt = await ingestLines(store, lines(), { account, dryRun, ...(onIssue ? { onIssue } : {}) })
-  return { ...receipt, by, files, skipped, cut }
+  // A file whose text looks like a credential is refused alone; the owner sees it beside the other skipped files.
+  const secret = (one: (typeof receipt.errors)[number]) =>
+    one.code === "record.secret-field" && one.key !== undefined && fileOf.has(one.key)
+  for (const one of receipt.errors.filter(secret)) {
+    skipped.push({ path: fileOf.get(one.key as string) as string, reason: `${one.message} (${one.code})` })
+    files--
+  }
+  return { ...receipt, errors: receipt.errors.filter((one) => !secret(one)), by, files, skipped, cut }
 }
 
 export const importText = (receipt: ImportReceipt): string =>
@@ -163,7 +180,8 @@ export const importCommand = (
     )
     .option(
       "--account <account>",
-      "the source the files belong to: <provider>:<account>, such as phone:office-pbx; never chosen for you",
+      "the source the files belong to: import:<name> (import:handbook), or phone:<exchange> for call transcripts; " +
+        "never chosen for you",
     )
     .option(
       "--transcribe",

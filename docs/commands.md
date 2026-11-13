@@ -4830,7 +4830,7 @@ memo records import <file> [options]
 | Option | What it does |
 |---|---|
 | `--dry-run` | check and plan the import; write nothing. a dry run holds the store's write lock and grows the write-ahead log for its length. |
-| `--type <type>` | the one type a CSV sheet holds: invoice, payment, person, organization, project, order, product, contract, subscription, wallet, transaction, deal, lead, pipeline. |
+| `--type <type>` | the one type a CSV sheet holds: invoice, payment, person, organization, project, order, product, contract, subscription, wallet, transaction, deal, lead, document, pipeline. |
 | `--account <account>` | the source the envelope is for: <provider>:<account> (sheet:rentals) or its source.account alone; phone:<device> for a vCard file. |
 | `--region <country>` | a vCard file's country for phone numbers without +, such as ru or gb; without it they are kept, not matched. |
 | `--json` | print JSON; --json=created,errors keeps only those fields. |
@@ -4853,7 +4853,7 @@ memo records check <file> [options]
 
 | Option | What it does |
 |---|---|
-| `--type <type>` | the one type a CSV sheet holds: invoice, payment, person, organization, project, order, product, contract, subscription, wallet, transaction, deal, lead, pipeline. |
+| `--type <type>` | the one type a CSV sheet holds: invoice, payment, person, organization, project, order, product, contract, subscription, wallet, transaction, deal, lead, document, pipeline. |
 | `--account <account>` | the source the envelope is for: <provider>:<account> (sheet:rentals) or its source.account alone; phone:<device> for a vCard file. |
 | `--region <country>` | a vCard file's country for phone numbers without +, such as ru or gb; without it they are kept, not matched. |
 | `--json` | print JSON; --json=created,errors keeps only those fields. |
@@ -4892,7 +4892,7 @@ memo records templates show <type> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `type` | required | one of invoice, payment, person, organization, project, order, product, contract, subscription, wallet, transaction, deal, lead, pipeline. |
+| `type` | required | one of invoice, payment, person, organization, project, order, product, contract, subscription, wallet, transaction, deal, lead, document, pipeline. |
 
 | Option | What it does |
 |---|---|
@@ -5022,14 +5022,12 @@ memo import <path> [options]
 |---|---|
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
-| `--account <account>` | the source the files belong to: <provider>:<account>, such as phone:office-pbx; never chosen for you. |
+| `--account <account>` | the source the files belong to: import:<name> (import:handbook), or phone:<exchange> for call transcripts; never chosen for you. |
 | `--transcribe` | hear recordings (.wav, .mp3, .m4a, .ogg, .opus, .flac) with the local speech model; a recording heard before and unchanged is not heard again. Without it recordings are skipped. |
 | `--dry-run` | read every file and plan the import; write nothing. Holds the store's write lock meanwhile. |
 | `--json` | print JSON; --json=created,skipped keeps only those fields. |
 
-**Returns:** bring a folder of documents or a records file into memo's search
-
-**Example:** `memo import ./transcripts --account phone:office-pbx --dry-run`, `memo import ./notes/call-42.md --account phone:office-pbx --json`, `memo import calls.jsonl --account phone:office-pbx`
+**Example:** `memo import ~/Documents/handbook --account import:handbook --dry-run`, `memo import ./recordings --account phone:office-pbx --transcribe --json`, `memo import crm-notes.jsonl --account import:crm-notes`
 
 ## `memo meetings`
 

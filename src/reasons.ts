@@ -187,6 +187,12 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: [],
   },
   {
+    reason: "import.too-many-files",
+    code: "validation_error",
+    message: "{path} holds more files than one import reads: import them by folder",
+    details: ["path"],
+  },
+  {
     reason: "mail.account-unknown",
     code: "not_found",
     message: "no stored mailbox by that address; the mail CLI syncs one",

@@ -11,10 +11,11 @@ export const MOST_FILES = 10_000
 const DEEPEST = 32
 
 /**
- * The envelope refuses a record whose fields pass 64 KiB as JSON; the title, the address and the metadata get the
- * rest. A longer text is cut and the receipt says so.
+ * The envelope refuses a document whose fields pass 1 MiB as JSON, or whose text passes a million characters; the
+ * title, the address and the metadata get the rest. A longer text is cut and the receipt says so.
  */
-const FIELDS_BYTES = 64 * 1024 - 2048
+const FIELDS_BYTES = 1024 * 1024 - 4096
+export const TEXT_CHARS = 1_000_000
 
 export const TEXT_EXTENSIONS: Readonly<Record<string, string>> = {
   ".txt": "text",
@@ -190,9 +191,9 @@ export const documentFields = (
     metadata: { path: file.relative.normalize("NFC"), size: file.stat.size, ...metadata },
   }
   const room = FIELDS_BYTES - bytesOf(base)
-  if (bytesOf(text) <= room) return { fields: { ...base, text }, cut: false }
+  if (text.length <= TEXT_CHARS && bytesOf(text) <= room) return { fields: { ...base, text }, cut: false }
   // Each UTF-16 unit is at least one byte, so nothing past `room` units can fit; a large file is never split whole.
-  const head = text.slice(0, Math.max(0, room)).replace(/[\uD800-\uDBFF]$/, "")
+  const head = text.slice(0, Math.max(0, Math.min(room, TEXT_CHARS))).replace(/[\uD800-\uDBFF]$/, "")
   const points = Array.from(head)
   let low = 0
   let high = points.length

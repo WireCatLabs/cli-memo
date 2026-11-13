@@ -10,14 +10,7 @@ import { createProgram } from "../program.js"
 import type { Hear } from "./audio.js"
 import { idOfPath } from "./external-id.js"
 
-// cli-core has no `document` type yet; a custom type is kept with its fingerprint the same way, so what memo sends
-// is checked against the store's own created, updated and unchanged.
-vi.mock("./files.js", async (actual) => ({
-  ...(await actual<typeof import("./files.js")>()),
-  DOCUMENT_TYPE: "custom:document",
-}))
-
-const ACCOUNT = ["--account", "phone:office-pbx"]
+const ACCOUNT = ["--account", "import:my-notes"]
 
 const setUp = () => {
   const dir = mkdtempSync(join(tmpdir(), "memo-import-"))
@@ -36,20 +29,15 @@ const setUp = () => {
       .parseAsync([...args, "--json"], { from: "user" })
     return envelopeOf(streams.stdout.join("")).item as Record<string, unknown>
   }
-  const record = async (externalId: string) => {
+  const record = async (externalId: string, provider = "import", account = "my-notes") => {
     const store = await openStore({ env })
     try {
-      return await store.records.get({
-        provider: "phone",
-        account: "office-pbx",
-        type: "custom:document",
-        externalId,
-      })
+      return await store.records.get({ provider, account, type: "document", externalId })
     } finally {
       await store.close()
     }
   }
-  return { dir, folder, run, record }
+  return { dir, env, folder, run, record }
 }
 
 it("imports a folder once: a second run changes nothing, and an edited file updates its own document", async () => {
@@ -117,8 +105,8 @@ it("never picks an account: without one it lists those that hold imports", async
   await f.run(["import", f.folder, ...ACCOUNT])
   await expect(f.run(["import", f.folder])).rejects.toMatchObject({
     code: "validation_error",
-    message: expect.stringContaining("phone:office-pbx"),
-    details: expect.objectContaining({ param: "--account", choices: ["phone:office-pbx"] }),
+    message: expect.stringContaining("import:my-notes"),
+    details: expect.objectContaining({ param: "--account", choices: ["import:my-notes"] }),
   })
 })
 
@@ -134,7 +122,7 @@ it("sends a records file to the records import, and records an agent's run as th
     fields: { kind: "call", direction: "in", phone: "+34600000001", started_at: "2026-11-10T09:00:00Z", duration: 61 },
   }
   writeFileSync(file, `${JSON.stringify(header)}\n${JSON.stringify(call)}\n`)
-  expect(await f.run(["import", file, ...ACCOUNT], { AI_AGENT: "codex" })).toMatchObject({
+  expect(await f.run(["import", file, "--account", "phone:office-pbx"], { AI_AGENT: "codex" })).toMatchObject({
     created: 1,
     errors: [],
     by: "codex",
@@ -252,11 +240,62 @@ it("skips one recording that cannot be heard and imports the rest", async () => 
 
 it("cuts a text longer than a record holds the same way on every run", async () => {
   const f = setUp()
-  writeFileSync(join(f.folder, "big.txt"), "Строка журнала поставки номер сорок два.\n".repeat(4000))
+  writeFileSync(join(f.folder, "big.txt"), "Строка журнала поставки номер сорок два.\n".repeat(27_000))
   const first = await f.run(["import", f.folder, ...ACCOUNT])
   expect(first).toMatchObject({ created: 3, errors: [], cut: ["big.txt"] })
   const big = await f.record(idOfPath("big.txt"))
   expect(big?.fields).toMatchObject({ metadata: { truncated: true } })
-  expect(Buffer.byteLength(JSON.stringify(big?.fields))).toBeLessThanOrEqual(64 * 1024)
+  expect(Buffer.byteLength(JSON.stringify(big?.fields))).toBeLessThanOrEqual(1024 * 1024)
+  expect(String(big?.fields.text).length).toBeLessThanOrEqual(1_000_000)
   expect(await f.run(["import", f.folder, ...ACCOUNT])).toMatchObject({ unchanged: 3, cut: ["big.txt"] })
+})
+
+it("refuses a file that holds a credential on its own and imports the rest", async () => {
+  const f = setUp()
+  writeFileSync(join(f.folder, "server.txt"), `Server notes\n${"-----BEGIN"} PRIVATE KEY-----\nMIIsynthetic\n`)
+  const answer = await f.run(["import", f.folder, ...ACCOUNT])
+  expect(answer).toMatchObject({ created: 2, files: 2, errors: [] })
+  expect(answer.skipped).toEqual([{ path: "server.txt", reason: expect.stringContaining("record.secret-field") }])
+  expect(await f.record(idOfPath("server.txt"))).toBeUndefined()
+})
+
+it("refuses an account whose provider is not import-only", async () => {
+  const f = setUp()
+  await expect(f.run(["import", f.folder, "--account", "telegram:1"])).rejects.toMatchObject({
+    code: "validation_error",
+    details: expect.objectContaining({ reason: "record.provider-not-imported" }),
+  })
+})
+
+it("makes an imported transcript found by search, under its own account and in a group that holds it", async () => {
+  const f = setUp()
+  await f.run(["import", f.folder, "--account", "phone:office-pbx"])
+  const own = join(f.dir, "own.txt")
+  writeFileSync(own, "The gate repainting quote arrived.\n")
+  await f.run(["import", own, ...ACCOUNT])
+  const hits = async (args: string[], extra: NodeJS.ProcessEnv = {}) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env: { ...f.env, ...extra } })
+      .exitOverride()
+      .parseAsync([...args, "--json"], { from: "user" })
+    return JSON.stringify(envelopeOf(streams.stdout.join("")).items)
+  }
+  const PBX = '"provider":"phone","account":"office-pbx"'
+  const NOTES = '"provider":"import","account":"my-notes"'
+  expect(await hits(["search", "all", "crane"])).toContain(PBX)
+  expect(await hits(["search", "notes", "crane", "--source", "phone:office-pbx"])).toContain("Call with the depot")
+  const gate = await hits(["search", "notes", "gate", "--source", "phone:office-pbx"])
+  expect(gate).toContain(PBX)
+  expect(gate).not.toContain(NOTES)
+
+  const store = await openStore({ env: f.env })
+  try {
+    await store.accounts.saveAccountGroup("office", ["phone:office-pbx"])
+  } finally {
+    await store.close()
+  }
+  const office = await hits(["search", "all", "gate", "--only", "notes"], { MEMO_GROUP: "office" })
+  expect(office).toContain(PBX)
+  expect(office).not.toContain(NOTES)
+  expect(await hits(["search", "all", "gate", "--only", "notes"])).toContain(NOTES)
 })

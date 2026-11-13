@@ -1,5 +1,5 @@
 import { isCliError } from "@wirecat/cli-base"
-import { readFile, SOURCE_TEXT_CHARS } from "../sources/read.js"
+import { readFile } from "../sources/read.js"
 import type { Hearing } from "./audio.js"
 import {
   type FoundFile,
@@ -7,6 +7,7 @@ import {
   readBytes,
   readTextFile,
   sha256Of,
+  TEXT_CHARS,
   TEXT_EXTENSIONS,
   titleOfName,
 } from "./files.js"
@@ -25,7 +26,7 @@ export type Reader = (file: FoundFile) => Promise<ReadDocument | Refused>
 /** A PDF or Word file through memo's document readers, which run on this computer. */
 const readDocument: Reader = async (file) => {
   try {
-    const read = await readFile(file.path, { maxChars: SOURCE_TEXT_CHARS })
+    const read = await readFile(file.path, { maxChars: TEXT_CHARS })
     if (read.read !== "extracted" || !read.text.trim())
       return { refused: "holds no text memo can read, such as a scanned PDF" }
     return {
