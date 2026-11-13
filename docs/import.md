@@ -175,3 +175,80 @@ for (const row of rows) {
 
 The dates in the CSV must carry their offset (`2026-11-10T09:00:00+01:00`). A number written without `+` matches a
 person only when the header names `"options": { "phone_region": "es" }`.
+
+### Example: call history from Asterisk
+
+An [Asterisk](https://www.asterisk.org/) exchange writes a call detail record (CDR) for every call, in
+`/var/log/asterisk/cdr-csv/Master.csv`, and can record calls with MixMonitor. This script makes the calls searchable:
+each call becomes a `call` event, and the transcript of its recording, when there is one, a document `about` that
+call. Both go to the account `phone:office-pbx`.
+
+First hear the recordings, so their text is ready as `.txt` files beside them. Any local tool that writes one text
+file per recording works; or let Memo hear them, as documents of their own:
+
+```sh
+memo import /var/spool/asterisk/monitor --account phone:office-pbx --transcribe
+```
+
+Then turn the CDR into the envelope:
+
+```js
+// asterisk-cdr.mjs: node asterisk-cdr.mjs Master.csv +01:00 | memo import - --account phone:office-pbx
+import { existsSync, readFileSync } from "node:fs"
+
+const [file, offset] = process.argv.slice(2)
+const cells = (row) => {
+  const out = [""]
+  let quoted = false
+  for (let i = 0; i < row.length; i++) {
+    if (row[i] === '"' && quoted && row[i + 1] === '"') out[out.length - 1] += row[i++]
+    else if (row[i] === '"') quoted = !quoted
+    else if (row[i] === "," && !quoted) out.push("")
+    else out[out.length - 1] += row[i]
+  }
+  return out
+}
+const line = (value) => process.stdout.write(`${JSON.stringify(value)}\n`)
+
+line({
+  schema_version: 1,
+  source: { provider: "phone", account: "office-pbx", batch_id: new Date().toISOString() },
+  options: { phone_region: "es" },
+})
+for (const row of readFileSync(file, "utf8").trim().split("\n")) {
+  const c = cells(row)
+  const [src, dst, start, seconds, disposition, id, recording] = [c[1], c[2], c[9], c[13], c[14], c[16], c[17]]
+  const inbound = dst.length <= 4
+  const startedAt = `${start.replace(" ", "T")}${offset}`
+  line({
+    key: id, type: "event", external_id: id, operation: "upsert",
+    fields: {
+      kind: "call", phone: inbound ? src : dst, started_at: startedAt, duration: Number(seconds),
+      direction: !inbound ? "out" : disposition === "ANSWERED" ? "in" : "missed",
+    },
+  })
+  const transcript = recording && recording.replace(/\.\w+$/, ".txt")
+  if (!transcript || !existsSync(transcript)) continue
+  line({
+    key: `t-${id}`, type: "document", external_id: `transcript-${id}`, operation: "upsert",
+    fields: {
+      title: `Call ${inbound ? "from" : "to"} ${inbound ? src : dst}`,
+      text: readFileSync(transcript, "utf8"),
+      created_at: startedAt,
+      metadata: { recording, disposition },
+    },
+    relations: [{ role: "about", type: "event", external_id: id }],
+  })
+}
+```
+
+- **The CDR's `uniqueid` is the record's id.** It is stable, so running the script every night updates the calls that
+  changed and adds the new ones.
+- **The CDR has no time zone.** Pass the exchange's offset (`+01:00`), or `+00:00` when `cdr.conf` sets
+  `usegmtime=yes`; the envelope refuses a time without one.
+- **`phone_region`** reads local numbers without `+` as numbers of that country, so a call links to the person whose
+  contact holds the number.
+- The columns are those of `cdr_csv` with `loguniqueid` and `loguserfield` on: the `uniqueid` is column 17 and the
+  `userfield` column 18. The script reads the recording's path from the `userfield`, which the dial plan fills with
+  `Set(CDR(userfield)=${MIXMONITOR_FILENAME})`. A `cdr_custom` template needs its own order. Numbers of four digits or
+  fewer are taken as internal extensions. Check the columns against your own `Master.csv` before the first run.
