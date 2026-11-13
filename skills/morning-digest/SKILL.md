@@ -49,8 +49,8 @@ what came after that day. Everything else below holds.
    - each `next:` line under a section that says "not shown": run it once, as printed;
    - a meeting with "transcript stored" that matters to a project: `memo search meetings "<two or three words>"`.
 3. For each lead, ask: did this show something the owner must act on today that the agenda did not list? If so, it
-   goes into the report like any other item. Never write what you could not check, what failed or what the agenda
-   missed: that is not for the owner.
+   goes into the report like any other item, and also into `internal.gaps`: the agenda missed it. Never write what
+   you could not check or what failed.
 
 ## Report
 
@@ -76,7 +76,10 @@ write only the content. A document that breaks this shape is not delivered: the 
   "tasks": { "overdue": 1, "today": 2, "tomorrow": 0, "new": 1, "new_since": "2026-11-06T08:31:12Z",
     "undated": 91 },
   "health": [ { "source": "MAX", "account": "Анна Котова", "reason": "sync-failed", "since": "2026-11-05T04:45:00Z",
-    "stale_hours": 51, "failure": "auth.expired", "refs": [] } ]
+    "stale_hours": 51, "failure": "auth.expired", "refs": [] } ],
+  "internal": { "gaps": [
+    { "what": "Анна Котова ждёт ответа в WhatsApp, а в подборке дня этого чата не было", "section": "owed",
+      "refs": ["chat:…"] } ] }
 }
 ```
 
@@ -114,3 +117,8 @@ write only the content. A document that breaks this shape is not delivered: the 
   leave it out. `channel`: `telegram`, `max`, `whatsapp`, `mail`, `meeting` or `task`. `quote`: at most one line of
   someone's words (100 characters).
 - A quiet day is `"sections": []` with the `health` it has; WireCat writes the quiet-day line.
+- `internal.gaps`: one entry for each thing you found by following a lead that the agenda did not show, `[]` when
+  there is none. `what` is one line (160 characters) in the owner's language that names the person or topic and what
+  the agenda left out, with no reference, command or agenda word; `section` is the agenda section it belonged in
+  (`watch`, `owed`, `mail`, `meetings`, `tasks`, `projects`, `proposals`); `refs` are the references memo printed for
+  it. The digest never shows `internal`; once a week WireCat sends the owner the week's gaps as one message.

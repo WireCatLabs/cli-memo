@@ -33,6 +33,17 @@ it("keeps the mail-triage skill short enough that a scheduled agent reads it who
   expect(readFileSync(new URL("../skills/mail-triage/SKILL.md", import.meta.url), "utf8").length).toBeLessThan(14_700)
 })
 
+it("has the morning digest keep what the agenda missed in internal.gaps, never in a section", () => {
+  const text = readFileSync(morning, "utf8")
+  const example = /^```json\n([\s\S]*?)^```/m.exec(text)?.[1] ?? ""
+  const report = JSON.parse(example.replaceAll("…", "x"))
+  expect(report.internal.gaps).toEqual([
+    { what: expect.any(String), section: "owed", refs: [expect.stringMatching(/^chat:/)] },
+  ])
+  expect(report.internal.gaps[0].what).not.toMatch(/[a-z]+:[a-z]|`/)
+  expect(text).not.toMatch(/what the agenda\s+missed: that is not for the owner/)
+})
+
 const subcommand = (parent: Command, word: string) =>
   parent.commands.find((command) => command.name() === word || command.aliases().includes(word))
 
