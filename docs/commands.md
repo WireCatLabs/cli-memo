@@ -6210,7 +6210,7 @@ memo search all <query> [options]
 | `--harder` | a hosted model reorders the first 30 hits; sends the question and those hits to the provider you chose with memo models search-consents set <provider> --yes, only after that. |
 | `--project <project>` | rank the key documents of this project (id, project:<id>, key, exact name or alias) first; nothing is left out. |
 
-**Returns:** hit — kind, ref, provider, account, title, timestamp, excerpt, url, and 17 more; every field: memo commands info search all
+**Returns:** hit — kind, ref, provider, account, title, timestamp, excerpt, url, and 18 more; every field: memo commands info search all
 
 **Example:** `memo search all 'budget harbour'`, `memo search all 'Rental agreement' --only business`, `memo search all 'release date' --source zoom:work,notes --json`
 
