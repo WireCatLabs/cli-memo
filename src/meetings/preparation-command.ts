@@ -46,7 +46,7 @@ const meetingPreparationCommandDefinition = (program: Command, streams: Streams,
 export const meetingPreparationCommand = (...args: Parameters<typeof meetingPreparationCommandDefinition>) => {
   customizeSharedCommand(
     sharedCommandTemplate(APP, "meetings"),
-    "Memo exposes stored meeting evidence and preparation across explicitly named source accounts; provider import and sync commands are unsupported.",
+    "Memo reads stored records of every account. Its list and show give one row per real meeting for WireCat Desktop's Meetings page: a calendar event joined with its Zoom or Meet record, phone calls included, as meeting_entry with event: and meeting: refs, a native query and a 50-row page. Transcript, summary, export, people, sync, import and repair stay with the provider CLIs, which read one account.",
     () => {
       meetingPreparationCommandDefinition(...args)
       const command = args[0].commands.find((command) => command.name() === "meetings")

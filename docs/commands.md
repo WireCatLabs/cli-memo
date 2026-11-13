@@ -447,6 +447,66 @@ memo sources readers set <reader> [options]
 
 **Example:** `memo sources readers set claude-code`, `memo sources readers set ollama --model llama3.2`, `memo sources readers set ollama --model llama3.2 --base-url http://127.0.0.1:11500`
 
+## `memo documents`
+
+every document the store holds, of every account: Drive, notes folders, added sources, imports
+
+### `memo documents list`
+
+documents of every account, newest change first, with their source, folder and kind
+
+```sh
+memo documents list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--limit <n>` | documents per page, 1–500. Default: `50`. |
+| `--page <n>` | which page, from 1. Default: `1`. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Example:** `memo documents list budget kind:pdf`, `memo documents list source:google-drive:me@example.com folder:Contracts --page 2 --json`
+
+### `memo documents tree`
+
+the accounts holding documents, each with its folders and how many documents each holds
+
+```sh
+memo documents tree [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--source <accounts>` | only this provider:account, or every account of a provider; repeat for more. |
+| `--depth <n>` | folder levels to list, 0–20. Default: `3`. |
+| `--json` | print JSON; --json=source,count keeps only those fields. |
+
+**Example:** `memo documents tree --depth 2 --json`
+
+### `memo documents show`
+
+one document: a part of its text, its tags, the people it names and its meetings
+
+```sh
+memo documents show <document> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `document` | required | document:<id>, from documents list. |
+
+| Option | What it does |
+|---|---|
+| `--cursor <cursor>` | the character its text starts at: where the last read ended. Default: `0`. |
+| `--max-chars <n>` | characters of text at most, 1–200000. Default: `20000`. |
+| `--json` | print JSON; --json=ref,text keeps only those fields. |
+
+**Example:** `memo documents show document:12 --cursor 20000 --max-chars 20000 --json`
+
 ## `memo folders`
 
 folders of notes: the id links and the store use, and the path on this computer
@@ -5157,6 +5217,47 @@ memo meetings actions reject <id> [options]
 
 **Example:** `memo meetings actions reject 5 --fingerprint aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --account zoom:me@example.com`
 
+### `memo meetings list`
+
+meetings, calls and calendar events of every account as one row per real meeting, latest start first
+
+```sh
+memo meetings list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--limit <n>` | rows per page, 1–1000; a month for a calendar fits in 1000. Default: `50`. |
+| `--page <n>` | which page, from 1. Default: `1`. |
+| `--order <recent\|start>` | recent: latest start first; start: oldest first, for a calendar window. Default: `recent`. |
+| `--json` | print JSON; --json=ref,title keeps only those fields. |
+
+**Example:** `memo meetings list kind:call has_transcript:true`, `memo meetings list 'started_at:[2026-11-01T00:00:00+01:00 TO 2026-12-01T00:00:00+01:00}' --order start --json`
+
+### `memo meetings show`
+
+one meeting row: its people, transcript lines with times, summaries, findings, calendar text and documents
+
+```sh
+memo meetings show <meeting> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `meeting` | required | event:<id> or meeting:<account>/<id>, from meetings list. |
+
+| Option | What it does |
+|---|---|
+| `--cursor <cursor>` | the transcript line to start at: where the last read ended. Default: `0`. |
+| `--limit <n>` | transcript lines at most, 1–2000. Default: `200`. |
+| `--json` | print JSON; --json=ref,transcript keeps only those fields. |
+
+**Example:** `memo meetings show event:42 --limit 500 --json`, `memo meetings show meeting:3/7`
+
 ### `memo meetings passage`
 
 read a cited cue with bounded context before and after it
@@ -6374,6 +6475,8 @@ memo search meetings <query> [options]
 | `--json` | print the standard JSON answer. |
 
 **Returns:** meeting hit — ref, meeting, scope, id, excerpt, offset_ms, language, line, and 5 more; every field: memo commands info search meetings
+
+**Next usually:** `memo meetings show <meeting>`
 
 **Example:** `memo search meetings budget --source zoom:me@example.com --project Harbour --since-time 2026-10-01 --limit 10 --json`
 

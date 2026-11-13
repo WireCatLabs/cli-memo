@@ -166,5 +166,12 @@
     "reason": "WireCat Desktop's Digests page (plan 2026-11-09-people-clients-digests, TASK-959, PR wirecat-desktop#249) makes a digest off its timer in one call; add then pause would leave a paid digest on its timer when the second call fails. The cli-base vocabulary has no such switch (FIND-2445); add one there, then drop this.",
     "owner": "@leemour",
     "review_after": "2027-02-09"
+  },
+  {
+    "rule": "flag-two-meanings",
+    "target": "--order",
+    "reason": "WireCat Desktop's Meetings page reads a calendar week or month oldest first (plan 2026-11-13-meetings-page): `meetings list --order start`. cli-base's vocabulary knows --order only as <recent|name>; add a start order there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-13"
   }
 ]

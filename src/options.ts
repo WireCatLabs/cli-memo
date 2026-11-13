@@ -7,6 +7,14 @@ export const positive = (value: string): number => {
   return number
 }
 
+/** A whole number from `low` to `high`, both included. */
+export const between = (low: number, high: number) => (value: string) => {
+  const number = Number(value)
+  if (!Number.isInteger(number) || number < low || number > high)
+    throw new InvalidArgumentError(`a whole number, ${low} to ${high}`)
+  return number
+}
+
 export const whole = (value: string): number => {
   const number = Number(value)
   if (!Number.isInteger(number) || number < 0 || number > 100)
