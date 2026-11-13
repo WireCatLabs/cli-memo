@@ -1,7 +1,7 @@
 import { metaOf } from "@wirecat/cli-base/commands"
 import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
-import { beforeAll, describe, expect, it } from "vitest"
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest"
 import { EXAMPLES } from "./examples.js"
 import { MOVED_TO_MAIL } from "./mail/moved.js"
 import { createProgram } from "./program.js"
@@ -46,8 +46,14 @@ const parse = async (args: string[]) => {
 }
 
 describe("examples", () => {
+  afterAll(() => {
+    vi.unstubAllEnvs()
+  })
+
   // The task commands cli-core builds resolve --source in a hook, before the replaced action.
   beforeAll(async () => {
+    // A parse with the action replaced proves the example parses, not that the command works, so the matrix skips it.
+    vi.stubEnv("MEMO_TEST_ARGV_LOG", "")
     const store = await openStore({ env: {} })
     for (const provider of ["telegram", "max"])
       await store.accounts.saveAccount({ provider, account: "1" }, { name: null })

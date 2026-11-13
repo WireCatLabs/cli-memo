@@ -41,14 +41,18 @@ export const exportTarget = (
   return { dir: resolve(chosen), format: format ?? config.notes?.export?.format ?? "obsidian" }
 }
 
-/** Writes internal notes as files, each with what it is about as links and its tags. */
+/**
+ * Writes internal notes as files, each with what it is about as links and its tags. The store keeps a note's first
+ * subject on the note, not as a link, and does not return it; `subject` is that one, when the caller knows it.
+ */
 export const exportInternal = async (
   store: MessageStore,
-  { dir, format, notes }: { dir: string; format: DialectName; notes: Note[] },
+  { dir, format, notes, subject }: { dir: string; format: DialectName; notes: Note[]; subject?: string },
 ): Promise<ExportResult> => {
   const exported: ExportedNote[] = []
   for (const note of notes) {
-    const about = (await store.notes.links({ from: note.ref })).filter((link) => link.to !== null)
+    const linked = (await store.notes.links({ from: note.ref })).filter((link) => link.to !== null)
+    const about = [...(subject === undefined ? [] : [{ to: subject, anchor: null }]), ...linked]
     exported.push({
       id: note.id,
       title: titleOf(note),

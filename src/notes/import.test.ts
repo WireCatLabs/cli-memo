@@ -453,8 +453,25 @@ describe("notes written in memo", () => {
     expect(readFileSync(edited.export_path, "utf8")).toContain("Call Rin on Monday")
   })
 
-  // The note's first subject is kept as the note's own subject, not as a link, so the file names only the others.
-  it.todo("notes add --export writes the note's first --subject as a link too, as it does every later one")
+  it("notes export --format writes every note in the format given", async () => {
+    await run("notes", "add", "Call Rin", "--title", "Call")
+    const markdown = await json("notes", "export", "--output-dir", join(root, "md"), "--format", "markdown")
+    const obsidian = await json("notes", "export", "--output-dir", join(root, "vault"), "--format", "obsidian")
+    expect(markdown.written).toHaveLength(1)
+    expect(obsidian.written).toHaveLength(1)
+    expect(readFileSync(markdown.written[0], "utf8")).toContain("Call Rin")
+  })
+
+  it("notes add --export writes the note's first --subject as a link too, as it does every later one", async () => {
+    await telegramPeople(["101", "Rin Example"], ["102", "Kai Sample"])
+    const about = ["--subject", "telegram:Rin Example", "--subject", "telegram:Kai Sample"]
+    const added = await json("notes", "add", "Call Rin", ...about, "--export", join(root, "first"))
+    const people = await Promise.all(
+      ["telegram:Rin Example", "telegram:Kai Sample"].map(async (name) => (await json("people", "show", name)).ref),
+    )
+    const links = readFileSync(added.export_path, "utf8").match(/^- \[person:\d+\]/gm)
+    expect(links).toEqual(people.map((ref) => `- [${ref}]`))
+  })
 
   it("answers the note itself, so --json picks its fields, and refuses a field a note search lacks", async () => {
     const added = JSON.parse(await run("notes", "add", "Prefers tea", "--json=id,ref"))

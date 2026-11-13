@@ -403,3 +403,77 @@ describe("what each write records", () => {
     })
   })
 })
+
+describe("the rest of each command's options", () => {
+  it("invoices add --person and payments add --occurred-time", async () => {
+    expect(
+      await f.item(OWNER, "invoices", "add", "80.00", "RUB", "Lesson", "--kind", "receivable", "--person", person),
+    ).toMatchObject({ counterparty: { ref: person } })
+    expect(
+      await f.item(OWNER, "payments", "add", "80.00", "RUB", "--kind", "in", "--occurred-time", "2026-10-05"),
+    ).toMatchObject({ date: "2026-10-05" })
+  })
+
+  it("pipelines add --kind, deals add --person --role --due, pipelines show --since-time, leads", async () => {
+    expect(
+      await f.item(OWNER, "pipelines", "add", "Inbound", "New", "Qualified", "won", "lost", "--kind", "lead"),
+    ).toMatchObject({ kind: "lead" })
+    await f.item(OWNER, "pipelines", "add", "Sales", "Call", "Quote", "won", "lost")
+    expect(
+      await f.item(
+        OWNER,
+        ...["deals", "add", "Fleet", "Sales/Call", "--person", person, "--role", "decision-maker"],
+        ...["--due", "2026-12-01"],
+      ),
+    ).toMatchObject({ close_date: "2026-12-01", people: [{ ref: person, role: "decision-maker" }] })
+    expect(await f.item(OWNER, "pipelines", "show", "Sales", "--since-time", "2026-01-01")).toMatchObject({
+      totals: { items: 1 },
+    })
+    expect(await f.item(OWNER, "pipelines", "show", "Sales", "--since-time", "2099-01-01")).toMatchObject({
+      since: "2099-01-01",
+      totals: { items: 0 },
+    })
+
+    const lead = (await f.item(OWNER, "leads", "add", "Website form", "Inbound/New")).ref as string
+    const brief = await f.item(OWNER, "leads", "context", lead, "--brief")
+    expect(brief).toMatchObject({ ref: lead, stages: ["∅ → New"] })
+    expect(await f.item(OWNER, "leads", "context", lead)).not.toEqual(brief)
+    expect(await f.item(OWNER, "leads", "close", lead, "lost", "--reason", "went elsewhere")).toMatchObject({
+      status: "lost",
+      closed_reason: "went elsewhere",
+    })
+
+    expect(await f.item(OWNER, "stages", "confirm", "--pipeline", "Sales")).toEqual({ confirmed: 0 })
+    await expect(f.item(OWNER, "stages", "confirm", "--pipeline", "Nowhere")).rejects.toMatchObject({
+      code: "not_found",
+    })
+  })
+
+  it("subscriptions update --period and transactions add --payment", async () => {
+    const ref = await subscription()
+    expect(await f.item(OWNER, "subscriptions", "update", ref, "--period", "1-year")).toMatchObject({
+      interval: { count: 1, unit: "year" },
+    })
+    const paid = await payment()
+    expect(
+      await f.item(OWNER, "transactions", "add", wallet, "500.00", "--kind", "in", "--payment", paid),
+    ).toMatchObject({ payment: paid })
+  })
+
+  it("records import --dry-run plans the import and writes nothing", async () => {
+    const file = join(f.dir, "erp-dry.json")
+    const record = {
+      key: "organization-dry",
+      type: "organization",
+      external_id: "ORG-DRY",
+      operation: "upsert",
+      fields: { name: "Supplier Dry" },
+    }
+    const source = { provider: "example-erp", account: "demo", batch_id: "dry" }
+    writeFileSync(file, JSON.stringify({ schema_version: 1, source, records: [record] }))
+    const planned = await f.item(OWNER, "records", "import", file, "--account", "example-erp:demo", "--dry-run")
+    expect(planned).toMatchObject({ dry_run: true, created: 1 })
+    const organizations = await f.items(OWNER, "organizations", "list")
+    expect(organizations.map((one) => one.name)).not.toContain("Supplier Dry")
+  })
+})

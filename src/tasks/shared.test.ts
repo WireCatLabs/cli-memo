@@ -190,6 +190,11 @@ it("**tasks agenda over a mail account lists threads owed an answer and waiting 
   expect(agenda.owed.map((one: { chat: string }) => one.chat)).toEqual(["chat:email/me%40example.com/owed"])
   expect(agenda.waiting.map((one: { chat: string }) => one.chat)).toEqual(["chat:email/me%40example.com/waiting"])
   expect(agenda.stale).toBe(false)
+  const waiting = async (...args: string[]) =>
+    (await run("tasks", "agenda", "--source", "email:me@example.com", ...args, "--json")).json().item.waiting
+  expect(await waiting("--waiting", "9d")).toEqual([])
+  expect(await waiting("--within", "5d")).toEqual([])
+  expect(await waiting("--waiting", "7d", "--within", "9d")).toHaveLength(1)
 })
 
 it("counts tasks by project instead of chat, and reads a period's days in the zone asked", async () => {
@@ -198,6 +203,8 @@ it("counts tasks by project instead of chat, and reads a period's days in the zo
     (await run("stats", "tasks", "show", ...scope, "--json", ...args)).json().item
   expect((await stats()).rows).toEqual([expect.objectContaining({ chat: "chat:telegram/500/7", open: 1 })])
   expect(await stats("--by", "project")).toMatchObject({ open: 0, rows: [] })
+  expect(await stats("--type", "question")).toMatchObject({ open: 1 })
+  expect(await stats("--type", "promise")).toMatchObject({ open: 0 })
   // Kiritimati's today began at most a day ago; the same date begins 25 hours later in Pago Pago.
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Pacific/Kiritimati" }).format(new Date())
   expect(await stats("--timezone", "Pacific/Kiritimati", "--", `created>=${today}`)).toMatchObject({ created: 1 })

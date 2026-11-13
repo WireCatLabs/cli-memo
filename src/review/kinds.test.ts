@@ -256,4 +256,8 @@ it("says when nothing happened, and counts what waits in the status and in the p
   expect(context.review.waiting.next.args.query).toBe("project:SYH")
   expect(Object.values(context.review.waiting.kinds).reduce((a: number, b) => a + (b as number), 0)).toBe(3)
   expect(await f.raw({}, OWNER, "projects", "context", "SYH")).toContain("Pending review: 3 proposals waiting")
+
+  const since = (await f.run({}, OWNER, "review", "status", "--since-time", "2020-01-01")).item
+  expect(since.since).toMatch(/^2020-01-01/)
+  expect(since.proposed.count).toBe(status.proposed.count)
 })

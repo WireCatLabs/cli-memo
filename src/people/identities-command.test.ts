@@ -324,6 +324,17 @@ describe("memo people confirm and reject", () => {
     expect(envelopeOf(await raw({}, OWNER, "people", "review", "--json")).items).toEqual([])
   })
 
+  it("all --kind picks only links or only separations, and confirm all --yes answers them", async () => {
+    await run(CLAUDE, NOBODY, "people", "link", "max:33", "telegram:11", "--reason", "same face")
+    const splits = await run({}, OWNER, "people", "reject", "all", "--kind", "split", "--reason", "not one")
+    expect(splits).toMatchObject({ outcome: "preview", ids: [] })
+    const links = await run({}, OWNER, "people", "confirm", "all", "--kind", "link")
+    expect(links).toMatchObject({ outcome: "preview", would: "confirm" })
+    expect(links.ids).toHaveLength(1)
+    const done = await run({}, OWNER, "people", "confirm", "all", "--kind", "link", "--yes")
+    expect(done.decided).toEqual([expect.objectContaining({ id: links.ids[0], status: "confirmed" })])
+  })
+
   it("refuses a proposal that is not about people and still decides the rest, as the desktop app asks", async () => {
     const { proposal } = await run(CLAUDE, NOBODY, "people", "link", "max:33", "telegram:11", "--reason", "same face")
     const store = await openStore({ env })
@@ -356,6 +367,7 @@ describe("memo people links check", () => {
     expect(doubts.items).toMatchObject([{ reason: "mixed-names" }])
     expect(doubts.page.total).toMatchObject({ value: 1 })
     expect(await raw({}, OWNER, "people", "links", "check")).toContain("mixed-names")
+    expect(envelopeOf(await raw({}, OWNER, "people", "links", "check", "--page", "2", "--json")).items).toEqual([])
     expect((await run({}, OWNER, "people", "show", "person:me")).identities).toMatchObject([{ identity: "telegram:1" }])
   })
 

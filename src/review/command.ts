@@ -1,16 +1,17 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { answerEntity, LOCAL_READ, LOCAL_WRITE, type RowShape, withQuery } from "@wirecat/cli-core/cli"
+import { answerEntity, LOCAL_READ, LOCAL_WRITE, withQuery } from "@wirecat/cli-core/cli"
 import { mailMark } from "@wirecat/cli-core/mail/cli"
 import { parseProposalIds } from "@wirecat/cli-core/services"
 import { SOURCE_REVIEW_KIND } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import * as v from "valibot"
-import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
+import { answers, itemAnswer, listAnswer, plainText, withStore } from "../answer.js"
 import { byOption, deciderOf } from "../author.js"
 import { reviewAgendaCommand, sinceOf } from "../digest/command.js"
 import { evidenceContext } from "../knowledge/project-actions.js"
 import { positive, whole } from "../options.js"
+import { PROPOSAL_ROW } from "../rows.js"
 import { reviewOf } from "../store/guard.js"
 import {
   decidedText,
@@ -74,18 +75,6 @@ const PROPOSAL = v.strictObject({
   created_at: v.string(),
 })
 
-const ROW: RowShape = {
-  columns: [
-    { field: "id" },
-    { field: "kind" },
-    { field: "title" },
-    { field: "score" },
-    { field: "proposer" },
-    { field: "created_at", as: "day" },
-  ],
-  text: ["reason"],
-}
-
 /** How the owner answers a source review, said wherever one is decided. */
 export const SOURCE_REVIEW_HELP =
   "A memory_source_review is yours alone: confirm says the memory or fact still holds, reject dismisses the review; " +
@@ -115,7 +104,7 @@ export const reviewCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       ),
       "memo_proposal",
       PROPOSAL,
-      { row: ROW },
+      { row: PROPOSAL_ROW },
     ),
   )
     .option("--limit <n>", "proposals per page, at most 50", positive, 20)
@@ -182,7 +171,7 @@ export const reviewCommand = (program: Command, streams: Streams, env: NodeJS.Pr
               : {}),
           })
         })
-        print(given.json, body, undefined, given.compact)
+        print(given.json, body, plainText(body), given.compact)
       },
     )
 

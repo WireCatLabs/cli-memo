@@ -486,6 +486,35 @@ describe("schedules of memo commands and agents", () => {
     expect(agents.items).toContainEqual(expect.objectContaining({ id: "claude", installed: true }))
   })
 
+  it("repeats a command and an agent by --every and --at, with the agent's model, costs and mail trigger, and lists them", async () => {
+    const { json, schedule } = setUp()
+    await json("schedule", "command", "often", "--every", "2h", "--", "review", "status")
+    await json("schedule", "command", "daily", "--at", "09:00", "--", "review", "status")
+    await json(
+      ...["schedule", "agent", "morning", "claude", "Triage mail.", "--at", "mon 08:30", "--model", "haiku"],
+      ...["--max-cost", "0.4", "--max-cost-per-day", "2"],
+    )
+    await json(
+      ...["schedule", "agent", "inbox", "claude", "Triage mail.", "--every", "5m", "--on-new-mail", "triage"],
+      ...["--mail-wait", "45m", "--mail-batch", "7"],
+    )
+    expect(schedule("often").when).toEqual({ every: 120 })
+    expect(schedule("daily").when).toEqual({ daily: "09:00" })
+    expect(schedule("morning")).toMatchObject({
+      when: { weekly: "08:30", on: "mon" },
+      agent: { model: "haiku", maxCost: 0.4 },
+      maxCostPerDay: 2,
+    })
+    expect(schedule("inbox")).toMatchObject({ onNewMail: "triage", mailWaitMinutes: 45, mailBatch: 7 })
+    const listed = await json("schedule", "list")
+    expect(listed.items.map(({ name, when }: { name: string; when: string }) => [name, when])).toEqual([
+      ["daily", "daily at 09:00"],
+      ["inbox", "every 5m"],
+      ["morning", "weekly on Mon at 08:30"],
+      ["often", "every 2h"],
+    ])
+  })
+
   it("runs an agent now with no notice at all, or to only one of its routes, and as its timer does", async () => {
     const { json, ran, run, state } = setUp()
     await json(

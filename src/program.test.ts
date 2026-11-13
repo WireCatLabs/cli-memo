@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs"
 import { captureStreams } from "@wirecat/cli-base"
 import { describeProgram, flatten, parseCommandsDocument } from "@wirecat/cli-base/commands"
 import type { Command } from "commander"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { CONTRACT } from "./discovery/command.js"
 import { throwParseFailures } from "./failure.js"
 import { createProgram, refuseJoinedPath } from "./program.js"
@@ -31,6 +31,31 @@ describe("memo", () => {
     })
     expect(out).toContain("Usage: memo")
     expect(out).toContain("--debug")
+  })
+
+  it("lists its scenarios with guide, shows one, and answers help with a command's help", async () => {
+    const run = async (...args: string[]) => {
+      const streams = captureStreams()
+      await createProgram({ streams }).exitOverride().parseAsync(args, { from: "user" })
+      return streams.stdout.join("")
+    }
+    const listed = JSON.parse(await run("guide", "--json"))
+    expect(listed.items).toContainEqual(
+      expect.objectContaining({ name: "person-brief", command: "memo guide person-brief" }),
+    )
+    expect(await run("guide")).toMatch(/^ +person-brief +One person across every tool$/m)
+
+    // commander prints a subcommand's help through that command's own output, which is process.stdout.
+    const printed = vi.spyOn(process.stdout, "write").mockImplementation(() => true)
+    try {
+      await createProgram()
+        .exitOverride()
+        .parseAsync(["help", "tags", "add"], { from: "user" })
+        .catch(() => undefined)
+      expect(printed.mock.calls.join("")).toContain("Usage: memo tags add")
+    } finally {
+      printed.mockRestore()
+    }
   })
 
   it("lists its command tree for documentation and agents", async () => {

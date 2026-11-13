@@ -21,6 +21,26 @@ const LINED: RowShape = {
   sections: { lines: "memo_money_line" },
 }
 
+/** A proposal as `review` lists it. */
+export const PROPOSAL_ROW: RowShape = {
+  columns: [
+    { field: "id" },
+    { field: "kind" },
+    { field: "title" },
+    { field: "score" },
+    { field: "proposer" },
+    { field: "created_at", as: "day" },
+  ],
+  text: ["reason"],
+}
+
+/** A `review confirm` or `reject` answer: a line per proposal decided, then one per proposal refused. */
+const DECISIONS: RowShape = {
+  columns: [],
+  sections: { decided: "memo_decided", refused: "memo_refused" },
+  oneLine: true,
+}
+
 /**
  * memo's rows by command path. Most of memo's answers are cli-core's shared entities (note, memory, task, hit), whose
  * rows cli-core will not take from an app, so memo keys its own by the command that answers them.
@@ -140,6 +160,9 @@ export const ROWS: Readonly<Record<string, RowShape>> = {
   "wallets list": {
     columns: [{ field: "ref" }, { field: "title" }, { field: "balance.amount" }, { field: "balance.currency" }],
   },
+  "review show": { ...PROPOSAL_ROW, oneLine: true },
+  "review confirm": DECISIONS,
+  "review reject": DECISIONS,
   "orders show": LINED,
   "orders lines add": LINED,
   "orders lines remove": LINED,
@@ -185,6 +208,8 @@ const SECTION_ROWS: Readonly<Record<string, RowShape>> = {
     ],
     text: ["description"],
   },
+  memo_decided: { columns: [{ field: "id" }, { field: "status" }, { field: "kind" }] },
+  memo_refused: { columns: [{ field: "id" }, { field: "code" }, { field: "reason" }], text: ["message"] },
   memo_evidence_person: {
     columns: [{ field: "person" }, { field: "name" }, { field: "items", as: "count", tag: "items" }],
   },
