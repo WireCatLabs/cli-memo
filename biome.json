@@ -24,38 +24,6 @@
               "options": {
                 "patterns": [
                   {
-                    "group": ["postal-mime"],
-                    "message": "parsing raw mail stays in src/mail; the rest of memo reads parsed messages"
-                  },
-                  {
-                    "group": ["@modelcontextprotocol/**"],
-                    "message": "only src/mcp serves MCP; commands and services do not know the protocol"
-                  },
-                  {
-                    "group": ["yaml"],
-                    "message": "front matter is read by the note dialects; the rest of memo gets parsed notes"
-                  },
-                  {
-                    "group": ["@wirecat/cli-core/sqlite-runtime"],
-                    "message": "the SQLite runtime is chosen once, at the entry point"
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "includes": ["src/mail/**", "!**/*.test.ts"],
-      "linter": {
-        "rules": {
-          "style": {
-            "noRestrictedImports": {
-              "level": "error",
-              "options": {
-                "patterns": [
-                  {
                     "group": ["@modelcontextprotocol/**"],
                     "message": "only src/mcp serves MCP; commands and services do not know the protocol"
                   },
@@ -84,10 +52,6 @@
               "options": {
                 "patterns": [
                   {
-                    "group": ["postal-mime"],
-                    "message": "parsing raw mail stays in src/mail; the rest of memo reads parsed messages"
-                  },
-                  {
                     "group": ["yaml"],
                     "message": "front matter is read by the note dialects; the rest of memo gets parsed notes"
                   },
@@ -112,10 +76,6 @@
               "options": {
                 "patterns": [
                   {
-                    "group": ["postal-mime"],
-                    "message": "parsing raw mail stays in src/mail; the rest of memo reads parsed messages"
-                  },
-                  {
                     "group": ["@modelcontextprotocol/**"],
                     "message": "only src/mcp serves MCP; commands and services do not know the protocol"
                   },
@@ -139,10 +99,6 @@
               "level": "error",
               "options": {
                 "patterns": [
-                  {
-                    "group": ["postal-mime"],
-                    "message": "parsing raw mail stays in src/mail; the rest of memo reads parsed messages"
-                  },
                   {
                     "group": ["@modelcontextprotocol/**"],
                     "message": "only src/mcp serves MCP; commands and services do not know the protocol"

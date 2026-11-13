@@ -17,6 +17,13 @@ export const mcp: readonly SharedContractOverride[] = [
   },
   {
     command: ["mcp"],
+    field: "summary",
+    before: "serve this profile's commands to an AI agent, and set that up",
+    after: "serve memo's commands to an AI agent, and set that up",
+    reason: REASON,
+  },
+  {
+    command: ["mcp"],
     field: "children",
     before: ["serve", "revoke", "server", "config", "add", "check"],
     after: ["serve", "revoke", "server"],
@@ -28,6 +35,13 @@ export const mcp: readonly SharedContractOverride[] = [
     before:
       "serve this profile to an agent over MCP, on stdin and stdout — `claude mcp add memo -- memo <profile> mcp serve`; `memo mcp serve --profiles a,b` or `--profiles all` serves those profiles from one server and each tool asks which",
     after: "serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions",
+    reason: REASON,
+  },
+  {
+    command: ["mcp", "serve"],
+    field: "summary",
+    before: "serve this profile's commands to an AI agent",
+    after: "serve memo's commands to an AI agent",
     reason: REASON,
   },
   {

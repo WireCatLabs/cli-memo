@@ -35,8 +35,6 @@ memo context <person> [options]
 | `--source <accounts>` | the accounts to read: every one when left out, or the group's in a group run; for <messenger>:<name>, the one account of that messenger. |
 | `--trimmed` | each email's own text, without quoted earlier mail or the signature — for an agent's reads. |
 
-**Returns:** messages, mail, notes and events about a person, each with a link to its source
-
 **Example:** `memo context telegram:'Kai Sample'`, `memo context person:7 --json`, `memo context email:kai@example.com --limit 5 --json`
 
 ## `memo show`
@@ -54,8 +52,6 @@ memo show <ref> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
-
-**Returns:** what any reference names, and the command that opens it
 
 **Example:** `memo show chat:max/500/-1001 document:413`, `memo show note:12 msg:telegram/1/77/42 --json`, `memo show contract:2 invoice:4 --json`
 
@@ -186,8 +182,6 @@ memo notes remove <id> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** delete a note you wrote here; a file it was exported to stays
-
 **Example:** `memo notes remove note:12`
 
 ### `memo notes export`
@@ -205,8 +199,6 @@ memo notes export [options]
 | `--output-dir <dir>` | the folder to write to (default: notes.export.dir). |
 | `--format <format>` | the files' format: obsidian, markdown. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** write the notes you wrote here as files, never overwriting one you edited
 
 **Example:** `memo notes export --output-dir ~/notes/memo --format obsidian`
 
@@ -230,8 +222,6 @@ memo notes links show <identity> [options]
 |---|---|
 | `--json` | print the standard JSON answer. |
 
-**Returns:** show the note files about a person
-
 **Example:** `memo notes links show telegram:101 --json`
 
 #### `memo notes links add`
@@ -254,8 +244,6 @@ memo notes links add <identity> <path> [options]
 | `--json` | print the standard JSON answer. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
-**Returns:** link an imported note file to a person
-
 **Example:** `memo notes links add telegram:101 ~/notes/People/Kai.md`
 
 #### `memo notes links clear`
@@ -276,8 +264,6 @@ memo notes links clear <identity> [options]
 |---|---|
 | `--json` | print the standard JSON answer. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
-
-**Returns:** remove the owner's note-file links for a person
 
 **Example:** `memo notes links clear telegram:101`
 
@@ -310,8 +296,6 @@ memo sources add <source> [options]
 | `--max-chars <n>` | most characters of text to keep, up to 2000000 (default 200000). |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** keep a file, a web page or pasted text as a document
-
 **Example:** `memo sources add ~/Downloads/runner-notes.pdf --subject project:3 --keep-copy`, `memo sources add https://example.org/release-notes --title 'Release notes' --json`, `memo sources add - --title 'Call with Kai' --subject person:12`
 
 ### `memo sources preview`
@@ -329,8 +313,6 @@ memo sources preview <url> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=title,excerpt keeps only those fields. |
-
-**Returns:** read a web page as sources add would, and keep nothing
 
 **Example:** `memo sources preview https://example.org/release-notes`, `memo sources preview https://example.org/release-notes --json=title,excerpt`
 
@@ -351,8 +333,6 @@ memo sources show <ref> [options]
 | `--bytes <bytes>` | most UTF-8 bytes of its text, up to 1048576 (default 16384). |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** one source: its text, what is kept, and what cites it
-
 **Example:** `memo sources show document:42`, `memo sources show document:42 --bytes 65536 --json`
 
 ### `memo sources mentions`
@@ -370,8 +350,6 @@ memo sources mentions <ref> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** known people and organizations named in a source
 
 **Example:** `memo sources mentions document:42 --json`
 
@@ -394,8 +372,6 @@ memo sources remove <ref> [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** remove a source you added, and its kept copy
 
 **Example:** `memo sources remove document:42`
 
@@ -423,8 +399,6 @@ memo sources suggest <ref> [options]
 | `--rescan` | read it again although this reader already read this text. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** have the chosen reader propose facts from a source, for you to confirm
-
 **Example:** `memo sources suggest document:42`, `memo sources suggest document:42 --subject person:12 --json`, `memo sources suggest document:42 --provider ollama --model llama3.2 --rescan`
 
 ### `memo sources readers`
@@ -446,8 +420,6 @@ memo sources readers list [query] [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** each reader: installed, signed in, and your pick
 
 **Example:** `memo sources readers list`, `memo sources readers list available:true --json`
 
@@ -472,8 +444,6 @@ memo sources readers set <reader> [options]
 | `--model <model>` | its model; Ollama and the API readers need one, Claude Code and Codex use their own. |
 | `--base-url <url>` | Ollama only: its address on this computer, when not http://127.0.0.1:11434. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** choose the reader that reads your sources
 
 **Example:** `memo sources readers set claude-code`, `memo sources readers set ollama --model llama3.2`, `memo sources readers set ollama --model llama3.2 --base-url http://127.0.0.1:11500`
 
@@ -500,8 +470,6 @@ memo folders add <path> [options]
 | `--format <format>` | how its notes are written: obsidian, markdown (default: obsidian). |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** give a folder of notes an id, or show the one it has
-
 **Example:** `memo folders add ~/notes`
 
 ### `memo folders update`
@@ -523,8 +491,6 @@ memo folders update <id> <path> [options]
 |---|---|
 | `--format <format>` | how its notes are written: obsidian, markdown. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** bind a folder id from another computer to the folder's path on this one
 
 **Example:** `memo folders update 1 ~/notes`
 
@@ -548,8 +514,6 @@ memo folders remove <folder> [options]
 | `--yes` | confirm --allow-delete. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** stop reading a notes folder here; its notes stay unless --allow-delete
-
 **Example:** `memo folders remove 1`, `memo folders remove 1 --allow-delete --yes`
 
 ### `memo folders list`
@@ -567,8 +531,6 @@ memo folders list [query] [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** folders of notes on this computer, and those the store knows from another
 
 **Example:** `memo folders list --json`
 
@@ -595,8 +557,6 @@ memo messages show <message> [options]
 | `--full` | whole attachment text, not the first 4000 characters of each, and the HTML and AMP versions of the body. |
 | `--trimmed` | each email's own text, without quoted earlier mail or the signature — for an agent's reads. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** one stored message or email whole, with optional stored neighbours
 
 **Example:** `memo messages show 'msg:email/me%40example.com/thread/42' --before-n 2 --after-n 2`
 
@@ -769,8 +729,6 @@ memo people add <name> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** add a person by name, before any message names them
-
 **Example:** `memo people add Lena Example`
 
 ### `memo people list`
@@ -792,8 +750,6 @@ memo people list [query] [options]
 | `--page <n>` | which page, from 1. Default: `1`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** people of one kind, most messages first: person by default
-
 **Example:** `memo people list --json`, `memo people list kind:organization --sort name --page 2`
 
 ### `memo people check`
@@ -813,8 +769,6 @@ memo people check <name> [options]
 | `--limit <n>` | most people, up to 50. Default: `8`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** people with a name like this one, to check before adding a person
-
 **Example:** `memo people check ivan petrov --json`
 
 ### `memo people show`
@@ -833,8 +787,6 @@ memo people show <who> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** one person: identities by source, merges and open matches
-
 **Example:** `memo people show person:12`, `memo people show telegram:Lena --json`
 
 ### `memo people review`
@@ -850,8 +802,6 @@ memo people review [options]
 | `--kind <kind>` | all, link, split (default all). Default: `all`. |
 | `--limit <n>` | most proposals, up to 500. Default: `50`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** people that may be one, and splits an agent proposed, waiting for you
 
 **Example:** `memo people review`, `memo people review --kind split --json`
 
@@ -879,8 +829,6 @@ memo people confirm <ids> [options]
 | `--reason <text>` | why, in a few words. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** confirm matches and splits by id, or all that people review lists; only you
-
 **Example:** `memo people confirm 17080 17082-17085`, `memo people confirm all --kind split --yes`
 
 ### `memo people reject`
@@ -906,8 +854,6 @@ memo people reject <ids> [options]
 | `--yes` | with all: do it, not only show what would be done. |
 | `--reason <text>` | why they are turned down, in a few words. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** turn down matches and splits by id, or all that people review lists; only you
 
 **Example:** `memo people reject 17081 --reason 'two people'`, `memo people reject all --kind link --reason 'not one'`
 
@@ -937,8 +883,6 @@ memo people resolve <id> <answer> [organization] [options]
 | `--reason <text>` | why, in a few words. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** say a match's mailbox, or both its people, are a company's; only you
-
 **Example:** `memo people resolve 17092 company`, `memo people resolve 17093 company organization:12 --json`, `memo people resolve 17094 organization --name "Shop Ltd"`
 
 ### `memo people links`
@@ -958,8 +902,6 @@ memo people links check [options]
 | `--limit <n>` | most people on a page, up to 200. Default: `20`. |
 | `--page <n>` | which page, from 1. Default: `1`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** people that may be wrong, with why and the command that fixes each
 
 **Example:** `memo people links check`, `memo people links check --page 2 --json`
 
@@ -984,8 +926,6 @@ memo people links resolve <who> <answer> [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** say a person people links check doubts is right as they are, or test data; only you
-
 **Example:** `memo people links resolve person:42 keep`, `memo people links resolve person:42 keep --from-app --json`, `memo people links resolve person:42 test`
 
 ### `memo people scan`
@@ -1001,8 +941,6 @@ memo people scan [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** match people across sources now; memo sync does it too
 
 **Example:** `memo people scan`
 
@@ -1028,8 +966,6 @@ memo people link <identity> <other> [options]
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** say two identities are one person; an agent's link waits for you
-
 **Example:** `memo people link max:Lena telegram:Lena`, `memo people link max:Lena telegram:Lena --reason 'same phone in her signature'`
 
 ### `memo people unlink`
@@ -1054,8 +990,6 @@ memo people unlink <identities> [options]
 | `--from <person>` | the person they leave, person:<uid> or person:me; refused when they sit on another. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** take identities off a person, to one new person; an agent's waits for you
-
 **Example:** `memo people unlink telegram:12345 --from person:me`, `memo people unlink email:lena@example.com max:6789 --from person:42 --reason 'her husband's mailbox'`
 
 ### `memo people unmerge`
@@ -1078,8 +1012,6 @@ memo people unmerge <merge> [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** undo a merge: its identities go back to their person; an agent's waits for you
 
 **Example:** `memo people unmerge merge:12-34`, `memo people unmerge merge:12-34 --reason 'a shared mailbox'`
 
@@ -1117,8 +1049,6 @@ memo tags add <tag> [options]
 | `--account <account>` | the account of --chat, --contact or --meeting: the account it acts as: provider:account, such as telegram:1 or email:personal. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** put labels on one source
-
 **Example:** `memo tags add follow-up --note note:12`, `memo tags add harbour --project HRB`
 
 ### `memo tags remove`
@@ -1151,8 +1081,6 @@ memo tags remove <tag> [options]
 | `--account <account>` | the account of --chat, --contact or --meeting: the account it acts as: provider:account, such as telegram:1 or email:personal. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** remove labels from one source
-
 **Example:** `memo tags remove follow-up --note note:12`
 
 ### `memo tags list`
@@ -1172,8 +1100,6 @@ memo tags list [query] [options]
 | `--source <accounts>` | only these accounts (default: every one): which accounts, separated by commas: provider:account (email:personal), a provider (email), a kind (mail, notes, documents) or group:<name>. |
 | `--limit <n>` | most labels to show. Default: `100`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** list source labels, of every account or of the ones --source names
 
 **Example:** `memo tags list tag:follow-up`, `memo tags list --source email:me@example.com --json`
 
@@ -1201,8 +1127,6 @@ memo tasks unlink <task> <other-task> [options]
 | `--kind <kind>` | blocked-by, follow-up-of, related-to, duplicate-of, discovered-from. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** unlink reviewed project task relationships
-
 **Example:** `memo tasks unlink HRB-2 HRB-1 --kind blocked-by`
 
 ### `memo tasks links`
@@ -1221,8 +1145,6 @@ memo tasks links <task> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** a task's links to other tasks
-
 **Example:** `memo tasks links HRB-2 --json`
 
 ### `memo tasks status`
@@ -1240,8 +1162,6 @@ memo tasks status <task> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** whether a task can start, and what it still waits for
 
 **Example:** `memo tasks status HRB-2`
 
@@ -1277,8 +1197,6 @@ memo tasks add [source] [options]
 | `--source-url <url>` | the http or https page it is about, such as the Avito ad or conversation. |
 | `--into <id>` | link the source to this task instead of opening one that may be the same job. |
 | `--new` | open the task even when one like it is open or was closed in the last 14 days. |
-
-**Returns:** add a task from a message, note or document, or one of your own in a project
 
 **Example:** `memo tasks add 'msg:telegram/1/77/42' --account telegram:1 --type request`, `memo tasks add --project HRB --title 'Draft the budget' --type feature`, `memo tasks add --project INBOX --title 'Reply on Avito to Ivan' --external-id avito:4512345678 --source-url https://www.avito.ru/4512345678`
 
@@ -1354,8 +1272,6 @@ memo tasks comments add <id> <text> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** comment on a task, in your name or the agent's that runs memo
-
 **Example:** `memo tasks comments add HRB-1 Booked the hall for Friday`
 
 #### `memo tasks comments list`
@@ -1375,8 +1291,6 @@ memo tasks comments list <id> [query] [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** a task's comments, oldest first, with who wrote each and when
-
 **Example:** `memo tasks comments list HRB-1 --json`
 
 ### `memo tasks history`
@@ -1394,8 +1308,6 @@ memo tasks history <id> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** who changed a task, what and when, oldest first
 
 **Example:** `memo tasks history HRB-1 --json`
 
@@ -1421,8 +1333,6 @@ memo tasks close <id> [options]
 | `--reason <text>` | why it is closed. |
 | `--revision <n>` | refuse the write unless the task is still at this revision (conflict, task.stale, exit 15). |
 
-**Returns:** close a task as done or dismissed
-
 **Example:** `memo tasks close 7 --account telegram:1 --as dismissed --reason 'answered by phone'`
 
 ### `memo tasks assign`
@@ -1447,8 +1357,6 @@ memo tasks assign <id> <person> [options]
 | `--revision <n>` | refuse the write unless the task is still at this revision (conflict, task.stale, exit 15). |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** name who works on a task, or with --clear take them off it
-
 **Example:** `memo tasks assign 7 person:3`, `memo tasks assign HRB-1 person:3 --clear --revision 4`
 
 ### `memo tasks move`
@@ -1472,8 +1380,6 @@ memo tasks move <id> [options]
 | `--after <id>` | the task it goes just below. |
 | `--revision <n>` | refuse the write unless the task is still at this revision (conflict, task.stale, exit 15). |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** put a project task before or after another in its board column
 
 **Example:** `memo tasks move HRB-3 --status in_progress --before HRB-1 --revision 4`
 
@@ -1658,7 +1564,6 @@ memo stats tasks show [query] [options]
 | Option | What it does |
 |---|---|
 | `--by <group>` | chat (default) or meeting: this account's tasks; project: the owner's project tasks, every project. |
-| `--chat <chat>` | only this chat; a stored chat, by its id or title. |
 | `--type <type>` | only this type: question, request, mention or promise. |
 | `--timezone <zone>` | the IANA timezone for calendar days in the period, such as created>=today. |
 | `--source <accounts>` | the account: telegram:<account>, email:<account>, notes:<id>, or group:<name> of one. |
@@ -1689,8 +1594,6 @@ memo stats projects show [options]
 | `--page <n>` | which page, from 1. Default: `1`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** each project's linked chats: messages in a period, last activity, busiest chats
-
 **Example:** `memo stats projects show`, `memo stats projects show --since-time 7d --json`
 
 ## `memo organizations`
@@ -1717,8 +1620,6 @@ memo organizations add <name> [options]
 | `--scope <scope>` | personal, work. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** add an organization
-
 **Example:** `memo organizations add 'Harbour Studio' --kind company --scope work`, `memo organizations add 'Harbour Family' --kind family`
 
 ### `memo organizations rename`
@@ -1740,8 +1641,6 @@ memo organizations rename <organization> <name> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** rename an organization
-
 **Example:** `memo organizations rename organization:1 'Harbour Studio Ltd'`, `memo organizations rename 1 'Harbour Studio Ltd' --json`
 
 ### `memo organizations show`
@@ -1759,8 +1658,6 @@ memo organizations show <organization> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** one organization
 
 **Example:** `memo organizations show organization:1`
 
@@ -1801,8 +1698,6 @@ memo organizations context <organization> [options]
 | `--limit <n>` | most items in each section. Default: `20`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** one organization: people, customers, deals, money, tasks, notes
-
 **Example:** `memo organizations context organization:1`, `memo organizations context 1 --json`
 
 ## `memo projects`
@@ -1833,8 +1728,6 @@ memo projects meetings list <project> [query] [options]
 | `--limit <n>` | meetings per page, at most 500. Default: `50`. |
 | `--page <n>` | which page, from 1. |
 
-**Returns:** meetings linked to a project in one account, or with confirmed:false proposed
-
 **Example:** `memo projects meetings list HRB --source zoom:me@example.com`
 
 #### `memo projects meetings link`
@@ -1859,8 +1752,6 @@ memo projects meetings link <project> <meeting-id> [options]
 | `--fingerprint <hash>` | required when confirming an existing proposal. |
 | `--reason <text>` | why the reviewed meeting belongs to this project. |
 
-**Returns:** link a stored meeting to a project, or confirm a proposed link
-
 **Example:** `memo projects meetings link HRB 31 --account zoom:me@example.com`
 
 ### `memo projects add`
@@ -1884,8 +1775,6 @@ memo projects add <name> [options]
 | `--organization <organization>` | the organization it belongs to: its id or organization:<id>. |
 | `--scope <scope>` | personal, work. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** add a project of yours, with a short key its tasks use
 
 **Example:** `memo projects add 'Harbour' --key HRB --type client --organization 1`
 
@@ -1925,8 +1814,6 @@ memo projects context <project> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** one project: key documents, pending findings and open tasks; start work here
-
 **Example:** `memo projects context HRB`, `memo projects context project:2 --json`
 
 ### `memo projects evidence`
@@ -1963,8 +1850,6 @@ memo projects evidence <project> [options]
 | `--purpose <purpose>` | the linked chats' purposes to read, comma-separated: work, sales, support, other, or all; default work. |
 | `--include-proposed` | also read chats and members proposed for the project, after the confirmed ones. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** find what the store holds about a project: names, words, people, linked chats
 
 **Example:** `memo projects evidence SYH --source telegram:1,email:personal --contact 'Alice Example'`, `memo projects evidence SYH --source all --context-query 'crane tender' --since-time 180d --json`
 
@@ -2015,8 +1900,6 @@ memo projects actions add <file> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,status keeps only those fields. |
-
-**Returns:** stage an agent's cited facts and follow-ups about one project for review
 
 **Example:** `memo projects actions add findings.json`
 
@@ -2070,8 +1953,6 @@ memo projects actions confirm <project> <id> [findings] [options]
 | `--fingerprint <hash>` | a findings batch's fingerprint, as projects actions list gives it. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
-**Returns:** confirm a proposal, yours or an agent's with --reason
-
 **Example:** `memo projects actions confirm SYH 12 budget accountant --fingerprint 3f9a0c --reason 'both are stated plainly'`, `memo projects actions confirm SYH key:4`
 
 #### `memo projects actions reject`
@@ -2097,8 +1978,6 @@ memo projects actions reject <project> <id> [options]
 | `--fingerprint <hash>` | a findings batch's fingerprint, as projects actions list gives it. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
-**Returns:** reject a proposal
-
 **Example:** `memo projects actions reject SYH 12 --fingerprint 3f9a0c --reason 'not about this project'`
 
 ### `memo projects annotations`
@@ -2122,8 +2001,6 @@ memo projects annotations show <project> [options]
 | `--max-read-bytes <bytes>` | source input byte budget, at most 4194304. |
 | `--json` | print the standard JSON answer. |
 
-**Returns:** read selected project annotations without creating a file; not a full backup
-
 **Example:** `memo projects annotations show HRB --max-read-bytes 1048576 --json`
 
 #### `memo projects annotations export`
@@ -2146,8 +2023,6 @@ memo projects annotations export <project> [options]
 | `--max-read-bytes <bytes>` | source input byte budget, at most 4194304. |
 | `--json` | print JSON; --json=project,counts keeps only those fields. |
 
-**Returns:** write selected annotations to a new private file, omitting source bodies
-
 **Example:** `memo projects annotations export HRB --output harbour-annotations.json --json`
 
 #### `memo projects annotations check`
@@ -2169,8 +2044,6 @@ memo projects annotations check <file> [options]
 | `--bindings <file>` | JSON object mapping every external source reference and the project to explicit target references. |
 | `--max-read-bytes <bytes>` | destination input byte budget, at most 4194304. |
 | `--json` | print JSON; --json=ready,fingerprint keeps only those fields. |
-
-**Returns:** check bindings and conflicts in an existing target without restoring
 
 **Example:** `memo projects annotations check harbour-annotations.json --target-store ./trial/wirecat.db --project project:2 --bindings bindings.json --json`
 
@@ -2196,8 +2069,6 @@ memo projects annotations restore <file> [options]
 | `--max-read-bytes <bytes>` | destination input byte budget, at most 4194304. |
 | `--json` | print JSON; --json=project,counts keeps only those fields. |
 | `--fingerprint <hash>` | exact fingerprint returned by the successful target preview. |
-
-**Returns:** owner: restore selected annotations with the exact successful check fingerprint
 
 **Example:** `memo projects annotations restore harbour-annotations.json --target-store ./trial/wirecat.db --project project:2 --bindings bindings.json --fingerprint aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --json`
 
@@ -2227,8 +2098,6 @@ memo projects key-documents add <project> <reference> [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
-**Returns:** mark a note:, document: or msg: reference as a key document of the project
-
 **Example:** `memo projects key-documents add HRB note:12 --reason 'the brief'`
 
 #### `memo projects key-documents remove`
@@ -2251,8 +2120,6 @@ memo projects key-documents remove <project> <reference> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
-
-**Returns:** unmark a key document; the note, file or message stays. Only you remove one
 
 **Example:** `memo projects key-documents remove HRB note:12`
 
@@ -2310,8 +2177,6 @@ memo relationships add <from> <to> [options]
 | `--end-date <date>` | the last day it held, included; it ends at the start of the day after. |
 | `--reason <text>` | why you think so, in a sentence. |
 
-**Returns:** state that a person, organization, project or chat belongs or relates to another
-
 **Example:** `memo relationships add person:3 organization:1 --role employee --position CTO --start-date 2026-01-01`, `memo relationships add person:3 person:5 --kind reports-to`, `memo relationships add organization:1 organization:2 --kind customer-of --reason 'signed in October'`
 
 ### `memo relationships list`
@@ -2363,8 +2228,6 @@ memo relationships update <id> [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
-**Returns:** set a relationship's role, engagement or a chat's purpose in a project
-
 **Example:** `memo relationships update 12 --purpose sales`, `memo relationships update 12 --engagement low`, `memo relationships update 12 --role approver --role-note 'signs the acts'`
 
 ### `memo relationships remove`
@@ -2387,8 +2250,6 @@ memo relationships remove <id> [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
-
-**Returns:** remove a relationship; removing a suggested one rejects it
 
 **Example:** `memo relationships remove 4`
 
@@ -2413,8 +2274,6 @@ memo relationships confirm <id> [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
-**Returns:** confirm a suggested relationship
-
 **Example:** `memo relationships confirm 4`
 
 ### `memo relationships end`
@@ -2438,8 +2297,6 @@ memo relationships end <id> [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
-**Returns:** say that a relationship ended
-
 **Example:** `memo relationships end 4 --end-date 2026-09-30`
 
 ### `memo relationships roles`
@@ -2461,8 +2318,6 @@ memo relationships roles list [query] [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** the roles a relationship may take
 
 **Example:** `memo relationships roles list`, `memo relationships roles list list:deal --json`
 
@@ -2488,8 +2343,6 @@ memo relationships roles add <list> <role> [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
-**Returns:** add a role of your own
-
 **Example:** `memo relationships roles add organization board-member --label 'Board member'`
 
 #### `memo relationships roles remove`
@@ -2512,8 +2365,6 @@ memo relationships roles remove <list> <role> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
-
-**Returns:** remove a role of your own
 
 **Example:** `memo relationships roles remove organization board-member`
 
@@ -2538,8 +2389,6 @@ memo relationships scan [project] [options]
 | `--limit <n>` | new proposals per project at most, up to 50. Default: `20`. |
 | `--yes` | write the proposals; without it nothing is written. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** propose chats and people for a project; nothing is written without --yes
 
 **Example:** `memo relationships scan HRB --source all`, `memo relationships scan HRB --source telegram:1,email:personal --yes`, `memo relationships scan --source email:me@example.com`
 
@@ -2567,8 +2416,6 @@ memo reminders add <task> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--at-time <time>` | when to remind: an ISO 8601 time with its UTC offset. |
 | `--timezone <zone>` | IANA timezone; the computer's when not given. |
-
-**Returns:** add a reminder for an open task
 
 **Example:** `memo reminders add 7 --at-time 2026-10-20T09:00:00+02:00 --timezone Europe/Madrid --account telegram:1`
 
@@ -2609,8 +2456,6 @@ memo reminders claim [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--limit <n>` | most due reminders, at most 500. Default: `100`. |
 
-**Returns:** hand out due reminders, each with a receipt to acknowledge
-
 **Example:** `memo reminders claim --account telegram:1 --json`
 
 ### `memo reminders acknowledge`
@@ -2633,8 +2478,6 @@ memo reminders acknowledge <id> <receipt> [options]
 | `--account <account>` | the account it acts as: provider:account, such as telegram:1 or email:personal. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** confirm that a handed-out reminder was shown
-
 **Example:** `memo reminders acknowledge 3 3:1 --account telegram:1`
 
 ### `memo reminders cancel`
@@ -2655,8 +2498,6 @@ memo reminders cancel <id> [options]
 |---|---|
 | `--account <account>` | the account it acts as: provider:account, such as telegram:1 or email:personal. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** cancel a reminder
 
 **Example:** `memo reminders cancel 3 --account telegram:1`
 
@@ -2680,8 +2521,6 @@ memo reminders update <id> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--at-time <time>` | the new time: an ISO 8601 time with its UTC offset. |
 | `--revision <n>` | the reminder's current revision, as reminders list gives it. |
-
-**Returns:** move a reminder to another time
 
 **Example:** `memo reminders update 3 --revision 1 --at-time 2026-10-21T09:00:00+02:00 --account telegram:1`
 
@@ -2710,8 +2549,6 @@ memo vocabulary inspect <source> <survivor> [options]
 | `--limit <n>` | samples per table, 1–100 (default 10); counts remain complete. |
 | `--json` | print the standard JSON answer. |
 
-**Returns:** inspect two tags before consolidation, without merging them
-
 **Example:** `memo vocabulary inspect tag:1 tag:2 --fingerprint v1:all:all:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --limit 5 --json`
 
 ### `memo vocabulary list`
@@ -2731,8 +2568,6 @@ memo vocabulary list [query] [options]
 | `--max-entries <n>` | catalog input budget, not a page size. |
 | `--max-read-bytes <bytes>` | catalog input byte budget. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** list canonical IDs, aliases, usage counts and a preview fingerprint
 
 **Example:** `memo vocabulary list kind:tag`
 
@@ -2755,8 +2590,6 @@ memo vocabulary show <name> [options]
 | `--max-entries <n>` | catalog input budget, not a page size. |
 | `--max-read-bytes <bytes>` | catalog input byte budget. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** the project, tag or topic an exact name or alias names; ambiguity is reported
 
 **Example:** `memo vocabulary show Harbour --kind project`
 
@@ -2783,8 +2616,6 @@ memo vocabulary check [name] [options]
 | `--max-comparisons <n>` | without a name: most name comparisons. |
 | `--limit <n>` | without a name: most candidate pairs. |
 
-**Returns:** check a new name for existing labels, or the vocabulary for likely synonyms
-
 **Example:** `memo vocabulary check on-boarding --kind tag`, `memo vocabulary check --limit 20 --json`
 
 ### `memo vocabulary create`
@@ -2806,8 +2637,6 @@ memo vocabulary create <name> [options]
 | `--kind <kind>` | tag or topic. |
 | `--fingerprint <hash>` | the creation_fingerprint vocabulary check <name> gave. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** owner: create a distinct tag or topic after vocabulary check <name>
 
 **Example:** `memo vocabulary create onboarding --kind tag --fingerprint 3f9a`
 
@@ -2835,8 +2664,6 @@ memo vocabulary aliases add <reference> <name> [options]
 | `--fingerprint <hash>` | the current vocabulary preview fingerprint. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** owner: add another name for a project, tag or topic
-
 **Example:** `memo vocabulary aliases add project:2 Harbor --fingerprint 3f9a`
 
 #### `memo vocabulary aliases remove`
@@ -2858,8 +2685,6 @@ memo vocabulary aliases remove <reference> <alias-id> [options]
 |---|---|
 | `--fingerprint <hash>` | the current vocabulary preview fingerprint. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** owner: remove another name from a project, tag or topic
 
 **Example:** `memo vocabulary aliases remove project:2 5 --fingerprint 3f9a`
 
@@ -3035,8 +2860,6 @@ memo memories remove <ref> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
-**Returns:** forget a memory: erase its text, its links to sources and its search entry
-
 **Example:** `memo memories remove memory:4`
 
 ### `memo memories check`
@@ -3082,8 +2905,6 @@ memo memories challenge <ref> [options]
 | `--suggest <text>` | what the memory should say instead, for you to take or leave. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** say a memory no longer holds, citing what contradicts it; you decide
-
 **Example:** `memo memories challenge memory:4 --evidence note:15 --reason 'the later note moves delivery to the 30th'`, `memo memories challenge memory:4 --evidence note:15 --reason 'moved' --suggest 'Delivery is on the 30th' --json`
 
 ## `memo mentions`
@@ -3108,8 +2929,6 @@ memo mentions list [query] [options]
 | `--limit <n>` | most mentions. Default: `100`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** the mentions in the texts --source names matching the query, newest text first
-
 **Example:** `memo mentions list kind:phone --source notes`, `memo mentions list domain:example.com --source email:personal,email:work --json`, `memo mentions list kind:place --source mail`
 
 ### `memo mentions show`
@@ -3128,8 +2947,6 @@ memo mentions show <id> [options]
 |---|---|
 | `--source <accounts>` | the mailboxes a mail mention may be in: email:<account>, email or group:<name>. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** one mention, the text around it, and who it may be
 
 **Example:** `memo mentions show 12`, `memo mentions show 40 --source email:personal --json`
 
@@ -3155,8 +2972,6 @@ memo mentions confirm <id> [person] [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
-**Returns:** say what a mention is, everywhere its value is written
-
 **Example:** `memo mentions confirm 12 person:7`, `memo mentions confirm 40 --source email:personal`
 
 ### `memo mentions reject`
@@ -3179,8 +2994,6 @@ memo mentions reject <id> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
-
-**Returns:** dismiss a mention's value everywhere, and on later imports
 
 **Example:** `memo mentions reject 12`, `memo mentions reject 40 --source email:personal`
 
@@ -3384,8 +3197,6 @@ memo facts remove <ref> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
-**Returns:** forget a fact: erase its text, its links to sources and its tags
-
 **Example:** `memo facts remove fact:4`
 
 ### `memo facts challenge`
@@ -3411,8 +3222,6 @@ memo facts challenge <ref> [options]
 | `--suggest <text>` | what the fact should say instead, for you to take or leave. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** say a fact no longer holds, citing what contradicts it; you decide
-
 **Example:** `memo facts challenge fact:4 --evidence 'msg:telegram/1/77/50' --reason 'reversed in chat'`
 
 ## `memo invoices`
@@ -3436,8 +3245,6 @@ memo invoices list [query] [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--limit <n>` | most invoices, up to 500. Default: `100`. |
 
-**Returns:** invoices, newest first; review:proposed lists what waits for you
-
 **Example:** `memo invoices list project:HRB open:true`, `memo invoices list review:proposed --json`
 
 ### `memo invoices show`
@@ -3455,8 +3262,6 @@ memo invoices show <ref> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
-
-**Returns:** one invoice with its lines and the payments allocated to it
 
 **Example:** `memo invoices show invoice:4`
 
@@ -3491,8 +3296,6 @@ memo invoices add <amount> <currency> <description> [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** record an invoice; an agent's waits for your review
-
 **Example:** `memo invoices add 50000.00 RUB Bed rental, November --kind receivable --organization organization:3 --project HRB`, `memo invoices add 1200.50 EUR Hosting --kind payable --person person:7 --title 2026-118 --due 2026-11-15`
 
 ### `memo invoices lines`
@@ -3523,8 +3326,6 @@ memo invoices lines add <invoice> <quantity> [description] [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** add a line to an invoice
-
 **Example:** `memo invoices lines add invoice:4 1 --product product:4`, `memo invoices lines add invoice:4 2 Delivery --amount 1500.00`
 
 #### `memo invoices lines remove`
@@ -3547,8 +3348,6 @@ memo invoices lines remove <invoice> <position> [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
-
-**Returns:** take a line off an invoice
 
 **Example:** `memo invoices lines remove invoice:4 2`
 
@@ -3573,8 +3372,6 @@ memo payments list [query] [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--limit <n>` | most payments, up to 500. Default: `100`. |
 
-**Returns:** payments, newest first; review:proposed lists what waits for you
-
 **Example:** `memo payments list project:HRB direction:in`, `memo payments list review:proposed --json`
 
 ### `memo payments show`
@@ -3592,8 +3389,6 @@ memo payments show <ref> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
-
-**Returns:** one payment with the invoices it is allocated to
 
 **Example:** `memo payments show payment:9`
 
@@ -3627,8 +3422,6 @@ memo payments add <amount> <currency> [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** record a payment; an agent's waits for your review
-
 **Example:** `memo payments add 25000.00 RUB --kind in --organization organization:3 --occurred-time 2026-11-01 --project HRB`, `memo payments add 5000.00 RUB --kind out --organization organization:3 --refund-of payment:9`
 
 ### `memo payments allocate`
@@ -3653,8 +3446,6 @@ memo payments allocate <payment> <invoice> <amount> [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** settle part of an invoice with part of a payment
-
 **Example:** `memo payments allocate payment:9 invoice:4 25000.00`
 
 ### `memo payments unlink`
@@ -3677,8 +3468,6 @@ memo payments unlink <payment> <invoice> [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
-
-**Returns:** take back a payment's allocation to an invoice
 
 **Example:** `memo payments unlink payment:9 invoice:4`
 
@@ -3703,8 +3492,6 @@ memo orders list [query] [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--limit <n>` | most orders, up to 500. Default: `100`. |
 
-**Returns:** orders, newest first; review:proposed is what waits for you
-
 **Example:** `memo orders list status:shipped`, `memo orders list number:A-1042 'supplier:"Shop One"' --json`
 
 ### `memo orders show`
@@ -3722,8 +3509,6 @@ memo orders show <ref> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
-
-**Returns:** one order with its customer, shop, amount, status and the mail it was read from
 
 **Example:** `memo orders show order:3`
 
@@ -3757,8 +3542,6 @@ memo orders add <shop> [amount] [currency] [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** record an order; an agent's waits for your review
-
 **Example:** `memo orders add 'Shop One' 2499.00 RUB --kind personal --title A-1042`, `memo orders add 'Office Supply' --kind client --organization organization:3`
 
 ### `memo orders lines`
@@ -3789,8 +3572,6 @@ memo orders lines add <order> <quantity> [description] [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** add a line to an order
-
 **Example:** `memo orders lines add order:3 12 --product product:4`, `memo orders lines add order:3 1 Rental, first week --product product:4 --amount 2000.00`, `memo orders lines add order:3 2 Helmet --amount 2500.00`
 
 #### `memo orders lines remove`
@@ -3813,8 +3594,6 @@ memo orders lines remove <order> <position> [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
-
-**Returns:** take a line off an order
 
 **Example:** `memo orders lines remove order:3 2`
 
@@ -3883,8 +3662,6 @@ memo pipelines add <name> <stage> [options]
 | `--kind <kind>` | what it holds: deal or lead; deal by default. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** make a pipeline with its stages
-
 **Example:** `memo pipelines add Sales Call Quote Contract won lost`, `memo pipelines add Inbound new called --kind lead`
 
 ## `memo deals`
@@ -3908,7 +3685,7 @@ memo deals list [query] [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--limit <n>` | most deals, up to 500. Default: `100`. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info deals list
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 28 more; every field: memo commands info deals list
 
 **Example:** `memo deals list status:open project:HRB`, `memo deals list stage:Quote --json`
 
@@ -3928,7 +3705,7 @@ memo deals show <ref> [options]
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info deals show
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 28 more; every field: memo commands info deals show
 
 **Example:** `memo deals show deal:5`
 
@@ -3973,7 +3750,7 @@ memo deals update <ref> [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--project <project>` | the project: its key or project:<id>. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info deals update
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 28 more; every field: memo commands info deals update
 
 **Example:** `memo deals update deal:5 --project HRB`
 
@@ -4005,7 +3782,7 @@ memo deals add <title> <stage> [amount] [currency] [options]
 | `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info deals add
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 28 more; every field: memo commands info deals add
 
 **Example:** `memo deals add 'Site for the clinic' Call 500000.00 RUB --organization organization:3 --project HRB`, `memo deals add 'Support contract' Sales/Quote --person person:7 --role decision-maker --due 2026-12-01`
 
@@ -4028,7 +3805,7 @@ memo deals move <ref> <stage> [options]
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info deals move
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 28 more; every field: memo commands info deals move
 
 **Example:** `memo deals move deal:5 Quote`, `memo deals move deal:5 stage:5`
 
@@ -4053,7 +3830,7 @@ memo deals close <ref> <outcome> [options]
 | `--reason <text>` | why it was won or lost, kept with it. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info deals close
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 28 more; every field: memo commands info deals close
 
 **Example:** `memo deals close deal:5 won`, `memo deals close deal:6 lost --reason 'chose a cheaper studio'`
 
@@ -4078,7 +3855,7 @@ memo leads list [query] [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--limit <n>` | most leads, up to 500. Default: `100`. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info leads list
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 28 more; every field: memo commands info leads list
 
 **Example:** `memo leads list status:open`
 
@@ -4098,7 +3875,7 @@ memo leads show <ref> [options]
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info leads show
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 28 more; every field: memo commands info leads show
 
 **Example:** `memo leads show lead:3`
 
@@ -4143,7 +3920,7 @@ memo leads update <ref> [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--project <project>` | the project: its key or project:<id>. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info leads update
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 28 more; every field: memo commands info leads update
 
 **Example:** `memo leads update lead:3 --project HRB`
 
@@ -4175,7 +3952,7 @@ memo leads add <title> [stage] [amount] [currency] [options]
 | `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info leads add
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 28 more; every field: memo commands info leads add
 
 **Example:** `memo leads add 'Call from the site'`, `memo leads add 'Clinic in Kazan' contacted --person person:9`
 
@@ -4198,7 +3975,7 @@ memo leads move <ref> <stage> [options]
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info leads move
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 28 more; every field: memo commands info leads move
 
 **Example:** `memo leads move lead:3 qualified`, `memo leads move lead:3 stage:5`
 
@@ -4223,7 +4000,7 @@ memo leads close <ref> <outcome> [options]
 | `--reason <text>` | why it was won or lost, kept with it. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 27 more; every field: memo commands info leads close
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 28 more; every field: memo commands info leads close
 
 **Example:** `memo leads close lead:3 lost --reason 'no budget'`
 
@@ -4452,8 +4229,6 @@ memo products list [query] [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--limit <n>` | most products, up to 500. Default: `100`. |
 
-**Returns:** products and services, by name; archived:true lists those no longer sold
-
 **Example:** `memo products list kind:service`, `memo products list archived:true --json`
 
 ### `memo products show`
@@ -4471,8 +4246,6 @@ memo products show <product> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
-
-**Returns:** one product or service with its price, unit, supplier and stock code
 
 **Example:** `memo products show product:4`
 
@@ -4501,8 +4274,6 @@ memo products add <name> [amount] [currency] [options]
 | `--description <text>` | what it is, in a sentence. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** add a product or service
-
 **Example:** `memo products add 'Bike rental, month' 10000.00 RUB --kind service --unit month`, `memo products add 'Helmet' 2500.00 RUB --sku H-12 --supplier organization:3`
 
 ### `memo products update`
@@ -4529,8 +4300,6 @@ memo products update <product> [options]
 | `--archived <on\|off>` | on: no longer sold, and lines and subscriptions keep pointing at it; off: sold again. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** change or archive a product
-
 **Example:** `memo products update product:4 --amount 12000.00 --currency RUB`, `memo products update product:4 --archived on`
 
 ## `memo contracts`
@@ -4554,8 +4323,6 @@ memo contracts list [query] [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--limit <n>` | most contracts, up to 500. Default: `100`. |
 
-**Returns:** contracts, newest first; expires:2026-12-31 lists those that end by then
-
 **Example:** `memo contracts list status:active`, `memo contracts list expires:2026-12-31 --json`
 
 ### `memo contracts show`
@@ -4573,8 +4340,6 @@ memo contracts show <contract> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
-
-**Returns:** one contract with its dates, renewal and the last day to give notice
 
 **Example:** `memo contracts show contract:2`
 
@@ -4609,8 +4374,6 @@ memo contracts add <name> [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** record a contract
-
 **Example:** `memo contracts add 'Rental agreement' --kind service --start-date 2026-11-01 --end-date 2027-10-31 --auto-renew on --notice-days 30 --amount 120000.00 --currency RUB`, `memo contracts add 'NDA with the studio' --kind nda --project HRB`
 
 ### `memo contracts update`
@@ -4642,8 +4405,6 @@ memo contracts update <contract> [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** change a contract
-
 **Example:** `memo contracts update contract:2 --status terminated`, `memo contracts update contract:2 --end-date 2027-12-31`
 
 ## `memo subscriptions`
@@ -4667,8 +4428,6 @@ memo subscriptions list [query] [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--limit <n>` | most subscriptions, up to 500. Default: `100`. |
 
-**Returns:** subscriptions, newest first; renews:2026-12-01 lists those that renew by then
-
 **Example:** `memo subscriptions list status:active direction:payable`, `memo subscriptions list renews:2026-12-01 --json`
 
 ### `memo subscriptions show`
@@ -4686,8 +4445,6 @@ memo subscriptions show <subscription> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
-
-**Returns:** one subscription with its parties, dates, current price and every price it had
 
 **Example:** `memo subscriptions show subscription:5`
 
@@ -4725,8 +4482,6 @@ memo subscriptions add <name> <amount> <currency> [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** record a subscription; an agent's waits for your review
-
 **Example:** `memo subscriptions add Hosting 990.00 RUB --kind payable --supplier organization:3 --period 1-month --start-date 2026-11-01`, `memo subscriptions add 'Bike rental' 10000.00 RUB --kind receivable --customer organization:3 --period 1-month --trial-end-date 2026-11-14 --status trial`
 
 ### `memo subscriptions update`
@@ -4759,8 +4514,6 @@ memo subscriptions update <subscription> [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** change a subscription
-
 **Example:** `memo subscriptions update subscription:5 --status paused`, `memo subscriptions update subscription:5 --period 1-year`
 
 ### `memo subscriptions cancel`
@@ -4783,8 +4536,6 @@ memo subscriptions cancel <subscription> [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
-
-**Returns:** cancel a subscription
 
 **Example:** `memo subscriptions cancel subscription:5 --occurred-time 2026-11-30`
 
@@ -4816,8 +4567,6 @@ memo subscriptions prices add <subscription> <amount> <currency> [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** add a subscription's new price
-
 **Example:** `memo subscriptions prices add subscription:5 1190.00 RUB --start-date 2027-01-01`
 
 ## `memo wallets`
@@ -4841,8 +4590,6 @@ memo wallets list [query] [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--limit <n>` | most wallets, up to 500. Default: `100`. |
 
-**Returns:** wallets with their balances today; kind:card lists the cards
-
 **Example:** `memo wallets list`, `memo wallets list kind:card --json`
 
 ### `memo wallets show`
@@ -4861,8 +4608,6 @@ memo wallets show <wallet> [options]
 |---|---|
 | `--until-time <time>` | the balance up to and including this day, such as 2026-10-31; today when left out. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
-
-**Returns:** one wallet with its balance and what is pending
 
 **Example:** `memo wallets show wallet:2`, `memo wallets show wallet:2 --until-time 2026-10-31`
 
@@ -4886,8 +4631,6 @@ memo wallets add <name> <currency> [options]
 | `--kind <kind>` | bank, card, cash, wallet, other; bank when left out. |
 | `--institution <text>` | the bank or other company that holds it, by name. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
-
-**Returns:** add a bank account, card or cash wallet
 
 **Example:** `memo wallets add 'Main card' RUB --kind card --institution 'Bank One'`
 
@@ -4915,8 +4658,6 @@ memo wallets update <wallet> [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** rename a wallet or set its opening balance
-
 **Example:** `memo wallets update wallet:2 --opening-balance 15000.00 --opening-date 2026-01-01`
 
 ## `memo transactions`
@@ -4940,8 +4681,6 @@ memo transactions list [query] [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--limit <n>` | most transactions, up to 500. Default: `100`. |
 
-**Returns:** transactions, newest first
-
 **Example:** `memo transactions list 'wallet:"wallet:2"' status:pending`, `memo transactions list uncategorized:true --json`
 
 ### `memo transactions show`
@@ -4959,8 +4698,6 @@ memo transactions show <transaction> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
-
-**Returns:** one transaction with its wallet, payment, splits and what is not categorized
 
 **Example:** `memo transactions show transaction:12`
 
@@ -4993,8 +4730,6 @@ memo transactions add <wallet> <amount> [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** record a transaction; an agent's waits for your review
-
 **Example:** `memo transactions add wallet:2 500.00 --kind out --occurred-time 2026-11-14 --description 'Coffee shop'`, `memo transactions add wallet:2 10000.00 --kind in --payment payment:9`
 
 ### `memo transactions update`
@@ -5019,8 +4754,6 @@ memo transactions update <transaction> [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
-
-**Returns:** book a transaction or link it to its payment
 
 **Example:** `memo transactions update transaction:12 --status booked`, `memo transactions update transaction:12 --payment payment:9`
 
@@ -5051,8 +4784,6 @@ memo transactions splits add <transaction> <amount> <category> [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** put part of a transaction under a category
-
 **Example:** `memo transactions splits add transaction:12 300.00 Rent --project HRB`
 
 #### `memo transactions splits remove`
@@ -5075,8 +4806,6 @@ memo transactions splits remove <transaction> <position> [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
-
-**Returns:** take a split off a transaction
 
 **Example:** `memo transactions splits remove transaction:12 1`
 
@@ -5106,8 +4835,6 @@ memo records import <file> [options]
 | `--region <country>` | a vCard file's country for phone numbers without +, such as ru or gb; without it they are kept, not matched. |
 | `--json` | print JSON; --json=created,errors keeps only those fields. |
 
-**Returns:** import a source's records; money waits for your review
-
 **Example:** `memo records import payments.jsonl --account rentals --dry-run`, `memo records import envelope.json --account rentals --json`, `memo records import contacts.vcf --account phone:pixel --region gb`
 
 ### `memo records check`
@@ -5131,8 +4858,6 @@ memo records check <file> [options]
 | `--region <country>` | a vCard file's country for phone numbers without +, such as ru or gb; without it they are kept, not matched. |
 | `--json` | print JSON; --json=created,errors keeps only those fields. |
 
-**Returns:** check a records file against the store; write nothing
-
 **Example:** `memo records check - --account rentals`, `memo records check invoices.csv --type invoice --account sheet:rentals`
 
 ### `memo records templates`
@@ -5155,8 +4880,6 @@ memo records templates list [query] [options]
 |---|---|
 | `--json` | print JSON; --json=types keeps only those fields. |
 
-**Returns:** the types a sheet can hold, with their columns
-
 **Example:** `memo records templates list --json`, `memo records templates list type:invoice`
 
 #### `memo records templates show`
@@ -5178,8 +4901,6 @@ memo records templates show <type> [options]
 | `--account <account>` | the source a JSON template names: <provider>:<account>, such as sheet:rentals. |
 | `--json` | print JSON; --json=text keeps only those fields. |
 
-**Returns:** the CSV or JSON file to fill for one type
-
 **Example:** `memo records templates show invoice --locale ru`, `memo records templates show invoice --format json --account sheet:rentals`
 
 ### `memo records list`
@@ -5199,8 +4920,6 @@ memo records list [query] [options]
 | `--account <account>` | the source, <provider>:<account> as the envelope's source names it, such as sheet:rentals. |
 | `--limit <n>` | most records, up to 500. Default: `100`. |
 | `--json` | print JSON; --json=type,external_id,entity keeps only those fields. |
-
-**Returns:** a source's records; waiting:true lists what needs records link
 
 **Example:** `memo records list waiting:true --account sheet:rentals`, `memo records list type:organization --account sheet:rentals --json`, `memo records list 'entity:"organization:3"' deleted:false --account sheet:rentals`
 
@@ -5226,8 +4945,6 @@ memo records link <record> <ref> [options]
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
-**Returns:** say which of your entries a source's record is
-
 **Example:** `memo records link organization:client organization:3 --account sheet:rentals`
 
 ### `memo records show`
@@ -5246,8 +4963,6 @@ memo records show <record> [options]
 |---|---|
 | `--account <account>` | the source, <provider>:<account> as the envelope's source names it, such as sheet:rentals. |
 | `--json` | print JSON; --json=fields,relations,incoming,entity keeps only those fields. |
-
-**Returns:** one record as its source said it
 
 **Example:** `memo records show custom:quote:Q-7 --account example-erp:demo`, `memo records show organization:client --account sheet:rentals --json`
 
@@ -5270,8 +4985,6 @@ memo records delete <record> [options]
 | `--account <account>` | the source, <provider>:<account> as the envelope's source names it, such as sheet:rentals. |
 | `--json` | print JSON; --json=deleted,flagged,errors keeps only those fields. |
 
-**Returns:** mark a source's record deleted
-
 **Example:** `memo records delete payment:sheet-12 --account sheet:rentals`
 
 ### `memo records match`
@@ -5288,8 +5001,6 @@ memo records match [options]
 |---|---|
 | `--account <account>` | the source, <provider>:<account> as the envelope's source names it, such as sheet:rentals. |
 | `--json` | print JSON; --json=linked,created,unmatched keeps only those fields. |
-
-**Returns:** match a source's waiting people and organizations
 
 **Example:** `memo records match --account sheet:rentals`
 
@@ -5510,8 +5221,6 @@ memo actions add <kind> [options]
 | `--payload <json>` | what to do, as JSON, such as the reply's text. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** propose an action, such as a reply or a ban, in the account that would act
-
 **Example:** `memo actions add reply --reason 'Kai asked twice' --account telegram:1 --target 'msg:telegram/1/77/42' --payload '{"text":"Friday works"}'`
 
 ### `memo actions list`
@@ -5533,8 +5242,6 @@ memo actions list [query] [options]
 | `--brief` | without each findings batch's cited sources. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** proposed actions, newest first
-
 **Example:** `memo actions list status:proposed`
 
 ### `memo actions show`
@@ -5552,8 +5259,6 @@ memo actions show <id> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** one proposed action; a findings batch with its fingerprint and sources
 
 **Example:** `memo actions show 5`
 
@@ -5580,8 +5285,6 @@ memo actions confirm <id> [findings] [options]
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** confirm it: a task to act on, or a findings batch's facts and tasks
-
 **Example:** `memo actions confirm 5`
 
 ### `memo actions edit`
@@ -5607,8 +5310,6 @@ memo actions edit <id> <finding> [options]
 | `--set <field=value...>` | a field and its new value: JSON for a list, null empties it. Default: ``. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** change a finding still waiting in a findings batch before you confirm it
-
 **Example:** `memo actions edit 5 f2 --fingerprint 3f9a --set title="Send the signed contract" dueAt=null`
 
 ### `memo actions reject`
@@ -5632,8 +5333,6 @@ memo actions reject <id> [options]
 | `--fingerprint <hash>` | a findings batch: the fingerprint actions show gives. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** reject it; nothing is done. For a findings batch, every finding still waiting
 
 **Example:** `memo actions reject 5`
 
@@ -5684,8 +5383,6 @@ memo review show <id> [options]
 | `--after-n <n>` | messages or document paragraphs after the evidence, at most 5. Default: `2`. |
 | `--compact` | one line, as review prints it. |
 
-**Returns:** one proposal with its titles, signals and the text around each piece of evidence
-
 **Example:** `memo review show 17079`, `memo review show 17080 --brief --json`
 
 ### `memo review confirm`
@@ -5709,8 +5406,6 @@ memo review confirm <ids> [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--reason <text>` | why, in a few words; required when an agent decides. |
 | `--compact` | one line per decision. |
-
-**Returns:** confirm proposals by id or range; each on its own
 
 **Example:** `memo review confirm 17078-17081`, `memo review confirm 17080/f1,17080/f3`, `memo review confirm close:Q-15`
 
@@ -5736,8 +5431,6 @@ memo review reject <ids> [options]
 | `--reason <text>` | why it is turned down, in a few words. |
 | `--compact` | one line per decision. |
 
-**Returns:** turn proposals down, with why
-
 **Example:** `memo review reject 17081 --reason "not this project"`, `memo review reject close:Q-15 --reason 'still open'`
 
 ### `memo review agenda`
@@ -5757,8 +5450,6 @@ memo review agenda [options]
 | `--max-output-bytes <bytes>` | the text answer's size budget in bytes; 40000 with --compact, else 80000. |
 | `--compact` | one line per item, shorter excerpts, the smaller budget: for an agent. |
 | `--json` | print JSON. |
-
-**Returns:** morning digest: watched, owed, mail, meetings, calendar, Drive, CRM, tasks
 
 **Example:** `memo review agenda --compact`, `memo review agenda --since-time 3d --json`
 
@@ -5801,8 +5492,6 @@ memo agents list [query] [options]
 | `--page <n>` | which page, from 1. Default: `1`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** one row per tool call, newest first: agent, tool, outcome and times
-
 **Example:** `memo agents list agent:claude-code --limit 20`
 
 ## `memo mcp`
@@ -5826,8 +5515,6 @@ memo mcp serve [options]
 | `--port <port>` | local HTTP port (default 8767); requires --http. |
 | `--public-url <url>` | tunnel's HTTPS address without /mcp, or a path of it such as https://<name>.ts.net/memo; requires --http. |
 
-**Returns:** serve this profile's commands to an AI agent
-
 **Example:** `memo mcp serve`, `memo mcp serve --http --public-url https://laptop.example.ts.net`
 
 ### `memo mcp revoke`
@@ -5843,8 +5530,6 @@ memo mcp revoke [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON. |
-
-**Returns:** forget every login given to a browser app
 
 **Example:** `memo mcp revoke --json`
 
@@ -5869,8 +5554,6 @@ memo mcp server start [options]
 | `--permission <key=level>` | make a permission stricter for this server only; repeat for more keys. |
 | `--json` | print JSON. |
 
-**Returns:** start the HTTP MCP server in the background
-
 **Example:** `memo mcp server start --public-url https://laptop.example.ts.net`
 
 #### `memo mcp server stop`
@@ -5887,8 +5570,6 @@ memo mcp server stop [options]
 |---|---|
 | `--json` | print JSON. |
 
-**Returns:** stop the background HTTP MCP server
-
 **Example:** `memo mcp server stop`
 
 #### `memo mcp server status`
@@ -5902,8 +5583,6 @@ memo mcp server status [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON. |
-
-**Returns:** whether the HTTP MCP server runs, its login code and the apps logged in
 
 **Example:** `memo mcp server status --json`
 
@@ -6025,8 +5704,6 @@ memo models consents show [options]
 |---|---|
 | `--json` | print JSON. |
 
-**Returns:** whether enrichment is on, with which provider and model, how many records it…
-
 **Example:** `memo models consents show --json`
 
 #### `memo models consents set`
@@ -6050,8 +5727,6 @@ memo models consents set <provider> [options]
 | `--yes` | agree that the records go to this provider, and turn enrichment on. |
 | `--json` | print JSON. |
 
-**Returns:** turn enrichment on for one provider and model; without --yes, say what would…
-
 **Example:** `memo models consents set openai --model gpt-4o-mini`, `memo models consents set openai --model gpt-4o-mini --yes`
 
 #### `memo models consents revoke`
@@ -6067,8 +5742,6 @@ memo models consents revoke [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON. |
-
-**Returns:** turn enrichment off and delete what the model wrote; search reads only the…
 
 **Example:** `memo models consents revoke`
 
@@ -6087,8 +5760,6 @@ memo models search-consents show [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON. |
-
-**Returns:** whether search all --harder may call the model, which one, and whether its…
 
 **Example:** `memo models search-consents show --json`
 
@@ -6114,8 +5785,6 @@ memo models search-consents set <provider> [options]
 | `--yes` | agree that a --harder search sends its question and hits, and allow it. |
 | `--json` | print JSON. |
 
-**Returns:** allow search all --harder to call the model; without --yes, say what it…
-
 **Example:** `memo models search-consents set anthropic`, `memo models search-consents set anthropic --yes`
 
 #### `memo models search-consents revoke`
@@ -6131,8 +5800,6 @@ memo models search-consents revoke [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON. |
-
-**Returns:** stop search all --harder from calling the model; it gives the plain order again
 
 **Example:** `memo models search-consents revoke`
 
@@ -6200,8 +5867,6 @@ memo models ai show [options]
 |---|---|
 | `--json` | print JSON. |
 
-**Returns:** the chosen model, its key, and whether images may go to it
-
 **Example:** `memo models ai show`
 
 #### `memo models ai set`
@@ -6227,8 +5892,6 @@ memo models ai set <provider> [options]
 | `--from-app` | you did this in WireCat Desktop. |
 | `--json` | print JSON. |
 
-**Returns:** choose the AI model: anthropic, openai or compatible, or ollama (beta)
-
 **Example:** `memo models ai set anthropic --model claude-haiku-4-5 --secret-stdin --allow-remote`, `memo models ai set openai --model openai/gpt-4o-mini --base-url https://openrouter.ai/api/v1 --secret-stdin`, `memo models ai set ollama --model llama3.2-vision`
 
 #### `memo models ai unset`
@@ -6245,8 +5908,6 @@ memo models ai unset [options]
 |---|---|
 | `--from-app` | you did this in WireCat Desktop. |
 | `--json` | print JSON. |
-
-**Returns:** stop using a model; its key stays until models ai remove
 
 **Example:** `memo models ai unset`
 
@@ -6269,8 +5930,6 @@ memo models ai remove [origin] [options]
 | `--from-app` | you did this in WireCat Desktop. |
 | `--json` | print JSON. |
 
-**Returns:** remove the key stored for an address
-
 **Example:** `memo models ai remove https://api.anthropic.com`
 
 #### `memo models ai revoke`
@@ -6287,8 +5946,6 @@ memo models ai revoke [options]
 |---|---|
 | `--from-app` | you did this in WireCat Desktop. |
 | `--json` | print JSON. |
-
-**Returns:** stop sending images to the AI model; the model itself stays chosen
 
 **Example:** `memo models ai revoke`
 
@@ -6307,8 +5964,6 @@ memo models ai check [options]
 | `--from-app` | you did this in WireCat Desktop. |
 | `--json` | print JSON. |
 
-**Returns:** send one short paid request and say what is wrong
-
 **Example:** `memo models ai check`
 
 ### `memo models local-only`
@@ -6326,8 +5981,6 @@ memo models local-only show [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON. |
-
-**Returns:** whether local only is on, and where each feature sends data
 
 **Example:** `memo models local-only show`
 
@@ -6350,8 +6003,6 @@ memo models local-only set <state> [options]
 | `--from-app` | you did this in WireCat Desktop. |
 | `--json` | print JSON. |
 
-**Returns:** turn local only on or off; only you turn it off
-
 **Example:** `memo models local-only set on`, `memo models local-only set off`
 
 ### `memo models picture-reading`
@@ -6369,8 +6020,6 @@ memo models picture-reading show [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON. |
-
-**Returns:** whether pictures are read, and by which agent
 
 **Example:** `memo models picture-reading show`
 
@@ -6394,8 +6043,6 @@ memo models picture-reading set <mode> [options]
 | `--model <model>` | the agent's model; its own default if not given. |
 | `--from-app` | you did this in WireCat Desktop. |
 | `--json` | print JSON. |
-
-**Returns:** never, or on request with `images read`; only you turn it on
 
 **Example:** `memo models picture-reading set request --agent claude`, `memo models picture-reading set request --agent codex --model gpt-5`, `memo models picture-reading set never`
 
@@ -6441,8 +6088,6 @@ memo templates show <key> [options]
 | `--locale <code>` | the template's language, ISO 639-1; the owner's first language if not given. |
 | `--json` | print JSON. |
 
-**Returns:** the template that applies, and the bodies your changes replaced
-
 **Example:** `memo templates show report/morning-digest --channel telegram`, `memo templates show report/weekly-gaps --channel email --locale en --json`
 
 ### `memo templates edit`
@@ -6467,8 +6112,6 @@ memo templates edit <key> [options]
 | `--undo` | put back the body your last change replaced; twice is back where you were. |
 | `--json` | print JSON. |
 
-**Returns:** change a template in $EDITOR or from --file; checked before it is saved
-
 **Example:** `memo templates edit report/morning-digest --channel telegram`, `memo templates edit report/morning-digest --channel text --file digest.text.liquid`, `memo templates edit report/morning-digest --channel telegram --undo`
 
 ### `memo templates preview`
@@ -6489,8 +6132,6 @@ memo templates preview <key> [options]
 | `--locale <code>` | the template's language, ISO 639-1; the owner's first language if not given. |
 | `--file <file>` | preview this draft instead of the template that applies; - reads stdin. |
 | `--json` | print JSON. |
-
-**Returns:** what would be sent on that channel; saves nothing
 
 **Example:** `memo templates preview report/morning-digest --channel telegram`, `memo templates preview report/morning-digest --channel email --locale en --file draft.liquid`
 
@@ -6513,8 +6154,6 @@ memo templates reset <key> [options]
 | `--channel <channel>` | telegram (Bot API HTML), email (HTML with inline styles) or text. One of: `telegram`, `email`, `text`. |
 | `--locale <code>` | the template's language, ISO 639-1; the owner's first language if not given. |
 | `--json` | print JSON. |
-
-**Returns:** go back to the shipped template; edit --undo brings yours back
 
 **Example:** `memo templates reset report/morning-digest --channel telegram`
 
@@ -6784,8 +6423,6 @@ memo answers create <question> [query] [options]
 | `--allow-remote` | explicitly consent to sending this evidence to the configured model. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** prepare cited evidence for your agent, or explicitly call a configured model
-
 **Example:** `memo answers create 'what did Kai say about the budget?' --all`, `memo answers create 'when is the launch?' --source telegram:1`
 
 ## `memo sync`
@@ -6806,8 +6443,6 @@ memo sync [options]
 | `--no-embed` | skip embedding notes and mail for search by meaning this run. |
 | `--timeout <duration>` | stop after this long, e.g. 10m; progress so far is kept (default: no limit). |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** sync notes, make stored mail searchable by meaning, and match people
 
 **Example:** `memo sync`, `memo sync --only mail`, `memo sync --only notes --folder ~/notes --no-embed`
 
@@ -6843,6 +6478,8 @@ memo store recover [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Example:** `memo store recover`
+
 #### `memo store recover run`
 
 copy every readable row into a new file with the sqlite3 program, rebuild the search indexes, mentions and vector index, check it, and put it in place of the store; the damaged file is kept beside it. Refuses while a WireCat timer or process has the store
@@ -6856,8 +6493,6 @@ memo store recover run [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** rebuild a damaged store from every row it can read
 
 **Example:** `memo store recover run`
 
@@ -6881,8 +6516,6 @@ memo groups list [query] [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** the saved groups, then all, with accounts, profiles and duplicates
-
 **Example:** `memo groups list`, `memo groups list --json`
 
 ### `memo groups add`
@@ -6904,8 +6537,6 @@ memo groups add <group> <source> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** put an account in a group
-
 **Example:** `memo groups add work bitrix24:acme`, `memo groups add personal telegram:102`
 
 ### `memo groups remove`
@@ -6926,8 +6557,6 @@ memo groups remove <group> <source> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** take an account out of a group
 
 **Example:** `memo groups remove work telegram:102`
 
@@ -6951,8 +6580,6 @@ memo groups move <source> <from> <to> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** move an account between groups
-
 **Example:** `memo groups move telegram:102 personal work`
 
 ### `memo groups rename`
@@ -6974,8 +6601,6 @@ memo groups rename <group> <name> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** rename a group
-
 **Example:** `memo groups rename work office`
 
 ### `memo groups delete`
@@ -6995,8 +6620,6 @@ memo groups delete <group> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** delete a group
 
 **Example:** `memo groups delete clients`
 
@@ -7020,8 +6643,6 @@ memo groups update <source> [options]
 | `--chat <chat>` | one chat of the account, by its id there. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** set an account's or one chat's scope, personal or work
-
 **Example:** `memo groups update bitrix24:acme --scope work`, `memo groups update telegram:102 --chat 7 --scope account`
 
 ## `memo jobs`
@@ -7042,8 +6663,6 @@ memo jobs start [options]
 |---|---|
 | `--every <duration>` | how often: 5m, 90s, 1h — a minute or more. |
 
-**Returns:** sync every --every (default auto.every, else 5m), starting a minute from now
-
 **Example:** `memo jobs start --every 10m`
 
 ### `memo jobs stop`
@@ -7055,8 +6674,6 @@ This command changes the local store or your files.
 ```sh
 memo jobs stop
 ```
-
-**Returns:** stop syncing on a timer and remove the timer
 
 **Example:** `memo jobs stop`
 
@@ -7071,8 +6688,6 @@ memo jobs status [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** whether the timer is on, its interval, its next run and how the last one ended
 
 **Example:** `memo jobs status --json`
 
@@ -7092,8 +6707,6 @@ memo config show [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** every setting, its value, its default and whether the file sets it
-
 **Example:** `memo config show`, `memo config show --json`
 
 ### `memo config migrate`
@@ -7109,8 +6722,6 @@ memo config migrate [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** write each setting the file lacks at its default, keeping yours
 
 **Example:** `memo config migrate`
 
@@ -7132,8 +6743,6 @@ memo config unset <key> [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** remove one setting from the config file, even one memo does not know
-
 **Example:** `memo config unset permissions.notes.edit`
 
 ## `memo doctor`
@@ -7149,8 +6758,6 @@ memo doctor [options]
 | `--online` | also connect once and read the account; sends nothing. |
 | `--deep` | also read every page of the store and check every search index (about 30 s for 6 GB); without it, only the file header and schema. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-
-**Returns:** the state this installation is in, without connecting unless --online
 
 **Example:** `memo doctor`, `memo doctor --json`
 
@@ -7168,8 +6775,6 @@ memo upgrade [options]
 |---|---|
 | `--check` | say whether a newer version exists, and install nothing. |
 | `--json` | print JSON. |
-
-**Returns:** upgrade memo with the package manager that installed it; --check only looks
 
 **Example:** `memo upgrade --check`
 
@@ -7200,8 +6805,6 @@ memo schedule command <name> <args> [options]
 | `--notify-on <when>` | desktop notice after a run (default failures for an agent that repeats with --every, else always). One of: `always`, `failures`, `never`. |
 | `--deliver-to <route>` | also send the result, when --notify-on says so, by the owner's own tg or mail: telegram-bot:<profile>/<chat id or user:id>, or email:<profile>/<address>; repeat it for more. |
 | `--json` | print JSON. |
-
-**Returns:** run memo <args…> on a timer — reads save what they read, so this is how a…
 
 **Example:** `memo schedule command digest --at 08:30 -- review status`, `memo schedule command mail-sync --every 1h -- sync --only mail`
 
@@ -7236,8 +6839,6 @@ memo schedule agent <name> <harness> <prompt> [options]
 | `--mail-wait <duration>` | with --on-new-mail: start once the oldest waiting email has waited this long (default 30m, or the config file's). |
 | `--mail-batch <n>` | with --on-new-mail: or once this many emails wait (default 10, or the config file's). |
 | `--json` | print JSON. |
-
-**Returns:** start an agent (claude, codex, gemini, cursor, opencode, openclaw, hermes,…
 
 **Example:** `memo schedule agent triage claude 'read memo review status and list what needs me today' --at 08:45 --max-cost 1`, `memo schedule agent mail-triage claude 'Run memo skill show mail-triage and follow it.' --every 5m --on-new-mail mail-triage --mail-wait 1h --mail-batch 20 --max-cost 1 --max-cost-per-day 5`, `memo schedule agent weekly claude 'read memo review status and sum up the week' --at 09:00 --model opus`
 
@@ -7309,8 +6910,6 @@ memo schedule run <name> [options]
 | `--deliver-to <route>` | send it along only this one of its own routes; repeat it for more. |
 | `--json` | print JSON. |
 
-**Returns:** run a schedule now, as its timer would, and wait for it; a paused one runs too
-
 **Example:** `memo schedule run digest`
 
 ### `memo schedule remove`
@@ -7330,8 +6929,6 @@ memo schedule remove <name> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON. |
-
-**Returns:** stop a schedule and remove its timer; its past output stays
 
 **Example:** `memo schedule remove digest`
 
@@ -7353,8 +6950,6 @@ memo schedule pause <name> [options]
 |---|---|
 | `--json` | print JSON. |
 
-**Returns:** take a schedule off its timer and keep it; run runs it, resume puts it back
-
 **Example:** `memo schedule pause digest`
 
 ### `memo schedule resume`
@@ -7374,8 +6969,6 @@ memo schedule resume <name> [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON. |
-
-**Returns:** put a paused schedule back on its timer
 
 **Example:** `memo schedule resume digest`
 
@@ -7397,8 +6990,6 @@ memo schedule exec <file> [seal] [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON. |
-
-**Returns:** what a timer runs, given the schedule's file; to run one by hand, use run
 
 **Example:** `memo schedule exec ~/.local/state/cli-memo/schedules/digest/schedule.json`
 
@@ -7424,8 +7015,6 @@ memo digest brief show [digest] [options]
 |---|---|
 | `--json` | print JSON. |
 
-**Returns:** the brief a digest follows, and the bodies your changes replaced
-
 **Example:** `memo digest brief show`, `memo digest brief show --json`
 
 #### `memo digest brief edit`
@@ -7448,8 +7037,6 @@ memo digest brief edit [digest] [options]
 | `--undo` | put back the body your last change replaced. |
 | `--json` | print JSON. |
 
-**Returns:** write the brief in $EDITOR or from --file; only you, never an agent
-
 **Example:** `memo digest brief edit`, `memo digest brief edit --file brief.md`, `memo digest brief edit --undo`
 
 #### `memo digest brief reset`
@@ -7470,8 +7057,6 @@ memo digest brief reset [digest] [options]
 |---|---|
 | `--json` | print JSON. |
 
-**Returns:** remove the brief; edit --undo brings it back
-
 **Example:** `memo digest brief reset`
 
 ### `memo digest list`
@@ -7487,8 +7072,6 @@ memo digest list [query] [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON. |
-
-**Returns:** your digests: when each runs, what it reads, where it goes, last and next run
 
 **Example:** `memo digest list`, `memo digest list name:weekly --json`
 
@@ -7522,8 +7105,6 @@ memo digest add <name> [options]
 | `--json` | print JSON. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
-**Returns:** make a digest: its times, sources, routes and brief, on its timer
-
 **Example:** `memo digest add evening --title 'Evening digest' --at 18:00 --deliver-to telegram-bot:personal/user:42`, `memo digest add weekly --title 'The week' --at 'mon 09:00' --source telegram,mail,tasks`
 
 ### `memo digest edit`
@@ -7555,8 +7136,6 @@ memo digest edit <name> [options]
 | `--json` | print JSON. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 
-**Returns:** change a digest; each option given replaces what it says, the rest stays
-
 **Example:** `memo digest edit evening --at 08:30 --at 18:00`, `memo digest edit weekly --source all --deliver-to none`
 
 ### `memo digest run`
@@ -7580,8 +7159,6 @@ memo digest run <name> [options]
 | `--deliver-to <route>` | send it only along this one of the digest's routes; repeat it for more. |
 | `--json` | print JSON. |
 
-**Returns:** build a digest now and send it along its routes, or only some, or none
-
 **Example:** `memo digest run evening`, `memo digest run weekly --no-notify --json`
 
 ### `memo digest pause`
@@ -7600,8 +7177,6 @@ memo digest pause <name> [options]
 |---|---|
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON. |
-
-**Returns:** take a digest off its timer; it stays, and run still builds it
 
 **Example:** `memo digest pause weekly`
 
@@ -7622,8 +7197,6 @@ memo digest resume <name> [options]
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON. |
 
-**Returns:** put a paused digest back on its timer
-
 **Example:** `memo digest resume weekly`
 
 ### `memo digest remove`
@@ -7642,8 +7215,6 @@ memo digest remove <name> [options]
 |---|---|
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON. |
-
-**Returns:** remove a digest and its timer; its past runs, brief and templates stay
 
 **Example:** `memo digest remove weekly`
 
@@ -7669,8 +7240,6 @@ memo digest backfill [digest] [options]
 | `--yes` | build them; without it, only the estimate is printed. |
 | `--json` | print JSON. |
 
-**Returns:** build a digest's past runs, without sending them
-
 **Example:** `memo digest backfill --since-time 2026-11-01 --until-time 2026-11-07`, `memo digest backfill --since-time 2026-11-01 --until-time 2026-11-07 --yes --json`
 
 ## `memo commands`
@@ -7689,6 +7258,8 @@ memo commands [path] [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
+**Example:** `memo commands`
+
 ### `memo commands info`
 
 one command contract, or all schemas, error reasons and explicit overrides
@@ -7704,8 +7275,6 @@ memo commands info [path] [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON. |
-
-**Returns:** one command contract, or all schemas, error reasons and explicit overrides
 
 **Example:** `memo commands info --json`
 
@@ -7730,8 +7299,6 @@ memo skill show [name] [options]
 | `--for <agents>` | print the copy installed for these agents instead of this version's. One of: `claude`, `agents`. |
 | `--json` | print JSON. |
 
-**Returns:** print the tool's instructions for AI agents
-
 **Example:** `memo skill show`
 
 ### `memo skill install`
@@ -7749,8 +7316,6 @@ memo skill install [options]
 | `--for <agents>` | which agents to install for. One of: `claude`, `agents`, `hermes`, `all`. Default: `all`. |
 | `--json` | print JSON. |
 
-**Returns:** install the tool's instructions for AI agents
-
 **Example:** `memo skill install --for all`
 
 ### `memo skill status`
@@ -7764,8 +7329,6 @@ memo skill status [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON. |
-
-**Returns:** whether the installed instructions for AI agents match this version
 
 **Example:** `memo skill status`, `memo skill status --json`
 
@@ -7784,8 +7347,6 @@ memo guide [name] [options]
 | Option | What it does |
 |---|---|
 | `--json` | print JSON. |
-
-**Returns:** scenarios: the commands for a common task, in order, and why each
 
 **Example:** `memo guide`, `memo guide person-brief --json`
 

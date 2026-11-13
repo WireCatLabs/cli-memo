@@ -78,6 +78,14 @@ it("credits a tool's schedule to the profile it runs as, by its environment or i
   expect(runs({ provider: "telegram", account: "999" })).toMatchObject({ known: false })
 })
 
+it("credits a schedule that names no profile to none, not to one called default", () => {
+  const { env, write } = machine()
+  write("data/tg-cli/accounts/default.json", { account: "100" })
+  write("data/tg-cli/schedules/sync/schedule.json", { name: "sync", kind: "command", argv: ["sync"], environment: {} })
+  write("data/tg-cli/schedules/sync/last.json", { ...ok, output: "run.log" })
+  expect(syncRunsOf(env)({ provider: "telegram", account: "100" })).toMatchObject({ scheduled: false, known: true })
+})
+
 it("counts a running serve as what keeps its profile's account synced", () => {
   const { env, write } = machine()
   write("data/whatsapp-cli/accounts/personal.json", { account: "1@lid" })

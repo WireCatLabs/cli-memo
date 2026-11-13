@@ -101,9 +101,9 @@ it("**counts tasks across every stored account** when stats tasks show names non
     "chat:telegram/600/7",
   ])
   expect((await run("stats", "tasks", "show", ...scope, "--json")).json().item).toMatchObject({ open: 1 })
-  await expect(run("stats", "tasks", "show", "--chat", "7", "--json")).rejects.toMatchObject({
+  await expect(run("stats", "tasks", "show", "--json", "--", "chat:7")).rejects.toMatchObject({
     code: "validation_error",
-    message: expect.stringContaining("--source"),
+    message: expect.stringContaining("one account"),
   })
 })
 

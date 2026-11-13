@@ -103,12 +103,13 @@ const profilesOf = (provider: string, tool: Tool, env: NodeJS.ProcessEnv): Map<s
   }
 }
 
-/** `tg second messages sync` names its profile first; otherwise the schedule runs as its `<PREFIX>_PROFILE`. */
-const profileRun = (schedule: Scheduled, tool: Tool, profiles: Map<string, unknown>): string => {
+/**
+ * `tg second messages sync` names its profile first; otherwise the schedule runs as its `<PREFIX>_PROFILE`. One that
+ * names neither runs as no profile memo can tell, so it counts for no account.
+ */
+const profileRun = (schedule: Scheduled, tool: Tool, profiles: Map<string, unknown>): string | undefined => {
   const first = schedule.argv[0]
-  return first !== undefined && profiles.has(first)
-    ? first
-    : (schedule.environment[`${tool.envPrefix}_PROFILE`] ?? "default")
+  return first !== undefined && profiles.has(first) ? first : schedule.environment[`${tool.envPrefix}_PROFILE`]
 }
 
 export interface SyncRuns {
@@ -143,7 +144,10 @@ export const syncRunsOf = (env: NodeJS.ProcessEnv) => {
     if (!tool) return { runs: [], scheduled: false, serving: false, known: false }
     const { schedules, serving, profiles } = read(key.provider, tool)
     const mine = new Set([...profiles].filter(([, account]) => account === key.account).map(([profile]) => profile))
-    const runs = schedules.filter((one) => mine.has(profileRun(one, tool, profiles)))
+    const runs = schedules.filter((one) => {
+      const profile = profileRun(one, tool, profiles)
+      return profile !== undefined && mine.has(profile)
+    })
     return {
       runs: runs.flatMap((one) => (one.last ? [one.last] : [])),
       scheduled: runs.length > 0,

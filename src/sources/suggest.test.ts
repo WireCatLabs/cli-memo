@@ -84,7 +84,7 @@ const readerFetch: typeof fetch = async (input, init) => {
   })
   if (url.endsWith("/api/tags")) return Response.json({ models: [{ name: "llama3.2:latest" }] })
   if (url.endsWith("/api/generate")) return Response.json({ response: answer, done: true })
-  if (url.includes("api.openai.com"))
+  if (url.includes("api.openai.com") || url.startsWith("https://models.example/"))
     return Response.json({
       choices: [{ finish_reason: "stop", message: { content: answer } }],
       usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 },
@@ -325,6 +325,16 @@ describe("sources suggest", () => {
     await run(["models", "ai", "set", "ollama", "--model", "llama3.2:latest", "--from-app"])
     const listed = await run(["sources", "readers", "list", "id:ai-model"])
     expect(listed.body.items).toMatchObject([{ id: "ai-model", chosen: true, leaves_computer: false }])
+    await run(["sources", "readers", "set", "openai", "--model", "gpt-synthetic", "--from-app"])
+  })
+
+  it("reaches the shared AI model at the address the owner gave it", async () => {
+    const model = ["models", "ai", "set", "openai", "--model", "gpt-own", "--base-url", "https://models.example/v1"]
+    await run([...model, "--secret-stdin", "--from-app"], { stdin: "sk-synthetic-own-0000" })
+    await run(["sources", "readers", "set", "ai-model", "--from-app"])
+    await suggest([ref, "--rescan", "--from-app"])
+    expect(requests.at(-1)?.url).toBe("https://models.example/v1/chat/completions")
+    await run(["models", "ai", "set", "ollama", "--model", "llama3.2:latest", "--from-app"])
     await run(["sources", "readers", "set", "openai", "--model", "gpt-synthetic", "--from-app"])
   })
 
