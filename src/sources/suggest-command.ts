@@ -1,5 +1,6 @@
 import { CliError, type KeyringStore, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
+import { type FetchLike, HOST_PATTERN, hostFetch } from "@wirecat/cli-base/http"
 import { defineQuery } from "@wirecat/cli-base/query"
 import {
   environmentOf,
@@ -12,6 +13,7 @@ import {
   typedQuery,
   withQuery,
 } from "@wirecat/cli-core/cli"
+import { aiSettingPath, readAiSetting } from "@wirecat/cli-core/documents"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
@@ -36,10 +38,34 @@ const READERS_QUERY = defineQuery({
 const SUBJECT = /^(person|organization|project):[1-9]\d*$|^task:[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$/
 
 export interface ReaderDeps {
-  /** What the Ollama and API readers reach the network with; a test hands in its own. */
-  fetch?: typeof fetch
+  /** What the Ollama and API readers reach the network with, behind the host check; a test hands in its own. */
+  fetch?: FetchLike
   keyring?: KeyringStore
 }
+
+/** The readers' default endpoints, plus the addresses the owner set for Ollama and for the shared AI model. */
+const readerHosts = (env: NodeJS.ProcessEnv): string[] => {
+  const configured = (read: () => string | undefined) => {
+    try {
+      const address = read()
+      return address === undefined ? [] : [new URL(address).hostname]
+    } catch {
+      return []
+    }
+  }
+  const hosts = [
+    "api.openai.com",
+    "api.anthropic.com",
+    "127.0.0.1",
+    "localhost",
+    ...configured(() => loadConfig(env).sources?.base_url),
+    ...configured(() => readAiSetting(aiSettingPath(env))?.base_url),
+  ]
+  return [...new Set(hosts)].filter((host) => HOST_PATTERN.test(host))
+}
+
+// A local model can take minutes on one source; hostFetch's 30 s default would cut it off.
+const READ_TIMEOUT_MS = 15 * 60_000
 
 const isAgentServer = (command: Command, env: NodeJS.ProcessEnv) =>
   environmentOf(command).agent !== undefined || env.AI_AGENT === "memo-mcp"
@@ -117,7 +143,11 @@ export const readerCommands = (
   const { print } = answers(program, streams, env)
   const context = (): ReaderContext => ({
     env,
-    fetch: deps.fetch ?? fetch,
+    fetch: hostFetch({
+      hosts: readerHosts(env),
+      timeoutMs: READ_TIMEOUT_MS,
+      ...(deps.fetch ? { fetch: deps.fetch } : {}),
+    }),
     ...(deps.keyring ? { keyring: deps.keyring } : {}),
   })
 

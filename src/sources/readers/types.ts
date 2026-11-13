@@ -1,9 +1,10 @@
 import type { KeyringStore } from "@wirecat/cli-base"
+import type { FetchLike } from "@wirecat/cli-base/http"
 
 /** What a reader needs from the run: its environment, and the network and keyring a test replaces. */
 export interface ReaderContext {
   env: NodeJS.ProcessEnv
-  fetch: typeof fetch
+  fetch: FetchLike
   keyring?: KeyringStore
   signal?: AbortSignal
 }

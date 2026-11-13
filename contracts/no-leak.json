@@ -1,11 +1,3 @@
 {
-  "paths": [
-    "contracts/plan.json",
-    "contracts/help.snap",
-    "contracts/mcp-tools.json",
-    "contracts/upgrade.json",
-    "contracts/previous/package.json",
-    "contracts/previous/pnpm-lock.yaml",
-    "contracts/previous/pnpm-workspace.yaml"
-  ]
+  "paths": ["contracts/plan.json", "contracts/help.snap", "contracts/mcp-tools.json", "contracts/upgrade.json"]
 }

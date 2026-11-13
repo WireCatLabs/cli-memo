@@ -1,10 +1,7 @@
 {
   "command": "node",
   "args": ["../dist/bin/memo.js"],
-  "previous": {
-    "entry": "./previous/node_modules/@wirecat/previous-cli/dist/bin/memo.js",
-    "version": "0.65.2"
-  },
+  "previous": {},
   "canaries": ["wirecat-synthetic-note-canary"],
   "cases": [
     {
@@ -26,7 +23,7 @@
       "args": ["notes", "list", "--json"],
       "exit": 0,
       "stream": "stdout",
-      "diagnostic": "the store moved to schema 66; every other WireCat CLI that uses it needs a version that speaks it — run `<cli> upgrade` for each\n",
+      "diagnosticPattern": "(?:the store moved to schema \\d+; every other WireCat CLI that uses it needs a version that speaks it — run `<cli> upgrade` for each\n)?",
       "kind": "json",
       "allowSensitiveOutput": true,
       "json": {

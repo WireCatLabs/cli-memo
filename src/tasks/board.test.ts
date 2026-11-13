@@ -313,3 +313,31 @@ it("moves a task's subtasks with it, and moves a subtask alone only when it is d
     parent: null,
   })
 })
+
+it("stores the same due time whatever the computer's time zone", async () => {
+  const { run } = await setUp()
+  const zone = process.env.TZ
+  const stored: string[] = []
+  try {
+    for (const [at, title] of [
+      ["Asia/Vladivostok", "Book the venue"],
+      ["America/Los_Angeles", "Print badges"],
+    ] as const) {
+      process.env.TZ = at
+      const added = await run([
+        "tasks",
+        "add",
+        "--project",
+        "HRB",
+        "--title",
+        title,
+        "--due",
+        "2026-12-01T09:30:00+01:00",
+      ])
+      stored.push((await run(["tasks", "show", added.key])).due_at)
+    }
+  } finally {
+    process.env.TZ = zone
+  }
+  expect(stored).toEqual(["2026-12-01T08:30:00.000Z", "2026-12-01T08:30:00.000Z"])
+})

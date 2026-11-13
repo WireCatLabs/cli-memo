@@ -79,6 +79,10 @@ Set the lock in the environment of the process the app starts; the agent cannot 
 The named CLI-only exclusions are the `mcp` commands, `upgrade`, `skill install`, `jobs start` and `jobs stop`: they
 start another server, replace the running program, install instructions in other apps, or manage a background timer.
 
+`schedule list`, `agents list`, `run` and `exec` are offered, as in every WireCat CLI: an agent may start a schedule
+you made. `schedule command`, `agent`, `remove`, `pause` and `resume` need `mcp.authority`, which defaults to `deny`,
+so only you make, remove or stop one.
+
 `notes add` and `notes edit` take the note as `text`. `--text-file` and `--export` are not offered, and a run over MCP
 refuses them before anything is saved, so an agent cannot make Memo read a file on this computer or the server's own
 input, or write a file into a folder of its choice.

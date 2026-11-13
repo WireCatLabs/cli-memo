@@ -96,16 +96,8 @@ published || folded=$(npx -y -p @wirecat/cli-base@0.36.0 cli-dev changelog fold 
 [ -z "$folded" ] || echo "$folded"
 rerun_if_changed "$@"
 
-# Two sessions preparing the same number is normal; the second takes the next free one (2026-09-29).
-latest=$(npm view "$package" version --prefer-online 2>/dev/null || true)
-versions=$(npm view "$package" versions --json --prefer-online 2>/dev/null || true)
-next=$(node scripts/next-version.mjs "$version" "$latest" "$versions")
-fragments=$(find changes -maxdepth 1 -type f -name '*.md' ! -name README.md 2>/dev/null | wc -l)
-if [ "$next" != "$version" ]; then
-  taken=""
-  if published; then taken=1; why="$version is already on npm"; else why="$version is not above npm's latest $latest"; fi
-  echo "$why — publishing $next instead"
-  # A version npm already has keeps its changelog section; the unreleased one becomes the new version.
+# Raises the version from $1 to $2 in package.json, src/version.ts and the CHANGELOG heading; $3 is set when npm has $1.
+renumber() {
   node -e 'const fs = require("fs"); const [o, n, taken] = process.argv.slice(1)
     const swap = (file, from, to) => {
       const text = fs.readFileSync(file, "utf8")
@@ -118,10 +110,31 @@ if [ "$next" != "$version" ]; then
     // With every change in changes/ there is no Unreleased section: the new version gets a heading of its own.
     const log = fs.readFileSync("CHANGELOG.md", "utf8")
     if (taken && log.includes("\n## Unreleased\n"))
-      swap("CHANGELOG.md", "\n## Unreleased\n", `\n## Unreleased\n\n## ${n} — ${today}\n`)
+      swap("CHANGELOG.md", "\n## Unreleased\n", `\n## ${n} — ${today}\n`)
     else if (taken) swap("CHANGELOG.md", `\n## ${o} — `, `\n## ${n} — ${today}\n\n## ${o} — `)
-    else swap("CHANGELOG.md", `\n## ${o} — `, `\n## ${n} — `)' "$version" "$next" "$taken"
+    else swap("CHANGELOG.md", `\n## ${o} — `, `\n## ${n} — `)' "$1" "$2" "$3"
+}
+
+# Two sessions preparing the same number is normal; the second takes the next free one (2026-09-29).
+latest=$(npm view "$package" version --prefer-online 2>/dev/null || true)
+versions=$(npm view "$package" versions --json --prefer-online 2>/dev/null || true)
+next=$(node scripts/next-version.mjs "$version" "$latest" "$versions")
+fragments=$(find changes -maxdepth 1 -type f -name '*.md' ! -name README.md 2>/dev/null | wc -l)
+if [ "$next" != "$version" ]; then
+  taken=""
+  if published; then taken=1; why="$version is already on npm"; else why="$version is not above npm's latest $latest"; fi
+  echo "$why — publishing $next instead"
+  # A version npm already has keeps its changelog section; the unreleased one becomes the new version.
+  renumber "$version" "$next" "$taken"
   node --experimental-strip-types scripts/changelog-fragments.ts --rules scripts/docs-rules.ts "$next"
+  # npm's next free number is a patch; Added needs a minor, and a break a major (a minor before 1.0.0): WC-REL-7.
+  levelled=$(npx -y -p @wirecat/cli-base@0.98.0 cli-dev changelog level --next "$next")
+  if [ "$levelled" != "$next" ]; then
+    levelled=$(node scripts/next-version.mjs "$levelled" "$latest" "$versions")
+    echo "its changelog needs a higher level — publishing $levelled instead"
+    renumber "$next" "$levelled" ""
+    next=$levelled
+  fi
   body="bin/release: $why. Only the number changes: package.json, src/version.ts, the CHANGELOG heading, and the
 changes/ fragments collected under it."
   land "release/$next" "chore(release): $next" "$body"

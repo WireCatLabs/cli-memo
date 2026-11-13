@@ -135,8 +135,8 @@ More: [connect your AI agent](https://wirecat.dev/en/docs/agents) ·
 5. **Review and delegation are recorded.** Memories and outbound actions an agent suggests wait for
    your confirmation. Project decisions can be delegated or left to the owner. Memo never sends anything.
 
-**Status:** early. Context, notes and their links, document import, Gmail and IMAP imports, tasks,
-manual relationships, evidence bundles and local reminders work. A task in a project cannot have a reminder yet.
+**Status:** early. Context, notes and their links, document import, search over the mail the `mail` CLI stores,
+tasks, manual relationships, evidence bundles and local reminders work. A task in a project cannot have a reminder yet.
 
 More: [security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security.md) ·
 [security on wirecat.dev](https://wirecat.dev/en/docs/memo/security)
@@ -262,7 +262,8 @@ More: [people and projects](https://github.com/WireCatLabs/cli-memo/blob/main/do
 
 The separate [mail](https://github.com/WireCatLabs/mail-cli) CLI brings mail in: `mail <profile> session start
 --address me@example.com`, then `mail <profile> sync`, fill the shared store, and memo searches and shows that mail.
-`mail` keeps text and headers, not attachments, and only reads your mailbox.
+`mail` keeps text and headers, not attachments. `mail` can also file, delete and send mail in your mailbox; memo never
+changes it.
 
 ```sh
 memo search mail 'mailbox:important budget'
