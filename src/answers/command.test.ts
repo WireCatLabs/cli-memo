@@ -1,9 +1,13 @@
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
+import { captureStreams } from "@wirecat/cli-base"
 import { aiSettingPath } from "@wirecat/cli-core/documents"
 import type { ModelAdapter } from "@wirecat/cli-core/models"
-import { describe, expect, it } from "vitest"
+import { openStore } from "@wirecat/cli-core/store"
+import { describe, expect, it, vi } from "vitest"
+import { answerOf } from "../../test/answer.js"
+import { createProgram } from "../program.js"
 import type { EvidenceItem } from "../search/search.js"
 import { answerEvidence, answerModel } from "./command.js"
 
@@ -80,5 +84,61 @@ describe("source-grounded answer proposals", () => {
     })
     const given = { ...env, MEMO_MODELS_ANALYSIS_PROVIDER: "anthropic", MEMO_MODELS_ANALYSIS_MODEL: "own" }
     expect(answerModel(given).target).toEqual({ provider: "anthropic", model: "own" })
+  })
+})
+
+describe("answers create through memo", () => {
+  it("keeps --limit evidence items, and sends them to a remote model only with --analyze --allow-remote", async () => {
+    const root = mkdtempSync(join(tmpdir(), "memo-answers-"))
+    const env: NodeJS.ProcessEnv = {
+      ...process.env,
+      MESSAGING_STORE: join(root, "s.db"),
+      MEMO_CONFIG_DIR: join(root, "config"),
+      MEMO_MODELS_ANALYSIS_PROVIDER: "openai",
+      MEMO_MODELS_ANALYSIS_MODEL: "gpt-synthetic",
+      MEMO_MODELS_ANALYSIS_BASE_URL: "https://models.example/v1",
+      MEMO_MODEL_API_KEY: "sk-synthetic-answers-0000",
+    }
+    const store = await openStore({ env })
+    await store.notes.addNote({ text: "Synthetic budget for the boat" })
+    await store.notes.addNote({ text: "Synthetic budget for the roof" })
+    await store.close()
+    const run = async (...args: string[]) => {
+      const streams = captureStreams()
+      await createProgram({ streams, env })
+        .exitOverride()
+        .parseAsync([...args, "--all", "--json"], { from: "user" })
+      return answerOf(streams.stdout.join(""))
+    }
+    expect((await run("answers", "create", "budget")).evidence).toHaveLength(2)
+    const one = await run("answers", "create", "budget", "--limit", "1")
+    expect(one.evidence).toHaveLength(1)
+    const locator = one.evidence[0].locator
+
+    const sent = vi.spyOn(globalThis, "fetch").mockImplementation(async () =>
+      Response.json({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                claims: [{ text: "A budget", sources: [locator], kind: "assertion" }],
+                suggestions: [],
+              }),
+            },
+            finish_reason: "stop",
+          },
+        ],
+        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      }),
+    )
+    try {
+      await expect(run("answers", "create", "budget", "--analyze")).rejects.toMatchObject({ code: "permission_error" })
+      expect(sent).not.toHaveBeenCalled()
+      const analysed = await run("answers", "create", "budget", "--limit", "1", "--analyze", "--allow-remote")
+      expect(analysed).toMatchObject({ generated: true, claims: [{ text: "A budget", sources: [locator] }] })
+      expect(String(sent.mock.calls[0]?.[0])).toBe("https://models.example/v1/chat/completions")
+    } finally {
+      sent.mockRestore()
+    }
   })
 })

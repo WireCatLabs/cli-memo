@@ -1,4 +1,4 @@
-import { mkdtempSync } from "node:fs"
+import { mkdtempSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
@@ -111,6 +111,51 @@ describe("memo stages", () => {
     const workSet = (await locked("stages", "show", "deal")) as BaseSet
     // Southwind's open deal stands in an unconfirmed stage: only the run that sees its account counts it.
     expect(workSet.unsorted.open).toBe(allSet.unsorted.open - 1)
+  })
+})
+
+describe("memo stages: the owner's base set and the suggestions", () => {
+  it("puts a new base stage first, then takes it out of the set", async () => {
+    const memo = memoIn(env)
+    await memo("stages", "create", "deal", "Demo")
+    const moved = (await memo("stages", "move", "deal", "Demo", "1")) as BaseSet
+    expect(moved.stages[0]?.name).toBe("Demo")
+    const removed = (await memo("stages", "remove", "deal", "Demo")) as BaseSet
+    expect(removed.stages.map((column) => column.name)).not.toContain("Demo")
+  })
+
+  it("confirms only the kind named with --all --kind", async () => {
+    const memo = memoIn(env)
+    const unconfirmed = async (kind: string) =>
+      ((await memo("stages", "list", `kind:${kind}`, "confirmed:false")) as { items: Mapping[] }).items.length
+    const deals = await unconfirmed("deal")
+    expect(deals).toBeGreaterThan(0)
+    await memo("stages", "confirm", "--all", "--kind", "lead")
+    expect(await unconfirmed("deal")).toBe(deals)
+    expect(await unconfirmed("lead")).toBe(0)
+    await memo("stages", "confirm", "--all", "--kind", "deal")
+    expect(await unconfirmed("deal")).toBe(0)
+  })
+
+  it("prints the task for an agent, records the agent's answer, and asks a model only when one is chosen", async () => {
+    const task = (await memoIn(env)("stages", "suggest", "--kind", "deal", "--dry-run")) as {
+      stages: { ref: string; kind: string; outcome: string }[]
+      base_stages: { ref: string; kind: string; outcome: string }[]
+    }
+    expect(task.stages.length).toBeGreaterThan(0)
+    expect(task.stages.every((stage) => stage.kind === "deal")).toBe(true)
+    const stage = task.stages[0] as { ref: string; outcome: string }
+    const base = task.base_stages.find((one) => one.kind === "deal" && one.outcome === stage.outcome)
+    const answer = join(mkdtempSync(join(tmpdir(), "memo-stage-answer-")), "answer.json")
+    writeFileSync(answer, JSON.stringify({ map: [{ stage: stage.ref, base: base?.ref }] }))
+
+    const agent = memoIn({ ...env, AI_AGENT: "codex" })
+    expect(await agent("stages", "suggest", "--kind", "deal", "--text-file", answer)).toMatchObject({
+      by: "agent",
+      suggested: 1,
+    })
+    await expect(agent("stages", "suggest")).rejects.toMatchObject({ details: { reason: "stage.model-agent" } })
+    await expect(memoIn(env)("stages", "suggest")).rejects.toMatchObject({ details: { reason: "ai.not-set" } })
   })
 })
 

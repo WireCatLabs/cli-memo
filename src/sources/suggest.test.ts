@@ -230,6 +230,16 @@ describe("sources suggest", () => {
     expect(await suggest([ref], { as: agentEnv })).toMatchObject({ reader: "claude-code", reused: true })
   })
 
+  it("asks a terminal before an agent's --as-owner picks a reader, and gets no answer under --json", async () => {
+    const unconfirmed = { details: { reason: "decision.owner-unconfirmed" } }
+    await expect(
+      suggest([ref, "--provider", "ollama", "--model", "llama3.2", "--as-owner"], { as: agentEnv }),
+    ).rejects.toMatchObject(unconfirmed)
+    await expect(
+      run(["sources", "readers", "set", "ollama", "--model", "x", "--as-owner"], { as: agentEnv }),
+    ).rejects.toMatchObject(unconfirmed)
+  })
+
   it("reads with Ollama on this computer only, with the model the owner named", async () => {
     await expect(run(["sources", "readers", "set", "ollama", "--from-app"])).rejects.toMatchObject({
       details: { reason: "reader.model-missing" },

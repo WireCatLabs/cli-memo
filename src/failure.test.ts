@@ -46,6 +46,21 @@ describe("failure handler", () => {
     })
   })
 
+  it("prints the record of a command that failed under --debug, as bin/memo.ts reports it", async () => {
+    const args = ["notes", "show", "note:999999", "--json", "--debug"]
+    const failed = await createProgram({ streams: captureStreams() })
+      .exitOverride()
+      .parseAsync(args, { from: "user" })
+      .catch((error: unknown) => error)
+    const { text } = await report(failed, args)
+    const [object, record] = text
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line))
+    expect(object.error.code).toBe("not_found")
+    expect(record).toMatchObject({ command: "notes show", attributes: { stack: expect.any(Array) } })
+  })
+
   it("keeps a registered reason and its details", async () => {
     const running = new CliError("rate_limited", "another memo sync is running (process 42)", {
       reason: "sync.running",

@@ -408,6 +408,16 @@ it("removes an added source and its copy, naming the facts that cite it", async 
   await expect(run(["sources", "remove", ref])).rejects.toMatchObject({ code: "not_found" })
 })
 
+it("removes for the owner under --from-app, and an agent's --as-owner gets no answer under --json", async () => {
+  const unconfirmed = { details: { reason: "decision.owner-unconfirmed" } }
+  await expect(add(["-", "--as-owner"], { stdin: "Pasted: the larkmoor notes.", as: agentEnv })).rejects.toMatchObject(
+    unconfirmed,
+  )
+  const { ref } = await add(["-"], { stdin: "Pasted: the larkmoor notes." })
+  await expect(run(["sources", "remove", ref, "--as-owner"], { as: agentEnv })).rejects.toMatchObject(unconfirmed)
+  expect(await run(["sources", "remove", ref, "--from-app"], { as: agentEnv })).toMatchObject({ ref, removed: true })
+})
+
 it("never reads a path or a link for an agent over MCP", async () => {
   const transport = page(200, { "content-type": "text/plain" }, "never fetched")
   const mcp = { ...env, AI_AGENT: "memo-mcp" }

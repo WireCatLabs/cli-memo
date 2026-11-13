@@ -183,6 +183,37 @@ it("asks for --reason and refuses --as-owner without a terminal", async () => {
   })
 })
 
+it("pages with --limit and --page, prints one line under --compact, and rejects for the owner under --from-app", async () => {
+  const f = await setUp()
+  const [one, two, three] = [await f.fact(CLAUDE, "One"), await f.fact(CLAUDE, "Two"), await f.fact(CLAUDE, "Three")]
+  const first = await f.run({}, OWNER, "review", "list", "--limit", "2", "--page", "1")
+  const second = await f.run({}, OWNER, "review", "list", "--limit", "2", "--page", "2")
+  expect(first.items).toHaveLength(2)
+  expect([...first.items, ...second.items].map((item: { id: string }) => item.id).sort()).toEqual(
+    [one, two, three].sort(),
+  )
+
+  expect(await f.raw({}, OWNER, "review", "show", one as string, "--compact")).toContain(`id: ${one}`)
+  expect(await f.raw({}, OWNER, "review", "confirm", one as string, "--compact")).toContain("decided: 1")
+  expect((await f.item({}, OWNER, "facts", "show", one as string)).status).toBe("accepted")
+
+  await expect(
+    f.run(CLAUDE, NOBODY, "review", "reject", two as string, "--reason", "not agreed", "--as-owner"),
+  ).rejects.toMatchObject({ details: { reason: "decision.owner-unconfirmed" } })
+  const rejected = await f.raw(
+    CLAUDE,
+    NOBODY,
+    ...["review", "reject", two as string, "--reason", "not agreed", "--from-app", "--compact"],
+  )
+  expect(rejected).toContain("decided: 1")
+  expect((await f.item({}, OWNER, "facts", "show", two as string)).status).toBe("rejected")
+})
+
+// Their help promises one line; cli-core's compact form draws a single item as key: value lines, and a decision
+// answer as its count only. Making them one line needs a compact row for these answers in cli-core.
+it.todo("review show --compact prints one line, as its help says; today it prints the same lines as without it")
+it.todo("review confirm and reject --compact print one line per decision, as their help says; today only a count")
+
 it("keeps review confirm and reject from an MCP client unless the owner allows them", async () => {
   const f = await setUp()
   await f.fact(CLAUDE, "One")

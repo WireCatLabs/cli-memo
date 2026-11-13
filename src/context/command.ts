@@ -25,6 +25,10 @@ const eventLine = (event: ContextEvent) =>
   `  ${(event.allDay ? event.startsAt?.slice(0, 10) : event.startsAt?.slice(0, 16).replace("T", " ")) ?? "—"}  ` +
   `${(event.title ?? "untitled").replace(/\s+/g, " ").slice(0, MAX_TEXT)}${event.location ? `  ${event.location}` : ""}  ${event.ref}`
 
+const meetingLine = (meeting: MemoContext["meetings"][number]) =>
+  `  ${meeting.startedAt?.slice(0, 16).replace("T", " ") ?? "—"}  ` +
+  `${(meeting.title ?? "untitled").replace(/\s+/g, " ").slice(0, MAX_TEXT)}  ${meeting.ref}`
+
 /** A note by the reference `notes show` takes, then where it is. */
 const noteLine = (note: { ref: string; path: string | null; title?: string | null }) =>
   `  ${note.ref}${(note.path ?? note.title) ? `  ${note.path ?? note.title}` : ""}`
@@ -51,6 +55,7 @@ type Waiting = {
 export const contextText = ({
   messages,
   events,
+  meetings,
   notes,
   notRead,
   tasks,
@@ -78,6 +83,7 @@ export const contextText = ({
     ...(recent.groups.length === 0 ? [] : ["", "Recent, in groups", ...recent.groups.map((m) => `  ${one(m)}`)]),
     ...(events.upcoming.length === 0 ? [] : ["", "Upcoming events", ...events.upcoming.map(eventLine)]),
     ...(events.recent.length === 0 ? [] : ["", "Recent events", ...events.recent.map(eventLine)]),
+    ...(meetings.length === 0 ? [] : ["", "Calls and meetings", ...meetings.map(meetingLine)]),
     ...businessLines(business),
     "",
     "",

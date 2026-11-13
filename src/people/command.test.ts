@@ -88,6 +88,24 @@ describe("memo note", () => {
     })
   })
 
+  it("links and clears for the owner under --from-app from an agent's terminal, and refuses the agent without it", async () => {
+    await run("folders", "add", vault)
+    await run("sync", "--only", "notes")
+    const agent = async (...args: string[]) => {
+      const streams = captureStreams()
+      await createProgram({ streams, env: { ...env, AI_AGENT: "claude-code" }, terminal: { present: false } })
+        .exitOverride()
+        .parseAsync([...args, "--json"], { from: "user" })
+      return JSON.parse(streams.stdout.join("")).item
+    }
+    const file = join(vault, "people", "Rin Example.md")
+    const refused = { details: { reason: "proposal.reason-required" } }
+    await expect(agent("notes", "links", "add", "telegram:101", file)).rejects.toMatchObject(refused)
+    expect(await agent("notes", "links", "add", "telegram:101", file, "--from-app")).toMatchObject({ files: [file] })
+    await expect(agent("notes", "links", "clear", "telegram:101")).rejects.toMatchObject(refused)
+    expect(await agent("notes", "links", "clear", "telegram:101", "--from-app")).toMatchObject({ files: [] })
+  })
+
   it("moves the old people-notes.json into the store once the note is imported", async () => {
     const store = await openStore({ env })
     const uid = (await store.people.personOf({ provider: "telegram", id: "101" }))?.uid as string

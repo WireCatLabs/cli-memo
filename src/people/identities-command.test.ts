@@ -516,3 +516,108 @@ describe("over MCP", () => {
     }
   })
 })
+
+describe("the owner's decisions from the app", () => {
+  const unconfirmed = { details: { reason: "decision.owner-unconfirmed" } }
+
+  it("link, confirm and reject as the owner under --from-app; --as-owner gets no answer under --json", async () => {
+    await expect(run(CLAUDE, NOBODY, "people", "link", "max:33", "telegram:11", "--as-owner")).rejects.toMatchObject(
+      unconfirmed,
+    )
+    expect(await run(CLAUDE, NOBODY, "people", "link", "max:33", "telegram:11", "--from-app")).toMatchObject({
+      outcome: "linked",
+    })
+
+    const first = await run(CLAUDE, NOBODY, "people", "link", "max:33", "max:22", "--reason", "same voice")
+    await expect(run(CLAUDE, NOBODY, "people", "confirm", first.proposal, "--as-owner")).rejects.toMatchObject(
+      unconfirmed,
+    )
+    await expect(
+      run(CLAUDE, NOBODY, "people", "reject", first.proposal, "--reason", "not one", "--as-owner"),
+    ).rejects.toMatchObject(unconfirmed)
+    const confirmed = await run(
+      CLAUDE,
+      NOBODY,
+      "people",
+      "confirm",
+      first.proposal,
+      "--reason",
+      "same phone",
+      "--from-app",
+    )
+    expect(confirmed.decided).toMatchObject([{ id: first.proposal, status: "confirmed" }])
+    const store = await openStore({ env })
+    expect(await store.proposedActions.get(first.proposal)).toMatchObject({
+      decidedBy: { type: "person" },
+      result: { reason: "same phone" },
+    })
+    await store.close()
+  })
+
+  it("all takes only --limit of what people review lists", async () => {
+    await run(CLAUDE, NOBODY, "people", "link", "max:33", "telegram:11", "--reason", "same face")
+    await run(CLAUDE, NOBODY, "people", "link", "max:33", "max:22", "--reason", "same voice")
+    expect(await run({}, OWNER, "people", "confirm", "all", "--limit", "1")).toMatchObject({
+      outcome: "preview",
+      ids: [expect.any(String)],
+      has_more: true,
+    })
+    expect(await run({}, OWNER, "people", "reject", "all", "--limit", "1", "--reason", "not one")).toMatchObject({
+      outcome: "preview",
+      ids: [expect.any(String)],
+      has_more: true,
+    })
+  })
+
+  it("resolve a shared mailbox as the owner under --from-app; --as-owner gets no answer under --json", async () => {
+    const store = await openStore({ env })
+    await store.people.savePeople(TG, [{ id: "44", name: "Ana Diaz", email: "info@shop.example" }])
+    await store.people.savePeople(MAX, [{ id: "55", name: "Bo Lind", email: "info@shop.example" }])
+    await store.close()
+    await run({}, NOBODY, "people", "scan")
+    const [match] = envelopeOf(await raw({}, OWNER, "people", "review", "--json")).items
+
+    await expect(run(CLAUDE, NOBODY, "people", "resolve", match.id, "company", "--as-owner")).rejects.toMatchObject(
+      unconfirmed,
+    )
+    expect(await run(CLAUDE, NOBODY, "people", "resolve", match.id, "company", "--from-app")).toMatchObject({
+      status: "rejected",
+      mailbox: "info@shop.example",
+    })
+  })
+
+  it("unlink, unmerge and links resolve ask first under --as-owner, and get no answer under --json", async () => {
+    await run({}, OWNER, "people", "link", "max:33", "telegram:11")
+    const { ref, merges } = await run({}, OWNER, "people", "show", "max:33")
+    await expect(
+      run(CLAUDE, NOBODY, "people", "unlink", "telegram:11", "--from", ref, "--as-owner"),
+    ).rejects.toMatchObject(unconfirmed)
+    await expect(run(CLAUDE, NOBODY, "people", "unmerge", merges[0].id, "--as-owner")).rejects.toMatchObject(
+      unconfirmed,
+    )
+    expect((await run({}, OWNER, "people", "show", "max:33")).identities).toHaveLength(2)
+
+    const store = await openStore({ env })
+    await store.people.savePeople({ provider: "whatsapp", account: "9" }, [
+      { id: "11", name: "Ann Lee" },
+      { id: "12", name: "Bob Ray" },
+    ])
+    await store.close()
+    const [doubt] = envelopeOf(await raw({}, OWNER, "people", "links", "check", "--json")).items
+    await expect(
+      run(CLAUDE, NOBODY, "people", "links", "resolve", doubt.person, "keep", "--as-owner"),
+    ).rejects.toMatchObject(unconfirmed)
+  })
+
+  it("links check pages by --limit", async () => {
+    const store = await openStore({ env })
+    await store.people.savePeople({ provider: "whatsapp", account: "9" }, [
+      { id: "11", name: "Ann Lee" },
+      { id: "12", name: "Bob Ray" },
+    ])
+    await store.close()
+    const page = envelopeOf(await raw({}, OWNER, "people", "links", "check", "--limit", "1", "--json"))
+    expect(page.items).toHaveLength(1)
+    expect(page.page).toMatchObject({ has_more: true, next_page: 2 })
+  })
+})

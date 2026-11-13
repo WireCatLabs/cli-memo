@@ -54,7 +54,7 @@
     "version:sync": "cli-dev version --sync",
     "package:check": "node --experimental-strip-types scripts/package-check.ts",
     "docs:check": "cli-dev docs-check --rules scripts/docs-rules.ts --pages && node --experimental-strip-types scripts/changelog-fragments.ts --rules scripts/docs-rules.ts && cspell --no-progress --no-summary README.md 'docs/*.md' && pnpm docs:lint",
-    "test:matrix:check": "cli-dev test-matrix --program scripts/command-program.ts --untested scripts/test-matrix-untested.ts --name memo && git diff --exit-code -- docs/dev/test-matrix.md",
+    "test:matrix:check": "cli-dev test-matrix --program scripts/command-program.ts --untested scripts/test-matrix-untested.ts --name memo --check && git diff --exit-code -- docs/dev/test-matrix.md",
     "test:matrix": "vitest run >/dev/null && pnpm build >/dev/null && pnpm test:matrix:check",
     "smoke:bun": "bun scripts/smoke.ts && bun scripts/smoke-bundle.ts",
     "smoke:node": "node --experimental-strip-types scripts/smoke-bundle.ts"
@@ -62,7 +62,7 @@
   "dependencies": {
     "@modelcontextprotocol/server": "2.4.0",
     "@wirecat/cli-base": "0.98.0",
-    "@wirecat/cli-core": "0.649.0",
+    "@wirecat/cli-core": "0.650.0",
     "commander": "15.0.0",
     "valibot": "1.5.0",
     "yaml": "2.9.1"

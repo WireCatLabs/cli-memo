@@ -240,6 +240,20 @@ describe("memo doctor --online", () => {
   })
 })
 
+describe("memo upgrade", () => {
+  it("says in JSON whether npm holds a newer memo, and installs nothing with --check", async () => {
+    const asked = vi.fn(async () => new Response(JSON.stringify({ version: "99.0.0" })))
+    vi.stubGlobal("fetch", asked)
+    try {
+      const answer = JSON.parse(await memo("upgrade", "--check", "--json"))
+      expect(answer.item).toMatchObject({ latest: "99.0.0", newer: true, updated: false })
+      expect(asked).toHaveBeenCalledOnce()
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+})
+
 describe("the update notice", () => {
   const environment = {
     fetch: async () => new Response(JSON.stringify({ version: "99.0.0" })),
@@ -285,5 +299,32 @@ describe("memo doctor --deep", () => {
     expect(report.item.store.damage).toBeUndefined()
     const recover = JSON.parse(await memo("store", "recover", "--json"))
     expect(recover.item).toMatchObject({ exists: true, ok: true, next: [] })
+  })
+
+  it("answers store recover run in JSON, and keeps the old file beside the rebuilt store", async () => {
+    const { openStore } = await import("@wirecat/cli-core/store")
+    const store = await openStore({ env })
+    await store.notes.addNote({ text: "Synthetic note that survives recovery" })
+    await store.close()
+    // The refusal reads `systemctl --user list-timers` from PATH; this one lists none of the owner's timers.
+    const bin = join(dir, "bin")
+    mkdirSync(bin)
+    writeFileSync(join(bin, "systemctl"), "#!/bin/sh\n", { mode: 0o755 })
+    vi.stubEnv("PATH", `${bin}:${process.env.PATH}`)
+    const ran = JSON.parse(await memo("store", "recover", "run", "--json"))
+    expect(ran.item).toMatchObject({
+      checked_ok: true,
+      lost: [],
+      kept_at: expect.stringContaining("messages.db.before-recover-"),
+    })
+    const reopened = await openStore({ env })
+    try {
+      expect((await reopened.notes.notes()).items.map((note) => note.text)).toContain(
+        "Synthetic note that survives recovery",
+      )
+    } finally {
+      await reopened.close()
+      vi.unstubAllEnvs()
+    }
   })
 })

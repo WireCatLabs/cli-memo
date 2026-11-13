@@ -86,6 +86,8 @@ source it did not, with the reason. The answer brings together:
 - the calendar events they are invited to, the next ones and the latest past ones, from every calendar gcal
   stored. The answer names the calendars it read. An event's title and place are written by whoever sent the
   invitation, and `--json` lists those fields under `untrusted`;
+- `meetings`: the recorded calls and meetings they took part in, newest first, each with its account. `meetings show`
+  of the tool that owns the account opens one;
 - the note about them, the notes that link to them, and the notes you wrote about them in Memo;
 - open tasks that are about them or assigned to them.
 - the Google Drive files they own or last edited, as Google reports it. You have not reviewed these links;

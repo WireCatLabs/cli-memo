@@ -99,6 +99,16 @@ it("estimates the days without a digest at the last run's cost, and builds nothi
   expect(inputs()).toBe("")
 })
 
+it("takes the days under the names an older WireCat Desktop sends, --from and --to", async () => {
+  const { run } = setUp()
+  const old = envelopeOf(await run("digest", "backfill", "--from", dateBack(3), "--to", dateBack(1), "--json"))
+  const now = envelopeOf(
+    await run("digest", "backfill", "--since-time", dateBack(3), "--until-time", dateBack(1), "--json"),
+  )
+  expect(old.item).toEqual(now.item)
+  expect(old.item.days).toHaveLength(3)
+})
+
 it("builds each day as that day's run, marked backfill, with its window, and leaves the last run", async () => {
   const { run, folder, runs, inputs, last } = setUp()
   const body = envelopeOf(

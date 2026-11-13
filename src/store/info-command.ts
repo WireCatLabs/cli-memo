@@ -44,12 +44,14 @@ export const storeCommand = (program: Command, streams: Streams, env: NodeJS.Pro
         "check it, and put it in place of the store; the damaged file is kept beside it. Refuses while a WireCat timer or process has the store",
     )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action(async (options: { json?: boolean }) => {
+    .action(async (_options: unknown, command: Command) => {
       const answer = await storeRecoveryRun(env, {
         command: "memo",
         version: VERSION,
         note: (text) => streams.diagnostic(text),
       })
-      print(options.json, itemOf(snakeKeys(answer)), recoveryNotes(answer).join("\n"))
+      // `recover` has its own --json, and commander gives it the flag even when it follows `run`.
+      const { json } = command.optsWithGlobals<{ json?: boolean }>()
+      print(json, itemOf(snakeKeys(answer)), recoveryNotes(answer).join("\n"))
     })
 }

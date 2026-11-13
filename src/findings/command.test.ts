@@ -108,3 +108,29 @@ it("paginates with scope intact and rejects stale owner decisions", async () => 
     ).item.receipt.items.every((item: { status: string }) => item.status === "rejected"),
   ).toBe(true)
 })
+it("decides a batch for the owner under --from-app, and an agent's --as-owner gets no answer under --json", async () => {
+  const f = await fixture()
+  const staged = (await f.run(["meetings", "actions", "add", f.path, ...f.acts], true)).item
+  const confirm = [
+    "meetings",
+    "actions",
+    "confirm",
+    staged.id,
+    ...f.acts,
+    "--fingerprint",
+    staged.fingerprint,
+    "decision",
+  ]
+  await expect(f.run([...confirm, "--as-owner"], true)).rejects.toMatchObject({
+    details: { reason: "decision.owner-unconfirmed" },
+  })
+  const partial = (await f.run([...confirm, "--from-app"], true)).item
+  expect(partial).toMatchObject({ status: "proposed", receipt: null })
+
+  const reject = ["meetings", "actions", "reject", staged.id, ...f.acts, "--fingerprint", partial.fingerprint]
+  await expect(f.run([...reject, "--as-owner"], true)).rejects.toMatchObject({
+    details: { reason: "decision.owner-unconfirmed" },
+  })
+  const decided = (await f.run([...reject, "--from-app"], true)).item
+  expect(decided.receipt.items.map((item: { status: string }) => item.status)).toEqual(["accepted", "rejected"])
+})

@@ -191,3 +191,48 @@ it("**tasks agenda over a mail account lists threads owed an answer and waiting 
   expect(agenda.waiting.map((one: { chat: string }) => one.chat)).toEqual(["chat:email/me%40example.com/waiting"])
   expect(agenda.stale).toBe(false)
 })
+
+it("counts tasks by project instead of chat, and reads a period's days in the zone asked", async () => {
+  const { run } = await setUp()
+  const stats = async (...args: string[]) =>
+    (await run("stats", "tasks", "show", ...scope, "--json", ...args)).json().item
+  expect((await stats()).rows).toEqual([expect.objectContaining({ chat: "chat:telegram/500/7", open: 1 })])
+  expect(await stats("--by", "project")).toMatchObject({ open: 0, rows: [] })
+  // Kiritimati's today began at most a day ago; the same date begins 25 hours later in Pago Pago.
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Pacific/Kiritimati" }).format(new Date())
+  expect(await stats("--timezone", "Pacific/Kiritimati", "--", `created>=${today}`)).toMatchObject({ created: 1 })
+  expect(await stats("--timezone", "Pacific/Pago_Pago", "--", `created>=${today}`)).toMatchObject({ created: 0 })
+})
+
+it("**narrows the agenda by --due-within and --unanswered, and hides a task another --holder claimed**", async () => {
+  const { run } = await setUp()
+  const agenda = async (...args: string[]) => (await run("tasks", "agenda", ...scope, ...args, "--json")).json().item
+  const task = (await agenda()).tasks[0].key
+  await run("tasks", "update", task, "--due", "2d", ...acts, "--json")
+  expect((await agenda()).tasks).toEqual([])
+  expect((await agenda("--due-within", "3d")).tasks.map(({ key }: { key: string }) => key)).toEqual([task])
+
+  expect((await agenda("--unanswered", "30m")).owed.map(({ chat }: { chat: string }) => chat)).toEqual([
+    "chat:telegram/500/7",
+  ])
+  expect((await agenda("--unanswered", "2h")).owed).toEqual([])
+
+  await run("tasks", "claim", task, ...acts, "--holder", "session-1", "--json")
+  const held = async (holder: string) =>
+    (await agenda("--due-within", "3d", "--holder", holder)).tasks.map(({ key }: { key: string }) => key)
+  expect(await held("session-1")).toEqual([task])
+  expect(await held("session-2")).toEqual([])
+})
+
+it("**files a message's task under a category with a reminder, and links it to a chat**", async () => {
+  const { run } = await setUp()
+  const task = (await run("tasks", "agenda", ...scope, "--json")).json().item.tasks[0].key
+  const update = ["tasks", "update", task, "--category", "documents", "--remind-time", "2099-01-01T09:00:00Z", ...acts]
+  expect((await run(...update, "--json")).json().item).toMatchObject({
+    category: "documents",
+    next_check_at: "2099-01-01T09:00:00.000Z",
+  })
+  expect((await run("tasks", "link", task, "--chat", "7", ...acts, "--json")).json().item.links).toMatchObject([
+    { to: "chat:telegram/500/7", kind: "related-to" },
+  ])
+})

@@ -105,6 +105,18 @@ it("records an agent's mark as unconfirmed, by that agent", async () => {
   })
 })
 
+it("marks and unmarks as the owner under --from-app, and an agent's --as-owner gets no answer under --json", async () => {
+  const { run, plan } = await setUp({ AI_AGENT: "claude-code_2-1-296_agent" })
+  const unconfirmed = { details: { reason: "decision.owner-unconfirmed" } }
+  const add = ["projects", "key-documents", "add", "SYH", plan, "--reason", "read first"]
+  await expect(run(...add, "--as-owner")).rejects.toMatchObject(unconfirmed)
+  expect(await run(...add, "--from-app")).toMatchObject({ confirmed: true, origin: "owner" })
+
+  await expect(run("projects", "key-documents", "remove", "SYH", plan, "--as-owner")).rejects.toMatchObject(unconfirmed)
+  await run("projects", "key-documents", "remove", "SYH", plan, "--from-app")
+  expect((await run("projects", "key-documents", "list", "SYH")).items).toEqual([])
+})
+
 it("refuses a project or a source the store does not hold", async () => {
   const { run, plan } = await setUp()
   await expect(run("projects", "key-documents", "add", "NOPE", plan, "--reason", "x")).rejects.toMatchObject({

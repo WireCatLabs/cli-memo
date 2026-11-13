@@ -338,6 +338,15 @@ it("reads a project's confirmed linked chats whole, never a suggested one or one
   const text = await run("projects", "evidence", "SYP", "--source", "telegram:1")
   expect(text).toContain("msg:telegram/1/8/1  [linked chat]")
   expect(text).toContain("not read: chat:telegram/2/5 (linked-chat, out-of-scope)")
+
+  const refs = async (...args: string[]) =>
+    (await json("projects", "evidence", "SYP", "--source", "telegram:1", ...args)).items.map(
+      (item: { ref: string }) => item.ref,
+    )
+  expect(await refs("--include-proposed")).toContain("msg:telegram/1/6/1")
+  await json("relationships", "update", added.id, "--purpose", "sales")
+  expect(await refs()).not.toContain("msg:telegram/1/8/1")
+  expect(await refs("--purpose", "sales")).toContain("msg:telegram/1/8/1")
 })
 
 it("leaves the rest of a busy linked chat to --cursor and says which chat it capped", async () => {

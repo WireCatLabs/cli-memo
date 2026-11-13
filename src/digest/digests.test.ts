@@ -221,6 +221,20 @@ describe("digests by name", () => {
     expect(schedule("d").agent.allowDangerous).toBeUndefined()
   })
 
+  it("caps a day's cost when it is added, and an edit moves it to codex with a model past its limits", async () => {
+    const { json, schedule, env } = setUp()
+    const added = await json("digest", "add", "d", "--at", "08:30", "--max-cost-per-day", "1.5", "--from-app")
+    expect(added.item).toMatchObject({ harness: "claude", max_cost_per_day_usd: 1.5 })
+    expect(schedule("d").maxCostPerDay).toBe(1.5)
+    writeFileSync(join(String(env.PATH).split(":")[0] ?? "", "codex"), "#!/bin/sh\n", { mode: 0o755 })
+    const moved = await json(
+      ...["digest", "edit", "d", "--agent", "codex", "--model", "qwen3", "--allow-dangerous", "--from-app"],
+    )
+    expect(moved.item).toMatchObject({ harness: "codex", model: "qwen3" })
+    expect(schedule("d").agent).toMatchObject({ harness: "codex", allowDangerous: true })
+    expect(schedule("d").argv).toContain("qwen3")
+  })
+
   it("takes the one agent installed, asks when there are none or several, and never caps an agent that reports no cost", async () => {
     const { json, schedule, env } = setUp()
     const bin = String(env.PATH).split(":")[0] ?? ""
@@ -441,5 +455,53 @@ describe("digests saved before cli-core kept their agent", () => {
       await json("digest", "list")
       expect(schedule("morning-digest").agent).toBeUndefined()
     }
+  })
+})
+
+describe("schedules of memo commands and agents", () => {
+  it("runs a command once at a time, quietly, to one route, and pauses and resumes its timer", async () => {
+    const { json, run, schedule, ran } = setUp()
+    const once = envelopeOf(
+      await run(
+        ...["schedule", "command", "once", "--at-time", "2d", "--notify-on", "never", "--deliver-to", OTHER],
+        ...["--json", "--", "review", "status"],
+      ),
+    )
+    expect(once.item).toMatchObject({ kind: "command", argv: ["review", "status"], notify: "never" })
+    expect(schedule("once")).toMatchObject({ when: { once: expect.any(String) }, notify: "never", to: [OTHER] })
+    expect((await json("schedule", "pause", "once")).item).toMatchObject({ name: "once", paused: true })
+    expect((await json("schedule", "resume", "once")).item).toMatchObject({ name: "once", paused: false })
+    expect(ran.at(-1)).toEqual(["systemctl", "--user", "enable", "--now", "memo-schedule-once.timer"])
+  })
+
+  it("starts an agent once, allowed past its limits, and lists the agents a schedule may start", async () => {
+    const { json, schedule } = setUp()
+    const triage = await json(
+      ...["schedule", "agent", "triage", "claude", "Triage mail.", "--at-time", "30m", "--allow-dangerous"],
+      ...["--notify-on", "always", "--deliver-to", ROUTE],
+    )
+    expect(triage.item).toMatchObject({ kind: "agent", agent: { harness: "claude", allow_dangerous: true } })
+    expect(schedule("triage")).toMatchObject({ when: { once: expect.any(String) }, notify: "always", to: [ROUTE] })
+    const agents = await json("schedule", "agents", "list")
+    expect(agents.items).toContainEqual(expect.objectContaining({ id: "claude", installed: true }))
+  })
+
+  it("runs an agent now with no notice at all, or to only one of its routes, and as its timer does", async () => {
+    const { json, ran, run, state } = setUp()
+    await json(
+      ...["schedule", "agent", "hourly", "claude", "Triage mail.", "--every", "1h", "--notify-on", "always"],
+      ...["--deliver-to", ROUTE, "--deliver-to", OTHER],
+    )
+    ran.splice(0)
+    const quiet = await json("schedule", "run", "hourly", "--no-notify")
+    expect(quiet.item).toMatchObject({ name: "hourly", exit_code: 0 })
+    expect(quiet.item.deliveries).toBeUndefined()
+    expect(ran).toEqual([])
+    const one = await json("schedule", "run", "hourly", "--deliver-to", ROUTE)
+    expect(one.item.deliveries).toEqual([{ to: ROUTE, ok: true }])
+    expect(ran.filter((argv) => argv[0]?.endsWith("/mail"))).toEqual([])
+    ran.splice(0)
+    expect(await run("schedule", "exec", join(state, "schedules", "hourly", "schedule.json"), "--json")).toBe("")
+    expect(ran.map((argv) => argv[0]?.split("/").at(-1))).toEqual(["notify-send", "tg", "mail"])
   })
 })

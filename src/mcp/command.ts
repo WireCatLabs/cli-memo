@@ -1,7 +1,15 @@
 import { join } from "node:path"
 import { CliError, resolvePaths, type Streams } from "@wirecat/cli-base"
 import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
-import { LOCAL_READ, LOCAL_WRITE, mcpServerCommand, sharedCommandTemplate } from "@wirecat/cli-core/cli"
+import type { ServerSystem } from "@wirecat/cli-core/background"
+import {
+  type BaseEnvironment,
+  environmentOf,
+  LOCAL_READ,
+  LOCAL_WRITE,
+  mcpServerCommand,
+  sharedCommandTemplate,
+} from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { APP } from "../app.js"
@@ -138,6 +146,7 @@ const mcpCommandDefinition = (
       version: APP.version,
     }),
     answer: (self, item, lines) => out.print(self.opts<{ json?: boolean }>().json, itemAnswer(item), lines.join("\n")),
+    system: (self) => environmentOf<BaseEnvironment & { system?: ServerSystem }>(self).system,
   })
   // memo has no global --json, so each mcp command that answers takes its own, as notes and mail do.
   for (const command of server.commands) command.option("--json", "print JSON")

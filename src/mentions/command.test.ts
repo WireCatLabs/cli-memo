@@ -117,3 +117,40 @@ it("confirms a note's phone as a person's", async () => {
   const decided = await run("mentions", "confirm", String(found.id), `person:${person?.uid}`, "--as-owner")
   expect(decided).toMatchObject({ status: "linked" })
 })
+
+it("pages the list by --limit", async () => {
+  const listed = await run("mentions", "list", "kind:phone", "--source", "mail", "--limit", "1")
+  expect(listed.items).toHaveLength(1)
+  expect(listed.page).toMatchObject({ has_more: true })
+})
+
+it("decides as the owner under --from-app from an agent's terminal, where the agent alone only proposes", async () => {
+  const agent = { ...env, AI_AGENT: "claude-code_2-1-296_agent" }
+  const as = async (...args: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env: agent })
+      .exitOverride()
+      .parseAsync([...args, "--json"], { from: "user" })
+    return answerOf(streams.stdout.join(""))
+  }
+  const store = await openStore({ env })
+  const key = { provider: "telegram", account: "1" }
+  await store.accounts.saveAccount(key, { name: "synthetic" })
+  await store.people.savePeople(key, [{ id: "102", name: "Ivo Sample" }])
+  const person = await store.people.personOf({ provider: "telegram", id: "102" })
+  await store.close()
+
+  const [phone] = (await run("mentions", "list", "kind:phone", "--source", `email:${OTHER}`)).items
+  const confirm = ["mentions", "confirm", String(phone.id), `person:${person?.uid}`, "--source", `email:${OTHER}`]
+  expect(await as(...confirm)).toMatchObject({ status: "proposed" })
+  expect(await as(...confirm, "--from-app")).toMatchObject({ status: "linked" })
+
+  const [link] = (await run("mentions", "list", "kind:url", "--source", "documents")).items
+  const reject = ["mentions", "reject", String(link.id), "--source", "documents"]
+  await as(...reject, "--from-app")
+  expect(await run("mentions", "show", String(link.id), "--source", "documents")).toMatchObject({
+    status: "dismissed",
+    author: "owner",
+  })
+  expect(await values("kind:url", "status:dismissed", "--source", "documents")).toEqual([link.value])
+})

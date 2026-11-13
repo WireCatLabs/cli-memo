@@ -42,3 +42,16 @@ it("refuses a template change under MEMO_READ_ONLY, and still shows and previews
   })
   await run("preview", KEY, "--channel", "telegram", "--locale", "ru", "--json")
 })
+
+it("resets one language's template to the shipped one and keeps the other language's", async () => {
+  const { run, streams, file } = fixture()
+  await run("edit", KEY, "--channel", "text", "--locale", "ru", "--file", file, "--json")
+  await run("edit", KEY, "--channel", "text", "--locale", "en", "--file", file, "--json")
+
+  await run("reset", KEY, "--channel", "text", "--locale", "ru", "--json")
+  expect(JSON.parse(streams.stdout.at(-1) ?? "{}").item).toMatchObject({ key: KEY })
+  await run("show", KEY, "--channel", "text", "--locale", "ru", "--json")
+  expect(JSON.parse(streams.stdout.at(-1) ?? "{}").item).toMatchObject({ source: "default" })
+  await run("show", KEY, "--channel", "text", "--locale", "en", "--json")
+  expect(JSON.parse(streams.stdout.at(-1) ?? "{}").item).toMatchObject({ source: "stored" })
+})

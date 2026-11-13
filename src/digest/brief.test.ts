@@ -43,6 +43,16 @@ it("ends the morning-digest skill with the owner's brief, and leaves it unchange
   expect(out()).not.toContain("Project Falcon")
 })
 
+it("answers an edit and a reset in JSON with what they changed", async () => {
+  const { run, file, out } = fixture()
+  await run("digest", "brief", "edit", "--file", file("b.md", "Synthetic brief"), "--json")
+  expect(JSON.parse(out()).item).toMatchObject({ changed: true, chars: 15, limit: BRIEF_LIMIT })
+  await run("digest", "brief", "reset", "--json")
+  expect(JSON.parse(out()).item).toMatchObject({ changed: true })
+  await run("digest", "brief", "show", "--json")
+  expect(JSON.parse(out()).item.body).toBeNull()
+})
+
 it("shows the brief with its history, puts back the previous one with --undo, and removes it with reset", async () => {
   const { run, file, out } = fixture()
   await run("digest", "brief", "edit", "--file", file("one.md", "First brief"))

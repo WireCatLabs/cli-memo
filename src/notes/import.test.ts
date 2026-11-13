@@ -409,6 +409,53 @@ describe("notes written in memo", () => {
     expect((await json("notes", "list", `about:"telegram:101"`)).items).toEqual([])
   })
 
+  it("takes the text from --text or --text-file, and exports in either --format the same for links by reference", async () => {
+    await telegramPeople(["101", "Rin Example"], ["102", "Kai Sample"])
+    const about = ["--subject", "telegram:Rin Example", "--subject", "telegram:Kai Sample"]
+    const plain = join(root, "plain")
+    const added = await json("notes", "add", "--text", "Call Rin", "--title", "Call", ...about, "--export", plain)
+    const markdown = await json(
+      "notes",
+      "add",
+      "--text",
+      "Call Rin",
+      "--title",
+      "Call",
+      ...about,
+      "--export",
+      join(root, "md"),
+      "--format",
+      "markdown",
+    )
+    expect(added.text).toBe("Call Rin")
+    const body = (path: string) => readFileSync(path, "utf8").replace(/memo-(id|hash): .*\n/g, "")
+    expect(body(markdown.export_path)).toBe(body(added.export_path))
+    expect(body(added.export_path)).toMatch(/\n- \[person:\d+\]\(person:\d+\)\n$/)
+
+    const file = join(root, "edit.txt")
+    writeFileSync(file, "Call Rin on Monday")
+    const edited = await json(
+      ...[
+        "notes",
+        "edit",
+        added.ref,
+        "--revision",
+        "1",
+        "--text-file",
+        file,
+        "--export",
+        plain,
+        "--format",
+        "obsidian",
+      ],
+    )
+    expect(edited).toMatchObject({ revision: 2, text: "Call Rin on Monday" })
+    expect(readFileSync(edited.export_path, "utf8")).toContain("Call Rin on Monday")
+  })
+
+  // The note's first subject is kept as the note's own subject, not as a link, so the file names only the others.
+  it.todo("notes add --export writes the note's first --subject as a link too, as it does every later one")
+
   it("answers the note itself, so --json picks its fields, and refuses a field a note search lacks", async () => {
     const added = JSON.parse(await run("notes", "add", "Prefers tea", "--json=id,ref"))
     expect(added.item).toEqual({ id: expect.any(String), ref: `note:${added.item.id}` })

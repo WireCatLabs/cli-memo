@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync } from "node:fs"
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
@@ -85,9 +85,15 @@ it("prints the skill and installs it, stamped with this version, where agents lo
     ["skill", "install", "--for", "claude"],
     { from: "user" },
   )
-  expect(readFileSync(join(home, ".claude", "skills", "cli-memo", "SKILL.md"), "utf8")).toContain(
-    `version: "${VERSION}"`,
+  const installed = join(home, ".claude", "skills", "cli-memo", "SKILL.md")
+  expect(readFileSync(installed, "utf8")).toContain(`version: "${VERSION}"`)
+  writeFileSync(installed, "an installed copy the owner changed")
+  const shown = captureStreams()
+  await createProgram({ streams: shown, env: { ...process.env, HOME: home } }).parseAsync(
+    ["skill", "show", "--for", "claude"],
+    { from: "user" },
   )
+  expect(shown.stdout.join("")).toContain("an installed copy the owner changed")
 })
 
 it("installs the skill on a global npm install only when asked", () => {
