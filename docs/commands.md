@@ -2,7 +2,7 @@
 
 # All commands
 
-Look up every Memo command and option here. A command that reads names its accounts with `--source`: one as `telegram:1` or `email:work`, every account of a provider, a kind, or `group:<name>`. A command that writes names the one account it acts as with `--account telegram:1`. Memo never chooses an account for you. Add `--json` for an answer a script or agent can read. See [recipes](recipes.md) for whole tasks and [using Memo](usage.md) for a normal day.
+Look up every Memo command and option here. A command that reads names its accounts with `--source`: one as `telegram:1` or `email:work`, every account of a provider, a kind, or `group:<name>`. A command that writes names the one account it acts as with `--account telegram:1`. Memo never chooses an account for you. Add `--json` for an answer a script or agent can read. See [recipes](recipes.md) for whole tasks, [using Memo](usage.md) for a normal day and [import](import.md) for bringing in files and records of other sources.
 
 ## Global options
 
@@ -5003,6 +5003,32 @@ memo records match [options]
 | `--json` | print JSON; --json=linked,created,unmatched keeps only those fields. |
 
 **Example:** `memo records match --account sheet:rentals`
+
+## `memo import`
+
+bring a folder of text and Markdown files, one such file, or a records file (JSON or JSONL) into the store, under the account you name. Each file is a document keyed by its path in the folder: the same folder twice changes nothing, an edited file updates its document, and a file gone from the folder is kept. Links are not followed and nothing leaves this computer; the text is kept as data, never run
+
+This command changes the local store or your files.
+
+```sh
+memo import <path> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `path` | required | a folder, a .txt or .md file, or a records file (.json, .jsonl; - for stdin). |
+
+| Option | What it does |
+|---|---|
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--account <account>` | the source the files belong to: <provider>:<account>, such as phone:office-pbx; never chosen for you. |
+| `--dry-run` | read every file and plan the import; write nothing. Holds the store's write lock meanwhile. |
+| `--json` | print JSON; --json=created,skipped keeps only those fields. |
+
+**Returns:** bring a folder of text files or a records file into memo's search
+
+**Example:** `memo import ./transcripts --account phone:office-pbx --dry-run`, `memo import ./notes/call-42.md --account phone:office-pbx --json`, `memo import calls.jsonl --account phone:office-pbx`
 
 ## `memo meetings`
 

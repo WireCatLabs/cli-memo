@@ -51,6 +51,7 @@ import { subscriptionCommands } from "./finance/subscriptions-command.js"
 import { transactionCommands } from "./finance/transactions-command.js"
 import { walletCommands } from "./finance/wallets-command.js"
 import { findingsCommand } from "./findings/command.js"
+import { importCommand } from "./import/command.js"
 import { jsonFields } from "./json-fields.js"
 import { knowledgeCommands } from "./knowledge/command.js"
 import { mailCommand } from "./mail/command.js"
@@ -392,6 +393,20 @@ const OWN_ENTITIES = entityFields({
     "created_at",
     "updated_at",
     "deleted_at",
+  ],
+  import_receipt: [
+    "dry_run",
+    "source",
+    "created",
+    "updated",
+    "unchanged",
+    "deleted",
+    "refused",
+    "errors",
+    "by",
+    "files",
+    "skipped",
+    "cut",
   ],
   records_templates: ["types"],
   records_template: ["type", "format", "columns", "text"],
@@ -763,6 +778,7 @@ export const createProgram = ({
   walletCommands(program, streams, env)
   transactionCommands(program, streams, env)
   recordsCommand(program, streams, env)
+  importCommand(program, streams, env)
   findingsCommand(program, streams, env)
   actionsCommand(program, streams, env)
   reviewCommand(program, streams, env)

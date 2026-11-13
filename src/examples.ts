@@ -361,6 +361,11 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo payments add 25000.00 RUB --kind in --organization organization:3 --occurred-time 2026-11-01 --project HRB",
     "memo payments add 5000.00 RUB --kind out --organization organization:3 --refund-of payment:9",
   ],
+  import: [
+    "memo import ./transcripts --account phone:office-pbx --dry-run",
+    "memo import ./notes/call-42.md --account phone:office-pbx --json",
+    "memo import calls.jsonl --account phone:office-pbx",
+  ],
   "records import": [
     "memo records import payments.jsonl --account rentals --dry-run",
     "memo records import envelope.json --account rentals --json",
