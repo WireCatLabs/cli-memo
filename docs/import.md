@@ -26,6 +26,7 @@ own sync owns it.
 |---|---|
 | `.txt`, `.text` | A document; its title is the file name |
 | `.md`, `.markdown` | A document; its title is the first heading, past any front matter, else the file name |
+| `.pdf`, `.docx` | A document, read on this computer by the readers of [Files Memo can read](notes.md#files-memo-can-read); its title is the file's own, else its name. A scanned PDF holds no text and is skipped |
 | `.json`, `.jsonl` given on its own | Records, as `memo records import` reads them ([Custom integrations](#custom-integrations)) |
 
 Memo walks the folder and its subfolders. It leaves out names that start with `.` (`.git`, `.obsidian`). The answer
@@ -61,7 +62,8 @@ Each file is a `document` record with:
 | `updated_at` | Its modification time |
 | `url` | The file's `file://` address on this computer |
 | `metadata.path` | Its path inside the folder |
-| `metadata.format` | `text` or `markdown` |
+| `metadata.format` | `text`, `markdown`, `pdf` or `docx` |
+| `metadata.extractor` | The reader of a PDF or Word file, with its version |
 | `metadata.sha256` | The hash of the file's bytes |
 | `metadata.size` | Its size in bytes |
 

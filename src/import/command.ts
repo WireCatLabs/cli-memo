@@ -10,21 +10,8 @@ import { byOption, isMcpRun, whoRuns } from "../author.js"
 import { receiptText } from "../records/import.js"
 import { importRecords, type Receipt } from "../records/input.js"
 import { sourceOf } from "../records/mapping.js"
-import {
-  DOCUMENT_TYPE,
-  documentFields,
-  documentRecord,
-  type FoundFile,
-  MOST_FILES,
-  type ReadDocument,
-  readTextFile,
-  type Skipped,
-  TEXT_EXTENSIONS,
-  TooMany,
-  walk,
-} from "./files.js"
-
-const RECORDS_FILES = new Set([".json", ".jsonl"])
+import { DOCUMENT_TYPE, documentFields, documentRecord, MOST_FILES, type Skipped, TooMany, walk } from "./files.js"
+import { RECORDS_FILES, readerOf } from "./readers.js"
 
 const errnoOf = (error: unknown) =>
   typeof error === "object" && error !== null && "code" in error ? String(error.code) : undefined
@@ -59,14 +46,6 @@ export interface ImportReceipt extends Receipt {
   skipped: Skipped[]
   /** Files whose text was longer than a record holds: only its start is kept. */
   cut: string[]
-}
-
-type Reader = (file: FoundFile) => Promise<ReadDocument | { refused: string }>
-
-const readerOf = (file: FoundFile): Reader | string => {
-  if (TEXT_EXTENSIONS[file.extension]) return readTextFile
-  if (RECORDS_FILES.has(file.extension)) return "a records file is imported on its own: memo import <file> --account …"
-  return `no reader for ${file.extension || "a file without an extension"}`
 }
 
 /** Every file's record, one JSONL line at a time, so a large folder is never held in memory whole. */
@@ -143,15 +122,15 @@ export const importCommand = (program: Command, streams: Streams, env: NodeJS.Pr
   const { print } = answers(program, streams, env)
   byOption(
     annotate(program.command("import"), { effects: LOCAL_WRITE, output: { entity: "import_receipt" } })
-      .summary("bring a folder of text files or a records file into memo's search")
+      .summary("bring a folder of documents or a records file into memo's search")
       .description(
-        "bring a folder of text and Markdown files, one such file, or a records file (JSON or JSONL) into the store, " +
-          "under the account you name. Each file is a document keyed by its path in the folder: the same folder " +
+        "bring a folder of text, Markdown, PDF and Word files, one such file, or a records file (JSON or JSONL) into " +
+          "the store, under the account you name. Each file is a document keyed by its path in the folder: the same folder " +
           "twice changes nothing, an edited file updates its document, and a file gone from the folder is kept. " +
           "Links are not followed and nothing leaves this computer; the text is kept as data, never run",
       ),
   )
-    .argument("<path>", "a folder, a .txt or .md file, or a records file (.json, .jsonl; - for stdin)")
+    .argument("<path>", "a folder, a .txt, .md, .pdf or .docx file, or a records file (.json, .jsonl; - for stdin)")
     .option(
       "--account <account>",
       "the source the files belong to: <provider>:<account>, such as phone:office-pbx; never chosen for you",

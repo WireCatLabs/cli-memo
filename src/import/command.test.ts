@@ -5,6 +5,7 @@ import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it, vi } from "vitest"
 import { envelopeOf } from "../../test/answer.js"
+import { docxOf, pdfOf } from "../../test/office.js"
 import { createProgram } from "../program.js"
 import { idOfPath } from "./external-id.js"
 
@@ -137,4 +138,24 @@ it("sends a records file to the records import, and records an agent's run as th
     errors: [],
     by: "codex",
   })
+})
+
+it("reads PDF and Word files with memo's own readers, and skips a PDF with no text", async () => {
+  const f = setUp()
+  writeFileSync(join(f.folder, "delivery.pdf"), pdfOf("The crane is due Friday"))
+  writeFileSync(join(f.folder, "plan.docx"), docxOf(["Delivery plan", "Two trucks on Monday"]))
+  writeFileSync(join(f.folder, "scan.pdf"), pdfOf(""))
+  const answer = await f.run(["import", f.folder, ...ACCOUNT])
+  expect(answer).toMatchObject({ created: 4, files: 4 })
+  expect(answer.skipped).toEqual([{ path: "scan.pdf", reason: expect.stringContaining("no text") }])
+  expect((await f.record(idOfPath("delivery.pdf")))?.fields).toMatchObject({
+    title: "delivery",
+    text: "The crane is due Friday",
+    metadata: { format: "pdf", extractor: expect.stringMatching(/^pdf:/) },
+  })
+  expect((await f.record(idOfPath("plan.docx")))?.fields).toMatchObject({
+    text: expect.stringContaining("Two trucks on Monday"),
+    metadata: { format: "docx" },
+  })
+  expect(await f.run(["import", f.folder, ...ACCOUNT])).toMatchObject({ created: 0, unchanged: 4 })
 })
