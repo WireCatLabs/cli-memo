@@ -1,6 +1,6 @@
 import { mkdtempSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { dirname, join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { expect, it } from "vitest"
 import { createProgram } from "../program.js"
@@ -54,4 +54,22 @@ it("resets one language's template to the shipped one and keeps the other langua
   expect(JSON.parse(streams.stdout.at(-1) ?? "{}").item).toMatchObject({ source: "default" })
   await run("show", KEY, "--channel", "text", "--locale", "en", "--json")
   expect(JSON.parse(streams.stdout.at(-1) ?? "{}").item).toMatchObject({ source: "stored" })
+})
+
+it("lists the templates, undoes the last edit, and previews a draft --file", async () => {
+  const { run, streams, file } = fixture()
+  const last = () => JSON.parse(streams.stdout.at(-1) ?? "{}")
+  await run("list", `key:"${KEY}"`, "channel:text", "--json")
+  expect(last().items.map((one: { key: string }) => one.key)).toContain(KEY)
+
+  await run("edit", KEY, "--channel", "text", "--locale", "ru", "--file", file, "--json")
+  const second = join(dirname(file), "second.liquid")
+  writeFileSync(second, "ВТОРОЙ {{ summary }}")
+  await run("edit", KEY, "--channel", "text", "--locale", "ru", "--file", second, "--json")
+  await run("edit", KEY, "--channel", "text", "--locale", "ru", "--undo", "--json")
+  await run("show", KEY, "--channel", "text", "--locale", "ru", "--json")
+  expect(last().item.body).toBe("МОЙ {{ summary }}")
+
+  await run("preview", KEY, "--channel", "text", "--locale", "ru", "--file", second, "--json")
+  expect(JSON.stringify(last().item)).toContain("ВТОРОЙ")
 })

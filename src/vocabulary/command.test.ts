@@ -196,7 +196,7 @@ it("reads the vocabulary within the budgets given, in one scope, and pairs only 
   await expect(pairs("--max-read-bytes", "10")).rejects.toThrow(bytes)
 })
 
-it("confirms an agent's proposed meeting link only with its --fingerprint, keeps a new link's --reason, and pages", async () => {
+it("confirms an agent's proposed meeting link only with a current --fingerprint, keeps the owner's --reason, and pages", async () => {
   const env = {
     ...process.env,
     MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-project-meeting-test-")), "fixture.db"),
@@ -237,10 +237,12 @@ it("confirms an agent's proposed meeting link only with its --fingerprint, keeps
   }
   const flags = ["--source", `${account.provider}:${account.account}`]
   const link = ["projects", "meetings", "link", "RES", meetings[0] as string, "--account", "example:AliceExample"]
-  await expect(run(...link, "--fingerprint", "stale")).rejects.toMatchObject({ code: "configuration_error" })
+  await expect(
+    run(...link, "--fingerprint", "stale", "--reason", "the agenda names the project"),
+  ).rejects.toMatchObject({ code: "conflict", details: { reason: "meeting-project.stale" } })
   expect(
     await run(...link, "--fingerprint", proposed.link.fingerprint, "--reason", "the agenda names the project"),
-  ).toMatchObject({ changed: true, link: { confirmed: true } })
+  ).toMatchObject({ changed: true, link: { confirmed: true, provenance: "the agenda names the project" } })
   expect(
     await run(
       ...["projects", "meetings", "link", "RES", meetings[1] as string, "--account", "example:AliceExample"],
@@ -257,7 +259,3 @@ it("confirms an agent's proposed meeting link only with its --fingerprint, keeps
     meetings.map((id) => `meeting:${accountId}/${id}`).sort(),
   )
 })
-
-// cli-core's linkMeetingProject keeps the proposal's provenance when the owner confirms it, so the owner's --reason
-// is dropped; a new link keeps it.
-it.todo("projects meetings link --fingerprint keeps the owner's --reason when it confirms a proposed link")

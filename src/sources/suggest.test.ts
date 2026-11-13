@@ -220,6 +220,14 @@ describe("sources suggest", () => {
     )
   })
 
+  it("puts every fact read with --subject about that subject", async () => {
+    const project = (await run(["projects", "add", "Synthetic Harbour", "--key", "HBR"])).body.ref
+    const item = await suggest([ref, "--rescan", "--subject", project, "--from-app"])
+    expect(item.facts).toEqual([
+      expect.objectContaining({ statement: "The harbour office opens at nine", subject: project }),
+    ])
+  })
+
   it("lets an agent read with the owner's reader, never pick one", async () => {
     await expect(suggest([ref, "--provider", "ollama", "--model", "llama3.2"], { as: agentEnv })).rejects.toMatchObject(
       { code: "permission_error", details: { reason: "reader.owner-picks" } },

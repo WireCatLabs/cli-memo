@@ -100,7 +100,8 @@ describe("facts", () => {
     expect(await owner("facts", "show", decided.ref)).toMatchObject({ status: "accepted" })
   })
 
-  // The command takes --reason but never passes it to the store, so the owner's reason is not kept with the decision.
+  // cli-core's facts.reverse and facts.remove take no reason, so the owner's --reason is not kept; remove erases
+  // the row.
   it.todo("facts reverse and facts remove keep the owner's --reason with the decision")
 
   it("opens a challenge as the owner under --from-app; --as-owner asks first", async () => {

@@ -178,3 +178,13 @@ it("refuses malformed and oversized ordinary input files before creating a missi
     code: "validation_error",
   })
 })
+
+it("shows the annotations within --max-read-bytes, and refuses a budget the sources do not fit", async () => {
+  const f = copyProjectAnnotationFixture(baseline)
+  const shown = await run(f.env, "projects", "annotations", "show", "RES", "--max-read-bytes", "4194304")
+  expect(shown.snapshot).toMatchObject({ format: "wirecat.project-annotations", project: { key: "RES" } })
+  await expect(run(f.env, "projects", "annotations", "show", "RES", "--max-read-bytes", "1")).rejects.toMatchObject({
+    code: "validation_error",
+    details: { reason: "vocabulary.over-byte-budget" },
+  })
+})

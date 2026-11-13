@@ -96,6 +96,9 @@ describe("memo source tags", () => {
     expect(await json("tags", "add", "work", "--note", ref)).toMatchObject({ added: [] })
     expect(readFileSync(join(vault, path))).toEqual(before)
     expect((await json("notes", "show", ref)).tags).toEqual(["follow-up", "work"])
+    expect(await json("tags", "remove", "work", "--note", ref)).toMatchObject({ removed: ["work"] })
+    expect((await json("notes", "show", ref)).tags).toEqual(["follow-up"])
+    expect(readFileSync(join(vault, path))).toEqual(before)
   })
 
   it("isolates identical email message and thread ids by account and provider, and shared search finds the label", async () => {

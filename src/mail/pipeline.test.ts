@@ -424,6 +424,11 @@ it("lets only the owner move the agent's mark back, and says how many emails it 
   expect(dry).toMatchObject({ again: 1, dry_run: true })
   expect((await box.review()).items).toEqual([])
 
+  const since = async (time: string) =>
+    (await box.memo({}, OWNER, ...reset, "--since-time", time, "--dry-run")).item.again
+  expect(await since("2020-01-01T00:00:00Z")).toBe(2)
+  expect(await since("2099-01-01T00:00:00Z")).toBe(0)
+
   expect((await box.memo({}, OWNER, ...reset, "--last", "1")).item).toMatchObject({ again: 1, dry_run: false })
   expect((await box.review()).items.map((item) => item.chat_id)).toEqual(["t-ask"])
 })
@@ -482,8 +487,29 @@ it("stages a run after the owner moved the mark back, while the batch staged bef
     ),
   ).toBe("findings.key-mismatch")
   expect((await box.memo({}, NOBODY, "mail", "findings", "list", "status:proposed")).items).toHaveLength(2)
+  const page = (n: string) =>
+    box.memo({}, NOBODY, "mail", "findings", "list", "--source", MAILBOX, "--limit", "1", "--page", n)
+  const [one, two] = [await page("1"), await page("2")]
+  expect(one.page).toMatchObject({ has_more: true })
+  expect(two.page).toMatchObject({ has_more: false })
+  expect([...one.items, ...two.items].map((batch) => batch.id).sort()).toEqual([before.id, after.id].sort())
   await box.acknowledge(again.cursor)
   expect((await box.review()).items).toEqual([])
+})
+
+it("reviews with --unanswered only the threads that waited that long for the owner's answer", async () => {
+  const box = await mailbox()
+  await box.thread("t-old", email("old", 30))
+  await box.thread("t-fresh", email("fresh", 1))
+  await box.synced()
+  const unanswered = (await box.memo(
+    LOCKED,
+    NOBODY,
+    ...["mail", "review", "--source", MAILBOX, "--unanswered", "4h"],
+  )) as Review
+  expect(unanswered.items.map((item) => item.chat_id)).toEqual(["t-old"])
+  const all = (await box.memo(LOCKED, NOBODY, "mail", "review", "--source", MAILBOX)) as Review
+  expect(all.items.map((item) => item.chat_id).sort()).toEqual(["t-fresh", "t-old"])
 })
 
 it("answers a findings file that is not there as not found, not as a crash", async () => {

@@ -7,7 +7,8 @@ tests still fail, so the Windows and macOS job is off.
 ## Test matrix
 
 [test-matrix.md](test-matrix.md) lists every command and option and whether a test drove it through the CLI. The
-suite records each parsed command in `coverage/argv.jsonl` (`test/argv-trace.ts`); `pnpm test:matrix` rebuilds the
+suite records each command whose action runs in `coverage/argv.jsonl` (`test/argv-trace.ts`); the help examples
+parsed with their actions replaced (`src/examples.test.ts`) are not recorded. `pnpm test:matrix` rebuilds the
 page from that log. A command or option that is not tested on purpose gets its reason in
 `scripts/test-matrix-untested.ts`. Full validation runs `pnpm test:matrix:check` after the suite. It fails when the
 committed page is stale, and on a ❌ row: a command or option with neither a test nor a reason. A new command or

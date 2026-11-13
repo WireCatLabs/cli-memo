@@ -93,6 +93,7 @@ describe("the shared model settings memo mounts", () => {
     expect(
       await run(["models", "search-consents", "set", "openai", ...address, "--timeout", "2m", "--yes"]),
     ).toMatchObject({ on: true, endpoint: "https://models.example/v1", timeout_s: 120, timeout_set: true })
+    expect(await run(["models", "search-consents", "show"])).toMatchObject({ on: true, timeout_s: 120 })
     expect(await run(["models", "search-consents", "revoke"])).toMatchObject({ on: false, consented_at: null })
   })
 

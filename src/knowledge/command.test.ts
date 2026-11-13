@@ -132,6 +132,23 @@ describe("combined evidence, relationships and local reminders", () => {
     expect((await run("reminders", "claim", ...acts)).items).toEqual([])
     await run("reminders", "acknowledge", reminder.id, delivery.receipt, ...acts)
     expect((await run("reminders", "claim", ...acts)).items).toEqual([])
+    expect(await run("organizations", "add", "Synthetic Guild", "--kind", "company", "--scope", "work")).toMatchObject({
+      scope: "work",
+    })
+    expect(await run("projects", "add", "Synthetic Garden", "--type", "personal")).toMatchObject({ type: "personal" })
+    const member = await run("relationships", "add", `person:${person?.uid}`, studio.ref)
+    expect(await run("relationships", "update", member.id, "--role", "founder")).toMatchObject({ role: "founder" })
+    expect(
+      await run(
+        ...["reminders", "add", document.task.id, "--at-time", "2026-01-02T09:00:00+09:00"],
+        ...["--timezone", "Asia/Tokyo", ...acts],
+      ),
+    ).toMatchObject({ due_at: "2026-01-02T00:00:00.000Z", timezone: "Asia/Tokyo" })
+    const { revision } = await run("tasks", "show", document.task.id, ...scope)
+    await expect(
+      run("tasks", "assign", document.task.id, person?.uid as string, "--revision", String(revision + 1)),
+    ).rejects.toMatchObject({ code: "conflict", details: { reason: "task.stale" } })
+    await run("tasks", "assign", document.task.id, person?.uid as string, "--revision", String(revision))
     const second = await openStore({ env })
     await second.accounts.saveAccount({ ...key, account: "2" }, { name: null })
     await second.close()

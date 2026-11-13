@@ -38,9 +38,9 @@ export const ollama: Reader = {
   leavesComputer: false,
   readsFiles: false,
   needsModel: true,
-  probe: async ({ env, fetch: send, signal }) => {
+  probe: async ({ env, fetch, signal }) => {
     try {
-      const response = await send(`${addressOf(env)}/api/tags`, { ...(signal ? { signal } : {}) })
+      const response = await fetch(`${addressOf(env)}/api/tags`, { ...(signal ? { signal } : {}) })
       const body = (await response.json()) as { models?: { name?: unknown }[] }
       const models = (body.models ?? []).flatMap((model) => (typeof model.name === "string" ? [model.name] : []))
       return {
@@ -60,11 +60,11 @@ export const ollama: Reader = {
       }
     }
   },
-  read: async ({ env, fetch: send, signal }, { system, prompt, model }) => {
+  read: async ({ env, fetch, signal }, { system, prompt, model }) => {
     const address = addressOf(env)
     let response: Response
     try {
-      response = await send(`${address}/api/generate`, {
+      response = await fetch(`${address}/api/generate`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ model, system, prompt, stream: false, format: "json" }),

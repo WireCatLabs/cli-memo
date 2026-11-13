@@ -193,7 +193,7 @@ it("pages with --limit and --page, prints one line under --compact, and rejects 
     [one, two, three].sort(),
   )
 
-  expect(await f.raw({}, OWNER, "review", "show", one as string, "--compact")).toContain(`id: ${one}`)
+  expect(await f.raw({}, OWNER, "review", "show", one as string, "--compact")).toContain(`${one} · fact · "One"`)
   expect(await f.raw({}, OWNER, "review", "confirm", one as string, "--compact")).toContain("decided: 1")
   expect((await f.item({}, OWNER, "facts", "show", one as string)).status).toBe("accepted")
 
@@ -209,10 +209,40 @@ it("pages with --limit and --page, prints one line under --compact, and rejects 
   expect((await f.item({}, OWNER, "facts", "show", two as string)).status).toBe("rejected")
 })
 
-// Their help promises one line; cli-core's compact form draws a single item as key: value lines, and a decision
-// answer as its count only. Making them one line needs a compact row for these answers in cli-core.
-it.todo("review show --compact prints one line, as its help says; today it prints the same lines as without it")
-it.todo("review confirm and reject --compact print one line per decision, as their help says; today only a count")
+const rows = (text: string) => text.split("\n").filter((line) => line !== "" && !line.startsWith("#"))
+
+it("review show --compact prints the proposal as one line, and the plain form keeps its fields", async () => {
+  const f = await setUp()
+  const fact = await f.fact(CLAUDE, "Kickoff moved to Friday")
+  const compact = rows(await f.raw({}, OWNER, "review", "show", fact, "--compact"))
+  expect(compact).toHaveLength(1)
+  expect(compact[0]).toMatch(new RegExp(`^${fact} · fact · "Kickoff moved to Friday" · claude-code · `))
+  expect(await f.raw({}, OWNER, "review", "show", fact)).toContain(`id: ${fact}`)
+})
+
+it("review confirm and reject --compact print one line per decision and per refusal", async () => {
+  const f = await setUp()
+  const [one, two, three] = [await f.fact(CLAUDE, "One"), await f.fact(CLAUDE, "Two"), await f.fact(CLAUDE, "Three")]
+  const confirmed = await f.raw({}, OWNER, "review", "confirm", one, two, "--from-app", "--compact")
+  // What every row shares is said once, in the section's header.
+  expect(confirmed).toContain("# decided: 2 · status: confirmed · kind: fact")
+  expect(rows(confirmed).sort()).toEqual([one, two].sort())
+  const rejected = await f.raw(
+    {},
+    OWNER,
+    "review",
+    "reject",
+    one,
+    three,
+    "--reason",
+    "not agreed",
+    "--from-app",
+    "--compact",
+  )
+  expect(rows(rejected)[0]).toBe(`${three} · rejected · fact`)
+  expect(rows(rejected)[1]).toBe(`${one} · validation_error · proposal.wrong-state · ${one} is already confirmed`)
+  expect(rows(rejected)).toHaveLength(2)
+})
 
 it("keeps review confirm and reject from an MCP client unless the owner allows them", async () => {
   const f = await setUp()
