@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1514 ✅ · 2 ⛔ · 0 ❌** — 333 commands, 1183 options.
+**1535 ✅ · 2 ⛔ · 0 ❌** — 338 commands, 1199 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -91,6 +91,18 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `sources readers set` | `--model` | ✅ |  |
 | `sources readers set` | `--base-url` | ✅ |  |
 | `sources readers set` | `--json` | ✅ |  |
+| `documents list` |  | ✅ |  |
+| `documents list` | `--limit` | ✅ |  |
+| `documents list` | `--page` | ✅ |  |
+| `documents list` | `--json` | ✅ |  |
+| `documents tree` |  | ✅ |  |
+| `documents tree` | `--source` | ✅ |  |
+| `documents tree` | `--depth` | ✅ |  |
+| `documents tree` | `--json` | ✅ |  |
+| `documents show` |  | ✅ |  |
+| `documents show` | `--cursor` | ✅ |  |
+| `documents show` | `--max-chars` | ✅ |  |
+| `documents show` | `--json` | ✅ |  |
 | `folders add` |  | ✅ |  |
 | `folders add` | `--format` | ✅ |  |
 | `folders add` | `--json` | ✅ |  |
@@ -1085,6 +1097,15 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `meetings actions reject` | `--fingerprint` | ✅ |  |
 | `meetings actions reject` | `--as-owner` | ✅ |  |
 | `meetings actions reject` | `--from-app` | ✅ |  |
+| `meetings list` |  | ✅ |  |
+| `meetings list` | `--limit` | ✅ |  |
+| `meetings list` | `--page` | ✅ |  |
+| `meetings list` | `--order` | ✅ |  |
+| `meetings list` | `--json` | ✅ |  |
+| `meetings show` |  | ✅ |  |
+| `meetings show` | `--cursor` | ✅ |  |
+| `meetings show` | `--limit` | ✅ |  |
+| `meetings show` | `--json` | ✅ |  |
 | `meetings passage` |  | ✅ |  |
 | `meetings passage` | `--before-n` | ✅ |  |
 | `meetings passage` | `--after-n` | ✅ |  |

@@ -49,6 +49,39 @@ memo events list account:phone:pixel starts_at>=2026-10-01
 memo events show event:42                          # one event, and the accounts and calendars that hold it
 ```
 
+## Meetings and calls in one list
+
+`memo meetings list` puts calendar events, meetings from Zoom or Meet and imported phone calls in one list, one row per
+real meeting: a calendar event and its Zoom meeting are one row when the store linked them, or when they share a room
+and their times overlap. Each row says where it came from, who took part (with their `person:` refs), its join links,
+and whether a recording, transcript or summary is stored. A row is listed when it overlaps the window; without one, the
+last 30 days and the next 7; `started_at:[* TO *]` reads them all. `memo meetings show` adds the transcript lines with
+their times, the summaries, the findings waiting for you and the calendar's text.
+
+```sh
+memo meetings list                                         # every account, latest first
+memo meetings list 'started_at:[2026-11-01 TO 2026-12-01}' kind:call
+memo meetings list 'started_at:[2026-11-09T00:00:00+01:00 TO 2026-11-16T00:00:00+01:00}' --order start
+memo meetings list 'started_at:[* TO *]' --page 3          # every row, no window
+memo meetings list has_transcript:true person:"person:12"
+memo meetings show event:42 --limit 100                    # or meeting:<account>/<id>
+```
+
+## Every document
+
+`memo documents list` lists the documents of every account: Drive, notes folders, sources you added and imports,
+newest change first, with their source, folder, kind and link. A word searches their text as `memo search notes`
+does. `memo documents tree` gives each account's folders with how many documents each holds, and
+`memo documents show` a part of one document's text with its tags, people and meetings.
+
+```sh
+memo documents list                                        # every account, newest first
+memo documents list budget kind:pdf source:google-drive
+memo documents list 'folder:"Projects/Acme"' --page 2
+memo documents tree --depth 2
+memo documents show document:42 --cursor 20000
+```
+
 ## Prepare for a conversation
 
 ```text prompt

@@ -66,6 +66,7 @@ const SECTIONS: [string, HelpSection][] = [
   ["context", "read"],
   ["show", "read"],
   ["notes", "read"],
+  ["documents", "read"],
   ["notes add", "write"],
   ["notes edit", "write"],
   ["notes remove", "write"],

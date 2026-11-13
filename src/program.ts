@@ -13,6 +13,7 @@ import {
   groupAware,
   guideCommand,
   installHelp,
+  LISTING_ENTITIES,
   liftProfile,
   overrideSharedContract,
   provide,
@@ -37,6 +38,7 @@ import { digestCommand } from "./digest/backfill.js"
 import { digestAddendum, withBrief } from "./digest/brief.js"
 import { commandsCommand, placeInSections } from "./discovery/command.js"
 import { doctorCommand } from "./doctor/command.js"
+import { documentsCommand } from "./documents/command.js"
 import { eventsCommand } from "./events/command.js"
 import { addExamples } from "./examples.js"
 import { keepExitCode } from "./exit-code.js"
@@ -59,6 +61,7 @@ import { mailCommand } from "./mail/command.js"
 import { messagesCommand } from "./mail/messages-command.js"
 import { mcpCommand } from "./mcp/command.js"
 import { meetingReadCommands } from "./meetings/command.js"
+import { meetingListCommands } from "./meetings/list-command.js"
 import { meetingPreparationCommand } from "./meetings/preparation-command.js"
 import { memoriesCommand } from "./memories/command.js"
 import { mentionsCommand } from "./mentions/command.js"
@@ -89,6 +92,7 @@ import { vocabularyCommand } from "./vocabulary/command.js"
 
 /** memo's own answers, beyond cli-core's entities, so `--json=<field>` is checked against what each row holds. */
 const OWN_ENTITIES = entityFields({
+  ...LISTING_ENTITIES,
   person_note_links: ["person", "name", "files"],
   added_source: [
     "ref",
@@ -761,6 +765,7 @@ export const createProgram = ({
     ...(fetchPage ? { fetch: fetchPage } : {}),
     readers: { ...(readerFetch ? { fetch: readerFetch } : {}), ...(keyring ? { keyring } : {}) },
   })
+  documentsCommand(program, streams, env)
   foldersCommand(program, streams, env)
   messagesCommand(program, streams, env)
   mailCommand(program, streams, env)
@@ -784,6 +789,7 @@ export const createProgram = ({
   recordsCommand(program, streams, env)
   importCommand(program, streams, env, hear ? { hear } : {})
   findingsCommand(program, streams, env)
+  meetingListCommands(program, streams, env)
   actionsCommand(program, streams, env)
   reviewCommand(program, streams, env)
   agentsCommand(program, streams, env)

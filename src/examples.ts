@@ -480,6 +480,17 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "search meetings": [
     "memo search meetings budget --source zoom:me@example.com --project Harbour --since-time 2026-10-01 --limit 10 --json",
   ],
+  "meetings list": [
+    "memo meetings list kind:call has_transcript:true",
+    "memo meetings list 'started_at:[2026-11-01T00:00:00+01:00 TO 2026-12-01T00:00:00+01:00}' --order start --json",
+  ],
+  "meetings show": ["memo meetings show event:42 --limit 500 --json", "memo meetings show meeting:3/7"],
+  "documents list": [
+    "memo documents list budget kind:pdf",
+    "memo documents list source:google-drive:me@example.com folder:Contracts --page 2 --json",
+  ],
+  "documents tree": ["memo documents tree --depth 2 --json"],
+  "documents show": ["memo documents show document:12 --cursor 20000 --max-chars 20000 --json"],
   "meetings actions list": ["memo meetings actions list status:proposed --source zoom:me@example.com"],
   "meetings actions show": ["memo meetings actions show 5 --source zoom:me@example.com"],
   "meetings actions confirm": [
