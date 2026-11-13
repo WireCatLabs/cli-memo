@@ -3,6 +3,8 @@
 This page helps you give Memo one thing to remember: a file, a web page or text you paste. Memo keeps it as a
 document of its own, so you find it in search, an agent finds it when it looks something up, and facts can cite it.
 A watched folder is for many files that keep changing ([Notes and folders](notes.md)); this page is for one source.
+Transcripts, exports and records of a source no WireCat tool syncs come in with `memo import`
+([Import files and records](import.md)).
 
 ## Add a source
 

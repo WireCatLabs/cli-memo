@@ -275,10 +275,11 @@ describe("memo sync", () => {
     expect(await run("sync")).toMatch(/1 notes, 0 changed/)
   })
 
-  it("lists memo sync and no longer memo import", async () => {
+  it("lists memo sync, and a bare memo import from an old timer is refused without syncing", async () => {
     const commands = await run("commands", "--json")
     expect(commands).toContain('"path":["sync"]')
-    expect(commands).not.toContain('"path":["import"]')
+    await expect(run("import")).rejects.toThrow()
+    expect(existsSync(join(dir, "state", "import.lock"))).toBe(false)
   })
 
   it("refuses to start while another import holds the lock", async () => {

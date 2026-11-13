@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1174 ✅ · 0 ⛔ · 335 ❌** — 332 commands, 1177 options.
+**1179 ✅ · 0 ⛔ · 337 ❌** — 333 commands, 1183 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -1055,6 +1055,13 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `records match` |  | ✅ |  |
 | `records match` | `--account` | ✅ |  |
 | `records match` | `--json` | ✅ |  |
+| `import` |  | ✅ |  |
+| `import` | `--as-owner` | ❌ |  |
+| `import` | `--from-app` | ❌ |  |
+| `import` | `--account` | ✅ |  |
+| `import` | `--transcribe` | ✅ |  |
+| `import` | `--dry-run` | ✅ |  |
+| `import` | `--json` | ✅ |  |
 | `meetings actions add` |  | ✅ |  |
 | `meetings actions add` | `--account` | ✅ |  |
 | `meetings actions add` | `--json` | ✅ |  |

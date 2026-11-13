@@ -22,6 +22,10 @@ export const MCP_EXCLUSIONS = [
   { path: ["memories", "remove"], reason: "erases what the owner reviews; only the owner forgets" },
   { path: ["facts", "remove"], reason: "erases what the owner reviews; only the owner forgets" },
   { path: ["facts", "reject"], reason: "the owner's answer to an agent's proposal" },
+  {
+    path: ["import"],
+    reason: "reads files and folders of this computer; an agent hands records over as records import",
+  },
   { path: ["records", "link"], reason: "only the owner says which entity a source's record is" },
   { path: ["sources", "preview"], reason: "fetches an address of the agent's choosing" },
   { path: ["sources", "remove"], reason: "erases what the owner added; only the owner removes it" },
