@@ -131,6 +131,11 @@ it("names a group's senders, lists them by the group and lets the owner confirm 
     return envelopeOf(streams.stdout.join(""))
   }
 
+  const capped = await run("relationships", "scan", "SYH", "--source", "telegram:1", "--limit", "1")
+  expect(capped.item.scans[0]).toMatchObject({ proposals: [{ state: "dry-run" }], skipped: { over_limit: 1 } })
+  const later = await run("relationships", "scan", "SYH", "--source", "telegram:1", "--since-time", "2099-01-01")
+  expect(later.item.scans[0].proposals).toEqual([])
+
   const scan = await run("relationships", "scan", "SYH", "--source", "telegram:1", "--yes")
   const [first] = scan.item.scans
   expect(first.proposals).toHaveLength(2)

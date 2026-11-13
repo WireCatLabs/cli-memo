@@ -9,9 +9,10 @@ tests still fail, so the Windows and macOS job is off.
 [test-matrix.md](test-matrix.md) lists every command and option and whether a test drove it through the CLI. The
 suite records each parsed command in `coverage/argv.jsonl` (`test/argv-trace.ts`); `pnpm test:matrix` rebuilds the
 page from that log. A command or option that is not tested on purpose gets its reason in
-`scripts/test-matrix-untested.ts`. Full validation runs `pnpm test:matrix:check` after the suite and fails when the
-committed page is stale. It does not yet fail on a ❌ row: 335 rows have neither a test nor a reason, most of them
-options of memo's own commands, and a few of the shared commands memo mounts from cli-core.
+`scripts/test-matrix-untested.ts`. Full validation runs `pnpm test:matrix:check` after the suite. It fails when the
+committed page is stale, and on a ❌ row: a command or option with neither a test nor a reason. A new command or
+option gets a test that runs it through the program and checks what the option changes. Only `--version` and
+`--help-all` have a reason: commander answers them before any command runs, so the log cannot record them.
 
 ## Coverage floor
 

@@ -3,6 +3,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import type { Chat, Message } from "@wirecat/cli-core"
+import { sampleMeeting } from "@wirecat/cli-core/meetings/testing"
 import { openStore } from "@wirecat/cli-core/store"
 import { beforeEach, describe, expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
@@ -154,6 +155,25 @@ describe("memo context", () => {
     expect(answer.coverage.accounts).toEqual(["telegram:1"])
     expect(answer.messages.last.from_them.text).toBe("Are we still on for Friday?")
     await expect(run("context", "person:99999", "--json")).rejects.toThrow(/no person:99999/)
+  })
+
+  it("lists the recorded calls and meetings they took part in beside the events, not inside messages", async () => {
+    const store = await openStore({ env })
+    const key = { provider: "example", account: "synthetic" }
+    const sample = sampleMeeting()
+    sample.meeting.accountId = await store.accounts.saveAccount(key, { name: null })
+    sample.meeting.startedAt = Date.parse("2026-10-05T12:00:00Z")
+    sample.meeting.endedAt = sample.meeting.startedAt + 1000
+    const saved = await store.meetings.saveMeeting(sample)
+    const uid = (await store.people.personOf({ provider: "example", id: "alice-example" }))?.uid as string
+    await store.close()
+
+    const answer = answerOf(await run("context", `person:${uid}`, "--json"))
+    expect(answer.meetings).toEqual([
+      expect.objectContaining({ meeting_id: saved.meeting.id, account: key, people: [`person:${uid}`] }),
+    ])
+    expect(answer.messages).not.toHaveProperty("meetings")
+    expect(await run("context", `person:${uid}`)).toMatch(/Calls and meetings\n {2}2026-10-05 12:00 .* meeting:/)
   })
 
   it("reads a person with two identities seen by one account through that account", async () => {

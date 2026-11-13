@@ -341,3 +341,21 @@ it("stores the same due time whatever the computer's time zone", async () => {
   }
   expect(stored).toEqual(["2026-12-01T08:30:00.000Z", "2026-12-01T08:30:00.000Z"])
 })
+
+it("reverses the sort with --desc, and closes only at the --revision a read gave", async () => {
+  const { run } = await setUp()
+  await run(["tasks", "add", "--project", "HRB", "--title", "Send the invoice"])
+  const added = await run(["tasks", "add", "--project", "OPS", "--title", "Renew the domain"])
+  const keys = async (...args: string[]) =>
+    (await run(["tasks", "list", "project:*", "--sort", "key", ...args])).items.map(({ key }: { key: string }) => key)
+  expect(await keys()).toEqual(["HRB-1", "OPS-1"])
+  expect(await keys("--desc")).toEqual(["OPS-1", "HRB-1"])
+
+  const updated = await run(["tasks", "update", "OPS-1", "--title", "Renew the domains"])
+  await expect(
+    run(["tasks", "close", "OPS-1", "--as", "done", "--revision", String(added.revision)]),
+  ).rejects.toMatchObject({ code: "conflict", details: { reason: "task.stale" } })
+  expect(await run(["tasks", "close", "OPS-1", "--as", "done", "--revision", String(updated.revision)])).toMatchObject({
+    status: "done",
+  })
+})

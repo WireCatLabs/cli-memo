@@ -21,6 +21,18 @@ describe("memo", () => {
     expect(out.trim()).toBe(packaged)
   })
 
+  it("prints the full help, every command and option, under --help-all", async () => {
+    let out = ""
+    const program = createProgram()
+      .exitOverride()
+      .configureOutput({ writeOut: (text) => (out += text) })
+    await expect(program.parseAsync(["--help-all"], { from: "user" })).rejects.toMatchObject({
+      code: "commander.help",
+    })
+    expect(out).toContain("Usage: memo")
+    expect(out).toContain("--debug")
+  })
+
   it("lists its command tree for documentation and agents", async () => {
     const streams = captureStreams()
     await createProgram({ streams }).parseAsync(["commands", "--json"], { from: "user" })

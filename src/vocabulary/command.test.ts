@@ -158,3 +158,106 @@ it("creates an owner-reviewed distinct label and rejects a stale creation receip
     await run("vocabulary", "create", "delivery", "--kind", "topic", "--fingerprint", current.creation_fingerprint),
   ).toMatchObject({ name: "delivery", kind: "topic" })
 })
+
+it("reads the vocabulary within the budgets given, in one scope, and pairs only names as close as asked", async () => {
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-vocabulary-budget-")), "f.db") }
+  const store = await openStore({ env })
+  await store.knowledge.addProject({ name: "Synthetic Rental", key: "REN", scope: "work" })
+  await store.knowledge.addProject({ name: "Synthetic Rentals", key: "RNS", scope: "work" })
+  await store.knowledge.addProject({ name: "Research Garden", key: "GAR", scope: "personal" })
+  await store.knowledge.createTag("onboarding")
+  await store.close()
+  const run = async (...args: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env })
+      .exitOverride()
+      .parseAsync([...args, "--json"], { from: "user" })
+    return answerOf(streams.stdout.join(""))
+  }
+  const entries = "vocabulary exceeds the selected entry budget"
+  const bytes = "vocabulary exceeds the selected input byte budget"
+  expect((await run("vocabulary", "list", "--max-entries", "4")).entries).toHaveLength(4)
+  await expect(run("vocabulary", "list", "--max-entries", "3")).rejects.toThrow(entries)
+  await expect(run("vocabulary", "list", "--max-read-bytes", "10")).rejects.toThrow(bytes)
+
+  const garden = ["vocabulary", "show", "Research Garden", "--kind", "project"]
+  expect((await run(...garden, "--scope", "personal")).matches).toEqual([
+    expect.objectContaining({ name: "Research Garden" }),
+  ])
+  expect((await run(...garden, "--scope", "work")).matches).toEqual([])
+  await expect(run(...garden, "--max-entries", "1")).rejects.toThrow(entries)
+  await expect(run(...garden, "--max-read-bytes", "10")).rejects.toThrow(bytes)
+
+  const pairs = async (...args: string[]) => (await run("vocabulary", "check", "--kind", "project", ...args)).pairs
+  expect(await pairs("--scope", "work", "--min-similarity", "0.65")).toHaveLength(1)
+  expect(await pairs("--scope", "personal", "--min-similarity", "0.65")).toEqual([])
+  expect(await pairs("--scope", "work", "--min-similarity", "1")).toEqual([])
+  await expect(pairs("--max-entries", "1")).rejects.toThrow(entries)
+  await expect(pairs("--max-read-bytes", "10")).rejects.toThrow(bytes)
+})
+
+it("confirms an agent's proposed meeting link only with its --fingerprint, keeps a new link's --reason, and pages", async () => {
+  const env = {
+    ...process.env,
+    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-project-meeting-test-")), "fixture.db"),
+  }
+  const store = await openStore({ env })
+  const account = { provider: "example", account: "AliceExample" }
+  const accountId = await store.accounts.saveAccount(account, { name: "Alice Example" })
+  const project = await store.knowledge.addProject({ name: "Research Example", key: "RES" })
+  await store.close()
+  const { openCache } = await import("@wirecat/cli-core/store")
+  const database = await openCache(env.MESSAGING_STORE)
+  const meetings: string[] = []
+  try {
+    for (const external of ["first", "second"])
+      meetings.push(
+        String(
+          database
+            .prepare(
+              "INSERT INTO meetings(account_id,external_id,title,created_at,updated_at) VALUES (?,?,'Research',1,1) RETURNING id",
+            )
+            .get(accountId, external)?.id,
+        ),
+      )
+  } finally {
+    database.close()
+  }
+  const proposing = await openStore({ env })
+  const proposed = await proposing.knowledge.linkMeetingProject(account, meetings[0] as string, project.id, {
+    by: "agent",
+  })
+  await proposing.close()
+  const run = async (...args: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env })
+      .exitOverride()
+      .parseAsync([...args, "--json"], { from: "user" })
+    return answerOf(streams.stdout.join(""))
+  }
+  const flags = ["--source", `${account.provider}:${account.account}`]
+  const link = ["projects", "meetings", "link", "RES", meetings[0] as string, "--account", "example:AliceExample"]
+  await expect(run(...link, "--fingerprint", "stale")).rejects.toMatchObject({ code: "configuration_error" })
+  expect(
+    await run(...link, "--fingerprint", proposed.link.fingerprint, "--reason", "the agenda names the project"),
+  ).toMatchObject({ changed: true, link: { confirmed: true } })
+  expect(
+    await run(
+      ...["projects", "meetings", "link", "RES", meetings[1] as string, "--account", "example:AliceExample"],
+      "--reason",
+      "the title says so",
+    ),
+  ).toMatchObject({ link: { confirmed: true, provenance: "the title says so" } })
+
+  const first = await run("projects", "meetings", "list", "RES", ...flags, "--limit", "1")
+  const second = await run("projects", "meetings", "list", "RES", ...flags, "--limit", "1", "--page", "2")
+  expect(first.page).toMatchObject({ has_more: true })
+  expect(second.page).toMatchObject({ has_more: false })
+  expect([...first.items, ...second.items].map(({ meeting }: { meeting: string }) => meeting).sort()).toEqual(
+    meetings.map((id) => `meeting:${accountId}/${id}`).sort(),
+  )
+})
+
+// cli-core's linkMeetingProject keeps the proposal's provenance when the owner confirms it, so the owner's --reason
+// is dropped; a new link keeps it.
+it.todo("projects meetings link --fingerprint keeps the owner's --reason when it confirms a proposed link")

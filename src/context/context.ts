@@ -30,9 +30,11 @@ const UNTRUSTED_EVENT_FIELDS = [
 
 export interface MemoContext {
   /** Messages and mail, from the store: every identity linked to the person, by id. */
-  messages: Omit<PersonContext, "events" | "person"> & { person: PersonRecord }
+  messages: Omit<PersonContext, "events" | "meetings" | "person"> & { person: PersonRecord }
   /** Calendar events any identity linked to them is invited to, one occurrence per series, from every calendar. */
   events: PersonContext["events"] & { accounts: string[] }
+  /** Recorded meetings and calls they took part in, newest first; `meetings show` of the CLI of its account opens one. */
+  meetings: PersonContext["meetings"]
   /** Notes linked to them: file notes about them, notes linking them or a note about them. */
   notes: Omit<NotesAbout, "subject" | "name">
   /** What you wrote about them here (`memo notes add --subject`). */
@@ -128,7 +130,7 @@ export const memoContext = async (
   if (named.startsWith("person:")) {
     // Every account in scope that saw them, a CRM's and a name the owner added too, never one picked (WC-ACCT-9).
     const accounts = sources === undefined ? scope?.accounts : [...sources]
-    const { events, business, coverage, ...messages } = await canonicalPersonContext(store, named, {
+    const { events, meetings, business, coverage, ...messages } = await canonicalPersonContext(store, named, {
       messages: limit,
       limit,
       deniedKinds,
@@ -146,7 +148,7 @@ export const memoContext = async (
     return withNotesAndTasks(
       store,
       env,
-      { messages, events, business, coverage },
+      { messages, events, meetings, business, coverage },
       { accounts: read, calendars, deniedKinds, ...(accounts === undefined ? {} : { scope: accounts }) },
       limit,
     )
@@ -166,7 +168,7 @@ export const memoContext = async (
     scope === undefined
       ? undefined
       : await Promise.all(calendars.map(async (key) => (await store.accounts.storedAccount(key)).id))
-  const { events, ...messages } = await personContext(store, asked, who, {
+  const { events, meetings, ...messages } = await personContext(store, asked, who, {
     messages: limit,
     ...(calendarIds === undefined ? {} : { calendarIds }),
   })
@@ -185,7 +187,7 @@ export const memoContext = async (
   return withNotesAndTasks(
     store,
     env,
-    { messages, events, business },
+    { messages, events, meetings, business },
     { accounts, calendars, deniedKinds, ...(scope === undefined ? {} : { scope: scope.accounts }) },
     limit,
   )
@@ -194,6 +196,7 @@ export const memoContext = async (
 interface Read {
   messages: MemoContext["messages"]
   events: CanonicalPersonContext["events"]
+  meetings: CanonicalPersonContext["meetings"]
   business: PersonBusiness
   coverage?: Coverage
 }
@@ -202,7 +205,7 @@ interface Read {
 const withNotesAndTasks = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
-  { messages, events, business, coverage }: Read,
+  { messages, events, meetings, business, coverage }: Read,
   {
     accounts,
     calendars,
@@ -258,6 +261,7 @@ const withNotesAndTasks = async (
   return {
     messages,
     events: { ...events, accounts: calendars.map(({ provider, account }) => `${provider}:${account}`) },
+    meetings,
     notes: { ...notes, about: notes.about.filter((note) => note.source === "file") },
     yourNotes,
     notRead,

@@ -262,6 +262,65 @@ describe("memo source tags", () => {
     await expect(json("notes", "add", "x", ...acts)).rejects.toMatchObject({ code: "validation_error" })
   })
 
+  it("labels and unlabels a contact, a person, an organization, a task, a project, a meeting and a subfolder", async () => {
+    const zoom = { provider: "example", account: "alice-example" }
+    const store = await openStore({ env })
+    let person: string
+    let organization: string
+    let meeting: number
+    try {
+      await store.people.savePeople(tg, [{ id: "101", name: "Rin Example" }])
+      person = (await store.people.personOf({ provider: "telegram", id: "101" }))?.uid as string
+      organization = (await store.knowledge.addOrganization({ name: "Synthetic Studio", kind: "company" })).ref
+      await store.knowledge.addProject({ name: "Synthetic Harbour", key: "SYH" })
+      const accountId = await store.accounts.saveAccount(zoom, { name: "Alice Example" })
+      meeting = (
+        await store.meetings.saveMeeting({
+          now: 3000,
+          meeting: {
+            accountId,
+            externalId: "example-occurrence",
+            title: "Example planning",
+            description: null,
+            location: null,
+            joinUrl: null,
+            startedAt: 1000,
+            endedAt: 2000,
+            durationMs: 1000,
+            timezone: "UTC",
+            hostIdentityId: null,
+            participantsCount: 0,
+            metadata: null,
+            deletedAt: null,
+          },
+          participants: [],
+          transcripts: [],
+          chat: [],
+        })
+      ).meeting.id
+    } finally {
+      await store.close()
+    }
+    const telegram = ["--account", `${tg.provider}:${tg.account}`]
+    const note = await json("notes", "add", "Synthetic budget request")
+    const task = (await json("tasks", "add", note.ref, ...telegram)).task.id as string
+    const [folder] = (await json("folders", "list")).items
+    const targets: [string, string[]][] = [
+      ["contact", ["--contact", "101", ...telegram]],
+      ["person", ["--person", person]],
+      ["organization", ["--organization", organization]],
+      ["task", ["--task", task, ...telegram]],
+      ["project", ["--project", "SYH"]],
+      ["meeting", ["--meeting", String(meeting), "--account", `${zoom.provider}:${zoom.account}`]],
+      ["folder", ["--folder", folder.id, "--subfolder", "Projects"]],
+    ]
+    for (const [type, target] of targets) {
+      expect(await json("tags", "add", "review", ...target), type).toMatchObject({ added: ["review"] })
+      expect(await json("tags", "remove", "review", ...target), type).toMatchObject({ removed: ["review"] })
+    }
+    expect((await json("tags", "list", "tag:review")).items).toEqual([])
+  })
+
   it("bounds tag listing and prints readable source references", async () => {
     const text = await run("tags", "add", "first", "second", "--message", mailLocator())
     expect(text).toContain(mailLocator())

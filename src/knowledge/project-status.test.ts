@@ -138,6 +138,16 @@ it("prints the status for a person, and one line per row with --compact", async 
   await expect(status("--compact", "--json")).rejects.toMatchObject({ code: "validation_error" })
 })
 
+it("reads only from --since-time on", async () => {
+  const { status } = await setUp()
+  const amounts = async (...args: string[]) =>
+    envelopeOf(await status("--json", ...args)).item.amounts.map(
+      ({ data }: { data: { amount: string } }) => data.amount,
+    )
+  expect(await amounts()).toEqual(["1200.00", "300.00"])
+  expect(await amounts("--since-time", "2026-10-27")).toEqual(["300.00"])
+})
+
 it("names every profile signed in to a chat's account and picks none", async () => {
   const { status } = await setUp({ work: "11", spare: "11" })
   const body = envelopeOf(await status("--json"))

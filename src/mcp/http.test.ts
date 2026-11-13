@@ -5,6 +5,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client"
 import { captureStreams } from "@wirecat/cli-base"
+import type { ServerSystem } from "@wirecat/cli-core/background"
 import { afterEach, describe, expect, it } from "vitest"
 import { updateConfig } from "../config.js"
 import { throwParseFailures } from "../failure.js"
@@ -238,5 +239,46 @@ describe("Memo HTTP MCP", () => {
     const program = createProgram({ streams: captureStreams(), env: fixture() })
     throwParseFailures(program)
     await expect(program.parseAsync(["mcp", "serve", ...argv], { from: "user" })).rejects.toThrow()
+  })
+})
+
+describe("mcp server start and stop", () => {
+  const PUBLIC = "https://laptop.example.ts.net"
+  const machine = (spawned: string[][]): ServerSystem => ({
+    platform: "linux",
+    uid: 501,
+    entry: [process.execPath, "/opt/memo.js"],
+    spawn: (argv) => {
+      spawned.push(argv)
+      return 999_999_999
+    },
+    pause: async () => {},
+    run: async () => ({ code: 0, stdout: "", stderr: "" }),
+  })
+  const server = async (env: NodeJS.ProcessEnv, system: ServerSystem, ...args: string[]) => {
+    const streams = captureStreams()
+    const program = createProgram({ streams, env, system })
+    throwParseFailures(program)
+    await program.parseAsync(["mcp", "server", ...args], { from: "user" })
+    return JSON.parse(streams.stdout.join("")).item
+  }
+
+  it("starts mcp serve --http on the port asked with the stricter permissions, and stops none it did not start", async () => {
+    const env = fixture()
+    const spawned: string[][] = []
+    const asked = ["--port", "8799", "--permission", "notes.add=deny", "--public-url", PUBLIC, "--json"]
+    await expect(server(env, machine(spawned), "start", ...asked)).rejects.toThrow("stopped before it listened")
+    expect(spawned).toEqual([
+      ["mcp", "serve", "--http", "--port", "8799", "--public-url", PUBLIC, "--permission", "notes.add=deny"],
+    ])
+    expect(await server(env, machine(spawned), "stop", "--json")).toEqual({ profile: null, stopped: false })
+  })
+
+  it("answers in JSON that a server already listens, and starts no second one", async () => {
+    const { env, base } = await start()
+    const spawned: string[][] = []
+    const answer = await server(env, machine(spawned), "start", "--port", base.port, "--public-url", PUBLIC, "--json")
+    expect(answer).toMatchObject({ started: false, running: true, port: Number(base.port) })
+    expect(spawned).toEqual([])
   })
 })

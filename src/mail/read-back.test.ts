@@ -44,6 +44,7 @@ describe("mail imported into the mail tables reads back through memo", () => {
             from: ["Rin Example", "rin@example.test"],
             to: [[null, ME]],
             text: "The roadmap review moves to Friday.",
+            attachment: { name: "minutes.txt", mime: "text/plain", content: `${"minutes ".repeat(600)}endmark` },
           },
         ],
         { since: new Date("2026-09-01T00:00:00Z"), now: () => Date.parse("2026-10-04T12:00:00Z") },
@@ -77,8 +78,60 @@ describe("mail imported into the mail tables reads back through memo", () => {
     const shown = await run(["messages", "show", LOCATOR], env)
     expect(shown).toMatchObject({ locator: LOCATOR, anchor: true, email: { from: { address: "rin@example.test" } } })
     expect(shown.text).toContain("The roadmap review moves to Friday.")
+    expect(shown.attachments).toEqual([expect.objectContaining({ name: "minutes.txt", text_cut: true })])
+    expect(shown.attachments[0].text).not.toContain("endmark")
+    const whole = await run(["messages", "show", LOCATOR, "--full"], env)
+    expect(whole.attachments[0].text).toMatch(/endmark$/)
     await expect(run(["messages", "show", "msg:telegram/1/2/3"], env)).rejects.toMatchObject({
       code: "not_found",
     })
+  })
+})
+
+describe("mail review through memo", () => {
+  it("names the threads waiting on others with --waiting, and only what changed since the last --new", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "memo-mail-review-"))
+    const env = { ...process.env, MESSAGING_STORE: join(dir, "messages.db"), MEMO_CONFIG_DIR: join(dir, "config") }
+    const day = 86_400_000
+    const ago = (days: number) => new Date(Date.now() - days * day).toISOString()
+    const email = (uid: string, threadId: string, days: number, from: string, to: string) => ({
+      uid,
+      messageId: `review-${uid}`,
+      threadId,
+      receivedAt: ago(days),
+      subject: `Synthetic thread ${threadId}`,
+      from: [null, from] as [null, string],
+      to: [[null, to]] as [null, string][],
+      text: `Synthetic text ${uid}`,
+    })
+    const store = await openStore({ env })
+    try {
+      await storeMail(
+        store,
+        ME,
+        [
+          email("1", "asked", 10, "rin@example.test", ME),
+          email("2", "asked", 8, ME, "rin@example.test"),
+          email("3", "open", 2, "kai@example.test", ME),
+        ],
+        { since: new Date(Date.now() - 30 * day) },
+      )
+    } finally {
+      await store.close()
+    }
+    const threads = (answer: { items: { chat_id: string }[] }) => [...new Set(answer.items.map((item) => item.chat_id))]
+    expect(threads(await run(["mail", "review", "date>30d", "--waiting", "3d"], env))).toEqual(["asked"])
+    expect(threads(await run(["mail", "review", "date>30d", "--waiting", "9d"], env))).toEqual([])
+    expect(threads(await run(["mail", "review", "--new"], env))).toEqual(["open"])
+    expect(threads(await run(["mail", "review", "--new"], env))).toEqual([])
+    const later = await openStore({ env })
+    try {
+      await storeMail(later, ME, [email("4", "asked", 0, "rin@example.test", ME)], {
+        since: new Date(Date.now() - day),
+      })
+    } finally {
+      await later.close()
+    }
+    expect(threads(await run(["mail", "review", "--new"], env))).toEqual(["asked"])
   })
 })

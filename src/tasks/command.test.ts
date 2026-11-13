@@ -76,6 +76,18 @@ it("creates native note tasks through the CLI and connects context, search, assi
   const [delivery] = (await run("reminders", "claim", ...acts)).items
   await run("reminders", "acknowledge", reminder.id, delivery.receipt, ...acts)
   expect((await run("reminders", "claim", ...acts)).items).toEqual([])
+  const early = await run("reminders", "add", task.task.id, "--at-time", "2026-01-02T00:00:00Z", ...acts)
+  const late = await run("reminders", "add", other.task.id, "--at-time", "2026-01-03T00:00:00Z", ...acts)
+  expect((await run("reminders", "claim", "--limit", "1", ...acts)).items).toMatchObject([
+    { delivery_id: `${early.id}:1` },
+  ])
+  const moved = await run(
+    ...["reminders", "update", late.id, "--at-time", "2099-01-01T00:00:00Z", "--revision", String(late.revision)],
+    ...acts,
+  )
+  expect(moved).toMatchObject({ id: late.id, revision: late.revision + 1 })
+  expect(await run("reminders", "cancel", late.id, ...acts)).toMatchObject({ id: late.id })
+  expect((await run("reminders", "claim", ...acts)).items).toEqual([])
   await run("notes", "edit", source, "--text", "Updated budget", "--revision", "1")
   const listed = (await run("tasks", "list", ...scope)).items.find((item: { id: string }) => item.id === task.task.id)
   expect(listed).toMatchObject({ source_message: source, chat: null, state: "open", account: "telegram:1" })

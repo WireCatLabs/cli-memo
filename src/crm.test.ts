@@ -410,6 +410,55 @@ describe("relationship roles: built in and the owner's own", () => {
     })
   })
 
+  it("records an agent's terminal as the owner under --from-app; --as-owner gets no answer under --json", async () => {
+    const agent = memoIn({ ...env, AI_AGENT: "test-agent" })
+    const unconfirmed = { details: { reason: "decision.owner-unconfirmed" } }
+    const add = ["relationships", "add", refs.bob, refs.acme, "--role", "employee"]
+    await expect(agent(...add, "--as-owner")).rejects.toMatchObject(unconfirmed)
+    const added = await agent(...add, "--end-date", "2026-03-31", "--from-app")
+    expect(added).toMatchObject({ confirmed: true, ends_at: "2026-04-01T00:00:00.000Z" })
+
+    const update = ["relationships", "update", added.id, "--position", "CTO", "--start-date", "2026-02-01"]
+    await expect(agent(...update, "--as-owner")).rejects.toMatchObject(unconfirmed)
+    expect(await agent(...update, "--from-app")).toMatchObject({
+      position: "CTO",
+      starts_at: "2026-02-01T00:00:00.000Z",
+    })
+
+    const store = await openStore({ env })
+    const suggested = await store.knowledge.relate(null, {
+      by: "owner",
+      from: refs.alice,
+      to: refs.bob,
+      kind: "reports-to",
+      confirmed: false,
+      provenance: "agent:test-agent",
+    })
+    await store.close()
+    await expect(agent("relationships", "confirm", suggested.id, "--as-owner")).rejects.toMatchObject(unconfirmed)
+    expect(await agent("relationships", "confirm", suggested.id, "--from-app")).toMatchObject({ confirmed: true })
+
+    await expect(agent("relationships", "end", suggested.id, "--as-owner")).rejects.toMatchObject(unconfirmed)
+    expect(await agent("relationships", "end", suggested.id, "--end-date", "2026-09-30", "--from-app")).toMatchObject({
+      ends_at: "2026-10-01T00:00:00.000Z",
+    })
+
+    await expect(agent("relationships", "remove", added.id, "--as-owner")).rejects.toMatchObject(unconfirmed)
+    await agent("relationships", "remove", added.id, "--from-app")
+    const left = await memo("relationships", "list", `from:"${refs.bob}"`, "role:employee", "include:ended")
+    expect(left.items.map(({ id }: { id: string }) => id)).not.toContain(added.id)
+
+    const role = ["relationships", "roles", "add", "project", "sponsor"]
+    await expect(agent(...role, "--as-owner")).rejects.toMatchObject(unconfirmed)
+    expect((await agent(...role, "--from-app")).items).toContainEqual(expect.objectContaining({ id: "sponsor" }))
+    await expect(agent("relationships", "roles", "remove", "project", "sponsor", "--as-owner")).rejects.toMatchObject(
+      unconfirmed,
+    )
+    await agent("relationships", "roles", "remove", "project", "sponsor", "--from-app")
+    const roles = await memo("relationships", "roles", "list", "list:project")
+    expect(roles.items.map(({ id }: { id: string }) => id)).not.toContain("sponsor")
+  })
+
   it("lists the roles under the lock", async () => {
     vi.stubEnv("MEMO_GROUP_LOCK", "personal")
     expect(

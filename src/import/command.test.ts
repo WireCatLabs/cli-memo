@@ -129,6 +129,16 @@ it("sends a records file to the records import, and records an agent's run as th
   })
 })
 
+it("imports an agent's run as the owner's only from the app; --as-owner without a terminal answer is refused", async () => {
+  const f = setUp()
+  const agent = { AI_AGENT: "codex" }
+  await expect(f.run(["import", f.folder, ...ACCOUNT, "--as-owner"], agent)).rejects.toMatchObject({
+    details: { reason: "decision.owner-unconfirmed" },
+  })
+  expect(await f.record(idOfPath("notes.txt"))).toBeUndefined()
+  expect(await f.run(["import", f.folder, ...ACCOUNT, "--from-app"], agent)).toMatchObject({ created: 2, by: "owner" })
+})
+
 it("reads PDF and Word files with memo's own readers, and skips a PDF with no text", async () => {
   const f = setUp()
   writeFileSync(join(f.folder, "delivery.pdf"), pdfOf("The crane is due Friday"))

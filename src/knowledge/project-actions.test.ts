@@ -441,3 +441,72 @@ it("gives an action's parts to compose a line from: its verb, its target's and c
   expect(shown.summary).toMatch(/^Reply Harbour crew: Friday works/)
   expect(shown.summary.length).toBeLessThan(long.length)
 })
+
+it("decides and edits a batch as the owner under --from-app, and an agent's --as-owner gets no answer under --json", async () => {
+  const { owner, agent, run, file } = await setUp()
+  const unconfirmed = { details: { reason: "decision.owner-unconfirmed" } }
+  const staged = await run(agent, "projects", "actions", "add", file)
+  const batch = ["--fingerprint", staged.fingerprint]
+
+  await expect(run(agent, "actions", "edit", staged.id, "budget", ...batch, "--as-owner")).rejects.toMatchObject(
+    unconfirmed,
+  )
+  const edited = await run(
+    agent,
+    ...["actions", "edit", staged.id, "budget", ...batch, "--set", "statement=The budget is agreed", "--from-app"],
+  )
+  const budget = edited.payload.findings.find((one: { id: string }) => one.id === "budget")
+  expect(budget).toMatchObject({ statement: "The budget is agreed" })
+  const fingerprint = ["--fingerprint", edited.fingerprint]
+
+  await expect(
+    run(agent, "projects", "actions", "confirm", "SYP", staged.id, "budget", ...fingerprint, "--as-owner"),
+  ).rejects.toMatchObject(unconfirmed)
+  const confirmed = await run(
+    agent,
+    ...["projects", "actions", "confirm", "SYP", staged.id, "budget", ...fingerprint, "--from-app"],
+  )
+  expect(confirmed).toMatchObject({ status: "proposed" })
+
+  await expect(
+    run(agent, "projects", "actions", "reject", "SYP", staged.id, "--fingerprint", confirmed.fingerprint, "--as-owner"),
+  ).rejects.toMatchObject(unconfirmed)
+  expect(
+    await run(
+      agent,
+      "projects",
+      "actions",
+      "reject",
+      "SYP",
+      staged.id,
+      "--fingerprint",
+      confirmed.fingerprint,
+      "--from-app",
+    ),
+  ).toMatchObject({
+    status: "reviewed",
+    receipt: {
+      decision: { by: "owner" },
+      items: [
+        { id: "budget", status: "accepted" },
+        { id: "accountant", status: "rejected" },
+      ],
+    },
+  })
+  expect(await run(owner, "facts", "list", "kind:decision")).toMatchObject({
+    items: [{ text: "The budget is agreed", status: "accepted" }],
+  })
+})
+
+it("proposes an action as the owner's under --from-app; an agent's --as-owner gets no answer under --json", async () => {
+  const { agent, run } = await setUp()
+  const unconfirmed = { details: { reason: "decision.owner-unconfirmed" } }
+  const reply = ["actions", "add", "reply", "--reason", "they asked", "--account", "telegram:1"]
+  await expect(run(agent, ...reply, "--as-owner")).rejects.toMatchObject(unconfirmed)
+  expect(await run(agent, ...reply, "--from-app")).toMatchObject({ proposed_by: { type: "person" } })
+
+  const proposed = await run(agent, ...reply)
+  expect(proposed).toMatchObject({ status: "proposed", proposed_by: { type: "bot" } })
+  await expect(run(agent, "actions", "confirm", proposed.id, "--as-owner")).rejects.toMatchObject(unconfirmed)
+  await expect(run(agent, "actions", "reject", proposed.id, "--as-owner")).rejects.toMatchObject(unconfirmed)
+})

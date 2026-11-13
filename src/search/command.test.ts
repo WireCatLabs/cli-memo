@@ -6,6 +6,7 @@ import { openStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { expect, it, vi } from "vitest"
 import { answerOf } from "../../test/answer.js"
+import { storeMail } from "../../test/mail-store.js"
 import { createProgram } from "../program.js"
 
 it("searches three typed resources together, separates mail and messages, and filters native note/message types", async () => {
@@ -584,4 +585,105 @@ it("search all --harder without the owner's consent sends nothing and says why, 
   expect(text.stderr.join("")).toContain("not reordered by the model")
   expect(sent).not.toHaveBeenCalled()
   sent.mockRestore()
+})
+
+it("reads days in the zone asked, keeps the page to --limit, shows each hit at the detail asked, and keeps fraud in place under --plain-order", async () => {
+  const root = mkdtempSync(join(tmpdir(), "memo-search-options-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const store = await openStore({ env })
+  const long = `Zonedword ${"synthetic filler ".repeat(40)}tailword`
+  const message = (id: string, timestamp: string) => ({
+    id,
+    chatId: "7",
+    senderId: "9",
+    senderName: null,
+    timestamp,
+    editedAt: null,
+    text: long,
+    outgoing: false,
+    attachments: [],
+    replyTo: null,
+    forwardedFrom: null,
+    reactions: null,
+  })
+  // 03:00 UTC on the 9th is still the 8th in Los Angeles.
+  await store.messages.saveMessages(
+    { provider: "telegram", account: "1" },
+    "7",
+    [message("1", "2026-10-09T03:00:00Z"), message("2", "2026-10-05T12:00:00Z")],
+    { via: "test" },
+  )
+  const folder = await store.notes.addFolder({ name: "Synthetic zone folder" })
+  await store.notes.saveFileNote({ folderId: folder.id, path: "late.md", title: "Late", text: "Zonedword note" })
+  await store.notes.dateFileNotes(folder.id, [{ path: "late.md", modifiedAt: "2026-10-09T03:00:00Z" }])
+  const mail = (uid: string, from: string, text: string) => ({
+    uid,
+    messageId: `zoned-${uid}`,
+    threadId: `t${uid}`,
+    receivedAt: "2026-10-09T03:00:00Z",
+    subject: "Zonedword invoice",
+    from: [null, from] as [null, string],
+    to: [[null, "me@example.test"]] as [null, string][],
+    text,
+  })
+  await storeMail(store, "me@example.test", [
+    mail("1", "fraud@example.test", "Zonedword Zonedword Zonedword urgent"),
+    mail("2", "friend@example.test", "Zonedword"),
+  ])
+  // As the mail CLI's sender scoring leaves them: on each hit for search mail, in the sync state for search all.
+  const mailbox = { provider: "email", account: "me@example.test" }
+  const stored = await store.accounts.storedAccount(mailbox)
+  const fraud = { address: "fraud@example.test", score: 90, signals: ["synthetic"], demoted: true }
+  await store.mail.setSenderScores(stored?.id ?? 0, [fraud], Date.now())
+  await store.sync.setSyncState(mailbox, "mail_sender_scores", JSON.stringify({ demoted: [fraud.address] }))
+  await store.close()
+  const run = async (...args: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env }).exitOverride().parseAsync(args, { from: "user" })
+    return streams.stdout.join("")
+  }
+  const refs = async (...args: string[]) =>
+    answerOf(await run(...args, "--json")).items.map((item: { ref: string }) => item.ref)
+
+  const pacific = ["--timezone", "America/Los_Angeles"]
+  expect(await refs("search", "messages", "Zonedword date:2026-10-08", ...pacific)).toEqual(["msg:telegram/1/7/1"])
+  expect(await refs("search", "messages", "Zonedword date:2026-10-08", "--timezone", "UTC")).toEqual([])
+  expect(await refs("search", "all", "Zonedword date:2026-10-08", "--only", "messages", ...pacific)).toEqual([
+    "msg:telegram/1/7/1",
+  ])
+  expect(await refs("search", "mail", "Zonedword date:2026-10-08", ...pacific)).toHaveLength(2)
+  expect(await refs("search", "mail", "Zonedword date:2026-10-08", "--timezone", "UTC")).toEqual([])
+  expect(await refs("search", "notes", "Zonedword date:2026-10-08", ...pacific)).toHaveLength(1)
+  expect(await refs("search", "notes", "Zonedword date:2026-10-08", "--timezone", "UTC")).toEqual([])
+
+  expect(await refs("search", "messages", "Zonedword", "--limit", "1")).toHaveLength(1)
+  expect(await refs("search", "mail", "Zonedword", "--limit", "1")).toHaveLength(1)
+  const brief = await run("search", "messages", "Zonedword", "--brief")
+  const full = await run("search", "messages", "Zonedword", "--full")
+  expect(full).toContain("tailword")
+  expect(brief).not.toContain("tailword")
+
+  const fraudLast = await refs("search", "mail", "Zonedword")
+  const plain = await refs("search", "mail", "Zonedword", "--plain-order")
+  expect(fraudLast).toHaveLength(2)
+  expect(plain).toEqual([...fraudLast].reverse())
+  const all = await refs("search", "all", "Zonedword", "--only", "mail")
+  expect(await refs("search", "all", "Zonedword", "--only", "mail", "--plain-order")).toEqual([...all].reverse())
+})
+
+it("search memories keeps the page to --limit", async () => {
+  const root = mkdtempSync(join(tmpdir(), "memo-search-memories-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const run = async (...args: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env })
+      .exitOverride()
+      .parseAsync([...args, "--json"], { from: "user" })
+    return answerOf(streams.stdout.join(""))
+  }
+  const note = await run("notes", "add", "Synthetic Fridays")
+  for (const text of ["Bob Sample prefers Fridays", "Carol Sample also likes Fridays"])
+    await run("memories", "add", text, "--kind", "preference", "--scope", "work", "--evidence", note.ref)
+  expect((await run("search", "memories", "Fridays")).items).toHaveLength(2)
+  expect((await run("search", "memories", "Fridays", "--limit", "1")).items).toHaveLength(1)
 })

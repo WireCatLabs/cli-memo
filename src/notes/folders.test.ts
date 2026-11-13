@@ -80,7 +80,9 @@ describe("memo folders", () => {
     expect(answerOf(await run("folders", "list", "--json")).items).toEqual([
       { id, name: "vault", format: "obsidian", path: null },
     ])
-    await run("folders", "update", id, join(root, "plain"), "--format", "markdown")
+    expect(
+      answerOf(await run("folders", "update", id, join(root, "plain"), "--format", "markdown", "--json")),
+    ).toMatchObject({ id, path: join(root, "plain"), format: "markdown" })
     expect(answerOf(await run("folders", "list", "--json")).items).toEqual([
       { id, path: join(root, "plain"), format: "markdown" },
     ])
