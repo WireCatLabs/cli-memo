@@ -124,13 +124,16 @@ export const importCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     annotate(program.command("import"), { effects: LOCAL_WRITE, output: { entity: "import_receipt" } })
       .summary("bring a folder of documents or a records file into memo's search")
       .description(
-        "bring a folder of text, Markdown, PDF and Word files, one such file, or a records file (JSON or JSONL) into " +
-          "the store, under the account you name. Each file is a document keyed by its path in the folder: the same folder " +
+        "bring a folder of text, Markdown, PDF and Word files and .vtt or .srt transcripts, one such file, or a " +
+          "records file (JSON or JSONL) into the store, under the account you name. Each file is a document keyed by its path in the folder: the same folder " +
           "twice changes nothing, an edited file updates its document, and a file gone from the folder is kept. " +
           "Links are not followed and nothing leaves this computer; the text is kept as data, never run",
       ),
   )
-    .argument("<path>", "a folder, a .txt, .md, .pdf or .docx file, or a records file (.json, .jsonl; - for stdin)")
+    .argument(
+      "<path>",
+      "a folder, a .txt, .md, .pdf, .docx, .vtt or .srt file, or a records file (.json, .jsonl; - for stdin)",
+    )
     .option(
       "--account <account>",
       "the source the files belong to: <provider>:<account>, such as phone:office-pbx; never chosen for you",

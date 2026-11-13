@@ -159,3 +159,25 @@ it("reads PDF and Word files with memo's own readers, and skips a PDF with no te
   })
   expect(await f.run(["import", f.folder, ...ACCOUNT])).toMatchObject({ created: 0, unchanged: 4 })
 })
+
+it("keeps a WebVTT or SubRip transcript as turns, with its timings and speakers beside the text", async () => {
+  const f = setUp()
+  writeFileSync(
+    join(f.folder, "standup.vtt"),
+    "WEBVTT\n\n00:00:01.000 --> 00:00:04.000\n<v Ana Example>The crane is due Friday.\n\n" +
+      "00:00:04.500 --> 00:01:02.250\n<v Kai Sample>Then the gate code changes Monday.\n",
+  )
+  writeFileSync(join(f.folder, "call.srt"), "1\n00:00:00,500 --> 00:00:03,000\nOperator: Depot, good morning.\n")
+  expect(await f.run(["import", f.folder, ...ACCOUNT])).toMatchObject({ created: 4, skipped: [] })
+  expect((await f.record(idOfPath("standup.vtt")))?.fields).toMatchObject({
+    title: "standup",
+    text: "Ana Example: The crane is due Friday.\nKai Sample: Then the gate code changes Monday.",
+    metadata: {
+      format: "vtt",
+      transcript: { cues: 2, start_seconds: 1, end_seconds: 62.25, speakers: ["Ana Example", "Kai Sample"] },
+    },
+  })
+  expect((await f.record(idOfPath("call.srt")))?.fields).toMatchObject({
+    metadata: { format: "srt", transcript: { cues: 1, start_seconds: 0.5, end_seconds: 3, speakers: ["Operator"] } },
+  })
+})
