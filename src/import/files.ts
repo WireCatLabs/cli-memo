@@ -50,6 +50,15 @@ export const readBytes = async (path: string, size: number): Promise<Uint8Array>
   }
 }
 
+/** Why a file or folder could not be read, in words, never an errno alone. */
+export const unreadable = (error: unknown) => {
+  const code = typeof error === "object" && error !== null && "code" in error ? String(error.code) : undefined
+  if (code === "EACCES" || code === "EPERM") return "no permission to read it"
+  if (code === "ELOOP") return "it became a symbolic link while the import ran"
+  if (code === "ENOENT") return "it disappeared while the import ran"
+  return `could not be read${error instanceof Error ? `: ${error.message}` : ""}`
+}
+
 const isInside = (root: string, path: string) => path === root || path.startsWith(root + sep)
 
 /**
@@ -76,7 +85,13 @@ export const walk = async (root: string): Promise<{ files: FoundFile[]; skipped:
       skipped.push({ path: relative(real, folder), reason: `deeper than ${DEEPEST} folders` })
       return
     }
-    const entries: Dirent[] = await readdir(folder, { withFileTypes: true })
+    let entries: Dirent[]
+    try {
+      entries = await readdir(folder, { withFileTypes: true })
+    } catch (error) {
+      skipped.push({ path: relative(real, folder).split(sep).join("/") || ".", reason: unreadable(error) })
+      return
+    }
     entries.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
     for (const entry of entries) {
       if (entry.name.startsWith(".")) continue
@@ -86,7 +101,12 @@ export const walk = async (root: string): Promise<{ files: FoundFile[]; skipped:
         skipped.push({ path: shown, reason: refusedLink })
         continue
       }
-      if (!isInside(real, await realpath(path))) {
+      const resolved = await realpath(path).catch(() => undefined)
+      if (resolved === undefined) {
+        skipped.push({ path: shown, reason: "could not be read" })
+        continue
+      }
+      if (!isInside(real, resolved)) {
         skipped.push({ path: shown, reason: "outside the folder" })
         continue
       }
@@ -171,7 +191,9 @@ export const documentFields = (
   }
   const room = FIELDS_BYTES - bytesOf(base)
   if (bytesOf(text) <= room) return { fields: { ...base, text }, cut: false }
-  const points = Array.from(text)
+  // Each UTF-16 unit is at least one byte, so nothing past `room` units can fit; a large file is never split whole.
+  const head = text.slice(0, Math.max(0, room)).replace(/[\uD800-\uDBFF]$/, "")
+  const points = Array.from(head)
   let low = 0
   let high = points.length
   while (low < high) {

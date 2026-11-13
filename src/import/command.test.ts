@@ -236,3 +236,27 @@ it("stops before writing anything when the local speech model is not downloaded"
   })
   expect(await f.record(idOfPath("notes.txt"))).toBeUndefined()
 })
+
+it("skips one recording that cannot be heard and imports the rest", async () => {
+  const f = setUp()
+  writeFileSync(join(f.folder, "good.ogg"), Buffer.from("synthetic good"))
+  writeFileSync(join(f.folder, "broken.mp3"), Buffer.from("synthetic broken"))
+  const hear: Hear = async (bytes) => {
+    if (Buffer.from(bytes).toString().includes("broken")) throw new Error("the decoder could not read it")
+    return { model: "parakeet-v3", seconds: 3, pieces: [{ start: 0, end: 3, text: "Hello." }] }
+  }
+  const answer = await f.run(["import", f.folder, ...ACCOUNT, "--transcribe"], {}, hear)
+  expect(answer).toMatchObject({ created: 3, files: 3 })
+  expect(answer.skipped).toEqual([{ path: "broken.mp3", reason: "could not be heard: the decoder could not read it" }])
+})
+
+it("cuts a text longer than a record holds the same way on every run", async () => {
+  const f = setUp()
+  writeFileSync(join(f.folder, "big.txt"), "Строка журнала поставки номер сорок два.\n".repeat(4000))
+  const first = await f.run(["import", f.folder, ...ACCOUNT])
+  expect(first).toMatchObject({ created: 3, errors: [], cut: ["big.txt"] })
+  const big = await f.record(idOfPath("big.txt"))
+  expect(big?.fields).toMatchObject({ metadata: { truncated: true } })
+  expect(Buffer.byteLength(JSON.stringify(big?.fields))).toBeLessThanOrEqual(64 * 1024)
+  expect(await f.run(["import", f.folder, ...ACCOUNT])).toMatchObject({ unchanged: 3, cut: ["big.txt"] })
+})

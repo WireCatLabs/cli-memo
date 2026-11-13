@@ -53,15 +53,15 @@ starts in the recording:
 [01:01] The crane is due Friday.
 ```
 
-- **The model is not downloaded for you.** It is about 650 MB. Without it the import stops before it writes anything
+- **The model is not downloaded for you.** It is about 670 MB. Without it the import stops before it writes anything
   and names the command that downloads it once, such as `tg models download parakeet-v3`. Every WireCat tool on this
   computer shares it.
 - **A recording is heard once.** Its document keeps the hash of the recording's bytes. The next import with
   `--transcribe` finds the same hash and sends the stored text again, so the recording is not heard again and the
   document stays `unchanged`. A changed recording is heard again.
 - `--dry-run` does not transcribe: it lists new recordings under `skipped`.
-- One recording plays as one voice: speakers are not told apart, and a recording longer than an hour is refused by the
-  decoder.
+- One recording plays as one voice: speakers are not told apart. A recording longer than an hour, or one the decoder
+  cannot read, is listed under `skipped` and the rest of the folder is imported.
 - MP3, Ogg, Opus and FLAC are read by Memo's own decoders. WAV, M4A and others need `ffmpeg` installed.
 
 ## Run it again at any time
@@ -73,6 +73,8 @@ starts in the recording:
 - **A file gone from the folder stays.** Memo does not delete what you imported when the file disappears. To remove
   one, send a `delete` record for it ([Custom integrations](#custom-integrations)).
 - **A renamed or moved file is a new document.** The path is its key.
+- **A moved folder updates every document once.** The paths inside it stay the same, so no document is added, but
+  each one's `url` names the new place.
 - A file whose modification time changed but whose text did not counts as `updated`.
 
 `--dry-run` reads every file and plans the import without writing anything. It holds the store's write lock while it
@@ -183,14 +185,12 @@ An [Asterisk](https://www.asterisk.org/) exchange writes a call detail record (C
 each call becomes a `call` event, and the transcript of its recording, when there is one, a document `about` that
 call. Both go to the account `phone:office-pbx`.
 
-First hear the recordings, so their text is ready as `.txt` files beside them. Any local tool that writes one text
-file per recording works; or let Memo hear them, as documents of their own:
+The script takes the text of each recording from a `.txt` file beside it, which any local speech tool can write. Use
+this path or `memo import /var/spool/asterisk/monitor --account phone:office-pbx --transcribe`, not both: that command
+also imports the `.txt` files it finds there, and the same words would be kept twice. `memo import --transcribe` makes
+a document per recording, but not linked to its call.
 
-```sh
-memo import /var/spool/asterisk/monitor --account phone:office-pbx --transcribe
-```
-
-Then turn the CDR into the envelope:
+Turn the CDR into the envelope:
 
 ```js
 // asterisk-cdr.mjs: node asterisk-cdr.mjs Master.csv +01:00 | memo import - --account phone:office-pbx

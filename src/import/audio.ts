@@ -1,4 +1,4 @@
-import { CliError } from "@wirecat/cli-base"
+import { CliError, isCliError } from "@wirecat/cli-base"
 import {
   DEFAULT_ORDER,
   decodeAudio,
@@ -13,7 +13,7 @@ import {
 } from "@wirecat/cli-core/speech"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import { idOfPath } from "./external-id.js"
-import { type FoundFile, type ReadDocument, readBytes, sha256Of, titleOfName } from "./files.js"
+import { type FoundFile, type ReadDocument, readBytes, sha256Of, titleOfName, unreadable } from "./files.js"
 
 export const AUDIO_EXTENSIONS = new Set([".wav", ".mp3", ".m4a", ".ogg", ".oga", ".opus", ".flac", ".aac", ".webm"])
 
@@ -103,7 +103,11 @@ export const hearAll = async (
       heard.set(file.path, { refused: `larger than ${AUDIO_BYTES / 1024 / 1024} MiB` })
       continue
     }
-    const bytes = await readBytes(file.path, file.stat.size)
+    const bytes = await readBytes(file.path, file.stat.size).catch((error: unknown) => unreadable(error))
+    if (typeof bytes === "string") {
+      heard.set(file.path, { refused: bytes })
+      continue
+    }
     const sha256 = sha256Of(bytes)
     const stored = await store.records.get({ provider, account, type, externalId: idOfPath(file.relative) })
     const fields = stored?.deletedAt === null ? (stored.fields as Partial<ReadDocument>) : undefined
@@ -116,7 +120,16 @@ export const hearAll = async (
       heard.set(file.path, { refused: "a dry run does not transcribe; the import hears it" })
       continue
     }
-    const { pieces, model, seconds } = await hear(bytes, env)
+    let result: Heard
+    try {
+      result = await hear(bytes, env)
+    } catch (error) {
+      // A missing model stops the whole import; one bad recording is only that recording's problem.
+      if (isCliError(error) && error.details.reason === "model.not-downloaded") throw error
+      heard.set(file.path, { refused: `could not be heard: ${error instanceof Error ? error.message : String(error)}` })
+      continue
+    }
+    const { pieces, model, seconds } = result
     const text = timedText(pieces)
     if (!text) {
       heard.set(file.path, { refused: "no speech was heard in it" })

@@ -11,7 +11,16 @@ import { receiptText } from "../records/import.js"
 import { importRecords, type Receipt } from "../records/input.js"
 import { sourceOf } from "../records/mapping.js"
 import { type Hear, hearAll, hearLocally } from "./audio.js"
-import { DOCUMENT_TYPE, documentFields, documentRecord, MOST_FILES, type Skipped, TooMany, walk } from "./files.js"
+import {
+  DOCUMENT_TYPE,
+  documentFields,
+  documentRecord,
+  MOST_FILES,
+  type Skipped,
+  TooMany,
+  unreadable,
+  walk,
+} from "./files.js"
 import { RECORDS_FILES, readerOf } from "./readers.js"
 
 const errnoOf = (error: unknown) =>
@@ -107,7 +116,7 @@ const folderImport = async (
         skipped.push({ path: file.relative, reason: reader })
         continue
       }
-      const read = await reader(file)
+      const read = await reader(file).catch((error: unknown) => ({ refused: unreadable(error) }))
       if ("refused" in read) {
         skipped.push({ path: file.relative, reason: read.refused })
         continue
