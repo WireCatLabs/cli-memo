@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
 import { configPath, loadConfig } from "../config.js"
 import { createProgram } from "../program.js"
-import { attachFolder, bindFolder, detectFormat, folderPaths, noteFolders } from "./folders.js"
+import { attachFolder, bindFolder, detectFormat, folderPaths, noteFolders, overlapping } from "./folders.js"
 
 let root: string
 let env: NodeJS.ProcessEnv
@@ -153,6 +153,22 @@ describe("memo folders", () => {
     symlinkSync(join(root, "vault", "Daily"), join(root, "daily-link"))
     await expect(run("folders", "add", join(root, "daily-link"))).rejects.toThrow(/inside or around/)
     expect(await run("folders", "add", join(root, "plain"))).toMatch(/^\d+$/)
+  })
+
+  it("compares folders without case on macOS and Windows, whose disks ignore it", () => {
+    const vault = [{ id: "a", path: join(root, "Vault"), format: "obsidian" as const }]
+    const on = (platform: NodeJS.Platform, path: string) => {
+      const before = Object.getOwnPropertyDescriptor(process, "platform") as PropertyDescriptor
+      Object.defineProperty(process, "platform", { ...before, value: platform })
+      try {
+        return overlapping(vault, path)
+      } finally {
+        Object.defineProperty(process, "platform", before)
+      }
+    }
+    expect(on("linux", join(root, "vault", "Daily"))).toEqual([])
+    expect(on("darwin", join(root, "vault", "Daily"))).toEqual(vault)
+    expect(on("win32", join(root, "VAULT", "Daily"))).toEqual(vault)
   })
 
   it("refuses a path that is not a folder", async () => {
