@@ -6131,6 +6131,49 @@ memo models local-only set <state> [options]
 
 **Example:** `memo models local-only set on`, `memo models local-only set off`
 
+### `memo models chats`
+
+whether chat text may go to a model off this computer: allowed, ask or denied
+
+#### `memo models chats show`
+
+whether chat text may go to a model outside this computer, and since when
+
+```sh
+memo models chats show [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** chat sending — mode, meaning, since, changed; every field: memo commands info models chats show
+
+**Example:** `memo models chats show`
+
+#### `memo models chats set`
+
+allowed: no yes needed; ask: --yes needed, an agent may pass it; denied: refused even with --yes. Only you make it less strict
+
+This command changes the local store or your files.
+
+```sh
+memo models chats set <mode> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `mode` | required | allowed, ask or denied. |
+
+| Option | What it does |
+|---|---|
+| `--from-app` | you did this in WireCat Desktop. |
+| `--json` | print JSON. |
+
+**Returns:** chat sending — mode, meaning, since, changed; every field: memo commands info models chats set
+
+**Example:** `memo models chats set allowed`, `memo models chats set ask`, `memo models chats set denied`
+
 ### `memo models picture-reading`
 
 let your coding agent read the text of a picture you choose: never (the default) or on request
@@ -6474,7 +6517,7 @@ memo search meetings <query> [options]
 | `--source <accounts>` | the meeting account: provider:account (zoom:me@example.com), or a provider that has one. |
 | `--json` | print the standard JSON answer. |
 
-**Returns:** meeting hit — ref, meeting, scope, id, excerpt, offset_ms, language, line, and 5 more; every field: memo commands info search meetings
+**Returns:** meeting hit — ref, meeting, scope, id, excerpt, offset_ms, language, line, and 8 more; every field: memo commands info search meetings
 
 **Next usually:** `memo meetings show <meeting>`
 
