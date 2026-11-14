@@ -23,6 +23,12 @@ Use memo CLI to add my notes folder at /path/to/notes and import it.
 Tell me how many notes it found and which files it could not read.
 ```
 
+**Or use WireCat Desktop.** On the Tools page, click **Manage** on Memo's row. The card **Set up your notes** lists
+the vaults Obsidian already knows, each with **Connect**, and has **Connect an Obsidian vault…** and
+**Choose a folder…** for any other folder. It picks the format for you: `obsidian` for a folder in a vault (one with
+Obsidian's `.obsidian` folder), `markdown` for any other. See
+[Set up your notes](https://wirecat.dev/en/docs/desktop/ai-model#set-up-your-notes).
+
 **Or run the commands yourself.** Replace `/path/to/notes` with the full path of your folder.
 
 For a folder of ordinary Markdown files:
