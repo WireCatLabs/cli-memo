@@ -35,7 +35,7 @@ JSON is fixed by hand at the line and column `memo doctor` names.
 
 | Key | Meaning |
 |---|---|
-| `folders` | Your note folders. Each has the `id` the local store gave it, its `path` on this computer and its `format`: `obsidian` (the default) or `markdown`. `memo folders add` writes an entry; an entry with no `id` is refused by import. See [Markdown or Obsidian](notes.md#markdown-or-obsidian). |
+| `folders` | Your note folders. Each has the `id` the local store gave it, its `path` on this computer and its `format`: `obsidian` or `markdown`, picked by `memo folders add` when you give no `--format`. `memo folders add` writes an entry; an entry with no `id` is refused by import. See [Markdown or Obsidian](notes.md#markdown-or-obsidian). |
 | `ignore` | Files and folders that import skips: a path inside the folder, a folder, or a pattern such as `**/Private*`. `--ignore` adds rules for one run. |
 | `embed` | `false` keeps notes out of search by meaning. |
 | `export` | `dir` and `format` for `memo notes export` and `--export` when you give no folder. |

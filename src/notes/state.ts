@@ -13,6 +13,8 @@ export interface FolderState {
   documents: Record<string, unknown>
   /** Files that could not be read, so an untouched one is still reported on the next run. */
   notRead?: Record<string, { status: string; engine?: string }>
+  /** The format the text notes were last parsed in; absent in a state file older than it. */
+  format?: string
 }
 
 const empty = (): FolderState => ({ files: {}, documents: {} })
@@ -34,6 +36,16 @@ export const saveFolderState = (env: NodeJS.ProcessEnv, id: string, state: Folde
   mkdirSync(join(file, ".."), { recursive: true })
   writeFileSync(`${file}.tmp`, JSON.stringify(state))
   renameSync(`${file}.tmp`, file)
+}
+
+/**
+ * After the folder's format changed: the next import parses every text note again, so tags and links read in the old
+ * format are replaced. A state file that already names its format needs nothing; one without it gets the old one.
+ */
+export const formatChanged = (env: NodeJS.ProcessEnv, id: string, previous: string): void => {
+  const state = loadFolderState(env, id)
+  if (state?.format !== undefined) return
+  saveFolderState(env, id, { ...(state ?? empty()), format: previous })
 }
 
 /** Forgets what this computer saw of the folder, so a folder added again is read in full. */

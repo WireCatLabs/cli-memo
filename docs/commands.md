@@ -527,7 +527,7 @@ memo folders add <path> [options]
 
 | Option | What it does |
 |---|---|
-| `--format <format>` | how its notes are written: obsidian, markdown (default: obsidian). |
+| `--format <format>` | how its notes are written: obsidian, markdown (default for a new folder: obsidian in an Obsidian vault, one with a .obsidian folder in it or above it, markdown otherwise). |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Example:** `memo folders add ~/notes`

@@ -35,6 +35,7 @@ beforeEach(async () => {
     mkdirSync(join(vault, path, ".."), { recursive: true })
     writeFileSync(join(vault, path), text)
   }
+  mkdirSync(join(vault, ".obsidian"))
   await run("folders", "add", vault)
   await run("sync", "--only", "notes")
 })

@@ -1,4 +1,5 @@
-import { resolve } from "node:path"
+import { realpathSync, statSync } from "node:fs"
+import { dirname, join, resolve, sep } from "node:path"
 import { CliError } from "@wirecat/cli-base"
 import type { Config } from "../config.js"
 import type { DialectName } from "./dialects/index.js"
@@ -80,3 +81,41 @@ export const unbindFolder = (config: Config, path: string): Config =>
     config,
     noteFolders(config.notes).filter((folder) => folder.path !== resolve(path)),
   )
+
+/** The folder with every link followed, or as written when it cannot be resolved. */
+const real = (path: string): string => {
+  try {
+    return realpathSync(path)
+  } catch {
+    return resolve(path)
+  }
+}
+
+/**
+ * The format a folder is written in when no one said: `obsidian` when it or a folder above it has Obsidian's own
+ * `.obsidian` folder, so it is a vault or inside one, `markdown` otherwise. WireCat Desktop picks the same way. The
+ * folders above are those of its real path, so a link to a folder inside a vault reads as the vault's. A `.obsidian`
+ * in the home folder makes every folder under it a vault's, as Obsidian itself would see it.
+ */
+export const detectFormat = (path: string): DialectName => {
+  for (let at = real(path); ; at = dirname(at)) {
+    try {
+      if (statSync(join(at, ".obsidian")).isDirectory()) return "obsidian"
+    } catch {}
+    if (dirname(at) === at) return "markdown"
+  }
+}
+
+const inside = (child: string, parent: string) => child.startsWith(parent.endsWith(sep) ? parent : `${parent}${sep}`)
+
+/**
+ * The folders memo reads that `path` is inside of or holds, compared by real path: one file read under both would be
+ * two notes with their own tags and links.
+ */
+export const overlapping = (folders: NoteFolder[], path: string): NoteFolder[] => {
+  const at = real(path)
+  return folders.filter((folder) => {
+    const other = real(folder.path)
+    return other !== at && (inside(at, other) || inside(other, at))
+  })
+}

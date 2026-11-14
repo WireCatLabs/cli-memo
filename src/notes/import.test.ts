@@ -74,6 +74,7 @@ beforeEach(async () => {
   write("Projects/Lighthouse.md", "Kickoff with [[Rin Example]] and [[Kai Sample]].\nBudget is open. #work\n")
   write("Projects/Harbour.md", "Harbour plan, with [[Kai Sample]].\n")
   write("Psychology/Private Notes.md", "lighthouse dreams\n")
+  mkdirSync(join(vault, ".obsidian"))
   await run("folders", "add", vault)
 })
 
@@ -250,6 +251,61 @@ describe("memo sync --only notes", () => {
     await run("sync", "--only", "notes")
 
     expect((await json("search", "notes", "budget", "--filter", "tag:work")).items).toEqual([])
+  })
+
+  it("parses every note again after the folder's format changes, so a #word read as a tag is dropped", async () => {
+    const tagged = async () => (await json("search", "notes", "budget", "--filter", "tag:work")).items
+    await run("sync", "--only", "notes")
+    expect(await tagged()).toHaveLength(1)
+
+    expect(await json("folders", "add", vault, "--format", "markdown")).toMatchObject({
+      format: "markdown",
+      format_from: "option",
+    })
+    await run("sync", "--only", "notes")
+    expect(await tagged()).toEqual([])
+
+    await run("sync", "--only", "notes")
+    expect(await tagged()).toEqual([])
+    const id = (await json("folders", "list")).items[0].id
+    await run("folders", "update", id, vault, "--format", "obsidian")
+    await run("sync", "--only", "notes")
+    expect(await tagged()).toHaveLength(1)
+  })
+
+  it("parses the notes again after a format change even when the state file predates formats", async () => {
+    await run("sync", "--only", "notes")
+    const id = (await json("folders", "list")).items[0].id
+    const stateFile = join(root, "state", "folders", `${id}.json`)
+    const { format: _, ...older } = JSON.parse(readFileSync(stateFile, "utf8"))
+    writeFileSync(stateFile, JSON.stringify(older))
+
+    await run("folders", "add", vault, "--format", "markdown")
+    await run("sync", "--only", "notes")
+    expect((await json("search", "notes", "budget", "--filter", "tag:work")).items).toEqual([])
+  })
+
+  it("a folders update that changes the format reads the notes again, also with a state file that predates formats", async () => {
+    await run("sync", "--only", "notes")
+    const id = (await json("folders", "list")).items[0].id
+    const stateFile = join(root, "state", "folders", `${id}.json`)
+    const { format: _, ...older } = JSON.parse(readFileSync(stateFile, "utf8"))
+    writeFileSync(stateFile, JSON.stringify(older))
+
+    await run("folders", "update", id, vault, "--format", "markdown")
+    await run("sync", "--only", "notes")
+    expect((await json("search", "notes", "budget", "--filter", "tag:work")).items).toEqual([])
+  })
+
+  it("a file skipped after a format change that was never stored does not make every later sync read all again", async () => {
+    await run("sync", "--only", "notes")
+    const id = (await json("folders", "list")).items[0].id
+    write("Drafts/New.md", "A new draft. #idea\n")
+    await run("folders", "add", vault, "--format", "markdown")
+    await run("sync", "--only", "notes", "--ignore", "Drafts")
+
+    const state = JSON.parse(readFileSync(join(root, "state", "folders", `${id}.json`), "utf8"))
+    expect(state.format).toBe("markdown")
   })
 
   it("keeps a tag the owner added when the file stops stating it", async () => {

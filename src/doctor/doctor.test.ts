@@ -57,6 +57,24 @@ describe("memo doctor", () => {
     expect(report.meta.run_id).toEqual(expect.any(String))
   })
 
+  it("names two notes folders that overlap", async () => {
+    mkdirSync(join(dir, "notes", "Work"), { recursive: true })
+    updateConfig(
+      () => ({
+        notes: {
+          folders: [
+            { id: "1", path: join(dir, "notes") },
+            { id: "2", path: join(dir, "notes", "Work") },
+          ],
+        },
+      }),
+      env,
+    )
+    expect(await doctor()).toContain(
+      `! the notes folders ${join(dir, "notes")} and ${join(dir, "notes", "Work")} overlap, so the files they share are read twice`,
+    )
+  })
+
   it("names each problem with the command that fixes it, and exits 1", async () => {
     updateConfig(
       () => ({

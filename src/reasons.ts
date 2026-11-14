@@ -163,6 +163,12 @@ export const REASONS: ErrorReason[] = defineReasons([
   },
   { reason: "folder.not-found", code: "not_found", message: "the store has no such folder of notes", details: [] },
   {
+    reason: "folder.overlap",
+    code: "validation_error",
+    message: "{path} is inside or around {other}, which memo already reads; remove one of them first",
+    details: ["path", "other"],
+  },
+  {
     reason: "folder.delete-notes",
     code: "confirmation_required",
     message: "removing the folder deletes {notes} of its notes from the store; nothing was changed — add --yes",

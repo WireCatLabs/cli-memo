@@ -23,7 +23,7 @@ import { APP } from "../app.js"
 import { inspectConfig } from "../config.js"
 import { SHELL_OVERRIDES } from "../contract-overrides.js"
 import { setExitCode } from "../exit-code.js"
-import { noteFolders } from "../notes/folders.js"
+import { noteFolders, overlapping } from "../notes/folders.js"
 import { autoState, lastAutoRun } from "../run/auto.js"
 import { installer, latest } from "../update.js"
 import { VERSION } from "../version.js"
@@ -72,6 +72,13 @@ export const diagnose = async (env: NodeJS.ProcessEnv, program: Command, { deep 
     exists: existsSync(path),
     bound: id !== null,
   }))
+  const configured = noteFolders(config.notes)
+  for (const [index, folder] of configured.entries())
+    for (const other of overlapping(configured.slice(index + 1), folder.path))
+      problems.push({
+        what: `the notes folders ${folder.path} and ${other.path} overlap, so the files they share are read twice`,
+        fix: `memo folders remove "${other.path}" (or the other one)`,
+      })
   for (const folder of folders) {
     if (!folder.exists)
       problems.push({
