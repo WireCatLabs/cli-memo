@@ -187,18 +187,6 @@ export const meetings: readonly SharedContractOverride[] = [
     field: "options",
     before: [
       {
-        flags: "--json",
-        description: "one JSON value",
-        takes_value: false,
-        mandatory: false,
-      },
-      {
-        flags: "--jsonl",
-        description: "one JSON object per item",
-        takes_value: false,
-        mandatory: false,
-      },
-      {
         flags: "--backend <archive|server|both>",
         description:
           "where to read: the store (archive), the service (server), or both, kept in the store (default: both)",
@@ -207,17 +195,15 @@ export const meetings: readonly SharedContractOverride[] = [
       },
       {
         flags: "--limit <n>",
-        description: "meetings per page",
+        description: "meetings per page; the profile's defaults.limit when absent",
         takes_value: true,
         mandatory: false,
-        default: 100,
       },
       {
         flags: "--page <n>",
-        description: "page number",
+        description: "which page, starting at 1",
         takes_value: true,
         mandatory: false,
-        default: 1,
       },
     ],
     after: [
@@ -321,18 +307,6 @@ export const meetings: readonly SharedContractOverride[] = [
     command: ["meetings", "show"],
     field: "options",
     before: [
-      {
-        flags: "--json",
-        description: "one JSON value",
-        takes_value: false,
-        mandatory: false,
-      },
-      {
-        flags: "--jsonl",
-        description: "one JSON object per item",
-        takes_value: false,
-        mandatory: false,
-      },
       {
         flags: "--backend <archive|server|both>",
         description:

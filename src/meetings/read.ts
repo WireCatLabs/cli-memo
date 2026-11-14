@@ -20,9 +20,10 @@ export const searchStoredMeetings = async (
 ) => {
   const { key, held } = await account(store, env, source)
   const found = await searchMeetingHits(store, query, { ...request, accountId: held.id })
-  const body = meetingHitsList(found, request.limit ?? 100, "search meetings", {
+  const limit = request.limit as number
+  const body = meetingHitsList(found, limit, "search meetings", {
     ...args,
-    limit: request.limit ?? 100,
+    limit,
     source: accountName(key),
   })
   return {

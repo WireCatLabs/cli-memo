@@ -262,4 +262,5 @@ it("uses the shared meeting selectors with explicit source scope", async () => {
   expect(page.items.every((item: { ref: string }) => item.ref.includes(String(f.saved.meeting.id)))).toBe(true)
   const absent = await cli(f.env, ["search", "meetings", "Ship tag:review", "--source", f.source])
   expect(absent.items).toEqual([])
+  expect(absent.page.limit).toBe(20)
 })
