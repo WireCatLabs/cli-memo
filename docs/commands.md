@@ -1490,8 +1490,8 @@ memo tasks update <task> [options]
 | `--parent <id>` | parent task in the same project; none clears it. |
 | `--title <title>` | one line: the action and its object — send Alex the API token. |
 | `--description <text>` | the detail, in Markdown; none clears it. |
-| `--due <time>` | when it must be done: an ISO 8601 time or 2h, 3d from now; none clears it. |
-| `--remind-time <time>` | when to look at it again: an ISO 8601 time or 2h, 3d from now; none clears it. |
+| `--due <time>` | when it must be done: an ISO 8601 time, a date (its end), today, or 2h, 3d from now; none clears it. |
+| `--remind-time <time>` | when to look at it again: an ISO 8601 time, a date (its start), today, or 2h, 3d from now; none clears it. |
 | `--assignee <person...>` | who does it: sender (whoever sent the task's message) or person:<id>; none clears it. Leave it out when unsure: a task with no assignee is better than none. |
 | `--account <account>` | the account it acts as: telegram:<account>, email:<account>, notes:<id>. |
 | `--json` | print JSON. |
@@ -5301,12 +5301,12 @@ memo meetings prepare <series-id> [options]
 |---|---|
 | `--context-source <id=cursor>` | one stored app.profile or email.mailbox, optionally =cursor; repeat (tg.personal). Default: ``. |
 | `--context-query <words>` | literal words to find within the selected communications. |
-| `--context-since-time <time>` | communications window start as zoned ISO timestamp (default fourteen days before end). |
-| `--context-before-time <time>` | exclusive communications end as zoned ISO timestamp (default preparation start). |
+| `--context-since-time <time>` | communications window start, an ISO date or time or 7d ago (default fourteen days before end). |
+| `--context-before-time <time>` | exclusive communications end, an ISO date or time (default preparation start). |
 | `--project <project>` | include unconfirmed word evidence for one existing project name, key or alias. |
-| `--since-time <time>` | window start as ISO timestamp with zone (default now). |
-| `--before-time <time>` | exclusive window end as ISO timestamp (default seven days after start). |
-| `--history-since-time <time>` | history start as ISO timestamp (default thirty days before start). |
+| `--since-time <time>` | window start, an ISO date or time, local without a zone (default now). |
+| `--before-time <time>` | exclusive window end, an ISO date or time; a date alone covers that day (default seven days after start). |
+| `--history-since-time <time>` | history start, an ISO date or time or 30d ago (default thirty days before start). |
 | `--meetings <n>` | prior occurrences and separate related-meeting limit, 1–20 (default 5). |
 | `--cues <n>` | cues per occurrence, 1–100 (default 10). |
 | `--context-limit <n>` | entries per context category, 1–100 (default 20). |
@@ -6468,7 +6468,7 @@ memo search meetings <query> [options]
 | `--topic-name <name>` | meetings with this topic, by name or alias. |
 | `--since-time <time>` | meetings starting at or after this ISO 8601 date or time, or 30m, 2h, 7d ago. |
 | `--until-time <time>` | meetings starting at or before this ISO 8601 date or time; a date alone covers that whole local day. |
-| `--limit <n>` | how many hits, 1 through 1000 (default 100). |
+| `--limit <n>` | how many hits, 1 through 1000; the profile's defaults.limit when absent. |
 | `--cursor <cursor>` | continue from the previous page's page.next_cursor, with the same query and filters. |
 | `--max-read-bytes <bytes>` | most stored bytes to read, 1 through 67108864 (default 4194304). |
 | `--source <accounts>` | the meeting account: provider:account (zoom:me@example.com), or a provider that has one. |
@@ -7496,8 +7496,8 @@ memo runs list [query] [options]
 
 | Option | What it does |
 |---|---|
-| `--limit <n>` | how many to show. Default: `20`. |
-| `--page <n>` | which page, starting at 1. Default: `1`. |
+| `--limit <n>` | how many to show. |
+| `--page <n>` | which page, starting at 1. |
 | `--json` | print JSON. |
 
 **Returns:** run — run_id, command, started_at, status, cli_version, profile, completed_at, requests, and 23 more; every field: memo commands info runs list
