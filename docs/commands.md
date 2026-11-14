@@ -6466,7 +6466,7 @@ memo search meetings <query> [options]
 | `--series-id <id>` | only meetings in this stored series. |
 | `--project <project>` | meetings confirmed in this project, by name, key or alias. |
 | `--topic-name <name>` | meetings with this topic, by name or alias. |
-| `--since-time <time>` | meetings starting at or after this ISO 8601 date or time. |
+| `--since-time <time>` | meetings starting at or after this ISO 8601 date or time, or 30m, 2h, 7d ago. |
 | `--until-time <time>` | meetings starting at or before this ISO 8601 date or time; a date alone covers that whole local day. |
 | `--limit <n>` | how many hits, 1 through 1000 (default 100). |
 | `--cursor <cursor>` | continue from the previous page's page.next_cursor, with the same query and filters. |
