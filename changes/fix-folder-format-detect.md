@@ -4,7 +4,11 @@
   `.obsidian` folder in it or above it is `obsidian`, any other folder `markdown`; before, every folder was
   `obsidian`, so a `#word` in plain Markdown became a tag. The `--json` answer names where the format came from
   (`format_from`: `detected`, `option` or `saved`). `--format` still wins, and a folder memo already knows keeps
-  its format. See [Add a folder](../docs/notes.md#add-a-folder).
+  its format. A bare path written before folder ids counts as never chosen, so it is detected too.
+  See [Add a folder](../docs/notes.md#add-a-folder).
+- **`memo folders add` refuses a folder inside or around one memo already reads.** Each file under both would be
+  two notes. The `validation_error` names both folders, with reason `folder.overlap`; `memo doctor` reports such a
+  pair in an existing config. See [Add a folder](../docs/notes.md#add-a-folder).
 
 ### Fixed
 

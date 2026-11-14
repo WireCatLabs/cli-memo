@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readFileSync, symlinkSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
@@ -116,7 +116,6 @@ describe("memo folders", () => {
     mkdirSync(join(root, "vault", "Daily"))
     const add = async (...args: string[]) => answerOf(await run("folders", "add", ...args, "--json"))
     expect(await add(join(root, "vault"))).toMatchObject({ format: "obsidian", format_from: "detected" })
-    expect(await add(join(root, "vault", "Daily"))).toMatchObject({ format: "obsidian", format_from: "detected" })
     expect(await add(join(root, "plain"))).toMatchObject({ format: "markdown", format_from: "detected" })
     expect(await add(join(root, "moved"), "--format", "obsidian")).toMatchObject({
       format: "obsidian",
@@ -124,6 +123,36 @@ describe("memo folders", () => {
     })
     expect(await add(join(root, "plain"))).toMatchObject({ format: "markdown", format_from: "saved", created: false })
     expect(detectFormat(join(root, "plain"))).toBe("markdown")
+    expect(detectFormat(join(root, "vault", "Daily"))).toBe("obsidian")
+  })
+
+  it("reads a link to a folder inside a vault as the vault's, and a .obsidian in the home folder as a vault", () => {
+    mkdirSync(join(root, "vault", "Daily"))
+    symlinkSync(join(root, "vault", "Daily"), join(root, "daily-link"))
+    expect(detectFormat(join(root, "daily-link"))).toBe("obsidian")
+    mkdirSync(join(root, "home", ".obsidian"), { recursive: true })
+    mkdirSync(join(root, "home", "Notes"))
+    expect(detectFormat(join(root, "home", "Notes"))).toBe("obsidian")
+  })
+
+  it("detects the format of a bare path written before folder ids, which never chose one", async () => {
+    writeConfig({ notes: { folders: [join(root, "plain")] } })
+    expect(answerOf(await run("folders", "add", join(root, "plain"), "--json"))).toMatchObject({
+      format: "markdown",
+      format_from: "detected",
+    })
+  })
+
+  it("refuses a folder inside or around one memo already reads, naming both", async () => {
+    mkdirSync(join(root, "vault", "Daily"))
+    await run("folders", "add", join(root, "vault"))
+    await expect(run("folders", "add", join(root, "vault", "Daily"))).rejects.toThrow(
+      new RegExp(`inside or around ${join(root, "vault")}`),
+    )
+    await expect(run("folders", "add", root)).rejects.toThrow(/which memo already reads/)
+    symlinkSync(join(root, "vault", "Daily"), join(root, "daily-link"))
+    await expect(run("folders", "add", join(root, "daily-link"))).rejects.toThrow(/inside or around/)
+    expect(await run("folders", "add", join(root, "plain"))).toMatch(/^\d+$/)
   })
 
   it("refuses a path that is not a folder", async () => {

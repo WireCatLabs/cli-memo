@@ -10,7 +10,15 @@ import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { loadConfig, updateConfig } from "../config.js"
 import { withImportLock } from "../run/lock.js"
 import { DIALECTS, type DialectName } from "./dialects/index.js"
-import { attachFolder, bindFolder, detectFormat, type NoteFolder, noteFolders, unbindFolder } from "./folders.js"
+import {
+  attachFolder,
+  bindFolder,
+  detectFormat,
+  type NoteFolder,
+  noteFolders,
+  overlapping,
+  unbindFolder,
+} from "./folders.js"
 import { folderNotes } from "./import.js"
 import { dropFolderState, formatChanged } from "./state.js"
 
@@ -81,11 +89,24 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
           }
           return { ...folder, format_from: options.format ? "option" : "saved", created: false }
         }
-        const format = options.format ?? current?.format ?? detectFormat(at)
+        const clash = overlapping(
+          noteFolders(loadConfig(env).notes).filter((folder) => folder.path !== at),
+          at,
+        )[0]
+        if (clash)
+          throw new CliError(
+            "validation_error",
+            `${at} is inside or around ${clash.path}, which memo already reads — one file would be two notes; ` +
+              `remove one of them first (memo folders remove "${clash.path}")`,
+            { reason: "folder.overlap", path: at, other: clash.path },
+          )
+        // A bare path written before folder ids never chose a format; only an entry with an id saved one.
+        const saved = current?.id === null ? undefined : current?.format
+        const format = options.format ?? saved ?? detectFormat(at)
         const made = await store.notes.addFolder({ name: basename(at) || at, format })
         const folder = { id: made.id, path: at, format }
         updateConfig((config) => bindFolder(config, folder), env)
-        const from = options.format ? "option" : current ? "saved" : "detected"
+        const from = options.format ? "option" : saved ? "saved" : "detected"
         return { ...folder, format_from: from, created: true }
       })
       print(options.json, itemAnswer(answer), answer.id)

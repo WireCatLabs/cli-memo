@@ -58,7 +58,9 @@ second. It holds counts only, never a file name:
 
 `label` is the folder's ID.
 
-You can add more than one folder. `memo folders list` shows them all.
+You can add more than one folder. `memo folders list` shows them all. A folder inside or around one Memo already
+reads is refused (reason `folder.overlap`), because each shared file would be two notes. `memo doctor` names such
+a pair in an older config.
 
 ### Remove a folder
 

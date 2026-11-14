@@ -99,7 +99,7 @@ folder (on Linux and macOS the command is in its `bin` folder); add it to the PA
 Memo has no login and no setup step. Add a folder of notes, read it, and search it:
 
 ```sh
-memo folders add ~/Documents/Notes   # your notes folder; Obsidian format by default
+memo folders add ~/Documents/Notes   # your notes folder; Obsidian format when it is a vault
 memo sync --only notes                    # reads the notes, their links and tags
 memo search notes "budget"
 ```

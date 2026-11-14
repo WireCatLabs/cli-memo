@@ -49,7 +49,7 @@ You need Node.js 22.16+ or 24+ (not 23). memo is tested on Linux; macOS and Wind
 ```sh
 npm install -g @wirecat/cli-memo
 memo skill install --for all      # puts memo's skill where your agents read it
-memo folders add /path/to/notes   # your notes folder; Obsidian format by default
+memo folders add /path/to/notes   # your notes folder; Obsidian format when it is a vault
 memo sync --only notes                # reads the notes, their links and tags; run again after edits
 memo search notes "budget"
 ```

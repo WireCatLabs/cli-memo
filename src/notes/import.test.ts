@@ -285,6 +285,29 @@ describe("memo sync --only notes", () => {
     expect((await json("search", "notes", "budget", "--filter", "tag:work")).items).toEqual([])
   })
 
+  it("a folders update that changes the format reads the notes again, also with a state file that predates formats", async () => {
+    await run("sync", "--only", "notes")
+    const id = (await json("folders", "list")).items[0].id
+    const stateFile = join(root, "state", "folders", `${id}.json`)
+    const { format: _, ...older } = JSON.parse(readFileSync(stateFile, "utf8"))
+    writeFileSync(stateFile, JSON.stringify(older))
+
+    await run("folders", "update", id, vault, "--format", "markdown")
+    await run("sync", "--only", "notes")
+    expect((await json("search", "notes", "budget", "--filter", "tag:work")).items).toEqual([])
+  })
+
+  it("a file skipped after a format change that was never stored does not make every later sync read all again", async () => {
+    await run("sync", "--only", "notes")
+    const id = (await json("folders", "list")).items[0].id
+    write("Drafts/New.md", "A new draft. #idea\n")
+    await run("folders", "add", vault, "--format", "markdown")
+    await run("sync", "--only", "notes", "--ignore", "Drafts")
+
+    const state = JSON.parse(readFileSync(join(root, "state", "folders", `${id}.json`), "utf8"))
+    expect(state.format).toBe("markdown")
+  })
+
   it("keeps a tag the owner added when the file stops stating it", async () => {
     await run("sync", "--only", "notes")
     const ref = (await json("notes", "show", join(vault, "Projects/Lighthouse.md"))).ref

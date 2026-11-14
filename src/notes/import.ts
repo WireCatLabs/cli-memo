@@ -259,7 +259,7 @@ export const importNotes = async (
   for (const [id, note] of parsed) await store.notes.replaceFileTags((stored.get(id) as Note).id, storable(note.tags))
 
   // A note this run held back is still in the old format, so the next run parses it again.
-  const heldBack = [...held].some(reparse)
+  const heldBack = [...held].some((id) => reparse(id) && stored.has(id))
   saveFolderState(env, folder.id, { ...after, format: heldBack ? before?.format : folder.format })
 
   return {
