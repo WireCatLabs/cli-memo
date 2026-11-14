@@ -4,6 +4,35 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## 0.134.0 — 14.11.2026
+
+### Changed — may break callers
+
+- **Dates in list queries read the computer's zone, and a due date alone is the end of that day** (cli-core
+  0.661.0). `today` and a bare date in `memo tasks list` and the other list queries started in UTC, and now start
+  at local midnight, as search and the digest do. `memo tasks update --due 2026-11-20` sets the end of the 20th, so
+  the task is not overdue all that day.
+- **`memo folders add` picks a new folder's format when `--format` is not given.** A folder with Obsidian's own
+  `.obsidian` folder in it or above it is `obsidian`, any other folder `markdown`; before, every folder was
+  `obsidian`, so a `#word` in plain Markdown became a tag. The `--json` answer names where the format came from
+  (`format_from`: `detected`, `option` or `saved`). `--format` still wins, and a folder memo already knows keeps
+  its format. A bare path written before folder ids counts as never chosen, so it is detected too.
+  See [Add a folder](docs/notes.md#add-a-folder).
+- **`memo folders add` refuses a folder inside or around one memo already reads.** Each file under both would be
+  two notes. The `validation_error` names both folders, with reason `folder.overlap`; `memo doctor` reports such a
+  pair in an existing config. See [Add a folder](docs/notes.md#add-a-folder).
+
+### Fixed
+
+- **`memo documents show` says more text follows after emoji** (cli-core 0.661.0). `has_more` compared a length in
+  UTF-16 units with one in code points, so a part holding emoji could report no more text before the end, and
+  WireCat Desktop's "Show more" disappeared early. `text_offset`, `text_length`, `--cursor` and `--max-chars` all
+  count Unicode code points.
+- **Changing a folder's format reads its notes again.** After `memo folders add --format` or `memo folders update
+  --format` with another format, the next `memo sync --only notes` parses every note of that folder again, even
+  unchanged ones, so tags and links read in the old format are replaced. See
+  [Markdown or Obsidian](docs/notes.md#markdown-or-obsidian).
+
 ## 0.133.0 — 14.11.2026
 
 ### Added
