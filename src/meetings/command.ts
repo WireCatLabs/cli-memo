@@ -1,5 +1,5 @@
 import type { Streams } from "@wirecat/cli-base"
-import { overrideSharedContract } from "@wirecat/cli-core/cli"
+import { overrideSharedContract, pagingOf } from "@wirecat/cli-core/cli"
 import {
   createMeetingPassageCommand,
   createMeetingSearchCommand,
@@ -32,16 +32,18 @@ export const meetingReadCommands = (program: Command, streams: Streams, env: Nod
       output(command)
     },
   )
-  search.action(async (query: string, given: MeetingSearchFlags & SourceOptions & { json?: boolean }) => {
-    const input = meetingHitSearchRequest(query, given)
-    const result = await withStore(env, (store) =>
-      searchStoredMeetings(store, env, source(given), query, input, meetingSearchArguments(query, given), {
-        ...given,
-        timesReadIn: grammar.getOptionValue("timesReadIn"),
-      }),
-    )
-    print(given.json, result)
-  })
+  search.action(
+    async (query: string, given: MeetingSearchFlags & SourceOptions & { json?: boolean }, command: Command) => {
+      const input = meetingHitSearchRequest(query, given, pagingOf(command).limit)
+      const result = await withStore(env, (store) =>
+        searchStoredMeetings(store, env, source(given), query, input, meetingSearchArguments(query, given), {
+          ...given,
+          timesReadIn: grammar.getOptionValue("timesReadIn"),
+        }),
+      )
+      print(given.json, result)
+    },
+  )
   overrideSharedContract(
     createMeetingPassageCommand(program),
     "Memo passage reads an explicitly selected stored source and exposes command-local JSON output.",
