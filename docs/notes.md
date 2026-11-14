@@ -25,18 +25,18 @@ Tell me how many notes it found and which files it could not read.
 
 **Or run the commands yourself.** Replace `/path/to/notes` with the full path of your folder.
 
-For a folder of ordinary Markdown files:
-
 ```sh
-memo folders add /path/to/notes --format markdown
+memo folders add /path/to/notes
 memo sync --only notes --no-embed
 ```
 
-For an Obsidian vault:
+Memo picks the format for you. A folder is an Obsidian vault when it, or a folder above it, has Obsidian's own
+`.obsidian` folder: Memo reads it as `obsidian`. Any other folder is `markdown`. With `--json`, the answer has the
+`format` and `format_from`: `detected`, `option` when you gave `--format`, or `saved` for a folder Memo already knew.
+To choose yourself, add `--format`:
 
 ```sh
-memo folders add /path/to/vault --format obsidian
-memo sync --only notes --no-embed
+memo folders add /path/to/notes --format markdown
 ```
 
 `memo folders add` prints the folder's ID, for example `1`. `memo sync --only notes` reads the notes and
@@ -77,7 +77,7 @@ The store keeps the folder's ID, so `memo folders update` can connect it again.
 The format tells Memo how links and tags are written in your notes. You do not need Obsidian to use
 Memo, and Obsidian does not need to be open.
 
-| | `markdown` | `obsidian` (the default) |
+| | `markdown` | `obsidian` |
 |---|---|---|
 | Links to other notes | Markdown links to the file (below) | `[[Other note]]`, `[[Other note\|label]]`, also with `#heading` |
 | Tags | the `tags:` field at the top of the file | the `tags:` field and `#tags` in the text |
@@ -94,6 +94,9 @@ references, such as `[Kai](person:7)` or a bare `msg:telegram/1/77/42`.
 
 An **Obsidian vault** is a folder of Markdown notes that Obsidian opens as one workspace. Memo skips
 hidden folders such as `.obsidian`.
+
+To change a folder's format, add it again with `--format`, or use `memo folders update` with `--format`. The next
+`memo sync --only notes` reads every note of that folder again, so a `#word` read as a tag before is dropped.
 
 ### Files Memo can read
 

@@ -10,9 +10,9 @@ import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { loadConfig, updateConfig } from "../config.js"
 import { withImportLock } from "../run/lock.js"
 import { DIALECTS, type DialectName } from "./dialects/index.js"
-import { attachFolder, bindFolder, type NoteFolder, noteFolders, unbindFolder } from "./folders.js"
+import { attachFolder, bindFolder, detectFormat, type NoteFolder, noteFolders, unbindFolder } from "./folders.js"
 import { folderNotes } from "./import.js"
-import { dropFolderState } from "./state.js"
+import { dropFolderState, formatChanged } from "./state.js"
 
 const formatOf = (value: string): DialectName => {
   if (!(DIALECTS as readonly string[]).includes(value)) throw new InvalidArgumentError(`choose ${DIALECTS.join(", ")}`)
@@ -61,7 +61,12 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
   grantsAuthority(annotate(folders.command("add"), { effects: LOCAL_WRITE }))
     .description("give a folder of notes an id, or show the one it has")
     .argument("<path>", "the folder on this computer")
-    .option("--format <format>", `how its notes are written: ${DIALECTS.join(", ")} (default: obsidian)`, formatOf)
+    .option(
+      "--format <format>",
+      `how its notes are written: ${DIALECTS.join(", ")} (default for a new folder: obsidian in an Obsidian vault, ` +
+        "one with a .obsidian folder in it or above it, markdown otherwise)",
+      formatOf,
+    )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (path: string, options: { format?: DialectName; json?: boolean }) => {
       const at = directory(path)
@@ -70,14 +75,18 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
         const current = noteFolders(loadConfig(env).notes).find((folder) => folder.path === at)
         if (current?.id && known.has(current.id)) {
           const folder = { ...current, id: current.id, format: options.format ?? current.format }
-          if (folder.format !== current.format) updateConfig((config) => bindFolder(config, folder), env)
-          return { ...folder, created: false }
+          if (folder.format !== current.format) {
+            updateConfig((config) => bindFolder(config, folder), env)
+            formatChanged(env, folder.id, current.format)
+          }
+          return { ...folder, format_from: options.format ? "option" : "saved", created: false }
         }
-        const format = options.format ?? current?.format ?? "obsidian"
+        const format = options.format ?? current?.format ?? detectFormat(at)
         const made = await store.notes.addFolder({ name: basename(at) || at, format })
         const folder = { id: made.id, path: at, format }
         updateConfig((config) => bindFolder(config, folder), env)
-        return { ...folder, created: true }
+        const from = options.format ? "option" : current ? "saved" : "detected"
+        return { ...folder, format_from: from, created: true }
       })
       print(options.json, itemAnswer(answer), answer.id)
     })
@@ -101,12 +110,15 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
             "validation_error",
             `folder ${id} is Google Drive's (${stored.name}) — drive keeps it, and memo search already reads it`,
           )
+        const previous =
+          noteFolders(loadConfig(env).notes).find((candidate) => candidate.id === id)?.format ?? stored.format
         let bound: NoteFolder | undefined
         updateConfig((config) => {
           const result = attachFolder(config, id, at, options.format ?? stored.format)
           bound = result.folder
           return result.config
         }, env)
+        if (bound && bound.format !== previous) formatChanged(env, id, previous)
         return bound as NoteFolder
       })
       print(options.json, itemAnswer(folder), line(folder))

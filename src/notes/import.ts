@@ -95,6 +95,8 @@ export const importNotes = async (
     })
   const before = loadFolderState(env, folder.id)
   const after: FolderState = { files: {}, documents: { ...before?.documents }, notRead: {} }
+  // A folder whose format changed parses its text notes again even when their bytes did not change.
+  const reparse = (id: string) => before?.format !== undefined && before.format !== folder.format && TEXT_NOTE.test(id)
   const notReadNow = after.notRead as NonNullable<FolderState["notRead"]>
   const skipped = matcher(skip)
   const held = new Set<string>()
@@ -132,7 +134,7 @@ export const importNotes = async (
     // A missing reader may have been installed since, so that file is read again; so is an unstored file an older
     // state file did not mark as not read.
     const settled = stored.has(id) || (wasNotRead !== undefined && wasNotRead.status !== "engine-missing")
-    if (exported || (previous?.startsWith(stamp) && settled)) {
+    if (exported || (previous?.startsWith(stamp) && settled && !reparse(id))) {
       after.files[id] = previous as string
       if (wasNotRead) notReadAs(id, wasNotRead.status, wasNotRead.engine)
       continue
@@ -178,7 +180,7 @@ export const importNotes = async (
   let added = 0
   for (const [index, { id, path, bytes, hash }] of read.entries()) {
     onFile(files.length - read.length + index, files.length)
-    if (stored.get(id)?.contentHash === hash) continue
+    if (stored.get(id)?.contentHash === hash && !reparse(id)) continue
     const extraction = await extractText(bytes, { kind: "file", name: basename(path), mime: null, path }, loadEngine)
     if (extraction.status !== "extracted") {
       notReadAs(id, extraction.status, "engine" in extraction ? extraction.engine : undefined)
@@ -256,7 +258,9 @@ export const importNotes = async (
 
   for (const [id, note] of parsed) await store.notes.replaceFileTags((stored.get(id) as Note).id, storable(note.tags))
 
-  saveFolderState(env, folder.id, after)
+  // A note this run held back is still in the old format, so the next run parses it again.
+  const heldBack = [...held].some(reparse)
+  saveFolderState(env, folder.id, { ...after, format: heldBack ? before?.format : folder.format })
 
   return {
     folder: folder.path,

@@ -187,8 +187,9 @@ More: [technical docs](#technical-docs) · [memo on wirecat.dev](https://wirecat
 on this computer, so the same folder on another computer is attached with `memo folders update <id> <path>`.
 `memo sync --only notes` stores each file as a note named by its path. An edited file keeps its old text as a
 revision; a moved file keeps its id, links and tags; a deleted file loses its text on the next import. The
-`obsidian` format (the default) reads `[[Note|label]]` links, aliases, `tags:` and `#tags`; `markdown` reads
-`[label](path.md)` links and `tags:`. A `[[Kai Sample]]` link becomes a link to a person once someone by that
+`obsidian` format reads `[[Note|label]]` links, aliases, `tags:` and `#tags`; `markdown` reads
+`[label](path.md)` links and `tags:`. Without `--format`, a new folder gets `obsidian` when it or a folder above it
+has a `.obsidian` folder, and `markdown` otherwise. A `[[Kai Sample]]` link becomes a link to a person once someone by that
 name is in the store. Hidden folders such as `.obsidian` are skipped.
 
 **Written in memo.** A note you write is the store's, not a file's, and is about whatever `--subject` names: a

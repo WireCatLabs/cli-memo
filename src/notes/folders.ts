@@ -1,4 +1,5 @@
-import { resolve } from "node:path"
+import { statSync } from "node:fs"
+import { dirname, join, resolve } from "node:path"
 import { CliError } from "@wirecat/cli-base"
 import type { Config } from "../config.js"
 import type { DialectName } from "./dialects/index.js"
@@ -80,3 +81,17 @@ export const unbindFolder = (config: Config, path: string): Config =>
     config,
     noteFolders(config.notes).filter((folder) => folder.path !== resolve(path)),
   )
+
+/**
+ * The format a folder is written in when no one said: `obsidian` when it or a folder above it has Obsidian's own
+ * `.obsidian` folder, so it is a vault or inside one, `markdown` otherwise. WireCat Desktop picks the same way.
+ * A `.obsidian` in the home folder makes every folder under it a vault's, as Obsidian itself would see it.
+ */
+export const detectFormat = (path: string): DialectName => {
+  for (let at = resolve(path); ; at = dirname(at)) {
+    try {
+      if (statSync(join(at, ".obsidian")).isDirectory()) return "obsidian"
+    } catch {}
+    if (dirname(at) === at) return "markdown"
+  }
+}

@@ -112,7 +112,7 @@ describe("memo context", () => {
     const uid = (await store.people.personOf({ provider: "telegram", id: "101" }))?.uid as string
     await store.close()
     writeFileSync(join(vault, "Call.md"), `Called [[person:${uid}]] about Friday.\nRin Example sounded busy.\n`)
-    await run("folders", "add", vault)
+    await run("folders", "add", vault, "--format", "obsidian")
     await run("sync", "--only", "notes")
     await run("notes", "links", "add", "telegram:101", join(vault, "People", "Rin Example.md"))
     await run("notes", "add", "Prefers mornings", "--subject", "email:rin@example.test")

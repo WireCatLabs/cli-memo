@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
 import { configPath, loadConfig } from "../config.js"
 import { createProgram } from "../program.js"
-import { attachFolder, bindFolder, folderPaths, noteFolders } from "./folders.js"
+import { attachFolder, bindFolder, detectFormat, folderPaths, noteFolders } from "./folders.js"
 
 let root: string
 let env: NodeJS.ProcessEnv
@@ -46,6 +46,7 @@ const writeConfig = (value: unknown) => {
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), "folders-"))
   for (const name of ["vault", "plain", "moved"]) mkdirSync(join(root, name))
+  mkdirSync(join(root, "vault", ".obsidian"))
   env = { ...process.env, MEMO_CONFIG_DIR: join(root, "config"), MESSAGING_STORE: join(root, "messages.db") }
 })
 
@@ -109,6 +110,20 @@ describe("memo folders", () => {
     expect(await run("folders", "list")).not.toContain("memo folders update")
     await expect(run("folders", "update", drive.id, join(root, "plain"))).rejects.toThrow(/drive keeps it/)
     expect(noteFolders(loadConfig(env).notes)).toEqual([])
+  })
+
+  it("picks obsidian for a vault or a folder inside one, markdown for any other, and --format over both", async () => {
+    mkdirSync(join(root, "vault", "Daily"))
+    const add = async (...args: string[]) => answerOf(await run("folders", "add", ...args, "--json"))
+    expect(await add(join(root, "vault"))).toMatchObject({ format: "obsidian", format_from: "detected" })
+    expect(await add(join(root, "vault", "Daily"))).toMatchObject({ format: "obsidian", format_from: "detected" })
+    expect(await add(join(root, "plain"))).toMatchObject({ format: "markdown", format_from: "detected" })
+    expect(await add(join(root, "moved"), "--format", "obsidian")).toMatchObject({
+      format: "obsidian",
+      format_from: "option",
+    })
+    expect(await add(join(root, "plain"))).toMatchObject({ format: "markdown", format_from: "saved", created: false })
+    expect(detectFormat(join(root, "plain"))).toBe("markdown")
   })
 
   it("refuses a path that is not a folder", async () => {
