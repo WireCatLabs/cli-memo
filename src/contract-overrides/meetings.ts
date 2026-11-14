@@ -5,7 +5,7 @@ const REASON =
 
 // Reviewed differences from Core; update only after reviewing both definitions. memo's list and show read every
 // account's meetings, calls and calendar events as one row per real meeting, for WireCat Desktop's Meetings page,
-// not one provider account's stored meetings as Core's do.
+// not one provider account's meetings as Core's do.
 export const meetings: readonly SharedContractOverride[] = [
   {
     command: ["meetings"],
@@ -34,8 +34,21 @@ export const meetings: readonly SharedContractOverride[] = [
   {
     command: ["meetings", "list"],
     field: "description",
-    before: "stored meetings, newest first",
+    before: "meetings, newest first: the service's and the stored ones, kept in the store",
     after: "meetings, calls and calendar events of every account as one row per real meeting, latest start first",
+    reason: REASON,
+  },
+  {
+    command: ["meetings", "list"],
+    field: "effects",
+    before: {
+      remote: "read",
+      local: "read",
+    },
+    after: {
+      remote: "none",
+      local: "read",
+    },
     reason: REASON,
   },
   {
@@ -61,6 +74,12 @@ export const meetings: readonly SharedContractOverride[] = [
           type: "kw",
           operators: ["term", "phrase", "wildcard"],
           example: "id:12",
+        },
+        {
+          name: "provider_id",
+          type: "kw",
+          operators: ["term", "phrase", "wildcard"],
+          example: "provider_id:85746065432",
         },
         {
           name: "title",
@@ -180,6 +199,13 @@ export const meetings: readonly SharedContractOverride[] = [
         mandatory: false,
       },
       {
+        flags: "--backend <archive|server|both>",
+        description:
+          "where to read: the store (archive), the service (server), or both, kept in the store (default: both)",
+        takes_value: true,
+        mandatory: false,
+      },
+      {
         flags: "--limit <n>",
         description: "meetings per page",
         takes_value: true,
@@ -233,17 +259,30 @@ export const meetings: readonly SharedContractOverride[] = [
     reason: REASON,
   },
   {
-    command: ["meetings", "list"],
-    field: "partial",
-    before: null,
-    after: true,
+    command: ["meetings", "show"],
+    field: "description",
+    before: "show a meeting, read again from the service with its people, transcript and documents",
+    after: "one meeting row: its people, transcript lines with times, summaries, findings, calendar text and documents",
     reason: REASON,
   },
   {
     command: ["meetings", "show"],
-    field: "description",
-    before: "show a stored meeting",
-    after: "one meeting row: its people, transcript lines with times, summaries, findings, calendar text and documents",
+    field: "effects",
+    before: {
+      remote: "read",
+      local: "read",
+    },
+    after: {
+      remote: "none",
+      local: "read",
+    },
+    reason: REASON,
+  },
+  {
+    command: ["meetings", "show"],
+    field: "partial",
+    before: true,
+    after: null,
     reason: REASON,
   },
   {
@@ -265,7 +304,7 @@ export const meetings: readonly SharedContractOverride[] = [
         name: "meeting",
         required: true,
         variadic: false,
-        description: "stored meeting id",
+        description: "the stored meeting's number, its meeting: ref, or the service's id (provider_id)",
       },
     ],
     after: [
@@ -292,6 +331,13 @@ export const meetings: readonly SharedContractOverride[] = [
         flags: "--jsonl",
         description: "one JSON object per item",
         takes_value: false,
+        mandatory: false,
+      },
+      {
+        flags: "--backend <archive|server|both>",
+        description:
+          "where to read: the store (archive), the service (server), or both, kept in the store (default: both)",
+        takes_value: true,
         mandatory: false,
       },
     ],
@@ -322,7 +368,7 @@ export const meetings: readonly SharedContractOverride[] = [
   {
     command: ["meetings", "show"],
     field: "summary",
-    before: null,
+    before: "show a meeting, read again from the service with its people, transcript and…",
     after: "one meeting with its transcript",
     reason: REASON,
   },
