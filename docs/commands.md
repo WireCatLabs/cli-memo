@@ -6079,7 +6079,7 @@ memo models ai revoke [options]
 
 send one short request (billed by the provider, usually under a cent) and say what is wrong
 
-This command changes the local store or your files.
+**Reads from an outside service.**
 
 ```sh
 memo models ai check [options]
