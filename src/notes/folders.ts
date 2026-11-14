@@ -106,6 +106,10 @@ export const detectFormat = (path: string): DialectName => {
   }
 }
 
+/** macOS and Windows disks ignore case by default, so `~/Notes` and `~/notes` there are one folder. */
+const comparable = (path: string) =>
+  process.platform === "darwin" || process.platform === "win32" ? real(path).toLowerCase() : real(path)
+
 const inside = (child: string, parent: string) => child.startsWith(parent.endsWith(sep) ? parent : `${parent}${sep}`)
 
 /**
@@ -113,9 +117,9 @@ const inside = (child: string, parent: string) => child.startsWith(parent.endsWi
  * two notes with their own tags and links.
  */
 export const overlapping = (folders: NoteFolder[], path: string): NoteFolder[] => {
-  const at = real(path)
+  const at = comparable(path)
   return folders.filter((folder) => {
-    const other = real(folder.path)
+    const other = comparable(folder.path)
     return other !== at && (inside(at, other) || inside(other, at))
   })
 }
