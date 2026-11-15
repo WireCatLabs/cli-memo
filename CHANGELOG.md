@@ -4,6 +4,15 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## 0.138.0 — 15.11.2026
+
+### Added
+
+- **A meeting carries its calendar page, the invitation answers, its series and its Drive files** (cli-core 0.665.0,
+  was 0.664.0). `meetings list` and `meetings show` give each calendar's link to the event (Google's `https` link),
+  your answer and the conference name, each participant's answer, how the meeting repeats, and the event's Drive
+  files. WireCat Desktop's meeting card uses them for "Open in Google Calendar".
+
 ## 0.137.0 — 15.11.2026
 
 ### Added
