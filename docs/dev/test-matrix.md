@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1535 ✅ · 2 ⛔ · 0 ❌** — 338 commands, 1199 options.
+**1540 ✅ · 2 ⛔ · 0 ❌** — 340 commands, 1202 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -1279,6 +1279,11 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `models local-only set` |  | ✅ |  |
 | `models local-only set` | `--from-app` | ✅ |  |
 | `models local-only set` | `--json` | ✅ |  |
+| `models chats show` |  | ✅ |  |
+| `models chats show` | `--json` | ✅ |  |
+| `models chats set` |  | ✅ |  |
+| `models chats set` | `--from-app` | ✅ |  |
+| `models chats set` | `--json` | ✅ |  |
 | `models picture-reading show` |  | ✅ |  |
 | `models picture-reading show` | `--json` | ✅ |  |
 | `models picture-reading set` |  | ✅ |  |
