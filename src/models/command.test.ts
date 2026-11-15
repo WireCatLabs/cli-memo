@@ -83,6 +83,16 @@ describe("the shared model settings memo mounts", () => {
     expect(await run(["models", "picture-reading", "show"])).toMatchObject({ mode: "request", agent: "claude" })
   })
 
+  it("asks before chat text goes to a model off this computer, and the owner changes that from the app", async () => {
+    expect(await run(["models", "chats", "show"])).toMatchObject({ mode: "ask", since: null })
+    expect(await run(["models", "chats", "set", "denied"])).toMatchObject({ mode: "denied", changed: true })
+    expect(await run(["models", "chats", "show"])).toMatchObject({ mode: "denied" })
+    expect(await run(["models", "chats", "set", "allowed", "--from-app"], { as: AGENT })).toMatchObject({
+      mode: "allowed",
+      changed: true,
+    })
+  })
+
   it("gives the enrichment and search model an address and a wait, and takes the consent back", async () => {
     const address = ["--model", "m", "--base-url", "https://models.example/v1"]
     expect(await run(["models", "consents", "set", "openai", ...address, "--yes"])).toMatchObject({
