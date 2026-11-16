@@ -42,13 +42,14 @@ import {
   SCOPES,
 } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
-import { answers, itemAnswer, listAnswer, wholeList, withStore } from "../answer.js"
+import { answers, itemAnswer, listAnswer, shortenedBy, wholeList, withStore } from "../answer.js"
 import { byOption, deciderOf, reasonOption, whoRuns } from "../author.js"
 import { notesAbout } from "../notes/about.js"
 import { oneOf, positive, readScope, writeScope } from "../options.js"
 import { withOwner } from "../people/owner.js"
 import { decideOne, decisionOf } from "../review/review.js"
 import { deniedCrmKinds } from "../search/denied.js"
+import { crmNotes, crmViewingAll } from "../store/crm-viewer.js"
 import { groupScopeOf, keepInGroup } from "../store/group.js"
 import { lockedCoverage, stripped } from "../store/guard.js"
 import {
@@ -210,22 +211,24 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .option("--limit <n>", "most items in each section", positive, 20)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (reference: string, options: { limit: number; json?: boolean }, command: Command) => {
-      const answer = await withStore(env, async (store) => {
+      const { answer, notes } = await withStore(env, async (store) => {
         const scope = await groupScopeOf(store, env)
         const found = await organizationContext(store, reference, {
           limit: options.limit,
           ...(scope === undefined ? {} : { accounts: scope.accounts }),
           deniedKinds: deniedCrmKinds(command, env),
+          viewing: await crmViewingAll(store),
         })
         const ref = found.organization.ref
-        return lockedCoverage(store, env, {
+        const answer = await lockedCoverage(store, env, {
           ...found,
           notes: await notesAbout(store, { ref }),
           tags: await store.knowledge.tags(null, { type: "organization", id: ref.slice("organization:".length) }),
           untrusted: ["history.items.title", "history.items.text"],
         })
+        return { answer, notes: crmNotes(store) }
       })
-      print(options.json, itemAnswer(answer), organizationText(answer))
+      print(options.json, shortenedBy(notes, itemAnswer(answer)), organizationText(answer))
     })
   const projects = program.command("projects").description("projects of yours, each with a short key")
   meetingProjectsCommand(projects, streams, env)
@@ -418,22 +421,26 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     .action(async (words: string[], options: { limit: number; page: number; json?: boolean }, command: Command) => {
       const found = await withStore(env, async (store) => {
         const scope = await groupScopeOf(store, env)
-        return listRelationships(store, env, words, {
+        const listed = await listRelationships(store, env, words, {
           limit: options.limit,
           page: options.page,
           ...(scope === undefined ? {} : { accounts: scope.accounts }),
           deniedKinds: deniedCrmKinds(command, env),
         })
+        return { ...listed, notes: crmNotes(store) }
       })
       print(
         options.json,
-        listAnswer("relationships list", {
-          items: found.items,
-          limit: found.limit,
-          has_more: found.hasMore,
-          page: found.page,
-          args: { query: words.join(" ") },
-        }),
+        shortenedBy(
+          found.notes,
+          listAnswer("relationships list", {
+            items: found.items,
+            limit: found.limit,
+            has_more: found.hasMore,
+            page: found.page,
+            args: { query: words.join(" ") },
+          }),
+        ),
         relationshipsText(found.items),
       )
     })

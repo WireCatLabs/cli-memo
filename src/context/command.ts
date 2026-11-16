@@ -3,7 +3,7 @@ import { annotate } from "@wirecat/cli-base/commands"
 import { LOCAL_READ } from "@wirecat/cli-core/cli"
 import type { ContextEvent, ContextMessage, Touch } from "@wirecat/cli-core/services"
 import type { Command } from "commander"
-import { answers, itemAnswer, timezone, withStore } from "../answer.js"
+import { answers, itemAnswer, shortenedBy, timezone, withStore } from "../answer.js"
 import { beforeOf, sinceOf } from "../digest/command.js"
 import { sectionLines } from "../knowledge/business-text.js"
 import { boundFolders } from "../notes/bound.js"
@@ -11,6 +11,7 @@ import { positive } from "../options.js"
 import { importNotesMap } from "../people/notes-map.js"
 import { atLeast, kindsText, waitingAbout } from "../review/status.js"
 import { deniedCrmKinds } from "../search/denied.js"
+import { crmNotes } from "../store/crm-viewer.js"
 import { lockedCoverage } from "../store/guard.js"
 import { contextAccountsOf, type MemoContext, memoContext, withOwnMailText } from "./context.js"
 
@@ -210,7 +211,7 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
         },
         command: Command,
       ) => {
-        const answer = await withStore(env, async (store) => {
+        const { answer, notes } = await withStore(env, async (store) => {
           await importNotesMap(store, env, await boundFolders(store, env, { strict: false }))
           const sources =
             options.source === undefined ? undefined : await contextAccountsOf(store, env, person, options.source)
@@ -223,12 +224,13 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
           })
           const { uid, identities } = found.messages.person
           const refs = [`person:${uid}`, ...identities.map(({ provider, id }) => `${provider}:${id}`)]
-          return lockedCoverage(store, env, {
+          const answer = await lockedCoverage(store, env, {
             ...(options.trimmed ? withOwnMailText(found) : found),
             proposals: { ...(await waitingAbout(store, env, refs)), next: { command: "review list" } },
           })
+          return { answer, notes: crmNotes(store) }
         })
-        print(options.json, itemAnswer(answer), contextText(answer))
+        print(options.json, shortenedBy(notes, itemAnswer(answer)), contextText(answer))
       },
     )
 }

@@ -22,7 +22,14 @@ import { collect, positive } from "../options.js"
 import { pageOf } from "../page.js"
 import { withSources } from "../records/sources.js"
 import { deniedCrmKinds } from "../search/denied.js"
-import { crmNotes, readableDeal, readablePipeline, readablePipelines, seenPage } from "../store/crm-viewer.js"
+import {
+  crmNotes,
+  crmViewingAll,
+  readableDeal,
+  readablePipeline,
+  readablePipelines,
+  seenPage,
+} from "../store/crm-viewer.js"
 import { type GroupScope, groupScopeOf } from "../store/group.js"
 import { lockedCoverage } from "../store/guard.js"
 import { canonicalProject } from "../vocabulary/project.js"
@@ -197,7 +204,6 @@ const itemCommands = (
     .action(async (ref: string, options: { brief?: boolean; limit: number; json?: boolean }, command: Command) => {
       const { answer, notes } = await withStore(env, async (store) => {
         const scope = await groupScopeOf(store, env)
-        await readableDeal(store, ref)
         const answer = await lockedCoverage(
           store,
           env,
@@ -205,6 +211,7 @@ const itemCommands = (
             limit: options.limit,
             ...(scope === undefined ? {} : { accounts: scope.accounts }),
             deniedKinds: deniedCrmKinds(command, env),
+            viewing: await crmViewingAll(store),
           }),
         )
         return { answer, notes: crmNotes(store) }

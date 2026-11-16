@@ -18,6 +18,7 @@ import {
 import type { AccountKey, Link, MessageStore, Note, PersonRecord, RelationListItem } from "@wirecat/cli-core/store"
 import { type NotesAbout, notesAbout } from "../notes/about.js"
 import { withOwner } from "../people/owner.js"
+import { crmViewersAll, crmViewingAll } from "../store/crm-viewer.js"
 import { groupScopeOf, inGroup, scopedAccounts } from "../store/group.js"
 import { selectAccount } from "../store/scope.js"
 import { accountsOf } from "../store/source-list.js"
@@ -145,6 +146,7 @@ export const memoContext = async (
   const window = { ...(since === undefined ? {} : { since }), ...(until === undefined ? {} : { until }) }
   const named = (await withOwner(store, reference)).trim()
   const scope = await groupScopeOf(store, env)
+  const viewing = await crmViewingAll(store)
   if (named.startsWith("person:")) {
     // Every account in scope that saw them, a CRM's and a name the owner added too, never one picked (WC-ACCT-9).
     const accounts = sources === undefined ? scope?.accounts : [...sources]
@@ -152,6 +154,7 @@ export const memoContext = async (
       messages: limit,
       limit,
       deniedKinds,
+      viewing,
       ...(accounts === undefined ? {} : { accounts }),
     })
     const same = (one: AccountKey) => (key: AccountKey) => key.provider === one.provider && key.account === one.account
@@ -190,14 +193,15 @@ export const memoContext = async (
     messages: limit,
     ...(calendarIds === undefined ? {} : { calendarIds }),
   })
-  // cli-core keeps a scope and denied kinds out of `business` in its canonical context only (`scopeOf` is internal).
+  // cli-core keeps a scope, denied kinds and the CRM copies' rules out of `business` in its canonical context only.
   const business =
-    scope === undefined && deniedKinds.length === 0
+    scope === undefined && deniedKinds.length === 0 && viewing.every(({ viewer, note }) => !viewer && !note)
       ? await personBusiness(store, messages.person.uid, { limit })
       : (
           await canonicalPersonContext(store, `person:${messages.person.uid}`, {
             ...(scope === undefined ? {} : { accounts: scope.accounts }),
             deniedKinds,
+            viewing,
             limit,
             messages: 1,
           })
@@ -270,6 +274,7 @@ const withNotesAndTasks = async (
     about: person,
     ...(scope === undefined ? {} : { accounts: scope }),
     ...(deniedKinds.length ? { deniedKinds: [...deniedKinds] } : {}),
+    viewers: await crmViewersAll(store),
     limit: 500,
   })
   // A file Google reports is listed under files; since cli-core 0.621.0 its link is `reported`, so it would repeat here.

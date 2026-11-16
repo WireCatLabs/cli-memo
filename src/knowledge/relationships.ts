@@ -4,6 +4,7 @@ import { byEngagement, RELATION_KINDS, type RelationKind, STANDINGS, type Standi
 import { queryTerms, termField } from "@wirecat/cli-core/cli"
 import type { AccountKey, MessageStore, Proposer } from "@wirecat/cli-core/store"
 import { labelsFor, proposerName } from "../review/review.js"
+import { crmViewersAll } from "../store/crm-viewer.js"
 import { guardOf } from "../store/guard.js"
 import { type DocumentContext, documentContext } from "./document-context.js"
 
@@ -69,6 +70,7 @@ export const listRelationships = async (
     ...(terms.get("include") === "ended" ? { includeEnded: true } : {}),
     ...(accounts === undefined ? {} : { accounts }),
     ...(deniedKinds?.length ? { deniedKinds } : {}),
+    viewers: await crmViewersAll(store),
     limit,
     page,
   })

@@ -28,6 +28,18 @@ export const crmViewing = async (store: MessageStore, key: AccountKey): Promise<
   return viewing
 }
 
+/** The CRM accounts the store holds. */
+const crmAccounts = async (store: MessageStore) =>
+  (await store.accounts.accounts()).filter((key) => kindIn(key.provider) === "crm")
+
+/** Every CRM copy's rule, as cli-core's contexts take it (`viewing`). */
+export const crmViewingAll = async (store: MessageStore): Promise<CrmViewing[]> =>
+  Promise.all((await crmAccounts(store)).map((key) => crmViewing(store, key)))
+
+/** The viewer of every limited CRM copy, as `listRelations` takes them. */
+export const crmViewersAll = async (store: MessageStore): Promise<CopyViewer[]> =>
+  crmViewers(store, await crmAccounts(store))
+
 /** The viewer of every limited copy among `keys`. */
 export const crmViewers = async (store: MessageStore, keys: readonly AccountKey[]): Promise<CopyViewer[]> =>
   (await Promise.all(keys.map(async (key) => (await crmViewing(store, key)).viewer))).filter(
