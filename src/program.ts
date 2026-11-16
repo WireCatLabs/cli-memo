@@ -287,10 +287,12 @@ const OWN_ENTITIES = entityFields({
     "deals",
     "money",
     "communications",
+    "history",
     "tasks",
     "coverage",
     "notes",
     "tags",
+    "untrusted",
   ],
   order: [
     "id",

@@ -3,6 +3,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { Client } from "@modelcontextprotocol/client"
 import { InMemoryTransport } from "@modelcontextprotocol/server"
+import { captureStreams } from "@wirecat/cli-base"
 import { syncCrm } from "@wirecat/cli-core/crm"
 import {
   ACME_CALENDAR,
@@ -106,6 +107,17 @@ describe("organization, deal and relationships", () => {
     expect(acme.deals.items.map(({ ref }: { ref: string }) => ref)).toEqual([refs.deal])
     expect(acme.money.invoices.items.map(({ ref }: { ref: string }) => ref)).toEqual([refs.invoice])
     expect(acme.money.payments.items).toEqual([])
+    const said = acme.communications.messages + acme.communications.mail + acme.communications.meetings
+    expect(acme.history.items.length).toBe(Math.min(said, 20))
+    expect(acme.history.items.length).toBeGreaterThan(0)
+    expect(acme.untrusted).toEqual(["history.items.title", "history.items.text"])
+    vi.stubEnv("TZ", "UTC")
+    const streams = captureStreams()
+    await createProgram({ streams, env }).parseAsync(["organizations", "context", refs.acme], { from: "user" })
+    vi.unstubAllEnvs()
+    expect(streams.stdout.join("")).toMatch(
+      /\nHistory, times in UTC\n {2}\d{4}-\d{2}-\d{2} \d{2}:\d{2} {2}(message|mail|meeting) /,
+    )
     const clients = await memo("organizations", "list", "category:client")
     expect(clients.items.map(({ ref }: { ref: string }) => ref)).toEqual([refs.acme])
   })

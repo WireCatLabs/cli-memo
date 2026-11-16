@@ -1747,7 +1747,7 @@ memo organizations list [query] [options]
 
 ### `memo organizations context`
 
-one organization by its id or organization:<id>: its people by role, customers, suppliers and partners, projects, open deals and leads, invoices, payments and orders, how much its people wrote, open tasks and categories, each relationship with its standing; then the notes about it and its tags. `coverage` names what was not read
+one organization by its id or organization:<id>: its people by role, customers, suppliers and partners, projects, open deals and leads, invoices, payments and orders, what its people wrote, newest first, open tasks and categories, each relationship with its standing; then the notes about it and its tags. `coverage` names what was not read
 
 ```sh
 memo organizations context <organization> [options]
