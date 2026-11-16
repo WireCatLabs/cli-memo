@@ -89,8 +89,8 @@ unusually large part of a folder or mailbox is missing at once, it deletes nothi
   has and one of them has it in Telegram, MAX or WhatsApp; or after you link them. A matching name, username or email
   domain is never enough, and a pair you rejected is never joined; new evidence about it waits for you again. A role
   address only proposes, and a no-reply address neither joins nor proposes anyone. An agent's link merges at
-  once only on strong evidence memo finds itself (one mobile number or personal address only these two people have,
-  from two sources), never on the agent's word. A weaker signal, or an agent's guess, waits for you in
+  once only on strong evidence memo finds itself (one mobile number or personal address that no one else has, or that
+  each holder has from a different source, given by two sources), never on the agent's word. A weaker signal, or an agent's guess, waits for you in
   `memo people review`, and only you undo a link (`memo people unlink`, `memo people unmerge`).
 
 ## A reader that proposes facts

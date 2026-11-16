@@ -123,9 +123,10 @@ that three or more people share, an address a meeting guest typed for themselves
 matches.
 
 An agent's `memo people link … --reason` merges at once only on strong evidence that memo finds itself, never on the
-agent's word: one mobile number or personal address that only these two people have, from two different sources,
-and for a phone at least one of them a messenger or a call. A landline, a number or an address more people share, a
-company's line, a role address, a name, a CRM's word or a phrase from a chat is not strong, and the link waits for
+agent's word: one mobile number or personal address that no one else has, or that each of its holders has from a
+different source, such as one client's CRM card, WhatsApp and call, whatever their names. It must come from two
+different sources, and for a phone at least one of them a messenger or a call. A landline, a number or an address two
+records of one source share, a company's line, a role address, a name, a CRM's word or a phrase from a chat is not strong, and the link waits for
 you. Memo keeps which agent merged, in which run, why and on what evidence. `memo people review --kind merged` lists
 the agents' merges still in place, and `memo people unmerge <merge>` undoes one. Set `agent_merges` to `propose`
 (`memo config set agent_merges propose`) and every agent's link waits for you instead.
