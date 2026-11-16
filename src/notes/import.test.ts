@@ -518,15 +518,30 @@ describe("notes written in memo", () => {
     expect(readFileSync(markdown.written[0], "utf8")).toContain("Call Rin")
   })
 
-  it("notes add --export writes the note's first --subject as a link too, as it does every later one", async () => {
+  it("every export writes the note's first --subject as a link too, as it does every later one", async () => {
     await telegramPeople(["101", "Rin Example"], ["102", "Kai Sample"])
     const about = ["--subject", "telegram:Rin Example", "--subject", "telegram:Kai Sample"]
     const added = await json("notes", "add", "Call Rin", ...about, "--export", join(root, "first"))
     const people = await Promise.all(
       ["telegram:Rin Example", "telegram:Kai Sample"].map(async (name) => (await json("people", "show", name)).ref),
     )
-    const links = readFileSync(added.export_path, "utf8").match(/^- \[person:\d+\]/gm)
-    expect(links).toEqual(people.map((ref) => `- [${ref}]`))
+    const links = (path: string) => readFileSync(path, "utf8").match(/^- \[person:\d+\]/gm)
+    const expected = people.map((ref) => `- [${ref}]`)
+    expect(links(added.export_path)).toEqual(expected)
+    const edited = await json(
+      "notes",
+      "edit",
+      added.ref,
+      "--revision",
+      "1",
+      "--text",
+      "Call Rin back",
+      "--export",
+      join(root, "edited"),
+    )
+    expect(links(edited.export_path)).toEqual(expected)
+    const exported = await json("notes", "export", "--output-dir", join(root, "all"))
+    expect(links(exported.written[0])).toEqual(expected)
   })
 
   it("answers the note itself, so --json picks its fields, and refuses a field a note search lacks", async () => {

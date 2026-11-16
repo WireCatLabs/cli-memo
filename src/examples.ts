@@ -464,7 +464,8 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "facts revoke": ["memo facts revoke fact:4"],
   "facts reverse": ["memo facts reverse fact:4"],
   "facts reject": ["memo facts reject fact:4"],
-  "facts remove": ["memo facts remove fact:4"],
+  "facts remove": ["memo facts remove fact:4 --reason 'recorded twice'"],
+  "facts history": ["memo facts history --limit 20"],
   "facts challenge": ["memo facts challenge fact:4 --evidence 'msg:telegram/1/77/50' --reason 'reversed in chat'"],
   "actions add": [
     "memo actions add reply --reason 'Kai asked twice' --account telegram:1 --target 'msg:telegram/1/77/42' --payload '{\"text\":\"Friday works\"}'",

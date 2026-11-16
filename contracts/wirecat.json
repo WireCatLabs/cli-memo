@@ -1,0 +1,4742 @@
+{
+  "wcat_manifest": 2,
+  "name": "memo",
+  "description": "Context about people across messengers, notes and mail",
+  "docs_url": "https://wirecat.dev/en/docs/memo",
+  "package": "@wirecat/cli-memo",
+  "bin": "wcat-memo",
+  "commands": [
+    {
+      "path": [
+        "context"
+      ],
+      "summary": "messages, mail, notes and events about a person, each with a link to its source",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "context",
+      "entity": "person_context_memo"
+    },
+    {
+      "path": [
+        "show"
+      ],
+      "summary": "what any reference names, and the command that opens it",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "show"
+    },
+    {
+      "path": [
+        "notes",
+        "show"
+      ],
+      "summary": "one note: its text, tags, what it links and what links it",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "notes.show",
+      "entity": "note"
+    },
+    {
+      "path": [
+        "notes",
+        "list"
+      ],
+      "summary": "notes, newest first",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "notes.list",
+      "entity": "note"
+    },
+    {
+      "path": [
+        "notes",
+        "add"
+      ],
+      "summary": "write a note of your own about messages, people, projects or other notes",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "notes.add",
+      "entity": "note"
+    },
+    {
+      "path": [
+        "notes",
+        "edit"
+      ],
+      "summary": "change a note you wrote here; a file's note is edited in its file",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "notes.edit",
+      "entity": "note"
+    },
+    {
+      "path": [
+        "notes",
+        "remove"
+      ],
+      "summary": "delete a note you wrote here; a file it was exported to stays",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "notes.remove"
+    },
+    {
+      "path": [
+        "notes",
+        "export"
+      ],
+      "summary": "write the notes you wrote here as files, never overwriting one you edited",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "notes.export"
+    },
+    {
+      "path": [
+        "notes",
+        "links",
+        "show"
+      ],
+      "summary": "show the note files about a person",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "notes.links.show",
+      "entity": "person_note_links"
+    },
+    {
+      "path": [
+        "notes",
+        "links",
+        "add"
+      ],
+      "summary": "link an imported note file to a person",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "notes.links.add",
+      "entity": "person_note_links"
+    },
+    {
+      "path": [
+        "notes",
+        "links",
+        "clear"
+      ],
+      "summary": "remove the owner's note-file links for a person",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "notes.links.clear",
+      "entity": "person_note_links"
+    },
+    {
+      "path": [
+        "sources",
+        "add"
+      ],
+      "summary": "keep a file, a web page or pasted text as a document",
+      "effects": {
+        "remote": "read",
+        "local": "write"
+      },
+      "permission": "sources.add",
+      "entity": "added_source"
+    },
+    {
+      "path": [
+        "sources",
+        "preview"
+      ],
+      "summary": "read a web page as sources add would, and keep nothing",
+      "effects": {
+        "remote": "read",
+        "local": "read"
+      },
+      "permission": "sources.preview",
+      "entity": "source_preview"
+    },
+    {
+      "path": [
+        "sources",
+        "show"
+      ],
+      "summary": "one source: its text, what is kept, and what cites it",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "sources.show",
+      "entity": "source_detail"
+    },
+    {
+      "path": [
+        "sources",
+        "mentions"
+      ],
+      "summary": "known people and organizations named in a source",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "sources.mentions",
+      "entity": "source_mention"
+    },
+    {
+      "path": [
+        "sources",
+        "remove"
+      ],
+      "summary": "remove a source you added, and its kept copy",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "sources.remove",
+      "entity": "source_removal"
+    },
+    {
+      "path": [
+        "sources",
+        "suggest"
+      ],
+      "summary": "have the chosen reader propose facts from a source, for you to confirm",
+      "effects": {
+        "remote": "read",
+        "local": "write"
+      },
+      "permission": "sources.suggest",
+      "entity": "source_suggestion"
+    },
+    {
+      "path": [
+        "sources",
+        "readers",
+        "list"
+      ],
+      "summary": "each reader: installed, signed in, and your pick",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "sources.readers.list",
+      "entity": "source_reader"
+    },
+    {
+      "path": [
+        "sources",
+        "readers",
+        "set"
+      ],
+      "summary": "choose the reader that reads your sources",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "sources.readers.set",
+      "entity": "source_reader_choice"
+    },
+    {
+      "path": [
+        "documents",
+        "list"
+      ],
+      "summary": "documents of every account, newest first",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "documents.list",
+      "entity": "document_entry"
+    },
+    {
+      "path": [
+        "documents",
+        "tree"
+      ],
+      "summary": "accounts and folders holding documents, with counts",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "documents.tree",
+      "entity": "document_source"
+    },
+    {
+      "path": [
+        "documents",
+        "show"
+      ],
+      "summary": "one document with its text",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "documents.show",
+      "entity": "document_entry_details"
+    },
+    {
+      "path": [
+        "folders",
+        "add"
+      ],
+      "summary": "give a folder of notes an id, or show the one it has",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "folders.add"
+    },
+    {
+      "path": [
+        "folders",
+        "update"
+      ],
+      "summary": "bind a folder id from another computer to the folder's path on this one",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "folders.update"
+    },
+    {
+      "path": [
+        "folders",
+        "remove"
+      ],
+      "summary": "stop reading a notes folder here; its notes stay unless --allow-delete",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "folders.remove"
+    },
+    {
+      "path": [
+        "folders",
+        "list"
+      ],
+      "summary": "folders of notes on this computer, and those the store knows from another",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "folders.list",
+      "entity": "notes_folder"
+    },
+    {
+      "path": [
+        "messages",
+        "show"
+      ],
+      "summary": "one stored message or email whole, with optional stored neighbours",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "messages.show"
+    },
+    {
+      "path": [
+        "messages",
+        "acknowledge"
+      ],
+      "summary": "move a holder's processing mark to what it has read",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "messages.acknowledge",
+      "entity": "mail_mark"
+    },
+    {
+      "path": [
+        "messages",
+        "reset"
+      ],
+      "summary": "move a holder's processing mark back, so it reads that mail again (owner only)",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "messages.reset",
+      "entity": "mail_mark_reset"
+    },
+    {
+      "path": [
+        "mail",
+        "findings",
+        "add"
+      ],
+      "summary": "stage one mailbox's findings; the owner confirms them",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "mail.findings.add",
+      "entity": "mail_findings"
+    },
+    {
+      "path": [
+        "mail",
+        "findings",
+        "show"
+      ],
+      "summary": "one findings batch with its evidence and decisions",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "mail.findings.show",
+      "entity": "mail_findings"
+    },
+    {
+      "path": [
+        "mail",
+        "findings",
+        "list"
+      ],
+      "summary": "mail findings batches, newest first; status:proposed is what waits for the owner",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "mail.findings.list",
+      "entity": "mail_findings"
+    },
+    {
+      "path": [
+        "mail",
+        "review"
+      ],
+      "summary": "threads with new mail, mail you owe an answer, mail waiting for one",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "mail.review",
+      "entity": "message"
+    },
+    {
+      "path": [
+        "people",
+        "add"
+      ],
+      "summary": "add a person by name, before any message names them",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "people.add"
+    },
+    {
+      "path": [
+        "people",
+        "list"
+      ],
+      "summary": "people of one kind, most messages first: person by default",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "people.list",
+      "entity": "task_person"
+    },
+    {
+      "path": [
+        "people",
+        "check"
+      ],
+      "summary": "people with a name like this one, to check before adding a person",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "people.check"
+    },
+    {
+      "path": [
+        "people",
+        "show"
+      ],
+      "summary": "one person: identities by source, merges and open matches",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "people.show"
+    },
+    {
+      "path": [
+        "people",
+        "review"
+      ],
+      "summary": "people that may be one, and splits an agent proposed, waiting for you",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "people.review"
+    },
+    {
+      "path": [
+        "people",
+        "confirm"
+      ],
+      "summary": "confirm matches and splits by id, or all that people review lists; only you",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "people.confirm"
+    },
+    {
+      "path": [
+        "people",
+        "reject"
+      ],
+      "summary": "turn down matches and splits by id, or all that people review lists; only you",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "people.reject"
+    },
+    {
+      "path": [
+        "people",
+        "resolve"
+      ],
+      "summary": "say a match's mailbox, or both its people, are a company's; only you",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "people.resolve"
+    },
+    {
+      "path": [
+        "people",
+        "links",
+        "check"
+      ],
+      "summary": "people that may be wrong, with why and the command that fixes each",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "people.links.check"
+    },
+    {
+      "path": [
+        "people",
+        "links",
+        "resolve"
+      ],
+      "summary": "say a person people links check doubts is right as they are, or test data; only you",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "people.links.resolve"
+    },
+    {
+      "path": [
+        "people",
+        "scan"
+      ],
+      "summary": "match people across sources now; memo sync does it too",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "people.scan"
+    },
+    {
+      "path": [
+        "people",
+        "link"
+      ],
+      "summary": "say two identities are one person; an agent's link waits for you",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "people.link"
+    },
+    {
+      "path": [
+        "people",
+        "unlink"
+      ],
+      "summary": "take identities off a person, to one new person; an agent's waits for you",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "people.unlink"
+    },
+    {
+      "path": [
+        "people",
+        "unmerge"
+      ],
+      "summary": "undo a merge: its identities go back to their person; an agent's waits for you",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "people.unmerge"
+    },
+    {
+      "path": [
+        "tags",
+        "add"
+      ],
+      "summary": "put labels on one source",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "tags.add"
+    },
+    {
+      "path": [
+        "tags",
+        "remove"
+      ],
+      "summary": "remove labels from one source",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "tags.remove"
+    },
+    {
+      "path": [
+        "tags",
+        "list"
+      ],
+      "summary": "list source labels, of every account or of the ones --source names",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "tags.list",
+      "entity": "source_tag"
+    },
+    {
+      "path": [
+        "tasks",
+        "unlink"
+      ],
+      "summary": "unlink reviewed project task relationships",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "tasks.unlink"
+    },
+    {
+      "path": [
+        "tasks",
+        "links"
+      ],
+      "summary": "a task's links to other tasks",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "tasks.links"
+    },
+    {
+      "path": [
+        "tasks",
+        "status"
+      ],
+      "summary": "whether a task can start, and what it still waits for",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "tasks.status"
+    },
+    {
+      "path": [
+        "tasks",
+        "add"
+      ],
+      "summary": "add a task from a message, note or document, or one of your own in a project",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "tasks.add"
+    },
+    {
+      "path": [
+        "tasks",
+        "list"
+      ],
+      "summary": "tasks of the --source accounts, open by default; a board field lists every task",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "tasks.list",
+      "entity": "task"
+    },
+    {
+      "path": [
+        "tasks",
+        "counts"
+      ],
+      "summary": "how many tasks match, found ones too, by project, assignee, priority and state",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "tasks.counts",
+      "entity": "task"
+    },
+    {
+      "path": [
+        "tasks",
+        "comments",
+        "add"
+      ],
+      "summary": "comment on a task, in your name or the agent's that runs memo",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "tasks.comments.add"
+    },
+    {
+      "path": [
+        "tasks",
+        "comments",
+        "list"
+      ],
+      "summary": "a task's comments, oldest first, with who wrote each and when",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "tasks.comments.list",
+      "entity": "task_comment"
+    },
+    {
+      "path": [
+        "tasks",
+        "history"
+      ],
+      "summary": "who changed a task, what and when, oldest first",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "tasks.history",
+      "entity": "task_event"
+    },
+    {
+      "path": [
+        "tasks",
+        "close"
+      ],
+      "summary": "close a task as done or dismissed",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "tasks.close"
+    },
+    {
+      "path": [
+        "tasks",
+        "assign"
+      ],
+      "summary": "name who works on a task, or with --clear take them off it",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "tasks.assign"
+    },
+    {
+      "path": [
+        "tasks",
+        "move"
+      ],
+      "summary": "put a project task before or after another in its board column",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "tasks.move",
+      "entity": "task_move"
+    },
+    {
+      "path": [
+        "tasks",
+        "agenda"
+      ],
+      "summary": "what needs a look today: tasks due, chats you owe or wait on, what you are owed",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "tasks.agenda",
+      "entity": "agenda"
+    },
+    {
+      "path": [
+        "tasks",
+        "update"
+      ],
+      "summary": "update a task's text, schedule, category, assignees, priority or parent",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "tasks.update",
+      "entity": "task_card"
+    },
+    {
+      "path": [
+        "tasks",
+        "show"
+      ],
+      "summary": "one task: its plan and everything linked to it",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "tasks.show",
+      "entity": "task_card"
+    },
+    {
+      "path": [
+        "tasks",
+        "link"
+      ],
+      "summary": "link a task to messages, chats, people or URLs — or to another task: task:<id>",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "tasks.link",
+      "entity": "task_links"
+    },
+    {
+      "path": [
+        "tasks",
+        "claim"
+      ],
+      "summary": "take an open task so no other agent works it at once; the claim lapses by itself",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "tasks.claim",
+      "entity": "task_card"
+    },
+    {
+      "path": [
+        "tasks",
+        "release"
+      ],
+      "summary": "give back a task you claimed, before the claim lapses; the owner may release any",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "tasks.release",
+      "entity": "task_card"
+    },
+    {
+      "path": [
+        "stats",
+        "tasks",
+        "show"
+      ],
+      "summary": "count tasks by chat, meeting or project, open and closed",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "stats.tasks.show",
+      "entity": "task"
+    },
+    {
+      "path": [
+        "stats",
+        "projects",
+        "show"
+      ],
+      "summary": "each project's linked chats: messages in a period, last activity, busiest chats",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "stats.projects.show"
+    },
+    {
+      "path": [
+        "organizations",
+        "add"
+      ],
+      "summary": "add an organization",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "organizations.add"
+    },
+    {
+      "path": [
+        "organizations",
+        "rename"
+      ],
+      "summary": "rename an organization",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "organizations.rename"
+    },
+    {
+      "path": [
+        "organizations",
+        "show"
+      ],
+      "summary": "one organization",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "organizations.show"
+    },
+    {
+      "path": [
+        "organizations",
+        "list"
+      ],
+      "summary": "your organizations",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "organizations.list",
+      "entity": "organization"
+    },
+    {
+      "path": [
+        "organizations",
+        "context"
+      ],
+      "summary": "one organization: people, customers, deals, money, tasks, notes",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "organizations.context",
+      "entity": "organization_context_memo"
+    },
+    {
+      "path": [
+        "projects",
+        "meetings",
+        "list"
+      ],
+      "summary": "meetings linked to a project in one account, or with confirmed:false proposed",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "projects.meetings.list",
+      "entity": "meeting_project"
+    },
+    {
+      "path": [
+        "projects",
+        "meetings",
+        "link"
+      ],
+      "summary": "link a stored meeting to a project, or confirm a proposed link",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "projects.meetings.link"
+    },
+    {
+      "path": [
+        "projects",
+        "add"
+      ],
+      "summary": "add a project of yours, with a short key its tasks use",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "projects.add"
+    },
+    {
+      "path": [
+        "projects",
+        "list"
+      ],
+      "summary": "your projects",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "projects.list",
+      "entity": "project"
+    },
+    {
+      "path": [
+        "projects",
+        "context"
+      ],
+      "summary": "one project: key documents, pending findings and open tasks; start work here",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "projects.context"
+    },
+    {
+      "path": [
+        "projects",
+        "evidence"
+      ],
+      "summary": "find what the store holds about a project: names, words, people, linked chats",
+      "effects": {
+        "remote": "read",
+        "local": "write"
+      },
+      "permission": "projects.evidence"
+    },
+    {
+      "path": [
+        "projects",
+        "status"
+      ],
+      "summary": "where a project stands: whose move, open asks, money, chats to read next",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "projects.status",
+      "entity": "project_status"
+    },
+    {
+      "path": [
+        "projects",
+        "actions",
+        "add"
+      ],
+      "summary": "stage an agent's cited facts and follow-ups about one project for review",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "projects.actions.add"
+    },
+    {
+      "path": [
+        "projects",
+        "actions",
+        "list"
+      ],
+      "summary": "a project's proposals with the evidence to decide them",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "projects.actions.list",
+      "entity": "project_action"
+    },
+    {
+      "path": [
+        "projects",
+        "actions",
+        "confirm"
+      ],
+      "summary": "confirm a proposal, yours or an agent's with --reason",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "projects.actions.confirm"
+    },
+    {
+      "path": [
+        "projects",
+        "actions",
+        "reject"
+      ],
+      "summary": "reject a proposal",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "projects.actions.reject"
+    },
+    {
+      "path": [
+        "projects",
+        "annotations",
+        "show"
+      ],
+      "summary": "read selected project annotations without creating a file; not a full backup",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "projects.annotations.show",
+      "entity": "project_annotation_snapshot"
+    },
+    {
+      "path": [
+        "projects",
+        "annotations",
+        "export"
+      ],
+      "summary": "write selected annotations to a new private file, omitting source bodies",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "projects.annotations.export",
+      "entity": "project_annotation_export"
+    },
+    {
+      "path": [
+        "projects",
+        "annotations",
+        "check"
+      ],
+      "summary": "check bindings and conflicts in an existing target without restoring",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "projects.annotations.check",
+      "entity": "project_annotation_transfer"
+    },
+    {
+      "path": [
+        "projects",
+        "annotations",
+        "restore"
+      ],
+      "summary": "owner: restore selected annotations with the exact successful check fingerprint",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "projects.annotations.restore",
+      "entity": "project_annotation_transfer"
+    },
+    {
+      "path": [
+        "projects",
+        "key-documents",
+        "add"
+      ],
+      "summary": "mark a note:, document: or msg: reference as a key document of the project",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "projects.key-documents.add"
+    },
+    {
+      "path": [
+        "projects",
+        "key-documents",
+        "remove"
+      ],
+      "summary": "unmark a key document; the note, file or message stays. Only you remove one",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "projects.key-documents.remove"
+    },
+    {
+      "path": [
+        "projects",
+        "key-documents",
+        "list"
+      ],
+      "summary": "a project's key documents: why, who marked each and whether it is still there",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "projects.key-documents.list",
+      "entity": "memo_key_document"
+    },
+    {
+      "path": [
+        "relationships",
+        "add"
+      ],
+      "summary": "state that a person, organization, project or chat belongs or relates to another",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "relationships.add"
+    },
+    {
+      "path": [
+        "relationships",
+        "list"
+      ],
+      "summary": "relationships with titles; confirmed:false lists those waiting for you",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "relationships.list",
+      "entity": "relationship"
+    },
+    {
+      "path": [
+        "relationships",
+        "update"
+      ],
+      "summary": "set a relationship's role, engagement or a chat's purpose in a project",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "relationships.update"
+    },
+    {
+      "path": [
+        "relationships",
+        "remove"
+      ],
+      "summary": "remove a relationship; removing a suggested one rejects it",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "relationships.remove"
+    },
+    {
+      "path": [
+        "relationships",
+        "confirm"
+      ],
+      "summary": "confirm a suggested relationship",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "relationships.confirm"
+    },
+    {
+      "path": [
+        "relationships",
+        "end"
+      ],
+      "summary": "say that a relationship ended",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "relationships.end"
+    },
+    {
+      "path": [
+        "relationships",
+        "roles",
+        "list"
+      ],
+      "summary": "the roles a relationship may take",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "relationships.roles.list",
+      "entity": "relationship_role"
+    },
+    {
+      "path": [
+        "relationships",
+        "roles",
+        "add"
+      ],
+      "summary": "add a role of your own",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "relationships.roles.add",
+      "entity": "relationship_role"
+    },
+    {
+      "path": [
+        "relationships",
+        "roles",
+        "remove"
+      ],
+      "summary": "remove a role of your own",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "relationships.roles.remove",
+      "entity": "relationship_role"
+    },
+    {
+      "path": [
+        "relationships",
+        "scan"
+      ],
+      "summary": "propose chats and people for a project; nothing is written without --yes",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "relationships.scan"
+    },
+    {
+      "path": [
+        "reminders",
+        "add"
+      ],
+      "summary": "add a reminder for an open task",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "reminders.add"
+    },
+    {
+      "path": [
+        "reminders",
+        "list"
+      ],
+      "summary": "pending reminders of the accounts --source names (default all), soonest first",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "reminders.list",
+      "entity": "reminder"
+    },
+    {
+      "path": [
+        "reminders",
+        "claim"
+      ],
+      "summary": "hand out due reminders, each with a receipt to acknowledge",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "reminders.claim"
+    },
+    {
+      "path": [
+        "reminders",
+        "acknowledge"
+      ],
+      "summary": "confirm that a handed-out reminder was shown",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "reminders.acknowledge"
+    },
+    {
+      "path": [
+        "reminders",
+        "cancel"
+      ],
+      "summary": "cancel a reminder",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "reminders.cancel"
+    },
+    {
+      "path": [
+        "reminders",
+        "update"
+      ],
+      "summary": "move a reminder to another time",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "reminders.update"
+    },
+    {
+      "path": [
+        "vocabulary",
+        "inspect"
+      ],
+      "summary": "inspect two tags before consolidation, without merging them",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "vocabulary.inspect",
+      "entity": "vocabulary_inspection"
+    },
+    {
+      "path": [
+        "vocabulary",
+        "list"
+      ],
+      "summary": "list canonical IDs, aliases, usage counts and a preview fingerprint",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "vocabulary.list",
+      "entity": "vocabulary"
+    },
+    {
+      "path": [
+        "vocabulary",
+        "show"
+      ],
+      "summary": "the project, tag or topic an exact name or alias names; ambiguity is reported",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "vocabulary.show"
+    },
+    {
+      "path": [
+        "vocabulary",
+        "check"
+      ],
+      "summary": "check a new name for existing labels, or the vocabulary for likely synonyms",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "vocabulary.check"
+    },
+    {
+      "path": [
+        "vocabulary",
+        "create"
+      ],
+      "summary": "owner: create a distinct tag or topic after vocabulary check <name>",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "vocabulary.create"
+    },
+    {
+      "path": [
+        "vocabulary",
+        "aliases",
+        "add"
+      ],
+      "summary": "owner: add another name for a project, tag or topic",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "vocabulary.aliases.add"
+    },
+    {
+      "path": [
+        "vocabulary",
+        "aliases",
+        "remove"
+      ],
+      "summary": "owner: remove another name from a project, tag or topic",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "vocabulary.aliases.remove"
+    },
+    {
+      "path": [
+        "memories",
+        "add"
+      ],
+      "summary": "write a memory; an agent's waits as proposed until you confirm it",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "memories.add",
+      "entity": "memory"
+    },
+    {
+      "path": [
+        "memories",
+        "list"
+      ],
+      "summary": "memories, newest first",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "memories.list",
+      "entity": "memory"
+    },
+    {
+      "path": [
+        "memories",
+        "show"
+      ],
+      "summary": "one memory with its evidence",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "memories.show",
+      "entity": "memory"
+    },
+    {
+      "path": [
+        "memories",
+        "update"
+      ],
+      "summary": "move a memory to another project, or to none",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "memories.update",
+      "entity": "memory"
+    },
+    {
+      "path": [
+        "memories",
+        "confirm"
+      ],
+      "summary": "stand behind a memory: its evidence was checked now",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "memories.confirm",
+      "entity": "memory"
+    },
+    {
+      "path": [
+        "memories",
+        "invalidate"
+      ],
+      "summary": "mark a memory whose evidence no longer holds",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "memories.invalidate",
+      "entity": "memory"
+    },
+    {
+      "path": [
+        "memories",
+        "remove"
+      ],
+      "summary": "forget a memory: erase its text, its links to sources and its search entry",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "memories.remove"
+    },
+    {
+      "path": [
+        "memories",
+        "check"
+      ],
+      "summary": "look again at what memories and facts cite; raise a review where it changed",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "memories.check",
+      "entity": "source_check"
+    },
+    {
+      "path": [
+        "memories",
+        "challenge"
+      ],
+      "summary": "say a memory no longer holds, citing what contradicts it; you decide",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "memories.challenge"
+    },
+    {
+      "path": [
+        "mentions",
+        "list"
+      ],
+      "summary": "the mentions in the texts --source names matching the query, newest text first",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "mentions.list",
+      "entity": "mention"
+    },
+    {
+      "path": [
+        "mentions",
+        "show"
+      ],
+      "summary": "one mention, the text around it, and who it may be",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "mentions.show"
+    },
+    {
+      "path": [
+        "mentions",
+        "confirm"
+      ],
+      "summary": "say what a mention is, everywhere its value is written",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "mentions.confirm"
+    },
+    {
+      "path": [
+        "mentions",
+        "reject"
+      ],
+      "summary": "dismiss a mention's value everywhere, and on later imports",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "mentions.reject"
+    },
+    {
+      "path": [
+        "facts",
+        "add"
+      ],
+      "summary": "record a fact; an agent's waits as proposed until you confirm it",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "facts.add",
+      "entity": "fact"
+    },
+    {
+      "path": [
+        "facts",
+        "list"
+      ],
+      "summary": "facts, latest first",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "facts.list",
+      "entity": "fact"
+    },
+    {
+      "path": [
+        "facts",
+        "show"
+      ],
+      "summary": "one fact with its evidence",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "facts.show",
+      "entity": "fact"
+    },
+    {
+      "path": [
+        "facts",
+        "confirm"
+      ],
+      "summary": "stand behind a fact an agent proposed",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "facts.confirm",
+      "entity": "fact"
+    },
+    {
+      "path": [
+        "facts",
+        "revoke"
+      ],
+      "summary": "take back your approval of a fact an agent proposed",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "facts.revoke",
+      "entity": "fact"
+    },
+    {
+      "path": [
+        "facts",
+        "reverse"
+      ],
+      "summary": "an accepted decision no longer holds, and nothing replaced it",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "facts.reverse",
+      "entity": "fact"
+    },
+    {
+      "path": [
+        "facts",
+        "reject"
+      ],
+      "summary": "turn down a fact an agent proposed; it stays, marked rejected",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "facts.reject",
+      "entity": "fact"
+    },
+    {
+      "path": [
+        "facts",
+        "remove"
+      ],
+      "summary": "forget a fact; facts history keeps who removed it and why",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "facts.remove"
+    },
+    {
+      "path": [
+        "facts",
+        "history"
+      ],
+      "summary": "the facts removed: who, when and why, never what they said",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "facts.history"
+    },
+    {
+      "path": [
+        "facts",
+        "challenge"
+      ],
+      "summary": "say a fact no longer holds, citing what contradicts it; you decide",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "facts.challenge"
+    },
+    {
+      "path": [
+        "invoices",
+        "list"
+      ],
+      "summary": "invoices, newest first; review:proposed lists what waits for you",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "invoices.list",
+      "entity": "invoice"
+    },
+    {
+      "path": [
+        "invoices",
+        "show"
+      ],
+      "summary": "one invoice with its lines and the payments allocated to it",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "invoices.show",
+      "entity": "invoice"
+    },
+    {
+      "path": [
+        "invoices",
+        "add"
+      ],
+      "summary": "record an invoice; an agent's waits for your review",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "invoices.add",
+      "entity": "invoice"
+    },
+    {
+      "path": [
+        "invoices",
+        "lines",
+        "add"
+      ],
+      "summary": "add a line to an invoice",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "invoices.lines.add",
+      "entity": "invoice"
+    },
+    {
+      "path": [
+        "invoices",
+        "lines",
+        "remove"
+      ],
+      "summary": "take a line off an invoice",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "invoices.lines.remove",
+      "entity": "invoice"
+    },
+    {
+      "path": [
+        "payments",
+        "list"
+      ],
+      "summary": "payments, newest first; review:proposed lists what waits for you",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "payments.list",
+      "entity": "payment"
+    },
+    {
+      "path": [
+        "payments",
+        "show"
+      ],
+      "summary": "one payment with the invoices it is allocated to",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "payments.show",
+      "entity": "payment"
+    },
+    {
+      "path": [
+        "payments",
+        "add"
+      ],
+      "summary": "record a payment; an agent's waits for your review",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "payments.add",
+      "entity": "payment"
+    },
+    {
+      "path": [
+        "payments",
+        "allocate"
+      ],
+      "summary": "settle part of an invoice with part of a payment",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "payments.allocate",
+      "entity": "payment_allocation"
+    },
+    {
+      "path": [
+        "payments",
+        "unlink"
+      ],
+      "summary": "take back a payment's allocation to an invoice",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "payments.unlink",
+      "entity": "payment"
+    },
+    {
+      "path": [
+        "orders",
+        "list"
+      ],
+      "summary": "orders, newest first; review:proposed is what waits for you",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "orders.list",
+      "entity": "order"
+    },
+    {
+      "path": [
+        "orders",
+        "show"
+      ],
+      "summary": "one order with its customer, shop, amount, status and the mail it was read from",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "orders.show",
+      "entity": "order"
+    },
+    {
+      "path": [
+        "orders",
+        "add"
+      ],
+      "summary": "record an order; an agent's waits for your review",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "orders.add",
+      "entity": "order"
+    },
+    {
+      "path": [
+        "orders",
+        "lines",
+        "add"
+      ],
+      "summary": "add a line to an order",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "orders.lines.add",
+      "entity": "order"
+    },
+    {
+      "path": [
+        "orders",
+        "lines",
+        "remove"
+      ],
+      "summary": "take a line off an order",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "orders.lines.remove",
+      "entity": "order"
+    },
+    {
+      "path": [
+        "pipelines",
+        "list"
+      ],
+      "summary": "every pipeline with its stages",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "pipelines.list",
+      "entity": "pipeline"
+    },
+    {
+      "path": [
+        "pipelines",
+        "show"
+      ],
+      "summary": "one pipeline's stages with counts and conversion",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "pipelines.show",
+      "entity": "pipeline"
+    },
+    {
+      "path": [
+        "pipelines",
+        "add"
+      ],
+      "summary": "make a pipeline with its stages",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "pipelines.add"
+    },
+    {
+      "path": [
+        "deals",
+        "list"
+      ],
+      "summary": "deals, newest first",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "deals.list",
+      "entity": "deal"
+    },
+    {
+      "path": [
+        "deals",
+        "show"
+      ],
+      "summary": "one deal with its stage, status, amount and people",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "deals.show",
+      "entity": "deal"
+    },
+    {
+      "path": [
+        "deals",
+        "context"
+      ],
+      "summary": "one deal: stages, people, project, money, messages and tasks",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "deals.context",
+      "entity": "deal_context"
+    },
+    {
+      "path": [
+        "deals",
+        "update"
+      ],
+      "summary": "set the project a deal belongs to",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "deals.update",
+      "entity": "deal"
+    },
+    {
+      "path": [
+        "deals",
+        "add"
+      ],
+      "summary": "record a deal in a stage",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "deals.add",
+      "entity": "deal"
+    },
+    {
+      "path": [
+        "deals",
+        "move"
+      ],
+      "summary": "move a deal to another stage",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "deals.move",
+      "entity": "deal"
+    },
+    {
+      "path": [
+        "deals",
+        "close"
+      ],
+      "summary": "close a deal as won or lost",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "deals.close",
+      "entity": "deal"
+    },
+    {
+      "path": [
+        "leads",
+        "list"
+      ],
+      "summary": "leads, newest first",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "leads.list",
+      "entity": "lead"
+    },
+    {
+      "path": [
+        "leads",
+        "show"
+      ],
+      "summary": "one lead with its stage, status, amount and people",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "leads.show",
+      "entity": "lead"
+    },
+    {
+      "path": [
+        "leads",
+        "context"
+      ],
+      "summary": "one lead: stages, people, project, money, messages and tasks",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "leads.context",
+      "entity": "deal_context"
+    },
+    {
+      "path": [
+        "leads",
+        "update"
+      ],
+      "summary": "set the project a lead belongs to",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "leads.update",
+      "entity": "lead"
+    },
+    {
+      "path": [
+        "leads",
+        "add"
+      ],
+      "summary": "record a lead in a stage",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "leads.add",
+      "entity": "lead"
+    },
+    {
+      "path": [
+        "leads",
+        "move"
+      ],
+      "summary": "move a lead to another stage",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "leads.move",
+      "entity": "lead"
+    },
+    {
+      "path": [
+        "leads",
+        "close"
+      ],
+      "summary": "close a lead as won or lost",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "leads.close",
+      "entity": "lead"
+    },
+    {
+      "path": [
+        "stages",
+        "show"
+      ],
+      "summary": "a base set's columns with what each holds",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "stages.show",
+      "entity": "base_stage_set"
+    },
+    {
+      "path": [
+        "stages",
+        "create"
+      ],
+      "summary": "add a stage to a base set",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "stages.create",
+      "entity": "base_stage_set"
+    },
+    {
+      "path": [
+        "stages",
+        "rename"
+      ],
+      "summary": "rename a base stage",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "stages.rename",
+      "entity": "base_stage_set"
+    },
+    {
+      "path": [
+        "stages",
+        "move"
+      ],
+      "summary": "put a base stage at another place in its set",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "stages.move",
+      "entity": "base_stage_set"
+    },
+    {
+      "path": [
+        "stages",
+        "remove"
+      ],
+      "summary": "take a stage out of a base set",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "stages.remove",
+      "entity": "base_stage_set"
+    },
+    {
+      "path": [
+        "stages",
+        "list"
+      ],
+      "summary": "every mapped stage with its base stage, confirmed or suggested",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "stages.list",
+      "entity": "stage_mapping"
+    },
+    {
+      "path": [
+        "stages",
+        "set"
+      ],
+      "summary": "map one stage onto a base stage, confirmed",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "stages.set",
+      "entity": "stage_mapping"
+    },
+    {
+      "path": [
+        "stages",
+        "confirm"
+      ],
+      "summary": "confirm the suggested mappings of a pipeline, or of all",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "stages.confirm",
+      "entity": "stage_mapping_confirm"
+    },
+    {
+      "path": [
+        "stages",
+        "suggest"
+      ],
+      "summary": "propose a base stage for every unconfirmed stage, by the AI model or by an agent",
+      "effects": {
+        "remote": "read",
+        "local": "write"
+      },
+      "permission": "stages.suggest",
+      "entity": "stage_suggestion"
+    },
+    {
+      "path": [
+        "products",
+        "list"
+      ],
+      "summary": "products and services, by name; archived:true lists those no longer sold",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "products.list",
+      "entity": "product"
+    },
+    {
+      "path": [
+        "products",
+        "show"
+      ],
+      "summary": "one product or service with its price, unit, supplier and stock code",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "products.show",
+      "entity": "product"
+    },
+    {
+      "path": [
+        "products",
+        "add"
+      ],
+      "summary": "add a product or service",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "products.add",
+      "entity": "product"
+    },
+    {
+      "path": [
+        "products",
+        "update"
+      ],
+      "summary": "change or archive a product",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "products.update",
+      "entity": "product"
+    },
+    {
+      "path": [
+        "contracts",
+        "list"
+      ],
+      "summary": "contracts, newest first; expires:2026-12-31 lists those that end by then",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "contracts.list",
+      "entity": "contract"
+    },
+    {
+      "path": [
+        "contracts",
+        "show"
+      ],
+      "summary": "one contract with its dates, renewal and the last day to give notice",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "contracts.show",
+      "entity": "contract"
+    },
+    {
+      "path": [
+        "contracts",
+        "add"
+      ],
+      "summary": "record a contract",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "contracts.add",
+      "entity": "contract"
+    },
+    {
+      "path": [
+        "contracts",
+        "update"
+      ],
+      "summary": "change a contract",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "contracts.update",
+      "entity": "contract"
+    },
+    {
+      "path": [
+        "subscriptions",
+        "list"
+      ],
+      "summary": "subscriptions, newest first; renews:2026-12-01 lists those that renew by then",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "subscriptions.list",
+      "entity": "subscription"
+    },
+    {
+      "path": [
+        "subscriptions",
+        "show"
+      ],
+      "summary": "one subscription with its parties, dates, current price and every price it had",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "subscriptions.show",
+      "entity": "subscription"
+    },
+    {
+      "path": [
+        "subscriptions",
+        "add"
+      ],
+      "summary": "record a subscription; an agent's waits for your review",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "subscriptions.add",
+      "entity": "subscription"
+    },
+    {
+      "path": [
+        "subscriptions",
+        "update"
+      ],
+      "summary": "change a subscription",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "subscriptions.update",
+      "entity": "subscription"
+    },
+    {
+      "path": [
+        "subscriptions",
+        "cancel"
+      ],
+      "summary": "cancel a subscription",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "subscriptions.cancel",
+      "entity": "subscription"
+    },
+    {
+      "path": [
+        "subscriptions",
+        "prices",
+        "add"
+      ],
+      "summary": "add a subscription's new price",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "subscriptions.prices.add",
+      "entity": "subscription_price"
+    },
+    {
+      "path": [
+        "wallets",
+        "list"
+      ],
+      "summary": "wallets with their balances today; kind:card lists the cards",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "wallets.list",
+      "entity": "wallet"
+    },
+    {
+      "path": [
+        "wallets",
+        "show"
+      ],
+      "summary": "one wallet with its balance and what is pending",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "wallets.show",
+      "entity": "wallet"
+    },
+    {
+      "path": [
+        "wallets",
+        "add"
+      ],
+      "summary": "add a bank account, card or cash wallet",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "wallets.add",
+      "entity": "wallet"
+    },
+    {
+      "path": [
+        "wallets",
+        "update"
+      ],
+      "summary": "rename a wallet or set its opening balance",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "wallets.update",
+      "entity": "wallet"
+    },
+    {
+      "path": [
+        "transactions",
+        "list"
+      ],
+      "summary": "transactions, newest first",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "transactions.list",
+      "entity": "transaction"
+    },
+    {
+      "path": [
+        "transactions",
+        "show"
+      ],
+      "summary": "one transaction with its wallet, payment, splits and what is not categorized",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "transactions.show",
+      "entity": "transaction"
+    },
+    {
+      "path": [
+        "transactions",
+        "add"
+      ],
+      "summary": "record a transaction; an agent's waits for your review",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "transactions.add",
+      "entity": "transaction"
+    },
+    {
+      "path": [
+        "transactions",
+        "update"
+      ],
+      "summary": "book a transaction or link it to its payment",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "transactions.update",
+      "entity": "transaction"
+    },
+    {
+      "path": [
+        "transactions",
+        "splits",
+        "add"
+      ],
+      "summary": "put part of a transaction under a category",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "transactions.splits.add",
+      "entity": "transaction"
+    },
+    {
+      "path": [
+        "transactions",
+        "splits",
+        "remove"
+      ],
+      "summary": "take a split off a transaction",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "transactions.splits.remove",
+      "entity": "transaction"
+    },
+    {
+      "path": [
+        "records",
+        "import"
+      ],
+      "summary": "import a source's records; money waits for your review",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "records.import",
+      "entity": "records_receipt"
+    },
+    {
+      "path": [
+        "records",
+        "check"
+      ],
+      "summary": "check a records file against the store; write nothing",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "records.check",
+      "entity": "records_receipt"
+    },
+    {
+      "path": [
+        "records",
+        "templates",
+        "list"
+      ],
+      "summary": "the types a sheet can hold, with their columns",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "records.templates.list",
+      "entity": "records_templates"
+    },
+    {
+      "path": [
+        "records",
+        "templates",
+        "show"
+      ],
+      "summary": "the CSV or JSON file to fill for one type",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "records.templates.show",
+      "entity": "records_template"
+    },
+    {
+      "path": [
+        "records",
+        "list"
+      ],
+      "summary": "a source's records; waiting:true lists what needs records link",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "records.list",
+      "entity": "source_record"
+    },
+    {
+      "path": [
+        "records",
+        "link"
+      ],
+      "summary": "say which of your entries a source's record is",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "records.link",
+      "entity": "source_record"
+    },
+    {
+      "path": [
+        "records",
+        "show"
+      ],
+      "summary": "one record as its source said it",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "records.show",
+      "entity": "source_record"
+    },
+    {
+      "path": [
+        "records",
+        "delete"
+      ],
+      "summary": "mark a source's record deleted",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "records.delete",
+      "entity": "records_receipt"
+    },
+    {
+      "path": [
+        "records",
+        "match"
+      ],
+      "summary": "match a source's waiting people and organizations",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "records.match",
+      "entity": "records_match"
+    },
+    {
+      "path": [
+        "import"
+      ],
+      "summary": "bring a folder of documents or a records file into memo's search",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "import",
+      "entity": "import_receipt"
+    },
+    {
+      "path": [
+        "meetings",
+        "actions",
+        "add"
+      ],
+      "summary": "stage cited findings; facts and tasks wait for owner confirmation",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "meetings.actions.add",
+      "entity": "meeting_findings"
+    },
+    {
+      "path": [
+        "meetings",
+        "actions",
+        "show"
+      ],
+      "summary": "one findings preview, prior decisions and its review receipt",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "meetings.actions.show",
+      "entity": "meeting_findings"
+    },
+    {
+      "path": [
+        "meetings",
+        "actions",
+        "list"
+      ],
+      "summary": "findings batches in one meeting account, newest first",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "meetings.actions.list",
+      "entity": "meeting_findings"
+    },
+    {
+      "path": [
+        "meetings",
+        "actions",
+        "confirm"
+      ],
+      "summary": "owner only: create selected findings and reject the other new candidates",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "meetings.actions.confirm",
+      "entity": "meeting_findings"
+    },
+    {
+      "path": [
+        "meetings",
+        "actions",
+        "reject"
+      ],
+      "summary": "owner only: reject every new candidate in this batch",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "meetings.actions.reject",
+      "entity": "meeting_findings"
+    },
+    {
+      "path": [
+        "meetings",
+        "list"
+      ],
+      "summary": "meetings, calls and events of every account",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "meetings.list",
+      "entity": "meeting_entry"
+    },
+    {
+      "path": [
+        "meetings",
+        "show"
+      ],
+      "summary": "one meeting with its transcript",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "meetings.show",
+      "entity": "meeting_entry_details"
+    },
+    {
+      "path": [
+        "meetings",
+        "passage"
+      ],
+      "summary": "read a cited cue with bounded context before and after it",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "meetings.passage",
+      "entity": "meeting_passage"
+    },
+    {
+      "path": [
+        "meetings",
+        "prepare"
+      ],
+      "summary": "prepare cited stored context for a series; does not verify its next meeting time",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "meetings.prepare",
+      "entity": "meeting_preparation"
+    },
+    {
+      "path": [
+        "actions",
+        "add"
+      ],
+      "summary": "propose an action, such as a reply or a ban, in the account that would act",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "actions.add"
+    },
+    {
+      "path": [
+        "actions",
+        "list"
+      ],
+      "summary": "proposed actions, newest first",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "actions.list",
+      "entity": "proposed_action"
+    },
+    {
+      "path": [
+        "actions",
+        "show"
+      ],
+      "summary": "one proposed action; a findings batch with its fingerprint and sources",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "actions.show"
+    },
+    {
+      "path": [
+        "actions",
+        "confirm"
+      ],
+      "summary": "confirm it: a task to act on, or a findings batch's facts and tasks",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "actions.confirm"
+    },
+    {
+      "path": [
+        "actions",
+        "edit"
+      ],
+      "summary": "change a finding still waiting in a findings batch before you confirm it",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "actions.edit"
+    },
+    {
+      "path": [
+        "actions",
+        "reject"
+      ],
+      "summary": "reject it; nothing is done. For a findings batch, every finding still waiting",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "actions.reject"
+    },
+    {
+      "path": [
+        "review",
+        "list"
+      ],
+      "summary": "what waits for your decision, newest first, with titles and evidence",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "review.list",
+      "entity": "memo_proposal"
+    },
+    {
+      "path": [
+        "review",
+        "show"
+      ],
+      "summary": "one proposal with its titles, signals and the text around each piece of evidence",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "review.show"
+    },
+    {
+      "path": [
+        "review",
+        "confirm"
+      ],
+      "summary": "confirm proposals by id or range; each on its own",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "review.confirm"
+    },
+    {
+      "path": [
+        "review",
+        "reject"
+      ],
+      "summary": "turn proposals down, with why",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "review.reject"
+    },
+    {
+      "path": [
+        "review",
+        "agenda"
+      ],
+      "summary": "morning digest: watched, owed, mail, meetings, calendar, Drive, CRM, tasks",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "review.agenda"
+    },
+    {
+      "path": [
+        "review",
+        "status"
+      ],
+      "summary": "since yesterday: new mail, what is owed and waiting, what agents proposed",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "review.status",
+      "entity": "review_status"
+    },
+    {
+      "path": [
+        "agents",
+        "list"
+      ],
+      "summary": "one row per tool call, newest first: agent, tool, outcome and times",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "agents.list",
+      "entity": "agent_action"
+    },
+    {
+      "path": [
+        "mcp",
+        "serve"
+      ],
+      "summary": "serve memo's commands to an AI agent",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "mcp.serve"
+    },
+    {
+      "path": [
+        "mcp",
+        "revoke"
+      ],
+      "summary": "forget every login given to a browser app",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "mcp.revoke"
+    },
+    {
+      "path": [
+        "mcp",
+        "server",
+        "start"
+      ],
+      "summary": "start the HTTP MCP server in the background",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "mcp.server.start"
+    },
+    {
+      "path": [
+        "mcp",
+        "server",
+        "stop"
+      ],
+      "summary": "stop the background HTTP MCP server",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "mcp.server.stop"
+    },
+    {
+      "path": [
+        "mcp",
+        "server",
+        "status"
+      ],
+      "summary": "whether the HTTP MCP server runs, its login code and the apps logged in",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "mcp.server.status"
+    },
+    {
+      "path": [
+        "models",
+        "list"
+      ],
+      "summary": "speech and embedding models, their download status and the default of each kind",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "models.list",
+      "entity": "model"
+    },
+    {
+      "path": [
+        "models",
+        "download"
+      ],
+      "summary": "download and verify one speech or embedding model",
+      "effects": {
+        "remote": "read",
+        "local": "write"
+      },
+      "permission": "models.download",
+      "entity": "model"
+    },
+    {
+      "path": [
+        "models",
+        "set"
+      ],
+      "summary": "use this text model for every embed and search by meaning, in every CLI",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "models.set",
+      "entity": "model"
+    },
+    {
+      "path": [
+        "models",
+        "add"
+      ],
+      "summary": "add an ONNX embedding model from Hugging Face, pinned and checked by sha256",
+      "effects": {
+        "remote": "read",
+        "local": "write"
+      },
+      "permission": "models.add",
+      "entity": "model"
+    },
+    {
+      "path": [
+        "models",
+        "consents",
+        "show"
+      ],
+      "summary": "whether enrichment is on, with which provider and model, how many records it…",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "models.consents.show"
+    },
+    {
+      "path": [
+        "models",
+        "consents",
+        "set"
+      ],
+      "summary": "turn enrichment on for one provider and model; without --yes, say what would…",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "models.consents.set"
+    },
+    {
+      "path": [
+        "models",
+        "consents",
+        "revoke"
+      ],
+      "summary": "turn enrichment off and delete what the model wrote; search reads only the…",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "models.consents.revoke"
+    },
+    {
+      "path": [
+        "models",
+        "search-consents",
+        "show"
+      ],
+      "summary": "whether search all --harder may call the model, which one, and whether its…",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "models.search-consents.show"
+    },
+    {
+      "path": [
+        "models",
+        "search-consents",
+        "set"
+      ],
+      "summary": "allow search all --harder to call the model; without --yes, say what it…",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "models.search-consents.set"
+    },
+    {
+      "path": [
+        "models",
+        "search-consents",
+        "revoke"
+      ],
+      "summary": "stop search all --harder from calling the model; it gives the plain order again",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "models.search-consents.revoke"
+    },
+    {
+      "path": [
+        "models",
+        "keys",
+        "set"
+      ],
+      "summary": "store a key, typed at a hidden prompt or piped on stdin — never as an argument",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "models.keys.set",
+      "entity": "model_key"
+    },
+    {
+      "path": [
+        "models",
+        "keys",
+        "remove"
+      ],
+      "summary": "forget the stored key; a key in the environment stays",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "models.keys.remove",
+      "entity": "model_key"
+    },
+    {
+      "path": [
+        "models",
+        "ai",
+        "show"
+      ],
+      "summary": "the chosen model, its key, and whether images may go to it",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "models.ai.show",
+      "entity": "ai_model"
+    },
+    {
+      "path": [
+        "models",
+        "ai",
+        "set"
+      ],
+      "summary": "choose the AI model: anthropic, openai or compatible, or ollama (beta)",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "models.ai.set",
+      "entity": "ai_model"
+    },
+    {
+      "path": [
+        "models",
+        "ai",
+        "unset"
+      ],
+      "summary": "stop using a model; its key stays until models ai remove",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "models.ai.unset",
+      "entity": "ai_model"
+    },
+    {
+      "path": [
+        "models",
+        "ai",
+        "remove"
+      ],
+      "summary": "remove the key stored for an address",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "models.ai.remove",
+      "entity": "ai_model"
+    },
+    {
+      "path": [
+        "models",
+        "ai",
+        "revoke"
+      ],
+      "summary": "stop sending images to the AI model; the model itself stays chosen",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "models.ai.revoke",
+      "entity": "ai_model"
+    },
+    {
+      "path": [
+        "models",
+        "ai",
+        "check"
+      ],
+      "summary": "send one short paid request and say what is wrong",
+      "effects": {
+        "remote": "read",
+        "local": "write"
+      },
+      "permission": "models.ai.check",
+      "entity": "ai_model_check"
+    },
+    {
+      "path": [
+        "models",
+        "local-only",
+        "show"
+      ],
+      "summary": "whether local only is on, and where each feature sends data",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "models.local-only.show",
+      "entity": "local_only"
+    },
+    {
+      "path": [
+        "models",
+        "local-only",
+        "set"
+      ],
+      "summary": "turn local only on or off; only you turn it off",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "models.local-only.set",
+      "entity": "local_only"
+    },
+    {
+      "path": [
+        "models",
+        "chats",
+        "show"
+      ],
+      "summary": "whether chat text may go to a model outside this computer, and since when",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "models.chats.show",
+      "entity": "chat_sending"
+    },
+    {
+      "path": [
+        "models",
+        "chats",
+        "set"
+      ],
+      "summary": "allowed, ask (the default) or denied; only you make it less strict",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "models.chats.set",
+      "entity": "chat_sending"
+    },
+    {
+      "path": [
+        "models",
+        "picture-reading",
+        "show"
+      ],
+      "summary": "whether pictures are read, and by which agent",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "models.picture-reading.show",
+      "entity": "picture_reading"
+    },
+    {
+      "path": [
+        "models",
+        "picture-reading",
+        "set"
+      ],
+      "summary": "never, or on request with `images read`; only you turn it on",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "models.picture-reading.set",
+      "entity": "picture_reading"
+    },
+    {
+      "path": [
+        "templates",
+        "list"
+      ],
+      "summary": "every template, and whether yours or the shipped one applies",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "templates.list",
+      "entity": "template"
+    },
+    {
+      "path": [
+        "templates",
+        "show"
+      ],
+      "summary": "the template that applies, and the bodies your changes replaced",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "templates.show"
+    },
+    {
+      "path": [
+        "templates",
+        "edit"
+      ],
+      "summary": "change a template in $EDITOR or from --file; checked before it is saved",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "templates.edit"
+    },
+    {
+      "path": [
+        "templates",
+        "preview"
+      ],
+      "summary": "what would be sent on that channel; saves nothing",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "templates.preview"
+    },
+    {
+      "path": [
+        "templates",
+        "reset"
+      ],
+      "summary": "go back to the shipped template; edit --undo brings yours back",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "templates.reset"
+    },
+    {
+      "path": [
+        "search",
+        "all"
+      ],
+      "summary": "messages, mail, notes, events, deals and meetings ranked together",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "search.all",
+      "entity": "hit"
+    },
+    {
+      "path": [
+        "search",
+        "messages"
+      ],
+      "summary": "stored messenger messages only",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "search.messages",
+      "entity": "message"
+    },
+    {
+      "path": [
+        "search",
+        "mail"
+      ],
+      "summary": "imported emails only",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "search.mail",
+      "entity": "message"
+    },
+    {
+      "path": [
+        "search",
+        "notes"
+      ],
+      "summary": "native notes by words and, with the local model, meaning",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "search.notes",
+      "entity": "note"
+    },
+    {
+      "path": [
+        "search",
+        "memories"
+      ],
+      "summary": "memories holding every word, best first",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "search.memories",
+      "entity": "memory"
+    },
+    {
+      "path": [
+        "search",
+        "people"
+      ],
+      "summary": "people by name across every account",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "search.people",
+      "entity": "person"
+    },
+    {
+      "path": [
+        "search",
+        "meetings"
+      ],
+      "summary": "find words in stored meetings, indexing new ones first",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "search.meetings",
+      "entity": "meeting_hit"
+    },
+    {
+      "path": [
+        "events",
+        "list"
+      ],
+      "summary": "events and phone calls of every account, latest first",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "events.list",
+      "entity": "event"
+    },
+    {
+      "path": [
+        "events",
+        "show"
+      ],
+      "summary": "one event: its time, the accounts and calendars that hold it, and its attendees",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "events.show",
+      "entity": "event"
+    },
+    {
+      "path": [
+        "answers",
+        "create"
+      ],
+      "summary": "prepare cited evidence for your agent, or explicitly call a configured model",
+      "effects": {
+        "remote": "read",
+        "local": "read"
+      },
+      "permission": "answers.create"
+    },
+    {
+      "path": [
+        "sync"
+      ],
+      "summary": "sync notes, make stored mail searchable by meaning, and match people",
+      "effects": {
+        "remote": "read",
+        "local": "write"
+      },
+      "permission": "sync"
+    },
+    {
+      "path": [
+        "store",
+        "info"
+      ],
+      "summary": "the shared store's format and size, and whether memo can read it",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "store.info",
+      "entity": "store_info"
+    },
+    {
+      "path": [
+        "store",
+        "recover"
+      ],
+      "summary": "what is damaged in the store and how to recover it",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "store.recover"
+    },
+    {
+      "path": [
+        "store",
+        "recover",
+        "run"
+      ],
+      "summary": "rebuild a damaged store from every row it can read",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "store.recover.run"
+    },
+    {
+      "path": [
+        "groups",
+        "list"
+      ],
+      "summary": "the saved groups, then all, with accounts, profiles and duplicates",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "groups.list",
+      "entity": "account_group"
+    },
+    {
+      "path": [
+        "groups",
+        "add"
+      ],
+      "summary": "put an account in a group",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "groups.add",
+      "entity": "account_group"
+    },
+    {
+      "path": [
+        "groups",
+        "remove"
+      ],
+      "summary": "take an account out of a group",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "groups.remove",
+      "entity": "account_group"
+    },
+    {
+      "path": [
+        "groups",
+        "move"
+      ],
+      "summary": "move an account between groups",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "groups.move",
+      "entity": "account_group"
+    },
+    {
+      "path": [
+        "groups",
+        "rename"
+      ],
+      "summary": "rename a group",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "groups.rename",
+      "entity": "account_group"
+    },
+    {
+      "path": [
+        "groups",
+        "delete"
+      ],
+      "summary": "delete a group",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "groups.delete",
+      "entity": "account_group"
+    },
+    {
+      "path": [
+        "groups",
+        "update"
+      ],
+      "summary": "set an account's or one chat's scope, personal or work",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "groups.update",
+      "entity": "account_scope"
+    },
+    {
+      "path": [
+        "jobs",
+        "start"
+      ],
+      "summary": "sync every --every (default auto.every, else 5m), starting a minute from now",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "jobs.start"
+    },
+    {
+      "path": [
+        "jobs",
+        "stop"
+      ],
+      "summary": "stop syncing on a timer and remove the timer",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "jobs.stop"
+    },
+    {
+      "path": [
+        "jobs",
+        "status"
+      ],
+      "summary": "whether the timer is on, its interval, its next run and how the last one ended",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "jobs.status"
+    },
+    {
+      "path": [
+        "config",
+        "show"
+      ],
+      "summary": "every setting, its value, its default and whether the file sets it",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "config.show"
+    },
+    {
+      "path": [
+        "config",
+        "migrate"
+      ],
+      "summary": "write each setting the file lacks at its default, keeping yours",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "config.migrate"
+    },
+    {
+      "path": [
+        "config",
+        "unset"
+      ],
+      "summary": "remove one setting from the config file, even one memo does not know",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "config.unset"
+    },
+    {
+      "path": [
+        "doctor"
+      ],
+      "summary": "the state this installation is in, without connecting unless --online",
+      "effects": {
+        "remote": "read",
+        "local": "read"
+      },
+      "permission": "doctor"
+    },
+    {
+      "path": [
+        "upgrade"
+      ],
+      "summary": "upgrade memo with the package manager that installed it; --check only looks",
+      "effects": {
+        "remote": "read",
+        "local": "write"
+      },
+      "permission": "upgrade"
+    },
+    {
+      "path": [
+        "schedule",
+        "command"
+      ],
+      "summary": "run memo <args…> on a timer — reads save what they read, so this is how a…",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "schedule.command"
+    },
+    {
+      "path": [
+        "schedule",
+        "agent"
+      ],
+      "summary": "start an agent (claude, codex, gemini, cursor, opencode, openclaw, hermes,…",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "schedule.agent"
+    },
+    {
+      "path": [
+        "schedule",
+        "list"
+      ],
+      "summary": "the schedules, when they run and how their last run went",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "schedule.list",
+      "entity": "scheduled_job"
+    },
+    {
+      "path": [
+        "schedule",
+        "agents",
+        "list"
+      ],
+      "summary": "the agents a schedule may start, and which are on PATH here",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "schedule.agents.list",
+      "entity": "schedule_harness"
+    },
+    {
+      "path": [
+        "schedule",
+        "run"
+      ],
+      "summary": "run a schedule now, as its timer would, and wait for it; a paused one runs too",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "schedule.run"
+    },
+    {
+      "path": [
+        "schedule",
+        "remove"
+      ],
+      "summary": "stop a schedule and remove its timer; its past output stays",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "schedule.remove"
+    },
+    {
+      "path": [
+        "schedule",
+        "pause"
+      ],
+      "summary": "take a schedule off its timer and keep it; run runs it, resume puts it back",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "schedule.pause"
+    },
+    {
+      "path": [
+        "schedule",
+        "resume"
+      ],
+      "summary": "put a paused schedule back on its timer",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "schedule.resume"
+    },
+    {
+      "path": [
+        "schedule",
+        "exec"
+      ],
+      "summary": "what a timer runs, given the schedule's file; to run one by hand, use run",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "schedule.exec"
+    },
+    {
+      "path": [
+        "digest",
+        "brief",
+        "show"
+      ],
+      "summary": "the brief a digest follows, and the bodies your changes replaced",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "digest.brief.show"
+    },
+    {
+      "path": [
+        "digest",
+        "brief",
+        "edit"
+      ],
+      "summary": "write the brief in $EDITOR or from --file; only you, never an agent",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "digest.brief.edit"
+    },
+    {
+      "path": [
+        "digest",
+        "brief",
+        "reset"
+      ],
+      "summary": "remove the brief; edit --undo brings it back",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "digest.brief.reset"
+    },
+    {
+      "path": [
+        "digest",
+        "list"
+      ],
+      "summary": "your digests: when each runs, what it reads, where it goes, last and next run",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "digest.list",
+      "entity": "digest"
+    },
+    {
+      "path": [
+        "digest",
+        "add"
+      ],
+      "summary": "make a digest: its times, sources, routes and brief, on its timer",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "digest.add"
+    },
+    {
+      "path": [
+        "digest",
+        "edit"
+      ],
+      "summary": "change a digest; each option given replaces what it says, the rest stays",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "digest.edit"
+    },
+    {
+      "path": [
+        "digest",
+        "run"
+      ],
+      "summary": "build a digest now and send it along its routes, or only some, or none",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "digest.run"
+    },
+    {
+      "path": [
+        "digest",
+        "pause"
+      ],
+      "summary": "take a digest off its timer; it stays, and run still builds it",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "digest.pause"
+    },
+    {
+      "path": [
+        "digest",
+        "resume"
+      ],
+      "summary": "put a paused digest back on its timer",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "digest.resume"
+    },
+    {
+      "path": [
+        "digest",
+        "remove"
+      ],
+      "summary": "remove a digest and its timer; its past runs, brief and templates stay",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "digest.remove"
+    },
+    {
+      "path": [
+        "digest",
+        "backfill"
+      ],
+      "summary": "build a digest's past runs, without sending them",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "digest.backfill"
+    },
+    {
+      "path": [
+        "commands"
+      ],
+      "summary": "every command by section; --json prints its contract, one path per call",
+      "effects": {
+        "remote": "none",
+        "local": "none"
+      },
+      "permission": "commands"
+    },
+    {
+      "path": [
+        "commands",
+        "info"
+      ],
+      "summary": "one command contract, or all schemas, error reasons and explicit overrides",
+      "effects": {
+        "remote": "none",
+        "local": "none"
+      },
+      "permission": "commands.info"
+    },
+    {
+      "path": [
+        "skill",
+        "show"
+      ],
+      "summary": "print the tool's instructions for AI agents",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "skill.show"
+    },
+    {
+      "path": [
+        "skill",
+        "install"
+      ],
+      "summary": "install the tool's instructions for AI agents",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "skill.install"
+    },
+    {
+      "path": [
+        "skill",
+        "status"
+      ],
+      "summary": "whether the installed instructions for AI agents match this version",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "skill.status"
+    },
+    {
+      "path": [
+        "guide"
+      ],
+      "summary": "scenarios: the commands for a common task, in order, and why each",
+      "effects": {
+        "remote": "none",
+        "local": "none"
+      },
+      "permission": "guide"
+    },
+    {
+      "path": [
+        "runs",
+        "list"
+      ],
+      "summary": "recorded runs, newest first",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "runs.list",
+      "entity": "run"
+    },
+    {
+      "path": [
+        "runs",
+        "show"
+      ],
+      "summary": "one run: what it was, how it ended, and every event it logged",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "runs.show",
+      "entity": "run"
+    },
+    {
+      "path": [
+        "runs",
+        "path"
+      ],
+      "summary": "the directory holding one run",
+      "effects": {
+        "remote": "none",
+        "local": "none"
+      },
+      "permission": "runs.path",
+      "entity": "run_location"
+    }
+  ],
+  "entities": {
+    "note": {
+      "fields": [
+        "source",
+        "text"
+      ]
+    },
+    "source_reader": {
+      "fields": [
+        "id",
+        "available",
+        "chosen"
+      ]
+    },
+    "document_entry": {
+      "fields": [
+        "source_modified_at"
+      ]
+    },
+    "mail_findings": {
+      "fields": [
+        "status"
+      ]
+    },
+    "message": {
+      "fields": [
+        "date",
+        "bulk"
+      ]
+    },
+    "task_person": {
+      "fields": [
+        "name",
+        "kind"
+      ]
+    },
+    "source_tag": {
+      "fields": [
+        "tag",
+        "type"
+      ]
+    },
+    "task": {
+      "fields": [
+        "state",
+        "kind",
+        "id",
+        "key",
+        "title",
+        "origin",
+        "project_key",
+        "project_name",
+        "chat",
+        "source_message",
+        "external_id",
+        "source_url",
+        "priority_label",
+        "agent",
+        "revision",
+        "ready",
+        "due_at",
+        "reason",
+        "category",
+        "claimed_by",
+        "updated_at"
+      ]
+    },
+    "organization": {
+      "fields": [
+        "id",
+        "ref",
+        "kind",
+        "name",
+        "scope",
+        "created_at"
+      ]
+    },
+    "meeting_project": {
+      "fields": [
+        "confirmed"
+      ]
+    },
+    "project": {
+      "fields": [
+        "id",
+        "ref",
+        "key",
+        "name",
+        "kind",
+        "type",
+        "organization_id",
+        "scope",
+        "created_at"
+      ]
+    },
+    "project_action": {
+      "fields": [
+        "status"
+      ]
+    },
+    "memo_key_document": {
+      "fields": [
+        "id",
+        "ref",
+        "title",
+        "path",
+        "reason",
+        "available",
+        "confirmed",
+        "origin",
+        "provenance",
+        "marked_at"
+      ]
+    },
+    "relationship": {
+      "fields": [
+        "kind",
+        "role",
+        "standing",
+        "confirmed",
+        "include"
+      ]
+    },
+    "relationship_role": {
+      "fields": [
+        "list"
+      ]
+    },
+    "reminder": {
+      "fields": [
+        "id",
+        "task",
+        "due_at",
+        "timezone",
+        "state",
+        "revision",
+        "receipt"
+      ]
+    },
+    "vocabulary": {
+      "fields": [
+        "kind",
+        "scope"
+      ]
+    },
+    "memory": {
+      "fields": [
+        "kind",
+        "status",
+        "scope",
+        "subject",
+        "project"
+      ]
+    },
+    "mention": {
+      "fields": [
+        "kind",
+        "status"
+      ]
+    },
+    "fact": {
+      "fields": [
+        "kind",
+        "status",
+        "project",
+        "subject"
+      ]
+    },
+    "invoice": {
+      "fields": [
+        "project",
+        "direction",
+        "status",
+        "review",
+        "counterparty",
+        "number",
+        "open"
+      ]
+    },
+    "payment": {
+      "fields": [
+        "project",
+        "direction",
+        "review",
+        "party"
+      ]
+    },
+    "order": {
+      "fields": [
+        "project",
+        "status",
+        "purpose",
+        "review",
+        "customer",
+        "supplier",
+        "number"
+      ]
+    },
+    "pipeline": {
+      "fields": [
+        "kind",
+        "name"
+      ]
+    },
+    "deal": {
+      "fields": [
+        "project",
+        "status",
+        "stage",
+        "pipeline",
+        "organization"
+      ]
+    },
+    "lead": {
+      "fields": [
+        "project",
+        "status",
+        "stage",
+        "pipeline",
+        "organization"
+      ]
+    },
+    "stage_mapping": {
+      "fields": [
+        "kind",
+        "confirmed"
+      ]
+    },
+    "product": {
+      "fields": [
+        "kind",
+        "supplier",
+        "archived",
+        "name"
+      ]
+    },
+    "contract": {
+      "fields": [
+        "status",
+        "kind",
+        "project",
+        "review",
+        "expires"
+      ]
+    },
+    "subscription": {
+      "fields": [
+        "status",
+        "direction",
+        "supplier",
+        "customer",
+        "project",
+        "review",
+        "renews"
+      ]
+    },
+    "wallet": {
+      "fields": [
+        "kind",
+        "currency"
+      ]
+    },
+    "transaction": {
+      "fields": [
+        "wallet",
+        "direction",
+        "status",
+        "category",
+        "project",
+        "review",
+        "uncategorized"
+      ]
+    },
+    "records_templates": {
+      "fields": [
+        "type"
+      ]
+    },
+    "source_record": {
+      "fields": [
+        "type",
+        "waiting",
+        "flagged",
+        "unmatched",
+        "entity",
+        "batch",
+        "deleted"
+      ]
+    },
+    "meeting_findings": {
+      "fields": [
+        "status"
+      ]
+    },
+    "proposed_action": {
+      "fields": [
+        "status"
+      ]
+    },
+    "memo_proposal": {
+      "fields": [
+        "project",
+        "kind",
+        "by",
+        "status"
+      ]
+    },
+    "agent_action": {
+      "fields": [
+        "tool"
+      ]
+    },
+    "model": {
+      "fields": [
+        "kind",
+        "id",
+        "downloaded"
+      ]
+    },
+    "template": {
+      "fields": [
+        "key",
+        "channel",
+        "language",
+        "source"
+      ]
+    },
+    "event": {
+      "fields": [
+        "starts_at"
+      ]
+    },
+    "scheduled_job": {
+      "fields": [
+        "name",
+        "kind",
+        "when",
+        "notify",
+        "deliver_to",
+        "harness",
+        "reports_cost",
+        "spent_today_usd",
+        "max_cost_usd",
+        "max_cost_per_day_usd"
+      ]
+    },
+    "schedule_harness": {
+      "fields": [
+        "id",
+        "name",
+        "programs",
+        "reports_cost",
+        "restricted",
+        "restricted_reason",
+        "allowed_with_ack",
+        "installed",
+        "path"
+      ]
+    },
+    "digest": {
+      "fields": [
+        "name"
+      ]
+    },
+    "run": {
+      "fields": [
+        "run_id",
+        "command",
+        "profile",
+        "started_at",
+        "completed_at",
+        "status",
+        "requests",
+        "duration_ms",
+        "cli_version",
+        "runtime",
+        "platform",
+        "arch",
+        "error_code",
+        "provider_error",
+        "kept_because_failed",
+        "operations",
+        "codes",
+        "trace_id",
+        "cli_command",
+        "argv",
+        "unknown_command",
+        "via",
+        "events_dropped",
+        "directory",
+        "event_count",
+        "events_truncated"
+      ]
+    }
+  },
+  "network": {
+    "hosts": [
+      "api.openai.com",
+      "api.anthropic.com",
+      "localhost",
+      "127.0.0.1",
+      "registry.npmjs.org",
+      "huggingface.co",
+      "*.huggingface.co",
+      "*.hf.co",
+      "github.com",
+      "*.githubusercontent.com"
+    ],
+    "user_hosts": "the web pages you add as sources, and the address you set for a reader or an AI model"
+  },
+  "desktop": {
+    "tagline": "Notes, people and memories in one place for your agent",
+    "profiles": null,
+    "doctor": [
+      "doctor",
+      "--record",
+      "--json"
+    ],
+    "runs": {
+      "list": [
+        "runs",
+        "list",
+        "{query}",
+        "--limit",
+        "{limit}",
+        "--page",
+        "{page}",
+        "--no-record",
+        "--json"
+      ],
+      "show": [
+        "runs",
+        "show",
+        "{run}",
+        "--no-record",
+        "--json"
+      ]
+    },
+    "search": null,
+    "setup": null,
+    "signIn": null,
+    "skill": {
+      "status": [
+        "skill",
+        "status",
+        "--no-record",
+        "--json"
+      ],
+      "install": [
+        "skill",
+        "install",
+        "--for",
+        "{target}",
+        "--json"
+      ],
+      "show": [
+        "skill",
+        "show",
+        "--no-record",
+        "--json"
+      ]
+    },
+    "mcpServer": {
+      "start": [
+        "mcp",
+        "server",
+        "start",
+        "--port",
+        "{port}",
+        "--public-url",
+        "{url}",
+        "--json"
+      ],
+      "stop": [
+        "mcp",
+        "server",
+        "stop",
+        "--json"
+      ],
+      "status": [
+        "mcp",
+        "server",
+        "status",
+        "--no-record",
+        "--json"
+      ],
+      "revoke": [
+        "mcp",
+        "revoke",
+        "--json"
+      ],
+      "config": null
+    },
+    "tasks": null,
+    "sync": {
+      "run": [
+        "sync",
+        "--record",
+        "--json"
+      ],
+      "last": [
+        "runs",
+        "list",
+        "command:sync",
+        "status:success",
+        "--limit",
+        "50",
+        "--no-record",
+        "--json"
+      ],
+      "lastShape": "runs",
+      "what": "notes and mail",
+      "note": null
+    },
+    "storeInfo": null,
+    "storeTables": null,
+    "storeTableSizes": null,
+    "storeCheck": null,
+    "storeBackup": null,
+    "storeBackupEncrypted": null,
+    "storeResetPreview": null,
+    "storeReset": null,
+    "storage": {
+      "app": "cli-memo",
+      "env": "MEMO"
+    },
+    "settings": null
+  }
+}

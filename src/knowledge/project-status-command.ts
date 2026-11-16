@@ -32,12 +32,14 @@ import { financeOf, financeText } from "../finance/finance.js"
 import { collect } from "../options.js"
 import { groupScopeOf } from "../store/group.js"
 import { chatRead, chatSync, syncProfileOf } from "./messenger-sync.js"
+import { oldPurposeOption, PURPOSES_HELP, purposesAsked } from "./project-gather-command.js"
 
 interface Options {
   sinceTime: string
   beforeTime?: string
   contextQuery: string[]
   syncProfile?: Record<string, string>
+  purposes?: string[]
   purpose?: string[]
   compact?: boolean
   json?: boolean
@@ -126,11 +128,8 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
         "max=default; repeat for another tool",
       syncProfileOf,
     )
-    .option(
-      "--purpose <purpose>",
-      "the linked chats' purposes to read, comma-separated: work, sales, support, other, or all; default work",
-      purposeList,
-    )
+    .option("--purposes <purposes>", PURPOSES_HELP, purposeList)
+    .addOption(oldPurposeOption())
     .addOption(
       annotateOption(new Option("--compact", "one line per signal, chat and next step, for an agent"), { mcp: false }),
     )
@@ -150,7 +149,7 @@ export const projectStatusCommand = (projects: Command, print: Print, env: NodeJ
           ...projectWindowOf(options.sinceTime),
           ...(options.beforeTime === undefined ? {} : { asOf: projectCutoffTime(options.beforeTime) }),
           contextQueries: options.contextQuery,
-          ...(options.purpose ? { purposes: options.purpose } : {}),
+          ...purposesAsked(options),
         })
         const projects = [status.project.ref, ...status.children.map((child) => child.ref)]
         const books = await financeOf(store, projects)

@@ -242,7 +242,7 @@ const notesCommandDefinition = (program: Command, streams: Streams, env: NodeJS.
           })
           if (options.export === undefined) return note
           const target = exportTarget(loadConfig(env), options.export, options.format)
-          const exported = await exportInternal(store, { ...target, notes: [note], subject: about[0] })
+          const exported = await exportInternal(store, { ...target, notes: [note] })
           return { ...note, exportPath: exportedPath(exported) }
         })
         print(options.json, itemAnswer(answer), answer.ref)

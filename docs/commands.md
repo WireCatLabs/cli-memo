@@ -1907,7 +1907,7 @@ memo projects evidence <project> [options]
 | `--sync-first` | first sync the linked chats the store does not hold back to --since-time, through their messenger CLI; off by default. |
 | `--sync-time <duration>` | time for all of --sync-first's syncs together. Default: `3m`. |
 | `--sync-profile <tool=profile>` | the messenger profile to sync as when several are signed in to a chat's account, such as max=default; repeat for another tool. It must be signed in to that account. |
-| `--purpose <purpose>` | the linked chats' purposes to read, comma-separated: work, sales, support, other, or all; default work. |
+| `--purposes <purposes>` | the linked chats' purposes to read, comma-separated: work, sales, support, other, or all; default work. |
 | `--include-proposed` | also read chats and members proposed for the project, after the confirmed ones. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
@@ -1931,7 +1931,7 @@ memo projects status <project> [options]
 | `--before-time <time>` | fixed exclusive end: ISO 8601 timestamp with UTC offset; days back count from it. |
 | `--context-query <words>` | words that all appear in one text; reports their last mention per side. Repeat for another. Default: ``. |
 | `--sync-profile <tool=profile>` | the messenger profile the next steps name when several are signed in to a chat's account, such as max=default; repeat for another tool. |
-| `--purpose <purpose>` | the linked chats' purposes to read, comma-separated: work, sales, support, other, or all; default work. |
+| `--purposes <purposes>` | the linked chats' purposes to read, comma-separated: work, sales, support, other, or all; default work. |
 | `--compact` | one line per signal, chat and next step, for an agent. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
@@ -3238,7 +3238,7 @@ memo facts reject <ref> [options]
 
 ### `memo facts remove`
 
-forget a fact: erase its text, its links to sources and its tags
+forget a fact: erase its text, its links to sources and its tags. memo facts history keeps who removed it, when and why, never what it said
 
 This command changes the local store or your files.
 
@@ -3257,7 +3257,23 @@ memo facts remove <ref> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--reason <text>` | why, in a few words; required when an agent decides for you. |
 
-**Example:** `memo facts remove fact:4`
+**Example:** `memo facts remove fact:4 --reason 'recorded twice'`
+
+### `memo facts history`
+
+the facts removed, newest first: who removed each, when and why, never what it said
+
+```sh
+memo facts history [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--limit <n>` | most removals on a page, up to 500. Default: `100`. |
+| `--page <n>` | which page, from 1. Default: `1`. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Example:** `memo facts history --limit 20`
 
 ### `memo facts challenge`
 

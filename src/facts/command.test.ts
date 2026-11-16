@@ -159,3 +159,34 @@ it("lets only the owner revoke an agent's accepted fact, which waits as proposed
   await expect(run(owner, "facts", "revoke", own.ref)).rejects.toMatchObject({ code: "validation_error" })
   await expect(run(owner, "facts", "revoke", "fact:999")).rejects.toMatchObject({ code: "not_found" })
 })
+
+it("logs who removed a fact, when and why, never its text, and keeps the reason of a reversal", async () => {
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-facts-")), "store.db") }
+  const run = async (...args: string[]) => {
+    const streams = captureStreams()
+    await createProgram({ streams, env }).exitOverride().parseAsync(args, { from: "user" })
+    return streams.stdout.join("")
+  }
+  const json = async (...args: string[]) => answerOf(await run(...args, "--json"))
+  const fact = await json("facts", "add", "Alice Example asked for the secret plan", "--kind", "question")
+  const decided = await json("facts", "add", "We ship on Fridays", "--kind", "decision")
+  await json("facts", "reverse", decided.ref, "--reason", "the team moved to Thursdays")
+  const store = await openStore({ env })
+  expect((await store.facts.get(decided.ref)).reversal).toMatchObject({ reason: "the team moved to Thursdays" })
+  await store.close()
+
+  expect(await json("facts", "remove", fact.ref, "--reason", "recorded twice")).toMatchObject({ removed: true })
+  const log = await json("facts", "history")
+  expect(log.items).toEqual([
+    expect.objectContaining({
+      fact: fact.ref,
+      removed_by: "owner",
+      reason: "recorded twice",
+      removed_at: expect.any(String),
+    }),
+  ])
+  const text = await run("facts", "history")
+  expect(text).toContain("recorded twice")
+  for (const shown of [JSON.stringify(log), text]) expect(shown).not.toContain("secret plan")
+  expect((await json("facts", "history", "--limit", "1", "--page", "2")).items).toEqual([])
+})

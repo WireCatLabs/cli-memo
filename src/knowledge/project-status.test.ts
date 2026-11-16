@@ -182,11 +182,12 @@ it("answers over MCP with the same item", async () => {
 
 it("reads the linked chats of the purposes asked, and refuses one it does not know", async () => {
   const { status } = await setUp()
+  expect(envelopeOf(await status("--purposes", "all", "--json")).item.purposes).toBe("all")
   expect(envelopeOf(await status("--purpose", "all", "--json")).item.purposes).toBe("all")
-  await expect(status("--purpose", "gossip", "--json")).rejects.toThrow(/work/)
+  await expect(status("--purposes", "gossip", "--json")).rejects.toThrow(/work/)
 })
 
-it("leaves a chat set to sales out of the status until --purpose asks for it; an agent's change waits for review", async () => {
+it("leaves a chat set to sales out of the status until --purposes asks for it; an agent's change waits for review", async () => {
   const { env, status } = await setUp()
   const as = async (who: Record<string, string>, present: boolean, ...args: string[]) => {
     const streams = captureStreams()
@@ -209,6 +210,6 @@ it("leaves a chat set to sales out of the status until --purpose asks for it; an
   await as({}, true, "relationships", "update", group.id, "--purpose", "sales")
   const after = envelopeOf(await status("--json")).item
   expect(after.chats.map((chat: { title: string }) => chat.title)).toEqual(["Lev"])
-  expect(envelopeOf(await status("--purpose", "all", "--json")).item.chats).toHaveLength(2)
+  expect(envelopeOf(await status("--purposes", "all", "--json")).item.chats).toHaveLength(2)
   await expect(as({}, true, "relationships", "update", group.id, "--purpose", "gossip")).rejects.toThrow(/work/)
 })

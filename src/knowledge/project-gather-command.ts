@@ -19,8 +19,21 @@ import { projectOf } from "./key-documents.js"
 import { chatSync, messengerFetcher, syncHint, syncProfileOf } from "./messenger-sync.js"
 import { scanStep } from "./relationships-scan.js"
 
+export const PURPOSES_HELP =
+  "the linked chats' purposes to read, comma-separated: work, sales, support, other, or all; default work"
+
+/** `--purposes`, and the hidden `--purpose` it replaced, kept for one version as in cli-core. */
+export const oldPurposeOption = () =>
+  new Option("--purpose <purposes>", "replaced by --purposes; kept for one version").argParser(purposeList).hideHelp()
+
+export const purposesAsked = ({ purposes = [], purpose = [] }: { purposes?: string[]; purpose?: string[] }) => {
+  const asked = [...purposes, ...purpose]
+  return asked.length === 0 ? {} : { purposes: asked }
+}
+
 interface Options {
   source: string
+  purposes?: string[]
   purpose?: string[]
   includeProposed?: boolean
   alias?: string[]
@@ -103,11 +116,8 @@ export const projectGatherCommand = (
         ).argParser(syncProfileOf),
       ),
     )
-    .option(
-      "--purpose <purpose>",
-      "the linked chats' purposes to read, comma-separated: work, sales, support, other, or all; default work",
-      purposeList,
-    )
+    .option("--purposes <purposes>", PURPOSES_HELP, purposeList)
+    .addOption(oldPurposeOption())
     .option("--include-proposed", "also read chats and members proposed for the project, after the confirmed ones")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (project: string, options: Options) => {
@@ -128,7 +138,7 @@ export const projectGatherCommand = (
           ...(options.contact ? { people: options.contact } : {}),
           ...(options.maxPages === undefined ? {} : { maxReads: options.maxPages }),
           ...(options.cursor === undefined ? {} : { checkpoint: options.cursor }),
-          ...(options.purpose ? { purposes: options.purpose } : {}),
+          ...purposesAsked(options),
           ...(options.includeProposed ? { includeProposed: true } : {}),
           ...(options.syncFirst ? { fetcher: messengerFetcher({ env, note: warn, chosen }), maxFetchMs } : {}),
         })
