@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1540 ✅ · 2 ⛔ · 0 ❌** — 340 commands, 1202 options.
+**1546 ✅ · 2 ⛔ · 0 ❌** — 341 commands, 1207 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -419,6 +419,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `projects evidence` | `--sync-first` | ✅ |  |
 | `projects evidence` | `--sync-time` | ✅ |  |
 | `projects evidence` | `--sync-profile` | ✅ |  |
+| `projects evidence` | `--purposes` | ✅ |  |
 | `projects evidence` | `--purpose` | ✅ |  |
 | `projects evidence` | `--include-proposed` | ✅ |  |
 | `projects evidence` | `--json` | ✅ |  |
@@ -427,6 +428,7 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `projects status` | `--before-time` | ✅ |  |
 | `projects status` | `--context-query` | ✅ |  |
 | `projects status` | `--sync-profile` | ✅ |  |
+| `projects status` | `--purposes` | ✅ |  |
 | `projects status` | `--purpose` | ✅ |  |
 | `projects status` | `--compact` | ✅ |  |
 | `projects status` | `--json` | ✅ |  |
@@ -707,6 +709,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `facts remove` | `--from-app` | ✅ |  |
 | `facts remove` | `--json` | ✅ |  |
 | `facts remove` | `--reason` | ✅ |  |
+| `facts history` |  | ✅ |  |
+| `facts history` | `--limit` | ✅ |  |
+| `facts history` | `--page` | ✅ |  |
+| `facts history` | `--json` | ✅ |  |
 | `facts challenge` |  | ✅ |  |
 | `facts challenge` | `--as-owner` | ✅ |  |
 | `facts challenge` | `--from-app` | ✅ |  |

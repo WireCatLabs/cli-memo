@@ -111,6 +111,7 @@
   "facts confirm": "write",
   "facts revoke": "write",
   "facts reverse": "write",
+  "facts history": "read",
   "facts challenge": "write",
   "invoices list": "read",
   "invoices show": "read",

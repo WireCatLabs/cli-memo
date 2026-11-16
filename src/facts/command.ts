@@ -8,6 +8,7 @@ import { byOption, deciderOf, reasonOption, whoRuns } from "../author.js"
 import { FORGET_HELP } from "../memories/command.js"
 import { challengeCommand, explainQuote, quotedEvidence, quoteOption } from "../memories/sources.js"
 import { oneOf, positive } from "../options.js"
+import { pageOf } from "../page.js"
 import { decideOne, decisionOf } from "../review/review.js"
 import { sourcesIn, stripped } from "../store/guard.js"
 import { canonicalProject } from "../vocabulary/project.js"
@@ -136,16 +137,39 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     "take back your approval of an agent's fact; it waits as proposed again. Not for a correction or your own fact",
     (store, ref, by, why) => store.facts.revoke(ref, by, why),
   ).summary("take back your approval of a fact an agent proposed")
-  decide("reverse", "an accepted decision no longer holds, and nothing replaced it", (store, ref, by) =>
-    store.facts.reverse(ref, by),
+  decide("reverse", "an accepted decision no longer holds, and nothing replaced it", (store, ref, by, why) =>
+    store.facts.reverse(ref, by, why),
   )
   decide("reject", "turn down a fact an agent proposed; it stays, marked rejected", async (store, ref, by, why) => {
     await decideOne(store, env, ref, decisionOf(false, by, why))
     return store.facts.get(ref)
   })
-  decide("remove", "forget a fact: erase its text, its links to sources and its tags", (store, ref, by) =>
-    store.facts.remove(ref, by),
-  ).addHelpText("after", `\n${FORGET_HELP.replace("use invalidate", "use reject or reverse")}`)
+  decide(
+    "remove",
+    "forget a fact: erase its text, its links to sources and its tags. memo facts history keeps who removed it, " +
+      "when and why, never what it said",
+    (store, ref, by, why) => store.facts.remove(ref, by, why),
+  )
+    .summary("forget a fact; facts history keeps who removed it and why")
+    .addHelpText("after", `\n${FORGET_HELP.replace("use invalidate", "use reject or reverse")}`)
+
+  annotate(facts.command("history"), { effects: LOCAL_READ })
+    .summary("the facts removed: who, when and why, never what they said")
+    .description("the facts removed, newest first: who removed each, when and why, never what it said")
+    .option("--limit <n>", "most removals on a page, up to 500", positive, 100)
+    .option("--page <n>", "which page, from 1", positive, 1)
+    .option("--json", "print JSON; --json=id,title keeps only those fields")
+    .action(({ json, limit, page }: { limit: number; page: number; json?: boolean }) =>
+      run(json, async (store) =>
+        stripped(
+          store,
+          env,
+          await pageOf("facts history", limit, (most, offset) => store.facts.removed({ limit: most, offset }), {
+            page,
+          }),
+        ),
+      ),
+    )
 
   challengeCommand(facts, "fact", streams, env)
 }

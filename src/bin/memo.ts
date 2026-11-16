@@ -1,16 +1,11 @@
 #!/usr/bin/env node
 import { enableCompileCache } from "node:module"
 import { wcatStart } from "@wirecat/cli-base/wcat/start"
-import { APP } from "../app.js"
+import { DESKTOP } from "../identity.js"
 
 // Compiling the program's module files is most of a start; later runs reuse what this one compiled.
 enableCompileCache()
-const wcat = await wcatStart({
-  command: APP.command,
-  version: APP.version,
-  description: APP.description,
-  docs: "https://github.com/WireCatLabs/cli-memo#readme",
-})
+const wcat = await wcatStart(DESKTOP)
 if (wcat.code !== undefined) {
   process.exitCode = wcat.code
 } else {

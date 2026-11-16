@@ -346,6 +346,7 @@ it("reads a project's confirmed linked chats whole, never a suggested one or one
   expect(await refs("--include-proposed")).toContain("msg:telegram/1/6/1")
   await json("relationships", "update", added.id, "--purpose", "sales")
   expect(await refs()).not.toContain("msg:telegram/1/8/1")
+  expect(await refs("--purposes", "sales")).toContain("msg:telegram/1/8/1")
   expect(await refs("--purpose", "sales")).toContain("msg:telegram/1/8/1")
 })
 

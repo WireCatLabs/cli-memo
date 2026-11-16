@@ -4,6 +4,7 @@ import { packageVersion, packContents, releaseCheck } from "@wirecat/cli-base/re
 const root = fileURLToPath(new URL("..", import.meta.url))
 const PACKED = [
   "dist/",
+  "contracts/wirecat.json",
   "package.json",
   "README.md",
   "LICENSE",
@@ -13,7 +14,7 @@ const PACKED = [
   "install/",
 ]
 const PACKED_SAID =
-  "dist/, package.json, README.md, LICENSE, THIRD_PARTY_NOTICES, the scenarios, the agent skill and the installation scripts"
+  "dist/, the WireCat manifest, package.json, README.md, LICENSE, THIRD_PARTY_NOTICES, the scenarios, the agent skill and the installation scripts"
 
 const failed = releaseCheck([{ name: "package contents", run: packContents(root, PACKED, PACKED_SAID) }], {
   version: packageVersion(root),

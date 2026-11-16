@@ -43,16 +43,16 @@ export const exportTarget = (
 
 /**
  * Writes internal notes as files, each with what it is about as links and its tags. The store keeps a note's first
- * subject on the note, not as a link, and does not return it; `subject` is that one, when the caller knows it.
+ * subject on the note, not among its links, so it leads the list.
  */
 export const exportInternal = async (
   store: MessageStore,
-  { dir, format, notes, subject }: { dir: string; format: DialectName; notes: Note[]; subject?: string },
+  { dir, format, notes }: { dir: string; format: DialectName; notes: Note[] },
 ): Promise<ExportResult> => {
   const exported: ExportedNote[] = []
   for (const note of notes) {
     const linked = (await store.notes.links({ from: note.ref })).filter((link) => link.to !== null)
-    const about = [...(subject === undefined ? [] : [{ to: subject, anchor: null }]), ...linked]
+    const about = [...(note.subject === null ? [] : [{ to: note.subject, anchor: null }]), ...linked]
     exported.push({
       id: note.id,
       title: titleOf(note),
