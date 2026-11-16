@@ -1,7 +1,7 @@
 import { isFolderProvider, kindIn } from "@wirecat/cli-core"
 import { eventChange } from "@wirecat/cli-core/meetings"
 import { searchNotesQuery } from "@wirecat/cli-core/services"
-import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
+import type { AccountKey, CrmChange, CrmChangeKind, MessageStore } from "@wirecat/cli-core/store"
 
 /** A part of the agenda read from the store alone: items newest first, cut by the agenda's section limit. */
 export interface SourcePart {
@@ -26,8 +26,6 @@ interface Window {
 const DAY = 86_400_000
 /** Rows read per part before the section limit: the same bound the meetings part reads. */
 const READ = 100
-/** The deals list is newest created first, so a deal changed today may sit deep in it; this many are read at most. */
-const CRM_READ = 500
 
 const iso = (ms: number) => new Date(ms).toISOString()
 const oneLine = (text: string | null | undefined, size: number): string | null => {
@@ -141,39 +139,44 @@ export const calendarChanges = async (store: MessageStore, accounts: readonly Ac
   }
 }
 
-/** Deals and leads of the CRM copies that the CRM changed in the window; a stage moved in it is named. */
+const CHANGED: Record<CrmChangeKind, (change: CrmChange) => string> = {
+  created: ({ kind }) => `new ${kind}`,
+  moved: ({ kind, from, to }) => `${kind} moved, stage ${from} → ${to}`,
+  won: ({ kind }) => `${kind} won`,
+  lost: ({ kind, reason }) => `${kind} lost${reason ? `: ${reason}` : ""}`,
+  owner_changed: ({ kind }) => `${kind} given another owner`,
+  activity_added: ({ kind }) => `activity added on the ${kind}`,
+  activity_done: ({ kind }) => `activity done on the ${kind}`,
+  person_added: () => "contact added",
+}
+
+/** What the CRM copies say changed in the window: deals and leads made, moved, won, lost, reassigned, their activities. */
 export const crmChanges = async (store: MessageStore, accounts: readonly AccountKey[], window: Window) => {
   const keys = accounts.filter((key) => isCrmAccount(key.provider))
   if (keys.length === 0) return { found: [], next: [] }
-  const found: SourcePart["found"] = []
-  const next: string[] = []
-  for (const kind of ["deal", "lead"] as const) {
-    const { items: rows, hasMore } = await store.deals.list({ kind, accounts: keys, limit: CRM_READ })
-    if (hasMore) next.push(`# the newest ${CRM_READ} ${kind}s were read; an older one changed is left out`)
-    let here = 0
-    for (const row of rows) {
-      const updated = Date.parse(row.updatedAt)
-      if (row.account === null || updated < window.since || updated > window.now) continue
-      here++
-      const created = Date.parse(row.createdAt) >= window.since
-      found.push({
-        item: {
-          ref: row.ref,
-          who: row.organization?.name ?? null,
-          at: row.updatedAt,
-          excerpt: oneLine(`${row.title} — ${row.summary}`, window.excerpt),
-          why: created ? `new ${kind}` : `${kind} changed`,
-        },
-        fill: async () => {
-          const moved = (await store.deals.stages(row.ref)).filter(
-            (one) => one.from !== null && Date.parse(one.at) >= window.since && Date.parse(one.at) <= window.now,
-          )
-          const last = moved.at(-1)
-          return last ? { why: `${created ? `new ${kind}` : `${kind} changed`}, stage ${last.from} → ${last.to}` } : {}
-        },
-      })
-    }
-    if (here) next.push(`memo ${kind}s list --json`)
+  const filter = { since: window.since, until: window.now, limit: READ, offset: 0 }
+  const pages = await Promise.all(keys.map((key) => store.crm.changes(key, filter)))
+  const rows = pages
+    .flatMap(({ items }) => items)
+    .filter((row) => row.ref !== null)
+    .sort((a, b) => b.at - a.at)
+  const found: SourcePart["found"] = rows.slice(0, READ).map((row) => ({
+    item: {
+      ref: row.ref as string,
+      who: null,
+      at: iso(row.at),
+      excerpt: oneLine(row.activity ? `${row.title} — ${row.activity.subject}` : row.title, window.excerpt),
+      why: CHANGED[row.change](row),
+    },
+  }))
+  const kinds = new Set(rows.map(({ kind }) => kind))
+  return {
+    found,
+    next: [
+      ...(["deal", "lead"] as const).filter((kind) => kinds.has(kind)).map((kind) => `memo ${kind}s list --json`),
+      ...(rows.length > READ || pages.some(({ hasMore }) => hasMore)
+        ? [`# more than ${READ} CRM changes; the newest ${READ} were read`]
+        : []),
+    ],
   }
-  return { found, next }
 }

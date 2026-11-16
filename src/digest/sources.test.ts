@@ -139,7 +139,7 @@ it("reads Drive, the calendar and the CRM into parts of their own", async () => 
   const crm = sectionOf(answer, "crm")
   expect(crm.items.map(({ why, excerpt }) => [why, excerpt?.split(" — ")[0]])).toEqual([
     ["new lead", "Dock lead"],
-    ["deal changed, stage New → Quote", "Pier renewal"],
+    ["deal moved, stage New → Quote", "Pier renewal"],
   ])
 })
 

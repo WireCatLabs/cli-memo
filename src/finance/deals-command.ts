@@ -340,9 +340,9 @@ const itemCommands = (
 const percent = (share: number | null) => (share === null ? "" : `, ${Math.round(share * 100)}% go on`)
 
 /** "Sales (deal), pipeline:2" then a line per stage: open now, reached, and the share that goes on. */
-const funnelText = (report: PipelineReport): string =>
+const funnelText = (report: PipelineReport, since: string | undefined): string =>
   [
-    `${report.name} (${report.kind}), ${report.ref}${report.since === null ? "" : `, made since ${report.since}`}`,
+    `${report.name} (${report.kind}), ${report.ref}${since === undefined ? "" : `, made since ${since}`}`,
     ...report.stages.map(
       (stage) =>
         `  ${stage.position}. ${stage.name}${stage.outcome === "open" ? "" : ` [${stage.outcome}]`}: ` +
@@ -428,7 +428,7 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
           await store.deals.pipeline(await pipelineInGroup(store, env, pipeline), since === undefined ? {} : { since }),
         ),
       )
-      print(options.json, itemAnswer(report), funnelText(report))
+      print(options.json, itemAnswer(report), funnelText(report, since))
     })
 
   json(
