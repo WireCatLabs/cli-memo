@@ -90,8 +90,8 @@ source it did not, with the reason. The answer brings together:
   of the tool that owns the account opens one;
 - the note about them, the notes that link to them, and the notes you wrote about them in Memo;
 - open tasks that are about them or assigned to them.
-- the Google Drive files they own or last edited, as Google reports it. You have not reviewed these links;
-  they come from Google's own file record, not from a guess;
+- the files and pages they own or last edited in Google Drive, Notion or another documents source, as that source
+  reports it. You have not reviewed these links; they come from the source's own record, not from a guess;
 - `business`: the organizations they belong to with their role and position, whom they report to and who reports to
   them, the deals and leads they are on, their projects, and categories such as `client`. Each relationship has a
   `standing`: `confirmed` (yours), `reported` (a CRM account says so, and names it; nobody confirmed it), `proposed`

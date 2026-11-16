@@ -357,7 +357,7 @@ describe("memo context", () => {
       }),
     ])
     expect(answer.relationships).toEqual([])
-    expect(text).toContain("Files, as Google reports")
+    expect(text).toContain("Files, as their source reports")
     expect(text).toMatch(
       /owner {2}Lighthouse budget {2}2026-10-01 10:00 {2}https:\/\/docs\.google\.com\/document\/d\/f1\/edit/,
     )
@@ -372,6 +372,47 @@ describe("memo context", () => {
       modified_at: "2026-10-01T10:00:00Z",
       mime: null,
     })
+  })
+
+  it("lists a Notion page they last edited, as any documents source reports it", async () => {
+    const store = await openStore({ env })
+    const notion = { provider: "notion", account: "w1:b1" }
+    await store.accounts.registerProvider({ name: "notion", kind: "documents", aliases: [] })
+    const folder = await store.notes.documentsAccount(notion, true)
+    if (folder === undefined) throw new Error("no documents account")
+    await store.catalog.upsert(folder.id, [
+      { externalId: "p1.md", kind: "file", name: "Lighthouse roadmap", parents: [], url: "https://www.notion.so/p1" },
+    ])
+    await store.accounts.saveAccount(notion, { name: "Notion" })
+    await store.people.savePeople(notion, [{ id: "n1", name: "Rin Example" }])
+    await store.people.linkIdentities(
+      { provider: "telegram", id: "101" },
+      { provider: "notion", id: "n1" },
+      { method: "manual", by: "owner" },
+    )
+    const uid = (await store.people.personOf({ provider: "telegram", id: "101" }))?.uid as string
+    const page = (await store.catalog.get(folder.id, "p1.md"))?.ref.split(":")[1] as string
+    await store.notes.replaceFileLinks(page, [
+      {
+        kind: "related-to",
+        to: `person:${uid}`,
+        role: "last-editor",
+        provenance: "notion:pages.retrieve",
+        confirmed: false,
+      },
+    ])
+    await store.close()
+
+    const answer = answerOf(await run("context", "telegram:101", "--json"))
+    expect(answer.files).toEqual([
+      expect.objectContaining({
+        title: "Lighthouse roadmap",
+        role: "last-editor",
+        url: "https://www.notion.so/p1",
+        provenance: "notion:pages.retrieve",
+      }),
+    ])
+    expect(answer.relationships).toEqual([])
   })
 
   it("asks for the messenger, and names a messenger the store does not hold", async () => {

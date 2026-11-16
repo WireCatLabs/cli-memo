@@ -73,16 +73,22 @@ export interface ReportedFile {
   confirmed: boolean
 }
 
-/** Drive copies these from Google's own file record, so they are facts as Google states them, not guesses. */
-const SOURCE_REPORTS = new Set(["google-drive:files.get"])
-
+/**
+ * A documents CLI (drive, notion) names a link `<provider>:<call>` when it copies who owns or edited a file from the
+ * source's own record, so it is a fact as the source states it, not a guess. It counts only on a file of that provider's
+ * own documents account, the rule cli-core's `reported` standing follows.
+ */
 const reportedFiles = async (store: MessageStore, links: Link[], limit: number): Promise<ReportedFile[]> => {
+  const providers = new Map(
+    (await store.notes.documentsAccounts()).flatMap(({ id, account }) => (account ? [[id, account.provider]] : [])),
+  )
   const files: ReportedFile[] = []
   for (const link of links) {
     if (files.length >= limit) break
-    if (link.kind !== "related-to" || !link.provenance || !SOURCE_REPORTS.has(link.provenance)) continue
+    if (link.kind !== "related-to" || !link.provenance?.includes(":")) continue
     const note = await store.notes.note(link.from).catch(() => null)
     if (!note || note.deletedAt || note.folderId === null || note.path === null) continue
+    if (providers.get(note.folderId) !== link.provenance.split(":")[0]) continue
     const entry = await store.catalog.get(note.folderId, note.path)
     if (!entry) continue
     files.push({
@@ -277,9 +283,12 @@ const withNotesAndTasks = async (
     viewers: await crmViewersAll(store),
     limit: 500,
   })
-  // A file Google reports is listed under files; since cli-core 0.621.0 its link is `reported`, so it would repeat here.
+  const providers = new Set((await store.notes.documentsAccounts()).flatMap(({ account }) => account?.provider ?? []))
+  // A file its source reports is listed under files; since cli-core 0.621.0 its link is `reported`, so it would repeat here.
   const relationships = listed.items.filter(
-    (one) => isUsable(one.standing) && !(one.provenance && SOURCE_REPORTS.has(one.provenance)),
+    (one) =>
+      isUsable(one.standing) &&
+      !(one.kind === "related-to" && one.provenance && providers.has(one.provenance.split(":")[0] as string)),
   )
   const files = await reportedFiles(store, incoming, limit)
   const { subject: _, name: __, ...notes } = linked

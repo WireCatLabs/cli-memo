@@ -142,7 +142,7 @@ export const contextText = ({
       ? []
       : ["Notes linking a note about them", ...notes.throughNotes.map(noteLine)]),
     ...(notes.hasMore ? ["  more — raise --limit"] : []),
-    ...(files.length === 0 ? [] : ["", "Files, as Google reports", ...files.map(fileLine)]),
+    ...(files.length === 0 ? [] : ["", "Files, as their source reports", ...files.map(fileLine)]),
     ...(messages.complete ? [] : ["", `Not read in full: ${messages.notRead.length} chats — messages sync <chat>`]),
     ...notRead.map(({ source, reason }) => `Not read: ${source} — ${reason}`),
     ...(coverage?.notRead ?? []).map(({ source, reason }) => `Not read: ${source} — ${reason}`),
