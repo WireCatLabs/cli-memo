@@ -249,6 +249,12 @@ export const REASONS: ErrorReason[] = defineReasons([
   },
   { reason: "auto.systemctl-failed", code: "provider_error", message: "systemctl failed", details: [] },
   {
+    reason: "deal.not-readable",
+    code: "not_found",
+    message: "the deal or lead is in a CRM copy whose sign-in may not read it (SEC-197)",
+    details: [],
+  },
+  {
     reason: "stage.crm-copy",
     code: "validation_error",
     message: "the row is a CRM's copy: its CRM's CLI moves it to a base stage, as writes_with names it",

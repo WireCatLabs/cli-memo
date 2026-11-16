@@ -2,6 +2,7 @@ import { isFolderProvider, kindIn } from "@wirecat/cli-core"
 import { eventChange } from "@wirecat/cli-core/meetings"
 import { searchNotesQuery } from "@wirecat/cli-core/services"
 import type { AccountKey, CrmChange, CrmChangeKind, MessageStore } from "@wirecat/cli-core/store"
+import { crmViewing } from "../store/crm-viewer.js"
 
 /** A part of the agenda read from the store alone: items newest first, cut by the agenda's section limit. */
 export interface SourcePart {
@@ -155,7 +156,14 @@ export const crmChanges = async (store: MessageStore, accounts: readonly Account
   const keys = accounts.filter((key) => isCrmAccount(key.provider))
   if (keys.length === 0) return { found: [], next: [] }
   const filter = { since: window.since, until: window.now, limit: READ, offset: 0 }
-  const pages = await Promise.all(keys.map((key) => store.crm.changes(key, filter)))
+  const notes: string[] = []
+  const pages = await Promise.all(
+    keys.map(async (key) => {
+      const { viewer, note } = await crmViewing(store, key)
+      if (note) notes.push(`# ${key.provider}:${key.account}: ${note}`)
+      return store.crm.changes(key, viewer ? { ...filter, viewer } : filter)
+    }),
+  )
   const rows = pages
     .flatMap(({ items }) => items)
     .filter((row) => row.ref !== null)
@@ -177,6 +185,7 @@ export const crmChanges = async (store: MessageStore, accounts: readonly Account
       ...(rows.length > READ || pages.some(({ hasMore }) => hasMore)
         ? [`# more than ${READ} CRM changes; the newest ${READ} were read`]
         : []),
+      ...notes,
     ],
   }
 }

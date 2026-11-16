@@ -2,6 +2,8 @@ import { mkdtempSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
+import { syncCrm } from "@wirecat/cli-core/crm"
+import { type FakeCrmSourceOptions, fakeCrmSource } from "@wirecat/cli-core/crm/testing"
 import { openStore } from "@wirecat/cli-core/store"
 import { afterEach, expect, it } from "vitest"
 import { createProgram } from "../program.js"
@@ -16,7 +18,7 @@ afterEach(() => {
   process.exitCode = 0
 })
 
-const setUp = async () => {
+const setUp = async (crm: FakeCrmSourceOptions = {}) => {
   const root = mkdtempSync(join(tmpdir(), "memo-digest-sources-"))
   const env: NodeJS.ProcessEnv = {
     ...process.env,
@@ -76,6 +78,8 @@ const setUp = async () => {
     await store.calendar.saveEntries(calendar?.id as number, [entry("kickoff", "Harbour kickoff", now + 5 * DAY)], now)
 
     await store.accounts.saveAccount(PORTAL, { name: null })
+    // A sync records which users of the CRM may read which part of the copy (SEC-197).
+    await syncCrm(fakeCrmSource(crm), store, PORTAL)
     const stages = [
       { externalId: "new", name: "New", position: 1, outcome: "open" as const },
       { externalId: "quote", name: "Quote", position: 2, outcome: "open" as const },
@@ -89,15 +93,21 @@ const setUp = async () => {
       stage: "new",
       createdAt: now - created,
       updatedAt: now - updated,
+      assignee: "7",
     })
     await store.crm.saveItems(PORTAL, "deal", [item("d1", "Pier renewal", 10 * DAY, 10 * DAY)], { users: false })
     await store.crm.saveItems(PORTAL, "deal", [{ ...item("d1", "Pier renewal", 10 * DAY, 2 * HOUR), stage: "quote" }], {
       users: false,
     })
     await store.crm.saveItems(PORTAL, "deal", [item("d2", "Quiet ferry deal", 20 * DAY, 9 * DAY)], { users: false })
-    await store.crm.saveItems(PORTAL, "lead", [{ ...item("l1", "Dock lead", HOUR, HOUR), pipeline: "leads" }], {
-      users: false,
-    })
+    await store.crm.saveItems(
+      PORTAL,
+      "lead",
+      [{ ...item("l1", "Dock lead", HOUR, HOUR), pipeline: "leads", assignee: "9" }],
+      {
+        users: false,
+      },
+    )
   } finally {
     await store.close()
   }
@@ -149,4 +159,10 @@ it("leaves out each part the digest does not read", async () => {
   expect(sectionOf(answer, "crm").total).toBe(2)
   expect(sectionOf(answer, "drive").total).toBe(0)
   expect(sectionOf(answer, "calendar").total).toBe(0)
+})
+
+it("shows a CRM user that is not the administrator only its own deals and leads", async () => {
+  const { run } = await setUp({ self: "7" })
+  const answer = JSON.parse(await run("review", "agenda", "--since-time", "1d", "--source", "crm", "--json"))
+  expect(sectionOf(answer, "crm").items.map(({ why }) => why)).toEqual(["deal moved, stage New → Quote"])
 })

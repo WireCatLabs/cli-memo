@@ -18,6 +18,7 @@ import {
 import type { AccountKey, MessageStore, Note } from "@wirecat/cli-core/store"
 import { APP } from "../app.js"
 import { keyDocuments, keyFirst, projectOf } from "../knowledge/key-documents.js"
+import { crmViewers as viewersOf } from "../store/crm-viewer.js"
 import { accountsByKind, groupScopeOf, MEMO_ACCOUNT, scopedAccounts } from "../store/group.js"
 import { accountsOf } from "../store/source-list.js"
 import { taskPage } from "../tasks/context.js"
@@ -299,6 +300,7 @@ export const searchEverywhere = async (
 ): Promise<SearchAllFound & EverywhereExtras> => {
   const accounts = await scopedAccounts(store, env)
   const group = await groupScoped(store, env, only)
+  const crmViewers = await viewersOf(store, accounts)
   // Group lists belong to tg; model downloads belong to memo.
   const messenger = { app: { ...APP, command: "tg" }, hintCommand: "memo" }
   // Hits a permission hides are dropped after the search, so they would already have gone to the model.
@@ -316,6 +318,7 @@ export const searchEverywhere = async (
         ...(group === undefined ? (only === undefined ? {} : { only }) : { only: group.only, scope: group.scope }),
         ...(crmKinds === undefined ? {} : { crmKinds }),
         ...(source === undefined ? {} : { source }),
+        ...(crmViewers.length ? { crmViewers } : {}),
         // memo is the owner's own view of every account, personal and work alike.
         meetingScopes: ["personal", "work"],
         ...(only?.includes("meetings") ? { meetingsAsked: true } : {}),

@@ -22,6 +22,7 @@ import { collect, positive } from "../options.js"
 import { pageOf } from "../page.js"
 import { withSources } from "../records/sources.js"
 import { deniedCrmKinds } from "../search/denied.js"
+import { readableDeal, readablePipeline, readablePipelines, seenRows } from "../store/crm-viewer.js"
 import { type GroupScope, groupScopeOf } from "../store/group.js"
 import { lockedCoverage } from "../store/guard.js"
 import { canonicalProject } from "../vocabulary/project.js"
@@ -85,8 +86,14 @@ export const listDeals = async (
   return pageOf(
     command,
     limit,
-    (most) =>
-      store.deals.list({ ...filter, ...(scope === undefined ? {} : { accounts: scope.accounts }), limit: most }),
+    async (most) => {
+      const page = await store.deals.list({
+        ...filter,
+        ...(scope === undefined ? {} : { accounts: scope.accounts }),
+        limit: most,
+      })
+      return { ...page, items: await seenRows(store, page.items) }
+    },
     { shape: (rows) => rows.map(writer) },
   )
 }
@@ -99,7 +106,7 @@ const BASE_STAGE = /^stage:\d+$/
  */
 const stageToMove = async (store: MessageStore, ref: string, stage: string): Promise<string> => {
   if (!BASE_STAGE.test(stage.trim())) return stage
-  const row = await store.deals.get(ref)
+  const row = await readableDeal(store, ref)
   if (row.account !== null) {
     const writesWith = writesWithOf(row.account, storedProfilesFor(await store.accounts.profiles()))
     throw new CliError(
@@ -178,7 +185,7 @@ const itemCommands = (
     .summary(`one ${one} with its stage, status, amount and people`)
     .argument("<ref>", `${kind}:<id>`)
     .action((ref: string, options: { json?: boolean }, command: Command) =>
-      run(options.json, async (store) => itemAnswer(await withSources(command, store, await store.deals.get(ref)))),
+      run(options.json, async (store) => itemAnswer(await withSources(command, store, await readableDeal(store, ref)))),
     )
 
   json(annotate(group.command("context"), { effects: LOCAL_READ, output: { entity: "deal_context" } }))
@@ -194,6 +201,7 @@ const itemCommands = (
     .action(async (ref: string, options: { brief?: boolean; limit: number; json?: boolean }, command: Command) => {
       const answer = await withStore(env, async (store) => {
         const scope = await groupScopeOf(store, env)
+        await readableDeal(store, ref)
         return lockedCoverage(
           store,
           env,
@@ -398,7 +406,11 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
         const name = terms.get("name")?.toLocaleLowerCase()
         const kind = terms.get("kind") as DealKind | undefined
         const scope = await groupScopeOf(store, env)
-        const all = (await store.deals.pipelines(kind === undefined ? {} : { kind })).filter(inScope(scope))
+        const all = await readablePipelines(
+          store,
+          (await store.deals.pipelines(kind === undefined ? {} : { kind })).filter(inScope(scope)),
+          kind,
+        )
         const writer = await withWriter(store)
         return wholeList(
           "pipelines list",
@@ -425,7 +437,11 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
         withSources(
           command,
           store,
-          await store.deals.pipeline(await pipelineInGroup(store, env, pipeline), since === undefined ? {} : { since }),
+          await readablePipeline(
+            store,
+            await pipelineInGroup(store, env, pipeline),
+            since === undefined ? {} : { since },
+          ),
         ),
       )
       print(options.json, itemAnswer(report), funnelText(report, since))
@@ -484,7 +500,9 @@ const STATUS_DEALS = 5
 /** The open deals of these projects. */
 export const openDealsOf = async (store: MessageStore, projects: readonly string[]) => {
   const found = (
-    await Promise.all(projects.map(async (project) => (await store.deals.list({ project, status: "open" })).items))
+    await Promise.all(
+      projects.map(async (project) => seenRows(store, (await store.deals.list({ project, status: "open" })).items)),
+    )
   ).flat()
   const sorted = found.sort(
     (a, b) => (a.closeDate ?? "9999").localeCompare(b.closeDate ?? "9999") || b.createdAt.localeCompare(a.createdAt),

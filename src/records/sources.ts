@@ -1,6 +1,7 @@
 import type { AccountKey, MessageStore, RecordKey } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { grantedLevel } from "../mcp/granted.js"
+import { readableDeal, readablePipeline } from "../store/crm-viewer.js"
 
 const MOST = 100
 
@@ -21,9 +22,9 @@ const READS: Readonly<Record<string, (store: MessageStore, ref: string) => Promi
   invoice: (store, ref) => store.finance.invoice(ref),
   payment: (store, ref) => store.finance.payment(ref),
   order: (store, ref) => store.orders.get(ref),
-  deal: (store, ref) => store.deals.get(ref),
-  lead: (store, ref) => store.deals.get(ref),
-  pipeline: (store, ref) => store.deals.pipeline(ref),
+  deal: readableDeal,
+  lead: readableDeal,
+  pipeline: (store, ref) => readablePipeline(store, ref),
 }
 
 export const SOURCED: ReadonlySet<string> = new Set(Object.keys(READS))
