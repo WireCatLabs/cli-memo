@@ -191,6 +191,8 @@ describe("memo context", () => {
     )
     expect(older.history.items.map(({ text }: { text: string }) => text)).toEqual(["Are we still on for Friday?"])
     expect(older.history).toMatchObject({ has_more: false, before_time: null })
+    const recent = answerOf(await run("context", "telegram:101", "--since-time", "2026-09-10T08:30:00Z", "--json"))
+    expect(recent.history.items.map(({ text }: { text: string }) => text)).toEqual(["Yes, see you then."])
     vi.stubEnv("TZ", "Europe/Madrid")
     expect(await run("context", "telegram:101", "--limit", "1")).toMatch(
       /^Rin Example {2}person:\d+\n.*\n {2}times in Europe\/Madrid\n\nHistory\n {2}2026-09-10 11:00 {2}message {2}Rin Example: Yes, see you then\. .*\n {2}older — memo context person:\d+ --before-time 2026-09-10T08:59:59\.999Z\n/s,

@@ -7,12 +7,14 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1548 ✅ · 2 ⛔ · 0 ❌** — 341 commands, 1209 options.
+**1550 ✅ · 2 ⛔ · 0 ❌** — 341 commands, 1211 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
 | `context` |  | ✅ |  |
 | `context` | `--limit` | ✅ |  |
+| `context` | `--since-time` | ✅ |  |
+| `context` | `--before-time` | ✅ |  |
 | `context` | `--json` | ✅ |  |
 | `context` | `--source` | ✅ |  |
 | `context` | `--trimmed` | ✅ |  |
