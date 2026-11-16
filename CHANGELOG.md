@@ -4,6 +4,21 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## 0.143.0 — 16.11.2026
+
+### Added
+
+- **`memo organizations context` lists what its people wrote, newest first.** A "History" section and `history` in
+  JSON: their messages, mail, events and calls, each with the start of its text and, for a call, its direction, length
+  and the employee, in this computer's time zone. Counts stay under "Written by its people". The texts are other
+  people's words: `untrusted` names them.
+
+### Fixed
+
+- **memo starts on cli-core 0.680.0 and cli-base 0.106.0.** The shared `skill show` now takes `[name]`, a part of
+  the skill or a skill shipped for a task, so memo's reviewed overrides of the shared `skill` command name that
+  argument. Before this, memo refused to start against cli-core 0.680.0 with `contract.unacknowledged-override`.
+
 ## 0.142.0 — 16.11.2026
 
 ### Added
