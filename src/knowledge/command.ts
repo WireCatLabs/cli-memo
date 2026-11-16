@@ -201,8 +201,8 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
   })
     .description(
       "one organization by its id or organization:<id>: its people by role, customers, suppliers and partners, " +
-        "projects, open deals and leads, invoices, payments and orders, how much its people wrote, open tasks and " +
-        "categories, each relationship with its standing; then the notes about it and its tags. `coverage` names " +
+        "projects, open deals and leads, invoices, payments and orders, what its people wrote, newest first, open " +
+        "tasks and categories, each relationship with its standing; then the notes about it and its tags. `coverage` names " +
         "what was not read",
     )
     .summary("one organization: people, customers, deals, money, tasks, notes")
@@ -222,6 +222,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
           ...found,
           notes: await notesAbout(store, { ref }),
           tags: await store.knowledge.tags(null, { type: "organization", id: ref.slice("organization:".length) }),
+          untrusted: ["history.items.title", "history.items.text"],
         })
       })
       print(options.json, itemAnswer(answer), organizationText(answer))

@@ -1,4 +1,6 @@
 import type { OrganizationContext } from "@wirecat/cli-core/services"
+import { timezone } from "../answer.js"
+import { touchLine } from "../context/command.js"
 import type { NotesAbout } from "../notes/about.js"
 import { coverageLines, sectionLines } from "./business-text.js"
 import { moneyLines } from "./money-text.js"
@@ -21,6 +23,7 @@ export const organizationText = (answer: OrganizationContext & { notes: NotesAbo
     ),
     ...moneyLines(answer.money),
     `Written by its people  ${communications.messages} messages, ${communications.mail} emails, ${communications.meetings} meetings`,
+    ...sectionLines(`History, times in ${timezone()}`, answer.history, touchLine),
     ...sectionLines("Open tasks", answer.tasks, (one) => `  ${one.key}  ${one.title}  ${one.status}`),
     ...(answer.notes.about.length ? ["Notes about it", ...answer.notes.about.map((note) => `  ${note.ref}`)] : []),
     ...coverageLines(answer.coverage),

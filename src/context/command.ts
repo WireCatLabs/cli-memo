@@ -59,7 +59,7 @@ const touchKind = ({ kind, call, durationMs }: Touch) =>
         .join(" ")
     : kind
 
-const touchLine = (touch: Touch) =>
+export const touchLine = (touch: Touch) =>
   `  ${clock(touch.at) ?? "—"}  ${touchKind(touch)}  ` +
   `${[touch.title, touch.text].filter(Boolean).join(": ").replace(/\s+/g, " ").slice(0, MAX_TEXT)}  ${touch.ref}`
 
