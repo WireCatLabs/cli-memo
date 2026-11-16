@@ -102,8 +102,8 @@ export const identitiesCommands = (people: Command, program: Command, streams: S
         .summary("say two identities are one person; an agent's merges only on strong evidence")
         .description(
           "say two identities are one person: yours links them; an agent's merges them at once when the store finds " +
-            "strong evidence (one mobile number or personal address only these two have, from two sources, one of " +
-            "them a messenger or a call for a phone), and otherwise waits for you as a match that says why; " +
+            "strong evidence (one mobile number or personal address no one else has, or each source has once, from " +
+            "two sources, one of them a messenger or a call for a phone), and otherwise waits for you as a match that says why; " +
             "agent_merges: propose makes every agent's link wait; memo people unmerge undoes a merge",
         )
         .argument("<identity>", "<messenger>:<name or id>")

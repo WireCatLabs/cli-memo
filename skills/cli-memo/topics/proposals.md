@@ -58,10 +58,11 @@ open matches.
 
 - `memo people link <identity> <other> --reason "<why>"` says two identities are one person, and needs `--reason`.
   It merges them at once only when the store finds **strong evidence** itself: one mobile number or personal address
-  that only these two people have, from two different sources, and for a phone at least one of them a messenger or a
+  that no one else has, or that each of its holders has from a different source (one client's CRM card, WhatsApp and
+  call, whatever their names), given by two different sources, and for a phone at least one of them a messenger or a
   call. Your reason is recorded, never counted as evidence. The answer is `merged` with the `evidence` and the `merge`
   id, or `proposed`: a match the owner decides, with `evidence.weak` saying why it is not strong (a landline, a value
-  more people share, a company's line, a role address, one source only, only a CRM's number, nothing shared, the
+  two records of one source share, a company's line, a role address, one source only, only a CRM's number, nothing shared, the
   owner's own person, a pair the owner rejected, or the owner's `agent_merges: propose`). One match is open per pair
   of people. A pair the owner separated is refused (`identity.separated`), and one the owner rejected on the same
   evidence (`identity.rejected`).
