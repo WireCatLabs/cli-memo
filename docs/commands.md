@@ -7483,7 +7483,7 @@ memo skill show [name] [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `name` | optional | one of the skills shipped for a task: search, projects, meetings, mail, proposals, money, mcp, vocabulary, mail-triage, morning-digest. |
+| `name` | optional | a part of this skill, or a skill shipped for a task: vocabulary, search, proposals, projects, money, meetings, mcp, mail, mail-triage, morning-digest. |
 
 | Option | What it does |
 |---|---|

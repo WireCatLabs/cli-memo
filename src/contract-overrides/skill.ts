@@ -56,14 +56,22 @@ export const skill: readonly SharedContractOverride[] = [
   {
     command: ["skill", "show"],
     field: "arguments",
-    before: [],
+    before: [
+      {
+        name: "name",
+        required: false,
+        variadic: false,
+        description:
+          "a part of this skill, or a skill shipped for a task: vocabulary, search, proposals, projects, money, meetings, mcp, mail",
+      },
+    ],
     after: [
       {
         name: "name",
         required: false,
         variadic: false,
         description:
-          "one of the skills shipped for a task: search, projects, meetings, mail, proposals, money, mcp, vocabulary, mail-triage, morning-digest",
+          "a part of this skill, or a skill shipped for a task: vocabulary, search, proposals, projects, money, meetings, mcp, mail, mail-triage, morning-digest",
       },
     ],
     reason: REASON,
