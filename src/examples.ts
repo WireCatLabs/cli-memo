@@ -5,8 +5,8 @@ import type { Command } from "commander"
 export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   context: [
     "memo context telegram:'Kai Sample'",
-    "memo context person:7 --json",
     "memo context email:kai@example.com --limit 5 --json",
+    "memo context person:7 --before-time 2026-10-01T00:00:00Z --json",
   ],
   show: [
     "memo show chat:max/500/-1001 document:413",

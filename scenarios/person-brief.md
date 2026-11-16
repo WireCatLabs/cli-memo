@@ -1,9 +1,13 @@
 ---
 title: One person across every tool
-goal: Know everything about one person before a call — messages in tg and MAX, mail, notes, meetings and Drive documents — with a source for each line.
+goal: Know everything about one person before a call — messages in tg, MAX and WhatsApp, mail, phone calls, notes, meetings, CRM deals and Drive documents — with a source for each line.
 steps:
   - run: memo context telegram:Kai
-    why: their messages, mail, notes and open tasks in one answer, each with a link to its source; email:kai@example.com finds them by address
+    why: their messages, mail, notes and open tasks in one answer, each with a link to its source, led by history — what happened last across messages, mail and calls, newest first; email:kai@example.com finds them by address
+  - run: memo context person:42 --before-time 2026-10-01T00:00:00Z
+    why: the history further back; history.before_time gives the time to pass for the next older page, --since-time 30d bounds it
+  - run: pbx office meetings transcript 7
+    why: the whole of a call the history shows a snippet of, by the meeting id of its ref
   - run: memo facts list subject:"person:42"
     why: decisions, promises and questions already recorded about them; the person reference comes from context's answer
   - run: memo memories list subject:"person:42"

@@ -51,7 +51,7 @@ export const withStore = async <T>(env: NodeJS.ProcessEnv, work: (store: Message
 
 const running = new WeakMap<Command, Command>()
 
-const timezone = () => Intl.DateTimeFormat().resolvedOptions().timeZone
+export const timezone = () => Intl.DateTimeFormat().resolvedOptions().timeZone
 
 /** A command's answer as lines, drawn by cli-core from the command's row; `next` steps are left to the renderer. */
 export const plainText = (body: Body, command?: Command): string => {
