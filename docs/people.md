@@ -120,13 +120,27 @@ evidence you rejected never does.
 
 Some signals only suggest a link: a phone number only CRM contacts or cards share, a phone number or an address
 that three or more people share, an address a meeting guest typed for themselves, or an agent's guess. These wait as
-matches:
+matches.
+
+An agent's `memo people link … --reason` merges at once only on strong evidence that memo finds itself, never on the
+agent's word: one mobile number or personal address that only these two people have, from two different sources,
+and for a phone at least one of them a messenger or a call. A landline, a number or an address more people share, a
+company's line, a role address, a name, a CRM's word or a phrase from a chat is not strong, and the link waits for
+you. Memo keeps which agent merged, in which run, why and on what evidence. `memo people review --kind merged` lists
+the agents' merges still in place, and `memo people unmerge <merge>` undoes one. Set `agent_merges` to `propose`
+(`memo config set agent_merges propose`) and every agent's link waits for you instead.
 
 ```sh
 memo people review
+memo people review --full
+memo people review --kind merged
 memo people confirm 17090
 memo people reject 17091 --reason "two people"
 ```
+
+Each match in `people review` says what the two people share and why it is not strong (`strength`), and shows each
+side: identities by source, the last messages or calls with dates, companies and deals. `--full` adds phones,
+addresses, accounts and more text; `--brief` leaves the sides out.
 
 `memo people confirm` and `memo people reject` take ids and ranges (`17090-17095`) as `people review` lists them, or
 `all`: everything `people review` lists with the same `--kind` (`link`, `split` or `all`) and `--limit`. `all` shows
@@ -222,7 +236,7 @@ again with that person.
 Yours apply at once, at a terminal or in WireCat Desktop. After them, no automatic match joins those people again.
 An agent's `unlink` or `unmerge` needs `--reason` and only proposes the split: it waits in `memo people review` with
 the reason, and only your `memo people confirm` carries it out. A split you reject is not proposed again while
-those identities stay on that person, and `people links check` no longer lists them. An agent's `memo people link … --reason` waits the same way.
+those identities stay on that person, and `people links check` no longer lists them. An agent's `memo people link … --reason` waits the same way unless memo finds strong evidence (see above).
 
 To choose the main note about the person, see [the note about a person](notes.md#the-note-about-a-person).
 

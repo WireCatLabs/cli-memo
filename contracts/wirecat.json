@@ -488,7 +488,7 @@
         "people",
         "review"
       ],
-      "summary": "people that may be one, and splits an agent proposed, waiting for you",
+      "summary": "people that may be one, an agent's splits, and what agents merged",
       "effects": {
         "remote": "none",
         "local": "read"
@@ -574,7 +574,7 @@
         "people",
         "link"
       ],
-      "summary": "say two identities are one person; an agent's link waits for you",
+      "summary": "say two identities are one person; an agent's merges only on strong evidence",
       "effects": {
         "remote": "none",
         "local": "write"

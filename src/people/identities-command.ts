@@ -1,15 +1,17 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { LOCAL_READ, LOCAL_WRITE } from "@wirecat/cli-core/cli"
+import { commandRunId, currentRun, LOCAL_READ, LOCAL_WRITE } from "@wirecat/cli-core/cli"
 import { type IdentityRef, type MessageStore, type PersonRecord, parseMergeId } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
-import { byOption, reasonOption, whoRuns } from "../author.js"
+import { byOption, reasonOption, UNATTENDED, whoRuns } from "../author.js"
+import { agentMergesApply } from "../config.js"
 import { doubtsCommand } from "./doubts-command.js"
 import { exactIdentityOf, identityOf, personOf } from "./identity.js"
 import { withOwner } from "./owner.js"
 import { matchAnswer, summaryOf } from "./proposal-rows.js"
 import { peopleProposalCommands } from "./proposals-command.js"
+import { strongText, weakText } from "./review-context.js"
 
 const PERSON = /^person:([1-9]\d*)$/
 const FROM = /^person:([1-9]\d*|me)$/
@@ -97,8 +99,13 @@ export const identitiesCommands = (people: Command, program: Command, streams: S
   reasonOption(
     byOption(
       annotate(people.command("link"), { effects: LOCAL_WRITE })
-        .summary("say two identities are one person; an agent's link waits for you")
-        .description("say two identities are one person: yours links them, an agent's waits for you as a match")
+        .summary("say two identities are one person; an agent's merges only on strong evidence")
+        .description(
+          "say two identities are one person: yours links them; an agent's merges them at once when the store finds " +
+            "strong evidence (one mobile number or personal address only these two have, from two sources, one of " +
+            "them a messenger or a call for a phone), and otherwise waits for you as a match that says why; " +
+            "agent_merges: propose makes every agent's link wait; memo people unmerge undoes a merge",
+        )
         .argument("<identity>", "<messenger>:<name or id>")
         .argument("<other>", "<messenger>:<name or id> of the person it joins"),
     ),
@@ -116,7 +123,7 @@ export const identitiesCommands = (people: Command, program: Command, streams: S
           question: `link ${one} and ${other} as you?`,
         })
         if (who !== "owner" && !options.reason?.trim())
-          throw new CliError("validation_error", "an agent's link waits for the owner; say why with --reason", {
+          throw new CliError("validation_error", "an agent's link says why with --reason", {
             reason: "proposal.reason-required",
             param: "reason",
           })
@@ -126,19 +133,28 @@ export const identitiesCommands = (people: Command, program: Command, streams: S
             const person = await store.people.linkIdentities(joined, identity, { method: "manual", by: "owner" })
             return { outcome: "linked" as const, person: `person:${person.uid}` }
           }
-          const proposal = await store.people.proposeLink({
+          // A run nobody named could be anyone, so it never merges.
+          const apply = who.bot !== UNATTENDED && agentMergesApply(env)
+          const linked = await store.people.agentLink({
             identity,
             with: joined,
-            signal: "agent",
-            by: who,
+            bot: who.bot,
+            run: commandRunId() ?? currentRun().runId,
             reason: options.reason?.trim() as string,
+            apply,
           })
-          return { outcome: "proposed" as const, proposal: proposal.id }
+          return linked.outcome === "merged"
+            ? { ...linked, outcome: "merged" as const }
+            : { outcome: "proposed" as const, proposal: linked.proposal, evidence: linked.evidence }
         })
         print(
           options.json,
           itemAnswer(done),
-          done.outcome === "linked" ? `linked: ${done.person}` : `waits for the owner as match ${done.proposal}`,
+          done.outcome === "linked"
+            ? `linked: ${done.person}`
+            : done.outcome === "merged"
+              ? `merged into ${done.person} on ${strongText(done.evidence)}; memo people unmerge ${done.merge} undoes it`
+              : `waits for the owner as match ${done.proposal}: ${weakText(done.evidence)}`,
         )
       },
     )
