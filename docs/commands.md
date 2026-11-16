@@ -30,12 +30,14 @@ memo context <person> [options]
 
 | Option | What it does |
 |---|---|
-| `--limit <n>` | most messages, notes and events of each kind. Default: `20`. |
+| `--limit <n>` | most messages, notes and events of each kind, and history items. Default: `20`. |
+| `--since-time <time>` | the history from this time: hours or days back (12h, 7d) or a date (2026-11-01); the newest when left out. |
+| `--before-time <time>` | the history before this ISO time or date: what `history.next` gives, to page back. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 | `--source <accounts>` | the accounts to read: every one when left out, or the group's in a group run; for <messenger>:<name>, the one account of that messenger. |
 | `--trimmed` | each email's own text, without quoted earlier mail or the signature — for an agent's reads. |
 
-**Example:** `memo context telegram:'Kai Sample'`, `memo context person:7 --json`, `memo context email:kai@example.com --limit 5 --json`
+**Example:** `memo context telegram:'Kai Sample'`, `memo context person:7 --json`, `memo context email:kai@example.com --limit 5 --json`, `memo context person:7 --before-time 2026-10-01T00:00:00Z`
 
 ## `memo show`
 

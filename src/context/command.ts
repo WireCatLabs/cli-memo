@@ -3,7 +3,7 @@ import { annotate } from "@wirecat/cli-base/commands"
 import { LOCAL_READ } from "@wirecat/cli-core/cli"
 import type { ContextEvent, ContextMessage, Touch } from "@wirecat/cli-core/services"
 import type { Command } from "commander"
-import { answers, itemAnswer, withStore } from "../answer.js"
+import { answers, itemAnswer, timezone, withStore } from "../answer.js"
 import { beforeOf, sinceOf } from "../digest/command.js"
 import { sectionLines } from "../knowledge/business-text.js"
 import { boundFolders } from "../notes/bound.js"
@@ -16,18 +16,37 @@ import { contextAccountsOf, type MemoContext, memoContext, withOwnMailText } fro
 
 const MAX_TEXT = 160
 
+/** A stored UTC time as the computer's wall clock, the zone named once at the top. */
+const clock = (iso: string | null | undefined): string | undefined => {
+  if (!iso || Number.isNaN(Date.parse(iso))) return undefined
+  const part = Object.fromEntries(
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone(),
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    })
+      .formatToParts(Date.parse(iso))
+      .map(({ type, value }) => [type, value]),
+  )
+  return `${part.year}-${part.month}-${part.day} ${part.hour}:${part.minute}`
+}
+
 const one = (message: ContextMessage | null): string =>
   message === null
     ? "—"
-    : `${message.timestamp.slice(0, 16).replace("T", " ")}  ${message.provider}  ${message.chatTitle ?? message.chatId}: ` +
+    : `${clock(message.timestamp) ?? "—"}  ${message.provider}  ${message.chatTitle ?? message.chatId}: ` +
       `${message.text.replace(/\s+/g, " ").slice(0, MAX_TEXT)}  ${message.locator}`
 
 const eventLine = (event: ContextEvent) =>
-  `  ${(event.allDay ? event.startsAt?.slice(0, 10) : event.startsAt?.slice(0, 16).replace("T", " ")) ?? "—"}  ` +
+  `  ${(event.allDay ? event.startsAt?.slice(0, 10) : clock(event.startsAt)) ?? "—"}  ` +
   `${(event.title ?? "untitled").replace(/\s+/g, " ").slice(0, MAX_TEXT)}${event.location ? `  ${event.location}` : ""}  ${event.ref}`
 
 const meetingLine = (meeting: MemoContext["meetings"][number]) =>
-  `  ${meeting.startedAt?.slice(0, 16).replace("T", " ") ?? "—"}  ` +
+  `  ${clock(meeting.startedAt) ?? "—"}  ` +
   `${(meeting.title ?? "untitled").replace(/\s+/g, " ").slice(0, MAX_TEXT)}  ${meeting.ref}`
 
 const minutes = (ms: number) => `${Math.floor(ms / 60_000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, "0")}`
@@ -41,7 +60,7 @@ const touchKind = ({ kind, call, durationMs }: Touch) =>
     : kind
 
 const touchLine = (touch: Touch) =>
-  `  ${touch.at?.slice(0, 16).replace("T", " ") ?? "—"}  ${touchKind(touch)}  ` +
+  `  ${clock(touch.at) ?? "—"}  ${touchKind(touch)}  ` +
   `${[touch.title, touch.text].filter(Boolean).join(": ").replace(/\s+/g, " ").slice(0, MAX_TEXT)}  ${touch.ref}`
 
 /** A note by the reference `notes show` takes, then where it is. */
@@ -49,7 +68,7 @@ const noteLine = (note: { ref: string; path: string | null; title?: string | nul
   `  ${note.ref}${(note.path ?? note.title) ? `  ${note.path ?? note.title}` : ""}`
 
 const fileLine = (file: MemoContext["files"][number]) =>
-  `  ${file.ref}  ${file.role ?? ""}  ${file.title ?? ""}  ${file.modifiedAt?.slice(0, 16).replace("T", " ") ?? ""}  ${file.url ?? ""}`
+  `  ${file.ref}  ${file.role ?? ""}  ${file.title ?? ""}  ${clock(file.modifiedAt) ?? ""}  ${file.url ?? ""}`
 
 export const businessLines = (business: MemoContext["business"]): string[] => {
   const lines = [
@@ -85,6 +104,7 @@ export const contextText = ({
   return [
     `${person.name ?? person.uid}  person:${person.uid}`,
     ...person.identities.map(({ provider, id, name }) => `  ${provider}:${id}  ${name ?? ""}`),
+    `  times in ${timezone()}`,
     ...(proposals.count
       ? [
           `  ${atLeast(proposals.count, proposals.complete)} proposal${proposals.count === 1 ? "" : "s"} ` +
