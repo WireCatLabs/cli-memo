@@ -15,13 +15,14 @@ import {
 import { dealBrief, dealContext } from "@wirecat/cli-core/services"
 import type { AccountKey, DealFilter, MessageStore, Pipeline, PipelineReport } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
-import { answers, itemAnswer, openMemoStore, wholeList, withStore } from "../answer.js"
+import { answers, itemAnswer, openMemoStore, shortenedBy, wholeList, withStore } from "../answer.js"
 import { APP } from "../app.js"
 import { authorOf } from "../author.js"
 import { collect, positive } from "../options.js"
 import { pageOf } from "../page.js"
 import { withSources } from "../records/sources.js"
 import { deniedCrmKinds } from "../search/denied.js"
+import { crmNotes, readableDeal, readablePipeline, readablePipelines, seenPage } from "../store/crm-viewer.js"
 import { type GroupScope, groupScopeOf } from "../store/group.js"
 import { lockedCoverage } from "../store/guard.js"
 import { canonicalProject } from "../vocabulary/project.js"
@@ -86,7 +87,9 @@ export const listDeals = async (
     command,
     limit,
     (most) =>
-      store.deals.list({ ...filter, ...(scope === undefined ? {} : { accounts: scope.accounts }), limit: most }),
+      seenPage(store, most, (limit, offset) =>
+        store.deals.list({ ...filter, ...(scope === undefined ? {} : { accounts: scope.accounts }), limit, offset }),
+      ),
     { shape: (rows) => rows.map(writer) },
   )
 }
@@ -99,7 +102,7 @@ const BASE_STAGE = /^stage:\d+$/
  */
 const stageToMove = async (store: MessageStore, ref: string, stage: string): Promise<string> => {
   if (!BASE_STAGE.test(stage.trim())) return stage
-  const row = await store.deals.get(ref)
+  const row = await readableDeal(store, ref)
   if (row.account !== null) {
     const writesWith = writesWithOf(row.account, storedProfilesFor(await store.accounts.profiles()))
     throw new CliError(
@@ -178,7 +181,7 @@ const itemCommands = (
     .summary(`one ${one} with its stage, status, amount and people`)
     .argument("<ref>", `${kind}:<id>`)
     .action((ref: string, options: { json?: boolean }, command: Command) =>
-      run(options.json, async (store) => itemAnswer(await withSources(command, store, await store.deals.get(ref)))),
+      run(options.json, async (store) => itemAnswer(await withSources(command, store, await readableDeal(store, ref)))),
     )
 
   json(annotate(group.command("context"), { effects: LOCAL_READ, output: { entity: "deal_context" } }))
@@ -192,9 +195,10 @@ const itemCommands = (
     .option("--brief", "the compact form for a model's context: names, roles, totals and counts")
     .option("--limit <n>", "most items in each section", positive, 20)
     .action(async (ref: string, options: { brief?: boolean; limit: number; json?: boolean }, command: Command) => {
-      const answer = await withStore(env, async (store) => {
+      const { answer, notes } = await withStore(env, async (store) => {
         const scope = await groupScopeOf(store, env)
-        return lockedCoverage(
+        await readableDeal(store, ref)
+        const answer = await lockedCoverage(
           store,
           env,
           await dealContext(store, ref, {
@@ -203,12 +207,13 @@ const itemCommands = (
             deniedKinds: deniedCrmKinds(command, env),
           }),
         )
+        return { answer, notes: crmNotes(store) }
       })
       if (answer.deal.kind !== kind)
         throw new CliError("validation_error", `${ref} is a ${answer.deal.kind} — memo ${answer.deal.kind}s context`)
       print(
         options.json,
-        itemAnswer(options.brief ? dealBrief(answer) : answer),
+        shortenedBy(notes, itemAnswer(options.brief ? dealBrief(answer) : answer)),
         options.brief ? dealBriefText(dealBrief(answer)) : dealText(answer),
       )
     })
@@ -225,7 +230,7 @@ const itemCommands = (
       const by = authorOf(env)
       await run(options.json, async (store) =>
         itemAnswer(
-          await store.deals.setProject(ref, {
+          await store.deals.setProject((await readableDeal(store, ref)).ref, {
             project: options.project === "" ? null : await canonicalProject(store, options.project),
             by,
           }),
@@ -304,7 +309,12 @@ const itemCommands = (
     .action(async (ref: string, stage: string, options: { json?: boolean }) => {
       const by = authorOf(env)
       await run(options.json, async (store) =>
-        itemAnswer(await store.deals.move(ref, { stage: await stageToMove(store, ref, stage), by })),
+        itemAnswer(
+          await store.deals.move((await readableDeal(store, ref)).ref, {
+            stage: await stageToMove(store, ref, stage),
+            by,
+          }),
+        ),
       )
     })
 
@@ -325,7 +335,7 @@ const itemCommands = (
         const date = dayOf(options.occurredTime)
         await run(options.json, async (store) =>
           itemAnswer(
-            await store.deals.close(ref, {
+            await store.deals.close((await readableDeal(store, ref)).ref, {
               status: outcome,
               by,
               ...(date === undefined ? {} : { date }),
@@ -340,9 +350,9 @@ const itemCommands = (
 const percent = (share: number | null) => (share === null ? "" : `, ${Math.round(share * 100)}% go on`)
 
 /** "Sales (deal), pipeline:2" then a line per stage: open now, reached, and the share that goes on. */
-const funnelText = (report: PipelineReport): string =>
+const funnelText = (report: PipelineReport, since: string | undefined): string =>
   [
-    `${report.name} (${report.kind}), ${report.ref}${report.since === null ? "" : `, made since ${report.since}`}`,
+    `${report.name} (${report.kind}), ${report.ref}${since === undefined ? "" : `, made since ${since}`}`,
     ...report.stages.map(
       (stage) =>
         `  ${stage.position}. ${stage.name}${stage.outcome === "open" ? "" : ` [${stage.outcome}]`}: ` +
@@ -398,7 +408,11 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
         const name = terms.get("name")?.toLocaleLowerCase()
         const kind = terms.get("kind") as DealKind | undefined
         const scope = await groupScopeOf(store, env)
-        const all = (await store.deals.pipelines(kind === undefined ? {} : { kind })).filter(inScope(scope))
+        const all = await readablePipelines(
+          store,
+          (await store.deals.pipelines(kind === undefined ? {} : { kind })).filter(inScope(scope)),
+          kind,
+        )
         const writer = await withWriter(store)
         return wholeList(
           "pipelines list",
@@ -421,14 +435,12 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
     .argument("<pipeline>", "pipeline:<id>, or a name only one pipeline has")
     .action(async (pipeline: string, options: { sinceTime?: string; json?: boolean }, command: Command) => {
       const since = dayOf(options.sinceTime)
-      const report = await withStore(env, async (store) =>
-        withSources(
-          command,
-          store,
-          await store.deals.pipeline(await pipelineInGroup(store, env, pipeline), since === undefined ? {} : { since }),
-        ),
-      )
-      print(options.json, itemAnswer(report), funnelText(report))
+      const { report, notes } = await withStore(env, async (store) => {
+        const reference = await pipelineInGroup(store, env, pipeline)
+        const read = await readablePipeline(store, reference, since === undefined ? {} : { since })
+        return { report: await withSources(command, store, read), notes: crmNotes(store) }
+      })
+      print(options.json, shortenedBy(notes, itemAnswer(report)), funnelText(report, since))
     })
 
   json(
@@ -480,11 +492,22 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
 
 /** Open deals `projects status` shows, soonest expected close first; more than this is a count. */
 const STATUS_DEALS = 5
+/** The open deals read per project, cli-core's own list default. */
+const OPEN_DEALS_READ = 100
 
 /** The open deals of these projects. */
 export const openDealsOf = async (store: MessageStore, projects: readonly string[]) => {
   const found = (
-    await Promise.all(projects.map(async (project) => (await store.deals.list({ project, status: "open" })).items))
+    await Promise.all(
+      projects.map(
+        async (project) =>
+          (
+            await seenPage(store, OPEN_DEALS_READ, (limit, offset) =>
+              store.deals.list({ project, status: "open", limit, offset }),
+            )
+          ).items,
+      ),
+    )
   ).flat()
   const sorted = found.sort(
     (a, b) => (a.closeDate ?? "9999").localeCompare(b.closeDate ?? "9999") || b.createdAt.localeCompare(a.createdAt),

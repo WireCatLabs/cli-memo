@@ -7,7 +7,7 @@ import { levelFor } from "@wirecat/cli-core/sends"
 import { RESOURCES_SEARCHED, type SearchedResource } from "@wirecat/cli-core/services"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
-import { answers, withStore } from "../answer.js"
+import { answers, shortenedBy, withStore } from "../answer.js"
 import { APP } from "../app.js"
 import { whoRuns } from "../author.js"
 import { SHELL_OVERRIDES } from "../contract-overrides.js"
@@ -16,6 +16,7 @@ import { searchMemoriesCommand } from "../memories/command.js"
 import { searchText } from "../notes/search.js"
 import { positive } from "../options.js"
 import { SAVE_HELP } from "../save-help.js"
+import { crmNotes } from "../store/crm-viewer.js"
 import { accountsByKind, groupScopeOf } from "../store/group.js"
 import { ACCOUNTS_HELP, MAIL_SOURCES, mailboxesOf } from "../store/source-list.js"
 import { allAnswer, eventsMeaningNote, harderNote, kindAnswer, messagesMeaningNote, notesAnswer } from "./answers.js"
@@ -175,6 +176,7 @@ business finds invoices, payments, orders, contracts, subscriptions, products an
             ...found,
             skipped: [...gate.skipped, ...found.skipped],
             items: await keyDocumentsFirst(store, found.items, options.project),
+            crmNotes: crmNotes(store),
           }
         })
         if (!options.json) {
@@ -193,7 +195,7 @@ business finds invoices, payments, orders, contracts, subscriptions, products an
         }
         print(
           options.json,
-          allAnswer(answer, options.limit, options.exact, leftOut),
+          shortenedBy(answer.crmNotes, allAnswer(answer, options.limit, options.exact, leftOut)),
           [
             ...answer.items.map((item) => `${"key" in item ? "key  " : ""}${item.kind}  ${item.ref}\n  ${item.text}`),
             ...answer.tasks.map((task) => `task  task:${task.id}  ${task.kind}  ${task.source}`),

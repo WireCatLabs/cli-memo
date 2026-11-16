@@ -17,6 +17,7 @@ import { STORE_CLIENT } from "./app.js"
 import { decisionPolicy } from "./config.js"
 import { snakeKeys } from "./output.js"
 import { rowOf, sectionRowOf } from "./rows.js"
+import { crmNotes } from "./store/crm-viewer.js"
 
 export const itemAnswer = <T>(value: T, extra?: Parameters<typeof itemOf>[1]) => itemOf(snakeKeys(value), extra)
 
@@ -50,6 +51,16 @@ export const withStore = async <T>(env: NodeJS.ProcessEnv, work: (store: Message
 }
 
 const running = new WeakMap<Command, Command>()
+
+const noted = new WeakMap<object, readonly string[]>()
+
+/** An answer a CRM copy's viewer rule left short: `complete: false`, and each note said beside it, as cli-core does. */
+export const shortenedBy = <T extends Body>(notes: readonly string[], body: T): T => {
+  if (notes.length === 0) return body
+  const marked = { ...body, meta: { ...body.meta, complete: false } }
+  noted.set(marked, notes)
+  return marked
+}
 
 export const timezone = () => Intl.DateTimeFormat().resolvedOptions().timeZone
 
@@ -106,6 +117,7 @@ export const answers = (program: Command, streams: Streams, env: NodeJS.ProcessE
     const leaf = running.get(root) ?? root
     const { compact = asked, full } = leaf.optsWithGlobals<{ compact?: boolean; full?: boolean }>()
     const renderer = createRenderer({ format, color: false, streams })
+    for (const note of noted.get(body) ?? []) renderer.note(note)
     // In compact form the next steps are # lines on stdout; printing them again on stderr would say them twice.
     const drawn = compact === true && !json
     renderAnswer(
@@ -118,6 +130,12 @@ export const answers = (program: Command, streams: Streams, env: NodeJS.ProcessE
   return {
     print,
     run: async (json: boolean | undefined, work: (store: MessageStore) => Promise<Body>) =>
-      print(json, await withStore(env, work)),
+      print(
+        json,
+        await withStore(env, async (store) => {
+          const body = await work(store)
+          return shortenedBy(crmNotes(store), body)
+        }),
+      ),
   }
 }
