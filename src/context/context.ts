@@ -7,10 +7,13 @@ import {
   type Coverage,
   calendarAccounts,
   canonicalPersonContext,
+  HISTORY_MAX,
   type PersonBusiness,
   type PersonContext,
+  type PersonHistory,
   personBusiness,
   personContext,
+  personHistory,
 } from "@wirecat/cli-core/services"
 import type { AccountKey, Link, MessageStore, Note, PersonRecord, RelationListItem } from "@wirecat/cli-core/store"
 import { type NotesAbout, notesAbout } from "../notes/about.js"
@@ -26,9 +29,14 @@ const UNTRUSTED_EVENT_FIELDS = [
   "events.upcoming.location",
   "events.recent.title",
   "events.recent.location",
+  "meetings.snippet",
+  "history.items.title",
+  "history.items.text",
 ]
 
 export interface MemoContext {
+  /** What happened with them lately across every source read, newest first; `next` pages back (`--before-time`). */
+  history: PersonHistory
   /** Messages and mail, from the store: every identity linked to the person, by id. */
   messages: Omit<PersonContext, "events" | "meetings" | "person"> & { person: PersonRecord }
   /** Calendar events any identity linked to them is invited to, one occurrence per series, from every calendar. */
@@ -123,8 +131,18 @@ export const memoContext = async (
     limit = 20,
     sources,
     deniedKinds = [],
-  }: { limit?: number; sources?: readonly AccountKey[]; deniedKinds?: readonly DealKind[] } = {},
+    since,
+    until,
+  }: {
+    limit?: number
+    sources?: readonly AccountKey[]
+    deniedKinds?: readonly DealKind[]
+    /** The history's window, ms, both inclusive. */
+    since?: number
+    until?: number
+  } = {},
 ): Promise<MemoContext> => {
+  const window = { ...(since === undefined ? {} : { since }), ...(until === undefined ? {} : { until }) }
   const named = (await withOwner(store, reference)).trim()
   const scope = await groupScopeOf(store, env)
   if (named.startsWith("person:")) {
@@ -149,7 +167,7 @@ export const memoContext = async (
       store,
       env,
       { messages, events, meetings, business, coverage },
-      { accounts: read, calendars, deniedKinds, ...(accounts === undefined ? {} : { scope: accounts }) },
+      { accounts: read, calendars, deniedKinds, window, ...(accounts === undefined ? {} : { scope: accounts }) },
       limit,
     )
   }
@@ -188,7 +206,7 @@ export const memoContext = async (
     store,
     env,
     { messages, events, meetings, business },
-    { accounts, calendars, deniedKinds, ...(scope === undefined ? {} : { scope: scope.accounts }) },
+    { accounts, calendars, deniedKinds, window, ...(scope === undefined ? {} : { scope: scope.accounts }) },
     limit,
   )
 }
@@ -211,9 +229,11 @@ const withNotesAndTasks = async (
     calendars,
     scope,
     deniedKinds = [],
+    window,
   }: {
     accounts: AccountKey[]
     calendars: AccountKey[]
+    window: { since?: number; until?: number }
     /** The run's accounts: a relationship with an end outside them is left out. */
     scope?: AccountKey[]
     deniedKinds?: readonly DealKind[]
@@ -258,7 +278,14 @@ const withNotesAndTasks = async (
   )
   const files = await reportedFiles(store, incoming, limit)
   const { subject: _, name: __, ...notes } = linked
+  const history = await personHistory(store, person, {
+    ...(scope === undefined ? {} : { accounts: scope }),
+    deniedKinds,
+    ...window,
+    limit: Math.min(limit, HISTORY_MAX),
+  })
   return {
+    history,
     messages,
     events: { ...events, accounts: calendars.map(({ provider, account }) => `${provider}:${account}`) },
     meetings,

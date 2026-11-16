@@ -1,9 +1,10 @@
 import type { Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { LOCAL_READ } from "@wirecat/cli-core/cli"
-import type { ContextEvent, ContextMessage } from "@wirecat/cli-core/services"
+import type { ContextEvent, ContextMessage, Touch } from "@wirecat/cli-core/services"
 import type { Command } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
+import { beforeOf, sinceOf } from "../digest/command.js"
 import { sectionLines } from "../knowledge/business-text.js"
 import { boundFolders } from "../notes/bound.js"
 import { positive } from "../options.js"
@@ -29,6 +30,20 @@ const meetingLine = (meeting: MemoContext["meetings"][number]) =>
   `  ${meeting.startedAt?.slice(0, 16).replace("T", " ") ?? "—"}  ` +
   `${(meeting.title ?? "untitled").replace(/\s+/g, " ").slice(0, MAX_TEXT)}  ${meeting.ref}`
 
+const minutes = (ms: number) => `${Math.floor(ms / 60_000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, "0")}`
+
+/** A call says which way it went, how long, and who took it; anything else says what it is. */
+const touchKind = ({ kind, call, durationMs }: Touch) =>
+  call
+    ? ["call", call.direction, durationMs == null ? null : minutes(durationMs), call.manager?.name]
+        .filter(Boolean)
+        .join(" ")
+    : kind
+
+const touchLine = (touch: Touch) =>
+  `  ${touch.at?.slice(0, 16).replace("T", " ") ?? "—"}  ${touchKind(touch)}  ` +
+  `${[touch.title, touch.text].filter(Boolean).join(": ").replace(/\s+/g, " ").slice(0, MAX_TEXT)}  ${touch.ref}`
+
 /** A note by the reference `notes show` takes, then where it is. */
 const noteLine = (note: { ref: string; path: string | null; title?: string | null }) =>
   `  ${note.ref}${(note.path ?? note.title) ? `  ${note.path ?? note.title}` : ""}`
@@ -53,6 +68,7 @@ type Waiting = {
 }
 
 export const contextText = ({
+  history,
   messages,
   events,
   meetings,
@@ -75,6 +91,14 @@ export const contextText = ({
             `about them waiting (${kindsText(proposals.kinds)}) — memo ${proposals.next.command}`,
         ]
       : []),
+    ...(history.items.length === 0
+      ? []
+      : [
+          "",
+          "History",
+          ...history.items.map(touchLine),
+          ...(history.next ? [`  older — memo context person:${person.uid} --before-time ${history.next}`] : []),
+        ]),
     "",
     `Last from them   ${one(last.fromThemAnywhere ?? last.fromThem)}`,
     `Last from me     ${one(last.fromMe)}`,
@@ -135,7 +159,12 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
       "<person>",
       "<messenger>:<name or id>, e.g. telegram:Ana or email:ana@example.com, person:<id>, or person:me for you",
     )
-    .option("--limit <n>", "most messages, notes and events of each kind", positive, 20)
+    .option("--limit <n>", "most messages, notes and events of each kind, and history items", positive, 20)
+    .option(
+      "--since-time <time>",
+      "the history from this time: hours or days back (12h, 7d) or a date (2026-11-01); the newest when left out",
+    )
+    .option("--before-time <time>", "the history before this ISO time or date: what `history.next` gives, to page back")
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .option(
       "--source <accounts>",
@@ -146,7 +175,14 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
     .action(
       async (
         person: string,
-        options: { limit: number; json?: boolean; source?: string; trimmed?: boolean },
+        options: {
+          limit: number
+          json?: boolean
+          source?: string
+          trimmed?: boolean
+          sinceTime?: string
+          beforeTime?: string
+        },
         command: Command,
       ) => {
         const answer = await withStore(env, async (store) => {
@@ -157,6 +193,8 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
             limit: options.limit,
             deniedKinds: deniedCrmKinds(command, env),
             ...(sources === undefined ? {} : { sources }),
+            ...(options.sinceTime === undefined ? {} : { since: sinceOf(options.sinceTime) }),
+            ...(options.beforeTime === undefined ? {} : { until: beforeOf(options.beforeTime) }),
           })
           const { uid, identities } = found.messages.person
           const refs = [`person:${uid}`, ...identities.map(({ provider, id }) => `${provider}:${id}`)]

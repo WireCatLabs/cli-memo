@@ -176,6 +176,24 @@ describe("memo context", () => {
     expect(await run("context", `person:${uid}`)).toMatch(/Calls and meetings\n {2}2026-10-05 12:00 .* meeting:/)
   })
 
+  it("leads with the history, newest first across sources, and pages back from history.next", async () => {
+    const first = answerOf(await run("context", "telegram:101", "--limit", "1", "--json"))
+
+    expect(first.history.items).toEqual([
+      expect.objectContaining({ kind: "message", at: "2026-09-10T09:00:00.000Z", text: "Yes, see you then." }),
+    ])
+    expect(first.history).toMatchObject({ has_more: true, next: "2026-09-10T08:59:59.999Z" })
+    expect(first.untrusted).toEqual(expect.arrayContaining(["history.items.text", "meetings.snippet"]))
+    const older = answerOf(
+      await run("context", "telegram:101", "--limit", "1", "--before-time", first.history.next, "--json"),
+    )
+    expect(older.history.items.map(({ text }: { text: string }) => text)).toEqual(["Are we still on for Friday?"])
+    expect(older.history).toMatchObject({ has_more: false, next: null })
+    expect(await run("context", "telegram:101", "--limit", "1")).toMatch(
+      /^Rin Example {2}person:\d+\n.*\n\nHistory\n {2}2026-09-10 09:00 {2}message {2}Rin Example: Yes, see you then\. .*\n {2}older — memo context person:\d+ --before-time 2026-09-10T08:59:59\.999Z\n/s,
+    )
+  })
+
   it("reads a person with two identities seen by one account through that account", async () => {
     const store = await openStore({ env })
     await store.sync.applyDelta(tg, { people: [{ id: "102", name: "Rin Example" }] })
