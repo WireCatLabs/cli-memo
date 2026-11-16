@@ -1,14 +1,15 @@
-import { CliError, type Streams } from "@wirecat/cli-base"
+import { CliError, isCliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { parseReference, type RefKindName } from "@wirecat/cli-core"
 import { LOCAL_READ, openOf, type ProfilesFor, type RefOpen, type RefSummary } from "@wirecat/cli-core/cli"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
-import { answers, wholeList, withStore } from "../answer.js"
+import { answers, shortenedBy, wholeList, withStore } from "../answer.js"
 import { profileFor } from "../knowledge/messenger-sync.js"
 import { grantedLevel } from "../mcp/granted.js"
 import { imported, readSourced, recordsHidden, type SourcesOf, sourcesOf, sourcesText } from "../records/sources.js"
 import { refuseBareNumber } from "../refs.js"
+import { crmNotes } from "../store/crm-viewer.js"
 
 const MAX_REFS = 100
 
@@ -102,6 +103,12 @@ const profilesFor =
     )
   }
 
+/** A deal or lead the viewer rule hides reads as `null`, so that reference alone is unavailable. */
+const hidden = (error: unknown): null => {
+  if (isCliError(error) && error.details.reason === "deal.not-readable") return null
+  throw error
+}
+
 /** What each reference names, in the order given, and the command that opens it; never runs that command. */
 export const showReferences = async (
   store: MessageStore,
@@ -143,7 +150,12 @@ export const showReferences = async (
   })
   const withRecords = command === undefined || !recordsHidden(command)
   for (const one of shown) {
-    const entity = one.state === "available" ? await readSourced(store, one.kind, one.ref) : undefined
+    const entity = one.state === "available" ? await readSourced(store, one.kind, one.ref)?.catch(hidden) : undefined
+    if (entity === null) {
+      Object.assign(one, { title: null, in: null, at: null, state: "unavailable" })
+      delete one.untrusted
+      continue
+    }
     if (entity === undefined) continue
     if (withRecords) one.sources = await sourcesOf(store, entity)
     // An imported entry's title is the source system's words, as a chat title is its members'.
@@ -170,9 +182,12 @@ export const showCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .argument("<ref...>", "1 to 100 references any WireCat CLI printed: chat:, msg:, note:, document:, person:, task:…")
     .option("--json", "print JSON; --json=ref,title keeps only those fields")
     .action(async (refs: string[], options: { json?: boolean }, command: Command) => {
-      const items = await withStore(env, (store) => showReferences(store, env, refs, command))
+      const { items, notes } = await withStore(env, async (store) => ({
+        items: await showReferences(store, env, refs, command),
+        notes: crmNotes(store),
+      }))
       const gone = items.filter((one) => one.state !== "available")
-      const body = wholeList("show", items)
+      const body = shortenedBy(notes, wholeList("show", items))
       if (gone.length > 0) {
         body.missing = gone.map((one) => ({ field: "state", why: `${one.ref} is ${one.state}` }))
         body.meta = { ...body.meta, complete: false }

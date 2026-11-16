@@ -15,14 +15,14 @@ import {
 import { dealBrief, dealContext } from "@wirecat/cli-core/services"
 import type { AccountKey, DealFilter, MessageStore, Pipeline, PipelineReport } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
-import { answers, itemAnswer, openMemoStore, wholeList, withStore } from "../answer.js"
+import { answers, itemAnswer, openMemoStore, shortenedBy, wholeList, withStore } from "../answer.js"
 import { APP } from "../app.js"
 import { authorOf } from "../author.js"
 import { collect, positive } from "../options.js"
 import { pageOf } from "../page.js"
 import { withSources } from "../records/sources.js"
 import { deniedCrmKinds } from "../search/denied.js"
-import { readableDeal, readablePipeline, readablePipelines, seenRows } from "../store/crm-viewer.js"
+import { crmNotes, readableDeal, readablePipeline, readablePipelines, seenPage } from "../store/crm-viewer.js"
 import { type GroupScope, groupScopeOf } from "../store/group.js"
 import { lockedCoverage } from "../store/guard.js"
 import { canonicalProject } from "../vocabulary/project.js"
@@ -86,14 +86,10 @@ export const listDeals = async (
   return pageOf(
     command,
     limit,
-    async (most) => {
-      const page = await store.deals.list({
-        ...filter,
-        ...(scope === undefined ? {} : { accounts: scope.accounts }),
-        limit: most,
-      })
-      return { ...page, items: await seenRows(store, page.items) }
-    },
+    (most) =>
+      seenPage(store, most, (limit, offset) =>
+        store.deals.list({ ...filter, ...(scope === undefined ? {} : { accounts: scope.accounts }), limit, offset }),
+      ),
     { shape: (rows) => rows.map(writer) },
   )
 }
@@ -199,10 +195,10 @@ const itemCommands = (
     .option("--brief", "the compact form for a model's context: names, roles, totals and counts")
     .option("--limit <n>", "most items in each section", positive, 20)
     .action(async (ref: string, options: { brief?: boolean; limit: number; json?: boolean }, command: Command) => {
-      const answer = await withStore(env, async (store) => {
+      const { answer, notes } = await withStore(env, async (store) => {
         const scope = await groupScopeOf(store, env)
         await readableDeal(store, ref)
-        return lockedCoverage(
+        const answer = await lockedCoverage(
           store,
           env,
           await dealContext(store, ref, {
@@ -211,12 +207,13 @@ const itemCommands = (
             deniedKinds: deniedCrmKinds(command, env),
           }),
         )
+        return { answer, notes: crmNotes(store) }
       })
       if (answer.deal.kind !== kind)
         throw new CliError("validation_error", `${ref} is a ${answer.deal.kind} — memo ${answer.deal.kind}s context`)
       print(
         options.json,
-        itemAnswer(options.brief ? dealBrief(answer) : answer),
+        shortenedBy(notes, itemAnswer(options.brief ? dealBrief(answer) : answer)),
         options.brief ? dealBriefText(dealBrief(answer)) : dealText(answer),
       )
     })
@@ -233,7 +230,7 @@ const itemCommands = (
       const by = authorOf(env)
       await run(options.json, async (store) =>
         itemAnswer(
-          await store.deals.setProject(ref, {
+          await store.deals.setProject((await readableDeal(store, ref)).ref, {
             project: options.project === "" ? null : await canonicalProject(store, options.project),
             by,
           }),
@@ -312,7 +309,12 @@ const itemCommands = (
     .action(async (ref: string, stage: string, options: { json?: boolean }) => {
       const by = authorOf(env)
       await run(options.json, async (store) =>
-        itemAnswer(await store.deals.move(ref, { stage: await stageToMove(store, ref, stage), by })),
+        itemAnswer(
+          await store.deals.move((await readableDeal(store, ref)).ref, {
+            stage: await stageToMove(store, ref, stage),
+            by,
+          }),
+        ),
       )
     })
 
@@ -333,7 +335,7 @@ const itemCommands = (
         const date = dayOf(options.occurredTime)
         await run(options.json, async (store) =>
           itemAnswer(
-            await store.deals.close(ref, {
+            await store.deals.close((await readableDeal(store, ref)).ref, {
               status: outcome,
               by,
               ...(date === undefined ? {} : { date }),
@@ -433,18 +435,12 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
     .argument("<pipeline>", "pipeline:<id>, or a name only one pipeline has")
     .action(async (pipeline: string, options: { sinceTime?: string; json?: boolean }, command: Command) => {
       const since = dayOf(options.sinceTime)
-      const report = await withStore(env, async (store) =>
-        withSources(
-          command,
-          store,
-          await readablePipeline(
-            store,
-            await pipelineInGroup(store, env, pipeline),
-            since === undefined ? {} : { since },
-          ),
-        ),
-      )
-      print(options.json, itemAnswer(report), funnelText(report, since))
+      const { report, notes } = await withStore(env, async (store) => {
+        const reference = await pipelineInGroup(store, env, pipeline)
+        const read = await readablePipeline(store, reference, since === undefined ? {} : { since })
+        return { report: await withSources(command, store, read), notes: crmNotes(store) }
+      })
+      print(options.json, shortenedBy(notes, itemAnswer(report)), funnelText(report, since))
     })
 
   json(
@@ -496,12 +492,21 @@ export const dealCommands = (program: Command, streams: Streams, env: NodeJS.Pro
 
 /** Open deals `projects status` shows, soonest expected close first; more than this is a count. */
 const STATUS_DEALS = 5
+/** The open deals read per project, cli-core's own list default. */
+const OPEN_DEALS_READ = 100
 
 /** The open deals of these projects. */
 export const openDealsOf = async (store: MessageStore, projects: readonly string[]) => {
   const found = (
     await Promise.all(
-      projects.map(async (project) => seenRows(store, (await store.deals.list({ project, status: "open" })).items)),
+      projects.map(
+        async (project) =>
+          (
+            await seenPage(store, OPEN_DEALS_READ, (limit, offset) =>
+              store.deals.list({ project, status: "open", limit, offset }),
+            )
+          ).items,
+      ),
     )
   ).flat()
   const sorted = found.sort(
