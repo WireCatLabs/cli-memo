@@ -1,6 +1,7 @@
 import type { DealKind } from "@wirecat/cli-core"
 import { canonicalPersonContext } from "@wirecat/cli-core/services"
 import type { LinkEvidence, MessageStore, PersonMerge } from "@wirecat/cli-core/store"
+import { crmViewingAll } from "../store/crm-viewer.js"
 import { groupScopeOf } from "../store/group.js"
 
 /** `none` (`--brief`) is the match and its evidence; `brief`, the default, adds each side; `full` more of each. */
@@ -48,6 +49,7 @@ export const sideOf = async (
     messages: size.last,
     limit: size.business,
     deniedKinds,
+    viewing: await crmViewingAll(store),
     ...(scope === undefined ? {} : { accounts: scope.accounts }),
   })
   const record = context.person

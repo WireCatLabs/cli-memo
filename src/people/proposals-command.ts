@@ -10,11 +10,12 @@ import {
   type Refusal,
 } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
-import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
+import { answers, itemAnswer, listAnswer, shortenedBy, withStore } from "../answer.js"
 import { byOption } from "../author.js"
 import { oneOf, positive } from "../options.js"
 import { decidedText, decisionOf } from "../review/review.js"
 import { deniedCrmKinds } from "../search/denied.js"
+import { crmNotes } from "../store/crm-viewer.js"
 import { reviewOf } from "../store/guard.js"
 import { asOwner, PROPOSAL_KINDS, type ProposalKindWord, summaryOf, waiting } from "./proposal-rows.js"
 import { agentMergeAnswer, type Detail, type Side, sideLines, sideOf, weakText } from "./review-context.js"
@@ -148,11 +149,11 @@ export const peopleProposalCommands = (
             detail === "none" ? {} : { sides: [await sideFor(row.persons[0]), await sideFor(row.persons[1])] }
           items.push({ ...row, strength, ...both })
         }
-        return { items, hasMore: listed.hasMore }
+        return { items, hasMore: listed.hasMore, notes: crmNotes(store) }
       })
       print(
         options.json,
-        listAnswer("people review", { items: found.items, limit, has_more: found.hasMore }),
+        shortenedBy(found.notes, listAnswer("people review", { items: found.items, limit, has_more: found.hasMore })),
         [
           ...found.items.flatMap((row) => [
             `${row.id}  ${summaryOf(row)}${row.reason ? ` — ${row.reason}` : ""}`,

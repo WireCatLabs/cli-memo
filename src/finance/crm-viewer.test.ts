@@ -3,10 +3,17 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { syncCrm } from "@wirecat/cli-core/crm"
-import { exampleDeal, type FakeCrmSourceOptions, fakeCrmSource } from "@wirecat/cli-core/crm/testing"
+import {
+  exampleDeal,
+  exampleOrganization,
+  examplePerson,
+  type FakeCrmSourceOptions,
+  fakeCrmSource,
+} from "@wirecat/cli-core/crm/testing"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { envelopeOf } from "../../test/answer.js"
+import { sideOf } from "../people/review-context.js"
 import { createProgram } from "../program.js"
 
 const PORTAL = { provider: "example-crm", account: "portal.example.test" }
@@ -27,20 +34,36 @@ const setUp = async (crm: FakeCrmSourceOptions = { self: "7" }, theirs = 1) => {
   let mineRef = ""
   let theirsRef = ""
   let projectRef = ""
+  let organizationRef = ""
+  let personRef = ""
   try {
     await store.accounts.registerProvider({ name: PORTAL.provider, kind: "crm", aliases: [] })
     const source = fakeCrmSource(crm)
     const now = Date.now()
-    source.put("deal", exampleDeal("d1", { title: "Harbour renewal mine", assignee: "7", createdAt: now - HOUR }))
+    const pier = { organization: "c1", people: [{ externalId: "p1", role: "contact" as const, primary: true }] }
+    source.put("organization", exampleOrganization("c1", { name: "Pier Co" }))
+    source.put("person", examplePerson("p1", { name: "Ann Pier" }))
+    source.put(
+      "deal",
+      exampleDeal("d1", { title: "Harbour renewal mine", assignee: "7", createdAt: now - HOUR, ...pier }),
+    )
     await syncCrm(source, store, PORTAL)
     // As an administrator's earlier sync of the same account would have left them.
     const deals = Array.from({ length: theirs }, (_, at) =>
-      exampleDeal(`t${at}`, { title: `Harbour renewal theirs ${at}`, assignee: "9", createdAt: now - at * 1000 }),
+      exampleDeal(`t${at}`, {
+        title: `Harbour renewal theirs ${at}`,
+        assignee: "9",
+        createdAt: now - at * 1000,
+        ...pier,
+      }),
     )
     await store.crm.saveItems(PORTAL, "deal", deals, { users: false })
     const copied = await store.deals.list({ accounts: [PORTAL], limit: 500 })
     mineRef = copied.items.find(({ externalId }) => externalId === "d1")?.ref as string
-    theirsRef = copied.items.find(({ externalId }) => externalId === "t0")?.ref as string
+    const held = copied.items.find(({ externalId }) => externalId === "t0")
+    theirsRef = held?.ref as string
+    organizationRef = held?.organization?.ref as string
+    personRef = held?.people[0]?.ref as string
     projectRef = (await store.knowledge.addProject({ name: "Harbour", key: "HRB" })).ref
   } finally {
     await store.close()
@@ -64,10 +87,14 @@ const setUp = async (crm: FakeCrmSourceOptions = { self: "7" }, theirs = 1) => {
     }
   }
   return {
+    env,
+    inStore,
     run,
     call,
     mineRef,
     theirsRef,
+    organizationRef,
+    personRef,
     theirs: () => inStore((opened) => opened.deals.get(theirsRef)),
     // Set before the viewer rule existed, or by the administrator's own memo.
     tagTheirs: () => inStore((opened) => opened.deals.setProject(theirsRef, { project: projectRef, by: "owner" })),
@@ -91,7 +118,7 @@ it("shows a CRM copy as the user its sync signed in as: only that user's deals (
   expect(copy.stages.reduce((sum, { open }) => sum + open, 0)).toBe(1)
   expect((await run("pipelines", "show", copy.ref)).item.totals).toMatchObject({ items: 1 })
   await expect(run("deals", "show", theirsRef)).rejects.toMatchObject(hidden)
-  await expect(run("deals", "context", theirsRef)).rejects.toMatchObject(hidden)
+  await expect(run("deals", "context", theirsRef)).rejects.toMatchObject({ code: "not_found" })
 })
 
 it("neither changes nor prints another user's deal on update, move or close", async () => {
@@ -128,7 +155,7 @@ it("marks only the hidden reference unavailable in show, and names nothing of it
 })
 
 it("says why a copy whose sync named no user shows none of its deals, and calls the answer incomplete", async () => {
-  const { call } = await setUp({ admin: false })
+  const { call, organizationRef, personRef } = await setUp({ admin: false })
   const listed = await call("deals", "list")
   expect(titles(listed.body)).toEqual(["Harbour renewal own"])
   expect(listed.body.meta.complete).toBe(false)
@@ -143,4 +170,33 @@ it("says why a copy whose sync named no user shows none of its deals, and calls 
   const found = await call("search", "all", "Harbour", "--exact")
   expect(found.body.meta.complete).toBe(false)
   expect(found.stderr).toContain("names no CRM user")
+  for (const args of [
+    ["organizations", "context", organizationRef],
+    ["context", personRef],
+    ["relationships", "list"],
+  ]) {
+    const answer = await call(...args)
+    expect(answer.body.meta.complete, args.join(" ")).toBe(false)
+    expect(answer.stderr, args.join(" ")).toContain("names no CRM user")
+  }
+})
+
+it("names no hidden deal in the contexts and relationships around it", async () => {
+  const { run, organizationRef, personRef, mineRef, inStore, env } = await setUp()
+  expect(organizationRef).toMatch(/^organization:/)
+  expect(personRef).toMatch(/^person:/)
+  const said = async (...args: string[]) => JSON.stringify(await run(...args))
+  for (const args of [
+    ["organizations", "context", organizationRef],
+    ["context", personRef],
+    ["relationships", "list"],
+    ["relationships", "list", `about:${personRef}`],
+    ["deals", "context", mineRef],
+  ])
+    expect(await said(...args), args.join(" ")).not.toContain("theirs")
+  const around = (await run("context", personRef)).item.relationships as { from: string }[]
+  expect(around.map(({ from }) => from)).toEqual([mineRef])
+  const side = await inStore((store) => sideOf(store, env, personRef, "full", []))
+  expect(JSON.stringify(side), "people review's side").not.toContain("theirs")
+  expect(JSON.stringify(side)).toContain("Harbour renewal mine")
 })
