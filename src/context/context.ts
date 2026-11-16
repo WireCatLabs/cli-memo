@@ -35,8 +35,8 @@ const UNTRUSTED_EVENT_FIELDS = [
 ]
 
 export interface MemoContext {
-  /** What happened with them lately across every source read, newest first; `next` pages back (`--before-time`). */
-  history: PersonHistory
+  /** What happened with them lately across every source read, newest first; `beforeTime` pages back (`--before-time`). */
+  history: Omit<PersonHistory, "next"> & { beforeTime: string | null }
   /** Messages and mail, from the store: every identity linked to the person, by id. */
   messages: Omit<PersonContext, "events" | "meetings" | "person"> & { person: PersonRecord }
   /** Calendar events any identity linked to them is invited to, one occurrence per series, from every calendar. */
@@ -278,14 +278,14 @@ const withNotesAndTasks = async (
   )
   const files = await reportedFiles(store, incoming, limit)
   const { subject: _, name: __, ...notes } = linked
-  const history = await personHistory(store, person, {
+  const { next: beforeTime, ...history } = await personHistory(store, person, {
     ...(scope === undefined ? {} : { accounts: scope }),
     deniedKinds,
     ...window,
     limit: Math.min(limit, HISTORY_MAX),
   })
   return {
-    history,
+    history: { ...history, beforeTime },
     messages,
     events: { ...events, accounts: calendars.map(({ provider, account }) => `${provider}:${account}`) },
     meetings,

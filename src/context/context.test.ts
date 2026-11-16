@@ -178,19 +178,19 @@ describe("memo context", () => {
     expect(await run("context", `person:${uid}`)).toMatch(/Calls and meetings\n {2}2026-10-05 12:00 .* meeting:/)
   })
 
-  it("leads with the history, newest first across sources, and pages back from history.next", async () => {
+  it("leads with the history, newest first across sources, and pages back from history.before_time", async () => {
     const first = answerOf(await run("context", "telegram:101", "--limit", "1", "--json"))
 
     expect(first.history.items).toEqual([
       expect.objectContaining({ kind: "message", at: "2026-09-10T09:00:00.000Z", text: "Yes, see you then." }),
     ])
-    expect(first.history).toMatchObject({ has_more: true, next: "2026-09-10T08:59:59.999Z" })
+    expect(first.history).toMatchObject({ has_more: true, before_time: "2026-09-10T08:59:59.999Z" })
     expect(first.untrusted).toEqual(expect.arrayContaining(["history.items.text", "meetings.snippet"]))
     const older = answerOf(
-      await run("context", "telegram:101", "--limit", "1", "--before-time", first.history.next, "--json"),
+      await run("context", "telegram:101", "--limit", "1", "--before-time", first.history.before_time, "--json"),
     )
     expect(older.history.items.map(({ text }: { text: string }) => text)).toEqual(["Are we still on for Friday?"])
-    expect(older.history).toMatchObject({ has_more: false, next: null })
+    expect(older.history).toMatchObject({ has_more: false, before_time: null })
     vi.stubEnv("TZ", "Europe/Madrid")
     expect(await run("context", "telegram:101", "--limit", "1")).toMatch(
       /^Rin Example {2}person:\d+\n.*\n {2}times in Europe\/Madrid\n\nHistory\n {2}2026-09-10 11:00 {2}message {2}Rin Example: Yes, see you then\. .*\n {2}older — memo context person:\d+ --before-time 2026-09-10T08:59:59\.999Z\n/s,

@@ -117,7 +117,9 @@ export const contextText = ({
           "",
           "History",
           ...history.items.map(touchLine),
-          ...(history.next ? [`  older — memo context person:${person.uid} --before-time ${history.next}`] : []),
+          ...(history.beforeTime
+            ? [`  older — memo context person:${person.uid} --before-time ${history.beforeTime}`]
+            : []),
         ]),
     "",
     `Last from them   ${one(last.fromThemAnywhere ?? last.fromThem)}`,
@@ -184,7 +186,10 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
       "--since-time <time>",
       "the history from this time: hours or days back (12h, 7d) or a date (2026-11-01); the newest when left out",
     )
-    .option("--before-time <time>", "the history before this ISO time or date: what `history.next` gives, to page back")
+    .option(
+      "--before-time <time>",
+      "the history before this ISO time or date: what `history.before_time` gives, to page back",
+    )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .option(
       "--source <accounts>",
