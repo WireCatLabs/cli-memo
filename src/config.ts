@@ -68,6 +68,8 @@ const ConfigSchema = v.strictObject({
   update_check: v.optional(v.boolean()),
   /** `false` stops an agent deciding proposals for you: `projects actions confirm` and `reject` then need you. */
   agent_decisions: v.optional(v.boolean()),
+  /** `strong` lets an agent's `people link` merge at once on strong evidence; `propose` makes every one wait for you. */
+  agent_merges: v.optional(v.picklist(["strong", "propose"])),
   /** An agent gated on new mail starts once the oldest waiting email waited this long (`30m`), or this many wait. */
   schedule_mail_wait: v.optional(v.pipe(v.string(), v.regex(/^\d+[mhd]$/, "has to be a duration such as 30m or 2h"))),
   schedule_mail_batch: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
@@ -111,6 +113,12 @@ export const MEMO_SETTINGS: readonly DeclaredSetting[] = [
     default: DEFAULT_DECISION_POLICY.agentDecisions,
     description: "true lets an agent confirm or reject proposals for you; false keeps every decision yours",
   },
+  {
+    key: "agent_merges",
+    default: "strong",
+    description:
+      'strong: an agent\'s people link merges at once when the store finds strong evidence; "propose": every one waits for you',
+  },
   { key: "update_check", default: true, description: "check once a day for a newer memo" },
   { key: "record", default: true, description: "keep every run in memo runs list; false keeps failed runs only" },
   {
@@ -151,6 +159,15 @@ export const decisionPolicy = (env: NodeJS.ProcessEnv): DecisionPolicy => {
     agentDecisions = loadConfig(env).agent_decisions === true
   } catch {}
   return { ...DEFAULT_DECISION_POLICY, agentDecisions }
+}
+
+/** Whether an agent's `people link` may merge at once: the owner's decision (NEED-2649), `propose` if the file breaks. */
+export const agentMergesApply = (env: NodeJS.ProcessEnv): boolean => {
+  try {
+    return loadConfig(env).agent_merges !== "propose"
+  } catch {
+    return false
+  }
 }
 
 /** The config file's limits for agent schedules; a file that does not load leaves them at their defaults. */

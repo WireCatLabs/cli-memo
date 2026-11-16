@@ -851,7 +851,7 @@ memo people show <who> [options]
 
 ### `memo people review`
 
-what waits for the owner about who is who: matches (people that may be one) and splits (identities an agent says are not this person), highest score first, then newest; people confirm or people reject answers them, and people resolve company answers a match on a shared mailbox
+what waits for the owner about who is who: matches (people that may be one) and splits (identities an agent says are not this person), highest score first, then newest; each match says what the two share and why it is not strong enough for an agent to merge, and each side: identities by source, the last messages or calls with dates, companies and deals (--full: more of each, with phones, addresses and accounts; --brief: no sides). --kind merged lists what agents merged on strong evidence, each with the people unmerge that undoes it. people confirm or people reject answers a match or a split, and people resolve company answers a match on a shared mailbox
 
 ```sh
 memo people review [options]
@@ -859,7 +859,9 @@ memo people review [options]
 
 | Option | What it does |
 |---|---|
-| `--kind <kind>` | all, link, split (default all). Default: `all`. |
+| `--kind <kind>` | all, link, split, merged (default all). Default: `all`. |
+| `--brief` | each match without its two sides. |
+| `--full` | each side with phones, addresses, accounts, and more messages and calls in full. |
 | `--limit <n>` | most proposals, up to 500. Default: `50`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
@@ -1006,7 +1008,7 @@ memo people scan [options]
 
 ### `memo people link`
 
-say two identities are one person: yours links them, an agent's waits for you as a match
+say two identities are one person: yours links them; an agent's merges them at once when the store finds strong evidence (one mobile number or personal address only these two have, from two sources, one of them a messenger or a call for a phone), and otherwise waits for you as a match that says why; agent_merges: propose makes every agent's link wait; memo people unmerge undoes a merge
 
 This command changes the local store or your files.
 
@@ -3693,7 +3695,7 @@ memo pipelines list [query] [options]
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** pipeline — id, ref, name, kind, account, external_id, stages, created_at, and 3 more; every field: memo commands info pipelines list
+**Returns:** pipeline — id, ref, name, kind, account, external_id, stages, created_at, and 9 more; every field: memo commands info pipelines list
 
 **Example:** `memo pipelines list`, `memo pipelines list kind:lead --json`
 
@@ -3714,7 +3716,7 @@ memo pipelines show <pipeline> [options]
 | `--since-time <time>` | count only deals or leads made since this day, such as 2026-09-01. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** pipeline — id, ref, name, kind, account, external_id, stages, created_at, and 3 more; every field: memo commands info pipelines show
+**Returns:** pipeline — id, ref, name, kind, account, external_id, stages, created_at, and 9 more; every field: memo commands info pipelines show
 
 **Example:** `memo pipelines show pipeline:2`, `memo pipelines show Sales --since-time 2026-09-01`
 
@@ -3761,7 +3763,7 @@ memo deals list [query] [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--limit <n>` | most deals, up to 500. Default: `100`. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 29 more; every field: memo commands info deals list
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 30 more; every field: memo commands info deals list
 
 **Example:** `memo deals list status:open project:HRB`, `memo deals list stage:Quote --json`
 
@@ -3781,7 +3783,7 @@ memo deals show <ref> [options]
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 29 more; every field: memo commands info deals show
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 30 more; every field: memo commands info deals show
 
 **Example:** `memo deals show deal:5`
 
@@ -3826,7 +3828,7 @@ memo deals update <ref> [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--project <project>` | the project: its key or project:<id>. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 29 more; every field: memo commands info deals update
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 30 more; every field: memo commands info deals update
 
 **Example:** `memo deals update deal:5 --project HRB`
 
@@ -3858,7 +3860,7 @@ memo deals add <title> <stage> [amount] [currency] [options]
 | `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 29 more; every field: memo commands info deals add
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 30 more; every field: memo commands info deals add
 
 **Example:** `memo deals add 'Site for the clinic' Call 500000.00 RUB --organization organization:3 --project HRB`, `memo deals add 'Support contract' Sales/Quote --person person:7 --role decision-maker --due 2026-12-01`
 
@@ -3881,7 +3883,7 @@ memo deals move <ref> <stage> [options]
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 29 more; every field: memo commands info deals move
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 30 more; every field: memo commands info deals move
 
 **Example:** `memo deals move deal:5 Quote`, `memo deals move deal:5 stage:5`
 
@@ -3906,7 +3908,7 @@ memo deals close <ref> <outcome> [options]
 | `--reason <text>` | why it was won or lost, kept with it. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 29 more; every field: memo commands info deals close
+**Returns:** deal — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 30 more; every field: memo commands info deals close
 
 **Example:** `memo deals close deal:5 won`, `memo deals close deal:6 lost --reason 'chose a cheaper studio'`
 
@@ -3931,7 +3933,7 @@ memo leads list [query] [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--limit <n>` | most leads, up to 500. Default: `100`. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 29 more; every field: memo commands info leads list
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 30 more; every field: memo commands info leads list
 
 **Example:** `memo leads list status:open`
 
@@ -3951,7 +3953,7 @@ memo leads show <ref> [options]
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 29 more; every field: memo commands info leads show
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 30 more; every field: memo commands info leads show
 
 **Example:** `memo leads show lead:3`
 
@@ -3996,7 +3998,7 @@ memo leads update <ref> [options]
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 | `--project <project>` | the project: its key or project:<id>. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 29 more; every field: memo commands info leads update
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 30 more; every field: memo commands info leads update
 
 **Example:** `memo leads update lead:3 --project HRB`
 
@@ -4028,7 +4030,7 @@ memo leads add <title> [stage] [amount] [currency] [options]
 | `--evidence <ref...>` | what shows it, up to 8: msg:, note:, document: or another reference. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 29 more; every field: memo commands info leads add
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 30 more; every field: memo commands info leads add
 
 **Example:** `memo leads add 'Call from the site'`, `memo leads add 'Clinic in Kazan' contacted --person person:9`
 
@@ -4051,7 +4053,7 @@ memo leads move <ref> <stage> [options]
 |---|---|
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 29 more; every field: memo commands info leads move
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 30 more; every field: memo commands info leads move
 
 **Example:** `memo leads move lead:3 qualified`, `memo leads move lead:3 stage:5`
 
@@ -4076,7 +4078,7 @@ memo leads close <ref> <outcome> [options]
 | `--reason <text>` | why it was won or lost, kept with it. |
 | `--json` | print JSON; --json=ref,title keeps only those fields. |
 
-**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 29 more; every field: memo commands info leads close
+**Returns:** lead — id, ref, kind, title, summary, pipeline, pipeline_name, stage, and 30 more; every field: memo commands info leads close
 
 **Example:** `memo leads close lead:3 lost --reason 'no budget'`
 

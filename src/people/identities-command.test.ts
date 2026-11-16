@@ -1,6 +1,6 @@
-import { mkdtempSync } from "node:fs"
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { dirname, join } from "node:path"
 import { Client } from "@modelcontextprotocol/client"
 import { InMemoryTransport } from "@modelcontextprotocol/server"
 import { captureStreams } from "@wirecat/cli-base"
@@ -8,6 +8,7 @@ import { openStore } from "@wirecat/cli-core/store"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 import { answerOf, envelopeOf } from "../../test/answer.js"
 import { commandCaller } from "../../test/mcp.js"
+import { configPath } from "../config.js"
 import { createMemoServer } from "../mcp/server.js"
 import { createProgram } from "../program.js"
 import type { Terminal } from "../terminal.js"
@@ -81,6 +82,85 @@ describe("memo people link", () => {
     const decided = await run({}, NOBODY, "review", "confirm", proposed.proposal, "--from-app")
     expect(decided.decided).toMatchObject([{ kind: "identity_link", status: "confirmed" }])
     expect((await run({}, OWNER, "people", "show", "max:33")).identities).toHaveLength(2)
+  })
+})
+
+describe("an agent's people link on strong evidence (NEED-2649)", () => {
+  const SAME_MOBILE = ["people", "link", "telegram:11", "max:22", "--reason", "one mobile in both messengers"]
+
+  it("merges at once, says who and why, lists it for the owner, and the owner's unmerge undoes it", async () => {
+    const before = await run({}, OWNER, "people", "show", "telegram:11")
+
+    const merged = await run(CLAUDE, NOBODY, ...SAME_MOBILE)
+
+    expect(merged).toMatchObject({
+      outcome: "merged",
+      evidence: { strong: true, facts: [{ kind: "phone", value: "+79001234567", strong: true }] },
+    })
+    const shown = await run({}, OWNER, "people", "show", "telegram:11")
+    expect(shown.merges).toMatchObject([
+      {
+        id: merged.merge,
+        method: "agent",
+        by: "agent:claude-code",
+        agent: { bot: "claude-code", reason: SAME_MOBILE[5] },
+      },
+    ])
+    expect(shown.merges[0].agent.run).toEqual(expect.any(String))
+    const listed = envelopeOf(await raw({}, OWNER, "people", "review", "--kind", "merged", "--json"))
+    expect(listed.items).toMatchObject([
+      { id: merged.merge, kind: "agent_merge", by: "claude-code", undo: `memo people unmerge ${merged.merge}` },
+    ])
+    expect(envelopeOf(await raw({}, OWNER, "people", "review", "--json")).items).toEqual([])
+
+    await run({}, OWNER, "people", "unmerge", merged.merge)
+
+    const after = await run({}, OWNER, "people", "show", "telegram:11")
+    const plain = ({ identities, merges, matches, ...person }: typeof before) => ({
+      ...person,
+      identities: identities.map(
+        ({ method: _m, linked_by: _b, linked_at: _a, ...one }: { [key: string]: unknown }) => one,
+      ),
+      merges,
+      matches,
+    })
+    expect(plain(after)).toEqual(plain(before))
+    expect(envelopeOf(await raw({}, OWNER, "people", "review", "--kind", "merged", "--json")).items).toEqual([])
+  })
+
+  it("only proposes when agent_merges is propose, or when no agent is named", async () => {
+    const unnamed = await run({}, NOBODY, ...SAME_MOBILE)
+    expect(unnamed).toMatchObject({ outcome: "proposed", evidence: { strong: false, weak: "propose-only" } })
+
+    mkdirSync(dirname(configPath(env)), { recursive: true })
+    writeFileSync(configPath(env), JSON.stringify({ agent_merges: "propose" }))
+    await expect(run(CLAUDE, NOBODY, ...SAME_MOBILE)).resolves.toMatchObject({
+      outcome: "proposed",
+      evidence: { weak: "propose-only" },
+    })
+  })
+
+  it("waits in review with why it is not strong, and each side's identities, more with --full", async () => {
+    const proposed = await run(CLAUDE, NOBODY, "people", "link", "max:33", "telegram:11", "--reason", "same face")
+
+    const brief = envelopeOf(await raw({}, OWNER, "people", "review", "--json"))
+    expect(brief.items).toMatchObject([
+      {
+        id: proposed.proposal,
+        strength: { strong: false, weak: "nothing-shared", facts: [] },
+        sides: [
+          { name: "Kai Sample", identities: [{ identity: "max:33", source: "max" }], last: [] },
+          { name: "Rin Example", identities: [{ identity: "telegram:11", source: "telegram" }] },
+        ],
+      },
+    ])
+    expect(brief.items[0].sides[0].identities[0].phones).toBeUndefined()
+    const full = envelopeOf(await raw({}, OWNER, "people", "review", "--full", "--json"))
+    expect(full.items[0].sides[1].identities[0]).toMatchObject({ phones: ["79001234567"] })
+    const none = envelopeOf(await raw({}, OWNER, "people", "review", "--brief", "--json"))
+    expect(none.items[0].sides).toBeUndefined()
+    expect(none.items[0].strength).toMatchObject({ weak: "nothing-shared" })
+    expect(await raw({}, OWNER, "people", "review")).toContain("not merged: they share no phone or address")
   })
 })
 
@@ -540,7 +620,10 @@ describe("the owner's decisions from the app", () => {
       outcome: "linked",
     })
 
-    const first = await run(CLAUDE, NOBODY, "people", "link", "max:33", "max:22", "--reason", "same voice")
+    const store = await openStore({ env })
+    await store.people.savePeople(MAX, [{ id: "44", name: "Ode Sample" }])
+    await store.close()
+    const first = await run(CLAUDE, NOBODY, "people", "link", "max:33", "max:44", "--reason", "same voice")
     await expect(run(CLAUDE, NOBODY, "people", "confirm", first.proposal, "--as-owner")).rejects.toMatchObject(
       unconfirmed,
     )
@@ -558,12 +641,12 @@ describe("the owner's decisions from the app", () => {
       "--from-app",
     )
     expect(confirmed.decided).toMatchObject([{ id: first.proposal, status: "confirmed" }])
-    const store = await openStore({ env })
-    expect(await store.proposedActions.get(first.proposal)).toMatchObject({
+    const reopened = await openStore({ env })
+    expect(await reopened.proposedActions.get(first.proposal)).toMatchObject({
       decidedBy: { type: "person" },
       result: { reason: "same phone" },
     })
-    await store.close()
+    await reopened.close()
   })
 
   it("all takes only --limit of what people review lists", async () => {

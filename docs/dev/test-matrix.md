@@ -178,6 +178,8 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `people show` | `--json` | ✅ |  |
 | `people review` |  | ✅ |  |
 | `people review` | `--kind` | ✅ |  |
+| `people review` | `--brief` | ✅ |  |
+| `people review` | `--full` | ✅ |  |
 | `people review` | `--limit` | ✅ |  |
 | `people review` | `--json` | ✅ |  |
 | `people confirm` |  | ✅ |  |

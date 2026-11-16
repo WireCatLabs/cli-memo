@@ -115,6 +115,19 @@ Owner decisions remain available in the terminal. In an agent's terminal, `--as-
 before a decision counts as yours. The setting does not change the separate permission for confirmation of
 meeting findings or replace the tool's other permission checks.
 
+## `agent_merges`
+
+`strong`, the default: an agent's `memo people link` merges two people at once when memo itself finds strong
+evidence, one mobile number or personal address that only these two people have, from two different sources
+([how](people.md#link-a-persons-accounts)). Anything weaker waits for you in `memo people review`. `propose`: every
+agent's link waits for you, as before. `agent_decisions` does not change this, and matches stay yours to confirm.
+
+```json
+{
+  "agent_merges": "propose"
+}
+```
+
 ## Environment variables
 
 | Variable | Meaning |

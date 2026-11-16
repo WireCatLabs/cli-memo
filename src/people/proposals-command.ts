@@ -2,14 +2,27 @@ import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { LOCAL_READ, LOCAL_WRITE } from "@wirecat/cli-core/cli"
 import { parseProposalIds } from "@wirecat/cli-core/services"
-import { IDENTITY_LINK_KIND, IDENTITY_SPLIT_KIND, type MessageStore, type Refusal } from "@wirecat/cli-core/store"
+import {
+  IDENTITY_LINK_KIND,
+  IDENTITY_SPLIT_KIND,
+  type LinkEvidence,
+  type MessageStore,
+  type Refusal,
+} from "@wirecat/cli-core/store"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
 import { byOption } from "../author.js"
 import { oneOf, positive } from "../options.js"
 import { decidedText, decisionOf } from "../review/review.js"
+import { deniedCrmKinds } from "../search/denied.js"
 import { reviewOf } from "../store/guard.js"
 import { asOwner, PROPOSAL_KINDS, type ProposalKindWord, summaryOf, waiting } from "./proposal-rows.js"
+import { agentMergeAnswer, type Detail, type Side, sideLines, sideOf, weakText } from "./review-context.js"
+
+/** `merged` is what agents merged on strong evidence: the review lists it, and confirm and reject never take it. */
+const REVIEW_KINDS = [...PROPOSAL_KINDS, "merged"] as const
+
+type ReviewKind = (typeof REVIEW_KINDS)[number]
 
 const PEOPLE_KINDS: readonly string[] = [IDENTITY_LINK_KIND, IDENTITY_SPLIT_KIND]
 
@@ -74,28 +87,83 @@ export const peopleProposalCommands = (
 ): void => {
   const { print } = answers(program, streams, env)
 
-  annotate(people.command("review"), { effects: LOCAL_READ })
-    .summary("people that may be one, and splits an agent proposed, waiting for you")
+  const review = annotate(people.command("review"), { effects: LOCAL_READ })
+    .summary("people that may be one, an agent's splits, and what agents merged")
     .description(
       "what waits for the owner about who is who: matches (people that may be one) and splits (identities an agent " +
-        "says are not this person), highest score first, then newest; people confirm or people reject answers them, " +
-        "and people resolve company answers a match on a shared mailbox",
+        "says are not this person), highest score first, then newest; each match says what the two share and why " +
+        "it is not strong enough for an agent to merge, and each side: identities by source, the last messages or " +
+        "calls with dates, companies and deals (--full: more of each, with phones, addresses and accounts; --brief: " +
+        "no sides). --kind merged lists what agents merged on strong " +
+        "evidence, each with the people unmerge that undoes it. people confirm or people reject answers a match " +
+        "or a split, and people resolve company answers a match on a shared mailbox",
     )
-    .option("--kind <kind>", `${PROPOSAL_KINDS.join(", ")} (default all)`, oneOf(PROPOSAL_KINDS), "all")
+    .option("--kind <kind>", `${REVIEW_KINDS.join(", ")} (default all)`, oneOf(REVIEW_KINDS), "all")
+    .option("--brief", "each match without its two sides")
+    .option("--full", "each side with phones, addresses, accounts, and more messages and calls in full")
     .option("--limit <n>", "most proposals, up to 500", positive, 50)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .action(async (options: { kind: ProposalKindWord; limit: number; json?: boolean }) => {
+  review.action(
+    async (options: { kind: ReviewKind; brief?: boolean; full?: boolean; limit: number; json?: boolean }) => {
+      if (options.brief && options.full)
+        throw new CliError("validation_error", "--brief and --full ask for opposite things; give one", {
+          param: "full",
+        })
+      const detail: Detail = options.brief ? "none" : options.full ? "full" : "brief"
       const limit = limitOf(options.limit)
-      const found = await withStore(env, (store) => waiting(store, { kind: options.kind, limit }))
+      if (options.kind === "merged") {
+        const merged = await withStore(env, (store) => store.people.agentMerges({ limit, offset: 0 }))
+        const items = merged.items.map(agentMergeAnswer)
+        print(
+          options.json,
+          listAnswer("people review", { items, limit, has_more: merged.hasMore }),
+          items
+            .map((item) => `${item.id}  ${item.from} into ${item.person} by ${item.by}, ${item.at.slice(0, 10)}`)
+            .concat(items.length ? [`undo one: memo people unmerge <merge>`] : [])
+            .join("\n") || "no merge an agent made is in place",
+        )
+        return
+      }
+      const kind: ProposalKindWord = options.kind
+      const deniedKinds = deniedCrmKinds(review, env)
+      const found = await withStore(env, async (store) => {
+        const listed = await waiting(store, { kind, limit })
+        const links = listed.items.filter((row) => row.kind === "identity_link")
+        const evidence = await store.people.linkEvidence(links.map(({ persons }) => persons))
+        const sides = new Map<string, Side>()
+        const sideFor = async (person: string) => {
+          if (detail === "none") return undefined
+          const known = sides.get(person) ?? (await sideOf(store, env, person, detail, deniedKinds))
+          sides.set(person, known)
+          return known
+        }
+        const items = []
+        for (const row of listed.items) {
+          if (row.kind !== "identity_link") {
+            items.push(row)
+            continue
+          }
+          const strength = evidence[links.indexOf(row)] as LinkEvidence
+          const both =
+            detail === "none" ? {} : { sides: [await sideFor(row.persons[0]), await sideFor(row.persons[1])] }
+          items.push({ ...row, strength, ...both })
+        }
+        return { items, hasMore: listed.hasMore }
+      })
       print(
         options.json,
         listAnswer("people review", { items: found.items, limit, has_more: found.hasMore }),
         [
-          ...found.items.map((row) => `${row.id}  ${summaryOf(row)}${row.reason ? ` — ${row.reason}` : ""}`),
+          ...found.items.flatMap((row) => [
+            `${row.id}  ${summaryOf(row)}${row.reason ? ` — ${row.reason}` : ""}`,
+            ...("strength" in row ? [`    not merged: ${weakText(row.strength)}`] : []),
+            ...("sides" in row ? (row.sides as Side[]).flatMap(sideLines) : []),
+          ]),
           ...(found.hasMore ? [`more wait: --limit ${Math.min(500, limit * 2)}`] : []),
         ].join("\n") || "nothing about people waits for you",
       )
-    })
+    },
+  )
 
   for (const name of ["confirm", "reject"] as const) {
     const confirm = name === "confirm"

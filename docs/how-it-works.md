@@ -69,7 +69,9 @@ The same person can have a Telegram account, a MAX account and an email address.
 when they share an exact email address no third person has, or a phone number nobody else has that one of them has
 in Telegram, MAX or WhatsApp, or after you link them with
 `memo people link`, `tg personal contacts link` or `max personal contacts link`. A matching name, username or email
-domain is never enough. A weaker signal, or an agent's guess, waits for you as a match in `memo people review`.
+domain is never enough. An agent's link merges at once only on strong evidence memo finds itself, the same mobile
+number or personal address from two sources. A weaker signal, or an agent's guess, waits for you as a match in
+`memo people review`.
 Every merge can be undone ([how](people.md#undo-a-link)).
 
 ## References
