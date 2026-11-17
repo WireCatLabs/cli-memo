@@ -1,95 +1,141 @@
 # Memo
 
-Memo keeps what you know about people and projects in one place on your computer: your notes, your
-email and your Telegram, MAX and WhatsApp messages. Your AI agent (for example Claude Code, Codex, Cursor or
-Gemini CLI) uses it to find what was said, gather the context for a reply and remember what matters.
+Before a call, get everything you know about the person in one answer: the last messages each way, the mail, your
+notes and what you promised. Memo keeps your notes, documents, mail and Telegram, MAX and WhatsApp messages in one
+place on your computer, so the AI agent you already use, such as Claude Code or Codex, can search all of it at once.
 
-This page tells you what Memo can do, how it works in short, and how to get a first result in a few
-minutes.
+Ask "What do I need to know about Alice before the call?", "Where did we discuss the Harbour budget?" or "What did I
+promise people this week?". Every answer points back to its source: a note, a page of a file, an email or a message.
 
-Three words appear on every page:
+**On this page:**
 
-- **Terminal** (command line): the window where you type commands, such as Terminal on macOS or
-  PowerShell on Windows. `memo` is a command you type there, or that your agent types for you.
-- **AI agent**: a program that does tasks for you and can run commands. It runs `memo` for you.
-- **Local store**: one file on your computer that holds your messages, mail and notes. Memo, tg and
-  max all read and write the same file.
+1. [What you get](#what-you-get)
+2. [Things a newcomer would not guess](#things-a-newcomer-would-not-guess)
+3. [How it looks](#how-it-looks)
+4. [Why Memo](#why-memo)
+5. [What it can do](#what-it-can-do)
+6. [How it works](#how-it-works)
+7. [Start in a few minutes](#start-in-a-few-minutes)
+8. [Limits](#limits)
+9. [Find a guide for your task](#find-a-guide-for-your-task)
+
+## What you get
+
+- **One person, one answer.** Every account linked to them, the last message each way, chats in common, mail, your
+  notes and open tasks, each with a link to its source.
+- **Search that does not care where it was said.** Messages, mail and notes ranked together, by words or by meaning.
+- **Your Obsidian vault in the same search.** Notes keep their links, aliases and tags, and the PDF, Word and other
+  documents in the folder are searched too, down to the PDF page a passage came from.
+- **Promises you can track.** Tasks and reminders for what you owe people and what they owe you.
+- **A memory you control.** What your agent wants to remember waits for your confirmation, with the evidence behind
+  it.
+- **Answers with evidence.** Your agent gets the matching sources with their references and what could not be
+  searched, so it cites instead of guessing.
+
+## Things a newcomer would not guess
+
+- **Memo reads what the other tools copied.** `tg`, `max` and `wa` copy your chats, and `mail` copies your mail, into
+  the WireCat local store, one file on your computer. Memo imports your folders into the same file and searches it. A chat no tool has
+  copied is not there, so an empty search does not prove a message was never sent.
+- **Nothing is sent, and your sources stay as they are.** Memo has no command that sends a message or an email.
+  Importing leaves your files and your mailbox unchanged.
+- **An agent proposes, you decide.** Memories and facts an agent records wait for your review before they count.
+- **Over MCP, "ask" goes ahead.** MCP is the way apps such as Claude Desktop call a tool, and nobody sits there to
+  answer a question. Set what an agent must not do to read only or refuse before you connect it.
+- **Search by meaning needs a model you download once.** Until then Memo searches by words and says so.
+
+## How it looks
+
+```text
+You:    What do I need to know about Alice before the call?
+Agent:  (runs memo context telegram:"Alice Example" --json)
+        Alice wrote yesterday in "Harbour": she needs the revised budget by Friday.
+        Your note "people/Alice Example.md" says she prefers a short call.
+        Open task: send her the contract draft.
+        Sources: msg:telegram/1/77/42, people/Alice Example.md, task 7.
+You:    Add a task to send her the budget.
+Agent:  Draft task: "Send Alice the revised budget", linked to her message in "Harbour". Save it?
+You:    Yes.
+```
+
+## Why Memo
+
+- **It reads your real conversations.** Of the memory tools on the [comparison](compare.md), such as Hindsight, mem0
+  and Graphiti, none documents reading your Telegram, MAX and WhatsApp chats or your meeting transcripts.
+- **Every answer has a source.** A result carries a reference you or your agent can open.
+- **Identities are never merged because a name matches.** Accounts join only on an email address or phone number
+  nobody else has, or when you link them yourself.
+- **No AI key needed.** Import and search run on your computer, and search by meaning uses a local model. Memo sends
+  text to an AI provider only when you set one up and allow it.
+- **Every agent call is logged**, and you set for each command what an agent may do: allow, ask, read only or refuse.
+- **Free and open source.** Apache 2.0.
+
+Another tool fits better when you want memory that builds itself from conversations with a model (Hindsight, mem0,
+Graphiti, Cognee), or a hosted memory service for a product you build.
 
 ## What it can do
 
-| You want to | Where |
-|---|---|
-| Search a folder of notes or documents, or an Obsidian vault | [Notes and folders](./notes.md) |
-| Write your own notes about a person, a message or a project | [Notes and folders](./notes.md#write-your-own-notes) |
-| Put labels such as `work` or `follow-up` on notes, messages and people | [Tags](./tags.md) |
-| Find something when you do not remember where it was written | [Search](./search.md) |
-| See everything about one person: messages, mail and notes | [People and projects](./people.md) |
-| Bring your email in beside your notes and messages | [Mail](./mail.md) |
-| Keep track of what you owe people, and get reminded | [Tasks and reminders](./tasks.md) |
-| Keep products, contracts, subscriptions, bank accounts and an import from another system | [Business data](./business.md) |
-| Let your agent remember what it learned, with you deciding what stays | [Memories and facts](./memories.md) |
-| Use Memo from an app with no terminal, such as Claude Desktop | [The MCP server](./mcp.md) |
-| Connect an app on the web or phone | [Remote connection](./remote.md) |
+- **Notes and folders:** import Markdown or an Obsidian vault, and write your own notes about a person or a message.
+  [Notes and folders](notes.md)
+- **Search:** everything at once, or only notes, mail or messages. [Search](search.md)
+- **People and projects:** everything about a person or a company. [People and projects](people.md)
+- **Mail:** search the mail the `mail` tool keeps, beside your chats and notes. [Mail](mail.md)
+- **Tasks and reminders:** what you owe and what you are owed. [Tasks and reminders](tasks.md)
+- **Memories and facts:** what your agent learned, waiting for your review. [Memories and facts](memories.md)
+- **Business data:** contracts, invoices, payments and bank lines, with money waiting for your review.
+  [Business data](business.md)
+- **Agents everywhere:** a skill for terminal agents, an MCP server for Claude Desktop and Cursor, and a signed-in
+  link for apps on the web or phone through your own HTTPS tunnel. [The MCP server](mcp.md),
+  [Remote connection](remote.md)
 
 ## How it works
 
-1. **You choose your sources.** You add a folder of notes, connect a mail account, or use tg, max and wa
-   to save your chats. Nothing is read until you choose it.
-2. **Memo copies the text into the local store.** Imports leave your files and mail
-   unchanged. On Linux, a timer can repeat the import. [Gmail cleanup](./mail.md#commands-that-moved-to-mail) is a command of the
-   separate `mail` program.
-3. **You or your agent ask.** Memo answers with the matching text and a reference to each source,
-   so you can open the original and check it.
-4. **You control project decisions.** An agent's new memories, directly recorded facts and outbound action
-   proposals wait for review. By default only you decide project proposals;
-   [let an agent decide them](./configuration.md#agent_decisions) with a recorded reason if you want.
-   Meeting findings decisions need explicit owner permissions. Memo never sends a message or an email.
+- **One store on your computer.** Memo copies the text of your notes and documents into the local store, beside the
+  messages and mail the other WireCat tools keep there. [How Memo works](how-it-works.md)
+- **Stays current.** `memo sync` reads what changed, and on Linux a timer can run it every five minutes.
+  [Keeping Memo up to date](archive.md)
+- **Made for scripts and agents.** `--json` gives structured answers, and `memo answers create` hands an agent the
+  evidence for a question.
+- **What it reads, writes and sends.** [Security](security.md)
 
-Memo keeps the store on your computer. Memo sends your text to an AI provider only when you set one up
-and allow it for that request. [How Memo works](./how-it-works.md) explains this in more detail.
+## Start in a few minutes
 
-## Get started
-
-The easiest way is to ask your agent. Copy this request into it:
+Paste this into your agent:
 
 ```text prompt
-Install Memo with npm install -g @wirecat/cli-memo and check that memo --help works.
-Then help me add a folder of notes I choose and import it.
-Search it for a word I give you and show me the source of each result.
+Install Memo with npm install -g @wirecat/cli-memo and memo skill install --for all. Then help me add a folder of notes I choose, import it, and search it for a word I give you with the source of each result.
 ```
 
-Or type the commands yourself. Replace `/path/to/notes` with a folder on your computer:
+Or in a terminal. Replace `/path/to/notes` with a folder on your computer:
 
 ```sh
 npm install -g @wirecat/cli-memo
-memo folders add /path/to/notes --format markdown
-memo sync --only notes --no-embed
+memo skill install --for all       # puts memo's skill where your agents read it
+memo folders add /path/to/notes    # Obsidian format when it is a vault
+memo sync --only notes             # reads the notes, their links and tags
 memo search notes budget
 ```
 
-Memo needs Node.js 22.16+ or 24+ ([what to install first](./installation.md)). Your files stay
-where they are. Memo reads your files and mail without changing them. `notes edit` can change a note's
-source file; `notes export` writes notes to files. Memo never changes your mailbox.
+You need Node.js 22.16 or a later 22.x, or Node.js 24 or later. Messages come in through `tg`, `max` or `wa`, and mail through
+`mail`. [Installation](installation.md)
 
-## Where to go next
+## Limits
 
-| Page | Answers |
+- Memo is tested on Linux. macOS and Windows are not tested yet.
+- Search by meaning needs a local model of about 220 MB, downloaded once.
+- Repeating the import on a timer works on Linux with systemd.
+- One store per computer. There is no hosted copy to reach from another device, and no window of its own.
+
+## Find a guide for your task
+
+| Task | Guide |
 |---|---|
-| [Installation](./installation.md) | What does it need, where do its files go, how do I update or remove it? |
-| [Using Memo](./usage.md) | What does a normal day with Memo look like? |
-| [How Memo works](./how-it-works.md) | Where is my data, what is imported, and what does a reference mean? |
-| [Notes and folders](./notes.md) | How do I import Markdown or Obsidian notes, and write my own? |
-| [Tags](./tags.md) | How do I label notes, messages and people, and find them again? |
-| [Search](./search.md) | How do I find something, and give my agent the sources? |
-| [People and projects](./people.md) | How do I see everything about a person, a company or a project? |
-| [Mail](./mail.md) | How do I bring my email in? |
-| [Tasks and reminders](./tasks.md) | How do I track what I owe people? |
-| [Memories and facts](./memories.md) | How does my agent remember things, and how do I check them? |
-| [The MCP server](./mcp.md) | How do I connect Claude Desktop, Cursor or another app? |
-| [Keeping Memo up to date](./archive.md) | How do I import changes, by hand or on a timer? |
-| [Recipes](./recipes.md) | What can my agent do for me with Memo? |
-| [All commands](./commands.md) | Every command and option |
-| [Configuration](./configuration.md) | Every setting in the config file |
-| [Troubleshooting](./troubleshooting.md) | Something does not work: what the screen says, and what to do |
-| [Security](./security.md) | What does Memo read, write and send? |
-| [Compared with other tools](./compare.md) | How does Memo compare with other memory tools, and when does another tool fit better? |
+| Install and update | [Installation](installation.md) |
+| A normal day with Memo | [Using Memo](usage.md) |
+| Where data lives and what a reference means | [How Memo works](how-it-works.md) |
+| A ready request for your agent | [Recipes](recipes.md) |
+| Connect Claude Desktop or Cursor | [The MCP server](mcp.md) |
+| Every command | [All commands](commands.md) |
+| Something does not work | [Troubleshooting](troubleshooting.md) |
+| What Memo reads, writes and sends | [Security](security.md) |
+| How Memo compares with other memory tools | [Compared with other tools](compare.md) |
