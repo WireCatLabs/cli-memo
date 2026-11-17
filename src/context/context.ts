@@ -78,9 +78,19 @@ export interface ReportedFile {
  * source's own record, so it is a fact as the source states it, not a guess. It counts only on a file of that provider's
  * own documents account, the rule cli-core's `reported` standing follows.
  */
-const reportedFiles = async (store: MessageStore, links: Link[], limit: number): Promise<ReportedFile[]> => {
+const reportedFiles = async (
+  store: MessageStore,
+  links: Link[],
+  limit: number,
+  scope: readonly AccountKey[] | undefined,
+): Promise<ReportedFile[]> => {
+  // cli-core's list reader names a documents account by its notes folder, `notes:<id>`, never by its own provider.
+  const inScope = (id: string) =>
+    scope === undefined || scope.some((one) => one.provider === "notes" && one.account === id)
   const providers = new Map(
-    (await store.notes.documentsAccounts()).flatMap(({ id, account }) => (account ? [[id, account.provider]] : [])),
+    (await store.notes.documentsAccounts()).flatMap(({ id, account }) =>
+      account && inScope(id) ? [[id, account.provider]] : [],
+    ),
   )
   const files: ReportedFile[] = []
   for (const link of links) {
@@ -290,7 +300,7 @@ const withNotesAndTasks = async (
       isUsable(one.standing) &&
       !(one.kind === "related-to" && one.provenance && providers.has(one.provenance.split(":")[0] as string)),
   )
-  const files = await reportedFiles(store, incoming, limit)
+  const files = await reportedFiles(store, incoming, limit, scope)
   const { subject: _, name: __, ...notes } = linked
   const { next: beforeTime, ...history } = await personHistory(store, person, {
     ...(scope === undefined ? {} : { accounts: scope }),
