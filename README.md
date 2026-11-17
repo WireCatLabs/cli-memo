@@ -11,9 +11,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/WireCatLabs/cli-memo/tree/main/docs">Docs</a> ·
-  <a href="#what-can-you-do">Examples</a> ·
-  <a href="https://wirecat.dev">WireCat</a>
+  <a href="https://wirecat.dev/en/docs/memo">Docs</a> ·
+  <a href="https://github.com/WireCatLabs/cli-memo/blob/main/docs/installation.md">Install</a> ·
+  <a href="https://github.com/WireCatLabs/cli-memo/blob/main/docs/usage.md">Usage</a> ·
+  <a href="https://discord.gg/DebENqbRrJ">Discord</a>
 </p>
 
 <p align="center">
