@@ -374,6 +374,42 @@ describe("memo context", () => {
     })
   })
 
+  it("lists only the files of the accounts --source names", async () => {
+    const store = await openStore({ env })
+    const drive = { provider: "google-drive", account: "u1" }
+    await store.accounts.saveAccount(drive, { name: "Google Drive" })
+    await store.people.savePeople(drive, [{ id: "g1", name: "Rin Example" }])
+    await store.people.linkIdentities(
+      { provider: "telegram", id: "101" },
+      { provider: "google-drive", id: "g1" },
+      { method: "manual", by: "owner" },
+    )
+    const uid = (await store.people.personOf({ provider: "telegram", id: "101" }))?.uid as string
+    for (const account of ["u1", "u2"]) {
+      const folder = await store.notes.documentsAccount({ provider: "google-drive", account }, true)
+      if (folder === undefined) throw new Error("no documents account")
+      await store.catalog.upsert(folder.id, [
+        { externalId: "f.md", kind: "file", name: `File of ${account}`, parents: [] },
+      ])
+      const document = (await store.catalog.get(folder.id, "f.md"))?.ref.split(":")[1] as string
+      await store.notes.replaceFileLinks(document, [
+        {
+          kind: "related-to",
+          to: `person:${uid}`,
+          role: "owner",
+          provenance: "google-drive:files.get",
+          confirmed: false,
+        },
+      ])
+    }
+    await store.close()
+
+    const all = answerOf(await run("context", `person:${uid}`, "--json"))
+    expect(all.files.map((file: { title: string }) => file.title).sort()).toEqual(["File of u1", "File of u2"])
+    const scoped = answerOf(await run("context", `person:${uid}`, "--source", "telegram:1,google-drive:u1", "--json"))
+    expect(scoped.files.map((file: { title: string }) => file.title)).toEqual(["File of u1"])
+  })
+
   it("lists a Notion page they last edited, as any documents source reports it", async () => {
     const store = await openStore({ env })
     const notion = { provider: "notion", account: "w1:b1" }
