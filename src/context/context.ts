@@ -16,7 +16,7 @@ import {
   personHistory,
 } from "@wirecat/cli-core/services"
 import type { AccountKey, Link, MessageStore, Note, PersonRecord, RelationListItem } from "@wirecat/cli-core/store"
-import { type NotesAbout, notesAbout } from "../notes/about.js"
+import { holdsFolder, type NotesAbout, notesAbout } from "../notes/about.js"
 import { withOwner } from "../people/owner.js"
 import { crmViewersAll, crmViewingAll } from "../store/crm-viewer.js"
 import { groupScopeOf, inGroup, scopedAccounts } from "../store/group.js"
@@ -84,9 +84,7 @@ const reportedFiles = async (
   limit: number,
   scope: readonly AccountKey[] | undefined,
 ): Promise<ReportedFile[]> => {
-  // cli-core's list reader names a documents account by its notes folder, `notes:<id>`, never by its own provider.
-  const inScope = (id: string) =>
-    scope === undefined || scope.some((one) => one.provider === "notes" && one.account === id)
+  const inScope = holdsFolder(scope)
   const providers = new Map(
     (await store.notes.documentsAccounts()).flatMap(({ id, account }) =>
       account && inScope(id) ? [[id, account.provider]] : [],
@@ -261,7 +259,7 @@ const withNotesAndTasks = async (
   limit: number,
 ): Promise<MemoContext> => {
   const person = `person:${messages.person.uid}`
-  const linked = await notesAbout(store, { ref: person, person: messages.person }, limit)
+  const linked = await notesAbout(store, { ref: person, person: messages.person }, limit, scope)
   const yourNotes = []
   for (const ref of linked.about.filter((note) => note.source === "internal")) {
     const note = await store.notes.note(ref.ref)

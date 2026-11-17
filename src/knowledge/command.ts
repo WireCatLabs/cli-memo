@@ -222,7 +222,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         const ref = found.organization.ref
         const answer = await lockedCoverage(store, env, {
           ...found,
-          notes: await notesAbout(store, { ref }),
+          notes: await notesAbout(store, { ref }, 20, scope?.accounts),
           tags: await store.knowledge.tags(null, { type: "organization", id: ref.slice("organization:".length) }),
           untrusted: ["history.items.title", "history.items.text"],
         })
