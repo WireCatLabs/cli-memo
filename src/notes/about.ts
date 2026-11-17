@@ -1,5 +1,5 @@
 import { formatReference } from "@wirecat/cli-core"
-import type { Link, MessageStore, Note } from "@wirecat/cli-core/store"
+import type { AccountKey, Link, MessageStore, Note } from "@wirecat/cli-core/store"
 import type { Subject } from "../people/subject.js"
 
 /** A file in a notes folder is a `document:`, a written note a `note:`. */
@@ -49,8 +49,21 @@ export type Found = { note: Note; anchor: string | null; text: string | null; vi
 
 const PAGE = 500
 
-/** Every live note that reaches a subject through the links the store holds — never a name found in plain text. */
-export const notesReaching = async (store: MessageStore, subject: Subject): Promise<Found[]> => {
+/** cli-core's list reader names a notes folder or a documents account as `notes:<id>`, never by its own provider. */
+export const holdsFolder = (scope: readonly AccountKey[] | undefined) => (id: string) =>
+  scope === undefined || scope.some((one) => one.provider === "notes" && one.account === id)
+
+/**
+ * Every live note that reaches a subject through the links the store holds — never a name found in plain text — in a
+ * folder of `scope`. The owner's own notes belong to no folder, so every scope reads them.
+ */
+export const notesReaching = async (
+  store: MessageStore,
+  subject: Subject,
+  scope?: readonly AccountKey[],
+): Promise<Found[]> => {
+  const inScope = holdsFolder(scope)
+  const kept = (note: Note) => note.deletedAt === null && (note.folderId === null || inScope(note.folderId))
   const refs = [
     subject.ref,
     ...(subject.person?.identities.map((identity) =>
@@ -62,7 +75,7 @@ export const notesReaching = async (store: MessageStore, subject: Subject): Prom
     for (const link of links) {
       if (!isNoteReference(link.from)) continue
       const note = await store.notes.resolveNote(link.from)
-      if (note && note.deletedAt === null) found.push({ note, anchor: link.anchor, text: link.targetText, via })
+      if (note && kept(note)) found.push({ note, anchor: link.anchor, text: link.targetText, via })
     }
     return found
   }
@@ -70,7 +83,7 @@ export const notesReaching = async (store: MessageStore, subject: Subject): Prom
     const notes: Note[] = []
     for (let offset = 0; ; offset += PAGE) {
       const page = await store.notes.notes({ about: ref, limit: PAGE, offset })
-      notes.push(...page.items)
+      notes.push(...page.items.filter(kept))
       if (!page.hasMore) return notes
     }
   }
@@ -104,8 +117,13 @@ export const notesReaching = async (store: MessageStore, subject: Subject): Prom
 }
 
 /** What notes say about a subject, split by how each reaches it. */
-export const notesAbout = async (store: MessageStore, subject: Subject, limit = 20): Promise<NotesAbout> => {
-  const found = await notesReaching(store, subject)
+export const notesAbout = async (
+  store: MessageStore,
+  subject: Subject,
+  limit = 20,
+  scope?: readonly AccountKey[],
+): Promise<NotesAbout> => {
+  const found = await notesReaching(store, subject, scope)
   const unique = (via: Via) =>
     [
       ...new Map(

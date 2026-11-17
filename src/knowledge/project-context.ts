@@ -6,7 +6,7 @@ import { factItem } from "../facts/fact.js"
 import { notesAbout } from "../notes/about.js"
 import { labelsFor, proposerName, reviewItem } from "../review/review.js"
 import { atLeast, kindsText, waitingAbout } from "../review/status.js"
-import { keepInGroup } from "../store/group.js"
+import { groupScopeOf, keepInGroup } from "../store/group.js"
 import { proposalsOf } from "../store/guard.js"
 import { keyDocuments, projectOf } from "./key-documents.js"
 import { projectFindings } from "./project-findings.js"
@@ -42,7 +42,7 @@ export const projectContext = async (store: MessageStore, env: NodeJS.ProcessEnv
     keyDocuments: documents,
     project,
     relationships,
-    notes: await notesAbout(store, { ref: project.ref }),
+    notes: await notesAbout(store, { ref: project.ref }, 20, (await groupScopeOf(store, env))?.accounts),
     tags: await store.knowledge.tags(null, { type: "project", id: project.id }),
     review: {
       waiting: {

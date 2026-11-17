@@ -135,6 +135,32 @@ describe("memo context", () => {
     expect(answer.not_read.map(({ source }: { source: string }) => source)).toEqual(["events"])
   })
 
+  it("leaves out the notes of a folder --source does not name, and keeps the owner's own", async () => {
+    const store = await openStore({ env })
+    const uid = (await store.people.personOf({ provider: "telegram", id: "101" }))?.uid as string
+    await store.close()
+    await run("folders", "add", vault, "--format", "obsidian")
+    await run("sync", "--only", "notes")
+    await run("notes", "links", "add", "telegram:101", join(vault, "People", "Rin Example.md"))
+    await run("notes", "add", "Prefers mornings", "--subject", "telegram:101")
+
+    const all = answerOf(await run("context", `person:${uid}`, "--json"))
+    expect(all.notes.about.map(({ path }: { path: string }) => path)).toEqual(["People/Rin Example.md"])
+    const scoped = answerOf(await run("context", `person:${uid}`, "--source", "telegram:1", "--json"))
+    expect(scoped.notes.about).toEqual([])
+    expect(scoped.your_notes.map(({ text }: { text: string }) => text)).toEqual(["Prefers mornings"])
+    const reader = await openStore({ env })
+    const folder = (await reader.notes.folders())[0]?.id as string
+    await reader.close()
+    const named = answerOf(await run("context", `person:${uid}`, "--source", `telegram:1,notes:${folder}`, "--json"))
+    expect(named.notes.about.map(({ path }: { path: string }) => path)).toEqual(["People/Rin Example.md"])
+    await run("groups", "add", "work", "telegram:1")
+    env = { ...env, MEMO_GROUP: "work" }
+    const grouped = answerOf(await run("context", `person:${uid}`, "--json"))
+    expect(grouped.notes.about).toEqual([])
+    expect(grouped.your_notes.map(({ text }: { text: string }) => text)).toEqual(["Prefers mornings"])
+  })
+
   it("takes a person reference and reads every account that saw the person, with no --source (BUG-584)", async () => {
     const store = await openStore({ env })
     const alone = (await store.people.personOf({ provider: "telegram", id: "101" }))?.uid as string
