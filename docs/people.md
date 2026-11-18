@@ -129,7 +129,7 @@ different sources, and for a phone at least one of them a messenger or a call. A
 records of one source share, a company's line, a role address, a name, a CRM's word or a phrase from a chat is not strong, and the link waits for
 you. Memo keeps which agent merged, in which run, why and on what evidence. `memo people review --kind merged` lists
 the agents' merges still in place, and `memo people unmerge <merge>` undoes one. Set `agent_merges` to `propose`
-(`memo config set agent_merges propose`) and every agent's link waits for you instead.
+in [the config file](configuration.md#agent_merges) and every agent's link waits for you instead.
 
 ```sh
 memo people review
