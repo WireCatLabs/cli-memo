@@ -4,6 +4,15 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## 0.147.0 — 19.11.2026
+
+### Fixed
+
+- **The morning digest reaches Telegram whole.** memo is on cli-core 0.712.0: a digest longer than one Telegram
+  message goes as several messages in order, split between sections or items, never inside one, with
+  "(продолжение)" on the later parts. Sections show up to 25 items instead of 5 to 7. Mail and the `report.json`
+  that WireCat Desktop reads are unchanged.
+
 ## 0.146.0 — 19.11.2026
 
 ### Added
