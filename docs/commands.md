@@ -6975,7 +6975,7 @@ run a memo command or an agent later or on a timer (systemd, launchd, Task Sched
 
 ### `memo schedule command`
 
-run memo <args…> on a timer — reads save what they read, so this is how a chat's history fills the store
+run memo <args…> on a timer — reads save what they read, so this is how the store stays current
 
 This command changes the local store or your files.
 
@@ -6986,7 +6986,7 @@ memo schedule command <name> <args> [options]
 | Argument | | What it is |
 |---|---|---|
 | `name` | required | lowercase letters, digits and dashes. |
-| `args` | required | the memo command after its name, e.g. -- messages list <chat> --limit 50. |
+| `args` | required | the memo command after its name, e.g. -- doctor. |
 
 | Option | What it does |
 |---|---|
@@ -7013,7 +7013,7 @@ memo schedule agent <name> <harness> <prompt> [options]
 |---|---|---|
 | `name` | required | lowercase letters, digits and dashes. |
 | `harness` | required | the agent to start. One of: `claude`, `codex`, `gemini`, `cursor`, `opencode`, `openclaw`, `hermes`, `grok`, `kimi`. |
-| `prompt` | required | what to do, e.g. "summarize what came in during the last day: memo personal search messages 'date>1d' --newest --limit 20". |
+| `prompt` | required | what to do, e.g. "say what needs attention in this installation: memo doctor". |
 
 | Option | What it does |
 |---|---|
@@ -7503,7 +7503,7 @@ memo skill show [name] [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `name` | optional | a part of this skill, or a skill shipped for a task: vocabulary, search, proposals, projects, money, meetings, mcp, mail, mail-triage, morning-digest. |
+| `name` | optional | a part of this skill, or a skill shipped for a task: vocabulary, search, proposals, projects, money, meetings, mcp, mail, mail-triage, morning-digest, task-triage. |
 
 | Option | What it does |
 |---|---|
