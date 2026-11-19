@@ -33,6 +33,25 @@ A notes folder is an account too: search results give its number as `folder_id`,
 `--source notes` names your folder when you have one. `memo tasks list` and `memo reminders list` without `--source` read every account and name them in
 `meta.accounts`.
 
+## Tasks proposed from chats, mail and meetings
+
+Two scheduled agents read your sources and propose tasks: what you promised, what someone asked of you or promised
+you, with the date when one was said. Nothing becomes a task until you confirm it.
+
+- **Mail:** the `mail-triage` agent, see [Mail](mail.md).
+- **Chats and meetings:** the `task-triage` agent. It reads your Telegram, MAX and WhatsApp chats since its last
+  run (a dialog whole, a group only your own messages and replies to you, unless you tag the group `watch-tasks`)
+  and the meetings that ended, and proposes each task in the chat's project, or in the account's inbox.
+
+```sh
+memo schedule agent task-triage claude 'Run memo skill show task-triage and follow it.' --at 08:00 --at 13:00 --at 18:00 --max-cost 1
+memo review list kind:mail_findings,meeting_findings,findings
+```
+
+A task already open, or already waiting for you under the same title from any source, is not proposed again.
+`memo review agenda` lists the proposals that hold tasks first, and its `tasks` section says when no agent proposes
+tasks, or when one stopped running, with the command that fixes it.
+
 ## What needs a look today
 
 The agenda and the card are the same commands tg and max have; `tasks update` sets a task's due date and next

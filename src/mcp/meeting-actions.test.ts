@@ -166,7 +166,11 @@ it("rejects unknown nested fields, changed retry input and stale evidence withou
             ...input,
             key: "stale",
             findings: [
-              { ...input.findings[0], evidence: [{ ...input.findings[0]?.evidence[0], fingerprint: "0".repeat(64) }] },
+              {
+                ...input.findings[0],
+                title: "Check the stale draft",
+                evidence: [{ ...input.findings[0]?.evidence[0], fingerprint: "0".repeat(64) }],
+              },
             ],
           },
         })

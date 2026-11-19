@@ -1,5 +1,5 @@
 import { annotate } from "@wirecat/cli-base/commands"
-import type { AgentInput } from "@wirecat/cli-core/cli"
+import type { AgentInput, Schedule } from "@wirecat/cli-core/cli"
 import { LOCAL_WRITE, outputFor, overrideSharedContract, scheduleCommandFor } from "@wirecat/cli-core/cli"
 import { advancePastSkipped, mailWaiting } from "@wirecat/cli-core/mail"
 import type { Command } from "commander"
@@ -8,13 +8,17 @@ import { APP } from "../app.js"
 import { bulkTriage, scheduleLimits } from "../config.js"
 import { digestInput } from "../digest/input.js"
 import { mailTriageInput } from "./mail-triage-input.js"
+import { TASK_TRIAGE, taskTriageInput } from "./task-triage-input.js"
 
 /** The `mail` CLI's identity, as its own `IDENTITY` names it: its folders and its `MAIL_*` variables. */
 export const MAIL_CLI = { command: "mail", appName: "mail-cli", envPrefix: "MAIL" }
 
+const runsSkill = (schedule: Schedule, skill: string) =>
+  (schedule.agent?.prompt ?? schedule.argv.join(" ")).includes(`memo skill show ${skill}`)
+
 /**
  * What an agent schedule's run reads first: a digest's caught-up agenda and past reports, the mail triage's waiting
- * mail; nothing for any other agent.
+ * mail, the task triage's messages and meetings since its last run; nothing for any other agent.
  */
 export const agentInputOf = (env: NodeJS.ProcessEnv): AgentInput => {
   const digest = digestInput(env)
@@ -23,7 +27,13 @@ export const agentInputOf = (env: NodeJS.ProcessEnv): AgentInput => {
       (await store.accounts.accounts()).filter((key) => key.provider === "email").map((key) => key.account),
     ),
   )
-  return async (schedule, run) => (await digest(schedule, run)) ?? triage(schedule, run)
+  return async (schedule, run) => {
+    if (runsSkill(schedule, TASK_TRIAGE) && !schedule.onNewMail) {
+      const skill = await run(["skill", "show", TASK_TRIAGE])
+      return withStore(env, (store) => taskTriageInput(store, env, { schedule: schedule.name, skill }))
+    }
+    return (await digest(schedule, run)) ?? triage(schedule, run)
+  }
 }
 
 /**

@@ -3859,7 +3859,7 @@
         "schedule",
         "command"
       ],
-      "summary": "run memo <args…> on a timer — reads save what they read, so this is how a…",
+      "summary": "run memo <args…> on a timer — reads save what they read, so this is how the…",
       "effects": {
         "remote": "none",
         "local": "write"

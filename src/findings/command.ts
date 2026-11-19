@@ -6,6 +6,7 @@ import {
   LOCAL_READ,
   LOCAL_WRITE,
   parseMeetingFindingsJson,
+  proposesOnly,
   queryTerms,
   termField,
   withQuery,
@@ -28,6 +29,7 @@ import {
   writeAccount,
   writeOptions,
 } from "../store/source-list.js"
+import { withoutTaskDuplicates } from "../tasks/proposal-duplicates.js"
 
 type Options = SourceOptions &
   WriteOptions & {
@@ -58,7 +60,7 @@ export const findingsCommand = (program: Command, streams: Streams, env: NodeJS.
     )
   const writes = (command: Command) =>
     writeOptions(command, MEETING_WRITE_HELP).option("--json", "print JSON; --json=id,status keeps only those fields")
-  writes(annotate(group.command("add"), { effects: LOCAL_WRITE, output: { entity: "meeting_findings" } }))
+  writes(proposesOnly(annotate(group.command("add"), { effects: LOCAL_WRITE, output: { entity: "meeting_findings" } })))
     .description("stage cited findings; facts and tasks wait for owner confirmation")
     .argument("<file>", FINDINGS_INPUT_HELP)
     .addHelpText(
@@ -70,9 +72,12 @@ export const findingsCommand = (program: Command, streams: Streams, env: NodeJS.
       const input = parseMeetingFindingsJson(text)
       const author = await whoRuns(program, env, { question: "" })
       const agent = author === "owner" ? { bot: "memo-findings" } : author
-      await run(given.json, async (store) =>
-        itemAnswer(await store.meetingFindings.stage(await acting(store, given), input, agent)),
-      )
+      await run(given.json, async (store) => {
+        const { input: kept, duplicates } = await withoutTaskDuplicates(store, env, input)
+        const noted = duplicates.length ? { duplicates } : {}
+        if (kept.findings.length === 0) return itemAnswer({ staged: false, findings: 0, ...noted })
+        return itemAnswer({ ...(await store.meetingFindings.stage(await acting(store, given), kept, agent)), ...noted })
+      })
     })
   options(annotate(group.command("show"), { effects: LOCAL_READ, output: { entity: "meeting_findings" } }))
     .description("one findings preview, prior decisions and its review receipt")
