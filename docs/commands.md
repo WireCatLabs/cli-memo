@@ -5581,7 +5581,7 @@ memo review reject <ids> [options]
 
 ### `memo review agenda`
 
-the morning digest, from the store alone with no model call: everything new in what you tagged watch (chats, mail threads, people, projects, a meeting's series), replies you owe to people in messengers and personal mail (not bots or service chats), new personal mail, meetings that ended, calendar events added, moved or cancelled and those starting within a day, Drive documents edited, CRM deals and leads the CRM changed (with a stage they moved to), tasks, projects that moved, memories and facts whose sources changed (source reviews raised since), proposals waiting. Tasks are the open ones created since the last morning-digest run (a day back when none ran) and those overdue, due today or due tomorrow, each with who asked and who does it. Replies owed reach back 7 days; owed mail lists only senders you know (linked to a person with other identities, or written to before), and mail from new senders is one count with the command that lists it. Each item has its reference, who, when, one line of text and why it is there; a section cut by --limit or --max-output-bytes says how many it left out and the command that reads them. `scope` says what was read (the window, sources, counts), `tasks` counts each task group and, as `undated`, every open task with no due date, and `health` names each account whose sync failed, that nothing syncs, or that is quiet for longer than usual, so an unsynced account does not read as a quiet day; an account stored or synced within a day is never named
+the morning digest, from the store alone with no model call: everything new in what you tagged watch (chats, mail threads, people, projects, a meeting's series), replies you owe to people in messengers and personal mail (not bots or service chats), new personal mail, meetings that ended, calendar events added, moved or cancelled and those starting within a day, Drive documents edited, CRM deals and leads the CRM changed (with a stage they moved to), tasks, projects that moved, memories and facts whose sources changed (source reviews raised since), proposals waiting. Tasks are the open ones created since the last morning-digest run (a day back when none ran) and those overdue, due today or due tomorrow, each with who asked and who does it. Replies owed reach back 7 days, and a dialog whose newest message the sync has not stored yet is listed there too, marked so; owed mail lists only senders you know (linked to a person with other identities, or written to before), and owed mail from new senders is listed under mail, marked so. Each item has its reference, who, when, one line of text and why it is there; a section cut by --limit or --max-output-bytes says how many it left out and the command that reads them. `scope` says what was read (the window, sources, counts), `tasks` counts each task group and, as `undated`, every open task with no due date, and `health` names each account whose sync failed, that nothing syncs, or that is quiet for longer than usual, or whose timer has not synced it for a day and a half (no reason, only how long), so an unsynced account does not read as a quiet day; an account stored or synced within a day is never named. A digest's scheduled run first runs again the syncs you put on a timer in tg, max, wa and mail that are more than an hour behind, as each schedule says, for up to 4 minutes
 
 ```sh
 memo review agenda [options]
@@ -7186,7 +7186,7 @@ memo schedule exec <file> [seal] [options]
 
 ## `memo digest`
 
-your digests: each a name, its times, what it reads, where it is sent and your brief; run one now, pause it, and build past days
+your digests: each a name, its times, what it reads, where it is sent and your brief; run one now, pause it, build past days, and read the last reports with what became of each item
 
 ### `memo digest brief`
 
@@ -7408,6 +7408,26 @@ memo digest remove <name> [options]
 | `--json` | print JSON. |
 
 **Example:** `memo digest remove weekly`
+
+### `memo digest history`
+
+the last reports a digest delivered, newest first, from its kept runs: each item with how many digests in a row had it (a reply owed two mornings running is in 2 digests in a row) and what became of it since, from the store as it is now: you answered, they wrote again, nothing new, or for a task done or still open. The digest's agent reads it to tell what is new, what is still open and what was done. A read: it runs under MEMO_READ_ONLY
+
+```sh
+memo digest history [digest] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `digest` | optional | the digest's name, as `memo digest list` shows it; morning-digest when left out. |
+
+| Option | What it does |
+|---|---|
+| `--last <n>` | how many reports. Default: `3`. |
+| `--before-time <time>` | only reports made before this ISO time or date, as a past day's digest reads them. |
+| `--json` | print JSON. |
+
+**Example:** `memo digest history --last 3 --compact`, `memo digest history weekly --json`
 
 ### `memo digest backfill`
 

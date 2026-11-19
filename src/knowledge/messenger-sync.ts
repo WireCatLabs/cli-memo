@@ -13,6 +13,9 @@ const STATE: Record<string, { appName: string; envPrefix: string }> = {
   wa: { appName: "whatsapp-cli", envPrefix: "WA" },
 }
 
+/** Each WireCat messenger CLI: its command, where it keeps its state and its variables' prefix. */
+export const MESSENGER_TOOLS = Object.entries(STATE).map(([tool, state]) => ({ tool, ...state }))
+
 /** The WireCat messenger CLI that holds a provider's connection, as the provider registry names it. */
 export const messengerToolOf = (provider: string): { tool: string; appName: string; envPrefix: string } | undefined => {
   const tool = providerNamed(provider)?.command
@@ -154,7 +157,15 @@ export const binaryOf = async (
   run: RunChild,
 ): Promise<string | undefined> => {
   const tool = messengerToolOf(provider)
-  if (!tool) return undefined
+  return tool ? toolBinary(tool, env, run) : undefined
+}
+
+/** `binaryOf` for any WireCat CLI by its command and package name, mail's too. */
+export const toolBinary = async (
+  tool: { tool: string; appName: string },
+  env: NodeJS.ProcessEnv,
+  run: RunChild,
+): Promise<string | undefined> => {
   const umbrella = onPath(`wcat-${tool.tool}`, env)
   if (umbrella) {
     const described = await run(umbrella, ["--wcat-describe"], { env }).catch(() => undefined)

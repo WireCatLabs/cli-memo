@@ -330,7 +330,7 @@ describe("digests by name", () => {
     env.MEMO_SCHEDULED = "weekly"
     const weekly = await run("skill", "show", "morning-digest")
     expect(weekly).toContain("## This digest: weekly")
-    expect(weekly).toMatch(/memo review agenda --compact --since-time \S+ --source mail/)
+    expect(weekly).toMatch(/memo review agenda --compact --limit 40 --since-time \S+ --source mail/)
     expect(weekly).toContain("Only money.")
 
     env.MEMO_SCHEDULED = "morning-digest"

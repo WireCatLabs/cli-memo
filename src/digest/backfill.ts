@@ -24,6 +24,7 @@ import { setExitCode } from "../exit-code.js"
 import { briefCommand } from "./brief.js"
 import { digestCommands } from "./digest-commands.js"
 import { agendaFlags, type DigestSource, isDigest, readDefinition, windowStart } from "./digests.js"
+import { historyCommand } from "./history.js"
 import { DIGEST_SCHEDULE, digestSchedule, runTime } from "./tasks.js"
 
 const DAY = 86_400_000
@@ -96,11 +97,12 @@ export const digestCommand = (program: Command, streams: Streams, env: NodeJS.Pr
     .command("digest")
     .description(
       "your digests: each a name, its times, what it reads, where it is sent and your brief; run one now, pause it, " +
-        "and build past days",
+        "build past days, and read the last reports with what became of each item",
     )
-    .summary("your digests: times, sources, routes, brief, past days")
+    .summary("your digests: times, sources, routes, brief, past days, history")
   briefCommand(digest, print, env)
   digestCommands(digest, print, env)
+  historyCommand(digest, print, streams, env)
   fromAppOption(annotate(digest.command("backfill"), { effects: LOCAL_WRITE }))
     .summary("build a digest's past runs, without sending them")
     .description(

@@ -59,7 +59,8 @@ if (process.env.FAKE_FAIL) process.exit(3)
 const input = fs.readFileSync(0, "utf8")
 fs.appendFileSync(__filename + ".inputs", input + "---\\n")
 const date = /^backfill: (\\S+)/m.exec(input)[1]
-const report = { format: "wirecat.report/1", kind: "morning-digest", date, summary: null, sections: [] }
+const health = process.env.FAKE_HEALTH ? JSON.parse(process.env.FAKE_HEALTH) : []
+const report = { format: "wirecat.report/1", kind: "morning-digest", date, summary: null, sections: [], health }
 process.stdout.write(JSON.stringify({ type: "result", result: JSON.stringify(report), total_cost_usd: 0.09 }))
 `,
     { mode: 0o755 },
@@ -137,6 +138,21 @@ it("builds each day as that day's run, marked backfill, with its window, and lea
   expect(inputs()).toContain(`backfill: ${dateBack(1)}\nwindow: ${window}\n`)
   expect(JSON.parse(readFileSync(join(folder, "last.json"), "utf8"))).toEqual(last)
   expect(existsSync(join(folder, "latest.md"))).toBe(false)
+})
+
+it("keeps a report whose health names an account only behind, with no reason", async () => {
+  const behind = {
+    source: "Telegram",
+    account: "Kai",
+    reason: null,
+    since: "2026-11-05T04:30:00Z",
+    stale_hours: 50,
+    refs: [],
+  }
+  const { run, runs } = setUp({ FAKE_HEALTH: JSON.stringify([behind]) })
+  await run("digest", "backfill", "--since-time", dateBack(1), "--until-time", dateBack(1), "--yes", "--from-app")
+  const document = JSON.parse(readFileSync(join(runs, `${stampOf(dateBack(1))}.report.json`), "utf8"))
+  expect(document.health).toEqual([behind])
 })
 
 it("stops starting days once today's runs cost the schedule's daily cap", async () => {

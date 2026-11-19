@@ -551,6 +551,7 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo digest backfill --since-time 2026-11-01 --until-time 2026-11-07 --yes --json",
   ],
   "digest brief show": ["memo digest brief show", "memo digest brief show --json"],
+  "digest history": ["memo digest history --last 3 --compact", "memo digest history weekly --json"],
   "digest brief edit": [
     "memo digest brief edit",
     "memo digest brief edit --file brief.md",

@@ -84,14 +84,17 @@ export const reviewAgendaCommand = (review: Command, print: Print, streams: Stre
         "projects that moved, memories and facts whose sources changed (source reviews raised since), proposals " +
         "waiting. Tasks are the open ones created since the last morning-digest run (a " +
         "day back when none ran) and those overdue, due today or due tomorrow, each with who asked and who does it. " +
-        "Replies owed reach back 7 days; owed mail lists only senders you know (linked to a person with other " +
-        "identities, or written to before), and mail from new senders is one count with the command that lists it. " +
+        "Replies owed reach back 7 days, and a dialog whose newest message the sync has not stored yet is listed " +
+        "there too, marked so; owed mail lists only senders you know (linked to a person with other identities, or " +
+        "written to before), and owed mail from new senders is listed under mail, marked so. " +
         "Each item has its reference, who, when, one line of text and why it is there; a section cut by --limit or " +
         "--max-output-bytes says how many it left out and the command that reads them. `scope` says what was read " +
         "(the window, sources, counts), `tasks` counts each task group and, as `undated`, every open task with no due " +
         "date, and `health` names each account whose sync failed, that nothing syncs, or that is quiet for longer " +
-        "than usual, so an unsynced account does not read as a quiet day; an account stored or synced within a day " +
-        "is never named",
+        "than usual, or whose timer has not synced it for a day and a half (no reason, only how long), so an unsynced " +
+        "account does not read as a quiet day; an account stored or synced within a day is never named. A digest's " +
+        "scheduled run first runs again the syncs you put on a timer in tg, max, wa and mail that are more than an " +
+        "hour behind, as each schedule says, for up to 4 minutes",
     )
     .option("--since-time <time>", "how far back: hours or days (12h, 7d) or a start date (2026-11-01)", "1d")
     .option(

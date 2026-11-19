@@ -30,7 +30,7 @@ it("names no account stored or synced within a day, whatever its schedules", () 
 })
 
 it("calls an account quiet only when its silence is long for its own pace", () => {
-  const old = { ...synced, runs: [{ ...ok, at: "2026-11-06T04:30:00Z" }] }
+  const old = { ...synced, runs: [{ ...ok, at: "2026-11-07T04:30:00Z" }] }
   expect(healthOf(old, stale(NOW - 4 * DAY, 40), NOW)).toMatchObject({ reason: "quiet", staleHours: 96 })
   expect(healthOf(old, stale(NOW - 10 * DAY, 6), NOW)).toBeUndefined()
   expect(healthOf(old, stale(NOW - 20 * DAY, 1), NOW)).toBeUndefined()
@@ -49,6 +49,22 @@ it("trusts a live serve over a failing schedule, names a failure from its start,
     staleHours: 360,
   })
   expect(healthOf(unsynced, stale(null, 0), NOW)).toMatchObject({ reason: "no-schedule", staleHours: 48 })
+})
+
+it("names an account whose timer has not synced it for a day and a half, with no reason but how long", () => {
+  const behind = {
+    ...synced,
+    runs: [
+      { ...ok, at: "2026-11-06T04:30:00Z" },
+      { ...failed, at: "2026-11-08T04:30:00Z" },
+    ],
+  }
+  expect(healthOf(behind, stale(NOW - 20 * DAY, 1), NOW)).toEqual({
+    reason: null,
+    since: "2026-11-06T04:30:00.000Z",
+    staleHours: 55,
+  })
+  expect(healthOf({ ...behind, serving: true }, stale(NOW - 20 * DAY, 1), NOW)).toBeUndefined()
 })
 
 it("leaves out an account no profile holds rather than call it unscheduled", () => {

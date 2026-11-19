@@ -166,7 +166,9 @@ it("puts the watch list first, then replies owed in messengers and personal mail
     ["chat:telegram/1/10", "Kai Sample", "Can you send the harbour plan?"],
   ])
   expect(section(body, "owed")).toMatchObject({ total: 2, unknown: { count: 1 } })
-  expect(section(body, "mail").total).toBe(0)
+  expect(section(body, "mail").items.map((one) => [one.who, one.why])).toEqual([
+    ["Nova Stranger", "owed reply, new sender"],
+  ])
   expect(section(body, "projects").items).toEqual([
     expect.objectContaining({ ref: "project:1", why: "watched project, quiet" }),
   ])
@@ -304,12 +306,26 @@ it("says what it read: the window, the sources with their accounts, and the coun
   expect(text).toMatch(/"new_since":"[^"]+","undated":0\}\n/)
 })
 
-it("counts owed mail from senders the owner does not know, and says how to list them", async () => {
+it("lists a dialog whose newest message is not synced yet as possibly owed", async () => {
+  const { run, env } = await setUp()
+  const store = await openStore({ env })
+  await store.chats.saveChats(tg, [
+    { id: "20", title: "Ida Waiting", kind: "dialog", unreadCount: 1, lastMessageAt: ago(2), participantsCount: 2 },
+    { id: "21", title: "Big Channel", kind: "channel", unreadCount: 9, lastMessageAt: ago(2), participantsCount: 900 },
+  ])
+  await store.close()
+  const owed = section(envelopeOf(await run("review", "agenda", "--json")), "owed").items
+  expect(owed.filter((one) => one.why.startsWith("newest message not synced"))).toEqual([
+    expect.objectContaining({ ref: "chat:telegram/1/20", who: "Ida Waiting" }),
+  ])
+})
+
+it("lists owed mail from senders the owner does not know under mail, marked so, and counts it under owed", async () => {
   const { run } = await setUp()
   const text = await run("review", "agenda", "--compact")
-  expect(text).toContain("+ 1 owed mail from new senders, not listed")
-  expect(text).toContain(`next: memo mail review --source email:${MAILBOX} --unanswered 1m bulk:false`)
-  expect(text).not.toContain("Can we talk about a pier?")
+  expect(text).toContain("+ 1 owed mail from new senders, listed under mail")
+  const mail = text.slice(text.indexOf("\n## mail"), text.indexOf("\n## meetings"))
+  expect(mail).toMatch(/owed reply, new sender · .*Can we talk about a pier\?/)
 })
 
 it("keeps to the size budget, counting what it cut and naming the command that reads it", async () => {
