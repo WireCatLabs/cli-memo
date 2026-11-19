@@ -17,6 +17,7 @@ import {
   isDriveAccount,
 } from "./sources.js"
 import { HEALTH_REASONS, type Health, healthOf, SOURCE_WORDS, syncRunsOf } from "./sync-health.js"
+import { REVIEW_TASKS, TASK_AGENTS, taskAgentNotes, taskProposals, waitingTasks } from "./task-proposals.js"
 import { digestRunBefore, gatherTasks, previousDigestAt, type TaskCounts } from "./tasks.js"
 
 /** The tag that puts a chat, mail thread, person, project or meeting series on the owner's watch list. */
@@ -605,15 +606,40 @@ export const gatherDigest = async (
 
   const waiting = await counted(store, env, { status: "proposed" })
   const proposed = await listReview(store, env, [], { limit, page: 1 })
-  const proposals: Pending[] = proposed.items.map((row) => ({
-    item: {
-      ref: row.id,
-      who: row.proposer,
-      at: row.createdAt,
-      excerpt: oneLine(row.title, excerpt),
-      why: row.kind,
-    },
-  }))
+  // Batches with tasks first: hundreds of identity links would otherwise fill the newest page on their own.
+  const withTasks = await taskProposals(store, env)
+  const taskIds = new Set(withTasks.batches.map((row) => row.id))
+  const proposals: Pending[] = [...withTasks.batches, ...proposed.items.filter((row) => !taskIds.has(row.id))]
+    .slice(0, limit)
+    .map((row) => {
+      const tasks = waitingTasks(row)
+      return {
+        item: {
+          ref: row.id,
+          who: row.proposer,
+          at: row.createdAt,
+          excerpt: oneLine(row.title, excerpt),
+          why: tasks > 0 ? `${row.kind}: ${tasks} ${tasks === 1 ? "task" : "tasks"}` : row.kind,
+        },
+      }
+    })
+  const proposalsNext = [
+    "memo review list",
+    ...(withTasks.tasks > 0
+      ? [
+          REVIEW_TASKS,
+          `# ${withTasks.tasks} proposed tasks wait in ${withTasks.batches.length} batches: ${REVIEW_TASKS}`,
+        ]
+      : []),
+  ]
+  // A past day's agenda says nothing of today's schedules.
+  const taskNotes =
+    reads("tasks") && until === undefined
+      ? taskAgentNotes(
+          env,
+          TASK_AGENTS.filter((agent) => (agent.reads === "mail" ? mailboxes.length > 0 : messengers.length > 0)),
+        )
+      : []
 
   const sections = [
     await section("watch", upTo(watch), limit, [
@@ -635,7 +661,7 @@ export const gatherDigest = async (
     await section("calendar", calendar.found, limit, calendar.next),
     await section("drive", drive.found, limit, drive.next),
     await section("crm", crm.found, limit, crm.next),
-    await section("tasks", tasks, limit, ["memo tasks list"]),
+    await section("tasks", tasks, limit, ["memo tasks list", ...taskNotes]),
     await section("projects", upTo(projects), limit, projectNext),
     await section("sources", sourceItems, limit, [
       REVIEW_SOURCES,
@@ -644,7 +670,7 @@ export const gatherDigest = async (
         ? [`# read changed sources again: memo memories check --since-time ${days} --json`]
         : []),
     ]),
-    await section("proposals", upTo(proposals), limit, ["memo review list"], waiting.total),
+    await section("proposals", upTo(proposals), limit, proposalsNext, waiting.total),
   ]
   const providerCount = (provider: string) => accounts.filter((key) => key.provider === provider).length
   const meetingAccounts = accounts.filter((key) => kindOf(key.provider) === "meetings").length

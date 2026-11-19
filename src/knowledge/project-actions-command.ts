@@ -7,6 +7,7 @@ import {
   LOCAL_READ,
   LOCAL_WRITE,
   parseEvidenceFindingsJson,
+  proposesOnly,
   queryTerms,
   termField,
   withQuery,
@@ -17,6 +18,7 @@ import { answers, itemAnswer, listAnswer } from "../answer.js"
 import { byOption, deciderOf, whoRuns } from "../author.js"
 import { FINDINGS_INPUT_HELP, readFindingsInput } from "../findings-input.js"
 import { positive, whole } from "../options.js"
+import { withoutTaskDuplicates } from "../tasks/proposal-duplicates.js"
 import { projectOf } from "./key-documents.js"
 import { decideAction, projectActions } from "./project-actions.js"
 
@@ -36,7 +38,7 @@ export const projectActionsCommand = (projects: Command, streams: Streams, env: 
     .summary("an agent's proposals for a project, and deciding them")
   const { run } = answers(projects, streams, env)
 
-  json(annotate(group.command("add"), { effects: LOCAL_WRITE }))
+  json(proposesOnly(annotate(group.command("add"), { effects: LOCAL_WRITE })))
     .description("stage an agent's cited facts and follow-ups about one project for review")
     .argument("<file>", FINDINGS_INPUT_HELP)
     .addHelpText(
@@ -58,7 +60,12 @@ export const projectActionsCommand = (projects: Command, streams: Streams, env: 
       const author = await whoRuns(command, env, { question: "" })
       if (author === "owner")
         throw new CliError("validation_error", "findings are an agent's proposals; record your own with memo facts add")
-      await run(given.json, async (store) => itemAnswer(await store.evidenceFindings.stage(input, author)))
+      await run(given.json, async (store) => {
+        const { input: kept, duplicates } = await withoutTaskDuplicates(store, env, input)
+        const noted = duplicates.length ? { duplicates } : {}
+        if (kept.findings.length === 0) return itemAnswer({ staged: false, findings: 0, ...noted })
+        return itemAnswer({ ...(await store.evidenceFindings.stage(kept, author)), ...noted })
+      })
     })
 
   withQuery(

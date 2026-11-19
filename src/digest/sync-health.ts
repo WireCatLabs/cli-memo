@@ -55,6 +55,7 @@ export interface Scheduled {
   environment: Record<string, string>
   /** Runs every few minutes (`when.every`), as mail's syncs do, so it never falls far behind. */
   repeats: boolean
+  paused: boolean
   last: LastRun | undefined
 }
 
@@ -73,6 +74,7 @@ export const schedulesOf = (state: string): Scheduled[] => {
           argv: Array.isArray(schedule.argv) ? schedule.argv.map(String) : [],
           environment: schedule.environment ?? {},
           repeats: typeof schedule.when?.every === "number",
+          paused: schedule.paused === true,
           last: last.get(String(schedule.name)),
         },
       ]
