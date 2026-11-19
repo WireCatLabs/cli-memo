@@ -166,12 +166,12 @@ it("stages a chat task under the read-only lock and leaves out the same task sta
     })
 
   const staged = await run(agent, "projects", "actions", "add", batch("task-triage:a:1", "Check the pier budget"))
-  expect(staged.item).toMatchObject({ status: "proposed" })
+  expect(staged).toMatchObject({ status: "proposed" })
 
   const again = await run(agent, "projects", "actions", "add", batch("task-triage:b:1", "check the pier-budget!"))
-  expect(again.item).toMatchObject({
+  expect(again).toMatchObject({
     staged: false,
-    duplicates: [{ finding: "t1", duplicate_of: `proposal:${staged.item.id}`, reason: "findings.duplicate" }],
+    duplicates: [{ finding: "t1", duplicate_of: `proposal:${staged.id}`, reason: "findings.duplicate" }],
   })
   await expect(run(agent, "projects", "actions", "confirm", "1", "--fingerprint", "x")).rejects.toThrow()
 })
