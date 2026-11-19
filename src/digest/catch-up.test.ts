@@ -117,6 +117,31 @@ it("keeps a failed catch-up so health counts it, and runs a caught-up schedule n
   expect(calls).toHaveLength(3)
 })
 
+it("finds a tool by the PATH its schedule keeps, as a timer's bare PATH would not, and records one it cannot find", async () => {
+  const { env, schedule, calls, run, bin } = machine()
+  schedule(
+    "tg-cli",
+    "full-sync",
+    ["messages", "sync"],
+    { TG_PROFILE: "personal", PATH: bin },
+    { daily: "04:30" },
+    NOW - 3 * HOUR,
+  )
+  schedule(
+    "max-cli",
+    "full-sync",
+    ["messages", "sync"],
+    { MAX_PROFILE: "main", PATH: "/nowhere" },
+    { daily: "04:45" },
+    NOW - 3 * HOUR,
+  )
+  const ran = await catchUp({ ...env, PATH: "/usr/bin" }, { run: run(), now: () => NOW })
+  expect(calls.map((one) => one.bin)).toEqual([join(bin, "wcat-tg")])
+  expect(ran).toContainEqual(
+    expect.objectContaining({ app: "max-cli", exitCode: 127, reason: "catch-up.not-installed" }),
+  )
+})
+
 it("starts no sync once too little of the budget is left", async () => {
   const { env, schedule, calls, run } = machine()
   schedule("tg-cli", "full-sync", ["messages", "sync"], { TG_PROFILE: "personal" }, { daily: "04:30" }, NOW - 3 * HOUR)

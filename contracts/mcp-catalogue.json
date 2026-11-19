@@ -232,5 +232,6 @@
   "digest pause": "write",
   "digest resume": "write",
   "digest remove": "write",
+  "digest history": "read",
   "digest backfill": "write"
 }

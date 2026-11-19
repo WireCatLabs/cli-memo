@@ -11,6 +11,8 @@ const TOOLS = [...MESSENGER_TOOLS, { tool: "mail", appName: "mail-cli", envPrefi
 export const CATCH_UP_MS = 4 * 60_000
 /** A sync that succeeded this recently is not run again. */
 export const FRESH_MS = 60 * 60_000
+/** A run record's reason, not an error memo raises. */
+const NOT_INSTALLED = "catch-up.not-installed"
 /** Leaves a sync time to save its last page and exit before the budget ends. */
 const MARGIN_MS = 10_000
 
@@ -60,15 +62,25 @@ export const catchUp = async (
             !fresh(one.last, now(), freshMs) &&
             !fresh(earlier.get(`${tool.appName}/${one.name}`), now(), freshMs),
         )
-        if (due.length === 0) return []
-        const bin = await toolBinary(tool, env, run)
-        if (!bin) return []
         const ran: CatchUpRun[] = []
         for (const one of due) {
+          // A timer's run has a bare PATH; each schedule keeps the PATH it was made with, as its own timer runs it.
+          const childEnv = { ...env, ...one.environment }
+          const bin = await toolBinary(tool, childEnv, run)
+          if (!bin) {
+            ran.push({
+              app: tool.appName,
+              schedule: one.name,
+              at: new Date(now()).toISOString(),
+              exitCode: 127,
+              reason: NOT_INSTALLED,
+            })
+            continue
+          }
           const seconds = Math.floor((ends - now() - MARGIN_MS) / 1000)
           if (stop.signal.aborted || seconds < 10) break
           const done = await run(bin, withTimeout(one.argv, seconds), {
-            env: { ...env, ...one.environment },
+            env: childEnv,
             signal: stop.signal,
           }).catch(() => ({ code: null, stdout: "" }))
           ran.push({
