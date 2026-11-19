@@ -1,22 +1,30 @@
 import { annotate } from "@wirecat/cli-base/commands"
+import type { AgentInput } from "@wirecat/cli-core/cli"
 import { LOCAL_WRITE, outputFor, overrideSharedContract, scheduleCommandFor } from "@wirecat/cli-core/cli"
 import { advancePastSkipped, mailWaiting } from "@wirecat/cli-core/mail"
 import type { Command } from "commander"
 import { withStore } from "../answer.js"
 import { APP } from "../app.js"
 import { bulkTriage, scheduleLimits } from "../config.js"
+import { digestInput } from "../digest/input.js"
 import { mailTriageInput } from "./mail-triage-input.js"
 
 /** The `mail` CLI's identity, as its own `IDENTITY` names it: its folders and its `MAIL_*` variables. */
 export const MAIL_CLI = { command: "mail", appName: "mail-cli", envPrefix: "MAIL" }
 
-/** What an agent schedule's run reads first: the mail triage's waiting mail; nothing for any other agent. */
-export const agentInputOf = (env: NodeJS.ProcessEnv) =>
-  mailTriageInput(() =>
+/**
+ * What an agent schedule's run reads first: a digest's caught-up agenda and past reports, the mail triage's waiting
+ * mail; nothing for any other agent.
+ */
+export const agentInputOf = (env: NodeJS.ProcessEnv): AgentInput => {
+  const digest = digestInput(env)
+  const triage = mailTriageInput(() =>
     withStore(env, async (store) =>
       (await store.accounts.accounts()).filter((key) => key.provider === "email").map((key) => key.account),
     ),
   )
+  return async (schedule, run) => (await digest(schedule, run)) ?? triage(schedule, run)
+}
 
 /**
  * cli-core's `schedule`: a memo command or an agent on a timer. memo has no profiles, and its `--json` is per

@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1550 ✅ · 2 ⛔ · 0 ❌** — 341 commands, 1211 options.
+**1554 ✅ · 2 ⛔ · 0 ❌** — 342 commands, 1214 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -1525,6 +1525,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `digest remove` |  | ✅ |  |
 | `digest remove` | `--from-app` | ✅ |  |
 | `digest remove` | `--json` | ✅ |  |
+| `digest history` |  | ✅ |  |
+| `digest history` | `--last` | ✅ |  |
+| `digest history` | `--before-time` | ✅ |  |
+| `digest history` | `--json` | ✅ |  |
 | `digest backfill` |  | ✅ |  |
 | `digest backfill` | `--from-app` | ✅ |  |
 | `digest backfill` | `--since-time` | ✅ |  |

@@ -5,6 +5,7 @@ import { type LastRun, scheduledRuns, servingProfiles } from "@wirecat/cli-core/
 import type { AccountKey } from "@wirecat/cli-core/store"
 import { APP } from "../app.js"
 import { messengerToolOf, signedInAccount } from "../knowledge/messenger-sync.js"
+import { catchUpRuns } from "./catch-up-record.js"
 
 export const HEALTH_REASONS = ["sync-failed", "no-schedule", "quiet"] as const
 export type HealthReason = (typeof HEALTH_REASONS)[number]
@@ -15,8 +16,12 @@ export interface Health {
   source: string
   /** The account's name, username or address; never its raw id. */
   account: string
-  reason: HealthReason
-  /** `sync-failed`: the first failure in a row. `quiet`: the newest message stored. `no-schedule`: `null`. */
+  /** `null`: its sync runs on a timer that has not succeeded for longer than `STALE_AFTER`, so its data is old. */
+  reason: HealthReason | null
+  /**
+   * `sync-failed`: the first failure in a row. `quiet`: the newest message stored. `no-schedule`: `null`. `null`
+   * reason: the last sync that succeeded.
+   */
   since: string | null
   staleHours: number
   /** `sync-failed` only: the failure's code and reason id, as the schedule's `last.json` keeps it. */
@@ -48,6 +53,8 @@ export interface Scheduled {
   kind: string
   argv: string[]
   environment: Record<string, string>
+  /** Runs every few minutes (`when.every`), as mail's syncs do, so it never falls far behind. */
+  repeats: boolean
   last: LastRun | undefined
 }
 
@@ -65,6 +72,7 @@ export const schedulesOf = (state: string): Scheduled[] => {
           kind: String(schedule.kind),
           argv: Array.isArray(schedule.argv) ? schedule.argv.map(String) : [],
           environment: schedule.environment ?? {},
+          repeats: typeof schedule.when?.every === "number",
           last: last.get(String(schedule.name)),
         },
       ]
@@ -107,7 +115,7 @@ const profilesOf = (provider: string, tool: Tool, env: NodeJS.ProcessEnv): Map<s
  * `tg second messages sync` names its profile first; otherwise the schedule runs as its `<PREFIX>_PROFILE`. One that
  * names neither runs as no profile memo can tell, so it counts for no account.
  */
-const profileRun = (schedule: Scheduled, tool: Tool, profiles: Map<string, unknown>): string | undefined => {
+export const profileRun = (schedule: Scheduled, tool: Tool, profiles: Map<string, unknown>): string | undefined => {
   const first = schedule.argv[0]
   return first !== undefined && profiles.has(first) ? first : schedule.environment[`${tool.envPrefix}_PROFILE`]
 }
@@ -122,8 +130,12 @@ export interface SyncRuns {
   known: boolean
 }
 
-/** How each tool keeps an account synced: its scheduled `sync` runs, by the profile each runs as, and its live serves. */
+/**
+ * How each tool keeps an account synced: its scheduled `sync` runs, by the profile each runs as, and its live serves.
+ * A digest's catch-up runs those same schedules; its result for one counts as a run of it.
+ */
 export const syncRunsOf = (env: NodeJS.ProcessEnv) => {
+  const caughtUp = catchUpRuns(env)
   const cache = new Map<string, { schedules: Scheduled[]; serving: string[]; profiles: Map<string, unknown> }>()
   const read = (provider: string, tool: Tool) => {
     const known = cache.get(tool.appName)
@@ -149,7 +161,9 @@ export const syncRunsOf = (env: NodeJS.ProcessEnv) => {
       return profile !== undefined && mine.has(profile)
     })
     return {
-      runs: runs.flatMap((one) => (one.last ? [one.last] : [])),
+      runs: runs.flatMap((one) =>
+        [one.last, caughtUp.get(`${tool.appName}/${one.name}`)].filter((run) => run !== undefined),
+      ),
       scheduled: runs.length > 0,
       serving: serving.some((profile) => mine.has(profile)),
       known: mine.size > 0,
@@ -163,6 +177,8 @@ const DAY = 24 * HOUR
 export const QUIET_AFTER = 3 * DAY
 /** ... and after this many of its usual gaps: 30 days over the chats or threads that moved in them. */
 export const QUIET_GAPS = 3
+/** A timer whose last good sync is older than this left the account's data old, even when it never failed. */
+export const STALE_AFTER = 36 * HOUR
 
 const hours = (from: number, now: number) => Math.max(0, Math.floor((now - from) / HOUR))
 
@@ -195,6 +211,12 @@ export const healthOf = (
     const last = activity.newest ?? activity.storedAt
     return { reason: "no-schedule", since: null, staleHours: last === null ? 0 : hours(last, now) }
   }
+  const lastGood = sync.runs.reduce<number | undefined>(
+    (most, run) => (run.exitCode === 0 ? Math.max(most ?? 0, Date.parse(run.at)) : most),
+    undefined,
+  )
+  if (!sync.serving && lastGood !== undefined && lastGood < now - STALE_AFTER)
+    return { reason: null, since: new Date(lastGood).toISOString(), staleHours: hours(lastGood, now) }
   if (activity.newest === null || activity.moved30d === 0) return undefined
   const usual = Math.max(QUIET_AFTER, (QUIET_GAPS * 30 * DAY) / activity.moved30d)
   if (activity.newest < now - usual)

@@ -132,6 +132,8 @@ const sourceOf = (provider: string): DigestSource | undefined =>
 const DAY = 86_400_000
 const MESSENGERS = new Set(["telegram", "max", "whatsapp"])
 const HEALTH_ORDER: readonly string[] = HEALTH_REASONS
+/** A named reason first, in its order; an account that is only behind comes last. */
+const healthRank = (entry: Health) => (entry.reason === null ? HEALTH_ORDER.length : HEALTH_ORDER.indexOf(entry.reason))
 const UNNAMED = "unnamed account"
 /** Dialogs with a messenger's own service account: no person there is owed a reply. */
 const SERVICE_CHATS: Record<string, ReadonlySet<string>> = { telegram: new Set(["777000"]) }
@@ -340,15 +342,25 @@ export const gatherDigest = async (
       waiting: chats.filter((chat) => chat.lastFromOwner === true && Date.parse(chat.lastMessageAt) >= since).length,
       unsynced: chats.filter((chat) => chat.lastMessageId === null && Date.parse(chat.lastMessageAt) >= since).length,
     })
+    // A dialog whose newest message the sync has not stored yet may be someone waiting: it is listed, marked so.
+    const notSynced = (chat: (typeof chats)[number]) =>
+      chat.lastMessageId === null && Date.parse(chat.lastMessageAt) >= since
     const owedChats = chats.filter(
-      (chat) => !isWatchedChat(key, chat.chatId) && chat.kind === "dialog" && chat.lastFromOwner === false,
+      (chat) =>
+        !isWatchedChat(key, chat.chatId) && chat.kind === "dialog" && (chat.lastFromOwner === false || notSynced(chat)),
     )
     const notPeople = owedChats.length ? await notPeopleOf(store, key) : new Set<string>()
     let owedHere = 0
     for (const chat of owedChats) {
       if (notPeople.has(chat.chatId)) continue
       owed.push({
-        item: { ref: ref(chat.chatId), who: chat.title, at: chat.lastMessageAt, excerpt: null, why: "owed reply" },
+        item: {
+          ref: ref(chat.chatId),
+          who: chat.title,
+          at: chat.lastMessageAt,
+          excerpt: null,
+          why: notSynced(chat) ? "newest message not synced: may be owed" : "owed reply",
+        },
         fill: messageFill(store, key, chat.chatId, chat.lastMessageId, excerpt),
       })
       owedHere++
@@ -441,6 +453,9 @@ export const gatherDigest = async (
     )
     const strangers = owedMail.filter((one) => !known.has(one.externalId))
     for (const one of owedMail) if (known.has(one.externalId)) owed.push(one.pending)
+    // Listed with the mail, not the replies owed: a new sender is as often a client as a cold pitch.
+    for (const one of strangers)
+      mail.push({ ...one.pending, item: { ...one.pending.item, why: "owed reply, new sender" } })
     unknown.count += strangers.length
     if (owedHere) owedNext.push(`memo mail review --source ${name(key)} --unanswered 1m bulk:false`)
     if (strangers.length) unknown.next.push(`memo mail review --source ${name(key)} --unanswered 1m bulk:false`)
@@ -651,7 +666,7 @@ export const gatherDigest = async (
       counts: { chats: chatsMoved, mail: mailMoved, tasks: hot.tasks.length, meetings: upTo(meetings).length },
     },
     tasks: hot.counts,
-    health: health.sort((a, b) => HEALTH_ORDER.indexOf(a.reason) - HEALTH_ORDER.indexOf(b.reason)),
+    health: health.sort((a, b) => healthRank(a) - healthRank(b)),
     coverage,
     sections,
     untrusted: ["sections.items.who", "sections.items.excerpt", "sections.items.for"],

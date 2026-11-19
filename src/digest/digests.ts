@@ -140,6 +140,20 @@ export const windowStart = (when: When, now: number): number => {
 export const agendaFlags = (since: number, sources: readonly DigestSource[]) =>
   `--since-time ${new Date(since).toISOString()}${sources.length ? ` --source ${sources.join(",")}` : ""}`
 
+/** The agenda a digest's agent reads: more items per section than the command's default, so fewer are cut. */
+export const DIGEST_AGENDA = ["review", "agenda", "--compact", "--limit", "40"] as const
+
+/**
+ * The agenda flags for a digest's window and sources, or undefined for the morning digest made before names existed
+ * that runs once a day: its `--since-time 1d` is already right.
+ */
+export const windowFlags = (env: NodeJS.ProcessEnv, name: string, when: When, now: number): string | undefined => {
+  const definition = readDefinition(env, name)
+  const slots = isCalendar(when) ? slotsOf(when) : []
+  if (!definition && !(slots.length > 1 || slots.some((slot) => slot.on))) return undefined
+  return agendaFlags(windowStart(when, now), definition?.sources ?? [])
+}
+
 export interface DigestView {
   name: string
   title: string
