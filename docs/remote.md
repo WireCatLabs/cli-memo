@@ -69,6 +69,48 @@ using it as evidence. An app that cannot read the results should report that lim
 The tunnel and app are separate installations. This guide describes the server's tested protocol;
 it does not certify every app, subscription or operating system setup.
 
+## Send records from n8n
+
+An [n8n](https://n8n.io) workflow on a server can write leads, deals, people and other records into Memo
+through the same server. n8n has no file on your computer to name, so it gives the records envelope itself.
+
+In n8n, add an MCP Client node. Set **Server Transport** to HTTP Streamable and **MCP Endpoint URL** to the
+connector address. Choose OAuth2 with **Use Dynamic Client Registration** on, and type the current login code on
+the page that opens ([n8n's MCP credential](https://docs.n8n.io/integrations/builtin/credentials/mcp/)). Then call
+the `memo_write` tool with the command and its arguments; `input` holds the envelope:
+
+```json
+{
+  "command": "records import",
+  "arguments": {
+    "account": "n8n:site",
+    "input": {
+      "schema_version": 1,
+      "source": { "provider": "n8n", "account": "site", "batch_id": "form-17" },
+      "records": [
+        {
+          "key": "pipe", "type": "pipeline", "external_id": "web", "operation": "upsert",
+          "fields": { "kind": "lead", "name": "Web",
+            "stages": [{ "external_id": "new", "name": "New", "position": 1, "outcome": "open" }] }
+        },
+        {
+          "key": "lead", "type": "lead", "external_id": "form-17", "operation": "upsert",
+          "fields": { "title": "Call back about the clinic site", "pipeline": "web", "stage": "new" }
+        }
+      ]
+    }
+  }
+}
+```
+
+`memo records templates list` lists every type and its fields, and the [business guide](business.md) the envelope.
+The same envelope sent twice changes nothing, so turn on the node's **Retry On Fail**: a delivery n8n is unsure
+about is safe to repeat. Anything that feeds money totals waits for your review, as from any other source.
+
+While your computer is off or the server is stopped, the call fails and nothing is kept. Let n8n retry later, or
+keep the envelopes in n8n until the server answers. After a restart, start the tunnel and the server again. An
+app that makes no call for 30 days logs in again.
+
 ## Limit what an app can do
 
 HTTP uses the same [saved permissions](configuration.md#permissions) as stdio. Blocked commands
