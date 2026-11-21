@@ -132,3 +132,50 @@ it("gives no sources to an agent denied records show, passed or saved, and still
   expect(saved.shown.items[0]).not.toHaveProperty("sources")
   expect(saved.contract.item).not.toHaveProperty("sources")
 })
+
+it("imports an envelope an MCP client gives inline, as n8n does, and the same call again changes nothing", async () => {
+  const f = await businessStore("mcp-business-inline-import")
+  const { client, answer } = await connected(f.env)
+  const envelope = {
+    schema_version: 1,
+    source: { provider: "n8n", account: "site", batch_id: "form-2026-11-21" },
+    records: [
+      {
+        key: "pipe",
+        type: "pipeline",
+        external_id: "web",
+        operation: "upsert",
+        fields: {
+          kind: "lead",
+          name: "Web",
+          stages: [{ external_id: "new", name: "New", position: 1, outcome: "open" }],
+        },
+      },
+      {
+        key: "anna",
+        type: "person",
+        external_id: "form-17",
+        operation: "upsert",
+        fields: { name: "Anna Example", email: "anna@example.com" },
+      },
+      {
+        key: "lead",
+        type: "lead",
+        external_id: "form-17",
+        operation: "upsert",
+        fields: { title: "Call back about the clinic site", pipeline: "web", stage: "new" },
+        relations: [{ role: "person", type: "person", external_id: "form-17" }],
+      },
+    ],
+  }
+  try {
+    const first = await answer("records import", { input: envelope, account: "n8n:site" })
+    expect(first).toMatchObject({ isError: false, item: { created: 3 } })
+    const again = await answer("records import", { input: envelope, account: "n8n:site" })
+    expect(again).toMatchObject({ isError: false, item: { unchanged: 3 } })
+    const leads = await answer("leads list", {})
+    expect(leads.items).toEqual([expect.objectContaining({ title: "Call back about the clinic site" })])
+  } finally {
+    await client.close()
+  }
+})
