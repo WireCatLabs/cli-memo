@@ -10,3 +10,4 @@ overrides:
   # markdownlint 0.42.0 (its latest) pins re2js 2.8.6 exactly (GHSA-gg6h-894w-4m9c).
   markdownlint>re2js: 2.8.7
   micromark-extension-math>katex: 0.19.1
+  "@wirecat/cli-core": file:/var/tmp/claude/claude-1000/-home-leemour-Projects-AI-bitrix24-cli/e9ba213b-67c0-4fc3-ac84-f4c7f657f374/scratchpad/core-pack-ww/wirecat-cli-core-0.604.0.tgz
