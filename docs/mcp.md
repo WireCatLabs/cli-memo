@@ -35,9 +35,9 @@ before an agent can use it. Save permissions in the configuration; discovery and
 read the current levels. Permissions and the shared WireCat read ceiling are checked again on every call.
 
 `search all` returns meeting passages from every meeting account, personal and work, beside messages, mail, notes,
-events and CRM. A transcript hit's `next` step opens it with `meetings passage`. When `search.meetings` or
-`meetings.passage` is `deny` or `ask`, search all leaves meetings out and says so in `missing`: a hit the agent may not
-open unasked is not handed to it.
+events, CRM, business data and tracker issues. A transcript hit's `next` step opens it with `meetings passage`. When
+`search.meetings` or `meetings.passage` is `deny` or `ask`, search all leaves meetings out and says so in `missing`: a
+hit the agent may not open unasked is not handed to it.
 
 `memo mcp serve --permission notes.edit=deny` makes a saved permission stricter for one server; repeat the option
 for more keys. It cannot loosen the saved permissions, including more specific keys.

@@ -103,11 +103,11 @@ const searchCommandDefinition = (program: Command, streams: Streams, env: NodeJS
   queryOptions(
     annotate(group.command("all"), { effects: LOCAL_READ, output: { entity: "hit" } })
       .description(
-        "messages, mail, notes, calendar events, deals, leads, business data and meeting passages from every meeting " +
-          "account, ranked together; not people, memories, projects or decisions. " +
-          "A kind you know reads better with its own search, with all its fields",
+        "messages, mail, notes, calendar events, deals, leads, business data, meeting passages from every meeting " +
+          "account and tracker issues and projects, ranked together; not people, memories, memo's projects or " +
+          "decisions. A kind you know reads better with its own search, with all its fields",
       )
-      .summary("messages, mail, notes, events, deals and meetings ranked together"),
+      .summary("messages, mail, notes, events, deals, meetings and issues ranked together"),
   )
     .option("--only <resources>", `${ONLY.join(",")}, separated by commas`, onlyOf)
     .option(
@@ -129,6 +129,7 @@ content: narrows a search to the text of files, transcript: to voice transcripts
 Calendar events come from every calendar gcal stored; an event's title, description and place are written by whoever sent the invitation.
 crm finds deals and leads by the words of their title only.
 business finds invoices, payments, orders, contracts, subscriptions, products and wallets by the words of their numbers and names.
+tracker finds issues, projects and comments a tracker CLI such as linear synced; their titles are written by the tracker's users.
 --json: the list is items, each a hit as in tg search all: ref, kind, title, timestamp, excerpt.`,
     )
     .action(
