@@ -185,7 +185,7 @@
   "records list": "read",
   "records show": "read",
   "records delete": "write",
-  "records forget": "write",
+  "records clear": "write",
   "records match": "write",
   "meetings actions add": "write",
   "meetings actions show": "read",

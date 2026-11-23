@@ -2737,15 +2737,15 @@
     {
       "path": [
         "records",
-        "forget"
+        "clear"
       ],
       "summary": "delete a source's records and its leads and deals",
       "effects": {
         "remote": "none",
         "local": "write"
       },
-      "permission": "records.forget",
-      "entity": "records_forget"
+      "permission": "records.clear",
+      "entity": "records_clear"
     },
     {
       "path": [

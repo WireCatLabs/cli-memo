@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1554 ✅ · 2 ⛔ · 0 ❌** — 342 commands, 1214 options.
+**1558 ✅ · 2 ⛔ · 0 ❌** — 343 commands, 1217 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -1074,6 +1074,10 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `records delete` |  | ✅ |  |
 | `records delete` | `--account` | ✅ |  |
 | `records delete` | `--json` | ✅ |  |
+| `records clear` |  | ✅ |  |
+| `records clear` | `--account` | ✅ |  |
+| `records clear` | `--yes` | ✅ |  |
+| `records clear` | `--json` | ✅ |  |
 | `records match` |  | ✅ |  |
 | `records match` | `--account` | ✅ |  |
 | `records match` | `--json` | ✅ |  |

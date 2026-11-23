@@ -11,7 +11,7 @@ export const OWNER_PERMISSIONS = [
   "meetings.actions.reject",
   "messages.reset",
   "projects.annotations.restore",
-  "records.forget",
+  "records.clear",
   "review.confirm",
   "review.reject",
   "wallets.update",

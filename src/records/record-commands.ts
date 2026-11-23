@@ -45,7 +45,7 @@ const matchText = (run: MatchRun) =>
     ...(run.truncated ? ["the lists stop at 1000 entries each; the counts are exact"] : []),
   ].join("\n")
 
-/** `records show`, `records delete`, `records forget` and `records match`: one record, a whole source, and its waiting identities. */
+/** `records show`, `records delete`, `records clear` and `records match`: one record, a whole source, and its waiting identities. */
 export const recordCommands = (
   records: Command,
   { run, print }: ReturnType<typeof answers>,
@@ -121,10 +121,10 @@ export const recordCommands = (
     })
 
   jsonOption(
-    annotate(records.command("forget"), {
+    annotate(records.command("clear"), {
       effects: LOCAL_WRITE,
-      output: { entity: "records_forget" },
-      examples: ["memo records forget --account n8n:test", "memo records forget --account n8n:test --yes"],
+      output: { entity: "records_clear" },
+      examples: ["memo records clear --account n8n:test", "memo records clear --account n8n:test --yes"],
     })
       .option("--account <account>", ACCOUNT_HELP)
       .option("--yes", "confirm: nothing of the source can be brought back but by importing it again"),
@@ -139,13 +139,13 @@ export const recordCommands = (
     .action(async (given: { account?: string; json?: boolean; yes?: boolean }) => {
       const source = sourceOf(given.account)
       const name = `${source.provider}:${source.account}`
-      const forgotten = await withStore(async (store) => {
+      const cleared = await withStore(async (store) => {
         const tool = providerNamed(source.provider)
         if (tool && !tool.imported)
           throw new CliError(
             "validation_error",
             `${name} is an account of ${tool.command ?? "a WireCat tool"}, not an import; remove it with that tool`,
-            { reason: "records.forget-synced", account: name },
+            { reason: "records.clear-synced", account: name },
           )
         let held = 0
         for (;;) {
@@ -162,15 +162,15 @@ export const recordCommands = (
           throw new CliError(
             "confirmation_required",
             `this deletes ${held} records of ${name} and its leads, deals and pipelines; nothing was changed — add --yes`,
-            { reason: "records.forget-confirm", records: held },
+            { reason: "records.clear-confirm", records: held },
           )
         await store.accounts.purge(source)
         return { account: name, records: held }
       })
       print(
         given.json,
-        itemAnswer(forgotten),
-        `forgot ${name}: ${forgotten.records} records, with its leads, deals and pipelines`,
+        itemAnswer(cleared),
+        `cleared ${name}: ${cleared.records} records, with its leads, deals and pipelines`,
       )
     })
 

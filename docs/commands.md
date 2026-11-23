@@ -5067,14 +5067,14 @@ memo records delete <record> [options]
 
 **Example:** `memo records delete payment:sheet-12 --account sheet:rentals`
 
-### `memo records forget`
+### `memo records clear`
 
 delete everything one source said: its records, and the leads, deals and pipelines made from them. People and organizations stay, as memo keeps whom it met. For a test or a wrong import; a WireCat tool's account, such as tg or a CRM, is removed by that tool. Without --yes nothing changes
 
 This command changes the local store or your files.
 
 ```sh
-memo records forget [options]
+memo records clear [options]
 ```
 
 | Option | What it does |
@@ -5083,7 +5083,7 @@ memo records forget [options]
 | `--yes` | confirm: nothing of the source can be brought back but by importing it again. |
 | `--json` | print JSON; --json=account,records keeps only those fields. |
 
-**Example:** `memo records forget --account n8n:test`, `memo records forget --account n8n:test --yes`
+**Example:** `memo records clear --account n8n:test`, `memo records clear --account n8n:test --yes`
 
 ### `memo records match`
 
