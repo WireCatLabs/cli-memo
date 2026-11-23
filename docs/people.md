@@ -402,7 +402,7 @@ it proposes people who write to you from the same company domain.
 ```sh
 memo relationships scan HRB --source all        # lists them, writes nothing
 memo relationships scan HRB --source all --yes  # proposes them for review
-memo review kind:relationship
+memo review list kind:relationship
 ```
 
 A person proposed because they write in a project's group says which group and how much: "wrote 40 messages in

@@ -21,7 +21,7 @@ name it.
 
 Files go only to these two providers, which no sync owns. Any other, such as a messenger's or Drive's account, is
 refused (`record.provider-not-imported`): its own sync owns it. Keep one account per source;
-`memo search --source import:handbook` then finds only its documents.
+`memo search notes budget --source import:handbook` then finds only its documents.
 
 ## What a folder import reads
 

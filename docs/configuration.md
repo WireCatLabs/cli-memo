@@ -145,8 +145,9 @@ Memo calls a provider outside your computer only when `memo answers create` has 
 ## `permissions`
 
 Dotted command paths limit MCP tools. A key covers that command and its children; the most specific saved key
-wins. `deny` marks commands unavailable in discovery, `readonly` permits reads, and `ask` or `allow` permits writes. Over MCP `ask` runs
-without a terminal question; approval prompts depend on the client app. Writes without a saved level use `ask`.
+wins. `deny` marks commands unavailable in discovery, `readonly` permits reads, and `ask` or `allow` permits writes. Over MCP a write
+set to `ask` runs without asking you. Only the client app may still ask, depending on its own settings. Writes
+without a saved level use `ask`, so over MCP they run too.
 
 ```json
 {
