@@ -239,6 +239,18 @@ An agent's `unlink` or `unmerge` needs `--reason` and only proposes the split: i
 the reason, and only your `memo people confirm` carries it out. A split you reject is not proposed again while
 those identities stay on that person, and `people links check` no longer lists them. An agent's `memo people link … --reason` waits the same way unless memo finds strong evidence (see above).
 
+### Delete a person
+
+`memo people delete person:42` shows what would go and changes nothing. `--yes` deletes:
+
+- the person and their identities;
+- the tags, links, aliases and mentions that name them.
+
+A fact, note, task or import record that names them stays and loses the name. Messages, mail and meetings belong to
+their source: they stay, and the next sync makes their sender a person again. An invoice, order or subscription that
+names the person is changed first: until then the delete is refused and names them. Your own person is never deleted.
+Only you run it, at a terminal or in WireCat Desktop.
+
 To choose the main note about the person, see [the note about a person](notes.md#the-note-about-a-person).
 
 ## Bring in a phone's contacts

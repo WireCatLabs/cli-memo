@@ -992,6 +992,29 @@ memo people links resolve <who> <answer> [options]
 
 **Example:** `memo people links resolve person:42 keep`, `memo people links resolve person:42 keep --from-app --json`, `memo people links resolve person:42 test`
 
+### `memo people delete`
+
+delete a person, their identities, and the tags, links, aliases and mentions that name them. A fact, note, task or imported entry that names them stays and loses the name. Messages, mail and meetings are their source's: they stay, and the next sync makes their sender a person again. An invoice, order or subscription that names the person must be changed first. Without --yes it shows what would go and changes nothing
+
+This command changes the local store or your files.
+
+```sh
+memo people delete <who> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `who` | required | person:<uid> as people list prints it, or an identity of the person. |
+
+| Option | What it does |
+|---|---|
+| `--yes` | delete; nothing of the person can be brought back. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Example:** `memo people delete person:17`, `memo people delete person:17 --yes`
+
 ### `memo people scan`
 
 match people across sources now: the same address or a phone two people share joins them, the rest waits in people review; memo sync runs it too
@@ -5069,7 +5092,7 @@ memo records delete <record> [options]
 
 ### `memo records clear`
 
-delete everything one source said: its records, and the leads, deals and pipelines made from them. People and organizations stay, as memo keeps whom it met. For a test or a wrong import; a WireCat tool's account, such as tg or a CRM, is removed by that tool. Without --yes nothing changes
+delete everything one source said: its records, the leads, deals and pipelines made from them, and the people only it made. Anyone you tagged or gave a task to, or another source knows, stays; people delete removes them. For a test or a wrong import; a WireCat tool's account, such as tg or a CRM, is removed by that tool. Without --yes nothing changes
 
 This command changes the local store or your files.
 
