@@ -4,6 +4,25 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## 0.148.0 — 23.11.2026
+
+### Added
+
+- **`memo people delete` deletes a person and what memo knows of them alone.** Without `--yes` it shows what would
+  go (their identities, the tags, links and mentions that name them, what stays without them) and changes nothing.
+  Messages, mail and meetings stay with their source. Refused for your own person and while an invoice, order or
+  subscription names them. Only you run it. See [Delete a person](docs/people.md#delete-a-person).
+- **`memo records clear` clears a test import whole.** `memo records clear --account n8n:test --yes` removes
+  everything one source sent: its records, and the leads, deals and pipelines made from them. People and
+  organizations stay. Without `--yes` it changes nothing and says how many records would go. It refuses an account
+  that a WireCat tool syncs, such as `tg` or a CRM. Over MCP only the owner may run it. See
+  [Bring data in from another system](docs/business.md#bring-data-in-from-another-system).
+
+### Fixed
+
+- **`memo records clear` also deletes the people only that import made.** A person you tagged or gave a task to, or
+  one another source knows, stays.
+
 ## 0.147.0 — 19.11.2026
 
 ### Fixed
