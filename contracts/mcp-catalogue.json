@@ -27,6 +27,7 @@
   "people review": "read",
   "people links check": "read",
   "people links resolve": "write",
+  "people delete": "write",
   "people scan": "write",
   "people link": "write",
   "people unlink": "write",

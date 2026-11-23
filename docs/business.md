@@ -118,8 +118,8 @@ memo records show custom:quote:Q-7 --account example-erp:demo
 ```
 
 A test import, or one sent to the wrong account, goes whole with `memo records clear --account n8n:test --yes`: its
-records and the leads, deals and pipelines made from them. People and organizations stay. Without `--yes` it only
-says how many records it would delete. A WireCat tool's own account, such as `tg` or a CRM, is not an import and is
+records, the leads, deals and pipelines made from them, and the people only it made. A person you tagged or gave a
+task to, or one another source knows, stays. Without `--yes` it only says how many records it would delete. A WireCat tool's own account, such as `tg` or a CRM, is not an import and is
 removed by that tool.
 
 ## Find it again

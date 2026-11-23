@@ -139,7 +139,7 @@ it("refuses a delete with the code cli-core gives the import's refusal", () => {
   expect(codeOf("no.such-reason")).toBe("validation_error")
 })
 
-it("clears a test source only with --yes: its records and leads go, its people and another source stay", async () => {
+it("clears a test source only with --yes: its records, leads and people go, another source's stay", async () => {
   const f = await businessStore("records-clear")
   const lead = (externalId: string, title: string) =>
     upsert("lead", externalId, { title, pipeline: "web", stage: "new" }, [
@@ -188,7 +188,7 @@ it("clears a test source only with --yes: its records and leads go, its people a
   })
   expect((await f.items(OWNER, "leads", "list")).map((one) => one.title)).toEqual(["Real lead"])
   expect(await f.items(OWNER, "records", "list", "--account", "n8n:test")).toEqual([])
-  expect(await f.item(OWNER, "people", "show", tester)).toMatchObject({ ref: tester })
+  await expect(f.item(OWNER, "people", "show", tester)).rejects.toMatchObject({ code: "not_found" })
   expect(await f.item(OWNER, "people", "show", kept)).toMatchObject({ ref: kept })
 
   await expect(f.item(OWNER, "records", "clear", "--account", "tg:personal", "--yes")).rejects.toMatchObject({

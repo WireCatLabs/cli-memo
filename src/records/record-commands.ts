@@ -131,9 +131,10 @@ export const recordCommands = (
     "account,records",
   )
     .description(
-      "delete everything one source said: its records, and the leads, deals and pipelines made from them. People and " +
-        "organizations stay, as memo keeps whom it met. For a test or a wrong import; a WireCat tool's account, such " +
-        "as tg or a CRM, is removed by that tool. Without --yes nothing changes",
+      "delete everything one source said: its records, the leads, deals and pipelines made from them, and the people " +
+        "only it made. Anyone you tagged or gave a task to, or another source knows, stays; people delete " +
+        "removes them. For a test or a wrong import; a WireCat tool's account, such as tg or a CRM, is removed by " +
+        "that tool. Without --yes nothing changes",
     )
     .summary("delete a source's records and its leads and deals")
     .action(async (given: { account?: string; json?: boolean; yes?: boolean }) => {

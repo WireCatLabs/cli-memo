@@ -120,6 +120,12 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: ["path"],
   },
   {
+    reason: "person.delete-confirm",
+    code: "confirmation_required",
+    message: "this deletes the person, their identities and what names them alone; nothing was changed — add --yes",
+    details: ["plan"],
+  },
+  {
     reason: "records.clear-synced",
     code: "validation_error",
     message: "{account} is an account a WireCat tool syncs, not an import; remove it with that tool",

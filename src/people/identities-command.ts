@@ -6,6 +6,7 @@ import type { Command } from "commander"
 import { answers, itemAnswer, withStore } from "../answer.js"
 import { byOption, reasonOption, UNATTENDED, whoRuns } from "../author.js"
 import { agentMergesApply } from "../config.js"
+import { deleteCommand } from "./delete-command.js"
 import { doubtsCommand } from "./doubts-command.js"
 import { exactIdentityOf, identityOf, personOf } from "./identity.js"
 import { withOwner } from "./owner.js"
@@ -78,6 +79,7 @@ export const identitiesCommands = (people: Command, program: Command, streams: S
 
   peopleProposalCommands(people, program, streams, env)
   doubtsCommand(people, program, streams, env)
+  deleteCommand(people, program, streams, env)
 
   annotate(people.command("scan"), { effects: LOCAL_WRITE })
     .summary("match people across sources now; memo sync does it too")

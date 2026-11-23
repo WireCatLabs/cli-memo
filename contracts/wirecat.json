@@ -560,6 +560,19 @@
     {
       "path": [
         "people",
+        "delete"
+      ],
+      "summary": "delete a person and what memo knows of them alone; only you",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "people.delete",
+      "entity": "person_erasure"
+    },
+    {
+      "path": [
+        "people",
         "scan"
       ],
       "summary": "match people across sources now; memo sync does it too",
