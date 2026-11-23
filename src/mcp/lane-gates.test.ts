@@ -5,6 +5,8 @@ import { Client } from "@modelcontextprotocol/client"
 import { InMemoryTransport } from "@modelcontextprotocol/server"
 import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
+import { syncTracker } from "@wirecat/cli-core/tracker"
+import { exampleTrackerRows, fakeTrackerSource } from "@wirecat/cli-core/tracker/testing"
 import { expect, it } from "vitest"
 import { commandCaller } from "../../test/mcp.js"
 import { updateConfig } from "../config.js"
@@ -119,4 +121,38 @@ it("keeps from search all the products and contracts a server denies listing", a
   const kinds = (found: Found) => (found.items ?? []).map((hit) => hit.kind).sort()
   expect(kinds(await searched(env))).toEqual(["contract", "invoice", "product"])
   expect(kinds(await searched(env, ["products=deny", "contracts.list=deny"]))).toEqual(["invoice"])
+})
+
+/** A temp store holding one synced tracker account with the fake source's rows. Synthetic data only. */
+const trackerStore = async () => {
+  const dir = mkdtempSync(join(tmpdir(), "memo-tracker-gate-"))
+  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), MEMO_CONFIG_DIR: dir }
+  delete env.AI_AGENT
+  delete env.CLAUDECODE
+  const store = await openStore({ env })
+  await syncTracker(fakeTrackerSource({ rows: exampleTrackerRows() }), store, { provider: "linear", account: "u1" })
+  await store.close()
+  return env
+}
+
+const searchedFor = async (env: NodeJS.ProcessEnv, query: string, overrides: string[] = []) => {
+  const [server, transport] = InMemoryTransport.createLinkedPair()
+  await createMemoServer(env, createProgram, overrides).connect(server)
+  const client = new Client({ name: "synthetic-agent", version: "1" })
+  await client.connect(transport)
+  try {
+    const all = await (await commandCaller(client))("search all", { query })
+    return all.structuredContent as Found
+  } finally {
+    await client.close()
+  }
+}
+
+it("shows an agent a tracker's issues in search all, and leaves them out for tracker.list=deny", async () => {
+  const env = await trackerStore()
+  const kinds = (found: Found) => (found.items ?? []).map((hit) => hit.kind)
+  expect(kinds(await searchedFor(env, "invoice"))).toContain("issue")
+  const denied = await searchedFor(env, "invoice", ["tracker.list=deny"])
+  expect(kinds(denied).filter((kind) => ["issue", "project", "issue_comment"].includes(kind))).toEqual([])
+  expect(denied.meta?.issues).toContainEqual({ code: "permission_error", source: "tracker" })
 })

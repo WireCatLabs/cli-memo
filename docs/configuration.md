@@ -169,6 +169,7 @@ proposal decisions stay refused. The shared WireCat read ceiling and `MEMO_READ_
 contracts, subscriptions, products and wallets.
 Deals and leads follow `deals.list` and `leads.list` the same way, and `crm.list` set to `deny` leaves the whole CRM
 lane out. `events.list` set to `deny` refuses `memo events list` and leaves calendar events and phone calls out of
+`search all`. `tracker.list` set to `deny` leaves a tracker's issues, projects and comments (Linear) out of
 `search all`.
 
 `memo show` refuses a reference whose own command a key denies: with `"invoices": "deny"` (or `invoices.show`) an

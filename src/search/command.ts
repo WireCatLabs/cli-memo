@@ -103,8 +103,8 @@ const searchCommandDefinition = (program: Command, streams: Streams, env: NodeJS
   queryOptions(
     annotate(group.command("all"), { effects: LOCAL_READ, output: { entity: "hit" } })
       .description(
-        "messages, mail, notes, calendar events, deals, leads, business data and meeting passages from every meeting " +
-          "account, ranked together; not people, memories, projects or decisions. " +
+        "messages, mail, notes, calendar events, deals, leads, business data, meeting passages from every meeting " +
+          "account and tracker issues, ranked together; not people, memories, projects or decisions. " +
           "A kind you know reads better with its own search, with all its fields",
       )
       .summary("messages, mail, notes, events, deals and meetings ranked together"),

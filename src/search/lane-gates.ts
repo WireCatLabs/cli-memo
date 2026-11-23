@@ -31,6 +31,12 @@ export const LANE_GATES: readonly LaneGate[] = [
   },
   { lane: "crm", key: "crm.list", kinds: { deal: "deals.list", lead: "leads.list" } },
   { lane: "events", key: "events.list", kinds: { event: "events.list" } },
+  // memo has no tracker commands to key each kind by, and its own projects.list is about memo's projects: one key.
+  {
+    lane: "tracker",
+    key: "tracker.list",
+    kinds: { issue: "tracker.list", issue_comment: "tracker.list", project: "tracker.list" },
+  },
 ]
 
 /** The lane keys no command path carries, which memo still accepts from `--permission` and the config file. */
