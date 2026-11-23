@@ -1730,6 +1730,29 @@ memo organizations rename <organization> <name> [options]
 
 **Example:** `memo organizations rename organization:1 'Harbour Studio Ltd'`, `memo organizations rename 1 'Harbour Studio Ltd' --json`
 
+### `memo organizations delete`
+
+delete an organization, the tags, links, aliases and mentions that name it, and which identities it held. A deal, lead, project, account, fact or note that names it stays and loses the name. One of your own companies is never deleted, and an invoice, order or subscription that names it must be changed first. Without --yes it shows what would go and changes nothing
+
+This command changes the local store or your files.
+
+```sh
+memo organizations delete <organization> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `organization` | required | its id or organization:<id>, as organizations list prints it. |
+
+| Option | What it does |
+|---|---|
+| `--yes` | delete; nothing of the organization can be brought back. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Example:** `memo organizations delete organization:12`, `memo organizations delete organization:12 --yes`
+
 ### `memo organizations show`
 
 one organization by its id or organization:<id>, without its relationships, notes and tags

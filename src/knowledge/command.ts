@@ -63,6 +63,7 @@ import {
 import { keyDocuments, markKey, projectOf, unmarkKey } from "./key-documents.js"
 import { KEY_DOCUMENTS_QUERY, keyDocument } from "./list-queries.js"
 import { meetingProjectsCommand } from "./meeting-projects-command.js"
+import { organizationDeleteCommand } from "./organization-delete-command.js"
 import { organizationText } from "./organization-text.js"
 import { projectActionsCommand } from "./project-actions-command.js"
 import { projectActivityCommand } from "./project-activity-command.js"
@@ -164,6 +165,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         store.knowledge.updateOrganization(`organization:${reference.replace(/^organization:/, "")}`, { name }),
       ),
     )
+  organizationDeleteCommand(organizations, program, streams, env)
   annotate(organizations.command("show"), { effects: LOCAL_READ })
     .description("one organization by its id or organization:<id>, without its relationships, notes and tags")
     .summary("one organization")

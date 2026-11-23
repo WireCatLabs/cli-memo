@@ -62,8 +62,8 @@
   },
   "dependencies": {
     "@modelcontextprotocol/server": "2.4.0",
-    "@wirecat/cli-base": "0.126.1",
-    "@wirecat/cli-core": "0.720.0",
+    "@wirecat/cli-base": "0.127.0",
+    "@wirecat/cli-core": "0.723.0",
     "commander": "15.0.0",
     "valibot": "1.5.0",
     "yaml": "2.9.1"
