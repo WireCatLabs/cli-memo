@@ -50,6 +50,7 @@
   "stats projects show": "read",
   "organizations add": "write",
   "organizations rename": "write",
+  "organizations delete": "write",
   "organizations show": "read",
   "organizations list": "read",
   "organizations context": "read",

@@ -287,7 +287,9 @@ memo projects context HRB
 
 `--scope` is `personal` or `work`. `name:` ignores case and takes `*` as any text, so `name:*studio*` finds every name
 that holds the word. An agent's `organizations add` and `organizations rename` are written at once, as yours are;
-memo's `permissions` settings are what limit them. `projects context` takes a key, number, `project:<id>`, exact name or alias.
+memo's `permissions` settings are what limit them. `memo organizations delete organization:1` shows what deleting it
+takes and changes nothing; `--yes` deletes it with the tags, links and mentions that name it. Its deals, leads,
+projects and notes stay without it. Only you delete one, never one of your own companies. `projects context` takes a key, number, `project:<id>`, exact name or alias.
 `projects context` shows the people linked to the project, the notes about it or linking to it, and its tags.
 `organizations context` shows the organization's people by role, its customers, suppliers and partners, its projects,
 open deals and leads, invoices, payments and orders as stored (totals per status and currency, confirmed rows only),

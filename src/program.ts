@@ -417,6 +417,7 @@ const OWN_ENTITIES = entityFields({
   ],
   records_templates: ["types"],
   records_template: ["type", "format", "columns", "text"],
+  organization_erasure: ["organization", "name", "erased", "identities", "deleted", "detached"],
   person_erasure: ["person", "erased", "identities", "kept", "deleted", "detached"],
   records_clear: ["account", "records"],
   records_receipt: [

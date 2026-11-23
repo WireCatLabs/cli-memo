@@ -120,6 +120,12 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: ["path"],
   },
   {
+    reason: "organization.delete-confirm",
+    code: "confirmation_required",
+    message: "this deletes the organization and what names it alone; nothing was changed — add --yes",
+    details: ["plan"],
+  },
+  {
     reason: "person.delete-confirm",
     code: "confirmation_required",
     message: "this deletes the person, their identities and what names them alone; nothing was changed — add --yes",

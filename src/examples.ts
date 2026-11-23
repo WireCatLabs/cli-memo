@@ -197,6 +197,10 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo people unlink telegram:12345 --from person:me",
     "memo people unlink email:lena@example.com max:6789 --from person:42 --reason 'her husband's mailbox'",
   ],
+  "organizations delete": [
+    "memo organizations delete organization:12",
+    "memo organizations delete organization:12 --yes",
+  ],
   "people delete": ["memo people delete person:17", "memo people delete person:17 --yes"],
   "people unmerge": ["memo people unmerge merge:12-34", "memo people unmerge merge:12-34 --reason 'a shared mailbox'"],
   "tasks agenda": [

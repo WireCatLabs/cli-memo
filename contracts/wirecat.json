@@ -938,6 +938,19 @@
     {
       "path": [
         "organizations",
+        "delete"
+      ],
+      "summary": "delete an organization and what memo knows of it alone; only you",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "organizations.delete",
+      "entity": "organization_erasure"
+    },
+    {
+      "path": [
+        "organizations",
         "show"
       ],
       "summary": "one organization",
