@@ -594,17 +594,18 @@ it("gives each command call its own run ID on a reused connection", async () => 
   }
 })
 
-it("lets an agent run a schedule the owner made, but not make, stop or remove one", async () => {
+it("lets an agent run a schedule the owner made, but not make, stop, remove or exec one", async () => {
   const { client } = await connected()
   try {
     const found = await client.callTool({ name: "memo_tools_search", arguments: {} })
     const items = (found.structuredContent as { items: { command: string; availability: { available: boolean } }[] })
       .items
     const availability = (command: string) => items.find((item) => item.command === command)?.availability
-    for (const command of ["schedule list", "schedule run", "schedule exec"])
+    for (const command of ["schedule list", "schedule run"])
       expect(availability(command), command).toMatchObject({ available: true })
     for (const command of ["schedule command", "schedule agent", "schedule remove", "schedule pause"])
       expect(availability(command), command).toMatchObject({ available: false, permission: "mcp.authority" })
+    expect(items.find((item) => item.command === "schedule exec")).toBeUndefined()
   } finally {
     await client.close()
   }

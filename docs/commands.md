@@ -994,7 +994,7 @@ memo people links resolve <who> <answer> [options]
 
 ### `memo people delete`
 
-delete a person, their identities, and the tags, links, aliases and mentions that name them. A fact, note, task or imported entry that names them stays and loses the name. Messages, mail and meetings are their source's: they stay, and the next sync makes their sender a person again. An invoice, order or subscription that names the person must be changed first. Without --yes it shows what would go and changes nothing
+delete a person, the people merged into them earlier, their identities, your notes about them, and the tags, links, aliases and mentions that name them. A fact, task or imported entry that names them stays and loses the name; a note that only links to them stays. Messages, mail and meetings are their source's: they stay, and the next sync makes their sender a person again. An invoice, order or subscription that names the person must be changed first. Without --yes it shows what would go and changes nothing
 
 This command changes the local store or your files.
 
@@ -1732,7 +1732,7 @@ memo organizations rename <organization> <name> [options]
 
 ### `memo organizations delete`
 
-delete an organization, the tags, links, aliases and mentions that name it, and which identities it held. A deal, lead, project, account, fact or note that names it stays and loses the name. One of your own companies is never deleted, and an invoice, order or subscription that names it must be changed first. Without --yes it shows what would go and changes nothing
+delete an organization, your notes about it, the tags, links, aliases and mentions that name it, and which identities it held. A deal, lead, project, account or fact that names it stays and loses the name; a note that only links to it stays. One of your own companies is never deleted, and an invoice, order or subscription that names it must be changed first. Without --yes it shows what would go and changes nothing
 
 This command changes the local store or your files.
 
@@ -6438,7 +6438,7 @@ memo search all <query> [options]
 | `--harder` | a hosted model reorders the first 30 hits; sends the question and those hits to the provider you chose with memo models search-consents set <provider> --yes, only after that. |
 | `--project <project>` | rank the key documents of this project (id, project:<id>, key, exact name or alias) first; nothing is left out. |
 
-**Returns:** hit — kind, ref, provider, account, title, timestamp, excerpt, url, and 18 more; every field: memo commands info search all
+**Returns:** hit — kind, ref, provider, account, title, timestamp, excerpt, url, and 19 more; every field: memo commands info search all
 
 **Example:** `memo search all 'budget harbour'`, `memo search all 'Rental agreement' --only business`, `memo search all 'release date' --source zoom:work,notes --json`
 
