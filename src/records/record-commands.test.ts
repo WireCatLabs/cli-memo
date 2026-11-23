@@ -138,3 +138,60 @@ it("refuses a delete with the code cli-core gives the import's refusal", () => {
   expect(codeOf("record.stale-revision")).toBe("validation_error")
   expect(codeOf("no.such-reason")).toBe("validation_error")
 })
+
+it("forgets a test source only with --yes: its records and leads go, its people and another source stay", async () => {
+  const f = await businessStore("records-forget")
+  const lead = (externalId: string, title: string) =>
+    upsert("lead", externalId, { title, pipeline: "web", stage: "new" }, [
+      { role: "person", type: "person", external_id: `${externalId}@example.com` },
+    ])
+  const envelope = (account: string, records: unknown[]) =>
+    JSON.stringify({ schema_version: 1, source: { provider: "n8n", account, batch_id: "b1" }, records })
+  const pipeline = upsert("pipeline", "web", {
+    kind: "lead",
+    name: "Web",
+    stages: [{ external_id: "new", name: "New", position: 1, outcome: "open" }],
+  })
+  const person = (externalId: string) =>
+    upsert("person", `${externalId}@example.com`, { email: `${externalId}@example.com` })
+  await f.piped(
+    envelope("test", [pipeline, person("t1"), lead("t1", "Test lead")]),
+    "records",
+    "import",
+    "-",
+    "--account",
+    "n8n:test",
+  )
+  await f.piped(
+    envelope("site", [pipeline, person("s1"), lead("s1", "Real lead")]),
+    "records",
+    "import",
+    "-",
+    "--account",
+    "n8n:site",
+  )
+
+  const personOf = async (account: string) =>
+    (await f.items(OWNER, "records", "list", "--account", account)).find((one) => one.type === "person")
+      ?.entity as string
+  const tester = await personOf("n8n:test")
+  const kept = await personOf("n8n:site")
+
+  await expect(f.item(OWNER, "records", "forget", "--account", "n8n:test")).rejects.toMatchObject({
+    code: "confirmation_required",
+  })
+  expect((await f.items(OWNER, "leads", "list")).map((one) => one.title).sort()).toEqual(["Real lead", "Test lead"])
+
+  expect(await f.item(OWNER, "records", "forget", "--account", "n8n:test", "--yes")).toMatchObject({
+    account: "n8n:test",
+    records: 3,
+  })
+  expect((await f.items(OWNER, "leads", "list")).map((one) => one.title)).toEqual(["Real lead"])
+  expect(await f.items(OWNER, "records", "list", "--account", "n8n:test")).toEqual([])
+  expect(await f.item(OWNER, "people", "show", tester)).toMatchObject({ ref: tester })
+  expect(await f.item(OWNER, "people", "show", kept)).toMatchObject({ ref: kept })
+
+  await expect(f.item(OWNER, "records", "forget", "--account", "tg:personal", "--yes")).rejects.toMatchObject({
+    code: "validation_error",
+  })
+})
