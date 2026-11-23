@@ -112,7 +112,7 @@ What it does, per mailbox:
 | `memo mail findings list status:proposed` | Batches waiting for you |
 | `memo mail findings show <id>` | One batch with its evidence |
 
-`MEMO_READ_ONLY` refuses every store change except `mail findings add` and `messages acknowledge`. `messages reset`
+`MEMO_READ_ONLY` refuses every store change except `memo mail findings add` and `messages acknowledge`. `messages reset`
 is yours alone: it refuses an agent and a scheduled run, and MCP lists it as unavailable (`messages.reset` is `deny`). You decide in
 `memo review`: `memo review show <id>`, then `memo review confirm <id>/<finding>` or `memo review reject <id>`. No
 agent can confirm or reject mail findings. `memo review status` shows each mailbox's mark and what waits.
@@ -126,13 +126,13 @@ Memo no longer reads a mailbox itself. Its old mail commands change nothing and 
 
 | Old Memo command | Run instead |
 |---|---|
-| `memo mail add <account> <address>` | `mail <profile> session start --address <address>`, then `mail <profile> sync` |
-| `memo mail check <account>` | `mail <profile> account check` |
-| `memo mail inspect <account>` | `mail <profile> account inspect`, same options, no account |
+| `memo mail add …` | `mail <profile> session start --address <address>`, then `mail <profile> sync` |
+| `memo mail check …` | `mail <profile> account check` |
+| `memo mail inspect …` | `mail <profile> account inspect`, same options, no account |
 | `memo mail rules list\|add\|remove\|apply\|export\|import <account> …` | `mail <profile> rules list\|add\|remove\|apply\|export\|import …`, same options, no account |
-| `memo mail delete <account>` | `mail <profile> messages delete --rules` (a preview; `--yes` moves the mail) |
-| `memo mail restore <account> --run <id>` | `mail <profile> messages restore --run <id>`; Memo's run ids work there |
-| `memo mail runs list <account>` | `mail doctor`, which names the runs that stopped part way or whose Gmail Trash empties soon; every run is a file `<id>.jsonl` in Memo's state folder under `mail-trash/<profile>/` |
+| `memo mail delete …` | `mail <profile> messages delete --rules` (a preview; `--yes` moves the mail) |
+| `memo mail restore …` | `mail <profile> messages restore --run <id>`; Memo's run ids work there |
+| `memo mail runs list …` | `mail doctor`, which names the runs that stopped part way or whose Gmail Trash empties soon; every run is a file `<id>.jsonl` in Memo's state folder under `mail-trash/<profile>/` |
 
 A config that still has Memo's old `mail` settings loads, and nothing reads them: `memo doctor` names the mailboxes
 they list, for `mail` to sync, and `memo config unset mail` removes them. The mail Memo imported stays in the store

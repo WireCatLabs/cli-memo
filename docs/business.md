@@ -46,7 +46,7 @@ memo contracts add 'Rental agreement' --kind service --start-date 2026-11-01 --e
 memo contracts list expires:2026-12-31
 ```
 
-One your agent adds with an amount waits for you in `memo review kind:contract`.
+One your agent adds with an amount waits for you in `memo review list kind:contract`.
 
 ## Subscriptions
 

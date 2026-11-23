@@ -136,7 +136,7 @@ memo payments allocate payment:9 invoice:4 25000.00
 memo projects status HRB
 ```
 
-One you add yourself is confirmed at once. One your agent adds waits in `memo review kind:invoice,payment`, and only
+One you add yourself is confirmed at once. One your agent adds waits in `memo review list kind:invoice,payment`, and only
 you confirm money. A payment the agent reads in a chat becomes a payment or an invoice when you confirm the finding.
 `projects status` shows what was billed, paid and is still owed, from confirmed rows only.
 
@@ -277,7 +277,7 @@ that reads one kind, such as `search mail`, takes the group's accounts of that k
 notes, projects, tasks, invoices, memories and facts) belongs to no account, so every group shows it.
 
 `memo groups list` shows each saved group, then `all`, with its accounts, every app's profile names for each
-(`tg work`, `b24 work`), and the other groups that hold an account too: an account may be in several, and the list
+(`tg work …`, `b24 work …`), and the other groups that hold an account too: an account may be in several, and the list
 names those duplicates. A profile named like a group is only a suggestion; it never puts an account in a group.
 `personal` is a group like any other, empty until you save it. `--source personal` is not that group: it means your
 own messenger accounts, not bots.
