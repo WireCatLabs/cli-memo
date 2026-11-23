@@ -156,3 +156,9 @@ it("shows an agent a tracker's issues in search all, and leaves them out for tra
   expect(kinds(denied).filter((kind) => ["issue", "project", "issue_comment"].includes(kind))).toEqual([])
   expect(denied.meta?.issues).toContainEqual({ code: "permission_error", source: "tracker" })
 })
+
+it("refuses search all --only tracker when the server denies tracker.list", async () => {
+  const env = await trackerStore()
+  const denied = await searched(env, ["tracker.list=deny"], { query: "invoice", only: ["tracker"] })
+  expect(denied).toMatchObject({ isError: true, error: { code: "permission_error", reason: "search.all-denied" } })
+})

@@ -4,6 +4,8 @@ import { join } from "node:path"
 import { Client } from "@modelcontextprotocol/client"
 import { InMemoryTransport } from "@modelcontextprotocol/server"
 import { openStore } from "@wirecat/cli-core/store"
+import { syncTracker } from "@wirecat/cli-core/tracker"
+import { exampleTrackerRows, fakeTrackerSource } from "@wirecat/cli-core/tracker/testing"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { answerOf } from "../../test/answer.js"
 import { commandCaller } from "../../test/mcp.js"
@@ -144,6 +146,24 @@ describe("account groups", () => {
     expect(refs(await memo("work", "search", "all", "Groupsignal", "--exact"))).toEqual(["msg:telegram/2/7/1"])
     await expect(memo("work", "search", "people", "x", "--source", "telegram:1")).rejects.toMatchObject({
       code: "validation_error",
+    })
+  })
+
+  it("reads a tracker's issues in search all only in a group that holds the tracker account", async () => {
+    const store = await openStore({ env })
+    await syncTracker(fakeTrackerSource({ rows: exampleTrackerRows() }), store, { provider: "linear", account: "u1" })
+    await store.accounts.saveAccountGroup("office", ["telegram:2", "linear:u1"])
+    await store.accounts.saveAccountGroup("tracked", ["linear:u1"])
+    await store.close()
+    const trackerRefs = (answer: { items: { ref: string }[] }) =>
+      refs(answer).filter((ref) => ref.startsWith("tracker:"))
+    const issues = trackerRefs(await memo("search", "all", "invoice", "--only", "tracker"))
+    expect(issues.length).toBeGreaterThan(0)
+    expect(trackerRefs(await memo("office", "search", "all", "invoice", "--only", "tracker"))).toEqual(issues)
+    expect(trackerRefs(await memo("tracked", "search", "all", "invoice"))).toEqual(issues)
+    await expect(memo("work", "search", "all", "invoice", "--only", "tracker")).rejects.toMatchObject({
+      code: "validation_error",
+      message: expect.stringContaining("holds no account of tracker"),
     })
   })
 

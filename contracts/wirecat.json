@@ -3535,7 +3535,7 @@
         "search",
         "all"
       ],
-      "summary": "messages, mail, notes, events, deals and meetings ranked together",
+      "summary": "messages, mail, notes, events, deals, meetings and issues ranked together",
       "effects": {
         "remote": "none",
         "local": "read"

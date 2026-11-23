@@ -6416,7 +6416,7 @@ search messages, mail, notes, memories and people; search all when unsure where
 
 ### `memo search all`
 
-messages, mail, notes, calendar events, deals, leads, business data and meeting passages from every meeting account, ranked together; not people, memories, projects or decisions. A kind you know reads better with its own search, with all its fields
+messages, mail, notes, calendar events, deals, leads, business data, meeting passages from every meeting account and tracker issues and projects, ranked together; not people, memories, memo's projects or decisions. A kind you know reads better with its own search, with all its fields
 
 ```sh
 memo search all <query> [options]
@@ -6432,7 +6432,7 @@ memo search all <query> [options]
 | `--exact` | words as written; skip meaning search. |
 | `--timezone <zone>` | IANA timezone for calendar date boundaries. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
-| `--only <resources>` | messages,mail,notes,events,crm,business,meetings, separated by commas. |
+| `--only <resources>` | messages,mail,notes,events,crm,business,meetings,tracker, separated by commas. |
 | `--source <accounts>` | only these accounts, separated by commas: provider:account as a hit shows it, a provider, a kind or group:<name>; each resource reads the ones of its kind, and one it names none of is left out. |
 | `--plain-order` | best first by the words alone, without moving mail from suspicious senders down. |
 | `--harder` | a hosted model reorders the first 30 hits; sends the question and those hits to the provider you chose with memo models search-consents set <provider> --yes, only after that. |
