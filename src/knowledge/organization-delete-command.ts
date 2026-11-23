@@ -35,8 +35,9 @@ export const organizationDeleteCommand = (
     })
       .summary("delete an organization and what memo knows of it alone; only you")
       .description(
-        "delete an organization, the tags, links, aliases and mentions that name it, and which identities it held. " +
-          "A deal, lead, project, account, fact or note that names it stays and loses the name. One of your own " +
+        "delete an organization, your notes about it, the tags, links, aliases and mentions that name it, and which " +
+          "identities it held. A deal, lead, project, account or fact that names it stays and loses the name; a note " +
+          "that only links to it stays. One of your own " +
           "companies is never deleted, and an invoice, order or subscription that names it must be changed first. " +
           "Without --yes it shows what would go and changes nothing",
       )

@@ -16,6 +16,7 @@ const counts = (rows: Record<string, number>) =>
 const planText = (plan: PersonErasure) =>
   [
     `${plan.erased ? "deleted" : "this deletes"} ${plan.person}${plan.name ? ` (${plan.name})` : ""}`,
+    ...(plan.merged.length ? [`  merged into them earlier, deleted too: ${plan.merged.join(", ")}`] : []),
     `  identities: ${plan.identities.join(", ") || "none"}`,
     ...(Object.keys(plan.deleted).length ? [`  deleted with them: ${counts(plan.deleted)}`] : []),
     ...(Object.keys(plan.detached).length ? [`  stay, without the person: ${counts(plan.detached)}`] : []),
@@ -37,8 +38,9 @@ export const deleteCommand = (people: Command, program: Command, streams: Stream
     })
       .summary("delete a person and what memo knows of them alone; only you")
       .description(
-        "delete a person, their identities, and the tags, links, aliases and mentions that name them. A fact, note, " +
-          "task or imported entry that names them stays and loses the name. Messages, mail and meetings are their " +
+        "delete a person, the people merged into them earlier, their identities, your notes about them, and the " +
+          "tags, links, aliases and mentions that name them. A fact, task or imported entry that names them stays " +
+          "and loses the name; a note that only links to them stays. Messages, mail and meetings are their " +
           "source's: they stay, and the next sync makes their sender a person again. An invoice, order or " +
           "subscription that names the person must be changed first. Without --yes it shows what would go and " +
           "changes nothing",

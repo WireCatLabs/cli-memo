@@ -244,9 +244,13 @@ those identities stay on that person, and `people links check` no longer lists t
 `memo people delete person:42` shows what would go and changes nothing. `--yes` deletes:
 
 - the person and their identities;
+- the people merged into them earlier, so their names and aliases do not come back as a new person (`merged` in
+  `--json`);
+- your notes about them;
 - the tags, links, aliases and mentions that name them.
 
-A fact, note, task or import record that names them stays and loses the name. Messages, mail and meetings belong to
+A fact, task or import record that names them stays and loses the name. A note that only links to them stays and
+loses the link. Messages, mail and meetings belong to
 their source: they stay, and the next sync makes their sender a person again. An invoice, order or subscription that
 names the person is changed first: until then the delete is refused and names them. Your own person is never deleted.
 Only you run it, at a terminal or in WireCat Desktop.
@@ -288,8 +292,8 @@ memo projects context HRB
 `--scope` is `personal` or `work`. `name:` ignores case and takes `*` as any text, so `name:*studio*` finds every name
 that holds the word. An agent's `organizations add` and `organizations rename` are written at once, as yours are;
 memo's `permissions` settings are what limit them. `memo organizations delete organization:1` shows what deleting it
-takes and changes nothing; `--yes` deletes it with the tags, links and mentions that name it. Its deals, leads,
-projects and notes stay without it. Only you delete one, never one of your own companies. `projects context` takes a key, number, `project:<id>`, exact name or alias.
+takes and changes nothing; `--yes` deletes it with your notes about it and the tags, links and mentions that name it. Its deals, leads,
+projects and the notes that only link to it stay without it. Only you delete one, never one of your own companies. `projects context` takes a key, number, `project:<id>`, exact name or alias.
 `projects context` shows the people linked to the project, the notes about it or linking to it, and its tags.
 `organizations context` shows the organization's people by role, its customers, suppliers and partners, its projects,
 open deals and leads, invoices, payments and orders as stored (totals per status and currency, confirmed rows only),
