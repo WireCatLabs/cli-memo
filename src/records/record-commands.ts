@@ -1,6 +1,6 @@
 import { CliError } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { CORE_REASONS, RECORDS_SCHEMA_VERSION } from "@wirecat/cli-core"
+import { CORE_REASONS, providerNamed, RECORDS_SCHEMA_VERSION } from "@wirecat/cli-core"
 import { LOCAL_READ, LOCAL_WRITE } from "@wirecat/cli-core/cli"
 import { ingest } from "@wirecat/cli-core/services"
 import type { MatchRun, MessageStore } from "@wirecat/cli-core/store"
@@ -45,7 +45,7 @@ const matchText = (run: MatchRun) =>
     ...(run.truncated ? ["the lists stop at 1000 entries each; the counts are exact"] : []),
   ].join("\n")
 
-/** `records show`, `records delete` and `records match`: one record, and the account's waiting identities. */
+/** `records show`, `records delete`, `records clear` and `records match`: one record, a whole source, and its waiting identities. */
 export const recordCommands = (
   records: Command,
   { run, print }: ReturnType<typeof answers>,
@@ -117,6 +117,60 @@ export const recordCommands = (
         receipt.deleted === 0
           ? `${record} was already deleted`
           : `deleted ${record}${receipt.flagged.length ? `; ${receipt.flagged.map((one) => one.entity).join(" ")} kept, flagged for you` : ""}`,
+      )
+    })
+
+  jsonOption(
+    annotate(records.command("clear"), {
+      effects: LOCAL_WRITE,
+      output: { entity: "records_clear" },
+      examples: ["memo records clear --account n8n:test", "memo records clear --account n8n:test --yes"],
+    })
+      .option("--account <account>", ACCOUNT_HELP)
+      .option("--yes", "confirm: nothing of the source can be brought back but by importing it again"),
+    "account,records",
+  )
+    .description(
+      "delete everything one source said: its records, and the leads, deals and pipelines made from them. People and " +
+        "organizations stay, as memo keeps whom it met. For a test or a wrong import; a WireCat tool's account, such " +
+        "as tg or a CRM, is removed by that tool. Without --yes nothing changes",
+    )
+    .summary("delete a source's records and its leads and deals")
+    .action(async (given: { account?: string; json?: boolean; yes?: boolean }) => {
+      const source = sourceOf(given.account)
+      const name = `${source.provider}:${source.account}`
+      const cleared = await withStore(async (store) => {
+        const tool = providerNamed(source.provider)
+        if (tool && !tool.imported)
+          throw new CliError(
+            "validation_error",
+            `${name} is an account of ${tool.command ?? "a WireCat tool"}, not an import; remove it with that tool`,
+            { reason: "records.clear-synced", account: name },
+          )
+        let held = 0
+        for (;;) {
+          const page = await store.records.list({ ...source, limit: 500, offset: held })
+          held += page.items.length
+          if (page.items.length < 500) break
+        }
+        if (held === 0)
+          throw new CliError("not_found", `no records from ${name}; records list shows a source's records`, {
+            reason: "records.not-stored",
+            account: name,
+          })
+        if (given.yes !== true)
+          throw new CliError(
+            "confirmation_required",
+            `this deletes ${held} records of ${name} and its leads, deals and pipelines; nothing was changed — add --yes`,
+            { reason: "records.clear-confirm", records: held },
+          )
+        await store.accounts.purge(source)
+        return { account: name, records: held }
+      })
+      print(
+        given.json,
+        itemAnswer(cleared),
+        `cleared ${name}: ${cleared.records} records, with its leads, deals and pipelines`,
       )
     })
 

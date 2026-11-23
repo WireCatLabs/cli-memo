@@ -120,6 +120,19 @@ export const REASONS: ErrorReason[] = defineReasons([
     details: ["path"],
   },
   {
+    reason: "records.clear-synced",
+    code: "validation_error",
+    message: "{account} is an account a WireCat tool syncs, not an import; remove it with that tool",
+    details: ["account"],
+  },
+  {
+    reason: "records.clear-confirm",
+    code: "confirmation_required",
+    message:
+      "this deletes {records} records of the source and its leads, deals and pipelines; nothing was changed — add --yes",
+    details: ["records"],
+  },
+  {
     reason: "records.not-stored",
     code: "not_found",
     message: "no record {record} from that source; memo records list shows them",

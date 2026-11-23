@@ -2737,6 +2737,19 @@
     {
       "path": [
         "records",
+        "clear"
+      ],
+      "summary": "delete a source's records and its leads and deals",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "records.clear",
+      "entity": "records_clear"
+    },
+    {
+      "path": [
+        "records",
         "match"
       ],
       "summary": "match a source's waiting people and organizations",
