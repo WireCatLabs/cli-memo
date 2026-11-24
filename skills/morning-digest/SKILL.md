@@ -137,8 +137,9 @@ write only the content. A document that breaks this shape is not delivered: the 
 - `owed` holds people only. A bot, a channel, a service chat or list mail is never a `reply`; it may be a `mail` item
   when it is worth a look.
 - `items[].type` and the fields each one needs (others are optional, `null` or left out):
-  `reply` who, topic, action, since · `question` who, topic, action · `task` topic · `fact` topic, detail ·
-  `risk` topic, detail, action · `money` who, topic, amount · `decision` topic, action · `meeting` topic, time.
+  `reply` who, topic, action, and since when you know when they wrote · `question` who, topic, action · `task` topic
+  · `fact` topic, detail · `risk` topic, detail, action · `money` who, topic, amount · `decision` topic, action ·
+  `meeting` topic, time.
 - Times (`since`, `due`, `time`) are ISO 8601 with the offset, or a date. `amount`:
   `{ "value": 48000, "currency": "RUB", "direction": "out" }`. `priority`: `"high"` for what is late or serious, else
   leave it out. `channel`: `telegram`, `max`, `whatsapp`, `mail`, `meeting` or `task`. `quote`: at most one line of
