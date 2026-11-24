@@ -4,6 +4,14 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## 0.152.0 — 24.11.2026
+
+### Fixed
+
+- **One bad part of the morning digest no longer costs the whole digest.** A section, item or health entry the agent
+  wrote wrong is left out, and the digest ends with a line saying how many were left out. A meeting's time without an
+  offset is read as local time. Both come with `@wirecat/cli-core` 0.749.0.
+
 ## 0.151.0 — 24.11.2026
 
 ### Fixed
