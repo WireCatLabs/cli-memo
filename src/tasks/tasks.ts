@@ -7,16 +7,8 @@ import {
   type TasksService,
   tasksService,
 } from "@wirecat/cli-core/services"
-import {
-  type AccountKey,
-  type MessageStore,
-  type TaskFields,
-  type TaskRole,
-  type TaskState,
-  type TaskType,
-  WORK_TASK_TYPES,
-  type WorkTaskType,
-} from "@wirecat/cli-core/store"
+import { type AccountKey, type MessageStore, type TaskState, WORK_TASK_TYPES } from "@wirecat/cli-core/store"
+import type { TaskFields, TaskRole, TaskType, WorkTaskType } from "@wirecat/cli-core/store/areas"
 import { APP } from "../app.js"
 import { authorOf } from "../author.js"
 import { isNoteReference } from "../notes/about.js"
@@ -315,14 +307,18 @@ export const moveTask = (
   env: NodeJS.ProcessEnv,
   id: string,
   options: { status?: TaskState; before?: string; after?: string; revision?: number },
-) => {
+): ReturnType<MessageStore["tasks"]["move"]> => {
   const { revision, ...move } = options
   return store.tasks.move(id, move, authorOf(env), checkOf(revision))
 }
 
 /** Who changed what and when, oldest first; `by` names the person or agent as the store knows it now. */
-export const commentTask = (store: MessageStore, env: NodeJS.ProcessEnv, id: string, text: string) =>
-  store.tasks.comment(id, text, authorOf(env))
+export const commentTask = (
+  store: MessageStore,
+  env: NodeJS.ProcessEnv,
+  id: string,
+  text: string,
+): ReturnType<MessageStore["tasks"]["comment"]> => store.tasks.comment(id, text, authorOf(env))
 
 export const taskHistory = async (store: MessageStore, id: string) => {
   const owner = (await store.people.owner())?.uid

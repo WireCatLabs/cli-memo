@@ -30,17 +30,19 @@ import {
 } from "@wirecat/cli-core/services"
 import {
   type AccountKey,
-  type KnowledgeRelation,
   type MessageStore,
-  ORGANIZATION_KINDS,
   ORGANIZATIONS_QUERY,
+  PROJECTS_QUERY,
+  REMINDERS_QUERY,
+} from "@wirecat/cli-core/store"
+import {
+  type KnowledgeRelation,
+  ORGANIZATION_KINDS,
   type Organization,
   PROJECT_TYPES,
-  PROJECTS_QUERY,
   type Project,
-  REMINDERS_QUERY,
   SCOPES,
-} from "@wirecat/cli-core/store"
+} from "@wirecat/cli-core/store/areas"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, listAnswer, shortenedBy, wholeList, withStore } from "../answer.js"
 import { byOption, deciderOf, reasonOption, whoRuns } from "../author.js"

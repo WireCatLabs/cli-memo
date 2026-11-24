@@ -3,14 +3,8 @@ import { CliError } from "@wirecat/cli-base"
 import { type QueryAst, type QueryRegistry, timezoneOf, walkQuery } from "@wirecat/cli-base/query"
 import { formatReference } from "@wirecat/cli-core"
 import { listQuery, type QueryWords, typedQuery } from "@wirecat/cli-core/cli"
-import {
-  type AccountKey,
-  isClosedState,
-  type MessageStore,
-  PROJECT_TASK_FIELDS,
-  type TaskDetails,
-  type TaskSort,
-} from "@wirecat/cli-core/store"
+import { type AccountKey, isClosedState, type MessageStore } from "@wirecat/cli-core/store"
+import { PROJECT_TASK_FIELDS, type TaskDetails, type TaskSort } from "@wirecat/cli-core/store/areas"
 import { listAnswer } from "../answer.js"
 import { accountName } from "../store/source-list.js"
 import { canonicalProject } from "../vocabulary/project.js"
@@ -240,7 +234,10 @@ export const listTasks = async (
 }
 
 /** The board's pickers: every task, found ones too, when the query names no project:. */
-export const countTasks = async (store: MessageStore, words: QueryWords) => {
+export const countTasks = async (
+  store: MessageStore,
+  words: QueryWords,
+): ReturnType<MessageStore["tasks"]["boardCounts"]> => {
   const query = listQuery(typedQuery(words), TASKS_LIST_QUERY, "tasks counts", { defaultField: "text" })
   if (query && walkQuery(query.root).some(({ field }) => field === "source"))
     throw new CliError("validation_error", "source: narrows an account's tasks; tasks counts counts project tasks")

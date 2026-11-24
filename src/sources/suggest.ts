@@ -1,7 +1,8 @@
 import { createHash, randomUUID } from "node:crypto"
 import { CliError } from "@wirecat/cli-base"
 import { FACT_TYPES, type FindingsInput } from "@wirecat/cli-core/meetings"
-import { type CitableRecord, type MessageStore, QUOTE_LIMIT, quoteKept } from "@wirecat/cli-core/store"
+import type { CitableRecord, MessageStore } from "@wirecat/cli-core/store"
+import { QUOTE_LIMIT, quoteKept } from "@wirecat/cli-core/store/areas"
 import type { Reader, ReaderContext } from "./readers/index.js"
 
 /** Changing the prompt changes this, so a source read with the old prompt is read again. */

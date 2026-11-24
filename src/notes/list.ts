@@ -1,4 +1,5 @@
-import type { MessageStore, Note } from "@wirecat/cli-core/store"
+import type { MessageStore } from "@wirecat/cli-core/store"
+import type { Note } from "@wirecat/cli-core/store/areas"
 import type { Subject } from "../people/subject.js"
 import { notesReaching, type Via } from "./about.js"
 

@@ -1,15 +1,8 @@
 import { CliError } from "@wirecat/cli-base"
 import { parseLucene, validateQuery } from "@wirecat/cli-base/query"
 import { parseLocator } from "@wirecat/cli-core"
-import {
-  type Author,
-  type Decider,
-  type Link,
-  type LinkListFilter,
-  type MessageStore,
-  PROJECTS_QUERY,
-  type Project,
-} from "@wirecat/cli-core/store"
+import { type Decider, type MessageStore, PROJECTS_QUERY } from "@wirecat/cli-core/store"
+import type { Author, Link, LinkListFilter, Project } from "@wirecat/cli-core/store/areas"
 import { refuseBareNumber } from "../refs.js"
 import { heldMessage } from "../store/held.js"
 import { canonicalProject } from "../vocabulary/project.js"

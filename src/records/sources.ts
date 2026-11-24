@@ -1,4 +1,5 @@
-import type { AccountKey, MessageStore, RecordKey } from "@wirecat/cli-core/store"
+import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
+import type { RecordKey } from "@wirecat/cli-core/store/areas"
 import type { Command } from "commander"
 import { grantedLevel } from "../mcp/granted.js"
 import { readableDeal, readablePipeline } from "../store/crm-viewer.js"

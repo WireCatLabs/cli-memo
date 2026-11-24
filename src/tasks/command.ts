@@ -14,14 +14,12 @@ import { closedStateOf } from "@wirecat/cli-core/services"
 import {
   PRIORITY_LABELS,
   priorityOf,
-  TASK_ROLES,
-  TASK_SORTS,
   TASK_STATES,
   TASK_TYPES,
-  type TaskRole,
   type TaskState,
   WORK_TASK_TYPES,
 } from "@wirecat/cli-core/store"
+import { TASK_ROLES, TASK_SORTS, type TaskRole } from "@wirecat/cli-core/store/areas"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
 import { oneOf, positive, readScope, writeScope } from "../options.js"

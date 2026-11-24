@@ -1,7 +1,8 @@
 import { type Predicate, parseLucene, type QueryRegistry, queryError } from "@wirecat/cli-base/query"
 import { LIST_QUERY_GUIDE, queryTerms, termField, typedQuery } from "@wirecat/cli-core/cli"
 import { plainQuery } from "@wirecat/cli-core/services"
-import { MEMORY_KINDS, MEMORY_SCOPES, MEMORY_STATUSES, type Memory, type MessageStore } from "@wirecat/cli-core/store"
+import { MEMORY_KINDS, MEMORY_SCOPES, MEMORY_STATUSES, type MessageStore } from "@wirecat/cli-core/store"
+import type { Memory } from "@wirecat/cli-core/store/areas"
 import { pageOf } from "../page.js"
 import { canonicalProject } from "../vocabulary/project.js"
 

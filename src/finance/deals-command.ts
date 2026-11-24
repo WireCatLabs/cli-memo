@@ -13,7 +13,8 @@ import {
   writesWithOf,
 } from "@wirecat/cli-core/cli"
 import { dealBrief, dealContext } from "@wirecat/cli-core/services"
-import type { AccountKey, DealFilter, MessageStore, Pipeline, PipelineReport } from "@wirecat/cli-core/store"
+import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
+import type { DealFilter, Pipeline, PipelineReport } from "@wirecat/cli-core/store/areas"
 import type { Command } from "commander"
 import { answers, itemAnswer, openMemoStore, shortenedBy, wholeList, withStore } from "../answer.js"
 import { APP } from "../app.js"

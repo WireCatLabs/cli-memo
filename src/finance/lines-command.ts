@@ -18,7 +18,7 @@ interface LineInput {
 }
 
 /** The two parents with lines; each keeps its own store calls and the words its help names it by. */
-export const LINE_PARENTS = {
+const LINE_PARENTS = {
   order: {
     has: "an order that has a currency (orders add with an amount)",
     shown: "orders show",
@@ -38,7 +38,7 @@ export const LINE_PARENTS = {
 /** `memo orders lines` and `memo invoices lines`: what it is made of; its total is then their sum. */
 export const lineCommands = (
   parent: Command,
-  kind: keyof typeof LINE_PARENTS,
+  kind: "order" | "invoice",
   run: ReturnType<typeof answers>["run"],
   env: NodeJS.ProcessEnv,
 ): void => {

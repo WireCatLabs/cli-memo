@@ -1,7 +1,8 @@
 import { CliError } from "@wirecat/cli-base"
 import { type DealKind, kindIn } from "@wirecat/cli-core"
 import { type CrmViewing, crmViewerOf } from "@wirecat/cli-core/crm"
-import type { AccountKey, Deal, MessageStore, Pipeline, PipelineReport } from "@wirecat/cli-core/store"
+import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
+import type { Deal, Pipeline, PipelineReport } from "@wirecat/cli-core/store/areas"
 
 type CopyViewer = NonNullable<CrmViewing["viewer"]>
 type PipelineOptions = NonNullable<Parameters<MessageStore["deals"]["pipeline"]>[1]>

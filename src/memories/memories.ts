@@ -1,4 +1,5 @@
-import type { Author, EvidenceInput, Memory, MessageStore } from "@wirecat/cli-core/store"
+import type { MessageStore } from "@wirecat/cli-core/store"
+import type { Author, EvidenceInput, Memory } from "@wirecat/cli-core/store/areas"
 import { canonicalProject } from "../vocabulary/project.js"
 
 export interface NewMemory {

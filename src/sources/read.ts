@@ -14,7 +14,7 @@ import {
   ocrImage,
   type Section,
 } from "@wirecat/cli-core/documents"
-import type { AddedSourceInput } from "@wirecat/cli-core/store"
+import type { AddedSourceInput } from "@wirecat/cli-core/store/areas"
 import { transcriptText } from "./transcript.js"
 
 /** What memo's folder import keeps of a file's text; `--max-chars` may raise it to the store's own limit. */

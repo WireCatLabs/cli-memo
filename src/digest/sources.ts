@@ -1,7 +1,8 @@
 import { isFolderProvider, kindIn } from "@wirecat/cli-core"
 import { eventChange } from "@wirecat/cli-core/meetings"
 import { searchNotesQuery } from "@wirecat/cli-core/services"
-import type { AccountKey, CrmChange, CrmChangeKind, MessageStore } from "@wirecat/cli-core/store"
+import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
+import type { CrmChange, CrmChangeKind } from "@wirecat/cli-core/store/areas"
 import { crmViewing } from "../store/crm-viewer.js"
 
 /** A part of the agenda read from the store alone: items newest first, cut by the agenda's section limit. */

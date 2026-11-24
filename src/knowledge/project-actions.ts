@@ -7,7 +7,8 @@ import {
   proposalRegistry,
   storedNeighbours,
 } from "@wirecat/cli-core/services"
-import type { Decider, EvidenceFindingsBatch, MessageStore, Project } from "@wirecat/cli-core/store"
+import type { Decider, EvidenceFindingsBatch, MessageStore } from "@wirecat/cli-core/store"
+import type { Project } from "@wirecat/cli-core/store/areas"
 import { decideBatch } from "../actions/actions.js"
 import { decideOne, decisionOf } from "../review/review.js"
 

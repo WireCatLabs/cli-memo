@@ -4,15 +4,8 @@ import { parseLocator } from "@wirecat/cli-core"
 import { queryTerms, termField, typedQuery } from "@wirecat/cli-core/cli"
 import { MEETING_FINDINGS_KIND } from "@wirecat/cli-core/meetings"
 import { proposalRegistry } from "@wirecat/cli-core/services"
-import {
-  type Author,
-  type Decider,
-  EVIDENCE_FINDINGS_KIND,
-  MAIL_FINDINGS_KIND,
-  type MessageStore,
-  PROPOSAL_STATUSES,
-  type ProposedAction,
-} from "@wirecat/cli-core/store"
+import { type Decider, EVIDENCE_FINDINGS_KIND, MAIL_FINDINGS_KIND, type MessageStore } from "@wirecat/cli-core/store"
+import { type Author, PROPOSAL_STATUSES, type ProposedAction } from "@wirecat/cli-core/store/areas"
 import { pageOf } from "../page.js"
 import { decisionOf } from "../review/review.js"
 import { type AccountScope, selectAccount } from "../store/scope.js"
@@ -118,6 +111,14 @@ const targetNames = async (store: MessageStore, actions: readonly ProposedAction
   return { names, chats }
 }
 
+type StoreSource = Awaited<ReturnType<MessageStore["evidenceFindings"]["sources"]>>[number]
+
+/** A source a finding cites, read back; cli-core's store entry exports no name for it, and memo's answers need one. */
+export interface CitedSource extends StoreSource {}
+
+const citedSources = (store: MessageStore, id: string): Promise<CitedSource[]> =>
+  store.evidenceFindings.sources(id).catch(() => [])
+
 /**
  * An action as memo answers it: what it would do in a sentence, the project it is about with its name, and for a
  * findings batch the fingerprint a decision needs and, unless brief, each cited source read back.
@@ -149,9 +150,7 @@ export const actionItems = async (
         ...(batch === undefined
           ? {}
           : { fingerprint: batch.fingerprint, subject: action.target, subjectName: targetName }),
-        ...(action.kind === EVIDENCE_FINDINGS_KIND && !brief
-          ? { sources: await store.evidenceFindings.sources(action.id).catch(() => []) }
-          : {}),
+        ...(action.kind === EVIDENCE_FINDINGS_KIND && !brief ? { sources: await citedSources(store, action.id) } : {}),
       }
     }),
   )

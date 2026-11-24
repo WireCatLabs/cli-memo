@@ -19,7 +19,7 @@ import {
   type Weekday,
   type When,
 } from "@wirecat/cli-core/cli"
-import type { TemplateAddress } from "@wirecat/cli-core/store"
+import type { TemplateAddress } from "@wirecat/cli-core/store/areas"
 import { APP } from "../app.js"
 
 /** The digest memo had before digests had names; its files and brief keep their old places. */

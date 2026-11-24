@@ -3,7 +3,7 @@ import { basename, resolve } from "node:path"
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
-import { grantsAuthority, LOCAL_READ, LOCAL_WRITE, queryTerms, withQuery } from "@wirecat/cli-core/cli"
+import { grantsAuthority, LOCAL_READ, LOCAL_WRITE, notLocalPaths, queryTerms, withQuery } from "@wirecat/cli-core/cli"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, wholeList, withStore } from "../answer.js"
@@ -146,10 +146,13 @@ export const foldersCommand = (program: Command, streams: Streams, env: NodeJS.P
     })
 
   grantsAuthority(
-    annotate(folders.command("remove"), {
-      effects: LOCAL_WRITE,
-      examples: ["memo folders remove ~/notes", "memo folders remove 3 --allow-delete --yes --json"],
-    }),
+    notLocalPaths(
+      annotate(folders.command("remove"), {
+        effects: LOCAL_WRITE,
+        examples: ["memo folders remove ~/notes", "memo folders remove 3 --allow-delete --yes --json"],
+      }),
+      "folder",
+    ),
   )
     .description("stop reading a notes folder here; its notes stay unless --allow-delete")
     .argument("<folder>", "the folder's id or its path, as memo folders list prints them")

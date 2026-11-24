@@ -15,7 +15,8 @@ import {
   searchNotesQuery,
   searchStore,
 } from "@wirecat/cli-core/services"
-import type { AccountKey, MessageStore, Note } from "@wirecat/cli-core/store"
+import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
+import type { Note } from "@wirecat/cli-core/store/areas"
 import { APP } from "../app.js"
 import { keyDocuments, keyFirst, projectOf } from "../knowledge/key-documents.js"
 import { crmViewers as viewersOf } from "../store/crm-viewer.js"

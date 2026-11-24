@@ -1,6 +1,7 @@
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { queryTerms, termField, typedQuery } from "@wirecat/cli-core/cli"
-import { FACT_STATUSES, FACT_TYPES, type Fact, type MessageStore } from "@wirecat/cli-core/store"
+import { FACT_STATUSES, FACT_TYPES, type MessageStore } from "@wirecat/cli-core/store"
+import type { Fact } from "@wirecat/cli-core/store/areas"
 import { pageOf } from "../page.js"
 import { canonicalProject } from "../vocabulary/project.js"
 
