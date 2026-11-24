@@ -4,6 +4,14 @@ Notable changes to `@wirecat/cli-memo`, one section per version, newest
 first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
 the API.
 
+## 0.151.0 — 24.11.2026
+
+### Fixed
+
+- **The morning digest is kept when the agent cannot date one reply.** From 2026-11-21 one `reply` without `since` made
+  the whole digest fail its check, and WireCat Desktop showed its raw text. A reply's `since` is now optional, as the
+  morning-digest skill says.
+
 ## 0.150.0 — 23.11.2026
 
 ### Added
