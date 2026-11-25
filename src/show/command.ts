@@ -60,7 +60,18 @@ const refuseDenied = (command: Command, summaries: readonly Pick<RefSummary, "re
 }
 
 /** Titles of these kinds are written by other people: a chat's title, a sender's name, a shared file's name. */
-const OTHERS = new Set(["message", "chat", "contact", "email", "email_thread", "document", "event", "meeting", "bot"])
+const OTHERS = new Set([
+  "message",
+  "chat",
+  "contact",
+  "email",
+  "email_thread",
+  "document",
+  "event",
+  "meeting",
+  "agent",
+  "bot",
+])
 
 const ACCOUNT_KEY = /^[a-z][a-z-]*:\S+$/
 

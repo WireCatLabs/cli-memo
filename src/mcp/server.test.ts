@@ -75,7 +75,7 @@ it("offers the memo tools, saves an agent's memory and proposal as the client's,
     expect(answerOf(JSON.stringify(memory.structuredContent))).toMatchObject({
       text: "Bob Sample prefers Friday meetings",
       status: "proposed",
-      author: { type: "bot", name: "fixture" },
+      author: { type: "agent", name: "fixture" },
     })
 
     const proposal = await call("actions add", {
@@ -102,7 +102,7 @@ it("offers the memo tools, saves an agent's memory and proposal as the client's,
       occurred_at: "2026-10-01T09:00:00.000Z",
       status: "proposed",
       origin: "agent",
-      author: { type: "bot" },
+      author: { type: "agent" },
     })
     expect((await answer("facts list", { query: "kind:decision status:proposed" })).items).toMatchObject([
       { kind: "decision" },
@@ -197,7 +197,7 @@ it("offers vocabulary discovery and preflight alongside permitted writes", async
     expect(answerOf(JSON.stringify(proposed.structuredContent))).toMatchObject({
       status: "proposed",
       project: project.ref,
-      author: { type: "bot" },
+      author: { type: "agent" },
     })
   } finally {
     await client.close()
@@ -642,11 +642,11 @@ it("adds and comments on a project task in the client's name, and lists who wrot
   const { client, answer } = await connected("claude-desktop")
   try {
     const task = await answer("tasks add", { project: "HRB", title: "Book the venue" })
-    expect(task.created_by).toMatchObject({ type: "bot", name: "claude-desktop", owner: false })
+    expect(task.created_by).toMatchObject({ type: "agent", name: "claude-desktop", owner: false })
     const comment = await answer("tasks comments add", { id: task.key, text: ["Asked", "for", "two", "rooms"] })
     expect(comment).toMatchObject({ text: "Asked for two rooms", author: { name: "claude-desktop", owner: false } })
     const listed = await answer("tasks comments list", { id: task.key })
-    expect(listed.items).toMatchObject([{ text: "Asked for two rooms", author: { type: "bot" } }])
+    expect(listed.items).toMatchObject([{ text: "Asked for two rooms", author: { type: "agent" } }])
   } finally {
     await client.close()
   }

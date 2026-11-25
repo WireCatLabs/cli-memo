@@ -185,7 +185,7 @@ invented destination reference: use the actual reference from `MESSAGING_STORE=.
 destination reference. For example:
 
 ```json
-{"project:1":"project:2","bot:3":"bot:7","document:4":"document:9"}
+{"project:1":"project:2","agent:3":"agent:7","document:4":"document:9"}
 ```
 
 These are illustrative IDs. Reading a reference does not establish identity: choose bindings from

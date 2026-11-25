@@ -1136,13 +1136,13 @@ memo bots show <bot> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `bot` | required | sender-bot:<id> as bots list prints it. |
+| `bot` | required | bot:<id> as bots list prints it. |
 
 | Option | What it does |
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Example:** `memo bots show sender-bot:3`, `memo bots show sender-bot:3 --json`
+**Example:** `memo bots show bot:3`, `memo bots show bot:3 --json`
 
 ### `memo bots move`
 
@@ -1156,19 +1156,19 @@ memo bots move <who> [options]
 
 | Argument | | What it is |
 |---|---|---|
-| `who` | required | sender-bot:<id>, person:<uid>, an address, or <messenger>:<id> exactly as people show prints it. |
+| `who` | required | bot:<id>, person:<uid>, an address, or <messenger>:<id> exactly as people show prints it. |
 
 | Option | What it does |
 |---|---|
 | `--kind <kind>` | what the sender is: bot or person. |
-| `--into <id>` | the sender-bot:<id> or person:<uid> it joins, instead of a bot of its own or the person it came from. |
+| `--into <id>` | the bot:<id> or person:<uid> it joins, instead of a bot of its own or the person it came from. |
 | `--name <name>` | with --kind bot: what to call a new bot. |
 | `--reason <text>` | why, kept in the move log. |
 | `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
 | `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Example:** `memo bots move sender-bot:3 --kind person`, `memo bots move telegram:12345 --kind bot --into sender-bot:3`, `memo bots move noreply@shop.example --kind bot`
+**Example:** `memo bots move bot:3 --kind person`, `memo bots move telegram:12345 --kind bot --into bot:3`, `memo bots move noreply@shop.example --kind bot`
 
 ## `memo tags`
 

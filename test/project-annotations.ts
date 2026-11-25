@@ -63,7 +63,7 @@ export const projectAnnotationFixture = async () => {
     const bindings = {
       [project.ref]: targetProject.ref,
       [document.ref]: targetDocument.ref,
-      [`bot:${fact.author.id}`]: `bot:${targetFact.author.id}`,
+      [`agent:${fact.author.id}`]: `agent:${targetFact.author.id}`,
     }
     const bindingsFile = join(directory, "bindings.json"),
       snapshotFile = join(directory, "snapshot.json")

@@ -235,7 +235,7 @@ it("gives the agent only mail worth reading, stages its batch once, and moves th
   const agentFindings = scriptedAgent(read.items, box.task, through)
   const findings = box.file("findings.json", agentFindings)
   const staged = (await box.memo(LOCKED, NOBODY, "mail", "findings", "add", findings, "--source", MAILBOX)).item
-  expect(staged).toMatchObject({ status: "proposed", author: { type: "bot", name: "claude-code" } })
+  expect(staged).toMatchObject({ status: "proposed", author: { type: "agent", name: "claude-code" } })
   expect((await box.review()).items).toHaveLength(3)
 
   await box.acknowledge(read.cursor)

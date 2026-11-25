@@ -207,10 +207,10 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo bots list name:shop",
     "memo bots list 'organization:\"organization:3\"' --page 2",
   ],
-  "bots show": ["memo bots show sender-bot:3", "memo bots show sender-bot:3 --json"],
+  "bots show": ["memo bots show bot:3", "memo bots show bot:3 --json"],
   "bots move": [
-    "memo bots move sender-bot:3 --kind person",
-    "memo bots move telegram:12345 --kind bot --into sender-bot:3",
+    "memo bots move bot:3 --kind person",
+    "memo bots move telegram:12345 --kind bot --into bot:3",
     "memo bots move noreply@shop.example --kind bot",
   ],
   "domain-lists list": ["memo domain-lists list", "memo domain-lists list --json"],

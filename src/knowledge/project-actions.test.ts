@@ -506,7 +506,7 @@ it("proposes an action as the owner's under --from-app; an agent's --as-owner ge
   expect(await run(agent, ...reply, "--from-app")).toMatchObject({ proposed_by: { type: "person" } })
 
   const proposed = await run(agent, ...reply)
-  expect(proposed).toMatchObject({ status: "proposed", proposed_by: { type: "bot" } })
+  expect(proposed).toMatchObject({ status: "proposed", proposed_by: { type: "agent" } })
   await expect(run(agent, "actions", "confirm", proposed.id, "--as-owner")).rejects.toMatchObject(unconfirmed)
   await expect(run(agent, "actions", "reject", proposed.id, "--as-owner")).rejects.toMatchObject(unconfirmed)
 })
