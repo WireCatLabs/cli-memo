@@ -4336,6 +4336,7 @@
         "kind",
         "name",
         "scope",
+        "sector",
         "created_at"
       ]
     },
