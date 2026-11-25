@@ -4,13 +4,8 @@ import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import type { NextStep } from "@wirecat/cli-base/standards"
 import { LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
-import {
-  type ListedPerson,
-  PEOPLE_SORTS,
-  PERSON_KINDS,
-  type PeopleSort,
-  type PersonKind,
-} from "@wirecat/cli-core/store"
+import { PERSON_KINDS, type PersonKind } from "@wirecat/cli-core/store"
+import { type ListedPerson, PEOPLE_SORTS, type PeopleSort } from "@wirecat/cli-core/store/areas"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, wholeList, withStore } from "../answer.js"
 import { deciderOf, fromAppOption } from "../author.js"

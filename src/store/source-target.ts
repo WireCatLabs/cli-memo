@@ -1,6 +1,7 @@
 import { CliError } from "@wirecat/cli-base"
 import { formatLocator, parseLocator } from "@wirecat/cli-core"
-import type { AccountKey, TagTarget } from "@wirecat/cli-core/store"
+import type { AccountKey } from "@wirecat/cli-core/store"
+import type { TagTarget } from "@wirecat/cli-core/store/areas"
 
 export interface SourceScope {
   provider?: string

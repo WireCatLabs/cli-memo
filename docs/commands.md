@@ -1787,7 +1787,7 @@ memo organizations list [query] [options]
 |---|---|
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Returns:** organization — id, ref, kind, name, scope, created_at; every field: memo commands info organizations list
+**Returns:** organization — id, ref, kind, name, scope, sector, created_at; every field: memo commands info organizations list
 
 **Example:** `memo organizations list name:*harbour*`, `memo organizations list category:client`, `memo organizations list --json`
 

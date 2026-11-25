@@ -15,7 +15,8 @@ import {
   personContext,
   personHistory,
 } from "@wirecat/cli-core/services"
-import type { AccountKey, Link, MessageStore, Note, PersonRecord, RelationListItem } from "@wirecat/cli-core/store"
+import type { AccountKey, MessageStore, PersonRecord } from "@wirecat/cli-core/store"
+import type { Link, Note, RelationListItem } from "@wirecat/cli-core/store/areas"
 import { holdsFolder, type NotesAbout, notesAbout } from "../notes/about.js"
 import { withOwner } from "../people/owner.js"
 import { crmViewersAll, crmViewingAll } from "../store/crm-viewer.js"

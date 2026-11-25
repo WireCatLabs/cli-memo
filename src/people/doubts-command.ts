@@ -1,7 +1,7 @@
 import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { LOCAL_READ, LOCAL_WRITE } from "@wirecat/cli-core/cli"
-import type { PersonDoubt } from "@wirecat/cli-core/store"
+import type { PersonDoubt } from "@wirecat/cli-core/store/areas"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
 import { byOption } from "../author.js"

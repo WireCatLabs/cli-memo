@@ -1,6 +1,7 @@
 import { CliError } from "@wirecat/cli-base"
 import { parseLocator } from "@wirecat/cli-core"
-import type { AccountKey, KnowledgeTarget, MessageStore } from "@wirecat/cli-core/store"
+import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
+import type { KnowledgeTarget } from "@wirecat/cli-core/store/areas"
 import { scopedAccounts } from "./group.js"
 import { oneAccountOf, type WriteOptions, writeAccountOf } from "./source-list.js"
 

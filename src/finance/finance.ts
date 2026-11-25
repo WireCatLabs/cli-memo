@@ -9,7 +9,8 @@ import {
   moneyOf,
 } from "@wirecat/cli-core"
 import { queryTerms, termField } from "@wirecat/cli-core/cli"
-import type { FinancePayment, Invoice, MessageStore } from "@wirecat/cli-core/store"
+import type { MessageStore } from "@wirecat/cli-core/store"
+import type { FinancePayment, Invoice } from "@wirecat/cli-core/store/areas"
 import { pageOf } from "../page.js"
 import { canonicalProject } from "../vocabulary/project.js"
 

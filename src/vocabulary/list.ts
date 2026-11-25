@@ -1,6 +1,6 @@
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { queryTerms, termField } from "@wirecat/cli-core/cli"
-import type { VocabularyOptions } from "@wirecat/cli-core/store"
+import type { VocabularyOptions } from "@wirecat/cli-core/store/areas"
 
 export const VOCABULARY_QUERY = {
   entity: "vocabulary",

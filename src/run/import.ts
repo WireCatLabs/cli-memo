@@ -7,7 +7,7 @@ import {
   type Streams,
 } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { FETCH, parseDuration } from "@wirecat/cli-core/cli"
+import { FETCH, notLocalPaths, parseDuration } from "@wirecat/cli-core/cli"
 import { markStoreDamaged, openStore, type SourceCheck, storePath } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError, Option } from "commander"
 import { answers, itemAnswer } from "../answer.js"
@@ -180,7 +180,7 @@ export const syncCommand = (
   keyring?: KeyringStore,
 ): void => {
   const { print } = answers(program, streams, env)
-  annotate(program.command("sync"), { effects: FETCH })
+  notLocalPaths(annotate(program.command("sync"), { effects: FETCH }), "folder", "ignore")
     .summary("sync notes, make stored mail searchable by meaning, and match people")
     .description(
       "bring notes up to date in the store, only what changed, embed the mail already stored for search by " +

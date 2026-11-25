@@ -1,5 +1,6 @@
 import { parseMeetingReference } from "@wirecat/cli-core/meetings"
-import type { Link, MessageStore } from "@wirecat/cli-core/store"
+import type { MessageStore } from "@wirecat/cli-core/store"
+import type { Link } from "@wirecat/cli-core/store/areas"
 
 export const projectFindings = async (store: MessageStore, project: string, links: Link[]) => {
   const ids = new Set<number>()

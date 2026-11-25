@@ -2,8 +2,9 @@ import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { formatReference, normalizeTag } from "@wirecat/cli-core"
-import { LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
-import type { AccountKey, MessageStore, StoredTag } from "@wirecat/cli-core/store"
+import { LOCAL_READ, LOCAL_WRITE, notLocalPaths, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
+import type { AccountKey, MessageStore } from "@wirecat/cli-core/store"
+import type { StoredTag } from "@wirecat/cli-core/store/areas"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
 import { folderIds } from "../notes/bound.js"
@@ -57,7 +58,7 @@ const reference = ({ provider, account }: SourceScope, chat: string) =>
 
 const targetOptions = (command: Command) =>
   writeOptions(
-    command
+    notLocalPaths(command, "folder", "subfolder")
       .argument("<tag...>", "one or more tags: 1–32 letters a–z, digits or hyphens; case is ignored")
       .option("--message <message>", "a stored email or message's full msg: locator")
       .option("--note <reference>", "a note: note:<id>, a file in a notes folder: document:<id>; a bare id is a note")

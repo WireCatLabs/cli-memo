@@ -1,4 +1,5 @@
-import type { Link, MessageStore } from "@wirecat/cli-core/store"
+import type { MessageStore } from "@wirecat/cli-core/store"
+import type { Link } from "@wirecat/cli-core/store/areas"
 import { expect, it, vi } from "vitest"
 import { projectFindings } from "./project-findings.js"
 

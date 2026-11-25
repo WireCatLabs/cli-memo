@@ -15,6 +15,7 @@ import {
   type HelpSection,
   inSection,
   NO_EFFECTS,
+  notLocalPaths,
   sharedCommandTemplate,
 } from "@wirecat/cli-core/cli"
 import type { Command } from "commander"
@@ -26,7 +27,7 @@ import { VERSION } from "../version.js"
 export const CONTRACT = 4
 
 const commandsCommandDefinition = (program: Command, streams: Streams): void => {
-  annotate(program.command("commands"), { effects: NO_EFFECTS })
+  notLocalPaths(annotate(program.command("commands"), { effects: NO_EFFECTS }), "path")
     .argument("[path...]", "one command, such as tags add")
     .description(DISCOVERY_DESCRIPTIONS.commands)
     .option("--json", "print JSON; --json=id,title keeps only those fields")

@@ -1,12 +1,11 @@
 import { fileURLToPath } from "node:url"
 import { CliError, createRenderer, type KeyringStore, processStreams, type Streams } from "@wirecat/cli-base"
-import { customizeSharedCommand } from "@wirecat/cli-base/commands"
+import { assertSharedContracts, customizeSharedCommand } from "@wirecat/cli-base/commands"
 import { skillCommand } from "@wirecat/cli-base/skill"
 import { REF_KINDS } from "@wirecat/cli-core"
 import type { ServerSystem } from "@wirecat/cli-core/background"
 import {
   addContractInfo,
-  assertSharedContracts,
   commandWords,
   entityFields,
   environmentOf,

@@ -1,6 +1,7 @@
 import type { DealKind } from "@wirecat/cli-core"
 import { canonicalPersonContext } from "@wirecat/cli-core/services"
-import type { LinkEvidence, MessageStore, PersonMerge } from "@wirecat/cli-core/store"
+import type { LinkEvidence, MessageStore } from "@wirecat/cli-core/store"
+import type { PersonMerge } from "@wirecat/cli-core/store/areas"
 import { crmViewingAll } from "../store/crm-viewer.js"
 import { groupScopeOf } from "../store/group.js"
 
