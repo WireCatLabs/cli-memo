@@ -243,6 +243,12 @@ export const REASONS: ErrorReason[] = defineReasons([
   },
   { reason: "person.not-found", code: "not_found", message: "the store has no person by that name", details: [] },
   {
+    reason: "bots.whole-store",
+    code: "validation_error",
+    message: "the bots commands read every account, so they do not run in an account group",
+    details: [],
+  },
+  {
     reason: "identity.not-found",
     code: "not_found",
     message: "no identity has that exact id; people show lists them",

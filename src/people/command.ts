@@ -169,7 +169,8 @@ export const peopleCommand = (program: Command, streams: Streams, env: NodeJS.Pr
       .description(
         "people of one kind: person (the default: the owner, people added by hand or assigned a task, and named " +
           "people with a tie to you, such as a one-to-one chat, a group of at most 10, mail you wrote, a meeting, a " +
-          "CRM deal of yours or your address book), organization, automated (bots, newsletters, notifications), " +
+          "CRM deal of yours or your address book), organization, automated (a name or a bulk mailbox marks them; " +
+          "bots are not people: bots list), " +
           "stranger (no tie), unsorted (no name), test (what a test run left, hidden from every other list) or all, " +
           "which leaves test out. The owner first, then by the messages and mail they sent",
       ),

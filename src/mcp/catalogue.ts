@@ -37,6 +37,7 @@ export const MCP_EXCLUSIONS = [
   { path: ["people", "confirm"], reason: "the owner's answer to who is who" },
   { path: ["people", "reject"], reason: "the owner's answer to who is who" },
   { path: ["people", "resolve"], reason: "the owner's answer to who is who" },
+  { path: ["bots", "move"], reason: "the owner's word on who is a program, for a whole history" },
 ] as const
 
 /**
