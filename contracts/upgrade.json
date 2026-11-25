@@ -43,7 +43,7 @@
       "kind": "json",
       "json": {
         "item": {
-          "ref": "note:2"
+          "text": "second synthetic note"
         }
       }
     }
