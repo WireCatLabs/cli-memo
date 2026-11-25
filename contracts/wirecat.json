@@ -620,6 +620,43 @@
     },
     {
       "path": [
+        "bots",
+        "list"
+      ],
+      "summary": "the bots, by name",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "bots.list",
+      "entity": "sender_bot"
+    },
+    {
+      "path": [
+        "bots",
+        "show"
+      ],
+      "summary": "one bot with every move to or from it",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "bots.show"
+    },
+    {
+      "path": [
+        "bots",
+        "move"
+      ],
+      "summary": "say a sender is a program or a person, for its whole history; only you",
+      "effects": {
+        "remote": "none",
+        "local": "write"
+      },
+      "permission": "bots.move"
+    },
+    {
+      "path": [
         "tags",
         "add"
       ],
@@ -3471,6 +3508,32 @@
     },
     {
       "path": [
+        "domain-lists",
+        "list"
+      ],
+      "summary": "the lists downloaded here, with their licence, licence class and size",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "domain-lists.list",
+      "entity": "domain_list"
+    },
+    {
+      "path": [
+        "domain-lists",
+        "update"
+      ],
+      "summary": "download the newest pack from WireCat's GitHub release, each file checked by…",
+      "effects": {
+        "remote": "read",
+        "local": "write"
+      },
+      "permission": "domain-lists.update",
+      "entity": "domain_list"
+    },
+    {
+      "path": [
         "templates",
         "list"
       ],
@@ -4296,6 +4359,12 @@
       "fields": [
         "name",
         "kind"
+      ]
+    },
+    "sender_bot": {
+      "fields": [
+        "name",
+        "organization"
       ]
     },
     "source_tag": {

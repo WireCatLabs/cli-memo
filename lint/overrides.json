@@ -173,5 +173,12 @@
     "reason": "WireCat Desktop's Meetings page reads a calendar week or month oldest first (plan 2026-11-13-meetings-page): `meetings list --order start`. cli-base's vocabulary knows --order only as <recent|name>; add a start order there, then drop this.",
     "owner": "@leemour",
     "review_after": "2027-02-13"
+  },
+  {
+    "rule": "unknown-resource",
+    "target": "bots",
+    "reason": "cli-core 1.1.0 makes a bot its own entity apart from people (sender-bot:<id>, cli-core#3356, GLOSSARY row \"bot\"), and memo must list it in the same bump or bots vanish from the Automated view once a store reaches version 75; the cli-base vocabulary knows bot only as a profile's bot account. Register bots as a collection there, then drop this.",
+    "owner": "@leemour",
+    "review_after": "2027-02-25"
   }
 ]

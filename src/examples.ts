@@ -202,6 +202,19 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
     "memo organizations delete organization:12 --yes",
   ],
   "people delete": ["memo people delete person:17", "memo people delete person:17 --yes"],
+  "bots list": [
+    "memo bots list",
+    "memo bots list name:shop",
+    "memo bots list 'organization:\"organization:3\"' --page 2",
+  ],
+  "bots show": ["memo bots show sender-bot:3", "memo bots show sender-bot:3 --json"],
+  "bots move": [
+    "memo bots move sender-bot:3 --kind person",
+    "memo bots move telegram:12345 --kind bot --into sender-bot:3",
+    "memo bots move noreply@shop.example --kind bot",
+  ],
+  "domain-lists list": ["memo domain-lists list", "memo domain-lists list --json"],
+  "domain-lists update": ["memo domain-lists update", "memo domain-lists update --commercial-only"],
   "people unmerge": ["memo people unmerge merge:12-34", "memo people unmerge merge:12-34 --reason 'a shared mailbox'"],
   "tasks agenda": [
     "memo tasks agenda --source telegram:1",

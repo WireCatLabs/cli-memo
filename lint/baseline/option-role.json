@@ -1,5 +1,6 @@
 [
   "actions edit --set",
+  "domain-lists update --commercial-only",
   "people resolve --mailbox",
   "projects evidence --include-proposed",
   "projects evidence --purposes",

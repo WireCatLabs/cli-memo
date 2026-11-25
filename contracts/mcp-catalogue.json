@@ -32,6 +32,8 @@
   "people link": "write",
   "people unlink": "write",
   "people unmerge": "write",
+  "bots list": "read",
+  "bots show": "read",
   "tags add": "write",
   "tags remove": "write",
   "tags list": "read",

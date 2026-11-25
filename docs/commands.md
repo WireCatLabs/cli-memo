@@ -795,7 +795,7 @@ memo people add <name> [options]
 
 ### `memo people list`
 
-people of one kind: person (the default: the owner, people added by hand or assigned a task, and named people with a tie to you, such as a one-to-one chat, a group of at most 10, mail you wrote, a meeting, a CRM deal of yours or your address book), organization, automated (bots, newsletters, notifications), stranger (no tie), unsorted (no name), test (what a test run left, hidden from every other list) or all, which leaves test out. The owner first, then by the messages and mail they sent
+people of one kind: person (the default: the owner, people added by hand or assigned a task, and named people with a tie to you, such as a one-to-one chat, a group of at most 10, mail you wrote, a meeting, a CRM deal of yours or your address book), organization, automated (a name or a bulk mailbox marks them; bots are not people: bots list), stranger (no tie), unsorted (no name), test (what a test run left, hidden from every other list) or all, which leaves test out. The owner first, then by the messages and mail they sent
 
 ```sh
 memo people list [query] [options]
@@ -1101,6 +1101,74 @@ memo people unmerge <merge> [options]
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
 **Example:** `memo people unmerge merge:12-34`, `memo people unmerge merge:12-34 --reason 'a shared mailbox'`
+
+## `memo bots`
+
+programs that write to you, apart from people: no-reply and alert addresses, a service's mail, a messenger's bot. Not agents (agents list)
+
+### `memo bots list`
+
+the bots, by name: each with its identities, its organization, who sorted it (rules or you), its reach and the messages and mail it sent
+
+```sh
+memo bots list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--limit <n>` | most bots on a page, up to 5000. Default: `500`. |
+| `--page <n>` | which page, from 1. Default: `1`. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Example:** `memo bots list`, `memo bots list name:shop`, `memo bots list 'organization:"organization:3"' --page 2`
+
+### `memo bots show`
+
+one bot: its identities, organization and counts, and every move between it and a person, oldest first
+
+```sh
+memo bots show <bot> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `bot` | required | sender-bot:<id> as bots list prints it. |
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Example:** `memo bots show sender-bot:3`, `memo bots show sender-bot:3 --json`
+
+### `memo bots move`
+
+your word that a sender is a program (--kind bot) or a person (--kind person). Its whole history moves, past and future: every message and mail it sent stays where it is and now counts for the bot or the person, and no rule moves it back. The move is logged in bots show; moving it the other way undoes it, and a person moved back keeps their person:<uid>. Only you, never an agent
+
+This command changes the local store or your files.
+
+```sh
+memo bots move <who> [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `who` | required | sender-bot:<id>, person:<uid>, an address, or <messenger>:<id> exactly as people show prints it. |
+
+| Option | What it does |
+|---|---|
+| `--kind <kind>` | what the sender is: bot or person. |
+| `--into <id>` | the sender-bot:<id> or person:<uid> it joins, instead of a bot of its own or the person it came from. |
+| `--name <name>` | with --kind bot: what to call a new bot. |
+| `--reason <text>` | why, kept in the move log. |
+| `--as-owner` | act as you although an agent's terminal runs memo (AI_AGENT or CLAUDECODE set); asks y/N at the terminal. |
+| `--from-app` | you did this in WireCat Desktop: record it as yours, with no terminal question. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Example:** `memo bots move sender-bot:3 --kind person`, `memo bots move telegram:12345 --kind bot --into sender-bot:3`, `memo bots move noreply@shop.example --kind bot`
 
 ## `memo tags`
 
@@ -6298,6 +6366,46 @@ memo models picture-reading set <mode> [options]
 | `--json` | print JSON. |
 
 **Example:** `memo models picture-reading set request --agent claude`, `memo models picture-reading set request --agent codex --model gpt-5`, `memo models picture-reading set never`
+
+## `memo domain-lists`
+
+lists of bank, shop, news and spam domains that give organizations their sector, matched on this computer
+
+### `memo domain-lists list`
+
+the lists downloaded here, with their licence, licence class and size
+
+```sh
+memo domain-lists list [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--json` | print JSON. |
+
+**Returns:** domain list — id, title, signal, class, licence, licence_url, attribution, homepage, and 7 more; every field: memo commands info domain-lists list
+
+**Example:** `memo domain-lists list`, `memo domain-lists list --json`
+
+### `memo domain-lists update`
+
+download the newest pack from WireCat's GitHub release, each file checked by sha256; lists that may not be redistributed come whole from their own source. No sender is ever sent anywhere
+
+This command changes the local store or your files.
+
+```sh
+memo domain-lists update [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--commercial-only` | leave out lists whose terms forbid commercial use, and remove those already here. |
+| `--offline` | refuse a download that needs the network. |
+| `--json` | print JSON. |
+
+**Returns:** domain list — id, title, signal, class, licence, licence_url, attribution, homepage, and 7 more; every field: memo commands info domain-lists update
+
+**Example:** `memo domain-lists update`, `memo domain-lists update --commercial-only`
 
 ## `memo templates`
 

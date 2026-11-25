@@ -29,6 +29,7 @@ import { agentsCommand } from "./agents/command.js"
 import { answers, itemAnswer, trackAnswers, withStore } from "./answer.js"
 import { askCommand } from "./answers/command.js"
 import { APP } from "./app.js"
+import { botsCommand } from "./bots/command.js"
 import { loadConfig } from "./config.js"
 import { configCommand } from "./config-command.js"
 import { contextCommand } from "./context/command.js"
@@ -38,6 +39,7 @@ import { digestAddendum, withBrief } from "./digest/brief.js"
 import { commandsCommand, placeInSections } from "./discovery/command.js"
 import { doctorCommand } from "./doctor/command.js"
 import { documentsCommand } from "./documents/command.js"
+import { domainListsCommands } from "./domain-lists/command.js"
 import { eventsCommand } from "./events/command.js"
 import { addExamples } from "./examples.js"
 import { keepExitCode } from "./exit-code.js"
@@ -775,6 +777,7 @@ export const createProgram = ({
   mailCommand(program, streams, env)
   noteCommand(program, streams, env)
   peopleCommand(program, streams, env)
+  botsCommand(program, streams, env)
   tagsCommand(program, streams, env)
   tasksCommand(program, streams, env)
   knowledgeCommands(program, streams, env)
@@ -799,6 +802,7 @@ export const createProgram = ({
   agentsCommand(program, streams, env)
   mcpCommand(program, streams, env, createProgram)
   modelsCommand(program, streams, env, keyring, stdin)
+  domainListsCommands(program, streams, env)
   templatesCommand(program, streams, env)
   searchCommand(program, streams, env)
   meetingReadCommands(program, streams, env)

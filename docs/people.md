@@ -30,8 +30,8 @@ memo people check ivan petrov             # before adding a person: who already 
 `people list` shows one kind at a time; the first rule that holds decides it, and `kind_signals` says which:
 
 1. **person**: you, people you added by hand, and anyone assigned a task, always.
-2. **automated**: a bot, a no-reply address, a sender most of whose mail is in the bulk box or whose mail you never
-   answer, or a name such as «Notifications» or «Рассылка».
+2. **automated**: a person most of whose mail is in the bulk box or whose mail you never answer, or a name such as
+   «Notifications» or «Рассылка». Bots are not people, so `people list` never shows them: see [Bots](#bots).
 3. **organization**: an account an organization owns, a shared address such as `info@`, or a legal form or company
    word in the name (ООО, LLC, Airlines, Hotel, Team…).
 4. **person**: a readable name and a tie to you: a one-to-one chat or a group of at most 10 they are in or wrote in,
@@ -56,6 +56,37 @@ Memo never joins anyone to you on its own. An account you connect under another 
 mailbox or a spouse's messenger you read, waits in `people review` as a match with the signal `account`, and so does
 anyone whose phone or address is also yours. A company's phone and a bot's number join and propose no one; a shared
 mailbox such as `info@` joins no one but suggests each pair of its people, as below.
+
+## Bots
+
+A bot is a program that writes to you: a no-reply or alert address, a service's mail, a messenger's bot. It is kept
+apart from people. It has a name, its identities and an optional organization, and no ties, tasks or merge review.
+Its reference is `sender-bot:<id>`. Agents are a different thing: `memo agents list` shows them.
+
+```sh
+memo bots list                            # every bot, by name
+memo bots list name:shop                  # a part of a name, address or username, 3 characters or more
+memo bots list 'organization:"organization:3"' --page 2
+memo bots show sender-bot:3               # its identities and every move to or from it
+```
+
+Each bot has `name`, `display_name`, `organization`, `author` (`rules`, or `owner` when you moved it), `reason`,
+`identities`, `messages_from` (the messages and mail it sent), `last_contact`, `reach` (`direct`, `group` or
+`broadcast`) and `signals`. The rules make a bot from what its messages carry. You can correct them:
+
+```sh
+memo bots move noreply@shop.example --kind bot                # this address is a program
+memo bots move sender-bot:3 --kind person                     # this bot is a person after all
+memo bots move telegram:12345 --kind bot --into sender-bot:3  # this account is the same program as sender-bot:3
+```
+
+A move takes the sender's whole history, past and future. Its messages and mail stay where they are and count for the
+bot or the person, and no rule moves it back. `bots show` lists every move. Moving it the other way undoes it, and a
+person moved back keeps their `person:<uid>`. Only you can move a sender: an agent's `bots move` is refused. `<who>` is
+written exactly: `sender-bot:<id>`, `person:<uid>`, an address, or `<messenger>:<id>` as `memo people show` prints it,
+never a name.
+
+The bots commands count over every account, so they do not run in an account group.
 
 ## Everything about a person
 

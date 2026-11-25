@@ -101,6 +101,7 @@ const SECTIONS: [string, HelpSection][] = [
   ["import", "write"],
   ["projects", "organise"],
   ["people", "organise"],
+  ["bots", "organise"],
   ["relationships", "organise"],
   ["reminders", "organise"],
   ["vocabulary", "organise"],
@@ -110,6 +111,7 @@ const SECTIONS: [string, HelpSection][] = [
   ["folders", "setup"],
   ["groups", "setup"],
   ["config", "setup"],
+  ["domain-lists", "setup"],
 ]
 
 /** Where `memo commands` lists each group; run after every command is added. */

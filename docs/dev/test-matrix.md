@@ -7,7 +7,7 @@ ran it · ⛔ not tested offline, with the reason and where it is checked instea
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1568 ✅ · 2 ⛔ · 0 ❌** — 345 commands, 1225 options.
+**1588 ✅ · 2 ⛔ · 0 ❌** — 350 commands, 1240 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
@@ -239,6 +239,20 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `people unmerge` | `--from-app` | ✅ |  |
 | `people unmerge` | `--reason` | ✅ |  |
 | `people unmerge` | `--json` | ✅ |  |
+| `bots list` |  | ✅ |  |
+| `bots list` | `--limit` | ✅ |  |
+| `bots list` | `--page` | ✅ |  |
+| `bots list` | `--json` | ✅ |  |
+| `bots show` |  | ✅ |  |
+| `bots show` | `--json` | ✅ |  |
+| `bots move` |  | ✅ |  |
+| `bots move` | `--kind` | ✅ |  |
+| `bots move` | `--into` | ✅ |  |
+| `bots move` | `--name` | ✅ |  |
+| `bots move` | `--reason` | ✅ |  |
+| `bots move` | `--as-owner` | ✅ |  |
+| `bots move` | `--from-app` | ✅ |  |
+| `bots move` | `--json` | ✅ |  |
 | `tags add` |  | ✅ |  |
 | `tags add` | `--message` | ✅ |  |
 | `tags add` | `--note` | ✅ |  |
@@ -1315,6 +1329,12 @@ Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 | `models picture-reading set` | `--model` | ✅ |  |
 | `models picture-reading set` | `--from-app` | ✅ |  |
 | `models picture-reading set` | `--json` | ✅ |  |
+| `domain-lists list` |  | ✅ |  |
+| `domain-lists list` | `--json` | ✅ |  |
+| `domain-lists update` |  | ✅ |  |
+| `domain-lists update` | `--commercial-only` | ✅ |  |
+| `domain-lists update` | `--offline` | ✅ |  |
+| `domain-lists update` | `--json` | ✅ |  |
 | `templates list` |  | ✅ |  |
 | `templates list` | `--json` | ✅ |  |
 | `templates show` |  | ✅ |  |
