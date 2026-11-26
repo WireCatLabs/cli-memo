@@ -43,7 +43,9 @@ const refusedLink = "a symbolic link is not followed: give the folder it points 
 export const readBytes = async (path: string): Promise<Uint8Array> => {
   const handle = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW)
   try {
-    return new Uint8Array(await readWhole(handle))
+    const bytes = await readWhole(handle)
+    // A view, not a copy: the buffer is the file's own, and a large file is held once.
+    return new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength)
   } finally {
     await handle.close()
   }

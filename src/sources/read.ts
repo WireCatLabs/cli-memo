@@ -196,7 +196,8 @@ export const readFile = async (
   if (!stat) throw new CliError("not_found", `no file ${path}`, { path })
   if (!stat.isFile()) throw new CliError("validation_error", `${path} is not a file`, { path })
   if (stat.size > attachmentMaxBytes()) throw tooLarge(name)
-  const bytes = new Uint8Array(await readWhole(path))
+  const read = await readWhole(path)
+  const bytes = new Uint8Array(read.buffer, read.byteOffset, read.byteLength)
   const extension = extname(name).toLowerCase()
   const mime = MIMES[extension] ?? null
   const base = {
