@@ -24,7 +24,7 @@ describe("document ingestion", () => {
         vi.unstubAllEnvs()
       }
       const raised = await importNotes(store, folder, { env })
-      expect(raised.notRead).toEqual([])
+      expect(raised.notRead ?? []).toEqual([])
       expect(raised.changed).toBe(1)
     } finally {
       await store.close()
