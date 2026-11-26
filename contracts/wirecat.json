@@ -424,6 +424,20 @@
     {
       "path": [
         "mail",
+        "subscriptions",
+        "list"
+      ],
+      "summary": "broadcast mail by list, newest first",
+      "effects": {
+        "remote": "none",
+        "local": "read"
+      },
+      "permission": "mail.subscriptions.list",
+      "entity": "mail_subscription"
+    },
+    {
+      "path": [
+        "mail",
         "review"
       ],
       "summary": "threads with new mail, mail you owe an answer, mail waiting for one",
@@ -4375,6 +4389,11 @@
         "status"
       ]
     },
+    "mail_subscription": {
+      "fields": [
+        "type"
+      ]
+    },
     "message": {
       "fields": [
         "date",
@@ -4390,7 +4409,8 @@
     "sender_bot": {
       "fields": [
         "name",
-        "organization"
+        "organization",
+        "type"
       ]
     },
     "source_tag": {

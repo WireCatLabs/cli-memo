@@ -67,8 +67,13 @@ Its reference is `bot:<id>` (`sender-bot:<id>` before memo on cli-core 2.0, stil
 memo bots list                            # every bot, by name
 memo bots list name:shop                  # a part of a name, address or username, 3 characters or more
 memo bots list 'organization:"organization:3"' --page 2
+memo bots list type:receipts              # bots that send orders, bills or shipping notices
 memo bots show bot:3               # its identities and every move to or from it
 ```
+
+`type:` is what a bot sends, one at a time: `alerts` (security codes, sign-in and system alerts, account notices),
+`receipts` (orders, bills, shipping), `newsletters`, `marketing` (promotions) or `messenger` (a bot in a messenger).
+It reads the type of each email, so the first such list after new mail arrives may take a few seconds.
 
 Each bot has `name`, `display_name`, `organization`, `author` (`rules`, or `owner` when you moved it), `reason`,
 `identities`, `messages_from` (the messages and mail it sent), `last_contact`, `reach` (`direct`, `group` or

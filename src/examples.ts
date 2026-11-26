@@ -203,9 +203,14 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   ],
   "people delete": ["memo people delete person:17", "memo people delete person:17 --yes"],
   "bots list": [
-    "memo bots list",
     "memo bots list name:shop",
+    "memo bots list type:receipts",
     "memo bots list 'organization:\"organization:3\"' --page 2",
+  ],
+  "mail subscriptions list": [
+    "memo mail subscriptions list",
+    "memo mail subscriptions list type:promotion",
+    "memo mail subscriptions list --source email:work --page 2 --json",
   ],
   "bots show": ["memo bots show bot:3", "memo bots show bot:3 --json"],
   "bots move": [

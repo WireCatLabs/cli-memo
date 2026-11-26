@@ -668,7 +668,7 @@ memo messages reset [options]
 
 ## `memo mail`
 
-mail the mail CLI stored: review new mail for an agent, stage what it found
+mail the mail CLI stored: review new mail for an agent, stage what it found, see the lists you are subscribed to
 
 ### `memo mail findings`
 
@@ -741,6 +741,31 @@ memo mail findings list [query] [options]
 **Returns:** mail findings — id, account, input, fingerprint, status, author, decided_by, decided_at, and 2 more; every field: memo commands info mail findings list
 
 **Example:** `memo mail findings list status:proposed`, `memo mail findings list --source email:work --json`, `memo mail findings list status:reviewed --limit 50 --page 2`
+
+### `memo mail subscriptions`
+
+what is sent to you and you may leave: broadcast mail grouped by its list (List-Id), else by its sender. Not the subscriptions you bill or pay (subscriptions list)
+
+#### `memo mail subscriptions list`
+
+broadcast mail grouped by List-Id, else by its sender, newest first: each with its mail count, its newest email and where to unsubscribe (an https or mailto target its sender's DKIM signature vouches for, and whether one click does it). Nothing is unsubscribed. Open a list's mail with search mail list:<list_id> reach:broadcast
+
+```sh
+memo mail subscriptions list [query] [options]
+```
+
+| Argument | | What it is |
+|---|---|---|
+| `query` | optional | field:value terms that narrow the list — the fields are below. |
+
+| Option | What it does |
+|---|---|
+| `--source <accounts>` | the mailboxes to read (default: every one): email:<address>, email or group:<name>. |
+| `--limit <n>` | most lists on a page, up to 500. Default: `100`. |
+| `--page <n>` | which page, from 1. Default: `1`. |
+| `--json` | print JSON; --json=id,title keeps only those fields. |
+
+**Example:** `memo mail subscriptions list`, `memo mail subscriptions list type:promotion`, `memo mail subscriptions list --source email:work --page 2 --json`
 
 ### `memo mail review`
 
@@ -1108,7 +1133,7 @@ programs that write to you, apart from people: no-reply and alert addresses, a s
 
 ### `memo bots list`
 
-the bots, by name: each with its identities, its organization, who sorted it (rules or you), its reach and the messages and mail it sent
+the bots, by name: each with its identities, its organization, who sorted it (rules or you), its reach and the messages and mail it sent. type: is what a bot sends: alerts (security codes, sign-in and system alerts, account notices), receipts (orders, bills, shipping), newsletters, marketing, or messenger (a bot in a messenger)
 
 ```sh
 memo bots list [query] [options]
@@ -1124,7 +1149,7 @@ memo bots list [query] [options]
 | `--page <n>` | which page, from 1. Default: `1`. |
 | `--json` | print JSON; --json=id,title keeps only those fields. |
 
-**Example:** `memo bots list`, `memo bots list name:shop`, `memo bots list 'organization:"organization:3"' --page 2`
+**Example:** `memo bots list name:shop`, `memo bots list type:receipts`, `memo bots list 'organization:"organization:3"' --page 2`
 
 ### `memo bots show`
 
