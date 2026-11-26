@@ -55,8 +55,8 @@ export const mailSubscriptionsCommand = (mail: Command, program: Command, stream
       .description(
         "broadcast mail grouped by List-Id, else by its sender, newest first: each with its mail count, its newest " +
           "email and where to unsubscribe (an https or mailto target its sender's DKIM signature vouches for, and " +
-          "whether one click does it). Nothing is unsubscribed. Open a list's mail with search mail list:<list_id> " +
-          "reach:broadcast",
+          "whether one click does it). Nothing is unsubscribed. Open a row's mail with search mail list:<list_id> " +
+          "reach:broadcast, or from:<address> reach:broadcast for a row with no list",
       ),
     QUERY,
   )

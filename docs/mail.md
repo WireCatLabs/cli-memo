@@ -62,7 +62,8 @@ Each row has `key`, `list_id`, `name`, `sender` (the `sender-bot:` or `person:` 
 `newest` and `unsubscribe`: the `https` and `mailto` addresses the list gives for leaving it, and `one_click` when one
 request does it. An address is shown only when the sender's own domain signed it (DKIM), so a forged link is never
 offered. Memo never unsubscribes for you. Mail stored before memo kept these addresses shows `can_unsubscribe: false`
-until it is read again. To read a list's mail: `memo search mail list:<list_id> reach:broadcast`.
+until it is read again. To read a group's mail: `memo search mail list:<list_id> reach:broadcast`, or for a row with
+no list, `memo search mail from:<address> reach:broadcast`.
 
 ## An agent that reads new mail and proposes tasks
 
