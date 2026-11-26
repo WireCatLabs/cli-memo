@@ -3,7 +3,7 @@ import { constants, type Dirent, type Stats } from "node:fs"
 import { lstat, open, readdir, realpath } from "node:fs/promises"
 import { basename, extname, join, relative, sep } from "node:path"
 import { pathToFileURL } from "node:url"
-import { MAX_FILE_BYTES } from "@wirecat/cli-core/documents"
+import { attachmentMaxBytes, readWhole, sizeText } from "@wirecat/cli-core/documents"
 import { idOfPath } from "./external-id.js"
 
 /** A whole tree is walked before anything is written; past these the folder is refused rather than read in part. */
@@ -40,12 +40,10 @@ export interface Skipped {
 const refusedLink = "a symbolic link is not followed: give the folder it points at"
 
 /** Opened without following a link, so a file swapped for one after the walk is refused too. */
-export const readBytes = async (path: string, size: number): Promise<Uint8Array> => {
+export const readBytes = async (path: string): Promise<Uint8Array> => {
   const handle = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW)
   try {
-    const bytes = new Uint8Array(size)
-    const { bytesRead } = await handle.read(bytes, 0, size, 0)
-    return bytes.subarray(0, bytesRead)
+    return new Uint8Array(await readWhole(handle))
   } finally {
     await handle.close()
   }
@@ -216,8 +214,9 @@ export interface ReadDocument {
 
 /** A `.txt` or `.md` file's text and title; a refusal names why it was skipped. */
 export const readTextFile = async (file: FoundFile): Promise<ReadDocument | { refused: string }> => {
-  if (file.stat.size > MAX_FILE_BYTES) return { refused: `larger than ${MAX_FILE_BYTES / 1024 / 1024} MiB` }
-  const bytes = await readBytes(file.path, file.stat.size)
+  const max = attachmentMaxBytes()
+  if (file.stat.size > max) return { refused: `larger than ${sizeText(max)}; configure MESSAGING_ATTACHMENT_MAX_MIB` }
+  const bytes = await readBytes(file.path)
   const text = utf8Text(bytes)
   if (text === undefined) return { refused: "not UTF-8 text" }
   if (!text.trim()) return { refused: "holds no text" }

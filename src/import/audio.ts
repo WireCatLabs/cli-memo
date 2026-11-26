@@ -103,7 +103,7 @@ export const hearAll = async (
       heard.set(file.path, { refused: `larger than ${AUDIO_BYTES / 1024 / 1024} MiB` })
       continue
     }
-    const bytes = await readBytes(file.path, file.stat.size).catch((error: unknown) => unreadable(error))
+    const bytes = await readBytes(file.path).catch((error: unknown) => unreadable(error))
     if (typeof bytes === "string") {
       heard.set(file.path, { refused: bytes })
       continue

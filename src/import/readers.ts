@@ -71,7 +71,7 @@ export const transcriptTimings = (raw: string, text: string) => {
 const readTranscript: Reader = async (file) => {
   const read = await readDocument(file)
   if ("refused" in read) return read
-  const raw = new TextDecoder().decode(await readBytes(file.path, file.stat.size))
+  const raw = new TextDecoder().decode(await readBytes(file.path))
   return {
     ...read,
     title: titleOfName(file.relative),

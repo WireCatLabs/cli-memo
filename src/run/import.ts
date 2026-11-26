@@ -8,6 +8,7 @@ import {
 } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import { FETCH, notLocalPaths, parseDuration } from "@wirecat/cli-core/cli"
+import { attachmentMaxBytes, sizeText } from "@wirecat/cli-core/documents"
 import { markStoreDamaged, openStore, type SourceCheck, storePath } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError, Option } from "commander"
 import { answers, itemAnswer } from "../answer.js"
@@ -112,14 +113,17 @@ const enrichmentLine = (run: EnrichmentReport): string =>
 const NOT_READ_SHOWN = 10
 
 const NOT_READ: Record<string, string> = {
-  "too-large": "larger than 50 MiB",
   unsupported: "this file type cannot be read",
   "needs-agent": "no text in it, such as a scanned PDF",
   unreadable: "the file is damaged or locked",
 }
 
 const notReadReason = (status: string, engine?: string): string =>
-  status === "engine-missing" ? `needs the ${engine ?? "missing"} reader` : (NOT_READ[status] ?? status)
+  status === "engine-missing"
+    ? `needs the ${engine ?? "missing"} reader`
+    : status === "too-large"
+      ? `larger than ${sizeText(attachmentMaxBytes())}; configure MESSAGING_ATTACHMENT_MAX_MIB`
+      : (NOT_READ[status] ?? status)
 
 type Synced = "notes" | "mail" | "people"
 
