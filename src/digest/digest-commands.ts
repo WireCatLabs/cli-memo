@@ -28,6 +28,7 @@ import {
   type Schedule,
   type ScheduleSite,
   scheduleName,
+  setExitCode,
   slotsOfAt,
   termField,
   withQuery,
@@ -38,7 +39,6 @@ import { itemAnswer, wholeList, withStore } from "../answer.js"
 import { APP } from "../app.js"
 import { authorOf, fromAppOption, whoRuns } from "../author.js"
 import { scheduleLimits } from "../config.js"
-import { setExitCode } from "../exit-code.js"
 import { readOnly } from "../read-only.js"
 import { agentInputOf, MAIL_CLI } from "../schedule/command.js"
 import { checkedBrief, readBrief, refuseAgent } from "./brief.js"

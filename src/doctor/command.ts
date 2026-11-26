@@ -1,16 +1,15 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { dirname, join } from "node:path"
-import { resolvePaths, type Streams } from "@wirecat/cli-base"
-import { annotate, customizeSharedCommand } from "@wirecat/cli-base/commands"
+import { resolvePaths } from "@wirecat/cli-base"
 import { SKILL_TARGETS, skillPath, skillVersion } from "@wirecat/cli-base/skill"
-import { isNewer } from "@wirecat/cli-base/update"
 import {
+  appDoctorCommand,
   DOCTOR_DEEP_OPTION,
+  overrideSharedContract,
   privateFiles,
-  REMOTE_READ,
+  rootOf,
   runsDirFor,
-  sharedCommandTemplate,
   storeSummary,
   withSqliteSidecars,
 } from "@wirecat/cli-core/cli"
@@ -18,14 +17,11 @@ import { chosenTextModel, DEFAULT_TEXT_MODEL, textModelsFile } from "@wirecat/cl
 import { sharedModelsDirectory } from "@wirecat/cli-core/speech"
 import { storePath } from "@wirecat/cli-core/store"
 import type { Command } from "commander"
-import { answers, itemAnswer } from "../answer.js"
 import { APP } from "../app.js"
 import { inspectConfig } from "../config.js"
-import { SHELL_OVERRIDES } from "../contract-overrides.js"
-import { setExitCode } from "../exit-code.js"
 import { noteFolders, overlapping } from "../notes/folders.js"
 import { autoState, lastAutoRun } from "../run/auto.js"
-import { installer, latest } from "../update.js"
+import { installer, PACKAGE } from "../update.js"
 import { VERSION } from "../version.js"
 
 /** Something a person should do, with the command that does it. */
@@ -147,7 +143,6 @@ export const diagnose = async (env: NodeJS.ProcessEnv, program: Command, { deep 
 
   return {
     memo: { version: VERSION, node: process.version, installed_by: installer() },
-    config: configReport,
     state: paths.state,
     cache: paths.cache,
     store,
@@ -163,28 +158,28 @@ export const diagnose = async (env: NodeJS.ProcessEnv, program: Command, { deep 
   }
 }
 
-type Diagnosis = Omit<Awaited<ReturnType<typeof diagnose>>, "fixes">
+type Diagnosis = Omit<Awaited<ReturnType<typeof diagnose>>, "fixes"> & {
+  config: ReturnType<typeof inspectConfig>
+  online?: { version: { current: string; latest: string | null; newer: boolean } }
+}
 
 const yes = (value: boolean) => (value ? "yes" : "no")
 
-const fileLines = (d: Diagnosis, fixes: readonly string[]): string[] =>
+const fileLines = (d: Diagnosis): string[] =>
   d.files.checked
     ? d.files.problems.map(
-        ({ path, mode, want }, at) =>
-          `! ${path} is ${mode}, so others can read it; it should be ${want} — ${fixes[at]}`,
+        ({ path, mode, want }) => `! ${path} is ${mode}, so others can read it; it should be ${want}`,
       )
     : []
 
-type Online = Awaited<ReturnType<typeof onlineCheck>>
-
-const onlineLine = ({ version }: Online): string =>
+const onlineLine = ({ version }: NonNullable<Diagnosis["online"]>): string =>
   version.latest === null
     ? "online     npm could not be reached"
     : version.newer
       ? `online     memo ${version.latest} is published (this is ${version.current}) — memo upgrade`
       : `online     memo ${version.current} is the newest published`
 
-export const doctorText = (d: Diagnosis, fixes: readonly string[] = [], online?: Online): string =>
+export const doctorText = (d: Diagnosis): string =>
   [
     `memo ${d.memo.version} on Node ${d.memo.node}, installed by ${d.memo.installed_by}`,
     `config     ${d.config.path}${d.config.found ? "" : " (none yet)"}`,
@@ -208,70 +203,52 @@ export const doctorText = (d: Diagnosis, fixes: readonly string[] = [], online?:
     `search     ${d.search_model.name} ${d.search_model.present ? "present" : "not downloaded — search is by words"}`,
     `timer      ${d.timer.enabled ? `on, every ${d.timer.every}` : "off"}`,
     ...d.skills.map((s) => `skill      ${s.path} ${s.version === null ? "(not installed)" : `(${s.version})`}`),
-    ...(online ? [onlineLine(online)] : []),
+    ...(d.online ? [onlineLine(d.online)] : []),
     "",
-    ...(d.problems.length + d.config.issues.length + fileLines(d, fixes).length === 0
+    ...(d.problems.length + d.config.issues.length + fileLines(d).length === 0
       ? ["nothing needs attention"]
       : [
           ...d.config.issues.map(({ what, fix }) => `! ${what}${fix ? ` — ${fix}` : ""}`),
-          ...fileLines(d, fixes),
+          ...fileLines(d),
           ...d.problems.map(({ what, fix }) => `! ${what}${fix ? ` — ${fix}` : ""}`),
         ]),
   ].join("\n")
 
-const sharedDoctor = sharedCommandTemplate(APP, "doctor")
-const ONLINE_FLAGS = "--online"
-const onlineText = sharedDoctor.options.find((option) => option.long === ONLINE_FLAGS)?.description ?? ""
-
-/** Same shape as cli-core's `appDoctorCommand` `--online` answer; memo has no account to read, only npm. */
-const onlineCheck = async () => {
-  const started = Date.now()
-  const newest = await latest()
-  return {
-    ok: true,
-    duration_ms: Date.now() - started,
-    version: { current: VERSION, latest: newest ?? null, newer: newest !== undefined && isNewer(newest, VERSION) },
-  }
+const configOf = (env: NodeJS.ProcessEnv, command: Command) => {
+  const { config: _config, ...report } = inspectConfig(env, rootOf(command))
+  return report
 }
 
-const doctorCommandDefinition = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
-  const { print } = answers(program, streams, env)
-  annotate(program.command("doctor"), { effects: REMOTE_READ })
-    .description(sharedDoctor.description())
-    .option(ONLINE_FLAGS, onlineText)
-    .option("--deep", DOCTOR_DEEP_OPTION)
-    .option("--json", "print JSON; --json=id,title keeps only those fields")
-    .addHelpText(
-      "after",
-      "\nReads this computer only, unless --online: the config, the store, the notes folders, the search " +
-        "model, the timer and the agent skill, each problem with the command that fixes it. --online also asks npm " +
-        "whether a newer memo is published, and nothing else leaves this computer. Exits 1 when something other than " +
-        "the config file or a file mode needs attention; problems in the config file are listed in config.issues, and " +
-        "files or folders other users can read in files.problems, and neither changes the exit code.",
-    )
-    .action(async (options: { json?: boolean; online?: boolean; deep?: boolean }) => {
-      const { fixes, ...diagnosis } = await diagnose(env, program, { deep: options.deep === true })
-      const online = options.online ? await onlineCheck() : undefined
-      print(
-        options.json,
-        itemAnswer(online ? { ...diagnosis, online } : diagnosis),
-        doctorText(diagnosis, fixes, online),
-      )
-      if (options.json) for (const fix of fixes) streams.diagnostic(`to make it private: ${fix}`)
-      if (diagnosis.problems.length > 0) setExitCode(program, 1)
-    })
-}
-
-export const doctorCommand = (...args: Parameters<typeof doctorCommandDefinition>) => {
-  customizeSharedCommand(
-    sharedCommandTemplate(APP, "doctor"),
-    "Memo diagnoses imported-data paths and stored account configuration without connecting to a messenger or querying a keyring.",
-    () => {
-      doctorCommandDefinition(...args)
-      const command = args[0].commands.find((command) => command.name() === "doctor")
-      if (!command) throw new Error("doctor builder did not install its command")
-      return command
+export const doctorCommand = (): Command =>
+  overrideSharedContract(
+    appDoctorCommand(APP, null, {
+      packageName: PACKAGE,
+      config: configOf,
+      local: async (env, command) => {
+        const { fixes, ...diagnosis } = await diagnose(env, rootOf(command), {
+          deep: command.opts<{ deep?: boolean }>().deep === true,
+        })
+        return {
+          fields: diagnosis,
+          notes: fixes.map((fix) => `to make it private: ${fix}`),
+          failing: diagnosis.problems.length > 0,
+        }
+      },
+      view: (item) => doctorText(item as unknown as Diagnosis),
+    }),
+    "memo has no global --json, so doctor takes its own, and --deep reads every page of memo's store.",
+    (command) => {
+      command
+        .option("--deep", DOCTOR_DEEP_OPTION)
+        .option("--json", "print JSON; --json=id,title keeps only those fields")
+        .addHelpText(
+          "after",
+          "\nReads this computer only, unless --online: the config, the store, the notes folders, the search " +
+            "model, the timer and the agent skill, each problem with the command that fixes it. --online also asks " +
+            "npm whether a newer memo is published, and nothing else leaves this computer. Exits 1 when something " +
+            "other than the config file or a file mode needs attention; problems in the config file are listed in " +
+            "config.issues, and files or folders other users can read in files.problems, and neither changes the exit " +
+            "code.",
+        )
     },
-    SHELL_OVERRIDES.doctor,
   )
-}

@@ -42,7 +42,6 @@ import { documentsCommand } from "./documents/command.js"
 import { domainListsCommands } from "./domain-lists/command.js"
 import { eventsCommand } from "./events/command.js"
 import { addExamples } from "./examples.js"
-import { keepExitCode } from "./exit-code.js"
 import { factsCommand } from "./facts/command.js"
 import { recognisable } from "./failure.js"
 import { financeCommands } from "./finance/command.js"
@@ -725,7 +724,6 @@ export const createProgram = ({
   stdin,
   readerFetch,
   system,
-  setExitCode,
   hear,
 }: {
   streams?: Streams
@@ -746,8 +744,6 @@ export const createProgram = ({
   readerFetch?: typeof fetch
   /** Where schedules and digests put their timers and run their agents; this machine unless a test hands one in. */
   system?: ServerSystem
-  /** The run's own exit code, from `startCli`; the process's when left out. */
-  setExitCode?: (code: number) => void
   /** How `import --transcribe` hears a recording; the local speech model unless a test hands in its own. */
   hear?: Hear
 } = {}): Command => {
@@ -759,7 +755,6 @@ export const createProgram = ({
     .description("context about people across messengers, notes and mail")
     .version(VERSION)
     .option("--debug", "on failure, show the full error record: cause and stack")
-  if (setExitCode) keepExitCode(program, setExitCode)
   refuseWritesUnderLock(program, env)
   scopeRunsToGroup(program, env, group)
   provideTerminal(program, terminal)
@@ -814,7 +809,7 @@ export const createProgram = ({
   groupsCommand(program, streams, env)
   autoCommand(program, streams, env)
   configCommand(program, streams, env)
-  doctorCommand(program, streams, env)
+  program.addCommand(doctorCommand())
   program.addCommand(upgradeCommand(streams))
   program.addCommand(scheduleCommand(env))
   digestCommand(program, streams, env)

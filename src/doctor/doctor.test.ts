@@ -18,6 +18,17 @@ const memo = async (...args: string[]) => {
 
 const doctor = (...args: string[]) => memo("doctor", ...args)
 
+/** The shared doctor answers JSON off a terminal, so the text a person reads needs one. */
+const doctorAtTerminal = async (...args: string[]) => {
+  const was = process.stdout.isTTY
+  process.stdout.isTTY = true
+  try {
+    return await doctor(...args)
+  } finally {
+    process.stdout.isTTY = was
+  }
+}
+
 const writeConfig = (text: string) => {
   mkdirSync(join(dir, "config"), { recursive: true })
   writeFileSync(configPath(env), text)
@@ -70,7 +81,7 @@ describe("memo doctor", () => {
       }),
       env,
     )
-    expect(await doctor()).toContain(
+    expect(await doctorAtTerminal()).toContain(
       `! the notes folders ${join(dir, "notes")} and ${join(dir, "notes", "Work")} overlap, so the files they share are read twice`,
     )
   })
@@ -85,7 +96,7 @@ describe("memo doctor", () => {
       env,
     )
 
-    const text = await doctor()
+    const text = await doctorAtTerminal()
 
     expect(text).toContain(
       `! the notes folder ${join(dir, "gone")} is missing — connect its disk; if it moved, memo folders update <id> <new path>`,
@@ -205,9 +216,7 @@ describe.skipIf(process.platform === "win32")("memo doctor on files other users 
     expect(streams.stderr.join("")).toContain(`to make it private: chmod 600 '${configPath(env)}'`)
     expect(streams.stderr.join("")).toContain(`to make it private: chmod 700 '${join(dir, "config")}'`)
     expect(process.exitCode ?? 0).toBe(0)
-    expect(await doctor()).toContain(
-      `! ${configPath(env)} is 0644, so others can read it; it should be 0600 — chmod 600 '${configPath(env)}'`,
-    )
+    expect(await doctorAtTerminal()).toContain(`! ${configPath(env)} is 0644, so others can read it; it should be 0600`)
 
     chmodSync(configPath(env), 0o600)
     chmodSync(join(dir, "config"), 0o700)
@@ -243,7 +252,7 @@ describe("memo doctor --online", () => {
 
     expect(fetch).toHaveBeenCalledOnce()
     expect(report.item.online).toMatchObject({ ok: true, version: { latest: "999.0.0", newer: true } })
-    expect(await doctor("--online")).toContain("memo 999.0.0 is published")
+    expect(await doctorAtTerminal("--online")).toContain("memo 999.0.0 is published")
   })
 
   it("reports an unreachable npm without failing", async () => {

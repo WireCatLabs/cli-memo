@@ -7,14 +7,13 @@ import {
   type Streams,
 } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
-import { FETCH, notLocalPaths, parseDuration } from "@wirecat/cli-core/cli"
+import { FETCH, notLocalPaths, parseDuration, setExitCode } from "@wirecat/cli-core/cli"
 import { attachmentMaxBytes, sizeText } from "@wirecat/cli-core/documents"
 import { markStoreDamaged, openStore, type SourceCheck, storePath } from "@wirecat/cli-core/store"
 import { type Command, InvalidArgumentError, Option } from "commander"
 import { answers, itemAnswer } from "../answer.js"
 import { APP, STORE_CLIENT } from "../app.js"
 import { decisionPolicy, loadConfig } from "../config.js"
-import { setExitCode } from "../exit-code.js"
 import { errorObject } from "../failure.js"
 import { boundFolders, UNBOUND, unboundReason } from "../notes/bound.js"
 import {
