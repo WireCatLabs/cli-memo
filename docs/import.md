@@ -109,7 +109,7 @@ agent's name.
 
 - **10,000 files** in one folder import. A larger tree is refused whole: import its folders one by one.
 - **32 folders deep.** Deeper folders are listed under `skipped`.
-- **10 GiB** a file (`MESSAGING_ATTACHMENT_MAX_MIB` sets another limit, in MiB), **256 MiB** a recording. A larger
+- **10 GiB** a file (`MESSAGING_ATTACHMENT_MAX_MIB` sets another limit, in MiB), **2 GiB** a recording. A larger
   file is skipped. A file is read whole into memory, so a large one needs that much free memory.
 - **A million characters** of text a document, within 1 MiB. A longer text is cut: the answer lists the file under
   `cut`, and its `metadata.truncated` is `true`.

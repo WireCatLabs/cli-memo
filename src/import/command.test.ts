@@ -332,3 +332,14 @@ it("skips a file over 10 GiB by default and follows MESSAGING_ATTACHMENT_MAX_MIB
     vi.unstubAllEnvs()
   }
 })
+
+it("hears a recording up to 2 GiB and skips a larger one before reading it", async () => {
+  const f = setUp()
+  const recording = join(f.folder, "long.mp3")
+  writeFileSync(recording, "")
+  truncateSync(recording, 2 * 1024 ** 3 + 1)
+  const hear = vi.fn<Hear>(async () => ({ model: "parakeet-v3", seconds: 1, pieces: [] }))
+  const answer = await f.run(["import", f.folder, ...ACCOUNT, "--transcribe"], {}, hear)
+  expect(answer.skipped).toEqual([{ path: "long.mp3", reason: "larger than 2 GiB" }])
+  expect(hear).not.toHaveBeenCalled()
+})
