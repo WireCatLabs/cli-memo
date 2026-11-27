@@ -12,6 +12,7 @@ import {
   runsBetween,
   SCHEDULE_DEFAULTS,
   scheduleFile,
+  setExitCode,
   slotsOf,
   spentToday,
 } from "@wirecat/cli-core/cli"
@@ -20,7 +21,6 @@ import { answers, itemAnswer } from "../answer.js"
 import { APP } from "../app.js"
 import { fromAppOption, whoRuns } from "../author.js"
 import { scheduleLimits } from "../config.js"
-import { setExitCode } from "../exit-code.js"
 import { briefCommand } from "./brief.js"
 import { digestCommands } from "./digest-commands.js"
 import { agendaFlags, type DigestSource, isDigest, readDefinition, windowStart } from "./digests.js"

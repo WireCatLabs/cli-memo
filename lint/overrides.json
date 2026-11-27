@@ -148,13 +148,6 @@
   },
   {
     "rule": "option-role",
-    "target": "search all --harder",
-    "reason": "Opt-in: a hosted model the owner consented to (memo models search-consents set) reorders the first 30 hits of search all (cli-core 0.622.0, measured in cli-testing search-lab, 2026-11-09). No role in the cli-base flag vocabulary names sending results to a model for reranking. Add one there, then drop this.",
-    "owner": "@leemour",
-    "review_after": "2027-02-09"
-  },
-  {
-    "rule": "option-role",
     "target": "people list --sort",
     "reason": "WireCat Desktop's People page (plan 2026-11-09-people-clients-digests, M-1, UX-133) sorts its paged table by interactions, recent, name or tasks; --order in the vocabulary takes only recent or name, and interactions is the default here.",
     "owner": "@leemour",
@@ -180,5 +173,54 @@
     "reason": "cli-core 1.1.0 makes a bot its own entity apart from people (sender-bot:<id>, cli-core#3356, GLOSSARY row \"bot\"), and memo must list it in the same bump or bots vanish from the Automated view once a store reaches version 75; the cli-base vocabulary knows bot only as a profile's bot account. Register bots as a collection there, then drop this.",
     "owner": "@leemour",
     "review_after": "2027-02-25"
+  },
+  {
+    "rule": "option-role",
+    "target": "actions edit --set",
+    "reason": "A finding is edited one field at a time (memo#822, 12.11.2026, cli-core 0.643.0). The cli-base flag vocabulary has no role for a repeated key=value change of a stored record. Add one there, then rename.",
+    "owner": "@leemour",
+    "review_after": "2027-02-27"
+  },
+  {
+    "rule": "option-role",
+    "target": "people resolve --mailbox",
+    "reason": "Resolves a person by the mailbox that wrote (memo#822, 12.11.2026). The cli-base flag vocabulary has no role for naming one mailbox as the source of an identity. Add one there, then rename.",
+    "owner": "@leemour",
+    "review_after": "2027-02-27"
+  },
+  {
+    "rule": "option-role",
+    "target": "projects evidence --include-proposed",
+    "reason": "Adds proposed, not yet confirmed links to a project's evidence (memo#578, 02.11.2026, cli-core 0.553.0). The cli-base flag vocabulary has no switch for including proposed records. Add one there, then rename.",
+    "owner": "@leemour",
+    "review_after": "2027-02-27"
+  },
+  {
+    "rule": "option-role",
+    "target": "projects evidence --purposes",
+    "reason": "Filters evidence by the purpose of a project relationship (memo#854, 16.11.2026, cli-core 0.674.0). The cli-base flag vocabulary has no role for a relationship purpose. Add one there, then rename.",
+    "owner": "@leemour",
+    "review_after": "2027-02-27"
+  },
+  {
+    "rule": "option-role",
+    "target": "projects status --purposes",
+    "reason": "Filters a project's status by the purpose of its relationships (memo#854, 16.11.2026, cli-core 0.674.0). The cli-base flag vocabulary has no role for a relationship purpose. Add one there, then rename.",
+    "owner": "@leemour",
+    "review_after": "2027-02-27"
+  },
+  {
+    "rule": "option-role",
+    "target": "relationships update --purpose",
+    "reason": "Sets the purpose of a project relationship (memo#578, 02.11.2026, cli-core 0.553.0). The cli-base flag vocabulary has no role for a relationship purpose. Add one there, then rename.",
+    "owner": "@leemour",
+    "review_after": "2027-02-27"
+  },
+  {
+    "rule": "unknown-verb",
+    "target": "stages suggest",
+    "reason": "Proposes the next stage of a person or deal for the owner to confirm (memo#796, 10.11.2026, cli-core 0.630.0). No verb in the cli-base vocabulary means proposing without writing. Add one there, then rename.",
+    "owner": "@leemour",
+    "review_after": "2027-02-27"
   }
 ]

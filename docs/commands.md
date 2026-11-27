@@ -7124,6 +7124,37 @@ memo doctor [options]
 
 **Example:** `memo doctor`, `memo doctor --json`
 
+### `memo doctor reports`
+
+problem reports
+
+#### `memo doctor reports show`
+
+what a problem report holds; writes nothing
+
+```sh
+memo doctor reports show
+```
+
+**Example:** `memo doctor reports show`
+
+#### `memo doctor reports create`
+
+write a problem report to a file, and say where to send it
+
+This command changes the local store or your files.
+
+```sh
+memo doctor reports create [options]
+```
+
+| Option | What it does |
+|---|---|
+| `--run <id>` | the run the report is about; the newest failed one if not given. |
+| `--output <file>` | where to write it; a new file in this directory if not given. |
+
+**Example:** `memo doctor reports create --output ./problem-report.json`
+
 ## `memo upgrade`
 
 upgrade memo with the package manager that installed it; --check only looks

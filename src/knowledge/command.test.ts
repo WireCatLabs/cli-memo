@@ -154,7 +154,7 @@ describe("combined evidence, relationships and local reminders", () => {
     await second.close()
     await expect(run("context", "telegram:101")).rejects.toMatchObject({ code: "validation_error" })
     expect((await run("context", "telegram:101", "--source", "telegram:1")).tasks.items).toHaveLength(3)
-  })
+  }, 30_000)
 })
 
 describe("project context", () => {

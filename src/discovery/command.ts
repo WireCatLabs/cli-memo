@@ -5,6 +5,7 @@ import {
   commandsDocument,
   customizeSharedCommand,
   flatten,
+  hasSharedContract,
 } from "@wirecat/cli-base/commands"
 import {
   addContractInfo,
@@ -32,14 +33,18 @@ const commandsCommandDefinition = (program: Command, streams: Streams): void => 
     .description(DISCOVERY_DESCRIPTIONS.commands)
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action((path: string[], options: { json?: boolean }) => {
-      const annotateAvailability = (commands: readonly CommandInfo[]): DiscoveredCommand[] =>
-        commands.map((info) => ({
-          ...info,
-          availability: environmentOf(program).discoveryAvailability?.(info),
-          commands: annotateAvailability(info.commands),
-        }))
+      const annotateAvailability = (commands: readonly CommandInfo[], parent: Command): DiscoveredCommand[] =>
+        commands.map((info) => {
+          const own = parent.commands.find((child) => child.name() === info.name)
+          return {
+            ...info,
+            availability: environmentOf(program).discoveryAvailability?.(info),
+            ...(own && hasSharedContract(own) && info.origin !== "generated" ? { origin: "cli-core" as const } : {}),
+            commands: own ? annotateAvailability(info.commands, own) : [...info.commands],
+          }
+        })
       const plain = commandsDocument(program, { cli: "memo", version: VERSION, contract: CONTRACT })
-      const document = { ...plain, commands: annotateAvailability(plain.commands) }
+      const document = { ...plain, commands: annotateAvailability(plain.commands, program) }
       const answer = path.length ? scoped(document, path) : document
       if (options.json) createRenderer({ format: "json", color: false, streams }).result(answer)
       else {

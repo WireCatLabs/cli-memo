@@ -12,18 +12,14 @@ let env: NodeJS.ProcessEnv
 const memo = async (args: string[], more: NodeJS.ProcessEnv = {}) => {
   const streams = captureStreams()
   let code = 0
-  const program = createProgram({
-    streams,
-    env: { ...env, ...more },
-    setExitCode: (given) => {
-      code = given
-    },
-  })
+  const program = createProgram({ streams, env: { ...env, ...more } })
   try {
     await program.exitOverride().parseAsync(args, { from: "user" })
+    code = Number(process.exitCode ?? 0)
   } catch (error) {
     code = reportFailure(error, { args, program, streams, tty: false })
   }
+  process.exitCode = undefined
   return { code, err: streams.stderr.join(""), out: streams.stdout.join("") }
 }
 

@@ -619,7 +619,6 @@ export const EXAMPLES: Readonly<Record<string, readonly string[]>> = {
   "jobs start": ["memo jobs start --every 10m"],
   "jobs stop": ["memo jobs stop"],
   "jobs status": ["memo jobs status --json"],
-  doctor: ["memo doctor", "memo doctor --json"],
   "runs list": ["memo runs list status:failed --limit 10", "memo runs list --page 2 --json"],
   "runs show": ["memo runs show 20261025T090000Z-mail-sync-a81f2c --json"],
   "runs path": ["memo runs path 20261025T090000Z-mail-sync-a81f2c"],

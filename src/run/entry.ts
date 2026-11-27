@@ -23,11 +23,10 @@ export const memoEntry = (io?: CliEntry["io"]): CliEntry => {
       // A static import would load the store's SQLite before startCli could swap it.
       const { createProgram, liftGroup, refuseJoinedPath } = await import("../program.js")
       const { autoNotice, followInstall } = await import("./auto.js")
-      const lifting = createProgram({ signal: entry.signal, setExitCode: entry.setExitCode })
+      const lifting = createProgram({ signal: entry.signal })
       programs.set(entry, lifting)
       const { group, rest: args } = await liftGroup(lifting, entry.args, entry.env)
-      const program =
-        group === undefined ? lifting : createProgram({ signal: entry.signal, group, setExitCode: entry.setExitCode })
+      const program = group === undefined ? lifting : createProgram({ signal: entry.signal, group })
       programs.set(entry, program)
       // `memo jobs status` says it in full; everywhere else one line, until a timer run passes again.
       if (args[0] !== "jobs") {

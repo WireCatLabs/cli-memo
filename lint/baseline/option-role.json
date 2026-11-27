@@ -1,12 +1,7 @@
 [
-  "actions edit --set",
   "domain-lists update --commercial-only",
-  "people resolve --mailbox",
-  "projects evidence --include-proposed",
-  "projects evidence --purposes",
-  "projects status --purposes",
-  "relationships update --purpose",
   "schedule agent --mail-batch",
   "schedule agent --mail-wait",
-  "schedule agent --on-new-mail"
+  "schedule agent --on-new-mail",
+  "search all --harder"
 ]
