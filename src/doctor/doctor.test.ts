@@ -233,6 +233,16 @@ describe.skipIf(process.platform === "win32")("memo doctor on files other users 
   })
 })
 
+describe("memo doctor reports", () => {
+  it("says what a report holds, and names the run it cannot find", async () => {
+    const shown = JSON.parse(await doctor("reports", "show"))
+    expect(shown.item.excludes).toContain("the sign-in")
+
+    const file = join(dir, "report.json")
+    await expect(doctor("reports", "create", "--run", "no-such-run", "--output", file)).rejects.toThrow()
+  })
+})
+
 describe("memo doctor --online", () => {
   afterEach(() => vi.unstubAllGlobals())
 
