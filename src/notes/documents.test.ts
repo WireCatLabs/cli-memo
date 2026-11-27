@@ -3,10 +3,34 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import type { LoadEngine } from "@wirecat/cli-core/documents"
 import { openStore } from "@wirecat/cli-core/store"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { folderNotes, importNotes } from "./import.js"
 
 describe("document ingestion", () => {
+  it("reads a file kept as too large once the file budget is raised", async () => {
+    const root = mkdtempSync(join(tmpdir(), "memo-budget-")),
+      vault = join(root, "vault")
+    const env = { ...process.env, MEMO_STATE_DIR: join(root, "state") }
+    mkdirSync(vault)
+    writeFileSync(join(vault, "big.md"), `# Big\n\n${"synthetic line\n".repeat(140_000)}`)
+    const store = await openStore({ path: join(root, "store.db") })
+    try {
+      const made = await store.notes.addFolder({ name: "vault" })
+      const folder = { id: made.id, path: vault, format: "obsidian" as const }
+      vi.stubEnv("MESSAGING_ATTACHMENT_MAX_MIB", "1")
+      try {
+        expect((await importNotes(store, folder, { env })).notRead).toEqual([{ path: "big.md", status: "too-large" }])
+      } finally {
+        vi.unstubAllEnvs()
+      }
+      const raised = await importNotes(store, folder, { env })
+      expect(raised.notRead ?? []).toEqual([])
+      expect(raised.changed).toBe(1)
+    } finally {
+      await store.close()
+    }
+  })
+
   it("imports CSV and extractor text, reports unsupported/missing/scan states and notices equal-size edits", async () => {
     const root = mkdtempSync(join(tmpdir(), "memo-formats-")),
       vault = join(root, "vault")

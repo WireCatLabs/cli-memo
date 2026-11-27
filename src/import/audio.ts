@@ -18,7 +18,7 @@ import { type FoundFile, type ReadDocument, readBytes, sha256Of, titleOfName, un
 export const AUDIO_EXTENSIONS = new Set([".wav", ".mp3", ".m4a", ".ogg", ".oga", ".opus", ".flac", ".aac", ".webm"])
 
 /** An hour of WAV at 16 kHz is about 115 MB; cli-core's decoder stops at an hour anyway. */
-const AUDIO_BYTES = 256 * 1024 * 1024
+const AUDIO_BYTES = 2 * 1024 ** 3
 
 export interface Heard {
   pieces: TimedText[]
@@ -100,10 +100,10 @@ export const hearAll = async (
       continue
     }
     if (file.stat.size > AUDIO_BYTES) {
-      heard.set(file.path, { refused: `larger than ${AUDIO_BYTES / 1024 / 1024} MiB` })
+      heard.set(file.path, { refused: `larger than ${AUDIO_BYTES / 1024 ** 3} GiB` })
       continue
     }
-    const bytes = await readBytes(file.path, file.stat.size).catch((error: unknown) => unreadable(error))
+    const bytes = await readBytes(file.path).catch((error: unknown) => unreadable(error))
     if (typeof bytes === "string") {
       heard.set(file.path, { refused: bytes })
       continue

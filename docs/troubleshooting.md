@@ -69,7 +69,7 @@ when it refuses.
 | `source.no-text` | The file, page or pasted text holds no text | Add a file that holds text, or paste the text with `memo sources add -` |
 | `source.unreadable` | The reader could not read it: damaged or locked | Open it, save it again or as PDF or plain text, and add that |
 | `source.engine-missing` | The reader for this kind of file is not installed | Reinstall Memo: `npm install -g @wirecat/cli-memo` |
-| `source.too-large` | Over 50 MiB, or larger than its reader reads | Add a smaller part, or save only its text and add that |
+| `source.too-large` | Over 10 GiB (`MESSAGING_ATTACHMENT_MAX_MIB`), or larger than its reader reads | Add a smaller part, or save only its text and add that |
 | `source.url-refused` | Not an `http` or `https` address on the public internet: `localhost`, a home network address, a `file:` link, a link with a user name or password, or a redirect from `https` to plain `http` | Give the address of a public page |
 | `source.url-status` | The site answered with an error, such as 404 | Check the address in a browser; if it opens only for you, save the page as a file and add it |
 | `source.url-timeout` | The page did not arrive within 30 seconds | Try again later, or save the page as a file and add it |

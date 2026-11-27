@@ -1,18 +1,20 @@
-import { readFileSync, statSync } from "node:fs"
+import { statSync } from "node:fs"
 import { basename, extname } from "node:path"
 import { CliError, isCliError } from "@wirecat/cli-base"
 import {
   type AiImageRefusal,
   type aiImageReader,
+  attachmentMaxBytes,
   type Extraction,
   extractText,
   type FetchPageOptions,
   fetchPage,
   importEngine,
   type LoadEngine,
-  MAX_FILE_BYTES,
   ocrImage,
+  readWhole,
   type Section,
+  sizeText,
 } from "@wirecat/cli-core/documents"
 import type { AddedSourceInput } from "@wirecat/cli-core/store/areas"
 import { transcriptText } from "./transcript.js"
@@ -120,9 +122,13 @@ const refusal = (extraction: Exclude<Extraction, { status: "extracted" | "needs-
 }
 
 const tooLarge = (what: string) =>
-  new CliError("validation_error", `${what} is larger than ${MAX_FILE_BYTES / 1024 / 1024} MiB`, {
-    reason: "source.too-large",
-  })
+  new CliError(
+    "validation_error",
+    `${what} is larger than ${sizeText(attachmentMaxBytes())}; configure MESSAGING_ATTACHMENT_MAX_MIB`,
+    {
+      reason: "source.too-large",
+    },
+  )
 
 const noText = (what: string) =>
   new CliError("validation_error", `${what} holds no text to keep`, { reason: "source.no-text" })
@@ -148,12 +154,13 @@ const metaText = (metadata: Record<string, string | string[]> | undefined, key: 
 const titleIn = (metadata: Record<string, string | string[]> | undefined) => metaText(metadata, "title")
 
 const readStdin = async (stdin: AsyncIterable<string | Uint8Array>): Promise<string> => {
+  const max = attachmentMaxBytes()
   const chunks: Buffer[] = []
   let size = 0
   for await (const chunk of stdin) {
     const bytes = typeof chunk === "string" ? Buffer.from(chunk) : Buffer.from(chunk)
     size += bytes.byteLength
-    if (size > MAX_FILE_BYTES) throw tooLarge("the text on stdin")
+    if (size > max) throw tooLarge("the text on stdin")
     chunks.push(bytes)
   }
   return Buffer.concat(chunks).toString("utf8")
@@ -188,8 +195,9 @@ export const readFile = async (
   const name = basename(path)
   if (!stat) throw new CliError("not_found", `no file ${path}`, { path })
   if (!stat.isFile()) throw new CliError("validation_error", `${path} is not a file`, { path })
-  if (stat.size > MAX_FILE_BYTES) throw tooLarge(name)
-  const bytes = new Uint8Array(readFileSync(path))
+  if (stat.size > attachmentMaxBytes()) throw tooLarge(name)
+  const read = await readWhole(path)
+  const bytes = new Uint8Array(read.buffer, read.byteOffset, read.byteLength)
   const extension = extname(name).toLowerCase()
   const mime = MIMES[extension] ?? null
   const base = {

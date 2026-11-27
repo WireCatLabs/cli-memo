@@ -1,9 +1,9 @@
 import { createHash } from "node:crypto"
-import { existsSync, readFileSync, statSync } from "node:fs"
+import { existsSync, statSync } from "node:fs"
 import { basename, extname, relative, sep } from "node:path"
 import { CliError } from "@wirecat/cli-base"
 import { normalizeTag } from "@wirecat/cli-core"
-import { extractText, importEngine, type LoadEngine, MAX_FILE_BYTES } from "@wirecat/cli-core/documents"
+import { attachmentMaxBytes, extractText, importEngine, type LoadEngine, readWhole } from "@wirecat/cli-core/documents"
 import type { MessageStore } from "@wirecat/cli-core/store"
 import type { Note } from "@wirecat/cli-core/store/areas"
 import type { BoundFolder } from "./bound.js"
@@ -132,15 +132,17 @@ export const importNotes = async (
     mtimes.set(id, stat.mtimeMs)
     const stamp = `${stat.mtimeMs}:${stat.size}:`
     const exported = previous?.startsWith(`${MEMO}${stamp}`)
-    // A missing reader may have been installed since, so that file is read again; so is an unstored file an older
-    // state file did not mark as not read.
-    const settled = stored.has(id) || (wasNotRead !== undefined && wasNotRead.status !== "engine-missing")
+    // A missing reader may have been installed since, or the file budget raised, so that file is read again; so is an
+    // unstored file an older state file did not mark as not read.
+    const settled =
+      stored.has(id) ||
+      (wasNotRead !== undefined && wasNotRead.status !== "engine-missing" && wasNotRead.status !== "too-large")
     if (exported || (previous?.startsWith(stamp) && settled && !reparse(id))) {
       after.files[id] = previous as string
       if (wasNotRead) notReadAs(id, wasNotRead.status, wasNotRead.engine)
       continue
     }
-    if (stat.size > MAX_FILE_BYTES) {
+    if (stat.size > attachmentMaxBytes()) {
       after.files[id] = stamp
       notReadAs(id, "too-large")
       continue
@@ -150,7 +152,7 @@ export const importNotes = async (
       after.files[id] = `${MEMO}${stamp}`
       continue
     }
-    const bytes = readFileSync(path)
+    const bytes = await readWhole(path)
     const hash = createHash("sha256").update(bytes).digest("hex")
     after.files[id] = `${stamp}${hash}`
     read.push({ id, path, bytes, hash })

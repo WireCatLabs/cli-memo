@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, symlinkSync, utimesSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, symlinkSync, truncateSync, utimesSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
@@ -308,4 +308,38 @@ it("makes an imported transcript found by search, under its own account and in a
   expect(office).toContain(PBX)
   expect(office).not.toContain(NOTES)
   expect(await hits(["search", "all", "gate", "--only", "notes"])).toContain(NOTES)
+})
+
+it("skips a file over 10 GiB by default and follows MESSAGING_ATTACHMENT_MAX_MIB", async () => {
+  const f = setUp()
+  const big = join(f.folder, "big.txt")
+  writeFileSync(big, "")
+  truncateSync(big, 10 * 1024 ** 3 + 1)
+  writeFileSync(join(f.folder, "two-mib.txt"), "synthetic line\n".repeat(140_000))
+  const first = await f.run(["import", f.folder, ...ACCOUNT])
+  expect(first.skipped).toEqual([
+    { path: "big.txt", reason: "larger than 10 GiB; configure MESSAGING_ATTACHMENT_MAX_MIB" },
+  ])
+  vi.stubEnv("MESSAGING_ATTACHMENT_MAX_MIB", "1")
+  try {
+    const lower = await f.run(["import", f.folder, ...ACCOUNT])
+    expect(lower.skipped).toEqual(
+      expect.arrayContaining([
+        { path: "two-mib.txt", reason: "larger than 1 MiB; configure MESSAGING_ATTACHMENT_MAX_MIB" },
+      ]),
+    )
+  } finally {
+    vi.unstubAllEnvs()
+  }
+})
+
+it("hears a recording up to 2 GiB and skips a larger one before reading it", async () => {
+  const f = setUp()
+  const recording = join(f.folder, "long.mp3")
+  writeFileSync(recording, "")
+  truncateSync(recording, 2 * 1024 ** 3 + 1)
+  const hear = vi.fn<Hear>(async () => ({ model: "parakeet-v3", seconds: 1, pieces: [] }))
+  const answer = await f.run(["import", f.folder, ...ACCOUNT, "--transcribe"], {}, hear)
+  expect(answer.skipped).toEqual([{ path: "long.mp3", reason: "larger than 2 GiB" }])
+  expect(hear).not.toHaveBeenCalled()
 })

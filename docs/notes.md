@@ -111,7 +111,7 @@ To change a folder's format, add it again with `--format`, or use `memo folders 
 | Web pages saved as files | `.html`, `.htm` | The page's main text and title |
 
 Some files cannot be read: scanned PDFs (pictures of pages, with no text in them), old `.xls` files,
-and files larger than 50 MiB. Memo keeps up to 200,000 characters of each file. The import report
+and files larger than 10 GiB (`MESSAGING_ATTACHMENT_MAX_MIB` sets another limit). Memo keeps up to 200,000 characters of each file. The import report
 lists every file it could not read, and why, on every run until the file changes:
 
 ```text

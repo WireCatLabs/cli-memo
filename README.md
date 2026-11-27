@@ -356,7 +356,7 @@ More: [security](https://github.com/WireCatLabs/cli-memo/blob/main/docs/security
 
 ## Limits
 
-- Files up to 50 MiB; stored text up to 200,000 characters a file. Scanned PDFs, legacy `.xls` and larger
+- Files up to 10 GiB (`MESSAGING_ATTACHMENT_MAX_MIB` sets another limit, in MiB); stored text up to 200,000 characters a file. Scanned PDFs, legacy `.xls` and larger
   files are reported, not read.
 - Search by meaning embeds at most 600 chunks a run; the next run continues.
 - `memo sync --only mail` reads 200 new messages per account a run by default (`--limit`) and keeps up to 1,000,000
