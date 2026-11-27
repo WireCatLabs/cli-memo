@@ -203,7 +203,7 @@ it("shows each email reference first, with its people, labels, subject and an ex
   const shown = await run("search", "mail", "budget")
   expect(shown.split("\n")).toEqual([
     "msg:email/owner%40example.com/thread-1/%3Cone%40example.com%3E",
-    "  2026-10-01T00:00:00.000Z  Alice Example  to Bob Sample · cc Kai Sample · Starred",
+    "  2026-10-01T00:00:00.000Z  Alice Example  to Bob Sample · cc Kai Sample · Starred · personal, direct",
     "  Offsite",
     expect.stringMatching(/^ {2}….*The offsite budget is approved\.$/),
     "showing 1–1 of 1",

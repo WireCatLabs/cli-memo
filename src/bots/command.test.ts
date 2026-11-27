@@ -42,7 +42,7 @@ it("moves a sender to a bot and back with its whole history, as the owner only",
   const moved = await f.item(OWNER, "bots", "move", "Alerts@Shop.example", "--kind", "bot", "--name", "Shop")
   expect(moved).toMatchObject({ moved: "email:alerts@shop.example", kind: "bot", name: "Shop", history: "whole" })
   const bot = moved.ref as string
-  expect(bot).toMatch(/^sender-bot:\d+$/)
+  expect(bot).toMatch(/^bot:\d+$/)
 
   const [listed] = await f.items(OWNER, "bots", "list", "name:shop")
   expect(listed).toMatchObject({
@@ -70,8 +70,8 @@ it("moves a sender to a bot and back with its whole history, as the owner only",
 
 it("says in its text that the whole history moved and how to move it back", async () => {
   const text = await f.text("bots", "move", "email:alerts@shop.example", "--kind", "bot")
-  expect(text).toMatch(/^moved email:alerts@shop\.example to sender-bot:\d+ .*whole history/)
-  expect(text).toMatch(/memo bots move sender-bot:\d+ --kind person moves it back/)
+  expect(text).toMatch(/^moved email:alerts@shop\.example to bot:\d+ .*whole history/)
+  expect(text).toMatch(/memo bots move bot:\d+ --kind person moves it back/)
 })
 
 it("refuses options that belong to the other direction and a reference it cannot read", async () => {

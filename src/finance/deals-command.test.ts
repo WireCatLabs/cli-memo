@@ -43,7 +43,7 @@ it("lets an agent make a pipeline, add, move and close deals and leads, and coun
   const deal = (
     await run("deals", "add", "Сайт", "Звонок", "500000", "RUB", "--organization", client.ref, "--project", "CLN")
   ).item as { ref: string }
-  expect(deal).toMatchObject({ status: "open", amount: "500000.00", project: project.ref, author: { type: "bot" } })
+  expect(deal).toMatchObject({ status: "open", amount: "500000.00", project: project.ref, author: { type: "agent" } })
   expect((await run("deals", "move", deal.ref, "кп")).item).toMatchObject({ stage: "КП" })
   expect((await run("projects", "status", "CLN")).item).toMatchObject({
     deals: [{ ref: deal.ref, stage: "КП", amount: "500000.00", currency: "RUB" }],

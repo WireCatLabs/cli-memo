@@ -2,7 +2,7 @@ import { CliError, type Streams } from "@wirecat/cli-base"
 import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
-import type { IdentityRef } from "@wirecat/cli-core/store"
+import { type IdentityRef, SENDER_BOT_PREFIX, senderBotRef } from "@wirecat/cli-core/store"
 import type { BotMove, SenderBot } from "@wirecat/cli-core/store/areas"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
@@ -48,9 +48,8 @@ const refuseInGroup = (env: NodeJS.ProcessEnv, command: string) => {
     })
 }
 
-// cli-core 1.1.0 keeps SENDER_BOT_PREFIX out of its public entry points.
-const SENDER_BOT_PREFIX = "sender-bot:"
-const BOT = new RegExp(`^${SENDER_BOT_PREFIX}[1-9]\\d*$`)
+// `sender-bot:<id>` is what memo printed before cli-core 2.0; it still names the bot.
+const BOT = /^(bot|sender-bot):[1-9]\d*$/
 const PERSON = /^person:([1-9]\d*|me)$/
 const IDENTITY = /^([a-z][a-z0-9-]*):(.+)$/
 
@@ -60,7 +59,8 @@ const IDENTITY = /^([a-z][a-z0-9-]*):(.+)$/
  */
 const subjectOf = (typed: string): string | IdentityRef => {
   const text = typed.trim()
-  if (BOT.test(text) || PERSON.test(text)) return text
+  if (BOT.test(text)) return senderBotRef(text)
+  if (PERSON.test(text)) return text
   if (!text.includes(":") && text.includes("@")) return { provider: "email", id: text.toLowerCase() }
   const match = IDENTITY.exec(text)
   if (match === null)

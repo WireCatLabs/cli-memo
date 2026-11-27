@@ -148,7 +148,7 @@ it("moves, reopens, unassigns and tells the history, naming the agent that acted
   expect(history.items[2]).toMatchObject({
     at: expect.any(String),
     kind: "status",
-    by: { ref: expect.stringMatching(/^bot:\d+$/), name: "hermes", owner: false },
+    by: { ref: expect.stringMatching(/^agent:\d+$/), name: "hermes", owner: false },
     changes: { status: ["open", "in_progress"] },
   })
 })

@@ -68,7 +68,7 @@ it("keeps an agent's correction proposed, and the memory it corrects confirmed u
   const kept = await add(owner, "Kai Sample prefers Thursday calls")
   const correction = await add(agent, "Kai Sample prefers Friday calls", "--supersedes", kept.ref)
 
-  expect(correction).toMatchObject({ status: "proposed", supersedes: kept.ref, author: { type: "bot" } })
+  expect(correction).toMatchObject({ status: "proposed", supersedes: kept.ref, author: { type: "agent" } })
   expect(await owner("memories", "show", kept.ref)).toMatchObject({ status: "confirmed" })
   await owner("memories", "confirm", correction.ref)
   expect(await owner("memories", "show", kept.ref)).toMatchObject({ status: "superseded" })

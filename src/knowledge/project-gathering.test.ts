@@ -146,8 +146,8 @@ it("resolves a project by id and reads a mailbox and an imported notes folder as
   await store.close()
 
   const asIs = await run("projects", "evidence", "SYP", "--source", `email:me@example.com`, "--no-catch-up")
-  expect(asIs).toContain("not yet searchable: new text in email:me@example.com")
-  expect(asIs).toContain("leave out --no-catch-up")
+  // cli-core 2.0 indexes mail as it saves it, so even --no-catch-up finds it.
+  expect(asIs).toContain("msg:email/me%40example.com/t1/m1")
   const indexed = await json("projects", "evidence", "SYP", "--source", `email:me@example.com`, "--alias", "offer")
   expect(indexed.index).toMatchObject({ state: "updated" })
   expect(indexed.lanes.map((lane: { query: string; kinds: string[] }) => `${lane.query}:${lane.kinds}`)).toEqual([

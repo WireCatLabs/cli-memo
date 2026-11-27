@@ -111,7 +111,7 @@ export const projectActions = async (
             id: row.id,
             status: "proposed" as const,
             reason: row.reason,
-            provenance: row.proposedBy.type === "bot" ? `${row.proposedBy.kind}:${row.proposedBy.name}` : null,
+            provenance: row.proposedBy.type === "agent" ? `${row.proposedBy.kind}:${row.proposedBy.name}` : null,
             evidence: [await evidenceContext(store, row.subject, null, row.reason ?? "", options)],
           })),
         )

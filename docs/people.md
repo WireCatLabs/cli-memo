@@ -61,13 +61,13 @@ mailbox such as `info@` joins no one but suggests each pair of its people, as be
 
 A bot is a program that writes to you: a no-reply or alert address, a service's mail, a messenger's bot. It is kept
 apart from people. It has a name, its identities and an optional organization, and no ties, tasks or merge review.
-Its reference is `sender-bot:<id>`. Agents are a different thing: `memo agents list` shows them.
+Its reference is `bot:<id>` (`sender-bot:<id>` before memo on cli-core 2.0, still read). Agents are a different thing: `agent:<id>`, and `memo agents list` shows them.
 
 ```sh
 memo bots list                            # every bot, by name
 memo bots list name:shop                  # a part of a name, address or username, 3 characters or more
 memo bots list 'organization:"organization:3"' --page 2
-memo bots show sender-bot:3               # its identities and every move to or from it
+memo bots show bot:3               # its identities and every move to or from it
 ```
 
 Each bot has `name`, `display_name`, `organization`, `author` (`rules`, or `owner` when you moved it), `reason`,
@@ -76,14 +76,14 @@ Each bot has `name`, `display_name`, `organization`, `author` (`rules`, or `owne
 
 ```sh
 memo bots move noreply@shop.example --kind bot                # this address is a program
-memo bots move sender-bot:3 --kind person                     # this bot is a person after all
-memo bots move telegram:12345 --kind bot --into sender-bot:3  # this account is the same program as sender-bot:3
+memo bots move bot:3 --kind person                     # this bot is a person after all
+memo bots move telegram:12345 --kind bot --into bot:3  # this account is the same program as bot:3
 ```
 
 A move takes the sender's whole history, past and future. Its messages and mail stay where they are and count for the
 bot or the person, and no rule moves it back. `bots show` lists every move. Moving it the other way undoes it, and a
 person moved back keeps their `person:<uid>`. Only you can move a sender: an agent's `bots move` is refused. `<who>` is
-written exactly: `sender-bot:<id>`, `person:<uid>`, an address, or `<messenger>:<id>` as `memo people show` prints it,
+written exactly: `bot:<id>`, `person:<uid>`, an address, or `<messenger>:<id>` as `memo people show` prints it,
 never a name.
 
 The bots commands count over every account, so they do not run in an account group.

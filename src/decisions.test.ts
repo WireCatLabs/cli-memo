@@ -167,7 +167,7 @@ it("leaves an unconfirmed link to the owner alone, whoever the agent", async () 
 it("records a write from an unattended run as a proposal, not the owner's", async () => {
   const { run, note } = await setUp()
   const fact = await run({}, NOBODY, "facts", "add", "Kickoff moved", "--kind", "decision", "--evidence", note.ref)
-  expect(fact).toMatchObject({ status: "proposed", author: { type: "bot" } })
+  expect(fact).toMatchObject({ status: "proposed", author: { type: "agent" } })
   const owned = await run(
     {},
     { present: true },
@@ -227,7 +227,7 @@ it("decides as the owner under --from-app with no terminal, and without it knows
     status: "confirmed",
   })
   const fact = await run(DESKTOP, NOBODY, "facts", "add", "Kickoff moved", "--kind", "decision", "--evidence", note.ref)
-  expect(fact).toMatchObject({ status: "proposed", author: { type: "bot", name: "unattended" } })
+  expect(fact).toMatchObject({ status: "proposed", author: { type: "agent", name: "unattended" } })
   expect(await run(DESKTOP, NOBODY, "facts", "reject", fact.ref, "--from-app")).toMatchObject({ status: "rejected" })
 })
 

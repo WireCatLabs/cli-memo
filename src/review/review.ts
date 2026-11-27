@@ -61,7 +61,7 @@ export const filterOf = async (
 }
 
 export const proposerName = (proposer: Proposer) =>
-  proposer.type === "bot" ? proposer.name : proposer.type === "person" ? "you" : "unknown"
+  proposer.type === "agent" ? proposer.name : proposer.type === "person" ? "you" : "unknown"
 
 type Labels = (ref: string | null) => string | null
 
