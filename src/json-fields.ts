@@ -24,7 +24,7 @@ const keep = (text: string, paths: string[]): string => {
 }
 
 /**
- * `--json=a,b` keeps those fields of an answer's item or items, read the way tg and max read it. memo's commands
+ * `--json=a,b` keeps those fields of an answer's item or items, read the way tg and max read it. wcat's commands
  * print through many renderers, so the fields are applied where every answer passes: the data stream.
  */
 export const jsonFields = (streams: Streams, resolve?: JsonFieldsResolver) => {

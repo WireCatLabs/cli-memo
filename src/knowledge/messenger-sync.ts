@@ -23,7 +23,7 @@ export const messengerToolOf = (provider: string): { tool: string; appName: stri
   return tool === undefined || state === undefined ? undefined : { tool, ...state }
 }
 
-/** `--sync-profile max=default`: the profile memo runs a messenger CLI as, one per tool. */
+/** `--sync-profile max=default`: the profile wcat runs a messenger CLI as, one per tool. */
 export const syncProfileOf = (value: string, previous: Record<string, string> = {}): Record<string, string> => {
   const [tool, profile] = value.split("=", 2)
   const tools = Object.keys(STATE)
@@ -51,7 +51,7 @@ export const signedInAccount = (
 }
 
 /**
- * The profile signed in to this account, from the CLI's own record of it (`<state>/accounts/<profile>.json`). memo
+ * The profile signed in to this account, from the CLI's own record of it (`<state>/accounts/<profile>.json`). wcat
  * never picks one for the owner: one signed in is used, several or none is a refusal naming them, and a profile the
  * owner chose with `--sync-profile` must be signed in to this account too.
  */
@@ -199,7 +199,7 @@ const MARGIN_MS = 5_000
 
 /**
  * Syncs a linked chat by running its messenger CLI, `<bin> <profile> messages sync <chat> --since-time <start>`:
- * memo holds no messenger connection. What the child writes to stderr is passed on as it comes.
+ * wcat holds no messenger connection. What the child writes to stderr is passed on as it comes.
  */
 export const messengerFetcher = ({
   env,

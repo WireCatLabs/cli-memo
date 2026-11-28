@@ -1,30 +1,30 @@
 # People and projects
 
 This page helps you answer "what do I know about this person?" before you reply or meet them, and
-keep track of the companies, teams and projects they belong to. Memo gathers the person's messages,
+keep track of the companies, teams and projects they belong to. wcat gathers the person's messages,
 mail and your notes into one answer, each item with its source. It never decides that two accounts
 are one person because the names match: you link them.
 
 ## Find a person by name
 
 ```sh
-memo search people kai
-memo search people 'Kai Sample' --source telegram --json
+wcat search people kai
+wcat search people 'Kai Sample' --source telegram --json
 ```
 
 It reads every account in the store unless `--source` names some, and says which it read. A person
 matches when their name, username or the alias you gave them holds every word; case and accents do
-not matter. Each result shows the person's `person:<id>`, which `memo projects evidence --contact`
+not matter. Each result shows the person's `person:<id>`, which `wcat projects evidence --contact`
 takes, and the accounts behind it.
 
 ## The people you know
 
 ```sh
-memo people list                          # people, the ones who write to you most first
-memo people list kind:organization        # companies, shops, airlines
-memo people list kind:all --sort recent --page 2
-memo people list name:ivan --json
-memo people check ivan petrov             # before adding a person: who already has this name
+wcat people list                          # people, the ones who write to you most first
+wcat people list kind:organization        # companies, shops, airlines
+wcat people list kind:all --sort recent --page 2
+wcat people list name:ivan --json
+wcat people check ivan petrov             # before adding a person: who already has this name
 ```
 
 `people list` shows one kind at a time; the first rule that holds decides it, and `kind_signals` says which:
@@ -36,7 +36,7 @@ memo people check ivan petrov             # before adding a person: who already 
    word in the name (ООО, LLC, Airlines, Hotel, Team…).
 4. **person**: a readable name and a tie to you: a one-to-one chat or a group of at most 10 they are in or wrote in,
    mail you wrote to them, a meeting, a CRM deal or lead whose owner is your CRM user (link that user to yourself with
-   `memo people link`), a CRM's own users, or your phone's address book.
+   `wcat people link`), a CRM's own users, or your phone's address book.
 5. **stranger**: a readable name and no tie, such as authors seen only in big groups and CRM contacts with no deal of
    yours.
 6. **unsorted**: no readable name.
@@ -49,10 +49,10 @@ the username; `username_source` names the messenger the username belongs to), `m
 the address-book tie.
 
 `people check` lists people whose names start like the words you type, in any order and in either script, the same
-name first (`same_name`): «Светлана» finds Svetlana too. `name:` searches find a name in either script as well. Memo
+name first (`same_name`): «Светлана» finds Svetlana too. `name:` searches find a name in either script as well. wcat
 never joins people on a name alone: link them as below.
 
-Memo never joins anyone to you on its own. An account you connect under another person's name, such as a partner's
+wcat never joins anyone to you on its own. An account you connect under another person's name, such as a partner's
 mailbox or a spouse's messenger you read, waits in `people review` as a match with the signal `account`, and so does
 anyone whose phone or address is also yours. A company's phone and a bot's number join and propose no one; a shared
 mailbox such as `info@` joins no one but suggests each pair of its people, as below.
@@ -61,14 +61,14 @@ mailbox such as `info@` joins no one but suggests each pair of its people, as be
 
 A bot is a program that writes to you: a no-reply or alert address, a service's mail, a messenger's bot. It is kept
 apart from people. It has a name, its identities and an optional organization, and no ties, tasks or merge review.
-Its reference is `bot:<id>` (`sender-bot:<id>` before memo on cli-core 2.0, still read). Agents are a different thing: `agent:<id>`, and `memo agents list` shows them.
+Its reference is `bot:<id>` (`sender-bot:<id>` before wcat on cli-core 2.0, still read). Agents are a different thing: `agent:<id>`, and `wcat agents list` shows them.
 
 ```sh
-memo bots list                            # every bot, by name
-memo bots list name:shop                  # a part of a name, address or username, 3 characters or more
-memo bots list 'organization:"organization:3"' --page 2
-memo bots list type:receipts              # bots that send orders, bills or shipping notices
-memo bots show bot:3                      # its identities and every move to or from it
+wcat bots list                            # every bot, by name
+wcat bots list name:shop                  # a part of a name, address or username, 3 characters or more
+wcat bots list 'organization:"organization:3"' --page 2
+wcat bots list type:receipts              # bots that send orders, bills or shipping notices
+wcat bots show bot:3                      # its identities and every move to or from it
 ```
 
 `type:` is what a bot sends, one at a time: `alerts` (security codes, sign-in and system alerts, account notices),
@@ -80,15 +80,15 @@ Each bot has `name`, `display_name`, `organization`, `author` (`rules`, or `owne
 `broadcast`) and `signals`. The rules make a bot from what its messages carry. You can correct them:
 
 ```sh
-memo bots move noreply@shop.example --kind bot                # this address is a program
-memo bots move bot:3 --kind person                     # this bot is a person after all
-memo bots move telegram:12345 --kind bot --into bot:3  # this account is the same program as bot:3
+wcat bots move noreply@shop.example --kind bot                # this address is a program
+wcat bots move bot:3 --kind person                     # this bot is a person after all
+wcat bots move telegram:12345 --kind bot --into bot:3  # this account is the same program as bot:3
 ```
 
 A move takes the sender's whole history, past and future. Its messages and mail stay where they are and count for the
 bot or the person, and no rule moves it back. `bots show` lists every move. Moving it the other way undoes it, and a
 person moved back keeps their `person:<uid>`. Only you can move a sender: an agent's `bots move` is refused. `<who>` is
-written exactly: `bot:<id>`, `person:<uid>`, an address, or `<messenger>:<id>` as `memo people show` prints it,
+written exactly: `bot:<id>`, `person:<uid>`, an address, or `<messenger>:<id>` as `wcat people show` prints it,
 never a name.
 
 The bots commands count over every account, so they do not run in an account group.
@@ -98,22 +98,22 @@ The bots commands count over every account, so they do not run in an account gro
 **The easiest way: ask your agent.**
 
 ```text prompt
-Use memo CLI to show what I know about Kai Sample on Telegram: recent messages, mail and my notes.
+Use wcat CLI to show what I know about Kai Sample on Telegram: recent messages, mail and my notes.
 Tell me what is still open between us, with the source of each point.
 ```
 
 **Or run it yourself:**
 
 ```sh
-memo context telegram:'Kai Sample'
-memo context email:kai@example.com
-memo context max:'Kai Sample' --limit 50
-memo context person:7
+wcat context telegram:'Kai Sample'
+wcat context email:kai@example.com
+wcat context max:'Kai Sample' --limit 50
+wcat context person:7
 ```
 
 Name the person by their account: `telegram:` or `max:` with a name or ID, or `email:` with an
-address, or as `person:<id>` (`memo search people` gives it). `person:<id>` reads every account that saw them,
-a CRM contact or a name you only added (`memo people add`) too, and `coverage` names each account it read and each
+address, or as `person:<id>` (`wcat search people` gives it). `person:<id>` reads every account that saw them,
+a CRM contact or a name you only added (`wcat people add`) too, and `coverage` names each account it read and each
 source it did not, with the reason. The answer brings together:
 
 - every account you linked to the person;
@@ -124,32 +124,32 @@ source it did not, with the reason. The answer brings together:
   invitation, and `--json` lists those fields under `untrusted`;
 - `meetings`: the recorded calls and meetings they took part in, newest first, each with its account. `meetings show`
   of the tool that owns the account opens one;
-- the note about them, the notes that link to them, and the notes you wrote about them in Memo;
+- the note about them, the notes that link to them, and the notes you wrote about them in wcat;
 - open tasks that are about them or assigned to them.
 - the files and pages they own or last edited in Google Drive, Notion or another documents source, as that source
   reports it. You have not reviewed these links; they come from the source's own record, not from a guess;
 - `business`: the organizations they belong to with their role and position, whom they report to and who reports to
   them, the deals and leads they are on, their projects, and categories such as `client`. Each relationship has a
   `standing`: `confirmed` (yours), `reported` (a CRM account says so, and names it; nobody confirmed it), `proposed`
-  (waits for you in `memo review`) or `ended`.
+  (waits for you in `wcat review`) or `ended`.
 
 A note that only mentions the name in its text is not included; only links count
 ([why](how-it-works.md#links-between-notes-and-people)). If a part gave nothing, the answer says
 why. `--limit` shows more than 20 items of each kind, and `--json` gives the answer to an agent.
 
 If you have several accounts in the same messenger, add `--source` to a `<messenger>:<name>` reference, for example
-`memo context telegram:101 --source telegram:1`. For `person:<id>`, `--source` only narrows the accounts read.
+`wcat context telegram:101 --source telegram:1`. For `person:<id>`, `--source` only narrows the accounts read.
 
 ## Link a person's accounts
 
-One person can have a Telegram account, a MAX account, a CRM contact and an email address. Memo treats them as one
+One person can have a Telegram account, a MAX account, a CRM contact and an email address. wcat treats them as one
 person when:
 
 - they have the **same email address**, in any account, work or personal, and no third person has it, unless it is
   a shared mailbox (a role address such as `info@` or `support@`, or a company's address), which only suggests a link;
 - they have the **same phone number**, no one else has it, and one of them has it in Telegram, MAX or WhatsApp.
 
-`memo sync` joins them, and so does `memo people scan`. A matching name, username or email domain is never enough,
+`wcat sync` joins them, and so does `wcat people scan`. A matching name, username or email domain is never enough,
 and a no-reply address such as `noreply@` neither joins nor suggests anyone. A pair you rejected is never joined.
 New evidence about it, such as the same email address after you rejected a phone match, suggests it again; the
 evidence you rejected never does.
@@ -158,31 +158,31 @@ Some signals only suggest a link: a phone number only CRM contacts or cards shar
 that three or more people share, an address a meeting guest typed for themselves, or an agent's guess. These wait as
 matches.
 
-An agent's `memo people link … --reason` merges at once only on strong evidence that memo finds itself, never on the
+An agent's `wcat people link … --reason` merges at once only on strong evidence that wcat finds itself, never on the
 agent's word: one mobile number or personal address that no one else has, or that each of its holders has from a
 different source, such as one client's CRM card, WhatsApp and call, whatever their names. It must come from two
 different sources, and for a phone at least one of them a messenger or a call. A landline, a number or an address two
 records of one source share, a company's line, a role address, a name, a CRM's word or a phrase from a chat is not strong, and the link waits for
-you. Memo keeps which agent merged, in which run, why and on what evidence. `memo people review --kind merged` lists
-the agents' merges still in place, and `memo people unmerge <merge>` undoes one. Set `agent_merges` to `propose`
+you. wcat keeps which agent merged, in which run, why and on what evidence. `wcat people review --kind merged` lists
+the agents' merges still in place, and `wcat people unmerge <merge>` undoes one. Set `agent_merges` to `propose`
 in [the config file](configuration.md#agent_merges) and every agent's link waits for you instead.
 
 ```sh
-memo people review
-memo people review --full
-memo people review --kind merged
-memo people confirm 17090
-memo people reject 17091 --reason "two people"
+wcat people review
+wcat people review --full
+wcat people review --kind merged
+wcat people confirm 17090
+wcat people reject 17091 --reason "two people"
 ```
 
 Each match in `people review` says what the two people share and why it is not strong (`strength`), and shows each
 side: identities by source, the last messages or calls with dates, companies and deals. `--full` adds phones,
 addresses, accounts and more text; `--brief` leaves the sides out.
 
-`memo people confirm` and `memo people reject` take ids and ranges (`17090-17095`) as `people review` lists them, or
+`wcat people confirm` and `wcat people reject` take ids and ranges (`17090-17095`) as `people review` lists them, or
 `all`: everything `people review` lists with the same `--kind` (`link`, `split` or `all`) and `--limit`. `all` shows
 what it would do and changes nothing until you add `--yes`. Each proposal is decided on its own, so one that changed
-since is refused and the others are still decided. `memo review` lists and decides the same proposals among
+since is refused and the others are still decided. `wcat review` lists and decides the same proposals among
 everything else.
 
 `people review` lists the highest `score` first, and matches with no score and splits after them, newest first. A
@@ -192,10 +192,10 @@ phone or another address only they hold, or a chat or a company domain. When the
 person's, say so:
 
 ```sh
-memo people resolve 17092 company                    # the company that has the address or its domain, else a new one
-memo people resolve 17092 company organization:12    # this organization
-memo people resolve 17092 company --name "Shop Ltd"  # a company of this name; needed for a free mailbox such as gmail.com
-memo people resolve 17092 company --all              # and every other match waiting on that mailbox
+wcat people resolve 17092 company                    # the company that has the address or its domain, else a new one
+wcat people resolve 17092 company organization:12    # this organization
+wcat people resolve 17092 company --name "Shop Ltd"  # a company of this name; needed for a free mailbox such as gmail.com
+wcat people resolve 17092 company --all              # and every other match waiting on that mailbox
 ```
 
 The address goes to the organization, the two people are not joined, and that pair is not suggested again on that
@@ -206,9 +206,9 @@ When both "people" on a match are the company's mailboxes (two contacts named af
 them all to it:
 
 ```sh
-memo people resolve 17094 organization                    # the company with an address or the domain, else a new one
-memo people resolve 17094 organization organization:12    # this organization
-memo people resolve 17094 organization --name "Shop Ltd"  # a company of this name; needed for free mail (gmail.com)
+wcat people resolve 17094 organization                    # the company with an address or the domain, else a new one
+wcat people resolve 17094 organization organization:12    # this organization
+wcat people resolve 17094 organization --name "Shop Ltd"  # a company of this name; needed for free mail (gmail.com)
 ```
 
 Every address on the match goes to that organization; with no name, a new one is named after the people's shared
@@ -220,22 +220,22 @@ those addresses, and the answer lists `mailboxes`, `people` (who became the comp
 Link two accounts yourself, or look at one person:
 
 ```sh
-memo people link max:Kai telegram:Kai
-memo people show telegram:Kai
+wcat people link max:Kai telegram:Kai
+wcat people show telegram:Kai
 ```
 
-`memo people show` lists the person's identities by source, the accounts that saw each, the merges that joined them
-(`merge:12-34`, with how, by whom and when) and the matches that wait. `memo people show person:me` shows you.
-`memo context` for any of the accounts shows everything from all of them.
+`wcat people show` lists the person's identities by source, the accounts that saw each, the merges that joined them
+(`merge:12-34`, with how, by whom and when) and the matches that wait. `wcat people show person:me` shows you.
+`wcat context` for any of the accounts shows everything from all of them.
 
 ### People that look wrong
 
 ```sh
-memo people links check
-memo people links check --page 2 --json
+wcat people links check
+wcat people links check --page 2 --json
 ```
 
-`memo people links check` lists people that may be wrong across the whole store, you first, with why and the command that
+`wcat people links check` lists people that may be wrong across the whole store, you first, with why and the command that
 would fix each:
 
 - **owner-other-name**: your own person holds an identity under another name, such as a partner's mailbox or a
@@ -248,10 +248,10 @@ would fix each:
 What you linked yourself, the identities a person already held when you linked another to them, and identities you
 kept together by rejecting a split, are left out.
 
-When a doubt is wrong (a nickname beside a full name, say), tell memo the person is right as they are:
+When a doubt is wrong (a nickname beside a full name, say), tell wcat the person is right as they are:
 
 ```sh
-memo people links resolve person:42 keep
+wcat people links resolve person:42 keep
 ```
 
 The identities in doubt stop being listed until one of them moves to another person. An identity that joins the person
@@ -260,24 +260,24 @@ Desktop.
 
 ### Undo a link
 
-- `memo people unmerge merge:12-34` gives a merge's identities back to the person they came from.
-- `memo people unlink telegram:12345 --from person:me` gives one identity of yours a person of its own again.
-- `memo people unlink email:kai@example.com max:6789 --from person:42` moves several identities of one person to one
+- `wcat people unmerge merge:12-34` gives a merge's identities back to the person they came from.
+- `wcat people unlink telegram:12345 --from person:me` gives one identity of yours a person of its own again.
+- `wcat people unlink email:kai@example.com max:6789 --from person:42` moves several identities of one person to one
   new person.
 
-`unlink` takes each identity by its exact id, as `memo people show` lists it, never by a name. `--from` names the
+`unlink` takes each identity by its exact id, as `wcat people show` lists it, never by a name. `--from` names the
 person they leave, as `person:<uid>` or `person:me`, and is required. When an identity sits on someone else, nothing
 changes: the refusal (`identity.held-elsewhere`) names the person who holds it, so you can check before you run it
 again with that person.
 
 Yours apply at once, at a terminal or in WireCat Desktop. After them, no automatic match joins those people again.
-An agent's `unlink` or `unmerge` needs `--reason` and only proposes the split: it waits in `memo people review` with
-the reason, and only your `memo people confirm` carries it out. A split you reject is not proposed again while
-those identities stay on that person, and `people links check` no longer lists them. An agent's `memo people link … --reason` waits the same way unless memo finds strong evidence (see above).
+An agent's `unlink` or `unmerge` needs `--reason` and only proposes the split: it waits in `wcat people review` with
+the reason, and only your `wcat people confirm` carries it out. A split you reject is not proposed again while
+those identities stay on that person, and `people links check` no longer lists them. An agent's `wcat people link … --reason` waits the same way unless wcat finds strong evidence (see above).
 
 ### Delete a person
 
-`memo people delete person:42` shows what would go and changes nothing. `--yes` deletes:
+`wcat people delete person:42` shows what would go and changes nothing. `--yes` deletes:
 
 - the person and their identities;
 - the people merged into them earlier, so their names and aliases do not come back as a new person (`merged` in
@@ -291,15 +291,15 @@ their source: they stay, and the next sync makes their sender a person again. An
 names the person is changed first: until then the delete is refused and names them. Your own person is never deleted.
 Only you run it, at a terminal or in WireCat Desktop.
 
-To choose the main note about the person, see [the note about a person](notes.md#the-note-about-a-person).
+To choose the main note about the person, see [the note about a person](https://wirecat.dev/en/docs/files).
 
 ## Bring in a phone's contacts
 
 Export the contacts from your phone as a vCard file (`.vcf`) and import them under the phone's name:
 
 ```sh
-memo records check contacts.vcf --account phone:pixel --region ru
-memo records import contacts.vcf --account phone:pixel --region ru
+wcat records check contacts.vcf --account phone:pixel --region ru
+wcat records import contacts.vcf --account phone:pixel --region ru
 ```
 
 A contact is linked to the person who already has one of its e-mail addresses or phone numbers, or made a new
@@ -316,25 +316,25 @@ Organizations and projects are yours, not tied to one messenger account.
   if you want, the organization it belongs to.
 
 ```sh
-memo organizations add 'Synthetic Studio' --kind company
-memo organizations list 'name:*studio*'
-memo organizations show organization:1
-memo organizations rename organization:1 'Synthetic Studio Ltd'
-memo projects add 'Harbour' --key HRB --scope work --organization organization:1
-memo projects list
-memo projects context HRB
+wcat organizations add 'Synthetic Studio' --kind company
+wcat organizations list 'name:*studio*'
+wcat organizations show organization:1
+wcat organizations rename organization:1 'Synthetic Studio Ltd'
+wcat projects add 'Harbour' --key HRB --scope work --organization organization:1
+wcat projects list
+wcat projects context HRB
 ```
 
 `--scope` is `personal` or `work`. `name:` ignores case and takes `*` as any text, so `name:*studio*` finds every name
 that holds the word. An agent's `organizations add` and `organizations rename` are written at once, as yours are;
-memo's `permissions` settings are what limit them. `memo organizations delete organization:1` shows what deleting it
+wcat's `permissions` settings are what limit them. `wcat organizations delete organization:1` shows what deleting it
 takes and changes nothing; `--yes` deletes it with your notes about it and the tags, links and mentions that name it. Its deals, leads,
 projects and the notes that only link to it stay without it. Only you delete one, never one of your own companies. `projects context` takes a key, number, `project:<id>`, exact name or alias.
 `projects context` shows the people linked to the project, the notes about it or linking to it, and its tags.
 `organizations context` shows the organization's people by role, its customers, suppliers and partners, its projects,
 open deals and leads, invoices, payments and orders as stored (totals per status and currency, confirmed rows only),
 how much its people wrote to you, the open tasks of its projects, its categories, the notes about it and its tags. Each
-relationship says its standing, and `coverage` what was not read. `memo organizations list category:client` lists the
+relationship says its standing, and `coverage` what was not read. `wcat organizations list category:client` lists the
 organizations that are customers of one of your own; `supplier`, `partner` and `employer` work the same way. A
 category is read from relationships each time, never stored. For a project, the view also groups pending key documents, relationships, facts and meeting follow-ups
 under `review`, separate from existing open numbered tasks. It confirms nothing. The text view shows
@@ -351,22 +351,22 @@ A **key document** is a note, a file or a stored message to read first about a p
 short reason. It belongs to one project: the same file can be key to one and not to another.
 
 ```sh
-memo projects key-documents add HRB document:3 --reason 'the plan everyone follows'
-memo projects key-documents add HRB msg:telegram/1/77/42 --reason 'the agreed budget'
-memo projects key-documents list HRB
-memo projects key-documents remove HRB document:3
+wcat projects key-documents add HRB document:3 --reason 'the plan everyone follows'
+wcat projects key-documents add HRB msg:telegram/1/77/42 --reason 'the agreed budget'
+wcat projects key-documents list HRB
+wcat projects key-documents remove HRB document:3
 ```
 
 `projects context` starts with them: title, path and why. When the file or message is gone from
-the store, the mark stays and says `available: false` until you remove it. `memo search all` and
-`memo search notes` with `--project HRB` put the project's key documents first and leave out
+the store, the mark stays and says `available: false` until you remove it. `wcat search all` and
+`wcat search notes` with `--project HRB` put the project's key documents first and leave out
 nothing else; `search notes` also labels them `key`. A mark your agent adds waits unconfirmed and names the agent, as a
 relationship does.
 
-**Start work on a project with `memo projects context <key>`** — you, or your agent.
+**Start work on a project with `wcat projects context <key>`** — you, or your agent.
 
-A global tag such as `key` (`memo tags add key --note document:3`) says nothing about the project.
-Move it to a key document with `memo projects key-documents add`, then `memo tags remove key`.
+A global tag such as `key` (`wcat tags add key --note document:3`) says nothing about the project.
+Move it to a key document with `wcat projects key-documents add`, then `wcat tags remove key`.
 
 ## Who belongs where
 
@@ -374,26 +374,26 @@ A **relationship** says that a person belongs to an organization or works on a p
 one organization is a customer or partner of another:
 
 ```sh
-memo relationships add person:PERSON_UID organization:1 --role employee --position CTO --start-date 2026-01-01
-memo relationships add person:PERSON_UID project:1 --role contributor
-memo relationships add person:PERSON_UID person:OTHER_UID --kind reports-to
-memo relationships add organization:2 organization:1 --kind customer-of
-memo relationships list 'about:"project:1"'
-memo relationships list kind:reports-to 'to:"person:5"'
-memo relationships list standing:reported include:ended --limit 50
-memo relationships end 4 --end-date 2026-09-30
-memo relationships remove 4
+wcat relationships add person:PERSON_UID organization:1 --role employee --position CTO --start-date 2026-01-01
+wcat relationships add person:PERSON_UID project:1 --role contributor
+wcat relationships add person:PERSON_UID person:OTHER_UID --kind reports-to
+wcat relationships add organization:2 organization:1 --kind customer-of
+wcat relationships list 'about:"project:1"'
+wcat relationships list kind:reports-to 'to:"person:5"'
+wcat relationships list standing:reported include:ended --limit 50
+wcat relationships end 4 --end-date 2026-09-30
+wcat relationships remove 4
 ```
 
 `--position` keeps a job title apart from the role, and `--start-date` and `--end-date` (the last
-day) say when it held. `memo relationships end <id> --end-date <date>` says it no longer holds: it stays, as `ended`.
+day) say when it held. `wcat relationships end <id> --end-date <date>` says it no longer holds: it stays, as `ended`.
 
 Kinds: `member-of`, `reports-to`, `customer-of` (read backwards: supplier of), `partner-of` and `related-to`. A role
 is one from a list: in an organization `employee`, `contractor`, `founder`, `owner`, `manager`, `adviser`, `contact`;
 in a project `owner`, `manager`, `contributor`, `client-contact`, `approver`; on a deal or lead `owner`, `contact`,
 `decision-maker`, `influencer`; between people and organizations (`related-to`) the offered `colleague`, `adviser`,
-`investor`, `mentor`, `family`, `friend` (another word is kept, as `custom`). A job title is not a role: give it with `--position`. `memo relationships roles list` shows the lists;
-`memo relationships roles add organization board-member --label 'Board member'` adds a role of your own, and
+`investor`, `mentor`, `family`, `friend` (another word is kept, as `custom`). A job title is not a role: give it with `--position`. `wcat relationships roles list` shows the lists;
+`wcat relationships roles add organization board-member --label 'Board member'` adds a role of your own, and
 `remove` takes it off again while no relationship holds it. Only you change the lists. A role saved before these lists stays as written, and
 `relationships list` marks it `custom`; `role_list` on each row names the list its role comes from. A row with a
 document at an end carries `from_document` or `to_document`: title, folder path, the link that opens it and when it last
@@ -407,26 +407,26 @@ for `reports-to` read backwards. Every row shows its standing and, for a CRM's, 
 
 What the role means here goes beside it, in your words, with `--role-note`.
 A free-text role from before the lists still reads; to change it, set a listed role and keep the old words as
-the note: `memo relationships update 4 --role client-contact --role-note '<the old words>'`.
+the note: `wcat relationships update 4 --role client-contact --role-note '<the old words>'`.
 
 A person on a project also takes an **engagement level**: how much you deal with them yourself, not how active
 they are. It is `none`, `low`, `medium` or `high`; without one it is unknown. Someone who writes in the client
 group but whom you rarely answer stays a member, with `low`:
 
 ```sh
-memo relationships update 4 --engagement low
-memo relationships update 4 --role approver --role-note 'signs the acts'
-memo relationships update 4 --engagement ''    # back to unknown
+wcat relationships update 4 --engagement low
+wcat relationships update 4 --role approver --role-note 'signs the acts'
+wcat relationships update 4 --engagement ''    # back to unknown
 ```
 
-`memo projects context` and `memo relationships list` put the project's people in this order: high, medium,
+`wcat projects context` and `wcat relationships list` put the project's people in this order: high, medium,
 unknown, low, none.
 
-A chat can be a project's too, so `memo projects evidence` reads all of it, not only messages that name the
+A chat can be a project's too, so `wcat projects evidence` reads all of it, not only messages that name the
 project. The reference names the chat's account, so no account is guessed:
 
 ```sh
-memo relationships add chat:telegram/1/123 project:1
+wcat relationships add chat:telegram/1/123 project:1
 ```
 
 Only `member-of` a project is allowed for a chat.
@@ -435,14 +435,14 @@ Relationships are statements you make. They never link two accounts into one per
 adds in its terminal is a proposal for you, naming the agent, not a relationship; `--as-owner` makes it yours
 after you answer y at the terminal.
 
-Memo can propose the chats, mail threads and people that look like a project's: its name or aliases in chat titles
+wcat can propose the chats, mail threads and people that look like a project's: its name or aliases in chat titles
 and messages, groups and dialogs of its confirmed members, people who write in its confirmed chats. With no project,
 it proposes people who write to you from the same company domain.
 
 ```sh
-memo relationships scan HRB --source all        # lists them, writes nothing
-memo relationships scan HRB --source all --yes  # proposes them for review
-memo review list kind:relationship
+wcat relationships scan HRB --source all        # lists them, writes nothing
+wcat relationships scan HRB --source all --yes  # proposes them for review
+wcat review list kind:relationship
 ```
 
 A person proposed because they write in a project's group says which group and how much: "wrote 40 messages in
@@ -450,12 +450,12 @@ A person proposed because they write in a project's group says which group and h
 together, so you can decide that group's people in one go, apart from the people you work with directly:
 
 ```sh
-memo review list via:chat:max/1/-100                # that group's senders; next names the confirm command
-memo review confirm 17070-17074                     # all of them
-memo review reject 17070-17074 --reason "not this project"
+wcat review list via:chat:max/1/-100                # that group's senders; next names the confirm command
+wcat review confirm 17070-17074                     # all of them
+wcat review reject 17070-17074 --reason "not this project"
 ```
 
-Proposals wait until you confirm them in `memo review`, and they do not appear in a person's context before that. A
+Proposals wait until you confirm them in `wcat review`, and they do not appear in a person's context before that. A
 pair you rejected is never proposed again. People are matched by the account that wrote, never by a name in a text.
 Common free mail domains, such as Gmail, are never used for proposals.
 
@@ -464,8 +464,8 @@ Common free mail domains, such as Gmail, are never used for proposals.
 If your meetings are saved in the local store, you can link a meeting to a project:
 
 ```sh
-memo projects meetings link HRB 5 --account zoom:ACCOUNT
-memo projects meetings list HRB --source zoom:ACCOUNT
+wcat projects meetings link HRB 5 --account zoom:ACCOUNT
+wcat projects meetings list HRB --source zoom:ACCOUNT
 ```
 
 Name the meeting's account exactly. `confirmed:false` lists the links an agent proposed; to confirm one,
@@ -477,14 +477,14 @@ People call the same project by different names. You can give a project or a tag
 search or an agent finds it by any of them:
 
 ```sh
-memo vocabulary list kind:project
-memo vocabulary show 'Harbor' --kind project
-memo vocabulary aliases add project:1 'Harbor' --fingerprint VALUE
+wcat vocabulary list kind:project
+wcat vocabulary show 'Harbor' --kind project
+wcat vocabulary aliases add project:1 'Harbor' --fingerprint VALUE
 ```
 
 `vocabulary list` shows each project, tag and topic with its other names and a check value. Pass
-that value to `--fingerprint` when you add or remove a name; if the list changed in the meantime, Memo
-refuses and you look again. `memo vocabulary check 'on-boarding'` shows similar existing tags
+that value to `--fingerprint` when you add or remove a name; if the list changed in the meantime, wcat
+refuses and you look again. `wcat vocabulary check 'on-boarding'` shows similar existing tags
 before you create a new one, so you do not end up with `onboarding` and `on-boarding`.
 
-Next: [write a note about one of them](notes.md#write-your-own-notes).
+Next: [write a note about one of them](https://wirecat.dev/en/docs/files).

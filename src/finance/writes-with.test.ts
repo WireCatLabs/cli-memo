@@ -34,10 +34,10 @@ const profiles = (named: Record<string, AccountKey>) =>
   })
 
 beforeEach(async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-writes-with-"))
-  env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
-  delete env.MEMO_GROUP
-  delete env.MEMO_GROUP_LOCK
+  const root = mkdtempSync(join(tmpdir(), "wcat-writes-with-"))
+  env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), WCAT_CONFIG_DIR: join(root, "config") }
+  delete env.WCAT_GROUP
+  delete env.WCAT_GROUP_LOCK
   await withStore(async (store) => {
     await acmeScenario(store)
     const other = fakeCrmSource()
@@ -59,10 +59,10 @@ const rowOf = (items: Row[], account: AccountKey) =>
 describe("writes_with on CRM rows (FIND-2416)", () => {
   it("names the one b24 profile on the row's account, and none on the owner's own row", async () => {
     await profiles({ work: PORTAL })
-    const memo = memoIn(env)
-    await memo("pipelines", "add", "Own", "Call", "won", "lost")
-    await memo("deals", "add", "Own deal", "Own/Call")
-    const { items } = (await memo("deals", "list")) as { items: Row[] }
+    const wcat = memoIn(env)
+    await wcat("pipelines", "add", "Own", "Call", "won", "lost")
+    await wcat("deals", "add", "Own deal", "Own/Call")
+    const { items } = (await wcat("deals", "list")) as { items: Row[] }
     expect(rowOf(items, PORTAL).writes_with).toEqual({
       tool: "b24",
       account: PORTAL,
@@ -71,7 +71,7 @@ describe("writes_with on CRM rows (FIND-2416)", () => {
       why: null,
     })
     expect(items.find((row) => row.title === "Own deal")).toMatchObject({ account: null, writes_with: null })
-    const pipelines = (await memo("pipelines", "list")) as { items: Row[] }
+    const pipelines = (await wcat("pipelines", "list")) as { items: Row[] }
     expect(rowOf(pipelines.items, PORTAL).writes_with).toMatchObject({ tool: "b24", profile: "work" })
     expect(pipelines.items.find((row) => row.name === "Own")).toMatchObject({ writes_with: null })
   })
@@ -97,8 +97,8 @@ describe("writes_with on CRM rows (FIND-2416)", () => {
     expect(inWork.items.map((row) => row.account?.account)).not.toContain(OTHER.account)
     expect(rowOf(inWork.items, PORTAL).writes_with).toMatchObject({ profile: "work", profiles: ["work"] })
 
-    vi.stubEnv("MEMO_GROUP_LOCK", "work")
-    const locked = (await memoIn({ ...env, MEMO_GROUP_LOCK: "work" })("deals", "list")) as { items: Row[] }
+    vi.stubEnv("WCAT_GROUP_LOCK", "work")
+    const locked = (await memoIn({ ...env, WCAT_GROUP_LOCK: "work" })("deals", "list")) as { items: Row[] }
     expect(locked.items.map((row) => row.account?.account)).not.toContain(OTHER.account)
     expect(rowOf(locked.items, PORTAL).writes_with).toMatchObject({ profile: "work", profiles: ["work"] })
   })

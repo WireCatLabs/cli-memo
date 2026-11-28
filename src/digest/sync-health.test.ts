@@ -13,7 +13,7 @@ const unsynced = { runs: [], scheduled: false, serving: false, known: true }
 const stale = (newest: number | null, moved30d = 3) => ({ newest, moved30d, storedAt: NOW - 2 * DAY })
 
 const machine = () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-health-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-health-"))
   const write = (path: string, value: unknown) => {
     const file = join(root, path)
     mkdirSync(join(file, ".."), { recursive: true })

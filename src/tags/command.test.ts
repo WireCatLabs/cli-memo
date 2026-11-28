@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs"
+import { mkdtempSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
@@ -8,17 +8,19 @@ import { openStore } from "@wirecat/cli-core/store"
 import { beforeEach, describe, expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
 import { storeMail } from "../../test/mail-store.js"
+import { addFolderNotes, addNote } from "../../test/notes.js"
 import { APP } from "../app.js"
 import { throwParseFailures } from "../failure.js"
 import { createProgram } from "../program.js"
 
 let env: NodeJS.ProcessEnv
-let vault: string
+let folder: string
+let lighthouse: string
 const path = "Projects/Lighthouse.md"
 const mail = { provider: "email", account: "owner@example.test" }
 const otherMail = { provider: "email", account: "other@example.test" }
 const tg = { provider: "telegram", account: mail.account }
-const noteRef = async () => (await json("notes", "show", join(vault, path))).ref as string
+const noteRef = async () => lighthouse
 const mailLocator = () => formatLocator({ ...mail, chat: "7", message: "42" })
 
 const run = async (...args: string[]) => {
@@ -31,18 +33,20 @@ const run = async (...args: string[]) => {
 const json = async (...args: string[]) => answerOf(await run(...args, "--json"))
 
 beforeEach(async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-tags-"))
-  vault = join(dir, "vault one")
+  const dir = mkdtempSync(join(tmpdir(), "wcat-tags-"))
   env = {
     ...process.env,
     MESSAGING_STORE: join(dir, "messages.db"),
-    MEMO_CONFIG_DIR: join(dir, "config"),
-    MEMO_STATE_DIR: join(dir, "state"),
+    WCAT_CONFIG_DIR: join(dir, "config"),
+    WCAT_STATE_DIR: join(dir, "state"),
   }
-  mkdirSync(join(vault, "Projects"), { recursive: true })
-  writeFileSync(join(vault, path), "Lighthouse budget.\n")
-  writeFileSync(join(vault, "Projects/Harbour.md"), "Harbour budget.\n")
-  await run("folders", "add", vault)
+  const added = await addFolderNotes(
+    env,
+    { [path]: "Lighthouse budget.\n", "Projects/Harbour.md": "Harbour budget.\n" },
+    { name: "vault one" },
+  )
+  folder = added.folder
+  lighthouse = added.notes[0]?.ref as string
   const store = await openStore({ env })
   try {
     for (const key of [mail, otherMail])
@@ -81,12 +85,19 @@ beforeEach(async () => {
   } finally {
     await store.close()
   }
-  await run("sync", "--only", "notes")
 })
 
-describe("memo source tags", () => {
-  it("normalizes and deduplicates labels on an imported note without editing its file", async () => {
-    const before = readFileSync(join(vault, path))
+const tagsOf = async (ref: string) => {
+  const store = await openStore({ env })
+  try {
+    return (await store.notes.noteTags(ref)).map(({ tag }) => tag).sort()
+  } finally {
+    await store.close()
+  }
+}
+
+describe("wcat source tags", () => {
+  it("normalizes and deduplicates labels on an imported note", async () => {
     const ref = await noteRef()
     const added = await json("tags", "add", "Work", "work", "FOLLOW-UP", "--note", ref)
     expect(added).toMatchObject({
@@ -94,11 +105,9 @@ describe("memo source tags", () => {
       added: ["work", "follow-up"],
     })
     expect(await json("tags", "add", "work", "--note", ref)).toMatchObject({ added: [] })
-    expect(readFileSync(join(vault, path))).toEqual(before)
-    expect((await json("notes", "show", ref)).tags).toEqual(["follow-up", "work"])
+    expect(await tagsOf(ref)).toEqual(["follow-up", "work"])
     expect(await json("tags", "remove", "work", "--note", ref)).toMatchObject({ removed: ["work"] })
-    expect((await json("notes", "show", ref)).tags).toEqual(["follow-up"])
-    expect(readFileSync(join(vault, path))).toEqual(before)
+    expect(await tagsOf(ref)).toEqual(["follow-up"])
   })
 
   it("isolates identical email message and thread ids by account and provider, and shared search finds the label", async () => {
@@ -151,20 +160,6 @@ describe("memo source tags", () => {
     })
   })
 
-  it("preserves labels through edits and hides deleted notes from search", async () => {
-    const ref = await noteRef()
-    await json("tags", "add", "work", "--note", ref)
-    writeFileSync(join(vault, path), "Lighthouse revised budget.\n")
-    utimesSync(join(vault, path), new Date("2030-01-01"), new Date("2030-01-01"))
-    await run("sync", "--only", "notes")
-    expect((await json("search", "notes", "revised", "--filter", "tag:work")).items).toHaveLength(1)
-    rmSync(join(vault, path))
-    await run("sync", "--only", "notes")
-    expect((await json("search", "notes", "lighthouse", "--filter", "tag:work")).items).toEqual([])
-    expect(await run("search", "notes", "lighthouse", "--filter", "tag:work")).toContain("No note holds")
-    await expect(json("tags", "add", "again", "--note", ref)).rejects.toMatchObject({ code: "not_found" })
-  })
-
   it("refuses malformed targets, conflicting scopes and invalid labels without partial writes", async () => {
     for (const args of [
       ["work"],
@@ -193,7 +188,7 @@ describe("memo source tags", () => {
     ).rejects.toMatchObject({ code: "not_found" })
   })
 
-  it("labels a meeting of the selected account and writes a note about it", async () => {
+  it("labels a meeting of the selected account", async () => {
     const zoom = { provider: "example", account: "alice-example" }
     const store = await openStore({ env })
     let meetingId: number
@@ -233,36 +228,6 @@ describe("memo source tags", () => {
     expect((await json("tags", "list", "type:meeting")).items).toMatchObject([
       { type: "meeting", id: String(meetingId), tag: "planning", origin: expect.any(String) },
     ])
-    const note = await json(
-      "notes",
-      "add",
-      "Follow up with Bob Sample",
-      "--subject",
-      `meeting:${accountId}/${meetingId}`,
-    )
-    expect(note.ref).toMatch(/^note:/)
-    const about = await json("notes", "list", `about:"meeting:${accountId}/${meetingId}"`)
-    expect(JSON.stringify(about)).toContain(note.ref)
-
-    const byId = await json(
-      "notes",
-      "add",
-      "Send the agenda",
-      "--subject",
-      note.ref,
-      ...acts,
-      "--meeting",
-      String(meetingId),
-    )
-    for (const subject of [note.ref, `meeting:${accountId}/${meetingId}`])
-      expect(JSON.stringify(await json("notes", "list", `about:"${subject}"`))).toContain(byId.ref)
-    await expect(json("notes", "add", "x", "--meeting", String(meetingId + 1), ...acts)).rejects.toMatchObject({
-      code: "not_found",
-    })
-    await expect(json("notes", "add", "x", "--meeting", String(meetingId))).rejects.toMatchObject({
-      code: "validation_error",
-    })
-    await expect(json("notes", "add", "x", ...acts)).rejects.toMatchObject({ code: "validation_error" })
   })
 
   it("labels and unlabels a contact, a person, an organization, a task, a project, a meeting and a subfolder", async () => {
@@ -305,9 +270,8 @@ describe("memo source tags", () => {
       await store.close()
     }
     const telegram = ["--account", `${tg.provider}:${tg.account}`]
-    const note = await json("notes", "add", "Synthetic budget request")
+    const note = await addNote(env, "Synthetic budget request")
     const task = (await json("tasks", "add", note.ref, ...telegram)).task.id as string
-    const [folder] = (await json("folders", "list")).items
     const targets: [string, string[]][] = [
       ["contact", ["--contact", "101", ...telegram]],
       ["person", ["--person", person]],
@@ -315,7 +279,7 @@ describe("memo source tags", () => {
       ["task", ["--task", task, ...telegram]],
       ["project", ["--project", "SYH"]],
       ["meeting", ["--meeting", String(meeting), "--account", `${zoom.provider}:${zoom.account}`]],
-      ["folder", ["--folder", folder.id, "--subfolder", "Projects"]],
+      ["folder", ["--folder", folder, "--subfolder", "Projects"]],
     ]
     for (const [type, target] of targets) {
       expect(await json("tags", "add", "review", ...target), type).toMatchObject({ added: ["review"] })

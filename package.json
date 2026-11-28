@@ -1,13 +1,13 @@
 {
-  "name": "@wirecat/cli-memo",
-  "version": "0.156.0",
-  "description": "Context about people across messengers, notes and mail, from a local store",
-  "mcpName": "dev.wirecat/cli-memo",
+  "name": "@wirecat/wirecat",
+  "version": "1.0.0",
+  "description": "Local context for AI agents across messengers, mail and notes, from a local store",
+  "mcpName": "dev.wirecat/wirecat",
   "license": "Apache-2.0",
   "author": "Viacheslav Ptsarev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/WireCatLabs/cli-memo.git"
+    "url": "git+https://github.com/WireCatLabs/wirecat.git"
   },
   "type": "module",
   "engines": {
@@ -15,8 +15,7 @@
   },
   "packageManager": "pnpm@11.28.8",
   "bin": {
-    "memo": "dist/bin/memo.js",
-    "wcat-memo": "dist/bin/memo.js"
+    "wcat-wirecat": "dist/bin/wcat-wirecat.js"
   },
   "files": [
     "dist",
@@ -29,14 +28,14 @@
     "THIRD_PARTY_NOTICES"
   ],
   "scripts": {
-    "build": "tsc --build --force && cli-dev bundle --bin dist/bin/memo.js",
+    "build": "tsc --build --force && cli-dev bundle --bin dist/bin/wcat-wirecat.js",
     "typecheck": "tsc --build --force --emitDeclarationOnly && tsc -p tsconfig.test.json",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "lint:commands": "cli-dev lint --cli dist/bin/memo.js --budget 32",
+    "lint:commands": "node --experimental-strip-types scripts/sandboxed.ts cli-dev lint --cli dist/bin/wcat-wirecat.js --budget 32",
     "release:check": "cli-dev changelog level && pnpm lint && pnpm typecheck && pnpm test && pnpm build && node --experimental-strip-types scripts/commands.ts --check && pnpm lint:commands && pnpm secrets:scan",
     "prepare": "lefthook install || true",
     "postinstall": "node install/postinstall.mjs",
@@ -55,7 +54,7 @@
     "version:sync": "cli-dev version --sync",
     "package:check": "node --experimental-strip-types scripts/package-check.ts",
     "docs:check": "cli-dev docs-check --rules scripts/docs-rules.ts --pages && node --experimental-strip-types scripts/changelog-fragments.ts --rules scripts/docs-rules.ts && cspell --no-progress --no-summary README.md 'docs/*.md' && pnpm docs:lint",
-    "test:matrix:check": "cli-dev test-matrix --program scripts/command-program.ts --untested scripts/test-matrix-untested.ts --name memo --check && git diff --exit-code -- docs/dev/test-matrix.md",
+    "test:matrix:check": "cli-dev test-matrix --program scripts/command-program.ts --untested scripts/test-matrix-untested.ts --name wcat --check && git diff --exit-code -- docs/dev/test-matrix.md",
     "test:matrix": "vitest run >/dev/null && pnpm build >/dev/null && pnpm test:matrix:check",
     "smoke:bun": "bun scripts/smoke.ts && bun scripts/smoke-bundle.ts",
     "smoke:node": "node --experimental-strip-types scripts/smoke-bundle.ts"
@@ -65,8 +64,7 @@
     "@wirecat/cli-base": "1.2.0",
     "@wirecat/cli-core": "2.0.0",
     "commander": "15.0.0",
-    "valibot": "1.5.0",
-    "yaml": "2.9.1"
+    "valibot": "1.5.0"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.3",

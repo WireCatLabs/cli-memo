@@ -5,6 +5,7 @@ import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
+import { addNote } from "../../test/notes.js"
 import { createProgram } from "../program.js"
 
 const telegram = { provider: "telegram", account: "1" }
@@ -24,7 +25,7 @@ const message = (id: string, text: string) => ({
 })
 
 const setUp = async (agent: Record<string, string> = {}) => {
-  const env = { ...process.env, ...agent, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-key-")), "s.db") }
+  const env = { ...process.env, ...agent, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-key-")), "s.db") }
   const store = await openStore({ env })
   await store.messages.saveMessages(telegram, "7", [message("5", "Harbour budget agreed")], { via: "test" })
   await store.close()
@@ -36,8 +37,8 @@ const setUp = async (agent: Record<string, string> = {}) => {
     return answerOf(streams.stdout.join(""))
   }
   await run("projects", "add", "Synthetic Harbour", "--key", "SYH")
-  const plan = await run("notes", "add", "# Harbour plan\n\nHarbour plan, the one to read first")
-  const draft = await run("notes", "add", "# Harbour draft\n\nHarbour draft notes")
+  const plan = await addNote(env, "# Harbour plan\n\nHarbour plan, the one to read first")
+  const draft = await addNote(env, "# Harbour draft\n\nHarbour draft notes")
   return { env, run, plan: plan.ref as string, draft: draft.ref as string }
 }
 

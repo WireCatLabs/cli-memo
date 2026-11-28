@@ -7,8 +7,8 @@ import { envelopeOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
 
 const setUp = () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-records-sheet-"))
-  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), MEMO_CONFIG_DIR: dir }
+  const dir = mkdtempSync(join(tmpdir(), "wcat-records-sheet-"))
+  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), WCAT_CONFIG_DIR: dir }
   delete env.AI_AGENT
   delete env.CLAUDECODE
   const call = async (args: string[]) => {

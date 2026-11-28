@@ -52,7 +52,7 @@ const download = () => {
 }
 
 const setUp = async () => {
-  const store = await openStore({ path: join(mkdtempSync(join(tmpdir(), "memo-meaning-")), "m.db") })
+  const store = await openStore({ path: join(mkdtempSync(join(tmpdir(), "wcat-meaning-")), "m.db") })
   stores.push(store)
   await store.chats.saveChats(account, [
     { id: "9", title: "Chat", kind: "group", unreadCount: 0, lastMessageAt: null, participantsCount: null },
@@ -79,7 +79,7 @@ const everywhere = (store: MessageStore) =>
   searchEverywhere(store, process.env, { text: "cat", limit: 10, only: ["messages"], timezone: "UTC" })
 
 beforeEach(() => {
-  state = mkdtempSync(join(tmpdir(), "memo-models-"))
+  state = mkdtempSync(join(tmpdir(), "wcat-models-"))
   vi.stubEnv("WIRECAT_STATE_DIR", state)
 })
 afterEach(async () => {
@@ -100,7 +100,7 @@ it("search all finds a message in other words once messages have vectors", async
   expect(byId.get("2")).toEqual(["meaning"])
 })
 
-it("search all reads messages by words and names memo's download while the model is missing", async () => {
+it("search all reads messages by words and names wcat's download while the model is missing", async () => {
   const store = await setUp()
 
   const found = await everywhere(store)
@@ -109,6 +109,6 @@ it("search all reads messages by words and names memo's download while the model
   expect(found.items.map(({ foundBy }) => foundBy)).toEqual([["words"]])
   expect(allAnswer({ ...found }, 10).missing).toContainEqual({
     field: "found_by",
-    why: expect.stringContaining("`memo models download embeddinggemma`"),
+    why: expect.stringContaining("`wcat models download embeddinggemma`"),
   })
 })

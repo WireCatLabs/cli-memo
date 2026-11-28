@@ -8,7 +8,7 @@ const root = resolve(import.meta.dirname, "..")
 const program = createProgram({ env: {} })
 provide(program, { ...environmentOf(program), discoveryAvailability: () => ({ available: true }) })
 const content = commandsPage({
-  cli: "memo",
+  cli: "wcat",
   commands: describeProgram(program),
   options: describeOptions(program),
   labels: COMMANDS_PAGE_LABELS.en,
@@ -17,9 +17,9 @@ const content = commandsPage({
     banner: "<!-- Generated from the command tree by pnpm generate. Do not edit. -->",
     title: "All commands",
     intro:
-      "Look up every Memo command and option here. A command that reads names its accounts with `--source`: one as `telegram:1` or `email:work`, every account of a provider, a kind, or `group:<name>`. A command that writes names the one account it acts as with `--account telegram:1`. Memo never chooses an account for you. Add `--json` for an answer a script or agent can read. See [recipes](recipes.md) for whole tasks, [using Memo](usage.md) for a normal day and [import](import.md) for bringing in files and records of other sources.",
+      "Look up every wcat command and option here. A command that reads names its accounts with `--source`: one as `telegram:1` or `email:work`, every account of a provider, a kind, or `group:<name>`. A command that writes names the one account it acts as with `--account telegram:1`. wcat never chooses an account for you. Add `--json` for an answer a script or agent can read. See [recipes](recipes.md) for whole tasks, [using wcat](usage.md) for a normal day and [the files CLI](https://wirecat.dev/en/docs/files) for notes and documents.",
     globalHeading: "Global options",
-    globalIntro: "These options work with the `memo` command itself.",
+    globalIntro: "These options work with the `wcat` command itself.",
     mutates: "This command can send data to the configured AI provider.",
     mutatesLocal: "This command changes the local store or your files.",
     exitHeading: "Exit codes",

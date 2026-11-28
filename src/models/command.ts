@@ -15,7 +15,7 @@ export const modelsCommand = (
   program.addCommand(
     modelCatalogueCommand(APP, {
       kinds: ["text"],
-      // memo's sync is the one that enriches, so memo offers the switch.
+      // wcat's sync is the one that enriches, so wcat offers the switch.
       enrichment: true,
       jsonOption: true,
       env: () => env,

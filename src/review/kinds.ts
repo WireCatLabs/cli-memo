@@ -5,7 +5,7 @@ import { MAIL_FINDINGS_KIND, type MessageStore, SOURCE_REVIEW_KIND } from "@wire
 /** What a row adds beyond cli-core's `ProposalRow`: where it came from, for grouping. */
 export type ReviewRow = ProposalRow & { source?: string | null }
 
-/** Every kind `memo review` shows, as `kind:` takes them. */
+/** Every kind `wcat review` shows, as `kind:` takes them. */
 export const REVIEW_KINDS = [
   "relationship",
   "relationship_update",

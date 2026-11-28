@@ -22,11 +22,11 @@ import {
 import type { TemplateAddress } from "@wirecat/cli-core/store/areas"
 import { APP } from "../app.js"
 
-/** The digest memo had before digests had names; its files and brief keep their old places. */
+/** The digest wcat had before digests had names; its files and brief keep their old places. */
 export const MORNING_DIGEST = "morning-digest"
 
 /** Every digest's agent runs the one skill; `skill show` adds that digest's window, sources and brief. */
-export const DIGEST_PROMPT = "Run memo skill show morning-digest and follow it."
+export const DIGEST_PROMPT = "Run wcat skill show morning-digest and follow it."
 
 /** What a digest may read, each a part of `review agenda` it can leave out. */
 export const DIGEST_SOURCES = [
@@ -42,7 +42,7 @@ export const DIGEST_SOURCES = [
 ] as const
 export type DigestSource = (typeof DIGEST_SOURCES)[number]
 
-/** What memo keeps of a digest beside its schedule: the schedule holds the times, routes and caps. */
+/** What wcat keeps of a digest beside its schedule: the schedule holds the times, routes and caps. */
 export interface DigestDefinition {
   name: string
   title: string
@@ -81,8 +81,8 @@ export const dropDefinition = (env: NodeJS.ProcessEnv, name: string): void =>
   rmSync(definitionFile(env, name), { force: true })
 
 /**
- * A digest while its schedule exists: the morning digest by name, any other while memo keeps its definition too. A
- * definition left behind by `memo schedule remove` is no digest, and `digest add` writes over it.
+ * A digest while its schedule exists: the morning digest by name, any other while wcat keeps its definition too. A
+ * definition left behind by `wcat schedule remove` is no digest, and `digest add` writes over it.
  */
 // A name goes into file paths: only `add`'s shape can name a digest, so `../x` never reaches the disk.
 const DIGEST_NAME = /^[a-z0-9][a-z0-9-]*$/
@@ -193,7 +193,7 @@ export const agentOf = (schedule: Schedule): DigestAgent | undefined => {
   }
 }
 
-/** Whether the schedule runs memo's digest skill, not a prompt of its own made with `memo schedule agent`. */
+/** Whether the schedule runs wcat's digest skill, not a prompt of its own made with `wcat schedule agent`. */
 export const runsDigestSkill = (schedule: Schedule): boolean =>
   schedule.agent ? schedule.agent.prompt === DIGEST_PROMPT : schedule.argv.includes(DIGEST_PROMPT)
 
@@ -206,7 +206,7 @@ const FIXED_VALUE_FLAGS: Record<string, string> = {
 const MODEL = /^[A-Za-z0-9][\w.:/@[\]-]*$/
 
 /**
- * A digest saved before cli-core kept `agent`, read back only when its argv is exactly the shape memo's claude digest
+ * A digest saved before cli-core kept `agent`, read back only when its argv is exactly the shape wcat's claude digest
  * had: a run may have rewritten that file (SEC-1), so anything else is left for the owner rather than carried over.
  */
 export const legacyClaudeDigest = (argv: readonly string[], tools: readonly string[]): DigestAgent | undefined => {
@@ -249,15 +249,15 @@ export const needsOf = (name: string, schedule: Schedule): string | null => {
   const agent = agentOf(schedule)
   if (agent) return null
   if (harnessOfArgv(schedule.argv) === "codex")
-    return `codex runs on a schedule only with your consent: \`memo digest edit ${name} --agent codex --allow-dangerous\``
-  return `saved by an older memo in a shape memo does not re-save by itself; check it, then \`memo digest edit ${name} --agent claude\``
+    return `codex runs on a schedule only with your consent: \`wcat digest edit ${name} --agent codex --allow-dangerous\``
+  return `saved by an older wcat in a shape wcat does not re-save by itself; check it, then \`wcat digest edit ${name} --agent claude\``
 }
 
 /** A digest's schedule, or a not-found refusal that names the command listing them. */
 export const digestOf = (env: NodeJS.ProcessEnv, name: string): { file: string; schedule: Schedule } => {
   const file = digestScheduleFile(env, name)
   if (!isDigest(env, name))
-    throw new CliError("not_found", `no digest ${name} — \`memo digest list\` names them`, {
+    throw new CliError("not_found", `no digest ${name} — \`wcat digest list\` names them`, {
       reason: "digest.not-found",
     })
   return { file, schedule: readSchedule(file) }

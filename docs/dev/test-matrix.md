@@ -2,1611 +2,1505 @@
 
 # Test matrix
 
-Every command and option of `memo`, and whether an offline test drives it through the CLI. ✅ a test
+Every command and option of `wcat`, and whether an offline test drives it through the CLI. ✅ a test
 ran it · ⛔ not tested offline, with the reason and where it is checked instead · ❌ nothing.
 Measured from the test run (`coverage/argv.jsonl`), not searched for — see
 [TESTING.md](TESTING.md) for how, and for the states and failures that cut across commands.
 
-**1597 ✅ · 2 ⛔ · 0 ❌** — 353 commands, 1246 options.
+**0 ✅ · 2 ⛔ · 1491 ❌** — 319 commands, 1174 options.
 
 | Command | Option | | Note |
 |---|---|---|---|
-| `context` |  | ✅ |  |
-| `context` | `--limit` | ✅ |  |
-| `context` | `--since-time` | ✅ |  |
-| `context` | `--before-time` | ✅ |  |
-| `context` | `--json` | ✅ |  |
-| `context` | `--source` | ✅ |  |
-| `context` | `--trimmed` | ✅ |  |
-| `show` |  | ✅ |  |
-| `show` | `--json` | ✅ |  |
-| `notes show` |  | ✅ |  |
-| `notes show` | `--json` | ✅ |  |
-| `notes list` |  | ✅ |  |
-| `notes list` | `--limit` | ✅ |  |
-| `notes list` | `--page` | ✅ |  |
-| `notes list` | `--json` | ✅ |  |
-| `notes add` |  | ✅ |  |
-| `notes add` | `--text` | ✅ |  |
-| `notes add` | `--text-file` | ✅ |  |
-| `notes add` | `--title` | ✅ |  |
-| `notes add` | `--subject` | ✅ |  |
-| `notes add` | `--meeting` | ✅ |  |
-| `notes add` | `--account` | ✅ |  |
-| `notes add` | `--export` | ✅ |  |
-| `notes add` | `--format` | ✅ |  |
-| `notes add` | `--json` | ✅ |  |
-| `notes edit` |  | ✅ |  |
-| `notes edit` | `--revision` | ✅ |  |
-| `notes edit` | `--text` | ✅ |  |
-| `notes edit` | `--text-file` | ✅ |  |
-| `notes edit` | `--export` | ✅ |  |
-| `notes edit` | `--format` | ✅ |  |
-| `notes edit` | `--json` | ✅ |  |
-| `notes remove` |  | ✅ |  |
-| `notes remove` | `--json` | ✅ |  |
-| `notes export` |  | ✅ |  |
-| `notes export` | `--output-dir` | ✅ |  |
-| `notes export` | `--format` | ✅ |  |
-| `notes export` | `--json` | ✅ |  |
-| `notes links show` |  | ✅ |  |
-| `notes links show` | `--json` | ✅ |  |
-| `notes links add` |  | ✅ |  |
-| `notes links add` | `--json` | ✅ |  |
-| `notes links add` | `--from-app` | ✅ |  |
-| `notes links clear` |  | ✅ |  |
-| `notes links clear` | `--json` | ✅ |  |
-| `notes links clear` | `--from-app` | ✅ |  |
-| `sources add` |  | ✅ |  |
-| `sources add` | `--reason` | ✅ |  |
-| `sources add` | `--as-owner` | ✅ |  |
-| `sources add` | `--from-app` | ✅ |  |
-| `sources add` | `--title` | ✅ |  |
-| `sources add` | `--subject` | ✅ |  |
-| `sources add` | `--keep-copy` | ✅ |  |
-| `sources add` | `--max-chars` | ✅ |  |
-| `sources add` | `--json` | ✅ |  |
-| `sources preview` |  | ✅ |  |
-| `sources preview` | `--json` | ✅ |  |
-| `sources show` |  | ✅ |  |
-| `sources show` | `--bytes` | ✅ |  |
-| `sources show` | `--json` | ✅ |  |
-| `sources mentions` |  | ✅ |  |
-| `sources mentions` | `--json` | ✅ |  |
-| `sources remove` |  | ✅ |  |
-| `sources remove` | `--as-owner` | ✅ |  |
-| `sources remove` | `--from-app` | ✅ |  |
-| `sources remove` | `--json` | ✅ |  |
-| `sources suggest` |  | ✅ |  |
-| `sources suggest` | `--as-owner` | ✅ |  |
-| `sources suggest` | `--from-app` | ✅ |  |
-| `sources suggest` | `--provider` | ✅ |  |
-| `sources suggest` | `--model` | ✅ |  |
-| `sources suggest` | `--subject` | ✅ |  |
-| `sources suggest` | `--rescan` | ✅ |  |
-| `sources suggest` | `--json` | ✅ |  |
-| `sources readers list` |  | ✅ |  |
-| `sources readers list` | `--json` | ✅ |  |
-| `sources readers set` |  | ✅ |  |
-| `sources readers set` | `--as-owner` | ✅ |  |
-| `sources readers set` | `--from-app` | ✅ |  |
-| `sources readers set` | `--model` | ✅ |  |
-| `sources readers set` | `--base-url` | ✅ |  |
-| `sources readers set` | `--json` | ✅ |  |
-| `documents list` |  | ✅ |  |
-| `documents list` | `--limit` | ✅ |  |
-| `documents list` | `--page` | ✅ |  |
-| `documents list` | `--json` | ✅ |  |
-| `documents tree` |  | ✅ |  |
-| `documents tree` | `--source` | ✅ |  |
-| `documents tree` | `--depth` | ✅ |  |
-| `documents tree` | `--json` | ✅ |  |
-| `documents show` |  | ✅ |  |
-| `documents show` | `--cursor` | ✅ |  |
-| `documents show` | `--max-chars` | ✅ |  |
-| `documents show` | `--json` | ✅ |  |
-| `folders add` |  | ✅ |  |
-| `folders add` | `--format` | ✅ |  |
-| `folders add` | `--json` | ✅ |  |
-| `folders update` |  | ✅ |  |
-| `folders update` | `--format` | ✅ |  |
-| `folders update` | `--json` | ✅ |  |
-| `folders remove` |  | ✅ |  |
-| `folders remove` | `--allow-delete` | ✅ |  |
-| `folders remove` | `--yes` | ✅ |  |
-| `folders remove` | `--json` | ✅ |  |
-| `folders list` |  | ✅ |  |
-| `folders list` | `--json` | ✅ |  |
-| `messages show` |  | ✅ |  |
-| `messages show` | `--before-n` | ✅ |  |
-| `messages show` | `--after-n` | ✅ |  |
-| `messages show` | `--full` | ✅ |  |
-| `messages show` | `--trimmed` | ✅ |  |
-| `messages show` | `--json` | ✅ |  |
-| `messages acknowledge` |  | ✅ |  |
-| `messages acknowledge` | `--holder` | ✅ |  |
-| `messages acknowledge` | `--cursor` | ✅ |  |
-| `messages acknowledge` | `--source` | ✅ |  |
-| `messages acknowledge` | `--json` | ✅ |  |
-| `messages reset` |  | ✅ |  |
-| `messages reset` | `--holder` | ✅ |  |
-| `messages reset` | `--since-time` | ✅ |  |
-| `messages reset` | `--last` | ✅ |  |
-| `messages reset` | `--dry-run` | ✅ |  |
-| `messages reset` | `--source` | ✅ |  |
-| `messages reset` | `--json` | ✅ |  |
-| `mail findings add` |  | ✅ |  |
-| `mail findings add` | `--json` | ✅ |  |
-| `mail findings add` | `--source` | ✅ |  |
-| `mail findings add` | `--key` | ✅ |  |
-| `mail findings add` | `--dry-run` | ✅ |  |
-| `mail findings show` |  | ✅ |  |
-| `mail findings show` | `--json` | ✅ |  |
-| `mail findings list` |  | ✅ |  |
-| `mail findings list` | `--json` | ✅ |  |
-| `mail findings list` | `--source` | ✅ |  |
-| `mail findings list` | `--limit` | ✅ |  |
-| `mail findings list` | `--page` | ✅ |  |
-| `mail subscriptions list` |  | ✅ |  |
-| `mail subscriptions list` | `--source` | ✅ |  |
-| `mail subscriptions list` | `--limit` | ✅ |  |
-| `mail subscriptions list` | `--page` | ✅ |  |
-| `mail subscriptions list` | `--json` | ✅ |  |
-| `mail review` |  | ✅ |  |
-| `mail review` | `--unanswered` | ✅ |  |
-| `mail review` | `--waiting` | ✅ |  |
-| `mail review` | `--holder` | ✅ |  |
-| `mail review` | `--new` | ✅ |  |
-| `mail review` | `--source` | ✅ |  |
-| `mail review` | `--json` | ✅ |  |
-| `mail add` |  | ✅ |  |
-| `mail check` |  | ✅ |  |
-| `mail inspect` |  | ✅ |  |
-| `mail delete` |  | ✅ |  |
-| `mail restore` |  | ✅ |  |
-| `mail runs list` |  | ✅ |  |
-| `mail rules list` |  | ✅ |  |
-| `mail rules add` |  | ✅ |  |
-| `mail rules remove` |  | ✅ |  |
-| `mail rules apply` |  | ✅ |  |
-| `mail rules export` |  | ✅ |  |
-| `mail rules import` |  | ✅ |  |
-| `people add` |  | ✅ |  |
-| `people add` | `--json` | ✅ |  |
-| `people list` |  | ✅ |  |
-| `people list` | `--sort` | ✅ |  |
-| `people list` | `--limit` | ✅ |  |
-| `people list` | `--page` | ✅ |  |
-| `people list` | `--json` | ✅ |  |
-| `people check` |  | ✅ |  |
-| `people check` | `--limit` | ✅ |  |
-| `people check` | `--json` | ✅ |  |
-| `people show` |  | ✅ |  |
-| `people show` | `--json` | ✅ |  |
-| `people review` |  | ✅ |  |
-| `people review` | `--kind` | ✅ |  |
-| `people review` | `--brief` | ✅ |  |
-| `people review` | `--full` | ✅ |  |
-| `people review` | `--limit` | ✅ |  |
-| `people review` | `--json` | ✅ |  |
-| `people confirm` |  | ✅ |  |
-| `people confirm` | `--as-owner` | ✅ |  |
-| `people confirm` | `--from-app` | ✅ |  |
-| `people confirm` | `--kind` | ✅ |  |
-| `people confirm` | `--limit` | ✅ |  |
-| `people confirm` | `--yes` | ✅ |  |
-| `people confirm` | `--reason` | ✅ |  |
-| `people confirm` | `--json` | ✅ |  |
-| `people reject` |  | ✅ |  |
-| `people reject` | `--as-owner` | ✅ |  |
-| `people reject` | `--from-app` | ✅ |  |
-| `people reject` | `--kind` | ✅ |  |
-| `people reject` | `--limit` | ✅ |  |
-| `people reject` | `--yes` | ✅ |  |
-| `people reject` | `--reason` | ✅ |  |
-| `people reject` | `--json` | ✅ |  |
-| `people resolve` |  | ✅ |  |
-| `people resolve` | `--as-owner` | ✅ |  |
-| `people resolve` | `--from-app` | ✅ |  |
-| `people resolve` | `--name` | ✅ |  |
-| `people resolve` | `--mailbox` | ✅ |  |
-| `people resolve` | `--all` | ✅ |  |
-| `people resolve` | `--reason` | ✅ |  |
-| `people resolve` | `--json` | ✅ |  |
-| `people links check` |  | ✅ |  |
-| `people links check` | `--limit` | ✅ |  |
-| `people links check` | `--page` | ✅ |  |
-| `people links check` | `--json` | ✅ |  |
-| `people links resolve` |  | ✅ |  |
-| `people links resolve` | `--as-owner` | ✅ |  |
-| `people links resolve` | `--from-app` | ✅ |  |
-| `people links resolve` | `--json` | ✅ |  |
-| `people delete` |  | ✅ |  |
-| `people delete` | `--yes` | ✅ |  |
-| `people delete` | `--as-owner` | ✅ |  |
-| `people delete` | `--from-app` | ✅ |  |
-| `people delete` | `--json` | ✅ |  |
-| `people scan` |  | ✅ |  |
-| `people scan` | `--json` | ✅ |  |
-| `people link` |  | ✅ |  |
-| `people link` | `--as-owner` | ✅ |  |
-| `people link` | `--from-app` | ✅ |  |
-| `people link` | `--reason` | ✅ |  |
-| `people link` | `--json` | ✅ |  |
-| `people unlink` |  | ✅ |  |
-| `people unlink` | `--as-owner` | ✅ |  |
-| `people unlink` | `--from-app` | ✅ |  |
-| `people unlink` | `--reason` | ✅ |  |
-| `people unlink` | `--from` | ✅ |  |
-| `people unlink` | `--json` | ✅ |  |
-| `people unmerge` |  | ✅ |  |
-| `people unmerge` | `--as-owner` | ✅ |  |
-| `people unmerge` | `--from-app` | ✅ |  |
-| `people unmerge` | `--reason` | ✅ |  |
-| `people unmerge` | `--json` | ✅ |  |
-| `bots list` |  | ✅ |  |
-| `bots list` | `--limit` | ✅ |  |
-| `bots list` | `--page` | ✅ |  |
-| `bots list` | `--json` | ✅ |  |
-| `bots show` |  | ✅ |  |
-| `bots show` | `--json` | ✅ |  |
-| `bots move` |  | ✅ |  |
-| `bots move` | `--kind` | ✅ |  |
-| `bots move` | `--into` | ✅ |  |
-| `bots move` | `--name` | ✅ |  |
-| `bots move` | `--reason` | ✅ |  |
-| `bots move` | `--as-owner` | ✅ |  |
-| `bots move` | `--from-app` | ✅ |  |
-| `bots move` | `--json` | ✅ |  |
-| `tags add` |  | ✅ |  |
-| `tags add` | `--message` | ✅ |  |
-| `tags add` | `--note` | ✅ |  |
-| `tags add` | `--chat` | ✅ |  |
-| `tags add` | `--task` | ✅ |  |
-| `tags add` | `--contact` | ✅ |  |
-| `tags add` | `--person` | ✅ |  |
-| `tags add` | `--organization` | ✅ |  |
-| `tags add` | `--project` | ✅ |  |
-| `tags add` | `--meeting` | ✅ |  |
-| `tags add` | `--folder` | ✅ |  |
-| `tags add` | `--subfolder` | ✅ |  |
-| `tags add` | `--account` | ✅ |  |
-| `tags add` | `--json` | ✅ |  |
-| `tags remove` |  | ✅ |  |
-| `tags remove` | `--message` | ✅ |  |
-| `tags remove` | `--note` | ✅ |  |
-| `tags remove` | `--chat` | ✅ |  |
-| `tags remove` | `--task` | ✅ |  |
-| `tags remove` | `--contact` | ✅ |  |
-| `tags remove` | `--person` | ✅ |  |
-| `tags remove` | `--organization` | ✅ |  |
-| `tags remove` | `--project` | ✅ |  |
-| `tags remove` | `--meeting` | ✅ |  |
-| `tags remove` | `--folder` | ✅ |  |
-| `tags remove` | `--subfolder` | ✅ |  |
-| `tags remove` | `--account` | ✅ |  |
-| `tags remove` | `--json` | ✅ |  |
-| `tags list` |  | ✅ |  |
-| `tags list` | `--source` | ✅ |  |
-| `tags list` | `--limit` | ✅ |  |
-| `tags list` | `--json` | ✅ |  |
-| `tasks unlink` |  | ✅ |  |
-| `tasks unlink` | `--kind` | ✅ |  |
-| `tasks unlink` | `--json` | ✅ |  |
-| `tasks links` |  | ✅ |  |
-| `tasks links` | `--json` | ✅ |  |
-| `tasks status` |  | ✅ |  |
-| `tasks status` | `--json` | ✅ |  |
-| `tasks add` |  | ✅ |  |
-| `tasks add` | `--account` | ✅ |  |
-| `tasks add` | `--json` | ✅ |  |
-| `tasks add` | `--title` | ✅ |  |
-| `tasks add` | `--priority` | ✅ |  |
-| `tasks add` | `--parent` | ✅ |  |
-| `tasks add` | `--description` | ✅ |  |
-| `tasks add` | `--type` | ✅ |  |
-| `tasks add` | `--project` | ✅ |  |
-| `tasks add` | `--assignee` | ✅ |  |
-| `tasks add` | `--due` | ✅ |  |
-| `tasks add` | `--status` | ✅ |  |
-| `tasks add` | `--agent` | ✅ |  |
-| `tasks add` | `--external-id` | ✅ |  |
-| `tasks add` | `--source-url` | ✅ |  |
-| `tasks add` | `--into` | ✅ |  |
-| `tasks add` | `--new` | ✅ |  |
-| `tasks list` |  | ✅ |  |
-| `tasks list` | `--source` | ✅ |  |
-| `tasks list` | `--json` | ✅ |  |
-| `tasks list` | `--limit` | ✅ |  |
-| `tasks list` | `--sort` | ✅ |  |
-| `tasks list` | `--desc` | ✅ |  |
-| `tasks list` | `--cursor` | ✅ |  |
-| `tasks counts` |  | ✅ |  |
-| `tasks counts` | `--json` | ✅ |  |
-| `tasks comments add` |  | ✅ |  |
-| `tasks comments add` | `--json` | ✅ |  |
-| `tasks comments list` |  | ✅ |  |
-| `tasks comments list` | `--json` | ✅ |  |
-| `tasks history` |  | ✅ |  |
-| `tasks history` | `--json` | ✅ |  |
-| `tasks close` |  | ✅ |  |
-| `tasks close` | `--account` | ✅ |  |
-| `tasks close` | `--json` | ✅ |  |
-| `tasks close` | `--as` | ✅ |  |
-| `tasks close` | `--reason` | ✅ |  |
-| `tasks close` | `--revision` | ✅ |  |
-| `tasks assign` |  | ✅ |  |
-| `tasks assign` | `--role` | ✅ |  |
-| `tasks assign` | `--clear` | ✅ |  |
-| `tasks assign` | `--revision` | ✅ |  |
-| `tasks assign` | `--json` | ✅ |  |
-| `tasks move` |  | ✅ |  |
-| `tasks move` | `--status` | ✅ |  |
-| `tasks move` | `--before` | ✅ |  |
-| `tasks move` | `--after` | ✅ |  |
-| `tasks move` | `--revision` | ✅ |  |
-| `tasks move` | `--json` | ✅ |  |
-| `tasks agenda` |  | ✅ |  |
-| `tasks agenda` | `--due-within` | ✅ |  |
-| `tasks agenda` | `--unanswered` | ✅ |  |
-| `tasks agenda` | `--waiting` | ✅ |  |
-| `tasks agenda` | `--within` | ✅ |  |
-| `tasks agenda` | `--holder` | ✅ |  |
-| `tasks agenda` | `--source` | ✅ |  |
-| `tasks agenda` | `--json` | ✅ |  |
-| `tasks update` |  | ✅ |  |
-| `tasks update` | `--category` | ✅ |  |
-| `tasks update` | `--priority` | ✅ |  |
-| `tasks update` | `--parent` | ✅ |  |
-| `tasks update` | `--title` | ✅ |  |
-| `tasks update` | `--description` | ✅ |  |
-| `tasks update` | `--due` | ✅ |  |
-| `tasks update` | `--remind-time` | ✅ |  |
-| `tasks update` | `--assignee` | ✅ |  |
-| `tasks update` | `--account` | ✅ |  |
-| `tasks update` | `--json` | ✅ |  |
-| `tasks update` | `--agent` | ✅ |  |
-| `tasks update` | `--project` | ✅ |  |
-| `tasks update` | `--type` | ✅ |  |
-| `tasks update` | `--revision` | ✅ |  |
-| `tasks update` | `--status` | ✅ |  |
-| `tasks show` |  | ✅ |  |
-| `tasks show` | `--source` | ✅ |  |
-| `tasks show` | `--json` | ✅ |  |
-| `tasks link` |  | ✅ |  |
-| `tasks link` | `--chat` | ✅ |  |
-| `tasks link` | `--kind` | ✅ |  |
-| `tasks link` | `--account` | ✅ |  |
-| `tasks link` | `--json` | ✅ |  |
-| `tasks claim` |  | ✅ |  |
-| `tasks claim` | `--lease` | ✅ |  |
-| `tasks claim` | `--holder` | ✅ |  |
-| `tasks claim` | `--account` | ✅ |  |
-| `tasks claim` | `--json` | ✅ |  |
-| `tasks release` |  | ✅ |  |
-| `tasks release` | `--holder` | ✅ |  |
-| `tasks release` | `--account` | ✅ |  |
-| `tasks release` | `--json` | ✅ |  |
-| `stats tasks show` |  | ✅ |  |
-| `stats tasks show` | `--by` | ✅ |  |
-| `stats tasks show` | `--type` | ✅ |  |
-| `stats tasks show` | `--timezone` | ✅ |  |
-| `stats tasks show` | `--source` | ✅ |  |
-| `stats tasks show` | `--json` | ✅ |  |
-| `stats projects show` |  | ✅ |  |
-| `stats projects show` | `--since-time` | ✅ |  |
-| `stats projects show` | `--limit` | ✅ |  |
-| `stats projects show` | `--page` | ✅ |  |
-| `stats projects show` | `--json` | ✅ |  |
-| `organizations add` |  | ✅ |  |
-| `organizations add` | `--kind` | ✅ |  |
-| `organizations add` | `--scope` | ✅ |  |
-| `organizations add` | `--json` | ✅ |  |
-| `organizations rename` |  | ✅ |  |
-| `organizations rename` | `--json` | ✅ |  |
-| `organizations delete` |  | ✅ |  |
-| `organizations delete` | `--yes` | ✅ |  |
-| `organizations delete` | `--as-owner` | ✅ |  |
-| `organizations delete` | `--from-app` | ✅ |  |
-| `organizations delete` | `--json` | ✅ |  |
-| `organizations show` |  | ✅ |  |
-| `organizations show` | `--json` | ✅ |  |
-| `organizations list` |  | ✅ |  |
-| `organizations list` | `--json` | ✅ |  |
-| `organizations context` |  | ✅ |  |
-| `organizations context` | `--limit` | ✅ |  |
-| `organizations context` | `--json` | ✅ |  |
-| `projects meetings list` |  | ✅ |  |
-| `projects meetings list` | `--source` | ✅ |  |
-| `projects meetings list` | `--json` | ✅ |  |
-| `projects meetings list` | `--limit` | ✅ |  |
-| `projects meetings list` | `--page` | ✅ |  |
-| `projects meetings link` |  | ✅ |  |
-| `projects meetings link` | `--account` | ✅ |  |
-| `projects meetings link` | `--json` | ✅ |  |
-| `projects meetings link` | `--fingerprint` | ✅ |  |
-| `projects meetings link` | `--reason` | ✅ |  |
-| `projects add` |  | ✅ |  |
-| `projects add` | `--key` | ✅ |  |
-| `projects add` | `--type` | ✅ |  |
-| `projects add` | `--organization` | ✅ |  |
-| `projects add` | `--scope` | ✅ |  |
-| `projects add` | `--json` | ✅ |  |
-| `projects list` |  | ✅ |  |
-| `projects list` | `--json` | ✅ |  |
-| `projects context` |  | ✅ |  |
-| `projects context` | `--json` | ✅ |  |
-| `projects evidence` |  | ✅ |  |
-| `projects evidence` | `--source` | ✅ |  |
-| `projects evidence` | `--alias` | ✅ |  |
-| `projects evidence` | `--context-query` | ✅ |  |
-| `projects evidence` | `--contact` | ✅ |  |
-| `projects evidence` | `--since-time` | ✅ |  |
-| `projects evidence` | `--before-time` | ✅ |  |
-| `projects evidence` | `--limit` | ✅ |  |
-| `projects evidence` | `--max-pages` | ✅ |  |
-| `projects evidence` | `--cursor` | ✅ |  |
-| `projects evidence` | `--before-n` | ✅ |  |
-| `projects evidence` | `--after-n` | ✅ |  |
-| `projects evidence` | `--no-catch-up` | ✅ |  |
-| `projects evidence` | `--sync-first` | ✅ |  |
-| `projects evidence` | `--sync-time` | ✅ |  |
-| `projects evidence` | `--sync-profile` | ✅ |  |
-| `projects evidence` | `--purposes` | ✅ |  |
-| `projects evidence` | `--purpose` | ✅ |  |
-| `projects evidence` | `--include-proposed` | ✅ |  |
-| `projects evidence` | `--json` | ✅ |  |
-| `projects status` |  | ✅ |  |
-| `projects status` | `--since-time` | ✅ |  |
-| `projects status` | `--before-time` | ✅ |  |
-| `projects status` | `--context-query` | ✅ |  |
-| `projects status` | `--sync-profile` | ✅ |  |
-| `projects status` | `--purposes` | ✅ |  |
-| `projects status` | `--purpose` | ✅ |  |
-| `projects status` | `--compact` | ✅ |  |
-| `projects status` | `--json` | ✅ |  |
-| `projects actions add` |  | ✅ |  |
-| `projects actions add` | `--json` | ✅ |  |
-| `projects actions list` |  | ✅ |  |
-| `projects actions list` | `--json` | ✅ |  |
-| `projects actions list` | `--limit` | ✅ |  |
-| `projects actions list` | `--page` | ✅ |  |
-| `projects actions list` | `--brief` | ✅ |  |
-| `projects actions list` | `--before-n` | ✅ |  |
-| `projects actions list` | `--after-n` | ✅ |  |
-| `projects actions confirm` |  | ✅ |  |
-| `projects actions confirm` | `--json` | ✅ |  |
-| `projects actions confirm` | `--as-owner` | ✅ |  |
-| `projects actions confirm` | `--from-app` | ✅ |  |
-| `projects actions confirm` | `--fingerprint` | ✅ |  |
-| `projects actions confirm` | `--reason` | ✅ |  |
-| `projects actions reject` |  | ✅ |  |
-| `projects actions reject` | `--json` | ✅ |  |
-| `projects actions reject` | `--as-owner` | ✅ |  |
-| `projects actions reject` | `--from-app` | ✅ |  |
-| `projects actions reject` | `--fingerprint` | ✅ |  |
-| `projects actions reject` | `--reason` | ✅ |  |
-| `projects annotations show` |  | ✅ |  |
-| `projects annotations show` | `--max-read-bytes` | ✅ |  |
-| `projects annotations show` | `--json` | ✅ |  |
-| `projects annotations export` |  | ✅ |  |
-| `projects annotations export` | `--output` | ✅ |  |
-| `projects annotations export` | `--max-read-bytes` | ✅ |  |
-| `projects annotations export` | `--json` | ✅ |  |
-| `projects annotations check` |  | ✅ |  |
-| `projects annotations check` | `--target-store` | ✅ |  |
-| `projects annotations check` | `--project` | ✅ |  |
-| `projects annotations check` | `--bindings` | ✅ |  |
-| `projects annotations check` | `--max-read-bytes` | ✅ |  |
-| `projects annotations check` | `--json` | ✅ |  |
-| `projects annotations restore` |  | ✅ |  |
-| `projects annotations restore` | `--target-store` | ✅ |  |
-| `projects annotations restore` | `--project` | ✅ |  |
-| `projects annotations restore` | `--bindings` | ✅ |  |
-| `projects annotations restore` | `--max-read-bytes` | ✅ |  |
-| `projects annotations restore` | `--json` | ✅ |  |
-| `projects annotations restore` | `--fingerprint` | ✅ |  |
-| `projects key-documents add` |  | ✅ |  |
-| `projects key-documents add` | `--reason` | ✅ |  |
-| `projects key-documents add` | `--json` | ✅ |  |
-| `projects key-documents add` | `--as-owner` | ✅ |  |
-| `projects key-documents add` | `--from-app` | ✅ |  |
-| `projects key-documents remove` |  | ✅ |  |
-| `projects key-documents remove` | `--json` | ✅ |  |
-| `projects key-documents remove` | `--as-owner` | ✅ |  |
-| `projects key-documents remove` | `--from-app` | ✅ |  |
-| `projects key-documents list` |  | ✅ |  |
-| `projects key-documents list` | `--json` | ✅ |  |
-| `relationships add` |  | ✅ |  |
-| `relationships add` | `--as-owner` | ✅ |  |
-| `relationships add` | `--from-app` | ✅ |  |
-| `relationships add` | `--json` | ✅ |  |
-| `relationships add` | `--kind` | ✅ |  |
-| `relationships add` | `--role` | ✅ |  |
-| `relationships add` | `--role-note` | ✅ |  |
-| `relationships add` | `--engagement` | ✅ |  |
-| `relationships add` | `--position` | ✅ |  |
-| `relationships add` | `--start-date` | ✅ |  |
-| `relationships add` | `--end-date` | ✅ |  |
-| `relationships add` | `--reason` | ✅ |  |
-| `relationships list` |  | ✅ |  |
-| `relationships list` | `--limit` | ✅ |  |
-| `relationships list` | `--page` | ✅ |  |
-| `relationships list` | `--json` | ✅ |  |
-| `relationships update` |  | ✅ |  |
-| `relationships update` | `--role` | ✅ |  |
-| `relationships update` | `--role-note` | ✅ |  |
-| `relationships update` | `--engagement` | ✅ |  |
-| `relationships update` | `--position` | ✅ |  |
-| `relationships update` | `--start-date` | ✅ |  |
-| `relationships update` | `--purpose` | ✅ |  |
-| `relationships update` | `--reason` | ✅ |  |
-| `relationships update` | `--json` | ✅ |  |
-| `relationships update` | `--as-owner` | ✅ |  |
-| `relationships update` | `--from-app` | ✅ |  |
-| `relationships remove` |  | ✅ |  |
-| `relationships remove` | `--json` | ✅ |  |
-| `relationships remove` | `--as-owner` | ✅ |  |
-| `relationships remove` | `--from-app` | ✅ |  |
-| `relationships remove` | `--reason` | ✅ |  |
-| `relationships confirm` |  | ✅ |  |
-| `relationships confirm` | `--json` | ✅ |  |
-| `relationships confirm` | `--as-owner` | ✅ |  |
-| `relationships confirm` | `--from-app` | ✅ |  |
-| `relationships confirm` | `--reason` | ✅ |  |
-| `relationships end` |  | ✅ |  |
-| `relationships end` | `--end-date` | ✅ |  |
-| `relationships end` | `--json` | ✅ |  |
-| `relationships end` | `--as-owner` | ✅ |  |
-| `relationships end` | `--from-app` | ✅ |  |
-| `relationships roles list` |  | ✅ |  |
-| `relationships roles list` | `--json` | ✅ |  |
-| `relationships roles add` |  | ✅ |  |
-| `relationships roles add` | `--label` | ✅ |  |
-| `relationships roles add` | `--json` | ✅ |  |
-| `relationships roles add` | `--as-owner` | ✅ |  |
-| `relationships roles add` | `--from-app` | ✅ |  |
-| `relationships roles remove` |  | ✅ |  |
-| `relationships roles remove` | `--json` | ✅ |  |
-| `relationships roles remove` | `--as-owner` | ✅ |  |
-| `relationships roles remove` | `--from-app` | ✅ |  |
-| `relationships scan` |  | ✅ |  |
-| `relationships scan` | `--source` | ✅ |  |
-| `relationships scan` | `--since-time` | ✅ |  |
-| `relationships scan` | `--limit` | ✅ |  |
-| `relationships scan` | `--yes` | ✅ |  |
-| `relationships scan` | `--json` | ✅ |  |
-| `reminders add` |  | ✅ |  |
-| `reminders add` | `--account` | ✅ |  |
-| `reminders add` | `--json` | ✅ |  |
-| `reminders add` | `--at-time` | ✅ |  |
-| `reminders add` | `--timezone` | ✅ |  |
-| `reminders list` |  | ✅ |  |
-| `reminders list` | `--source` | ✅ |  |
-| `reminders list` | `--json` | ✅ |  |
-| `reminders claim` |  | ✅ |  |
-| `reminders claim` | `--account` | ✅ |  |
-| `reminders claim` | `--json` | ✅ |  |
-| `reminders claim` | `--limit` | ✅ |  |
-| `reminders acknowledge` |  | ✅ |  |
-| `reminders acknowledge` | `--account` | ✅ |  |
-| `reminders acknowledge` | `--json` | ✅ |  |
-| `reminders cancel` |  | ✅ |  |
-| `reminders cancel` | `--account` | ✅ |  |
-| `reminders cancel` | `--json` | ✅ |  |
-| `reminders update` |  | ✅ |  |
-| `reminders update` | `--account` | ✅ |  |
-| `reminders update` | `--json` | ✅ |  |
-| `reminders update` | `--at-time` | ✅ |  |
-| `reminders update` | `--revision` | ✅ |  |
-| `vocabulary inspect` |  | ✅ |  |
-| `vocabulary inspect` | `--fingerprint` | ✅ |  |
-| `vocabulary inspect` | `--max-rows` | ✅ |  |
-| `vocabulary inspect` | `--max-read-bytes` | ✅ |  |
-| `vocabulary inspect` | `--limit` | ✅ |  |
-| `vocabulary inspect` | `--json` | ✅ |  |
-| `vocabulary list` |  | ✅ |  |
-| `vocabulary list` | `--max-entries` | ✅ |  |
-| `vocabulary list` | `--max-read-bytes` | ✅ |  |
-| `vocabulary list` | `--json` | ✅ |  |
-| `vocabulary show` |  | ✅ |  |
-| `vocabulary show` | `--kind` | ✅ |  |
-| `vocabulary show` | `--scope` | ✅ |  |
-| `vocabulary show` | `--max-entries` | ✅ |  |
-| `vocabulary show` | `--max-read-bytes` | ✅ |  |
-| `vocabulary show` | `--json` | ✅ |  |
-| `vocabulary check` |  | ✅ |  |
-| `vocabulary check` | `--kind` | ✅ |  |
-| `vocabulary check` | `--scope` | ✅ |  |
-| `vocabulary check` | `--max-entries` | ✅ |  |
-| `vocabulary check` | `--max-read-bytes` | ✅ |  |
-| `vocabulary check` | `--json` | ✅ |  |
-| `vocabulary check` | `--min-similarity` | ✅ |  |
-| `vocabulary check` | `--max-comparisons` | ✅ |  |
-| `vocabulary check` | `--limit` | ✅ |  |
-| `vocabulary create` |  | ✅ |  |
-| `vocabulary create` | `--kind` | ✅ |  |
-| `vocabulary create` | `--fingerprint` | ✅ |  |
-| `vocabulary create` | `--json` | ✅ |  |
-| `vocabulary aliases add` |  | ✅ |  |
-| `vocabulary aliases add` | `--fingerprint` | ✅ |  |
-| `vocabulary aliases add` | `--json` | ✅ |  |
-| `vocabulary aliases remove` |  | ✅ |  |
-| `vocabulary aliases remove` | `--fingerprint` | ✅ |  |
-| `vocabulary aliases remove` | `--json` | ✅ |  |
-| `memories add` |  | ✅ |  |
-| `memories add` | `--as-owner` | ✅ |  |
-| `memories add` | `--from-app` | ✅ |  |
-| `memories add` | `--quote` | ✅ |  |
-| `memories add` | `--kind` | ✅ |  |
-| `memories add` | `--scope` | ✅ |  |
-| `memories add` | `--evidence` | ✅ |  |
-| `memories add` | `--subject` | ✅ |  |
-| `memories add` | `--project` | ✅ |  |
-| `memories add` | `--supersedes` | ✅ |  |
-| `memories add` | `--json` | ✅ |  |
-| `memories list` |  | ✅ |  |
-| `memories list` | `--limit` | ✅ |  |
-| `memories list` | `--page` | ✅ |  |
-| `memories list` | `--json` | ✅ |  |
-| `memories show` |  | ✅ |  |
-| `memories show` | `--sources` | ✅ |  |
-| `memories show` | `--json` | ✅ |  |
-| `memories update` |  | ✅ |  |
-| `memories update` | `--project` | ✅ |  |
-| `memories update` | `--json` | ✅ |  |
-| `memories confirm` |  | ✅ |  |
-| `memories confirm` | `--as-owner` | ✅ |  |
-| `memories confirm` | `--from-app` | ✅ |  |
-| `memories confirm` | `--json` | ✅ |  |
-| `memories confirm` | `--reason` | ✅ |  |
-| `memories invalidate` |  | ✅ |  |
-| `memories invalidate` | `--as-owner` | ✅ |  |
-| `memories invalidate` | `--from-app` | ✅ |  |
-| `memories invalidate` | `--json` | ✅ |  |
-| `memories invalidate` | `--reason` | ✅ |  |
-| `memories remove` |  | ✅ |  |
-| `memories remove` | `--as-owner` | ✅ |  |
-| `memories remove` | `--from-app` | ✅ |  |
-| `memories remove` | `--json` | ✅ |  |
-| `memories remove` | `--reason` | ✅ |  |
-| `memories check` |  | ✅ |  |
-| `memories check` | `--limit` | ✅ |  |
-| `memories check` | `--since-time` | ✅ |  |
-| `memories check` | `--json` | ✅ |  |
-| `memories challenge` |  | ✅ |  |
-| `memories challenge` | `--as-owner` | ✅ |  |
-| `memories challenge` | `--from-app` | ✅ |  |
-| `memories challenge` | `--evidence` | ✅ |  |
-| `memories challenge` | `--reason` | ✅ |  |
-| `memories challenge` | `--suggest` | ✅ |  |
-| `memories challenge` | `--json` | ✅ |  |
-| `mentions list` |  | ✅ |  |
-| `mentions list` | `--source` | ✅ |  |
-| `mentions list` | `--limit` | ✅ |  |
-| `mentions list` | `--json` | ✅ |  |
-| `mentions show` |  | ✅ |  |
-| `mentions show` | `--source` | ✅ |  |
-| `mentions show` | `--json` | ✅ |  |
-| `mentions confirm` |  | ✅ |  |
-| `mentions confirm` | `--source` | ✅ |  |
-| `mentions confirm` | `--json` | ✅ |  |
-| `mentions confirm` | `--as-owner` | ✅ |  |
-| `mentions confirm` | `--from-app` | ✅ |  |
-| `mentions reject` |  | ✅ |  |
-| `mentions reject` | `--source` | ✅ |  |
-| `mentions reject` | `--json` | ✅ |  |
-| `mentions reject` | `--as-owner` | ✅ |  |
-| `mentions reject` | `--from-app` | ✅ |  |
-| `facts add` |  | ✅ |  |
-| `facts add` | `--as-owner` | ✅ |  |
-| `facts add` | `--from-app` | ✅ |  |
-| `facts add` | `--quote` | ✅ |  |
-| `facts add` | `--kind` | ✅ |  |
-| `facts add` | `--evidence` | ✅ |  |
-| `facts add` | `--project` | ✅ |  |
-| `facts add` | `--subject` | ✅ |  |
-| `facts add` | `--occurred-time` | ✅ |  |
-| `facts add` | `--scope` | ✅ |  |
-| `facts add` | `--supersedes` | ✅ |  |
-| `facts add` | `--json` | ✅ |  |
-| `facts list` |  | ✅ |  |
-| `facts list` | `--limit` | ✅ |  |
-| `facts list` | `--page` | ✅ |  |
-| `facts list` | `--json` | ✅ |  |
-| `facts show` |  | ✅ |  |
-| `facts show` | `--sources` | ✅ |  |
-| `facts show` | `--json` | ✅ |  |
-| `facts confirm` |  | ✅ |  |
-| `facts confirm` | `--as-owner` | ✅ |  |
-| `facts confirm` | `--from-app` | ✅ |  |
-| `facts confirm` | `--json` | ✅ |  |
-| `facts confirm` | `--reason` | ✅ |  |
-| `facts revoke` |  | ✅ |  |
-| `facts revoke` | `--as-owner` | ✅ |  |
-| `facts revoke` | `--from-app` | ✅ |  |
-| `facts revoke` | `--json` | ✅ |  |
-| `facts revoke` | `--reason` | ✅ |  |
-| `facts reverse` |  | ✅ |  |
-| `facts reverse` | `--as-owner` | ✅ |  |
-| `facts reverse` | `--from-app` | ✅ |  |
-| `facts reverse` | `--json` | ✅ |  |
-| `facts reverse` | `--reason` | ✅ |  |
-| `facts reject` |  | ✅ |  |
-| `facts reject` | `--as-owner` | ✅ |  |
-| `facts reject` | `--from-app` | ✅ |  |
-| `facts reject` | `--json` | ✅ |  |
-| `facts reject` | `--reason` | ✅ |  |
-| `facts remove` |  | ✅ |  |
-| `facts remove` | `--as-owner` | ✅ |  |
-| `facts remove` | `--from-app` | ✅ |  |
-| `facts remove` | `--json` | ✅ |  |
-| `facts remove` | `--reason` | ✅ |  |
-| `facts history` |  | ✅ |  |
-| `facts history` | `--limit` | ✅ |  |
-| `facts history` | `--page` | ✅ |  |
-| `facts history` | `--json` | ✅ |  |
-| `facts challenge` |  | ✅ |  |
-| `facts challenge` | `--as-owner` | ✅ |  |
-| `facts challenge` | `--from-app` | ✅ |  |
-| `facts challenge` | `--evidence` | ✅ |  |
-| `facts challenge` | `--reason` | ✅ |  |
-| `facts challenge` | `--suggest` | ✅ |  |
-| `facts challenge` | `--json` | ✅ |  |
-| `invoices list` |  | ✅ |  |
-| `invoices list` | `--json` | ✅ |  |
-| `invoices list` | `--limit` | ✅ |  |
-| `invoices show` |  | ✅ |  |
-| `invoices show` | `--json` | ✅ |  |
-| `invoices add` |  | ✅ |  |
-| `invoices add` | `--person` | ✅ |  |
-| `invoices add` | `--organization` | ✅ |  |
-| `invoices add` | `--kind` | ✅ |  |
-| `invoices add` | `--title` | ✅ |  |
-| `invoices add` | `--occurred-time` | ✅ |  |
-| `invoices add` | `--due` | ✅ |  |
-| `invoices add` | `--project` | ✅ |  |
-| `invoices add` | `--reason` | ✅ |  |
-| `invoices add` | `--evidence` | ✅ |  |
-| `invoices add` | `--as-owner` | ✅ |  |
-| `invoices add` | `--from-app` | ✅ |  |
-| `invoices add` | `--json` | ✅ |  |
-| `invoices lines add` |  | ✅ |  |
-| `invoices lines add` | `--product` | ✅ |  |
-| `invoices lines add` | `--amount` | ✅ |  |
-| `invoices lines add` | `--as-owner` | ✅ |  |
-| `invoices lines add` | `--from-app` | ✅ |  |
-| `invoices lines add` | `--json` | ✅ |  |
-| `invoices lines remove` |  | ✅ |  |
-| `invoices lines remove` | `--as-owner` | ✅ |  |
-| `invoices lines remove` | `--from-app` | ✅ |  |
-| `invoices lines remove` | `--json` | ✅ |  |
-| `payments list` |  | ✅ |  |
-| `payments list` | `--json` | ✅ |  |
-| `payments list` | `--limit` | ✅ |  |
-| `payments show` |  | ✅ |  |
-| `payments show` | `--json` | ✅ |  |
-| `payments add` |  | ✅ |  |
-| `payments add` | `--person` | ✅ |  |
-| `payments add` | `--organization` | ✅ |  |
-| `payments add` | `--kind` | ✅ |  |
-| `payments add` | `--title` | ✅ |  |
-| `payments add` | `--occurred-time` | ✅ |  |
-| `payments add` | `--refund-of` | ✅ |  |
-| `payments add` | `--project` | ✅ |  |
-| `payments add` | `--reason` | ✅ |  |
-| `payments add` | `--evidence` | ✅ |  |
-| `payments add` | `--as-owner` | ✅ |  |
-| `payments add` | `--from-app` | ✅ |  |
-| `payments add` | `--json` | ✅ |  |
-| `payments allocate` |  | ✅ |  |
-| `payments allocate` | `--as-owner` | ✅ |  |
-| `payments allocate` | `--from-app` | ✅ |  |
-| `payments allocate` | `--json` | ✅ |  |
-| `payments unlink` |  | ✅ |  |
-| `payments unlink` | `--as-owner` | ✅ |  |
-| `payments unlink` | `--from-app` | ✅ |  |
-| `payments unlink` | `--json` | ✅ |  |
-| `orders list` |  | ✅ |  |
-| `orders list` | `--json` | ✅ |  |
-| `orders list` | `--limit` | ✅ |  |
-| `orders show` |  | ✅ |  |
-| `orders show` | `--json` | ✅ |  |
-| `orders add` |  | ✅ |  |
-| `orders add` | `--kind` | ✅ |  |
-| `orders add` | `--person` | ✅ |  |
-| `orders add` | `--organization` | ✅ |  |
-| `orders add` | `--title` | ✅ |  |
-| `orders add` | `--occurred-time` | ✅ |  |
-| `orders add` | `--project` | ✅ |  |
-| `orders add` | `--reason` | ✅ |  |
-| `orders add` | `--evidence` | ✅ |  |
-| `orders add` | `--as-owner` | ✅ |  |
-| `orders add` | `--from-app` | ✅ |  |
-| `orders add` | `--json` | ✅ |  |
-| `orders lines add` |  | ✅ |  |
-| `orders lines add` | `--product` | ✅ |  |
-| `orders lines add` | `--amount` | ✅ |  |
-| `orders lines add` | `--as-owner` | ✅ |  |
-| `orders lines add` | `--from-app` | ✅ |  |
-| `orders lines add` | `--json` | ✅ |  |
-| `orders lines remove` |  | ✅ |  |
-| `orders lines remove` | `--as-owner` | ✅ |  |
-| `orders lines remove` | `--from-app` | ✅ |  |
-| `orders lines remove` | `--json` | ✅ |  |
-| `pipelines list` |  | ✅ |  |
-| `pipelines list` | `--json` | ✅ |  |
-| `pipelines show` |  | ✅ |  |
-| `pipelines show` | `--since-time` | ✅ |  |
-| `pipelines show` | `--json` | ✅ |  |
-| `pipelines add` |  | ✅ |  |
-| `pipelines add` | `--kind` | ✅ |  |
-| `pipelines add` | `--json` | ✅ |  |
-| `deals list` |  | ✅ |  |
-| `deals list` | `--json` | ✅ |  |
-| `deals list` | `--limit` | ✅ |  |
-| `deals show` |  | ✅ |  |
-| `deals show` | `--json` | ✅ |  |
-| `deals context` |  | ✅ |  |
-| `deals context` | `--json` | ✅ |  |
-| `deals context` | `--brief` | ✅ |  |
-| `deals context` | `--limit` | ✅ |  |
-| `deals update` |  | ✅ |  |
-| `deals update` | `--json` | ✅ |  |
-| `deals update` | `--project` | ✅ |  |
-| `deals add` |  | ✅ |  |
-| `deals add` | `--organization` | ✅ |  |
-| `deals add` | `--person` | ✅ |  |
-| `deals add` | `--role` | ✅ |  |
-| `deals add` | `--due` | ✅ |  |
-| `deals add` | `--project` | ✅ |  |
-| `deals add` | `--reason` | ✅ |  |
-| `deals add` | `--evidence` | ✅ |  |
-| `deals add` | `--json` | ✅ |  |
-| `deals move` |  | ✅ |  |
-| `deals move` | `--json` | ✅ |  |
-| `deals close` |  | ✅ |  |
-| `deals close` | `--occurred-time` | ✅ |  |
-| `deals close` | `--reason` | ✅ |  |
-| `deals close` | `--json` | ✅ |  |
-| `leads list` |  | ✅ |  |
-| `leads list` | `--json` | ✅ |  |
-| `leads list` | `--limit` | ✅ |  |
-| `leads show` |  | ✅ |  |
-| `leads show` | `--json` | ✅ |  |
-| `leads context` |  | ✅ |  |
-| `leads context` | `--json` | ✅ |  |
-| `leads context` | `--brief` | ✅ |  |
-| `leads context` | `--limit` | ✅ |  |
-| `leads update` |  | ✅ |  |
-| `leads update` | `--json` | ✅ |  |
-| `leads update` | `--project` | ✅ |  |
-| `leads add` |  | ✅ |  |
-| `leads add` | `--organization` | ✅ |  |
-| `leads add` | `--person` | ✅ |  |
-| `leads add` | `--role` | ✅ |  |
-| `leads add` | `--due` | ✅ |  |
-| `leads add` | `--project` | ✅ |  |
-| `leads add` | `--reason` | ✅ |  |
-| `leads add` | `--evidence` | ✅ |  |
-| `leads add` | `--json` | ✅ |  |
-| `leads move` |  | ✅ |  |
-| `leads move` | `--json` | ✅ |  |
-| `leads close` |  | ✅ |  |
-| `leads close` | `--occurred-time` | ✅ |  |
-| `leads close` | `--reason` | ✅ |  |
-| `leads close` | `--json` | ✅ |  |
-| `stages show` |  | ✅ |  |
-| `stages show` | `--json` | ✅ |  |
-| `stages create` |  | ✅ |  |
-| `stages create` | `--json` | ✅ |  |
-| `stages rename` |  | ✅ |  |
-| `stages rename` | `--json` | ✅ |  |
-| `stages move` |  | ✅ |  |
-| `stages move` | `--json` | ✅ |  |
-| `stages remove` |  | ✅ |  |
-| `stages remove` | `--json` | ✅ |  |
-| `stages list` |  | ✅ |  |
-| `stages list` | `--json` | ✅ |  |
-| `stages set` |  | ✅ |  |
-| `stages set` | `--json` | ✅ |  |
-| `stages confirm` |  | ✅ |  |
-| `stages confirm` | `--pipeline` | ✅ |  |
-| `stages confirm` | `--all` | ✅ |  |
-| `stages confirm` | `--kind` | ✅ |  |
-| `stages confirm` | `--json` | ✅ |  |
-| `stages suggest` |  | ✅ |  |
-| `stages suggest` | `--kind` | ✅ |  |
-| `stages suggest` | `--dry-run` | ✅ |  |
-| `stages suggest` | `--text-file` | ✅ |  |
-| `stages suggest` | `--json` | ✅ |  |
-| `products list` |  | ✅ |  |
-| `products list` | `--json` | ✅ |  |
-| `products list` | `--limit` | ✅ |  |
-| `products show` |  | ✅ |  |
-| `products show` | `--json` | ✅ |  |
-| `products add` |  | ✅ |  |
-| `products add` | `--kind` | ✅ |  |
-| `products add` | `--unit` | ✅ |  |
-| `products add` | `--sku` | ✅ |  |
-| `products add` | `--supplier` | ✅ |  |
-| `products add` | `--description` | ✅ |  |
-| `products add` | `--json` | ✅ |  |
-| `products update` |  | ✅ |  |
-| `products update` | `--amount` | ✅ |  |
-| `products update` | `--currency` | ✅ |  |
-| `products update` | `--title` | ✅ |  |
-| `products update` | `--unit` | ✅ |  |
-| `products update` | `--description` | ✅ |  |
-| `products update` | `--archived` | ✅ |  |
-| `products update` | `--json` | ✅ |  |
-| `contracts list` |  | ✅ |  |
-| `contracts list` | `--json` | ✅ |  |
-| `contracts list` | `--limit` | ✅ |  |
-| `contracts show` |  | ✅ |  |
-| `contracts show` | `--json` | ✅ |  |
-| `contracts add` |  | ✅ |  |
-| `contracts add` | `--kind` | ✅ |  |
-| `contracts add` | `--status` | ✅ |  |
-| `contracts add` | `--start-date` | ✅ |  |
-| `contracts add` | `--end-date` | ✅ |  |
-| `contracts add` | `--auto-renew` | ✅ |  |
-| `contracts add` | `--notice-days` | ✅ |  |
-| `contracts add` | `--amount` | ✅ |  |
-| `contracts add` | `--currency` | ✅ |  |
-| `contracts add` | `--project` | ✅ |  |
-| `contracts add` | `--reason` | ✅ |  |
-| `contracts add` | `--evidence` | ✅ |  |
-| `contracts add` | `--as-owner` | ✅ |  |
-| `contracts add` | `--from-app` | ✅ |  |
-| `contracts add` | `--json` | ✅ |  |
-| `contracts update` |  | ✅ |  |
-| `contracts update` | `--kind` | ✅ |  |
-| `contracts update` | `--status` | ✅ |  |
-| `contracts update` | `--start-date` | ✅ |  |
-| `contracts update` | `--end-date` | ✅ |  |
-| `contracts update` | `--auto-renew` | ✅ |  |
-| `contracts update` | `--notice-days` | ✅ |  |
-| `contracts update` | `--amount` | ✅ |  |
-| `contracts update` | `--currency` | ✅ |  |
-| `contracts update` | `--title` | ✅ |  |
-| `contracts update` | `--as-owner` | ✅ |  |
-| `contracts update` | `--from-app` | ✅ |  |
-| `contracts update` | `--json` | ✅ |  |
-| `subscriptions list` |  | ✅ |  |
-| `subscriptions list` | `--json` | ✅ |  |
-| `subscriptions list` | `--limit` | ✅ |  |
-| `subscriptions show` |  | ✅ |  |
-| `subscriptions show` | `--json` | ✅ |  |
-| `subscriptions add` |  | ✅ |  |
-| `subscriptions add` | `--status` | ✅ |  |
-| `subscriptions add` | `--supplier` | ✅ |  |
-| `subscriptions add` | `--customer` | ✅ |  |
-| `subscriptions add` | `--product` | ✅ |  |
-| `subscriptions add` | `--contract` | ✅ |  |
-| `subscriptions add` | `--period` | ✅ |  |
-| `subscriptions add` | `--start-date` | ✅ |  |
-| `subscriptions add` | `--trial-end-date` | ✅ |  |
-| `subscriptions add` | `--kind` | ✅ |  |
-| `subscriptions add` | `--project` | ✅ |  |
-| `subscriptions add` | `--reason` | ✅ |  |
-| `subscriptions add` | `--evidence` | ✅ |  |
-| `subscriptions add` | `--as-owner` | ✅ |  |
-| `subscriptions add` | `--from-app` | ✅ |  |
-| `subscriptions add` | `--json` | ✅ |  |
-| `subscriptions update` |  | ✅ |  |
-| `subscriptions update` | `--status` | ✅ |  |
-| `subscriptions update` | `--supplier` | ✅ |  |
-| `subscriptions update` | `--customer` | ✅ |  |
-| `subscriptions update` | `--product` | ✅ |  |
-| `subscriptions update` | `--contract` | ✅ |  |
-| `subscriptions update` | `--period` | ✅ |  |
-| `subscriptions update` | `--start-date` | ✅ |  |
-| `subscriptions update` | `--trial-end-date` | ✅ |  |
-| `subscriptions update` | `--title` | ✅ |  |
-| `subscriptions update` | `--end-date` | ✅ |  |
-| `subscriptions update` | `--as-owner` | ✅ |  |
-| `subscriptions update` | `--from-app` | ✅ |  |
-| `subscriptions update` | `--json` | ✅ |  |
-| `subscriptions cancel` |  | ✅ |  |
-| `subscriptions cancel` | `--occurred-time` | ✅ |  |
-| `subscriptions cancel` | `--as-owner` | ✅ |  |
-| `subscriptions cancel` | `--from-app` | ✅ |  |
-| `subscriptions cancel` | `--json` | ✅ |  |
-| `subscriptions prices add` |  | ✅ |  |
-| `subscriptions prices add` | `--start-date` | ✅ |  |
-| `subscriptions prices add` | `--reason` | ✅ |  |
-| `subscriptions prices add` | `--as-owner` | ✅ |  |
-| `subscriptions prices add` | `--from-app` | ✅ |  |
-| `subscriptions prices add` | `--json` | ✅ |  |
-| `wallets list` |  | ✅ |  |
-| `wallets list` | `--json` | ✅ |  |
-| `wallets list` | `--limit` | ✅ |  |
-| `wallets show` |  | ✅ |  |
-| `wallets show` | `--until-time` | ✅ |  |
-| `wallets show` | `--json` | ✅ |  |
-| `wallets add` |  | ✅ |  |
-| `wallets add` | `--kind` | ✅ |  |
-| `wallets add` | `--institution` | ✅ |  |
-| `wallets add` | `--json` | ✅ |  |
-| `wallets update` |  | ✅ |  |
-| `wallets update` | `--title` | ✅ |  |
-| `wallets update` | `--institution` | ✅ |  |
-| `wallets update` | `--opening-balance` | ✅ |  |
-| `wallets update` | `--opening-date` | ✅ |  |
-| `wallets update` | `--as-owner` | ✅ |  |
-| `wallets update` | `--from-app` | ✅ |  |
-| `wallets update` | `--json` | ✅ |  |
-| `transactions list` |  | ✅ |  |
-| `transactions list` | `--json` | ✅ |  |
-| `transactions list` | `--limit` | ✅ |  |
-| `transactions show` |  | ✅ |  |
-| `transactions show` | `--json` | ✅ |  |
-| `transactions add` |  | ✅ |  |
-| `transactions add` | `--kind` | ✅ |  |
-| `transactions add` | `--occurred-time` | ✅ |  |
-| `transactions add` | `--description` | ✅ |  |
-| `transactions add` | `--status` | ✅ |  |
-| `transactions add` | `--payment` | ✅ |  |
-| `transactions add` | `--project` | ✅ |  |
-| `transactions add` | `--reason` | ✅ |  |
-| `transactions add` | `--evidence` | ✅ |  |
-| `transactions add` | `--as-owner` | ✅ |  |
-| `transactions add` | `--from-app` | ✅ |  |
-| `transactions add` | `--json` | ✅ |  |
-| `transactions update` |  | ✅ |  |
-| `transactions update` | `--status` | ✅ |  |
-| `transactions update` | `--payment` | ✅ |  |
-| `transactions update` | `--description` | ✅ |  |
-| `transactions update` | `--as-owner` | ✅ |  |
-| `transactions update` | `--from-app` | ✅ |  |
-| `transactions update` | `--json` | ✅ |  |
-| `transactions splits add` |  | ✅ |  |
-| `transactions splits add` | `--project` | ✅ |  |
-| `transactions splits add` | `--as-owner` | ✅ |  |
-| `transactions splits add` | `--from-app` | ✅ |  |
-| `transactions splits add` | `--json` | ✅ |  |
-| `transactions splits remove` |  | ✅ |  |
-| `transactions splits remove` | `--as-owner` | ✅ |  |
-| `transactions splits remove` | `--from-app` | ✅ |  |
-| `transactions splits remove` | `--json` | ✅ |  |
-| `records import` |  | ✅ |  |
-| `records import` | `--dry-run` | ✅ |  |
-| `records import` | `--type` | ✅ |  |
-| `records import` | `--account` | ✅ |  |
-| `records import` | `--region` | ✅ |  |
-| `records import` | `--json` | ✅ |  |
-| `records check` |  | ✅ |  |
-| `records check` | `--type` | ✅ |  |
-| `records check` | `--account` | ✅ |  |
-| `records check` | `--region` | ✅ |  |
-| `records check` | `--json` | ✅ |  |
-| `records templates list` |  | ✅ |  |
-| `records templates list` | `--json` | ✅ |  |
-| `records templates show` |  | ✅ |  |
-| `records templates show` | `--format` | ✅ |  |
-| `records templates show` | `--locale` | ✅ |  |
-| `records templates show` | `--account` | ✅ |  |
-| `records templates show` | `--json` | ✅ |  |
-| `records list` |  | ✅ |  |
-| `records list` | `--account` | ✅ |  |
-| `records list` | `--limit` | ✅ |  |
-| `records list` | `--json` | ✅ |  |
-| `records link` |  | ✅ |  |
-| `records link` | `--account` | ✅ |  |
-| `records link` | `--json` | ✅ |  |
-| `records link` | `--as-owner` | ✅ |  |
-| `records link` | `--from-app` | ✅ |  |
-| `records show` |  | ✅ |  |
-| `records show` | `--account` | ✅ |  |
-| `records show` | `--json` | ✅ |  |
-| `records delete` |  | ✅ |  |
-| `records delete` | `--account` | ✅ |  |
-| `records delete` | `--json` | ✅ |  |
-| `records clear` |  | ✅ |  |
-| `records clear` | `--account` | ✅ |  |
-| `records clear` | `--yes` | ✅ |  |
-| `records clear` | `--json` | ✅ |  |
-| `records match` |  | ✅ |  |
-| `records match` | `--account` | ✅ |  |
-| `records match` | `--json` | ✅ |  |
-| `import` |  | ✅ |  |
-| `import` | `--as-owner` | ✅ |  |
-| `import` | `--from-app` | ✅ |  |
-| `import` | `--account` | ✅ |  |
-| `import` | `--transcribe` | ✅ |  |
-| `import` | `--dry-run` | ✅ |  |
-| `import` | `--json` | ✅ |  |
-| `meetings actions add` |  | ✅ |  |
-| `meetings actions add` | `--account` | ✅ |  |
-| `meetings actions add` | `--json` | ✅ |  |
-| `meetings actions show` |  | ✅ |  |
-| `meetings actions show` | `--source` | ✅ |  |
-| `meetings actions show` | `--json` | ✅ |  |
-| `meetings actions list` |  | ✅ |  |
-| `meetings actions list` | `--source` | ✅ |  |
-| `meetings actions list` | `--json` | ✅ |  |
-| `meetings actions list` | `--limit` | ✅ |  |
-| `meetings actions list` | `--page` | ✅ |  |
-| `meetings actions confirm` |  | ✅ |  |
-| `meetings actions confirm` | `--account` | ✅ |  |
-| `meetings actions confirm` | `--json` | ✅ |  |
-| `meetings actions confirm` | `--fingerprint` | ✅ |  |
-| `meetings actions confirm` | `--as-owner` | ✅ |  |
-| `meetings actions confirm` | `--from-app` | ✅ |  |
-| `meetings actions reject` |  | ✅ |  |
-| `meetings actions reject` | `--account` | ✅ |  |
-| `meetings actions reject` | `--json` | ✅ |  |
-| `meetings actions reject` | `--fingerprint` | ✅ |  |
-| `meetings actions reject` | `--as-owner` | ✅ |  |
-| `meetings actions reject` | `--from-app` | ✅ |  |
-| `meetings list` |  | ✅ |  |
-| `meetings list` | `--limit` | ✅ |  |
-| `meetings list` | `--page` | ✅ |  |
-| `meetings list` | `--order` | ✅ |  |
-| `meetings list` | `--json` | ✅ |  |
-| `meetings show` |  | ✅ |  |
-| `meetings show` | `--cursor` | ✅ |  |
-| `meetings show` | `--limit` | ✅ |  |
-| `meetings show` | `--json` | ✅ |  |
-| `meetings passage` |  | ✅ |  |
-| `meetings passage` | `--before-n` | ✅ |  |
-| `meetings passage` | `--after-n` | ✅ |  |
-| `meetings passage` | `--bytes` | ✅ |  |
-| `meetings passage` | `--max-read-bytes` | ✅ |  |
-| `meetings passage` | `--expected-fingerprint` | ✅ |  |
-| `meetings passage` | `--format` | ✅ |  |
-| `meetings passage` | `--source` | ✅ |  |
-| `meetings passage` | `--json` | ✅ |  |
-| `meetings prepare` |  | ✅ |  |
-| `meetings prepare` | `--context-source` | ✅ |  |
-| `meetings prepare` | `--context-query` | ✅ |  |
-| `meetings prepare` | `--context-since-time` | ✅ |  |
-| `meetings prepare` | `--context-before-time` | ✅ |  |
-| `meetings prepare` | `--project` | ✅ |  |
-| `meetings prepare` | `--since-time` | ✅ |  |
-| `meetings prepare` | `--before-time` | ✅ |  |
-| `meetings prepare` | `--history-since-time` | ✅ |  |
-| `meetings prepare` | `--meetings` | ✅ |  |
-| `meetings prepare` | `--cues` | ✅ |  |
-| `meetings prepare` | `--context-limit` | ✅ |  |
-| `meetings prepare` | `--max-read-bytes` | ✅ |  |
-| `meetings prepare` | `--bytes` | ✅ |  |
-| `meetings prepare` | `--source` | ✅ |  |
-| `meetings prepare` | `--json` | ✅ |  |
-| `actions add` |  | ✅ |  |
-| `actions add` | `--as-owner` | ✅ |  |
-| `actions add` | `--from-app` | ✅ |  |
-| `actions add` | `--reason` | ✅ |  |
-| `actions add` | `--account` | ✅ |  |
-| `actions add` | `--target` | ✅ |  |
-| `actions add` | `--payload` | ✅ |  |
-| `actions add` | `--json` | ✅ |  |
-| `actions list` |  | ✅ |  |
-| `actions list` | `--limit` | ✅ |  |
-| `actions list` | `--page` | ✅ |  |
-| `actions list` | `--brief` | ✅ |  |
-| `actions list` | `--json` | ✅ |  |
-| `actions show` |  | ✅ |  |
-| `actions show` | `--json` | ✅ |  |
-| `actions confirm` |  | ✅ |  |
-| `actions confirm` | `--as-owner` | ✅ |  |
-| `actions confirm` | `--from-app` | ✅ |  |
-| `actions confirm` | `--fingerprint` | ✅ |  |
-| `actions confirm` | `--reason` | ✅ |  |
-| `actions confirm` | `--json` | ✅ |  |
-| `actions edit` |  | ✅ |  |
-| `actions edit` | `--as-owner` | ✅ |  |
-| `actions edit` | `--from-app` | ✅ |  |
-| `actions edit` | `--fingerprint` | ✅ |  |
-| `actions edit` | `--set` | ✅ |  |
-| `actions edit` | `--json` | ✅ |  |
-| `actions reject` |  | ✅ |  |
-| `actions reject` | `--as-owner` | ✅ |  |
-| `actions reject` | `--from-app` | ✅ |  |
-| `actions reject` | `--fingerprint` | ✅ |  |
-| `actions reject` | `--reason` | ✅ |  |
-| `actions reject` | `--json` | ✅ |  |
-| `review list` |  | ✅ |  |
-| `review list` | `--json` | ✅ |  |
-| `review list` | `--limit` | ✅ |  |
-| `review list` | `--page` | ✅ |  |
-| `review list` | `--compact` | ✅ |  |
-| `review show` |  | ✅ |  |
-| `review show` | `--json` | ✅ |  |
-| `review show` | `--brief` | ✅ |  |
-| `review show` | `--before-n` | ✅ |  |
-| `review show` | `--after-n` | ✅ |  |
-| `review show` | `--compact` | ✅ |  |
-| `review confirm` |  | ✅ |  |
-| `review confirm` | `--json` | ✅ |  |
-| `review confirm` | `--as-owner` | ✅ |  |
-| `review confirm` | `--from-app` | ✅ |  |
-| `review confirm` | `--reason` | ✅ |  |
-| `review confirm` | `--compact` | ✅ |  |
-| `review reject` |  | ✅ |  |
-| `review reject` | `--json` | ✅ |  |
-| `review reject` | `--as-owner` | ✅ |  |
-| `review reject` | `--from-app` | ✅ |  |
-| `review reject` | `--reason` | ✅ |  |
-| `review reject` | `--compact` | ✅ |  |
-| `review agenda` |  | ✅ |  |
-| `review agenda` | `--since-time` | ✅ |  |
-| `review agenda` | `--before-time` | ✅ |  |
-| `review agenda` | `--source` | ✅ |  |
-| `review agenda` | `--limit` | ✅ |  |
-| `review agenda` | `--max-output-bytes` | ✅ |  |
-| `review agenda` | `--compact` | ✅ |  |
-| `review agenda` | `--json` | ✅ |  |
-| `review status` |  | ✅ |  |
-| `review status` | `--json` | ✅ |  |
-| `review status` | `--since-time` | ✅ |  |
-| `agents list` |  | ✅ |  |
-| `agents list` | `--limit` | ✅ |  |
-| `agents list` | `--page` | ✅ |  |
-| `agents list` | `--json` | ✅ |  |
-| `mcp serve` |  | ✅ |  |
-| `mcp serve` | `--permission` | ✅ |  |
-| `mcp serve` | `--http` | ✅ |  |
-| `mcp serve` | `--port` | ✅ |  |
-| `mcp serve` | `--public-url` | ✅ |  |
-| `mcp revoke` |  | ✅ |  |
-| `mcp revoke` | `--json` | ✅ |  |
-| `mcp server start` |  | ✅ |  |
-| `mcp server start` | `--port` | ✅ |  |
-| `mcp server start` | `--public-url` | ✅ |  |
-| `mcp server start` | `--permission` | ✅ |  |
-| `mcp server start` | `--json` | ✅ |  |
-| `mcp server stop` |  | ✅ |  |
-| `mcp server stop` | `--json` | ✅ |  |
-| `mcp server status` |  | ✅ |  |
-| `mcp server status` | `--json` | ✅ |  |
-| `models list` |  | ✅ |  |
-| `models list` | `--json` | ✅ |  |
-| `models download` |  | ✅ |  |
-| `models download` | `--offline` | ✅ |  |
-| `models download` | `--accept-terms` | ✅ |  |
-| `models download` | `--json` | ✅ |  |
-| `models set` |  | ✅ |  |
-| `models set` | `--json` | ✅ |  |
-| `models add` |  | ✅ |  |
-| `models add` | `--payload` | ✅ |  |
-| `models add` | `--offline` | ✅ |  |
-| `models add` | `--json` | ✅ |  |
-| `models consents show` |  | ✅ |  |
-| `models consents show` | `--json` | ✅ |  |
-| `models consents set` |  | ✅ |  |
-| `models consents set` | `--model` | ✅ |  |
-| `models consents set` | `--base-url` | ✅ |  |
-| `models consents set` | `--yes` | ✅ |  |
-| `models consents set` | `--json` | ✅ |  |
-| `models consents revoke` |  | ✅ |  |
-| `models consents revoke` | `--json` | ✅ |  |
-| `models search-consents show` |  | ✅ |  |
-| `models search-consents show` | `--json` | ✅ |  |
-| `models search-consents set` |  | ✅ |  |
-| `models search-consents set` | `--model` | ✅ |  |
-| `models search-consents set` | `--base-url` | ✅ |  |
-| `models search-consents set` | `--timeout` | ✅ |  |
-| `models search-consents set` | `--yes` | ✅ |  |
-| `models search-consents set` | `--json` | ✅ |  |
-| `models search-consents revoke` |  | ✅ |  |
-| `models search-consents revoke` | `--json` | ✅ |  |
-| `models keys set` |  | ✅ |  |
-| `models keys set` | `--json` | ✅ |  |
-| `models keys remove` |  | ✅ |  |
-| `models keys remove` | `--json` | ✅ |  |
-| `models ai show` |  | ✅ |  |
-| `models ai show` | `--json` | ✅ |  |
-| `models ai set` |  | ✅ |  |
-| `models ai set` | `--model` | ✅ |  |
-| `models ai set` | `--base-url` | ✅ |  |
-| `models ai set` | `--secret-stdin` | ✅ |  |
-| `models ai set` | `--allow-remote` | ✅ |  |
-| `models ai set` | `--from-app` | ✅ |  |
-| `models ai set` | `--json` | ✅ |  |
-| `models ai unset` |  | ✅ |  |
-| `models ai unset` | `--from-app` | ✅ |  |
-| `models ai unset` | `--json` | ✅ |  |
-| `models ai remove` |  | ✅ |  |
-| `models ai remove` | `--from-app` | ✅ |  |
-| `models ai remove` | `--json` | ✅ |  |
-| `models ai revoke` |  | ✅ |  |
-| `models ai revoke` | `--from-app` | ✅ |  |
-| `models ai revoke` | `--json` | ✅ |  |
-| `models ai check` |  | ✅ |  |
-| `models ai check` | `--from-app` | ✅ |  |
-| `models ai check` | `--json` | ✅ |  |
-| `models local-only show` |  | ✅ |  |
-| `models local-only show` | `--json` | ✅ |  |
-| `models local-only set` |  | ✅ |  |
-| `models local-only set` | `--from-app` | ✅ |  |
-| `models local-only set` | `--json` | ✅ |  |
-| `models chats show` |  | ✅ |  |
-| `models chats show` | `--json` | ✅ |  |
-| `models chats set` |  | ✅ |  |
-| `models chats set` | `--from-app` | ✅ |  |
-| `models chats set` | `--json` | ✅ |  |
-| `models picture-reading show` |  | ✅ |  |
-| `models picture-reading show` | `--json` | ✅ |  |
-| `models picture-reading set` |  | ✅ |  |
-| `models picture-reading set` | `--agent` | ✅ |  |
-| `models picture-reading set` | `--model` | ✅ |  |
-| `models picture-reading set` | `--from-app` | ✅ |  |
-| `models picture-reading set` | `--json` | ✅ |  |
-| `domain-lists list` |  | ✅ |  |
-| `domain-lists list` | `--json` | ✅ |  |
-| `domain-lists update` |  | ✅ |  |
-| `domain-lists update` | `--commercial-only` | ✅ |  |
-| `domain-lists update` | `--offline` | ✅ |  |
-| `domain-lists update` | `--json` | ✅ |  |
-| `templates list` |  | ✅ |  |
-| `templates list` | `--json` | ✅ |  |
-| `templates show` |  | ✅ |  |
-| `templates show` | `--channel` | ✅ |  |
-| `templates show` | `--locale` | ✅ |  |
-| `templates show` | `--json` | ✅ |  |
-| `templates edit` |  | ✅ |  |
-| `templates edit` | `--channel` | ✅ |  |
-| `templates edit` | `--locale` | ✅ |  |
-| `templates edit` | `--file` | ✅ |  |
-| `templates edit` | `--undo` | ✅ |  |
-| `templates edit` | `--json` | ✅ |  |
-| `templates preview` |  | ✅ |  |
-| `templates preview` | `--channel` | ✅ |  |
-| `templates preview` | `--locale` | ✅ |  |
-| `templates preview` | `--file` | ✅ |  |
-| `templates preview` | `--json` | ✅ |  |
-| `templates reset` |  | ✅ |  |
-| `templates reset` | `--channel` | ✅ |  |
-| `templates reset` | `--locale` | ✅ |  |
-| `templates reset` | `--json` | ✅ |  |
-| `search all` |  | ✅ |  |
-| `search all` | `--limit` | ✅ |  |
-| `search all` | `--exact` | ✅ |  |
-| `search all` | `--timezone` | ✅ |  |
-| `search all` | `--json` | ✅ |  |
-| `search all` | `--only` | ✅ |  |
-| `search all` | `--source` | ✅ |  |
-| `search all` | `--plain-order` | ✅ |  |
-| `search all` | `--harder` | ✅ |  |
-| `search all` | `--project` | ✅ |  |
-| `search messages` |  | ✅ |  |
-| `search messages` | `--limit` | ✅ |  |
-| `search messages` | `--exact` | ✅ |  |
-| `search messages` | `--timezone` | ✅ |  |
-| `search messages` | `--json` | ✅ |  |
-| `search messages` | `--brief` | ✅ |  |
-| `search messages` | `--full` | ✅ |  |
-| `search mail` |  | ✅ |  |
-| `search mail` | `--limit` | ✅ |  |
-| `search mail` | `--exact` | ✅ |  |
-| `search mail` | `--timezone` | ✅ |  |
-| `search mail` | `--json` | ✅ |  |
-| `search mail` | `--brief` | ✅ |  |
-| `search mail` | `--full` | ✅ |  |
-| `search mail` | `--source` | ✅ |  |
-| `search mail` | `--plain-order` | ✅ |  |
-| `search notes` |  | ✅ |  |
-| `search notes` | `--limit` | ✅ |  |
-| `search notes` | `--exact` | ✅ |  |
-| `search notes` | `--timezone` | ✅ |  |
-| `search notes` | `--json` | ✅ |  |
-| `search notes` | `--filter` | ✅ |  |
-| `search notes` | `--source` | ✅ |  |
-| `search notes` | `--page` | ✅ |  |
-| `search notes` | `--project` | ✅ |  |
-| `search memories` |  | ✅ |  |
-| `search memories` | `--limit` | ✅ |  |
-| `search memories` | `--json` | ✅ |  |
-| `search people` |  | ✅ |  |
-| `search people` | `--source` | ✅ |  |
-| `search people` | `--limit` | ✅ |  |
-| `search people` | `--json` | ✅ |  |
-| `search meetings` |  | ✅ |  |
-| `search meetings` | `--meeting-id` | ✅ |  |
-| `search meetings` | `--identity-id` | ✅ |  |
-| `search meetings` | `--person-id` | ✅ |  |
-| `search meetings` | `--event-id` | ✅ |  |
-| `search meetings` | `--series-id` | ✅ |  |
-| `search meetings` | `--project` | ✅ |  |
-| `search meetings` | `--topic-name` | ✅ |  |
-| `search meetings` | `--since-time` | ✅ |  |
-| `search meetings` | `--until-time` | ✅ |  |
-| `search meetings` | `--limit` | ✅ |  |
-| `search meetings` | `--cursor` | ✅ |  |
-| `search meetings` | `--max-read-bytes` | ✅ |  |
-| `search meetings` | `--source` | ✅ |  |
-| `search meetings` | `--json` | ✅ |  |
-| `events list` |  | ✅ |  |
-| `events list` | `--limit` | ✅ |  |
-| `events list` | `--json` | ✅ |  |
-| `events show` |  | ✅ |  |
-| `events show` | `--json` | ✅ |  |
-| `answers create` |  | ✅ |  |
-| `answers create` | `--all` | ✅ |  |
-| `answers create` | `--source` | ✅ |  |
-| `answers create` | `--limit` | ✅ |  |
-| `answers create` | `--analyze` | ✅ |  |
-| `answers create` | `--allow-remote` | ✅ |  |
-| `answers create` | `--json` | ✅ |  |
-| `sync` |  | ✅ |  |
-| `sync` | `--only` | ✅ |  |
-| `sync` | `--folder` | ✅ |  |
-| `sync` | `--ignore` | ✅ |  |
-| `sync` | `--no-embed` | ✅ |  |
-| `sync` | `--timeout` | ✅ |  |
-| `sync` | `--json` | ✅ |  |
-| `store info` |  | ✅ |  |
-| `store info` | `--json` | ✅ |  |
-| `store recover` |  | ✅ |  |
-| `store recover` | `--json` | ✅ |  |
-| `store recover run` |  | ✅ |  |
-| `store recover run` | `--json` | ✅ |  |
-| `groups list` |  | ✅ |  |
-| `groups list` | `--json` | ✅ |  |
-| `groups add` |  | ✅ |  |
-| `groups add` | `--json` | ✅ |  |
-| `groups remove` |  | ✅ |  |
-| `groups remove` | `--json` | ✅ |  |
-| `groups move` |  | ✅ |  |
-| `groups move` | `--json` | ✅ |  |
-| `groups rename` |  | ✅ |  |
-| `groups rename` | `--json` | ✅ |  |
-| `groups delete` |  | ✅ |  |
-| `groups delete` | `--json` | ✅ |  |
-| `groups update` |  | ✅ |  |
-| `groups update` | `--scope` | ✅ |  |
-| `groups update` | `--chat` | ✅ |  |
-| `groups update` | `--json` | ✅ |  |
-| `jobs start` |  | ✅ |  |
-| `jobs start` | `--every` | ✅ |  |
-| `jobs stop` |  | ✅ |  |
-| `jobs status` |  | ✅ |  |
-| `jobs status` | `--json` | ✅ |  |
-| `config show` |  | ✅ |  |
-| `config show` | `--json` | ✅ |  |
-| `config migrate` |  | ✅ |  |
-| `config migrate` | `--json` | ✅ |  |
-| `config unset` |  | ✅ |  |
-| `config unset` | `--json` | ✅ |  |
-| `doctor` |  | ✅ |  |
-| `doctor` | `--online` | ✅ |  |
-| `doctor` | `--deep` | ✅ |  |
-| `doctor` | `--json` | ✅ |  |
-| `doctor reports show` |  | ✅ |  |
-| `doctor reports create` |  | ✅ |  |
-| `doctor reports create` | `--run` | ✅ |  |
-| `doctor reports create` | `--output` | ✅ |  |
-| `upgrade` |  | ✅ |  |
-| `upgrade` | `--check` | ✅ |  |
-| `upgrade` | `--json` | ✅ |  |
-| `schedule command` |  | ✅ |  |
-| `schedule command` | `--every` | ✅ |  |
-| `schedule command` | `--at` | ✅ |  |
-| `schedule command` | `--at-time` | ✅ |  |
-| `schedule command` | `--notify-on` | ✅ |  |
-| `schedule command` | `--deliver-to` | ✅ |  |
-| `schedule command` | `--json` | ✅ |  |
-| `schedule agent` |  | ✅ |  |
-| `schedule agent` | `--model` | ✅ |  |
-| `schedule agent` | `--max-cost` | ✅ |  |
-| `schedule agent` | `--allow-dangerous` | ✅ |  |
-| `schedule agent` | `--max-cost-per-day` | ✅ |  |
-| `schedule agent` | `--every` | ✅ |  |
-| `schedule agent` | `--at` | ✅ |  |
-| `schedule agent` | `--at-time` | ✅ |  |
-| `schedule agent` | `--notify-on` | ✅ |  |
-| `schedule agent` | `--deliver-to` | ✅ |  |
-| `schedule agent` | `--on-new-mail` | ✅ |  |
-| `schedule agent` | `--mail-wait` | ✅ |  |
-| `schedule agent` | `--mail-batch` | ✅ |  |
-| `schedule agent` | `--json` | ✅ |  |
-| `schedule list` |  | ✅ |  |
-| `schedule list` | `--json` | ✅ |  |
-| `schedule agents list` |  | ✅ |  |
-| `schedule run` |  | ✅ |  |
-| `schedule run` | `--no-notify` | ✅ |  |
-| `schedule run` | `--deliver-to` | ✅ |  |
-| `schedule run` | `--json` | ✅ |  |
-| `schedule remove` |  | ✅ |  |
-| `schedule remove` | `--json` | ✅ |  |
-| `schedule pause` |  | ✅ |  |
-| `schedule pause` | `--json` | ✅ |  |
-| `schedule resume` |  | ✅ |  |
-| `schedule resume` | `--json` | ✅ |  |
-| `schedule exec` |  | ✅ |  |
-| `schedule exec` | `--json` | ✅ |  |
-| `digest brief show` |  | ✅ |  |
-| `digest brief show` | `--json` | ✅ |  |
-| `digest brief edit` |  | ✅ |  |
-| `digest brief edit` | `--file` | ✅ |  |
-| `digest brief edit` | `--undo` | ✅ |  |
-| `digest brief edit` | `--json` | ✅ |  |
-| `digest brief reset` |  | ✅ |  |
-| `digest brief reset` | `--json` | ✅ |  |
-| `digest list` |  | ✅ |  |
-| `digest list` | `--json` | ✅ |  |
-| `digest add` |  | ✅ |  |
-| `digest add` | `--paused` | ✅ |  |
-| `digest add` | `--title` | ✅ |  |
-| `digest add` | `--at` | ✅ |  |
-| `digest add` | `--source` | ✅ |  |
-| `digest add` | `--deliver-to` | ✅ |  |
-| `digest add` | `--text` | ✅ |  |
-| `digest add` | `--agent` | ✅ |  |
-| `digest add` | `--model` | ✅ |  |
-| `digest add` | `--allow-dangerous` | ✅ |  |
-| `digest add` | `--max-cost` | ✅ |  |
-| `digest add` | `--max-cost-per-day` | ✅ |  |
-| `digest add` | `--json` | ✅ |  |
-| `digest add` | `--from-app` | ✅ |  |
-| `digest edit` |  | ✅ |  |
-| `digest edit` | `--title` | ✅ |  |
-| `digest edit` | `--at` | ✅ |  |
-| `digest edit` | `--source` | ✅ |  |
-| `digest edit` | `--deliver-to` | ✅ |  |
-| `digest edit` | `--text` | ✅ |  |
-| `digest edit` | `--agent` | ✅ |  |
-| `digest edit` | `--model` | ✅ |  |
-| `digest edit` | `--allow-dangerous` | ✅ |  |
-| `digest edit` | `--max-cost` | ✅ |  |
-| `digest edit` | `--max-cost-per-day` | ✅ |  |
-| `digest edit` | `--json` | ✅ |  |
-| `digest edit` | `--from-app` | ✅ |  |
-| `digest run` |  | ✅ |  |
-| `digest run` | `--from-app` | ✅ |  |
-| `digest run` | `--no-notify` | ✅ |  |
-| `digest run` | `--deliver-to` | ✅ |  |
-| `digest run` | `--json` | ✅ |  |
-| `digest pause` |  | ✅ |  |
-| `digest pause` | `--from-app` | ✅ |  |
-| `digest pause` | `--json` | ✅ |  |
-| `digest resume` |  | ✅ |  |
-| `digest resume` | `--from-app` | ✅ |  |
-| `digest resume` | `--json` | ✅ |  |
-| `digest remove` |  | ✅ |  |
-| `digest remove` | `--from-app` | ✅ |  |
-| `digest remove` | `--json` | ✅ |  |
-| `digest history` |  | ✅ |  |
-| `digest history` | `--last` | ✅ |  |
-| `digest history` | `--before-time` | ✅ |  |
-| `digest history` | `--json` | ✅ |  |
-| `digest backfill` |  | ✅ |  |
-| `digest backfill` | `--from-app` | ✅ |  |
-| `digest backfill` | `--since-time` | ✅ |  |
-| `digest backfill` | `--until-time` | ✅ |  |
-| `digest backfill` | `--from` | ✅ |  |
-| `digest backfill` | `--to` | ✅ |  |
-| `digest backfill` | `--yes` | ✅ |  |
-| `digest backfill` | `--json` | ✅ |  |
-| `commands` |  | ✅ |  |
-| `commands` | `--json` | ✅ |  |
-| `commands info` |  | ✅ |  |
-| `commands info` | `--json` | ✅ |  |
-| `skill show` |  | ✅ |  |
-| `skill show` | `--for` | ✅ |  |
-| `skill show` | `--json` | ✅ |  |
-| `skill install` |  | ✅ |  |
-| `skill install` | `--for` | ✅ |  |
-| `skill install` | `--json` | ✅ |  |
-| `skill status` |  | ✅ |  |
-| `skill status` | `--json` | ✅ |  |
-| `guide` |  | ✅ |  |
-| `guide` | `--json` | ✅ |  |
-| `runs list` |  | ✅ |  |
-| `runs list` | `--limit` | ✅ |  |
-| `runs list` | `--page` | ✅ |  |
-| `runs list` | `--json` | ✅ |  |
-| `runs show` |  | ✅ |  |
-| `runs show` | `--problems` | ✅ |  |
-| `runs show` | `--json` | ✅ |  |
-| `runs path` |  | ✅ |  |
-| `runs path` | `--json` | ✅ |  |
-| `help` |  | ✅ |  |
+| `context` |  | ❌ |  |
+| `context` | `--limit` | ❌ |  |
+| `context` | `--since-time` | ❌ |  |
+| `context` | `--before-time` | ❌ |  |
+| `context` | `--json` | ❌ |  |
+| `context` | `--source` | ❌ |  |
+| `context` | `--trimmed` | ❌ |  |
+| `show` |  | ❌ |  |
+| `show` | `--json` | ❌ |  |
+| `documents list` |  | ❌ |  |
+| `documents list` | `--limit` | ❌ |  |
+| `documents list` | `--page` | ❌ |  |
+| `documents list` | `--json` | ❌ |  |
+| `documents tree` |  | ❌ |  |
+| `documents tree` | `--source` | ❌ |  |
+| `documents tree` | `--depth` | ❌ |  |
+| `documents tree` | `--json` | ❌ |  |
+| `documents show` |  | ❌ |  |
+| `documents show` | `--cursor` | ❌ |  |
+| `documents show` | `--max-chars` | ❌ |  |
+| `documents show` | `--json` | ❌ |  |
+| `messages show` |  | ❌ |  |
+| `messages show` | `--before-n` | ❌ |  |
+| `messages show` | `--after-n` | ❌ |  |
+| `messages show` | `--full` | ❌ |  |
+| `messages show` | `--trimmed` | ❌ |  |
+| `messages show` | `--json` | ❌ |  |
+| `messages acknowledge` |  | ❌ |  |
+| `messages acknowledge` | `--holder` | ❌ |  |
+| `messages acknowledge` | `--cursor` | ❌ |  |
+| `messages acknowledge` | `--source` | ❌ |  |
+| `messages acknowledge` | `--json` | ❌ |  |
+| `messages reset` |  | ❌ |  |
+| `messages reset` | `--holder` | ❌ |  |
+| `messages reset` | `--since-time` | ❌ |  |
+| `messages reset` | `--last` | ❌ |  |
+| `messages reset` | `--dry-run` | ❌ |  |
+| `messages reset` | `--source` | ❌ |  |
+| `messages reset` | `--json` | ❌ |  |
+| `people add` |  | ❌ |  |
+| `people add` | `--json` | ❌ |  |
+| `people list` |  | ❌ |  |
+| `people list` | `--sort` | ❌ |  |
+| `people list` | `--limit` | ❌ |  |
+| `people list` | `--page` | ❌ |  |
+| `people list` | `--json` | ❌ |  |
+| `people check` |  | ❌ |  |
+| `people check` | `--limit` | ❌ |  |
+| `people check` | `--json` | ❌ |  |
+| `people show` |  | ❌ |  |
+| `people show` | `--json` | ❌ |  |
+| `people review` |  | ❌ |  |
+| `people review` | `--kind` | ❌ |  |
+| `people review` | `--brief` | ❌ |  |
+| `people review` | `--full` | ❌ |  |
+| `people review` | `--limit` | ❌ |  |
+| `people review` | `--json` | ❌ |  |
+| `people confirm` |  | ❌ |  |
+| `people confirm` | `--as-owner` | ❌ |  |
+| `people confirm` | `--from-app` | ❌ |  |
+| `people confirm` | `--kind` | ❌ |  |
+| `people confirm` | `--limit` | ❌ |  |
+| `people confirm` | `--yes` | ❌ |  |
+| `people confirm` | `--reason` | ❌ |  |
+| `people confirm` | `--json` | ❌ |  |
+| `people reject` |  | ❌ |  |
+| `people reject` | `--as-owner` | ❌ |  |
+| `people reject` | `--from-app` | ❌ |  |
+| `people reject` | `--kind` | ❌ |  |
+| `people reject` | `--limit` | ❌ |  |
+| `people reject` | `--yes` | ❌ |  |
+| `people reject` | `--reason` | ❌ |  |
+| `people reject` | `--json` | ❌ |  |
+| `people resolve` |  | ❌ |  |
+| `people resolve` | `--as-owner` | ❌ |  |
+| `people resolve` | `--from-app` | ❌ |  |
+| `people resolve` | `--name` | ❌ |  |
+| `people resolve` | `--mailbox` | ❌ |  |
+| `people resolve` | `--all` | ❌ |  |
+| `people resolve` | `--reason` | ❌ |  |
+| `people resolve` | `--json` | ❌ |  |
+| `people links check` |  | ❌ |  |
+| `people links check` | `--limit` | ❌ |  |
+| `people links check` | `--page` | ❌ |  |
+| `people links check` | `--json` | ❌ |  |
+| `people links resolve` |  | ❌ |  |
+| `people links resolve` | `--as-owner` | ❌ |  |
+| `people links resolve` | `--from-app` | ❌ |  |
+| `people links resolve` | `--json` | ❌ |  |
+| `people delete` |  | ❌ |  |
+| `people delete` | `--yes` | ❌ |  |
+| `people delete` | `--as-owner` | ❌ |  |
+| `people delete` | `--from-app` | ❌ |  |
+| `people delete` | `--json` | ❌ |  |
+| `people scan` |  | ❌ |  |
+| `people scan` | `--json` | ❌ |  |
+| `people link` |  | ❌ |  |
+| `people link` | `--as-owner` | ❌ |  |
+| `people link` | `--from-app` | ❌ |  |
+| `people link` | `--reason` | ❌ |  |
+| `people link` | `--json` | ❌ |  |
+| `people unlink` |  | ❌ |  |
+| `people unlink` | `--as-owner` | ❌ |  |
+| `people unlink` | `--from-app` | ❌ |  |
+| `people unlink` | `--reason` | ❌ |  |
+| `people unlink` | `--from` | ❌ |  |
+| `people unlink` | `--json` | ❌ |  |
+| `people unmerge` |  | ❌ |  |
+| `people unmerge` | `--as-owner` | ❌ |  |
+| `people unmerge` | `--from-app` | ❌ |  |
+| `people unmerge` | `--reason` | ❌ |  |
+| `people unmerge` | `--json` | ❌ |  |
+| `bots list` |  | ❌ |  |
+| `bots list` | `--limit` | ❌ |  |
+| `bots list` | `--page` | ❌ |  |
+| `bots list` | `--json` | ❌ |  |
+| `bots show` |  | ❌ |  |
+| `bots show` | `--json` | ❌ |  |
+| `bots move` |  | ❌ |  |
+| `bots move` | `--kind` | ❌ |  |
+| `bots move` | `--into` | ❌ |  |
+| `bots move` | `--name` | ❌ |  |
+| `bots move` | `--reason` | ❌ |  |
+| `bots move` | `--as-owner` | ❌ |  |
+| `bots move` | `--from-app` | ❌ |  |
+| `bots move` | `--json` | ❌ |  |
+| `tags add` |  | ❌ |  |
+| `tags add` | `--message` | ❌ |  |
+| `tags add` | `--note` | ❌ |  |
+| `tags add` | `--chat` | ❌ |  |
+| `tags add` | `--task` | ❌ |  |
+| `tags add` | `--contact` | ❌ |  |
+| `tags add` | `--person` | ❌ |  |
+| `tags add` | `--organization` | ❌ |  |
+| `tags add` | `--project` | ❌ |  |
+| `tags add` | `--meeting` | ❌ |  |
+| `tags add` | `--folder` | ❌ |  |
+| `tags add` | `--subfolder` | ❌ |  |
+| `tags add` | `--account` | ❌ |  |
+| `tags add` | `--json` | ❌ |  |
+| `tags remove` |  | ❌ |  |
+| `tags remove` | `--message` | ❌ |  |
+| `tags remove` | `--note` | ❌ |  |
+| `tags remove` | `--chat` | ❌ |  |
+| `tags remove` | `--task` | ❌ |  |
+| `tags remove` | `--contact` | ❌ |  |
+| `tags remove` | `--person` | ❌ |  |
+| `tags remove` | `--organization` | ❌ |  |
+| `tags remove` | `--project` | ❌ |  |
+| `tags remove` | `--meeting` | ❌ |  |
+| `tags remove` | `--folder` | ❌ |  |
+| `tags remove` | `--subfolder` | ❌ |  |
+| `tags remove` | `--account` | ❌ |  |
+| `tags remove` | `--json` | ❌ |  |
+| `tags list` |  | ❌ |  |
+| `tags list` | `--source` | ❌ |  |
+| `tags list` | `--limit` | ❌ |  |
+| `tags list` | `--json` | ❌ |  |
+| `tasks unlink` |  | ❌ |  |
+| `tasks unlink` | `--kind` | ❌ |  |
+| `tasks unlink` | `--json` | ❌ |  |
+| `tasks links` |  | ❌ |  |
+| `tasks links` | `--json` | ❌ |  |
+| `tasks status` |  | ❌ |  |
+| `tasks status` | `--json` | ❌ |  |
+| `tasks add` |  | ❌ |  |
+| `tasks add` | `--account` | ❌ |  |
+| `tasks add` | `--json` | ❌ |  |
+| `tasks add` | `--title` | ❌ |  |
+| `tasks add` | `--priority` | ❌ |  |
+| `tasks add` | `--parent` | ❌ |  |
+| `tasks add` | `--description` | ❌ |  |
+| `tasks add` | `--type` | ❌ |  |
+| `tasks add` | `--project` | ❌ |  |
+| `tasks add` | `--assignee` | ❌ |  |
+| `tasks add` | `--due` | ❌ |  |
+| `tasks add` | `--status` | ❌ |  |
+| `tasks add` | `--agent` | ❌ |  |
+| `tasks add` | `--external-id` | ❌ |  |
+| `tasks add` | `--source-url` | ❌ |  |
+| `tasks add` | `--into` | ❌ |  |
+| `tasks add` | `--new` | ❌ |  |
+| `tasks list` |  | ❌ |  |
+| `tasks list` | `--source` | ❌ |  |
+| `tasks list` | `--json` | ❌ |  |
+| `tasks list` | `--limit` | ❌ |  |
+| `tasks list` | `--sort` | ❌ |  |
+| `tasks list` | `--desc` | ❌ |  |
+| `tasks list` | `--cursor` | ❌ |  |
+| `tasks counts` |  | ❌ |  |
+| `tasks counts` | `--json` | ❌ |  |
+| `tasks comments add` |  | ❌ |  |
+| `tasks comments add` | `--json` | ❌ |  |
+| `tasks comments list` |  | ❌ |  |
+| `tasks comments list` | `--json` | ❌ |  |
+| `tasks history` |  | ❌ |  |
+| `tasks history` | `--json` | ❌ |  |
+| `tasks close` |  | ❌ |  |
+| `tasks close` | `--account` | ❌ |  |
+| `tasks close` | `--json` | ❌ |  |
+| `tasks close` | `--as` | ❌ |  |
+| `tasks close` | `--reason` | ❌ |  |
+| `tasks close` | `--revision` | ❌ |  |
+| `tasks assign` |  | ❌ |  |
+| `tasks assign` | `--role` | ❌ |  |
+| `tasks assign` | `--clear` | ❌ |  |
+| `tasks assign` | `--revision` | ❌ |  |
+| `tasks assign` | `--json` | ❌ |  |
+| `tasks move` |  | ❌ |  |
+| `tasks move` | `--status` | ❌ |  |
+| `tasks move` | `--before` | ❌ |  |
+| `tasks move` | `--after` | ❌ |  |
+| `tasks move` | `--revision` | ❌ |  |
+| `tasks move` | `--json` | ❌ |  |
+| `tasks agenda` |  | ❌ |  |
+| `tasks agenda` | `--due-within` | ❌ |  |
+| `tasks agenda` | `--unanswered` | ❌ |  |
+| `tasks agenda` | `--waiting` | ❌ |  |
+| `tasks agenda` | `--within` | ❌ |  |
+| `tasks agenda` | `--holder` | ❌ |  |
+| `tasks agenda` | `--source` | ❌ |  |
+| `tasks agenda` | `--json` | ❌ |  |
+| `tasks update` |  | ❌ |  |
+| `tasks update` | `--category` | ❌ |  |
+| `tasks update` | `--priority` | ❌ |  |
+| `tasks update` | `--parent` | ❌ |  |
+| `tasks update` | `--title` | ❌ |  |
+| `tasks update` | `--description` | ❌ |  |
+| `tasks update` | `--due` | ❌ |  |
+| `tasks update` | `--remind-time` | ❌ |  |
+| `tasks update` | `--assignee` | ❌ |  |
+| `tasks update` | `--account` | ❌ |  |
+| `tasks update` | `--json` | ❌ |  |
+| `tasks update` | `--agent` | ❌ |  |
+| `tasks update` | `--project` | ❌ |  |
+| `tasks update` | `--type` | ❌ |  |
+| `tasks update` | `--revision` | ❌ |  |
+| `tasks update` | `--status` | ❌ |  |
+| `tasks show` |  | ❌ |  |
+| `tasks show` | `--source` | ❌ |  |
+| `tasks show` | `--json` | ❌ |  |
+| `tasks link` |  | ❌ |  |
+| `tasks link` | `--chat` | ❌ |  |
+| `tasks link` | `--kind` | ❌ |  |
+| `tasks link` | `--account` | ❌ |  |
+| `tasks link` | `--json` | ❌ |  |
+| `tasks claim` |  | ❌ |  |
+| `tasks claim` | `--lease` | ❌ |  |
+| `tasks claim` | `--holder` | ❌ |  |
+| `tasks claim` | `--account` | ❌ |  |
+| `tasks claim` | `--json` | ❌ |  |
+| `tasks release` |  | ❌ |  |
+| `tasks release` | `--holder` | ❌ |  |
+| `tasks release` | `--account` | ❌ |  |
+| `tasks release` | `--json` | ❌ |  |
+| `stats tasks show` |  | ❌ |  |
+| `stats tasks show` | `--by` | ❌ |  |
+| `stats tasks show` | `--type` | ❌ |  |
+| `stats tasks show` | `--timezone` | ❌ |  |
+| `stats tasks show` | `--source` | ❌ |  |
+| `stats tasks show` | `--json` | ❌ |  |
+| `stats projects show` |  | ❌ |  |
+| `stats projects show` | `--since-time` | ❌ |  |
+| `stats projects show` | `--limit` | ❌ |  |
+| `stats projects show` | `--page` | ❌ |  |
+| `stats projects show` | `--json` | ❌ |  |
+| `organizations add` |  | ❌ |  |
+| `organizations add` | `--kind` | ❌ |  |
+| `organizations add` | `--scope` | ❌ |  |
+| `organizations add` | `--json` | ❌ |  |
+| `organizations rename` |  | ❌ |  |
+| `organizations rename` | `--json` | ❌ |  |
+| `organizations delete` |  | ❌ |  |
+| `organizations delete` | `--yes` | ❌ |  |
+| `organizations delete` | `--as-owner` | ❌ |  |
+| `organizations delete` | `--from-app` | ❌ |  |
+| `organizations delete` | `--json` | ❌ |  |
+| `organizations show` |  | ❌ |  |
+| `organizations show` | `--json` | ❌ |  |
+| `organizations list` |  | ❌ |  |
+| `organizations list` | `--json` | ❌ |  |
+| `organizations context` |  | ❌ |  |
+| `organizations context` | `--limit` | ❌ |  |
+| `organizations context` | `--json` | ❌ |  |
+| `projects meetings list` |  | ❌ |  |
+| `projects meetings list` | `--source` | ❌ |  |
+| `projects meetings list` | `--json` | ❌ |  |
+| `projects meetings list` | `--limit` | ❌ |  |
+| `projects meetings list` | `--page` | ❌ |  |
+| `projects meetings link` |  | ❌ |  |
+| `projects meetings link` | `--account` | ❌ |  |
+| `projects meetings link` | `--json` | ❌ |  |
+| `projects meetings link` | `--fingerprint` | ❌ |  |
+| `projects meetings link` | `--reason` | ❌ |  |
+| `projects add` |  | ❌ |  |
+| `projects add` | `--key` | ❌ |  |
+| `projects add` | `--type` | ❌ |  |
+| `projects add` | `--organization` | ❌ |  |
+| `projects add` | `--scope` | ❌ |  |
+| `projects add` | `--json` | ❌ |  |
+| `projects list` |  | ❌ |  |
+| `projects list` | `--json` | ❌ |  |
+| `projects context` |  | ❌ |  |
+| `projects context` | `--json` | ❌ |  |
+| `projects evidence` |  | ❌ |  |
+| `projects evidence` | `--source` | ❌ |  |
+| `projects evidence` | `--alias` | ❌ |  |
+| `projects evidence` | `--context-query` | ❌ |  |
+| `projects evidence` | `--contact` | ❌ |  |
+| `projects evidence` | `--since-time` | ❌ |  |
+| `projects evidence` | `--before-time` | ❌ |  |
+| `projects evidence` | `--limit` | ❌ |  |
+| `projects evidence` | `--max-pages` | ❌ |  |
+| `projects evidence` | `--cursor` | ❌ |  |
+| `projects evidence` | `--before-n` | ❌ |  |
+| `projects evidence` | `--after-n` | ❌ |  |
+| `projects evidence` | `--no-catch-up` | ❌ |  |
+| `projects evidence` | `--sync-first` | ❌ |  |
+| `projects evidence` | `--sync-time` | ❌ |  |
+| `projects evidence` | `--sync-profile` | ❌ |  |
+| `projects evidence` | `--purposes` | ❌ |  |
+| `projects evidence` | `--purpose` | ❌ |  |
+| `projects evidence` | `--include-proposed` | ❌ |  |
+| `projects evidence` | `--json` | ❌ |  |
+| `projects status` |  | ❌ |  |
+| `projects status` | `--since-time` | ❌ |  |
+| `projects status` | `--before-time` | ❌ |  |
+| `projects status` | `--context-query` | ❌ |  |
+| `projects status` | `--sync-profile` | ❌ |  |
+| `projects status` | `--purposes` | ❌ |  |
+| `projects status` | `--purpose` | ❌ |  |
+| `projects status` | `--compact` | ❌ |  |
+| `projects status` | `--json` | ❌ |  |
+| `projects actions add` |  | ❌ |  |
+| `projects actions add` | `--json` | ❌ |  |
+| `projects actions list` |  | ❌ |  |
+| `projects actions list` | `--json` | ❌ |  |
+| `projects actions list` | `--limit` | ❌ |  |
+| `projects actions list` | `--page` | ❌ |  |
+| `projects actions list` | `--brief` | ❌ |  |
+| `projects actions list` | `--before-n` | ❌ |  |
+| `projects actions list` | `--after-n` | ❌ |  |
+| `projects actions confirm` |  | ❌ |  |
+| `projects actions confirm` | `--json` | ❌ |  |
+| `projects actions confirm` | `--as-owner` | ❌ |  |
+| `projects actions confirm` | `--from-app` | ❌ |  |
+| `projects actions confirm` | `--fingerprint` | ❌ |  |
+| `projects actions confirm` | `--reason` | ❌ |  |
+| `projects actions reject` |  | ❌ |  |
+| `projects actions reject` | `--json` | ❌ |  |
+| `projects actions reject` | `--as-owner` | ❌ |  |
+| `projects actions reject` | `--from-app` | ❌ |  |
+| `projects actions reject` | `--fingerprint` | ❌ |  |
+| `projects actions reject` | `--reason` | ❌ |  |
+| `projects annotations show` |  | ❌ |  |
+| `projects annotations show` | `--max-read-bytes` | ❌ |  |
+| `projects annotations show` | `--json` | ❌ |  |
+| `projects annotations export` |  | ❌ |  |
+| `projects annotations export` | `--output` | ❌ |  |
+| `projects annotations export` | `--max-read-bytes` | ❌ |  |
+| `projects annotations export` | `--json` | ❌ |  |
+| `projects annotations check` |  | ❌ |  |
+| `projects annotations check` | `--target-store` | ❌ |  |
+| `projects annotations check` | `--project` | ❌ |  |
+| `projects annotations check` | `--bindings` | ❌ |  |
+| `projects annotations check` | `--max-read-bytes` | ❌ |  |
+| `projects annotations check` | `--json` | ❌ |  |
+| `projects annotations restore` |  | ❌ |  |
+| `projects annotations restore` | `--target-store` | ❌ |  |
+| `projects annotations restore` | `--project` | ❌ |  |
+| `projects annotations restore` | `--bindings` | ❌ |  |
+| `projects annotations restore` | `--max-read-bytes` | ❌ |  |
+| `projects annotations restore` | `--json` | ❌ |  |
+| `projects annotations restore` | `--fingerprint` | ❌ |  |
+| `projects key-documents add` |  | ❌ |  |
+| `projects key-documents add` | `--reason` | ❌ |  |
+| `projects key-documents add` | `--json` | ❌ |  |
+| `projects key-documents add` | `--as-owner` | ❌ |  |
+| `projects key-documents add` | `--from-app` | ❌ |  |
+| `projects key-documents remove` |  | ❌ |  |
+| `projects key-documents remove` | `--json` | ❌ |  |
+| `projects key-documents remove` | `--as-owner` | ❌ |  |
+| `projects key-documents remove` | `--from-app` | ❌ |  |
+| `projects key-documents list` |  | ❌ |  |
+| `projects key-documents list` | `--json` | ❌ |  |
+| `relationships add` |  | ❌ |  |
+| `relationships add` | `--as-owner` | ❌ |  |
+| `relationships add` | `--from-app` | ❌ |  |
+| `relationships add` | `--json` | ❌ |  |
+| `relationships add` | `--kind` | ❌ |  |
+| `relationships add` | `--role` | ❌ |  |
+| `relationships add` | `--role-note` | ❌ |  |
+| `relationships add` | `--engagement` | ❌ |  |
+| `relationships add` | `--position` | ❌ |  |
+| `relationships add` | `--start-date` | ❌ |  |
+| `relationships add` | `--end-date` | ❌ |  |
+| `relationships add` | `--reason` | ❌ |  |
+| `relationships list` |  | ❌ |  |
+| `relationships list` | `--limit` | ❌ |  |
+| `relationships list` | `--page` | ❌ |  |
+| `relationships list` | `--json` | ❌ |  |
+| `relationships update` |  | ❌ |  |
+| `relationships update` | `--role` | ❌ |  |
+| `relationships update` | `--role-note` | ❌ |  |
+| `relationships update` | `--engagement` | ❌ |  |
+| `relationships update` | `--position` | ❌ |  |
+| `relationships update` | `--start-date` | ❌ |  |
+| `relationships update` | `--purpose` | ❌ |  |
+| `relationships update` | `--reason` | ❌ |  |
+| `relationships update` | `--json` | ❌ |  |
+| `relationships update` | `--as-owner` | ❌ |  |
+| `relationships update` | `--from-app` | ❌ |  |
+| `relationships remove` |  | ❌ |  |
+| `relationships remove` | `--json` | ❌ |  |
+| `relationships remove` | `--as-owner` | ❌ |  |
+| `relationships remove` | `--from-app` | ❌ |  |
+| `relationships remove` | `--reason` | ❌ |  |
+| `relationships confirm` |  | ❌ |  |
+| `relationships confirm` | `--json` | ❌ |  |
+| `relationships confirm` | `--as-owner` | ❌ |  |
+| `relationships confirm` | `--from-app` | ❌ |  |
+| `relationships confirm` | `--reason` | ❌ |  |
+| `relationships end` |  | ❌ |  |
+| `relationships end` | `--end-date` | ❌ |  |
+| `relationships end` | `--json` | ❌ |  |
+| `relationships end` | `--as-owner` | ❌ |  |
+| `relationships end` | `--from-app` | ❌ |  |
+| `relationships roles list` |  | ❌ |  |
+| `relationships roles list` | `--json` | ❌ |  |
+| `relationships roles add` |  | ❌ |  |
+| `relationships roles add` | `--label` | ❌ |  |
+| `relationships roles add` | `--json` | ❌ |  |
+| `relationships roles add` | `--as-owner` | ❌ |  |
+| `relationships roles add` | `--from-app` | ❌ |  |
+| `relationships roles remove` |  | ❌ |  |
+| `relationships roles remove` | `--json` | ❌ |  |
+| `relationships roles remove` | `--as-owner` | ❌ |  |
+| `relationships roles remove` | `--from-app` | ❌ |  |
+| `relationships scan` |  | ❌ |  |
+| `relationships scan` | `--source` | ❌ |  |
+| `relationships scan` | `--since-time` | ❌ |  |
+| `relationships scan` | `--limit` | ❌ |  |
+| `relationships scan` | `--yes` | ❌ |  |
+| `relationships scan` | `--json` | ❌ |  |
+| `reminders add` |  | ❌ |  |
+| `reminders add` | `--account` | ❌ |  |
+| `reminders add` | `--json` | ❌ |  |
+| `reminders add` | `--at-time` | ❌ |  |
+| `reminders add` | `--timezone` | ❌ |  |
+| `reminders list` |  | ❌ |  |
+| `reminders list` | `--source` | ❌ |  |
+| `reminders list` | `--json` | ❌ |  |
+| `reminders claim` |  | ❌ |  |
+| `reminders claim` | `--account` | ❌ |  |
+| `reminders claim` | `--json` | ❌ |  |
+| `reminders claim` | `--limit` | ❌ |  |
+| `reminders acknowledge` |  | ❌ |  |
+| `reminders acknowledge` | `--account` | ❌ |  |
+| `reminders acknowledge` | `--json` | ❌ |  |
+| `reminders cancel` |  | ❌ |  |
+| `reminders cancel` | `--account` | ❌ |  |
+| `reminders cancel` | `--json` | ❌ |  |
+| `reminders update` |  | ❌ |  |
+| `reminders update` | `--account` | ❌ |  |
+| `reminders update` | `--json` | ❌ |  |
+| `reminders update` | `--at-time` | ❌ |  |
+| `reminders update` | `--revision` | ❌ |  |
+| `vocabulary inspect` |  | ❌ |  |
+| `vocabulary inspect` | `--fingerprint` | ❌ |  |
+| `vocabulary inspect` | `--max-rows` | ❌ |  |
+| `vocabulary inspect` | `--max-read-bytes` | ❌ |  |
+| `vocabulary inspect` | `--limit` | ❌ |  |
+| `vocabulary inspect` | `--json` | ❌ |  |
+| `vocabulary list` |  | ❌ |  |
+| `vocabulary list` | `--max-entries` | ❌ |  |
+| `vocabulary list` | `--max-read-bytes` | ❌ |  |
+| `vocabulary list` | `--json` | ❌ |  |
+| `vocabulary show` |  | ❌ |  |
+| `vocabulary show` | `--kind` | ❌ |  |
+| `vocabulary show` | `--scope` | ❌ |  |
+| `vocabulary show` | `--max-entries` | ❌ |  |
+| `vocabulary show` | `--max-read-bytes` | ❌ |  |
+| `vocabulary show` | `--json` | ❌ |  |
+| `vocabulary check` |  | ❌ |  |
+| `vocabulary check` | `--kind` | ❌ |  |
+| `vocabulary check` | `--scope` | ❌ |  |
+| `vocabulary check` | `--max-entries` | ❌ |  |
+| `vocabulary check` | `--max-read-bytes` | ❌ |  |
+| `vocabulary check` | `--json` | ❌ |  |
+| `vocabulary check` | `--min-similarity` | ❌ |  |
+| `vocabulary check` | `--max-comparisons` | ❌ |  |
+| `vocabulary check` | `--limit` | ❌ |  |
+| `vocabulary create` |  | ❌ |  |
+| `vocabulary create` | `--kind` | ❌ |  |
+| `vocabulary create` | `--fingerprint` | ❌ |  |
+| `vocabulary create` | `--json` | ❌ |  |
+| `vocabulary aliases add` |  | ❌ |  |
+| `vocabulary aliases add` | `--fingerprint` | ❌ |  |
+| `vocabulary aliases add` | `--json` | ❌ |  |
+| `vocabulary aliases remove` |  | ❌ |  |
+| `vocabulary aliases remove` | `--fingerprint` | ❌ |  |
+| `vocabulary aliases remove` | `--json` | ❌ |  |
+| `memories add` |  | ❌ |  |
+| `memories add` | `--as-owner` | ❌ |  |
+| `memories add` | `--from-app` | ❌ |  |
+| `memories add` | `--quote` | ❌ |  |
+| `memories add` | `--kind` | ❌ |  |
+| `memories add` | `--scope` | ❌ |  |
+| `memories add` | `--evidence` | ❌ |  |
+| `memories add` | `--subject` | ❌ |  |
+| `memories add` | `--project` | ❌ |  |
+| `memories add` | `--supersedes` | ❌ |  |
+| `memories add` | `--json` | ❌ |  |
+| `memories list` |  | ❌ |  |
+| `memories list` | `--limit` | ❌ |  |
+| `memories list` | `--page` | ❌ |  |
+| `memories list` | `--json` | ❌ |  |
+| `memories show` |  | ❌ |  |
+| `memories show` | `--sources` | ❌ |  |
+| `memories show` | `--json` | ❌ |  |
+| `memories update` |  | ❌ |  |
+| `memories update` | `--project` | ❌ |  |
+| `memories update` | `--json` | ❌ |  |
+| `memories confirm` |  | ❌ |  |
+| `memories confirm` | `--as-owner` | ❌ |  |
+| `memories confirm` | `--from-app` | ❌ |  |
+| `memories confirm` | `--json` | ❌ |  |
+| `memories confirm` | `--reason` | ❌ |  |
+| `memories invalidate` |  | ❌ |  |
+| `memories invalidate` | `--as-owner` | ❌ |  |
+| `memories invalidate` | `--from-app` | ❌ |  |
+| `memories invalidate` | `--json` | ❌ |  |
+| `memories invalidate` | `--reason` | ❌ |  |
+| `memories remove` |  | ❌ |  |
+| `memories remove` | `--as-owner` | ❌ |  |
+| `memories remove` | `--from-app` | ❌ |  |
+| `memories remove` | `--json` | ❌ |  |
+| `memories remove` | `--reason` | ❌ |  |
+| `memories check` |  | ❌ |  |
+| `memories check` | `--limit` | ❌ |  |
+| `memories check` | `--since-time` | ❌ |  |
+| `memories check` | `--json` | ❌ |  |
+| `memories challenge` |  | ❌ |  |
+| `memories challenge` | `--as-owner` | ❌ |  |
+| `memories challenge` | `--from-app` | ❌ |  |
+| `memories challenge` | `--evidence` | ❌ |  |
+| `memories challenge` | `--reason` | ❌ |  |
+| `memories challenge` | `--suggest` | ❌ |  |
+| `memories challenge` | `--json` | ❌ |  |
+| `mentions list` |  | ❌ |  |
+| `mentions list` | `--source` | ❌ |  |
+| `mentions list` | `--limit` | ❌ |  |
+| `mentions list` | `--json` | ❌ |  |
+| `mentions show` |  | ❌ |  |
+| `mentions show` | `--source` | ❌ |  |
+| `mentions show` | `--json` | ❌ |  |
+| `mentions confirm` |  | ❌ |  |
+| `mentions confirm` | `--source` | ❌ |  |
+| `mentions confirm` | `--json` | ❌ |  |
+| `mentions confirm` | `--as-owner` | ❌ |  |
+| `mentions confirm` | `--from-app` | ❌ |  |
+| `mentions reject` |  | ❌ |  |
+| `mentions reject` | `--source` | ❌ |  |
+| `mentions reject` | `--json` | ❌ |  |
+| `mentions reject` | `--as-owner` | ❌ |  |
+| `mentions reject` | `--from-app` | ❌ |  |
+| `facts add` |  | ❌ |  |
+| `facts add` | `--as-owner` | ❌ |  |
+| `facts add` | `--from-app` | ❌ |  |
+| `facts add` | `--quote` | ❌ |  |
+| `facts add` | `--kind` | ❌ |  |
+| `facts add` | `--evidence` | ❌ |  |
+| `facts add` | `--project` | ❌ |  |
+| `facts add` | `--subject` | ❌ |  |
+| `facts add` | `--occurred-time` | ❌ |  |
+| `facts add` | `--scope` | ❌ |  |
+| `facts add` | `--supersedes` | ❌ |  |
+| `facts add` | `--json` | ❌ |  |
+| `facts list` |  | ❌ |  |
+| `facts list` | `--limit` | ❌ |  |
+| `facts list` | `--page` | ❌ |  |
+| `facts list` | `--json` | ❌ |  |
+| `facts show` |  | ❌ |  |
+| `facts show` | `--sources` | ❌ |  |
+| `facts show` | `--json` | ❌ |  |
+| `facts confirm` |  | ❌ |  |
+| `facts confirm` | `--as-owner` | ❌ |  |
+| `facts confirm` | `--from-app` | ❌ |  |
+| `facts confirm` | `--json` | ❌ |  |
+| `facts confirm` | `--reason` | ❌ |  |
+| `facts revoke` |  | ❌ |  |
+| `facts revoke` | `--as-owner` | ❌ |  |
+| `facts revoke` | `--from-app` | ❌ |  |
+| `facts revoke` | `--json` | ❌ |  |
+| `facts revoke` | `--reason` | ❌ |  |
+| `facts reverse` |  | ❌ |  |
+| `facts reverse` | `--as-owner` | ❌ |  |
+| `facts reverse` | `--from-app` | ❌ |  |
+| `facts reverse` | `--json` | ❌ |  |
+| `facts reverse` | `--reason` | ❌ |  |
+| `facts reject` |  | ❌ |  |
+| `facts reject` | `--as-owner` | ❌ |  |
+| `facts reject` | `--from-app` | ❌ |  |
+| `facts reject` | `--json` | ❌ |  |
+| `facts reject` | `--reason` | ❌ |  |
+| `facts remove` |  | ❌ |  |
+| `facts remove` | `--as-owner` | ❌ |  |
+| `facts remove` | `--from-app` | ❌ |  |
+| `facts remove` | `--json` | ❌ |  |
+| `facts remove` | `--reason` | ❌ |  |
+| `facts history` |  | ❌ |  |
+| `facts history` | `--limit` | ❌ |  |
+| `facts history` | `--page` | ❌ |  |
+| `facts history` | `--json` | ❌ |  |
+| `facts challenge` |  | ❌ |  |
+| `facts challenge` | `--as-owner` | ❌ |  |
+| `facts challenge` | `--from-app` | ❌ |  |
+| `facts challenge` | `--evidence` | ❌ |  |
+| `facts challenge` | `--reason` | ❌ |  |
+| `facts challenge` | `--suggest` | ❌ |  |
+| `facts challenge` | `--json` | ❌ |  |
+| `invoices list` |  | ❌ |  |
+| `invoices list` | `--json` | ❌ |  |
+| `invoices list` | `--limit` | ❌ |  |
+| `invoices show` |  | ❌ |  |
+| `invoices show` | `--json` | ❌ |  |
+| `invoices add` |  | ❌ |  |
+| `invoices add` | `--person` | ❌ |  |
+| `invoices add` | `--organization` | ❌ |  |
+| `invoices add` | `--kind` | ❌ |  |
+| `invoices add` | `--title` | ❌ |  |
+| `invoices add` | `--occurred-time` | ❌ |  |
+| `invoices add` | `--due` | ❌ |  |
+| `invoices add` | `--project` | ❌ |  |
+| `invoices add` | `--reason` | ❌ |  |
+| `invoices add` | `--evidence` | ❌ |  |
+| `invoices add` | `--as-owner` | ❌ |  |
+| `invoices add` | `--from-app` | ❌ |  |
+| `invoices add` | `--json` | ❌ |  |
+| `invoices lines add` |  | ❌ |  |
+| `invoices lines add` | `--product` | ❌ |  |
+| `invoices lines add` | `--amount` | ❌ |  |
+| `invoices lines add` | `--as-owner` | ❌ |  |
+| `invoices lines add` | `--from-app` | ❌ |  |
+| `invoices lines add` | `--json` | ❌ |  |
+| `invoices lines remove` |  | ❌ |  |
+| `invoices lines remove` | `--as-owner` | ❌ |  |
+| `invoices lines remove` | `--from-app` | ❌ |  |
+| `invoices lines remove` | `--json` | ❌ |  |
+| `payments list` |  | ❌ |  |
+| `payments list` | `--json` | ❌ |  |
+| `payments list` | `--limit` | ❌ |  |
+| `payments show` |  | ❌ |  |
+| `payments show` | `--json` | ❌ |  |
+| `payments add` |  | ❌ |  |
+| `payments add` | `--person` | ❌ |  |
+| `payments add` | `--organization` | ❌ |  |
+| `payments add` | `--kind` | ❌ |  |
+| `payments add` | `--title` | ❌ |  |
+| `payments add` | `--occurred-time` | ❌ |  |
+| `payments add` | `--refund-of` | ❌ |  |
+| `payments add` | `--project` | ❌ |  |
+| `payments add` | `--reason` | ❌ |  |
+| `payments add` | `--evidence` | ❌ |  |
+| `payments add` | `--as-owner` | ❌ |  |
+| `payments add` | `--from-app` | ❌ |  |
+| `payments add` | `--json` | ❌ |  |
+| `payments allocate` |  | ❌ |  |
+| `payments allocate` | `--as-owner` | ❌ |  |
+| `payments allocate` | `--from-app` | ❌ |  |
+| `payments allocate` | `--json` | ❌ |  |
+| `payments unlink` |  | ❌ |  |
+| `payments unlink` | `--as-owner` | ❌ |  |
+| `payments unlink` | `--from-app` | ❌ |  |
+| `payments unlink` | `--json` | ❌ |  |
+| `orders list` |  | ❌ |  |
+| `orders list` | `--json` | ❌ |  |
+| `orders list` | `--limit` | ❌ |  |
+| `orders show` |  | ❌ |  |
+| `orders show` | `--json` | ❌ |  |
+| `orders add` |  | ❌ |  |
+| `orders add` | `--kind` | ❌ |  |
+| `orders add` | `--person` | ❌ |  |
+| `orders add` | `--organization` | ❌ |  |
+| `orders add` | `--title` | ❌ |  |
+| `orders add` | `--occurred-time` | ❌ |  |
+| `orders add` | `--project` | ❌ |  |
+| `orders add` | `--reason` | ❌ |  |
+| `orders add` | `--evidence` | ❌ |  |
+| `orders add` | `--as-owner` | ❌ |  |
+| `orders add` | `--from-app` | ❌ |  |
+| `orders add` | `--json` | ❌ |  |
+| `orders lines add` |  | ❌ |  |
+| `orders lines add` | `--product` | ❌ |  |
+| `orders lines add` | `--amount` | ❌ |  |
+| `orders lines add` | `--as-owner` | ❌ |  |
+| `orders lines add` | `--from-app` | ❌ |  |
+| `orders lines add` | `--json` | ❌ |  |
+| `orders lines remove` |  | ❌ |  |
+| `orders lines remove` | `--as-owner` | ❌ |  |
+| `orders lines remove` | `--from-app` | ❌ |  |
+| `orders lines remove` | `--json` | ❌ |  |
+| `pipelines list` |  | ❌ |  |
+| `pipelines list` | `--json` | ❌ |  |
+| `pipelines show` |  | ❌ |  |
+| `pipelines show` | `--since-time` | ❌ |  |
+| `pipelines show` | `--json` | ❌ |  |
+| `pipelines add` |  | ❌ |  |
+| `pipelines add` | `--kind` | ❌ |  |
+| `pipelines add` | `--json` | ❌ |  |
+| `deals list` |  | ❌ |  |
+| `deals list` | `--json` | ❌ |  |
+| `deals list` | `--limit` | ❌ |  |
+| `deals show` |  | ❌ |  |
+| `deals show` | `--json` | ❌ |  |
+| `deals context` |  | ❌ |  |
+| `deals context` | `--json` | ❌ |  |
+| `deals context` | `--brief` | ❌ |  |
+| `deals context` | `--limit` | ❌ |  |
+| `deals update` |  | ❌ |  |
+| `deals update` | `--json` | ❌ |  |
+| `deals update` | `--project` | ❌ |  |
+| `deals add` |  | ❌ |  |
+| `deals add` | `--organization` | ❌ |  |
+| `deals add` | `--person` | ❌ |  |
+| `deals add` | `--role` | ❌ |  |
+| `deals add` | `--due` | ❌ |  |
+| `deals add` | `--project` | ❌ |  |
+| `deals add` | `--reason` | ❌ |  |
+| `deals add` | `--evidence` | ❌ |  |
+| `deals add` | `--json` | ❌ |  |
+| `deals move` |  | ❌ |  |
+| `deals move` | `--json` | ❌ |  |
+| `deals close` |  | ❌ |  |
+| `deals close` | `--occurred-time` | ❌ |  |
+| `deals close` | `--reason` | ❌ |  |
+| `deals close` | `--json` | ❌ |  |
+| `leads list` |  | ❌ |  |
+| `leads list` | `--json` | ❌ |  |
+| `leads list` | `--limit` | ❌ |  |
+| `leads show` |  | ❌ |  |
+| `leads show` | `--json` | ❌ |  |
+| `leads context` |  | ❌ |  |
+| `leads context` | `--json` | ❌ |  |
+| `leads context` | `--brief` | ❌ |  |
+| `leads context` | `--limit` | ❌ |  |
+| `leads update` |  | ❌ |  |
+| `leads update` | `--json` | ❌ |  |
+| `leads update` | `--project` | ❌ |  |
+| `leads add` |  | ❌ |  |
+| `leads add` | `--organization` | ❌ |  |
+| `leads add` | `--person` | ❌ |  |
+| `leads add` | `--role` | ❌ |  |
+| `leads add` | `--due` | ❌ |  |
+| `leads add` | `--project` | ❌ |  |
+| `leads add` | `--reason` | ❌ |  |
+| `leads add` | `--evidence` | ❌ |  |
+| `leads add` | `--json` | ❌ |  |
+| `leads move` |  | ❌ |  |
+| `leads move` | `--json` | ❌ |  |
+| `leads close` |  | ❌ |  |
+| `leads close` | `--occurred-time` | ❌ |  |
+| `leads close` | `--reason` | ❌ |  |
+| `leads close` | `--json` | ❌ |  |
+| `stages show` |  | ❌ |  |
+| `stages show` | `--json` | ❌ |  |
+| `stages create` |  | ❌ |  |
+| `stages create` | `--json` | ❌ |  |
+| `stages rename` |  | ❌ |  |
+| `stages rename` | `--json` | ❌ |  |
+| `stages move` |  | ❌ |  |
+| `stages move` | `--json` | ❌ |  |
+| `stages remove` |  | ❌ |  |
+| `stages remove` | `--json` | ❌ |  |
+| `stages list` |  | ❌ |  |
+| `stages list` | `--json` | ❌ |  |
+| `stages set` |  | ❌ |  |
+| `stages set` | `--json` | ❌ |  |
+| `stages confirm` |  | ❌ |  |
+| `stages confirm` | `--pipeline` | ❌ |  |
+| `stages confirm` | `--all` | ❌ |  |
+| `stages confirm` | `--kind` | ❌ |  |
+| `stages confirm` | `--json` | ❌ |  |
+| `stages suggest` |  | ❌ |  |
+| `stages suggest` | `--kind` | ❌ |  |
+| `stages suggest` | `--dry-run` | ❌ |  |
+| `stages suggest` | `--text-file` | ❌ |  |
+| `stages suggest` | `--json` | ❌ |  |
+| `products list` |  | ❌ |  |
+| `products list` | `--json` | ❌ |  |
+| `products list` | `--limit` | ❌ |  |
+| `products show` |  | ❌ |  |
+| `products show` | `--json` | ❌ |  |
+| `products add` |  | ❌ |  |
+| `products add` | `--kind` | ❌ |  |
+| `products add` | `--unit` | ❌ |  |
+| `products add` | `--sku` | ❌ |  |
+| `products add` | `--supplier` | ❌ |  |
+| `products add` | `--description` | ❌ |  |
+| `products add` | `--json` | ❌ |  |
+| `products update` |  | ❌ |  |
+| `products update` | `--amount` | ❌ |  |
+| `products update` | `--currency` | ❌ |  |
+| `products update` | `--title` | ❌ |  |
+| `products update` | `--unit` | ❌ |  |
+| `products update` | `--description` | ❌ |  |
+| `products update` | `--archived` | ❌ |  |
+| `products update` | `--json` | ❌ |  |
+| `contracts list` |  | ❌ |  |
+| `contracts list` | `--json` | ❌ |  |
+| `contracts list` | `--limit` | ❌ |  |
+| `contracts show` |  | ❌ |  |
+| `contracts show` | `--json` | ❌ |  |
+| `contracts add` |  | ❌ |  |
+| `contracts add` | `--kind` | ❌ |  |
+| `contracts add` | `--status` | ❌ |  |
+| `contracts add` | `--start-date` | ❌ |  |
+| `contracts add` | `--end-date` | ❌ |  |
+| `contracts add` | `--auto-renew` | ❌ |  |
+| `contracts add` | `--notice-days` | ❌ |  |
+| `contracts add` | `--amount` | ❌ |  |
+| `contracts add` | `--currency` | ❌ |  |
+| `contracts add` | `--project` | ❌ |  |
+| `contracts add` | `--reason` | ❌ |  |
+| `contracts add` | `--evidence` | ❌ |  |
+| `contracts add` | `--as-owner` | ❌ |  |
+| `contracts add` | `--from-app` | ❌ |  |
+| `contracts add` | `--json` | ❌ |  |
+| `contracts update` |  | ❌ |  |
+| `contracts update` | `--kind` | ❌ |  |
+| `contracts update` | `--status` | ❌ |  |
+| `contracts update` | `--start-date` | ❌ |  |
+| `contracts update` | `--end-date` | ❌ |  |
+| `contracts update` | `--auto-renew` | ❌ |  |
+| `contracts update` | `--notice-days` | ❌ |  |
+| `contracts update` | `--amount` | ❌ |  |
+| `contracts update` | `--currency` | ❌ |  |
+| `contracts update` | `--title` | ❌ |  |
+| `contracts update` | `--as-owner` | ❌ |  |
+| `contracts update` | `--from-app` | ❌ |  |
+| `contracts update` | `--json` | ❌ |  |
+| `subscriptions list` |  | ❌ |  |
+| `subscriptions list` | `--json` | ❌ |  |
+| `subscriptions list` | `--limit` | ❌ |  |
+| `subscriptions show` |  | ❌ |  |
+| `subscriptions show` | `--json` | ❌ |  |
+| `subscriptions add` |  | ❌ |  |
+| `subscriptions add` | `--status` | ❌ |  |
+| `subscriptions add` | `--supplier` | ❌ |  |
+| `subscriptions add` | `--customer` | ❌ |  |
+| `subscriptions add` | `--product` | ❌ |  |
+| `subscriptions add` | `--contract` | ❌ |  |
+| `subscriptions add` | `--period` | ❌ |  |
+| `subscriptions add` | `--start-date` | ❌ |  |
+| `subscriptions add` | `--trial-end-date` | ❌ |  |
+| `subscriptions add` | `--kind` | ❌ |  |
+| `subscriptions add` | `--project` | ❌ |  |
+| `subscriptions add` | `--reason` | ❌ |  |
+| `subscriptions add` | `--evidence` | ❌ |  |
+| `subscriptions add` | `--as-owner` | ❌ |  |
+| `subscriptions add` | `--from-app` | ❌ |  |
+| `subscriptions add` | `--json` | ❌ |  |
+| `subscriptions update` |  | ❌ |  |
+| `subscriptions update` | `--status` | ❌ |  |
+| `subscriptions update` | `--supplier` | ❌ |  |
+| `subscriptions update` | `--customer` | ❌ |  |
+| `subscriptions update` | `--product` | ❌ |  |
+| `subscriptions update` | `--contract` | ❌ |  |
+| `subscriptions update` | `--period` | ❌ |  |
+| `subscriptions update` | `--start-date` | ❌ |  |
+| `subscriptions update` | `--trial-end-date` | ❌ |  |
+| `subscriptions update` | `--title` | ❌ |  |
+| `subscriptions update` | `--end-date` | ❌ |  |
+| `subscriptions update` | `--as-owner` | ❌ |  |
+| `subscriptions update` | `--from-app` | ❌ |  |
+| `subscriptions update` | `--json` | ❌ |  |
+| `subscriptions cancel` |  | ❌ |  |
+| `subscriptions cancel` | `--occurred-time` | ❌ |  |
+| `subscriptions cancel` | `--as-owner` | ❌ |  |
+| `subscriptions cancel` | `--from-app` | ❌ |  |
+| `subscriptions cancel` | `--json` | ❌ |  |
+| `subscriptions prices add` |  | ❌ |  |
+| `subscriptions prices add` | `--start-date` | ❌ |  |
+| `subscriptions prices add` | `--reason` | ❌ |  |
+| `subscriptions prices add` | `--as-owner` | ❌ |  |
+| `subscriptions prices add` | `--from-app` | ❌ |  |
+| `subscriptions prices add` | `--json` | ❌ |  |
+| `wallets list` |  | ❌ |  |
+| `wallets list` | `--json` | ❌ |  |
+| `wallets list` | `--limit` | ❌ |  |
+| `wallets show` |  | ❌ |  |
+| `wallets show` | `--until-time` | ❌ |  |
+| `wallets show` | `--json` | ❌ |  |
+| `wallets add` |  | ❌ |  |
+| `wallets add` | `--kind` | ❌ |  |
+| `wallets add` | `--institution` | ❌ |  |
+| `wallets add` | `--json` | ❌ |  |
+| `wallets update` |  | ❌ |  |
+| `wallets update` | `--title` | ❌ |  |
+| `wallets update` | `--institution` | ❌ |  |
+| `wallets update` | `--opening-balance` | ❌ |  |
+| `wallets update` | `--opening-date` | ❌ |  |
+| `wallets update` | `--as-owner` | ❌ |  |
+| `wallets update` | `--from-app` | ❌ |  |
+| `wallets update` | `--json` | ❌ |  |
+| `transactions list` |  | ❌ |  |
+| `transactions list` | `--json` | ❌ |  |
+| `transactions list` | `--limit` | ❌ |  |
+| `transactions show` |  | ❌ |  |
+| `transactions show` | `--json` | ❌ |  |
+| `transactions add` |  | ❌ |  |
+| `transactions add` | `--kind` | ❌ |  |
+| `transactions add` | `--occurred-time` | ❌ |  |
+| `transactions add` | `--description` | ❌ |  |
+| `transactions add` | `--status` | ❌ |  |
+| `transactions add` | `--payment` | ❌ |  |
+| `transactions add` | `--project` | ❌ |  |
+| `transactions add` | `--reason` | ❌ |  |
+| `transactions add` | `--evidence` | ❌ |  |
+| `transactions add` | `--as-owner` | ❌ |  |
+| `transactions add` | `--from-app` | ❌ |  |
+| `transactions add` | `--json` | ❌ |  |
+| `transactions update` |  | ❌ |  |
+| `transactions update` | `--status` | ❌ |  |
+| `transactions update` | `--payment` | ❌ |  |
+| `transactions update` | `--description` | ❌ |  |
+| `transactions update` | `--as-owner` | ❌ |  |
+| `transactions update` | `--from-app` | ❌ |  |
+| `transactions update` | `--json` | ❌ |  |
+| `transactions splits add` |  | ❌ |  |
+| `transactions splits add` | `--project` | ❌ |  |
+| `transactions splits add` | `--as-owner` | ❌ |  |
+| `transactions splits add` | `--from-app` | ❌ |  |
+| `transactions splits add` | `--json` | ❌ |  |
+| `transactions splits remove` |  | ❌ |  |
+| `transactions splits remove` | `--as-owner` | ❌ |  |
+| `transactions splits remove` | `--from-app` | ❌ |  |
+| `transactions splits remove` | `--json` | ❌ |  |
+| `records import` |  | ❌ |  |
+| `records import` | `--dry-run` | ❌ |  |
+| `records import` | `--type` | ❌ |  |
+| `records import` | `--account` | ❌ |  |
+| `records import` | `--region` | ❌ |  |
+| `records import` | `--json` | ❌ |  |
+| `records check` |  | ❌ |  |
+| `records check` | `--type` | ❌ |  |
+| `records check` | `--account` | ❌ |  |
+| `records check` | `--region` | ❌ |  |
+| `records check` | `--json` | ❌ |  |
+| `records templates list` |  | ❌ |  |
+| `records templates list` | `--json` | ❌ |  |
+| `records templates show` |  | ❌ |  |
+| `records templates show` | `--format` | ❌ |  |
+| `records templates show` | `--locale` | ❌ |  |
+| `records templates show` | `--account` | ❌ |  |
+| `records templates show` | `--json` | ❌ |  |
+| `records list` |  | ❌ |  |
+| `records list` | `--account` | ❌ |  |
+| `records list` | `--limit` | ❌ |  |
+| `records list` | `--json` | ❌ |  |
+| `records link` |  | ❌ |  |
+| `records link` | `--account` | ❌ |  |
+| `records link` | `--json` | ❌ |  |
+| `records link` | `--as-owner` | ❌ |  |
+| `records link` | `--from-app` | ❌ |  |
+| `records show` |  | ❌ |  |
+| `records show` | `--account` | ❌ |  |
+| `records show` | `--json` | ❌ |  |
+| `records delete` |  | ❌ |  |
+| `records delete` | `--account` | ❌ |  |
+| `records delete` | `--json` | ❌ |  |
+| `records clear` |  | ❌ |  |
+| `records clear` | `--account` | ❌ |  |
+| `records clear` | `--yes` | ❌ |  |
+| `records clear` | `--json` | ❌ |  |
+| `records match` |  | ❌ |  |
+| `records match` | `--account` | ❌ |  |
+| `records match` | `--json` | ❌ |  |
+| `meetings actions add` |  | ❌ |  |
+| `meetings actions add` | `--account` | ❌ |  |
+| `meetings actions add` | `--json` | ❌ |  |
+| `meetings actions show` |  | ❌ |  |
+| `meetings actions show` | `--source` | ❌ |  |
+| `meetings actions show` | `--json` | ❌ |  |
+| `meetings actions list` |  | ❌ |  |
+| `meetings actions list` | `--source` | ❌ |  |
+| `meetings actions list` | `--json` | ❌ |  |
+| `meetings actions list` | `--limit` | ❌ |  |
+| `meetings actions list` | `--page` | ❌ |  |
+| `meetings actions confirm` |  | ❌ |  |
+| `meetings actions confirm` | `--account` | ❌ |  |
+| `meetings actions confirm` | `--json` | ❌ |  |
+| `meetings actions confirm` | `--fingerprint` | ❌ |  |
+| `meetings actions confirm` | `--as-owner` | ❌ |  |
+| `meetings actions confirm` | `--from-app` | ❌ |  |
+| `meetings actions reject` |  | ❌ |  |
+| `meetings actions reject` | `--account` | ❌ |  |
+| `meetings actions reject` | `--json` | ❌ |  |
+| `meetings actions reject` | `--fingerprint` | ❌ |  |
+| `meetings actions reject` | `--as-owner` | ❌ |  |
+| `meetings actions reject` | `--from-app` | ❌ |  |
+| `meetings list` |  | ❌ |  |
+| `meetings list` | `--limit` | ❌ |  |
+| `meetings list` | `--page` | ❌ |  |
+| `meetings list` | `--order` | ❌ |  |
+| `meetings list` | `--json` | ❌ |  |
+| `meetings show` |  | ❌ |  |
+| `meetings show` | `--cursor` | ❌ |  |
+| `meetings show` | `--limit` | ❌ |  |
+| `meetings show` | `--json` | ❌ |  |
+| `meetings passage` |  | ❌ |  |
+| `meetings passage` | `--before-n` | ❌ |  |
+| `meetings passage` | `--after-n` | ❌ |  |
+| `meetings passage` | `--bytes` | ❌ |  |
+| `meetings passage` | `--max-read-bytes` | ❌ |  |
+| `meetings passage` | `--expected-fingerprint` | ❌ |  |
+| `meetings passage` | `--format` | ❌ |  |
+| `meetings passage` | `--source` | ❌ |  |
+| `meetings passage` | `--json` | ❌ |  |
+| `meetings prepare` |  | ❌ |  |
+| `meetings prepare` | `--context-source` | ❌ |  |
+| `meetings prepare` | `--context-query` | ❌ |  |
+| `meetings prepare` | `--context-since-time` | ❌ |  |
+| `meetings prepare` | `--context-before-time` | ❌ |  |
+| `meetings prepare` | `--project` | ❌ |  |
+| `meetings prepare` | `--since-time` | ❌ |  |
+| `meetings prepare` | `--before-time` | ❌ |  |
+| `meetings prepare` | `--history-since-time` | ❌ |  |
+| `meetings prepare` | `--meetings` | ❌ |  |
+| `meetings prepare` | `--cues` | ❌ |  |
+| `meetings prepare` | `--context-limit` | ❌ |  |
+| `meetings prepare` | `--max-read-bytes` | ❌ |  |
+| `meetings prepare` | `--bytes` | ❌ |  |
+| `meetings prepare` | `--source` | ❌ |  |
+| `meetings prepare` | `--json` | ❌ |  |
+| `actions add` |  | ❌ |  |
+| `actions add` | `--as-owner` | ❌ |  |
+| `actions add` | `--from-app` | ❌ |  |
+| `actions add` | `--reason` | ❌ |  |
+| `actions add` | `--account` | ❌ |  |
+| `actions add` | `--target` | ❌ |  |
+| `actions add` | `--payload` | ❌ |  |
+| `actions add` | `--json` | ❌ |  |
+| `actions list` |  | ❌ |  |
+| `actions list` | `--limit` | ❌ |  |
+| `actions list` | `--page` | ❌ |  |
+| `actions list` | `--brief` | ❌ |  |
+| `actions list` | `--json` | ❌ |  |
+| `actions show` |  | ❌ |  |
+| `actions show` | `--json` | ❌ |  |
+| `actions confirm` |  | ❌ |  |
+| `actions confirm` | `--as-owner` | ❌ |  |
+| `actions confirm` | `--from-app` | ❌ |  |
+| `actions confirm` | `--fingerprint` | ❌ |  |
+| `actions confirm` | `--reason` | ❌ |  |
+| `actions confirm` | `--json` | ❌ |  |
+| `actions edit` |  | ❌ |  |
+| `actions edit` | `--as-owner` | ❌ |  |
+| `actions edit` | `--from-app` | ❌ |  |
+| `actions edit` | `--fingerprint` | ❌ |  |
+| `actions edit` | `--set` | ❌ |  |
+| `actions edit` | `--json` | ❌ |  |
+| `actions reject` |  | ❌ |  |
+| `actions reject` | `--as-owner` | ❌ |  |
+| `actions reject` | `--from-app` | ❌ |  |
+| `actions reject` | `--fingerprint` | ❌ |  |
+| `actions reject` | `--reason` | ❌ |  |
+| `actions reject` | `--json` | ❌ |  |
+| `review list` |  | ❌ |  |
+| `review list` | `--json` | ❌ |  |
+| `review list` | `--limit` | ❌ |  |
+| `review list` | `--page` | ❌ |  |
+| `review list` | `--compact` | ❌ |  |
+| `review show` |  | ❌ |  |
+| `review show` | `--json` | ❌ |  |
+| `review show` | `--brief` | ❌ |  |
+| `review show` | `--before-n` | ❌ |  |
+| `review show` | `--after-n` | ❌ |  |
+| `review show` | `--compact` | ❌ |  |
+| `review confirm` |  | ❌ |  |
+| `review confirm` | `--json` | ❌ |  |
+| `review confirm` | `--as-owner` | ❌ |  |
+| `review confirm` | `--from-app` | ❌ |  |
+| `review confirm` | `--reason` | ❌ |  |
+| `review confirm` | `--compact` | ❌ |  |
+| `review reject` |  | ❌ |  |
+| `review reject` | `--json` | ❌ |  |
+| `review reject` | `--as-owner` | ❌ |  |
+| `review reject` | `--from-app` | ❌ |  |
+| `review reject` | `--reason` | ❌ |  |
+| `review reject` | `--compact` | ❌ |  |
+| `review agenda` |  | ❌ |  |
+| `review agenda` | `--since-time` | ❌ |  |
+| `review agenda` | `--before-time` | ❌ |  |
+| `review agenda` | `--source` | ❌ |  |
+| `review agenda` | `--limit` | ❌ |  |
+| `review agenda` | `--max-output-bytes` | ❌ |  |
+| `review agenda` | `--compact` | ❌ |  |
+| `review agenda` | `--json` | ❌ |  |
+| `review status` |  | ❌ |  |
+| `review status` | `--json` | ❌ |  |
+| `review status` | `--since-time` | ❌ |  |
+| `review findings add` |  | ❌ |  |
+| `review findings add` | `--json` | ❌ |  |
+| `review findings add` | `--source` | ❌ |  |
+| `review findings add` | `--key` | ❌ |  |
+| `review findings add` | `--dry-run` | ❌ |  |
+| `review findings show` |  | ❌ |  |
+| `review findings show` | `--json` | ❌ |  |
+| `review findings list` |  | ❌ |  |
+| `review findings list` | `--json` | ❌ |  |
+| `review findings list` | `--source` | ❌ |  |
+| `review findings list` | `--limit` | ❌ |  |
+| `review findings list` | `--page` | ❌ |  |
+| `review mail` |  | ❌ |  |
+| `review mail` | `--unanswered` | ❌ |  |
+| `review mail` | `--waiting` | ❌ |  |
+| `review mail` | `--holder` | ❌ |  |
+| `review mail` | `--new` | ❌ |  |
+| `review mail` | `--source` | ❌ |  |
+| `review mail` | `--json` | ❌ |  |
+| `review subscriptions list` |  | ❌ |  |
+| `review subscriptions list` | `--source` | ❌ |  |
+| `review subscriptions list` | `--limit` | ❌ |  |
+| `review subscriptions list` | `--page` | ❌ |  |
+| `review subscriptions list` | `--json` | ❌ |  |
+| `agents list` |  | ❌ |  |
+| `agents list` | `--limit` | ❌ |  |
+| `agents list` | `--page` | ❌ |  |
+| `agents list` | `--json` | ❌ |  |
+| `mcp serve` |  | ❌ |  |
+| `mcp serve` | `--permission` | ❌ |  |
+| `mcp serve` | `--http` | ❌ |  |
+| `mcp serve` | `--port` | ❌ |  |
+| `mcp serve` | `--public-url` | ❌ |  |
+| `mcp revoke` |  | ❌ |  |
+| `mcp revoke` | `--json` | ❌ |  |
+| `mcp server start` |  | ❌ |  |
+| `mcp server start` | `--port` | ❌ |  |
+| `mcp server start` | `--public-url` | ❌ |  |
+| `mcp server start` | `--permission` | ❌ |  |
+| `mcp server start` | `--json` | ❌ |  |
+| `mcp server stop` |  | ❌ |  |
+| `mcp server stop` | `--json` | ❌ |  |
+| `mcp server status` |  | ❌ |  |
+| `mcp server status` | `--json` | ❌ |  |
+| `models list` |  | ❌ |  |
+| `models list` | `--json` | ❌ |  |
+| `models download` |  | ❌ |  |
+| `models download` | `--offline` | ❌ |  |
+| `models download` | `--accept-terms` | ❌ |  |
+| `models download` | `--json` | ❌ |  |
+| `models set` |  | ❌ |  |
+| `models set` | `--json` | ❌ |  |
+| `models add` |  | ❌ |  |
+| `models add` | `--payload` | ❌ |  |
+| `models add` | `--offline` | ❌ |  |
+| `models add` | `--json` | ❌ |  |
+| `models consents show` |  | ❌ |  |
+| `models consents show` | `--json` | ❌ |  |
+| `models consents set` |  | ❌ |  |
+| `models consents set` | `--model` | ❌ |  |
+| `models consents set` | `--base-url` | ❌ |  |
+| `models consents set` | `--yes` | ❌ |  |
+| `models consents set` | `--json` | ❌ |  |
+| `models consents revoke` |  | ❌ |  |
+| `models consents revoke` | `--json` | ❌ |  |
+| `models search-consents show` |  | ❌ |  |
+| `models search-consents show` | `--json` | ❌ |  |
+| `models search-consents set` |  | ❌ |  |
+| `models search-consents set` | `--model` | ❌ |  |
+| `models search-consents set` | `--base-url` | ❌ |  |
+| `models search-consents set` | `--timeout` | ❌ |  |
+| `models search-consents set` | `--yes` | ❌ |  |
+| `models search-consents set` | `--json` | ❌ |  |
+| `models search-consents revoke` |  | ❌ |  |
+| `models search-consents revoke` | `--json` | ❌ |  |
+| `models keys set` |  | ❌ |  |
+| `models keys set` | `--json` | ❌ |  |
+| `models keys remove` |  | ❌ |  |
+| `models keys remove` | `--json` | ❌ |  |
+| `models ai show` |  | ❌ |  |
+| `models ai show` | `--json` | ❌ |  |
+| `models ai set` |  | ❌ |  |
+| `models ai set` | `--model` | ❌ |  |
+| `models ai set` | `--base-url` | ❌ |  |
+| `models ai set` | `--secret-stdin` | ❌ |  |
+| `models ai set` | `--allow-remote` | ❌ |  |
+| `models ai set` | `--from-app` | ❌ |  |
+| `models ai set` | `--json` | ❌ |  |
+| `models ai unset` |  | ❌ |  |
+| `models ai unset` | `--from-app` | ❌ |  |
+| `models ai unset` | `--json` | ❌ |  |
+| `models ai remove` |  | ❌ |  |
+| `models ai remove` | `--from-app` | ❌ |  |
+| `models ai remove` | `--json` | ❌ |  |
+| `models ai revoke` |  | ❌ |  |
+| `models ai revoke` | `--from-app` | ❌ |  |
+| `models ai revoke` | `--json` | ❌ |  |
+| `models ai check` |  | ❌ |  |
+| `models ai check` | `--from-app` | ❌ |  |
+| `models ai check` | `--json` | ❌ |  |
+| `models local-only show` |  | ❌ |  |
+| `models local-only show` | `--json` | ❌ |  |
+| `models local-only set` |  | ❌ |  |
+| `models local-only set` | `--from-app` | ❌ |  |
+| `models local-only set` | `--json` | ❌ |  |
+| `models chats show` |  | ❌ |  |
+| `models chats show` | `--json` | ❌ |  |
+| `models chats set` |  | ❌ |  |
+| `models chats set` | `--from-app` | ❌ |  |
+| `models chats set` | `--json` | ❌ |  |
+| `models picture-reading show` |  | ❌ |  |
+| `models picture-reading show` | `--json` | ❌ |  |
+| `models picture-reading set` |  | ❌ |  |
+| `models picture-reading set` | `--agent` | ❌ |  |
+| `models picture-reading set` | `--model` | ❌ |  |
+| `models picture-reading set` | `--from-app` | ❌ |  |
+| `models picture-reading set` | `--json` | ❌ |  |
+| `domain-lists list` |  | ❌ |  |
+| `domain-lists list` | `--json` | ❌ |  |
+| `domain-lists update` |  | ❌ |  |
+| `domain-lists update` | `--commercial-only` | ❌ |  |
+| `domain-lists update` | `--offline` | ❌ |  |
+| `domain-lists update` | `--json` | ❌ |  |
+| `templates list` |  | ❌ |  |
+| `templates list` | `--json` | ❌ |  |
+| `templates show` |  | ❌ |  |
+| `templates show` | `--channel` | ❌ |  |
+| `templates show` | `--locale` | ❌ |  |
+| `templates show` | `--json` | ❌ |  |
+| `templates edit` |  | ❌ |  |
+| `templates edit` | `--channel` | ❌ |  |
+| `templates edit` | `--locale` | ❌ |  |
+| `templates edit` | `--file` | ❌ |  |
+| `templates edit` | `--undo` | ❌ |  |
+| `templates edit` | `--json` | ❌ |  |
+| `templates preview` |  | ❌ |  |
+| `templates preview` | `--channel` | ❌ |  |
+| `templates preview` | `--locale` | ❌ |  |
+| `templates preview` | `--file` | ❌ |  |
+| `templates preview` | `--json` | ❌ |  |
+| `templates reset` |  | ❌ |  |
+| `templates reset` | `--channel` | ❌ |  |
+| `templates reset` | `--locale` | ❌ |  |
+| `templates reset` | `--json` | ❌ |  |
+| `search all` |  | ❌ |  |
+| `search all` | `--limit` | ❌ |  |
+| `search all` | `--exact` | ❌ |  |
+| `search all` | `--timezone` | ❌ |  |
+| `search all` | `--json` | ❌ |  |
+| `search all` | `--only` | ❌ |  |
+| `search all` | `--source` | ❌ |  |
+| `search all` | `--plain-order` | ❌ |  |
+| `search all` | `--harder` | ❌ |  |
+| `search all` | `--project` | ❌ |  |
+| `search messages` |  | ❌ |  |
+| `search messages` | `--limit` | ❌ |  |
+| `search messages` | `--exact` | ❌ |  |
+| `search messages` | `--timezone` | ❌ |  |
+| `search messages` | `--json` | ❌ |  |
+| `search messages` | `--brief` | ❌ |  |
+| `search messages` | `--full` | ❌ |  |
+| `search mail` |  | ❌ |  |
+| `search mail` | `--limit` | ❌ |  |
+| `search mail` | `--exact` | ❌ |  |
+| `search mail` | `--timezone` | ❌ |  |
+| `search mail` | `--json` | ❌ |  |
+| `search mail` | `--brief` | ❌ |  |
+| `search mail` | `--full` | ❌ |  |
+| `search mail` | `--source` | ❌ |  |
+| `search mail` | `--plain-order` | ❌ |  |
+| `search notes` |  | ❌ |  |
+| `search notes` | `--limit` | ❌ |  |
+| `search notes` | `--exact` | ❌ |  |
+| `search notes` | `--timezone` | ❌ |  |
+| `search notes` | `--json` | ❌ |  |
+| `search notes` | `--filter` | ❌ |  |
+| `search notes` | `--source` | ❌ |  |
+| `search notes` | `--page` | ❌ |  |
+| `search notes` | `--project` | ❌ |  |
+| `search memories` |  | ❌ |  |
+| `search memories` | `--limit` | ❌ |  |
+| `search memories` | `--json` | ❌ |  |
+| `search people` |  | ❌ |  |
+| `search people` | `--source` | ❌ |  |
+| `search people` | `--limit` | ❌ |  |
+| `search people` | `--json` | ❌ |  |
+| `search meetings` |  | ❌ |  |
+| `search meetings` | `--meeting-id` | ❌ |  |
+| `search meetings` | `--identity-id` | ❌ |  |
+| `search meetings` | `--person-id` | ❌ |  |
+| `search meetings` | `--event-id` | ❌ |  |
+| `search meetings` | `--series-id` | ❌ |  |
+| `search meetings` | `--project` | ❌ |  |
+| `search meetings` | `--topic-name` | ❌ |  |
+| `search meetings` | `--since-time` | ❌ |  |
+| `search meetings` | `--until-time` | ❌ |  |
+| `search meetings` | `--limit` | ❌ |  |
+| `search meetings` | `--cursor` | ❌ |  |
+| `search meetings` | `--max-read-bytes` | ❌ |  |
+| `search meetings` | `--source` | ❌ |  |
+| `search meetings` | `--json` | ❌ |  |
+| `events list` |  | ❌ |  |
+| `events list` | `--limit` | ❌ |  |
+| `events list` | `--json` | ❌ |  |
+| `events show` |  | ❌ |  |
+| `events show` | `--json` | ❌ |  |
+| `answers create` |  | ❌ |  |
+| `answers create` | `--all` | ❌ |  |
+| `answers create` | `--source` | ❌ |  |
+| `answers create` | `--limit` | ❌ |  |
+| `answers create` | `--analyze` | ❌ |  |
+| `answers create` | `--allow-remote` | ❌ |  |
+| `answers create` | `--json` | ❌ |  |
+| `sync` |  | ❌ |  |
+| `sync` | `--only` | ❌ |  |
+| `sync` | `--no-embed` | ❌ |  |
+| `sync` | `--timeout` | ❌ |  |
+| `sync` | `--json` | ❌ |  |
+| `store info` |  | ❌ |  |
+| `store info` | `--json` | ❌ |  |
+| `store recover` |  | ❌ |  |
+| `store recover` | `--json` | ❌ |  |
+| `store recover run` |  | ❌ |  |
+| `store recover run` | `--json` | ❌ |  |
+| `groups list` |  | ❌ |  |
+| `groups list` | `--json` | ❌ |  |
+| `groups add` |  | ❌ |  |
+| `groups add` | `--json` | ❌ |  |
+| `groups remove` |  | ❌ |  |
+| `groups remove` | `--json` | ❌ |  |
+| `groups move` |  | ❌ |  |
+| `groups move` | `--json` | ❌ |  |
+| `groups rename` |  | ❌ |  |
+| `groups rename` | `--json` | ❌ |  |
+| `groups delete` |  | ❌ |  |
+| `groups delete` | `--json` | ❌ |  |
+| `groups update` |  | ❌ |  |
+| `groups update` | `--scope` | ❌ |  |
+| `groups update` | `--chat` | ❌ |  |
+| `groups update` | `--json` | ❌ |  |
+| `jobs start` |  | ❌ |  |
+| `jobs start` | `--every` | ❌ |  |
+| `jobs stop` |  | ❌ |  |
+| `jobs status` |  | ❌ |  |
+| `jobs status` | `--json` | ❌ |  |
+| `config show` |  | ❌ |  |
+| `config show` | `--json` | ❌ |  |
+| `config migrate` |  | ❌ |  |
+| `config migrate` | `--json` | ❌ |  |
+| `config unset` |  | ❌ |  |
+| `config unset` | `--json` | ❌ |  |
+| `doctor` |  | ❌ |  |
+| `doctor` | `--online` | ❌ |  |
+| `doctor` | `--deep` | ❌ |  |
+| `doctor` | `--json` | ❌ |  |
+| `doctor reports show` |  | ❌ |  |
+| `doctor reports create` |  | ❌ |  |
+| `doctor reports create` | `--run` | ❌ |  |
+| `doctor reports create` | `--output` | ❌ |  |
+| `upgrade` |  | ❌ |  |
+| `upgrade` | `--check` | ❌ |  |
+| `upgrade` | `--json` | ❌ |  |
+| `schedule command` |  | ❌ |  |
+| `schedule command` | `--every` | ❌ |  |
+| `schedule command` | `--at` | ❌ |  |
+| `schedule command` | `--at-time` | ❌ |  |
+| `schedule command` | `--notify-on` | ❌ |  |
+| `schedule command` | `--deliver-to` | ❌ |  |
+| `schedule command` | `--json` | ❌ |  |
+| `schedule agent` |  | ❌ |  |
+| `schedule agent` | `--model` | ❌ |  |
+| `schedule agent` | `--max-cost` | ❌ |  |
+| `schedule agent` | `--allow-dangerous` | ❌ |  |
+| `schedule agent` | `--max-cost-per-day` | ❌ |  |
+| `schedule agent` | `--every` | ❌ |  |
+| `schedule agent` | `--at` | ❌ |  |
+| `schedule agent` | `--at-time` | ❌ |  |
+| `schedule agent` | `--notify-on` | ❌ |  |
+| `schedule agent` | `--deliver-to` | ❌ |  |
+| `schedule agent` | `--on-new-mail` | ❌ |  |
+| `schedule agent` | `--mail-wait` | ❌ |  |
+| `schedule agent` | `--mail-batch` | ❌ |  |
+| `schedule agent` | `--json` | ❌ |  |
+| `schedule list` |  | ❌ |  |
+| `schedule list` | `--json` | ❌ |  |
+| `schedule agents list` |  | ❌ |  |
+| `schedule run` |  | ❌ |  |
+| `schedule run` | `--no-notify` | ❌ |  |
+| `schedule run` | `--deliver-to` | ❌ |  |
+| `schedule run` | `--json` | ❌ |  |
+| `schedule remove` |  | ❌ |  |
+| `schedule remove` | `--json` | ❌ |  |
+| `schedule pause` |  | ❌ |  |
+| `schedule pause` | `--json` | ❌ |  |
+| `schedule resume` |  | ❌ |  |
+| `schedule resume` | `--json` | ❌ |  |
+| `schedule exec` |  | ❌ |  |
+| `schedule exec` | `--json` | ❌ |  |
+| `digest brief show` |  | ❌ |  |
+| `digest brief show` | `--json` | ❌ |  |
+| `digest brief edit` |  | ❌ |  |
+| `digest brief edit` | `--file` | ❌ |  |
+| `digest brief edit` | `--undo` | ❌ |  |
+| `digest brief edit` | `--json` | ❌ |  |
+| `digest brief reset` |  | ❌ |  |
+| `digest brief reset` | `--json` | ❌ |  |
+| `digest list` |  | ❌ |  |
+| `digest list` | `--json` | ❌ |  |
+| `digest add` |  | ❌ |  |
+| `digest add` | `--paused` | ❌ |  |
+| `digest add` | `--title` | ❌ |  |
+| `digest add` | `--at` | ❌ |  |
+| `digest add` | `--source` | ❌ |  |
+| `digest add` | `--deliver-to` | ❌ |  |
+| `digest add` | `--text` | ❌ |  |
+| `digest add` | `--agent` | ❌ |  |
+| `digest add` | `--model` | ❌ |  |
+| `digest add` | `--allow-dangerous` | ❌ |  |
+| `digest add` | `--max-cost` | ❌ |  |
+| `digest add` | `--max-cost-per-day` | ❌ |  |
+| `digest add` | `--json` | ❌ |  |
+| `digest add` | `--from-app` | ❌ |  |
+| `digest edit` |  | ❌ |  |
+| `digest edit` | `--title` | ❌ |  |
+| `digest edit` | `--at` | ❌ |  |
+| `digest edit` | `--source` | ❌ |  |
+| `digest edit` | `--deliver-to` | ❌ |  |
+| `digest edit` | `--text` | ❌ |  |
+| `digest edit` | `--agent` | ❌ |  |
+| `digest edit` | `--model` | ❌ |  |
+| `digest edit` | `--allow-dangerous` | ❌ |  |
+| `digest edit` | `--max-cost` | ❌ |  |
+| `digest edit` | `--max-cost-per-day` | ❌ |  |
+| `digest edit` | `--json` | ❌ |  |
+| `digest edit` | `--from-app` | ❌ |  |
+| `digest run` |  | ❌ |  |
+| `digest run` | `--from-app` | ❌ |  |
+| `digest run` | `--no-notify` | ❌ |  |
+| `digest run` | `--deliver-to` | ❌ |  |
+| `digest run` | `--json` | ❌ |  |
+| `digest pause` |  | ❌ |  |
+| `digest pause` | `--from-app` | ❌ |  |
+| `digest pause` | `--json` | ❌ |  |
+| `digest resume` |  | ❌ |  |
+| `digest resume` | `--from-app` | ❌ |  |
+| `digest resume` | `--json` | ❌ |  |
+| `digest remove` |  | ❌ |  |
+| `digest remove` | `--from-app` | ❌ |  |
+| `digest remove` | `--json` | ❌ |  |
+| `digest history` |  | ❌ |  |
+| `digest history` | `--last` | ❌ |  |
+| `digest history` | `--before-time` | ❌ |  |
+| `digest history` | `--json` | ❌ |  |
+| `digest backfill` |  | ❌ |  |
+| `digest backfill` | `--from-app` | ❌ |  |
+| `digest backfill` | `--since-time` | ❌ |  |
+| `digest backfill` | `--until-time` | ❌ |  |
+| `digest backfill` | `--from` | ❌ |  |
+| `digest backfill` | `--to` | ❌ |  |
+| `digest backfill` | `--yes` | ❌ |  |
+| `digest backfill` | `--json` | ❌ |  |
+| `commands` |  | ❌ |  |
+| `commands` | `--json` | ❌ |  |
+| `commands info` |  | ❌ |  |
+| `commands info` | `--json` | ❌ |  |
+| `skill show` |  | ❌ |  |
+| `skill show` | `--for` | ❌ |  |
+| `skill show` | `--json` | ❌ |  |
+| `skill install` |  | ❌ |  |
+| `skill install` | `--for` | ❌ |  |
+| `skill install` | `--json` | ❌ |  |
+| `skill status` |  | ❌ |  |
+| `skill status` | `--json` | ❌ |  |
+| `guide` |  | ❌ |  |
+| `guide` | `--json` | ❌ |  |
+| `runs list` |  | ❌ |  |
+| `runs list` | `--limit` | ❌ |  |
+| `runs list` | `--page` | ❌ |  |
+| `runs list` | `--json` | ❌ |  |
+| `runs show` |  | ❌ |  |
+| `runs show` | `--problems` | ❌ |  |
+| `runs show` | `--json` | ❌ |  |
+| `runs path` |  | ❌ |  |
+| `runs path` | `--json` | ❌ |  |
+| `help` |  | ❌ |  |
 | *global* | `--version` | ⛔ | commander answers it while it reads the options, before any command runs, so the argv log cannot record it; src/program.test.ts and scripts/smoke-bundle.ts check its output |
-| *global* | `--debug` | ✅ |  |
-| *global* | `--record` | ✅ |  |
-| *global* | `--no-record` | ✅ |  |
-| *global* | `--compact` | ✅ |  |
+| *global* | `--debug` | ❌ |  |
+| *global* | `--record` | ❌ |  |
+| *global* | `--no-record` | ❌ |  |
+| *global* | `--compact` | ❌ |  |
 | *global* | `--help-all` | ⛔ | commander answers it while it reads the options, before any command runs, so the argv log cannot record it; src/program.test.ts checks its output |

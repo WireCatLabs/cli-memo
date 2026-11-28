@@ -17,10 +17,10 @@ interface Listed {
 
 const DAY = 86_400_000
 
-/** A temp store; each phone account imports one synthetic call from `days` ago through `memo records import`. */
+/** A temp store; each phone account imports one synthetic call from `days` ago through `wcat records import`. */
 const setUp = async (calls: { account: string; name: string; phone: string; days: number }[]) => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-events-"))
-  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), MEMO_CONFIG_DIR: dir }
+  const dir = mkdtempSync(join(tmpdir(), "wcat-events-"))
+  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), WCAT_CONFIG_DIR: dir }
   delete env.AI_AGENT
   delete env.CLAUDECODE
   const run = async (...args: string[]) => {
@@ -78,7 +78,7 @@ it("lists a call imported from a phone with no query, in text and in JSON", asyn
     event_type: "call",
     in: "phone:pixel/Calls",
   })
-  expect((await f.json("show", "event:1")).items[0].open.line).toBe("memo events show event:1")
+  expect((await f.json("show", "event:1")).items[0].open.line).toBe("wcat events show event:1")
 })
 
 it("reads every phone account as one list, and narrows by account, calendar and kind", async () => {

@@ -6,10 +6,11 @@ import { answerFields } from "@wirecat/cli-core/cli"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
+import { addNote } from "../../test/notes.js"
 import { createProgram } from "../program.js"
 
 it("creates native note tasks through the CLI and connects context, search, assignments, tags and reminders", async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-native-tasks-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-native-tasks-"))
   const env = { ...process.env, MESSAGING_STORE: join(root, "store.db") }
   const key = { provider: "telegram", account: "1" }
   const store = await openStore({ env })
@@ -25,9 +26,17 @@ it("creates native note tasks through the CLI and connects context, search, assi
       .parseAsync([...args, "--json"], { from: "user" })
     return answerOf(streams.stdout.join(""))
   }
+  const withNotes = async (work: (notes: Awaited<ReturnType<typeof openStore>>["notes"]) => Promise<unknown>) => {
+    const opened = await openStore({ env })
+    try {
+      await work(opened.notes)
+    } finally {
+      await opened.close()
+    }
+  }
   const scope = ["--source", `${key.provider}:${key.account}`]
   const acts = ["--account", `${key.provider}:${key.account}`]
-  const added = await run("notes", "add", "Synthetic budget request", "--subject", `person:${person?.uid}`)
+  const added = await addNote(env, "Synthetic budget request", { subject: [`person:${person?.uid}`] })
   const source = `note:${added.id}`
   await expect(run("tasks", "add", source)).rejects.toMatchObject({ code: "validation_error" })
   await expect(run("tasks", "add", source, "--account", "telegram")).rejects.toMatchObject({
@@ -43,7 +52,7 @@ it("creates native note tasks through the CLI and connects context, search, assi
   await expect(run("tasks", "close", task.task.id, "--account", "telegram:2")).rejects.toMatchObject({
     code: "not_found",
   })
-  const unrelated = await run("notes", "add", "Unrelated budget")
+  const unrelated = await addNote(env, "Unrelated budget")
   const other = await run("tasks", "add", `note:${unrelated.id}`, ...acts)
   expect(
     (await run("context", "telegram:101", "--source", "telegram:1")).tasks.items.map((item: { id: string }) => item.id),
@@ -88,7 +97,7 @@ it("creates native note tasks through the CLI and connects context, search, assi
   expect(moved).toMatchObject({ id: late.id, revision: late.revision + 1 })
   expect(await run("reminders", "cancel", late.id, ...acts)).toMatchObject({ id: late.id })
   expect((await run("reminders", "claim", ...acts)).items).toEqual([])
-  await run("notes", "edit", source, "--text", "Updated budget", "--revision", "1")
+  await withNotes((notes) => notes.editNote(source.replace(/^note:/, ""), "Updated budget", 1))
   const listed = (await run("tasks", "list", ...scope)).items.find((item: { id: string }) => item.id === task.task.id)
   expect(listed).toMatchObject({ source_message: source, chat: null, state: "open", account: "telegram:1" })
   const list = createProgram({ streams: captureStreams(), env })
@@ -97,7 +106,7 @@ it("creates native note tasks through the CLI and connects context, search, assi
   expect(answerFields(list)).toEqual(expect.arrayContaining(Object.keys(listed)))
   await run("tasks", "close", task.task.id, ...acts)
   expect(await run("tasks", "add", source, ...acts)).toMatchObject({ created: false, task: { state: "done" } })
-  await run("notes", "remove", source)
+  await withNotes((notes) => notes.removeNote(source.replace(/^note:/, "")))
   expect((await run("tasks", "list", "state:done", ...scope)).items[0]).toMatchObject({
     id: task.task.id,
     state: "done",
@@ -106,7 +115,7 @@ it("creates native note tasks through the CLI and connects context, search, assi
 })
 
 it("adds a bug to a project with its fields and assignee, updates, lists and closes it", async () => {
-  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-work-tasks-")), "store.db") }
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-work-tasks-")), "store.db") }
   const key = { provider: "telegram", account: "1" }
   const store = await openStore({ env })
   await store.accounts.saveAccount(key, { name: null })
@@ -174,7 +183,7 @@ it("adds a bug to a project with its fields and assignee, updates, lists and clo
 })
 
 it("keeps a task's id in an outside service and its page through add, show and list", async () => {
-  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-task-links-")), "store.db") }
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-task-links-")), "store.db") }
   const run = async (...args: string[]) => {
     const streams = captureStreams()
     await createProgram({ streams, env })
@@ -203,7 +212,7 @@ it("keeps a task's id in an outside service and its page through add, show and l
 })
 
 it("lists the tasks of a deal and of its client company with related:", async () => {
-  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-related-tasks-")), "store.db") }
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-related-tasks-")), "store.db") }
   const portal = { provider: "example-crm", account: "portal-a" }
   const store = await openStore({ env })
   await store.accounts.saveAccount(portal, { name: null })

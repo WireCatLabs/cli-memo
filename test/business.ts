@@ -14,12 +14,12 @@ export const OWNER = {}
 type Who = typeof AGENT | typeof OWNER
 
 /**
- * A temp store with a project, a client organization and a person, and a memo run as the owner at a terminal or an
+ * A temp store with a project, a client organization and a person, and a wcat run as the owner at a terminal or an
  * agent without one. Synthetic data only.
  */
 export const businessStore = async (prefix: string) => {
-  const dir = mkdtempSync(join(tmpdir(), `memo-${prefix}-`))
-  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), MEMO_CONFIG_DIR: dir }
+  const dir = mkdtempSync(join(tmpdir(), `wcat-${prefix}-`))
+  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), WCAT_CONFIG_DIR: dir }
   delete env.AI_AGENT
   delete env.CLAUDECODE
   const store = await openStore({ env })

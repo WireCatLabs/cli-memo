@@ -10,7 +10,7 @@ import { oneOf } from "../options.js"
 
 const LISTS = Object.keys(ROLE_LISTS) as RoleList[]
 
-/** memo's own entity: one role of one list. */
+/** wcat's own entity: one role of one list. */
 const ROLES_QUERY = {
   entity: "relationship_role",
   backend: "native",
@@ -30,7 +30,7 @@ const ownerOnly = async (command: Command, env: NodeJS.ProcessEnv, asOwner: bool
 }
 
 /**
- * `memo relationships roles …`: which roles a relationship may take, built in and the owner's own (NEED-2405).
+ * `wcat relationships roles …`: which roles a relationship may take, built in and the owner's own (NEED-2405).
  * cli-core keeps the lists and refuses a built-in's removal and an owner role still in use.
  */
 export const relationshipRolesCommand = (

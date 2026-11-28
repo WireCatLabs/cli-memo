@@ -1,9 +1,9 @@
 import type { SharedContractOverride } from "@wirecat/cli-base/commands"
 
 const REASON =
-  "Memo reads stored records of every account. Its list and show give one row per real meeting for WireCat Desktop's Meetings page: a calendar event joined with its Zoom or Meet record, phone calls included, as meeting_entry with event: and meeting: refs, a native query and a 50-row page. Transcript, summary, export, people, sync, import and repair stay with the provider CLIs, which read one account."
+  "wcat reads stored records of every account. Its list and show give one row per real meeting for WireCat Desktop's Meetings page: a calendar event joined with its Zoom or Meet record, phone calls included, as meeting_entry with event: and meeting: refs, a native query and a 50-row page. Transcript, summary, export, people, sync, import and repair stay with the provider CLIs, which read one account."
 
-// Reviewed differences from Core; update only after reviewing both definitions. memo's list and show read every
+// Reviewed differences from Core; update only after reviewing both definitions. wcat's list and show read every
 // account's meetings, calls and calendar events as one row per real meeting, for WireCat Desktop's Meetings page,
 // not one provider account's meetings as Core's do.
 export const meetings: readonly SharedContractOverride[] = [

@@ -18,7 +18,7 @@ type Print = (json: boolean | undefined, body: Body, text?: string) => void
 /**
  * What became of an item since its report, from the store as it is now: `answered` (you wrote last since),
  * `they-wrote` (the other side wrote again since), `no-change` (nothing new since), `done` and `open` for a task.
- * `null` where memo cannot tell, as for a meeting or a project.
+ * `null` where wcat cannot tell, as for a meeting or a project.
  */
 export type ItemNow = "answered" | "they-wrote" | "no-change" | "done" | "open" | null
 
@@ -254,16 +254,16 @@ export const historyCommand = (digest: Command, print: Print, streams: Streams, 
         "row had it (a reply owed two mornings running is in 2 digests in a row) and what became of it since, from " +
         "the store as it is now: you answered, they wrote again, nothing new, or for a task done or still open. The " +
         "digest's agent reads it to tell what is new, what is still open and what was done. A read: it runs under " +
-        "MEMO_READ_ONLY",
+        "WCAT_READ_ONLY",
     )
-    .argument("[digest]", `the digest's name, as \`memo digest list\` shows it; ${MORNING_DIGEST} when left out`)
+    .argument("[digest]", `the digest's name, as \`wcat digest list\` shows it; ${MORNING_DIGEST} when left out`)
     .option("--last <n>", "how many reports", positive, 3)
     .option("--before-time <time>", "only reports made before this ISO time or date, as a past day's digest reads them")
     .option("--json", "print JSON")
     .action(async (name: string | undefined, given: { last: number; beforeTime?: string; json?: boolean }) => {
       const digestName = name ?? MORNING_DIGEST
       if (digestName !== MORNING_DIGEST && !isDigest(env, digestName))
-        throw new CliError("not_found", `no digest ${digestName} — \`memo digest list\` names them`, {
+        throw new CliError("not_found", `no digest ${digestName} — \`wcat digest list\` names them`, {
           reason: "digest.not-found",
         })
       const before = given.beforeTime === undefined ? Date.now() + DAY : beforeOf(given.beforeTime)

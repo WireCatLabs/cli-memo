@@ -72,7 +72,7 @@ jobs:
         run: |
           version=$(node -p 'require("./package.json").version')
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          if [ "$DRY_RUN" != "true" ] && npm view "@wirecat/cli-memo@$version" version --prefer-online >/dev/null 2>&1; then
+          if [ "$DRY_RUN" != "true" ] && npm view "@wirecat/wirecat@$version" version --prefer-online >/dev/null 2>&1; then
             echo "::error::$version is already on npm — raise the version first"
             exit 1
           fi
@@ -80,7 +80,7 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: package
-          path: wirecat-cli-memo-${{ steps.version.outputs.version }}.tgz
+          path: wirecat-wirecat-${{ steps.version.outputs.version }}.tgz
           if-no-files-found: error
           retention-days: 7
 
@@ -122,7 +122,7 @@ jobs:
 
       # npm, not pnpm: npm's trusted publishing is the documented path. A tarball runs no
       # lifecycle scripts, and nothing is installed here.
-      - run: npm publish "wirecat-cli-memo-$VERSION.tgz" --access public $PUBLISH_FLAGS
+      - run: npm publish "wirecat-wirecat-$VERSION.tgz" --access public $PUBLISH_FLAGS
         env:
           PUBLISH_FLAGS: ${{ inputs.dry_run && '--dry-run --force' || '' }}
 
@@ -132,7 +132,7 @@ jobs:
           # The version's own document, not `npm view`: on 2026-10-01 the document answered while the
           # version list `npm view` reads was still stale for minutes (cli-base, then named cli-core, 0.13.0 and 0.14.0).
           for _ in $(seq 90); do
-            curl -sfo /dev/null "https://registry.npmjs.org/@wirecat%2fcli-memo/$VERSION" && exit 0
+            curl -sfo /dev/null "https://registry.npmjs.org/@wirecat%2fwirecat/$VERSION" && exit 0
             sleep 10
           done
           echo "::error::npm does not show $VERSION after fifteen minutes — not tagging; tag v$VERSION by hand once it does"
@@ -173,7 +173,7 @@ jobs:
       id-token: write
     uses: openclaw/clawhub/.github/workflows/skill-publish.yml@52358852d3510f1150756d48e8a72cb8c8e698e0 # main, 2026-10-25
     with:
-      skill_path: skills/cli-memo
+      skill_path: skills/wcat
       owner: wirecat
       dry_run: true
 
@@ -188,7 +188,7 @@ jobs:
     permissions:
       contents: read
     env:
-      SKILL_PATH: skills/cli-memo
+      SKILL_PATH: skills/wcat
       CLAWHUB_SLUG: wirecat-memo
       CLAWHUB_SHA: 52358852d3510f1150756d48e8a72cb8c8e698e0
       CLAWHUB_URL: https://clawhub.ai
@@ -225,7 +225,7 @@ jobs:
           fi
           exit "$status"
 
-  # The official MCP Registry lists the MCP server as dev.wirecat/cli-memo, and MCP directories copy their entries from it.
+  # The official MCP Registry lists the MCP server as dev.wirecat/wirecat, and MCP directories copy their entries from it.
   # The registry checks that npm's copy of this version names it in package.json's mcpName.
   mcp-registry-dry-run:
     needs: build

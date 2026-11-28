@@ -59,7 +59,7 @@ interface UpdateOptions {
   json?: boolean
 }
 
-/** `memo products`: what the owner sells or buys, written directly by anyone, as it feeds no total. */
+/** `wcat products`: what the owner sells or buys, written directly by anyone, as it feeds no total. */
 export const productCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { run } = answers(program, streams, env)
   const products = program

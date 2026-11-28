@@ -9,6 +9,16 @@ import {
 import type { Command } from "commander"
 import { APP } from "./app.js"
 
+// cli-core 2.0.0's closed propose tier (PROPOSE_COMMANDS) still names memo's `mail findings add`; the cli-core
+// release of the split names `review findings add`, and this line goes.
+export const PROPOSES_HERE = "review findings add"
+
+const pathOf = (command: Command): string => {
+  const words: string[] = []
+  for (let at: Command | null = command; at?.parent; at = at.parent) words.unshift(at.name())
+  return words.join(" ")
+}
+
 const refusalOf = (command: Command): string | undefined => {
   const { effects, lifetime } = metaOf(command)
   // `mcp` keeps serving reads; writes remain discoverable but are refused.
@@ -16,15 +26,15 @@ const refusalOf = (command: Command): string | undefined => {
   if (changesAuthority(command) && command.opts().check !== true) return "change what later runs may access"
   if (command.opts().allowRemote === true) return "send evidence to a model off this machine"
   if (effects?.remote === "write") return "change mail at the provider"
-  if (isStoreChange(command)) return "change memo's store or files"
+  if (isStoreChange(command) && pathOf(command) !== PROPOSES_HERE) return "change wcat's store or files"
   return undefined
 }
 
 /**
- * WC-PERM-12: under MEMO_READ_ONLY every change is refused with permission_error (exit 5) before the action runs.
+ * WC-PERM-12: under WCAT_READ_ONLY every change is refused with permission_error (exit 5) before the action runs.
  * A sync still receives, and a local write fails closed: nothing here marks one as harmless.
  */
-/** MEMO_READ_ONLY, or the shared WireCat setup answer "read only", which another tool's `setup` changes. */
+/** WCAT_READ_ONLY, or the shared WireCat setup answer "read only", which another tool's `setup` changes. */
 const lockOf = (env: NodeJS.ProcessEnv): string | undefined =>
   readOnlyLockOf(APP, env) ??
   (setupPermissionCeiling(env) === "readonly" ? "the WireCat setup answer; `tg setup` changes it" : undefined)

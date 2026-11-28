@@ -27,7 +27,7 @@ const stampOf = (date: string) =>
     .replace(/\.\d+Z$/, "Z")
 
 const setUp = (extra: NodeJS.ProcessEnv = {}) => {
-  const root = mkdtempSync(join(tmpdir(), "memo-backfill-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-backfill-"))
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     // A schedule only starts the claude found on PATH: the fake must be that one.
@@ -35,9 +35,9 @@ const setUp = (extra: NodeJS.ProcessEnv = {}) => {
     PATH: [root, ...(process.env.PATH ?? "").split(delimiter).filter((dir) => isAbsolute(dir))].join(delimiter),
     AI_AGENT: "",
     CLAUDECODE: "",
-    MEMO_READ_ONLY: "",
+    WCAT_READ_ONLY: "",
     MESSAGING_STORE: join(root, "s.db"),
-    MEMO_CONFIG_DIR: join(root, "config"),
+    WCAT_CONFIG_DIR: join(root, "config"),
     XDG_DATA_HOME: join(root, "data"),
     XDG_CONFIG_HOME: join(root, "xdg-config"),
     ...extra,
@@ -71,7 +71,7 @@ process.stdout.write(JSON.stringify({ type: "result", result: JSON.stringify(rep
     JSON.stringify({
       name: "morning-digest",
       kind: "agent",
-      argv: [claude, "-p", "Run memo skill show morning-digest and follow it.", "--max-budget-usd", "0.5"],
+      argv: [claude, "-p", "Run wcat skill show morning-digest and follow it.", "--max-budget-usd", "0.5"],
       when: { daily: "08:30" },
       environment: {},
       createdAt: "",
@@ -205,10 +205,10 @@ it("is the owner's alone: an agent and the read-only lock are refused before any
     agent.run("digest", "backfill", "--since-time", dateBack(2), "--until-time", dateBack(1), "--yes"),
   ).rejects.toThrow(/owner's money/)
   expect(agent.inputs()).toBe("")
-  const locked = setUp({ MEMO_READ_ONLY: "1" })
+  const locked = setUp({ WCAT_READ_ONLY: "1" })
   await expect(
     locked.run("digest", "backfill", "--since-time", dateBack(2), "--until-time", dateBack(1)),
-  ).rejects.toThrow(/MEMO_READ_ONLY/)
+  ).rejects.toThrow(/WCAT_READ_ONLY/)
 })
 
 it("refuses a day whose run time is still ahead, and a range the wrong way round", async () => {

@@ -71,7 +71,7 @@ export const findingsCommand = (program: Command, streams: Streams, env: NodeJS.
       const text = await readFindingsInput(file, environmentOf(program).stdin ?? process.stdin)
       const input = parseMeetingFindingsJson(text)
       const author = await whoRuns(program, env, { question: "" })
-      const agent = author === "owner" ? { bot: "memo-findings" } : author
+      const agent = author === "owner" ? { bot: "wcat-findings" } : author
       await run(given.json, async (store) => {
         const { input: kept, duplicates } = await withoutTaskDuplicates(store, env, input)
         const noted = duplicates.length ? { duplicates } : {}

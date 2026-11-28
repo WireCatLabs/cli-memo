@@ -13,10 +13,10 @@ import { answers, itemAnswer } from "../answer.js"
 import { type Config, loadConfig, updateConfig } from "../config.js"
 
 export const DEFAULT_EVERY = "5m"
-const UNIT = "memo-import"
+export const UNIT = "wcat-import"
 
 const lastRunPath = (env: NodeJS.ProcessEnv): string =>
-  join(resolvePaths({ appName: "cli-memo", prefix: "MEMO", env }).state, "auto", "last.json")
+  join(resolvePaths({ appName: "wcat", prefix: "WCAT", env }).state, "auto", "last.json")
 
 export const lastAutoRun = (env: NodeJS.ProcessEnv): LastRun | undefined => {
   try {
@@ -28,7 +28,7 @@ export const lastAutoRun = (env: NodeJS.ProcessEnv): LastRun | undefined => {
 
 /** Only the timer's own runs count: a sync started by hand is watched by whoever started it. */
 export const recordAutoRun = (env: NodeJS.ProcessEnv, at: number, reason: string | undefined): void => {
-  if (env.MEMO_AUTO !== "1") return
+  if (env.WCAT_AUTO !== "1") return
   recordRun(lastRunPath(env), {
     at: new Date(at).toISOString(),
     exitCode: reason === undefined ? 0 : 1,
@@ -38,9 +38,9 @@ export const recordAutoRun = (env: NodeJS.ProcessEnv, at: number, reason: string
 }
 
 export const autoNotice = (env: NodeJS.ProcessEnv): string | undefined =>
-  env.MEMO_AUTO === "1"
+  env.WCAT_AUTO === "1"
     ? undefined
-    : failingNotice("memo", [{ job: "sync", last: lastAutoRun(env) }], "memo jobs status")
+    : failingNotice("wcat", [{ job: "sync", last: lastAutoRun(env) }], "wcat jobs status")
 
 /** `5m`, `90s`, `1h` → systemd's `5min`, `90s`, `1h`; under a minute is refused. */
 export const interval = (value: string): string => {
@@ -52,18 +52,18 @@ export const interval = (value: string): string => {
 
 const systemdSpan = (every: string): string => every.replace(/m$/, "min")
 
-const unitDir = (env: NodeJS.ProcessEnv): string =>
+export const unitDir = (env: NodeJS.ProcessEnv): string =>
   join(env.XDG_CONFIG_HOME ?? join(env.HOME ?? homedir(), ".config"), "systemd", "user")
 
 const quote = (arg: string): string => `"${arg.replace(/(["\\])/g, "\\$1")}"`
 
-const memoBin = (): string => resolve(dirname(fileURLToPath(import.meta.url)), "../bin/memo.js")
+const wcatBin = (): string => resolve(dirname(fileURLToPath(import.meta.url)), "../bin/wcat-wirecat.js")
 
-/** The variables that move memo's folders and the store; the timer runs with the ones set at `memo jobs start`. */
+/** The variables that move wcat's folders and the store; the timer runs with the ones set at `wcat jobs start`. */
 export const PLACE_VARIABLES = [
-  "MEMO_CONFIG_DIR",
-  "MEMO_STATE_DIR",
-  "MEMO_CACHE_DIR",
+  "WCAT_CONFIG_DIR",
+  "WCAT_STATE_DIR",
+  "WCAT_CACHE_DIR",
   "MESSAGING_STORE",
   "WIRECAT_STATE_DIR",
 ] as const
@@ -71,20 +71,20 @@ export const PLACE_VARIABLES = [
 export const placesOf = (env: NodeJS.ProcessEnv): Record<string, string> =>
   Object.fromEntries(PLACE_VARIABLES.flatMap((name) => (env[name] ? [[name, env[name]]] : [])))
 
-const execStart = (): string => `ExecStart=${[process.execPath, memoBin(), "sync"].map(quote).join(" ")}`
+const execStart = (): string => `ExecStart=${[process.execPath, wcatBin(), "sync"].map(quote).join(" ")}`
 
 export const serviceUnit = (env: NodeJS.ProcessEnv, places: Record<string, string> = {}): string =>
   [
     "[Unit]",
-    "Description=memo: sync notes into the shared store and embed stored mail",
+    "Description=wcat: sync notes into the shared store and embed stored mail",
     "",
     "[Service]",
     "Type=oneshot",
     execStart(),
-    // The programs memo calls are found on the PATH memo was set up with.
+    // The programs wcat calls are found on the PATH wcat was set up with.
     `Environment=${[`PATH=${env.PATH ?? ""}`, ...Object.entries(places).map(([name, value]) => `${name}=${value}`)]
       .map(quote)
-      .join(" ")} MEMO_AUTO=1`,
+      .join(" ")} WCAT_AUTO=1`,
     "Nice=10",
     "",
   ].join("\n")
@@ -92,7 +92,7 @@ export const serviceUnit = (env: NodeJS.ProcessEnv, places: Record<string, strin
 export const timerUnit = (every: string): string =>
   [
     "[Unit]",
-    `Description=memo: sync notes and embed stored mail every ${every}`,
+    `Description=wcat: sync notes and embed stored mail every ${every}`,
     "",
     "[Timer]",
     "OnActiveSec=1min",
@@ -109,7 +109,7 @@ const systemctl =
   (env: NodeJS.ProcessEnv) =>
   (...args: string[]): Promise<string> =>
     new Promise((done, fail) =>
-      execFile(env.MEMO_SYSTEMCTL ?? "systemctl", ["--user", ...args], { env }, (error, stdout, stderr) =>
+      execFile(env.WCAT_SYSTEMCTL ?? "systemctl", ["--user", ...args], { env }, (error, stdout, stderr) =>
         error === null
           ? done(stdout)
           : fail(
@@ -136,20 +136,28 @@ export const autoState = (config: Config): AutoState => ({
  * Makes the timer match the config: on with its interval, or gone. The config is the one source, so a
  * hand edit of `auto` takes effect at the next timer run, which calls this first.
  */
-export const applyAuto = async (env: NodeJS.ProcessEnv, state: AutoState): Promise<void> => {
+export const applyAuto = async (
+  env: NodeJS.ProcessEnv,
+  state: AutoState,
+  unit = UNIT,
+  path = env.PATH,
+): Promise<void> => {
   const run = systemctl(env)
   const dir = unitDir(env)
-  const timerPath = join(dir, `${UNIT}.timer`)
-  const servicePath = join(dir, `${UNIT}.service`)
+  const timerPath = join(dir, `${unit}.timer`)
+  const servicePath = join(dir, `${unit}.service`)
   if (!state.enabled) {
     if (!existsSync(timerPath) && !existsSync(servicePath)) return
-    await run("disable", "--now", `${UNIT}.timer`).catch(() => "")
+    await run("disable", "--now", `${unit}.timer`).catch(() => "")
     rmSync(timerPath, { force: true })
     rmSync(servicePath, { force: true })
     await run("daemon-reload")
     return
   }
-  const wanted = { [servicePath]: serviceUnit(env, state.places), [timerPath]: timerUnit(state.every) }
+  const wanted = {
+    [servicePath]: serviceUnit({ ...env, PATH: path }, state.places),
+    [timerPath]: timerUnit(state.every),
+  }
   const stale = Object.entries(wanted).filter(
     ([path, text]) => !existsSync(path) || readFileSync(path, "utf8") !== text,
   )
@@ -157,13 +165,13 @@ export const applyAuto = async (env: NodeJS.ProcessEnv, state: AutoState): Promi
   mkdirSync(dir, { recursive: true })
   for (const [path, text] of stale) writeFileSync(path, text)
   await run("daemon-reload")
-  await run("enable", "--now", `${UNIT}.timer`)
+  await run("enable", "--now", `${unit}.timer`)
   // A timer already running keeps its old interval until restarted.
-  if (stale.some(([path]) => path === timerPath)) await run("restart", `${UNIT}.timer`)
+  if (stale.some(([path]) => path === timerPath)) await run("restart", `${unit}.timer`)
 }
 
 /**
- * Where a global install of npm, pnpm or Bun keeps its packages. A memo in any other node_modules belongs to a
+ * Where a global install of npm, pnpm or Bun keeps its packages. A wcat in any other node_modules belongs to a
  * project or a tool's private folder, which can be deleted at any time.
  */
 export const globalRoots = (env: NodeJS.ProcessEnv, execPath = process.execPath): string[] => {
@@ -185,8 +193,8 @@ const isGlobal = (scriptPath: string, roots: string[]): boolean =>
   roots.some((root) => scriptPath.startsWith(`${root}/`) || scriptPath.startsWith(`${root}\\`))
 
 /**
- * The timer runs the memo that last ran here: after `nvm use` and an install under the new Node, the
- * first memo command points the unit at it, so removing the old Node does not leave the timer broken.
+ * The timer runs the wcat that last ran here: after `nvm use` and an install under the new Node, the
+ * first wcat command points the unit at it, so removing the old Node does not leave the timer broken.
  * Only a global install moves it: a checkout, `npx` or another tool's private install would point it at a
  * folder that goes away.
  *
@@ -198,8 +206,8 @@ export const followInstall = async (
   scriptPath?: string,
   roots = globalRoots(env),
 ): Promise<void> => {
-  if (env.MEMO_AUTO === "1") return
-  scriptPath ??= realpathSync(memoBin())
+  if (env.WCAT_AUTO === "1") return
+  scriptPath ??= realpathSync(wcatBin())
   if (!["npm", "pnpm", "bun"].includes(installerOf(scriptPath))) return
   if (!isGlobal(scriptPath, roots)) return
   if (!autoState(loadConfig(env)).enabled) return
@@ -220,7 +228,7 @@ const failingOf = (last: LastRun | undefined) =>
 export const autoCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const run = systemctl(env)
   const { print } = answers(program, streams, env)
-  const auto = program.command("jobs").description("run memo sync on a systemd user timer, set in the config")
+  const auto = program.command("jobs").description("run wcat sync on a systemd user timer, set in the config")
 
   annotate(auto.command("start"), { effects: LOCAL_WRITE })
     .description("sync every --every (default auto.every, else 5m), starting a minute from now")
@@ -234,7 +242,7 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
         env,
       )
       await applyAuto(env, autoState(config))
-      streams.data(`memo sync runs every ${autoState(config).every}.\n`)
+      streams.data(`wcat sync runs every ${autoState(config).every}.\n`)
     })
 
   annotate(auto.command("stop"), { effects: LOCAL_WRITE })
@@ -242,7 +250,7 @@ export const autoCommand = (program: Command, streams: Streams, env: NodeJS.Proc
     .action(async () => {
       const config = updateConfig((current) => ({ ...current, auto: { ...current.auto, enabled: false } }), env)
       await applyAuto(env, autoState(config))
-      streams.data("memo sync no longer runs on a timer.\n")
+      streams.data("wcat sync no longer runs on a timer.\n")
     })
 
   annotate(auto.command("status"), { effects: LOCAL_READ })

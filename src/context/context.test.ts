@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs"
+import { mkdtempSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
@@ -7,6 +7,7 @@ import { sampleMeeting } from "@wirecat/cli-core/meetings/testing"
 import { openStore } from "@wirecat/cli-core/store"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { answerOf } from "../../test/answer.js"
+import { addFolderNotes, addNote } from "../../test/notes.js"
 import { createProgram } from "../program.js"
 
 const tg = { provider: "telegram", account: "1" }
@@ -44,7 +45,6 @@ const chat = (id: string, title: string): Chat => ({
 })
 
 let env: NodeJS.ProcessEnv
-let vault: string
 
 const run = async (...args: string[]) => {
   const streams = captureStreams()
@@ -54,16 +54,11 @@ const run = async (...args: string[]) => {
 
 beforeEach(async () => {
   const dir = mkdtempSync(join(tmpdir(), "context-"))
-  vault = join(dir, "vault")
-  mkdirSync(join(vault, "People"), { recursive: true })
-  writeFileSync(join(vault, "People", "Rin Example.md"), "Works on the lighthouse.\n")
-  writeFileSync(join(vault, "Meeting.md"), "Kickoff.\n[[Rin Example]] will send the budget.\n")
-  writeFileSync(join(vault, "Call.md"), "Called [[person:PLACEHOLDER]] about Friday.\nRin Example sounded busy.\n")
   env = {
     ...process.env,
     MESSAGING_STORE: join(dir, "messages.db"),
-    MEMO_CONFIG_DIR: join(dir, "config"),
-    MEMO_STATE_DIR: join(dir, "state"),
+    WCAT_CONFIG_DIR: join(dir, "config"),
+    WCAT_STATE_DIR: join(dir, "state"),
   }
 
   const store = await openStore({ env })
@@ -88,7 +83,28 @@ beforeEach(async () => {
   await store.close()
 })
 
-describe("memo context", () => {
+/** The owner's vault as files sync stores it: a note about Rin, a meeting that links it, a call that links Rin. */
+const vaultOf = (uid: string) =>
+  addFolderNotes(env, {
+    "People/Rin Example.md": "Works on the lighthouse.\n",
+    "Meeting.md": { text: "Kickoff.\n[[Rin Example]] will send the budget.\n", links: ["People/Rin Example.md"] },
+    "Call.md": {
+      text: `Called [[person:${uid}]] about Friday.\nRin Example sounded busy.\n`,
+      links: [`person:${uid}`],
+    },
+  })
+
+/** The owner's own link from a note to the person it is about, as `files notes links add` writes it. */
+const aboutLink = async (uid: string, ref: string) => {
+  const store = await openStore({ env })
+  try {
+    await store.notes.addLink({ from: ref, to: `person:${uid}`, kind: "about", origin: "owner", by: "owner" })
+  } finally {
+    await store.close()
+  }
+}
+
+describe("wcat context", () => {
   beforeEach(() => vi.stubEnv("TZ", "UTC"))
   afterEach(() => vi.unstubAllEnvs())
   it("finds direct messages in a private dialog without recorded members", async () => {
@@ -113,11 +129,9 @@ describe("memo context", () => {
     )
     const uid = (await store.people.personOf({ provider: "telegram", id: "101" }))?.uid as string
     await store.close()
-    writeFileSync(join(vault, "Call.md"), `Called [[person:${uid}]] about Friday.\nRin Example sounded busy.\n`)
-    await run("folders", "add", vault, "--format", "obsidian")
-    await run("sync", "--only", "notes")
-    await run("notes", "links", "add", "telegram:101", join(vault, "People", "Rin Example.md"))
-    await run("notes", "add", "Prefers mornings", "--subject", "email:rin@example.test")
+    const { notes } = await vaultOf(uid)
+    await aboutLink(uid, notes[0]?.ref as string)
+    await addNote(env, "Prefers mornings", { subject: ["email:rin@example.test"] })
 
     const answer = answerOf(await run("context", "telegram:Rin Example", "--json"))
 
@@ -139,10 +153,9 @@ describe("memo context", () => {
     const store = await openStore({ env })
     const uid = (await store.people.personOf({ provider: "telegram", id: "101" }))?.uid as string
     await store.close()
-    await run("folders", "add", vault, "--format", "obsidian")
-    await run("sync", "--only", "notes")
-    await run("notes", "links", "add", "telegram:101", join(vault, "People", "Rin Example.md"))
-    await run("notes", "add", "Prefers mornings", "--subject", "telegram:101")
+    const { notes } = await vaultOf(uid)
+    await aboutLink(uid, notes[0]?.ref as string)
+    await addNote(env, "Prefers mornings", { subject: ["telegram:101"] })
 
     const all = answerOf(await run("context", `person:${uid}`, "--json"))
     expect(all.notes.about.map(({ path }: { path: string }) => path)).toEqual(["People/Rin Example.md"])
@@ -155,7 +168,7 @@ describe("memo context", () => {
     const named = answerOf(await run("context", `person:${uid}`, "--source", `telegram:1,notes:${folder}`, "--json"))
     expect(named.notes.about.map(({ path }: { path: string }) => path)).toEqual(["People/Rin Example.md"])
     await run("groups", "add", "work", "telegram:1")
-    env = { ...env, MEMO_GROUP: "work" }
+    env = { ...env, WCAT_GROUP: "work" }
     const grouped = answerOf(await run("context", `person:${uid}`, "--json"))
     expect(grouped.notes.about).toEqual([])
     expect(grouped.your_notes.map(({ text }: { text: string }) => text)).toEqual(["Prefers mornings"])
@@ -221,7 +234,7 @@ describe("memo context", () => {
     expect(recent.history.items.map(({ text }: { text: string }) => text)).toEqual(["Yes, see you then."])
     vi.stubEnv("TZ", "Europe/Madrid")
     expect(await run("context", "telegram:101", "--limit", "1")).toMatch(
-      /^Rin Example {2}person:\d+\n.*\n {2}times in Europe\/Madrid\n\nHistory\n {2}2026-09-10 11:00 {2}message {2}Rin Example: Yes, see you then\. .*\n {2}older — memo context person:\d+ --before-time 2026-09-10T08:59:59\.999Z\n/s,
+      /^Rin Example {2}person:\d+\n.*\n {2}times in Europe\/Madrid\n\nHistory\n {2}2026-09-10 11:00 {2}message {2}Rin Example: Yes, see you then\. .*\n {2}older — wcat context person:\d+ --before-time 2026-09-10T08:59:59\.999Z\n/s,
     )
   })
 
@@ -313,8 +326,8 @@ describe("memo context", () => {
     expect(text).toContain("Recent events")
   })
 
-  it("prints a readable answer, naming the person, each message and each note by a reference memo takes", async () => {
-    const added = answerOf(await run("notes", "add", "Prefers mornings", "--subject", "telegram:101", "--json"))
+  it("prints a readable answer, naming the person, each message and each note by a reference wcat takes", async () => {
+    const added = await addNote(env, "Prefers mornings", { subject: ["telegram:101"] })
     const text = await run("context", "telegram:101")
 
     expect(text).toContain("Last from them")
@@ -322,12 +335,6 @@ describe("memo context", () => {
     expect(text.split("\n")[0]).toMatch(/ {2}person:\d+$/)
     expect(text).toMatch(/Are we still on for Friday\? {2}msg:telegram\/1\/101\/1/)
     expect(text).toContain(`  ${added.ref}  Prefers mornings`)
-
-    const listed = await run("notes", "list", "source:internal")
-    expect(listed).toContain(`${added.ref}  internal`)
-    const shown = (await run("notes", "show", added.ref)).split("\n")
-    expect(shown[0]).toBe(added.ref)
-    expect(shown).toContain("Prefers mornings")
   })
 
   it("lists files Google reports they own, and leaves out unreviewed links a program guessed", async () => {

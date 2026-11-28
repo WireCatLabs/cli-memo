@@ -1,11 +1,11 @@
-# cli-memo — working rules
+# wcat — working rules
 
-`memo` joins what the owner knows about a person across tg, MAX, notes and mail. Messages live in the
+`wcat` joins what the owner knows about a person across tg, MAX, notes and mail. Messages live in the
 shared store of [`@wirecat/cli-core`](https://github.com/WireCatLabs/cli-core); this repository
 reads notes, reads the mail the `mail` CLI stores there, and answers.
 
 The [WireCat CLI standards](https://github.com/WireCatLabs/cli-base/blob/main/docs/standards/README.md)
-apply here and win over this file; it keeps only memo's own rules.
+apply here and win over this file; it keeps only wcat's own rules.
 
 Security audits of this repository follow the shared
 [security method](https://github.com/WireCatLabs/cli-testing/tree/main/docs/security) in cli-testing;
@@ -20,9 +20,9 @@ vulnerabilities are reported as the
 2. **No test reaches the owner's store, vault, mailbox or config.** `test/sandbox.ts` points
    `MESSAGING_STORE`, `HOME` and the XDG folders into a temp folder for every test
    file; do not weaken it.
-3. **memo never opens a mailbox.** Everything mail-specific (adding a mailbox, sign-in, sync, import, inspect,
-   sender scoring, rules, cleanup) belongs to the `mail` CLI, and memo's old commands for it only name their
-   replacement; memo keeps what spans sources (search, `messages show`, linking, mail findings, the mail-triage
+3. **wcat never opens a mailbox.** Everything mail-specific (adding a mailbox, sign-in, sync, import, inspect,
+   sender scoring, rules, cleanup) belongs to the `mail` CLI, and wcat's old commands for it only name their
+   replacement; wcat keeps what spans sources (search, `messages show`, linking, mail findings, the mail-triage
    skill). Source notes are never changed. No test may use the owner's mailbox.
 4. **Pin `@wirecat/cli-core` to an exact published version compatible with the other store consumers.**
    Compatible SDK updates may be adopted independently after reviewing intervening changelog entries
@@ -54,7 +54,7 @@ them in its pull request. Older released sections keep the headings they shipped
 ```md
 ### Fixed
 
-- **`memo mail sync` names what it skipped.** Why it matters and what a caller does about it.
+- **`wcat mail sync` names what it skipped.** Why it matters and what a caller does about it.
 ```
 
 ## Documents
@@ -66,7 +66,7 @@ They state the current facts only
 ## Before a release that changes how mail is indexed
 
 A change that rewrites many stored emails (a rule change, a re-import) queues their
-threads for the search index, and the next `memo sync`, often the timer's, works through that queue while it holds
+threads for the search index, and the next `wcat sync`, often the timer's, works through that queue while it holds
 the import lock. Before releasing such a change, or a cli-core bump that touches indexing or vector cleanup, run
 cli-testing's [`performance/mail/indexing/run.sh`](https://github.com/WireCatLabs/cli-testing/tree/main/performance/mail/indexing)
 against a built cli-core checkout. It copies the store first and writes only under `~/.cache`. A queued thread

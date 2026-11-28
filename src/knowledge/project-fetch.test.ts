@@ -34,7 +34,7 @@ const withoutRealTg = (path: string) =>
   path.split(delimiter).filter((dir) => dir !== "" && !["tg", "wcat-tg"].some((name) => existsSync(join(dir, name))))
 
 const setUp = async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-fetch-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-fetch-"))
   const bin = join(root, "bin")
   mkdirSync(bin)
   symlinkSync(process.execPath, join(bin, "node"))

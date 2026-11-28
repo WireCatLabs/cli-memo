@@ -115,7 +115,7 @@ const profilesOf = (provider: string, tool: Tool, env: NodeJS.ProcessEnv): Map<s
 
 /**
  * `tg second messages sync` names its profile first; otherwise the schedule runs as its `<PREFIX>_PROFILE`. One that
- * names neither runs as no profile memo can tell, so it counts for no account.
+ * names neither runs as no profile wcat can tell, so it counts for no account.
  */
 export const profileRun = (schedule: Scheduled, tool: Tool, profiles: Map<string, unknown>): string | undefined => {
   const first = schedule.argv[0]
@@ -128,7 +128,7 @@ export interface SyncRuns {
   scheduled: boolean
   /** A `serve` keeps it synced live, as WhatsApp's does. */
   serving: boolean
-  /** Some profile of the tool holds this account; without one, memo cannot tell what syncs it. */
+  /** Some profile of the tool holds this account; without one, wcat cannot tell what syncs it. */
   known: boolean
 }
 
@@ -208,7 +208,7 @@ export const healthOf = (
     }
   }
   if (!sync.scheduled && !sync.serving) {
-    // A wrong "no-schedule" is worse than none: an account no profile holds may be synced in a way memo cannot see.
+    // A wrong "no-schedule" is worse than none: an account no profile holds may be synced in a way wcat cannot see.
     if (!sync.known) return undefined
     const last = activity.newest ?? activity.storedAt
     return { reason: "no-schedule", since: null, staleHours: last === null ? 0 : hours(last, now) }

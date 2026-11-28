@@ -125,7 +125,7 @@ export const recordCommands = (
     annotate(records.command("clear"), {
       effects: LOCAL_WRITE,
       output: { entity: "records_clear" },
-      examples: ["memo records clear --account n8n:test", "memo records clear --account n8n:test --yes"],
+      examples: ["wcat records clear --account n8n:test", "wcat records clear --account n8n:test --yes"],
     })
       .option("--account <account>", ACCOUNT_HELP)
       .option("--yes", "confirm: nothing of the source can be brought back but by importing it again"),

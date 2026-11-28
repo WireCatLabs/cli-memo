@@ -48,7 +48,7 @@ const refuseInGroup = (env: NodeJS.ProcessEnv, command: string) => {
     })
 }
 
-// `sender-bot:<id>` is what memo printed before cli-core 2.0; it still names the bot.
+// `sender-bot:<id>` is what wcat printed before cli-core 2.0; it still names the bot.
 const BOT = /^(bot|sender-bot):[1-9]\d*$/
 const PERSON = /^person:([1-9]\d*|me)$/
 const IDENTITY = /^([a-z][a-z0-9-]*):(.+)$/
@@ -235,7 +235,7 @@ export const botsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           options.json,
           itemAnswer(row),
           `moved ${row.moved} to ${row.ref}${row.name ? ` (${row.name})` : ""} with its whole history, past and ` +
-            `future; memo bots move ${row.ref} --kind ${back} moves it back`,
+            `future; wcat bots move ${row.ref} --kind ${back} moves it back`,
         )
       },
     )

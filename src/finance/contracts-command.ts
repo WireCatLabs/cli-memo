@@ -87,9 +87,9 @@ const fieldsOf = (options: ContractOptions) =>
 
 const VALUED =
   "one with no amount is written as it is, by anyone; with an amount yours is confirmed at once and an agent's " +
-  "waits as proposed for you in memo review"
+  "waits as proposed for you in wcat review"
 
-/** `memo contracts`: what the owner works under, its dates, renewal and notice. */
+/** `wcat contracts`: what the owner works under, its dates, renewal and notice. */
 export const contractCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { run } = answers(program, streams, env)
   const contracts = program

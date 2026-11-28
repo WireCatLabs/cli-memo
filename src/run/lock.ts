@@ -2,12 +2,12 @@ import { join } from "node:path"
 import { CliError, resolvePaths } from "@wirecat/cli-base"
 import { releaseLock, takeLock } from "@wirecat/cli-core/background"
 
-/** Runs one sync at a time: `memo sync` by hand and from the timer share this lock. */
+/** Runs one sync at a time: `wcat sync` by hand and from the timer share this lock. */
 export const withImportLock = async <T>(env: NodeJS.ProcessEnv, work: () => Promise<T>): Promise<T> => {
-  const lock = join(resolvePaths({ appName: "cli-memo", prefix: "MEMO", env }).state, "import.lock")
+  const lock = join(resolvePaths({ appName: "wcat", prefix: "WCAT", env }).state, "import.lock")
   const holder = takeLock(lock, { pid: process.pid, startedAt: new Date().toISOString() })
   if (holder !== undefined)
-    throw new CliError("rate_limited", `another memo sync is running (process ${holder.pid}); try again when it ends`, {
+    throw new CliError("rate_limited", `another wcat sync is running (process ${holder.pid}); try again when it ends`, {
       reason: "sync.running",
       pid: holder.pid,
     })

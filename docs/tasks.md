@@ -3,7 +3,7 @@
 Keep track of what you have to do: a request in a message, a promise in a note or work in one of your projects. A
 task made from a message or note points to it, so you always see why the task exists.
 
-Reminders stay on your computer: Memo never sends them to a messenger or a mailbox.
+Reminders stay on your computer: wcat never sends them to a messenger or a mailbox.
 
 **On this page:**
 
@@ -25,27 +25,27 @@ Reminders stay on your computer: Memo never sends them to a messenger or a mailb
 **The easiest way: ask your agent.**
 
 ```text prompt
-Use memo CLI to find the messages from this week where someone asked me for something.
+Use wcat CLI to find the messages from this week where someone asked me for something.
 Show them to me first. Make a task only for the ones I choose.
 ```
 
 **Or run it yourself.** Copy the message's reference from a search result:
 
 ```sh
-memo tasks add 'msg:telegram/1/77/42' --type request
-memo tasks add note:12 --account telegram:1 --type promise
-memo tasks list --source telegram:1
+wcat tasks add 'msg:telegram/1/77/42' --type request
+wcat tasks add note:12 --account telegram:1 --type promise
+wcat tasks list --source telegram:1
 ```
 
 A task from a source has a type: `request` (the default), `question`, `mention` or `promise`. It
 belongs to one account. A message reference already names its account, and a file from a notes folder
-(`document:<id>`) belongs to that folder. For a note you wrote with `memo notes add`, add `--account`, such
+(`document:<id>`) belongs to that folder. For a note you wrote with `files notes add`, add `--account`, such
 as `--account telegram:1` or a notes folder, `--account notes:1`. Adding the same task twice gives you the
 existing one.
 
-A notes folder is an account too: name it `notes:1`, with the number from `memo folders list` (search results give
+A notes folder is an account too: name it `notes:1`, with the number from `files folders list` (search results give
 it as `folder_id`).
-`--source notes` names your folder when you have one. `memo tasks list` and `memo reminders list` without `--source` read every account and name them in
+`--source notes` names your folder when you have one. `wcat tasks list` and `wcat reminders list` without `--source` read every account and name them in
 `meta.accounts`.
 
 ## Tasks proposed from chats, mail and meetings
@@ -59,12 +59,12 @@ you, with the date when one was said. Nothing becomes a task until you confirm i
   and the meetings that ended, and proposes each task in the chat's project, or in the account's inbox.
 
 ```sh
-memo schedule agent task-triage claude 'Run memo skill show task-triage and follow it.' --at 08:00 --at 13:00 --at 18:00 --max-cost 1
-memo review list kind:mail_findings,meeting_findings,findings
+wcat schedule agent task-triage claude 'Run wcat skill show task-triage and follow it.' --at 08:00 --at 13:00 --at 18:00 --max-cost 1
+wcat review list kind:mail_findings,meeting_findings,findings
 ```
 
 A task already open, or already waiting for you under the same title from any source, is not proposed again.
-`memo review agenda` lists the proposals that hold tasks first, and its `tasks` section says when no agent proposes
+`wcat review agenda` lists the proposals that hold tasks first, and its `tasks` section says when no agent proposes
 tasks, or when one stopped running, with the command that fixes it.
 
 ## What needs a look today
@@ -73,16 +73,16 @@ The agenda and the card are the same commands tg and max have; `tasks update` se
 check. Each reads or changes one account; name it:
 
 ```sh
-memo tasks agenda --source telegram:1           # overdue, due, owed and waiting chats
-memo tasks update 1a2b3c4d --due 2d --remind-time 1d --title 'Send the revised budget' --account telegram:1
-memo tasks show 1a2b3c4d --source telegram:1
-memo stats tasks show                           # open tasks per chat, every account
-memo tasks agenda --source notes                # tasks from your notes folder
+wcat tasks agenda --source telegram:1           # overdue, due, owed and waiting chats
+wcat tasks update 1a2b3c4d --due 2d --remind-time 1d --title 'Send the revised budget' --account telegram:1
+wcat tasks show 1a2b3c4d --source telegram:1
+wcat stats tasks show                           # open tasks per chat, every account
+wcat tasks agenda --source notes                # tasks from your notes folder
 ```
 
 A command without `--source` or `--account` lists the accounts the store holds; `stats tasks show` without it counts
 every stored account and names them in `accounts`. tg and max open these tasks
-when they sync; memo reads the same store.
+when they sync; wcat reads the same store.
 
 ## Tasks in a project
 
@@ -90,13 +90,13 @@ A task in a project does not need a source. It gets a key made of the project's 
 such as `HRB-1`:
 
 ```sh
-memo tasks add --project HRB --title 'Book the venue' --priority high
-memo tasks add --project HRB --title 'Export drops the last row' --type bug
-memo tasks list project:HRB
-memo tasks update HRB-1 --priority critical --description 'Call before Friday'
+wcat tasks add --project HRB --title 'Book the venue' --priority high
+wcat tasks add --project HRB --title 'Export drops the last row' --type bug
+wcat tasks list project:HRB
+wcat tasks update HRB-1 --priority critical --description 'Call before Friday'
 ```
 
-A plain `memo tasks list` shows the tasks of your accounts only; a project's tasks are listed with
+A plain `wcat tasks list` shows the tasks of your accounts only; a project's tasks are listed with
 `project:` and the project's key, its name or an alias, and every project's with `project:*`. Any other field
 (`assignee:`, `priority:`, words…), `--sort` or `--cursor` lists every task: project tasks and the tasks found in
 messages, each found one with its `account`.
@@ -114,18 +114,18 @@ To create the project first, see [organizations and projects](people.md#organiza
 ### Moving a task to another project
 
 A task found in a message moves into a project the same way, with its account:
-`memo tasks update Q-9 --project HRB --account telegram:1`. It takes the project's next key (`HRB-12`); `Q-9`
+`wcat tasks update Q-9 --project HRB --account telegram:1`. It takes the project's next key (`HRB-12`); `Q-9`
 and its id still find it, and it keeps the message it came from. From then on it is a project task: it leaves its
 account's list, and `--type` may make it a `bug`, `feature` or `chore` in the same command.
 
 ```sh
-memo tasks update HRB-1 --project OPS
+wcat tasks update HRB-1 --project OPS
 ```
 
 The task takes the next key in that project, and so does each of its subtasks, all the way down; they keep their
 parents. The answer names the subtasks that moved, old key and new, under `moved_subtasks`
 (`[{ "from": "HRB-2", "to": "OPS-4" }]`). The old keys still find them. A subtask moves alone only when you detach it
-in the same command: `memo tasks update HRB-2 --project OPS --parent none`; without `--parent none` it is refused
+in the same command: `wcat tasks update HRB-2 --project OPS --parent none`; without `--parent none` it is refused
 with reason `task.is-subtask`.
 
 ## Priority and order
@@ -135,13 +135,13 @@ A priority is a number from 0 to 1, higher first, and you see it as one of four 
 `priority_label`. The number also orders a project's tasks, so a board column keeps the order you give it:
 
 ```sh
-memo tasks move HRB-3 --before HRB-1                      # HRB-3 goes just above HRB-1
-memo tasks move HRB-3 --after HRB-2                       # into HRB-2's column, below it
-memo tasks move HRB-3 --status in_progress                # into an empty column
+wcat tasks move HRB-3 --before HRB-1                      # HRB-3 goes just above HRB-1
+wcat tasks move HRB-3 --after HRB-2                       # into HRB-2's column, below it
+wcat tasks move HRB-3 --status in_progress                # into an empty column
 ```
 
 `tasks move` gives the task a priority between its new neighbours. When that crosses a quarter, its label changes,
-and the answer says so (`label.changed`). When two neighbours leave no room, Memo spreads that quarter of the
+and the answer says so (`label.changed`). When two neighbours leave no room, wcat spreads that quarter of the
 column out evenly and names the tasks it renumbered.
 
 Beside a task in another column, the task moves into that column. `--status` with `--before` or `--after` must name
@@ -158,21 +158,21 @@ A task found in a message takes the same states, and a priority, an agent and as
 every task not closed yet.
 
 ```sh
-memo tasks update HRB-1 --status in_progress
-memo tasks history HRB-1 --json      # who changed what, and when
+wcat tasks update HRB-1 --status in_progress
+wcat tasks history HRB-1 --json      # who changed what, and when
 ```
 
 ## Find tasks
 
-`memo tasks list` takes a query: fields joined by AND, OR inside a field, NOT, and plain words, which search the title
+`wcat tasks list` takes a query: fields joined by AND, OR inside a field, NOT, and plain words, which search the title
 and description. Without `project:` it covers the tasks found in messages too:
 
 ```sh
-memo tasks list 'assignee:"person:3"' priority:[high TO critical] invoice
-memo tasks list project:(HRB OR OPS) state:(done OR dismissed) closed:>=14d
-memo tasks list project:* overdue:true --sort due
-memo tasks list project:* NOT due:* NOT priority:*
-memo tasks counts --json             # how many per project, assignee, priority and state, found tasks too
+wcat tasks list 'assignee:"person:3"' priority:[high TO critical] invoice
+wcat tasks list project:(HRB OR OPS) state:(done OR dismissed) closed:>=14d
+wcat tasks list project:* overdue:true --sort due
+wcat tasks list project:* NOT due:* NOT priority:*
+wcat tasks counts --json             # how many per project, assignee, priority and state, found tasks too
 ```
 
 | Field | Meaning |
@@ -191,12 +191,12 @@ many match. Each task carries its `assignments`, `ready` and `blocked_by`, and i
 
 ## Changed elsewhere
 
-An agent may edit a task while you look at it. Give the `revision` you read, and Memo refuses the write when the
+An agent may edit a task while you look at it. Give the `revision` you read, and wcat refuses the write when the
 task changed since, with the code `conflict`, the reason `task.stale` and exit code 15. The error's
 `details.revision` is the task's revision now; read the task again and decide on the new copy:
 
 ```sh
-memo tasks update HRB-1 --title 'Book the hall' --revision 4
+wcat tasks update HRB-1 --title 'Book the hall' --revision 4
 ```
 
 `tasks update`, `close`, `assign` and `move` take `--revision`.
@@ -208,63 +208,63 @@ again (`--remind-time`), leaves it as it is, so working on a task does not make 
 ## Who works on it
 
 ```sh
-memo tasks assign HRB-1 PERSON_UID
-memo tasks assign HRB-1 PERSON_UID --role reviewer
-memo tasks assign HRB-1 PERSON_UID --clear     # take them off it
-memo people list                               # you, and the people who write to you most
-memo tasks update HRB-1 --agent hermes         # the agent working on it; --agent none clears it
+wcat tasks assign HRB-1 PERSON_UID
+wcat tasks assign HRB-1 PERSON_UID --role reviewer
+wcat tasks assign HRB-1 PERSON_UID --clear     # take them off it
+wcat people list                               # you, and the people who write to you most
+wcat tasks update HRB-1 --agent hermes         # the agent working on it; --agent none clears it
 ```
 
 An agent is not an assignee: `agent` names the agent on the work until someone changes it, while a claim
 (`tasks claim`) is a lease that runs out on its own. The role is `assignee` (the default), `reviewer` or `watcher`. A person's ID comes from their
-context (`memo context … --json`). Tasks assigned to someone appear in
+context (`wcat context … --json`). Tasks assigned to someone appear in
 [their context](people.md#everything-about-a-person).
 
 ## Close a task
 
 ```sh
-memo tasks close HRB-1 --reason booked
-memo tasks close 7 --account telegram:1 --as dismissed
+wcat tasks close HRB-1 --reason booked
+wcat tasks close 7 --account telegram:1 --as dismissed
 ```
 
-Close a task with `--as done` (the default) or `--as dismissed`. `memo tasks list state:done` shows
+Close a task with `--as done` (the default) or `--as dismissed`. `wcat tasks list state:done` shows
 closed tasks; with `project:`, `kind:bug` narrows by kind. `source:"note:12"` keeps an account's tasks
-from one message, note or document — the step `memo search all` suggests for a result tasks point at.
+from one message, note or document — the step `wcat search all` suggests for a result tasks point at.
 Every change of status, priority or assignee is recorded with the task.
 
 ## What to do first
 
-One task can wait for another. Link them, then ask Memo which tasks can start:
+One task can wait for another. Link them, then ask wcat which tasks can start:
 
 ```sh
-memo tasks link HRB-2 HRB-1 --kind blocked-by     # HRB-2 waits for HRB-1
-memo tasks list project:HRB ready:true          # tasks with nothing left to wait for
-memo tasks status HRB-2                           # why HRB-2 can or cannot start
-memo tasks links HRB-2
-memo tasks unlink HRB-2 HRB-1 --kind blocked-by
+wcat tasks link HRB-2 HRB-1 --kind blocked-by     # HRB-2 waits for HRB-1
+wcat tasks list project:HRB ready:true          # tasks with nothing left to wait for
+wcat tasks status HRB-2                           # why HRB-2 can or cannot start
+wcat tasks links HRB-2
+wcat tasks unlink HRB-2 HRB-1 --kind blocked-by
 ```
 
 `tasks link` takes the other task as `task:HRB-1` too. A target that is not a task — a message, a chat, a person,
 a URL — links a messenger account's task to what it concerns, and needs `--account`:
 
 ```sh
-memo tasks link 12 msg:telegram/500/7/101 --account telegram:500
+wcat tasks link 12 msg:telegram/500/7/101 --account telegram:500
 ```
 
 A task becomes ready only when every task it waits for is done. If a task it waits for was
-dismissed, Memo asks you to review the link. `follow-up-of` and `related-to` links are for information and do not block anything.
+dismissed, wcat asks you to review the link. `follow-up-of` and `related-to` links are for information and do not block anything.
 
 ## Reminders
 
-A reminder is a time when a task should be brought to your attention. Memo keeps it on your computer;
-another program you choose, such as your agent or a script, asks Memo for reminders that are due and
+A reminder is a time when a task should be brought to your attention. wcat keeps it on your computer;
+another program you choose, such as your agent or a script, asks wcat for reminders that are due and
 shows them to you.
 
 ```sh
-memo reminders add 7 --at-time 2026-10-20T09:00:00+02:00 --timezone Europe/Madrid --account telegram:1
-memo reminders list --source telegram:1
-memo reminders update 3 --revision 1 --at-time 2026-10-21T09:00:00+02:00 --account telegram:1
-memo reminders cancel 3 --account telegram:1
+wcat reminders add 7 --at-time 2026-10-20T09:00:00+02:00 --timezone Europe/Madrid --account telegram:1
+wcat reminders list --source telegram:1
+wcat reminders update 3 --revision 1 --at-time 2026-10-21T09:00:00+02:00 --account telegram:1
+wcat reminders cancel 3 --account telegram:1
 ```
 
 Write the time with its offset from UTC, such as `+02:00` for Madrid in summer. A reminder belongs to
@@ -272,13 +272,13 @@ an account, so adding or changing one needs `--account`; for a task from a notes
 such as `--account notes:1`. Closing a task cancels its reminders.
 
 A task in a project, such as `HRB-1`, belongs to no account, so it cannot have a reminder yet. Neither can a
-task from a note you wrote with `memo notes add` when the store holds no account at all.
+task from a note you wrote with `files notes add` when the store holds no account at all.
 
 For the program that shows reminders:
 
 ```sh
-memo reminders claim --account telegram:1 --json
-memo reminders acknowledge REMINDER_ID RECEIPT --account telegram:1
+wcat reminders claim --account telegram:1 --json
+wcat reminders acknowledge REMINDER_ID RECEIPT --account telegram:1
 ```
 
 `claim` hands out the reminders that are due, each with a receipt. `acknowledge` with that receipt confirms

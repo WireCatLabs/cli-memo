@@ -13,7 +13,7 @@ import { digestText, fitDigest } from "./text.js"
 /** Roughly 10k tokens of mixed Russian and English: Cyrillic takes two bytes a letter and fewer letters a token. */
 const COMPACT_BYTES = 40_000
 const FULL_BYTES = 80_000
-/** An owed reply older than this is left to `tasks agenda` and `mail review`, which read further back. */
+/** An owed reply older than this is left to `tasks agenda` and `review mail`, which read further back. */
 const OWED_WITHIN = 7 * 86_400_000
 
 interface Options {

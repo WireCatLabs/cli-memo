@@ -25,7 +25,7 @@ import {
 const addressOf = (env: NodeJS.ProcessEnv, name: string | undefined): TemplateAddress => {
   const digest = name ?? MORNING_DIGEST
   if (digest !== MORNING_DIGEST && !isDigest(env, digest))
-    throw new CliError("not_found", `no digest ${digest} — \`memo digest list\` names them`, {
+    throw new CliError("not_found", `no digest ${digest} — \`wcat digest list\` names them`, {
       reason: "digest.not-found",
     })
   return briefAddress(digest)
@@ -46,7 +46,7 @@ export const readBrief = async (env: NodeJS.ProcessEnv, name = MORNING_DIGEST): 
 export const checkedBrief = (given: string, kept = ""): string => {
   const body = given.trim()
   if (!body)
-    throw new CliError("validation_error", `the brief is empty; memo digest brief reset removes it${kept}`, {
+    throw new CliError("validation_error", `the brief is empty; wcat digest brief reset removes it${kept}`, {
       reason: "brief.empty",
     })
   if (body.length > BRIEF_LIMIT)
@@ -70,7 +70,7 @@ export const withBrief = (skill: string, brief: string | undefined, digest?: str
 }
 
 /**
- * What `skill show morning-digest` adds for the digest a scheduled run belongs to (`MEMO_SCHEDULED`): its window and
+ * What `skill show morning-digest` adds for the digest a scheduled run belongs to (`WCAT_SCHEDULED`): its window and
  * sources when it is a named digest, and its brief. The morning digest made before names existed gets its brief alone.
  */
 export const digestAddendum = async (
@@ -90,7 +90,7 @@ export const digestAddendum = async (
     digest:
       `## This digest: ${definition?.title ?? "Morning digest"}\n\n` +
       "Unless your input has a `backfill:` line, the agenda call is " +
-      `\`memo ${DIGEST_AGENDA.join(" ")} ${flags}\`: this digest reads from its previous time` +
+      `\`wcat ${DIGEST_AGENDA.join(" ")} ${flags}\`: this digest reads from its previous time` +
       (sources.length ? `, and only ${sources.join(", ")}; leave everything else out of the report too.` : ".") +
       " Where this skill says `--since-time 1d`, give that call the same `--since-time` instead. " +
       `Keep \`"kind": "morning-digest"\` in the report: it names the report's shape, not the digest.`,
@@ -138,13 +138,13 @@ export const briefCommand = (digest: Command, print: Print, env: NodeJS.ProcessE
     .description(
       "your own instructions on what the morning digest collects: projects, people, topics, what to skip, how many " +
         "items. The morning-digest skill ends with them, and where they contradict its rules they win; the run " +
-        `stays read only, with memo as its only tool and the schedule's cost cap. At most ${BRIEF_LIMIT} characters`,
+        `stays read only, with wcat as its only tool and the schedule's cost cap. At most ${BRIEF_LIMIT} characters`,
     )
   digest.addCommand(brief)
 
   annotate(brief.command("show"), { effects: LOCAL_READ })
     .summary("the brief a digest follows, and the bodies your changes replaced")
-    .argument("[digest]", `the digest's name, as \`memo digest list\` shows it; ${MORNING_DIGEST} when left out`)
+    .argument("[digest]", `the digest's name, as \`wcat digest list\` shows it; ${MORNING_DIGEST} when left out`)
     .option("--json", "print JSON")
     .action(async (name: string | undefined, given: { json?: boolean }) => {
       const address = addressOf(env, name)
@@ -164,7 +164,7 @@ export const briefCommand = (digest: Command, print: Print, env: NodeJS.ProcessE
       print(
         given.json,
         itemAnswer(item),
-        item.body ?? "No brief: the digest follows its skill alone. `memo digest brief edit` writes one.",
+        item.body ?? "No brief: the digest follows its skill alone. `wcat digest brief edit` writes one.",
       )
     })
 
@@ -174,7 +174,7 @@ export const briefCommand = (digest: Command, print: Print, env: NodeJS.ProcessE
       `write the brief in $EDITOR, or from --file; at most ${BRIEF_LIMIT} characters. The body it replaces is kept, ` +
         "and --undo puts it back. Only you change it, never an agent or a read-only run",
     )
-    .argument("[digest]", `the digest's name, as \`memo digest list\` shows it; ${MORNING_DIGEST} when left out`)
+    .argument("[digest]", `the digest's name, as \`wcat digest list\` shows it; ${MORNING_DIGEST} when left out`)
     .option("--file <file>", "take the brief from this file instead of opening an editor; - reads stdin")
     .addOption(new Option("--undo", "put back the body your last change replaced").conflicts("file"))
     .option("--json", "print JSON")
@@ -196,7 +196,7 @@ export const briefCommand = (digest: Command, print: Print, env: NodeJS.ProcessE
       } else if (given.file !== undefined) {
         body = readFileSync(given.file === "-" ? 0 : given.file, "utf8")
       } else {
-        draft = join(mkdtempSync(join(tmpdir(), "memo-brief-")), "brief.md")
+        draft = join(mkdtempSync(join(tmpdir(), "wcat-brief-")), "brief.md")
         writeFileSync(draft, current ?? "", { mode: 0o600 })
         editor(draft, env)
         body = readFileSync(draft, "utf8")
@@ -208,7 +208,7 @@ export const briefCommand = (digest: Command, print: Print, env: NodeJS.ProcessE
         print(given.json, itemAnswer({ changed: false, chars: body.length }), "The brief is unchanged; nothing saved.")
         return
       }
-      const saved = await withStore(env, async (store) => store.templates.save(address, body, "memo"))
+      const saved = await withStore(env, async (store) => store.templates.save(address, body, "wcat"))
       print(
         given.json,
         itemAnswer({
@@ -224,7 +224,7 @@ export const briefCommand = (digest: Command, print: Print, env: NodeJS.ProcessE
   grantsAuthority(annotate(brief.command("reset"), { effects: LOCAL_WRITE }))
     .summary("remove the brief; edit --undo brings it back")
     .description("remove the brief, so the digest follows its skill alone; edit --undo brings it back")
-    .argument("[digest]", `the digest's name, as \`memo digest list\` shows it; ${MORNING_DIGEST} when left out`)
+    .argument("[digest]", `the digest's name, as \`wcat digest list\` shows it; ${MORNING_DIGEST} when left out`)
     .option("--json", "print JSON")
     .action(async (name: string | undefined, given: { json?: boolean }) => {
       refuseAgent(env)
@@ -233,7 +233,7 @@ export const briefCommand = (digest: Command, print: Print, env: NodeJS.ProcessE
       print(
         given.json,
         itemAnswer({ changed }),
-        changed ? "Removed the brief; memo digest brief edit --undo brings it back." : "There was no brief.",
+        changed ? "Removed the brief; wcat digest brief edit --undo brings it back." : "There was no brief.",
       )
     })
 }

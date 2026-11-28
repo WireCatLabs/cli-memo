@@ -1,21 +1,21 @@
 import type { Streams } from "@wirecat/cli-base"
 import type { Command } from "commander"
 import { mailFindingsCommand } from "./findings-command.js"
-import { movedToMailCommands } from "./moved.js"
 import { mailReviewCommands } from "./review-command.js"
 import { mailSubscriptionsCommand } from "./subscriptions-command.js"
 
-export const mailCommand = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
-  const mail = program
-    .command("mail")
-    .description(
-      "mail the mail CLI stored: review new mail for an agent, stage what it found, see the lists you are subscribed to",
-    )
-    .summary("review new mail, stage findings, see subscriptions")
-  mailFindingsCommand(program, mail, streams, env)
-  mailSubscriptionsCommand(mail, program, streams, env)
-  const messages = program.commands.find((command) => command.name() === "messages")
-  if (!messages) throw new Error("memo messages is mounted before memo mail")
-  mailReviewCommands(mail, messages, env)
-  movedToMailCommands(mail)
+/**
+ * `review mail`, `review findings` and `review subscriptions`: the `mail` word is the mail CLI's in `wcat`, so wcat's
+ * mail reads sit in review.
+ */
+export const reviewMailCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
+  const named = (name: string) => {
+    const found = program.commands.find((command) => command.name() === name)
+    if (!found) throw new Error(`wcat ${name} is mounted before wcat review mail`)
+    return found
+  }
+  const review = named("review")
+  mailFindingsCommand(program, review, streams, env)
+  mailReviewCommands(review, named("messages"), env)
+  mailSubscriptionsCommand(review, program, streams, env)
 }

@@ -20,9 +20,9 @@ export const storeCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     "the shared local store every WireCat tool reads",
   )
   annotate(store.command("info"), { effects: LOCAL_READ, output: { entity: "store_info" } })
-    .summary("the shared store's format and size, and whether memo can read it")
+    .summary("the shared store's format and size, and whether wcat can read it")
     .description(
-      "the store file: where it is, its size, its schema against the one memo speaks, which tools used it and how many rows it holds; changes nothing",
+      "the store file: where it is, its size, its schema against the one wcat speaks, which tools used it and how many rows it holds; changes nothing",
     )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (options: { json?: boolean }) => print(options.json, itemOf(await storeInfo(env))))
@@ -34,7 +34,7 @@ export const storeCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (options: { json?: boolean }) => {
-      const answer = await storeRecoveryCheck(env, "memo")
+      const answer = await storeRecoveryCheck(env, "wcat")
       print(options.json, itemOf(snakeKeys(answer)), recoveryNotes(answer).join("\n"))
     })
   annotate(recover.command("run"), { effects: LOCAL_WRITE })
@@ -46,7 +46,7 @@ export const storeCommand = (program: Command, streams: Streams, env: NodeJS.Pro
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (_options: unknown, command: Command) => {
       const answer = await storeRecoveryRun(env, {
-        command: "memo",
+        command: "wcat",
         version: VERSION,
         note: (text) => streams.diagnostic(text),
       })

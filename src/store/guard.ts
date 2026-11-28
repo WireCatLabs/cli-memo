@@ -5,7 +5,7 @@ import { APP } from "../app.js"
 import { reviewRegistry } from "../review/kinds.js"
 import { groupScopeOf } from "./group.js"
 
-/** cli-core's guard for a run under MEMO_GROUP_LOCK; `undefined` when the run is not locked (WC-ACCT-13). */
+/** cli-core's guard for a run under WCAT_GROUP_LOCK; `undefined` when the run is not locked (WC-ACCT-13). */
 export const guardOf = (store: MessageStore, env: NodeJS.ProcessEnv): Promise<GroupGuard | undefined> =>
   groupGuardOf(store, APP, env)
 

@@ -22,7 +22,7 @@ export const meetingReadCommands = (program: Command, streams: Streams, env: Nod
   const grammar = createMeetingSearchCommand(program)
   const search = overrideSharedContract(
     grammar,
-    "Memo selects an explicit stored source and uses native tag: queries instead of a tag flag, with command-local JSON output.",
+    "wcat selects an explicit stored source and uses native tag: queries instead of a tag flag, with command-local JSON output.",
     (command) => {
       Reflect.set(
         command,
@@ -46,7 +46,7 @@ export const meetingReadCommands = (program: Command, streams: Streams, env: Nod
   )
   overrideSharedContract(
     createMeetingPassageCommand(program),
-    "Memo passage reads an explicitly selected stored source and exposes command-local JSON output.",
+    "wcat passage reads an explicitly selected stored source and exposes command-local JSON output.",
     (command) => {
       output(command)
     },

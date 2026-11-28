@@ -130,7 +130,7 @@ it("refuses agent or read-only restoration and stale previews without touching t
   await expect(run({ ...f.env, AI_AGENT: "synthetic-agent_1" }, ...args)).rejects.toMatchObject({
     code: "permission_error",
   })
-  await expect(run({ ...f.env, MEMO_READ_ONLY: "1" }, ...args)).rejects.toMatchObject({ code: "permission_error" })
+  await expect(run({ ...f.env, WCAT_READ_ONLY: "1" }, ...args)).rejects.toMatchObject({ code: "permission_error" })
   expect(readFileSync(f.target).equals(before)).toBe(true)
   const changed = await openStore({ path: f.target, env: f.env })
   try {

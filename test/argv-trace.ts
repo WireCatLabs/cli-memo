@@ -4,7 +4,7 @@ import { Command } from "commander"
 const original = Command.prototype.parseAsync
 const traced = new WeakSet<Command>()
 Command.prototype.parseAsync = function (...args: Parameters<Command["parseAsync"]>) {
-  if (this.name() === "memo" && !traced.has(this)) {
+  if (this.name() === "wcat" && !traced.has(this)) {
     traced.add(this)
     this.hook("preAction", (_root, action) => {
       const path: string[] = []
@@ -14,7 +14,7 @@ Command.prototype.parseAsync = function (...args: Parameters<Command["parseAsync
         for (const option of at.options)
           if (at.getOptionValueSource(option.attributeName()) === "cli") options.add(option.long ?? option.short ?? "")
       }
-      const destination = process.env.MEMO_TEST_ARGV_LOG
+      const destination = process.env.WCAT_TEST_ARGV_LOG
       if (destination)
         appendFileSync(destination, `${JSON.stringify({ command: path.join(" "), options: [...options] })}\n`)
     })

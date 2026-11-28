@@ -1,8 +1,8 @@
 # Changelog
 
-Notable changes to `@wirecat/cli-memo`, one section per version, newest
-first. Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor release may change
-the API.
+Notable changes to `@wirecat/wirecat` (`wcat`), one section per version, newest first. Up to 0.156.0 it was
+`@wirecat/cli-memo` (`memo`). Versions follow [semantic versioning](https://semver.org/); before `1.0.0` a minor
+release may change the API.
 
 ## 0.156.0 — 27.11.2026
 

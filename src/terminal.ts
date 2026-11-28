@@ -11,7 +11,7 @@ export const optionsOf = (args: readonly string[]) => {
 export const interactiveOf = (args: readonly string[], tty: boolean) =>
   tty && !optionsOf(args).some((flag) => MACHINE_FLAGS.has(flag))
 
-/** Whether a person is at the terminal, and how memo asks them; a test hands both in through `createProgram`. */
+/** Whether a person is at the terminal, and how wcat asks them; a test hands both in through `createProgram`. */
 export interface Terminal {
   present: boolean
   answer?: (question: string) => Promise<string | null> | string | null

@@ -1,4 +1,4 @@
-# Memo
+# wcat
 
 Before a call, get everything you know about the person in one answer: the last messages each way, the mail, your
 notes and what you promised. Your notes, mail and chats stay on your computer, and the AI agent you already use, such
@@ -12,7 +12,7 @@ promise people this week?". Every answer points back to its source: a note, a pa
 1. [What you get](#what-you-get)
 2. [Before you start](#before-you-start)
 3. [How it looks](#how-it-looks)
-4. [Why Memo](#why-memo)
+4. [Why wcat](#why-wcat)
 5. [What it can do](#what-it-can-do)
 6. [How it works](#how-it-works)
 7. [Start in a few minutes](#start-in-a-few-minutes)
@@ -34,20 +34,20 @@ promise people this week?". Every answer points back to its source: a note, a pa
 
 ## Before you start
 
-- **Memo reads what the other tools copied.** `tg`, `max` and `wa` copy your chats, and `mail` copies your mail, into
-  the WireCat local store, one file on your computer. Memo imports your folders into the same file and searches it. A chat no tool has
+- **wcat reads what the other tools copied.** `tg`, `max` and `wa` copy your chats, and `mail` copies your mail, into
+  the WireCat local store, one file on your computer. wcat imports your folders into the same file and searches it. A chat no tool has
   copied is not there, so an empty search does not prove a message was never sent.
-- **Nothing is sent, and your sources stay as they are.** Memo has no command that sends a message or an email.
+- **Nothing is sent, and your sources stay as they are.** wcat has no command that sends a message or an email.
   Importing leaves your files and your mailbox unchanged.
 - **An agent proposes, you decide.** Memories and facts an agent records wait for your review before they count.
 - **Connecting an app such as Claude Desktop?** Set what it must not do first ([MCP](mcp.md)).
-- **Search by meaning needs a model you download once.** Until then Memo searches by words and says so.
+- **Search by meaning needs a model you download once.** Until then wcat searches by words and says so.
 
 ## How it looks
 
 ```text
 You:    What do I need to know about Alice before the call?
-Agent:  (runs memo context telegram:"Alice Example" --json)
+Agent:  (runs wcat context telegram:"Alice Example" --json)
         Alice wrote yesterday in "Harbour": she needs the revised budget by Friday.
         Your note "people/Alice Example.md" says she prefers a short call.
         Open task: send her the contract draft.
@@ -57,14 +57,14 @@ Agent:  Draft task: "Send Alice the revised budget", linked to her message in "H
 You:    Yes.
 ```
 
-## Why Memo
+## Why wcat
 
 - **It reads your real conversations.** Of the memory tools on the [comparison](compare.md), such as Hindsight, mem0
   and Graphiti, none documents reading your Telegram, MAX and WhatsApp chats or your meeting transcripts.
 - **Every answer has a source.** A result carries a reference you or your agent can open.
 - **Identities are never merged because a name matches.** Accounts join only on an email address or phone number
   nobody else has, or when you link them yourself.
-- **No AI key needed.** Import and search run on your computer, and search by meaning uses a local model. Memo sends
+- **No AI key needed.** Import and search run on your computer, and search by meaning uses a local model. wcat sends
   text to an AI provider only when you set one up and allow it.
 - **Every agent call is logged**, and you set for each command what an agent may do: allow, ask, read only or refuse.
 - **Free and open source.** Apache 2.0.
@@ -75,7 +75,7 @@ Graphiti, Cognee), or a hosted memory service for a product you build.
 ## What it can do
 
 - **Notes and folders:** import Markdown or an Obsidian vault, and write your own notes about a person or a message.
-  [Notes and folders](notes.md)
+  [Notes and folders](https://wirecat.dev/en/docs/files)
 - **Search:** everything at once, or only notes, mail or messages. [Search](search.md)
 - **People and projects:** everything about a person or a company. [People and projects](people.md)
 - **Mail:** search the mail the `mail` tool keeps, beside your chats and notes. [Mail](mail.md)
@@ -89,11 +89,11 @@ Graphiti, Cognee), or a hosted memory service for a product you build.
 
 ## How it works
 
-- **One store on your computer.** Memo copies the text of your notes and documents into the local store, beside the
-  messages and mail the other WireCat tools keep there. [How Memo works](how-it-works.md)
-- **Stays current.** `memo sync` reads what changed, and on Linux a timer can run it every five minutes.
+- **One store on your computer.** wcat copies the text of your notes and documents into the local store, beside the
+  messages and mail the other WireCat tools keep there. [How wcat works](how-it-works.md)
+- **Stays current.** `wcat sync` reads what changed, and on Linux a timer can run it every five minutes.
   [Keep your notes current](archive.md)
-- **Made for scripts and agents.** `--json` gives structured answers, and `memo answers create` hands an agent the
+- **Made for scripts and agents.** `--json` gives structured answers, and `wcat answers create` hands an agent the
   evidence for a question.
 - **What it reads, writes and sends.** [Security](security.md)
 
@@ -102,28 +102,28 @@ Graphiti, Cognee), or a hosted memory service for a product you build.
 Paste this into your agent:
 
 ```text prompt
-Install Memo with npm install -g @wirecat/cli-memo and memo skill install --for all. Then help me add a folder of notes I choose, import it, and search it for a word I give you with the source of each result.
+Install wcat with npm install -g @wirecat/wirecat and wcat skill install --for all. Then help me add a folder of notes I choose, import it, and search it for a word I give you with the source of each result.
 ```
 
 Or in a terminal. Replace `/path/to/notes` with a folder on your computer:
 
 ```sh
-npm install -g @wirecat/cli-memo
-memo skill install --for all       # puts memo's skill where your agents read it
-memo folders add /path/to/notes    # Obsidian format when it is a vault
-memo sync --only notes             # reads the notes, their links and tags
-memo search notes budget
+npm install -g @wirecat/wirecat
+wcat skill install --for all       # puts wcat's skill where your agents read it
+files folders add /path/to/notes    # Obsidian format when it is a vault
+wcat sync --only notes             # reads the notes, their links and tags
+wcat search notes budget
 ```
 
 You need Node.js 22.16 or a later 22.x, or Node.js 24 or later ([Installation](installation.md)).
 
 Your chats come in through their own tools. Set up [tg](https://github.com/WireCatLabs/tg-cli) for Telegram,
-[max](https://github.com/WireCatLabs/max-cli) for MAX or wa for WhatsApp, and [mail](mail.md) for email. Memo searches
+[max](https://github.com/WireCatLabs/max-cli) for MAX or wa for WhatsApp, and [mail](mail.md) for email. wcat searches
 them as soon as they are saved. Then ask your agent: "What do I need to know about Alice before the call?"
 
 ## Limits
 
-- Memo is tested on Linux. macOS and Windows are not tested yet.
+- wcat is tested on Linux. macOS and Windows are not tested yet.
 - Search by meaning needs a local model of about 220 MB, downloaded once.
 - Repeating the import on a timer works on Linux with systemd.
 - One store per computer. There is no hosted copy to reach from another device, and no window of its own.
@@ -133,11 +133,11 @@ them as soon as they are saved. Then ask your agent: "What do I need to know abo
 | Task | Guide |
 |---|---|
 | Install and update | [Installation](installation.md) |
-| A normal day with Memo | [Using Memo](usage.md) |
-| Where data lives and what a reference means | [How Memo works](how-it-works.md) |
+| A normal day with wcat | [Using wcat](usage.md) |
+| Where data lives and what a reference means | [How wcat works](how-it-works.md) |
 | A ready request for your agent | [Recipes](recipes.md) |
 | Connect Claude Desktop or Cursor | [The MCP server](mcp.md) |
 | Every command | [All commands](commands.md) |
 | Something does not work | [Troubleshooting](troubleshooting.md) |
-| What Memo reads, writes and sends | [Security](security.md) |
-| How Memo compares with other memory tools | [Compared with other tools](compare.md) |
+| What wcat reads, writes and sends | [Security](security.md) |
+| How wcat compares with other memory tools | [Compared with other tools](compare.md) |

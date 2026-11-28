@@ -58,8 +58,8 @@ it("keeps an agent's subscription for review and refuses one with no schedule", 
 })
 
 it("takes a charge's repeat only as --period, so --every keeps the one meaning of a timer's duration", async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-subscriptions-period-"))
-  const env = { ...process.env, MESSAGING_STORE: join(root, "store.db"), MEMO_CONFIG_DIR: root, MEMO_STATE_DIR: root }
+  const root = mkdtempSync(join(tmpdir(), "wcat-subscriptions-period-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "store.db"), WCAT_CONFIG_DIR: root, WCAT_STATE_DIR: root }
   const program = createProgram({ streams: captureStreams(), env })
   throwParseFailures(program)
 

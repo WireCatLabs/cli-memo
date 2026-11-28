@@ -46,8 +46,8 @@ const RECORDS = CASES.flatMap(([, , record]) => (record === null ? [] : [record]
 let run: (...args: string[]) => Promise<Record<string, unknown> & { items: Record<string, unknown>[] }>
 
 beforeAll(async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-special-"))
-  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
+  const root = mkdtempSync(join(tmpdir(), "wcat-special-"))
+  const env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), WCAT_CONFIG_DIR: join(root, "config") }
   const store = await openStore({ env })
   const messages = RECORDS.map((text, index) => ({
     id: String(index + 1),

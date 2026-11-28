@@ -1,12 +1,12 @@
 # Connect a browser or phone AI app
 
-Use Memo from an app in the browser or on your phone where you chat with your AI agent. The app reaches your computer
+Use wcat from an app in the browser or on your phone where you chat with your AI agent. The app reaches your computer
 through your own HTTPS tunnel, signs in with a code you see in the terminal, and uses the same search, read and write
 commands as a local MCP client. Your notes stay on your computer, which must stay on.
 
 An HTTPS tunnel forwards a public address to a port on your computer. The access-code login is OAuth:
 the app receives a login token after you approve its connection. Command permissions still decide what
-it may do. Text returned by Memo can reach the app and its AI provider; choose your sources accordingly
+it may do. Text returned by wcat can reach the app and its AI provider; choose your sources accordingly
 ([security](security.md)).
 
 **On this page:**
@@ -20,9 +20,9 @@ it may do. Text returned by Memo can reach the app and its AI provider; choose y
 
 ## Start the tunnel and server
 
-[Install Memo](installation.md) and import the notes or mail you want it to read first. Messages and
+[Install wcat](installation.md) and import the notes or mail you want it to read first. Messages and
 meetings must already be stored by the other WireCat tools. Use the same operating system user and
-Memo settings for the imports and the server. Memo does not take a leading profile name.
+wcat settings for the imports and the server. wcat does not take a leading profile name.
 
 Set up an HTTPS tunnel that supports streaming responses. For example, install and sign in to
 [Tailscale](https://tailscale.com/download), enable
@@ -36,50 +36,50 @@ Keep the tunnel running in one terminal. In another, replace the example origin 
 HTTPS origin your tunnel gives you, including its port if shown:
 
 ```sh
-memo mcp serve --http --public-url https://device.example
+wcat mcp serve --http --public-url https://device.example
 ```
 
-Memo listens only on `127.0.0.1:8767` and prints a one-time login code and connector address. Point
-the tunnel at `http://127.0.0.1:8767`. The public origin must contain no login credentials, path, query or fragment; Memo
+wcat listens only on `127.0.0.1:8767` and prints a one-time login code and connector address. Point
+the tunnel at `http://127.0.0.1:8767`. The public origin must contain no login credentials, path, query or fragment; wcat
 adds `/mcp` for the connector. Remote public origins must use HTTPS.
 
 To use another local port, pass `--port` and change the tunnel target to match:
 
 ```sh
-memo mcp serve --http --port 8768 --public-url https://device.example:8443
+wcat mcp serve --http --port 8768 --public-url https://device.example:8443
 ```
 
-Each WireCat server needs its own local port and public origin. Memo's default 8767 leaves tg and
+Each WireCat server needs its own local port and public origin. wcat's default 8767 leaves tg and
 MAX's usual ports free. Follow the tunnel provider's rules when choosing a public port.
 
 To keep it running after the terminal closes, start it in the background instead. It answers once it listens,
 with the connector address and the login code:
 
 ```sh
-memo mcp server start --public-url https://device.example
-memo mcp server status   # running, port, connector address, the current login code, apps logged in
-memo mcp server stop     # stops only a server that `mcp server start` started
+wcat mcp server start --public-url https://device.example
+wcat mcp server status   # running, port, connector address, the current login code, apps logged in
+wcat mcp server stop     # stops only a server that `mcp server start` started
 ```
 
 The code is kept beside the token file (`mcp-http/memo.lock`, mode 600) and renews every ten minutes; a server
-started this way does not write it to its log. WireCat Desktop shows the same status under Tools → Memo → MCP server.
+started this way does not write it to its log. WireCat Desktop shows the same status under Tools → wcat → MCP server.
 
 ## Connect the app
 
-Add the connector address printed by Memo, ending in `/mcp`, in the app's remote MCP settings.
+Add the connector address printed by wcat, ending in `/mcp`, in the app's remote MCP settings.
 Choose OAuth login; the app must support dynamic client registration. When its login page opens,
 enter the current code printed in your terminal. A successful login issues a token to that app;
-Memo prints a new code for the next connection. Keep these codes out of messages and public logs.
+wcat prints a new code for the next connection. Keep these codes out of messages and public logs.
 
-Ask the app to discover Memo's commands and search for a known synthetic or non-private note.
+Ask the app to discover wcat's commands and search for a known synthetic or non-private note.
 It should offer `memo_tools_search`, `memo_read` and `memo_write`. Open a returned source before
 using it as evidence. An app that cannot read the results should report that limit.
 
-The tunnel and the app are installed separately from Memo.
+The tunnel and the app are installed separately from wcat.
 
 ## Send records from n8n
 
-An [n8n](https://n8n.io) workflow on a server can write leads, deals, people and other records into Memo
+An [n8n](https://n8n.io) workflow on a server can write leads, deals, people and other records into wcat
 through the same server. n8n has no file on your computer to name, so it gives the records envelope itself.
 
 In n8n, add an MCP Client node. Set **Server Transport** to HTTP Streamable and **MCP Endpoint URL** to the
@@ -111,7 +111,7 @@ the `memo_write` tool with the command and its arguments; `input` holds the enve
 }
 ```
 
-`memo records templates list` lists every type and its fields, and the [business guide](business.md) the envelope.
+`wcat records templates list` lists every type and its fields, and the [business guide](business.md) the envelope.
 The same envelope sent twice changes nothing, so turn on the node's **Retry On Fail**: a delivery n8n is unsure
 about is safe to repeat. Anything that feeds money totals waits for your review, as from any other source.
 
@@ -123,43 +123,43 @@ app that makes no call for 30 days logs in again.
 
 HTTP uses the same [saved permissions](configuration.md#permissions) as stdio. Blocked commands
 remain discoverable with a reason, and each call rechecks current permissions. `ask` does not show
-a question in Memo's terminal; approval prompts depend on the client app.
+a question in wcat's terminal; approval prompts depend on the client app.
 
 A server override can only tighten saved permissions:
 
 ```sh
-memo mcp serve --http --public-url https://device.example --permission notes.add=deny
+wcat mcp serve --http --public-url https://device.example --permission notes.add=deny
 ```
 
-Repeat `--permission` for more keys. `MEMO_READ_ONLY=1` refuses writes. Decisions on meeting findings,
+Repeat `--permission` for more keys. `WCAT_READ_ONLY=1` refuses writes. Decisions on meeting findings,
 restoring annotations, and changes to source folders still need their explicit
-permissions. Memo never sends messages or mail. [The MCP guide](mcp.md) describes those boundaries.
+permissions. wcat never sends messages or mail. [The MCP guide](mcp.md) describes those boundaries.
 
 ## Stop or revoke access
 
-Press Ctrl-C to stop Memo and stop this tunnel's route separately. A normal restart retains app
+Press Ctrl-C to stop wcat and stop this tunnel's route separately. A normal restart retains app
 logins. If the tunnel runs in the background, use its own route-specific stop command; do not reset
 routes used by other servers.
 
-To log every browser app out of this Memo installation:
+To log every browser app out of this wcat installation:
 
 ```sh
-memo mcp revoke --json
+wcat mcp revoke --json
 ```
 
 Revocation also affects a running server: existing tokens stop working and apps must log in again.
 It does not disconnect a messenger or remove notes and mail. Token hashes and client registrations
-live under Memo's state folder in `mcp-http/memo.json`; raw tokens are not stored there. Revocation
+live under wcat's state folder in `mcp-http/memo.json`; raw tokens are not stored there. Revocation
 uses that state folder, so run it with the same environment as the server.
 
 ## If connection fails
 
-- If the connector cannot reach Memo, check that the computer, server and tunnel are running and
+- If the connector cannot reach wcat, check that the computer, server and tunnel are running and
   that the tunnel points at the chosen local port. The public address ending in
   `/.well-known/oauth-protected-resource/mcp` should return JSON metadata.
 - If the local port is already in use, choose another `--port` and update the tunnel target.
 - If login fails, use the latest terminal code. Repeated wrong codes are throttled by the shared login.
 - If reads work but writes fail, inspect saved permissions, server overrides and the read-only lock.
-- Use `memo agents list agent:memo-mcp` to review command execution without argument contents.
+- Use `wcat agents list agent:wcat-mcp` to review command execution without argument contents.
 
 Next: [review what the app saved](memories.md).

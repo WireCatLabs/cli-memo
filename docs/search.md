@@ -25,46 +25,46 @@ there, so an empty answer does not prove that something never happened. The answ
 ## Ask your agent
 
 ```text prompt
-Use memo CLI to find what was agreed about the Harbour budget, in my notes, mail and messages.
+Use wcat CLI to find what was agreed about the Harbour budget, in my notes, mail and messages.
 Quote the matching text, show the source of each result and tell me what you could not search.
 ```
 
 Your agent picks the search, reads the matching text and shows you the sources. You can check each
-one with `memo notes show` or in the original app.
+one with `files notes show` or in the original app.
 
 ## Choose where to search
 
 | Where it is | Command |
 |---|---|
-| You do not know | `memo search all 'budget'` |
-| Your notes and files | `memo search notes 'budget'` |
-| Your email | `memo search mail 'budget'` |
-| Telegram or MAX messages | `memo search messages 'budget'` |
-| Stored meeting transcripts and summaries | `memo search meetings 'budget' --source zoom:work` |
-| A person, by name, username or alias | `memo search people kai` |
-| Invoices, contracts, products and other business data | `memo search all 'budget' --only business` |
+| You do not know | `wcat search all 'budget'` |
+| Your notes and files | `wcat search notes 'budget'` |
+| Your email | `wcat search mail 'budget'` |
+| Telegram or MAX messages | `wcat search messages 'budget'` |
+| Stored meeting transcripts and summaries | `wcat search meetings 'budget' --source zoom:work` |
+| A person, by name, username or alias | `wcat search people kai` |
+| Invoices, contracts, products and other business data | `wcat search all 'budget' --only business` |
 
 `search all` looks in messages, mail, notes, calendar events, CRM deals and leads,
 [business data](./business.md#find-it-again) and meetings together. Deals and leads are
-found by the words of their title; `--only crm` searches them alone. When memo's
+found by the words of their title; `--only crm` searches them alone. When wcat's
 [`permissions`](configuration.md#permissions) deny `deals` or `leads`, `search all` leaves them out and says so.
-A question about who someone is or how things relate reads better from `memo context person:<id>`,
-`memo organizations context` or `memo relationships list` first; search for the evidence after. Events come from every calendar
+A question about who someone is or how things relate reads better from `wcat context person:<id>`,
+`wcat organizations context` or `wcat relationships list` first; search for the evidence after. Events come from every calendar
 gcal stored; the answer names each calendar it read, and `--only events` searches them alone. An event's title,
 description and place are written by whoever sent the invitation, and `--json` names those fields in the hit's
-`untrusted`. `memo events show <ref>` opens an `event:` reference, and `memo events list` lists the events of
+`untrusted`. `wcat events show <ref>` opens an `event:` reference, and `wcat events list` lists the events of
 every calendar account, phone calls included.
 
 Meetings come from every stored meeting account, through each account's search index; in a group, from the group's
 meeting accounts only. A meeting gives at most 3 hits. A transcript hit has `cue_ref`, and the answer's `next` names
-the `memo meetings passage` command that opens it. Search all never builds the index: when `missing` names an
-account, `next` gives `memo search meetings <query> --source <provider>:<account>`, which builds it.
+the `wcat meetings passage` command that opens it. Search all never builds the index: when `missing` names an
+account, `next` gives `wcat search meetings <query> --source <provider>:<account>`, which builds it.
 `--source zoom:work,notes` reads only the accounts it names; a kind it names none of is left out.
 `--only meetings,crm` reads only those kinds. When your permissions set `search.meetings` or `meetings.passage` to
 `deny` or `ask`, search all leaves meetings out and says so in `missing`.
 
-It does not search people, memories, projects or tasks; use `memo search people`, `memo context`, `memo search
-memories` and `memo tasks list` for those.
+It does not search people, memories, projects or tasks; use `wcat search people`, `wcat context`, `wcat search
+memories` and `wcat tasks list` for those.
 When you know where something is, its own search is better, because it understands more search
 words.
 
@@ -86,53 +86,53 @@ A search finds results that contain **every** word you type, including other for
 | Inside an attached file (messages and mail) | `content:invoice`, `filename:*.pdf` |
 
 `content:` narrows a search to the text of files and `filename:` to their names:
-`memo search messages 'content:invoice'`. A file's text is there once tg or max has read it
+`wcat search messages 'content:invoice'`. A file's text is there once tg or max has read it
 (`tg personal attachments extract`) or an agent has written it.
 
-Put the search in single quotes so the terminal passes it to Memo as it is:
-`memo search notes '"budget review" NOT cancelled'`. `--exact` matches words only as written.
+Put the search in single quotes so the terminal passes it to wcat as it is:
+`wcat search notes '"budget review" NOT cancelled'`. `--exact` matches words only as written.
 
 ## Narrow down your notes
 
 ```sh
-memo search notes 'budget' --filter 'tag:work'          # only notes with a tag
-memo search notes 'budget' --source notes:2              # only one folder, by the id a hit shows
-memo search notes 'budget source:internal'               # only notes you wrote in Memo
-memo search notes 'budget' --filter 'date:2026-10-08'    # and a second condition
+wcat search notes 'budget' --filter 'tag:work'          # only notes with a tag
+wcat search notes 'budget' --source notes:2              # only one folder, by the id a hit shows
+wcat search notes 'budget source:internal'               # only notes you wrote in wcat
+wcat search notes 'budget' --filter 'date:2026-10-08'    # and a second condition
 ```
 
 `source:file` shows only notes from files. The query field `source:` is the note's own source; the `--source`
 option is different: it chooses which folders are read. Results come 20 at a time; when there are more, `--page 2`
 shows the next page, and the answer's `page.next_page` says which page that is.
 
-A field in the query works like `--filter`: `memo search notes 'budget tag:work'` finds by meaning only notes tagged
-`work`. Only the words are searched by meaning, so `memo search notes 'date:today'` lists just today's notes, newest
+A field in the query works like `--filter`: `wcat search notes 'budget tag:work'` finds by meaning only notes tagged
+`work`. Only the words are searched by meaning, so `wcat search notes 'date:today'` lists just today's notes, newest
 first. For a Google Drive document, `date:` and the date a result shows are its last edit on Drive. For a note file
 they are its front matter `date` (a bare day is midnight where you are), else the file's modification time; the next
-`memo sync` dates a note imported before this.
+`wcat sync` dates a note imported before this.
 
 ## Search mail
 
 ```sh
-memo search mail 'from:kai subject:invoice'
-memo search mail 'mailbox:important budget'
-memo search mail 'budget' --source email:you@example.com
+wcat search mail 'from:kai subject:invoice'
+wcat search mail 'mailbox:important budget'
+wcat search mail 'budget' --source email:you@example.com
 ```
 
 `mailbox:` finds a mail folder or a Gmail label, such as `inbox`, `important` or `starred`. Without
-`--source`, Memo searches every mailbox; `--source email:a@example.com,email:b@example.com` searches those two. Mail
+`--source`, wcat searches every mailbox; `--source email:a@example.com,email:b@example.com` searches those two. Mail
 synced by `mail` keeps text and headers only, so it has no attachment text.
 
 ## Search stored meetings
 
-Once `zm` has saved your Zoom meetings in the local store, Memo can find matching transcript passages,
+Once `zm` has saved your Zoom meetings in the local store, wcat can find matching transcript passages,
 meeting titles, summaries and chat text there, offline. It does not contact Zoom or send text to a model.
 Use your stored account name in place of `zoom:work`. `--source zoom` also works when the store has
 exactly one Zoom account; an ambiguous selection lists the accounts to choose from:
 
 ```sh
-memo search meetings 'budget' --source zoom:work --project HRB --since-time 2026-10-01 --limit 10 --json
-memo meetings passage 'meeting:1/42/3/0' --source zoom:work --before-n 2 --after-n 2 --json
+wcat search meetings 'budget' --source zoom:work --project HRB --since-time 2026-10-01 --limit 10 --json
+wcat meetings passage 'meeting:1/42/3/0' --source zoom:work --before-n 2 --after-n 2 --json
 ```
 
 Copy a hit's `ref` into the passage command. A transcript hit has a cue reference such as
@@ -149,7 +149,7 @@ names separately without `--project`, then review the matches. MCP `identity_id`
 select meetings with observed participants; they do not restrict results to that person's speech.
 
 Meeting search uses its own word query and flags; the mail/message query fields above do not apply.
-Use `memo search meetings --help` for date and project options; MCP also has event and series selectors.
+Use `wcat search meetings --help` for date and project options; MCP also has event and series selectors.
 JSON answers have the standard
 `items`, `page`, `next` and `meta.accounts`; use the returned cursor with the same account and filters.
 The `missing` field reports unknown archive completeness. Even when indexing is ready, an empty search
@@ -164,7 +164,7 @@ When preparing for a project discussion, gather its different names across your 
 This finds transcript cues even before a meeting has been linked to the project. Ask your agent:
 
 ```text prompt
-Use memo CLI to gather Harbour project evidence from my work meeting account and Telegram.
+Use wcat CLI to gather Harbour project evidence from my work meeting account and Telegram.
 Search the last 60 days using the project's recorded aliases. Show cited passages, separate
 reported facts from suggested follow-ups, and tell me which sources or transcripts are missing.
 Do not confirm findings or create tasks.
@@ -173,13 +173,13 @@ Do not confirm findings or create tasks.
 For direct command use, replace the project key and account names with yours:
 
 ```sh
-memo projects evidence HRB --source zoom:work,telegram:1 --since-time 60d --json
+wcat projects evidence HRB --source zoom:work,telegram:1 --since-time 60d --json
 ```
 
 To compare runs over the same time window, set an exact exclusive end with `--before-time`:
 
 ```sh
-memo projects evidence HRB --source zoom:work,telegram:1 --since-time 60d --before-time 2026-10-01T12:00:00Z --json
+wcat projects evidence HRB --source zoom:work,telegram:1 --since-time 60d --before-time 2026-10-01T12:00:00Z --json
 ```
 
 Days back are counted from that timestamp. An explicit `--since-time` start date also keeps this end;
@@ -193,7 +193,7 @@ words; hits are joined. Every message of a chat confirmed as the project's is re
 its account. Those items are labelled `linked-chat`: they name nothing, they belong to the chat. One run takes at
 most a share of the item limit from each linked chat (50 for one chat at the default 100, 20 from four chats up);
 a chat with more is listed as capped and `--cursor` reads the rest. A linked chat
-outside `--source` is listed as not read. People confirmed as members of the project (`memo relationships add
+outside `--source` is listed as not read. People confirmed as members of the project (`wcat relationships add
 person:<id> project:<id>`) are read the same way as `--contact person:<id>` below, without being named, but without
 their aliases; a person you also pass with `--contact` is read once. At most 16 lanes run in all, so when members do
 not fit, the rest are listed as not read (`member-limit`), in a fixed order. `--contact person:<id>` reads every message and mail that person's
@@ -201,7 +201,7 @@ stored identities wrote in `--source`, labelled `sender` (matched by who wrote i
 the aliases you gave them; their messenger display name is not searched, since texts rarely spell it out. A
 literal `--contact "<name>"` is searched as words. A meeting hit retains its
 exact cue reference and uses the meeting start date, so an old meeting imported today stays old.
-Read a relevant cue and its neighbours with `memo meetings passage` before drawing conclusions.
+Read a relevant cue and its neighbours with `wcat meetings passage` before drawing conclusions.
 Gathering does not create project links, establish attendees or save extracted facts and tasks.
 
 To see who is involved, read `people` in the `--json` result (text output prints one "people who wrote these" line):
@@ -212,10 +212,10 @@ so add the counts up across `--cursor` runs.
 
 A document hit includes short paragraphs around the first paragraph naming a searched word. They
 help locate the passage; they do not establish that a conclusion is supported. If `oversized` lists
-a document, gathering did not read its text: open its returned reference with `memo notes show` when
+a document, gathering did not read its text: open its returned reference with `files notes show` when
 needed. Keep the unread source in the result rather than calling that evidence absent.
 
-If `units` reports a pending meeting index, run `memo search meetings` for the same account through
+If `units` reports a pending meeting index, run `wcat search meetings` for the same account through
 the [meeting search workflow](#search-stored-meetings), then gather again. Mail/document catch-up
 does not index transcript cues. Missing transcripts must first be archived by their meeting tool;
 finished pagination still leaves archive completeness unknown.
@@ -232,20 +232,20 @@ meeting-to-project links. Gathering itself creates neither kind of proposal.
 
 ## Search by meaning
 
-With the search model on your computer, Memo also searches by meaning, so `holiday` can find a note
+With the search model on your computer, wcat also searches by meaning, so `holiday` can find a note
 about a vacation. Download the model once. tg, max and the other WireCat tools share it:
 
 ```sh
-memo models download embeddinggemma
+wcat models download embeddinggemma
 ```
 
-The model runs on your computer. After the download, run `memo sync` so your notes are prepared
+The model runs on your computer. After the download, run `wcat sync` so your notes are prepared
 for it. Each result says whether it was found by words, by meaning or both. Without the model,
-Memo says "Searched by words only" and searches stored notes by words.
+wcat says "Searched by words only" and searches stored notes by words.
 
 ### Choosing another model
 
-There are three search models. `memo models list` shows them, their size on disk and which one is in use:
+There are three search models. `wcat models list` shows them, their size on disk and which one is in use:
 
 | Model | Size | On disk | Licence | Speed |
 | --- | --- | --- | --- | --- |
@@ -256,49 +256,49 @@ There are three search models. `memo models list` shows them, their size on disk
 To use another one, download it, then choose it:
 
 ```sh
-memo models download e5-small
-memo models set e5-small
+wcat models download e5-small
+wcat models set e5-small
 ```
 
-The choice is shared: tg, max and the other WireCat tools use the same model. Memo then says how many
-pieces of text the new model still has to read and about how long that takes. The next `memo sync`
+The choice is shared: tg, max and the other WireCat tools use the same model. wcat then says how many
+pieces of text the new model still has to read and about how long that takes. The next `wcat sync`
 runs do that work a part at a time. Until they finish, search by meaning finds only what the new
 model has read, and search by words finds the rest. The old model's work is kept, so going back to
-it with `memo models set embeddinggemma` is instant. A computer that had e5-small before EmbeddingGemma became the
+it with `wcat models set embeddinggemma` is instant. A computer that had e5-small before EmbeddingGemma became the
 default keeps using it until EmbeddingGemma is downloaded; then search by meaning reads e5-small's work until
 EmbeddingGemma has read more.
 
-`memo models add` adds a model of your own from Hugging Face; `memo models add --help` shows what it
+`wcat models add` adds a model of your own from Hugging Face; `wcat models add --help` shows what it
 needs.
 
 ## Search harder
 
-`memo search all --harder` asks a hosted model to read your question with the first 30 results and put the ones that
-answer it first. On synthetic data, over Memo's own search, it raised the share of right records in the first ten
+`wcat search all --harder` asks a hosted model to read your question with the first 30 results and put the ones that
+answer it first. On synthetic data, over wcat's own search, it raised the share of right records in the first ten
 from 0.79 to 0.88 on questions worded unlike their records, and from 0.32 to 0.39 on a sample of 59 LifeBench
 questions (Claude Haiku). It costs about $0.0003 and a second or two a search.
 
 It is off until you allow it, because it sends your words out of your computer. You choose the provider:
 
 ```sh
-memo models search-consents set anthropic          # says what it sends; changes nothing
-memo models search-consents set anthropic --yes    # allow it: Claude Haiku
-memo models search-consents set openai --yes       # or OpenAI: gpt-4o-mini
-memo models keys set anthropic                     # the provider's API key, typed at a hidden prompt
-memo search all 'what did we agree about the server price?' --harder
-memo models search-consents revoke                 # stop it
+wcat models search-consents set anthropic          # says what it sends; changes nothing
+wcat models search-consents set anthropic --yes    # allow it: Claude Haiku
+wcat models search-consents set openai --yes       # or OpenAI: gpt-4o-mini
+wcat models keys set anthropic                     # the provider's API key, typed at a hidden prompt
+wcat search all 'what did we agree about the server price?' --harder
+wcat models search-consents revoke                 # stop it
 ```
 
 Another OpenAI-compatible service, such as OpenRouter, takes its address and the model's name:
-`memo models search-consents set openai --base-url https://openrouter.ai/api/v1 --model deepseek/deepseek-chat --yes`.
-If you already allowed enrichment (`memo models consents`), `show` proposes the same provider, but you still allow
+`wcat models search-consents set openai --base-url https://openrouter.ai/api/v1 --model deepseek/deepseek-chat --yes`.
+If you already allowed enrichment (`wcat models consents`), `show` proposes the same provider, but you still allow
 this one yourself.
 
 **What is sent:** your question and the first 30 results: for each one its date, title and the short excerpt the
 result shows (at most 400 characters). They go to the provider you chose, only on a search with `--harder`. A search
 without it sends nothing. The model answers only with the numbers of the results it picks.
 
-If the model does not answer within 5 seconds, or anything else goes wrong, Memo shows the results in the usual order
+If the model does not answer within 5 seconds, or anything else goes wrong, wcat shows the results in the usual order
 and says why. It never fails the search. Only the first page is reordered. When a permission hides some kinds of
 results (an MCP server started with `--permission`), `--harder` sends nothing. An agent cannot allow it for you.
 
@@ -310,7 +310,7 @@ tokens, when the model answered) and `ms`. A search the permissions kept from th
 
 ## What a result shows
 
-For a note, a result shows the file and the first matching line. Below the results, Memo lists the
+For a note, a result shows the file and the first matching line. Below the results, wcat lists the
 notes and people that the results link to:
 
 ```text
@@ -326,18 +326,18 @@ store yet. Add `--json` to get each result's reference, its links and how it was
 
 ## Give your agent the sources
 
-`memo answers create` collects the sources for a question, so your agent can answer and cite them:
+`wcat answers create` collects the sources for a question, so your agent can answer and cite them:
 
 ```sh
-memo answers create 'What is the Harbour budget?' 'Harbour budget' --all
+wcat answers create 'What is the Harbour budget?' 'Harbour budget' --all
 ```
 
-The words after the question are what Memo searches for; without them, Memo searches for the whole
+The words after the question are what wcat searches for; without them, wcat searches for the whole
 question, and every word must match. `--all` searches every account; use `--source telegram:1` for one
 account. The answer lists each source with its reference and text, what was searched and whether
-anything was left out. Memo does not answer the question itself and does not save the answer.
+anything was left out. wcat does not answer the question itself and does not save the answer.
 
-Memo can also send the sources to an AI provider you set up and return its answer: add `--analyze`,
+wcat can also send the sources to an AI provider you set up and return its answer: add `--analyze`,
 and `--allow-remote` for a provider outside your computer. See
 [configuration](configuration.md#environment-variables). The provider's answer is generated text:
 check it against the sources.
@@ -346,22 +346,22 @@ Next: [see everything about one person](people.md), or [turn what you found into
 
 ## Meeting reader scope
 
-Memo and zm share cli-core's meeting search selectors and parsers: meeting, identity, person, event and
-series ids; project, tag and topic; time bounds, cursor and read budget. Memo selects tags/topics in
+wcat and zm share cli-core's meeting search selectors and parsers: meeting, identity, person, event and
+series ids; project, tag and topic; time bounds, cursor and read budget. wcat selects tags/topics in
 the native query (`tag:` and `topic:`); stored topic labels can also use the shared `--topic-name` selector. For example:
 
 ```sh
-memo search meetings "draft topic:finance" --source zoom:work --meeting-id 12
+wcat search meetings "draft topic:finance" --source zoom:work --meeting-id 12
 ```
 
-Their account selection differs: Memo needs one stored `--source provider:account`; zm selects its account
-with its profile argument. Memo's `meetings passage` reuses the shared passage grammar, and `meetings prepare`
+Their account selection differs: wcat needs one stored `--source provider:account`; zm selects its account
+with its profile argument. wcat's `meetings passage` reuses the shared passage grammar, and `meetings prepare`
 reuses the shared preparation builder and answer schema. Their JSON evidence and coverage retain the shared
 shape; the text summaries describe each tool's actual reads.
 
-Memo reads stored archives. Its preparation summary leaves the next meeting time unverified because it does
+wcat reads stored archives. Its preparation summary leaves the next meeting time unverified because it does
 not read a provider calendar. zm can use its selected provider connection to check that schedule.
 zm also adds optional semantic search and remote embedding settings around the shared search grammar;
-Memo's meeting search is the stored word-search path. Those options require a separate embedding workflow
-and are not part of Memo's current meeting reader. Memo's `search notes` and `search all` still support the
+wcat's meeting search is the stored word-search path. Those options require a separate embedding workflow
+and are not part of wcat's current meeting reader. wcat's `search notes` and `search all` still support the
 shared local meaning model for notes and mail.

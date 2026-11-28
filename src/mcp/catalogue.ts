@@ -22,15 +22,7 @@ export const MCP_EXCLUSIONS = [
   { path: ["memories", "remove"], reason: "erases what the owner reviews; only the owner forgets" },
   { path: ["facts", "remove"], reason: "erases what the owner reviews; only the owner forgets" },
   { path: ["facts", "reject"], reason: "the owner's answer to an agent's proposal" },
-  {
-    path: ["import"],
-    reason: "reads files and folders of this computer; an agent hands records over as records import",
-  },
   { path: ["records", "link"], reason: "only the owner says which entity a source's record is" },
-  { path: ["sources", "preview"], reason: "fetches an address of the agent's choosing" },
-  { path: ["sources", "remove"], reason: "erases what the owner added; only the owner removes it" },
-  { path: ["sources", "suggest"], reason: "sends a source's text to a reader, which may be off this computer" },
-  { path: ["sources", "readers", "set"], reason: "only the owner picks the reader a source's text goes to" },
   { path: ["models", "keys", "set"], reason: "keeps an API key; only the owner gives one" },
   { path: ["models", "keys", "remove"], reason: "forgets an API key; only the owner does" },
   { path: ["actions", "edit"], reason: "the owner's change to an agent's findings before deciding them" },
@@ -42,8 +34,6 @@ export const MCP_EXCLUSIONS = [
 
 /**
  * Commands whose input an agent hands over as stdin, never as a path: the argument that names the file is always `-`.
- * `sources add` is offered as text only, so an agent gets no way to make memo read a file of this computer or fetch
- * an address of its choosing; a path or a link is the owner's, on the command line.
  */
 const STDIN_INPUT: Record<string, { argument: string; name: string; description: string; json?: true }> = {
   "meetings.actions.add": {
@@ -58,7 +48,7 @@ const STDIN_INPUT: Record<string, { argument: string; name: string; description:
     description: "the cited findings proposal as JSON",
     json: true,
   },
-  "mail.findings.add": {
+  "review.findings.add": {
     argument: "file",
     name: "input",
     description: "the cited findings proposal as JSON",
@@ -66,7 +56,6 @@ const STDIN_INPUT: Record<string, { argument: string; name: string; description:
   },
   "records.import": { argument: "file", name: "input", description: "the records envelope as JSON", json: true },
   "records.check": { argument: "file", name: "input", description: "the records envelope as JSON", json: true },
-  "sources.add": { argument: "source", name: "text", description: "the text to keep as a source" },
 }
 
 export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramFactory) => {
@@ -178,7 +167,7 @@ export const commandCatalogue = (env: NodeJS.ProcessEnv, createProgram: ProgramF
           stdin,
           authority,
           profile: "",
-          env: { ...env, AI_AGENT: "memo-mcp", MEMO_MCP_CLIENT: callingAgent("memo-mcp") },
+          env: { ...env, AI_AGENT: "wcat-mcp", WCAT_MCP_CLIENT: callingAgent("wcat-mcp") },
           levels: () => levels,
           // The server's own stricter levels reach the command too, so a read that leaves out denied kinds sees them.
           ...(overrides.length ? { overrides } : {}),

@@ -83,10 +83,10 @@ export const identitiesCommands = (people: Command, program: Command, streams: S
   deleteCommand(people, program, streams, env)
 
   annotate(people.command("scan"), { effects: LOCAL_WRITE })
-    .summary("match people across sources now; memo sync does it too")
+    .summary("match people across sources now; wcat sync does it too")
     .description(
       "match people across sources now: the same address or a phone two people share joins them, the rest waits " +
-        "in people review; memo sync runs it too",
+        "in people review; wcat sync runs it too",
     )
     .option("--json", "print JSON; --json=id,title keeps only those fields")
     .action(async (options: { json?: boolean }) => {
@@ -107,7 +107,7 @@ export const identitiesCommands = (people: Command, program: Command, streams: S
           "say two identities are one person: yours links them; an agent's merges them at once when the store finds " +
             "strong evidence (one mobile number or personal address no one else has, or each source has once, from " +
             "two sources, one of them a messenger or a call for a phone), and otherwise waits for you as a match that says why; " +
-            "agent_merges: propose makes every agent's link wait; memo people unmerge undoes a merge",
+            "agent_merges: propose makes every agent's link wait; wcat people unmerge undoes a merge",
         )
         .argument("<identity>", "<messenger>:<name or id>")
         .argument("<other>", "<messenger>:<name or id> of the person it joins"),
@@ -156,7 +156,7 @@ export const identitiesCommands = (people: Command, program: Command, streams: S
           done.outcome === "linked"
             ? `linked: ${done.person}`
             : done.outcome === "merged"
-              ? `merged into ${done.person} on ${strongText(done.evidence)}; memo people unmerge ${done.merge} undoes it`
+              ? `merged into ${done.person} on ${strongText(done.evidence)}; wcat people unmerge ${done.merge} undoes it`
               : `waits for the owner as match ${done.proposal}: ${weakText(done.evidence)}`,
         )
       },
@@ -179,7 +179,7 @@ export const identitiesCommands = (people: Command, program: Command, streams: S
     print(
       json,
       itemAnswer({ outcome: "proposed" as const, proposal }),
-      `waits for the owner as split ${proposal}: memo people review`,
+      `waits for the owner as split ${proposal}: wcat people review`,
     )
 
   reasonOption(
@@ -200,7 +200,7 @@ export const identitiesCommands = (people: Command, program: Command, streams: S
       if (!FROM.test(options.from?.trim() ?? ""))
         throw new CliError(
           "validation_error",
-          "say whom they leave: --from person:<uid> or --from person:me; memo people show <identity> names who holds one",
+          "say whom they leave: --from person:<uid> or --from person:me; wcat people show <identity> names who holds one",
           { reason: "person.from-required", param: "from" },
         )
       const who = await separation(command, `unlink ${refs.join(" ")} from ${options.from}?`, options.reason)

@@ -24,12 +24,12 @@ const HOUR = 3_600_000
  * list newest first meets theirs first. The owner keeps a deal of his own beside it.
  */
 const setUp = async (crm: FakeCrmSourceOptions = { self: "7" }, theirs = 1) => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-crm-viewer-"))
-  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), MEMO_CONFIG_DIR: dir }
+  const dir = mkdtempSync(join(tmpdir(), "wcat-crm-viewer-"))
+  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), WCAT_CONFIG_DIR: dir }
   delete env.AI_AGENT
   delete env.CLAUDECODE
-  delete env.MEMO_GROUP
-  delete env.MEMO_GROUP_LOCK
+  delete env.WCAT_GROUP
+  delete env.WCAT_GROUP_LOCK
   const store = await openStore({ env })
   let mineRef = ""
   let theirsRef = ""
@@ -96,7 +96,7 @@ const setUp = async (crm: FakeCrmSourceOptions = { self: "7" }, theirs = 1) => {
     organizationRef,
     personRef,
     theirs: () => inStore((opened) => opened.deals.get(theirsRef)),
-    // Set before the viewer rule existed, or by the administrator's own memo.
+    // Set before the viewer rule existed, or by the administrator's own wcat.
     tagTheirs: () => inStore((opened) => opened.deals.setProject(theirsRef, { project: projectRef, by: "owner" })),
   }
 }

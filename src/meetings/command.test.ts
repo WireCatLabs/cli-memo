@@ -13,7 +13,7 @@ import { createMemoServer } from "../mcp/server.js"
 import { createProgram } from "../program.js"
 
 const fixture = async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-meeting-review-"))
+  const dir = mkdtempSync(join(tmpdir(), "wcat-meeting-review-"))
   const env = { ...process.env, AI_AGENT: "", CLAUDECODE: "", MESSAGING_STORE: join(dir, "store.db") }
   const account = { provider: "example", account: "synthetic" }
   const other = { provider: "example", account: "foreign" }

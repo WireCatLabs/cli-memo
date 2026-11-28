@@ -10,7 +10,7 @@ const quiet = (command: Command): Command => {
   return command
 }
 
-/** Runs memo as bin/memo.ts does: the group word lifted first, then the program made for that group. */
+/** Runs wcat as bin/wcat-wirecat.ts does: the group word lifted first, then the program made for that group. */
 export const memoIn =
   (env: NodeJS.ProcessEnv) =>
   async (...args: string[]) => {

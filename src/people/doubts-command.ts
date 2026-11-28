@@ -20,7 +20,7 @@ const textOf = (doubt: PersonDoubt): string =>
       ({ identity, name, method, by, at }) =>
         `  ${identity}${name ? `  ${name}` : ""}  (${method} by ${by}, ${at.slice(0, 10)})`,
     ),
-    ...doubt.fix.map((command) => `  fix: memo ${command}`),
+    ...doubt.fix.map((command) => `  fix: wcat ${command}`),
   ].join("\n")
 
 /** People that may be wrong across the whole store, so the owner or an agent can set them right. */
@@ -73,7 +73,7 @@ export const doubtsCommand = (people: Command, program: Command, streams: Stream
         "answers a doubt with keep: the person's links are right, so links check stops listing the identities in " +
           "doubt until one of them moves to another person; an identity that joins later is checked again, and an " +
           "agent's split of the kept ones is refused. Keep also says what looked like test data is a real contact, " +
-          "and brings back a person memo hid as test data (people list kind:test lists them). test: the person is " +
+          "and brings back a person wcat hid as test data (people list kind:test lists them). test: the person is " +
           "test data, hidden from every list until you keep them",
       )
       .argument("<who>", "person:<uid> as people links check lists it, person:me, or an identity of the person")

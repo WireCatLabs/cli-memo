@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { delimiter, join } from "node:path"
 import { captureStreams } from "@wirecat/cli-base"
 import { beforeEach, describe, expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
@@ -20,29 +20,46 @@ const run = async (...args: string[]) => {
   return streams.stdout.join("")
 }
 
+const FAKE_FILES = join(import.meta.dirname, "..", "..", "test", "fake-files")
+
+/** `wcat-files` on PATH, answering `sync --json` with these folders and failures. */
+const withFiles = (item: { notes?: unknown[]; failed?: unknown[] }) => {
+  env = {
+    ...env,
+    PATH: `${FAKE_FILES}${delimiter}${env.PATH ?? ""}`,
+    WCAT_FAKE_FILES: JSON.stringify({ notes: [], failed: [], ...item }),
+    WCAT_FAKE_FILES_LOG: join(dir, "files.log"),
+  }
+}
+
+const unbound = (path: string) => ({
+  source: `notes ${path}`,
+  code: "configuration_error",
+  reasonId: "folder.unbound",
+  reason: `${path} has no folder id — files folders add ${path}`,
+})
+
 beforeEach(() => {
   dir = mkdtempSync(join(tmpdir(), "auto-"))
-  const vault = join(dir, "vault")
-  mkdirSync(vault)
-  writeFileSync(join(vault, "a.md"), "synthetic note")
   env = {
     ...process.env,
     XDG_CONFIG_HOME: join(dir, "xdg"),
-    MEMO_CONFIG_DIR: join(dir, "config"),
-    MEMO_STATE_DIR: join(dir, "state"),
+    WCAT_CONFIG_DIR: join(dir, "config"),
+    WCAT_STATE_DIR: join(dir, "state"),
     MESSAGING_STORE: join(dir, "messages.db"),
-    MEMO_SYSTEMCTL_LOG: join(dir, "systemctl.log"),
+    WCAT_SYSTEMCTL_LOG: join(dir, "systemctl.log"),
   }
-  updateConfig(() => ({ notes: { folders: [vault] } }), env)
 })
 
-describe("memo auto", () => {
+describe("wcat auto", () => {
   it("installs a timer with the interval asked for, and remembers it in the config", async () => {
     await run("jobs", "start", "--every", "2m")
 
-    expect(readFileSync(join(units(), "memo-import.timer"), "utf8")).toContain("OnUnitInactiveSec=2min")
-    expect(readFileSync(join(units(), "memo-import.service"), "utf8")).toMatch(/ExecStart=".*" ".*memo\.js" "sync"/)
-    expect(calls()).toContain("--user enable --now memo-import.timer")
+    expect(readFileSync(join(units(), "wcat-import.timer"), "utf8")).toContain("OnUnitInactiveSec=2min")
+    expect(readFileSync(join(units(), "wcat-import.service"), "utf8")).toMatch(
+      /ExecStart=".*" ".*wcat-wirecat\.js" "sync"/,
+    )
+    expect(calls()).toContain("--user enable --now wcat-import.timer")
     expect(loadConfig(env).auto).toMatchObject({ enabled: true, every: "2m" })
   })
 
@@ -64,8 +81,8 @@ describe("memo auto", () => {
 
     await run("jobs", "stop")
 
-    expect(existsSync(join(units(), "memo-import.timer"))).toBe(false)
-    expect(calls()).toContain("--user disable --now memo-import.timer")
+    expect(existsSync(join(units(), "wcat-import.timer"))).toBe(false)
+    expect(calls()).toContain("--user disable --now wcat-import.timer")
     expect(loadConfig(env).auto?.enabled).toBe(false)
   })
 
@@ -74,47 +91,47 @@ describe("memo auto", () => {
     updateConfig((config) => ({ ...config, auto: { enabled: true, every: "15m" } }), env)
 
     await run("sync")
-    expect(readFileSync(join(units(), "memo-import.timer"), "utf8")).toContain("OnUnitInactiveSec=5min")
+    expect(readFileSync(join(units(), "wcat-import.timer"), "utf8")).toContain("OnUnitInactiveSec=5min")
 
-    env = { ...env, MEMO_AUTO: "1" }
+    env = { ...env, WCAT_AUTO: "1" }
     await run("sync")
-    expect(readFileSync(join(units(), "memo-import.timer"), "utf8")).toContain("OnUnitInactiveSec=15min")
+    expect(readFileSync(join(units(), "wcat-import.timer"), "utf8")).toContain("OnUnitInactiveSec=15min")
 
     updateConfig((config) => ({ ...config, auto: { enabled: false } }), env)
     expect(await run("sync")).toBe("")
-    expect(existsSync(join(units(), "memo-import.timer"))).toBe(false)
+    expect(existsSync(join(units(), "wcat-import.timer"))).toBe(false)
   })
 
-  it("passes the folders and store memo was started with to every timer run", async () => {
+  it("passes the folders and store wcat was started with to every timer run", async () => {
     await run("jobs", "start")
 
-    const unit = readFileSync(join(units(), "memo-import.service"), "utf8")
+    const unit = readFileSync(join(units(), "wcat-import.service"), "utf8")
     expect(unit).toContain(`"MESSAGING_STORE=${join(dir, "messages.db")}"`)
-    expect(unit).toContain(`"MEMO_CONFIG_DIR=${join(dir, "config")}"`)
-    expect(loadConfig(env).auto?.places).toMatchObject({ MEMO_STATE_DIR: join(dir, "state") })
+    expect(unit).toContain(`"WCAT_CONFIG_DIR=${join(dir, "config")}"`)
+    expect(loadConfig(env).auto?.places).toMatchObject({ WCAT_STATE_DIR: join(dir, "state") })
   })
 
-  it("points the timer at the installed memo that ran last, and never at a checkout", async () => {
+  it("points the timer at the installed wcat that ran last, and never at a checkout", async () => {
     await run("jobs", "start")
-    const service = join(units(), "memo-import.service")
+    const service = join(units(), "wcat-import.service")
     writeFileSync(
       service,
       readFileSync(service, "utf8").replace(/ExecStart=.*/, 'ExecStart="/gone/node" "/gone/memo.js" "sync"'),
     )
 
-    await followInstall(env, "/home/someone/project/cli-memo/dist/bin/memo.js")
+    await followInstall(env, "/home/someone/project/cli-memo/dist/bin/wcat-wirecat.js")
     expect(readFileSync(service, "utf8")).toContain("/gone/node")
 
-    await followInstall({ ...env, MEMO_AUTO: "1" }, "/usr/lib/node_modules/@wirecat/cli-memo/dist/bin/memo.js")
+    await followInstall({ ...env, WCAT_AUTO: "1" }, "/usr/lib/node_modules/@wirecat/wirecat/dist/bin/wcat-wirecat.js")
     expect(readFileSync(service, "utf8")).toContain("/gone/node")
 
-    await followInstall(env, "/usr/lib/node_modules/@wirecat/cli-memo/dist/bin/memo.js")
+    await followInstall(env, "/usr/lib/node_modules/@wirecat/wirecat/dist/bin/wcat-wirecat.js")
     expect(readFileSync(service, "utf8")).toContain(process.execPath)
   })
 
-  it("never points the timer at another tool's private install of memo", async () => {
+  it("never points the timer at another tool's private install of wcat", async () => {
     await run("jobs", "start")
-    const service = join(units(), "memo-import.service")
+    const service = join(units(), "wcat-import.service")
     writeFileSync(
       service,
       readFileSync(service, "utf8").replace(/ExecStart=.*/, 'ExecStart="/kept/node" "/kept/memo.js" "sync"'),
@@ -123,18 +140,18 @@ describe("memo auto", () => {
 
     await followInstall(
       env,
-      "/home/someone/docs-tool/.tooling/memo-v1/node_modules/@wirecat/cli-memo/dist/bin/memo.js",
+      "/home/someone/docs-tool/.tooling/memo-v1/node_modules/@wirecat/wirecat/dist/bin/wcat-wirecat.js",
       roots,
     )
     expect(readFileSync(service, "utf8")).toContain("/kept/node")
 
-    await followInstall(env, `${roots[0]}/@wirecat/cli-memo/dist/bin/memo.js`, roots)
+    await followInstall(env, `${roots[0]}/@wirecat/wirecat/dist/bin/wcat-wirecat.js`, roots)
     expect(readFileSync(service, "utf8")).toContain(process.execPath)
   })
 
   it("never starts, enables or rewrites the PATH of a timer stopped by hand when an install moves", async () => {
     await run("jobs", "start")
-    const service = join(units(), "memo-import.service")
+    const service = join(units(), "wcat-import.service")
     writeFileSync(
       service,
       readFileSync(service, "utf8")
@@ -145,7 +162,7 @@ describe("memo auto", () => {
 
     await followInstall(
       { ...env, PATH: `/the/app/path:${env.PATH}` },
-      "/usr/lib/node_modules/@wirecat/cli-memo/dist/bin/memo.js",
+      "/usr/lib/node_modules/@wirecat/wirecat/dist/bin/wcat-wirecat.js",
     )
 
     const unit = readFileSync(service, "utf8")
@@ -160,7 +177,7 @@ describe("memo auto", () => {
 
     await followInstall(
       { ...env, PATH: `/the/app/path:${env.PATH}` },
-      "/usr/lib/node_modules/@wirecat/cli-memo/dist/bin/memo.js",
+      "/usr/lib/node_modules/@wirecat/wirecat/dist/bin/wcat-wirecat.js",
     )
     await run("jobs", "status", "--json")
 
@@ -183,68 +200,42 @@ describe("memo auto", () => {
 })
 
 describe("a failing timer run", () => {
-  it("is said on every command until a timer run passes, and memo jobs status shows the streak", async () => {
+  it("is said on every command until a timer run passes, and wcat jobs status shows the streak", async () => {
     updateConfig((config) => ({ ...config, auto: { enabled: true, every: "5m" } }), env)
-    const timer = { ...env, MEMO_AUTO: "1" }
+    withFiles({ failed: [unbound(join(dir, "vault"))] })
     const timerSync = () =>
-      createProgram({ streams: captureStreams(), env: timer }).exitOverride().parseAsync(["sync"], { from: "user" })
+      createProgram({ streams: captureStreams(), env: { ...env, WCAT_AUTO: "1" } })
+        .exitOverride()
+        .parseAsync(["sync"], { from: "user" })
 
     await timerSync()
     await timerSync()
     process.exitCode = 0
 
-    expect(autoNotice(timer)).toBeUndefined()
+    expect(autoNotice({ ...env, WCAT_AUTO: "1" })).toBeUndefined()
     expect(autoNotice(env)).toMatch(
-      /^memo: scheduled sync failing since .* \(2 runs\): notes: configuration_error \(folder\.unbound\) — memo jobs status$/,
+      /^wcat: scheduled sync failing since .* \(2 runs\): notes: configuration_error \(folder\.unbound\) — wcat jobs status$/,
     )
     expect(answerOf(await run("jobs", "status", "--json")).failing).toMatchObject({
       runs: 2,
       reason: "notes: configuration_error (folder.unbound)",
-      log: "journalctl --user -u memo-import.service",
+      log: "journalctl --user -u wcat-import.service",
     })
 
-    await run("folders", "add", join(dir, "vault"))
+    withFiles({})
     await timerSync()
 
     expect(autoNotice(env)).toBeUndefined()
     expect(answerOf(await run("jobs", "status", "--json")).failing).toBeNull()
   })
 
-  it("keeps a title the error names out of last.json and memo jobs status", async () => {
+  it("keeps a failing source's reason id, not the title its error names, out of last.json and jobs status", async () => {
     const titled = join(dir, "Synthetic Chat Title")
-    mkdirSync(titled)
-    const timer = { ...env, MEMO_AUTO: "1" }
     const streams = captureStreams()
-    updateConfig(
-      () => ({ notes: { folders: [join(dir, "vault"), titled] }, auto: { enabled: true, every: "5m" } }),
-      env,
-    )
+    updateConfig(() => ({ auto: { enabled: true, every: "5m" } }), env)
+    withFiles({ failed: [unbound(titled)] })
 
-    await createProgram({ streams, env: timer }).exitOverride().parseAsync(["sync"], { from: "user" })
-    await expect(
-      createProgram({ streams, env: timer }).exitOverride().parseAsync(["sync", "--folder", titled], { from: "user" }),
-    ).rejects.toThrow(/Synthetic Chat Title/)
-    process.exitCode = 0
-
-    expect(streams.stdout.join("")).toContain("Synthetic Chat Title")
-    const status = (await run("jobs", "status")) + (await run("jobs", "status", "--json"))
-    const kept = readFileSync(join(dir, "state", "auto", "last.json"), "utf8") + status + autoNotice(env)
-    expect(kept).not.toContain("Synthetic")
-    expect(status).toContain("configuration_error (folder.unbound)")
-    expect(status).toContain("the full message: journalctl --user -u memo-import.service")
-  })
-
-  it("keeps a failing source's reason id, not the title its error names", async () => {
-    const titled = join(dir, "Synthetic Chat Title")
-    mkdirSync(titled)
-    const streams = captureStreams()
-    updateConfig(
-      () => ({ notes: { folders: [join(dir, "vault"), titled] }, auto: { enabled: true, every: "5m" } }),
-      env,
-    )
-    await run("folders", "add", join(dir, "vault"))
-
-    await createProgram({ streams, env: { ...env, MEMO_AUTO: "1" } })
+    await createProgram({ streams, env: { ...env, WCAT_AUTO: "1" } })
       .exitOverride()
       .parseAsync(["sync"], { from: "user" })
     process.exitCode = 0
@@ -266,16 +257,28 @@ describe("a failing timer run", () => {
   })
 })
 
-describe("memo sync", () => {
-  it("names a folder with no id as failed, and imports it once it has one", async () => {
-    expect(await run("sync")).toMatch(/failed notes .*has no folder id — memo folders add/)
+describe("wcat sync", () => {
+  it("runs files sync when wcat-files is on PATH, and reports its folders and failures as its own", async () => {
+    withFiles({
+      notes: [{ folder: join(dir, "vault"), folderId: "1", notes: 1, changed: 1, renamed: 0, deleted: 0 }],
+      failed: [unbound(join(dir, "other"))],
+    })
+    const text = await run("sync")
     process.exitCode = 0
-    await run("folders", "add", join(dir, "vault"))
-    expect(await run("sync")).toMatch(/notes .*: 1 notes, 1 changed, 0 moved, 0 gone/)
-    expect(await run("sync")).toMatch(/1 notes, 0 changed/)
+    expect(text).toMatch(/notes .*vault: 1 notes, 1 changed, 0 moved, 0 gone/)
+    expect(text).toMatch(/failed notes .*other: .*has no folder id — files folders add/)
+    expect(readFileSync(join(dir, "files.log"), "utf8")).toBe("sync --json\n")
+    await run("sync", "--no-embed", "--only", "notes")
+    expect(readFileSync(join(dir, "files.log"), "utf8")).toBe("sync --json\nsync --json --no-embed\n")
   })
 
-  it("lists memo sync, and a bare memo import from an old timer is refused without syncing", async () => {
+  it("syncs mail and people without the files CLI, and names it when --only notes asks for it", async () => {
+    expect(answerOf(await run("sync", "--json"))).toMatchObject({ notes: [], failed: [] })
+    await expect(run("sync", "--only", "notes")).resolves.toMatch(/failed notes: .*files CLI, which is not installed/)
+    process.exitCode = 0
+  })
+
+  it("lists wcat sync, and a bare wcat import from an old timer is refused without syncing", async () => {
     const commands = await run("commands", "--json")
     expect(commands).toContain('"path":["sync"]')
     await expect(run("import")).rejects.toThrow()
@@ -299,14 +302,14 @@ describe("memo sync", () => {
       JSON.stringify({ pid: process.ppid, startedAt: new Date().toISOString() }),
     )
     updateConfig((config) => ({ ...config, auto: { enabled: true, every: "5m" } }), env)
-    env = { ...env, MEMO_AUTO: "1" }
+    env = { ...env, WCAT_AUTO: "1" }
     process.exitCode = undefined
     const streams = captureStreams()
 
     await createProgram({ streams, env }).exitOverride().parseAsync(["sync", "--json"], { from: "user" })
 
     expect(process.exitCode).toBeUndefined()
-    expect(streams.stderr.join("")).toBe(`memo sync skipped: another memo sync is running (process ${process.ppid})`)
+    expect(streams.stderr.join("")).toBe(`wcat sync skipped: another wcat sync is running (process ${process.ppid})`)
     expect(answerOf(streams.stdout.join(""))).toMatchObject({ skipped: expect.stringContaining("running") })
   })
 })

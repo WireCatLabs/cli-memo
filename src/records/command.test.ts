@@ -5,6 +5,7 @@ import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { beforeEach, expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
+import { addNote } from "../../test/notes.js"
 import { createProgram } from "../program.js"
 
 let env: NodeJS.ProcessEnv
@@ -19,12 +20,12 @@ const json = async (...args: string[]) => {
 }
 
 beforeEach(async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-records-"))
+  const dir = mkdtempSync(join(tmpdir(), "wcat-records-"))
   env = {
     ...process.env,
     MESSAGING_STORE: join(dir, "messages.db"),
-    MEMO_CONFIG_DIR: join(dir, "config"),
-    MEMO_STATE_DIR: join(dir, "state"),
+    WCAT_CONFIG_DIR: join(dir, "config"),
+    WCAT_STATE_DIR: join(dir, "state"),
   }
   const store = await openStore({ env })
   try {
@@ -35,7 +36,7 @@ beforeEach(async () => {
 })
 
 it("adds a memory of the owner's as confirmed, finds it, and marks it stale", async () => {
-  const note = await json("notes", "add", "Bob Sample prefers Fridays")
+  const note = await addNote(env, "Bob Sample prefers Fridays")
   const memory = await json(
     "memories",
     "add",
@@ -93,13 +94,13 @@ it("lists the agent log by agent, with each agent's name", async () => {
   try {
     const call = { tier: "read" as const, status: "ok" as const, startedAt: 1, finishedAt: 2 }
     await store.agentActions.record({ ...call, actor: { bot: "tg-mcp" }, tool: "messages_list" })
-    await store.agentActions.record({ ...call, actor: { bot: "memo-mcp" }, tool: "memories_add" })
+    await store.agentActions.record({ ...call, actor: { bot: "wcat-mcp" }, tool: "memories_add" })
   } finally {
     await store.close()
   }
 
-  expect((await json("agents", "list", "agent:memo-mcp")).items).toMatchObject([
-    { tool: "memories_add", actor: { name: "memo-mcp" } },
+  expect((await json("agents", "list", "agent:wcat-mcp")).items).toMatchObject([
+    { tool: "memories_add", actor: { name: "wcat-mcp" } },
   ])
   expect((await json("agents", "list")).items).toHaveLength(2)
 })

@@ -23,11 +23,11 @@ afterEach(() => {
 })
 
 const setUp = async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-review-kinds-"))
+  const dir = mkdtempSync(join(tmpdir(), "wcat-review-kinds-"))
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     MESSAGING_STORE: join(dir, "s.db"),
-    MEMO_CONFIG_DIR: mkdtempSync(join(tmpdir(), "memo-review-kinds-config-")),
+    WCAT_CONFIG_DIR: mkdtempSync(join(tmpdir(), "wcat-review-kinds-config-")),
   }
   delete env.AI_AGENT
   delete env.CLAUDECODE
@@ -131,7 +131,7 @@ const setUp = async () => {
       ],
     }),
   )
-  const mail = (await run(CLAUDE, NOBODY, "mail", "findings", "add", mailFile, "--source", MAILBOX)).item
+  const mail = (await run(CLAUDE, NOBODY, "review", "findings", "add", mailFile, "--source", MAILBOX)).item
   await run(
     CLAUDE,
     NOBODY,
@@ -236,8 +236,8 @@ it("refuses an agent on every owner-only kind, and lets the owner decide a mail 
 })
 
 it("says when nothing happened, and counts what waits in the status and in the project's context", async () => {
-  const empty = mkdtempSync(join(tmpdir(), "memo-review-status-"))
-  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(empty, "s.db"), MEMO_CONFIG_DIR: empty }
+  const empty = mkdtempSync(join(tmpdir(), "wcat-review-status-"))
+  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(empty, "s.db"), WCAT_CONFIG_DIR: empty }
   delete env.AI_AGENT
   delete env.CLAUDECODE
   const streams = captureStreams()

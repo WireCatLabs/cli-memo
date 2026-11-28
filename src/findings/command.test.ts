@@ -10,7 +10,7 @@ import { envelopeOf } from "../../test/answer.js"
 import { createProgram } from "../program.js"
 
 const fixture = async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-findings-"))
+  const dir = mkdtempSync(join(tmpdir(), "wcat-findings-"))
   const env = { ...process.env, AI_AGENT: "", CLAUDECODE: "", MESSAGING_STORE: join(dir, "store.db") }
   const account = { provider: "example", account: "synthetic" }
   const store = await openStore({ env })

@@ -213,7 +213,7 @@ export const listTasks = async (
     throw new CliError(
       "validation_error",
       fields.includes(field)
-        ? `tasks list takes ${field} as a query word: memo tasks list ${field}:${value}`
+        ? `tasks list takes ${field} as a query word: wcat tasks list ${field}:${value}`
         : `tasks list has no --${field}; its query words are ${fields.map((name) => `${name}:`).join(", ")}`,
     )
   }

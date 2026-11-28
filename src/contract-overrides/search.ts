@@ -8,7 +8,7 @@ export const search: readonly SharedContractOverride[] = [
     before: "search the local archive",
     after: null,
     reason:
-      "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+      "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
   {
     command: ["search"],
@@ -17,7 +17,7 @@ export const search: readonly SharedContractOverride[] = [
       "find things by text: one resource when you know it (messages, notes), or search all across messages and notes; for mail, the separate memo CLI: memo search mail",
     after: "search messages, mail, notes, memories and people; search all when unsure where",
     reason:
-      "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+      "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
   {
     command: ["search"],
@@ -25,7 +25,7 @@ export const search: readonly SharedContractOverride[] = [
     before: ["all", "messages", "notes", "conversations", "runs"],
     after: ["all", "messages", "notes"],
     reason:
-      "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+      "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
   {
     command: ["search", "all"],
@@ -33,7 +33,7 @@ export const search: readonly SharedContractOverride[] = [
     before: "search stored messages, notes, calendar events and selected meeting transcripts",
     after: "messages, mail, notes, events, deals, meetings and issues ranked together",
     reason:
-      "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+      "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
   {
     command: ["search", "all"],
@@ -41,9 +41,9 @@ export const search: readonly SharedContractOverride[] = [
     before:
       "search messenger messages and notes in the local store, calendar events when the store holds a calendar, and a meeting account's transcripts when --source names one — best match first; not mail (the separate memo CLI searches it: memo search mail), tasks, people, memories or projects. Use it when you do not know where something was written; search messages or notes reads one kind with all its fields",
     after:
-      "messages, mail, notes, calendar events, deals, leads, business data, meeting passages from every meeting account and tracker issues and projects, ranked together; not people, memories, memo's projects or decisions. A kind you know reads better with its own search, with all its fields",
+      "messages, mail, notes, calendar events, deals, leads, business data, meeting passages from every meeting account and tracker issues and projects, ranked together; not people, memories, wcat's projects or decisions. A kind you know reads better with its own search, with all its fields",
     reason:
-      "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+      "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
   {
     command: ["search", "all"],
@@ -57,15 +57,15 @@ export const search: readonly SharedContractOverride[] = [
       local: "read",
     },
     reason:
-      "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+      "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
   {
     command: ["search", "all"],
     field: "examples",
-    before: ["memo personal search all draft"],
+    before: ["wcat personal search all draft"],
     after: null,
     reason:
-      "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+      "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
   {
     command: ["search", "all"],
@@ -87,7 +87,7 @@ export const search: readonly SharedContractOverride[] = [
       },
     ],
     reason:
-      "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+      "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
   {
     command: ["search", "all"],
@@ -187,7 +187,7 @@ export const search: readonly SharedContractOverride[] = [
       {
         flags: "--harder",
         description:
-          "a hosted model reorders the first 30 hits; sends the question and those hits to the provider you chose with memo models search-consents set <provider> --yes, only after that",
+          "a hosted model reorders the first 30 hits; sends the question and those hits to the provider you chose with wcat models search-consents set <provider> --yes, only after that",
         takes_value: false,
         mandatory: false,
       },
@@ -200,7 +200,7 @@ export const search: readonly SharedContractOverride[] = [
       },
     ],
     reason:
-      "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+      "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
   {
     command: ["search", "messages"],
@@ -208,7 +208,7 @@ export const search: readonly SharedContractOverride[] = [
     before: "find messages by words and filters",
     after: null,
     reason:
-      "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+      "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
   {
     command: ["search", "messages"],
@@ -217,7 +217,7 @@ export const search: readonly SharedContractOverride[] = [
       "search messenger messages in the local store — what was read, fetched or kept by serve; --discover searches the archive only",
     after: "stored messenger messages only",
     reason:
-      "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+      "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
   {
     command: ["search", "messages"],
@@ -231,15 +231,15 @@ export const search: readonly SharedContractOverride[] = [
       local: "read",
     },
     reason:
-      "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+      "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
   {
     command: ["search", "messages"],
     field: "examples",
-    before: ["memo personal search messages draft --limit 10"],
+    before: ["wcat personal search messages draft --limit 10"],
     after: null,
     reason:
-      "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+      "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
   {
     command: ["search", "messages"],
@@ -262,7 +262,7 @@ export const search: readonly SharedContractOverride[] = [
       },
     ],
     reason:
-      "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+      "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
   {
     command: ["search", "messages"],
@@ -396,7 +396,7 @@ export const search: readonly SharedContractOverride[] = [
       },
     ],
     reason:
-      "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+      "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
   {
     command: ["search", "notes"],
@@ -404,7 +404,7 @@ export const search: readonly SharedContractOverride[] = [
     before: "find stored notes by words and filters",
     after: null,
     reason:
-      "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+      "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
   {
     command: ["search", "notes"],
@@ -413,15 +413,15 @@ export const search: readonly SharedContractOverride[] = [
       "search the notes — written in memo, or imported from a notes folder — by words and, with the local text model, by meaning; each hit says which found it and what it links to",
     after: "native notes by words and, with the local model, meaning",
     reason:
-      "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+      "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
   {
     command: ["search", "notes"],
     field: "examples",
-    before: ["memo personal search notes draft --limit 10"],
+    before: ["wcat personal search notes draft --limit 10"],
     after: null,
     reason:
-      "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+      "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
   {
     command: ["search", "notes"],
@@ -444,7 +444,7 @@ export const search: readonly SharedContractOverride[] = [
       },
     ],
     reason:
-      "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+      "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
   {
     command: ["search", "notes"],
@@ -523,7 +523,7 @@ export const search: readonly SharedContractOverride[] = [
       {
         flags: "--source <accounts>",
         description:
-          "only these notes accounts, separated by commas: notes:internal for notes written in memo, notes:<folder id> as a hit shows it, notes or group:<name>",
+          "only these notes accounts, separated by commas: notes:internal for notes written in wcat, notes:<folder id> as a hit shows it, notes or group:<name>",
         takes_value: true,
         mandatory: false,
       },
@@ -543,6 +543,6 @@ export const search: readonly SharedContractOverride[] = [
       },
     ],
     reason:
-      "Memo searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
+      "wcat searches imported accounts, mail and native notes without a live messenger; its scope, ranking and output controls are explicit provider differences.",
   },
 ]

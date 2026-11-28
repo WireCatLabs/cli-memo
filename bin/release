@@ -22,7 +22,7 @@ rerun_if_changed() {
   export WIRECAT_RELEASE_RERUN=1
   exec ./bin/release "$@"
 }
-package=@wirecat/cli-memo
+package=@wirecat/wirecat
 
 mode=ci
 case "${1:-}" in

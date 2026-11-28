@@ -10,11 +10,11 @@ import { createProgram } from "../program.js"
 const tg = { provider: "telegram", account: "1" }
 
 const setUp = async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-task-proposals-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-task-proposals-"))
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     MESSAGING_STORE: join(root, "s.db"),
-    MEMO_CONFIG_DIR: join(root, "config"),
+    WCAT_CONFIG_DIR: join(root, "config"),
     XDG_DATA_HOME: join(root, "data"),
     XDG_CONFIG_HOME: join(root, "xdg-config"),
   }
@@ -51,7 +51,7 @@ const setUp = async () => {
     return streams.stdout.join("")
   }
   const schedule = (name: string, prompt: string, last?: object, extra: object = {}) => {
-    const dir = join(root, "data", "cli-memo", "schedules", name)
+    const dir = join(root, "data", "wcat", "schedules", name)
     mkdirSync(dir, { recursive: true })
     writeFileSync(
       join(dir, "schedule.json"),
@@ -114,7 +114,7 @@ it("lists the batches that hold tasks first, however many other proposals are ne
 
   expect(proposals.items[0]).toMatchObject({ why: "findings: 1 task" })
   expect(proposals.next).toContain(
-    "# 1 proposed tasks wait in 1 batches: memo review list kind:mail_findings,meeting_findings,findings",
+    "# 1 proposed tasks wait in 1 batches: wcat review list kind:mail_findings,meeting_findings,findings",
   )
 })
 
@@ -123,10 +123,10 @@ it("says in the tasks section when no agent proposes tasks, or when one stopped 
   const notes = async () => sectionOf(envelopeOf(await run(env, "review", "agenda", "--json")), "tasks").next
 
   expect(await notes()).toContainEqual(
-    expect.stringMatching(/^# no agent proposes tasks from messengers; add one: memo schedule agent task-triage/),
+    expect.stringMatching(/^# no agent proposes tasks from messengers; add one: wcat schedule agent task-triage/),
   )
 
-  schedule("task-triage", "Run memo skill show task-triage and follow it.", {
+  schedule("task-triage", "Run wcat skill show task-triage and follow it.", {
     at: "2026-11-12T08:00:15.555Z",
     exitCode: 0,
     skipped: {
@@ -137,12 +137,12 @@ it("says in the tasks section when no agent proposes tasks, or when one stopped 
   })
   expect(await notes()).toContainEqual(
     expect.stringMatching(
-      /^# task-triage has not run since 2026-11-12T08:00:15.555Z: it was saved by an older version.*save it again: memo schedule agent task-triage/,
+      /^# task-triage has not run since 2026-11-12T08:00:15.555Z: it was saved by an older version.*save it again: wcat schedule agent task-triage/,
     ),
   )
 
-  schedule("task-triage", "Run memo skill show task-triage and follow it.", undefined, { paused: true })
+  schedule("task-triage", "Run wcat skill show task-triage and follow it.", undefined, { paused: true })
   expect(await notes()).toContain(
-    "# task-triage is paused, so messengers propose no tasks: memo schedule resume task-triage",
+    "# task-triage is paused, so messengers propose no tasks: wcat schedule resume task-triage",
   )
 })

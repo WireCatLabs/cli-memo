@@ -46,7 +46,6 @@ import {
 import { type Command, InvalidArgumentError } from "commander"
 import { answers, itemAnswer, listAnswer, shortenedBy, wholeList, withStore } from "../answer.js"
 import { byOption, deciderOf, reasonOption, whoRuns } from "../author.js"
-import { notesAbout } from "../notes/about.js"
 import { oneOf, positive, readScope, writeScope } from "../options.js"
 import { withOwner } from "../people/owner.js"
 import { decideOne, decisionOf } from "../review/review.js"
@@ -65,6 +64,7 @@ import {
 import { keyDocuments, markKey, projectOf, unmarkKey } from "./key-documents.js"
 import { KEY_DOCUMENTS_QUERY, keyDocument } from "./list-queries.js"
 import { meetingProjectsCommand } from "./meeting-projects-command.js"
+import { notesAbout } from "./notes-about.js"
 import { organizationDeleteCommand } from "./organization-delete-command.js"
 import { organizationText } from "./organization-text.js"
 import { projectActionsCommand } from "./project-actions-command.js"
@@ -178,7 +178,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
         const wanted = reference.replace(/^organization:/, "")
         const found = (await store.knowledge.organizations()).find((organization) => organization.id === wanted)
         if (found === undefined)
-          throw new CliError("not_found", `no organization ${reference}; memo organizations list shows them`)
+          throw new CliError("not_found", `no organization ${reference}; wcat organizations list shows them`)
         return found
       }),
     )
@@ -414,7 +414,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     annotate(relations.command("list"), { effects: LOCAL_READ })
       .description(
         "relationships (who works where, who reports to whom, who is on a deal), all or those of one reference, with " +
-          "titles; confirmed:false lists the proposals waiting for you, as memo review kind:relationship does",
+          "titles; confirmed:false lists the proposals waiting for you, as wcat review kind:relationship does",
       )
       .summary("relationships with titles; confirmed:false lists those waiting for you"),
     RELATIONSHIP_QUERY,
@@ -452,7 +452,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     annotate(relations.command("update"), { effects: LOCAL_WRITE })
       .description(
         "set what a relationship is: its role and a note beside it, how much you deal with a person on a project, or " +
-          "what a chat is for in a project (work, sales, support, other); an agent's change waits for you in memo review",
+          "what a chat is for in a project (work, sales, support, other); an agent's change waits for you in wcat review",
       )
       .summary("set a relationship's role, engagement or a chat's purpose in a project")
       .argument("<id>", "the relationship's id, as relationships list gives it")
@@ -544,7 +544,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
     annotate(relations.command("end"), { effects: LOCAL_WRITE })
       .description(
         "say that a relationship no longer holds, from a day on; it stays, as ended, and relationships list " +
-          "include:ended shows it. An agent's waits for you in memo review",
+          "include:ended shows it. An agent's waits for you in wcat review",
       )
       .summary("say that a relationship ended")
       .argument("<id>", "the relationship's id, as relationships list gives it")
@@ -581,7 +581,7 @@ export const knowledgeCommands = (program: Command, streams: Streams, env: NodeJ
           throw new CliError(
             "validation_error",
             `${task} is a task in a project; a reminder belongs to an account, so it needs a task from a message, ` +
-              "a note or a file — memo tasks add <source>",
+              "a note or a file — wcat tasks add <source>",
           )
         return itemAnswer(await store.knowledge.schedule(key, task, options.atTime, timezoneOf(options.timezone)))
       }),

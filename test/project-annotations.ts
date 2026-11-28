@@ -4,7 +4,7 @@ import { join } from "node:path"
 import { openStore } from "@wirecat/cli-core/store"
 
 export const projectAnnotationFixture = async () => {
-  const directory = mkdtempSync(join(tmpdir(), "memo-project-annotations-"))
+  const directory = mkdtempSync(join(tmpdir(), "wcat-project-annotations-"))
   const source = join(directory, "source.db"),
     target = join(directory, "target.db")
   const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: source, XDG_CONFIG_HOME: join(directory, "config") }
@@ -90,7 +90,7 @@ export const projectAnnotationFixture = async () => {
 }
 
 export const copyProjectAnnotationFixture = (baseline: Awaited<ReturnType<typeof projectAnnotationFixture>>) => {
-  const directory = mkdtempSync(join(tmpdir(), "memo-project-annotation-copy-"))
+  const directory = mkdtempSync(join(tmpdir(), "wcat-project-annotation-copy-"))
   const source = join(directory, "source.db"),
     target = join(directory, "target.db"),
     bindingsFile = join(directory, "bindings.json")

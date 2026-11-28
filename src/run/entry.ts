@@ -5,7 +5,7 @@ import { APP } from "../app.js"
 import { interactiveOf } from "../terminal.js"
 
 /**
- * memo as `startCli` runs it. Under `commands --serve` several requests run at once, so each keeps its own program:
+ * wcat as `startCli` runs it. Under `commands --serve` several requests run at once, so each keeps its own program:
  * commander holds parsed options on the command, and a shared one answered every request with the last one's options.
  */
 export const memoEntry = (io?: CliEntry["io"]): CliEntry => {
@@ -28,7 +28,7 @@ export const memoEntry = (io?: CliEntry["io"]): CliEntry => {
       const { group, rest: args } = await liftGroup(lifting, entry.args, entry.env)
       const program = group === undefined ? lifting : createProgram({ signal: entry.signal, group })
       programs.set(entry, program)
-      // `memo jobs status` says it in full; everywhere else one line, until a timer run passes again.
+      // `wcat jobs status` says it in full; everywhere else one line, until a timer run passes again.
       if (args[0] !== "jobs") {
         const notice = autoNotice(entry.env)
         if (notice) processStreams.diagnostic(notice)

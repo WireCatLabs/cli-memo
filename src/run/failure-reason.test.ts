@@ -18,5 +18,5 @@ it("names a damaged store and its recovery, not a bug", async () => {
   })
   const { error: failure } = await errorObject(malformed)
   expect(failure).toMatchObject({ code: "configuration_error", reason: "store.damaged" })
-  expect(failureReason(malformed, failure, false)).toContain("memo store recover")
+  expect(failureReason(malformed, failure, false)).toContain("wcat store recover")
 })

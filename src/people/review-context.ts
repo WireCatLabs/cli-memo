@@ -116,7 +116,7 @@ export const agentMergeAnswer = (merge: PersonMerge) => ({
   evidence: merge.agent?.evidence ?? null,
   proposal: merge.agent?.proposal ?? null,
   at: merge.at,
-  undo: `memo people unmerge ${merge.id}`,
+  undo: `wcat people unmerge ${merge.id}`,
 })
 
 export const sideLines = (side: Side): string[] => [

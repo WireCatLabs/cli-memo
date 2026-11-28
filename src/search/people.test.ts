@@ -38,7 +38,7 @@ const refs = (answer: { items: { ref: string }[] }) => answer.items.map(({ ref }
 
 beforeAll(async () => {
   const dir = mkdtempSync(join(tmpdir(), "search-people-"))
-  env = { ...process.env, MESSAGING_STORE: join(dir, "m.db"), MEMO_CONFIG_DIR: join(dir, "config") }
+  env = { ...process.env, MESSAGING_STORE: join(dir, "m.db"), WCAT_CONFIG_DIR: join(dir, "config") }
   const store = await openStore({ env })
   const tg = { provider: "telegram", account: "1" }
   const max = { provider: "max", account: "2" }

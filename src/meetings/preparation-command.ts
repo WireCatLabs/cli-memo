@@ -28,7 +28,7 @@ const meetingPreparationCommandDefinition = (program: Command, streams: Streams,
   })
   overrideSharedContract(
     command,
-    "Memo prepares stored evidence only, names its stored accounts explicitly and cannot verify the next calendar meeting.",
+    "wcat prepares stored evidence only, names its stored accounts explicitly and cannot verify the next calendar meeting.",
     (one) => {
       sourceOptions(one, MEETING_ACCOUNT_HELP).option("--json", "print the standard JSON answer")
       one.description("prepare cited stored context for a series; does not verify its next meeting time")
@@ -37,7 +37,7 @@ const meetingPreparationCommandDefinition = (program: Command, streams: Streams,
         context.description = "one stored app.profile or email.mailbox, optionally =cursor; repeat (tg.personal)"
       annotate(one, {
         effects: LOCAL_READ,
-        examples: ["memo meetings prepare 123 --source zoom:personal --json"],
+        examples: ["wcat meetings prepare 123 --source zoom:personal --json"],
       })
     },
   )
@@ -46,7 +46,7 @@ const meetingPreparationCommandDefinition = (program: Command, streams: Streams,
 export const meetingPreparationCommand = (...args: Parameters<typeof meetingPreparationCommandDefinition>) => {
   customizeSharedCommand(
     sharedCommandTemplate(APP, "meetings"),
-    "Memo reads stored records of every account. Its list and show give one row per real meeting for WireCat Desktop's Meetings page: a calendar event joined with its Zoom or Meet record, phone calls included, as meeting_entry with event: and meeting: refs, a native query and a 50-row page. Transcript, summary, export, people, sync, import and repair stay with the provider CLIs, which read one account.",
+    "wcat reads stored records of every account. Its list and show give one row per real meeting for WireCat Desktop's Meetings page: a calendar event joined with its Zoom or Meet record, phone calls included, as meeting_entry with event: and meeting: refs, a native query and a 50-row page. Transcript, summary, export, people, sync, import and repair stay with the provider CLIs, which read one account.",
     () => {
       meetingPreparationCommandDefinition(...args)
       const command = args[0].commands.find((command) => command.name() === "meetings")

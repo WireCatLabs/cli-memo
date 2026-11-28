@@ -25,8 +25,8 @@ afterEach(() => {
 const setUp = async () => {
   const env: NodeJS.ProcessEnv = {
     ...process.env,
-    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-review-")), "s.db"),
-    MEMO_CONFIG_DIR: mkdtempSync(join(tmpdir(), "memo-review-config-")),
+    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-review-")), "s.db"),
+    WCAT_CONFIG_DIR: mkdtempSync(join(tmpdir(), "wcat-review-config-")),
   }
   delete env.AI_AGENT
   delete env.CLAUDECODE
@@ -252,7 +252,7 @@ it("keeps review confirm and reject from an MCP client unless the owner allows t
   const client = new Client({ name: "synthetic-agent", version: "1" })
   await client.connect(transport)
   try {
-    const catalogue = await client.callTool({ name: "memo_tools_search", arguments: {} })
+    const catalogue = await client.callTool({ name: "wcat_tools_search", arguments: {} })
     const items = (
       catalogue.structuredContent as { items: { command: string; availability: { available: boolean } }[] }
     ).items

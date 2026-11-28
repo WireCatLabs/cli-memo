@@ -19,7 +19,11 @@ const loadedBy = (file: string, seen = new Set<string>(), packages = new Set<str
 
 /** What the bin loads before `startCli` gets to answer a bare `--version`: everything above the call. */
 const loadedAtStart = (bin: string) => {
-  const head = readFileSync(bin, "utf8").split("await startCli(")[0] ?? ""
+  // The move from memo loads cli-core once, on the first start only; mayMigrate reads a marker file and nothing more.
+  const head = (readFileSync(bin, "utf8").split("await startCli(")[0] ?? "").replace(
+    / {2}if \(mayMigrate\([\s\S]*?\n {2}\}\n/,
+    "",
+  )
   const packages = new Set<string>()
   const specifiers = [...head.matchAll(IMPORT), ...head.matchAll(DYNAMIC_IMPORT)].map(([, from]) => from ?? "")
   for (const from of specifiers) {
@@ -29,9 +33,9 @@ const loadedAtStart = (bin: string) => {
   return packages
 }
 
-describe("starting memo", () => {
+describe("starting wcat", () => {
   it("**answers a bare --version without cli-core's command tree**: it was 1,000 of 1,050 files", () => {
-    const packages = loadedAtStart(join(import.meta.dirname, "bin", "memo.ts"))
+    const packages = loadedAtStart(join(import.meta.dirname, "bin", "wcat-wirecat.ts"))
     expect(packages).not.toContain("@wirecat/cli-core/cli")
     expect(packages).toContain("@wirecat/cli-core/cli/start")
   })

@@ -38,19 +38,19 @@ const refs = (answer: { items: { ref: string }[] }) => answer.items.map((item) =
 
 describe("account groups", () => {
   let env: NodeJS.ProcessEnv
-  let memo: ReturnType<typeof memoIn>
+  let wcat: ReturnType<typeof memoIn>
 
   beforeEach(async () => {
-    const root = mkdtempSync(join(tmpdir(), "memo-groups-"))
-    env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
-    delete env.MEMO_GROUP
-    delete env.MEMO_GROUP_LOCK
+    const root = mkdtempSync(join(tmpdir(), "wcat-groups-"))
+    env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), WCAT_CONFIG_DIR: join(root, "config") }
+    delete env.WCAT_GROUP
+    delete env.WCAT_GROUP_LOCK
     const store = await openStore({ env })
     await store.messages.saveMessages(PERSONAL, "7", [message("1", "Groupsignal at home")], { via: "test" })
     await store.messages.saveMessages(WORK, "7", [message("1", "Groupsignal at work")], { via: "test" })
     await store.accounts.saveAccountGroup("work", ["telegram:2"])
     await store.close()
-    memo = memoIn(env)
+    wcat = memoIn(env)
   })
 
   afterEach(() => {
@@ -58,65 +58,65 @@ describe("account groups", () => {
   })
 
   it("lists the saved groups, then all with every account, and highlights a duplicate", async () => {
-    const listed = await memo("groups", "list")
+    const listed = await wcat("groups", "list")
     expect(listed.items.map(({ group }: { group: string }) => group)).toEqual(["work", "all"])
     expect(rowOf(listed, "work")?.members).toEqual([expect.objectContaining({ ...WORK, reason: "setting" })])
     expect(
       ((rowOf(listed, "all")?.members ?? []) as { account: string }[]).map(({ account }) => account).sort(),
     ).toEqual(["1", "2"])
-    const doubled = await memo("groups", "add", "personal", "telegram:2")
+    const doubled = await wcat("groups", "add", "personal", "telegram:2")
     expect(rowOf(doubled, "personal")?.duplicates).toEqual([{ member: "telegram:2", groups: ["work", "personal"] }])
     expect(rowOf(doubled, "work")?.members).toEqual([expect.objectContaining({ also_in: ["personal"] })])
   })
 
   it("renames a group with its members, deletes one, and a run in a gone group lists the groups", async () => {
-    await memo("groups", "add", "family", "telegram:1")
-    const renamed = await memo("groups", "rename", "work", "office")
+    await wcat("groups", "add", "family", "telegram:1")
+    const renamed = await wcat("groups", "rename", "work", "office")
     expect(renamed.items.map(({ group }: { group: string }) => group)).toEqual(["office", "family", "all"])
     expect(rowOf(renamed, "office")?.members).toEqual([expect.objectContaining(WORK)])
-    const deleted = await memo("groups", "delete", "family")
+    const deleted = await wcat("groups", "delete", "family")
     expect(deleted.items.map(({ group }: { group: string }) => group)).toEqual(["office", "all"])
-    await expect(memo("groups", "delete", "all")).rejects.toThrow(/built in/)
-    await expect(memo("work", "search", "messages", "Groupsignal")).rejects.toThrow(/groups here: office/)
+    await expect(wcat("groups", "delete", "all")).rejects.toThrow(/built in/)
+    await expect(wcat("work", "search", "messages", "Groupsignal")).rejects.toThrow(/groups here: office/)
   })
 
   it("adds, moves and removes a member, and never takes a command word as a group name", async () => {
-    const added = await memo("groups", "add", "family", "telegram:1")
+    const added = await wcat("groups", "add", "family", "telegram:1")
     expect(rowOf(added, "family")?.members).toEqual([expect.objectContaining(PERSONAL)])
-    const moved = await memo("groups", "move", "telegram:1", "family", "work")
+    const moved = await wcat("groups", "move", "telegram:1", "family", "work")
     expect(((rowOf(moved, "work")?.members ?? []) as { account: string }[]).map((one) => one.account).sort()).toEqual([
       "1",
       "2",
     ])
     expect(rowOf(moved, "family")?.members).toEqual([])
-    const removed = await memo("groups", "remove", "work", "telegram:1")
+    const removed = await wcat("groups", "remove", "work", "telegram:1")
     expect(rowOf(removed, "work")?.members).toEqual([expect.objectContaining(WORK)])
-    await expect(memo("groups", "add", "search", "telegram:1")).rejects.toMatchObject({ code: "validation_error" })
-    await expect(memo("groups", "add", "all", "telegram:1")).rejects.toMatchObject({ code: "validation_error" })
+    await expect(wcat("groups", "add", "search", "telegram:1")).rejects.toMatchObject({ code: "validation_error" })
+    await expect(wcat("groups", "add", "all", "telegram:1")).rejects.toMatchObject({ code: "validation_error" })
   })
 
   it("sets an account's scope and one chat's, and a later list shows the account's", async () => {
-    expect(await memo("groups", "update", "telegram:2", "--scope", "work")).toMatchObject({
+    expect(await wcat("groups", "update", "telegram:2", "--scope", "work")).toMatchObject({
       ...WORK,
       scope: "work",
     })
-    expect(rowOf(await memo("groups", "list"), "work")?.members).toEqual([
+    expect(rowOf(await wcat("groups", "list"), "work")?.members).toEqual([
       expect.objectContaining({ ...WORK, scope: "work" }),
     ])
-    expect(await memo("groups", "update", "telegram:1", "--chat", "7", "--scope", "work")).toEqual({
+    expect(await wcat("groups", "update", "telegram:1", "--chat", "7", "--scope", "work")).toEqual({
       ...PERSONAL,
       chat: "7",
       own: "work",
       scope: "work",
     })
-    expect(await memo("groups", "update", "telegram:1", "--chat", "7", "--scope", "account")).toMatchObject({
+    expect(await wcat("groups", "update", "telegram:1", "--chat", "7", "--scope", "account")).toMatchObject({
       own: null,
       scope: "personal",
     })
-    await expect(memo("groups", "update", "telegram:1", "--scope", "account")).rejects.toMatchObject({
+    await expect(wcat("groups", "update", "telegram:1", "--scope", "account")).rejects.toMatchObject({
       code: "validation_error",
     })
-    await expect(memo("groups", "update", "telegram:1", "--chat", "nowhere", "--scope", "work")).rejects.toMatchObject({
+    await expect(wcat("groups", "update", "telegram:1", "--chat", "nowhere", "--scope", "work")).rejects.toMatchObject({
       code: "not_found",
     })
   })
@@ -127,7 +127,7 @@ describe("account groups", () => {
     const client = new Client({ name: "agent", version: "0" })
     await client.connect(clientSide)
     try {
-      const found = await client.callTool({ name: "memo_tools_search", arguments: {} })
+      const found = await client.callTool({ name: "wcat_tools_search", arguments: {} })
       const commands = (found.structuredContent as { items: { command: string }[] }).items.map((one) => one.command)
       expect(commands).toContain("groups move")
       expect(commands).not.toContain("groups update")
@@ -137,14 +137,14 @@ describe("account groups", () => {
   })
 
   it("reads only the group's accounts after the group word, every account with all, and refuses an outside --source", async () => {
-    expect(refs(await memo("search", "messages", "Groupsignal"))).toEqual(["msg:telegram/1/7/1", "msg:telegram/2/7/1"])
-    expect(refs(await memo("all", "search", "messages", "Groupsignal"))).toEqual([
+    expect(refs(await wcat("search", "messages", "Groupsignal"))).toEqual(["msg:telegram/1/7/1", "msg:telegram/2/7/1"])
+    expect(refs(await wcat("all", "search", "messages", "Groupsignal"))).toEqual([
       "msg:telegram/1/7/1",
       "msg:telegram/2/7/1",
     ])
-    expect(refs(await memo("work", "search", "messages", "Groupsignal"))).toEqual(["msg:telegram/2/7/1"])
-    expect(refs(await memo("work", "search", "all", "Groupsignal", "--exact"))).toEqual(["msg:telegram/2/7/1"])
-    await expect(memo("work", "search", "people", "x", "--source", "telegram:1")).rejects.toMatchObject({
+    expect(refs(await wcat("work", "search", "messages", "Groupsignal"))).toEqual(["msg:telegram/2/7/1"])
+    expect(refs(await wcat("work", "search", "all", "Groupsignal", "--exact"))).toEqual(["msg:telegram/2/7/1"])
+    await expect(wcat("work", "search", "people", "x", "--source", "telegram:1")).rejects.toMatchObject({
       code: "validation_error",
     })
   })
@@ -157,18 +157,18 @@ describe("account groups", () => {
     await store.close()
     const trackerRefs = (answer: { items: { ref: string }[] }) =>
       refs(answer).filter((ref) => ref.startsWith("tracker:"))
-    const issues = trackerRefs(await memo("search", "all", "invoice", "--only", "tracker"))
+    const issues = trackerRefs(await wcat("search", "all", "invoice", "--only", "tracker"))
     expect(issues.length).toBeGreaterThan(0)
-    expect(trackerRefs(await memo("office", "search", "all", "invoice", "--only", "tracker"))).toEqual(issues)
-    expect(trackerRefs(await memo("tracked", "search", "all", "invoice"))).toEqual(issues)
-    await expect(memo("work", "search", "all", "invoice", "--only", "tracker")).rejects.toMatchObject({
+    expect(trackerRefs(await wcat("office", "search", "all", "invoice", "--only", "tracker"))).toEqual(issues)
+    expect(trackerRefs(await wcat("tracked", "search", "all", "invoice"))).toEqual(issues)
+    await expect(wcat("work", "search", "all", "invoice", "--only", "tracker")).rejects.toMatchObject({
       code: "validation_error",
       message: expect.stringContaining("holds no account of tracker"),
     })
   })
 
-  it("takes MEMO_GROUP as the group word", async () => {
-    const scoped = memoIn({ ...env, MEMO_GROUP: "work" })
+  it("takes WCAT_GROUP as the group word", async () => {
+    const scoped = memoIn({ ...env, WCAT_GROUP: "work" })
     expect(refs(await scoped("search", "messages", "Groupsignal"))).toEqual(["msg:telegram/2/7/1"])
   })
 
@@ -177,16 +177,16 @@ describe("account groups", () => {
       ["serch", "all", "x"],
       ["nogroup", "search", "all", "x"],
     ])
-      await expect(memo(...args)).rejects.toMatchObject({
+      await expect(wcat(...args)).rejects.toMatchObject({
         code: "validation_error",
         message: expect.stringMatching(/unknown command or group — groups here: work/),
       })
-    await expect(memo("work")).rejects.toMatchObject({ message: expect.stringContaining("a command follows it") })
+    await expect(wcat("work")).rejects.toMatchObject({ message: expect.stringContaining("a command follows it") })
   })
 
-  it("under MEMO_GROUP_LOCK reads only the group, with or without the word, and refuses everything else", async () => {
-    vi.stubEnv("MEMO_GROUP_LOCK", "work")
-    const locked = memoIn({ ...env, MEMO_GROUP_LOCK: "work" })
+  it("under WCAT_GROUP_LOCK reads only the group, with or without the word, and refuses everything else", async () => {
+    vi.stubEnv("WCAT_GROUP_LOCK", "work")
+    const locked = memoIn({ ...env, WCAT_GROUP_LOCK: "work" })
     expect(refs(await locked("search", "messages", "Groupsignal"))).toEqual(["msg:telegram/2/7/1"])
     expect(refs(await locked("search", "all", "Groupsignal", "--exact"))).toEqual(["msg:telegram/2/7/1"])
     for (const args of [
@@ -200,10 +200,10 @@ describe("account groups", () => {
       await expect(locked(...args)).rejects.toMatchObject({ code: "permission_error" })
   })
 
-  it("serves an MCP agent under MEMO_GROUP_LOCK only the group's accounts", async () => {
-    vi.stubEnv("MEMO_GROUP_LOCK", "work")
+  it("serves an MCP agent under WCAT_GROUP_LOCK only the group's accounts", async () => {
+    vi.stubEnv("WCAT_GROUP_LOCK", "work")
     const [serverSide, clientSide] = InMemoryTransport.createLinkedPair()
-    await createMemoServer({ ...env, MEMO_GROUP_LOCK: "work" }, createProgram).connect(serverSide)
+    await createMemoServer({ ...env, WCAT_GROUP_LOCK: "work" }, createProgram).connect(serverSide)
     const client = new Client({ name: "locked", version: "0" })
     await client.connect(clientSide)
     try {

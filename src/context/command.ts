@@ -6,9 +6,7 @@ import type { Command } from "commander"
 import { answers, itemAnswer, shortenedBy, timezone, withStore } from "../answer.js"
 import { beforeOf, sinceOf } from "../digest/command.js"
 import { sectionLines } from "../knowledge/business-text.js"
-import { boundFolders } from "../notes/bound.js"
 import { positive } from "../options.js"
-import { importNotesMap } from "../people/notes-map.js"
 import { atLeast, kindsText, waitingAbout } from "../review/status.js"
 import { deniedCrmKinds } from "../search/denied.js"
 import { crmNotes } from "../store/crm-viewer.js"
@@ -109,7 +107,7 @@ export const contextText = ({
     ...(proposals.count
       ? [
           `  ${atLeast(proposals.count, proposals.complete)} proposal${proposals.count === 1 ? "" : "s"} ` +
-            `about them waiting (${kindsText(proposals.kinds)}) — memo ${proposals.next.command}`,
+            `about them waiting (${kindsText(proposals.kinds)}) — wcat ${proposals.next.command}`,
         ]
       : []),
     ...(history.items.length === 0
@@ -119,7 +117,7 @@ export const contextText = ({
           "History",
           ...history.items.map(touchLine),
           ...(history.beforeTime
-            ? [`  older — memo context person:${person.uid} --before-time ${history.beforeTime}`]
+            ? [`  older — wcat context person:${person.uid} --before-time ${history.beforeTime}`]
             : []),
         ]),
     "",
@@ -135,7 +133,7 @@ export const contextText = ({
     "",
     "",
     ...(notes.about.length === 0
-      ? ["Note about them  none — memo notes links add <identity> <path>"]
+      ? ["Note about them  none — wcat notes links add <identity> <path>"]
       : ["Notes about them", ...notes.about.map(noteLine)]),
     ...(notes.linking.length === 0 ? [] : ["Notes linking them", ...notes.linking.map(noteLine)]),
     ...(notes.throughNotes.length === 0
@@ -212,7 +210,6 @@ export const contextCommand = (program: Command, streams: Streams, env: NodeJS.P
         command: Command,
       ) => {
         const { answer, notes } = await withStore(env, async (store) => {
-          await importNotesMap(store, env, await boundFolders(store, env, { strict: false }))
           const sources =
             options.source === undefined ? undefined : await contextAccountsOf(store, env, person, options.source)
           const found = await memoContext(store, env, person, {

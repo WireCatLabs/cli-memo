@@ -32,11 +32,11 @@ const email = (id: string, thread: string, at: string, text: string) => ({
 })
 
 const imported = async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-mail-thread-"))
+  const dir = mkdtempSync(join(tmpdir(), "wcat-mail-thread-"))
   const env = {
     ...process.env,
     MESSAGING_STORE: join(dir, "messages.db"),
-    MEMO_CONFIG_DIR: join(dir, "config"),
+    WCAT_CONFIG_DIR: join(dir, "config"),
   }
   const store = await openStore({ env })
   try {

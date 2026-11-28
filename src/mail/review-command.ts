@@ -10,7 +10,7 @@ import { MAIL_SOURCES, oneAccountOf } from "../store/source-list.js"
 
 export const MAILBOX_HELP = `the one mailbox: ${MAIL_SOURCES}; may be left out when the store holds one mailbox`
 
-/** cli-core's mail commands read one mailbox per call; memo holds several, so the caller names it. */
+/** cli-core's mail commands read one mailbox per call; wcat holds several, so the caller names it. */
 export const oneMailboxOf = async (
   store: MessageStore,
   env: NodeJS.ProcessEnv,
@@ -29,12 +29,12 @@ const named = (commands: readonly Command[], name: string): Command => {
 }
 
 /**
- * `memo mail review`, `memo messages acknowledge` and `memo messages reset`: cli-core's, over the mailbox `--source`
+ * `wcat review mail`, `wcat messages acknowledge` and `wcat messages reset`: cli-core's, over the mailbox `--source`
  * names. The holder read and the acknowledge are what the mail-triage agent runs; acknowledge is of cli-core's propose
- * tier, the one store change MEMO_READ_ONLY lets through besides `mail findings add`. Reset, which moves a mark back,
+ * tier, the one store change WCAT_READ_ONLY lets through besides `review findings add`. Reset, which moves a mark back,
  * is the owner's alone.
  */
-export const mailReviewCommands = (mail: Command, messages: Command, env: NodeJS.ProcessEnv): void => {
+export const mailReviewCommands = (parent: Command, messages: Command, env: NodeJS.ProcessEnv): void => {
   const reads: MailReads = {
     app: APP,
     read: (command, work) =>
@@ -43,9 +43,9 @@ export const mailReviewCommands = (mail: Command, messages: Command, env: NodeJS
       ),
     bulkTriage: () => bulkTriage(env),
     mount: {
-      review: "mail review",
+      review: "review mail",
       acknowledge: "messages acknowledge",
-      findings: "mail findings add",
+      findings: "review findings add",
       conversation: null,
       mailbox: { option: "source", value: (mailbox) => `email:${mailbox.account}` },
     },
@@ -58,14 +58,21 @@ export const mailReviewCommands = (mail: Command, messages: Command, env: NodeJS
   for (const command of [review, acknowledge, reset])
     overrideSharedContract(
       command,
-      "memo holds several mailboxes and no profile, so --source names the one mailbox; its --json is per command.",
+      "wcat holds several mailboxes and no profile, so --source names the one mailbox; its --json is per command.",
       (one) => {
         one
           .option("--source <accounts>", MAILBOX_HELP)
           .option("--json", "print JSON; --json=id,title keeps only those fields")
       },
     )
-  mail.addCommand(review)
+  overrideSharedContract(
+    review,
+    "wcat has no mail group: the mail word belongs to the mail CLI, so the review of new mail is review mail.",
+    (one) => {
+      one.name("mail")
+    },
+  )
+  parent.addCommand(review)
   messages.addCommand(acknowledge)
   messages.addCommand(reset)
 }

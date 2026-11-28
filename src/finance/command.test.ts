@@ -15,8 +15,8 @@ const AT_TERMINAL: Terminal = { present: true }
 const NOBODY: Terminal = { present: false }
 
 const setUp = async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-finance-"))
-  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), MEMO_CONFIG_DIR: dir }
+  const dir = mkdtempSync(join(tmpdir(), "wcat-finance-"))
+  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), WCAT_CONFIG_DIR: dir }
   delete env.AI_AGENT
   delete env.CLAUDECODE
   const store = await openStore({ env })

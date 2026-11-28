@@ -105,7 +105,7 @@ export const sourcesText = (ref: string, { records, incoming }: SourcesOf, inden
     (one) => `${indent}named by ${one.account} ${one.record} as ${one.role}${one.as === null ? "" : ` (${one.as})`}`,
   ),
   ...(records.hasMore || incoming.hasMore
-    ? [`${indent}more: memo records list entity:${ref} --account <account>`]
+    ? [`${indent}more: wcat records list entity:${ref} --account <account>`]
     : []),
 ]
 

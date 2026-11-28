@@ -151,7 +151,7 @@ export const listReview = async (
   return { items: found.items.map((row) => reviewItem(row, label)), hasMore: found.hasMore }
 }
 
-export const REVIEW_SOURCES = "memo review list kind:memory_source_review"
+export const REVIEW_SOURCES = "wcat review list kind:memory_source_review"
 
 /** One proposal as `review list` shows it, read by id. */
 export const reviewItemOf = async (store: MessageStore, id: string) => {
@@ -170,7 +170,7 @@ const shown = (text: string | null) =>
 export const sourceReviewDetail = async (store: MessageStore, id: string, target: string) => {
   const payload = (await store.proposedActions.get(id)).payload as SourceReviewPayload
   const texts = new Map((await store.knowledge.sourceReviewTexts(id)).map((one) => [one.link, one]))
-  const withdraw = target.startsWith("fact:") ? `memo facts reverse ${target}` : `memo memories invalidate ${target}`
+  const withdraw = target.startsWith("fact:") ? `wcat facts reverse ${target}` : `wcat memories invalidate ${target}`
   return {
     cause: payload.cause,
     raisedAt: payload.raisedAt,
@@ -189,9 +189,9 @@ export const sourceReviewDetail = async (store: MessageStore, id: string, target
     challenges: payload.challenges,
     suggestions: (payload.suggestions ?? []).map(({ author, body, evidence, at }) => ({ author, body, evidence, at })),
     decide: {
-      stillTrue: `memo review confirm ${id}`,
-      dismiss: `memo review reject ${id} --reason <why>`,
-      correct: `memo ${target.startsWith("fact:") ? "facts" : "memories"} add <the right text and its options> --supersedes ${target}`,
+      stillTrue: `wcat review confirm ${id}`,
+      dismiss: `wcat review reject ${id} --reason <why>`,
+      correct: `wcat ${target.startsWith("fact:") ? "facts" : "memories"} add <the right text and its options> --supersedes ${target}`,
       withdraw,
     },
     untrusted: ["sources.quote", "sources.cited", "sources.now", "challenges.reason", "suggestions.body"],

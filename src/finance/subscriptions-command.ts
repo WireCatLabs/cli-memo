@@ -87,7 +87,7 @@ const fieldsOf = (options: SubscriptionOptions) =>
     endDate: dayOf(options.endDate),
   })
 
-/** `memo subscriptions`: what the owner bills or pays on a schedule, and its price history. */
+/** `wcat subscriptions`: what the owner bills or pays on a schedule, and its price history. */
 export const subscriptionCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { run } = answers(program, streams, env)
   const subscriptions = program

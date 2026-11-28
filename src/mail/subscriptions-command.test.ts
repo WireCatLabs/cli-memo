@@ -44,7 +44,7 @@ beforeEach(async () => {
 })
 
 it("lists broadcast mail by list, newest first, with where to unsubscribe", async () => {
-  const items = await f.items(OWNER, "mail", "subscriptions", "list")
+  const items = await f.items(OWNER, "review", "subscriptions", "list")
 
   expect(items).toMatchObject([
     {
@@ -58,16 +58,16 @@ it("lists broadcast mail by list, newest first, with where to unsubscribe", asyn
     },
     { key: "list:daily.paper.example.com", emails: 1, can_unsubscribe: false, unsubscribe: null },
   ])
-  const second = await f.run(OWNER, "mail", "subscriptions", "list", "--limit", "1", "--page", "2")
+  const second = await f.run(OWNER, "review", "subscriptions", "list", "--limit", "1", "--page", "2")
   expect(second).toMatchObject({ items: [{ key: "list:daily.paper.example.com" }], page: { total: { value: 2 } } })
-  expect(await f.items(OWNER, "mail", "subscriptions", "list", "type:promotion")).toEqual([])
+  expect(await f.items(OWNER, "review", "subscriptions", "list", "type:promotion")).toEqual([])
 })
 
 it("reads only the mailboxes --source names", async () => {
-  const mine = await f.items(OWNER, "mail", "subscriptions", "list", "--source", `email:${ME}`)
+  const mine = await f.items(OWNER, "review", "subscriptions", "list", "--source", `email:${ME}`)
   expect(mine).toHaveLength(2)
   await expect(
-    f.items(OWNER, "mail", "subscriptions", "list", "--source", "email:other@home.example.com"),
+    f.items(OWNER, "review", "subscriptions", "list", "--source", "email:other@home.example.com"),
   ).rejects.toMatchObject({ code: "not_found" })
 })
 

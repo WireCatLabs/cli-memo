@@ -10,7 +10,7 @@ const NOW = Date.parse("2026-11-08T07:30:00Z")
 const HOUR = 3_600_000
 
 const machine = () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-catch-up-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-catch-up-"))
   const bin = join(root, "bin")
   mkdirSync(bin)
   for (const tool of ["wcat-tg", "wcat-max", "wcat-mail"]) {
@@ -38,7 +38,8 @@ const machine = () => {
   const run =
     (code = 0): RunChild =>
     async (command, args, { env: childEnv }) => {
-      if (args[0] === "--wcat-describe") return { code: 0, stdout: JSON.stringify({ name: command.split("wcat-")[1] }) }
+      if (args[0] === "--wcat-describe")
+        return { code: 0, stdout: JSON.stringify({ name: command.split("wcat-").at(-1) }) }
       calls.push({ bin: command, args, profile: childEnv.TG_PROFILE ?? childEnv.MAX_PROFILE ?? childEnv.MAIL_PROFILE })
       return { code, stdout: "" }
     }

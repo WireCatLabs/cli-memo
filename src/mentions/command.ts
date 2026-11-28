@@ -28,7 +28,7 @@ const withSource = (command: Command, what: string) =>
 
 const SCOPE = "the mailboxes a mail mention may be in: email:<account>, email or group:<name>"
 
-const idArgument = (command: Command) => command.argument("<id>", "the mention's id, from memo mentions list", positive)
+const idArgument = (command: Command) => command.argument("<id>", "the mention's id, from wcat mentions list", positive)
 
 interface Options {
   source?: string

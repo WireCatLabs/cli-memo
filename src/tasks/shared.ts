@@ -28,9 +28,9 @@ const WRITES: ReadonlySet<string> = new Set(["update", "link", "claim", "release
 /** `task:15`, a bare id or a project key: a `tasks link` target that needs no messenger account. */
 const TASKISH = /^(task:.+|\d+|[A-Z][A-Z0-9]*-\d+)$/
 
-// memo's config file is not a messenger profile's, and cli-core's schema refuses its keys: the builders get
+// wcat's config file is not a messenger profile's, and cli-core's schema refuses its keys: the builders get
 // the defaults, from a config folder of a name nothing writes.
-const settings = settingsFor({ ...APP, appName: "cli-memo-tasks", envPrefix: "MEMO_TASKS" })
+const settings = settingsFor({ ...APP, appName: "wcat-tasks", envPrefix: "WCAT_TASKS" })
 
 /** The account the preAction hook resolved from `--source`; cli-core asks for it synchronously. */
 const resolved = new WeakMap<Command, AccountKey>()
@@ -39,11 +39,11 @@ const across = new WeakMap<Command, AccountKey[]>()
 
 const messenger: Messenger = {
   app: APP,
-  provider: "memo",
+  provider: "wcat",
   chatArgument: "a stored chat, by its id or title",
   resolveSettings: (flags, options) => settings.resolveSettings(flags, { ...options, needsProfile: false }),
   connect: async () => {
-    throw new CliError("validation_error", "memo reads no messenger: these commands answer from the store")
+    throw new CliError("validation_error", "wcat reads no messenger: these commands answer from the store")
   },
   accountOf: (command) => resolved.get(command),
   accountsOf: (command) => across.get(command),
@@ -103,7 +103,7 @@ const isTaskStats = (command: Command) =>
 const scoped = (command: Command, env: NodeJS.ProcessEnv, warn: (text: string) => void): Command =>
   overrideSharedContract(
     command,
-    "Memo names stored accounts with --source or --account and uses command-local JSON without messenger profiles.",
+    "wcat names stored accounts with --source or --account and uses command-local JSON without messenger profiles.",
     (one) => {
       ;(WRITES.has(one.name())
         ? writeOptions(one, "the account it acts as: telegram:<account>, email:<account>, notes:<id>")
@@ -121,7 +121,7 @@ const scoped = (command: Command, env: NodeJS.ProcessEnv, warn: (text: string) =
 
 /**
  * `tasks agenda|update|show|link|claim|release` and `stats tasks show` are cli-core's builders, the ones tg and max
- * have, mounted with memo's own `--source`, or `--account` for the writes, resolved to one account
+ * have, mounted with wcat's own `--source`, or `--account` for the writes, resolved to one account
  * (`Messenger.accountOf`).
  */
 export const sharedTaskCommands = (program: Command, tasks: Command, streams: Streams, env: NodeJS.ProcessEnv) => {

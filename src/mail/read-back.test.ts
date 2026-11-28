@@ -21,13 +21,13 @@ const run = async (args: string[], env: NodeJS.ProcessEnv) => {
   return answerOf(streams.stdout.join(""))
 }
 
-describe("mail imported into the mail tables reads back through memo", () => {
+describe("mail imported into the mail tables reads back through wcat", () => {
   it("is found by search, ask, context, tags and tasks", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "memo-mail-read-"))
+    const dir = mkdtempSync(join(tmpdir(), "wcat-mail-read-"))
     const env = {
       ...process.env,
       MESSAGING_STORE: join(dir, "messages.db"),
-      MEMO_CONFIG_DIR: join(dir, "config"),
+      WCAT_CONFIG_DIR: join(dir, "config"),
     }
     const store = await openStore({ env })
     try {
@@ -88,10 +88,10 @@ describe("mail imported into the mail tables reads back through memo", () => {
   })
 })
 
-describe("mail review through memo", () => {
+describe("review mail through wcat", () => {
   it("names the threads waiting on others with --waiting, and only what changed since the last --new", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "memo-mail-review-"))
-    const env = { ...process.env, MESSAGING_STORE: join(dir, "messages.db"), MEMO_CONFIG_DIR: join(dir, "config") }
+    const dir = mkdtempSync(join(tmpdir(), "wcat-mail-review-"))
+    const env = { ...process.env, MESSAGING_STORE: join(dir, "messages.db"), WCAT_CONFIG_DIR: join(dir, "config") }
     const day = 86_400_000
     const ago = (days: number) => new Date(Date.now() - days * day).toISOString()
     const email = (uid: string, threadId: string, days: number, from: string, to: string) => ({
@@ -120,10 +120,10 @@ describe("mail review through memo", () => {
       await store.close()
     }
     const threads = (answer: { items: { chat_id: string }[] }) => [...new Set(answer.items.map((item) => item.chat_id))]
-    expect(threads(await run(["mail", "review", "date>30d", "--waiting", "3d"], env))).toEqual(["asked"])
-    expect(threads(await run(["mail", "review", "date>30d", "--waiting", "9d"], env))).toEqual([])
-    expect(threads(await run(["mail", "review", "--new"], env))).toEqual(["open"])
-    expect(threads(await run(["mail", "review", "--new"], env))).toEqual([])
+    expect(threads(await run(["review", "mail", "date>30d", "--waiting", "3d"], env))).toEqual(["asked"])
+    expect(threads(await run(["review", "mail", "date>30d", "--waiting", "9d"], env))).toEqual([])
+    expect(threads(await run(["review", "mail", "--new"], env))).toEqual(["open"])
+    expect(threads(await run(["review", "mail", "--new"], env))).toEqual([])
     const later = await openStore({ env })
     try {
       await storeMail(later, ME, [email("4", "asked", 0, "rin@example.test", ME)], {
@@ -132,6 +132,6 @@ describe("mail review through memo", () => {
     } finally {
       await later.close()
     }
-    expect(threads(await run(["mail", "review", "--new"], env))).toEqual(["asked"])
+    expect(threads(await run(["review", "mail", "--new"], env))).toEqual(["asked"])
   })
 })

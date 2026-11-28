@@ -8,6 +8,7 @@ import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
 import { callCommand } from "../../test/mcp.js"
+import { addNote, fingerprintOf } from "../../test/notes.js"
 import { configPath } from "../config.js"
 import { createMemoServer } from "../mcp/server.js"
 import { createProgram } from "../program.js"
@@ -30,7 +31,7 @@ const message = (id: string, text: string, days: number) => ({
 })
 
 const setUp = async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-actions-"))
+  const dir = mkdtempSync(join(tmpdir(), "wcat-actions-"))
   const base: NodeJS.ProcessEnv = {
     ...process.env,
     MESSAGING_STORE: join(dir, "s.db"),
@@ -352,8 +353,8 @@ it("summarises an action of any kind as what it would do, and to what", async ()
 it("stages findings about a person citing a note, and decides them by batch id alone", async () => {
   const { owner, agent, run, dir } = await setUp()
   const lena = await run(owner, "people", "add", "Lena", "Example")
-  const note = await run(owner, "notes", "add", "Call with Lena: she moves to Valencia in March")
-  const shown = await run(owner, "notes", "show", note.ref)
+  const note = await addNote(owner, "Call with Lena: she moves to Valencia in March")
+  const shown = { fingerprint: await fingerprintOf(owner, note.ref) }
   expect(shown.fingerprint).toMatch(/^[a-f0-9]{64}$/)
   const file = join(dir, "about-lena.json")
   writeFileSync(

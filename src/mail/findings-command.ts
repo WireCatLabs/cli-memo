@@ -28,7 +28,7 @@ const FINDINGS_QUERY = {
 } as const satisfies QueryRegistry
 
 const INPUT_HELP = `
-Input: schema_version 1, key, extractor, findings. key is the one \`mail review --holder\` gave in its
+Input: schema_version 1, key, extractor, findings. key is the one \`review mail --holder\` gave in its
 mail-findings.add step (mail-triage:9123456, or mail-triage:9123456-r1 after the owner moved the mark back); pass it
 as --key or in the JSON. The same key and input give the same batch, the same key with another input is refused. 1–30 findings, at most 5 from one sender; each cites 1–8 msg:email/… references with the
 fingerprint review gave, and at least one email of this mailbox.
@@ -45,9 +45,9 @@ the batch is a duplicate: it is not staged and the answer lists it in duplicates
 holds it, and reason findings.duplicate. The rest of the batch stages. An order is the same by shop and number or
 source_url, an invoice by counterparty and number, a payment by amount, currency, date and party, a task by external_id
 or source_url, a fact by its text and subject.
-An invoice, payment or order is checked as memo invoices|payments|orders add checks yours; a refusal names why.
+An invoice, payment or order is checked as wcat invoices|payments|orders add checks yours; a refusal names why.
 A cited email that changed since review refuses the batch (mail-findings.stale), one still partial too
-(mail-findings.partial). Nothing is created until the owner confirms: memo review confirm <batch>/<finding>.
+(mail-findings.partial). Nothing is created until the owner confirms: wcat review confirm <batch>/<finding>.
 A party the store does not hold yet goes by name: counterparty_name, payer_name, payee_name or customer_name in
 place of the reference, with an optional <party>_email that sent or received a cited email; the owner's accept finds
 its organization by that address, its domain or the exact name, or makes one. An order whose shop and number are
@@ -79,17 +79,17 @@ const keyed = (text: string, key: string | undefined): string => {
 const json = (command: Command) => command.option("--json", "print JSON; --json=id,status keeps only those fields")
 
 /**
- * `memo mail findings`: what an agent read in one mailbox's new mail, staged for the owner. `add` is of cli-core's
+ * `wcat review findings`: what an agent read in one mailbox's new mail, staged for the owner. `add` is of cli-core's
  * propose tier, so a read-only scheduled agent may stage; deciding is the proposal registry's, owner only.
  */
 export const mailFindingsCommand = (
   program: Command,
-  mail: Command,
+  review: Command,
   streams: Streams,
   env: NodeJS.ProcessEnv,
 ): void => {
   const { run } = answers(program, streams, env)
-  const findings = mail
+  const findings = review
     .command("findings")
     .description(
       "cited tasks, task updates, facts, memories, links, contacts, invoices, payments and orders an agent read in new mail",
@@ -101,7 +101,7 @@ export const mailFindingsCommand = (
     .summary("stage one mailbox's findings; the owner confirms them")
     .argument("<file>", FINDINGS_INPUT_HELP)
     .option("--source <accounts>", MAILBOX_HELP)
-    .option("--key <key>", "the findings key `mail review --holder` gave in its mail-findings.add step")
+    .option("--key <key>", "the findings key `review mail --holder` gave in its mail-findings.add step")
     .option(
       "--dry-run",
       "check the batch as staging would, invoices, payments and orders tried and rolled back, and stage nothing; " +
@@ -113,7 +113,7 @@ export const mailFindingsCommand = (
       const text = keyed(read, given.key)
       const input = given.dryRun ? readMailFindingsJson(text) : parseMailFindingsJson(text)
       const author = await whoRuns(program, env, { question: "" })
-      const agent = author === "owner" ? { bot: "memo-mail-findings" } : author
+      const agent = author === "owner" ? { bot: "wcat-mail-findings" } : author
       await run(given.json, async (store) => {
         const mailbox = await oneMailboxOf(store, env, given.source)
         const { input: kept, duplicates } = await withoutDuplicates(store, input)
@@ -144,7 +144,7 @@ export const mailFindingsCommand = (
   json(annotate(findings.command("show"), { effects: LOCAL_READ, output: { entity: "mail_findings" } }))
     .description("one findings batch: its findings with their evidence, earlier decisions and the review receipt")
     .summary("one findings batch with its evidence and decisions")
-    .argument("<id>", "the batch id `mail findings add` or `list` gave")
+    .argument("<id>", "the batch id `review findings add` or `list` gave")
     .action((id: string, given: { json?: boolean }) =>
       run(given.json, async (store) => itemAnswer(await store.mailFindings.get(id))),
     )
@@ -153,13 +153,13 @@ export const mailFindingsCommand = (
     json(annotate(findings.command("list"), { effects: LOCAL_READ, output: { entity: "mail_findings" } })),
     FINDINGS_QUERY,
   )
-    .description("mail findings batches, newest first; status:proposed is what waits for the owner")
+    .description("review findings batches, newest first; status:proposed is what waits for the owner")
     .option("--source <accounts>", "only this mailbox's batches: email:<address>")
     .option("--limit <n>", "batches per page, at most 50", positive, 20)
     .option("--page <n>", "which page, from 1", positive, 1)
     .action((words: string[], given: { source?: string; json?: boolean; limit: number; page: number }) =>
       run(given.json, async (store) => {
-        const status = queryTerms(words, FINDINGS_QUERY, "mail findings list").get("status") as
+        const status = queryTerms(words, FINDINGS_QUERY, "review findings list").get("status") as
           | "proposed"
           | "reviewed"
           | undefined
@@ -170,7 +170,7 @@ export const mailFindingsCommand = (
           ...(account === undefined ? {} : { account }),
           ...(status === undefined ? {} : { status }),
         })
-        return listAnswer("mail findings list", {
+        return listAnswer("review findings list", {
           items: found.items,
           limit: given.limit,
           page: given.page,

@@ -21,7 +21,6 @@ import {
   runsCommand,
   skillCommand as sharedSkillCommand,
 } from "@wirecat/cli-core/cli"
-import type { FetchPageOptions } from "@wirecat/cli-core/documents"
 import { groupLockOf } from "@wirecat/cli-core/services"
 import { Command } from "commander"
 import { actionsCommand } from "./actions/command.js"
@@ -53,11 +52,9 @@ import { subscriptionCommands } from "./finance/subscriptions-command.js"
 import { transactionCommands } from "./finance/transactions-command.js"
 import { walletCommands } from "./finance/wallets-command.js"
 import { findingsCommand } from "./findings/command.js"
-import type { Hear } from "./import/audio.js"
-import { importCommand } from "./import/command.js"
 import { jsonFields } from "./json-fields.js"
 import { knowledgeCommands } from "./knowledge/command.js"
-import { mailCommand } from "./mail/command.js"
+import { reviewMailCommands } from "./mail/command.js"
 import { messagesCommand } from "./mail/messages-command.js"
 import { mcpCommand } from "./mcp/command.js"
 import { meetingReadCommands } from "./meetings/command.js"
@@ -65,10 +62,9 @@ import { meetingListCommands } from "./meetings/list-command.js"
 import { meetingPreparationCommand } from "./meetings/preparation-command.js"
 import { memoriesCommand } from "./memories/command.js"
 import { mentionsCommand } from "./mentions/command.js"
+import { removeMemoSkills } from "./migrate/skill.js"
 import { modelsCommand } from "./models/command.js"
-import { notesCommand } from "./notes/command.js"
-import { foldersCommand } from "./notes/folders-command.js"
-import { noteCommand, peopleCommand } from "./people/command.js"
+import { peopleCommand } from "./people/command.js"
 import { readOnlyAvailability, refuseWritesUnderLock } from "./read-only.js"
 import { REASONS } from "./reasons.js"
 import { recordsCommand } from "./records/import.js"
@@ -78,7 +74,6 @@ import { syncCommand } from "./run/import.js"
 import { scheduleCommand } from "./schedule/command.js"
 import { searchCommand } from "./search/command.js"
 import { showCommand } from "./show/command.js"
-import { sourcesCommand } from "./sources/command.js"
 import { memoListContext, scopeRunsToGroup } from "./store/group.js"
 import { groupsCommand } from "./store/groups-command.js"
 import { storeCommand } from "./store/info-command.js"
@@ -90,7 +85,7 @@ import { upgradeCommand } from "./update.js"
 import { VERSION } from "./version.js"
 import { vocabularyCommand } from "./vocabulary/command.js"
 
-/** memo's own answers, beyond cli-core's entities, so `--json=<field>` is checked against what each row holds. */
+/** wcat's own answers, beyond cli-core's entities, so `--json=<field>` is checked against what each row holds. */
 const OWN_ENTITIES = entityFields({
   ...LISTING_ENTITIES,
   person_note_links: ["person", "name", "files"],
@@ -259,7 +254,6 @@ const OWN_ENTITIES = entityFields({
   ],
   agent_action: ["id", "actor", "tool", "tier", "target", "status", "error", "started_at", "finished_at"],
   meeting_project: ["id", "meeting", "project", "confirmed", "provenance", "fingerprint"],
-  notes_folder: ["id", "name", "path", "format", "kept_by"],
   account_group: ["group", "members", "duplicates", "suggested"],
   relationship_role: ["list", "id", "label", "built_in"],
   person_context_memo: [
@@ -592,7 +586,7 @@ const OWN_ENTITIES = entityFields({
 
 /**
  * The commands that keep to the run's account group (WC-ACCT-13): each reads only the group's accounts and its
- * references are checked, so under MEMO_GROUP_LOCK these run and every other command is refused. Add a command only
+ * references are checked, so under WCAT_GROUP_LOCK these run and every other command is refused. Add a command only
  * once its reads are scoped.
  */
 const GROUP_AWARE = [
@@ -616,8 +610,6 @@ const GROUP_AWARE = [
   "people list",
   "people check",
   "people add",
-  "notes list",
-  "notes show",
   "relationships list",
   "relationships add",
   "relationships update",
@@ -710,7 +702,7 @@ const FIRST_SCREEN = {
     { command: "mcp", does: "search, people, memories and facts for any MCP agent" },
   ],
   profile: false,
-  start: "memo folders add <path>",
+  start: "wcat sync",
 }
 
 export const createProgram = ({
@@ -719,12 +711,9 @@ export const createProgram = ({
   signal,
   terminal,
   keyring,
-  fetchPage,
   group,
   stdin,
-  readerFetch,
   system,
-  hear,
 }: {
   streams?: Streams
   env?: NodeJS.ProcessEnv
@@ -736,22 +725,16 @@ export const createProgram = ({
   signal?: AbortSignal
   /** Whether a person is at the terminal; the process's stdin and stdout unless a test hands one in. */
   terminal?: Terminal
-  /** How `sources add <url>` reaches the page; a test hands in its own lookup and transport. */
-  fetchPage?: FetchPageOptions
-  /** The account group the first word named (`memo work …`), as `liftGroup` took it off the command line. */
+  /** The account group the first word named (`wcat work …`), as `liftGroup` took it off the command line. */
   group?: string
-  /** How the Ollama and API readers reach the network; a test hands in its own. */
-  readerFetch?: typeof fetch
   /** Where schedules and digests put their timers and run their agents; this machine unless a test hands one in. */
   system?: ServerSystem
-  /** How `import --transcribe` hears a recording; the local speech model unless a test hands in its own. */
-  hear?: Hear
 } = {}): Command => {
-  // Every reader of the run's group reads MEMO_GROUP, so the first word is that, said shorter (WC-ACCT-13).
-  const env = group === undefined ? given : { ...given, MEMO_GROUP: group }
+  // Every reader of the run's group reads WCAT_GROUP, so the first word is that, said shorter (WC-ACCT-13).
+  const env = group === undefined ? given : { ...given, WCAT_GROUP: group }
   const fields = jsonFields(raw, OWN_ENTITIES)
   const { streams } = fields
-  const program = new Command("memo")
+  const program = new Command("wcat")
     .description("context about people across messengers, notes and mail")
     .version(VERSION)
     .option("--debug", "on failure, show the full error record: cause and stack")
@@ -761,16 +744,8 @@ export const createProgram = ({
 
   contextCommand(program, streams, env)
   showCommand(program, streams, env)
-  notesCommand(program, streams, env)
-  sourcesCommand(program, streams, env, {
-    ...(fetchPage ? { fetch: fetchPage } : {}),
-    readers: { ...(readerFetch ? { fetch: readerFetch } : {}), ...(keyring ? { keyring } : {}) },
-  })
   documentsCommand(program, streams, env)
-  foldersCommand(program, streams, env)
   messagesCommand(program, streams, env)
-  mailCommand(program, streams, env)
-  noteCommand(program, streams, env)
   peopleCommand(program, streams, env)
   botsCommand(program, streams, env)
   tagsCommand(program, streams, env)
@@ -789,11 +764,11 @@ export const createProgram = ({
   walletCommands(program, streams, env)
   transactionCommands(program, streams, env)
   recordsCommand(program, streams, env)
-  importCommand(program, streams, env, hear ? { hear } : {})
   findingsCommand(program, streams, env)
   meetingListCommands(program, streams, env)
   actionsCommand(program, streams, env)
   reviewCommand(program, streams, env)
+  reviewMailCommands(program, streams, env)
   agentsCommand(program, streams, env)
   mcpCommand(program, streams, env, createProgram)
   modelsCommand(program, streams, env, keyring, stdin)
@@ -815,14 +790,14 @@ export const createProgram = ({
   digestCommand(program, streams, env)
   commandsCommand(program, streams)
   const skill = customizeSharedCommand(
-    sharedSkillCommand(APP, new URL("../skills/cli-memo/SKILL.md", import.meta.url)),
-    "Memo installs its own stored-data instructions through its environment, prints the packaged skills (morning-digest with the owner's brief from the store after it), and takes --json on each skill command because it has no global one.",
+    sharedSkillCommand(APP, new URL("../skills/wcat/SKILL.md", import.meta.url)),
+    "wcat installs its own stored-data instructions through its environment, prints the packaged skills (morning-digest with the owner's brief from the store after it), and takes --json on each skill command because it has no global one.",
     () => {
       const out = answers(program, streams, env)
       let brief: Awaited<ReturnType<typeof digestAddendum>> | undefined
       const skill = skillCommand(
         APP,
-        new URL("../skills/cli-memo/SKILL.md", import.meta.url),
+        new URL("../skills/wcat/SKILL.md", import.meta.url),
         (command) => {
           const json = command.opts().json === true
           const renderer = createRenderer({ format: json ? "json" : "pretty", color: false, streams })
@@ -846,19 +821,19 @@ export const createProgram = ({
         },
         {
           ...Object.fromEntries(
-            SKILL_TOPICS.map((topic) => [topic, new URL(`../skills/cli-memo/topics/${topic}.md`, import.meta.url)]),
+            SKILL_TOPICS.map((topic) => [topic, new URL(`../skills/wcat/topics/${topic}.md`, import.meta.url)]),
           ),
           "mail-triage": new URL("../skills/mail-triage/SKILL.md", import.meta.url),
           "morning-digest": new URL("../skills/morning-digest/SKILL.md", import.meta.url),
           "task-triage": new URL("../skills/task-triage/SKILL.md", import.meta.url),
         },
       )
-      // memo has no global --json, so each skill command takes its own, as guide does.
+      // wcat has no global --json, so each skill command takes its own, as guide does.
       for (const command of skill.commands) command.option("--json", "print JSON")
       const show = skill.commands.find((command) => command.name() === "show")
       // cli-base's show is synchronous, so the owner's brief is read before it runs.
       show?.description(
-        `${show.description()}; morning-digest ends with your brief from \`memo digest brief\` when you wrote one`,
+        `${show.description()}; morning-digest ends with your brief from \`wcat digest brief\` when you wrote one`,
       )
       show?.hook("preAction", async (command) => {
         brief = command.args[0] === "morning-digest" ? await digestAddendum(env) : undefined
@@ -868,11 +843,17 @@ export const createProgram = ({
     SHELL_OVERRIDES.skill,
   )
   program.addCommand(skill)
-  // tg and max have a global --json; memo's is per command, so guide gets its own.
+  // memo's skill folder is named cli-memo, so wcat's install leaves it beside its own unless it goes here.
+  skill.commands
+    .find((command) => command.name() === "install")
+    ?.hook("postAction", () => {
+      removeMemoSkills(env)
+    })
+  // tg and max have a global --json; wcat's is per command, so guide gets its own.
   program.addCommand(
     overrideSharedContract(
       guideCommand(APP, { directory: fileURLToPath(new URL("../scenarios", import.meta.url)), profile: false }),
-      "Memo's output flag is command-local because this provider does not use the messenger program shell.",
+      "wcat's output flag is command-local because this provider does not use the messenger program shell.",
       (command) => {
         command.option("--json", "print JSON")
       },
@@ -882,7 +863,7 @@ export const createProgram = ({
   for (const one of runs?.commands ?? [])
     overrideSharedContract(
       one,
-      "Memo's output flag is command-local because this provider does not use the messenger program shell.",
+      "wcat's output flag is command-local because this provider does not use the messenger program shell.",
       (command) => {
         command.option("--json", "print JSON")
       },
@@ -929,7 +910,7 @@ export const createProgram = ({
 }
 
 /**
- * `memo work search all …`: a first word that is no command is an account group (WC-ACCT-13), lifted off before
+ * `wcat work search all …`: a first word that is no command is an account group (WC-ACCT-13), lifted off before
  * parsing, as `liftProfile` lifts a profile. A command must follow it; a word that is neither names the groups.
  */
 export const liftGroup = async (
@@ -938,7 +919,7 @@ export const liftGroup = async (
   env: NodeJS.ProcessEnv,
 ): Promise<{ group?: string; rest: string[] }> => {
   const words = commandWords(program)
-  // memo's root options (--debug, --version) take no value, so none can hide the first word.
+  // wcat's root options (--debug, --version) take no value, so none can hide the first word.
   const { profile: group, rest } = liftProfile([...args], words)
   if (group === undefined) return { rest }
   const next = rest.find((arg) => !arg.startsWith("-"))
@@ -950,8 +931,8 @@ export const liftGroup = async (
   throw new CliError(
     "validation_error",
     known
-      ? `"${group}" is a group, and a command follows it: memo ${group} search all …`
-      : `"${group}": unknown command or group — groups here: ${groups.join(", ")}; memo commands lists the commands`,
+      ? `"${group}" is a group, and a command follows it: wcat ${group} search all …`
+      : `"${group}": unknown command or group — groups here: ${groups.join(", ")}; wcat commands lists the commands`,
     { reason: "input.invalid", groups },
   )
 }

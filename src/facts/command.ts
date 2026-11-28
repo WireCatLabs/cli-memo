@@ -127,7 +127,7 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
 
   decide(
     "confirm",
-    "stand behind a fact an agent proposed; a fact it supersedes stops holding. memo review confirm decides many",
+    "stand behind a fact an agent proposed; a fact it supersedes stops holding. wcat review confirm decides many",
     async (store, ref, by, why) => {
       await decideOne(store, env, ref, decisionOf(true, by, why))
       return store.facts.get(ref)
@@ -147,7 +147,7 @@ export const factsCommand = (program: Command, streams: Streams, env: NodeJS.Pro
   })
   decide(
     "remove",
-    "forget a fact: erase its text, its links to sources and its tags. memo facts history keeps who removed it, " +
+    "forget a fact: erase its text, its links to sources and its tags. wcat facts history keeps who removed it, " +
       "when and why, never what it said",
     (store, ref, by, why) => store.facts.remove(ref, by, why),
   )

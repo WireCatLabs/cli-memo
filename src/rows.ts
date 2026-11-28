@@ -42,8 +42,8 @@ const DECISIONS: RowShape = {
 }
 
 /**
- * memo's rows by command path. Most of memo's answers are cli-core's shared entities (note, memory, task, hit), whose
- * rows cli-core will not take from an app, so memo keys its own by the command that answers them.
+ * wcat's rows by command path. Most of wcat's answers are cli-core's shared entities (note, memory, task, hit), whose
+ * rows cli-core will not take from an app, so wcat keys its own by the command that answers them.
  */
 export const ROWS: Readonly<Record<string, RowShape>> = {
   "search all": {
@@ -224,6 +224,6 @@ const pathOf = (command: Command): string => {
   return words.join(" ")
 }
 
-/** The row a memo answer is drawn with: memo's for this command, else cli-core's for its entity, else the generic one. */
+/** The row a wcat answer is drawn with: wcat's for this command, else cli-core's for its entity, else the generic one. */
 export const rowOf = (command: Command | undefined): RowShape =>
   (command && ROWS[pathOf(command)]) || rowShapeOf(command)

@@ -22,8 +22,8 @@ afterEach(() => {
 const setUp = async () => {
   const env: NodeJS.ProcessEnv = {
     ...process.env,
-    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-sources-")), "s.db"),
-    MEMO_CONFIG_DIR: mkdtempSync(join(tmpdir(), "memo-sources-config-")),
+    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-sources-")), "s.db"),
+    WCAT_CONFIG_DIR: mkdtempSync(join(tmpdir(), "wcat-sources-config-")),
   }
   delete env.AI_AGENT
   delete env.CLAUDECODE
@@ -120,7 +120,7 @@ it("lets an agent challenge a memory, which only proposes, and refuses the agent
     cause: "contradicted",
     challenges: [{ evidence: [f.other.ref], reason: "the later note moves delivery", by: "claude-code" }],
     suggestions: [{ body: "Delivery is on the 30th" }],
-    decide: { still_true: `memo review confirm ${challenged.id}`, withdraw: `memo memories invalidate ${memory.ref}` },
+    decide: { still_true: `wcat review confirm ${challenged.id}`, withdraw: `wcat memories invalidate ${memory.ref}` },
   })
 
   const refused = await f.run(AGENT, NOBODY, "review", "confirm", challenged.id, "--reason", "still right")

@@ -42,13 +42,13 @@ const indexed = async (store: MessageStore, accountId: number) => {
 }
 
 const fixture = async ({ indexHome = true } = {}) => {
-  const root = mkdtempSync(join(tmpdir(), "memo-search-meetings-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-search-meetings-"))
   const env = {
     ...process.env,
     AI_AGENT: "",
     CLAUDECODE: "",
     MESSAGING_STORE: join(root, "m.db"),
-    MEMO_CONFIG_DIR: join(root, "config"),
+    WCAT_CONFIG_DIR: join(root, "config"),
   }
   const store = await openStore({ env })
   try {
@@ -84,7 +84,7 @@ const fixture = async ({ indexHome = true } = {}) => {
   }
 }
 
-const memo = async (env: NodeJS.ProcessEnv, ...args: string[]) => {
+const wcat = async (env: NodeJS.ProcessEnv, ...args: string[]) => {
   const streams = captureStreams()
   await createProgram({ streams, env })
     .exitOverride()
@@ -95,7 +95,7 @@ const memo = async (env: NodeJS.ProcessEnv, ...args: string[]) => {
 
 it("finds meetings of every meeting account, personal and work, with --only meetings, each hit with a step that opens its passage", async () => {
   const { env, atWork } = await fixture()
-  const found = await memo(env, "search", "all", "Harbourlight", "--only", "meetings")
+  const found = await wcat(env, "search", "all", "Harbourlight", "--only", "meetings")
   expect(found.items.map(({ account }: { account: string }) => account).sort()).toEqual([home.account, work.account])
   const hit = found.items.find(({ account }: { account: string }) => account === work.account)
   expect(hit).toEqual({
@@ -125,13 +125,13 @@ it("finds meetings of every meeting account, personal and work, with --only meet
       args: { reference: hit.cue_ref, source: `zoom:${work.account}` },
     }),
   )
-  const passage = await memo(env, "meetings", "passage", hit.cue_ref, "--source", `zoom:${work.account}`)
+  const passage = await wcat(env, "meetings", "passage", hit.cue_ref, "--source", `zoom:${work.account}`)
   expect(passage.target_ref).toBe(hit.cue_ref)
 })
 
 it("reads only the accounts --source names, a meeting account and the notes", async () => {
   const { env, note } = await fixture()
-  const found = await memo(env, "search", "all", "Harbourlight", "--source", `zoom:${work.account},notes`)
+  const found = await wcat(env, "search", "all", "Harbourlight", "--source", `zoom:${work.account},notes`)
   expect(found.items.map(({ kind, ref }: { kind: string; ref: string }) => `${kind} ${ref}`).sort()).toEqual([
     expect.stringMatching(/^meeting meeting:/),
     `note ${note.ref}`,
@@ -139,14 +139,14 @@ it("reads only the accounts --source names, a meeting account and the notes", as
   expect(found.items.find(({ kind }: { kind: string }) => kind === "meeting").account).toBe(work.account)
   expect(found.meta.accounts).toEqual(expect.arrayContaining([`zoom:${work.account}`]))
   expect(found.meta.accounts).not.toContain(`zoom:${home.account}`)
-  const notesOnly = await memo(env, "search", "all", "Harbourlight", "--source", "notes")
+  const notesOnly = await wcat(env, "search", "all", "Harbourlight", "--source", "notes")
   expect(notesOnly.items.map(({ kind }: { kind: string }) => kind)).toEqual(["note"])
   expect(notesOnly.missing.filter(({ why }: { why: string }) => why.includes("meetings"))).toEqual([])
 })
 
 it("names a meeting account whose index is not built yet, with the command that builds it", async () => {
   const { env } = await fixture({ indexHome: false })
-  const found = await memo(env, "search", "all", "Harbourlight", "--only", "meetings")
+  const found = await wcat(env, "search", "all", "Harbourlight", "--only", "meetings")
   expect(found.items.map(({ account }: { account: string }) => account)).toEqual([work.account])
   expect(found.missing).toContainEqual({
     field: "items",
@@ -157,7 +157,7 @@ it("names a meeting account whose index is not built yet, with the command that 
     step: "meetings.index",
     command: "search meetings",
     args: { query: "Harbourlight", source: `zoom:${home.account}` },
-    line: `memo search meetings Harbourlight --source zoom:${home.account}`,
+    line: `wcat search meetings Harbourlight --source zoom:${home.account}`,
   })
 })
 
@@ -209,13 +209,13 @@ it("leaves meetings out and says so unless the permissions let searching and ope
   ] as const) {
     const { env } = await fixture()
     updateConfig((config) => ({ ...config, permissions: { [key]: level } }), env)
-    const found = await memo(env, "search", "all", "Harbourlight")
+    const found = await wcat(env, "search", "all", "Harbourlight")
     expect(found.items.map(({ kind }: { kind: string }) => kind).sort()).toEqual(["message", "note"])
     expect(found.missing).toContainEqual({
       field: "items",
       why: `meetings left out: the permissions set ${key} to ${level}`,
     })
-    await expect(memo(env, "search", "all", "Harbourlight", "--only", "meetings")).rejects.toMatchObject({
+    await expect(wcat(env, "search", "all", "Harbourlight", "--only", "meetings")).rejects.toMatchObject({
       code: "permission_error",
     })
   }

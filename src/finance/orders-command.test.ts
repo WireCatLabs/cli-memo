@@ -12,8 +12,8 @@ const AGENT = { AI_AGENT: "claude-code_2-1-296_agent" }
 const OWNER = {}
 
 it("confirms the owner's order at once, keeps an agent's for review, and finds one shop's number", async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-orders-"))
-  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), MEMO_CONFIG_DIR: dir }
+  const dir = mkdtempSync(join(tmpdir(), "wcat-orders-"))
+  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), WCAT_CONFIG_DIR: dir }
   delete env.AI_AGENT
   delete env.CLAUDECODE
   const store = await openStore({ env })

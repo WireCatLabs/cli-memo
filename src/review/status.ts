@@ -113,7 +113,7 @@ export const reviewStatusText = (status: ReviewStatus): string => {
       status.proposed.count ? `: ${kindsText(status.proposed.kinds)}` : ""
     }`,
     `waiting   ${atLeast(status.waiting.count, status.waiting.complete)}${
-      status.waiting.count ? `: ${kindsText(status.waiting.kinds)} — memo review` : ""
+      status.waiting.count ? `: ${kindsText(status.waiting.kinds)} — wcat review` : ""
     }`,
   ].join("\n")
 }

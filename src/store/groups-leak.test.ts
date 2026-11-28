@@ -62,10 +62,10 @@ const outputOf = async (run: Promise<unknown>) => {
 }
 
 beforeAll(async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-leak-"))
-  env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
-  delete env.MEMO_GROUP
-  delete env.MEMO_GROUP_LOCK
+  const root = mkdtempSync(join(tmpdir(), "wcat-leak-"))
+  env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), WCAT_CONFIG_DIR: join(root, "config") }
+  delete env.WCAT_GROUP
+  delete env.WCAT_GROUP_LOCK
   const store = await openStore({ env })
   try {
     await store.accounts.registerProvider({ name: ACME_PORTAL.provider, kind: "crm", aliases: [] })
@@ -123,8 +123,8 @@ beforeAll(async () => {
   const agent = memoIn({ ...env, AI_AGENT: "test-agent" })
   const proposal = await agent("relationships", "add", `person:${await homePerson()}`, project, "--role", "contributor")
   homeProposal = String(proposal.id)
-  vi.stubEnv("MEMO_GROUP_LOCK", "work")
-  locked = memoIn({ ...env, MEMO_GROUP_LOCK: "work" })
+  vi.stubEnv("WCAT_GROUP_LOCK", "work")
+  locked = memoIn({ ...env, WCAT_GROUP_LOCK: "work" })
 })
 
 afterAll(() => {
@@ -147,7 +147,7 @@ describe("locked lists with items keep the group's evidence and count the rest",
     check(await locked("memories", "list"), "Mixed memory")
     check(await locked("facts", "list"), "Mixed fact")
     const [serverSide, clientSide] = InMemoryTransport.createLinkedPair()
-    await createMemoServer({ ...env, MEMO_GROUP_LOCK: "work" }, createProgram).connect(serverSide)
+    await createMemoServer({ ...env, WCAT_GROUP_LOCK: "work" }, createProgram).connect(serverSide)
     const client = new Client({ name: "lists", version: "0" })
     await client.connect(clientSide)
     try {
@@ -202,7 +202,7 @@ describe("a work run shows nothing of the home account (final review cases)", ()
 
   it("says the same over MCP", async () => {
     const [serverSide, clientSide] = InMemoryTransport.createLinkedPair()
-    await createMemoServer({ ...env, MEMO_GROUP_LOCK: "work" }, createProgram).connect(serverSide)
+    await createMemoServer({ ...env, WCAT_GROUP_LOCK: "work" }, createProgram).connect(serverSide)
     const client = new Client({ name: "leak", version: "0" })
     await client.connect(clientSide)
     try {
@@ -267,7 +267,10 @@ describe("a generic leak scan of every group-aware read under the lock", () => {
       const answer = await outputOf(locked(...path, ...args))
       for (const one of leaked(answer)) found.push(`${path.join(" ")}: ${one}`)
       // A list runs with items in this fixture: it answers, it does not fail.
-      if (path.at(-1) === "list" && !answer.startsWith("{")) found.push(`${path.join(" ")}: failed ${answer}`)
+      // Findings and subscriptions read one mailbox: a group that holds several accounts, or none, is refused.
+      const oneMailbox = path[0] === "review" && (path[1] === "findings" || path[1] === "subscriptions")
+      if (path.at(-1) === "list" && !oneMailbox && !answer.startsWith("{"))
+        found.push(`${path.join(" ")}: failed ${answer}`)
     }
     expect(found).toEqual([])
   }, 60_000)

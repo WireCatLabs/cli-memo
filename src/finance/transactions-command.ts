@@ -56,7 +56,7 @@ interface TransactionOptions extends Written {
 
 const STATUS_HELP = `${TRANSACTION_STATUSES.join(" or ")}; only a booked one counts in a balance`
 
-/** `memo transactions`: what a bank statement says moved, and the categories it is split into. */
+/** `wcat transactions`: what a bank statement says moved, and the categories it is split into. */
 export const transactionCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { run } = answers(program, streams, env)
   const transactions = program

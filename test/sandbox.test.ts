@@ -11,12 +11,12 @@ describe("test sandbox", () => {
     expect(storePath().startsWith(sandbox)).toBe(true)
   })
 
-  it("keeps memo's own config inside the sandbox", () => {
+  it("keeps wcat's own config inside the sandbox", () => {
     expect(configPath().startsWith(sandbox)).toBe(true)
   })
 
   it("never reaches the real systemctl", () => {
-    expect(process.env.MEMO_SYSTEMCTL?.startsWith(import.meta.dirname)).toBe(true)
+    expect(process.env.WCAT_SYSTEMCTL?.startsWith(import.meta.dirname)).toBe(true)
   })
 
   it("keeps home inside the sandbox", () => {

@@ -11,7 +11,7 @@ const serve = async (requests: string[][]): Promise<Map<number, { code: number; 
   stdout.on("data", (chunk: Buffer) => lines.push(...chunk.toString("utf8").split("\n").filter(Boolean)))
   const served = startCli(
     memoEntry({
-      argv: ["node", "memo", "commands", "--serve"],
+      argv: ["node", "wcat", "commands", "--serve"],
       stdin,
       stdout,
       stderr: new PassThrough(),
@@ -26,7 +26,7 @@ const serve = async (requests: string[][]): Promise<Map<number, { code: number; 
   return new Map(answers.map(({ id, code, stdout: out }) => [id, { code, stdout: out }]))
 }
 
-describe("memo commands --serve", () => {
+describe("wcat commands --serve", () => {
   it("answers two requests of one command at once each with its own options", async () => {
     const answers = await serve([
       ["people", "list", "kind:all", "--limit", "1", "--json"],

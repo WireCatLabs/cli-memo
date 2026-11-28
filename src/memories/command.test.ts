@@ -5,6 +5,7 @@ import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
+import { addNote } from "../../test/notes.js"
 import { createProgram } from "../program.js"
 
 const setUp = () => {
@@ -12,7 +13,7 @@ const setUp = () => {
     ...process.env,
     AI_AGENT: "",
     CLAUDECODE: "",
-    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-memories-")), "store.db"),
+    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-memories-")), "store.db"),
   }
   const run = async (overrides: NodeJS.ProcessEnv, ...args: string[]) => {
     const streams = captureStreams()
@@ -29,8 +30,8 @@ const setUp = () => {
 }
 
 it("lets the owner correct an agent's memory, keeping the old one as superseded", async () => {
-  const { owner, agent } = setUp()
-  const note = await owner("notes", "add", "Kai Sample: Fridays work best")
+  const { owner, agent, env } = setUp()
+  const note = await addNote(env, "Kai Sample: Fridays work best")
   const wrong = await agent(
     "memories",
     "add",
@@ -61,8 +62,8 @@ it("lets the owner correct an agent's memory, keeping the old one as superseded"
 })
 
 it("keeps an agent's correction proposed, and the memory it corrects confirmed until the owner confirms it", async () => {
-  const { owner, agent } = setUp()
-  const note = await owner("notes", "add", "Kai Sample: Fridays work best")
+  const { owner, agent, env } = setUp()
+  const note = await addNote(env, "Kai Sample: Fridays work best")
   const add = (by: typeof owner, text: string, ...rest: string[]) =>
     by("memories", "add", text, "--kind", "preference", "--scope", "work", "--evidence", note.ref, ...rest)
   const kept = await add(owner, "Kai Sample prefers Thursday calls")
@@ -75,8 +76,8 @@ it("keeps an agent's correction proposed, and the memory it corrects confirmed u
 })
 
 it("forgets one memory or fact for good, leaving its sources and every other record", async () => {
-  const { owner, agent } = setUp()
-  const note = await owner("notes", "add", "Kai Sample: Fridays work best")
+  const { owner, agent, env } = setUp()
+  const note = await addNote(env, "Kai Sample: Fridays work best")
   const forgotten = await agent(
     "memories",
     "add",
@@ -109,7 +110,7 @@ it("forgets one memory or fact for good, leaving its sources and every other rec
 
   expect((await owner("memories", "list")).items.map(({ ref }: { ref: string }) => ref)).toEqual([kept.ref])
   expect(await owner("memories", "show", kept.ref)).toMatchObject({ evidence: [note.ref] })
-  expect(await owner("notes", "show", note.ref)).toMatchObject({ ref: note.ref })
+  expect(await owner("show", note.ref)).toMatchObject({ items: [{ ref: note.ref, state: "available" }] })
   expect((await owner("search", "memories", "mornings")).items).toEqual([])
 })
 
@@ -118,7 +119,7 @@ it("rejects only a proposed fact, and names the subject and reads back each sour
   const store = await openStore({ env })
   const project = await store.knowledge.addProject({ name: "Project Harbour", type: "work" })
   await store.close()
-  const note = await owner("notes", "add", "Kai Sample: the harbour launch moves to March")
+  const note = await addNote(env, "Kai Sample: the harbour launch moves to March")
   const proposed = await agent(
     "facts",
     "add",
@@ -164,8 +165,8 @@ it("rejects only a proposed fact, and names the subject and reads back each sour
 })
 
 it("gives a new memory or fact a new number after the newest one was forgotten", async () => {
-  const { owner, agent } = setUp()
-  const note = await owner("notes", "add", "Kai Sample: Fridays work best")
+  const { owner, agent, env } = setUp()
+  const note = await addNote(env, "Kai Sample: Fridays work best")
   const add = () =>
     agent(
       "memories",
@@ -196,7 +197,7 @@ it("keeps a memory in a project, by key, names it on memories and facts, filters
   await store.knowledge.addProject({ name: "Project Harbour", key: "HRB", type: "work" })
   await store.knowledge.addProject({ name: "Lighthouse", key: "LHT", type: "work" })
   await store.close()
-  const note = await owner("notes", "add", "Kai Sample: Fridays work best")
+  const note = await addNote(env, "Kai Sample: Fridays work best")
   const add = (...extra: string[]) =>
     owner(
       "memories",

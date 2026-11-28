@@ -41,17 +41,17 @@ const meaningMissed = (why: string | undefined, exact = false): Missing[] =>
 
 type MessagesMeaning = NonNullable<NonNullable<SearchAllFound["messages"]>["meaningSkipped"]>
 
-/** memo has no `conversations rebuild`: the messenger CLI that imported the messages gives them their vectors. */
+/** wcat has no `conversations rebuild`: the messenger CLI that imported the messages gives them their vectors. */
 export const messagesMeaningNote = ({ reason, step, model }: MessagesMeaning) =>
   `Messages by words only: ${reason}${
     step === "models.download"
-      ? ` — \`memo models download ${model}\`, then the messenger's \`conversations rebuild\` gives messages their vectors`
+      ? ` — \`wcat models download ${model}\`, then the messenger's \`conversations rebuild\` gives messages their vectors`
       : step === "conversations.rebuild"
         ? " — the messenger's `conversations rebuild` (tg, max, wa) gives messages their vectors"
         : ""
   }`
 
-/** memo has no calendar sync: gcal's `sync --embed` gives events their vectors. */
+/** wcat has no calendar sync: gcal's `sync --embed` gives events their vectors. */
 export const eventsMeaningNote = (reason: string) =>
   `Events by words only: ${reason}${reason.startsWith("no event has vectors") ? " — gcal <profile> sync --embed gives events their vectors" : ""}`
 

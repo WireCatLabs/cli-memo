@@ -28,11 +28,11 @@ const portAvailable = () =>
   })
 
 const fixture = (): NodeJS.ProcessEnv => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-http-"))
+  const dir = mkdtempSync(join(tmpdir(), "wcat-http-"))
   return {
     ...process.env,
-    MEMO_CONFIG_DIR: join(dir, "config"),
-    MEMO_STATE_DIR: join(dir, "state"),
+    WCAT_CONFIG_DIR: join(dir, "config"),
+    WCAT_STATE_DIR: join(dir, "state"),
     MESSAGING_STORE: join(dir, "store.db"),
   }
 }
@@ -138,9 +138,9 @@ const connect = async (base: URL, token: string, modern: boolean) => {
 }
 
 const call = (client: Client, command: string, args: Record<string, unknown>, write = false) =>
-  client.callTool({ name: write ? "memo_write" : "memo_read", arguments: { command, arguments: args } })
+  client.callTool({ name: write ? "wcat_write" : "wcat_read", arguments: { command, arguments: args } })
 
-describe("Memo HTTP MCP", () => {
+describe("wcat HTTP MCP", () => {
   it.each([false, true])("authenticates and runs the shared CLI commands, modern=%s", async (modern) => {
     const { base, env, codes, streams, close } = await start()
     const unauthenticated = await fetch(new URL("/mcp", base), { method: "POST" })
@@ -152,17 +152,17 @@ describe("Memo HTTP MCP", () => {
     if (process.platform !== "win32") expect(statSync(httpTokenFile(env)).mode & 0o777).toBe(0o600)
     const client = await connect(base, tokens.access_token, modern)
     expect((await client.listTools()).tools.map((tool) => tool.name)).toEqual([
-      "memo_tools_search",
-      "memo_read",
-      "memo_write",
+      "wcat_tools_search",
+      "wcat_read",
+      "wcat_write",
     ])
-    const added = await call(client, "notes add", { text: "Synthetic HTTP note" }, true)
+    const added = await call(client, "people add", { name: "Synthetic HTTP person" }, true)
     expect(added, JSON.stringify(added)).not.toHaveProperty("isError", true)
-    expect((await call(client, "search notes", { query: "Synthetic" })).isError).not.toBe(true)
-    updateConfig((config) => ({ ...config, permissions: { "notes.add": "deny" } }), env)
-    const denied = await call(client, "notes add", { text: "Must stay absent" }, true)
+    expect((await call(client, "people list", {})).isError).not.toBe(true)
+    updateConfig((config) => ({ ...config, permissions: { "people.add": "deny" } }), env)
+    const denied = await call(client, "people add", { name: "Must stay absent" }, true)
     expect(denied.isError).toBe(true)
-    const discovery = await client.callTool({ name: "memo_tools_search", arguments: { query: "notes add" } })
+    const discovery = await client.callTool({ name: "wcat_tools_search", arguments: { query: "people add" } })
     expect(JSON.stringify(discovery.structuredContent)).toContain('"available":false')
     const revokeStreams = captureStreams()
     const program = createProgram({ streams: revokeStreams, env })
@@ -214,16 +214,16 @@ describe("Memo HTTP MCP", () => {
     await first.close()
     const second = await start(env, [], port)
     const client = await connect(second.base, tokens.access_token, false)
-    expect((await call(client, "notes list", {})).isError).not.toBe(true)
+    expect((await call(client, "memories list", {})).isError).not.toBe(true)
   })
 
   it("keeps writes discoverable but refused under a read lock and preserves server overrides", async () => {
-    const { base, codes } = await start({ ...fixture(), MEMO_READ_ONLY: "1" }, ["--permission", "notes.add=deny"])
+    const { base, codes } = await start({ ...fixture(), WCAT_READ_ONLY: "1" }, ["--permission", "memories.add=deny"])
     const tokens = await login(base, codes[0] ?? "")
     const client = await connect(base, tokens.access_token, false)
-    expect((await call(client, "notes add", { text: "Refused" }, true)).isError).toBe(true)
-    expect((await call(client, "notes list", {})).isError).not.toBe(true)
-    const found = await client.callTool({ name: "memo_tools_search", arguments: { query: "notes add" } })
+    expect((await call(client, "memories add", { text: "Refused" }, true)).isError).toBe(true)
+    expect((await call(client, "memories list", {})).isError).not.toBe(true)
+    const found = await client.callTool({ name: "wcat_tools_search", arguments: { query: "memories add" } })
     expect(JSON.stringify(found.structuredContent)).toContain('"available":false')
   })
 
@@ -266,10 +266,10 @@ describe("mcp server start and stop", () => {
   it("starts mcp serve --http on the port asked with the stricter permissions, and stops none it did not start", async () => {
     const env = fixture()
     const spawned: string[][] = []
-    const asked = ["--port", "8799", "--permission", "notes.add=deny", "--public-url", PUBLIC, "--json"]
+    const asked = ["--port", "8799", "--permission", "memories.add=deny", "--public-url", PUBLIC, "--json"]
     await expect(server(env, machine(spawned), "start", ...asked)).rejects.toThrow("stopped before it listened")
     expect(spawned).toEqual([
-      ["mcp", "serve", "--http", "--port", "8799", "--public-url", PUBLIC, "--permission", "notes.add=deny"],
+      ["mcp", "serve", "--http", "--port", "8799", "--public-url", PUBLIC, "--permission", "memories.add=deny"],
     ])
     expect(await server(env, machine(spawned), "stop", "--json")).toEqual({ profile: null, stopped: false })
   })

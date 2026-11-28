@@ -5,7 +5,7 @@ person, or where a budget was agreed, and get the answer from your own messages,
 each source cited. The agent can also save memories, record facts and propose actions for you to review. It never
 sends a message or an email.
 
-These apps reach programs on your computer through MCP (Model Context Protocol), so Memo runs beside the app as a
+These apps reach programs on your computer through MCP (Model Context Protocol), so wcat runs beside the app as a
 small MCP server, on the same computer. For an app in a browser or on a phone, use
 [the remote connection](remote.md): it serves the same three tools through your HTTPS tunnel.
 
@@ -19,7 +19,7 @@ small MCP server, on the same computer. For an app in a browser or on a phone, u
 
 ## Commands and permissions
 
-Memo uses cli-core's shared MCP surface. It lists three tools:
+wcat uses cli-core's shared MCP surface. It lists three tools:
 
 | Tool | What it does |
 |---|---|
@@ -32,7 +32,7 @@ For example, find a note reader with `memo_tools_search {"query":"notes show"}`,
 Arguments use the CLI's positional names and snake_case options. Unknown arguments are refused.
 The commands run the CLI itself in-process, using the same services, answers and errors.
 
-Set `permissions` in Memo's [configuration](configuration.md#permissions) to limit what an app can do.
+Set `permissions` in wcat's [configuration](configuration.md#permissions) to limit what an app can do.
 A dotted command path is a key, such as `notes.edit`; a parent key such as `notes` covers its commands.
 `deny` marks a command unavailable in discovery, `readonly` permits reads, and `ask` or `allow` permits writes. Over MCP, `ask` runs
 without a terminal question; approval prompts depend on the client app. Writes without a saved level use `ask`.
@@ -47,14 +47,14 @@ events, CRM, business data and tracker issues. A transcript hit's `next` step op
 `search.meetings` or `meetings.passage` is `deny` or `ask`, search all leaves meetings out and says so in `missing`: a
 hit the agent may not open unasked is not handed to it.
 
-`memo mcp serve --permission notes.edit=deny` makes a saved permission stricter for one server; repeat the option
+`wcat mcp serve --permission notes.edit=deny` makes a saved permission stricter for one server; repeat the option
 for more keys. It cannot loosen the saved permissions, including more specific keys.
-`MEMO_READ_ONLY=1` marks every writing command unavailable and refuses writes on an existing connection.
+`WCAT_READ_ONLY=1` marks every writing command unavailable and refuses writes on an existing connection.
 Discovery retains blocked commands with current `availability` and the reason, as cli-core does.
 
 ## Lock an agent to a group
 
-`MEMO_GROUP_LOCK=work memo mcp serve` serves only the group `work` (see [groups](usage.md#groups-of-accounts)), and
+`WCAT_GROUP_LOCK=work wcat mcp serve` serves only the group `work` (see [groups](usage.md#groups-of-accounts)), and
 the lock fails closed. These commands run under it:
 
 | Group | Commands |
@@ -92,12 +92,12 @@ you made. `schedule command`, `agent`, `remove`, `pause` and `resume` need `mcp.
 so only you make, remove or stop one.
 
 `notes add` and `notes edit` take the note as `text`. `--text-file` and `--export` are not offered, and a run over MCP
-refuses them before anything is saved, so an agent cannot make Memo read a file on this computer or the server's own
+refuses them before anything is saved, so an agent cannot make wcat read a file on this computer or the server's own
 input, or write a file into a folder of its choice.
 
-`sources add` takes the source as `text` only: an agent cannot name a file on this computer or an address for Memo
-to open, so it gets no way to read local files or reach a private network through Memo. A path or a link is added
-from the command line ([Sources you add by hand](sources.md)). An agent's subjects wait for you to confirm them.
+`sources add` takes the source as `text` only: an agent cannot name a file on this computer or an address for wcat
+to open, so it gets no way to read local files or reach a private network through wcat. A path or a link is added
+from the command line ([Sources you add by hand](https://wirecat.dev/en/docs/files)). An agent's subjects wait for you to confirm them.
 `sources remove` is not offered: only you remove a source you added. `sources suggest` is not offered either, so an
 agent cannot send a source's text off this computer; nor are `sources readers set` and `models keys set` and
 `remove`, since only you choose the reader and give its key. `sources readers list` is offered. Of `models ai`, only
@@ -107,7 +107,7 @@ spend your credit, so only you run them.
 `memories add`, `facts add`, `actions add`, `meetings actions add` and `projects actions add` save proposals.
 By default only the owner decides project proposals; `projects actions confirm` and `projects actions reject` refuse
 an agent. Set [`agent_decisions: true`](configuration.md#agent_decisions) to let them decide with a recorded reason
-through the CLI and MCP. Memo never sends a message or mail. `--as-owner` and `--from-app` are not offered over
+through the CLI and MCP. wcat never sends a message or mail. `--as-owner` and `--from-app` are not offered over
 MCP: a call through it is always the agent's.
 
 ## Open a cited item
@@ -119,13 +119,13 @@ Messenger reads use the explicit account and chat encoded in the reference; noth
 
 ## Connect an app
 
-Add Memo to the app's MCP settings. Most apps use a file like this:
+Add wcat to the app's MCP settings. Most apps use a file like this:
 
 ```json
-{ "mcpServers": { "memo": { "command": "memo", "args": ["mcp", "serve"] } } }
+{ "mcpServers": { "wcat": { "command": "wcat", "args": ["mcp", "serve"] } } }
 ```
 
-Add the `memo` entry next to any servers already in the file:
+Add the `wcat` entry next to any servers already in the file:
 
 | App | Settings file |
 |---|---|
@@ -133,25 +133,25 @@ Add the `memo` entry next to any servers already in the file:
 | Claude Desktop, macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
 | Claude Desktop, Windows | `%APPDATA%\Claude\claude_desktop_config.json` |
 
-Restart the app after you save the file. Memo must be installed on the same computer as the app. If
-the app cannot find `memo`, replace `"memo"` with its full path, which `which memo` (macOS and Linux)
-or `where.exe memo` (Windows) prints.
+Restart the app after you save the file. wcat must be installed on the same computer as the app. If
+the app cannot find `wcat`, replace `"wcat"` with its full path, which `which wcat` (macOS and Linux)
+or `where.exe wcat` (Windows) prints.
 
 Then try it:
 
 ```text prompt
-Use the memo tools to list the memories waiting for my review.
+Use the wcat tools to list the memories waiting for my review.
 ```
 
-Suggestions are saved under the agent name `memo-mcp`. Review proposed memories and facts with
-`memo memories list status:proposed` and the commands in [Memories and facts](memories.md).
+Suggestions are saved under the agent name `wcat-mcp`. Review proposed memories and facts with
+`wcat memories list status:proposed` and the commands in [Memories and facts](memories.md).
 
 ## The agent log
 
-Each command that reaches Memo’s command runner is written to the agent log, including permission and validation refusals:
+Each command that reaches wcat’s command runner is written to the agent log, including permission and validation refusals:
 
 ```sh
-memo agents list agent:memo-mcp --limit 20
+wcat agents list agent:wcat-mcp --limit 20
 ```
 
 The log shows the command as an underscore name, the result and the time, never its arguments.
@@ -160,7 +160,7 @@ Discovery and shared-protocol refusals happen before the command runner.
 For meeting evidence, see [meeting search](search.md#search-stored-meetings). Ask your agent to read
 passages with `meetings passage`, then stage a batch with `meetings actions add`. Give one `account` as
 `example:work` and an `input` object with `schema_version: 1`, `key`, `extractor` and `findings`, using
-the same fields as `memo meetings actions add --help`. Every finding needs exact cue references and
+the same fields as `wcat meetings actions add --help`. Every finding needs exact cue references and
 fingerprints and a confirmed project link. Unknown dates and assignees stay absent; inferred follow-ups
 are labelled as such. Exact retries reuse the key; changed input needs a new key.
 
@@ -172,7 +172,7 @@ quote what a source says with `quote` on `memories add` and `facts add`; it neve
 ([When a source changes](memories.md#when-a-source-changes)).
 
 `meetings actions show` and `meetings actions list` take an explicit `source`. The owner reviews
-batches through `memo meetings actions confirm` or `reject`, or explicitly permits the corresponding MCP decision commands. Staging creates no facts or numbered tasks.
+batches through `wcat meetings actions confirm` or `reject`, or explicitly permits the corresponding MCP decision commands. Staging creates no facts or numbered tasks.
 
 `projects actions add` stages cited facts and follow-ups about one project: each reference is a `msg:` or
 `document:` reference with the `fingerprint` `projects evidence` gave, and a text changed since then refuses as
@@ -182,12 +182,12 @@ it unless `brief`; cited documents include nearby paragraphs. A text changed sin
 findings that cite it. Decide the ones you are confident about with `projects actions confirm` (the finding IDs to
 create) or `projects actions reject`, always with a `reason`, which is kept with the decision; ask the owner about
 the rest. A batch needs its `fingerprint`. Unless the owner sets `agent_decisions: true`, decisions are refused and
-only the owner decides, through `memo projects actions confirm` or `reject`.
+only the owner decides, through `wcat projects actions confirm` or `reject`.
 
 Key-document suggestions have no saved text fingerprint and return `state: "untracked"`; reread them
 before deciding. Findings retain their own cited fingerprints for detecting source changes.
 
-`projects evidence` takes the options of `memo projects evidence` in snake_case and needs `source`: account
+`projects evidence` takes the options of `wcat projects evidence` in snake_case and needs `source`: account
 entries, a kind, `group:<name>` or `all`. It searches the project's name, its key, each of its aliases and each
 `alias`, each `context_query` and each `contact` separately and joins the hits; `since_time` defaults to `60d`.
 Optional `before_time` fixes the exclusive end to an ISO 8601 timestamp with `Z` or a UTC offset. Days back
@@ -196,11 +196,11 @@ continuation. It fixes the window, not the source data or the registered aliases
 Meeting accounts are supported: a recorded profile such as `zm:work` selects that account's stored,
 indexed transcript cues. Hits retain exact `meeting:` cue references and use the meeting start date
 (`time_kind: "meeting-start"`). Superseded/deleted transcripts are excluded. Missing transcripts and
-incomplete archives remain unknown; Memo does not fetch recordings. Transcript indexing uses the meeting
+incomplete archives remain unknown; wcat does not fetch recordings. Transcript indexing uses the meeting
 provider's existing indexing workflow; the mail/document catch-up below does not build transcript indexes.
 New mail and documents are indexed for search first; `no_catch_up: true` reads the index as it is. Each message
 hit carries `around`: `before_n` and `after_n` messages next to it in its chat (default 2), as context, never as
-more hits. Every message of a chat confirmed as the project's (`memo relationships add
+more hits. Every message of a chat confirmed as the project's (`wcat relationships add
 chat:<provider>/<account>/<chat> project:<id>`) is read too when `source` holds its account: those items have
 `context: "linked-chat"` and name nothing, their lane has `query: null` and `chat` set. Each `linked_chats` entry has
 `items` (new items this run) and `capped`: one run takes at most a share of the item limit from each chat, and
@@ -240,6 +240,6 @@ Notes, meeting memberships, tasks, memories, labels and findings are omitted, so
 annotation format rather than a full project backup. The owner uses
 the [selected annotation workflow](recipes.md#keep-selected-project-annotations), or explicitly permits
 `projects.annotations.restore` for the command. These reading
-commands remain available with `MEMO_READ_ONLY=1`; calls still produce the normal agent audit entry.
+commands remain available with `WCAT_READ_ONLY=1`; calls still produce the normal agent audit entry.
 
 Next: [review what the app saved](memories.md).

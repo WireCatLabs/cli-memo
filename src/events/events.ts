@@ -165,7 +165,7 @@ const rowOf = (details: EventDetails, accounts: readonly ReadAccount[]) => {
   }
 }
 
-/** `memo events list`: one list over every calendar account the store holds, latest start first. */
+/** `wcat events list`: one list over every calendar account the store holds, latest start first. */
 export const listEvents = async (
   store: MessageStore,
   words: readonly string[] | string | undefined,
@@ -214,7 +214,7 @@ export const listEvents = async (
   return body
 }
 
-/** `memo events show`: one event with its copies in every calendar account the store holds. */
+/** `wcat events show`: one event with its copies in every calendar account the store holds. */
 export const showEvent = async (store: MessageStore, reference: string) => {
   const text = reference.replace(/^event:/u, "")
   if (!/^[1-9]\d*$/u.test(text)) throw new CliError("validation_error", "an event is event:<id>")

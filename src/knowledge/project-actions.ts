@@ -140,7 +140,7 @@ export const decideAction = async (
     throw new CliError("validation_error", "an action ID is a batch number or key:<id>")
   const row = await proposalRegistry(store).get(id)
   if (row.project !== project.ref || (row.kind !== "key_document" && row.kind !== "findings"))
-    throw new CliError("not_found", `no proposal ${id} in ${project.ref}; memo projects actions list shows them`)
+    throw new CliError("not_found", `no proposal ${id} in ${project.ref}; wcat projects actions list shows them`)
   if (row.kind === "key_document") {
     await decideOne(store, env, id, decisionOf(decision.confirm, decision.by, decision.reason))
     return { id, kind: "key_document", ref: row.subject, confirmed: decision.confirm, decided_by: decision.by }

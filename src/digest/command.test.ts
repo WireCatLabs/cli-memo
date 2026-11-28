@@ -36,11 +36,11 @@ const message = (id: string, chatId: string, hours: number, text: string, outgoi
 })
 
 const setUp = async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-digest-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-digest-"))
   const env = {
     ...process.env,
     MESSAGING_STORE: join(root, "s.db"),
-    MEMO_CONFIG_DIR: join(root, "config"),
+    WCAT_CONFIG_DIR: join(root, "config"),
     XDG_DATA_HOME: join(root, "data"),
     XDG_CONFIG_HOME: join(root, "xdg-config"),
   }
@@ -125,7 +125,7 @@ const setUp = async () => {
     last?: object,
     kind = "command",
   ) => {
-    const argv = kind === "command" ? ["sync"] : ["claude", "-p", "Run memo skill show morning-digest."]
+    const argv = kind === "command" ? ["sync"] : ["claude", "-p", "Run wcat skill show morning-digest."]
     write("data", `${app}/schedules/${name}/schedule.json`, { name, kind, argv, environment, when: { every: 5 } })
     if (last) write("data", `${app}/schedules/${name}/last.json`, { output: "run.log", ...last })
   }
@@ -258,7 +258,7 @@ it("lists tasks new since the last digest and those overdue, due today or tomorr
   // A task created in the digest's own millisecond would count as new; "new" is created at or after it.
   await new Promise((resolve) => setTimeout(resolve, 5))
   const lastDigest = new Date().toISOString()
-  schedule("cli-memo", "morning-digest", {}, { at: lastDigest, exitCode: 0 }, "agent")
+  schedule("wcat", "morning-digest", {}, { at: lastDigest, exitCode: 0 }, "agent")
   await new Promise((resolve) => setTimeout(resolve, 5))
   await store.people.savePeople(tg, [{ id: "9", name: "Kai Sample" }])
   // The rule finds a task in each question Kai asked, the fixture's own and this one.
@@ -283,7 +283,7 @@ it("lists tasks new since the last digest and those overdue, due today or tomorr
   expect(body.item.scope.counts.tasks).toBe(5)
 
   const failingSince = new Date(now - 3 * 86_400_000).toISOString()
-  schedule("cli-memo", "morning-digest", {}, { at: lastDigest, exitCode: 1, failingSince }, "agent")
+  schedule("wcat", "morning-digest", {}, { at: lastDigest, exitCode: 1, failingSince }, "agent")
   const again = envelopeOf(await run("review", "agenda", "--json"))
   expect(again.item.tasks).toMatchObject({ new: 6, new_since: failingSince })
 })
@@ -336,7 +336,7 @@ it("keeps to the size budget, counting what it cut and naming the command that r
 
   const cut = await run("review", "agenda", "--compact", "--max-output-bytes", String(Buffer.byteLength(whole) - 40))
   expect(cut).toMatch(/## owed 2 \(\d not shown\)/)
-  expect(cut).toMatch(/next: memo (tasks agenda|mail review) --source/)
+  expect(cut).toMatch(/next: wcat (tasks agenda|review mail) --source/)
 
   const capped = await run("review", "agenda", "--compact", "--limit", "1")
   expect(capped).toContain("## owed 2 (1 not shown)")
@@ -361,7 +361,7 @@ it("lists memories whose sources changed since, once: a review refreshed in plac
 
   const day = section(envelopeOf(await run("review", "agenda", "--json")), "sources")
   expect(day.items).toEqual([expect.objectContaining({ ref: memory.ref, why: expect.stringContaining("changed") })])
-  expect(day.next).toEqual(["# decide them: memo review list kind:memory_source_review"])
+  expect(day.next).toEqual(["# decide them: wcat review list kind:memory_source_review"])
 
   const now = await openStore({ env })
   await now.notes.editNote(note.ref, "Delivery on the 30th", 2)
@@ -379,5 +379,5 @@ it("lists memories whose sources changed since, once: a review refreshed in plac
   await now.close()
   const later = section(envelopeOf(await run("review", "agenda", "--since-time", "1h", "--json")), "sources")
   expect(later.items).toEqual([expect.objectContaining({ ref: quoted.ref, why: expect.stringContaining("changed") })])
-  expect(later.next).toEqual(["# read changed sources again: memo memories check --since-time 1d --json"])
+  expect(later.next).toEqual(["# read changed sources again: wcat memories check --since-time 1d --json"])
 })

@@ -1,11 +1,11 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs"
+import { mkdtempSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { CliError, captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { afterEach, beforeEach, expect, it, vi } from "vitest"
 import { envelopeOf } from "../../test/answer.js"
-import { updateConfig } from "../config.js"
+import { addFolderNotes } from "../../test/notes.js"
 import { createProgram } from "../program.js"
 
 const failing = vi.hoisted(() => ({ on: false }))
@@ -27,22 +27,18 @@ vi.mock("@wirecat/cli-core/store", async (original) => {
 })
 
 let env: NodeJS.ProcessEnv
-let vault: string
+let folder: string
 
 beforeEach(async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-sync-sources-"))
-  vault = join(dir, "vault")
-  mkdirSync(vault)
-  writeFileSync(join(vault, "a.md"), "synthetic note")
+  const dir = mkdtempSync(join(tmpdir(), "wcat-sync-sources-"))
   env = {
     ...process.env,
     XDG_CONFIG_HOME: join(dir, "xdg"),
-    MEMO_CONFIG_DIR: join(dir, "config"),
-    MEMO_STATE_DIR: join(dir, "state"),
+    WCAT_CONFIG_DIR: join(dir, "config"),
+    WCAT_STATE_DIR: join(dir, "state"),
     MESSAGING_STORE: join(dir, "messages.db"),
   }
-  updateConfig(() => ({ notes: { folders: [vault] } }), env)
-  await run("folders", "add", vault)
+  folder = (await addFolderNotes(env, { "a.md": "synthetic note" })).folder
 })
 
 afterEach(() => {
@@ -77,7 +73,10 @@ it("still offers a change the sync's check took to a later memories check --sinc
     status: "confirmed",
   })
   await store.close()
-  writeFileSync(join(vault, "a.md"), "synthetic note, edited")
+  const editing = await openStore({ env })
+  // What files sync stores when the file changed.
+  await editing.notes.saveFileNote({ folderId: folder, path: "a.md", title: "a", text: "synthetic note, edited" })
+  await editing.close()
   const synced = envelopeOf(await run("sync", "--no-embed", "--json"))
   expect(synced.item.source_check).toMatchObject({ refreshed: 1, changed_refs: [note.ref] })
 
@@ -91,7 +90,6 @@ it("reports a failed source check in the run and still passes the sync", async (
   failing.on = true
   process.exitCode = 0
   const body = envelopeOf(await run("sync", "--no-embed", "--json"))
-  expect(body.item.notes).toEqual([expect.objectContaining({ notes: 1 })])
   expect(body.item.failed).toEqual([])
   expect(body.item.source_check_failed).toMatchObject({ code: "conflict", reason_id: expect.any(String) })
   expect(body.meta).toMatchObject({ complete: true })

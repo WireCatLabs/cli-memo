@@ -49,13 +49,13 @@ const reply = (who: string, chat: string, message?: string) => ({
 })
 
 const setUp = async (extra: NodeJS.ProcessEnv = {}) => {
-  const root = mkdtempSync(join(tmpdir(), "memo-history-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-history-"))
   const env = {
     ...process.env,
     AI_AGENT: "",
     CLAUDECODE: "",
     MESSAGING_STORE: join(root, "s.db"),
-    MEMO_CONFIG_DIR: join(root, "config"),
+    WCAT_CONFIG_DIR: join(root, "config"),
     XDG_DATA_HOME: join(root, "data"),
     XDG_CONFIG_HOME: join(root, "xdg-config"),
     ...extra,
@@ -68,7 +68,7 @@ const setUp = async (extra: NodeJS.ProcessEnv = {}) => {
     JSON.stringify({
       name: "morning-digest",
       kind: "agent",
-      argv: ["claude", "-p", "Run memo skill show morning-digest and follow it."],
+      argv: ["claude", "-p", "Run wcat skill show morning-digest and follow it."],
       when: { daily: "08:30" },
       environment: {},
       createdAt: "",
@@ -152,7 +152,7 @@ it("gives the last reports newest first, each item with its streak and what beca
   expect(past.item.reports).toHaveLength(1)
 })
 
-it("reads under MEMO_READ_ONLY and says so when no report is kept", async () => {
-  const { run } = await setUp({ MEMO_READ_ONLY: "1" })
+it("reads under WCAT_READ_ONLY and says so when no report is kept", async () => {
+  const { run } = await setUp({ WCAT_READ_ONLY: "1" })
   expect(await run("digest", "history")).toBe("morning-digest: no earlier report kept\n")
 })

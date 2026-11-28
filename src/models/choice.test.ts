@@ -6,8 +6,9 @@ import { captureStreams } from "@wirecat/cli-base"
 import { textModel, textModelsFile, vectorModelKey } from "@wirecat/cli-core/services"
 import { type MessageStore, openStore } from "@wirecat/cli-core/store"
 import { afterEach, describe, expect, it } from "vitest"
-import { EMBED_PER_RUN, embedNoteChunks, embedPerRun } from "../notes/embed.js"
+import { storeMail } from "../../test/mail-store.js"
 import { createProgram } from "../program.js"
+import { EMBED_PER_RUN, embedMailChunks, embedPerRun } from "../search/embed.js"
 
 const fixture = join(import.meta.dirname, "../../test/fixtures/tiny-model")
 const pinned = (name: string) => {
@@ -39,7 +40,7 @@ afterEach(async () => {
 
 /** A store, and two downloaded custom models of the tiny fixture in the shared settings file beside it. */
 const machine = async (use?: string) => {
-  const root = mkdtempSync(join(tmpdir(), "memo-model-choice-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-model-choice-"))
   const env = { ...process.env, WIRECAT_STATE_DIR: root, MESSAGING_STORE: join(root, "store.db") }
   mkdirSync(join(root, "models", "text"), { recursive: true })
   for (const id of ["tiny-a", "tiny-b"]) symlinkSync(fixture, join(root, "models", "text", id))
@@ -50,28 +51,43 @@ const machine = async (use?: string) => {
   return { env, store }
 }
 
-const memo = async (env: NodeJS.ProcessEnv, argv: string[]) => {
+// The tiny model knows a few words only, and a mail chunk ends in "From: <sender>": every word has to be one of them.
+const oneEmail = (store: MessageStore, text: string) =>
+  storeMail(store, "owner@example.test", [
+    {
+      uid: "1",
+      messageId: "fish",
+      threadId: "1",
+      receivedAt: "2026-11-01T08:00:00Z",
+      subject: "fish",
+      from: ["cat", "rin@example.test"],
+      to: [[null, "owner@example.test"]],
+      text,
+    },
+  ])
+
+const wcat = async (env: NodeJS.ProcessEnv, argv: string[]) => {
   const streams = captureStreams()
   await createProgram({ env, streams }).parseAsync(argv, { from: "user" })
   return JSON.parse(streams.stdout.join(""))
 }
 
-describe("the search model memo uses", () => {
-  it("is the one `memo models set` chose: sync embeds notes with it and each model keeps its own vectors", async () => {
+describe("the search model wcat uses", () => {
+  it("is the one `wcat models set` chose: sync embeds mail with it and each model keeps its own vectors", async () => {
     const { env, store } = await machine()
-    await store.notes.addNote({ text: "fish fish fish" })
+    await oneEmail(store, "fish fish fish")
 
-    expect((await memo(env, ["models", "set", "tiny-a", "--json"])).item).toMatchObject({
+    expect((await wcat(env, ["models", "set", "tiny-a", "--json"])).item).toMatchObject({
       id: "tiny-a",
       default: true,
       previous: "embeddinggemma",
     })
-    expect(await embedNoteChunks(store, { env })).toEqual({ chunks: 1, left: false })
-    const switched = await memo(env, ["models", "set", "tiny-b", "--json"])
+    expect(await embedMailChunks(store, { env })).toEqual({ chunks: 1, left: false })
+    const switched = await wcat(env, ["models", "set", "tiny-b", "--json"])
     expect(switched.item).toMatchObject({ id: "tiny-b", previous: "tiny-a", to_embed: 1 })
-    expect(await embedNoteChunks(store, { env })).toEqual({ chunks: 1, left: false })
+    expect(await embedMailChunks(store, { env })).toEqual({ chunks: 1, left: false })
 
-    const listed = await memo(env, ["models", "list", "kind:text", "--json"])
+    const listed = await wcat(env, ["models", "list", "kind:text", "--json"])
     expect(listed.items.filter((one: { default: boolean }) => one.default).map(({ id }: { id: string }) => id)).toEqual(
       ["tiny-b"],
     )
@@ -81,11 +97,11 @@ describe("the search model memo uses", () => {
 
   it("names the missing model and its exact download", async () => {
     const { env, store } = await machine("embeddinggemma")
-    await store.notes.addNote({ text: "fish" })
+    await oneEmail(store, "fish")
 
-    expect(await embedNoteChunks(store, { env })).toMatchObject({
+    expect(await embedMailChunks(store, { env })).toMatchObject({
       chunks: 0,
-      notEmbedded: "the embeddinggemma model is not downloaded — memo models download embeddinggemma",
+      notEmbedded: "the embeddinggemma model is not downloaded — wcat models download embeddinggemma",
     })
   })
 

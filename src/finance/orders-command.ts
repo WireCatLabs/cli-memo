@@ -67,7 +67,7 @@ interface AddOptions {
   json?: boolean
 }
 
-/** `memo orders`: what the owner, his business or a client ordered, and how far delivery got. */
+/** `wcat orders`: what the owner, his business or a client ordered, and how far delivery got. */
 export const orderCommands = (program: Command, streams: Streams, env: NodeJS.ProcessEnv): void => {
   const { run } = answers(program, streams, env)
   const orders = program
@@ -107,7 +107,7 @@ export const orderCommands = (program: Command, streams: Streams, env: NodeJS.Pr
     ),
   )
     .description(
-      "record a placed order; yours is confirmed at once, an agent's waits as proposed for you in memo review",
+      "record a placed order; yours is confirmed at once, an agent's waits as proposed for you in wcat review",
     )
     .summary("record an order; an agent's waits for your review")
     .argument("<shop>", "the shop or supplier, as its mail names it")

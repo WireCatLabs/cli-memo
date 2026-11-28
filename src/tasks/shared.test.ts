@@ -30,12 +30,12 @@ const said = (id: string, minutes: number, text: string, extra: Partial<Message>
 })
 
 const setUp = async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-shared-tasks-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-shared-tasks-"))
   const env = {
     ...process.env,
     MESSAGING_STORE: join(root, "store.db"),
-    MEMO_CONFIG_DIR: join(root, "config"),
-    MEMO_STATE_DIR: join(root, "state"),
+    WCAT_CONFIG_DIR: join(root, "config"),
+    WCAT_STATE_DIR: join(root, "state"),
   }
   const store = await openStore({ env })
   await store.accounts.saveAccount(key, { name: null })
@@ -46,7 +46,7 @@ const setUp = async () => {
     via: "test",
   })
   await store.people.savePeople(key, [{ id: "9", name: "Alice Example" }])
-  // tg opens this task when it syncs; memo reads the same store.
+  // tg opens this task when it syncs; wcat reads the same store.
   await applyTaskRulesToStored(store, key)
   await store.close()
   const run = async (...args: string[]) => {

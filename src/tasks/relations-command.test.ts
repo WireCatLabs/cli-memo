@@ -9,7 +9,7 @@ import { createProgram } from "../program.js"
 it("creates keyed project tasks, links them as before or with task:, and discovers ready work through an alias", async () => {
   const env = {
     ...process.env,
-    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-task-graph-test-")), "fixture.db"),
+    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-task-graph-test-")), "fixture.db"),
   }
   const run = async (...args: string[]) => {
     const streams = captureStreams()

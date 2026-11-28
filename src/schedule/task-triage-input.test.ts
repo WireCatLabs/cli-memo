@@ -39,11 +39,11 @@ const message = (
 })
 
 const setUp = async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-task-triage-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-task-triage-"))
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     MESSAGING_STORE: join(root, "s.db"),
-    MEMO_CONFIG_DIR: join(root, "config"),
+    WCAT_CONFIG_DIR: join(root, "config"),
     XDG_DATA_HOME: join(root, "data"),
     XDG_CONFIG_HOME: join(root, "xdg-config"),
   }
@@ -145,7 +145,7 @@ it("stages a chat task under the read-only lock and leaves out the same task sta
   const { env, run } = await setUp()
   await run(env, "relationships", "add", "chat:telegram/1/12", "project:1")
   const line = chatLines(await input(env), "chat:telegram/1/12")[0]
-  const agent = { ...env, AI_AGENT: "task-triage", MEMO_READ_ONLY: "1" }
+  const agent = { ...env, AI_AGENT: "task-triage", WCAT_READ_ONLY: "1" }
   const batch = (key: string, title: string) =>
     JSON.stringify({
       schema_version: 1,

@@ -15,7 +15,7 @@ export const templatesCommand = (program: Command, streams: Streams, env: NodeJS
   for (const one of templates.commands)
     overrideSharedContract(
       one,
-      "Memo's output flag is command-local because this provider does not use the messenger program shell.",
+      "wcat's output flag is command-local because this provider does not use the messenger program shell.",
       (command) => {
         command.option("--json", "print JSON")
       },

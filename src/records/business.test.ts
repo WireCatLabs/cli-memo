@@ -9,7 +9,7 @@ const EXAMPLE = readFileSync(
 )
 const ACCOUNT = "example-erp:demo"
 
-it("imports cli-core's business example once, and memo show, the entity shows and search all find what it wrote", async () => {
+it("imports cli-core's business example once, and wcat show, the entity shows and search all find what it wrote", async () => {
   const f = await businessStore("business-example")
   const first = await f.piped(EXAMPLE, "records", "import", "-", "--account", ACCOUNT)
   expect(first).toMatchObject({ created: 10, refused: 0, errors: [], waiting: [] })
@@ -26,12 +26,12 @@ it("imports cli-core's business example once, and memo show, the entity shows an
   const refs = [String(product?.ref), "contract:1", "order:1", "invoice:1", "payment:1", String(deal?.ref)]
   const shown = await f.items(OWNER, "show", ...refs)
   expect(shown.map((one) => (one.open as { line: string }).line)).toEqual([
-    `memo products show ${product?.ref}`,
-    "memo contracts show contract:1",
-    "memo orders show order:1",
-    "memo invoices show invoice:1",
-    "memo payments show payment:1",
-    `memo deals show ${deal?.ref}`,
+    `wcat products show ${product?.ref}`,
+    "wcat contracts show contract:1",
+    "wcat orders show order:1",
+    "wcat invoices show invoice:1",
+    "wcat payments show payment:1",
+    `wcat deals show ${deal?.ref}`,
   ])
   expect(shown.map((one) => (one.sources as { records: { items: { record: string }[] } }).records.items)).toEqual([
     [{ record: "product:SKU-RENT", account: ACCOUNT }],

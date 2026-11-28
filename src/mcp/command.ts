@@ -19,7 +19,7 @@ import type { ProgramFactory } from "./catalogue.js"
 const DEFAULT_PORT = 8767
 
 export const httpTokenFile = (env: NodeJS.ProcessEnv): string =>
-  join(resolvePaths({ appName: APP.appName, prefix: APP.envPrefix, env }).state, "mcp-http", "memo.json")
+  join(resolvePaths({ appName: APP.appName, prefix: APP.envPrefix, env }).state, "mcp-http", "wcat.json")
 
 interface ServeOptions {
   permission?: string[]
@@ -36,18 +36,18 @@ const mcpCommandDefinition = (
 ): void => {
   const out = answers(program, streams, env)
   const mcp = annotate(program.command("mcp"), { effects: LOCAL_READ, mcp: false })
-    .summary("serve memo's commands to an AI agent, and set that up")
+    .summary("serve wcat's commands to an AI agent, and set that up")
     .description(
-      "serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions — `claude mcp add memo -- memo mcp serve`",
+      "serve wcat commands over MCP on stdio or authenticated HTTP, limited by saved permissions — `claude mcp add wcat -- wcat mcp serve`",
     )
   annotate(mcp.command("serve"), {
     effects: LOCAL_WRITE,
     lifetime: "persistent",
     mcp: false,
-    examples: ["memo mcp serve", "memo mcp serve --http --public-url https://laptop.example.ts.net"],
+    examples: ["wcat mcp serve", "wcat mcp serve --http --public-url https://laptop.example.ts.net"],
   })
-    .summary("serve memo's commands to an AI agent")
-    .description("serve memo commands over MCP on stdio or authenticated HTTP, limited by saved permissions")
+    .summary("serve wcat's commands to an AI agent")
+    .description("serve wcat commands over MCP on stdio or authenticated HTTP, limited by saved permissions")
     .option(
       "--permission <key=level>",
       "tighten one saved permission for this server; repeat for more keys",
@@ -68,7 +68,7 @@ const mcpCommandDefinition = (
         const { httpLockFile, mcpUrlOf, portOf, publicUrlOf, serveOverHttp } = await import("@wirecat/cli-core/mcp")
         const publicUrl = publicUrlOf(options.publicUrl, {
           missing: "--http",
-          reaches: "the browser apps reach memo",
+          reaches: "the browser apps reach wcat",
           path: true,
         })
         const port = portOf(options.port, DEFAULT_PORT)
@@ -87,13 +87,13 @@ const mcpCommandDefinition = (
             tokenFile: httpTokenFile(env),
             lockFile: httpLockFile(httpTokenFile(env)),
             version: APP.version,
-            appName: "memo",
+            appName: "wcat",
             // Started by `mcp server start`, its log is a file: the code goes only to the lock that status reads.
             onCode: (code, expires) =>
               streams.diagnostic(
                 env[`${APP.envPrefix}_MCP_HTTP`] === undefined
                   ? `login code for a new browser app: ${code} (until ${expires.toTimeString().slice(0, 5)})`
-                  : "a new login code for a browser app: `memo mcp server status`",
+                  : "a new login code for a browser app: `wcat mcp server status`",
               ),
             onError: (error) => streams.diagnostic(`mcp: ${error.message}`),
           }).catch((error: unknown) => {
@@ -124,9 +124,9 @@ const mcpCommandDefinition = (
         process.once("SIGTERM", resolve)
       })
     })
-  annotate(mcp.command("revoke"), { effects: LOCAL_WRITE, mcp: false, examples: ["memo mcp revoke --json"] })
+  annotate(mcp.command("revoke"), { effects: LOCAL_WRITE, mcp: false, examples: ["wcat mcp revoke --json"] })
     .summary("forget every login given to a browser app")
-    .description("forget every login `memo mcp serve --http` gave a browser app; each app must log in again")
+    .description("forget every login `wcat mcp serve --http` gave a browser app; each app must log in again")
     .option("--json", "print JSON")
     .action(async function (this: Command) {
       const { revokeAll } = await import("@wirecat/cli-core/mcp")
@@ -134,11 +134,11 @@ const mcpCommandDefinition = (
       out.print(this.opts<{ json?: boolean }>().json, itemAnswer({ revoked: true }))
     })
   const server = mcpServerCommand({
-    example: "memo",
+    example: "wcat",
     defaultPort: DEFAULT_PORT,
     permission: true,
     target: () => ({
-      invocation: "memo",
+      invocation: "wcat",
       envPrefix: APP.envPrefix,
       env,
       tokenFile: httpTokenFile(env),
@@ -148,7 +148,7 @@ const mcpCommandDefinition = (
     answer: (self, item, lines) => out.print(self.opts<{ json?: boolean }>().json, itemAnswer(item), lines.join("\n")),
     system: (self) => environmentOf<BaseEnvironment & { system?: ServerSystem }>(self).system,
   })
-  // memo has no global --json, so each mcp command that answers takes its own, as notes and mail do.
+  // wcat has no global --json, so each mcp command that answers takes its own, as notes and mail do.
   for (const command of server.commands) command.option("--json", "print JSON")
   mcp.addCommand(server)
 }
@@ -156,7 +156,7 @@ const mcpCommandDefinition = (
 export const mcpCommand = (...args: Parameters<typeof mcpCommandDefinition>) =>
   customizeSharedCommand(
     sharedCommandTemplate(APP, "mcp"),
-    "Memo uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
+    "wcat uses Core's stdio/HTTP transport and login while binding its profile-free local store, saved permissions and token state; connector management remains in the client app.",
     () => {
       mcpCommandDefinition(...args)
       const command = args[0].commands.find((command) => command.name() === "mcp")

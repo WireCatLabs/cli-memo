@@ -10,7 +10,7 @@ import { createProgram } from "../program.js"
 it("resolves owner project aliases through reviewed CLI writes and rejects a stale fingerprint", async () => {
   const env = {
     ...process.env,
-    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-vocabulary-test-")), "fixture.db"),
+    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-vocabulary-test-")), "fixture.db"),
   }
   const store = await openStore({ env })
   const project = await store.knowledge.addProject({ name: "Research Example", key: "RES", scope: "work" })
@@ -52,7 +52,7 @@ it("resolves owner project aliases through reviewed CLI writes and rejects a sta
 it("returns likely label duplicates without changing the catalog", async () => {
   const env = {
     ...process.env,
-    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-label-preflight-test-")), "fixture.db"),
+    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-label-preflight-test-")), "fixture.db"),
   }
   const store = await openStore({ env })
   await store.knowledge.createTag("onboarding")
@@ -76,7 +76,7 @@ it("returns likely label duplicates without changing the catalog", async () => {
 it("selects project meetings through aliases and refuses a foreign account link", async () => {
   const env = {
     ...process.env,
-    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-project-meeting-test-")), "fixture.db"),
+    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-project-meeting-test-")), "fixture.db"),
   }
   const store = await openStore({ env })
   const account = { provider: "example", account: "AliceExample" }
@@ -124,7 +124,7 @@ it("selects project meetings through aliases and refuses a foreign account link"
 it("creates an owner-reviewed distinct label and rejects a stale creation receipt", async () => {
   const env = {
     ...process.env,
-    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-label-create-test-")), "fixture.db"),
+    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-label-create-test-")), "fixture.db"),
   }
   const store = await openStore({ env })
   await store.knowledge.createTag("onboarding")
@@ -160,7 +160,7 @@ it("creates an owner-reviewed distinct label and rejects a stale creation receip
 })
 
 it("reads the vocabulary within the budgets given, in one scope, and pairs only names as close as asked", async () => {
-  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-vocabulary-budget-")), "f.db") }
+  const env = { ...process.env, MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-vocabulary-budget-")), "f.db") }
   const store = await openStore({ env })
   await store.knowledge.addProject({ name: "Synthetic Rental", key: "REN", scope: "work" })
   await store.knowledge.addProject({ name: "Synthetic Rentals", key: "RNS", scope: "work" })
@@ -199,7 +199,7 @@ it("reads the vocabulary within the budgets given, in one scope, and pairs only 
 it("confirms an agent's proposed meeting link only with a current --fingerprint, keeps the owner's --reason, and pages", async () => {
   const env = {
     ...process.env,
-    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "memo-project-meeting-test-")), "fixture.db"),
+    MESSAGING_STORE: join(mkdtempSync(join(tmpdir(), "wcat-project-meeting-test-")), "fixture.db"),
   }
   const store = await openStore({ env })
   const account = { provider: "example", account: "AliceExample" }

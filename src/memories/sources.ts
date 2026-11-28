@@ -51,7 +51,7 @@ export const explainQuote = (error: unknown): never => {
   if (isCliError(error) && error.details.reason === "evidence.quote-not-found")
     throw new CliError(
       "validation_error",
-      `${error.message}: quote the words exactly as the source has them (memo show <ref> reads it), or leave --quote out`,
+      `${error.message}: quote the words exactly as the source has them (wcat show <ref> reads it), or leave --quote out`,
       { reason: "evidence.quote-not-found", param: "quote" },
     )
   throw error
@@ -86,7 +86,7 @@ export const sourceCheckCommand = (memories: Command, streams: Streams, env: Nod
         "that still says the quoted words is signed again; one that changed, went or was replaced raises a " +
         "memory_source_review for you to decide. Status never changes here. changed_refs lists changed sources no " +
         "findings batch reads yet, for an agent to read again with projects actions add; a run names a change " +
-        "once, so --since-time also lists those an earlier run, such as memo sync's, already found. memo sync runs it too",
+        "once, so --since-time also lists those an earlier run, such as wcat sync's, already found. wcat sync runs it too",
     )
     .option("--limit <n>", "most evidence links this run, up to 10000", positive, 500)
     .option(
@@ -120,7 +120,7 @@ export const challengeCommand = (
     .summary(`say a ${type} no longer holds, citing what contradicts it; you decide`)
     .description(
       `say a ${type} is contradicted, citing what shows it: this opens its memory_source_review, or adds to the ` +
-        "open one, and changes nothing else. Only you decide it (memo review show <id>). An agent may run it",
+        "open one, and changes nothing else. Only you decide it (wcat review show <id>). An agent may run it",
     )
     .argument("<ref>", TARGET[type])
     .requiredOption("--evidence <ref...>", "what contradicts it: msg:, note:, meeting:, fact: or another reference")

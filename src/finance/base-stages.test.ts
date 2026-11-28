@@ -40,10 +40,10 @@ interface Row {
 let env: NodeJS.ProcessEnv
 
 beforeEach(async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-base-stages-"))
-  env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), MEMO_CONFIG_DIR: join(root, "config") }
-  delete env.MEMO_GROUP
-  delete env.MEMO_GROUP_LOCK
+  const root = mkdtempSync(join(tmpdir(), "wcat-base-stages-"))
+  env = { ...process.env, MESSAGING_STORE: join(root, "m.db"), WCAT_CONFIG_DIR: join(root, "config") }
+  delete env.WCAT_GROUP
+  delete env.WCAT_GROUP_LOCK
   const store = await openStore({ env })
   try {
     await acmeScenario(store)
@@ -57,20 +57,20 @@ beforeEach(async () => {
   }
 })
 
-const openColumns = async (memo = memoIn(env)) =>
-  ((await memo("stages", "show", "deal")) as BaseSet).stages.filter((column) => column.outcome === "open")
+const openColumns = async (wcat = memoIn(env)) =>
+  ((await wcat("stages", "show", "deal")) as BaseSet).stages.filter((column) => column.outcome === "open")
 
 /** The own pipeline Own (Call, Quote, Contract, won, lost) with one deal in Call, by stage name. */
 const ownPipeline = async () => {
-  const memo = memoIn(env)
-  await memo("pipelines", "add", "Own", "Call", "Quote", "Contract", "won", "lost")
-  const deal = (await memo("deals", "add", "Own deal", "Own/Call")) as Row
-  const { items } = (await memo("stages", "list", "pipeline:Own")) as { items: Mapping[] }
+  const wcat = memoIn(env)
+  await wcat("pipelines", "add", "Own", "Call", "Quote", "Contract", "won", "lost")
+  const deal = (await wcat("deals", "add", "Own deal", "Own/Call")) as Row
+  const { items } = (await wcat("stages", "list", "pipeline:Own")) as { items: Mapping[] }
   const stage = (name: string) => (items.find((one) => one.name === name) as Mapping).ref
-  return { memo, deal: deal.ref, stage }
+  return { wcat, deal: deal.ref, stage }
 }
 
-describe("memo stages", () => {
+describe("wcat stages", () => {
   it("mounts every stages command with --json", async () => {
     const stages = createProgram({ streams: captureStreams(), env }).commands.find((one) => one.name() === "stages")
     const leaves = stages?.commands ?? []
@@ -104,7 +104,7 @@ describe("memo stages", () => {
     expect(all.items.map((one) => one.account?.account)).toContain(OTHER.account)
     const allSet = (await memoIn(env)("stages", "show", "deal")) as BaseSet
 
-    const locked = memoIn({ ...env, MEMO_GROUP_LOCK: "work" })
+    const locked = memoIn({ ...env, WCAT_GROUP_LOCK: "work" })
     const inWork = (await locked("stages", "list")) as { items: Mapping[] }
     expect(inWork.items.length).toBeGreaterThan(0)
     expect(inWork.items.map((one) => one.account?.account)).not.toContain(OTHER.account)
@@ -114,26 +114,26 @@ describe("memo stages", () => {
   })
 })
 
-describe("memo stages: the owner's base set and the suggestions", () => {
+describe("wcat stages: the owner's base set and the suggestions", () => {
   it("puts a new base stage first, then takes it out of the set", async () => {
-    const memo = memoIn(env)
-    await memo("stages", "create", "deal", "Demo")
-    const moved = (await memo("stages", "move", "deal", "Demo", "1")) as BaseSet
+    const wcat = memoIn(env)
+    await wcat("stages", "create", "deal", "Demo")
+    const moved = (await wcat("stages", "move", "deal", "Demo", "1")) as BaseSet
     expect(moved.stages[0]?.name).toBe("Demo")
-    const removed = (await memo("stages", "remove", "deal", "Demo")) as BaseSet
+    const removed = (await wcat("stages", "remove", "deal", "Demo")) as BaseSet
     expect(removed.stages.map((column) => column.name)).not.toContain("Demo")
   })
 
   it("confirms only the kind named with --all --kind", async () => {
-    const memo = memoIn(env)
+    const wcat = memoIn(env)
     const unconfirmed = async (kind: string) =>
-      ((await memo("stages", "list", `kind:${kind}`, "confirmed:false")) as { items: Mapping[] }).items.length
+      ((await wcat("stages", "list", `kind:${kind}`, "confirmed:false")) as { items: Mapping[] }).items.length
     const deals = await unconfirmed("deal")
     expect(deals).toBeGreaterThan(0)
-    await memo("stages", "confirm", "--all", "--kind", "lead")
+    await wcat("stages", "confirm", "--all", "--kind", "lead")
     expect(await unconfirmed("deal")).toBe(deals)
     expect(await unconfirmed("lead")).toBe(0)
-    await memo("stages", "confirm", "--all", "--kind", "deal")
+    await wcat("stages", "confirm", "--all", "--kind", "deal")
     expect(await unconfirmed("deal")).toBe(0)
   })
 
@@ -146,7 +146,7 @@ describe("memo stages: the owner's base set and the suggestions", () => {
     expect(task.stages.every((stage) => stage.kind === "deal")).toBe(true)
     const stage = task.stages[0] as { ref: string; outcome: string }
     const base = task.base_stages.find((one) => one.kind === "deal" && one.outcome === stage.outcome)
-    const answer = join(mkdtempSync(join(tmpdir(), "memo-stage-answer-")), "answer.json")
+    const answer = join(mkdtempSync(join(tmpdir(), "wcat-stage-answer-")), "answer.json")
     writeFileSync(answer, JSON.stringify({ map: [{ stage: stage.ref, base: base?.ref }] }))
 
     const agent = memoIn({ ...env, AI_AGENT: "codex" })
@@ -162,13 +162,13 @@ describe("memo stages: the owner's base set and the suggestions", () => {
 describe("deals move to a base stage", () => {
   it("moves the owner's deal to the one stage mapped there, and its row carries base_stage", async () => {
     const [column] = await openColumns()
-    const { memo, deal, stage } = await ownPipeline()
-    await memo("stages", "set", stage("Quote"), (column as Column).ref)
+    const { wcat, deal, stage } = await ownPipeline()
+    await wcat("stages", "set", stage("Quote"), (column as Column).ref)
 
-    const moved = (await memo("deals", "move", deal, (column as Column).ref)) as Row
+    const moved = (await wcat("deals", "move", deal, (column as Column).ref)) as Row
     expect(moved).toMatchObject({ stage: "Quote", base_stage: { ref: (column as Column).ref } })
 
-    const { items } = (await memo("deals", "list")) as { items: Row[] }
+    const { items } = (await wcat("deals", "list")) as { items: Row[] }
     expect(items.find((row) => row.ref === deal)?.base_stage).toEqual({
       ref: (column as Column).ref,
       name: (column as Column).name,
@@ -179,11 +179,11 @@ describe("deals move to a base stage", () => {
 
   it("asks which stage when several are mapped there, and moves to the one named back", async () => {
     const [, column] = await openColumns()
-    const { memo, deal, stage } = await ownPipeline()
-    await memo("stages", "set", stage("Quote"), (column as Column).ref)
-    await memo("stages", "set", stage("Contract"), (column as Column).ref)
+    const { wcat, deal, stage } = await ownPipeline()
+    await wcat("stages", "set", stage("Quote"), (column as Column).ref)
+    await wcat("stages", "set", stage("Contract"), (column as Column).ref)
 
-    const failure = await memo("deals", "move", deal, (column as Column).ref).catch((error: unknown) => error)
+    const failure = await wcat("deals", "move", deal, (column as Column).ref).catch((error: unknown) => error)
     expect(failure).toMatchObject({
       code: "validation_error",
       details: {
@@ -194,21 +194,21 @@ describe("deals move to a base stage", () => {
         ],
       },
     })
-    expect(await memo("deals", "move", deal, stage("Contract"))).toMatchObject({ stage: "Contract" })
+    expect(await wcat("deals", "move", deal, stage("Contract"))).toMatchObject({ stage: "Contract" })
   })
 
   it("refuses a base stage nothing of the pipeline maps to, and a CRM's copy", async () => {
     const [, , column] = await openColumns()
-    const { memo, deal } = await ownPipeline()
-    await expect(memo("deals", "move", deal, (column as Column).ref)).rejects.toMatchObject({
+    const { wcat, deal } = await ownPipeline()
+    await expect(wcat("deals", "move", deal, (column as Column).ref)).rejects.toMatchObject({
       code: "validation_error",
       details: { reason: "stage.unmapped" },
     })
-    expect(((await memo("deals", "show", deal)) as Row).stage).toBe("Call")
+    expect(((await wcat("deals", "show", deal)) as Row).stage).toBe("Call")
 
-    const { items } = (await memo("deals", "list")) as { items: Row[] }
+    const { items } = (await wcat("deals", "list")) as { items: Row[] }
     const copy = items.find((row) => row.account?.account === PORTAL.account) as Row
-    await expect(memo("deals", "move", copy.ref, (column as Column).ref)).rejects.toMatchObject({
+    await expect(wcat("deals", "move", copy.ref, (column as Column).ref)).rejects.toMatchObject({
       code: "validation_error",
       details: { reason: "stage.crm-copy", writes_with: { tool: "b24" } },
     })

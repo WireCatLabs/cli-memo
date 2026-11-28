@@ -17,8 +17,8 @@ interface Answer {
 }
 
 const crmStore = async () => {
-  const dir = mkdtempSync(join(tmpdir(), "memo-crm-search-"))
-  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), MEMO_CONFIG_DIR: dir }
+  const dir = mkdtempSync(join(tmpdir(), "wcat-crm-search-"))
+  const env: NodeJS.ProcessEnv = { ...process.env, MESSAGING_STORE: join(dir, "s.db"), WCAT_CONFIG_DIR: dir }
   delete env.AI_AGENT
   delete env.CLAUDECODE
   const run = async (...args: string[]) =>
@@ -89,9 +89,9 @@ it("leaves the CRM lane out for crm.list or both lists denied, and refuses --onl
   }
 })
 
-it("leaves deals out of a command-line search all when memo's saved permissions deny them, as deals context does", async () => {
+it("leaves deals out of a command-line search all when wcat's saved permissions deny them, as deals context does", async () => {
   const env = await crmStore()
-  writeFileSync(join(env.MEMO_CONFIG_DIR ?? "", "config.json"), JSON.stringify({ permissions: { deals: "deny" } }))
+  writeFileSync(join(env.WCAT_CONFIG_DIR ?? "", "config.json"), JSON.stringify({ permissions: { deals: "deny" } }))
   const streams = captureStreams()
   await createProgram({ streams, env, terminal: { present: false } })
     .exitOverride()

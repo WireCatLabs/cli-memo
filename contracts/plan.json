@@ -1,6 +1,6 @@
 {
   "command": "node",
-  "args": ["../dist/bin/memo.js"],
+  "args": ["../dist/bin/wcat-wirecat.js"],
   "cases": [
     {
       "id": "help",

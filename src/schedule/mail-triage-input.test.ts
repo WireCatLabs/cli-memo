@@ -30,7 +30,7 @@ it("hands the skill and each mailbox's review to the agent, compactly", async ()
   expect(input).toContain("SKILL TEXT")
   expect(input).toContain("## email:a@x.org\nkey: mail-triage:9\ncursor: 9.1")
   expect(input).toContain('{"ref":"msg:email/1","text":"hi"}')
-  expect(asked[1]?.slice(0, 5)).toEqual(["mail", "review", "--holder", "mail-triage", "--source"])
+  expect(asked[1]?.slice(0, 5)).toEqual(["review", "mail", "--holder", "mail-triage", "--source"])
 })
 
 it("says so when a mailbox has no emails", async () => {
@@ -101,7 +101,7 @@ it("shortens every email of a held group that shares one cursor, in any mailbox,
   expect(block.length).toBeLessThanOrEqual(12_000)
   expect(block).toContain("cursor: 9.5")
   expect(block.match(/"text_cut":true/g)).toHaveLength(3)
-  expect(block).toContain("memo messages show")
+  expect(block).toContain("wcat messages show")
   expect(block).not.toContain("msg:email/10")
 })
 

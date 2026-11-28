@@ -5,10 +5,11 @@ import { captureStreams } from "@wirecat/cli-base"
 import { openStore } from "@wirecat/cli-core/store"
 import { expect, it } from "vitest"
 import { answerOf } from "../../test/answer.js"
+import { addNote } from "../../test/notes.js"
 import { createProgram } from "../program.js"
 
 const setUp = async () => {
-  const root = mkdtempSync(join(tmpdir(), "memo-task-board-"))
+  const root = mkdtempSync(join(tmpdir(), "wcat-task-board-"))
   const env = { ...process.env, MESSAGING_STORE: join(root, "store.db") }
   const store = await openStore({ env })
   await store.knowledge.addProject({ name: "Harbour launch", key: "HRB" })
@@ -23,7 +24,7 @@ const setUp = async () => {
       .parseAsync([...args, "--json"], { from: "user" })
     return answerOf(streams.stdout.join(""))
   }
-  return { run, ana: `person:${ana?.uid}` }
+  return { run, env, ana: `person:${ana?.uid}` }
 }
 
 it("lists every project's open work with a query, a sort, a cursor and a total", async () => {
@@ -78,9 +79,9 @@ it("lists every project's open work with a query, a sort, a cursor and a total",
 })
 
 it("gives a found task a project task's fields, lists it under its assignee and moves it into a project", async () => {
-  const { run, ana } = await setUp()
+  const { run, env, ana } = await setUp()
   const acts = ["--account", "telegram:1"]
-  const note = await run(["notes", "add", "Synthetic budget request"])
+  const note = await addNote(env, "Synthetic budget request")
   const found = (await run(["tasks", "add", `note:${note.id}`, ...acts])).task
   await run(["tasks", "add", "--project", "HRB", "--title", "Print badges"])
 
@@ -153,7 +154,7 @@ it("moves, reopens, unassigns and tells the history, naming the agent that acted
   })
 })
 
-it("adds a person by name, and lists everyone memo knows to assign", async () => {
+it("adds a person by name, and lists everyone wcat knows to assign", async () => {
   const { run, ana } = await setUp()
   await run(["tasks", "add", "--project", "HRB", "--title", "A", "--assignee", ana])
   const lena = await run(["people", "add", "Lena", "Example"])
