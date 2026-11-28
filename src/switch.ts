@@ -18,7 +18,7 @@ export const FILES = "@wirecat/files-cli"
 export const WIRECAT_PROGRAM = "wcat-wirecat"
 
 /** The day the daily "run memo upgrade" line starts. Set to the release day of the split. */
-export const SWITCH_NOTICE_FROM = "2026-12-01"
+export const SWITCH_NOTICE_FROM = "2026-11-28"
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
