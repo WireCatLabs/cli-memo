@@ -12,6 +12,7 @@ export const DESKTOP: ManifestIdentity = {
   docs: "https://wirecat.dev/en/docs/memo",
   tagline: "Notes, people and memories in one place for your agent",
   syncs: "notes and mail",
+  mcpPort: 8767,
   // The default endpoints of the readers and AI models; the owner may point either at another address.
   hosts: ["api.openai.com", "api.anthropic.com", "localhost", "127.0.0.1"],
   userHosts: "the web pages you add as sources, and the address you set for a reader or an AI model",
