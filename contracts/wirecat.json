@@ -3989,7 +3989,7 @@
       "path": [
         "upgrade"
       ],
-      "summary": "upgrade memo with the package manager that installed it; --check only looks",
+      "summary": "move to wcat: installs @wirecat/wirecat, removes memo; --check only looks",
       "effects": {
         "remote": "read",
         "local": "write"

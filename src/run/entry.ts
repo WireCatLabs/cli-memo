@@ -33,8 +33,8 @@ export const memoEntry = (io?: CliEntry["io"]): CliEntry => {
         const notice = autoNotice(entry.env)
         if (notice) processStreams.diagnostic(notice)
       }
-      const { updateNotice } = await import("../update.js")
-      const notice = updateNotice(args)
+      const { switchNotice } = await import("../switch.js")
+      const notice = switchNotice(args, { env: entry.env })
       program.hook("preAction", (_root, command) => entry.atStart(command))
       failure.throwParseFailures(program)
       refuseJoinedPath(program, args)
