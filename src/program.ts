@@ -82,11 +82,11 @@ import { sourcesCommand } from "./sources/command.js"
 import { memoListContext, scopeRunsToGroup } from "./store/group.js"
 import { groupsCommand } from "./store/groups-command.js"
 import { storeCommand } from "./store/info-command.js"
+import { upgradeCommand } from "./switch.js"
 import { tagsCommand } from "./tags/command.js"
 import { tasksCommand } from "./tasks/command.js"
 import { templatesCommand } from "./templates/command.js"
 import { provideTerminal, type Terminal } from "./terminal.js"
-import { upgradeCommand } from "./update.js"
 import { VERSION } from "./version.js"
 import { vocabularyCommand } from "./vocabulary/command.js"
 
@@ -810,7 +810,7 @@ export const createProgram = ({
   autoCommand(program, streams, env)
   configCommand(program, streams, env)
   program.addCommand(doctorCommand())
-  program.addCommand(upgradeCommand(streams))
+  program.addCommand(upgradeCommand(streams, { env }))
   program.addCommand(scheduleCommand(env))
   digestCommand(program, streams, env)
   commandsCommand(program, streams)

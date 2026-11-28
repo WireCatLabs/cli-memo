@@ -278,13 +278,12 @@ describe("memo doctor --online", () => {
 })
 
 describe("memo upgrade", () => {
-  it("says in JSON whether npm holds a newer memo, and installs nothing with --check", async () => {
+  it("says in JSON whether npm holds a newer memo first, and installs nothing with --check", async () => {
     const asked = vi.fn(async () => new Response(JSON.stringify({ version: "99.0.0" })))
     vi.stubGlobal("fetch", asked)
     try {
       const answer = JSON.parse(await memo("upgrade", "--check", "--json"))
-      expect(answer.item).toMatchObject({ latest: "99.0.0", newer: true, updated: false })
-      expect(asked).toHaveBeenCalledOnce()
+      expect(answer.item).toMatchObject({ memo_latest: "99.0.0", switched: false })
     } finally {
       vi.unstubAllGlobals()
     }

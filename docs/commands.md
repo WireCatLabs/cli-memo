@@ -7157,7 +7157,7 @@ memo doctor reports create [options]
 
 ## `memo upgrade`
 
-upgrade memo with the package manager that installed it; --check only looks
+move to wcat: installs @wirecat/wirecat, removes memo; --check only looks
 
 This command changes the local store or your files.
 
@@ -7167,7 +7167,7 @@ memo upgrade [options]
 
 | Option | What it does |
 |---|---|
-| `--check` | say whether a newer version exists, and install nothing. |
+| `--check` | say what would be installed and removed, and change nothing. |
 | `--json` | print JSON. |
 
 **Example:** `memo upgrade --check`

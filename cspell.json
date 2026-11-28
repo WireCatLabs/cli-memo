@@ -3,6 +3,7 @@
   "files": ["README.md", "docs/*.md"],
   "import": ["./config/wirecat/cspell.json"],
   "words": [
+    "wcat",
     "avito",
     "baselined",
     "bitrix",
