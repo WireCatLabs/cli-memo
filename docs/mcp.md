@@ -1,13 +1,21 @@
 # The MCP server
 
-This page helps you connect Memo to an AI app that has no terminal, such as Claude Desktop or Cursor.
-MCP (Model Context Protocol) is the way these apps use a program on your computer. Once connected,
-the app can read your messages, mail, notes and archived meetings, and what Memo knows about a person. It can also save
-memories, record facts and propose actions. New suggestions wait for review; project proposals have
-separate decision permissions described below.
+Ask Claude Desktop, Cursor or another app where you chat with your AI agent without a terminal what you know about a
+person, or where a budget was agreed, and get the answer from your own messages, mail, notes and stored meetings, with
+each source cited. The agent can also save memories, record facts and propose actions for you to review. It never
+sends a message or an email.
 
-For apps on the web or phone, use [the remote connection guide](remote.md). It serves the same
-three tools over authenticated HTTP through your HTTPS tunnel.
+These apps reach programs on your computer through MCP (Model Context Protocol), so Memo runs beside the app as a
+small MCP server, on the same computer. For an app in a browser or on a phone, use
+[the remote connection](remote.md): it serves the same three tools through your HTTPS tunnel.
+
+**On this page:**
+
+1. Commands and permissions
+2. Lock an agent to a group
+3. Open a cited item
+4. Connect an app
+5. The agent log
 
 ## Commands and permissions
 

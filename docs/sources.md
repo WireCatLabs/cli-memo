@@ -1,10 +1,22 @@
 # Sources you add by hand
 
-This page helps you give Memo one thing to remember: a file, a web page or text you paste. Memo keeps it as a
-document of its own, so you find it in search, an agent finds it when it looks something up, and facts can cite it.
-A watched folder is for many files that keep changing ([Notes and folders](notes.md)); this page is for one source.
-Transcripts, exports and records of a source no WireCat tool syncs come in with `memo import`
-([Import files and records](import.md)).
+Give Memo one thing to remember, a file, a web page or text you paste, and find it again next to your notes and
+messages. Memo keeps it as a document of its own: you find it in search, your agent finds it when it looks something
+up, and facts can cite it.
+
+A watched folder is for many files that keep changing ([Notes and folders](notes.md)). Transcripts, exports and
+records of a source no WireCat tool syncs come in with `memo import` ([Import files and records](import.md)).
+
+**On this page:**
+
+1. Add a source
+2. Look at a page before adding it
+3. What the answer says
+4. Look at a source
+5. Have a reader propose facts
+6. Remove a source
+7. For an agent
+8. When adding fails
 
 ## Add a source
 

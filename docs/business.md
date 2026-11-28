@@ -7,6 +7,16 @@ and subscriptions behind it, your bank accounts and what moved through them. Inv
 Every list here narrows with words such as `status:active`, never with flags. Each command's options are in the
 [command reference](./commands.md).
 
+**On this page:**
+
+1. Amounts and currencies
+2. Products
+3. Contracts
+4. Subscriptions
+5. Wallets and transactions
+6. Bring data in from another system
+7. Find it again
+
 ## Amounts and currencies
 
 An amount is a decimal with at most as many decimals as its currency has: `50000.00` RUB, `1200` JPY (none),

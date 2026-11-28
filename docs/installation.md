@@ -1,34 +1,35 @@
 # Installation
 
-Read this page before you run Memo for the first time, when you move to another computer, and when you update or
-remove Memo. When you are done, Memo is installed, you checked that it runs, and you know where it keeps its files.
-Adding your notes and mail is the next step, on its own pages.
+Install Memo in a few minutes and check that it runs. Installing logs in nowhere, starts no background service and
+reads none of your notes or mail. Memo reads a folder only after you add it and run `memo sync`, and syncing on a
+timer is a separate step that you turn on with `memo jobs start`.
 
-Words this page uses:
+You need Node.js, the program that runs Memo, on Linux. npm downloads the package **`@wirecat/cli-memo`** and puts
+the **`memo`** command on your computer. A skill, a short set of instructions, then tells your AI agent how to use
+Memo. Memo keeps text in the local store, one database file on your computer that it shares with
+[tg](https://github.com/WireCatLabs/tg-cli), [max](https://github.com/WireCatLabs/max-cli) and the other WireCat
+tools.
 
-- **npm package**: how Memo is shipped. npm (or pnpm, or Bun) downloads it and puts the `memo` command on your
-  computer. The package is **`@wirecat/cli-memo`**; the command it installs is **`memo`**.
-- **Node.js**: the program that runs Memo. Install it first.
-- **PATH**: the list of folders where the terminal looks for a command by its name. `memo` runs by name only if its
-  folder is on the PATH.
-- **The local store**: one database file on your computer that holds the text of your notes, mail and messages.
-  Memo shares it with [tg](https://github.com/WireCatLabs/tg-cli) and [max](https://github.com/WireCatLabs/max-cli).
-- **Skill**: short instructions that tell an AI agent how to use Memo.
+**On this page:**
 
-Installing does not log in anywhere, does not start a background service and does not read your notes or mail. Memo
-reads a folder or a mailbox only when you add it and run `memo sync`. Syncing on a timer is a separate step that you
-turn on with `memo jobs start`.
-
-<a id="update-and-remove" />
+1. What it needs
+2. Install
+3. First run
+4. Windows
+5. From sources
+6. Where the files are
+7. Update
+8. Remove
+9. Development
+10. Next
 
 ## What it needs
 
 - **Node.js 22.16+ (the 22.x line) or 24+**, with npm. Node.js 23 is not supported. If you do not have it, ask your
-  agent to help, or get it from [nodejs.org](https://nodejs.org). The command also runs under **Bun**; CI runs the
-  built command under Bun too.
-- Linux. macOS and Windows are not tested yet: memo's tests run on Linux only.
-- About 250 MB of disk for the install. Most of it is shared WireCat code that memo does not use yet: charts, speech
-  recognition and audio decoders.
+  agent to help, or get it from [nodejs.org](https://nodejs.org). The command also runs under **Bun**.
+- Linux. macOS and Windows are not tested yet.
+- About 250 MB of disk for the install. Most of it is shared WireCat code: charts, speech recognition and audio
+  decoders.
 
 Each source needs one more thing, and only when you use it:
 
@@ -38,7 +39,7 @@ Each source needs one more thing, and only when you use it:
 | Telegram or MAX messages | [tg](https://github.com/WireCatLabs/tg-cli) or [max](https://github.com/WireCatLabs/max-cli). They save your chats in the local store; Memo does not log in to a messenger |
 | Search by meaning | A search model on your computer, about 220 MB. Download it once: `memo models download embeddinggemma`. Without it, Memo searches by words |
 | Mail | The [mail](https://github.com/WireCatLabs/mail-cli) CLI. It copies your mailbox into the local store, and Memo searches it ([mail](mail.md#bring-mail-in-with-mail)). |
-| Syncing on a timer (`memo jobs`) | Linux with systemd. On macOS and Windows, run `memo sync` yourself or from your own scheduler ([keeping Memo up to date](archive.md)) |
+| Syncing on a timer (`memo jobs`) | Linux with systemd. On macOS and Windows, run `memo sync` yourself or from your own scheduler ([keep your notes current](archive.md)) |
 
 ## Install
 
@@ -104,7 +105,9 @@ memo sync --only notes                    # reads the notes, their links and tag
 memo search notes "budget"
 ```
 
-Then [add more folders](notes.md#add-a-folder) or [connect a mail account](mail.md).
+Then [add more folders](notes.md#add-a-folder). Your chats come in through their own tools: set up
+[tg](https://github.com/WireCatLabs/tg-cli), [max](https://github.com/WireCatLabs/max-cli) or wa for Telegram, MAX or
+WhatsApp, and [mail](mail.md) for email. Memo searches them as soon as they are saved.
 
 **Your agent's skill.** `memo skill install --for all` puts Memo's skill where Claude Code
 (`~/.claude/skills/cli-memo/`) and Codex or Gemini CLI (`~/.agents/skills/cli-memo/`) read it; `--for claude` or
@@ -113,7 +116,7 @@ Then [add more folders](notes.md#add-a-folder) or [connect a mail account](mail.
 
 ## Windows
 
-Windows is not tested yet; these steps are what should work. Open PowerShell and use `npm.cmd`, because PowerShell can block the `npm` script:
+Windows is not tested yet. Open PowerShell and use `npm.cmd`, because PowerShell can block the `npm` script:
 
 ```powershell
 npm.cmd install -g @wirecat/cli-memo
@@ -174,7 +177,9 @@ it skips the update check and, when the timer is off in the settings, does nothi
 > ⚠ **Set these variables everywhere, or nowhere.** A command run without them reads other settings and another
 > store, and says your folders or mail are not there. The timer keeps the ones set when you ran `memo jobs start`;
 > run it again after you change them. tg and max read the same store only when they get the same `MESSAGING_STORE`
-> or `WIRECAT_STATE_DIR`. The variables are meant for tests and throwaway profiles.
+> or `WIRECAT_STATE_DIR`.
+
+<a id="update-and-remove" />
 
 ## Update
 

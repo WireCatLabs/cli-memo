@@ -1,8 +1,20 @@
 # Tags
 
-This page helps you label your notes, emails, messages, people and projects, then find everything
-with a label. A tag is a short word you choose, such as `work`, `family` or `follow-up`. Tags live in
-the local store: your files, your Gmail labels and your mailbox stay as they are.
+Label your notes, emails, messages, people and projects, then find everything with one label in one search. A tag
+is a short word you choose, such as `work`, `family` or `follow-up`.
+
+Tags live in the local store: your files, your Gmail labels and your mailbox stay as they are.
+
+**On this page:**
+
+1. Add a tag
+2. What you can tag
+3. Tags in your files
+4. Find things by tag
+5. The watch list
+6. Remove a tag
+7. Review duplicate tags
+8. Tags and tg or max
 
 ## Add a tag
 

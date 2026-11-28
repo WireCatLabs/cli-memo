@@ -1,9 +1,22 @@
 # How Memo works
 
-This page explains what happens to your notes, mail and messages when Memo uses them: where the
-text is kept, what an import does, how links and references work, and what an agent can and cannot
-do. Read it when you want to know why Memo answers the way it does, or before you point it at
-something private.
+Know why Memo answers the way it does before you point it at something private. Your notes, mail and messages sit in
+one file on your computer, an import never changes the originals, and an agent proposes while you decide.
+
+Each part covers one rule: where the text is kept, what an import does, how links, people and references work, and
+what an agent may do.
+
+**On this page:**
+
+1. The local store
+2. What an import does
+3. Folders on more than one computer
+4. Links between notes and people
+5. One person, several accounts
+6. References
+7. Search by words and by meaning
+8. Agent authorship and review
+9. What can leave your computer
 
 ## The local store
 
@@ -120,17 +133,22 @@ Each command that reaches Memo’s executor is written to the agent log (`memo a
 
 Project proposals have a separate flow. By default only you decide them; reading and proposing still work.
 Set [`agent_decisions: true`](configuration.md#agent_decisions) to let an agent decide them with a recorded
-reason, creating accepted facts and numbered tasks or confirming a key document. Meeting findings decisions require explicit permissions.
+reason, creating accepted facts and numbered tasks or confirming a key document. An agent decides meeting findings
+only when you set [`meetings.actions.confirm`](configuration.md#permissions) to `ask` or `allow`.
 
-The `memo` command tells who runs it. An [MCP](mcp.md) call is the agent's. An agent's terminal, told by
-`AI_AGENT` or `CLAUDECODE` (the variables agents such as Claude Code set), is the agent's. With neither, the run
-is yours only when its input and output are a terminal; a run with no terminal and no agent named is recorded
-as the unattended bot `unattended`, which proposes and never decides. What the agent writes there, a fact,
-memory or relationship, starts as proposed; yours is confirmed or accepted at once. Proposed actions still wait
-for approval. In an agent's terminal, `--as-owner` makes a command yours only after you answer y at the
-terminal; it never asks under `--json` or without a terminal, and refuses with exit 7. WireCat Desktop passes
-`--from-app` on every decision you make in the app: the run is then yours with no question. It is the app's word
-that you clicked, not a check (see [Security](security.md)).
+What an agent writes, a fact, memory or relationship, starts as proposed; yours is confirmed or accepted at once.
+Proposed actions always wait for approval. The `memo` command tells who runs it:
+
+- An [MCP](mcp.md) call is the agent's.
+- A run in an agent's terminal is the agent's. Memo tells it by `AI_AGENT` or `CLAUDECODE`, the variables agents such
+  as Claude Code set.
+- With neither, the run is yours only when its input and output are a terminal. A run with no terminal and no agent
+  named is recorded as the unattended bot `unattended`, which proposes and never decides.
+
+Two flags make a run yours. In an agent's terminal, `--as-owner` does it only after you answer y at the terminal; under
+`--json` or without a terminal it never asks and refuses with exit 7. WireCat Desktop passes `--from-app` on every
+decision you make in the app, and the run is then yours with no question. Memo takes the app at its word and checks
+nothing (see [Security](security.md)).
 
 Every confirm, reject and remove path, CLI and MCP alike, checks who decides. An agent decides only with
 `--reason`, never a proposal of its own bot, never a rule's or an unconfirmed link's, and only when

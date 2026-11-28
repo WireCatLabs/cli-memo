@@ -1,10 +1,27 @@
 # Recipes
 
-This page gives you whole tasks to hand to your AI agent once Memo has your notes, mail or messages.
-Copy a request into your agent and change the names and topics to yours. Each one ends with
-something you can check: sources you can open, or a list waiting for your decision. Saving a record
-changes Memo's local store; exporting a note creates a file. These requests do not ask your agent
-to send a message.
+Hand your AI agent a whole task, such as getting ready for a meeting or turning requests into tasks, and get back
+something you can check: sources you can open, or a list waiting for your decision. Copy a request into your agent
+and change the names and topics to yours.
+
+Saving a record changes Memo's local store, and exporting a note creates a file. None of these requests asks your
+agent to send a message.
+
+**On this page:**
+
+1. Prepare for a meeting with someone
+2. Review a meeting's decisions and follow-ups
+3. Review project facts and follow-ups
+4. Keep selected project annotations
+5. Find where something was decided
+6. Turn requests into tasks
+7. Keep a project's notes together
+8. Remember a preference, with its source
+9. Record a decision from a chat
+10. Weekly review
+11. Write a summary into your vault
+12. Ask with sources only
+13. Run it on a schedule
 
 ## Prepare for a meeting with someone
 
@@ -35,8 +52,8 @@ calendar to verify a future occurrence. An unarchived series can still have sele
 but Memo cannot invent its missing transcripts.
 
 Messages and mail are included only when selected. `--context-source tg.personal` means the stored
-`personal` profile of `tg`; `max.personal` works the same way. `email.work` means a mailbox called `work`
-in Memo's mail settings. The profile or mailbox must already be stored. Repeat the flag for up to eight
+`personal` profile of `tg`; `max.personal` works the same way. `email.work` means the mailbox stored as `work`
+by `mail`. The profile or mailbox must already be stored. Repeat the flag for up to eight
 accounts and give `--context-query Harbour`. Every literal word must match; `OR` is not an alias operator.
 Use separate queries for alternative names. This selection does not include file notes or documents;
 read those separately with [project context](people.md#organizations-and-projects) and [search](search.md).
