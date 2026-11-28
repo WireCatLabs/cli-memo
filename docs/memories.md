@@ -1,11 +1,23 @@
 # Memories and facts
 
-This page helps you let your AI agent remember what it learned and record what happened, while you
-stay in charge of what is kept. Memo keeps three kinds of records, each with the sources that show it:
+Let your AI agent remember what it learned and record what happened, while you decide what is kept. What the agent
+proposes waits for you, and each record points to the sources that show it. Memo keeps three kinds of records:
 
 - a **memory**: something concluded, such as "Kai prefers Friday meetings";
 - a **fact**: something that happened, such as a decision, a promise or a question;
 - a **proposed action**: something an agent wants done, such as a reply.
+
+**On this page:**
+
+1. Review what your agent suggested
+2. Memories
+3. Correct or forget
+4. When a source changes
+5. Facts
+6. Meeting findings
+7. Proposed actions
+8. What agents did
+9. Through the MCP server
 
 ## Review what your agent suggested
 
@@ -186,7 +198,9 @@ An agent may propose a correction of another proposed fact; one you accepted onl
 
 ## Meeting findings
 
-After reading meeting evidence, ask your agent to propose the decisions and follow-up work you want to keep. Review the cited cues before creating records. A project-name match alone does not establish membership: the meeting must already have a confirmed link to the project.
+After a call, your agent can propose the decisions and follow-up tasks it heard, each pointing at the exact lines of
+the transcript. Nothing is created until you confirm the ones you want with `memo meetings actions confirm`. The
+meeting must already be linked to the project: a project name said in the call is not enough.
 
 The agent stages a JSON batch through `memo meetings actions add`. Each finding names an ID, a project and exact cue references with the fingerprints returned by `zm meetings evidence`. Facts retain their kind, such as `decision` or `promise`; tasks say whether a commitment was explicit or an inferred follow-up. Unknown dates and assignees stay absent; supplied values need their own supporting cues.
 

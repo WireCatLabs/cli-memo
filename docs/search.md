@@ -1,9 +1,26 @@
 # Search
 
-This page helps you find something you wrote or received, in your notes, your mail or your Telegram
-and MAX messages, and give your agent the sources behind an answer. Every result names its source,
-so you can open the original and check it. An empty result means this search returned no match.
-The selected sources, imported history or search index may still be incomplete.
+Find what was said about anything, wherever it was said: in a note, an email, a chat or a meeting. Your agent
+searches everything on your computer at once, quotes the matching text and shows where each result came from, so you
+can open the original and check it.
+
+A search reads only what is stored. A chat that was never downloaded, or a meeting that was never saved, is not
+there, so an empty answer does not prove that something never happened. The answer says what it could not search.
+
+**On this page:**
+
+1. Ask your agent
+2. Choose where to search
+3. Search words
+4. Narrow down your notes
+5. Search mail
+6. Search stored meetings
+7. Gather a project's meeting context
+8. Search by meaning
+9. Search harder
+10. What a result shows
+11. Give your agent the sources
+12. Meeting reader scope
 
 ## Ask your agent
 
@@ -103,14 +120,13 @@ memo search mail 'budget' --source email:you@example.com
 ```
 
 `mailbox:` finds a mail folder or a Gmail label, such as `inbox`, `important` or `starred`. Without
-`--source`, Memo searches every mailbox; `--source email:a@example.com,email:b@example.com` searches those two. Text
-inside attachments is searched too for mail older Memo versions imported (`filename:` and `content:`). Mail synced by
-`mail` keeps text and headers only, so it has no attachment text.
+`--source`, Memo searches every mailbox; `--source email:a@example.com,email:b@example.com` searches those two. Mail
+synced by `mail` keeps text and headers only, so it has no attachment text.
 
 ## Search stored meetings
 
-Once Zoom has archived your meetings into the shared store, Memo can find matching transcript passages,
-meeting titles, summaries and chat text locally. It does not contact Zoom or send text to a model.
+Once `zm` has saved your Zoom meetings in the local store, Memo can find matching transcript passages,
+meeting titles, summaries and chat text there, offline. It does not contact Zoom or send text to a model.
 Use your stored account name in place of `zoom:work`. `--source zoom` also works when the store has
 exactly one Zoom account; an ambiguous selection lists the accounts to choose from:
 
@@ -138,7 +154,7 @@ JSON answers have the standard
 `items`, `page`, `next` and `meta.accounts`; use the returned cursor with the same account and filters.
 The `missing` field reports unknown archive completeness. Even when indexing is ready, an empty search
 cannot prove that no meeting discussed the subject. If passages changed during indexing, rerun the
-search as its next step suggests. An unarchived or missing transcript must first be obtained with Zoom.
+search as its next step suggests. A transcript that is not stored yet must first be saved with `zm`.
 
 Next, [turn cited meeting passages into findings for review](recipes.md#review-a-meetings-decisions-and-follow-ups).
 
@@ -217,7 +233,7 @@ meeting-to-project links. Gathering itself creates neither kind of proposal.
 ## Search by meaning
 
 With the search model on your computer, Memo also searches by meaning, so `holiday` can find a note
-about a vacation. tg or max downloads the model once:
+about a vacation. Download the model once. tg, max and the other WireCat tools share it:
 
 ```sh
 memo models download embeddinggemma

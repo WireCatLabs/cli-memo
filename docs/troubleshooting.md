@@ -1,7 +1,26 @@
 # Troubleshooting
 
-This page helps when Memo does not do what you expected. Find what the screen says or what you
-noticed, then follow the steps. To ask your agent for help, give it the full message Memo printed.
+A search comes back empty, a note is missing or a command refuses. Most of these take a minute to fix. Find what you
+see on the screen in the list, then follow its steps. If nothing helps, give your agent the full message Memo printed.
+
+**On this page:**
+
+1. `memo: command not found`
+2. A note or file does not appear in search
+3. "Searched by words only"
+4. "nobody by that name yet"
+5. A folder is refused by import
+6. An import deleted nothing and printed a warning
+7. "no mail account"
+8. "memo sync no longer imports mail"
+9. Adding a source
+10. Reading a source for facts
+11. A note edit is refused
+12. A person's context is empty or missing something
+13. "give --account", "give --source" or "names 2 accounts; give one"
+14. Data from an older version is missing
+15. Help shows every command instead of one
+16. Still stuck
 
 ## `memo: command not found`
 
@@ -22,7 +41,8 @@ new one and run `memo --help`. If it still fails, install Memo again:
 ## "Searched by words only"
 
 The search model for search by meaning is not on your computer. Memo still finds every note that
-contains your words. To also search by meaning, download the model with tg or max, then import:
+contains your words. To also search by meaning, download the model once, then import. tg, max and the other WireCat
+tools share it:
 
 ```sh
 memo models download embeddinggemma
@@ -32,7 +52,7 @@ memo sync
 ## "nobody by that name yet"
 
 A note links to a name, such as `[[Kai Sample]]`, but nobody with that name is in the local store
-yet. The link starts working once the person's chats are downloaded with tg or max. If two people
+yet. The link starts working once the person's chats are downloaded with tg, max or wa. If two people
 share the name, link the right one with a reference such as `[Kai](person:7)`.
 
 ## A folder is refused by import
@@ -107,8 +127,8 @@ The revision you gave is not the current one: the note changed after you read it
 
 ## A person's context is empty or missing something
 
-- The person's chats are not downloaded yet. Download them with tg or max.
-- The accounts are not linked. Link them with `tg personal contacts link` ([details](people.md#link-a-persons-accounts)).
+- The person's chats are not downloaded yet. Download them with tg, max or wa.
+- The accounts are not linked. Link them with `memo people link` ([details](people.md#link-a-persons-accounts)).
 - With several accounts in one messenger, add `--source`, such as `--source telegram:1`.
 - A note that only mentions the name in its text is not included; link it instead.
 
@@ -122,7 +142,8 @@ takes `--source` in the same form. The error lists the accounts the store holds.
 
 Older Memo versions kept data in a file called `messages.db`. The current version uses the shared
 local store, `wirecat.db`, and does not read the old file. Add each folder again with
-`memo folders add`, then run `memo sync --only notes` and `memo sync --only mail`.
+`memo folders add`, then run `memo sync --only notes`. To bring mail back, sync each mailbox with the `mail` CLI
+([bring mail in](mail.md#bring-mail-in-with-mail)).
 
 ## Help shows every command instead of one
 

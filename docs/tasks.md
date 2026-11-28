@@ -1,9 +1,24 @@
 # Tasks and reminders
 
-This page helps you keep track of what you have to do: a request in a message, a promise in a note,
-or work in one of your projects. A task made from a message or note points to it, so you can always
-see why the task exists. Reminders stay on your computer: Memo never sends them to a messenger or a
-mailbox.
+Keep track of what you have to do: a request in a message, a promise in a note or work in one of your projects. A
+task made from a message or note points to it, so you always see why the task exists.
+
+Reminders stay on your computer: Memo never sends them to a messenger or a mailbox.
+
+**On this page:**
+
+1. A task from a message or note
+2. Tasks proposed from chats, mail and meetings
+3. What needs a look today
+4. Tasks in a project
+5. Priority and order
+6. States
+7. Find tasks
+8. Changed elsewhere
+9. Who works on it
+10. Close a task
+11. What to do first
+12. Reminders
 
 ## A task from a message or note
 
@@ -28,8 +43,8 @@ belongs to one account. A message reference already names its account, and a fil
 as `--account telegram:1` or a notes folder, `--account notes:1`. Adding the same task twice gives you the
 existing one.
 
-A notes folder is an account too: search results give its number as `folder_id`, and Memo accepts it as
-`notes:<number>` or as the `obsidian:<id>` or `local:<id>` its messages show; `folder:<id>` names it too.
+A notes folder is an account too: name it `notes:1`, with the number from `memo folders list` (search results give
+it as `folder_id`).
 `--source notes` names your folder when you have one. `memo tasks list` and `memo reminders list` without `--source` read every account and name them in
 `meta.accounts`.
 
@@ -89,7 +104,7 @@ messages, each found one with its `account`.
 | Option | Meaning |
 |---|---|
 | `--type` | `chore` (the default), `bug` or `feature` |
-| `--priority` | `low`, `medium`, `high` or `critical`; `none` clears it. 0 (urgent) to 4 (low) still work as before |
+| `--priority` | `low`, `medium`, `high` or `critical`; `none` clears it |
 | `--parent` | a bigger task this one is part of, in the same project |
 | `--description` | more detail, in Markdown |
 | `--assignee` | who does it, by the person's ID |

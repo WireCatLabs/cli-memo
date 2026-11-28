@@ -1,8 +1,9 @@
-# Keeping Memo up to date
+# Keep your notes current
 
-This page helps you keep Memo current without thinking about it. One command brings in what changed
-in your note folders and mailboxes, and on Linux a timer can run it for you every few minutes. Only
-what changed is read, so every run after the first is quick.
+Keep your notes searchable without thinking about it. One command reads what changed in your note folders, and on
+Linux a timer runs it every few minutes. Only what changed is read, so every run after the first is quick.
+
+Mail and messages stay current through their own tools: `mail`, `tg`, `max` and `wa`.
 
 ## Import what changed
 
@@ -10,8 +11,8 @@ what changed is read, so every run after the first is quick.
 memo sync
 ```
 
-This imports every folder and mail account in the [config file](configuration.md). It reports what
-it found for each one:
+This imports every note folder you added and prepares stored mail for search by meaning. It reports what it found
+for each folder:
 
 ```text
 notes /path/to/notes: 24 notes, 2 changed, 0 moved, 0 gone
@@ -51,7 +52,6 @@ if you edit it there, the timer follows at its next run.
 - A note file with the same size and change time as last time is not read.
 - Text that is already in the local store is not saved again, so a second computer importing the
   same folder adds nothing new.
-- Mail that is already stored is skipped.
 - Two imports never run at the same time, and one source that fails does not stop the others.
 
 [How Memo works](how-it-works.md#what-an-import-does) explains what happens to edited, moved and

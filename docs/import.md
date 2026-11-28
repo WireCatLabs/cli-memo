@@ -1,8 +1,22 @@
 # Import files and records
 
-This page helps you bring data that no WireCat tool syncs into Memo: a folder of text files, transcripts, or the
-records a small script of yours writes. After the import they are found by `memo search`, by an agent over MCP and by
-everything else that reads Memo's store, next to your messages, mail and notes.
+Bring in what no WireCat tool syncs: a folder of documents, call transcripts or the records a small script of yours
+writes. Your agent then finds it next to your messages, mail and notes, and every answer points to the file it came
+from.
+
+`memo search`, an agent over MCP and everything else that reads Memo's store see the import at once. Try it with
+`--dry-run` first: it says what would come in and writes nothing.
+
+**On this page:**
+
+1. The account
+2. What a folder import reads
+3. Recordings
+4. Run it again at any time
+5. What is kept
+6. Limits
+7. Safety
+8. Custom integrations
 
 ```sh
 memo import ~/Documents/handbook --account import:handbook --dry-run

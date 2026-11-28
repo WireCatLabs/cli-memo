@@ -1,21 +1,35 @@
 # Using Memo
 
-This page shows what a normal day with Memo looks like once it is installed: bringing in what
-changed, finding something, preparing for a conversation and saving what you learned. Each step
-links to the page with the details. Most of the time you ask your agent and it runs the commands;
-the commands are here so you can check what it does.
+Get through a working day with your agent doing the lookups: bring in what changed, find something, get ready for a
+conversation and save what you learned. You ask your agent, and it runs the commands. The commands are here so you
+can check what it does, and each step links to the page with the details.
+
+**On this page:**
+
+1. Bring in what changed
+2. Find something
+3. See your calendar and calls
+4. Meetings and calls in one list
+5. Every document
+6. Prepare for a conversation
+7. Save what you learned
+8. Review what your agent suggested
+9. Keep track of money
+10. Track deals and leads
+11. Answers for scripts and agents
+12. Choosing an account
 
 ## Bring in what changed
 
-Memo reads your folders and mailboxes when you ask, not all the time. One command brings in
-everything that changed since the last run:
+Memo reads your note folders when you ask, not all the time. One command brings in everything that changed since the
+last run:
 
 ```sh
 memo sync
 ```
 
-Only changed files and new mail are read, so a second run is quick. On Linux, `memo jobs start` runs it
-for you every few minutes ([keeping Memo up to date](archive.md)). Telegram, MAX and WhatsApp messages come in
+Only changed files are read, so a second run is quick. On Linux, `memo jobs start` runs it
+for you every few minutes ([keep your notes current](archive.md)). Telegram, MAX and WhatsApp messages come in
 through tg, max and wa, not through Memo.
 
 ## Find something
@@ -121,8 +135,8 @@ add yourself is confirmed (memory) or accepted (fact) at once.
 
 Project proposals use a separate [review flow](recipes.md#review-project-facts-and-follow-ups).
 By default only you decide them. Set [`agent_decisions: true`](configuration.md#agent_decisions) to let
-an agent decide them with a recorded reason, creating accepted facts and numbered tasks. Meeting findings
-still require the owner.
+an agent decide them with a recorded reason, creating accepted facts and numbered tasks. An agent decides meeting
+findings only when you set [`meetings.actions.confirm`](configuration.md#permissions) to `ask` or `allow`.
 
 ## Keep track of money
 

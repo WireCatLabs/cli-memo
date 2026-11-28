@@ -325,7 +325,7 @@ it on a systemd user timer; `jobs status` shows the next and last run, and while
 command says so in one stderr line. A lock keeps two imports apart: a
 timer run that finds a sync still running skips and exits 0. One failing source does not stop the others.
 
-More: [keeping memo up to date](https://github.com/WireCatLabs/cli-memo/blob/main/docs/archive.md) ·
+More: [keep your notes current](https://github.com/WireCatLabs/cli-memo/blob/main/docs/archive.md) ·
 [import a folder on wirecat.dev](https://wirecat.dev/en/docs/memo/notes#add-a-folder)
 
 ## Configuration
@@ -411,7 +411,7 @@ repository's issues.
 | [Memories and facts](https://github.com/WireCatLabs/cli-memo/blob/main/docs/memories.md) | What agents and you record, and proposed actions |
 | [The MCP server](https://github.com/WireCatLabs/cli-memo/blob/main/docs/mcp.md) | Apps without a terminal, the agent log |
 | [Remote connection](docs/remote.md) | Browser and phone apps, access-code login and revocation |
-| [Keeping memo up to date](https://github.com/WireCatLabs/cli-memo/blob/main/docs/archive.md) | `memo sync` and the timer |
+| [Keep your notes current](https://github.com/WireCatLabs/cli-memo/blob/main/docs/archive.md) | `memo sync` and the timer |
 | [Recipes](https://github.com/WireCatLabs/cli-memo/blob/main/docs/recipes.md) | Whole tasks to hand to your agent |
 | [All commands](https://github.com/WireCatLabs/cli-memo/blob/main/docs/commands.md) | Every command and option, generated |
 | [Configuration](https://github.com/WireCatLabs/cli-memo/blob/main/docs/configuration.md) | Every setting and variable |

@@ -1,13 +1,22 @@
 # Connect a browser or phone AI app
 
-Connect a remote AI app to Memo when the app cannot start a program on your computer. The app reaches
-Memo through your own HTTPS tunnel, logs in with a code from your terminal, and uses the same search,
-read and write commands as a local MCP client. The computer running Memo must stay on.
+Use Memo from an app in the browser or on your phone where you chat with your AI agent. The app reaches your computer
+through your own HTTPS tunnel, signs in with a code you see in the terminal, and uses the same search, read and write
+commands as a local MCP client. Your notes stay on your computer, which must stay on.
 
 An HTTPS tunnel forwards a public address to a port on your computer. The access-code login is OAuth:
 the app receives a login token after you approve its connection. Command permissions still decide what
 it may do. Text returned by Memo can reach the app and its AI provider; choose your sources accordingly
 ([security](security.md)).
+
+**On this page:**
+
+1. Start the tunnel and server
+2. Connect the app
+3. Send records from n8n
+4. Limit what an app can do
+5. Stop or revoke access
+6. If connection fails
 
 ## Start the tunnel and server
 
@@ -66,8 +75,7 @@ Ask the app to discover Memo's commands and search for a known synthetic or non-
 It should offer `memo_tools_search`, `memo_read` and `memo_write`. Open a returned source before
 using it as evidence. An app that cannot read the results should report that limit.
 
-The tunnel and app are separate installations. This guide describes the server's tested protocol;
-it does not certify every app, subscription or operating system setup.
+The tunnel and the app are installed separately from Memo.
 
 ## Send records from n8n
 

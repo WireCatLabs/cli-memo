@@ -1,8 +1,8 @@
 # Memo
 
 Before a call, get everything you know about the person in one answer: the last messages each way, the mail, your
-notes and what you promised. Memo keeps your notes, documents, mail and Telegram, MAX and WhatsApp messages in one
-place on your computer, so the AI agent you already use, such as Claude Code or Codex, can search all of it at once.
+notes and what you promised. Your notes, mail and chats stay on your computer, and the AI agent you already use, such
+as Claude Code or Codex, searches all of them at once.
 
 Ask "What do I need to know about Alice before the call?", "Where did we discuss the Harbour budget?" or "What did I
 promise people this week?". Every answer points back to its source: a note, a page of a file, an email or a message.
@@ -10,7 +10,7 @@ promise people this week?". Every answer points back to its source: a note, a pa
 **On this page:**
 
 1. [What you get](#what-you-get)
-2. [Things a newcomer would not guess](#things-a-newcomer-would-not-guess)
+2. [Before you start](#before-you-start)
 3. [How it looks](#how-it-looks)
 4. [Why Memo](#why-memo)
 5. [What it can do](#what-it-can-do)
@@ -32,7 +32,7 @@ promise people this week?". Every answer points back to its source: a note, a pa
 - **Answers with evidence.** Your agent gets the matching sources with their references and what could not be
   searched, so it cites instead of guessing.
 
-## Things a newcomer would not guess
+## Before you start
 
 - **Memo reads what the other tools copied.** `tg`, `max` and `wa` copy your chats, and `mail` copies your mail, into
   the WireCat local store, one file on your computer. Memo imports your folders into the same file and searches it. A chat no tool has
@@ -40,8 +40,7 @@ promise people this week?". Every answer points back to its source: a note, a pa
 - **Nothing is sent, and your sources stay as they are.** Memo has no command that sends a message or an email.
   Importing leaves your files and your mailbox unchanged.
 - **An agent proposes, you decide.** Memories and facts an agent records wait for your review before they count.
-- **Over MCP, "ask" goes ahead.** MCP is the way apps such as Claude Desktop call a tool, and nobody sits there to
-  answer a question. Set what an agent must not do to read only or refuse before you connect it.
+- **Connecting an app such as Claude Desktop?** Set what it must not do first ([MCP](mcp.md)).
 - **Search by meaning needs a model you download once.** Until then Memo searches by words and says so.
 
 ## How it looks
@@ -93,7 +92,7 @@ Graphiti, Cognee), or a hosted memory service for a product you build.
 - **One store on your computer.** Memo copies the text of your notes and documents into the local store, beside the
   messages and mail the other WireCat tools keep there. [How Memo works](how-it-works.md)
 - **Stays current.** `memo sync` reads what changed, and on Linux a timer can run it every five minutes.
-  [Keeping Memo up to date](archive.md)
+  [Keep your notes current](archive.md)
 - **Made for scripts and agents.** `--json` gives structured answers, and `memo answers create` hands an agent the
   evidence for a question.
 - **What it reads, writes and sends.** [Security](security.md)
@@ -116,8 +115,11 @@ memo sync --only notes             # reads the notes, their links and tags
 memo search notes budget
 ```
 
-You need Node.js 22.16 or a later 22.x, or Node.js 24 or later. Messages come in through `tg`, `max` or `wa`, and mail through
-`mail`. [Installation](installation.md)
+You need Node.js 22.16 or a later 22.x, or Node.js 24 or later ([Installation](installation.md)).
+
+Your chats come in through their own tools. Set up [tg](https://github.com/WireCatLabs/tg-cli) for Telegram,
+[max](https://github.com/WireCatLabs/max-cli) for MAX or wa for WhatsApp, and [mail](mail.md) for email. Memo searches
+them as soon as they are saved. Then ask your agent: "What do I need to know about Alice before the call?"
 
 ## Limits
 

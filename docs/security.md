@@ -1,9 +1,21 @@
 # Security
 
-This page says what Memo reads, what it writes and what can leave your computer, so you can decide
-what to point it at. Imports leave your sources unchanged, and Memo never changes a mailbox:
-Gmail cleanup is a command of the separate `mail` program. Memo keeps its records on your computer and sends text
-to an AI provider only when you configure one and allow it.
+Point Memo at your notes and messages knowing exactly what it reads, what it writes and what can leave your
+computer. Memo only reads your note folders and never opens a mailbox. What it adds stays in one file on your
+computer, and text goes to an AI provider only after you choose one and allow it.
+
+An agent proposes and you decide: its memories and facts wait for your review, and it never sends a message or
+an email.
+
+**On this page:**
+
+1. Imports leave your sources unchanged
+2. What Memo adds stays on your computer
+3. A source you add by hand
+4. Deletions are respected
+5. Control agent decisions
+6. A reader that proposes facts
+7. What can leave your computer
 
 <a id="your-sources-are-only-read"></a>
 
@@ -128,6 +140,9 @@ name another.
   neither `models ai set` nor `models ai check`.
 - The `ai-model` reader sends a source's text to whatever model `memo models ai set` chose at the time it reads, not
   the one chosen when you picked the reader. Changing the AI model changes where `sources suggest` sends text.
+- `memo search all --harder` sends your question and the first 30 results (the date, the title and an excerpt of up
+  to 400 characters each) to the provider you allowed with `memo models search-consents set`. A search without
+  `--harder` sends nothing, and `memo models search-consents revoke` stops it.
 - `memo answers create` gives the sources to your own agent by default. It sends them to an AI provider only
   with `--analyze`, and to a provider outside your computer only with `--allow-remote` as well. The
   provider's answer is generated text: check it against the sources.

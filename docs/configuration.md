@@ -1,9 +1,20 @@
 # Configuration
 
-Use this reference to look up Memo's own configuration settings and environment variables. You
-rarely need to edit the file by hand. `memo folders add` adds a folder
-and `memo jobs start` turns the timer on for you. Edit the file yourself for files to skip and where
-exported notes go.
+Look up any Memo setting or environment variable here, with what it does and its default. You rarely need to edit
+the file by hand: `memo folders add` adds a folder and `memo jobs start` turns the timer on for you. Edit it yourself
+for files to skip, where exported notes go and what an agent may do.
+
+**On this page:**
+
+1. `notes`
+2. `auto`
+3. `sources`
+4. `update_check`
+5. `record`, `record_input` and `keep_runs_for_days`
+6. `agent_decisions`
+7. `agent_merges`
+8. Environment variables
+9. `permissions`
 
 The file is `~/.config/cli-memo/config.json`. It is a JSON file: keep the quotes, commas and braces
 as in the example.
@@ -42,12 +53,6 @@ JSON is fixed by hand at the line and column `memo doctor` names.
 
 The folder `id` is the same on every computer; the `path` is different on each. See
 [use the same notes on another computer](notes.md#use-the-same-notes-on-another-computer).
-
-## `mail`
-
-Retired. Memo no longer imports mail: the [mail](mail.md#bring-mail-in-with-mail) CLI syncs each mailbox into the
-shared store, with its own settings. An old config that still has `mail` loads and nothing reads it; `memo doctor`
-names the mailboxes it lists, and `memo config unset mail` removes it.
 
 ## `auto`
 
@@ -120,7 +125,7 @@ meeting findings or replace the tool's other permission checks.
 `strong`, the default: an agent's `memo people link` merges two people at once when memo itself finds strong
 evidence: one mobile number or personal address that no one else has, or that each holder has from a different
 source, whatever their names, given by two different sources ([how](people.md#link-a-persons-accounts)). Anything weaker waits for you in `memo people review`. `propose`: every
-agent's link waits for you, as before. `agent_decisions` does not change this, and matches stay yours to confirm.
+agent's link waits for you. `agent_decisions` does not change this, and matches stay yours to confirm.
 
 ```json
 {
@@ -153,7 +158,7 @@ without a saved level use `ask`, so over MCP they run too.
 {
   "permissions": {
     "notes": "readonly",
-    "mail.delete": "deny",
+    "tasks": "readonly",
     "mcp.authority": "deny"
   }
 }

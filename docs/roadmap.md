@@ -1,7 +1,7 @@
 # Roadmap
 
-This page says what Memo does today, what is being built and what is planned. Read it before you look for a
-workaround: a missing feature may already be planned. The order is rough and can change. Suggest your own in
+Check whether what you miss is already planned before you look for a workaround. Here is what Memo does today, what
+comes next and what comes later. The order is rough and can change. Suggest your own in
 [issues on GitHub](https://github.com/WireCatLabs/cli-memo/issues).
 
 ## What works today
@@ -15,11 +15,10 @@ browser and phone apps can connect over authenticated HTTP through your HTTPS tu
 `models download`. Every command and option is in
 [all commands](commands.md); the guides start at [the overview](index.md).
 
-## In progress
-
-Nothing is being built right now. The first items under Next come first.
-
 ## Next
+
+The first items come first.
+
 
 - **Project evidence, next steps.** Before gathering, say which sources are fresh enough to search; read the
   whole thread around a match; optionally add search by meaning.
