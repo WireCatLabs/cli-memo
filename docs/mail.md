@@ -47,6 +47,24 @@ memo messages show <ref>
 `<ref>` is the `ref` of a search hit. `memo search all` finds this mail together with your notes and messages. More
 search words are in [Find your mail](#find-your-mail) and [Search](search.md#search-mail).
 
+## Newsletters and lists you are subscribed to
+
+`memo mail subscriptions list` shows the mail sent to many readers (reach `broadcast`), one row per list (its
+`List-Id`), or per sender when the mail names no list, newest first:
+
+```sh
+memo mail subscriptions list                       # every mailbox, 100 lists a page
+memo mail subscriptions list type:promotion        # only lists whose mail is marketing
+memo mail subscriptions list --source email:work --page 2 --json
+```
+
+Each row has `key`, `list_id`, `name`, `sender` (the `bot:` or `person:` that sent its newest mail), `emails`,
+`newest` and `unsubscribe`: the `https` and `mailto` addresses the list gives for leaving it, and `one_click` when one
+request does it. An address is shown only when the sender's own domain signed it (DKIM), so a forged link is never
+offered. Memo never unsubscribes for you. Mail stored before memo kept these addresses shows `can_unsubscribe: false`
+until it is read again. To read a group's mail: `memo search mail list:<list_id> reach:broadcast`, or for a row with
+no list, `memo search mail from:<address> reach:broadcast`.
+
 ## An agent that reads new mail and proposes tasks
 
 memo can run an agent after each sync that stored new mail. It reads only mail past its own mark, and only stages

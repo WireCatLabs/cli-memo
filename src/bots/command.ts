@@ -3,7 +3,7 @@ import { annotate } from "@wirecat/cli-base/commands"
 import type { QueryRegistry } from "@wirecat/cli-base/query"
 import { LOCAL_READ, LOCAL_WRITE, queryTerms, termField, withQuery } from "@wirecat/cli-core/cli"
 import { type IdentityRef, SENDER_BOT_PREFIX, senderBotRef } from "@wirecat/cli-core/store"
-import type { BotMove, SenderBot } from "@wirecat/cli-core/store/areas"
+import { BOT_SENDS, type BotMove, type BotSends, type SenderBot } from "@wirecat/cli-core/store/areas"
 import type { Command } from "commander"
 import { answers, itemAnswer, listAnswer, withStore } from "../answer.js"
 import { byOption } from "../author.js"
@@ -91,14 +91,20 @@ export const botsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
   const query = {
     entity: "sender_bot",
     backend: "native",
-    fields: [termField("name", "txt", "name:shop"), termField("organization", "ref", 'organization:"organization:3"')],
+    fields: [
+      termField("name", "txt", "name:shop"),
+      termField("organization", "ref", 'organization:"organization:3"'),
+      termField("type", "enum", "type:receipts", { values: Object.keys(BOT_SENDS) }),
+    ],
   } as const satisfies QueryRegistry
   withQuery(
     annotate(bots.command("list"), { effects: LOCAL_READ })
       .summary("the bots, by name")
       .description(
         "the bots, by name: each with its identities, its organization, who sorted it (rules or you), its reach and " +
-          "the messages and mail it sent",
+          "the messages and mail it sent. type: is what a bot sends: alerts (security codes, sign-in and system " +
+          "alerts, account notices), receipts (orders, bills, shipping), newsletters, marketing, or messenger (a bot " +
+          "in a messenger)",
       ),
     query,
   )
@@ -110,6 +116,7 @@ export const botsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
       const terms = queryTerms(words, query, "bots list")
       const name = terms.get("name")
       const organization = terms.get("organization")
+      const type = terms.get("type") as BotSends | undefined
       const limit = Math.min(options.limit, 5000)
       const found = await withStore(env, (store) =>
         store.people.listBots({
@@ -117,6 +124,7 @@ export const botsCommand = (program: Command, streams: Streams, env: NodeJS.Proc
           offset: (options.page - 1) * limit,
           ...(name === undefined ? {} : { query: name }),
           ...(organization === undefined ? {} : { organization }),
+          ...(type === undefined ? {} : { sends: [type] }),
         }),
       )
       print(

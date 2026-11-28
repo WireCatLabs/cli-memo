@@ -20,6 +20,7 @@
   "mail findings add": "write",
   "mail findings show": "read",
   "mail findings list": "read",
+  "mail subscriptions list": "read",
   "people add": "write",
   "people list": "read",
   "people check": "read",
